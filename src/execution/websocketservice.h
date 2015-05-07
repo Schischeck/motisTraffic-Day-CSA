@@ -15,8 +15,8 @@ using websocketpp::connection_hdl;
 
 namespace td {
 
-class Graph;
-class StationGuesser;
+//class Graph;
+//class StationGuesser;
 
 namespace execution {
 
