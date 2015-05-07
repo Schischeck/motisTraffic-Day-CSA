@@ -35,6 +35,8 @@ add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml-1.2/scripts EXCLUDE_FROM_ALL)
 
+#//TODO check websocketpp library
+
 include_directories(src)
 include_directories(external_lib/pugixml-1.2/src)
 include_directories(external_lib/net/include)
