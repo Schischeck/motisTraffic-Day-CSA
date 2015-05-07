@@ -14,12 +14,12 @@ websocketservice::websocketservice() :  m_count(0) {
 
 void websocketservice::on_open(connection_hdl hdl) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_connections.insert(hdl);
+//    m_connections.insert(hdl);
 }
 
 void websocketservice::on_close(connection_hdl hdl) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_connections.erase(hdl);
+//    m_connections.erase(hdl);
 }
 
 void websocketservice::count() {
@@ -31,9 +31,9 @@ void websocketservice::count() {
         ss << m_count;
 
         std::lock_guard<std::mutex> lock(m_mutex);
-        for (auto it : m_connections) {
-            m_server.send(it,ss.str(),websocketpp::frame::opcode::text);
-        }
+//        for (auto it : m_connections) {
+//            m_server.send(it,ss.str(),websocketpp::frame::opcode::text);
+//        }
     }
 }
 

@@ -15,9 +15,6 @@ using websocketpp::connection_hdl;
 
 namespace td {
 
-//class Graph;
-//class StationGuesser;
-
 namespace execution {
 
 class websocketservice {
@@ -34,7 +31,7 @@ private:
 
     int m_count;
     websocketsrv m_server;
-    con_list m_connections;
+//    con_list m_connections;
     std::mutex m_mutex;
 };
 
