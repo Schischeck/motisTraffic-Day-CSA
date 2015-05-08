@@ -38,8 +38,8 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
     }
     std::string str_req;
     std::string str_resp;
-    td::Station::Station *tmp_station;
-    str.append(m_messages[0]);
+    td::Station *tmp_station;
+    str_req.append(m_messages[0]);
     m_messages.erase(m_messages.begin());
     if (str_req[0].compare("0") == 0) {
         str_resp.clear();
