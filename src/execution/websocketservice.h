@@ -31,6 +31,8 @@ private:
     websocketserver m_server;
     con_list m_connections;
     std::mutex m_mutex;
+
+    std::vector<std::string> m_messages;
 };
 }
 }

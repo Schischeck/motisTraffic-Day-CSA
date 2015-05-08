@@ -31,8 +31,17 @@ void websocketservice::on_close(connection_hdl hdl) {
 }
 
 void websocketservice::on_message(connection_hdl hdl, websocketserver::message_ptr msg) {
+    if (msg->get_opcode() == websocketpp::frame::opcode::text) {
+        m_messages.push_back("<< " + msg->get_payload());
+    } else {
+        m_messages.push_back("<< " + websocketpp::utility::to_hex(msg->get_payload()));
+    }
+    std::string str;
+    str.append(m_messages[0]);
+    m_messages.erase(m_messages.begin());
+    str.append("jsdkfdsjflkd");
     for (auto it : m_connections) {
-        m_server.send(it,msg);
+        m_server.send(it, str, websocketpp::frame::opcode::text);
     }
 }
 
@@ -47,7 +56,7 @@ void websocketservice::count() {
 
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto it : m_connections) {
-            m_server.send(it,ss.str(),websocketpp::frame::opcode::text);
+            m_server.send(it,ss.str() + "10", websocketpp::frame::opcode::text);
         }
     }
 }
