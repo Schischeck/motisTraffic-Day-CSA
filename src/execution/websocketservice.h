@@ -34,7 +34,7 @@ private:
     std::mutex m_mutex;
 
     std::vector<std::string> m_messages;
-    td::Schedule m_schedule;
+    td::Schedule &m_schedule;
     std::vector<StationPtr> m_stations;
 };
 }
