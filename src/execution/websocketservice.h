@@ -17,7 +17,7 @@ typedef websocketpp::server<websocketpp::config::asio> websocketserver;
 
 class websocketservice {
 public:
-    websocketservice(td::Schedule &m_schedule);
+    websocketservice(std::vector<StationPtr> &stations);
     ~websocketservice();
 
     void on_open(connection_hdl hdl);
@@ -34,8 +34,8 @@ private:
     std::mutex m_mutex;
 
     std::vector<std::string> m_messages;
-    td::Schedule &m_schedule;
-    std::vector<StationPtr> m_stations;
+//    td::Schedule &m_schedule;
+    std::vector<StationPtr> &m_stations;
 };
 }
 }
