@@ -9,7 +9,7 @@ using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
 
-websocketservice::websocketservice(std::vector<StationPtr> &stations) : m_stations(m_stations) {
+websocketservice::websocketservice(std::vector<StationPtr> &stations) : m_stations(stations) {
     m_server.init_asio();
 
     m_server.set_open_handler(bind(&websocketservice::on_open, this, ::_1));
@@ -49,7 +49,7 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
         std::cout << "str_resp_cleared" << std::endl;
         std::cout << "size: " << this->m_stations.size() << std::endl;
         for (long unsigned int i=0; i<this->m_stations.size(); i++) {
-            /*
+
             tmp_station = m_stations[i].get();
             std::cout << "tmp_station got" << std::endl;
             if( tmp_station != NULL )
@@ -61,7 +61,7 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
             str_resp.append(std::to_string(tmp_station->width));
             str_resp.append(";");
             std::cout << "appendet " << std::to_string(i) << "," << std::to_string(tmp_station->length) << std::endl;
-            */
+
             //std::cout << i << std::endl;
         }
         std::cout << "sent stations" << std::endl;
