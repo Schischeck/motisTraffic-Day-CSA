@@ -82,7 +82,8 @@ if(MSVC)
   )
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 elseif(MINGW)
-  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11")
+  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11");
+  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
   set(_def
     BOOST_THREAD_USE_LIB
     WINVER=0x0501
@@ -91,7 +92,8 @@ elseif(MINGW)
   )
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 else()
-  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11");
+  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Wextra -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
 endif()
 
 
