@@ -6,6 +6,7 @@
 #include <set>
 #include <mutex>
 #include <functional>
+#include "serialization/Schedule.h"
 
 using websocketpp::connection_hdl;
 
@@ -16,7 +17,7 @@ typedef websocketpp::server<websocketpp::config::asio> websocketserver;
 
 class websocketservice {
 public:
-    websocketservice();
+    websocketservice(td::Schedule &m_schedule);
     ~websocketservice();
 
     void on_open(connection_hdl hdl);
@@ -33,6 +34,8 @@ private:
     std::mutex m_mutex;
 
     std::vector<std::string> m_messages;
+    td::Schedule m_schedule;
+    std::vector<StationPtr> m_stations;
 };
 }
 }
