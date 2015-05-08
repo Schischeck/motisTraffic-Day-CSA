@@ -41,19 +41,19 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
     td::Station *tmp_station;
     str_req.append(m_messages[0]);
     m_messages.erase(m_messages.begin());
-    if (str_req[0].compare("0") == 0) {
+    if (str_req[0] == '0') {
         str_resp.clear();
-        for (long int i=0; i<this->m_stations.size(); i++) {
-            tmp_station = &(m_stations[i].get();)
+        for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+            tmp_station = m_stations[i].get();
             str_resp.append(std::to_string(i));
             str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station.length));
+            str_resp.append(std::to_string(tmp_station->length));
             str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station.width));
+            str_resp.append(std::to_string(tmp_station->width));
             str_resp.append(";");
             m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
         }
-    } else if (str_req[0].compare("1")) {
+    } else if (str_req[0] == 1) {
         //
     }
 
