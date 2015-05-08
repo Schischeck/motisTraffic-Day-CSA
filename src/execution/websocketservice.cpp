@@ -9,8 +9,7 @@ using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
 
-websocketservice::websocketservice(td::Schedule &m_schedule) {
-    this->m_schedule = m_schedule;
+websocketservice::websocketservice(td::Schedule &m_schedule) : m_schedule(m_schedule) {
     m_server.init_asio();
 
     m_server.set_open_handler(bind(&websocketservice::on_open, this, ::_1));
