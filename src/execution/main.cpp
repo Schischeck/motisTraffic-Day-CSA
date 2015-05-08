@@ -21,7 +21,7 @@
 #include "execution/callback_settings.h"
 #include "execution/webservice.h"
 
-#include "execution/websocketservice.cpp"
+#include "execution/websocketservice.h"
 
 using namespace td::execution;
 using namespace net::http::server;

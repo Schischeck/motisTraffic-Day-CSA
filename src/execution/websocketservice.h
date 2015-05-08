@@ -1,6 +1,34 @@
 #ifndef WEBSOCKETSERVICE_H
 #define WEBSOCKETSERVICE_H
 
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
+
+using websocketpp::connection_hdl;
+
+namespace td {
+namespace execution {
+
+typedef websocketpp::server<websocketpp::config::asio> websocketserver;
+
+class websocketservice {
+public:
+    websocketservice();
+    ~websocketservice();
+
+    void on_open(connection_hdl hdl);
+    void on_close(connection_hdl hdl);
+    void on_message(connection_hdl hdl, websocketserver::message_ptr msg);
+    void run(uint16_t port);
+private:
+    typedef std::set<connection_hdl, std::owner_less<connection_hdl>> con_list;
+
+    websocketserver m_server;
+    con_list m_connections;
+};
+}
+}
+
 //#include <functional>
 //#include <mutex>
 //#include <set>
