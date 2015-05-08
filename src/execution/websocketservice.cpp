@@ -51,8 +51,8 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
             str_resp.append(",");
             str_resp.append(std::to_string(tmp_station->width));
             str_resp.append(";");
-            m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
         }
+        m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
     } else if (str_req[0] == 1) {
         //
     }
