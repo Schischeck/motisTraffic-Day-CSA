@@ -55,7 +55,11 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
         }
         m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
     } else if (str_req[0] == '1' && str_req[1] == ',') {
-
+        long unsigned int i = 0;
+        std::stringstream ss;
+        ss<<str_req.substr(2);
+        ss>>i;
+        m_server.send(hdl, m_stations[i].get()->name, websocketpp::frame::opcode::text);
     }
 
     //    for (auto it : m_connections) {
