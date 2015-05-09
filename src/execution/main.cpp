@@ -21,6 +21,8 @@
 #include "execution/callback_settings.h"
 #include "execution/webservice.h"
 
+#include "execution/websocketservice.h"
+
 using namespace td::execution;
 using namespace net::http::server;
 using boost::system::error_code;
@@ -85,14 +87,22 @@ int main(int argc, char* argv[]) {
 
   boost::asio::io_service ios;
 
-  webservice ws(graph);
-  server http_server(ios, listener_opt.host, listener_opt.port,
-                     std::reference_wrapper<webservice>(ws));
-  management_callback(ios, callback_opt);
+//  webservice ws(graph);
+//  server http_server(ios, listener_opt.host, listener_opt.port,
+//                     std::reference_wrapper<webservice>(ws));
+//  management_callback(ios, callback_opt);
 
-  shutdown_handler<server> server_shutdown_handler(ios, http_server);
+//  shutdown_handler<server> server_shutdown_handler(ios, http_server);
 
   LOG(td::logging::info) << "Serving requests...";
-  ios.run();
+//  ios.run();
+
+//  websocketservice websocksrv;
+//  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
+//  websocksrv.run(9002);
+
+  websocketservice websocketsrv(sched.stations);
+  websocketsrv.run(9002);
+
   std::cout << "quit\n";
 }
