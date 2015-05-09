@@ -12,6 +12,7 @@ using websocketpp::lib::bind;
 websocketservice::websocketservice(std::vector<StationPtr> &stations) : m_stations(stations) {
     m_server.init_asio();
 
+    m_server.clear_access_channels(websocketpp::log::alevel::all);
     m_server.set_open_handler(bind(&websocketservice::on_open, this, ::_1));
     m_server.set_close_handler(bind(&websocketservice::on_close, this, ::_1));
     m_server.set_message_handler(bind(&websocketservice::on_message, this, ::_1, ::_2));
