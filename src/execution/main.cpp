@@ -101,7 +101,6 @@ int main(int argc, char* argv[]) {
 //  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
 //  websocksrv.run(9002);
 
-  std::cout << "shed size" << sched.stations.size() << std::endl;
   websocketservice websocketsrv(sched.stations);
   websocketsrv.run(9002);
 
