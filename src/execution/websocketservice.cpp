@@ -67,22 +67,6 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
     //    }
 }
 
-
-void websocketservice::count() {
-    while (1) {
-        sleep(1);
-        m_count++;
-
-        std::stringstream ss;
-        ss << m_count;
-
-        std::lock_guard<std::mutex> lock(m_mutex);
-        for (auto it : m_connections) {
-            m_server.send(it,ss.str() + "10", websocketpp::frame::opcode::text);
-        }
-    }
-}
-
 void websocketservice::run(uint16_t port) {
     m_server.listen( boost::asio::ip::tcp::v4(), port);
     m_server.start_accept();
