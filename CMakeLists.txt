@@ -42,6 +42,9 @@ include_directories(external_lib/pugixml-1.2/src)
 include_directories(external_lib/net/include)
 include_directories(external_lib/conf/include)
 include_directories(external_lib/rapidjson/include)
+
+# INCLUDE DIR WITH WEBSOCKETSPP
+
 include_directories(${Boost_INCLUDE_DIR})
 
 
