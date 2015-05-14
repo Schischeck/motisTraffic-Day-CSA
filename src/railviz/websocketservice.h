@@ -11,7 +11,7 @@
 using websocketpp::connection_hdl;
 
 namespace td {
-namespace execution {
+namespace railviz {
 
 typedef websocketpp::server<websocketpp::config::asio> websocketserver;
 

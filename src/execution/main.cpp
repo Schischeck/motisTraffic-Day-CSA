@@ -21,7 +21,7 @@
 #include "execution/callback_settings.h"
 #include "execution/webservice.h"
 
-#include "execution/websocketservice.h"
+#include "railviz/websocketservice.h"
 
 using namespace td::execution;
 using namespace net::http::server;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 //  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
 //  websocksrv.run(9002);
 
-  websocketservice websocketsrv(sched.stations);
+  td::railviz::websocketservice websocketsrv(sched.stations);
   websocketsrv.run(9002);
 
   std::cout << "quit\n";

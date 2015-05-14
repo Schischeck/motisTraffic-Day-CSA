@@ -53,6 +53,10 @@ include_directories(${Boost_INCLUDE_DIR})
 ################################
 file(GLOB_RECURSE TD_BASE_FILES "src/*.cpp")
 file(GLOB_RECURSE TD_EXE_FILES "src/execution/*.cpp")
+#new group
+file(GLOB_RECURSE TD_RAILVIZ_FILES "src/railviz/*.cpp")
+list(APPEND TD_EXE_FILES ${TD_RAILVIZ_FILES})
+
 file(GLOB_RECURSE TD_SERIALIZATION "src/serialization/*.cpp")
 file(GLOB TD_BATCH_FILES "src/execution/batch.cpp")
 file(GLOB TD_DESERIALIZER "src/serialization/Deserializer.cpp")
