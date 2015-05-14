@@ -21,7 +21,8 @@
 #include "execution/callback_settings.h"
 #include "execution/webservice.h"
 
-#include "railviz/websocketservice.h"
+#include "railviz/WebsocketService.h"
+#include "railviz/WebsocketServiceSettings.h"
 
 using namespace td::execution;
 using namespace net::http::server;
