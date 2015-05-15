@@ -23,6 +23,8 @@
 
 #include "railviz/WebsocketService.h"
 #include "railviz/WebsocketServiceSettings.h"
+#include <thread>
+
 #include "pthread.h"
 
 using namespace td::execution;
@@ -104,17 +106,24 @@ int main(int argc, char* argv[]) {
     //  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
     //  websocksrv.run(9002);
 
-    pthread_t web_soc_thread, web_thread;
+
+
+
+/*    pthread_t p_web_soc_thread, p_web_thread;
 
     if (web_soc_opt.web_soc_enabled) {
         td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
 //        websocketsrv.run();
-        pthread_create(&web_soc_thread, NULL, &td::railviz::WebsocketService::runHelper, &websocketsrv);
-        pthread_join(web_soc_thread, NULL);
-    }
+        pthread_create(&p_web_soc_thread, NULL, &td::railviz::WebsocketService::runHelper, &websocketsrv);
+        pthread_join(p_web_soc_thread, NULL);
+    }*/
 //    if (web_soc_opt.web_soc_enabled) {
 //        pthread_join(web_soc_thread, NULL);
 //    }
+
+    td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
+    std::thread web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
+    web_soc_thread.join();
 
     std::cout << "quit\n";
 }
