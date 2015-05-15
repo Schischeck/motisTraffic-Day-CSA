@@ -25,8 +25,6 @@
 #include "railviz/WebsocketServiceSettings.h"
 #include <thread>
 
-#include "pthread.h"
-
 using namespace td::execution;
 using namespace net::http::server;
 using boost::system::error_code;
@@ -92,6 +90,12 @@ int main(int argc, char* argv[]) {
 
     boost::asio::io_service ios;
 
+
+    //define threads
+    std::thread web_soc_thread;
+    std::thread web_thread;
+
+
     //  webservice ws(graph);
     //  server http_server(ios, listener_opt.host, listener_opt.port,
     //                     std::reference_wrapper<webservice>(ws));
@@ -121,9 +125,14 @@ int main(int argc, char* argv[]) {
 //        pthread_join(web_soc_thread, NULL);
 //    }
 
+    if (web_soc_opt.web_soc_enabled) {
     td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
-    std::thread web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
+    web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
+    }
+
+    if (web_soc_thread.joinable()) {
     web_soc_thread.join();
+    }
 
     std::cout << "quit\n";
 }
