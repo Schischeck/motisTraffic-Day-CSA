@@ -61,10 +61,11 @@ void management_callback(
 
 int main(int argc, char* argv[]) {
   listener_settings listener_opt("0.0.0.0", "8080");
+
   dataset_settings dataset_opt("data/test");
   callback_settings callback_opt(false, "127.0.0.1", "", "");
-
-  conf::options_parser parser({ &listener_opt, &dataset_opt, &callback_opt });
+  td::railviz::WebsocketServiceSettings web_soc_opt(false, "0.0.0.0", "9002");
+  conf::options_parser parser({ &listener_opt, &web_soc_opt, &dataset_opt, &callback_opt });
   parser.read_command_line_args(argc, argv);
 
   if (parser.help()) {
