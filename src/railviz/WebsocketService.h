@@ -15,15 +15,16 @@ namespace railviz {
 
 typedef websocketpp::server<websocketpp::config::asio> websocketserver;
 
-class websocketservice {
+class WebsocketService {
 public:
-    websocketservice(std::vector<StationPtr> &stations, std::string &host, std::string &port);
-    ~websocketservice();
+    WebsocketService(std::vector<StationPtr> &stations, std::string &host, std::string &port);
+    ~WebsocketService();
 
     void on_open(connection_hdl hdl);
     void on_close(connection_hdl hdl);
     void on_message(connection_hdl hdl, websocketserver::message_ptr msg);
     void run();
+    static void *runHelper(void *classRef);
 private:
     typedef std::set<connection_hdl, std::owner_less<connection_hdl>> con_list;
 
