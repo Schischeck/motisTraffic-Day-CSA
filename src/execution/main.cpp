@@ -96,34 +96,16 @@ int main(int argc, char* argv[]) {
     std::thread web_thread;
 
 
-    //  webservice ws(graph);
-    //  server http_server(ios, listener_opt.host, listener_opt.port,
-    //                     std::reference_wrapper<webservice>(ws));
-    //  management_callback(ios, callback_opt);
+    webservice ws(graph);
+    server http_server(ios, listener_opt.host, listener_opt.port,
+                       std::reference_wrapper<webservice>(ws));
+    management_callback(ios, callback_opt);
 
-    //  shutdown_handler<server> server_shutdown_handler(ios, http_server);
+    shutdown_handler<server> server_shutdown_handler(ios, http_server);
 
     LOG(td::logging::info) << "Serving requests...";
+
     //  ios.run();
-
-    //  websocketservice websocksrv;
-    //  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
-    //  websocksrv.run(9002);
-
-
-
-
-    /*    pthread_t p_web_soc_thread, p_web_thread;
-
-    if (web_soc_opt.web_soc_enabled) {
-        td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
-//        websocketsrv.run();
-        pthread_create(&p_web_soc_thread, NULL, &td::railviz::WebsocketService::runHelper, &websocketsrv);
-        pthread_join(p_web_soc_thread, NULL);
-    }*/
-    //    if (web_soc_opt.web_soc_enabled) {
-    //        pthread_join(web_soc_thread, NULL);
-    //    }
 
     td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
     if (web_soc_opt.web_soc_enabled) {
@@ -131,7 +113,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (web_soc_thread.joinable()) {
-    web_soc_thread.join();
+        web_soc_thread.join();
     }
 
     std::cout << "quit\n";
