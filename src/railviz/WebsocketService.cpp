@@ -9,13 +9,15 @@ using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
 
-websocketservice::websocketservice(std::vector<StationPtr> &stations) : m_stations(stations) {
+websocketservice::websocketservice(std::vector<StationPtr> &stations,
+                                   std::string &host, std::string &port) : m_stations(stations) {
     m_server.init_asio();
 
     m_server.clear_access_channels(websocketpp::log::alevel::all);
     m_server.set_open_handler(bind(&websocketservice::on_open, this, ::_1));
     m_server.set_close_handler(bind(&websocketservice::on_close, this, ::_1));
     m_server.set_message_handler(bind(&websocketservice::on_message, this, ::_1, ::_2));
+    m_server.listen(host, port);
 }
 
 websocketservice::~websocketservice() {
@@ -69,7 +71,7 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
 }
 
 void websocketservice::run(uint16_t port) {
-    m_server.listen( boost::asio::ip::tcp::v4(), port);
+    //m_server.listen( boost::asio::ip::tcp::v4(), port);
     m_server.start_accept();
     m_server.run();
 }

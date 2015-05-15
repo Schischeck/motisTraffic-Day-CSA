@@ -60,11 +60,11 @@ void management_callback(
 }
 
 int main(int argc, char* argv[]) {
-  listener_settings listener_opt("0.0.0.0", "8080");
+  listener_settings listener_opt("127.0.0.1", "8080");
 
   dataset_settings dataset_opt("data/test");
   callback_settings callback_opt(false, "127.0.0.1", "", "");
-  td::railviz::WebsocketServiceSettings web_soc_opt(false, "0.0.0.0", "9002");
+  td::railviz::WebsocketServiceSettings web_soc_opt(false, "127.0.0.1", "9002");
   conf::options_parser parser({ &listener_opt, &web_soc_opt, &dataset_opt, &callback_opt });
   parser.read_command_line_args(argc, argv);
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 //  std::thread tr(std::bind(&websocketservice::count, &websocksrv));
 //  websocksrv.run(9002);
 
-  td::railviz::websocketservice websocketsrv(sched.stations);
+  td::railviz::websocketservice websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
   websocketsrv.run(9002);
 
   std::cout << "quit\n";
