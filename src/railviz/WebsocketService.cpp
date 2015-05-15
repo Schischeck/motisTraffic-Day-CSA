@@ -17,7 +17,8 @@ websocketservice::websocketservice(std::vector<StationPtr> &stations,
     m_server.set_open_handler(bind(&websocketservice::on_open, this, ::_1));
     m_server.set_close_handler(bind(&websocketservice::on_close, this, ::_1));
     m_server.set_message_handler(bind(&websocketservice::on_message, this, ::_1, ::_2));
-    m_server.listen(host, port);
+    m_host = host;
+    m_port = port;
 }
 
 websocketservice::~websocketservice() {
@@ -70,8 +71,8 @@ void websocketservice::on_message(connection_hdl hdl, websocketserver::message_p
     //    }
 }
 
-void websocketservice::run(uint16_t port) {
-    //m_server.listen( boost::asio::ip::tcp::v4(), port);
+void websocketservice::run() {
+    m_server.listen(m_host, m_port);
     m_server.start_accept();
     m_server.run();
 }

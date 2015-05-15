@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 //  websocksrv.run(9002);
 
   td::railviz::websocketservice websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
-  websocketsrv.run(9002);
+  websocketsrv.run();
 
   std::cout << "quit\n";
 }

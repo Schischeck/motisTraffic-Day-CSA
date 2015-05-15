@@ -23,7 +23,7 @@ public:
     void on_open(connection_hdl hdl);
     void on_close(connection_hdl hdl);
     void on_message(connection_hdl hdl, websocketserver::message_ptr msg);
-    void run(uint16_t port);
+    void run();
 private:
     typedef std::set<connection_hdl, std::owner_less<connection_hdl>> con_list;
 
