@@ -74,6 +74,7 @@ void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_p
 void WebsocketService::run() {
     m_server.listen(m_host, m_port);
     m_server.start_accept();
+    std::cout << "THREAD" << std::endl;
     m_server.run();
 }
 

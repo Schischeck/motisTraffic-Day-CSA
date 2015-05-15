@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
 
 
-/*    pthread_t p_web_soc_thread, p_web_thread;
+    /*    pthread_t p_web_soc_thread, p_web_thread;
 
     if (web_soc_opt.web_soc_enabled) {
         td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
@@ -121,18 +121,20 @@ int main(int argc, char* argv[]) {
         pthread_create(&p_web_soc_thread, NULL, &td::railviz::WebsocketService::runHelper, &websocketsrv);
         pthread_join(p_web_soc_thread, NULL);
     }*/
-//    if (web_soc_opt.web_soc_enabled) {
-//        pthread_join(web_soc_thread, NULL);
-//    }
+    //    if (web_soc_opt.web_soc_enabled) {
+    //        pthread_join(web_soc_thread, NULL);
+    //    }
 
-//    if (web_soc_opt.web_soc_enabled) {
     td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
-    web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
-//    }
+    std::cout << web_soc_opt.web_soc_enabled << std::endl;
+    if (web_soc_opt.web_soc_enabled) {
+        std::cout << web_soc_opt.web_soc_enabled << std::endl;
+        web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
+    }
 
-//    if (web_soc_thread.joinable()) {
+    //if (web_soc_thread.joinable()) {
     web_soc_thread.join();
-//    }
+    //}
 
     std::cout << "quit\n";
 }
