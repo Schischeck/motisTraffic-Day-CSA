@@ -125,14 +125,14 @@ int main(int argc, char* argv[]) {
 //        pthread_join(web_soc_thread, NULL);
 //    }
 
-    if (web_soc_opt.web_soc_enabled) {
+//    if (web_soc_opt.web_soc_enabled) {
     td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
     web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
-    }
+//    }
 
-    if (web_soc_thread.joinable()) {
+//    if (web_soc_thread.joinable()) {
     web_soc_thread.join();
-    }
+//    }
 
     std::cout << "quit\n";
 }
