@@ -10,7 +10,8 @@ namespace execution {
 
 class listener_settings : public conf::configuration {
 public:
-  listener_settings(std::string default_host,
+  listener_settings(bool default_enable,
+                    std::string default_host,
                     std::string default_port);
 
   virtual ~listener_settings() { }
@@ -19,6 +20,7 @@ public:
 
   virtual void print(std::ostream& out) const override;
 
+  bool enabled;
   std::string host, port;
 };
 

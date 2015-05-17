@@ -61,7 +61,7 @@ void management_callback(
 }
 
 int main(int argc, char* argv[]) {
-    listener_settings listener_opt("127.0.0.1", "8080");
+    listener_settings listener_opt(false, "127.0.0.1", "8080");
 
     dataset_settings dataset_opt("data/test");
     callback_settings callback_opt(false, "127.0.0.1", "", "");
@@ -113,7 +113,15 @@ int main(int argc, char* argv[]) {
     }
 
     if (web_soc_thread.joinable()) {
-        web_soc_thread.join();
+        web_soc_thread.join();  
+    }
+
+    //if (web_thread.enabled){
+    //    web_thread = std::thread
+    //}
+
+    if (web_thread.joinable()) {
+        web_thread.join();
     }
 
     std::cout << "quit\n";
