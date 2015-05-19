@@ -103,22 +103,21 @@ int main(int argc, char* argv[]) {
 
     shutdown_handler<server> server_shutdown_handler(ios, http_server);
 
-    LOG(td::logging::info) << "Serving requests...";
-
-    //  ios.run();
-
     td::railviz::WebsocketService websocketsrv(sched.stations, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
     if (web_soc_opt.web_soc_enabled) {
         web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
+    } 
+
+    LOG(td::logging::info) << "Serving requests...";
+
+    if (listener_opt.enabled) {
+        //web_thread == std::thread(std::bind(&boost::asio::io_service::run, &ios));
+        ios.run();
     }
 
     if (web_soc_thread.joinable()) {
         web_soc_thread.join();  
     }
-
-    //if (web_thread.enabled){
-    //    web_thread = std::thread
-    //}
 
     if (web_thread.joinable()) {
         web_thread.join();
