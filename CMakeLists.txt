@@ -29,13 +29,16 @@ endif()
 ################################
 # Dependencies
 ################################
+#include(FindProtobuf)
+
 find_package(Threads)
 find_package(Boost COMPONENTS system regex filesystem)
+find_package(Protobuf REQUIRED)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml-1.2/scripts EXCLUDE_FROM_ALL)
 
-#//TODO check websocketpp library
+#//TODO check websocketpp library header
 
 include_directories(src)
 include_directories(external_lib/pugixml-1.2/src)
@@ -43,6 +46,8 @@ include_directories(external_lib/net/include)
 include_directories(external_lib/conf/include)
 include_directories(external_lib/rapidjson/include)
 
+include_directories(${PROTOBUF_INCLUDE_DIRS})
+set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER} PROPERTIES GENERATED TRUE)
 # INCLUDE DIR WITH WEBSOCKETSPP
 
 include_directories(${Boost_INCLUDE_DIR})
@@ -55,7 +60,9 @@ file(GLOB_RECURSE TD_BASE_FILES "src/*.cpp")
 file(GLOB_RECURSE TD_EXE_FILES "src/execution/*.cpp")
 #new group
 file(GLOB_RECURSE TD_RAILVIZ_FILES "src/railviz/*.cpp")
-list(APPEND TD_EXE_FILES ${TD_RAILVIZ_FILES})
+#list(APPEND TD_EXE_FILES ${TD_RAILVIZ_FILES})
+#list(APPEND TD_EXE_FILES ${PROTO_SRCS})
+#list(APPEND TD_EXE_FILES ${PROTO_HDRS})
 
 file(GLOB_RECURSE TD_SERIALIZATION "src/serialization/*.cpp")
 file(GLOB TD_BATCH_FILES "src/execution/batch.cpp")
@@ -70,10 +77,12 @@ list(REMOVE_ITEM TD_EXE_FILES  ${TD_BATCH_FILES})
 ################################
 # Library
 ################################
-add_library(td-base STATIC ${TD_BASE_FILES})
-target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
+add_library(td-base STATIC ${TD_BASE_FILES} ${TD_RAILVIZ_FILES} ${PROTO_SRC} ${PROTO_HEADER})
+#target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
+target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${PROTOBUF_LIBRARIES} pugixml)
 if (NOT MSVC)
-  set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+  #set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+  set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
 endif()
 
 

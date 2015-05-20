@@ -7,6 +7,7 @@
 #include <mutex>
 #include <functional>
 #include "serialization/Schedule.h"
+#include "WebsocketService.pb.h"
 
 using websocketpp::connection_hdl;
 
