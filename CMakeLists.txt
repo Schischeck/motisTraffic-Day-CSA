@@ -50,7 +50,7 @@ include_directories(${Boost_INCLUDE_DIR})
 #file(GLOB ProtoFiles "src/*.proto")
 #PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER ${ProtoFiles})
 #PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HEADERS src/railviz/WebsocketService.proto)
-set_source_files_properties(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+##set_source_files_properties(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
 
 ################################
@@ -86,7 +86,7 @@ list(REMOVE_ITEM TD_EXE_FILES  ${TD_BATCH_FILES})
 ################################
 add_library(td-base STATIC ${TD_BASE_FILES} ${TD_RAILVIZ_FILES})
 #target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
-target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml ${PROTOBUF_LIBRARIES})
+target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml WebsocketServiceProtoLib ${PROTOBUF_LIBRARIES})
 if (NOT MSVC)
   #set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
   set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
@@ -97,7 +97,7 @@ endif()
 # Service Executable
 ################################
 add_executable(td ${TD_EXE_FILES})
-target_link_libraries(td td-base conf net-http_server net-tcp_client ${PROTOBUF_LIBRARIES})
+target_link_libraries(td td-base conf net-http_server net-tcp_client)
 if(MSVC)
   set(_def
     _VARIADIC_MAX=10
