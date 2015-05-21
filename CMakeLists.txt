@@ -31,21 +31,33 @@ endif()
 ################################
 find_package(Threads)
 find_package(Boost COMPONENTS system regex filesystem)
+
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml-1.2/scripts EXCLUDE_FROM_ALL)
+add_subdirectory(src/railviz)
 
-#//TODO check websocketpp library
+#//TODO check websocketpp library header
 
 include_directories(src)
 include_directories(external_lib/pugixml-1.2/src)
 include_directories(external_lib/net/include)
 include_directories(external_lib/conf/include)
 include_directories(external_lib/rapidjson/include)
-
-# INCLUDE DIR WITH WEBSOCKETSPP
+include_directories(src/railviz)
 
 include_directories(${Boost_INCLUDE_DIR})
+#file(GLOB ProtoFiles "src/*.proto")
+#PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER ${ProtoFiles})
+#PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HEADERS src/railviz/WebsocketService.proto)
+set_source_files_properties(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+
+
+################################
+# Protobuf
+################################
+find_package(Protobuf REQUIRED)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 
 ################################
@@ -55,7 +67,9 @@ file(GLOB_RECURSE TD_BASE_FILES "src/*.cpp")
 file(GLOB_RECURSE TD_EXE_FILES "src/execution/*.cpp")
 #new group
 file(GLOB_RECURSE TD_RAILVIZ_FILES "src/railviz/*.cpp")
-list(APPEND TD_EXE_FILES ${TD_RAILVIZ_FILES})
+#list(APPEND TD_EXE_FILES ${TD_RAILVIZ_FILES})
+#list(APPEND TD_EXE_FILES ${PROTO_SRCS})
+#list(APPEND TD_EXE_FILES ${PROTO_HDRS})
 
 file(GLOB_RECURSE TD_SERIALIZATION "src/serialization/*.cpp")
 file(GLOB TD_BATCH_FILES "src/execution/batch.cpp")
@@ -70,10 +84,12 @@ list(REMOVE_ITEM TD_EXE_FILES  ${TD_BATCH_FILES})
 ################################
 # Library
 ################################
-add_library(td-base STATIC ${TD_BASE_FILES})
+add_library(td-base STATIC ${TD_BASE_FILES} ${TD_RAILVIZ_FILES})
+#target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
 target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
 if (NOT MSVC)
-  set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+  #set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+  set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
 endif()
 
 
@@ -81,7 +97,7 @@ endif()
 # Service Executable
 ################################
 add_executable(td ${TD_EXE_FILES})
-target_link_libraries(td td-base conf net-http_server net-tcp_client)
+target_link_libraries(td td-base conf net-http_server net-tcp_client ${PROTOBUF_LIBRARIES})
 if(MSVC)
   set(_def
     _VARIADIC_MAX=10
@@ -89,7 +105,7 @@ if(MSVC)
   )
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 elseif(MINGW)
-  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11");
+  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11")
   set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
   set(_def
     BOOST_THREAD_USE_LIB
@@ -99,7 +115,7 @@ elseif(MINGW)
   )
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 else()
-  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11");
+  #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11")
   set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Wextra -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
 endif()
 

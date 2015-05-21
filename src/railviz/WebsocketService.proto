@@ -1,0 +1,72 @@
+package td.railviz;
+
+message RequestPovUpdate {
+    required int32 protoVersion = 1;
+    required float lt_latitude = 2;
+    required float lt_longitude = 3;
+    required float rb_latitude = 4;
+    required float rb_longitude = 5;
+}
+
+message RequestAllStations {
+    required int32 protoVersion = 1;
+}
+
+message ResponseAllStatinos {
+    required int32 protoVersion = 1;
+    
+    message Station {
+        required int32 stationId = 1;
+        required float station_latitude = 2;
+        required float station_longitude = 3;
+    }
+    
+    repeated Station station = 2;
+}
+
+message RequestGetStationsInfo {
+    required int32 protoVersion = 1;
+    
+    message Station {
+        required int32 stationId = 1;
+    }
+    
+    repeated Station station = 2;
+}
+
+message ResponseGetStationsInfo {
+    required int32 protoVersion = 1;
+    
+    message Station {
+        required string name = 1;
+    }
+    
+    repeated Station station = 2;
+}
+
+message RequestAllTrains {
+    required int32 protoVersion = 1;
+}
+
+message ResponseAllTrains {
+    required int32 protoVersion = 1;
+    
+    message Train
+    {
+        message Station
+        {
+            required int32 id = 1;
+            required float latitude = 2;
+            required float longitude = 3;
+            // unklar ob int32 oder float
+            required int32 time = 4;
+        }
+        
+        required Station start = 1;
+        required Station end = 2;
+    }
+    
+    // unklar ob float oder in
+    required int32 currentTime = 2;
+    repeated Train trains = 3;
+}
