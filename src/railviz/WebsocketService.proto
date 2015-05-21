@@ -21,7 +21,7 @@ message ResponseAllStatinos {
         required float station_longitude = 3;
     }
     
-    repeated Station station = 2
+    repeated Station station = 2;
 }
 
 message RequestGetStationsInfo {
