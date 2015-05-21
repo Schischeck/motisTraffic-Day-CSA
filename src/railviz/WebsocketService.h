@@ -34,10 +34,17 @@ private:
     con_list m_connections;
     std::mutex m_mutex;
 
-    std::vector<std::string> m_messages;
-//    td::Schedule &m_schedule;
+    struct websocmsg {
+        connection_hdl hdl;
+        google::protobuf::Message* msg;
+    };
+
+    std::vector<websocmsg> m_messages;
+    std::vector<std::string> DEPRECATED_m_messages;
     std::vector<StationPtr> &m_stations;
     std::string m_host, m_port;
+
+
 };
 }
 }

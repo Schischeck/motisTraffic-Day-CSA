@@ -36,39 +36,53 @@ void WebsocketService::on_close(connection_hdl hdl) {
 
 void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_ptr msg) {
     if (msg->get_opcode() == websocketpp::frame::opcode::text) {
-        m_messages.push_back(msg->get_payload());
-    } else {
-        //m_messages.push_back("<< " + websocketpp::utility::to_hex(msg->get_payload()));
-    }
-    std::string str_req;
-    std::string str_resp;
-    td::Station *tmp_station;
-    str_req.append(m_messages[0]);
-    m_messages.erase(m_messages.begin());
-    if (str_req[0] == '0') {
-        str_resp.clear();
-        for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+        websocmsg message;
+        message.hdl = hdl;
 
-            tmp_station = m_stations[i].get();
-            str_resp.append(std::to_string(i));
-            str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station->width));
-            str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station->length));
-            str_resp.append(";");
-        }
-        m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
-    } else if (str_req[0] == '1' && str_req[1] == ',') {
-        long unsigned int i = 0;
-        std::stringstream ss;
-        ss<<str_req.substr(2);
-        ss>>i;
-        m_server.send(hdl, m_stations[i].get()->name, websocketpp::frame::opcode::text);
-    }
+        td::railviz::RequestPovUpdate req_pov_update;
+        td::railviz::RequestAllStations req_all_stations;
+        td::railviz::RequestGetStationsInfo req_get_stations_info;
+        td::railviz::RequestAllTrains req_all_trains;
 
-    //    for (auto it : m_connections) {
-    //        m_server.send(it, str, websocketpp::frame::opcode::text);
-    //    }
+//        if (!req_pov_update.ParseFromString(msg->get_payload())) {
+//            //message.msg = &req_pov_update;
+//        }
+
+        m_messages.push_back(message);
+        return;
+
+        //        DEPRECATED_m_messages.push_back(msg->get_payload());
+        //        std::string str_req;
+        //        std::string str_resp;
+        //        td::Station *tmp_station;
+        //        str_req.append(DEPRECATED_m_messages[0]);
+        //        DEPRECATED_m_messages.erase(DEPRECATED_m_messages.begin());
+        //        if (str_req[0] == '0') {
+        //            str_resp.clear();
+        //            for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+
+        //                tmp_station = m_stations[i].get();
+        //                str_resp.append(std::to_string(i));
+        //                str_resp.append(",");
+        //                str_resp.append(std::to_string(tmp_station->width));
+        //                str_resp.append(",");
+        //                str_resp.append(std::to_string(tmp_station->length));
+        //                str_resp.append(";");
+        //            }
+        //            m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
+        //        } else if (str_req[0] == '1' && str_req[1] == ',') {
+        //            long unsigned int i = 0;
+        //            std::stringstream ss;
+        //            ss<<str_req.substr(2);
+        //            ss>>i;
+        //            m_server.send(hdl, m_stations[i].get()->name, websocketpp::frame::opcode::text);
+        //        }
+        //        return;
+    }
+    if (msg->get_opcode() == websocketpp::frame::opcode::binary) {
+        return;
+    }
+    return;
 }
 
 void WebsocketService::run() {
