@@ -9,6 +9,8 @@
 #include "serialization/Schedule.h"
 #include "WebsocketService.pb.h"
 
+#define PROTOCOL_VERSION 1
+
 using websocketpp::connection_hdl;
 
 namespace td {
@@ -24,6 +26,7 @@ public:
     void on_open(connection_hdl hdl);
     void on_close(connection_hdl hdl);
     void on_message(connection_hdl hdl, websocketserver::message_ptr msg);
+    void reply();
     void run();
     static void *runHelper(void *classRef);
 private:
@@ -36,7 +39,7 @@ private:
 
     struct websocmsg {
         connection_hdl hdl;
-        google::protobuf::Message* msg;
+        std::string msg;
     };
 
     std::vector<websocmsg> m_messages;

@@ -38,15 +38,9 @@ void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_p
     if (msg->get_opcode() == websocketpp::frame::opcode::text) {
         websocmsg message;
         message.hdl = hdl;
-
-        RequestPovUpdate req_pov_update;
-        RequestAllStations req_all_stations;
-        RequestGetStationsInfo req_get_stations_info;
-        RequestAllTrains req_all_trains;
-
-        if (!req_pov_update.ParseFromString(msg->get_payload())) {
-            //message.msg = &req_pov_update;
-        }
+        message.msg = msg->get_payload();
+        m_messages.push_back(message);
+        this->reply();
 
         //m_messages.push_back(message);
         //return;
@@ -79,9 +73,31 @@ void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_p
         //        }
         //        return;
     }
-    if (msg->get_opcode() == websocketpp::frame::opcode::binary) {
-        return;
+    return;
+}
+
+void WebsocketService::reply() {
+    RequestPovUpdate req_pov_update;
+    RequestAllStations req_all_stations;
+    RequestGetStationsInfo req_get_stations_info;
+    RequestAllTrains req_all_trains;
+    for (websocmsg message: m_messages) {
+        if (req_pov_update.ParseFromString(message.msg)) {
+           //TODO
+        } else if (req_all_stations.ParseFromString(message.msg)) {
+            if (req_all_stations.protoversion() != PROTOCOL_VERSION) continue;
+            ResponseAllStatinos resp_all_stations;
+            resp_all_stations.set_protoversion(PROTOCOL_VERSION);
+            for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+                ResponseAllStatinos_Station* station = resp_all_stations.add_station();
+                station->set_stationid(i);
+                station->set_station_latitude(m_stations[i].get()->width);
+                station->set_station_longitude(m_stations[i].get()->length);
+            }
+            m_server.send(message.hdl, resp_all_stations.SerializeAsString(), websocketpp::frame::opcode::text);
+        }
     }
+    m_messages.clear();
     return;
 }
 
