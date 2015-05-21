@@ -39,14 +39,14 @@ void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_p
         websocmsg message;
         message.hdl = hdl;
 
-        td::railviz::RequestPovUpdate req_pov_update;
-        td::railviz::RequestAllStations req_all_stations;
-        td::railviz::RequestGetStationsInfo req_get_stations_info;
-        td::railviz::RequestAllTrains req_all_trains;
+        td::railviz::RequestPovUpdate req_pov_update;// = new td::railviz::RequestPovUpdate;
+        //td::railviz::RequestAllStations req_all_stations;
+        //td::railviz::RequestGetStationsInfo req_get_stations_info;
+        //td::railviz::RequestAllTrains req_all_trains;
 
-//        if (!req_pov_update.ParseFromString(msg->get_payload())) {
-//            //message.msg = &req_pov_update;
-//        }
+        if (!req_pov_update.ParseFromString(msg->get_payload())) {
+            //message.msg = &req_pov_update;
+        }
 
         m_messages.push_back(message);
         return;

@@ -86,7 +86,7 @@ list(REMOVE_ITEM TD_EXE_FILES  ${TD_BATCH_FILES})
 ################################
 add_library(td-base STATIC ${TD_BASE_FILES} ${TD_RAILVIZ_FILES})
 #target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
-target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml)
+target_link_libraries(td-base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} pugixml ${PROTOBUF_LIBRARIES})
 if (NOT MSVC)
   #set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
   set_target_properties(td-base PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
@@ -106,7 +106,7 @@ if(MSVC)
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 elseif(MINGW)
   #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11")
-  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
+  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system -lprotobuf")
   set(_def
     BOOST_THREAD_USE_LIB
     WINVER=0x0501
@@ -116,7 +116,7 @@ elseif(MINGW)
   set_target_properties(td PROPERTIES COMPILE_DEFINITIONS "${_def}")
 else()
   #set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++11")
-  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Wextra -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system")
+  set_target_properties(td PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Wextra -D_WEBSOCKETPP_CPP11_STL_ -D_WEBSOCKETPP_NO_CPP11_REGEX_ -lboost_regex -lboost_system -lprotobuf")
 endif()
 
 
