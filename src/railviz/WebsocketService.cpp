@@ -35,7 +35,7 @@ void WebsocketService::on_close(connection_hdl hdl) {
 }
 
 void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_ptr msg) {
-    if (msg->get_opcode() == websocketpp::frame::opcode::text) {
+    if (msg->get_opcode() == websocketpp::frame::opcode::binary) {
         websocmsg message;
         message.hdl = hdl;
         message.msg = msg->get_payload();
@@ -94,7 +94,7 @@ void WebsocketService::reply() {
                 station->set_station_latitude(m_stations[i].get()->width);
                 station->set_station_longitude(m_stations[i].get()->length);
             }
-            m_server.send(message.hdl, resp_all_stations.SerializeAsString(), websocketpp::frame::opcode::text);
+            m_server.send(message.hdl, resp_all_stations.SerializeAsString(), websocketpp::frame::opcode::binary);
         }
     }
     m_messages.clear();
