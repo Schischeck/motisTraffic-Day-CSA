@@ -86,10 +86,10 @@ void WebsocketService::reply() {
            //TODO
         } else if (req_all_stations.ParseFromString(message.msg)) {
             if (req_all_stations.protoversion() != PROTOCOL_VERSION) continue;
-            ResponseAllStatinos resp_all_stations;
+            ResponseAllStations resp_all_stations;
             resp_all_stations.set_protoversion(PROTOCOL_VERSION);
             for (long unsigned int i=0; i<this->m_stations.size(); i++) {
-                ResponseAllStatinos_Station* station = resp_all_stations.add_station();
+                ResponseAllStations_Station* station = resp_all_stations.add_station();
                 station->set_stationid(i);
                 station->set_station_latitude(m_stations[i].get()->width);
                 station->set_station_longitude(m_stations[i].get()->length);
