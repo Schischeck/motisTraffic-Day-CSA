@@ -50,14 +50,16 @@ void WebsocketService::reply( websocmsg& message ) {
     protocol::Response response;
     response.set_protocol_version(PROTOCOL_VERSION);
 
-    if( request.protocol_version() != PROTOCOL_VERSION )
+
+    if( request.ParseFromString( message.msg ) )
     {
-        response.set_type( protocol::Response::ERROR );
-        response.set_msg("The Protocol-Version is not supportet");
-    } else
-    {
-        if( request.ParseFromString( message.msg ) )
+        if( request.protocol_version() != PROTOCOL_VERSION )
         {
+            response.set_type( protocol::Response::ERROR );
+            response.set_msg("The Protocol-Version is not supportet");
+        } else
+        {
+
             if( request.type() == protocol::Request::ALL_STATIONS )
             {
                 response.set_type( protocol::Response::ALL_STATIONS );
@@ -67,16 +69,27 @@ void WebsocketService::reply( websocmsg& message ) {
                     station->set_latitude(m_stations[i].get()->width);
                     station->set_longitude(m_stations[i].get()->length);
                 }
-            } else
+            }
+            else if( request.type() == protocol::Request::DETAILED_STATION )
+            {
+                response.set_type( protocol::Response::DETAILED_STATION );
+                for (long unsigned int i=0; i < request.stations_size(); i++) {
+                    int id = request.stations(i).id();
+                    protocol::Station* station = response.add_stations();
+                    station->set_id(id);
+                    station->set_name(m_stations[id].get()->name);
+                }
+            }
+            else
             {
                 response.set_type( protocol::Response::ERROR );
                 response.set_msg("Invalid Request-Type");
             }
-        } else
-        {
-            response.set_type( protocol::Response::ERROR );
-            response.set_msg("Failed to parse Request");
         }
+    } else
+    {
+        response.set_type( protocol::Response::ERROR );
+        response.set_msg("Failed to parse Request");
     }
 
     m_server.send(message.hdl, response.SerializeAsString(), websocketpp::frame::opcode::binary);
