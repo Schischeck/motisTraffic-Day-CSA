@@ -12,7 +12,7 @@ message RequestAllStations {
     required int32 protoVersion = 1;
 }
 
-message ResponseAllStatinos {
+message ResponseAllStations {
     required int32 protoVersion = 1;
     
     message Station {

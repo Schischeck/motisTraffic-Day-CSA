@@ -7,7 +7,9 @@
 #include <mutex>
 #include <functional>
 #include "serialization/Schedule.h"
-#include "WebsocketService.pb.h"
+#include "RailvizProtocolV2.pb.h"
+
+#define PROTOCOL_VERSION 2
 
 using websocketpp::connection_hdl;
 
@@ -27,6 +29,12 @@ public:
     void run();
     static void *runHelper(void *classRef);
 private:
+    struct websocmsg {
+        connection_hdl hdl;
+        std::string msg;
+    };
+    void reply( websocmsg& );
+
     typedef std::set<connection_hdl, std::owner_less<connection_hdl>> con_list;
 
     int m_count;
@@ -34,10 +42,12 @@ private:
     con_list m_connections;
     std::mutex m_mutex;
 
-    std::vector<std::string> m_messages;
-//    td::Schedule &m_schedule;
+    std::vector<websocmsg> m_messages;
+    std::vector<std::string> DEPRECATED_m_messages;
     std::vector<StationPtr> &m_stations;
     std::string m_host, m_port;
+
+
 };
 }
 }

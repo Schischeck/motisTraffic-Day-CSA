@@ -35,40 +35,64 @@ void WebsocketService::on_close(connection_hdl hdl) {
 }
 
 void WebsocketService::on_message(connection_hdl hdl, websocketserver::message_ptr msg) {
-    if (msg->get_opcode() == websocketpp::frame::opcode::text) {
-        m_messages.push_back(msg->get_payload());
-    } else {
-        //m_messages.push_back("<< " + websocketpp::utility::to_hex(msg->get_payload()));
+    if (msg->get_opcode() == websocketpp::frame::opcode::binary) {
+        websocmsg message;
+        message.hdl = hdl;
+        message.msg = msg->get_payload();
+        m_messages.push_back(message);
+        this->reply( message );
     }
-    std::string str_req;
-    std::string str_resp;
-    td::Station *tmp_station;
-    str_req.append(m_messages[0]);
-    m_messages.erase(m_messages.begin());
-    if (str_req[0] == '0') {
-        str_resp.clear();
-        for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+    return;
+}
 
-            tmp_station = m_stations[i].get();
-            str_resp.append(std::to_string(i));
-            str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station->width));
-            str_resp.append(",");
-            str_resp.append(std::to_string(tmp_station->length));
-            str_resp.append(";");
+void WebsocketService::reply( websocmsg& message ) {
+    protocol::Request request;
+    protocol::Response response;
+    response.set_protocol_version(PROTOCOL_VERSION);
+
+
+    if( request.ParseFromString( message.msg ) )
+    {
+        if( request.protocol_version() != PROTOCOL_VERSION )
+        {
+            response.set_type( protocol::Response::ERROR );
+            response.set_msg("The Protocol-Version is not supportet");
+        } else
+        {
+
+            if( request.type() == protocol::Request::ALL_STATIONS )
+            {
+                response.set_type( protocol::Response::ALL_STATIONS );
+                for (long unsigned int i=0; i<this->m_stations.size(); i++) {
+                    protocol::Station* station = response.add_stations();
+                    station->set_id(i);
+                    station->set_latitude(m_stations[i].get()->width);
+                    station->set_longitude(m_stations[i].get()->length);
+                }
+            }
+            else if( request.type() == protocol::Request::DETAILED_STATION )
+            {
+                response.set_type( protocol::Response::DETAILED_STATION );
+                for (long unsigned int i=0; i < request.stations_size(); i++) {
+                    int id = request.stations(i).id();
+                    protocol::Station* station = response.add_stations();
+                    station->set_id(id);
+                    station->set_name(m_stations[id].get()->name);
+                }
+            }
+            else
+            {
+                response.set_type( protocol::Response::ERROR );
+                response.set_msg("Invalid Request-Type");
+            }
         }
-        m_server.send(hdl, str_resp, websocketpp::frame::opcode::text);
-    } else if (str_req[0] == '1' && str_req[1] == ',') {
-        long unsigned int i = 0;
-        std::stringstream ss;
-        ss<<str_req.substr(2);
-        ss>>i;
-        m_server.send(hdl, m_stations[i].get()->name, websocketpp::frame::opcode::text);
+    } else
+    {
+        response.set_type( protocol::Response::ERROR );
+        response.set_msg("Failed to parse Request");
     }
 
-    //    for (auto it : m_connections) {
-    //        m_server.send(it, str, websocketpp::frame::opcode::text);
-    //    }
+    m_server.send(message.hdl, response.SerializeAsString(), websocketpp::frame::opcode::binary);
 }
 
 void WebsocketService::run() {

@@ -27,12 +27,12 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* RequestAllStations_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   RequestAllStations_reflection_ = NULL;
-const ::google::protobuf::Descriptor* ResponseAllStatinos_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* ResponseAllStations_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  ResponseAllStatinos_reflection_ = NULL;
-const ::google::protobuf::Descriptor* ResponseAllStatinos_Station_descriptor_ = NULL;
+  ResponseAllStations_reflection_ = NULL;
+const ::google::protobuf::Descriptor* ResponseAllStations_Station_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  ResponseAllStatinos_Station_reflection_ = NULL;
+  ResponseAllStations_Station_reflection_ = NULL;
 const ::google::protobuf::Descriptor* RequestGetStationsInfo_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   RequestGetStationsInfo_reflection_ = NULL;
@@ -101,39 +101,39 @@ void protobuf_AssignDesc_WebsocketService_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(RequestAllStations));
-  ResponseAllStatinos_descriptor_ = file->message_type(2);
-  static const int ResponseAllStatinos_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos, protoversion_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos, station_),
+  ResponseAllStations_descriptor_ = file->message_type(2);
+  static const int ResponseAllStations_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations, protoversion_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations, station_),
   };
-  ResponseAllStatinos_reflection_ =
+  ResponseAllStations_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      ResponseAllStatinos_descriptor_,
-      ResponseAllStatinos::default_instance_,
-      ResponseAllStatinos_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos, _unknown_fields_),
+      ResponseAllStations_descriptor_,
+      ResponseAllStations::default_instance_,
+      ResponseAllStations_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(ResponseAllStatinos));
-  ResponseAllStatinos_Station_descriptor_ = ResponseAllStatinos_descriptor_->nested_type(0);
-  static const int ResponseAllStatinos_Station_offsets_[3] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos_Station, stationid_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos_Station, station_latitude_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos_Station, station_longitude_),
+      sizeof(ResponseAllStations));
+  ResponseAllStations_Station_descriptor_ = ResponseAllStations_descriptor_->nested_type(0);
+  static const int ResponseAllStations_Station_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations_Station, stationid_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations_Station, station_latitude_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations_Station, station_longitude_),
   };
-  ResponseAllStatinos_Station_reflection_ =
+  ResponseAllStations_Station_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      ResponseAllStatinos_Station_descriptor_,
-      ResponseAllStatinos_Station::default_instance_,
-      ResponseAllStatinos_Station_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos_Station, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStatinos_Station, _unknown_fields_),
+      ResponseAllStations_Station_descriptor_,
+      ResponseAllStations_Station::default_instance_,
+      ResponseAllStations_Station_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations_Station, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ResponseAllStations_Station, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(ResponseAllStatinos_Station));
+      sizeof(ResponseAllStations_Station));
   RequestGetStationsInfo_descriptor_ = file->message_type(3);
   static const int RequestGetStationsInfo_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RequestGetStationsInfo, protoversion_),
@@ -279,9 +279,9 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     RequestAllStations_descriptor_, &RequestAllStations::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    ResponseAllStatinos_descriptor_, &ResponseAllStatinos::default_instance());
+    ResponseAllStations_descriptor_, &ResponseAllStations::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    ResponseAllStatinos_Station_descriptor_, &ResponseAllStatinos_Station::default_instance());
+    ResponseAllStations_Station_descriptor_, &ResponseAllStations_Station::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     RequestGetStationsInfo_descriptor_, &RequestGetStationsInfo::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
@@ -307,10 +307,10 @@ void protobuf_ShutdownFile_WebsocketService_2eproto() {
   delete RequestPovUpdate_reflection_;
   delete RequestAllStations::default_instance_;
   delete RequestAllStations_reflection_;
-  delete ResponseAllStatinos::default_instance_;
-  delete ResponseAllStatinos_reflection_;
-  delete ResponseAllStatinos_Station::default_instance_;
-  delete ResponseAllStatinos_Station_reflection_;
+  delete ResponseAllStations::default_instance_;
+  delete ResponseAllStations_reflection_;
+  delete ResponseAllStations_Station::default_instance_;
+  delete ResponseAllStations_Station_reflection_;
   delete RequestGetStationsInfo::default_instance_;
   delete RequestGetStationsInfo_reflection_;
   delete RequestGetStationsInfo_Station::default_instance_;
@@ -341,9 +341,9 @@ void protobuf_AddDesc_WebsocketService_2eproto() {
     "\n\013lt_latitude\030\002 \002(\002\022\024\n\014lt_longitude\030\003 \002("
     "\002\022\023\n\013rb_latitude\030\004 \002(\002\022\024\n\014rb_longitude\030\005"
     " \002(\002\"*\n\022RequestAllStations\022\024\n\014protoVersi"
-    "on\030\001 \002(\005\"\270\001\n\023ResponseAllStatinos\022\024\n\014prot"
+    "on\030\001 \002(\005\"\270\001\n\023ResponseAllStations\022\024\n\014prot"
     "oVersion\030\001 \002(\005\0228\n\007station\030\002 \003(\0132\'.td.rai"
-    "lviz.ResponseAllStatinos.Station\032Q\n\007Stat"
+    "lviz.ResponseAllStations.Station\032Q\n\007Stat"
     "ion\022\021\n\tstationId\030\001 \002(\005\022\030\n\020station_latitu"
     "de\030\002 \002(\002\022\031\n\021station_longitude\030\003 \002(\002\"\211\001\n\026"
     "RequestGetStationsInfo\022\024\n\014protoVersion\030\001"
@@ -366,8 +366,8 @@ void protobuf_AddDesc_WebsocketService_2eproto() {
     "WebsocketService.proto", &protobuf_RegisterTypes);
   RequestPovUpdate::default_instance_ = new RequestPovUpdate();
   RequestAllStations::default_instance_ = new RequestAllStations();
-  ResponseAllStatinos::default_instance_ = new ResponseAllStatinos();
-  ResponseAllStatinos_Station::default_instance_ = new ResponseAllStatinos_Station();
+  ResponseAllStations::default_instance_ = new ResponseAllStations();
+  ResponseAllStations_Station::default_instance_ = new ResponseAllStations_Station();
   RequestGetStationsInfo::default_instance_ = new RequestGetStationsInfo();
   RequestGetStationsInfo_Station::default_instance_ = new RequestGetStationsInfo_Station();
   ResponseGetStationsInfo::default_instance_ = new ResponseGetStationsInfo();
@@ -378,8 +378,8 @@ void protobuf_AddDesc_WebsocketService_2eproto() {
   ResponseAllTrains_Train_Station::default_instance_ = new ResponseAllTrains_Train_Station();
   RequestPovUpdate::default_instance_->InitAsDefaultInstance();
   RequestAllStations::default_instance_->InitAsDefaultInstance();
-  ResponseAllStatinos::default_instance_->InitAsDefaultInstance();
-  ResponseAllStatinos_Station::default_instance_->InitAsDefaultInstance();
+  ResponseAllStations::default_instance_->InitAsDefaultInstance();
+  ResponseAllStations_Station::default_instance_->InitAsDefaultInstance();
   RequestGetStationsInfo::default_instance_->InitAsDefaultInstance();
   RequestGetStationsInfo_Station::default_instance_->InitAsDefaultInstance();
   ResponseGetStationsInfo::default_instance_->InitAsDefaultInstance();
@@ -971,26 +971,26 @@ void RequestAllStations::Swap(RequestAllStations* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int ResponseAllStatinos_Station::kStationIdFieldNumber;
-const int ResponseAllStatinos_Station::kStationLatitudeFieldNumber;
-const int ResponseAllStatinos_Station::kStationLongitudeFieldNumber;
+const int ResponseAllStations_Station::kStationIdFieldNumber;
+const int ResponseAllStations_Station::kStationLatitudeFieldNumber;
+const int ResponseAllStations_Station::kStationLongitudeFieldNumber;
 #endif  // !_MSC_VER
 
-ResponseAllStatinos_Station::ResponseAllStatinos_Station()
+ResponseAllStations_Station::ResponseAllStations_Station()
   : ::google::protobuf::Message() {
   SharedCtor();
 }
 
-void ResponseAllStatinos_Station::InitAsDefaultInstance() {
+void ResponseAllStations_Station::InitAsDefaultInstance() {
 }
 
-ResponseAllStatinos_Station::ResponseAllStatinos_Station(const ResponseAllStatinos_Station& from)
+ResponseAllStations_Station::ResponseAllStations_Station(const ResponseAllStations_Station& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
 }
 
-void ResponseAllStatinos_Station::SharedCtor() {
+void ResponseAllStations_Station::SharedCtor() {
   _cached_size_ = 0;
   stationid_ = 0;
   station_latitude_ = 0;
@@ -998,37 +998,37 @@ void ResponseAllStatinos_Station::SharedCtor() {
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-ResponseAllStatinos_Station::~ResponseAllStatinos_Station() {
+ResponseAllStations_Station::~ResponseAllStations_Station() {
   SharedDtor();
 }
 
-void ResponseAllStatinos_Station::SharedDtor() {
+void ResponseAllStations_Station::SharedDtor() {
   if (this != default_instance_) {
   }
 }
 
-void ResponseAllStatinos_Station::SetCachedSize(int size) const {
+void ResponseAllStations_Station::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* ResponseAllStatinos_Station::descriptor() {
+const ::google::protobuf::Descriptor* ResponseAllStations_Station::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return ResponseAllStatinos_Station_descriptor_;
+  return ResponseAllStations_Station_descriptor_;
 }
 
-const ResponseAllStatinos_Station& ResponseAllStatinos_Station::default_instance() {
+const ResponseAllStations_Station& ResponseAllStations_Station::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_WebsocketService_2eproto();
   return *default_instance_;
 }
 
-ResponseAllStatinos_Station* ResponseAllStatinos_Station::default_instance_ = NULL;
+ResponseAllStations_Station* ResponseAllStations_Station::default_instance_ = NULL;
 
-ResponseAllStatinos_Station* ResponseAllStatinos_Station::New() const {
-  return new ResponseAllStatinos_Station;
+ResponseAllStations_Station* ResponseAllStations_Station::New() const {
+  return new ResponseAllStations_Station;
 }
 
-void ResponseAllStatinos_Station::Clear() {
+void ResponseAllStations_Station::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     stationid_ = 0;
     station_latitude_ = 0;
@@ -1038,7 +1038,7 @@ void ResponseAllStatinos_Station::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool ResponseAllStatinos_Station::MergePartialFromCodedStream(
+bool ResponseAllStations_Station::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
@@ -1107,7 +1107,7 @@ bool ResponseAllStatinos_Station::MergePartialFromCodedStream(
 #undef DO_
 }
 
-void ResponseAllStatinos_Station::SerializeWithCachedSizes(
+void ResponseAllStations_Station::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // required int32 stationId = 1;
   if (has_stationid()) {
@@ -1130,7 +1130,7 @@ void ResponseAllStatinos_Station::SerializeWithCachedSizes(
   }
 }
 
-::google::protobuf::uint8* ResponseAllStatinos_Station::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* ResponseAllStations_Station::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // required int32 stationId = 1;
   if (has_stationid()) {
@@ -1154,7 +1154,7 @@ void ResponseAllStatinos_Station::SerializeWithCachedSizes(
   return target;
 }
 
-int ResponseAllStatinos_Station::ByteSize() const {
+int ResponseAllStations_Station::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -1187,10 +1187,10 @@ int ResponseAllStatinos_Station::ByteSize() const {
   return total_size;
 }
 
-void ResponseAllStatinos_Station::MergeFrom(const ::google::protobuf::Message& from) {
+void ResponseAllStations_Station::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const ResponseAllStatinos_Station* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const ResponseAllStatinos_Station*>(
+  const ResponseAllStations_Station* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ResponseAllStations_Station*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -1199,7 +1199,7 @@ void ResponseAllStatinos_Station::MergeFrom(const ::google::protobuf::Message& f
   }
 }
 
-void ResponseAllStatinos_Station::MergeFrom(const ResponseAllStatinos_Station& from) {
+void ResponseAllStations_Station::MergeFrom(const ResponseAllStations_Station& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_stationid()) {
@@ -1215,25 +1215,25 @@ void ResponseAllStatinos_Station::MergeFrom(const ResponseAllStatinos_Station& f
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void ResponseAllStatinos_Station::CopyFrom(const ::google::protobuf::Message& from) {
+void ResponseAllStations_Station::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void ResponseAllStatinos_Station::CopyFrom(const ResponseAllStatinos_Station& from) {
+void ResponseAllStations_Station::CopyFrom(const ResponseAllStations_Station& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool ResponseAllStatinos_Station::IsInitialized() const {
+bool ResponseAllStations_Station::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000007) != 0x00000007) return false;
 
   return true;
 }
 
-void ResponseAllStatinos_Station::Swap(ResponseAllStatinos_Station* other) {
+void ResponseAllStations_Station::Swap(ResponseAllStations_Station* other) {
   if (other != this) {
     std::swap(stationid_, other->stationid_);
     std::swap(station_latitude_, other->station_latitude_);
@@ -1244,11 +1244,11 @@ void ResponseAllStatinos_Station::Swap(ResponseAllStatinos_Station* other) {
   }
 }
 
-::google::protobuf::Metadata ResponseAllStatinos_Station::GetMetadata() const {
+::google::protobuf::Metadata ResponseAllStations_Station::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = ResponseAllStatinos_Station_descriptor_;
-  metadata.reflection = ResponseAllStatinos_Station_reflection_;
+  metadata.descriptor = ResponseAllStations_Station_descriptor_;
+  metadata.reflection = ResponseAllStations_Station_reflection_;
   return metadata;
 }
 
@@ -1256,61 +1256,61 @@ void ResponseAllStatinos_Station::Swap(ResponseAllStatinos_Station* other) {
 // -------------------------------------------------------------------
 
 #ifndef _MSC_VER
-const int ResponseAllStatinos::kProtoVersionFieldNumber;
-const int ResponseAllStatinos::kStationFieldNumber;
+const int ResponseAllStations::kProtoVersionFieldNumber;
+const int ResponseAllStations::kStationFieldNumber;
 #endif  // !_MSC_VER
 
-ResponseAllStatinos::ResponseAllStatinos()
+ResponseAllStations::ResponseAllStations()
   : ::google::protobuf::Message() {
   SharedCtor();
 }
 
-void ResponseAllStatinos::InitAsDefaultInstance() {
+void ResponseAllStations::InitAsDefaultInstance() {
 }
 
-ResponseAllStatinos::ResponseAllStatinos(const ResponseAllStatinos& from)
+ResponseAllStations::ResponseAllStations(const ResponseAllStations& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
 }
 
-void ResponseAllStatinos::SharedCtor() {
+void ResponseAllStations::SharedCtor() {
   _cached_size_ = 0;
   protoversion_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-ResponseAllStatinos::~ResponseAllStatinos() {
+ResponseAllStations::~ResponseAllStations() {
   SharedDtor();
 }
 
-void ResponseAllStatinos::SharedDtor() {
+void ResponseAllStations::SharedDtor() {
   if (this != default_instance_) {
   }
 }
 
-void ResponseAllStatinos::SetCachedSize(int size) const {
+void ResponseAllStations::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* ResponseAllStatinos::descriptor() {
+const ::google::protobuf::Descriptor* ResponseAllStations::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return ResponseAllStatinos_descriptor_;
+  return ResponseAllStations_descriptor_;
 }
 
-const ResponseAllStatinos& ResponseAllStatinos::default_instance() {
+const ResponseAllStations& ResponseAllStations::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_WebsocketService_2eproto();
   return *default_instance_;
 }
 
-ResponseAllStatinos* ResponseAllStatinos::default_instance_ = NULL;
+ResponseAllStations* ResponseAllStations::default_instance_ = NULL;
 
-ResponseAllStatinos* ResponseAllStatinos::New() const {
-  return new ResponseAllStatinos;
+ResponseAllStations* ResponseAllStations::New() const {
+  return new ResponseAllStations;
 }
 
-void ResponseAllStatinos::Clear() {
+void ResponseAllStations::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     protoversion_ = 0;
   }
@@ -1319,7 +1319,7 @@ void ResponseAllStatinos::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool ResponseAllStatinos::MergePartialFromCodedStream(
+bool ResponseAllStations::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
@@ -1340,7 +1340,7 @@ bool ResponseAllStatinos::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .td.railviz.ResponseAllStatinos.Station station = 2;
+      // repeated .td.railviz.ResponseAllStations.Station station = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
@@ -1371,14 +1371,14 @@ bool ResponseAllStatinos::MergePartialFromCodedStream(
 #undef DO_
 }
 
-void ResponseAllStatinos::SerializeWithCachedSizes(
+void ResponseAllStations::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // required int32 protoVersion = 1;
   if (has_protoversion()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->protoversion(), output);
   }
 
-  // repeated .td.railviz.ResponseAllStatinos.Station station = 2;
+  // repeated .td.railviz.ResponseAllStations.Station station = 2;
   for (int i = 0; i < this->station_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       2, this->station(i), output);
@@ -1390,14 +1390,14 @@ void ResponseAllStatinos::SerializeWithCachedSizes(
   }
 }
 
-::google::protobuf::uint8* ResponseAllStatinos::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* ResponseAllStations::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // required int32 protoVersion = 1;
   if (has_protoversion()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->protoversion(), target);
   }
 
-  // repeated .td.railviz.ResponseAllStatinos.Station station = 2;
+  // repeated .td.railviz.ResponseAllStations.Station station = 2;
   for (int i = 0; i < this->station_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
@@ -1411,7 +1411,7 @@ void ResponseAllStatinos::SerializeWithCachedSizes(
   return target;
 }
 
-int ResponseAllStatinos::ByteSize() const {
+int ResponseAllStations::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -1423,7 +1423,7 @@ int ResponseAllStatinos::ByteSize() const {
     }
 
   }
-  // repeated .td.railviz.ResponseAllStatinos.Station station = 2;
+  // repeated .td.railviz.ResponseAllStations.Station station = 2;
   total_size += 1 * this->station_size();
   for (int i = 0; i < this->station_size(); i++) {
     total_size +=
@@ -1442,10 +1442,10 @@ int ResponseAllStatinos::ByteSize() const {
   return total_size;
 }
 
-void ResponseAllStatinos::MergeFrom(const ::google::protobuf::Message& from) {
+void ResponseAllStations::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const ResponseAllStatinos* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const ResponseAllStatinos*>(
+  const ResponseAllStations* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ResponseAllStations*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -1454,7 +1454,7 @@ void ResponseAllStatinos::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void ResponseAllStatinos::MergeFrom(const ResponseAllStatinos& from) {
+void ResponseAllStations::MergeFrom(const ResponseAllStations& from) {
   GOOGLE_CHECK_NE(&from, this);
   station_.MergeFrom(from.station_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -1465,19 +1465,19 @@ void ResponseAllStatinos::MergeFrom(const ResponseAllStatinos& from) {
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void ResponseAllStatinos::CopyFrom(const ::google::protobuf::Message& from) {
+void ResponseAllStations::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void ResponseAllStatinos::CopyFrom(const ResponseAllStatinos& from) {
+void ResponseAllStations::CopyFrom(const ResponseAllStations& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool ResponseAllStatinos::IsInitialized() const {
+bool ResponseAllStations::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   for (int i = 0; i < station_size(); i++) {
@@ -1486,7 +1486,7 @@ bool ResponseAllStatinos::IsInitialized() const {
   return true;
 }
 
-void ResponseAllStatinos::Swap(ResponseAllStatinos* other) {
+void ResponseAllStations::Swap(ResponseAllStations* other) {
   if (other != this) {
     std::swap(protoversion_, other->protoversion_);
     station_.Swap(&other->station_);
@@ -1496,11 +1496,11 @@ void ResponseAllStatinos::Swap(ResponseAllStatinos* other) {
   }
 }
 
-::google::protobuf::Metadata ResponseAllStatinos::GetMetadata() const {
+::google::protobuf::Metadata ResponseAllStations::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = ResponseAllStatinos_descriptor_;
-  metadata.reflection = ResponseAllStatinos_reflection_;
+  metadata.descriptor = ResponseAllStations_descriptor_;
+  metadata.reflection = ResponseAllStations_reflection_;
   return metadata;
 }
 

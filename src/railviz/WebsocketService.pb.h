@@ -36,8 +36,8 @@ void protobuf_ShutdownFile_WebsocketService_2eproto();
 
 class RequestPovUpdate;
 class RequestAllStations;
-class ResponseAllStatinos;
-class ResponseAllStatinos_Station;
+class ResponseAllStations;
+class ResponseAllStations_Station;
 class RequestGetStationsInfo;
 class RequestGetStationsInfo_Station;
 class ResponseGetStationsInfo;
@@ -253,14 +253,14 @@ class RequestAllStations : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class ResponseAllStatinos_Station : public ::google::protobuf::Message {
+class ResponseAllStations_Station : public ::google::protobuf::Message {
  public:
-  ResponseAllStatinos_Station();
-  virtual ~ResponseAllStatinos_Station();
+  ResponseAllStations_Station();
+  virtual ~ResponseAllStations_Station();
 
-  ResponseAllStatinos_Station(const ResponseAllStatinos_Station& from);
+  ResponseAllStations_Station(const ResponseAllStations_Station& from);
 
-  inline ResponseAllStatinos_Station& operator=(const ResponseAllStatinos_Station& from) {
+  inline ResponseAllStations_Station& operator=(const ResponseAllStations_Station& from) {
     CopyFrom(from);
     return *this;
   }
@@ -274,17 +274,17 @@ class ResponseAllStatinos_Station : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const ResponseAllStatinos_Station& default_instance();
+  static const ResponseAllStations_Station& default_instance();
 
-  void Swap(ResponseAllStatinos_Station* other);
+  void Swap(ResponseAllStations_Station* other);
 
   // implements Message ----------------------------------------------
 
-  ResponseAllStatinos_Station* New() const;
+  ResponseAllStations_Station* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ResponseAllStatinos_Station& from);
-  void MergeFrom(const ResponseAllStatinos_Station& from);
+  void CopyFrom(const ResponseAllStations_Station& from);
+  void MergeFrom(const ResponseAllStations_Station& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -328,7 +328,7 @@ class ResponseAllStatinos_Station : public ::google::protobuf::Message {
   inline float station_longitude() const;
   inline void set_station_longitude(float value);
 
-  // @@protoc_insertion_point(class_scope:td.railviz.ResponseAllStatinos.Station)
+  // @@protoc_insertion_point(class_scope:td.railviz.ResponseAllStations.Station)
  private:
   inline void set_has_stationid();
   inline void clear_has_stationid();
@@ -351,18 +351,18 @@ class ResponseAllStatinos_Station : public ::google::protobuf::Message {
   friend void protobuf_ShutdownFile_WebsocketService_2eproto();
 
   void InitAsDefaultInstance();
-  static ResponseAllStatinos_Station* default_instance_;
+  static ResponseAllStations_Station* default_instance_;
 };
 // -------------------------------------------------------------------
 
-class ResponseAllStatinos : public ::google::protobuf::Message {
+class ResponseAllStations : public ::google::protobuf::Message {
  public:
-  ResponseAllStatinos();
-  virtual ~ResponseAllStatinos();
+  ResponseAllStations();
+  virtual ~ResponseAllStations();
 
-  ResponseAllStatinos(const ResponseAllStatinos& from);
+  ResponseAllStations(const ResponseAllStations& from);
 
-  inline ResponseAllStatinos& operator=(const ResponseAllStatinos& from) {
+  inline ResponseAllStations& operator=(const ResponseAllStations& from) {
     CopyFrom(from);
     return *this;
   }
@@ -376,17 +376,17 @@ class ResponseAllStatinos : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const ResponseAllStatinos& default_instance();
+  static const ResponseAllStations& default_instance();
 
-  void Swap(ResponseAllStatinos* other);
+  void Swap(ResponseAllStations* other);
 
   // implements Message ----------------------------------------------
 
-  ResponseAllStatinos* New() const;
+  ResponseAllStations* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ResponseAllStatinos& from);
-  void MergeFrom(const ResponseAllStatinos& from);
+  void CopyFrom(const ResponseAllStations& from);
+  void MergeFrom(const ResponseAllStations& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -407,7 +407,7 @@ class ResponseAllStatinos : public ::google::protobuf::Message {
 
   // nested types ----------------------------------------------------
 
-  typedef ResponseAllStatinos_Station Station;
+  typedef ResponseAllStations_Station Station;
 
   // accessors -------------------------------------------------------
 
@@ -418,26 +418,26 @@ class ResponseAllStatinos : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 protoversion() const;
   inline void set_protoversion(::google::protobuf::int32 value);
 
-  // repeated .td.railviz.ResponseAllStatinos.Station station = 2;
+  // repeated .td.railviz.ResponseAllStations.Station station = 2;
   inline int station_size() const;
   inline void clear_station();
   static const int kStationFieldNumber = 2;
-  inline const ::td::railviz::ResponseAllStatinos_Station& station(int index) const;
-  inline ::td::railviz::ResponseAllStatinos_Station* mutable_station(int index);
-  inline ::td::railviz::ResponseAllStatinos_Station* add_station();
-  inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStatinos_Station >&
+  inline const ::td::railviz::ResponseAllStations_Station& station(int index) const;
+  inline ::td::railviz::ResponseAllStations_Station* mutable_station(int index);
+  inline ::td::railviz::ResponseAllStations_Station* add_station();
+  inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStations_Station >&
       station() const;
-  inline ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStatinos_Station >*
+  inline ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStations_Station >*
       mutable_station();
 
-  // @@protoc_insertion_point(class_scope:td.railviz.ResponseAllStatinos)
+  // @@protoc_insertion_point(class_scope:td.railviz.ResponseAllStations)
  private:
   inline void set_has_protoversion();
   inline void clear_has_protoversion();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStatinos_Station > station_;
+  ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStations_Station > station_;
   ::google::protobuf::int32 protoversion_;
 
   mutable int _cached_size_;
@@ -448,7 +448,7 @@ class ResponseAllStatinos : public ::google::protobuf::Message {
   friend void protobuf_ShutdownFile_WebsocketService_2eproto();
 
   void InitAsDefaultInstance();
-  static ResponseAllStatinos* default_instance_;
+  static ResponseAllStations* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1357,122 +1357,122 @@ inline void RequestAllStations::set_protoversion(::google::protobuf::int32 value
 
 // -------------------------------------------------------------------
 
-// ResponseAllStatinos_Station
+// ResponseAllStations_Station
 
 // required int32 stationId = 1;
-inline bool ResponseAllStatinos_Station::has_stationid() const {
+inline bool ResponseAllStations_Station::has_stationid() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void ResponseAllStatinos_Station::set_has_stationid() {
+inline void ResponseAllStations_Station::set_has_stationid() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void ResponseAllStatinos_Station::clear_has_stationid() {
+inline void ResponseAllStations_Station::clear_has_stationid() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void ResponseAllStatinos_Station::clear_stationid() {
+inline void ResponseAllStations_Station::clear_stationid() {
   stationid_ = 0;
   clear_has_stationid();
 }
-inline ::google::protobuf::int32 ResponseAllStatinos_Station::stationid() const {
+inline ::google::protobuf::int32 ResponseAllStations_Station::stationid() const {
   return stationid_;
 }
-inline void ResponseAllStatinos_Station::set_stationid(::google::protobuf::int32 value) {
+inline void ResponseAllStations_Station::set_stationid(::google::protobuf::int32 value) {
   set_has_stationid();
   stationid_ = value;
 }
 
 // required float station_latitude = 2;
-inline bool ResponseAllStatinos_Station::has_station_latitude() const {
+inline bool ResponseAllStations_Station::has_station_latitude() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void ResponseAllStatinos_Station::set_has_station_latitude() {
+inline void ResponseAllStations_Station::set_has_station_latitude() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void ResponseAllStatinos_Station::clear_has_station_latitude() {
+inline void ResponseAllStations_Station::clear_has_station_latitude() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void ResponseAllStatinos_Station::clear_station_latitude() {
+inline void ResponseAllStations_Station::clear_station_latitude() {
   station_latitude_ = 0;
   clear_has_station_latitude();
 }
-inline float ResponseAllStatinos_Station::station_latitude() const {
+inline float ResponseAllStations_Station::station_latitude() const {
   return station_latitude_;
 }
-inline void ResponseAllStatinos_Station::set_station_latitude(float value) {
+inline void ResponseAllStations_Station::set_station_latitude(float value) {
   set_has_station_latitude();
   station_latitude_ = value;
 }
 
 // required float station_longitude = 3;
-inline bool ResponseAllStatinos_Station::has_station_longitude() const {
+inline bool ResponseAllStations_Station::has_station_longitude() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
-inline void ResponseAllStatinos_Station::set_has_station_longitude() {
+inline void ResponseAllStations_Station::set_has_station_longitude() {
   _has_bits_[0] |= 0x00000004u;
 }
-inline void ResponseAllStatinos_Station::clear_has_station_longitude() {
+inline void ResponseAllStations_Station::clear_has_station_longitude() {
   _has_bits_[0] &= ~0x00000004u;
 }
-inline void ResponseAllStatinos_Station::clear_station_longitude() {
+inline void ResponseAllStations_Station::clear_station_longitude() {
   station_longitude_ = 0;
   clear_has_station_longitude();
 }
-inline float ResponseAllStatinos_Station::station_longitude() const {
+inline float ResponseAllStations_Station::station_longitude() const {
   return station_longitude_;
 }
-inline void ResponseAllStatinos_Station::set_station_longitude(float value) {
+inline void ResponseAllStations_Station::set_station_longitude(float value) {
   set_has_station_longitude();
   station_longitude_ = value;
 }
 
 // -------------------------------------------------------------------
 
-// ResponseAllStatinos
+// ResponseAllStations
 
 // required int32 protoVersion = 1;
-inline bool ResponseAllStatinos::has_protoversion() const {
+inline bool ResponseAllStations::has_protoversion() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void ResponseAllStatinos::set_has_protoversion() {
+inline void ResponseAllStations::set_has_protoversion() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void ResponseAllStatinos::clear_has_protoversion() {
+inline void ResponseAllStations::clear_has_protoversion() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void ResponseAllStatinos::clear_protoversion() {
+inline void ResponseAllStations::clear_protoversion() {
   protoversion_ = 0;
   clear_has_protoversion();
 }
-inline ::google::protobuf::int32 ResponseAllStatinos::protoversion() const {
+inline ::google::protobuf::int32 ResponseAllStations::protoversion() const {
   return protoversion_;
 }
-inline void ResponseAllStatinos::set_protoversion(::google::protobuf::int32 value) {
+inline void ResponseAllStations::set_protoversion(::google::protobuf::int32 value) {
   set_has_protoversion();
   protoversion_ = value;
 }
 
-// repeated .td.railviz.ResponseAllStatinos.Station station = 2;
-inline int ResponseAllStatinos::station_size() const {
+// repeated .td.railviz.ResponseAllStations.Station station = 2;
+inline int ResponseAllStations::station_size() const {
   return station_.size();
 }
-inline void ResponseAllStatinos::clear_station() {
+inline void ResponseAllStations::clear_station() {
   station_.Clear();
 }
-inline const ::td::railviz::ResponseAllStatinos_Station& ResponseAllStatinos::station(int index) const {
+inline const ::td::railviz::ResponseAllStations_Station& ResponseAllStations::station(int index) const {
   return station_.Get(index);
 }
-inline ::td::railviz::ResponseAllStatinos_Station* ResponseAllStatinos::mutable_station(int index) {
+inline ::td::railviz::ResponseAllStations_Station* ResponseAllStations::mutable_station(int index) {
   return station_.Mutable(index);
 }
-inline ::td::railviz::ResponseAllStatinos_Station* ResponseAllStatinos::add_station() {
+inline ::td::railviz::ResponseAllStations_Station* ResponseAllStations::add_station() {
   return station_.Add();
 }
-inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStatinos_Station >&
-ResponseAllStatinos::station() const {
+inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStations_Station >&
+ResponseAllStations::station() const {
   return station_;
 }
-inline ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStatinos_Station >*
-ResponseAllStatinos::mutable_station() {
+inline ::google::protobuf::RepeatedPtrField< ::td::railviz::ResponseAllStations_Station >*
+ResponseAllStations::mutable_station() {
   return &station_;
 }
 
