@@ -2,7 +2,7 @@ package td.railviz.protocol;
 
 message Station
 {
-    optional int32 id = 1;
+    optional uint32 id = 1;
     optional string name = 2;
     optional float latitude = 3;
     optional float longitude = 4;
@@ -25,6 +25,12 @@ message LightConnection
     optional Connection = 4;
 }
 
+message Train
+{
+    optional uint32 id = 1;
+    optional LightConnection = 2;
+}
+
 message Request
 {
     enum TYPE
@@ -43,6 +49,7 @@ message Request
     
     // Data-Fields for DETAILED_TRAIN-Request
     // TODO
+    
 }
 
 message Response
@@ -65,5 +72,6 @@ message Response
     // Data-Fields for DETAILED_STATION-Request
     repeated Station stations = 4;
     
-    //
+    // Data-Fields for DETAILED_TRAIN-Request
+    repeated Train strains = 5;
 }
