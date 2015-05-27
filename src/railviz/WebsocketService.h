@@ -34,6 +34,7 @@ private:
         std::string msg;
     };
     void reply( websocmsg& );
+    void reply();
 
     typedef std::set<connection_hdl, std::owner_less<connection_hdl>> con_list;
 

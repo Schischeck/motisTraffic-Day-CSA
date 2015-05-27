@@ -108,9 +108,10 @@ int main(int argc, char* argv[]) {
         web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
     } 
 
-    LOG(td::logging::info) << "Serving requests...";
+    LOG(td::logging::info) << "Starting..." << std::endl;
 
     if (listener_opt.enabled) {
+        LOG(td::logging::info) << "Webservice serving requests..." << std::endl;
         //web_thread == std::thread(std::bind(&boost::asio::io_service::run, &ios));
         ios.run();
     }
