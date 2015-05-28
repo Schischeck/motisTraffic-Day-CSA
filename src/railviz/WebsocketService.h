@@ -6,7 +6,6 @@
 #include <set>
 #include <mutex>
 #include <functional>
-#include "../Graph.h"
 #include "../serialization/Schedule.h"
 
 #include "RailvizProtocolV2.pb.h"
@@ -22,7 +21,7 @@ typedef websocketpp::server<websocketpp::config::asio> websocketserver;
 
 class WebsocketService {
 public:
-    WebsocketService(td::Graph &graph, std::string &host, std::string &port);
+    WebsocketService(td::Schedule &schedule, std::string &host, std::string &port);
     ~WebsocketService();
 
     void on_open(connection_hdl hdl);
@@ -47,7 +46,7 @@ private:
 
     std::vector<websocmsg> m_messages;
     std::vector<std::string> DEPRECATED_m_messages;
-    td::Graph &m_graph;
+    td::Schedule &m_schedule;
     std::string m_host, m_port;
 };
 }

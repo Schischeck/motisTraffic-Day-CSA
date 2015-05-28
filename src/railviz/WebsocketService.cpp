@@ -10,8 +10,8 @@ using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
 
-WebsocketService::WebsocketService(td::Graph &graph,
-                                   std::string &host, std::string &port) : m_graph(graph) {
+WebsocketService::WebsocketService(td::Schedule &schedule,
+                                   std::string &host, std::string &port) : m_schedule(schedule) {
     m_server.init_asio();
 
     m_server.clear_access_channels(websocketpp::log::alevel::all);
@@ -65,11 +65,11 @@ void WebsocketService::reply( websocmsg& message ) {
             if( request.type() == protocol::Request::ALL_STATIONS )
             {
                 response.set_type( protocol::Response::ALL_STATIONS );
-                for (long unsigned int i=0; i < this->m_graph._sched.stations.size(); i++) {
+                for (long unsigned int i=0; i < this->m_schedule.stations.size(); i++) {
                     protocol::Station* station = response.add_stations();
                     station->set_id(i);
-                    station->set_latitude(this->m_graph._sched.stations[i].get()->width);
-                    station->set_longitude(this->m_graph._sched.stations[i].get()->length);
+                    station->set_latitude(this->m_schedule.stations[i].get()->width);
+                    station->set_longitude(this->m_schedule.stations[i].get()->length);
                 }
             }
             else if( request.type() == protocol::Request::DETAILED_STATION )
@@ -79,13 +79,13 @@ void WebsocketService::reply( websocmsg& message ) {
                     int id = request.stations(i).id();
                     protocol::Station* station = response.add_stations();
                     station->set_id(id);
-                    station->set_name(this->m_graph._sched.stations[id].get()->name);
+                    station->set_name(this->m_schedule.stations[id].get()->name);
                 }
             }
             else if ( request.type() == protocol::Request::ALL_TRAINS )
             {
                 response.set_type( protocol::Response::ALL_TRAINS );
-                for (unsigned int i=0; i < this->m_graph._sched.fullConnections.size(); i++) {
+                for (unsigned int i=0; i < this->m_schedule.stationNodes.size(); i++) {
 
 
                 }

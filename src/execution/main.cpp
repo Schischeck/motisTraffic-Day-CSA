@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     shutdown_handler<server> server_shutdown_handler(ios, http_server);
 
-    td::railviz::WebsocketService websocketsrv(graph, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
+    td::railviz::WebsocketService websocketsrv(sched, web_soc_opt.web_soc_host, web_soc_opt.web_soc_port);
     if (web_soc_opt.web_soc_enabled) {
         web_soc_thread = std::thread(std::bind(&td::railviz::WebsocketService::run, &websocketsrv));
     } 
