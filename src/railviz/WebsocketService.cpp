@@ -1,5 +1,6 @@
 #include "WebsocketService.h"
 #include "../Logging.h"
+#include "../Nodes.h"
 
 namespace td {
 namespace railviz {
@@ -86,8 +87,14 @@ void WebsocketService::reply( websocmsg& message ) {
             {
                 response.set_type( protocol::Response::ALL_TRAINS );
                 for (unsigned int i=0; i < this->m_schedule.stationNodes.size(); i++) {
-
-
+                    td::StationNode* station_node = m_schedule.stationNodes.at(i).get();
+                    std::vector<td::Node*> route_nodes = station_node->getRouteNodes();
+                    //TODO JUST DUMMY TO FETCH ALL clasz == 0 (ICE and co.)
+                    for (td::Node* node : route_nodes) {
+                        if (node->isRouteNode()) {
+                            //TODO
+                        }
+                    }
                 }
             }
             else
