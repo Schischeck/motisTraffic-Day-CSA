@@ -22,13 +22,13 @@ message LightConnection
     optional uint64 lightConId = 1;
     optional uint32 dTime = 2;
     optional uint32 aTime = 3;
-    optional Connection = 4;
+    optional Connection connection = 4;
 }
 
 message Train
 {
     optional uint32 id = 1;
-    optional LightConnection = 2;
+    optional LightConnection light_connection = 2;
 }
 
 message Request
