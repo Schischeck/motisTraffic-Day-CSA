@@ -37,16 +37,21 @@ void protobuf_AssignDesc_RailvizProtocolV2_2eproto();
 void protobuf_ShutdownFile_RailvizProtocolV2_2eproto();
 
 class Station;
+class Connection;
+class LightConnection;
+class Train;
 class Request;
 class Response;
 
 enum Request_TYPE {
   Request_TYPE_ALL_STATIONS = 1,
-  Request_TYPE_DETAILED_STATION = 2
+  Request_TYPE_DETAILED_STATION = 2,
+  Request_TYPE_ALL_TRAINS = 3,
+  Request_TYPE_DETAILED_TRAIN = 4
 };
 bool Request_TYPE_IsValid(int value);
 const Request_TYPE Request_TYPE_TYPE_MIN = Request_TYPE_ALL_STATIONS;
-const Request_TYPE Request_TYPE_TYPE_MAX = Request_TYPE_DETAILED_STATION;
+const Request_TYPE Request_TYPE_TYPE_MAX = Request_TYPE_DETAILED_TRAIN;
 const int Request_TYPE_TYPE_ARRAYSIZE = Request_TYPE_TYPE_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Request_TYPE_descriptor();
@@ -63,11 +68,13 @@ enum Response_TYPE {
   Response_TYPE_ERROR = 1,
   Response_TYPE_INFO = 2,
   Response_TYPE_ALL_STATIONS = 3,
-  Response_TYPE_DETAILED_STATION = 4
+  Response_TYPE_DETAILED_STATION = 4,
+  Response_TYPE_ALL_TRAINS = 5,
+  Response_TYPE_DETAILED_TRAIN = 6
 };
 bool Response_TYPE_IsValid(int value);
 const Response_TYPE Response_TYPE_TYPE_MIN = Response_TYPE_ERROR;
-const Response_TYPE Response_TYPE_TYPE_MAX = Response_TYPE_DETAILED_STATION;
+const Response_TYPE Response_TYPE_TYPE_MAX = Response_TYPE_DETAILED_TRAIN;
 const int Response_TYPE_TYPE_ARRAYSIZE = Response_TYPE_TYPE_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Response_TYPE_descriptor();
@@ -136,12 +143,12 @@ class Station : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 id = 1;
+  // optional uint32 id = 1;
   inline bool has_id() const;
   inline void clear_id();
   static const int kIdFieldNumber = 1;
-  inline ::google::protobuf::int32 id() const;
-  inline void set_id(::google::protobuf::int32 value);
+  inline ::google::protobuf::uint32 id() const;
+  inline void set_id(::google::protobuf::uint32 value);
 
   // optional string name = 2;
   inline bool has_name() const;
@@ -183,7 +190,7 @@ class Station : public ::google::protobuf::Message {
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* name_;
-  ::google::protobuf::int32 id_;
+  ::google::protobuf::uint32 id_;
   float latitude_;
   float longitude_;
 
@@ -196,6 +203,336 @@ class Station : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static Station* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Connection : public ::google::protobuf::Message {
+ public:
+  Connection();
+  virtual ~Connection();
+
+  Connection(const Connection& from);
+
+  inline Connection& operator=(const Connection& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Connection& default_instance();
+
+  void Swap(Connection* other);
+
+  // implements Message ----------------------------------------------
+
+  Connection* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Connection& from);
+  void MergeFrom(const Connection& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint32 conInfoId = 1;
+  inline bool has_coninfoid() const;
+  inline void clear_coninfoid();
+  static const int kConInfoIdFieldNumber = 1;
+  inline ::google::protobuf::uint32 coninfoid() const;
+  inline void set_coninfoid(::google::protobuf::uint32 value);
+
+  // optional uint32 price = 2;
+  inline bool has_price() const;
+  inline void clear_price();
+  static const int kPriceFieldNumber = 2;
+  inline ::google::protobuf::uint32 price() const;
+  inline void set_price(::google::protobuf::uint32 value);
+
+  // optional uint32 dPlatform = 3;
+  inline bool has_dplatform() const;
+  inline void clear_dplatform();
+  static const int kDPlatformFieldNumber = 3;
+  inline ::google::protobuf::uint32 dplatform() const;
+  inline void set_dplatform(::google::protobuf::uint32 value);
+
+  // optional uint32 aPlatform = 4;
+  inline bool has_aplatform() const;
+  inline void clear_aplatform();
+  static const int kAPlatformFieldNumber = 4;
+  inline ::google::protobuf::uint32 aplatform() const;
+  inline void set_aplatform(::google::protobuf::uint32 value);
+
+  // optional uint32 clasz = 5;
+  inline bool has_clasz() const;
+  inline void clear_clasz();
+  static const int kClaszFieldNumber = 5;
+  inline ::google::protobuf::uint32 clasz() const;
+  inline void set_clasz(::google::protobuf::uint32 value);
+
+  // @@protoc_insertion_point(class_scope:td.railviz.protocol.Connection)
+ private:
+  inline void set_has_coninfoid();
+  inline void clear_has_coninfoid();
+  inline void set_has_price();
+  inline void clear_has_price();
+  inline void set_has_dplatform();
+  inline void clear_has_dplatform();
+  inline void set_has_aplatform();
+  inline void clear_has_aplatform();
+  inline void set_has_clasz();
+  inline void clear_has_clasz();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 coninfoid_;
+  ::google::protobuf::uint32 price_;
+  ::google::protobuf::uint32 dplatform_;
+  ::google::protobuf::uint32 aplatform_;
+  ::google::protobuf::uint32 clasz_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+
+  friend void  protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_AssignDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_ShutdownFile_RailvizProtocolV2_2eproto();
+
+  void InitAsDefaultInstance();
+  static Connection* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class LightConnection : public ::google::protobuf::Message {
+ public:
+  LightConnection();
+  virtual ~LightConnection();
+
+  LightConnection(const LightConnection& from);
+
+  inline LightConnection& operator=(const LightConnection& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const LightConnection& default_instance();
+
+  void Swap(LightConnection* other);
+
+  // implements Message ----------------------------------------------
+
+  LightConnection* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const LightConnection& from);
+  void MergeFrom(const LightConnection& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 lightConId = 1;
+  inline bool has_lightconid() const;
+  inline void clear_lightconid();
+  static const int kLightConIdFieldNumber = 1;
+  inline ::google::protobuf::uint64 lightconid() const;
+  inline void set_lightconid(::google::protobuf::uint64 value);
+
+  // optional uint32 dTime = 2;
+  inline bool has_dtime() const;
+  inline void clear_dtime();
+  static const int kDTimeFieldNumber = 2;
+  inline ::google::protobuf::uint32 dtime() const;
+  inline void set_dtime(::google::protobuf::uint32 value);
+
+  // optional uint32 aTime = 3;
+  inline bool has_atime() const;
+  inline void clear_atime();
+  static const int kATimeFieldNumber = 3;
+  inline ::google::protobuf::uint32 atime() const;
+  inline void set_atime(::google::protobuf::uint32 value);
+
+  // optional .td.railviz.protocol.Connection connection = 4;
+  inline bool has_connection() const;
+  inline void clear_connection();
+  static const int kConnectionFieldNumber = 4;
+  inline const ::td::railviz::protocol::Connection& connection() const;
+  inline ::td::railviz::protocol::Connection* mutable_connection();
+  inline ::td::railviz::protocol::Connection* release_connection();
+  inline void set_allocated_connection(::td::railviz::protocol::Connection* connection);
+
+  // @@protoc_insertion_point(class_scope:td.railviz.protocol.LightConnection)
+ private:
+  inline void set_has_lightconid();
+  inline void clear_has_lightconid();
+  inline void set_has_dtime();
+  inline void clear_has_dtime();
+  inline void set_has_atime();
+  inline void clear_has_atime();
+  inline void set_has_connection();
+  inline void clear_has_connection();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint64 lightconid_;
+  ::google::protobuf::uint32 dtime_;
+  ::google::protobuf::uint32 atime_;
+  ::td::railviz::protocol::Connection* connection_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+
+  friend void  protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_AssignDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_ShutdownFile_RailvizProtocolV2_2eproto();
+
+  void InitAsDefaultInstance();
+  static LightConnection* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Train : public ::google::protobuf::Message {
+ public:
+  Train();
+  virtual ~Train();
+
+  Train(const Train& from);
+
+  inline Train& operator=(const Train& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Train& default_instance();
+
+  void Swap(Train* other);
+
+  // implements Message ----------------------------------------------
+
+  Train* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Train& from);
+  void MergeFrom(const Train& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint32 id = 1;
+  inline bool has_id() const;
+  inline void clear_id();
+  static const int kIdFieldNumber = 1;
+  inline ::google::protobuf::uint32 id() const;
+  inline void set_id(::google::protobuf::uint32 value);
+
+  // optional .td.railviz.protocol.LightConnection light_connection = 2;
+  inline bool has_light_connection() const;
+  inline void clear_light_connection();
+  static const int kLightConnectionFieldNumber = 2;
+  inline const ::td::railviz::protocol::LightConnection& light_connection() const;
+  inline ::td::railviz::protocol::LightConnection* mutable_light_connection();
+  inline ::td::railviz::protocol::LightConnection* release_light_connection();
+  inline void set_allocated_light_connection(::td::railviz::protocol::LightConnection* light_connection);
+
+  // @@protoc_insertion_point(class_scope:td.railviz.protocol.Train)
+ private:
+  inline void set_has_id();
+  inline void clear_has_id();
+  inline void set_has_light_connection();
+  inline void clear_has_light_connection();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::td::railviz::protocol::LightConnection* light_connection_;
+  ::google::protobuf::uint32 id_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_AssignDesc_RailvizProtocolV2_2eproto();
+  friend void protobuf_ShutdownFile_RailvizProtocolV2_2eproto();
+
+  void InitAsDefaultInstance();
+  static Train* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -254,6 +591,8 @@ class Request : public ::google::protobuf::Message {
   typedef Request_TYPE TYPE;
   static const TYPE ALL_STATIONS = Request_TYPE_ALL_STATIONS;
   static const TYPE DETAILED_STATION = Request_TYPE_DETAILED_STATION;
+  static const TYPE ALL_TRAINS = Request_TYPE_ALL_TRAINS;
+  static const TYPE DETAILED_TRAIN = Request_TYPE_DETAILED_TRAIN;
   static inline bool TYPE_IsValid(int value) {
     return Request_TYPE_IsValid(value);
   }
@@ -385,6 +724,8 @@ class Response : public ::google::protobuf::Message {
   static const TYPE INFO = Response_TYPE_INFO;
   static const TYPE ALL_STATIONS = Response_TYPE_ALL_STATIONS;
   static const TYPE DETAILED_STATION = Response_TYPE_DETAILED_STATION;
+  static const TYPE ALL_TRAINS = Response_TYPE_ALL_TRAINS;
+  static const TYPE DETAILED_TRAIN = Response_TYPE_DETAILED_TRAIN;
   static inline bool TYPE_IsValid(int value) {
     return Response_TYPE_IsValid(value);
   }
@@ -446,6 +787,18 @@ class Response : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Station >*
       mutable_stations();
 
+  // repeated .td.railviz.protocol.Train strains = 5;
+  inline int strains_size() const;
+  inline void clear_strains();
+  static const int kStrainsFieldNumber = 5;
+  inline const ::td::railviz::protocol::Train& strains(int index) const;
+  inline ::td::railviz::protocol::Train* mutable_strains(int index);
+  inline ::td::railviz::protocol::Train* add_strains();
+  inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Train >&
+      strains() const;
+  inline ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Train >*
+      mutable_strains();
+
   // @@protoc_insertion_point(class_scope:td.railviz.protocol.Response)
  private:
   inline void set_has_protocol_version();
@@ -461,9 +814,10 @@ class Response : public ::google::protobuf::Message {
   int type_;
   ::std::string* msg_;
   ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Station > stations_;
+  ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Train > strains_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
 
   friend void  protobuf_AddDesc_RailvizProtocolV2_2eproto();
   friend void protobuf_AssignDesc_RailvizProtocolV2_2eproto();
@@ -479,7 +833,7 @@ class Response : public ::google::protobuf::Message {
 
 // Station
 
-// optional int32 id = 1;
+// optional uint32 id = 1;
 inline bool Station::has_id() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -490,13 +844,13 @@ inline void Station::clear_has_id() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void Station::clear_id() {
-  id_ = 0;
+  id_ = 0u;
   clear_has_id();
 }
-inline ::google::protobuf::int32 Station::id() const {
+inline ::google::protobuf::uint32 Station::id() const {
   return id_;
 }
-inline void Station::set_id(::google::protobuf::int32 value) {
+inline void Station::set_id(::google::protobuf::uint32 value) {
   set_has_id();
   id_ = value;
 }
@@ -613,6 +967,292 @@ inline float Station::longitude() const {
 inline void Station::set_longitude(float value) {
   set_has_longitude();
   longitude_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// Connection
+
+// optional uint32 conInfoId = 1;
+inline bool Connection::has_coninfoid() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Connection::set_has_coninfoid() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Connection::clear_has_coninfoid() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Connection::clear_coninfoid() {
+  coninfoid_ = 0u;
+  clear_has_coninfoid();
+}
+inline ::google::protobuf::uint32 Connection::coninfoid() const {
+  return coninfoid_;
+}
+inline void Connection::set_coninfoid(::google::protobuf::uint32 value) {
+  set_has_coninfoid();
+  coninfoid_ = value;
+}
+
+// optional uint32 price = 2;
+inline bool Connection::has_price() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Connection::set_has_price() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Connection::clear_has_price() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Connection::clear_price() {
+  price_ = 0u;
+  clear_has_price();
+}
+inline ::google::protobuf::uint32 Connection::price() const {
+  return price_;
+}
+inline void Connection::set_price(::google::protobuf::uint32 value) {
+  set_has_price();
+  price_ = value;
+}
+
+// optional uint32 dPlatform = 3;
+inline bool Connection::has_dplatform() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Connection::set_has_dplatform() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Connection::clear_has_dplatform() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Connection::clear_dplatform() {
+  dplatform_ = 0u;
+  clear_has_dplatform();
+}
+inline ::google::protobuf::uint32 Connection::dplatform() const {
+  return dplatform_;
+}
+inline void Connection::set_dplatform(::google::protobuf::uint32 value) {
+  set_has_dplatform();
+  dplatform_ = value;
+}
+
+// optional uint32 aPlatform = 4;
+inline bool Connection::has_aplatform() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void Connection::set_has_aplatform() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void Connection::clear_has_aplatform() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void Connection::clear_aplatform() {
+  aplatform_ = 0u;
+  clear_has_aplatform();
+}
+inline ::google::protobuf::uint32 Connection::aplatform() const {
+  return aplatform_;
+}
+inline void Connection::set_aplatform(::google::protobuf::uint32 value) {
+  set_has_aplatform();
+  aplatform_ = value;
+}
+
+// optional uint32 clasz = 5;
+inline bool Connection::has_clasz() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void Connection::set_has_clasz() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void Connection::clear_has_clasz() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void Connection::clear_clasz() {
+  clasz_ = 0u;
+  clear_has_clasz();
+}
+inline ::google::protobuf::uint32 Connection::clasz() const {
+  return clasz_;
+}
+inline void Connection::set_clasz(::google::protobuf::uint32 value) {
+  set_has_clasz();
+  clasz_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// LightConnection
+
+// optional uint64 lightConId = 1;
+inline bool LightConnection::has_lightconid() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void LightConnection::set_has_lightconid() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void LightConnection::clear_has_lightconid() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void LightConnection::clear_lightconid() {
+  lightconid_ = GOOGLE_ULONGLONG(0);
+  clear_has_lightconid();
+}
+inline ::google::protobuf::uint64 LightConnection::lightconid() const {
+  return lightconid_;
+}
+inline void LightConnection::set_lightconid(::google::protobuf::uint64 value) {
+  set_has_lightconid();
+  lightconid_ = value;
+}
+
+// optional uint32 dTime = 2;
+inline bool LightConnection::has_dtime() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void LightConnection::set_has_dtime() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void LightConnection::clear_has_dtime() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void LightConnection::clear_dtime() {
+  dtime_ = 0u;
+  clear_has_dtime();
+}
+inline ::google::protobuf::uint32 LightConnection::dtime() const {
+  return dtime_;
+}
+inline void LightConnection::set_dtime(::google::protobuf::uint32 value) {
+  set_has_dtime();
+  dtime_ = value;
+}
+
+// optional uint32 aTime = 3;
+inline bool LightConnection::has_atime() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void LightConnection::set_has_atime() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void LightConnection::clear_has_atime() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void LightConnection::clear_atime() {
+  atime_ = 0u;
+  clear_has_atime();
+}
+inline ::google::protobuf::uint32 LightConnection::atime() const {
+  return atime_;
+}
+inline void LightConnection::set_atime(::google::protobuf::uint32 value) {
+  set_has_atime();
+  atime_ = value;
+}
+
+// optional .td.railviz.protocol.Connection connection = 4;
+inline bool LightConnection::has_connection() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void LightConnection::set_has_connection() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void LightConnection::clear_has_connection() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void LightConnection::clear_connection() {
+  if (connection_ != NULL) connection_->::td::railviz::protocol::Connection::Clear();
+  clear_has_connection();
+}
+inline const ::td::railviz::protocol::Connection& LightConnection::connection() const {
+  return connection_ != NULL ? *connection_ : *default_instance_->connection_;
+}
+inline ::td::railviz::protocol::Connection* LightConnection::mutable_connection() {
+  set_has_connection();
+  if (connection_ == NULL) connection_ = new ::td::railviz::protocol::Connection;
+  return connection_;
+}
+inline ::td::railviz::protocol::Connection* LightConnection::release_connection() {
+  clear_has_connection();
+  ::td::railviz::protocol::Connection* temp = connection_;
+  connection_ = NULL;
+  return temp;
+}
+inline void LightConnection::set_allocated_connection(::td::railviz::protocol::Connection* connection) {
+  delete connection_;
+  connection_ = connection;
+  if (connection) {
+    set_has_connection();
+  } else {
+    clear_has_connection();
+  }
+}
+
+// -------------------------------------------------------------------
+
+// Train
+
+// optional uint32 id = 1;
+inline bool Train::has_id() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Train::set_has_id() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Train::clear_has_id() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Train::clear_id() {
+  id_ = 0u;
+  clear_has_id();
+}
+inline ::google::protobuf::uint32 Train::id() const {
+  return id_;
+}
+inline void Train::set_id(::google::protobuf::uint32 value) {
+  set_has_id();
+  id_ = value;
+}
+
+// optional .td.railviz.protocol.LightConnection light_connection = 2;
+inline bool Train::has_light_connection() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Train::set_has_light_connection() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Train::clear_has_light_connection() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Train::clear_light_connection() {
+  if (light_connection_ != NULL) light_connection_->::td::railviz::protocol::LightConnection::Clear();
+  clear_has_light_connection();
+}
+inline const ::td::railviz::protocol::LightConnection& Train::light_connection() const {
+  return light_connection_ != NULL ? *light_connection_ : *default_instance_->light_connection_;
+}
+inline ::td::railviz::protocol::LightConnection* Train::mutable_light_connection() {
+  set_has_light_connection();
+  if (light_connection_ == NULL) light_connection_ = new ::td::railviz::protocol::LightConnection;
+  return light_connection_;
+}
+inline ::td::railviz::protocol::LightConnection* Train::release_light_connection() {
+  clear_has_light_connection();
+  ::td::railviz::protocol::LightConnection* temp = light_connection_;
+  light_connection_ = NULL;
+  return temp;
+}
+inline void Train::set_allocated_light_connection(::td::railviz::protocol::LightConnection* light_connection) {
+  delete light_connection_;
+  light_connection_ = light_connection;
+  if (light_connection) {
+    set_has_light_connection();
+  } else {
+    clear_has_light_connection();
+  }
 }
 
 // -------------------------------------------------------------------
@@ -831,6 +1471,31 @@ Response::stations() const {
 inline ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Station >*
 Response::mutable_stations() {
   return &stations_;
+}
+
+// repeated .td.railviz.protocol.Train strains = 5;
+inline int Response::strains_size() const {
+  return strains_.size();
+}
+inline void Response::clear_strains() {
+  strains_.Clear();
+}
+inline const ::td::railviz::protocol::Train& Response::strains(int index) const {
+  return strains_.Get(index);
+}
+inline ::td::railviz::protocol::Train* Response::mutable_strains(int index) {
+  return strains_.Mutable(index);
+}
+inline ::td::railviz::protocol::Train* Response::add_strains() {
+  return strains_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Train >&
+Response::strains() const {
+  return strains_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::td::railviz::protocol::Train >*
+Response::mutable_strains() {
+  return &strains_;
 }
 
 

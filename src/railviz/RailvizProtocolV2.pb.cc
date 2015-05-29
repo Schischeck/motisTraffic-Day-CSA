@@ -25,6 +25,15 @@ namespace {
 const ::google::protobuf::Descriptor* Station_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Station_reflection_ = NULL;
+const ::google::protobuf::Descriptor* Connection_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  Connection_reflection_ = NULL;
+const ::google::protobuf::Descriptor* LightConnection_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  LightConnection_reflection_ = NULL;
+const ::google::protobuf::Descriptor* Train_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  Train_reflection_ = NULL;
 const ::google::protobuf::Descriptor* Request_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Request_reflection_ = NULL;
@@ -61,7 +70,60 @@ void protobuf_AssignDesc_RailvizProtocolV2_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Station));
-  Request_descriptor_ = file->message_type(1);
+  Connection_descriptor_ = file->message_type(1);
+  static const int Connection_offsets_[5] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, coninfoid_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, price_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, dplatform_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, aplatform_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, clasz_),
+  };
+  Connection_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      Connection_descriptor_,
+      Connection::default_instance_,
+      Connection_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Connection, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(Connection));
+  LightConnection_descriptor_ = file->message_type(2);
+  static const int LightConnection_offsets_[4] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, lightconid_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, dtime_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, atime_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, connection_),
+  };
+  LightConnection_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      LightConnection_descriptor_,
+      LightConnection::default_instance_,
+      LightConnection_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LightConnection, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(LightConnection));
+  Train_descriptor_ = file->message_type(3);
+  static const int Train_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Train, id_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Train, light_connection_),
+  };
+  Train_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      Train_descriptor_,
+      Train::default_instance_,
+      Train_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Train, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Train, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(Train));
+  Request_descriptor_ = file->message_type(4);
   static const int Request_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, protocol_version_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, type_),
@@ -79,12 +141,13 @@ void protobuf_AssignDesc_RailvizProtocolV2_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Request));
   Request_TYPE_descriptor_ = Request_descriptor_->enum_type(0);
-  Response_descriptor_ = file->message_type(2);
-  static const int Response_offsets_[4] = {
+  Response_descriptor_ = file->message_type(5);
+  static const int Response_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, protocol_version_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, msg_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, stations_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, strains_),
   };
   Response_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -113,6 +176,12 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     Station_descriptor_, &Station::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    Connection_descriptor_, &Connection::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    LightConnection_descriptor_, &LightConnection::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    Train_descriptor_, &Train::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     Request_descriptor_, &Request::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     Response_descriptor_, &Response::default_instance());
@@ -123,6 +192,12 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void protobuf_ShutdownFile_RailvizProtocolV2_2eproto() {
   delete Station::default_instance_;
   delete Station_reflection_;
+  delete Connection::default_instance_;
+  delete Connection_reflection_;
+  delete LightConnection::default_instance_;
+  delete LightConnection_reflection_;
+  delete Train::default_instance_;
+  delete Train_reflection_;
   delete Request::default_instance_;
   delete Request_reflection_;
   delete Response::default_instance_;
@@ -137,25 +212,41 @@ void protobuf_AddDesc_RailvizProtocolV2_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\027RailvizProtocolV2.proto\022\023td.railviz.pr"
-    "otocol\"H\n\007Station\022\n\n\002id\030\001 \001(\005\022\014\n\004name\030\002 "
+    "otocol\"H\n\007Station\022\n\n\002id\030\001 \001(\r\022\014\n\004name\030\002 "
     "\001(\t\022\020\n\010latitude\030\003 \001(\002\022\021\n\tlongitude\030\004 \001(\002"
-    "\"\264\001\n\007Request\022\030\n\020protocol_version\030\001 \002(\005\022/"
-    "\n\004type\030\002 \002(\0162!.td.railviz.protocol.Reque"
-    "st.TYPE\022.\n\010stations\030\003 \003(\0132\034.td.railviz.p"
-    "rotocol.Station\".\n\004TYPE\022\020\n\014ALL_STATIONS\020"
-    "\001\022\024\n\020DETAILED_STATION\020\002\"\330\001\n\010Response\022\030\n\020"
-    "protocol_version\030\001 \002(\005\0220\n\004type\030\002 \002(\0162\".t"
-    "d.railviz.protocol.Response.TYPE\022\013\n\003msg\030"
-    "\003 \001(\t\022.\n\010stations\030\004 \003(\0132\034.td.railviz.pro"
-    "tocol.Station\"C\n\004TYPE\022\t\n\005ERROR\020\001\022\010\n\004INFO"
-    "\020\002\022\020\n\014ALL_STATIONS\020\003\022\024\n\020DETAILED_STATION"
-    "\020\004", 522);
+    "\"c\n\nConnection\022\021\n\tconInfoId\030\001 \001(\r\022\r\n\005pri"
+    "ce\030\002 \001(\r\022\021\n\tdPlatform\030\003 \001(\r\022\021\n\taPlatform"
+    "\030\004 \001(\r\022\r\n\005clasz\030\005 \001(\r\"x\n\017LightConnection"
+    "\022\022\n\nlightConId\030\001 \001(\004\022\r\n\005dTime\030\002 \001(\r\022\r\n\005a"
+    "Time\030\003 \001(\r\0223\n\nconnection\030\004 \001(\0132\037.td.rail"
+    "viz.protocol.Connection\"S\n\005Train\022\n\n\002id\030\001"
+    " \001(\r\022>\n\020light_connection\030\002 \001(\0132$.td.rail"
+    "viz.protocol.LightConnection\"\330\001\n\007Request"
+    "\022\030\n\020protocol_version\030\001 \002(\005\022/\n\004type\030\002 \002(\016"
+    "2!.td.railviz.protocol.Request.TYPE\022.\n\010s"
+    "tations\030\003 \003(\0132\034.td.railviz.protocol.Stat"
+    "ion\"R\n\004TYPE\022\020\n\014ALL_STATIONS\020\001\022\024\n\020DETAILE"
+    "D_STATION\020\002\022\016\n\nALL_TRAINS\020\003\022\022\n\016DETAILED_"
+    "TRAIN\020\004\"\251\002\n\010Response\022\030\n\020protocol_version"
+    "\030\001 \002(\005\0220\n\004type\030\002 \002(\0162\".td.railviz.protoc"
+    "ol.Response.TYPE\022\013\n\003msg\030\003 \001(\t\022.\n\010station"
+    "s\030\004 \003(\0132\034.td.railviz.protocol.Station\022+\n"
+    "\007strains\030\005 \003(\0132\032.td.railviz.protocol.Tra"
+    "in\"g\n\004TYPE\022\t\n\005ERROR\020\001\022\010\n\004INFO\020\002\022\020\n\014ALL_S"
+    "TATIONS\020\003\022\024\n\020DETAILED_STATION\020\004\022\016\n\nALL_T"
+    "RAINS\020\005\022\022\n\016DETAILED_TRAIN\020\006", 947);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "RailvizProtocolV2.proto", &protobuf_RegisterTypes);
   Station::default_instance_ = new Station();
+  Connection::default_instance_ = new Connection();
+  LightConnection::default_instance_ = new LightConnection();
+  Train::default_instance_ = new Train();
   Request::default_instance_ = new Request();
   Response::default_instance_ = new Response();
   Station::default_instance_->InitAsDefaultInstance();
+  Connection::default_instance_->InitAsDefaultInstance();
+  LightConnection::default_instance_->InitAsDefaultInstance();
+  Train::default_instance_->InitAsDefaultInstance();
   Request::default_instance_->InitAsDefaultInstance();
   Response::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_RailvizProtocolV2_2eproto);
@@ -193,7 +284,7 @@ Station::Station(const Station& from)
 
 void Station::SharedCtor() {
   _cached_size_ = 0;
-  id_ = 0;
+  id_ = 0u;
   name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   latitude_ = 0;
   longitude_ = 0;
@@ -235,7 +326,7 @@ Station* Station::New() const {
 
 void Station::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    id_ = 0;
+    id_ = 0u;
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::kEmptyString) {
         name_->clear();
@@ -254,12 +345,12 @@ bool Station::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 id = 1;
+      // optional uint32 id = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &id_)));
           set_has_id();
         } else {
@@ -336,9 +427,9 @@ bool Station::MergePartialFromCodedStream(
 
 void Station::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 id = 1;
+  // optional uint32 id = 1;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->id(), output);
   }
 
   // optional string name = 2;
@@ -368,9 +459,9 @@ void Station::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Station::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 id = 1;
+  // optional uint32 id = 1;
   if (has_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->id(), target);
   }
 
   // optional string name = 2;
@@ -404,10 +495,10 @@ int Station::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 id = 1;
+    // optional uint32 id = 1;
     if (has_id()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->id());
     }
 
@@ -511,6 +602,960 @@ void Station::Swap(Station* other) {
 
 // ===================================================================
 
+#ifndef _MSC_VER
+const int Connection::kConInfoIdFieldNumber;
+const int Connection::kPriceFieldNumber;
+const int Connection::kDPlatformFieldNumber;
+const int Connection::kAPlatformFieldNumber;
+const int Connection::kClaszFieldNumber;
+#endif  // !_MSC_VER
+
+Connection::Connection()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+}
+
+void Connection::InitAsDefaultInstance() {
+}
+
+Connection::Connection(const Connection& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+}
+
+void Connection::SharedCtor() {
+  _cached_size_ = 0;
+  coninfoid_ = 0u;
+  price_ = 0u;
+  dplatform_ = 0u;
+  aplatform_ = 0u;
+  clasz_ = 0u;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+Connection::~Connection() {
+  SharedDtor();
+}
+
+void Connection::SharedDtor() {
+  if (this != default_instance_) {
+  }
+}
+
+void Connection::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* Connection::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return Connection_descriptor_;
+}
+
+const Connection& Connection::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  return *default_instance_;
+}
+
+Connection* Connection::default_instance_ = NULL;
+
+Connection* Connection::New() const {
+  return new Connection;
+}
+
+void Connection::Clear() {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    coninfoid_ = 0u;
+    price_ = 0u;
+    dplatform_ = 0u;
+    aplatform_ = 0u;
+    clasz_ = 0u;
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool Connection::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+  ::google::protobuf::uint32 tag;
+  while ((tag = input->ReadTag()) != 0) {
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional uint32 conInfoId = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &coninfoid_)));
+          set_has_coninfoid();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(16)) goto parse_price;
+        break;
+      }
+
+      // optional uint32 price = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_price:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &price_)));
+          set_has_price();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(24)) goto parse_dPlatform;
+        break;
+      }
+
+      // optional uint32 dPlatform = 3;
+      case 3: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_dPlatform:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &dplatform_)));
+          set_has_dplatform();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(32)) goto parse_aPlatform;
+        break;
+      }
+
+      // optional uint32 aPlatform = 4;
+      case 4: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_aPlatform:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &aplatform_)));
+          set_has_aplatform();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(40)) goto parse_clasz;
+        break;
+      }
+
+      // optional uint32 clasz = 5;
+      case 5: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_clasz:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &clasz_)));
+          set_has_clasz();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
+        break;
+      }
+
+      default: {
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          return true;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+  return true;
+#undef DO_
+}
+
+void Connection::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // optional uint32 conInfoId = 1;
+  if (has_coninfoid()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->coninfoid(), output);
+  }
+
+  // optional uint32 price = 2;
+  if (has_price()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->price(), output);
+  }
+
+  // optional uint32 dPlatform = 3;
+  if (has_dplatform()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->dplatform(), output);
+  }
+
+  // optional uint32 aPlatform = 4;
+  if (has_aplatform()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->aplatform(), output);
+  }
+
+  // optional uint32 clasz = 5;
+  if (has_clasz()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->clasz(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+}
+
+::google::protobuf::uint8* Connection::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // optional uint32 conInfoId = 1;
+  if (has_coninfoid()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->coninfoid(), target);
+  }
+
+  // optional uint32 price = 2;
+  if (has_price()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->price(), target);
+  }
+
+  // optional uint32 dPlatform = 3;
+  if (has_dplatform()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->dplatform(), target);
+  }
+
+  // optional uint32 aPlatform = 4;
+  if (has_aplatform()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->aplatform(), target);
+  }
+
+  // optional uint32 clasz = 5;
+  if (has_clasz()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->clasz(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  return target;
+}
+
+int Connection::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional uint32 conInfoId = 1;
+    if (has_coninfoid()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->coninfoid());
+    }
+
+    // optional uint32 price = 2;
+    if (has_price()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->price());
+    }
+
+    // optional uint32 dPlatform = 3;
+    if (has_dplatform()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->dplatform());
+    }
+
+    // optional uint32 aPlatform = 4;
+    if (has_aplatform()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->aplatform());
+    }
+
+    // optional uint32 clasz = 5;
+    if (has_clasz()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->clasz());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void Connection::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const Connection* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const Connection*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void Connection::MergeFrom(const Connection& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_coninfoid()) {
+      set_coninfoid(from.coninfoid());
+    }
+    if (from.has_price()) {
+      set_price(from.price());
+    }
+    if (from.has_dplatform()) {
+      set_dplatform(from.dplatform());
+    }
+    if (from.has_aplatform()) {
+      set_aplatform(from.aplatform());
+    }
+    if (from.has_clasz()) {
+      set_clasz(from.clasz());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void Connection::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Connection::CopyFrom(const Connection& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Connection::IsInitialized() const {
+
+  return true;
+}
+
+void Connection::Swap(Connection* other) {
+  if (other != this) {
+    std::swap(coninfoid_, other->coninfoid_);
+    std::swap(price_, other->price_);
+    std::swap(dplatform_, other->dplatform_);
+    std::swap(aplatform_, other->aplatform_);
+    std::swap(clasz_, other->clasz_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata Connection::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = Connection_descriptor_;
+  metadata.reflection = Connection_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int LightConnection::kLightConIdFieldNumber;
+const int LightConnection::kDTimeFieldNumber;
+const int LightConnection::kATimeFieldNumber;
+const int LightConnection::kConnectionFieldNumber;
+#endif  // !_MSC_VER
+
+LightConnection::LightConnection()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+}
+
+void LightConnection::InitAsDefaultInstance() {
+  connection_ = const_cast< ::td::railviz::protocol::Connection*>(&::td::railviz::protocol::Connection::default_instance());
+}
+
+LightConnection::LightConnection(const LightConnection& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+}
+
+void LightConnection::SharedCtor() {
+  _cached_size_ = 0;
+  lightconid_ = GOOGLE_ULONGLONG(0);
+  dtime_ = 0u;
+  atime_ = 0u;
+  connection_ = NULL;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+LightConnection::~LightConnection() {
+  SharedDtor();
+}
+
+void LightConnection::SharedDtor() {
+  if (this != default_instance_) {
+    delete connection_;
+  }
+}
+
+void LightConnection::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* LightConnection::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return LightConnection_descriptor_;
+}
+
+const LightConnection& LightConnection::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  return *default_instance_;
+}
+
+LightConnection* LightConnection::default_instance_ = NULL;
+
+LightConnection* LightConnection::New() const {
+  return new LightConnection;
+}
+
+void LightConnection::Clear() {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    lightconid_ = GOOGLE_ULONGLONG(0);
+    dtime_ = 0u;
+    atime_ = 0u;
+    if (has_connection()) {
+      if (connection_ != NULL) connection_->::td::railviz::protocol::Connection::Clear();
+    }
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool LightConnection::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+  ::google::protobuf::uint32 tag;
+  while ((tag = input->ReadTag()) != 0) {
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional uint64 lightConId = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &lightconid_)));
+          set_has_lightconid();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(16)) goto parse_dTime;
+        break;
+      }
+
+      // optional uint32 dTime = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_dTime:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &dtime_)));
+          set_has_dtime();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(24)) goto parse_aTime;
+        break;
+      }
+
+      // optional uint32 aTime = 3;
+      case 3: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_aTime:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &atime_)));
+          set_has_atime();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(34)) goto parse_connection;
+        break;
+      }
+
+      // optional .td.railviz.protocol.Connection connection = 4;
+      case 4: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_connection:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_connection()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
+        break;
+      }
+
+      default: {
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          return true;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+  return true;
+#undef DO_
+}
+
+void LightConnection::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // optional uint64 lightConId = 1;
+  if (has_lightconid()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->lightconid(), output);
+  }
+
+  // optional uint32 dTime = 2;
+  if (has_dtime()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->dtime(), output);
+  }
+
+  // optional uint32 aTime = 3;
+  if (has_atime()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->atime(), output);
+  }
+
+  // optional .td.railviz.protocol.Connection connection = 4;
+  if (has_connection()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      4, this->connection(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+}
+
+::google::protobuf::uint8* LightConnection::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // optional uint64 lightConId = 1;
+  if (has_lightconid()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->lightconid(), target);
+  }
+
+  // optional uint32 dTime = 2;
+  if (has_dtime()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->dtime(), target);
+  }
+
+  // optional uint32 aTime = 3;
+  if (has_atime()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->atime(), target);
+  }
+
+  // optional .td.railviz.protocol.Connection connection = 4;
+  if (has_connection()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        4, this->connection(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  return target;
+}
+
+int LightConnection::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional uint64 lightConId = 1;
+    if (has_lightconid()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->lightconid());
+    }
+
+    // optional uint32 dTime = 2;
+    if (has_dtime()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->dtime());
+    }
+
+    // optional uint32 aTime = 3;
+    if (has_atime()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->atime());
+    }
+
+    // optional .td.railviz.protocol.Connection connection = 4;
+    if (has_connection()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+          this->connection());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void LightConnection::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const LightConnection* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const LightConnection*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void LightConnection::MergeFrom(const LightConnection& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_lightconid()) {
+      set_lightconid(from.lightconid());
+    }
+    if (from.has_dtime()) {
+      set_dtime(from.dtime());
+    }
+    if (from.has_atime()) {
+      set_atime(from.atime());
+    }
+    if (from.has_connection()) {
+      mutable_connection()->::td::railviz::protocol::Connection::MergeFrom(from.connection());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void LightConnection::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void LightConnection::CopyFrom(const LightConnection& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool LightConnection::IsInitialized() const {
+
+  return true;
+}
+
+void LightConnection::Swap(LightConnection* other) {
+  if (other != this) {
+    std::swap(lightconid_, other->lightconid_);
+    std::swap(dtime_, other->dtime_);
+    std::swap(atime_, other->atime_);
+    std::swap(connection_, other->connection_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata LightConnection::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = LightConnection_descriptor_;
+  metadata.reflection = LightConnection_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int Train::kIdFieldNumber;
+const int Train::kLightConnectionFieldNumber;
+#endif  // !_MSC_VER
+
+Train::Train()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+}
+
+void Train::InitAsDefaultInstance() {
+  light_connection_ = const_cast< ::td::railviz::protocol::LightConnection*>(&::td::railviz::protocol::LightConnection::default_instance());
+}
+
+Train::Train(const Train& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+}
+
+void Train::SharedCtor() {
+  _cached_size_ = 0;
+  id_ = 0u;
+  light_connection_ = NULL;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+Train::~Train() {
+  SharedDtor();
+}
+
+void Train::SharedDtor() {
+  if (this != default_instance_) {
+    delete light_connection_;
+  }
+}
+
+void Train::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* Train::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return Train_descriptor_;
+}
+
+const Train& Train::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_RailvizProtocolV2_2eproto();
+  return *default_instance_;
+}
+
+Train* Train::default_instance_ = NULL;
+
+Train* Train::New() const {
+  return new Train;
+}
+
+void Train::Clear() {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    id_ = 0u;
+    if (has_light_connection()) {
+      if (light_connection_ != NULL) light_connection_->::td::railviz::protocol::LightConnection::Clear();
+    }
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool Train::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+  ::google::protobuf::uint32 tag;
+  while ((tag = input->ReadTag()) != 0) {
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional uint32 id = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &id_)));
+          set_has_id();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(18)) goto parse_light_connection;
+        break;
+      }
+
+      // optional .td.railviz.protocol.LightConnection light_connection = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_light_connection:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_light_connection()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
+        break;
+      }
+
+      default: {
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          return true;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+  return true;
+#undef DO_
+}
+
+void Train::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // optional uint32 id = 1;
+  if (has_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->id(), output);
+  }
+
+  // optional .td.railviz.protocol.LightConnection light_connection = 2;
+  if (has_light_connection()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      2, this->light_connection(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+}
+
+::google::protobuf::uint8* Train::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // optional uint32 id = 1;
+  if (has_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->id(), target);
+  }
+
+  // optional .td.railviz.protocol.LightConnection light_connection = 2;
+  if (has_light_connection()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        2, this->light_connection(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  return target;
+}
+
+int Train::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional uint32 id = 1;
+    if (has_id()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+          this->id());
+    }
+
+    // optional .td.railviz.protocol.LightConnection light_connection = 2;
+    if (has_light_connection()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+          this->light_connection());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void Train::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const Train* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const Train*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void Train::MergeFrom(const Train& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_id()) {
+      set_id(from.id());
+    }
+    if (from.has_light_connection()) {
+      mutable_light_connection()->::td::railviz::protocol::LightConnection::MergeFrom(from.light_connection());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void Train::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Train::CopyFrom(const Train& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Train::IsInitialized() const {
+
+  return true;
+}
+
+void Train::Swap(Train* other) {
+  if (other != this) {
+    std::swap(id_, other->id_);
+    std::swap(light_connection_, other->light_connection_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata Train::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = Train_descriptor_;
+  metadata.reflection = Train_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
 const ::google::protobuf::EnumDescriptor* Request_TYPE_descriptor() {
   protobuf_AssignDescriptorsOnce();
   return Request_TYPE_descriptor_;
@@ -519,6 +1564,8 @@ bool Request_TYPE_IsValid(int value) {
   switch(value) {
     case 1:
     case 2:
+    case 3:
+    case 4:
       return true;
     default:
       return false;
@@ -528,6 +1575,8 @@ bool Request_TYPE_IsValid(int value) {
 #ifndef _MSC_VER
 const Request_TYPE Request::ALL_STATIONS;
 const Request_TYPE Request::DETAILED_STATION;
+const Request_TYPE Request::ALL_TRAINS;
+const Request_TYPE Request::DETAILED_TRAIN;
 const Request_TYPE Request::TYPE_MIN;
 const Request_TYPE Request::TYPE_MAX;
 const int Request::TYPE_ARRAYSIZE;
@@ -837,6 +1886,8 @@ bool Response_TYPE_IsValid(int value) {
     case 2:
     case 3:
     case 4:
+    case 5:
+    case 6:
       return true;
     default:
       return false;
@@ -848,6 +1899,8 @@ const Response_TYPE Response::ERROR;
 const Response_TYPE Response::INFO;
 const Response_TYPE Response::ALL_STATIONS;
 const Response_TYPE Response::DETAILED_STATION;
+const Response_TYPE Response::ALL_TRAINS;
+const Response_TYPE Response::DETAILED_TRAIN;
 const Response_TYPE Response::TYPE_MIN;
 const Response_TYPE Response::TYPE_MAX;
 const int Response::TYPE_ARRAYSIZE;
@@ -857,6 +1910,7 @@ const int Response::kProtocolVersionFieldNumber;
 const int Response::kTypeFieldNumber;
 const int Response::kMsgFieldNumber;
 const int Response::kStationsFieldNumber;
+const int Response::kStrainsFieldNumber;
 #endif  // !_MSC_VER
 
 Response::Response()
@@ -925,6 +1979,7 @@ void Response::Clear() {
     }
   }
   stations_.Clear();
+  strains_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -999,6 +2054,21 @@ bool Response::MergePartialFromCodedStream(
           goto handle_uninterpreted;
         }
         if (input->ExpectTag(34)) goto parse_stations;
+        if (input->ExpectTag(42)) goto parse_strains;
+        break;
+      }
+
+      // repeated .td.railviz.protocol.Train strains = 5;
+      case 5: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_strains:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_strains()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(42)) goto parse_strains;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -1047,6 +2117,12 @@ void Response::SerializeWithCachedSizes(
       4, this->stations(i), output);
   }
 
+  // repeated .td.railviz.protocol.Train strains = 5;
+  for (int i = 0; i < this->strains_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      5, this->strains(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1081,6 +2157,13 @@ void Response::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
         4, this->stations(i), target);
+  }
+
+  // repeated .td.railviz.protocol.Train strains = 5;
+  for (int i = 0; i < this->strains_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        5, this->strains(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1123,6 +2206,14 @@ int Response::ByteSize() const {
         this->stations(i));
   }
 
+  // repeated .td.railviz.protocol.Train strains = 5;
+  total_size += 1 * this->strains_size();
+  for (int i = 0; i < this->strains_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->strains(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -1149,6 +2240,7 @@ void Response::MergeFrom(const ::google::protobuf::Message& from) {
 void Response::MergeFrom(const Response& from) {
   GOOGLE_CHECK_NE(&from, this);
   stations_.MergeFrom(from.stations_);
+  strains_.MergeFrom(from.strains_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_protocol_version()) {
       set_protocol_version(from.protocol_version());
@@ -1187,6 +2279,7 @@ void Response::Swap(Response* other) {
     std::swap(type_, other->type_);
     std::swap(msg_, other->msg_);
     stations_.Swap(&other->stations_);
+    strains_.Swap(&other->strains_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
