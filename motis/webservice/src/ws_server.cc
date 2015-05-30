@@ -20,6 +20,7 @@ struct ws_server::ws_server_impl {
       : ios_(ios), msg_handler_(nullptr), open_handler_(nullptr),
         close_handler_(nullptr) {
     namespace p = std::placeholders;
+    server_.set_reuse_addr(true);
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
