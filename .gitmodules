@@ -1,9 +1,9 @@
 [submodule "external_lib/conf"]
 	path = external_lib/conf
-	url = git@codebasehq.com:algotud/utilities/conf.git
+	url = https://github.com/felixguendling/conf.git
 [submodule "external_lib/net"]
 	path = external_lib/net
-	url = git@codebasehq.com:algotud/utilities/net.git
+	url = https://github.com/felixguendling/net.git
 [submodule "external_lib/websocketpp"]
 	path = external_lib/websocketpp
 	url = https://github.com/zaphoyd/websocketpp.git
