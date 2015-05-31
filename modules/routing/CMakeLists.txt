@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
 include_directories(include)
 
 file(GLOB_RECURSE motis-routing-files src/*.cpp)

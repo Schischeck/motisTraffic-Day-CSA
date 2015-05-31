@@ -1,17 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-include_directories(${CMAKE_SOURCE_DIR}/external_lib)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
-include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
 include_directories(include)
 
 file(GLOB_RECURSE motis-webservice-files src/*.cc)
 add_executable(motis-webservice ${motis-webservice-files})
-target_link_libraries(motis-webservice motis-loader motis-railviz conf json11)
+target_link_libraries(motis-webservice ${CMAKE_THREAD_LIBS_INIT} motis-loader motis-railviz conf json11)
 set_target_properties(motis-webservice PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
