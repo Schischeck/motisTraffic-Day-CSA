@@ -40,10 +40,12 @@ Don't put more than one or two blank lines between functions, resist starting fu
 
 # Files
 
-C (implementation) files: ".cc"
-H (header) files: ".h"
+File extensions:
 
-Put header files in a unique folder structure (i.e. /include/motis/...)
+  - C (implementation) files: ".cc"
+  - H (header) files: ".h"
+
+Put header files in a unique folder structure (i.e. /include/motis/...).
 
 
 # Namespaces
