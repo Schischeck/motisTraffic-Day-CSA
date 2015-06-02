@@ -17,20 +17,20 @@ struct ws_server_options {
 };
 
 struct ws_server final {
-  ws_server(boost::asio::io_service &ios);
+  ws_server(boost::asio::io_service& ios);
   ~ws_server();
 
   void on_msg(module::msg_handler);
   void on_open(module::sid_handler);
   void on_close(module::sid_handler);
 
-  void listen(ws_server_options const &opt);
-  void send(module::sid session, json11::Json const &msg);
+  void listen(ws_server_options const& opt);
+  void send(module::sid session, json11::Json const& msg);
   void stop();
 
   struct ws_server_impl;
   std::unique_ptr<ws_server_impl> impl_;
 };
 
-} // namespace webservice
-} // namespace motis
+}  // namespace webservice
+}  // namespace motis
