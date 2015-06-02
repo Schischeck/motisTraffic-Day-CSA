@@ -98,5 +98,6 @@ Follow basic software engineering principles.
     - Does it have tests, examples, documentation, etc.?
   - Make it CMake compatible -> "cmake . && make" should build the complete project (including all libraries) for every platform (Mac OS, Linux: clang, gcc; Windows: MSVS).
     Even for non-host platforms like ARM/MIPS (crosstool-ng) or other operating systems like Windows (MinGW) using cross-toolchains.
+  - Use the Git submodule feature and the CMake `add_subdirectory()` function to include the libraries CMakeLists.txt file.
 
 (since Boost is often reference for the C++ standard, it plays a special role here)
