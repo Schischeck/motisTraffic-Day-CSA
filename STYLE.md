@@ -24,7 +24,7 @@ Don't put more than one or two blank lines between functions, resist starting fu
 
 # Comments
 
-  - Do not use comments that do not explain anything like:
+  - Do not write comments that do not explain anything like:
 
         /**
          * @return  returns the index
