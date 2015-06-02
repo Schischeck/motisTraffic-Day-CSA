@@ -96,6 +96,7 @@ Ordering/Groups (separated by empty lines):
   - Do not write simple setters and getters, just use public member variables
   - Try to avoid "output parameters" (better: input=parameter, output=return value)
   - Make sure the project does not compile too long (use forward declarations, pimpl idiom if necessary)
+  - Make full use of the Standard Library to simplify your own code: I.e. use STL algorithms instead of writing your own.
 
 
 # Software Design
