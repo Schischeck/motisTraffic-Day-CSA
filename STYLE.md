@@ -40,6 +40,10 @@ Mark the namespace end bracket with a comment:
 Otherwise, one may wonder what this single closing bracket is good for.
 Do not indent namespaces.
 
+  - Do **not** (at least not globally) import the `std::` namespace using `using namespace std;`.
+  - Do **not** import any namespace or elements of namespace in header files.
+  - If your code becomes unreadable due to long namespace names, rename them in the `.cc` file or (if appropriate) in a single function scope: `namespace bg = boost:geometry;`. It may also be sufficient to import single elements of a namespace (i.e. `using std::get;`).
+
 
 # Includes
 
