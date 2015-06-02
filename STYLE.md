@@ -24,6 +24,7 @@ Don't put more than one or two blank lines between functions, resist starting fu
 
 # Comments
 
+  - Do not commit commented out code (this also applies to `#ifdef 0` or `if (false) {...}`).
   - Do not write comments that do not explain anything like:
 
         /**
@@ -121,6 +122,7 @@ Follow basic software engineering principles.
     - Who maintains this library? How mature is it? Is it in production use somewhere?
     - Can you read and understand the code (i.e. to extend it or fix bugs)?
     - Does it have tests, examples, documentation, etc.?
+  - Before introducing external dependencies like a MySQL server or a message queue (i.e. RabbitMQ): would a simple embedded database or a direct HTTP connection be sufficient?
   - Make it CMake compatible -> "cmake . && make" should build the complete project (including all libraries) for every platform (Mac OS, Linux: clang, gcc; Windows: MSVS).
     Even for non-host platforms like ARM/MIPS (crosstool-ng) or other operating systems like Windows (MinGW) using cross-toolchains.
   - Use the Git submodule feature and the CMake `add_subdirectory()` function to include the libraries CMakeLists.txt file.
