@@ -9,6 +9,8 @@
 
 Basically, this leads to a consistent code impression when using the STL or Boost libraries.
 
+Do not use very long variable and class names.
+
 
 # Formatting
 
@@ -18,6 +20,22 @@ Minimize use of vertical whitespace:
 Don't put more than one or two blank lines between functions, resist starting functions with a blank line, don't end functions with a blank line, and be discriminating with your use of blank lines inside functions. The basic principle is: The more code that fits on one screen, the easier it is to follow and understand the control flow of the program. Of course, readability can suffer from code being too dense as well as too spread out, so use your judgement. But in general, minimize use of vertical whitespace.
 
 (Source: https://google-styleguide.googlecode.com/svn/trunk/cppguide.html#Vertical_Whitespace)
+
+
+# Comments
+
+  - Do not use comments that do not explain anything like:
+
+        /**
+         * @return  returns the index
+         */
+        int index() { return index_; }
+
+  - Do not explain language/library features in your comments.
+  - Do not repeat what the code does (the reader can read the code, too) but describe the concepts and reasons behind it, **if** it is not obvious.
+  - Do not describe algorithms like Dijkstra, etc. (this can be better explained in Thesis documents using pseudo code, etc. or looked up on the Internet).
+  - If you comment code: would it be possible to skip the comment if you split your method, give your method(s)/classes(s) a more meaningful name, give your variables more meaningful names, etc.?
+  - If you comment code: try to use full sentences and correct English
 
 
 # Files
