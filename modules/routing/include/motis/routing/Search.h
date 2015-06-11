@@ -5,8 +5,6 @@
 #include <string>
 #include <memory>
 
-#include <pugixml.hpp>
-
 #include "motis/routing/LowerBounds.h"
 #include "motis/routing/ParetoDijkstra.h"
 #include "motis/routing/Arrival.h"
@@ -21,7 +19,7 @@ struct Schedule;
 class Search
 {
 public:
-  Graph(Schedule& schedule, MemoryManager<Label>& labelStore);
+  Search(Schedule& schedule, MemoryManager<Label>& labelStore);
 
   std::vector<Journey> getConnections(
       Arrival from, Arrival to,
@@ -29,7 +27,6 @@ public:
       ParetoDijkstra::Statistics* stats = nullptr);
 
   void outputPathCompact(Journey const& journey, std::ostream& out);
-  void outputPathXML(Journey const& journey, pugi::xml_node& connections);
 
   void generateStartLabels(
       Time const from,

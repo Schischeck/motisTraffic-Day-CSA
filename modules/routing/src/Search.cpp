@@ -195,7 +195,7 @@ void Search::generateStartLabels(
 
     while(t <= to + timeOff)
     {
-      LightConnection const* con = edge.getConnection(t, nullptr);
+      LightConnection const* con = edge.getConnection(t);
       if(con == nullptr)
         break;
 

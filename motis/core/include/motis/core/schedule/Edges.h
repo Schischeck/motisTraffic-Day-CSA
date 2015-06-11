@@ -104,7 +104,7 @@ public:
     switch (_m._type)
     {
       case Type::ROUTE_EDGE:
-        return getRouteEdgeCost(startTime, lastCon);
+        return getRouteEdgeCost(startTime);
 
       case Type::AFTER_TRAIN_FOOT_EDGE:
         if (lastCon == nullptr)
@@ -150,15 +150,10 @@ public:
       return EdgeCost(0);
   }
 
-  LightConnection const* getConnection(
-      Time startTime,
-      LightConnection const* lastCon) const
+  LightConnection const* getConnection(Time const startTime) const
   {
     if(_m._routeEdge._conns.size() == 0)
       return nullptr;
-
-    if (lastCon != nullptr && lastCon->_next != nullptr)
-      return lastCon->_next;
 
     auto it = std::lower_bound(
         std::begin(_m._routeEdge._conns),
@@ -169,11 +164,9 @@ public:
     return (it == std::end(_m._routeEdge._conns)) ? nullptr : it;
   }
 
-  EdgeCost getRouteEdgeCost(
-      Time const startTime,
-      LightConnection const* lastCon) const
+  EdgeCost getRouteEdgeCost(Time const startTime) const
   {
-    LightConnection const* c = getConnection(startTime, lastCon);
+    LightConnection const* c = getConnection(startTime);
     return (c == nullptr) ? NO_EDGE : EdgeCost(c->aTime - startTime, c);
   }
 

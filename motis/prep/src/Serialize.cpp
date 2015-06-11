@@ -58,17 +58,6 @@ SerializePointerPair serialize(
 
 template <>
 SerializePointerPair serialize(
-    LightConnection const& lightCon,
-    OffsetMap& offsets,
-    SerializePointer p, SerializePointer nextP)
-{
-  offsets.push_back(std::make_pair(&lightCon, p.offset()));
-  std::memcpy(p.ptr(), &lightCon, sizeof(LightConnection));
-  return { p + sizeof(LightConnection), nextP };
-}
-
-template <>
-SerializePointerPair serialize(
     Connection const& fullCon,
     OffsetMap& offsets,
     SerializePointer p, SerializePointer nextP)
@@ -239,10 +228,7 @@ void pointersToOffsets(
     LightConnection& con,
     SerializePointer const&,
     OffsetMap& offsets)
-{
-  con._next._offset = getOffset(offsets, con._next._ptr);
-  con._fullCon._offset = getOffset(offsets, con._fullCon._ptr);
-}
+{ con._fullCon._offset = getOffset(offsets, con._fullCon._ptr); }
 
 template<>
 void pointersToOffsets(

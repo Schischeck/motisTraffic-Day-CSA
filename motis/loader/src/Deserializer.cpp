@@ -49,10 +49,7 @@ void offsetsToPointers(Station& station, char* base)
 
 template<>
 void offsetsToPointers(LightConnection& con, char* base)
-{
-  con._fullCon.offsetToPointer(base);
-  con._next.offsetToPointer(base);
-}
+{ con._fullCon.offsetToPointer(base); }
 
 template<>
 void offsetsToPointers(Connection& con, char* base)

@@ -2,7 +2,7 @@
 
 #include "motis/core/schedule/Station.h"
 
-#include "motis/routing/Graph.h"
+#include "motis/routing/Search.h"
 
 const bool DOMINANCE = true;
 const bool FORWARDING = true;

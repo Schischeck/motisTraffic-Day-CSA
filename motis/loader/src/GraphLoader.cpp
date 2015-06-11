@@ -194,9 +194,6 @@ int GraphLoader::loadRoutes(
   in.exceptions(ios_base::failbit);
   in.open(_prefix + ROUTES_FILE);
 
-  uint64_t lightConId = 0;
-  std::vector<LightConnection*> connections;
-
   uint32_t conInfoId = 0;
   std::map<ConnectionInfo, uint32_t> conInfos;
 
@@ -358,8 +355,8 @@ int GraphLoader::loadRoutes(
         fullCon->conInfoId = it->second;
         fullConnections.emplace_back(fullCon);
 
-        std::tie(lightConId, expandedConnections[conI][trainI]) =
-            expandBitfields(lightConId, fullCon,
+        expandedConnections[conI][trainI] =
+            expandBitfields(fullCon,
                             inputConnections[conI][trainI],
                             bm);
 
@@ -367,33 +364,6 @@ int GraphLoader::loadRoutes(
           std::begin(expandedConnections[conI][trainI]),
           std::end(expandedConnections[conI][trainI])
         );
-      }
-    }
-
-    //build connection sequences
-    for (unsigned trainI = 0; trainI < nTrains; ++trainI)
-    {
-      for (unsigned stationI = 1; stationI < nStations - 1; ++stationI)
-      {
-        auto& pred = expandedConnections[stationI - 1][trainI];
-        auto& succ = expandedConnections[stationI][trainI];
-
-        for (auto& predCon : pred)
-        {
-          auto nextIt = std::lower_bound(
-            std::begin(succ),
-            std::end(succ),
-            LightConnection(predCon.aTime)
-          );
-
-          if (nextIt == std::end(succ))
-            continue;
-
-          assert(predCon.aTime != INVALID_TIME);
-          assert(nextIt->dTime != INVALID_TIME);
-
-          predCon._nextId = nextIt->_conId;
-        }
       }
     }
 
@@ -419,13 +389,6 @@ int GraphLoader::loadRoutes(
 
         prevRouteNode->_edges.emplace_back(
             makeRouteEdge(routeNode, join(expandedConnections[stationI - 1])));
-
-        for (auto& conn : prevRouteNode->_edges.back()._m._routeEdge._conns)
-        {
-          if (connections.size() < conn._conId + 1)
-            connections.resize(conn._conId + 1);
-          connections[conn._conId] = &conn;
-        }
       }
 
       if(stationI < nStations - 1 && !skipDeparture[stationI])
@@ -438,16 +401,6 @@ int GraphLoader::loadRoutes(
 
     std::string dummy;
     getline(in, dummy);
-  }
-
-  //initialize pointers to the following connection of the same train
-  for (auto& connection : connections)
-  {
-    assert(connection != nullptr);
-    if (connection->_nextId != LightConnection::INVALID_CON_ID)
-      connection->_next = connections[connection->_nextId];
-    else
-      connection->_next = nullptr;
   }
 
   //reverse mapping of connection infos
@@ -466,8 +419,7 @@ int GraphLoader::loadRoutes(
   return nodeId;
 }
 
-std::pair<uint64_t, std::vector<LightConnection>> GraphLoader::expandBitfields(
-    uint64_t lightConId,
+std::vector<LightConnection> GraphLoader::expandBitfields(
     Connection const* fullCon,
     InputConnection const& con,
     BitsetManager const& bm)
@@ -488,10 +440,10 @@ std::pair<uint64_t, std::vector<LightConnection>> GraphLoader::expandBitfields(
       aTime += MINUTES_A_DAY;
     }
 
-    ret.emplace_back(lightConId++, dTime, aTime, fullCon);
+    ret.emplace_back(dTime, aTime, fullCon);
   }
 
-  return { lightConId, ret };
+  return ret;
 }
 
 int GraphLoader::loadFootPaths(

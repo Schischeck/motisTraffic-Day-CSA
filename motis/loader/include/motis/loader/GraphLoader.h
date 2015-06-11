@@ -50,8 +50,7 @@ public:
 
 private:
   /** Bitfield rollout (= absolute times, relative to day 0 of schedule) */
-  static std::pair<uint64_t, std::vector<LightConnection>> expandBitfields(
-      uint64_t lightConId,
+  static std::vector<LightConnection> expandBitfields(
       Connection const* fullCon,
       InputConnection const& con,
       BitsetManager const& bm);

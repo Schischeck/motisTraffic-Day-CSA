@@ -87,12 +87,9 @@ public:
 
   explicit LightConnection(Time dTime) : dTime(dTime) {}
 
-  LightConnection(uint64_t lightConId,
-                  Time dTime, Time aTime,
+  LightConnection(Time dTime, Time aTime,
                   Connection const* fullCon)
       : _fullCon(fullCon),
-        _conId(lightConId),
-        _nextId(INVALID_CON_ID),
         dTime(dTime),
         aTime(aTime)
   {}
@@ -105,13 +102,6 @@ public:
   { return dTime == o.dTime && aTime == o.aTime && *_fullCon == *o._fullCon; }
 
   Pointer<Connection const> _fullCon;
-  union {
-    Pointer<LightConnection const> _next;
-    struct {
-      uint32_t _conId;
-      uint32_t _nextId;
-    };
-  };
   Time dTime, aTime;
 
   enum : uint32_t { INVALID_CON_ID = 0xffffffff };

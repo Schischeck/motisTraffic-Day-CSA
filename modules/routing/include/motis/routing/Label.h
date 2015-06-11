@@ -137,8 +137,8 @@ public:
     }
     else
     {
-      myPrice += o._now - _start * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
-      oPrice += o._now - o._start * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
+      myPrice += (o._now - _start) * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
+      oPrice += (o._now - o._start) * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
     }
 
 #ifdef PRICE_TOLERANCE
