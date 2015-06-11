@@ -42,9 +42,9 @@ struct ws_server::ws_server_impl {
     close_handler_ = std::move(handler);
   }
 
-  void listen(ws_server_options const& options) {
+  void listen(std::string const& host, std::string const& port) {
     server_.init_asio(&ios_);
-    server_.listen(options.host, options.port);
+    server_.listen(host, port);
     server_.start_accept();
   }
 
@@ -152,8 +152,12 @@ void ws_server::on_close(sid_handler handler) {
   impl_->set_close_handler(std::move(handler));
 }
 
-void ws_server::listen(ws_server_options const& opt) { impl_->listen(opt); }
+void ws_server::listen(std::string const& host, std::string const& port) {
+  impl_->listen(host, port);
+}
+
 void ws_server::stop() { impl_->stop(); }
+
 void ws_server::send(sid s, json11::Json const& msg) { impl_->send(s, msg); }
 
 }  // namespace webservice

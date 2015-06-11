@@ -1,34 +1,68 @@
 #include <iostream>
 
+#include "boost/filesystem.hpp"
+#include "boost/asio/io_service.hpp"
+#include "boost/asio/signal_set.hpp"
+
 #include "net/http/server/shutdown_handler.hpp"
+
+#include "conf/options_parser.h"
 
 #include "motis/loader/Loader.h"
 
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
+#include "motis/module/dynamic_module.h"
+#include "motis/module/dynamic_module_loader.h"
 
 #include "motis/webservice/ws_server.h"
-
-#include "motis/railviz/railviz.h"
+#include "motis/webservice/dataset_settings.h"
+#include "motis/webservice/listener_settings.h"
+#include "motis/webservice/modules_settings.h"
 
 using namespace motis::webservice;
 using namespace motis::module;
 using namespace td;
 
-int main() {
-  auto schedule = loadSchedule("../schedule/test");
+int main(int argc, char** argv) {
+  listener_settings listener_opt("0.0.0.0", "8080");
+  dataset_settings dataset_opt("data/test");
+  modules_settings modules_opt("modules");
+
+  conf::options_parser parser({&listener_opt, &dataset_opt, &modules_opt});
+  parser.read_command_line_args(argc, argv);
+
+  if (parser.help()) {
+    std::cout << "\n\tMOTIS Webservice\n\n";
+    parser.print_help(std::cout);
+    return 0;
+  } else if (parser.version()) {
+    std::cout << "MOTIS Webservice\n";
+    return 0;
+  }
+
+  parser.read_configuration_file();
+
+  std::cout << "\n\tMOTIS Webservice\n\n";
+  parser.print_unrecognized(std::cout);
+  parser.print_used(std::cout);
+
+  auto sched = loadSchedule(dataset_opt.dataset);
 
   boost::asio::io_service ios;
 
   ws_server server(ios);
-  server.listen({"0.0.0.0", "9002"});
+  server.listen(listener_opt.host, listener_opt.port);
 
   dispatcher<ws_server> dispatcher(server);
-  dispatcher.add_module(load_module(schedule.get()).release());
+
+  dynamic_module_loader<decltype(dispatcher)> loader(
+      modules_opt.modules_path, sched.get(), dispatcher, ios);
+
+  loader.load_modules();
 
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 
   ios.run();
-  std::cout << "shutdown\n";
 }

@@ -5,7 +5,7 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 AccessModifierOffset: -2
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
-#AllowShortFunctionsOnASingleLine: Empty
+#AllowShortFunctionsOnASingleLine: SFS_None
 AlignTrailingComments: false
 KeepEmptyLinesAtTheStartOfBlocks: true
 AllowShortCaseLabelsOnASingleLine: true

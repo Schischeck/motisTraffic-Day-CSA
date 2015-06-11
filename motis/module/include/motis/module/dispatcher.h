@@ -21,11 +21,6 @@ struct dispatcher {
     server.on_close(std::bind(&dispatcher::on_close, this, p::_1));
   }
 
-  void add_module(module* m) {
-    auto module_wrapper = std::unique_ptr<module>(m);
-    modules_.emplace(m->name(), std::move(module_wrapper));
-  }
-
   std::vector<json11::Json> on_msg(json11::Json const& msg, sid session) {
     std::cout << "--> " << msg.dump() << "\n";
     auto module_name = msg["module"].string_value();
@@ -51,7 +46,7 @@ struct dispatcher {
   }
 
   Server& server_;
-  std::map<std::string, std::unique_ptr<module>> modules_;
+  std::map<std::string, module*> modules_;
 };
 
 }  // namespace module

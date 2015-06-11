@@ -11,11 +11,6 @@
 namespace motis {
 namespace webservice {
 
-struct ws_server_options {
-  std::string host;
-  std::string port;
-};
-
 struct ws_server final {
   ws_server(boost::asio::io_service& ios);
   ~ws_server();
@@ -24,7 +19,7 @@ struct ws_server final {
   void on_open(module::sid_handler);
   void on_close(module::sid_handler);
 
-  void listen(ws_server_options const& opt);
+  void listen(std::string const& host, std::string const& port);
   void send(module::sid session, json11::Json const& msg);
   void stop();
 

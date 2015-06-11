@@ -1,8 +1,7 @@
 #pragma once
 
 #include "motis/module/module.h"
-
-std::unique_ptr<motis::module::module> load_module(td::Schedule* schedule);
+#include "motis/module/api.h"
 
 namespace motis {
 namespace railviz {

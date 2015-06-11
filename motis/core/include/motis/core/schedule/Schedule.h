@@ -11,6 +11,7 @@
 #include "motis/core/schedule/Nodes.h"
 #include "motis/core/schedule/ConstantGraph.h"
 #include "motis/core/schedule/Attribute.h"
+#include "motis/core/common/Synchronization.h"
 
 namespace td {
 
@@ -29,6 +30,7 @@ struct Schedule
   ConstantGraph lowerBounds;
   unsigned nodeCount;
   std::vector<StationNodePtr> stationNodes;
+  Synchronization sync;
 };
 
 typedef std::unique_ptr<Schedule> SchedulePtr;
