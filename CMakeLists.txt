@@ -28,4 +28,5 @@ add_subdirectory(motis/webservice EXCLUDE_FROM_ALL)
 add_subdirectory(motis/module EXCLUDE_FROM_ALL)
 
 add_subdirectory(modules/railviz EXCLUDE_FROM_ALL)
+add_subdirectory(modules/reliability EXCLUDE_FROM_ALL)
 add_subdirectory(modules/routing EXCLUDE_FROM_ALL)

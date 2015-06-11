@@ -41,5 +41,5 @@ std::vector<Json> railviz::on_msg(Json const& msg, sid) {
 
 MOTIS_MODULE_DEF_MODULE(railviz)
 
-}  // namespace motis
 }  // namespace railviz
+}  // namespace motis
