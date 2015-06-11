@@ -1,7 +1,6 @@
 #pragma once
 
 #include "motis/module/module.h"
-#include "motis/module/api.h"
 
 namespace motis {
 namespace railviz {

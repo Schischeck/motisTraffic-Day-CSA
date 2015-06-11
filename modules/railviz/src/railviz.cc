@@ -1,4 +1,5 @@
 #include "motis/railviz/railviz.h"
+#include "motis/module/api.h"
 
 #include <iostream>
 
