@@ -25,11 +25,13 @@ struct dynamic_module_loader {
   }
 
   void listen_for_update_packages_signal() {
-    signals_.async_wait(
-        [this](boost::system::error_code /*ec*/, int /*signo*/) {
-          load_modules();
-          listen_for_update_packages_signal();
-        });
+    namespace p = std::placeholders;
+    signals_.async_wait(std::bind(&dynamic_module_loader::reload, this, p::_1, p::_2));
+  }
+
+  void reload(boost::system::error_code /*ec*/, int /*signo*/) {
+    load_modules();
+    listen_for_update_packages_signal();
   }
 
   void load_modules() {
@@ -37,8 +39,8 @@ struct dynamic_module_loader {
 
     auto modules = modules_from_folder(modules_path_, schedule_);
     for (auto const& module : modules) {
-      dispatcher_.modules_.emplace(module.module_->name(),
-                                   module.module_.get());
+      dispatcher_.modules_.insert({ module.module_->name(),
+                                    module.module_.get() });
     }
 
     print_modules();

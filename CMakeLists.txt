@@ -8,7 +8,7 @@ find_package(Boost REQUIRED COMPONENTS system filesystem regex)
 find_package(Threads)
 
 add_library(json11 EXCLUDE_FROM_ALL external_lib/json11/json11.cpp)
-set_target_properties(json11 PROPERTIES COMPILE_FLAGS -std=c++11)
+set_target_properties(json11 PROPERTIES COMPILE_FLAGS "-std=c++11 -fPIC")
 
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/external_lib)
