@@ -14,29 +14,18 @@
 
 namespace td {
 
-template <typename IntType>
-constexpr IntType shiftLeft(IntType i, std::size_t shift) { return i << shift; }
-
-template <typename IntType, IntType Shift>
-inline
-typename std::enable_if<Shift == shiftLeft(1, sizeof(IntType)), IntType>::type
-  nextPowerOfTwoMinusOne(IntType n)
-{ return n | n >> Shift; }
-
-template <typename IntType, IntType Shift>
-inline
-typename std::enable_if<Shift != shiftLeft(1, sizeof(IntType)), IntType>::type
-  nextPowerOfTwoMinusOne(IntType n)
+inline uint64_t nextPowerOfTwo(uint64_t n)
 {
-  auto shifted = n >> Shift;
-  return shifted |
-         nextPowerOfTwoMinusOne<IntType, shiftLeft(Shift, 1)>(n | shifted);
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  n |= n >> 32;
+  n++;
+  return n;
 }
-
-template <typename IntType>
-inline IntType nextPowerOfTwo(IntType n)
-{ return 1 + nextPowerOfTwoMinusOne<IntType, 1>(n - 1); }
-
 
 template <typename T, typename TemplateSizeType = uint32_t>
 struct Array final
