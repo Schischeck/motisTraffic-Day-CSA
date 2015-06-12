@@ -1,6 +1,7 @@
 #include "motis/module/dynamic_module.h"
 
 #if defined _WIN32 || defined _WIN64
+#include <Windows.h>
 #else  // defined _WIN32 || defined _WIN64
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,9 +69,9 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
   }
 
   // Get address to load function.
-  get_modules lib_fun = (get_modules)GetProcAddress(lib_, "load_module");
+  load_module lib_fun = (load_module)GetProcAddress((HINSTANCE )lib_, "load_module");
   if (nullptr == lib_fun) {
-    FreeLibrary(lib);
+    FreeLibrary((HINSTANCE)lib_);
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
@@ -81,7 +82,7 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
 
 dynamic_module::~dynamic_module() {
   // Close shared library.
-  FreeLibrary(lib_);
+  FreeLibrary((HINSTANCE)lib_);
 }
 #else  // defined _WIN32 || defined _WIN64
 dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)

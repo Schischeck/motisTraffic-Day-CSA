@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "motis/core/common/Array.h"
 #include "motis/core/common/Pointer.h"

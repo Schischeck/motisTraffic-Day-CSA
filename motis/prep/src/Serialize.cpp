@@ -24,7 +24,7 @@ namespace td {
 typedef std::pair<SerializePointer, SerializePointer> SerializePointerPair;
 typedef std::vector<std::pair<void const*, Offset<void const*>::type>> OffsetMap;
 
-typename Offset<void const*>::type getOffset(
+Offset<void const*>::type getOffset(
     OffsetMap const& map,
     void const* ptr)
 {

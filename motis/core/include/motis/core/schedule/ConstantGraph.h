@@ -16,7 +16,7 @@ struct SimpleEdge
   SimpleEdge() : to(0) {}
   SimpleEdge(int to, EdgeCost cost)
       : to(to),
-        dist({{cost.time, cost.transfer, cost.price}})
+        dist({{ cost.time, static_cast<uint16_t>(cost.transfer ? 1 : 0), cost.price }})
   {}
 
   bool operator<(const SimpleEdge& o) const

@@ -17,7 +17,7 @@ class Node;
 
 struct EdgeCost
 {
-  EdgeCost(int time, LightConnection const* c)
+  EdgeCost(uint16_t time, LightConnection const* c)
       : connection(c),
         time(time),
         price(0),
@@ -33,7 +33,7 @@ struct EdgeCost
         slot(slot)
   {}
 
-  int operator[](int index) const
+  uint16_t operator[](int index) const
   {
     switch(index)
     {
