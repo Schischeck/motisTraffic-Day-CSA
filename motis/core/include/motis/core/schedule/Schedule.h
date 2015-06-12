@@ -30,6 +30,7 @@ struct Schedule
   ConstantGraph lowerBounds;
   unsigned nodeCount;
   std::vector<StationNodePtr> stationNodes;
+  std::vector<Node*> routeIndexToFirstRouteNode;
   Synchronization sync;
 };
 

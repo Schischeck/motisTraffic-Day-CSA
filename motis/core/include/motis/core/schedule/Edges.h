@@ -176,6 +176,18 @@ public:
 
   inline uint8_t type() const { return _m._type; }
 
+  inline char const* typeStr() const
+  {
+    switch (type())
+    {
+      case ROUTE_EDGE: return "ROUTE_EDGE";
+      case FOOT_EDGE: return "FOOT_EDGE";
+      case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
+      case MUMO_EDGE: return "MUMO_EDGE";
+      default: return "INVALID";
+    }
+  }
+
   inline bool empty() const
   { return (type() != ROUTE_EDGE) ? true : _m._routeEdge._conns.empty(); }
 

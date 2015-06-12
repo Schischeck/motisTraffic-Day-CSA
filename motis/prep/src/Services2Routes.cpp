@@ -682,7 +682,7 @@ void services2Routes(std::string const& prefix)
   ofstream rout((prefix + string(ROUTES_FILE)).c_str());
   if(!rout)
     throw std::runtime_error("routes file for writing");
-  int currIndex = 1;
+  int currIndex = 0;
   map<RouteInfo, vector<TrainInfo> >::iterator it, end = routes.end();
   for(it = routes.begin(); it != end; ++it)
   {

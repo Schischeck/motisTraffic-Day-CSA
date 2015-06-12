@@ -185,7 +185,8 @@ int GraphLoader::loadRoutes(
     std::vector<StationNodePtr> const& stationNodes,
     const std::map<int, int>& classMapping,
     std::vector<std::unique_ptr<Connection>>& fullConnections,
-    std::vector<std::unique_ptr<ConnectionInfo>>& connectionInfos)
+    std::vector<std::unique_ptr<ConnectionInfo>>& connectionInfos,
+    std::vector<Node*>& routeIndexToFirstRouteNode)
 {
   BitsetManager bm;
   loadBitfields(bm);
@@ -197,7 +198,7 @@ int GraphLoader::loadRoutes(
   uint32_t conInfoId = 0;
   std::map<ConnectionInfo, uint32_t> conInfos;
 
-  int index;
+  unsigned index;
   while(!in.eof())
   {
     if (in.peek() == '\n' || in.eof())
@@ -216,7 +217,7 @@ int GraphLoader::loadRoutes(
     assert(nTrains > 0);
 
     vector<bool> skipArrival(nStations), skipDeparture(nStations);
-    vector<int> locations(nStations), family(nStations - 1);
+    vector<unsigned> locations(nStations), family(nStations - 1);
     for(unsigned i = 0; i < nStations; ++i)
     {
       if(i > 0)
@@ -376,6 +377,13 @@ int GraphLoader::loadRoutes(
       //build the new route node
       Node* routeNode = new Node(station, nodeId++);
       routeNode->_route = index;
+
+
+      if (stationI == 0)
+      {
+        assert(routeIndexToFirstRouteNode.size() == index);
+        routeIndexToFirstRouteNode.push_back(routeNode);
+      }
 
       if(stationI > 0)
       {
