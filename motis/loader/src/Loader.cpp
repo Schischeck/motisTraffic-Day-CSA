@@ -52,6 +52,7 @@ SchedulePtr loadTextSchedule(std::string const& prefix)
   nodeId = loader.loadFootPaths(nodeId, s->stationNodes);
   loader.loadTracks(s->tracks);
   loader.loadAttributes(s->attributes);
+  loader.assignPredecessors(s->stationNodes);
 
   s->nodeCount = nodeId;
 

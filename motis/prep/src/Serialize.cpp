@@ -138,6 +138,8 @@ SerializePointerPair serialize(
     OffsetMap& offsets,
     SerializePointer p, SerializePointer nextP)
 {
+  offsets.push_back(std::make_pair(&edge, p.offset()));
+
   Edge* copy = nullptr;
   std::tie(p, copy) = simpleCopy(p, edge);
 
@@ -160,6 +162,7 @@ SerializePointerPair serialize(
   std::tie(p, copy) = simpleCopy(p, node);
 
   std::tie(p, std::ignore) = serialize(copy->_edges, offsets, p, nextP);
+  std::tie(p, std::ignore) = serialize(copy->_incomingEdges, offsets, p, nextP);
 
   return { p, nextP };
 }
@@ -176,6 +179,7 @@ SerializePointerPair serialize(
   std::tie(p, copy) = simpleCopy(p, stationNode);
 
   std::tie(p, nextP) = serialize(copy->_edges, offsets, p, nextP);
+  std::tie(p, nextP) = serialize(copy->_incomingEdges, offsets, p, nextP);
 
   for (auto const& edge : makeOffsetArrayView(copy->_edges, p.base()))
     std::tie(p, nextP) = serialize(*edge._to, offsets, p, nextP);
@@ -185,6 +189,13 @@ SerializePointerPair serialize(
 
 template<typename T>
 void pointersToOffsets(T&, SerializePointer const&, OffsetMap&) {}
+
+template<typename T>
+void pointersToOffsets(
+    Pointer<T>& ptr,
+    SerializePointer const&,
+    OffsetMap& offsets)
+{ ptr._offset = getOffset(offsets, ptr._ptr); }
 
 template<typename T>
 void pointersToOffsets(
@@ -238,6 +249,7 @@ void pointersToOffsets(
 {
   node._stationNode._offset = getOffset(offsets, node._stationNode._ptr);
   pointersToOffsets(node._edges, base, offsets);
+  pointersToOffsets(node._incomingEdges, base, offsets);
 }
 
 template<>
@@ -252,6 +264,8 @@ void pointersToOffsets(
 
   for (auto& edge : makeOffsetArrayView(stationNode._edges, base.base()))
     pointersToOffsets(*base.absolute<Node>(edge._to._offset), base, offsets);
+
+  pointersToOffsets(stationNode._incomingEdges, base, offsets);
 }
 
 template<>
@@ -261,6 +275,7 @@ void pointersToOffsets(
     OffsetMap& offsets)
 {
   edge._to._offset = getOffset(offsets, edge._to._ptr);
+  edge._from._offset = getOffset(offsets, edge._from._ptr);
 
   if (edge._m._type == Edge::ROUTE_EDGE)
     pointersToOffsets(edge._m._routeEdge._conns, base, offsets);

@@ -419,6 +419,28 @@ int GraphLoader::loadRoutes(
   return nodeId;
 }
 
+void linkPredecessor(Node* node, Edge& edge)
+{
+  edge._from = node;
+  edge.getDestination()->_incomingEdges.push_back(&edge);
+}
+
+void GraphLoader::assignPredecessors(
+    std::vector<StationNodePtr>& stationNodes)
+{
+  for(auto& stationNode : stationNodes)
+  {
+    for (auto& stationEdge : stationNode->_edges)
+    {
+      linkPredecessor(stationNode.get(), stationEdge);
+
+      Node* node = stationEdge.getDestination();
+      for (auto& edge : node->_edges)
+        linkPredecessor(node, edge);
+    }
+  }
+}
+
 std::vector<LightConnection> GraphLoader::expandBitfields(
     Connection const* fullCon,
     InputConnection const& con,

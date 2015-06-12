@@ -80,6 +80,7 @@ public:
   }
 
   Array<Edge> _edges;
+  Array<Pointer<Edge>> _incomingEdges;
   Pointer<StationNode> _stationNode;
   int32_t _route;
   uint32_t _id;

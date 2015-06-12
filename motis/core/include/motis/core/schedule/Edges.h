@@ -171,6 +171,7 @@ public:
   }
 
   inline Node const* getDestination() const { return _to; }
+  inline Node* getDestination() { return _to; }
 
   inline bool valid() const { return type() != INVALID_EDGE; }
 
@@ -188,6 +189,7 @@ public:
   };
 
   Pointer<Node> _to;
+  Pointer<Node> _from;
 
   union EdgeDetails
   {

@@ -32,6 +32,10 @@ void offsetsToPointers(T&,  char*)
 {}
 
 template<typename T>
+void offsetsToPointers(Pointer<T>& ptr,  char* base)
+{ ptr.offsetToPointer(base); }
+
+template<typename T>
 void offsetsToPointers(Array<T>& array, char* base)
 {
   array._el.offsetToPointer(base);
@@ -67,6 +71,7 @@ void offsetsToPointers(Node& node, char* base)
 {
   node._stationNode.offsetToPointer(base);
   offsetsToPointers(node._edges, base);
+  offsetsToPointers(node._incomingEdges, base);
 }
 
 template<>
@@ -75,6 +80,7 @@ void offsetsToPointers(StationNode& stationNode, char* base)
   stationNode._footNode.offsetToPointer(base);
 
   offsetsToPointers(stationNode._edges, base);
+  offsetsToPointers(stationNode._incomingEdges, base);
 
   for (auto& edge : stationNode._edges)
     offsetsToPointers(*edge._to, base);
@@ -84,6 +90,7 @@ template<>
 void offsetsToPointers(Edge& edge, char* base)
 {
   edge._to.offsetToPointer(base);
+  edge._from.offsetToPointer(base);
 
   if (edge._m._type == Edge::ROUTE_EDGE)
     offsetsToPointers(edge._m._routeEdge._conns, base);
