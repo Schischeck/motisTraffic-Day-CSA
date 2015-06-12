@@ -48,7 +48,8 @@ SchedulePtr loadTextSchedule(std::string const& prefix)
   loader.loadCategoryNames(s->categoryNames);
   nodeId = loader.loadRoutes(nodeId, s->stations, s->stationNodes,
                              buildCategoryClassMap(s->categoryNames, classes),
-                             s->fullConnections, s->connectionInfos);
+                             s->fullConnections, s->connectionInfos,
+                             s->routeIndexToFirstRouteNode);
   nodeId = loader.loadFootPaths(nodeId, s->stationNodes);
   loader.loadTracks(s->tracks);
   loader.loadAttributes(s->attributes);

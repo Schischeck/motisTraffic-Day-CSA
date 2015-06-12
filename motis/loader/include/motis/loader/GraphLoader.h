@@ -40,7 +40,8 @@ public:
       std::vector<StationNodePtr> const& stationNodes,
       const std::map<int, int>& classMapping,
       std::vector<std::unique_ptr<Connection>>& fullConnections,
-      std::vector<std::unique_ptr<ConnectionInfo>>& connectionInfos);
+      std::vector<std::unique_ptr<ConnectionInfo>>& connectionInfos,
+      std::vector<Node*>& routeIndexToFirstRouteNode);
   void assignPredecessors(std::vector<StationNodePtr>& stationNodes);
   int loadFootPaths(int nodeId,
                     std::vector<StationNodePtr> const& stationNodes);
