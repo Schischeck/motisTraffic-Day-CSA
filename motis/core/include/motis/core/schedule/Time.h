@@ -13,6 +13,7 @@ namespace td
 {
 
 typedef uint16_t Time;
+typedef uint16_t Duration;
 
 constexpr unsigned short INVALID_TIME = USHRT_MAX;
 

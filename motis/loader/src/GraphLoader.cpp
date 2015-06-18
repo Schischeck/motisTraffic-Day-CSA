@@ -12,6 +12,7 @@
 #include "motis/core/schedule/Time.h"
 #include "motis/core/schedule/Nodes.h"
 #include "motis/core/schedule/Connection.h"
+#include "motis/core/schedule/WaitingTimeRules.h"
 #include "motis/loader/BitsetManager.h"
 #include "motis/loader/Files.h"
 
@@ -649,6 +650,50 @@ void GraphLoader::loadDates(DateManager& dm)
          >> dates[i].year >> c;
 
   dm.load(dates);
+}
+
+void GraphLoader::loadWaitingTimeRules(
+      std::vector<std::string> const& categoryNames,
+      WaitingTimeRules& rules)
+{
+  std::ifstream in;
+  in.exceptions(std::ios_base::failbit);
+  in.open(_prefix + WZR_FILE);
+
+  int numberOfGroups;
+  in >> numberOfGroups >> rules.defaultGroup;
+
+  // Category/Group numbers are 1-based.
+  // Initializes all values to false.
+  rules._waitsForOtherTrains.resize(numberOfGroups + 1);
+  rules._otherTrainsWaitFor.resize(numberOfGroups + 1);
+  rules._waitingTimeMatrix = flat_matrix<Duration>(numberOfGroups + 1);
+
+  for (int i = 0; i < numberOfGroups; i++) {
+    int groupId;
+    char sep;
+    std::string categories;
+    in >> groupId >> sep >> categories;
+
+    rules.addCategory(groupId, categories);
+  }
+
+  for (int i = 0; i < numberOfGroups * numberOfGroups; i++) {
+    int connectingCategory, feederCategory, waitingTime;
+
+    in >> connectingCategory >> feederCategory >> waitingTime;
+    rules._waitingTimeMatrix[connectingCategory][feederCategory] = waitingTime;
+
+    if (waitingTime > 0) {
+      rules._waitsForOtherTrains[connectingCategory] = true;
+      rules._otherTrainsWaitFor[feederCategory] = true;
+    }
+  }
+
+  rules._familyToWtrCategory.resize(categoryNames.size());
+  for (size_t i = 0; i < categoryNames.size(); i++) {
+    rules._familyToWtrCategory[i] = rules.waitingTimeCategory(categoryNames[i]);
+  }
 }
 
 double GraphLoader::getDistance(const Station& s1, const Station& s2)

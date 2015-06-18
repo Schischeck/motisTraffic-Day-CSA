@@ -24,6 +24,7 @@ class Connection;
 class InputConnection;
 class LightConnection;
 class ConnectionInfo;
+class WaitingTimeRules;
 
 class GraphLoader
 {
@@ -49,6 +50,9 @@ public:
   void loadClasses(std::map<std::string, int>& map);
   void loadCategoryNames(std::vector<std::string>& categoryNames);
   void loadTracks(std::map<int, std::string>& trackMap);
+  void loadWaitingTimeRules(
+      std::vector<std::string> const& categoryNames,
+      WaitingTimeRules& rules);
 
 private:
   /** Bitfield rollout (= absolute times, relative to day 0 of schedule) */

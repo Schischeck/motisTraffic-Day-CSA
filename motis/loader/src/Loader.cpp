@@ -54,6 +54,7 @@ SchedulePtr loadTextSchedule(std::string const& prefix)
   loader.loadTracks(s->tracks);
   loader.loadAttributes(s->attributes);
   loader.assignPredecessors(s->stationNodes);
+  loader.loadWaitingTimeRules(s->categoryNames, s->waitingTimeRules);
 
   s->nodeCount = nodeId;
 
@@ -71,6 +72,7 @@ SchedulePtr loadBinarySchedule(std::string const& prefix)
   loader.loadCategoryNames(s->categoryNames);
   loader.loadTracks(s->tracks);
   loader.loadAttributes(s->attributes);
+  loader.loadWaitingTimeRules(s->categoryNames, s->waitingTimeRules);
 
   Deserializer deserializer(prefix);
   std::tie(s->nodeCount, s->rawMemory) =

@@ -11,6 +11,7 @@
 #define DATES_FILE          (".DateIndexes.txt")
 #define ATTRIBUTES_FILE     (".AllAttributes.txt")
 #define CATEGORIES_FILE     (".Categories.txt")
+#define WZR_FILE            (".WZR.txt")
 
 // Routes (generated from services)
 #define ROUTES_FILE         (".Routes.txt")

@@ -11,6 +11,7 @@
 #include "motis/core/schedule/Nodes.h"
 #include "motis/core/schedule/ConstantGraph.h"
 #include "motis/core/schedule/Attribute.h"
+#include "motis/core/schedule/WaitingTimeRules.h"
 #include "motis/core/common/Synchronization.h"
 
 namespace td {
@@ -31,6 +32,7 @@ struct Schedule
   unsigned nodeCount;
   std::vector<StationNodePtr> stationNodes;
   std::vector<Node*> routeIndexToFirstRouteNode;
+  WaitingTimeRules waitingTimeRules;
   Synchronization sync;
 };
 
