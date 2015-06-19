@@ -15,31 +15,27 @@
 #include "motis/prep/serialize.h"
 #include "motis/prep/station_graph.h"
 
-#define SCHEDULE_PREFIX       ("dataset")
-#define SERVICES_TO_ROUTES    ("services_to_routes")
-#define SERIALIZE_GRAPH       ("serialize_graph")
-#define WRITE_STATION_GRAPH   ("station_graph")
+#define SCHEDULE_PREFIX ("dataset")
+#define SERVICES_TO_ROUTES ("services_to_routes")
+#define SERIALIZE_GRAPH ("serialize_graph")
+#define WRITE_STATION_GRAPH ("station_graph")
 
 using namespace td;
 using namespace td::logging;
 namespace po = boost::program_options;
 
-class serialize_settings : public conf::configuration
-{
+class serialize_settings : public conf::configuration {
 public:
-  serialize_settings(std::string default_schedule_prefix,
-                    bool default_s2r,
-                    bool default_station_graph,
-                    bool default_serialize)
+  serialize_settings(std::string default_schedule_prefix, bool default_s2r,
+                     bool default_station_graph, bool default_serialize)
       : schedule_prefix(default_schedule_prefix),
         s2r(default_s2r),
         station_graph(default_station_graph),
-        serialize(default_serialize)
-  {}
+        serialize(default_serialize) {}
 
-  boost::program_options::options_description desc()
-  {
+  boost::program_options::options_description desc() {
     po::options_description desc("callback options");
+    // clang-format off
     desc.add_options()
       (SCHEDULE_PREFIX,
           po::value<std::string>(&schedule_prefix)->default_value(schedule_prefix),
@@ -65,11 +61,11 @@ public:
           "creates files:\n"
           "- PREFIX.Schedule.raw\n"
           "- PREFIX.Schedule.index\n");
+    // clang-format on
     return desc;
   }
 
-  void print(std::ostream& out) const
-  {
+  void print(std::ostream& out) const {
     using std::boolalpha;
     boost::io::ios_all_saver guard(out);
     out << "  " << SCHEDULE_PREFIX << ": " << schedule_prefix << "\n"
@@ -81,20 +77,16 @@ public:
   bool s2r, station_graph, serialize;
 };
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   serialize_settings serialize_opt("schedule/test", false, false, false);
-  conf::options_parser parser({ &serialize_opt });
+  conf::options_parser parser({&serialize_opt});
   parser.read_command_line_args(argc, argv);
 
-  if (parser.help())
-  {
+  if (parser.help()) {
     std::cout << "\n\tTD serialize\n\n";
     parser.print_help(std::cout);
     return 0;
-  }
-  else if (parser.version())
-  {
+  } else if (parser.version()) {
     std::cout << "TD serialize\n";
     return 0;
   }
@@ -107,15 +99,13 @@ int main(int argc, char* argv[])
 
   scoped_timer timer("all_steps");
 
-  if (serialize_opt.s2r)
-  {
+  if (serialize_opt.s2r) {
     scoped_timer timer(SERVICES_TO_ROUTES);
     services2routes(serialize_opt.schedule_prefix);
   }
 
   schedule_ptr schedule;
-  if (serialize_opt.serialize || serialize_opt.station_graph)
-  {
+  if (serialize_opt.serialize || serialize_opt.station_graph) {
     scoped_timer timer("reading_schedule");
     if (serialize_opt.serialize)
       schedule = load_text_schedule(serialize_opt.schedule_prefix);
@@ -123,14 +113,12 @@ int main(int argc, char* argv[])
       schedule = load_binary_schedule(serialize_opt.schedule_prefix);
   }
 
-  if (serialize_opt.station_graph)
-  {
+  if (serialize_opt.station_graph) {
     scoped_timer timer(WRITE_STATION_GRAPH);
     write_station_graph(*schedule, serialize_opt.schedule_prefix);
   }
 
-  if (serialize_opt.serialize)
-  {
+  if (serialize_opt.serialize) {
     scoped_timer timer(SERIALIZE_GRAPH);
     serialize(*reinterpret_cast<text_schedule*>(schedule.get()),
               serialize_opt.schedule_prefix);

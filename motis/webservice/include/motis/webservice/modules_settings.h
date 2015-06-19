@@ -11,7 +11,7 @@ namespace webservice {
 
 class modules_settings : public conf::configuration {
 public:
-  modules_settings(std::string default_modules_path);
+  modules_settings(std::string default_path);
 
   virtual ~modules_settings() {}
 

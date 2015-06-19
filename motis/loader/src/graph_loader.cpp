@@ -24,74 +24,55 @@
 
 using namespace std;
 
-namespace td
-{
+namespace td {
 
-static int get_price_per_km(int clasz)
-{
-  switch(clasz)
-  {
-    case TD_ICE:
-      return 22;
+static int get_price_per_km(int clasz) {
+  switch (clasz) {
+    case TD_ICE: return 22;
 
     case TD_N:
     case TD_IC:
-    case TD_X:
-      return 18;
+    case TD_X: return 18;
 
     case TD_RE:
     case TD_RB:
     case TD_S:
     case TD_U:
     case TD_STR:
-    case TD_BUS:
-      return 15;
+    case TD_BUS: return 15;
 
-    default:
-      return 0;
+    default: return 0;
   }
 }
 
-class input_connection : public connection, public connection_info
-{
+class input_connection : public connection, public connection_info {
 public:
-  input_connection() :
-      traffic_day_index(0),
-      d_time(INVALID_TIME),
-      a_time(INVALID_TIME)
-  {}
+  input_connection()
+      : traffic_day_index(0), d_time(INVALID_TIME), a_time(INVALID_TIME) {}
 
   bitset_index traffic_day_index;
   int d_time, a_time;
 };
 
-template<typename t>
-std::vector<t> join(std::vector<std::vector<t>> vecs)
-{
+template <typename t>
+std::vector<t> join(std::vector<std::vector<t>> vecs) {
   if (vecs.empty())
     return {};
   else if (vecs.size() == 1)
     return vecs[0];
-  else
-  {
+  else {
     std::vector<t> ret = std::move(*std::begin(vecs));
-    std::for_each(
-        std::next(std::begin(vecs)),
-        std::end(vecs),
-        [&ret](std::vector<t> const& vec) {
-          ret.insert(std::end(ret), std::begin(vec), std::end(vec));
-        }
-    );
+    std::for_each(std::next(std::begin(vecs)), std::end(vecs),
+                  [&ret](std::vector<t> const& vec) {
+      ret.insert(std::end(ret), std::begin(vec), std::end(vec));
+    });
     return ret;
   }
 }
 
-graph_loader::graph_loader(const std::string& prefix)
-    : _prefix(prefix)
-{}
+graph_loader::graph_loader(const std::string& prefix) : _prefix(prefix) {}
 
-std::istream& operator>>(std::istream& in, station& station)
-{
+std::istream& operator>>(std::istream& in, station& station) {
   char c;
   in >> station.index >> c;
   std::string s;
@@ -109,17 +90,14 @@ std::istream& operator>>(std::istream& in, station& station)
   unsigned footpaths_out;
   unsigned footpaths_in;
   istringstream iss(s);
-  iss >> time_difference >> station.length >> station.width
-      >> k_m_info >> station.us_hoch >> station.us_nieder
-      >> footpaths_out >> footpaths_in;
+  iss >> time_difference >> station.length >> station.width >> k_m_info >>
+      station.us_hoch >> station.us_nieder >> footpaths_out >> footpaths_in;
 
   return in;
 }
 
-int graph_loader::load_stations(
-    std::vector<station_ptr>& stations,
-    std::vector<station_node_ptr>& station_nodes)
-{
+int graph_loader::load_stations(std::vector<station_ptr>& stations,
+                                std::vector<station_node_ptr>& station_nodes) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + STATIONS_FILE);
@@ -138,13 +116,12 @@ int graph_loader::load_stations(
   dummy1.name = "DUMMY";
 
   stations.emplace_back(new station(dummy1), deleter<station>(true));
-  station_nodes.emplace_back(new station_node(node_id++), deleter<station_node>(true));
+  station_nodes.emplace_back(new station_node(node_id++),
+                             deleter<station_node>(true));
 
   int i = 1;
-  while(!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -155,7 +132,8 @@ int graph_loader::load_stations(
       std::cout << i << " " << stations[i]->index << "\n";
     assert(stations[i]->index == i);
 
-    station_nodes.emplace_back(new station_node(node_id++), deleter<station_node>(true));
+    station_nodes.emplace_back(new station_node(node_id++),
+                               deleter<station_node>(true));
     assert(station_nodes[i]->_id == static_cast<unsigned>(i));
 
     ++i;
@@ -167,13 +145,13 @@ int graph_loader::load_stations(
   dummy2.name = "DUMMY";
 
   stations.emplace_back(new station(dummy2), deleter<station>(true));
-  station_nodes.emplace_back(new station_node(node_id++), deleter<station_node>(true));
+  station_nodes.emplace_back(new station_node(node_id++),
+                             deleter<station_node>(true));
 
   return node_id;
 }
 
-void graph_loader::load_bitfields(bitset_manager& bm)
-{
+void graph_loader::load_bitfields(bitset_manager& bm) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + BITFIELDS_FILE);
@@ -181,14 +159,12 @@ void graph_loader::load_bitfields(bitset_manager& bm)
 }
 
 int graph_loader::load_routes(
-    int node_id,
-    std::vector<station_ptr>& stations,
+    int node_id, std::vector<station_ptr>& stations,
     std::vector<station_node_ptr> const& station_nodes,
     const std::map<int, int>& class_mapping,
     std::vector<std::unique_ptr<connection>>& full_connections,
     std::vector<std::unique_ptr<connection_info>>& connection_infos,
-    std::vector<node*>& route_index_to_first_route_node)
-{
+    std::vector<node*>& route_index_to_first_route_node) {
   bitset_manager bm;
   load_bitfields(bm);
 
@@ -200,10 +176,8 @@ int graph_loader::load_routes(
   std::map<connection_info, uint32_t> con_infos;
 
   unsigned index;
-  while(!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -219,10 +193,8 @@ int graph_loader::load_routes(
 
     vector<bool> skip_arrival(n_stations), skip_departure(n_stations);
     vector<unsigned> locations(n_stations), family(n_stations - 1);
-    for(unsigned i = 0; i < n_stations; ++i)
-    {
-      if(i > 0)
-      {
+    for (unsigned i = 0; i < n_stations; ++i) {
+      if (i > 0) {
         in >> c;
         assert(c == ',');
       }
@@ -230,16 +202,14 @@ int graph_loader::load_routes(
       assert(c == 'l');
       in >> locations[i];
 
-      if(i > 0)
-      {
+      if (i > 0) {
         in >> c;
         assert(c == 'a');
         int temp;
         in >> temp;
         skip_arrival[i] = (temp == 1);
       }
-      if(i < n_stations - 1)
-      {
+      if (i < n_stations - 1) {
         in >> c;
         assert(c == 'd');
         int temp;
@@ -251,8 +221,7 @@ int graph_loader::load_routes(
     // first layer: section between stations: (n_stations - 1) sections
     // second layer: elementary connections (not expanded bitfields)
     vector<vector<input_connection>> input_connections(n_stations - 1);
-    for(unsigned train_i = 0; train_i < n_trains; ++train_i)
-    {
+    for (unsigned train_i = 0; train_i < n_trains; ++train_i) {
       in >> c;
       assert(c == 't');
       int index2, service;
@@ -261,30 +230,25 @@ int graph_loader::load_routes(
       assert(c == 's');
       in >> service;
 
-      //associate the route index with this service index
-      for(unsigned station_i = 0; station_i < n_stations; ++station_i)
-      {
-        if(station_i > 0)
-        {
+      // associate the route index with this service index
+      for (unsigned station_i = 0; station_i < n_stations; ++station_i) {
+        if (station_i > 0) {
           in >> c;
           assert(c == 'a');
-          in >> input_connections[station_i - 1][train_i].a_time
-              >> input_connections[station_i - 1][train_i].a_platform;
+          in >> input_connections[station_i - 1][train_i].a_time >>
+              input_connections[station_i - 1][train_i].a_platform;
           input_connections[station_i - 1][train_i].service = service;
         }
 
-        if(station_i < n_stations - 1)
-        {
-          if(train_i == 0)
-            input_connections[station_i].resize(n_trains);
+        if (station_i < n_stations - 1) {
+          if (train_i == 0) input_connections[station_i].resize(n_trains);
 
           station& from_station = *stations[locations[station_i]];
           station& to_station = *stations[locations[station_i + 1]];
 
           int fam = family[station_i];
           std::map<int, int>::const_iterator it;
-          if (fam != -1)
-          {
+          if (fam != -1) {
             it = class_mapping.find(fam);
 
             assert(it != class_mapping.end());
@@ -306,17 +270,16 @@ int graph_loader::load_routes(
           int tdi;
           int transfer_class_dummy;
           int linienzuordnung_dummy;
-          in >> input_connections[station_i][train_i].d_time
-             >> input_connections[station_i][train_i].d_platform
-             >> tdi
-             >> transfer_class_dummy
-             >> linienzuordnung_dummy;
-          input_connections[station_i][train_i].traffic_day_index = bm.get_new_index(tdi);
+          in >> input_connections[station_i][train_i].d_time >>
+              input_connections[station_i][train_i].d_platform >> tdi >>
+              transfer_class_dummy >> linienzuordnung_dummy;
+          input_connections[station_i][train_i].traffic_day_index =
+              bm.get_new_index(tdi);
 
           int n;
           in >> n;
           input_connections[station_i][train_i].attributes.resize(n);
-          for(int k = 0; k < n; ++k)
+          for (int k = 0; k < n; ++k)
             in >> input_connections[station_i][train_i].attributes[k];
 
           in >> input_connections[station_i][train_i].train_nr;
@@ -326,7 +289,8 @@ int graph_loader::load_routes(
 
           std::string eva_nr_dummy;
           getline(in, eva_nr_dummy, '|');
-          getline(in, input_connections[station_i][train_i].line_identifier, '|');
+          getline(in, input_connections[station_i][train_i].line_identifier,
+                  '|');
 
           in >> c;
           assert(c == ',');
@@ -334,73 +298,63 @@ int graph_loader::load_routes(
       }
     }
 
-    //expand connections to have absolute times
+    // expand connections to have absolute times
     //(remove bitfield dependency)
     // first layer: section between stations: (n_stations - 1) sections
     // second layer: elementary trains (not expanded bitfields)
     // third layer: expanded connections (expanded, absolute times)
-    vector<vector<vector<light_connection>>> expanded_connections(n_stations - 1);
-    for (unsigned train_i = 0; train_i < n_trains; ++train_i)
-    {
-      for (unsigned con_i = 0; con_i < input_connections.size(); ++con_i)
-      {
+    vector<vector<vector<light_connection>>> expanded_connections(n_stations -
+                                                                  1);
+    for (unsigned train_i = 0; train_i < n_trains; ++train_i) {
+      for (unsigned con_i = 0; con_i < input_connections.size(); ++con_i) {
         if (expanded_connections[con_i].size() != n_trains)
           expanded_connections[con_i].resize(n_trains);
 
         connection_info con_info(input_connections[con_i][train_i]);
         auto it = con_infos.find(con_info);
         if (it == std::end(con_infos))
-          std::tie(it, std::ignore) =
-              con_infos.insert(std::make_pair(std::move(con_info), con_info_id++));
+          std::tie(it, std::ignore) = con_infos.insert(
+              std::make_pair(std::move(con_info), con_info_id++));
 
-        connection* full_con = new connection(input_connections[con_i][train_i]);
+        connection* full_con =
+            new connection(input_connections[con_i][train_i]);
         full_con->con_info_id = it->second;
         full_connections.emplace_back(full_con);
 
         expanded_connections[con_i][train_i] =
-            expand_bitfields(full_con,
-                            input_connections[con_i][train_i],
-                            bm);
+            expand_bitfields(full_con, input_connections[con_i][train_i], bm);
 
-        std::sort(
-          std::begin(expanded_connections[con_i][train_i]),
-          std::end(expanded_connections[con_i][train_i])
-        );
+        std::sort(std::begin(expanded_connections[con_i][train_i]),
+                  std::end(expanded_connections[con_i][train_i]));
       }
     }
 
-    //build graph for the route
+    // build graph for the route
     node* prev_route_node = nullptr;
-    for(unsigned station_i = 0; station_i < n_stations; ++station_i)
-    {
+    for (unsigned station_i = 0; station_i < n_stations; ++station_i) {
       station_node* station = station_nodes[locations[station_i]].get();
 
-      //build the new route node
+      // build the new route node
       node* route_node = new node(station, node_id++);
       route_node->_route = index;
 
-
-      if (station_i == 0)
-      {
+      if (station_i == 0) {
         assert(route_index_to_first_route_node.size() == index);
         route_index_to_first_route_node.push_back(route_node);
       }
 
-      if(station_i > 0)
-      {
-        if(!skip_arrival[station_i])
-        {
-          route_node->_edges.emplace_back(
-              make_foot_edge(station_nodes[locations[station_i]].get(),
-                           stations[locations[station_i]]->get_transfer_time(),
-                           true));
+      if (station_i > 0) {
+        if (!skip_arrival[station_i]) {
+          route_node->_edges.emplace_back(make_foot_edge(
+              station_nodes[locations[station_i]].get(),
+              stations[locations[station_i]]->get_transfer_time(), true));
         }
 
-        prev_route_node->_edges.emplace_back(
-            make_route_edge(route_node, join(expanded_connections[station_i - 1])));
+        prev_route_node->_edges.emplace_back(make_route_edge(
+            route_node, join(expanded_connections[station_i - 1])));
       }
 
-      if(station_i < n_stations - 1 && !skip_departure[station_i])
+      if (station_i < n_stations - 1 && !skip_departure[station_i])
         station->_edges.push_back(make_foot_edge(route_node));
       else
         station->_edges.push_back(make_invalid_edge(route_node));
@@ -412,62 +366,52 @@ int graph_loader::load_routes(
     getline(in, dummy);
   }
 
-  //reverse mapping of connection infos
+  // reverse mapping of connection infos
   std::map<uint32_t, connection_info*> con_info_id2con_info_ptr;
-  for (auto const& con_info : con_infos)
-  {
+  for (auto const& con_info : con_infos) {
     connection_info* info = new connection_info(con_info.first);
     con_info_id2con_info_ptr[con_info.second] = info;
     connection_infos.emplace_back(info);
   }
 
-  //initialize pointers from the full connections to connection infos
+  // initialize pointers from the full connections to connection infos
   for (auto& full_con : full_connections)
     full_con->con_info = con_info_id2con_info_ptr[full_con->con_info_id];
 
   return node_id;
 }
 
-void link_predecessor(node* node, edge& edge)
-{
+void link_predecessor(node* node, edge& edge) {
   edge._from = node;
   edge.get_destination()->_incoming_edges.push_back(&edge);
 }
 
 void graph_loader::assign_predecessors(
-    std::vector<station_node_ptr>& station_nodes)
-{
-  for(auto& station_node : station_nodes)
-  {
-    for (auto& station_edge : station_node->_edges)
-    {
+    std::vector<station_node_ptr>& station_nodes) {
+  for (auto& station_node : station_nodes) {
+    for (auto& station_edge : station_node->_edges) {
       link_predecessor(station_node.get(), station_edge);
 
       node* node = station_edge.get_destination();
-      for (auto& edge : node->_edges)
-        link_predecessor(node, edge);
+      for (auto& edge : node->_edges) link_predecessor(node, edge);
     }
   }
 }
 
 std::vector<light_connection> graph_loader::expand_bitfields(
-    connection const* full_con,
-    input_connection const& con,
-    bitset_manager const& bm)
-{
+    connection const* full_con, input_connection const& con,
+    bitset_manager const& bm) {
   std::vector<light_connection> ret;
 
-  for (auto const& day : bm.get_active_day_indices(con.traffic_day_index))
-  {
-    time d_time = (con.d_time == INVALID_TIME) ? INVALID_TIME
-                                             : day * MINUTES_A_DAY + con.d_time,
-         a_time = (con.a_time == INVALID_TIME) ? INVALID_TIME
-                                             : day * MINUTES_A_DAY + con.a_time;
+  for (auto const& day : bm.get_active_day_indices(con.traffic_day_index)) {
+    time d_time = (con.d_time == INVALID_TIME)
+                      ? INVALID_TIME
+                      : day * MINUTES_A_DAY + con.d_time,
+         a_time = (con.a_time == INVALID_TIME)
+                      ? INVALID_TIME
+                      : day * MINUTES_A_DAY + con.a_time;
 
-    if (d_time != INVALID_TIME &&
-        a_time != INVALID_TIME &&
-        d_time > a_time)
-    {
+    if (d_time != INVALID_TIME && a_time != INVALID_TIME && d_time > a_time) {
       a_time += MINUTES_A_DAY;
     }
 
@@ -478,17 +422,13 @@ std::vector<light_connection> graph_loader::expand_bitfields(
 }
 
 int graph_loader::load_foot_paths(
-    int node_id,
-    std::vector<station_node_ptr> const& station_nodes)
-{
+    int node_id, std::vector<station_node_ptr> const& station_nodes) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + FOOTPATHS_FILE);
 
-  while(!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -497,8 +437,7 @@ int graph_loader::load_foot_paths(
     in >> from >> to >> duration;
 
     node_id = station_nodes[from]->add_foot_edge(
-        node_id,
-        make_foot_edge(station_nodes[to].get(), duration));
+        node_id, make_foot_edge(station_nodes[to].get(), duration));
 
     std::string dummy;
     getline(in, dummy);
@@ -507,18 +446,14 @@ int graph_loader::load_foot_paths(
   return node_id;
 }
 
-void graph_loader::load_attributes(
-    std::map<int, attribute>& attributes_map)
-{
+void graph_loader::load_attributes(std::map<int, attribute>& attributes_map) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + ATTRIBUTES_FILE);
 
   int index;
-  while(!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -539,8 +474,7 @@ void graph_loader::load_attributes(
   }
 }
 
-void graph_loader::load_classes(std::map<std::string, int>& map)
-{
+void graph_loader::load_classes(std::map<std::string, int>& map) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + CLASSES_FILE);
@@ -549,8 +483,7 @@ void graph_loader::load_classes(std::map<std::string, int>& map)
   in >> n_classes;
 
   int i = 0;
-  while(!in.eof() && in.peek() != EOF && ++i <= n_classes)
-  {
+  while (!in.eof() && in.peek() != EOF && ++i <= n_classes) {
     int index;
     in >> index;
 
@@ -558,16 +491,15 @@ void graph_loader::load_classes(std::map<std::string, int>& map)
     in >> n_categories;
 
     std::string cat;
-    for (int j = 0; j < n_categories; ++j)
-    {
+    for (int j = 0; j < n_categories; ++j) {
       in >> cat;
       map[cat] = index;
     }
   }
 }
 
-void graph_loader::load_category_names(std::vector<std::string>& category_names)
-{
+void graph_loader::load_category_names(
+    std::vector<std::string>& category_names) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + CATEGORIES_FILE);
@@ -577,10 +509,8 @@ void graph_loader::load_category_names(std::vector<std::string>& category_names)
   category_names.push_back("DUMMY");
 
   int index, category;
-  while (!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -600,8 +530,7 @@ void graph_loader::load_category_names(std::vector<std::string>& category_names)
   }
 }
 
-void graph_loader::load_tracks(std::map<int, std::string>& track_map)
-{
+void graph_loader::load_tracks(std::map<int, std::string>& track_map) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + TRACK_FILE);
@@ -613,10 +542,8 @@ void graph_loader::load_tracks(std::map<int, std::string>& track_map)
   getline(in, buf);
 
   int index;
-  while (!in.eof())
-  {
-    if (in.peek() == '\n' || in.eof())
-    {
+  while (!in.eof()) {
+    if (in.peek() == '\n' || in.eof()) {
       assert(in.eof());
       break;
     }
@@ -634,8 +561,7 @@ void graph_loader::load_tracks(std::map<int, std::string>& track_map)
   }
 }
 
-void graph_loader::load_dates(date_manager& dm)
-{
+void graph_loader::load_dates(date_manager& dm) {
   std::ifstream in;
   in.exceptions(ios_base::failbit);
   in.open(_prefix + DATES_FILE);
@@ -645,17 +571,15 @@ void graph_loader::load_dates(date_manager& dm)
   vector<date_manager::date> dates(n);
   char c;
   int ind;
-  for(int i = 0; i < n; ++i)
-    in  >> ind >> c >> dates[i].day >> c >> dates[i].month >> c
-         >> dates[i].year >> c;
+  for (int i = 0; i < n; ++i)
+    in >> ind >> c >> dates[i].day >> c >> dates[i].month >> c >>
+        dates[i].year >> c;
 
   dm.load(dates);
 }
 
 void graph_loader::load_waiting_time_rules(
-      std::vector<std::string> const& category_names,
-      waiting_time_rules& rules)
-{
+    std::vector<std::string> const& category_names, waiting_time_rules& rules) {
   std::ifstream in;
   in.exceptions(std::ios_base::failbit);
   in.open(_prefix + WZR_FILE);
@@ -682,7 +606,8 @@ void graph_loader::load_waiting_time_rules(
     int connecting_category, feeder_category, waiting_time;
 
     in >> connecting_category >> feeder_category >> waiting_time;
-    rules._waiting_time_matrix[connecting_category][feeder_category] = waiting_time;
+    rules._waiting_time_matrix[connecting_category][feeder_category] =
+        waiting_time;
 
     if (waiting_time > 0) {
       rules._waits_for_other_trains[connecting_category] = true;
@@ -692,22 +617,20 @@ void graph_loader::load_waiting_time_rules(
 
   rules._family_to_wtr_category.resize(category_names.size());
   for (size_t i = 0; i < category_names.size(); i++) {
-    rules._family_to_wtr_category[i] = rules.waiting_time_category(category_names[i]);
+    rules._family_to_wtr_category[i] =
+        rules.waiting_time_category(category_names[i]);
   }
 }
 
-double graph_loader::get_distance(const station& s1, const station& s2)
-{
+double graph_loader::get_distance(const station& s1, const station& s2) {
   double lat1 = s1.width, long1 = s1.length;
   double lat2 = s2.width, long2 = s2.length;
   double dlong = (long2 - long1) * d2r;
   double dlat = (lat2 - lat1) * d2r;
-  double a = pow(sin(dlat/2.0), 2)
-             + cos(lat1*d2r) * cos(lat2*d2r) * pow(sin(dlong/2.0), 2);
-  double c = 2 * atan2(sqrt(a), sqrt(1-a));
+  double a = pow(sin(dlat / 2.0), 2) +
+             cos(lat1 * d2r) * cos(lat2 * d2r) * pow(sin(dlong / 2.0), 2);
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
   double d = 6367 * c;
   return d;
 }
-
 }
-

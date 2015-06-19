@@ -11,13 +11,11 @@ namespace td {
 class label;
 struct schedule;
 
-struct journey
-{
+struct journey {
   journey() = default;
   journey(label const* label, schedule const& sched);
 
-  struct transport
-  {
+  struct transport {
     int from, to;
     bool walk;
     std::string name;
@@ -28,8 +26,7 @@ struct journey
     int slot;
   };
 
-  struct stop
-  {
+  struct stop {
     int index;
     bool interchange;
     std::string name;
@@ -42,8 +39,7 @@ struct journey
     } arrival, departure;
   };
 
-  struct attribute
-  {
+  struct attribute {
     int from, to;
     std::string code;
     std::string text;

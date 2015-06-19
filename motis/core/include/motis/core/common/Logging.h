@@ -5,12 +5,13 @@
 #include <cstring>
 #include <chrono>
 
-#define FILE_NAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define FILE_NAME \
+  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define LOG(lvl) \
-  std::cerr << "\n" \
-            << "[" << td::logging::str[lvl] << "]" \
-            << "[" << td::logging::time() << "]" \
+#define LOG(lvl)                                          \
+  std::cerr << "\n"                                       \
+            << "[" << td::logging::str[lvl] << "]"        \
+            << "[" << td::logging::time() << "]"          \
             << "[" << FILE_NAME << ":" << __LINE__ << "]" \
             << " "
 
@@ -19,11 +20,10 @@ namespace logging {
 
 enum log_level { emrg, alrt, crit, error, warn, notice, info, debug };
 
-static const char* const str[] {"emrg", "alrt", "crit", "erro",
-                                "warn", "note", "info", "debg"};
+static const char* const str[]{"emrg", "alrt", "crit", "erro",
+                               "warn", "note", "info", "debg"};
 
-inline std::string time()
-{
+inline std::string time() {
   time_t now;
   std::time(&now);
   char buf[sizeof "2011-10-08t07:07:09z-0430"];
@@ -33,16 +33,16 @@ inline std::string time()
 
 struct scoped_timer final {
   scoped_timer(char const* name)
-      : _name(name),
-        _start(std::chrono::steady_clock::now())
-  { LOG(info) << "[" << _name << "] starting"; }
+      : _name(name), _start(std::chrono::steady_clock::now()) {
+    LOG(info) << "[" << _name << "] starting";
+  }
 
-  ~scoped_timer()
-  {
+  ~scoped_timer() {
     using namespace std::chrono;
     auto stop = steady_clock::now();
     double t = duration_cast<microseconds>(stop - _start).count() / 1000.0;
-    LOG(info) << "[" << _name << "] finished" << " (" << t << "ms)";
+    LOG(info) << "[" << _name << "] finished"
+              << " (" << t << "ms)";
   }
 
   const char* _name;

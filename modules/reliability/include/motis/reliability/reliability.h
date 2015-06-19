@@ -6,7 +6,7 @@ namespace motis {
 namespace reliability {
 
 struct reliability : public motis::module::module {
-	reliability();
+  reliability();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
@@ -19,7 +19,6 @@ struct reliability : public motis::module::module {
       reliability*, json11::Json const& msg)> operation;
   std::map<std::string, operation> ops_;
 };
-
 
 }  // namespace reliability
 }  // namespace motis

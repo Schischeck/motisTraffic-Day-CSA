@@ -7,11 +7,9 @@
 
 namespace td {
 
-class interval_map
-{
+class interval_map {
 public:
-  struct range
-  {
+  struct range {
     range() = default;
     range(int from, int to) : from(from), to(to) {}
     int from, to;

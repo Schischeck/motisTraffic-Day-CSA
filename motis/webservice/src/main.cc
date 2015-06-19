@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
   typedef dispatcher<ws_server> ws_dispatcher;
   ws_dispatcher dispatcher(server);
 
-  dynamic_module_loader<ws_dispatcher> loader(
-      modules_opt.modules_path, sched.get(), dispatcher, ios);
+  dynamic_module_loader<ws_dispatcher> loader(modules_opt.modules_path,
+                                              sched.get(), dispatcher, ios);
 
   loader.load_modules();
 

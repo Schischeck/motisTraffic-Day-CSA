@@ -11,10 +11,10 @@ namespace module {
 
 typedef uint64_t sid;
 
-typedef std::function<std::vector<json11::Json>(json11::Json const &, sid)>
+typedef std::function<std::vector<json11::Json>(json11::Json const&, sid)>
     msg_handler;
 
 typedef std::function<void(sid)> sid_handler;
 
-} // namespace motis
-} // namespace module
+}  // namespace motis
+}  // namespace module

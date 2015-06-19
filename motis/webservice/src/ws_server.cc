@@ -70,8 +70,8 @@ struct ws_server::ws_server_impl {
   }
 
   void on_open(connection_hdl hdl) {
-    sid_con_map_.insert({ next_sid_, hdl });
-    con_sid_map_.insert({ hdl, next_sid_ });
+    sid_con_map_.insert({next_sid_, hdl});
+    con_sid_map_.insert({hdl, next_sid_});
 
     if (open_handler_) {
       open_handler_(next_sid_);

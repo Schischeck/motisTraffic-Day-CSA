@@ -17,9 +17,9 @@ class deserializer {
 public:
   deserializer(std::string const& prefix);
 
-  std::pair<int, std::unique_ptr<char[]>>
-  load_graph(std::vector<station_ptr>& stations,
-            std::vector<station_node_ptr>& station_nodes);
+  std::pair<int, std::unique_ptr<char[]>> load_graph(
+      std::vector<station_ptr>& stations,
+      std::vector<station_node_ptr>& station_nodes);
 
 private:
   std::string _prefix;

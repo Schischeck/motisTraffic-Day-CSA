@@ -15,7 +15,7 @@ namespace module {
 
 struct module : public conf::configuration {
   virtual std::string name() const = 0;
-  virtual std::vector<json11::Json> on_msg(json11::Json const &, sid) {
+  virtual std::vector<json11::Json> on_msg(json11::Json const&, sid) {
     return {};
   }
   virtual void on_open(sid){};
@@ -24,5 +24,5 @@ struct module : public conf::configuration {
   td::schedule* schedule_;
 };
 
-} // namespace motis
-} // namespace module
+}  // namespace motis
+}  // namespace module

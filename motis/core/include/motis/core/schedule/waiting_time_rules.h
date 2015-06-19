@@ -16,8 +16,7 @@ class waiting_time_rules {
 public:
   friend class graph_loader;
 
-  int waiting_time_category(const std::string& train_category) const
-  {
+  int waiting_time_category(const std::string& train_category) const {
     auto it = _category_map.find(train_category);
     if (it == end(_category_map))
       return default_group;
@@ -25,24 +24,26 @@ public:
       return it->second;
   }
 
-  inline int waiting_time_category(int family) const
-  { return _family_to_wtr_category[family]; }
+  inline int waiting_time_category(int family) const {
+    return _family_to_wtr_category[family];
+  }
 
-  inline int waiting_time(int connecting_category, int feeder_category) const
-  { return _waiting_time_matrix[connecting_category][feeder_category]; }
+  inline int waiting_time(int connecting_category, int feeder_category) const {
+    return _waiting_time_matrix[connecting_category][feeder_category];
+  }
 
-  inline bool waits_for_other_trains(int connecting_category) const
-  { return _waits_for_other_trains[connecting_category]; }
+  inline bool waits_for_other_trains(int connecting_category) const {
+    return _waits_for_other_trains[connecting_category];
+  }
 
-  inline bool other_trains_wait_for(int feeder_category) const
-  { return _other_trains_wait_for[feeder_category]; }
+  inline bool other_trains_wait_for(int feeder_category) const {
+    return _other_trains_wait_for[feeder_category];
+  }
 
   int default_group;
 
 private:
-  void add_category(int wzr_category,
-                   const std::string& train_categories)
-  {
+  void add_category(int wzr_category, const std::string& train_categories) {
     std::stringstream ss(train_categories);
     std::string train_category;
 
@@ -58,5 +59,4 @@ private:
   std::vector<bool> _other_trains_wait_for;
 };
 
-} // namespace td
-
+}  // namespace td

@@ -19,8 +19,7 @@ namespace td {
 class connection;
 class connection_info;
 
-struct schedule
-{
+struct schedule {
   virtual ~schedule() {}
 
   date_manager date_manager;

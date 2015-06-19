@@ -8,22 +8,19 @@
 
 #include "motis/core/schedule/nodes.h"
 
-namespace td
-{
+namespace td {
 
-struct simple_edge
-{
+struct simple_edge {
   simple_edge() : to(0) {}
   simple_edge(int to, edge_cost cost)
       : to(to),
-        dist({{ cost.time, static_cast<uint16_t>(cost.transfer ? 1 : 0), cost.price }})
-  {}
+        dist({{cost.time, static_cast<uint16_t>(cost.transfer ? 1 : 0),
+               cost.price}}) {}
 
-  bool operator<(const simple_edge& o) const
-  {
-    if(to < o.to)
+  bool operator<(const simple_edge& o) const {
+    if (to < o.to)
       return true;
-    else if(to == o.to)
+    else if (to == o.to)
       return dist < o.dist;
     return false;
   }
@@ -32,36 +29,29 @@ struct simple_edge
   std::array<uint16_t, 3> dist;
 };
 
-class constant_graph
-{
+class constant_graph {
 public:
   constant_graph() = default;
 
-  constant_graph(std::vector<station_node_ptr> const& station_nodes)
-  {
-    for (auto const& station_node : station_nodes)
-    {
+  constant_graph(std::vector<station_node_ptr> const& station_nodes) {
+    for (auto const& station_node : station_nodes) {
       add_edges(*station_node.get());
-      for(auto const& station_node_edge : station_node->_edges)
+      for (auto const& station_node_edge : station_node->_edges)
         add_edges(*station_node_edge.get_destination());
     }
   }
 
-  void add_edges(node const& node)
-  {
-    for(auto const& edge : node._edges)
-    {
+  void add_edges(node const& node) {
+    for (auto const& edge : node._edges) {
       auto from = edge.get_destination()->_id;
 
-      if (_edges.size() <= from)
-        _edges.resize(from + 1);
+      if (_edges.size() <= from) _edges.resize(from + 1);
 
       _edges[from].emplace_back(node._id, edge.get_minimum_cost());
     }
   }
 
-  int add_edge(int node_index, const simple_edge& new_edge)
-  {
+  int add_edge(int node_index, const simple_edge& new_edge) {
     _edges[node_index].push_back(new_edge);
     return _edges[node_index].size() - 1;
   }
@@ -69,16 +59,15 @@ public:
   std::vector<std::vector<simple_edge>> _edges;
 };
 
-template<int criterion>
-class constant_graph_dijkstra
-{
+template <int criterion>
+class constant_graph_dijkstra {
 public:
-  struct label
-  {
+  struct label {
     label(uint32_t node, uint32_t dist) : node(node), dist(dist) {}
 
-    friend bool operator>(label const& a, label const& b)
-    { return a.dist > b.dist; }
+    friend bool operator>(label const& a, label const& b) {
+      return a.dist > b.dist;
+    }
 
     uint32_t node, dist;
   };
@@ -86,24 +75,19 @@ public:
   constant_graph_dijkstra(
       constant_graph const& graph, int goal,
       std::unordered_map<int, std::vector<simple_edge>> const& additional_edges)
-    : _graph(graph),
-      _additional_edges(additional_edges)
-  {
+      : _graph(graph), _additional_edges(additional_edges) {
     _dists.resize(_graph._edges.size(), std::numeric_limits<uint32_t>::max());
     _dists[goal] = 0;
     _pq.push(label(goal, 0));
   }
 
-  inline uint32_t get_distance(int node) const
-  {
+  inline uint32_t get_distance(int node) const {
     assert(node < static_cast<int>(_dists.size()));
     return _dists[node];
   }
 
-  void run()
-  {
-    while(!_pq.empty())
-    {
+  void run() {
+    while (!_pq.empty()) {
       auto label = _pq.top();
       _pq.pop();
 
@@ -117,11 +101,9 @@ public:
     }
   }
 
-  inline void expand_edge(uint32_t dist, simple_edge const& edge)
-  {
+  inline void expand_edge(uint32_t dist, simple_edge const& edge) {
     uint32_t new_dist = dist + edge.dist[criterion];
-    if (new_dist < _dists[edge.to])
-    {
+    if (new_dist < _dists[edge.to]) {
       _dists[edge.to] = new_dist;
       _pq.push(label(edge.to, new_dist));
     }
@@ -135,5 +117,4 @@ public:
 
 }  // namespace td
 
-#endif //TD_CONSTANT_GRAPH
-
+#endif  // TD_CONSTANT_GRAPH
