@@ -3,7 +3,7 @@ project(motis)
 
 include_directories(include)
 
-file(GLOB_RECURSE motis-prep-files src/*.cpp)
+file(GLOB_RECURSE motis-prep-files src/*.cc)
 add_executable(motis-prep ${motis-prep-files})
 target_link_libraries(motis-prep conf motis-loader)
 if (NOT MSVC)
