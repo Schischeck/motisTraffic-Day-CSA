@@ -1,5 +1,4 @@
-#ifndef TD_INTERVAL_MAP_H_
-#define TD_INTERVAL_MAP_H_
+#pragma once
 
 #include <map>
 #include <vector>
@@ -27,5 +26,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TD_INTERVAL_MAP_H_

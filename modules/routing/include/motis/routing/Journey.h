@@ -1,5 +1,4 @@
-#ifndef TD_JOURNEY_H_
-#define TD_JOURNEY_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -53,5 +52,3 @@ struct journey {
 };
 
 }  // namespace td
-
-#endif  // TD_JOURNEY_H_

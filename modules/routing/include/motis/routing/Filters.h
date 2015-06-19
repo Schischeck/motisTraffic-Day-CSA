@@ -1,5 +1,4 @@
-#ifndef TD_FILTERS_H
-#define TD_FILTERS_H TD_FILTERS_H
+#pragma once
 
 #include <algorithm>
 
@@ -25,6 +24,5 @@ inline bool is_filtered_waiting_time(light_connection const* con,
   unsigned con_time = con != nullptr ? con->a_time - con->d_time : 0;
   return next_travel_time - pred_travel_time - con_time > MAX_WAITING_TIME;
 }
-}
 
-#endif  // TD_FILTERS_H
+}  // namespace td

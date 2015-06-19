@@ -1,5 +1,4 @@
-#ifndef TD_LABEL_H_
-#define TD_LABEL_H_
+#pragma once
 
 #include <cmath>
 #include <cstring>
@@ -288,5 +287,3 @@ public:
 };
 
 }  // namespace td
-
-#endif  // TD_LABEL_H_

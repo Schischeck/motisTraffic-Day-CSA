@@ -1,5 +1,4 @@
-#ifndef TD_CONSTANT_GRAPH
-#define TD_CONSTANT_GRAPH
+#pragma once
 
 #include <queue>
 #include <vector>
@@ -116,5 +115,3 @@ public:
 };
 
 }  // namespace td
-
-#endif  // TD_CONSTANT_GRAPH

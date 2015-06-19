@@ -6,8 +6,7 @@
 // creation date: 1.8.2007                                                   //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TD_BITSET_MANAGER_H
-#define TD_BITSET_MANAGER_H TD_BITSET_MANAGER_H
+#pragma once
 
 #include <bitset>
 #include <vector>
@@ -131,6 +130,5 @@ private:
   // the length of the represented bitsets
   int _real_size;
 };
-}
 
-#endif  // TD_BITSET_MANAGER_H
+}  // namespace td

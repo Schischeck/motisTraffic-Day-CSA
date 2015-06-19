@@ -1,5 +1,4 @@
-#ifndef TD_ARRAY_H_
-#define TD_ARRAY_H_
+#pragma once
 
 #include <cassert>
 #include <cinttypes>
@@ -303,5 +302,3 @@ inline void getline(std::istream& in, string& s, char delim) {
 }
 
 }  // namespace td
-
-#endif  // TD_ARRAY_H_

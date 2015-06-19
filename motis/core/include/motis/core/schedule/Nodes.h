@@ -1,5 +1,4 @@
-#ifndef TDNODES_H
-#define TDNODES_H TDNODES_H
+#pragma once
 
 #include <cstring>
 #include <cstdlib>
@@ -118,6 +117,5 @@ public:
 };
 
 typedef std::unique_ptr<station_node, deleter<station_node>> station_node_ptr;
-}
 
-#endif  // TDNODES_H
+}  // namespace td

@@ -1,5 +1,4 @@
-#ifndef TD_SERIALIZE_POINTER_H_
-#define TD_SERIALIZE_POINTER_H_
+#pragma once
 
 #include "motis/core/common/offset.h"
 
@@ -58,5 +57,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TD_SERIALIZE_POINTER_H_

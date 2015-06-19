@@ -1,5 +1,4 @@
-#ifndef TDDATEMANAGER_H
-#define TDDATEMANAGER_H TDDATEMANAGER_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -97,6 +96,5 @@ private:
   std::map<int /* date index */, date> _index_to_date_map;
   date _first_date, _last_date;
 };
-}
 
-#endif  // TDDATEMANAGER_H
+}  // namespace td

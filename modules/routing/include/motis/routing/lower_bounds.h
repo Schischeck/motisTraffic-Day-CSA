@@ -1,5 +1,4 @@
-#ifndef TD_LOWER_BOUNDS_H_
-#define TD_LOWER_BOUNDS_H_
+#pragma once
 
 #include "motis/core/schedule/constant_graph.h"
 
@@ -19,5 +18,3 @@ struct lower_bounds {
 };
 
 }  // namespace td
-
-#endif  // TD_LOWER_BOUNDS_H_

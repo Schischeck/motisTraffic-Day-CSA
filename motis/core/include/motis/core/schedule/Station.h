@@ -1,5 +1,4 @@
-#ifndef TDSTATIONS_H
-#define TDSTATIONS_H TDSTATIONS_H
+#pragma once
 
 #include <memory>
 #include <cmath>
@@ -37,5 +36,3 @@ public:
 typedef std::unique_ptr<station, deleter<station>> station_ptr;
 
 }  // namespace td
-
-#endif  // TDSTATIONS_H

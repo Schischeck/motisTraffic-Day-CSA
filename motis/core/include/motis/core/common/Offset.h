@@ -1,5 +1,4 @@
-#ifndef TD_OFFSET_H_
-#define TD_OFFSET_H_
+#pragma once
 
 #include <cinttypes>
 
@@ -19,5 +18,3 @@ struct offset<t, typename std::enable_if<sizeof(t) == 8>::type> {
 };
 
 }  // namespace td
-
-#endif  // TD_OFFSET_H_

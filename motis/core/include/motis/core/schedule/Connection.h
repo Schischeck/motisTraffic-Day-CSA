@@ -1,5 +1,4 @@
-#ifndef TDCONNECTION_H
-#define TDCONNECTION_H TDCONNECTION_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -98,5 +97,3 @@ public:
 };
 
 }  // namespace td
-
-#endif  // TDCONNECTION_H

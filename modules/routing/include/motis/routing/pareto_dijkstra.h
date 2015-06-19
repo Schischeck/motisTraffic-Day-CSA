@@ -1,5 +1,4 @@
-#ifndef TDPARETO_DIJKSTRA_H
-#define TDPARETO_DIJKSTRA_H TDPARETO_DIJKSTRA_H
+#pragma once
 
 #include <queue>
 #include <list>
@@ -109,5 +108,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TDPARETO_DIJKSKTRA_H

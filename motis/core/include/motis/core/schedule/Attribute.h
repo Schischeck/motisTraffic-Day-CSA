@@ -1,5 +1,4 @@
-#ifndef TD_ATTRIBUTE_H_
-#define TD_ATTRIBUTE_H_
+#pragma once
 
 #include <string>
 
@@ -11,5 +10,3 @@ struct attribute {
 };
 
 }  // namespace td
-
-#endif  // TD_ATTRIBUTE_H_

@@ -1,5 +1,4 @@
-#ifndef TDGRAPH_H
-#define TDGRAPH_H TDGRAPH_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -40,6 +39,5 @@ public:
   schedule& _sched;
   memory_manager<label>& _label_store;
 };
-}
 
-#endif  // TDGRAPH_H
+}  // namespace td

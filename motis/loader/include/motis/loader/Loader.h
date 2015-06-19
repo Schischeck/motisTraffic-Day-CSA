@@ -1,5 +1,4 @@
-#ifndef TD_LOADER_H_
-#define TD_LOADER_H_
+#pragma once
 
 #include "motis/core/schedule/schedule.h"
 
@@ -10,5 +9,3 @@ schedule_ptr load_text_schedule(std::string const& prefix);
 schedule_ptr load_binary_schedule(std::string const& prefix);
 
 }  // namespace td
-
-#endif  // TD_LOADER_H_

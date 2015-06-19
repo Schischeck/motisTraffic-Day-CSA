@@ -1,5 +1,4 @@
-#ifndef TD_SERIALIZATION_POINTER_H_
-#define TD_SERIALIZATION_POINTER_H_
+#pragma once
 
 #include "motis/core/common/offset.h"
 
@@ -32,5 +31,3 @@ union pointer final {
 };
 
 }  // namespace td
-
-#endif  // TD_SERIALIZATION_POINTER_H_

@@ -1,5 +1,4 @@
-#ifndef TD_SERIALIZATION_H_
-#define TD_SERIALIZATION_H_
+#pragma once
 
 namespace td {
 
@@ -13,5 +12,3 @@ struct deleter {
 };
 
 }  // namespace td
-
-#endif  // TD_SERIALIZATION_H_

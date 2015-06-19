@@ -1,3 +1,5 @@
+#pragma once
+
 #include <chrono>
 
 #define TD_START_TIMING(_X) \

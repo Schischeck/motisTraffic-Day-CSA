@@ -1,5 +1,4 @@
-#ifndef TD_TDTIME_H_
-#define TD_TDTIME_H_
+#pragma once
 
 #include <cinttypes>
 #include <climits>
@@ -34,5 +33,3 @@ inline std::string format_time(time time) {
 }
 
 }  // namespace td
-
-#endif  // TD_TDTIME_H_

@@ -1,5 +1,4 @@
-#ifndef TD_FILES_H_
-#define TD_FILES_H_
+#pragma once
 
 // Input files
 #define SERVICES_FILE (".Services.txt")
@@ -24,5 +23,3 @@
 // Generated
 #define STATION_SIZES (".StationSizes.txt")
 #define STATION_GRAPH (".sgrv.csv")
-
-#endif  // TD_FILES_H_

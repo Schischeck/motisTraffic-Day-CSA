@@ -1,5 +1,4 @@
-#ifndef TD_MEASURE_H_
-#define TD_MEASURE_H_
+#pragma once
 
 #include <chrono>
 
@@ -16,6 +15,5 @@ struct measure {
     return duration.count();
   }
 };
-}
 
-#endif
+}  // namespace td

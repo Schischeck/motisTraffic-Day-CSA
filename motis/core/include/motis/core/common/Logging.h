@@ -1,5 +1,4 @@
-#ifndef TD_LOGGING_H_
-#define TD_LOGGING_H_
+#pragma once
 
 #include <ctime>
 #include <cstring>
@@ -51,5 +50,3 @@ struct scoped_timer final {
 
 }  // namespace logging
 }  // namespace td
-
-#endif  // TD_LOGGING_H_

@@ -1,5 +1,4 @@
-#ifndef TD_SERIALIZATION_SCHEDULE_H_
-#define TD_SERIALIZATION_SCHEDULE_H_
+#pragma once
 
 #include <map>
 #include <vector>
@@ -47,5 +46,3 @@ struct binary_schedule : public schedule {
 };
 
 }  // namespace td
-
-#endif  // TD_SERIALIZATION_SCHEDULE_H_

@@ -1,5 +1,4 @@
-#ifndef TD_SERIALIZATION_DESERIALIZER_H_
-#define TD_SERIALIZATION_DESERIALIZER_H_
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -26,5 +25,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TD_SERIALIZATION_DESERIALIZER_H_

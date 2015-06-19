@@ -1,5 +1,4 @@
-#ifndef TD_MEMORY_MANAGER_H_
-#define TD_MEMORY_MANAGER_H_
+#pragma once
 
 #include <cstdlib>
 #include <memory>
@@ -32,5 +31,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TD_MEMORY_MANAGER_H_

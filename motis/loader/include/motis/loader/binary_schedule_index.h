@@ -1,5 +1,4 @@
-#ifndef TD_INDEX_H_
-#define TD_INDEX_H_
+#pragma once
 
 #include "motis/core/common/offset.h"
 #include "motis/core/common/array.h"
@@ -30,5 +29,3 @@ struct binary_schedule_index {
 };
 
 }  // namespace td
-
-#endif  // TD_INDEX_H_

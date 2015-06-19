@@ -1,5 +1,4 @@
-#ifndef TD_GRAPH_LOADER_H_
-#define TD_GRAPH_LOADER_H_
+#pragma once
 
 #include <string>
 #include <fstream>
@@ -65,5 +64,3 @@ private:
 };
 
 }  // namespace td
-
-#endif  // TD_GRAPH_LOADER_H_

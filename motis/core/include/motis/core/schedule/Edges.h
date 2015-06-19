@@ -1,5 +1,4 @@
-#ifndef TDEDGES_H
-#define TDEDGES_H TDEDGES_H
+#pragma once
 
 #include <cassert>
 #include <vector>
@@ -274,5 +273,3 @@ inline edge make_invalid_edge(node* to) {
 }
 
 }  // namespace td
-
-#endif  // TDEDGES_H

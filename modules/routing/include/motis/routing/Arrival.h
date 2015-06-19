@@ -1,5 +1,4 @@
-#ifndef TD_ARRIVAL_H_
-#define TD_ARRIVAL_H_
+#pragma once
 
 #include <vector>
 #include <array>
@@ -23,5 +22,3 @@ struct arrival_part {
 typedef std::vector<arrival_part> arrival;
 
 }  // namespace td
-
-#endif  // TD_ARRIVAL_H_
