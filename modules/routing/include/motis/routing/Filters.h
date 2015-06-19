@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include "motis/core/schedule/Connection.h"
+#include "motis/core/schedule/connection.h"
 
 #define MAX_TRAVEL_TIME  (1440)
 #define MAX_TRANSFERS    (6)
@@ -12,19 +12,19 @@
 namespace td
 {
 
-inline bool isFilteredTravelTime(unsigned const nTravelTime)
-{ return nTravelTime > MAX_TRAVEL_TIME; }
+inline bool is_filtered_travel_time(unsigned const n_travel_time)
+{ return n_travel_time > MAX_TRAVEL_TIME; }
 
-inline bool isFilteredTransfers(unsigned const nTransfers)
-{ return nTransfers > MAX_TRANSFERS; }
+inline bool is_filtered_transfers(unsigned const n_transfers)
+{ return n_transfers > MAX_TRANSFERS; }
 
-inline bool isFilteredWaitingTime(
-    LightConnection const* con,
-    unsigned predTravelTime,
-    unsigned nextTravelTime)
+inline bool is_filtered_waiting_time(
+    light_connection const* con,
+    unsigned pred_travel_time,
+    unsigned next_travel_time)
 {
-  unsigned conTime = con != nullptr ? con->aTime - con->dTime : 0;
-  return nextTravelTime - predTravelTime - conTime > MAX_WAITING_TIME;
+  unsigned con_time = con != nullptr ? con->a_time - con->d_time : 0;
+  return next_travel_time - pred_travel_time - con_time > MAX_WAITING_TIME;
 }
 
 }

@@ -14,7 +14,7 @@ namespace motis {
 namespace reliability {
 
 po::options_description reliability::desc() {
-  po::options_description desc("Railviz Module");
+  po::options_description desc("Reliability Module");
   return desc;
 }
 

@@ -4,45 +4,45 @@
 #include <string>
 #include <vector>
 
-#include "motis/routing/Label.h"
+#include "motis/routing/label.h"
 
 namespace td {
 
-class Label;
-struct Schedule;
+class label;
+struct schedule;
 
-struct Journey
+struct journey
 {
-  Journey() = default;
-  Journey(Label const* label, Schedule const& sched);
+  journey() = default;
+  journey(label const* label, schedule const& sched);
 
-  struct Transport
+  struct transport
   {
     int from, to;
     bool walk;
     std::string name;
-    std::string categoryName;
-    int categoryId;
-    int trainNr;
+    std::string category_name;
+    int category_id;
+    int train_nr;
     int duration;
     int slot;
   };
 
-  struct Stop
+  struct stop
   {
     int index;
     bool interchange;
     std::string name;
-    std::string evaNo;
+    std::string eva_no;
     double lat, lng;
-    struct EventInfo {
+    struct event_info {
       bool valid;
-      std::string dateTime;
+      std::string date_time;
       std::string platform;
     } arrival, departure;
   };
 
-  struct Attribute
+  struct attribute
   {
     int from, to;
     std::string code;
@@ -51,9 +51,9 @@ struct Journey
 
   std::string date;
   int duration, transfers, price;
-  std::vector<Stop> stops;
-  std::vector<Transport> transports;
-  std::vector<Attribute> attributes;
+  std::vector<stop> stops;
+  std::vector<transport> transports;
+  std::vector<attribute> attributes;
 };
 
 }  // namespace td

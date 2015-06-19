@@ -12,15 +12,15 @@
 namespace td
 {
 
-typedef uint16_t Time;
-typedef uint16_t Duration;
+typedef uint16_t time;
+typedef uint16_t duration;
 
 constexpr unsigned short INVALID_TIME = USHRT_MAX;
 
-inline Time toTime(int dayIndex, int minutes)
-{ return dayIndex * MINUTES_A_DAY + minutes; }
+inline time to_time(int day_index, int minutes)
+{ return day_index * MINUTES_A_DAY + minutes; }
 
-inline std::string formatTime(Time time)
+inline std::string format_time(time time)
 {
   if (time == INVALID_TIME)
     return "INVALID";

@@ -5,7 +5,7 @@
 
 namespace td {
 
-void services2Routes(std::string const& prefix);
+void services2routes(std::string const& prefix);
 
 }  // namespace td
 

@@ -5,9 +5,9 @@
 #include <vector>
 #include <tuple>
 
-#include "motis/core/common/Array.h"
-#include "motis/core/common/Pointer.h"
-#include "motis/core/schedule/Time.h"
+#include "motis/core/common/array.h"
+#include "motis/core/common/pointer.h"
+#include "motis/core/schedule/time.h"
 
 namespace td
 {
@@ -25,85 +25,85 @@ enum {
   TD_X   = 9
 };
 
-class ConnectionInfo
+class connection_info
 {
 public:
-  ConnectionInfo()
-      : attributes(Array<int>::SizeType(0)),
-        lineIdentifier(String::SizeType(0)),
+  connection_info()
+      : attributes(array<int>::size_type(0)),
+        line_identifier(string::size_type(0)),
         family(0),
-        trainNr(0),
+        train_nr(0),
         service(0)
   {}
 
-  bool operator < (ConnectionInfo const& o) const
+  bool operator < (connection_info const& o) const
   { return as_tuple() < o.as_tuple(); }
 
-  bool operator == (ConnectionInfo const& o) const
+  bool operator == (connection_info const& o) const
   {
     return attributes == o.attributes &&
-           lineIdentifier == o.lineIdentifier &&
+           line_identifier == o.line_identifier &&
            family == o.family &&
-           trainNr == o.trainNr &&
+           train_nr == o.train_nr &&
            service == o.service;
   }
 
-  std::tuple<Array<int>, String, uint32_t, uint32_t, uint32_t> as_tuple() const
+  std::tuple<array<int>, string, uint32_t, uint32_t, uint32_t> as_tuple() const
   {
     return std::make_tuple(attributes,
-                           lineIdentifier,
+                           line_identifier,
                            family,
-                           trainNr,
+                           train_nr,
                            service);
   }
 
-  Array<int> attributes;
-  String lineIdentifier;
+  array<int> attributes;
+  string line_identifier;
   uint32_t family;
-  uint32_t trainNr;
+  uint32_t train_nr;
   uint32_t service;
 };
 
-class Connection
+class connection
 {
 public:
-  Connection() : conInfoId(0), price(0), dPlatform(0), aPlatform(0), clasz(0) {}
+  connection() : con_info_id(0), price(0), d_platform(0), a_platform(0), clasz(0) {}
 
-  bool operator==(Connection const& o) const
-  { return clasz == o.clasz && price == o.price && conInfoId == o.conInfoId; }
+  bool operator==(connection const& o) const
+  { return clasz == o.clasz && price == o.price && con_info_id == o.con_info_id; }
 
   union {
-    Pointer<ConnectionInfo const> conInfo;
-    uint32_t conInfoId;
+    pointer<connection_info const> con_info;
+    uint32_t con_info_id;
   };
   uint16_t price;
-  uint16_t dPlatform, aPlatform;
+  uint16_t d_platform, a_platform;
   uint8_t clasz;
 };
 
-class LightConnection
+class light_connection
 {
 public:
-  LightConnection() = default;
+  light_connection() = default;
 
-  explicit LightConnection(Time dTime) : dTime(dTime) {}
+  explicit light_connection(time d_time) : d_time(d_time) {}
 
-  LightConnection(Time dTime, Time aTime,
-                  Connection const* fullCon)
-      : _fullCon(fullCon),
-        dTime(dTime),
-        aTime(aTime)
+  light_connection(time d_time, time a_time,
+                  connection const* full_con)
+      : _full_con(full_con),
+        d_time(d_time),
+        a_time(a_time)
   {}
 
-  unsigned travelTime() const { return aTime - dTime; }
+  unsigned travel_time() const { return a_time - d_time; }
 
-  bool operator<(LightConnection const& o) const { return dTime < o.dTime; }
+  bool operator<(light_connection const& o) const { return d_time < o.d_time; }
 
-  bool operator==(LightConnection const& o) const
-  { return dTime == o.dTime && aTime == o.aTime && *_fullCon == *o._fullCon; }
+  bool operator==(light_connection const& o) const
+  { return d_time == o.d_time && a_time == o.a_time && *_full_con == *o._full_con; }
 
-  Pointer<Connection const> _fullCon;
-  Time dTime, aTime;
+  pointer<connection const> _full_con;
+  time d_time, a_time;
 
   enum : uint32_t { INVALID_CON_ID = 0xffffffff };
 };

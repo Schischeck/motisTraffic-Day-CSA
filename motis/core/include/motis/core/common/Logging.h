@@ -17,7 +17,7 @@
 namespace td {
 namespace logging {
 
-enum LogLevel { emrg, alrt, crit, error, warn, notice, info, debug };
+enum log_level { emrg, alrt, crit, error, warn, notice, info, debug };
 
 static const char* const str[] {"emrg", "alrt", "crit", "erro",
                                 "warn", "note", "info", "debg"};
@@ -26,18 +26,18 @@ inline std::string time()
 {
   time_t now;
   std::time(&now);
-  char buf[sizeof "2011-10-08T07:07:09Z-0430"];
+  char buf[sizeof "2011-10-08t07:07:09z-0430"];
   strftime(buf, sizeof buf, "%FT%TZ%z", gmtime(&now));
   return buf;
 }
 
-struct ScopedTimer final {
-  ScopedTimer(char const* name)
+struct scoped_timer final {
+  scoped_timer(char const* name)
       : _name(name),
         _start(std::chrono::steady_clock::now())
   { LOG(info) << "[" << _name << "] starting"; }
 
-  ~ScopedTimer()
+  ~scoped_timer()
   {
     using namespace std::chrono;
     auto stop = steady_clock::now();

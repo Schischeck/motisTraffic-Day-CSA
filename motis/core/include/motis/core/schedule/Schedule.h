@@ -6,45 +6,45 @@
 
 #include "boost/filesystem.hpp"
 
-#include "motis/core/schedule/DateManager.h"
-#include "motis/core/schedule/Station.h"
-#include "motis/core/schedule/Nodes.h"
-#include "motis/core/schedule/ConstantGraph.h"
-#include "motis/core/schedule/Attribute.h"
-#include "motis/core/schedule/WaitingTimeRules.h"
-#include "motis/core/common/Synchronization.h"
+#include "motis/core/schedule/date_manager.h"
+#include "motis/core/schedule/station.h"
+#include "motis/core/schedule/nodes.h"
+#include "motis/core/schedule/constant_graph.h"
+#include "motis/core/schedule/attribute.h"
+#include "motis/core/schedule/waiting_time_rules.h"
+#include "motis/core/common/synchronization.h"
 
 namespace td {
 
-class Connection;
-class ConnectionInfo;
+class connection;
+class connection_info;
 
-struct Schedule
+struct schedule
 {
-  virtual ~Schedule() {}
+  virtual ~schedule() {}
 
-  DateManager dateManager;
-  std::vector<StationPtr> stations;
-  std::vector<std::string> categoryNames;
+  date_manager date_manager;
+  std::vector<station_ptr> stations;
+  std::vector<std::string> category_names;
   std::map<int, std::string> tracks;
-  std::map<int, Attribute> attributes;
-  ConstantGraph lowerBounds;
-  unsigned nodeCount;
-  std::vector<StationNodePtr> stationNodes;
-  std::vector<Node*> routeIndexToFirstRouteNode;
-  WaitingTimeRules waitingTimeRules;
-  Synchronization sync;
+  std::map<int, attribute> attributes;
+  constant_graph lower_bounds;
+  unsigned node_count;
+  std::vector<station_node_ptr> station_nodes;
+  std::vector<node*> route_index_to_first_route_node;
+  waiting_time_rules waiting_time_rules;
+  synchronization sync;
 };
 
-typedef std::unique_ptr<Schedule> SchedulePtr;
+typedef std::unique_ptr<schedule> schedule_ptr;
 
-struct TextSchedule : public Schedule {
-  std::vector<std::unique_ptr<Connection>> fullConnections;
-  std::vector<std::unique_ptr<ConnectionInfo>> connectionInfos;
+struct text_schedule : public schedule {
+  std::vector<std::unique_ptr<connection>> full_connections;
+  std::vector<std::unique_ptr<connection_info>> connection_infos;
 };
 
-struct BinarySchedule : public Schedule {
-  std::unique_ptr<char[]> rawMemory;
+struct binary_schedule : public schedule {
+  std::unique_ptr<char[]> raw_memory;
 };
 
 }  // namespace td

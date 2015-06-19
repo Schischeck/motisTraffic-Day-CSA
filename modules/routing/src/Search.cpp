@@ -1,4 +1,4 @@
-#include "motis/routing/Search.h"
+#include "motis/routing/search.h"
 
 #include <cassert>
 #include <ctime>
@@ -13,78 +13,78 @@
 
 #include "boost/lexical_cast.hpp"
 
-#include "motis/core/common/Logging.h"
-#include "motis/core/schedule/Schedule.h"
-#include "motis/core/schedule/Station.h"
-#include "motis/core/schedule/Edges.h"
-#include "motis/routing/LowerBounds.h"
-#include "motis/routing/ParetoDijkstra.h"
-#include "motis/routing/Label.h"
-#include "motis/routing/Timing.h"
+#include "motis/core/common/logging.h"
+#include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/station.h"
+#include "motis/core/schedule/edges.h"
+#include "motis/routing/lower_bounds.h"
+#include "motis/routing/pareto_dijkstra.h"
+#include "motis/routing/label.h"
+#include "motis/routing/timing.h"
 
 namespace td {
 
-void removeIntersection(Arrival& from, Arrival& to) {
-  for (auto const& toArrPart : to)
+void remove_intersection(arrival& from, arrival& to) {
+  for (auto const& to_arr_part : to)
     from.erase(std::remove_if(std::begin(from), std::end(from),
-                              [&toArrPart](ArrivalPart const& fromArrPart) {
-                                return toArrPart.station == fromArrPart.station;
+                              [&to_arr_part](arrival_part const& from_arr_part) {
+                                return to_arr_part.station == from_arr_part.station;
                               }),
                std::end(from));
 }
 
-Search::Search(Schedule& schedule, MemoryManager<Label>& labelStore)
+search::search(schedule& schedule, memory_manager<label>& label_store)
     : _sched(schedule),
-      _labelStore(labelStore)
+      _label_store(label_store)
 {}
 
-std::vector<Journey> Search::getConnections(
-    Arrival from, Arrival to,
+std::vector<journey> search::get_connections(
+    arrival from, arrival to,
     int time1, int time2, int day,
-    ParetoDijkstra::Statistics* stats)
+    pareto_dijkstra::statistics* stats)
 {
-  _labelStore.reset();
-  removeIntersection(from, to);
+  _label_store.reset();
+  remove_intersection(from, to);
 
   // use dummy station as virtual station representing
   // all source stations as well as all target stations
   assert(!_sched.stations.empty());
-  int dummySource = _sched.stations.front()->index;
-  int dummyTarget = _sched.stations.back()->index;
+  int dummy_source = _sched.stations.front()->index;
+  int dummy_target = _sched.stations.back()->index;
 
-  // Generate additional edges for the lower bound graph.
-  std::unordered_map<int, std::vector<SimpleEdge>> lbGraphEdges;
+  // generate additional edges for the lower bound graph.
+  std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
   for (auto const& arr : to)
-    lbGraphEdges[dummyTarget].push_back(SimpleEdge(arr.station, arr.timeCost));
+    lb_graph_edges[dummy_target].push_back(simple_edge(arr.station, arr.time_cost));
   for (auto const& arr : from)
-    lbGraphEdges[arr.station].push_back(SimpleEdge(dummySource, arr.timeCost));
+    lb_graph_edges[arr.station].push_back(simple_edge(dummy_source, arr.time_cost));
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
 
-  LowerBounds lowerBounds(_sched.lowerBounds, dummyTarget, lbGraphEdges);
+  lower_bounds lower_bounds(_sched.lower_bounds, dummy_target, lb_graph_edges);
 
-  TD_START_TIMING(lowerBoundsTiming);
+  TD_START_TIMING(lower_bounds_timing);
 
-  TD_START_TIMING(travelLBTimeTiming);
-  lowerBounds.travelTime.run();
-  TD_STOP_TIMING(travelLBTimeTiming);
+  TD_START_TIMING(travel_l_b_time_timing);
+  lower_bounds.travel_time.run();
+  TD_STOP_TIMING(travel_l_b_time_timing);
 
-  TD_START_TIMING(transfersLBTiming);
-  lowerBounds.transfers.run();
-  TD_STOP_TIMING(transfersLBTiming);
+  TD_START_TIMING(transfers_l_b_timing);
+  lower_bounds.transfers.run();
+  TD_STOP_TIMING(transfers_l_b_timing);
 
-  TD_START_TIMING(priceLBTiming);
-  lowerBounds.price.run();
-  TD_STOP_TIMING(priceLBTiming);
+  TD_START_TIMING(price_l_b_timing);
+  lower_bounds.price.run();
+  TD_STOP_TIMING(price_l_b_timing);
 
-  TD_STOP_TIMING(lowerBoundsTiming);
+  TD_STOP_TIMING(lower_bounds_timing);
 
-  if(lowerBounds.travelTime.getDistance(dummySource) ==
+  if(lower_bounds.travel_time.get_distance(dummy_source) ==
      std::numeric_limits<uint32_t>::max())
   {
-    LOG(logging::error) << "no path from source[" << dummySource << "] "
-                        << "to target[" << dummyTarget << "] found";
+    LOG(logging::error) << "no path from source[" << dummy_source << "] "
+                        << "to target[" << dummy_target << "] found";
     return {};
   }
 
@@ -92,132 +92,132 @@ std::vector<Journey> Search::getConnections(
   if(time1 > time2)
     ++day2;
 
-  std::vector<Label*> startLabels;
-  StationNode* dummySourceStation = _sched.stationNodes[dummySource].get();
+  std::vector<label*> start_labels;
+  station_node* dummy_source_station = _sched.station_nodes[dummy_source].get();
   for (const auto& s : from)
   {
-    StationNode const* station = _sched.stationNodes[s.station].get();
+    station_node const* station = _sched.station_nodes[s.station].get();
 
     // generate labels at all route nodes
     // for all trains departing in the specified interval
-    generateStartLabels(toTime(day, time1), toTime(day2, time2),
-                        station, startLabels, dummySourceStation,
-                        s.timeCost, s.price, s.slot,
-                        lowerBounds);
+    generate_start_labels(to_time(day, time1), to_time(day2, time2),
+                        station, start_labels, dummy_source_station,
+                        s.time_cost, s.price, s.slot,
+                        lower_bounds);
   }
 
-  std::unordered_map<Node const*, std::vector<Edge>> additionalEdges;
-  StationNode* target = _sched.stationNodes[dummyTarget].get();
+  std::unordered_map<node const*, std::vector<edge>> additional_edges;
+  station_node* target = _sched.station_nodes[dummy_target].get();
   for (auto const& arr : to)
   {
-    StationNode* arrivalStation = _sched.stationNodes[arr.station].get();
+    station_node* arrival_station = _sched.station_nodes[arr.station].get();
 
-    auto it = additionalEdges.find(arrivalStation);
-    if (it == end(additionalEdges))
+    auto it = additional_edges.find(arrival_station);
+    if (it == end(additional_edges))
       std::tie(it, std::ignore) =
-          additionalEdges.emplace(arrivalStation, std::vector<Edge>());
+          additional_edges.emplace(arrival_station, std::vector<edge>());
 
-    it->second.emplace_back(makeMumoEdge(target,
-                                         arr.timeCost, arr.price, arr.slot));
+    it->second.emplace_back(make_mumo_edge(target,
+                                         arr.time_cost, arr.price, arr.slot));
   }
 
-  ParetoDijkstra pd(_sched.nodeCount,
-                    _sched.stationNodes[dummyTarget].get(),
-                    startLabels,
-                    additionalEdges,
-                    lowerBounds,
-                    _labelStore);
-  std::vector<Label*>& results = pd.search();
+  pareto_dijkstra pd(_sched.node_count,
+                    _sched.station_nodes[dummy_target].get(),
+                    start_labels,
+                    additional_edges,
+                    lower_bounds,
+                    _label_store);
+  std::vector<label*>& results = pd.search();
 
   if (stats != nullptr)
   {
-    *stats = pd.getStatistics();
-    stats->travelTimeLB = TD_TIMING_MS(travelLBTimeTiming);
-    stats->transfersLB = TD_TIMING_MS(transfersLBTiming);
-    stats->priceLB = TD_TIMING_MS(priceLBTiming);
+    *stats = pd.get_statistics();
+    stats->travel_time_l_b = TD_TIMING_MS(travel_l_b_time_timing);
+    stats->transfers_l_b = TD_TIMING_MS(transfers_l_b_timing);
+    stats->price_l_b = TD_TIMING_MS(price_l_b_timing);
   }
 
-  std::vector<Journey> journeys;
+  std::vector<journey> journeys;
   journeys.resize(results.size());
   std::transform(
       std::begin(results), std::end(results),
       std::begin(journeys),
-      [this](Label* label) { return Journey(label, _sched); });
+      [this](label* label) { return journey(label, _sched); });
 
   return journeys;
 }
 
-void Search::generateStartLabels(
-    Time const from,
-    Time const to,
-    StationNode const* station,
-    std::vector<Label*>& indices,
-    StationNode const* realStart,
-    int timeOff,
-    int startPrice,
+void search::generate_start_labels(
+    time const from,
+    time const to,
+    station_node const* start_station_node,
+    std::vector<label*>& indices,
+    station_node const* real_start,
+    int time_off,
+    int start_price,
     int slot,
-    LowerBounds& lowerBounds)
+    lower_bounds& lower_bounds)
 {
-  for(auto const& edge : station->_edges)
-    generateStartLabels(
+  for(auto const& edge : start_station_node->_edges)
+    generate_start_labels(
         from, to,
-        station, edge.getDestination(),
+        start_station_node, edge.get_destination(),
         indices,
-        realStart, timeOff, startPrice, slot,
-        lowerBounds);
+        real_start, time_off, start_price, slot,
+        lower_bounds);
 }
 
-void Search::generateStartLabels(
-    Time const from,
-    Time const to,
-    StationNode const* stationNode,
-    Node const* routeNode,
-    std::vector<Label*>& indices,
-    StationNode const* realStart,
-    int timeOff,
-    int startPrice,
+void search::generate_start_labels(
+    time const from,
+    time const to,
+    station_node const* start_station_node,
+    node const* route_node,
+    std::vector<label*>& indices,
+    station_node const* real_start,
+    int time_off,
+    int start_price,
     int slot,
-    LowerBounds& lowerBounds)
+    lower_bounds& lower_bounds)
 {
-  for(auto const& edge : routeNode->_edges)
+  for(auto const& edge : route_node->_edges)
   {
     // not a route-edge?
-    if(edge.getDestination() == stationNode)
+    if(edge.get_destination() == start_station_node)
       continue;
 
-    Time t = from + timeOff;
+    time t = from + time_off;
 
-    // Don't set label on foot node
+    // don't set label on foot node
     // this isn't neccesary in a intermodal scenario.
-    if (edge._m._type != Edge::Type::ROUTE_EDGE) {
+    if (edge._m._type != edge::type::ROUTE_EDGE) {
       continue;
     }
 
-    while(t <= to + timeOff)
+    while(t <= to + time_off)
     {
-      LightConnection const* con = edge.getConnection(t);
+      light_connection const* con = edge.get_connection(t);
       if(con == nullptr)
         break;
 
-      t = con->dTime;
+      t = con->d_time;
 
-      if(t > to + timeOff)
+      if(t > to + time_off)
         break;
 
       // was there an earlier start station?
-      Label* earlier = nullptr;
-      if(realStart != nullptr)
-        earlier = new (_labelStore.create()) Label(realStart, nullptr, t - timeOff, lowerBounds);
+      label* earlier = nullptr;
+      if(real_start != nullptr)
+        earlier = new (_label_store.create()) label(real_start, nullptr, t - time_off, lower_bounds);
 
-      Label* stationNodeLabel = new (_labelStore.create()) Label(stationNode, earlier, t, lowerBounds);
-      stationNodeLabel->_prices[Label::ADDITIONAL_PRICE] = startPrice;
-      stationNodeLabel->_totalPrice[0] = startPrice;
+      label* station_node_label = new (_label_store.create()) label(start_station_node, earlier, t, lower_bounds);
+      station_node_label->_prices[label::ADDITIONAL_PRICE] = start_price;
+      station_node_label->_total_price[0] = start_price;
 
       // create the label we are really interested in
-      Label* routeNodeLabel = new (_labelStore.create()) Label(routeNode, stationNodeLabel, t, lowerBounds);
-      routeNodeLabel->setSlot(true, slot);
+      label* route_node_label = new (_label_store.create()) label(route_node, station_node_label, t, lower_bounds);
+      route_node_label->set_slot(true, slot);
 
-      indices.push_back(routeNodeLabel);
+      indices.push_back(route_node_label);
 
       t = t + 1;
     }

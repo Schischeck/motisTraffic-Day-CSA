@@ -3,11 +3,11 @@
 
 #include <string>
 
-#include "motis/core/schedule/Schedule.h"
+#include "motis/core/schedule/schedule.h"
 
 namespace td {
 
-int serialize(TextSchedule const& sched, std::string const& prefix);
+int serialize(text_schedule const& sched, std::string const& prefix);
 
 }  // namespace td
 

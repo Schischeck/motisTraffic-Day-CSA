@@ -7,13 +7,13 @@
 
 #include "conf/options_parser.h"
 
-#include "motis/core/common/Logging.h"
+#include "motis/core/common/logging.h"
 
-#include "motis/loader/Loader.h"
+#include "motis/loader/loader.h"
 
-#include "motis/prep/Services2Routes.h"
-#include "motis/prep/Serialize.h"
-#include "motis/prep/StationGraph.h"
+#include "motis/prep/services2routes.h"
+#include "motis/prep/serialize.h"
+#include "motis/prep/station_graph.h"
 
 #define SCHEDULE_PREFIX       ("dataset")
 #define SERVICES_TO_ROUTES    ("services_to_routes")
@@ -24,25 +24,25 @@ using namespace td;
 using namespace td::logging;
 namespace po = boost::program_options;
 
-class SerializeSettings : public conf::configuration
+class serialize_settings : public conf::configuration
 {
 public:
-  SerializeSettings(std::string defaultSchedulePrefix,
-                    bool defaultS2r,
-                    bool defaultStationGraph,
-                    bool defaultSerialize)
-      : schedulePrefix(defaultSchedulePrefix),
-        s2r(defaultS2r),
-        stationGraph(defaultStationGraph),
-        serialize(defaultSerialize)
+  serialize_settings(std::string default_schedule_prefix,
+                    bool default_s2r,
+                    bool default_station_graph,
+                    bool default_serialize)
+      : schedule_prefix(default_schedule_prefix),
+        s2r(default_s2r),
+        station_graph(default_station_graph),
+        serialize(default_serialize)
   {}
 
   boost::program_options::options_description desc()
   {
-    po::options_description desc("Callback Options");
+    po::options_description desc("callback options");
     desc.add_options()
       (SCHEDULE_PREFIX,
-          po::value<std::string>(&schedulePrefix)->default_value(schedulePrefix),
+          po::value<std::string>(&schedule_prefix)->default_value(schedule_prefix),
           "path to the schedule (not including the last '.')\n")
       (SERVICES_TO_ROUTES,
           po::bool_switch(&s2r)->default_value(s2r),
@@ -52,7 +52,7 @@ public:
           "- PREFIX.Routes.txt\n"
           "- PREFIX.Route.Bitfields.txt\n")
       (WRITE_STATION_GRAPH,
-          po::bool_switch(&stationGraph)->default_value(stationGraph),
+          po::bool_switch(&station_graph)->default_value(station_graph),
           "write file containing the station graph "
           "(elementary connections)\n"
           "\n"
@@ -72,67 +72,67 @@ public:
   {
     using std::boolalpha;
     boost::io::ios_all_saver guard(out);
-    out << "  " << SCHEDULE_PREFIX << ": " << schedulePrefix << "\n"
+    out << "  " << SCHEDULE_PREFIX << ": " << schedule_prefix << "\n"
         << "  " << SERVICES_TO_ROUTES << ": " << boolalpha << s2r << "\n"
         << "  " << SERIALIZE_GRAPH << ": " << boolalpha << serialize << "\n";
   }
 
-  std::string schedulePrefix;
-  bool s2r, stationGraph, serialize;
+  std::string schedule_prefix;
+  bool s2r, station_graph, serialize;
 };
 
 int main(int argc, char* argv[])
 {
-  SerializeSettings serializeOpt("schedule/test", false, false, false);
-  conf::options_parser parser({ &serializeOpt });
+  serialize_settings serialize_opt("schedule/test", false, false, false);
+  conf::options_parser parser({ &serialize_opt });
   parser.read_command_line_args(argc, argv);
 
   if (parser.help())
   {
-    std::cout << "\n\tTD Serialize\n\n";
+    std::cout << "\n\tTD serialize\n\n";
     parser.print_help(std::cout);
     return 0;
   }
   else if (parser.version())
   {
-    std::cout << "TD Serialize\n";
+    std::cout << "TD serialize\n";
     return 0;
   }
 
   parser.read_configuration_file();
 
-  std::cout << "\n\tTD Serialize\n\n";
+  std::cout << "\n\tTD serialize\n\n";
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  ScopedTimer timer("all_steps");
+  scoped_timer timer("all_steps");
 
-  if (serializeOpt.s2r)
+  if (serialize_opt.s2r)
   {
-    ScopedTimer timer(SERVICES_TO_ROUTES);
-    services2Routes(serializeOpt.schedulePrefix);
+    scoped_timer timer(SERVICES_TO_ROUTES);
+    services2routes(serialize_opt.schedule_prefix);
   }
 
-  SchedulePtr schedule;
-  if (serializeOpt.serialize || serializeOpt.stationGraph)
+  schedule_ptr schedule;
+  if (serialize_opt.serialize || serialize_opt.station_graph)
   {
-    ScopedTimer timer("reading_schedule");
-    if (serializeOpt.serialize)
-      schedule = loadTextSchedule(serializeOpt.schedulePrefix);
+    scoped_timer timer("reading_schedule");
+    if (serialize_opt.serialize)
+      schedule = load_text_schedule(serialize_opt.schedule_prefix);
     else
-      schedule = loadBinarySchedule(serializeOpt.schedulePrefix);
+      schedule = load_binary_schedule(serialize_opt.schedule_prefix);
   }
 
-  if (serializeOpt.stationGraph)
+  if (serialize_opt.station_graph)
   {
-    ScopedTimer timer(WRITE_STATION_GRAPH);
-    writeStationGraph(*schedule, serializeOpt.schedulePrefix);
+    scoped_timer timer(WRITE_STATION_GRAPH);
+    write_station_graph(*schedule, serialize_opt.schedule_prefix);
   }
 
-  if (serializeOpt.serialize)
+  if (serialize_opt.serialize)
   {
-    ScopedTimer timer(SERIALIZE_GRAPH);
-    serialize(*reinterpret_cast<TextSchedule*>(schedule.get()),
-              serializeOpt.schedulePrefix);
+    scoped_timer timer(SERIALIZE_GRAPH);
+    serialize(*reinterpret_cast<text_schedule*>(schedule.get()),
+              serialize_opt.schedule_prefix);
   }
 }

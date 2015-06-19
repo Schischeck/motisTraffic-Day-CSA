@@ -5,7 +5,7 @@
 
 namespace td {
 
-struct Attribute
+struct attribute
 {
   std::string _str;
   std::string _code;

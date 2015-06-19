@@ -10,11 +10,11 @@
 #include <type_traits>
 #include <string>
 
-#include "motis/core/common/Pointer.h"
+#include "motis/core/common/pointer.h"
 
 namespace td {
 
-inline uint64_t nextPowerOfTwo(uint64_t n)
+inline uint64_t next_power_of_two(uint64_t n)
 {
   n--;
   n |= n >> 1;
@@ -27,179 +27,179 @@ inline uint64_t nextPowerOfTwo(uint64_t n)
   return n;
 }
 
-template <typename T, typename TemplateSizeType = uint32_t>
-struct Array final
+template <typename t, typename template_size_type = uint32_t>
+struct array final
 {
-  typedef TemplateSizeType SizeType;
+  typedef template_size_type size_type;
 
   explicit
-  Array(TemplateSizeType size = 0)
+  array(template_size_type size = 0)
       : _el(nullptr),
-        _usedSize(0),
-        _selfAllocated(false),
-        _allocatedSize(0)
+        _used_size(0),
+        _self_allocated(false),
+        _allocated_size(0)
   { resize(size); }
 
   explicit
-  Array(const char* str)
+  array(const char* str)
       : _el(nullptr),
-        _usedSize(0),
-        _selfAllocated(false),
-        _allocatedSize(0)
+        _used_size(0),
+        _self_allocated(false),
+        _allocated_size(0)
   {
     auto length = std::strlen(str) + 1;
     reserve(length);
     std::memcpy(_el, str, length);
-    _usedSize = length;
+    _used_size = length;
   }
 
-  template<typename It>
-  Array(It beginIt, It endIt)
+  template<typename it>
+  array(it begin_it, it end_it)
       : _el(nullptr),
-        _usedSize(0),
-        _selfAllocated(false),
-        _allocatedSize(0)
-  { set(beginIt, endIt); }
+        _used_size(0),
+        _self_allocated(false),
+        _allocated_size(0)
+  { set(begin_it, end_it); }
 
-  Array(Array&& arr)
+  array(array&& arr)
       : _el(arr._el),
-        _usedSize(arr._usedSize),
-        _selfAllocated(arr._selfAllocated),
-        _allocatedSize(arr._allocatedSize)
+        _used_size(arr._used_size),
+        _self_allocated(arr._self_allocated),
+        _allocated_size(arr._allocated_size)
   {
     arr._el = nullptr;
-    arr._usedSize = 0;
-    arr._selfAllocated = false;
-    arr._allocatedSize = 0;
+    arr._used_size = 0;
+    arr._self_allocated = false;
+    arr._allocated_size = 0;
   }
 
-  Array(Array const& arr)
+  array(array const& arr)
       : _el(nullptr),
-        _usedSize(0),
-        _selfAllocated(false),
-        _allocatedSize(0)
+        _used_size(0),
+        _self_allocated(false),
+        _allocated_size(0)
   { set(std::begin(arr), std::end(arr)); }
 
-  Array& operator = (Array&& arr)
+  array& operator = (array&& arr)
   {
     deallocate();
 
     _el = arr._el;
-    _usedSize = arr._usedSize;
-    _selfAllocated = arr._selfAllocated;
-    _allocatedSize = arr._allocatedSize;
+    _used_size = arr._used_size;
+    _self_allocated = arr._self_allocated;
+    _allocated_size = arr._allocated_size;
 
     arr._el = nullptr;
-    arr._usedSize = 0;
-    arr._selfAllocated = false;
-    arr._allocatedSize = 0;
+    arr._used_size = 0;
+    arr._self_allocated = false;
+    arr._allocated_size = 0;
 
     return *this;
   }
 
-  Array& operator = (Array const& arr)
+  array& operator = (array const& arr)
   {
     set(std::begin(arr), std::end(arr));
     return *this;
   }
 
-  ~Array()
+  ~array()
   { deallocate(); }
 
   void deallocate()
   {
-    if (!_selfAllocated || _el == nullptr)
+    if (!_self_allocated || _el == nullptr)
       return;
 
     for (auto& el : *this)
-      el.~T();
+      el.~t();
 
     std::free(_el);
     _el = nullptr;
-    _usedSize = 0;
-    _allocatedSize = 0;
-    _selfAllocated = 0;
+    _used_size = 0;
+    _allocated_size = 0;
+    _self_allocated = 0;
   }
 
-  T const* begin() const { return _el; }
-  T const* end()   const { return _el + _usedSize; }
-  T* begin() { return _el; }
-  T* end()   { return _el + _usedSize; }
+  t const* begin() const { return _el; }
+  t const* end()   const { return _el + _used_size; }
+  t* begin() { return _el; }
+  t* end()   { return _el + _used_size; }
 
-  inline T const& operator [] (int index) const { return _el[index]; }
-  inline T& operator [] (int index) { return _el[index]; }
+  inline t const& operator [] (int index) const { return _el[index]; }
+  inline t& operator [] (int index) { return _el[index]; }
 
-  T const& back() const { return _el[_usedSize - 1]; }
-  T& back() { return _el[_usedSize - 1]; }
+  t const& back() const { return _el[_used_size - 1]; }
+  t& back() { return _el[_used_size - 1]; }
 
-  T& front() { return _el[0]; }
-  T const& front() const { return _el[0]; }
+  t& front() { return _el[0]; }
+  t const& front() const { return _el[0]; }
 
-  inline TemplateSizeType size() const { return _usedSize; }
+  inline template_size_type size() const { return _used_size; }
   inline bool empty() const { return size() == 0; }
 
-  Array& operator = (std::string const& str)
-  { return *this = Array(str.c_str()); }
+  array& operator = (std::string const& str)
+  { return *this = array(str.c_str()); }
 
-  template<typename It>
-  void set(It beginIt, It endIt)
+  template<typename it>
+  void set(it begin_it, it end_it)
   {
-    auto rangeSize = std::distance(beginIt, endIt);
-    reserve(rangeSize);
+    auto range_size = std::distance(begin_it, end_it);
+    reserve(range_size);
 
-    auto copySource = beginIt;
-    auto copyTarget = _el.ptr();
-    for (; copySource != endIt; ++copySource, ++copyTarget)
-      new (copyTarget) T(*copySource);
+    auto copy_source = begin_it;
+    auto copy_target = _el.ptr();
+    for (; copy_source != end_it; ++copy_source, ++copy_target)
+      new (copy_target) t(*copy_source);
 
-    _usedSize = rangeSize;
+    _used_size = range_size;
   }
 
-  void push_back(T const& el)
+  void push_back(t const& el)
   {
-    reserve(_usedSize + 1);
-    new (_el + _usedSize) T(el);
-    ++_usedSize;
+    reserve(_used_size + 1);
+    new (_el + _used_size) t(el);
+    ++_used_size;
   }
 
-  template<typename... Args>
-  void emplace_back(Args&&... el)
+  template<typename... args>
+  void emplace_back(args&&... el)
   {
-    reserve(_usedSize + 1);
-    new (_el + _usedSize) T(std::forward<Args>(el)...);
-    ++_usedSize;
+    reserve(_used_size + 1);
+    new (_el + _used_size) t(std::forward<args>(el)...);
+    ++_used_size;
   }
 
-  void resize(SizeType size)
+  void resize(size_type size)
   {
     reserve(size);
-    _usedSize = size;
-    for (SizeType i = 0; i < size; ++i)
-      new (_el + i) T();
+    _used_size = size;
+    for (size_type i = 0; i < size; ++i)
+      new (_el + i) t();
   }
 
-  void reserve(TemplateSizeType newSize)
+  void reserve(template_size_type new_size)
   {
-    newSize = std::max(_allocatedSize, newSize);
+    new_size = std::max(_allocated_size, new_size);
 
-    if (_allocatedSize >= newSize)
+    if (_allocated_size >= new_size)
       return;
 
-    auto nextSize = nextPowerOfTwo(newSize);
-    T* memBuf = static_cast<T*>(std::malloc(sizeof(T) * nextSize));
-    if (memBuf == nullptr)
+    auto next_size = next_power_of_two(new_size);
+    t* mem_buf = static_cast<t*>(std::malloc(sizeof(t) * next_size));
+    if (mem_buf == nullptr)
       throw std::bad_alloc();
 
     if (size() != 0)
     {
       try
       {
-        auto moveTarget = memBuf;
+        auto move_target = mem_buf;
         for (auto& el : *this)
-          new (moveTarget++) T(std::move(el));
+          new (move_target++) t(std::move(el));
 
         for (auto& el : *this)
-          el.~T();
+          el.~t();
       }
       catch (...)
       {
@@ -207,66 +207,66 @@ struct Array final
       }
     }
 
-    auto freeMe = _el;
-    _el = memBuf;
-    if (_selfAllocated)
-      std::free(freeMe);
+    auto free_me = _el;
+    _el = mem_buf;
+    if (_self_allocated)
+      std::free(free_me);
 
-    _selfAllocated = true;
-    _allocatedSize = nextSize;
+    _self_allocated = true;
+    _allocated_size = next_size;
   }
 
-  std::string toString() const
+  std::string to_string() const
   { return std::string(_el._ptr); }
 
   operator std::string () const
-  { return toString(); }
+  { return to_string(); }
 
 #ifdef USE_STANDARD_LAYOUT
-  Pointer<T> _el;
-  TemplateSizeType _usedSize;
-  TemplateSizeType _allocatedSize;
-  bool _selfAllocated;
+  pointer<t> _el;
+  template_size_type _used_size;
+  template_size_type _allocated_size;
+  bool _self_allocated;
 #else
-  Pointer<T> _el;
-  TemplateSizeType _usedSize;
-  bool _selfAllocated : 1;
-  TemplateSizeType _allocatedSize : 31;
+  pointer<t> _el;
+  template_size_type _used_size;
+  bool _self_allocated : 1;
+  template_size_type _allocated_size : 31;
 #endif
 };
 
-template<typename T>
-struct OffsetArrayView {
-  OffsetArrayView(Array<T>& arr, char* base)
+template<typename t>
+struct offset_array_view {
+  offset_array_view(array<t>& arr, char* base)
       : _arr(arr),
-        _absEl(reinterpret_cast<T*>(base + _arr._el._offset))
+        _abs_el(reinterpret_cast<t*>(base + _arr._el._offset))
   {}
 
-  T const* begin() const { return _absEl; }
-  T const* end()   const { return _absEl + _arr._usedSize; }
+  t const* begin() const { return _abs_el; }
+  t const* end()   const { return _abs_el + _arr._used_size; }
 
-  T* begin() { return _absEl; }
-  T* end()   { return _absEl + _arr._usedSize; }
+  t* begin() { return _abs_el; }
+  t* end()   { return _abs_el + _arr._used_size; }
 
-  inline T const& operator [] (int index) const { return _absEl[index]; }
-  inline T& operator [] (int index) { return _absEl[index]; }
+  inline t const& operator [] (int index) const { return _abs_el[index]; }
+  inline t& operator [] (int index) { return _abs_el[index]; }
 
-  T const& back() const { return _absEl[_arr._usedSize - 1]; }
-  T& back() { return _absEl[_arr._usedSize - 1]; }
+  t const& back() const { return _abs_el[_arr._used_size - 1]; }
+  t& back() { return _abs_el[_arr._used_size - 1]; }
 
-  T& front() { return _absEl[0]; }
-  T const& front() const { return _absEl[0]; }
+  t& front() { return _abs_el[0]; }
+  t const& front() const { return _abs_el[0]; }
 
-  Array<T>& _arr;
-  T* _absEl;
+  array<t>& _arr;
+  t* _abs_el;
 };
 
-template<typename T>
-OffsetArrayView<T> makeOffsetArrayView(Array<T>& arr, char* base)
-{ return OffsetArrayView<T>(arr, base); }
+template<typename t>
+offset_array_view<t> make_offset_array_view(array<t>& arr, char* base)
+{ return offset_array_view<t>(arr, base); }
 
-template<typename T>
-inline std::ostream& operator << (std::ostream& out, Array<T> const& arr)
+template<typename t>
+inline std::ostream& operator << (std::ostream& out, array<t> const& arr)
 {
   bool first = true;
   out << "[";
@@ -277,53 +277,53 @@ inline std::ostream& operator << (std::ostream& out, Array<T> const& arr)
   return out << "]";
 }
 
-template<typename T>
-inline bool operator == (Array<T> const& a, Array<T> const& b)
+template<typename t>
+inline bool operator == (array<t> const& a, array<t> const& b)
 {
   return a.size() == b.size() &&
          std::equal(std::begin(a), std::end(a), std::begin(b));
 }
 
-template<typename T>
-inline bool operator < (Array<T> const& a, Array<T> const& b)
+template<typename t>
+inline bool operator < (array<t> const& a, array<t> const& b)
 {
   return std::lexicographical_compare(std::begin(a), std::end(a),
                                       std::begin(b), std::end(b));
 }
 
-template<typename T>
-inline bool operator <= (Array<T> const& a, Array<T> const& b)
+template<typename t>
+inline bool operator <= (array<t> const& a, array<t> const& b)
 { return !(a > b); }
 
-template<typename T>
-inline bool operator > (Array<T> const& a, Array<T> const& b)
+template<typename t>
+inline bool operator > (array<t> const& a, array<t> const& b)
 { return b < a; }
 
-template<typename T>
-inline bool operator >= (Array<T> const& a, Array<T> const& b)
+template<typename t>
+inline bool operator >= (array<t> const& a, array<t> const& b)
 { return !(a < b); }
 
 
-typedef Array<char> String;
-typedef OffsetArrayView<char> OffsetString;
+typedef array<char> string;
+typedef offset_array_view<char> offset_string;
 
-inline std::ostream& operator << (std::ostream& out, String const& a)
+inline std::ostream& operator << (std::ostream& out, string const& a)
 { return out << a._el; }
 
-inline std::ostream& operator << (std::ostream& out, OffsetString const& a)
-{ return out << a._absEl; }
+inline std::ostream& operator << (std::ostream& out, offset_string const& a)
+{ return out << a._abs_el; }
 
-inline std::string operator + (std::string& str, String const& a)
+inline std::string operator + (std::string& str, string const& a)
 { return str +  a._el._ptr; }
 
-inline std::string& operator += (std::string& str, String const& a)
+inline std::string& operator += (std::string& str, string const& a)
 { return str +=  a._el._ptr; }
 
-inline void getline(std::istream& in, String& s, char delim)
+inline void getline(std::istream& in, string& s, char delim)
 {
   std::string tmp;
   std::getline(in, tmp, delim);
-  s = String(tmp.c_str());
+  s = string(tmp.c_str());
 }
 
 }  // namespace td

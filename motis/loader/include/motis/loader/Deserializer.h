@@ -5,21 +5,21 @@
 #include <vector>
 #include <string>
 
-#include "motis/core/common/Array.h"
-#include "motis/core/common/Offset.h"
-#include "motis/core/schedule/Connection.h"
-#include "motis/core/schedule/Station.h"
-#include "motis/core/schedule/Nodes.h"
+#include "motis/core/common/array.h"
+#include "motis/core/common/offset.h"
+#include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/station.h"
+#include "motis/core/schedule/nodes.h"
 
 namespace td {
 
-class Deserializer {
+class deserializer {
 public:
-  Deserializer(std::string const& prefix);
+  deserializer(std::string const& prefix);
 
   std::pair<int, std::unique_ptr<char[]>>
-  loadGraph(std::vector<StationPtr>& stations,
-            std::vector<StationNodePtr>& stationNodes);
+  load_graph(std::vector<station_ptr>& stations,
+            std::vector<station_node_ptr>& station_nodes);
 
 private:
   std::string _prefix;

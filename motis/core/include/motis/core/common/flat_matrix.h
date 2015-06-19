@@ -4,13 +4,13 @@
 
 namespace td {
 
-template <typename T>
+template <typename t>
 struct flat_matrix {
   struct row {
     row(flat_matrix& matrix, int row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
-    T& operator[](int column_index) {
+    t& operator[](int column_index) {
       auto pos = matrix_.column_count_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
@@ -23,7 +23,7 @@ struct flat_matrix {
     const_row(flat_matrix const& matrix, int row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
-    T const& operator[](int column_index) const {
+    t const& operator[](int column_index) const {
       auto pos = matrix_.column_count_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
@@ -40,7 +40,7 @@ struct flat_matrix {
   const_row operator[](int row_index) const { return { *this, row_index }; }
 
   std::size_t column_count_;
-  std::vector<T> entries_;
+  std::vector<t> entries_;
 };
 
 }  // namespace td

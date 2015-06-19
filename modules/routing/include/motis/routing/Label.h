@@ -6,11 +6,11 @@
 #include <cmath>
 #include <memory>
 
-#include "motis/core/schedule/Edges.h"
-#include "motis/core/schedule/Connection.h"
-#include "motis/routing/LowerBounds.h"
-#include "motis/routing/Filters.h"
-#include "motis/routing/MemoryManager.h"
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/connection.h"
+#include "motis/routing/lower_bounds.h"
+#include "motis/routing/filters.h"
+#include "motis/routing/memory_manager.h"
 
 #define MINUTELY_WAGE 8
 #define TRANSFER_WAGE 0
@@ -20,7 +20,7 @@
 
 namespace td {
 
-class Label {
+class label {
 public:
   enum {
     TD_LOCAL_TRANSPORT_PRICE,
@@ -30,126 +30,126 @@ public:
     ADDITIONAL_PRICE
   };
 
-  Label() = default;
+  label() = default;
 
-  Label(Node const* node,
-        Label* pred,
-        Time now,
-        LowerBounds& lowerBounds)
+  label(node const* node,
+        label* pred,
+        time now,
+        lower_bounds& lower_bounds)
       : _pred(pred),
         _node(node),
         _connection(nullptr),
         _start(pred != nullptr ? pred->_start : now),
         _now(now),
         _dominated(false),
-        _targetSlot(pred == nullptr ? 0 : pred->_targetSlot)
+        _target_slot(pred == nullptr ? 0 : pred->_target_slot)
   {
-    _travelTime[0] = _now - _start;
-    _travelTime[1] = _travelTime[0];
-    _travelTime[1] += lowerBounds.travelTime.getDistance(node->_id);
+    _travel_time[0] = _now - _start;
+    _travel_time[1] = _travel_time[0];
+    _travel_time[1] += lower_bounds.travel_time.get_distance(node->_id);
 
     _transfers[0] = pred != nullptr ? pred->_transfers[0] : 0;
     _transfers[1] = _transfers[0];
-    _transfers[1] += lowerBounds.transfers.getDistance(node->_id);
+    _transfers[1] += lower_bounds.transfers.get_distance(node->_id);
 
-    _totalPrice[0] = pred != nullptr ? pred->_totalPrice[0] : 0;
+    _total_price[0] = pred != nullptr ? pred->_total_price[0] : 0;
 
     if (pred != nullptr)
       std::memcpy(_prices, pred->_prices, sizeof(_prices));
     else
       std::memset(_prices, 0, sizeof(_prices));
 
-    setTotalPriceLowerBound(lowerBounds.price.getDistance(node->_id));
+    set_total_price_lower_bound(lower_bounds.price.get_distance(node->_id));
   }
 
-  Label* createLabel(
-      Edge const& edge,
-      LowerBounds& lowerBounds,
-      MemoryManager<Label>& labelStore) {
-    auto nNode = edge.getDestination()->_id;
+  label* create_label(
+      edge const& edge,
+      lower_bounds& lower_bounds,
+      memory_manager<label>& label_store) {
+    auto n_node = edge.get_destination()->_id;
 
-    uint32_t transfersLB = lowerBounds.transfers.getDistance(nNode);
-    if (transfersLB == std::numeric_limits<uint32_t>::max())
+    uint32_t transfers_l_b = lower_bounds.transfers.get_distance(n_node);
+    if (transfers_l_b == std::numeric_limits<uint32_t>::max())
       return nullptr;
 
-    EdgeCost ec = edge.getEdgeCost(_now, _connection);
+    edge_cost ec = edge.get_edge_cost(_now, _connection);
 
-    unsigned nTravelTime = _travelTime[0] + ec.time;
-    unsigned nTravelTimeLB = nTravelTime;
-    nTravelTimeLB += lowerBounds.travelTime.getDistance(nNode);
+    unsigned n_travel_time = _travel_time[0] + ec.time;
+    unsigned n_travel_time_l_b = n_travel_time;
+    n_travel_time_l_b += lower_bounds.travel_time.get_distance(n_node);
 
-    unsigned nTransfers = _transfers[0] + (ec.transfer ? 1 : 0);
-    unsigned nTransfersLB = nTransfers + transfersLB;
+    unsigned n_transfers = _transfers[0] + (ec.transfer ? 1 : 0);
+    unsigned n_transfers_l_b = n_transfers + transfers_l_b;
 
     if(ec == NO_EDGE ||
-       (_pred != nullptr && edge.getDestination() == _pred->_node) ||
-       isFilteredTravelTime(nTravelTimeLB) ||
-       isFilteredTransfers(nTransfersLB) ||
-       isFilteredWaitingTime(ec.connection, _travelTime[0], nTravelTime))
+       (_pred != nullptr && edge.get_destination() == _pred->_node) ||
+       is_filtered_travel_time(n_travel_time_l_b) ||
+       is_filtered_transfers(n_transfers_l_b) ||
+       is_filtered_waiting_time(ec.connection, _travel_time[0], n_travel_time))
       return nullptr;
 
-    Label* l = new (labelStore.create()) Label(*this);
-    l->_travelTime[0] = nTravelTime;
-    l->_travelTime[1] = nTravelTimeLB;
-    l->_transfers[0] = nTransfers;
-    l->_transfers[1] = nTransfersLB;
-    l->addPriceOfConnection(ec, edge._m._type == Edge::Type::MUMO_EDGE);
-    l->setTotalPriceLowerBound(lowerBounds.price.getDistance(nNode));
+    label* l = new (label_store.create()) label(*this);
+    l->_travel_time[0] = n_travel_time;
+    l->_travel_time[1] = n_travel_time_l_b;
+    l->_transfers[0] = n_transfers;
+    l->_transfers[1] = n_transfers_l_b;
+    l->add_price_of_connection(ec, edge._m._type == edge::type::MUMO_EDGE);
+    l->set_total_price_lower_bound(lower_bounds.price.get_distance(n_node));
     l->_pred = this;
     l->_start = _start;
     l->_now = _now + ec.time;
-    l->_node = edge.getDestination();
+    l->_node = edge.get_destination();
     l->_connection = ec.connection;
 
     return l;
   }
 
-  bool dominates(Label const& o, bool lowerBound) const
+  bool dominates(label const& o, bool lower_bound) const
   {
     /* --- CHECK MAY DOMINATE --- */
     if (_start < o._start || _now > o._now)
       return false;
 
-    int index = lowerBound ? 1 : 0;
-    bool couldDominate = false;
+    int index = lower_bound ? 1 : 0;
+    bool could_dominate = false;
 
 
     /* --- TRANSFERS --- */
     if (_transfers[index] > o._transfers[index])
       return false;
-    couldDominate = couldDominate || _transfers[index] < o._transfers[index];
+    could_dominate = could_dominate || _transfers[index] < o._transfers[index];
 
 
     /* --- TRAVEL TIME --- */
-    if (_travelTime[index] > o._travelTime[index])
+    if (_travel_time[index] > o._travel_time[index])
       return false;
-    couldDominate = couldDominate || _travelTime[index] < o._travelTime[index];
+    could_dominate = could_dominate || _travel_time[index] < o._travel_time[index];
 
 
     /* --- PRICE --- */
-    unsigned myPrice = _totalPrice[index];
-    unsigned oPrice = o._totalPrice[index];
+    unsigned my_price = _total_price[index];
+    unsigned o_price = o._total_price[index];
 
-    if (lowerBound)
+    if (lower_bound)
     {
-      myPrice += _travelTime[1] * MINUTELY_WAGE + _transfers[1] * TRANSFER_WAGE;
-      oPrice += o._travelTime[1] * MINUTELY_WAGE + o._transfers[1] * TRANSFER_WAGE;
+      my_price += _travel_time[1] * MINUTELY_WAGE + _transfers[1] * TRANSFER_WAGE;
+      o_price += o._travel_time[1] * MINUTELY_WAGE + o._transfers[1] * TRANSFER_WAGE;
     }
     else
     {
-      myPrice += (o._now - _start) * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
-      oPrice += (o._now - o._start) * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
+      my_price += (o._now - _start) * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
+      o_price += (o._now - o._start) * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
     }
 
 #ifdef PRICE_TOLERANCE
-    unsigned tolerance = std::floor(0.01 * std::min(myPrice, oPrice));
-    if (std::labs(myPrice - oPrice) > tolerance)
+    unsigned tolerance = std::floor(0.01 * std::min(my_price, o_price));
+    if (std::labs(my_price - o_price) > tolerance)
     {
 #endif
-      if (myPrice > oPrice)
+      if (my_price > o_price)
         return false;
 
-      couldDominate = couldDominate || myPrice < oPrice;
+      could_dominate = could_dominate || my_price < o_price;
 #ifdef PRICE_TOLERANCE
     }
 #endif
@@ -158,58 +158,58 @@ public:
     return true;
   }
 
-  bool dominatesHard(Label const& o) const {
-    bool couldDominate = false;
+  bool dominates_hard(label const& o) const {
+    bool could_dominate = false;
 
     /* --- TRANSFERS --- */
     if (_transfers[0] > o._transfers[0])
       return false;
-    couldDominate = couldDominate || _transfers[0] < o._transfers[0];
+    could_dominate = could_dominate || _transfers[0] < o._transfers[0];
 
 
     /* --- TRAVEL TIME --- */
-    if (_travelTime[0] > o._travelTime[0])
+    if (_travel_time[0] > o._travel_time[0])
       return false;
-    couldDominate = couldDominate || _travelTime[0] < o._travelTime[0];
+    could_dominate = could_dominate || _travel_time[0] < o._travel_time[0];
 
 
     /* --- PRICE --- */
-    unsigned myPrice = getPriceWithWages(false);
-    unsigned oPrice = o.getPriceWithWages(false);
-    if (myPrice > oPrice)
+    unsigned my_price = get_price_with_wages(false);
+    unsigned o_price = o.get_price_with_wages(false);
+    if (my_price > o_price)
       return false;
-    couldDominate = couldDominate || myPrice < oPrice;
+    could_dominate = could_dominate || my_price < o_price;
 
-    return couldDominate || _start >= o._start;
+    return could_dominate || _start >= o._start;
   }
 
-  bool operator<(Label const& o) const
+  bool operator<(label const& o) const
   {
-    if (_travelTime[1] != o._travelTime[1])
-      return _travelTime[1] < o._travelTime[1];
+    if (_travel_time[1] != o._travel_time[1])
+      return _travel_time[1] < o._travel_time[1];
 
     if (_transfers[1] != o._transfers[1])
       return _transfers[1] < o._transfers[1];
 
-    unsigned myPriceHeuristic = getPriceWithWages(true);
-    unsigned oPriceHeuristic = o.getPriceWithWages(true);
-    return myPriceHeuristic < oPriceHeuristic || _start > o._start;
+    unsigned my_price_heuristic = get_price_with_wages(true);
+    unsigned o_price_heuristic = o.get_price_with_wages(true);
+    return my_price_heuristic < o_price_heuristic || _start > o._start;
   }
 
-  unsigned getTravelTimePrice() const { return _travelTime[0] * MINUTELY_WAGE; }
+  unsigned get_travel_time_price() const { return _travel_time[0] * MINUTELY_WAGE; }
 
-  int getPriceWithWages(bool lowerBound) const
+  int get_price_with_wages(bool lower_bound) const
   {
-    return _totalPrice[lowerBound ? 1 : 0] +
-           _travelTime[lowerBound ? 1 : 0] * MINUTELY_WAGE +
-           _transfers[lowerBound ? 1 : 0] * TRANSFER_WAGE;
+    return _total_price[lower_bound ? 1 : 0] +
+           _travel_time[lower_bound ? 1 : 0] * MINUTELY_WAGE +
+           _transfers[lower_bound ? 1 : 0] * TRANSFER_WAGE;
   }
 
-  void addPriceOfConnection(EdgeCost const& ec, bool mumoEdge)
+  void add_price_of_connection(edge_cost const& ec, bool mumo_edge)
   {
     if (ec.connection != nullptr)
     {
-      Connection const* con = ec.connection->_fullCon;
+      connection const* con = ec.connection->_full_con;
       switch(con->clasz)
       {
         case TD_ICE:
@@ -258,66 +258,66 @@ public:
     else
     {
       _prices[4] += ec[2];
-      if (mumoEdge)
-        setSlot(false, ec.slot);
+      if (mumo_edge)
+        set_slot(false, ec.slot);
     }
 
-    unsigned priceSum = _prices[0] + _prices[1] + _prices[2] + _prices[3];
-    auto trainPrice = std::min(priceSum, 14000u);
+    unsigned price_sum = _prices[0] + _prices[1] + _prices[2] + _prices[3];
+    auto train_price = std::min(price_sum, 14000u);
 
-    _totalPrice[0] = trainPrice + _prices[4];
+    _total_price[0] = train_price + _prices[4];
   }
 
-  void setTotalPriceLowerBound(uint32_t lowerBound)
+  void set_total_price_lower_bound(uint32_t lower_bound)
   {
-    assert(lowerBound <= std::numeric_limits<uint16_t>::max());
-    _totalPrice[1] = _prices[ADDITIONAL_PRICE] +
+    assert(lower_bound <= std::numeric_limits<uint16_t>::max());
+    _total_price[1] = _prices[ADDITIONAL_PRICE] +
                      std::min(14000u,
                               _prices[TD_LOCAL_TRANSPORT_PRICE] +
                               _prices[TD_IC_PRICE] +
                               _prices[TD_ICE_PRICE] +
-                              std::min(_prices[TD_REGIONAL_TRAIN_PRICE] + lowerBound,
+                              std::min(_prices[TD_REGIONAL_TRAIN_PRICE] + lower_bound,
                                        TD_MAX_REGIONAL_TRAIN_TICKET_PRICE));
   }
 
-  void setSlot(bool start, int slot)
+  void set_slot(bool start, int slot)
   {
     if (!start)
-      _targetSlot = slot;
+      _target_slot = slot;
     else if (_pred == nullptr)
-      _travelTime[0] = slot;
+      _travel_time[0] = slot;
     else
-      _pred->setSlot(start, slot);
+      _pred->set_slot(start, slot);
   }
 
-  int getSlot(bool start) const
+  int get_slot(bool start) const
   {
     if (!start)
-      return _targetSlot;
+      return _target_slot;
     else
     {
-      Label const* current = this;
-      Label const* pred = _pred;
+      label const* current = this;
+      label const* pred = _pred;
       while (pred != nullptr)
       {
         auto old_pred = pred;
         pred = current->_pred;
         current = old_pred;
       }
-      return current->_travelTime[0];
+      return current->_travel_time[0];
     }
   }
 
-  Label* _pred;
-  Node const* _node;
-  LightConnection const* _connection;
-  uint16_t _travelTime[2];
-  uint16_t _totalPrice[2];
+  label* _pred;
+  node const* _node;
+  light_connection const* _connection;
+  uint16_t _travel_time[2];
+  uint16_t _total_price[2];
   uint16_t _prices[5];
-  Time _start, _now;
+  time _start, _now;
   uint8_t _transfers[2];
   bool _dominated;
-  uint8_t _targetSlot;
+  uint8_t _target_slot;
 };
 
 }  // namespace td

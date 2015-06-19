@@ -4,9 +4,9 @@
 namespace td {
 
 template<typename T>
-struct Deleter
+struct deleter
 {
-  Deleter(bool active) : _active(active) {}
+  deleter(bool active) : _active(active) {}
   void operator () (T* ptr) { if (_active) delete ptr; }
   bool _active;
 };

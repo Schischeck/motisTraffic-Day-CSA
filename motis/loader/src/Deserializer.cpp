@@ -1,149 +1,149 @@
-#include "motis/loader/Deserializer.h"
+#include "motis/loader/deserializer.h"
 
 #include <istream>
 #include <fstream>
 
-#include "motis/core/common/Offset.h"
-#include "motis/loader/SerializePointer.h"
-#include "motis/loader/Files.h"
-#include "motis/loader/Index.h"
+#include "motis/core/common/offset.h"
+#include "motis/loader/serialize_pointer.h"
+#include "motis/loader/files.h"
+#include "motis/loader/binary_schedule_index.h"
 
 namespace td {
 
-std::unique_ptr<char[]> readRawFile(std::string const& file)
+std::unique_ptr<char[]> read_raw_file(std::string const& file)
 {
   std::ifstream in(file, std::ios_base::in | std::ios_base::binary);
 
   auto from = in.tellg();
   in.seekg(0, std::ios::end);
   auto to = in.tellg();
-  auto fileSize = to - from;
+  auto file_size = to - from;
   in.seekg(0, std::ios::beg);
 
-  std::unique_ptr<char[]> ptr(new char[fileSize]);
+  std::unique_ptr<char[]> ptr(new char[file_size]);
 
-  in.read(ptr.get(), fileSize);
+  in.read(ptr.get(), file_size);
 
   return ptr;
 }
 
 template<typename T>
-void offsetsToPointers(T&,  char*)
+void offsets_to_pointers(T&,  char*)
 {}
 
 template<typename T>
-void offsetsToPointers(Pointer<T>& ptr,  char* base)
-{ ptr.offsetToPointer(base); }
+void offsets_to_pointers(pointer<T>& ptr,  char* base)
+{ ptr.offset_to_pointer(base); }
 
 template<typename T>
-void offsetsToPointers(Array<T>& array, char* base)
+void offsets_to_pointers(array<T>& array, char* base)
 {
-  array._el.offsetToPointer(base);
+  array._el.offset_to_pointer(base);
 
   for (auto& el : array)
-    offsetsToPointers(el, base);
+    offsets_to_pointers(el, base);
 }
 
 template<>
-void offsetsToPointers(Station& station, char* base)
+void offsets_to_pointers(station& station, char* base)
 {
-  offsetsToPointers(station.evaNr, base);
-  offsetsToPointers(station.name, base);
+  offsets_to_pointers(station.eva_nr, base);
+  offsets_to_pointers(station.name, base);
 }
 
 template<>
-void offsetsToPointers(LightConnection& con, char* base)
-{ con._fullCon.offsetToPointer(base); }
+void offsets_to_pointers(light_connection& con, char* base)
+{ con._full_con.offset_to_pointer(base); }
 
 template<>
-void offsetsToPointers(Connection& con, char* base)
-{ con.conInfo.offsetToPointer(base); }
+void offsets_to_pointers(connection& con, char* base)
+{ con.con_info.offset_to_pointer(base); }
 
 template<>
-void offsetsToPointers(ConnectionInfo& conInfo, char* base)
+void offsets_to_pointers(connection_info& con_info, char* base)
 {
-  offsetsToPointers(conInfo.attributes, base);
-  offsetsToPointers(conInfo.lineIdentifier, base);
+  offsets_to_pointers(con_info.attributes, base);
+  offsets_to_pointers(con_info.line_identifier, base);
 }
 
 template<>
-void offsetsToPointers(Node& node, char* base)
+void offsets_to_pointers(node& node, char* base)
 {
-  node._stationNode.offsetToPointer(base);
-  offsetsToPointers(node._edges, base);
-  offsetsToPointers(node._incomingEdges, base);
+  node._station_node.offset_to_pointer(base);
+  offsets_to_pointers(node._edges, base);
+  offsets_to_pointers(node._incoming_edges, base);
 }
 
 template<>
-void offsetsToPointers(StationNode& stationNode, char* base)
+void offsets_to_pointers(station_node& station_node, char* base)
 {
-  stationNode._footNode.offsetToPointer(base);
+  station_node._foot_node.offset_to_pointer(base);
 
-  offsetsToPointers(stationNode._edges, base);
-  offsetsToPointers(stationNode._incomingEdges, base);
+  offsets_to_pointers(station_node._edges, base);
+  offsets_to_pointers(station_node._incoming_edges, base);
 
-  for (auto& edge : stationNode._edges)
-    offsetsToPointers(*edge._to, base);
+  for (auto& edge : station_node._edges)
+    offsets_to_pointers(*edge._to, base);
 }
 
 template<>
-void offsetsToPointers(Edge& edge, char* base)
+void offsets_to_pointers(edge& edge, char* base)
 {
-  edge._to.offsetToPointer(base);
-  edge._from.offsetToPointer(base);
+  edge._to.offset_to_pointer(base);
+  edge._from.offset_to_pointer(base);
 
-  if (edge._m._type == Edge::ROUTE_EDGE)
-    offsetsToPointers(edge._m._routeEdge._conns, base);
+  if (edge._m._type == edge::ROUTE_EDGE)
+    offsets_to_pointers(edge._m._route_edge._conns, base);
 }
 
 template<>
-void offsetsToPointers(Index& index, char* base)
+void offsets_to_pointers(binary_schedule_index& index, char* base)
 {
-  offsetsToPointers(index.stations, base);
-  offsetsToPointers(index.fullConnections, base);
-  offsetsToPointers(index.connectionInfos, base);
-  offsetsToPointers(index.stationNodes, base);
+  offsets_to_pointers(index.stations, base);
+  offsets_to_pointers(index.full_connections, base);
+  offsets_to_pointers(index.connection_infos, base);
+  offsets_to_pointers(index.station_nodes, base);
 }
 
-Deserializer::Deserializer(std::string const& prefix) : _prefix(prefix) {}
+deserializer::deserializer(std::string const& prefix) : _prefix(prefix) {}
 
 std::pair<int, std::unique_ptr<char[]>>
-Deserializer::loadGraph(
-    std::vector<StationPtr>& stations,
-    std::vector<StationNodePtr>& stationNodes)
+deserializer::load_graph(
+    std::vector<station_ptr>& stations,
+    std::vector<station_node_ptr>& station_nodes)
 {
-  auto scheduleBuffer = readRawFile(_prefix + SCHEDULE_FILE);
-  auto indexBuffer = readRawFile(_prefix + SCHEDULE_INDEX_FILE);
+  auto schedule_buffer = read_raw_file(_prefix + SCHEDULE_FILE);
+  auto index_buffer = read_raw_file(_prefix + SCHEDULE_INDEX_FILE);
 
-  auto schedPtr = SerializePointer(scheduleBuffer.get());
-  auto indexPtr = SerializePointer(indexBuffer.get());
+  auto sched_ptr = serialize_pointer(schedule_buffer.get());
+  auto index_ptr = serialize_pointer(index_buffer.get());
 
-  Index* index = indexPtr.ptr<Index>();
-  offsetsToPointers(*index, indexPtr.base());
+  auto index = index_ptr.ptr<binary_schedule_index>();
+  offsets_to_pointers(*index, index_ptr.base());
 
-  for (auto& offset : index->stations)
+  for (auto& station_offset : index->stations)
   {
-    Station& station = *schedPtr.absolute<Station>(offset);
-    offsetsToPointers(station, schedPtr.base());
-    stations.emplace_back(&station, Deleter<Station>(false));
+    station& s = *sched_ptr.absolute<station>(station_offset);
+    offsets_to_pointers(s, sched_ptr.base());
+    stations.emplace_back(&s, deleter<station>(false));
   }
 
-  for (auto& offset : index->fullConnections)
-    offsetsToPointers(*schedPtr.absolute<Connection>(offset), schedPtr.base());
+  for (auto& offset : index->full_connections)
+    offsets_to_pointers(*sched_ptr.absolute<connection>(offset), sched_ptr.base());
 
-  for (auto& offset : index->connectionInfos)
-    offsetsToPointers(*schedPtr.absolute<ConnectionInfo>(offset), schedPtr.base());
+  for (auto& offset : index->connection_infos)
+    offsets_to_pointers(*sched_ptr.absolute<connection_info>(offset), sched_ptr.base());
 
-  for (auto& offset : index->stationNodes)
+  for (auto& offset : index->station_nodes)
   {
-    StationNode& stationNode = *schedPtr.absolute<StationNode>(offset);
-    offsetsToPointers(stationNode, schedPtr.base());
-    stationNodes.emplace_back(&stationNode, Deleter<StationNode>(false));
+    station_node& n = *sched_ptr.absolute<station_node>(offset);
+    offsets_to_pointers(n, sched_ptr.base());
+    station_nodes.emplace_back(&n, deleter<station_node>(false));
   }
 
-  int nodeCount = index->nodeCount;
+  int node_count = index->node_count;
 
-  return { nodeCount, std::move(scheduleBuffer) };
+  return { node_count, std::move(schedule_buffer) };
 }
 
 }  // namespace td

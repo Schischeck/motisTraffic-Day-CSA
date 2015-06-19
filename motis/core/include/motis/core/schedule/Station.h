@@ -6,38 +6,38 @@
 #include <string>
 #include <array>
 
-#include "motis/core/common/Array.h"
-#include "motis/core/common/Deleter.h"
+#include "motis/core/common/array.h"
+#include "motis/core/common/deleter.h"
 
 namespace td
 {
 
-class Station
+class station
 {
 public:
-  Station()
+  station()
     : index(0),
       length(0.0),
       width(0.0),
-      usHoch(0),
-      usNieder(0),
-      arrClassEvents({ { 0 } }),
-      depClassEvents({ { 0 } })
+      us_hoch(0),
+      us_nieder(0),
+      arr_class_events({ { 0 } }),
+      dep_class_events({ { 0 } })
   {}
 
   int index;
   double length, width;
-  int usHoch, usNieder;
-  std::array<int, 10> arrClassEvents, depClassEvents;
-  String evaNr;
-  String name;
+  int us_hoch, us_nieder;
+  std::array<int, 10> arr_class_events, dep_class_events;
+  string eva_nr;
+  string name;
 
-  //normally usHoch should be equal to usNieder
+  //normally us_hoch should be equal to us_nieder
   //not quite sure how to handle that
-  int getTransferTime() const { return std::max(usHoch, usNieder); }
+  int get_transfer_time() const { return std::max(us_hoch, us_nieder); }
 };
 
-typedef std::unique_ptr<Station, Deleter<Station>> StationPtr;
+typedef std::unique_ptr<station, deleter<station>> station_ptr;
 
 }  // namespace td
 

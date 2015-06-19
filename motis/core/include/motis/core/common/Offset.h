@@ -5,15 +5,15 @@
 
 namespace td {
 
-template<class T, class Enable = void>
-struct Offset;
+template<class t, class enable = void>
+struct offset;
 
-template<class T>
-struct Offset<T, typename std::enable_if<sizeof(T) == 4>::type>
+template<class t>
+struct offset<t, typename std::enable_if<sizeof(t) == 4>::type>
 { typedef uint32_t type; };
 
-template<class T>
-struct Offset<T, typename std::enable_if<sizeof(T) == 8>::type>
+template<class t>
+struct offset<t, typename std::enable_if<sizeof(t) == 8>::type>
 { typedef uint64_t type; };
 
 }  // namespace td

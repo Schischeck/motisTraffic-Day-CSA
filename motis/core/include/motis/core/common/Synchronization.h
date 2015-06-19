@@ -7,30 +7,30 @@
 
 namespace td {
 
-/// This class provides synchronization and distinguishes two kinds of access:
+/// this class provides synchronization and distinguishes two kinds of access:
 ///
-///  - Write (changing data)
-///  - Read (reading without changing)
+///  - write (changing data)
+///  - read (reading without changing)
 ///
 ///
-/// Synchronization Properties:
+/// synchronization properties:
 ///
-///  - There may be an arbitrary number of parallel readers as long as there is
+///  - there may be an arbitrary number of parallel readers as long as there is
 ///    no write access.
-///  - Write access is exclusive. There cannot be any reads or other writes
+///  - write access is exclusive. there cannot be any reads or other writes
 ///    at the same time.
-///  - Write accesses are prioritized. This means that no new read
+///  - write accesses are prioritized. this means that no new read
 ///    access will be granted as soon as there is at least one write access
 ///    waiting.
-///  - Write accesses are queued in their request order.
-///  - Active read accesses cannot be stopped. Thus, queued write requests
+///  - write accesses are queued in their request order.
+///  - active read accesses cannot be stopped. thus, queued write requests
 ///    need to wait for all read accesses to finish.
-struct Synchronization {
-  struct Lock {
-    Lock(Lock const&) = delete;
-    Lock& operator=(Lock&) = delete;
+struct synchronization {
+  struct lock {
+    lock(lock const&) = delete;
+    lock& operator=(lock&) = delete;
 
-    Lock(Synchronization& s, bool write) : s_(s), write_(write) {
+    lock(synchronization& s, bool write) : s_(s), write_(write) {
       std::unique_lock<std::mutex> lock(s_.write_queue_mutex_);
 
       if (write_) {
@@ -47,7 +47,7 @@ struct Synchronization {
       ++s_.usage_count_;
     }
 
-    ~Lock() {
+    ~lock() {
       std::lock_guard<std::mutex> lock(s_.write_queue_mutex_);
 
       {
@@ -61,14 +61,14 @@ struct Synchronization {
       s_.write_queue_cv_.notify_all();
     }
 
-    Synchronization& s_;
+    synchronization& s_;
     bool write_;
   };
 
-  Synchronization(Synchronization const&) = delete;
-  Synchronization& operator=(Synchronization&) = delete;
+  synchronization(synchronization const&) = delete;
+  synchronization& operator=(synchronization&) = delete;
 
-  Synchronization() : usage_count_(0), next_id_(0) {}
+  synchronization() : usage_count_(0), next_id_(0) {}
 
   std::atomic<unsigned> usage_count_;
   std::atomic<unsigned> next_id_;

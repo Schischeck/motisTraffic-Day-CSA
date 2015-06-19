@@ -5,54 +5,54 @@
 #include <string>
 #include <memory>
 
-#include "motis/routing/LowerBounds.h"
-#include "motis/routing/ParetoDijkstra.h"
-#include "motis/routing/Arrival.h"
-#include "motis/routing/Label.h"
-#include "motis/routing/Journey.h"
+#include "motis/routing/lower_bounds.h"
+#include "motis/routing/pareto_dijkstra.h"
+#include "motis/routing/arrival.h"
+#include "motis/routing/label.h"
+#include "motis/routing/journey.h"
 
 namespace td
 {
 
-struct Schedule;
+struct schedule;
 
-class Search
+class search
 {
 public:
-  Search(Schedule& schedule, MemoryManager<Label>& labelStore);
+  search(schedule& schedule, memory_manager<label>& label_store);
 
-  std::vector<Journey> getConnections(
-      Arrival from, Arrival to,
+  std::vector<journey> get_connections(
+      arrival from, arrival to,
       int time1, int time2, int day,
-      ParetoDijkstra::Statistics* stats = nullptr);
+      pareto_dijkstra::statistics* stats = nullptr);
 
-  void outputPathCompact(Journey const& journey, std::ostream& out);
+  void output_path_compact(journey const& journey, std::ostream& out);
 
-  void generateStartLabels(
-      Time const from,
-      Time const to,
-      StationNode const* station,
-      std::vector<Label*>& indices,
-      StationNode const* realStart,
-      int timeOff,
-      int startPrice,
+  void generate_start_labels(
+      time const from,
+      time const to,
+      station_node const* start_station_node,
+      std::vector<label*>& indices,
+      station_node const* real_start,
+      int time_off,
+      int start_price,
       int slot,
-      LowerBounds& context);
+      lower_bounds& context);
 
-  void generateStartLabels(
-      Time const from,
-      Time const to,
-      StationNode const* stationNode,
-      Node const* route,
-      std::vector<Label*>& indices,
-      StationNode const* realStart,
-      int timeOff,
-      int startPrice,
+  void generate_start_labels(
+      time const from,
+      time const to,
+      station_node const* start_station_node,
+      node const* route,
+      std::vector<label*>& indices,
+      station_node const* real_start,
+      int time_off,
+      int start_price,
       int slot,
-      LowerBounds& context);
+      lower_bounds& context);
 
-  Schedule& _sched;
-  MemoryManager<Label>& _labelStore;
+  schedule& _sched;
+  memory_manager<label>& _label_store;
 };
 
 }

@@ -6,30 +6,30 @@
 
 namespace td {
 
-struct ArrivalPart
+struct arrival_part
 {
-  ArrivalPart()
+  arrival_part()
       : station(0),
-        timeCost(0),
+        time_cost(0),
         price(0),
         slot(0)
   {}
 
   int station;
-  int timeCost;
+  int time_cost;
   int price;
   int slot;
 
-  friend bool operator==(ArrivalPart const& a, ArrivalPart const& b) {
+  friend bool operator==(arrival_part const& a, arrival_part const& b) {
     return
       a.station == b.station &&
-      a.timeCost == b.timeCost &&
+      a.time_cost == b.time_cost &&
       a.price == b.price &&
       a.slot == b.slot;
   }
 };
 
-typedef std::vector<ArrivalPart> Arrival;
+typedef std::vector<arrival_part> arrival;
 
 }  // namespace td
 

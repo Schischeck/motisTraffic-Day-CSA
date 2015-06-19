@@ -36,7 +36,7 @@ std::vector<Json> station_info(railviz* r, Json const& msg) {
   }
   return {Json::object{
       {"type", "station_detail"},
-      {"station_name", r->schedule_->stations[index]->name.toString()}}};
+      {"station_name", r->schedule_->stations[index]->name.to_string()}}};
 }
 
 railviz::railviz()

@@ -17,24 +17,24 @@ namespace motis {
 namespace module {
 
 std::vector<dynamic_module> modules_from_folder(std::string const& path,
-                                                td::Schedule* schedule) {
+                                                td::schedule* schedule) {
   std::vector<dynamic_module> modules;
 
-  // Check that the specified path is a directory.
+  // check that the specified path is a directory.
   if (!boost::filesystem::is_directory(path)) {
     std::cout << path << " isn't a directory\n";
     return modules;
   }
 
-  // Iterate specified directory.
+  // iterate specified directory.
   auto i = fs::recursive_directory_iterator(path);
   for (; i != fs::recursive_directory_iterator(); ++i) {
-    // Don't load hidden files.
+    // don't load hidden files.
     if (boost::starts_with(i->path().filename().string(), ".")) {
       continue;
     }
 
-    // Only load ".module" files.
+    // only load ".module" files.
     if (i->path().extension() != ".module") {
       continue;
     }
@@ -62,47 +62,47 @@ dynamic_module& dynamic_module::operator=(dynamic_module&& other) {
 }
 
 #if defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, td::schedule* schedule)
     : lib_(nullptr) {
-  // Define module map and get_modules to simplify code.
+  // define module map and get_modules to simplify code.
   typedef void*(__cdecl * load_module)(void*);
 
-  // Discover package name.
+  // discover package name.
   std::string name = boost::filesystem::path(p).filename().generic_string();
   std::size_t dot_pos = name.find(".");
   if (dot_pos != std::string::npos) {
     name = name.substr(0, dot_pos);
   }
 
-  // Load library.
-  lib_ = LoadLibrary(p.c_str());
+  // load library.
+  lib_ = load_library(p.c_str());
   if (nullptr == lib_) {
     throw std::runtime_error("unable to load module: not a library");
   }
 
-  // Get address to load function.
+  // get address to load function.
   load_module lib_fun =
-      (load_module)GetProcAddress((HINSTANCE)lib_, "load_module");
+      (load_module)get_proc_address((HINSTANCE)lib_, "load_module");
   if (nullptr == lib_fun) {
-    FreeLibrary((HINSTANCE)lib_);
+    free_library((HINSTANCE)lib_);
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
-  // Call load function.
+  // call load function.
   auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
   module_ = std::shared_ptr<motis::module::module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {
-  // Close shared library.
+  // close shared library.
   if (lib_ != nullptr) {
-    FreeLibrary((HINSTANCE)lib_);
+    free_library((HINSTANCE)lib_);
   }
 }
 #else  // defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, td::schedule* schedule)
     : lib_(nullptr) {
-  // Discover package name.
+  // discover package name.
   using boost::filesystem::path;
   std::string name = path(p).filename().generic_string();
   std::size_t dot_pos = name.find(".");
@@ -110,26 +110,26 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
     name = name.substr(0, dot_pos);
   }
 
-  // Load library.
+  // load library.
   lib_ = dlopen(p.c_str(), RTLD_LAZY);
   if (nullptr == lib_) {
     throw std::runtime_error("unable to load module: not a library");
   }
 
-  // Get pointer to the load function.
+  // get pointer to the load function.
   void* (*lib_fun)(void*);
   *(void**)(&lib_fun) = dlsym(lib_, "load_module");
   if (nullptr == lib_fun) {
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
-  // Read modules.
+  // read modules.
   auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
   module_ = std::shared_ptr<motis::module::module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {
-  // Close shared library.
+  // close shared library.
   if (lib_ == nullptr) {
     dlclose(lib_);
   }

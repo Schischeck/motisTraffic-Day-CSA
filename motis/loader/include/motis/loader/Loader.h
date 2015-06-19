@@ -1,13 +1,13 @@
 #ifndef TD_LOADER_H_
 #define TD_LOADER_H_
 
-#include "motis/core/schedule/Schedule.h"
+#include "motis/core/schedule/schedule.h"
 
 namespace td {
 
-SchedulePtr loadSchedule(std::string const& prefix);
-SchedulePtr loadTextSchedule(std::string const& prefix);
-SchedulePtr loadBinarySchedule(std::string const& prefix);
+schedule_ptr load_schedule(std::string const& prefix);
+schedule_ptr load_text_schedule(std::string const& prefix);
+schedule_ptr load_binary_schedule(std::string const& prefix);
 
 }  // namespace td
 

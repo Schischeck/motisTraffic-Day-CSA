@@ -8,7 +8,7 @@
 
 #include "conf/options_parser.h"
 
-#include "motis/loader/Loader.h"
+#include "motis/loader/loader.h"
 
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  auto sched = loadSchedule(dataset_opt.dataset);
+  auto sched = load_schedule(dataset_opt.dataset);
 
   boost::asio::io_service ios;
 

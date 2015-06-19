@@ -18,9 +18,9 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "motis/core/common/Logging.h"
-#include "motis/loader/Files.h"
-#include "motis/loader/BitsetManager.h"
+#include "motis/core/common/logging.h"
+#include "motis/loader/files.h"
+#include "motis/loader/bitset_manager.h"
 
 using namespace std;
 
@@ -28,47 +28,47 @@ namespace td {
 
 using namespace logging;
 
-struct TrainStationInfo
+struct train_station_info
 {
-  int aTime;
-  int aPlatform;
-  int dTime;
-  int dPlatform;
-  int trafficDayIndex;
-  int transferClass;
+  int a_time;
+  int a_platform;
+  int d_time;
+  int d_platform;
+  int traffic_day_index;
+  int transfer_class;
   int linienzuordnung;
   vector<int> attributes;
-  int trainNr;
-  string evaNr;
-  string lineIdentifier;
+  int train_nr;
+  string eva_nr;
+  string line_identifier;
 
   void write(ostream& out, bool first, bool last) const
   {
     if(!first)
-      out << "a" << aTime << " " << aPlatform;
+      out << "a" << a_time << " " << a_platform;
     if(!first && !last)
       out << " ";
     if(!last)
     {
-      out << "d" << dTime << " " << dPlatform
-          << " " << trafficDayIndex
-          << " " << transferClass << " " << linienzuordnung << " "
+      out << "d" << d_time << " " << d_platform
+          << " " << traffic_day_index
+          << " " << transfer_class << " " << linienzuordnung << " "
           << attributes.size();
       for(unsigned int i = 0; i < attributes.size(); ++i)
         out << " " << attributes[i];
-      out << " " << trainNr << "%" << evaNr << "|" << lineIdentifier << "|";
+      out << " " << train_nr << "%" << eva_nr << "|" << line_identifier << "|";
     }
   }
 };
 
-struct TrainInfo
+struct train_info
 {
-  int trainIndex;
-  vector<TrainStationInfo> stations;
+  int train_index;
+  vector<train_station_info> stations;
 
   void write(ostream& out) const
   {
-    out << "s" << trainIndex << " ";
+    out << "s" << train_index << " ";
     for(unsigned int i = 0; i < stations.size(); ++i)
     {
       stations[i].write(out, i == 0, i == stations.size() - 1);
@@ -78,25 +78,25 @@ struct TrainInfo
   }
 };
 
-struct RouteStationInfo
+struct route_station_info
 {
   int location;
-  bool skipArrival;
-  bool skipDeparture;
+  bool skip_arrival;
+  bool skip_departure;
   int family;
 
-  bool operator==(const RouteStationInfo& o) const
-  { return o.location == location && o.skipArrival == skipArrival &&
-           o.skipDeparture == skipDeparture && o.family == family; }
+  bool operator==(const route_station_info& o) const
+  { return o.location == location && o.skip_arrival == skip_arrival &&
+           o.skip_departure == skip_departure && o.family == family; }
 
-  bool operator<(const RouteStationInfo& o) const
+  bool operator<(const route_station_info& o) const
   {
     if(location != o.location)
       return location < o.location;
-    if(skipArrival != o.skipArrival)
-      return skipArrival < o.skipArrival;
-    if(skipDeparture != o.skipDeparture)
-      return skipDeparture < o.skipDeparture;
+    if(skip_arrival != o.skip_arrival)
+      return skip_arrival < o.skip_arrival;
+    if(skip_departure != o.skip_departure)
+      return skip_departure < o.skip_departure;
     if(family != o.family)
       return family < o.family;
     else
@@ -107,20 +107,20 @@ struct RouteStationInfo
   {
     out << "l" << location;
     if(!first)
-      out << " a" << skipArrival;
+      out << " a" << skip_arrival;
     if(!last)
-      out << " d" << skipDeparture << " " << family;
+      out << " d" << skip_departure << " " << family;
   }
 };
 
-struct RouteInfo
+struct route_info
 {
-  vector<RouteStationInfo> stations;
+  vector<route_station_info> stations;
 
-  bool operator==(const RouteInfo& o) const
+  bool operator==(const route_info& o) const
   { return stations == o.stations; }
 
-  bool operator<(const RouteInfo& o) const
+  bool operator<(const route_info& o) const
   {
     unsigned int n = stations.size(), n2 = o.stations.size();
     if(n != n2)
@@ -142,37 +142,37 @@ struct RouteInfo
   }
 };
 
-struct ServiceStationInfo
+struct service_station_info
 {
   int location;
-  bool skipArrival;
-  int aTime;
-  int aPlatform;
-  bool skipDeparture;
-  int dTime;
-  int dPlatform;
-  int trafficDayIndex;
-  int transferClass;
+  bool skip_arrival;
+  int a_time;
+  int a_platform;
+  bool skip_departure;
+  int d_time;
+  int d_platform;
+  int traffic_day_index;
+  int transfer_class;
   int linienzuordnung;
   int family;
   vector<int> attributes;
-  int trainNr;
-  string evaNr;
-  string lineIdentifier;
+  int train_nr;
+  string eva_nr;
+  string line_identifier;
 };
 
-struct ServiceInfo
+struct service_info
 {
-  vector<ServiceStationInfo> stations;
+  vector<service_station_info> stations;
 
-  bool operator<(const ServiceInfo& o) const
-  { return stations[0].dTime < o.stations[0].dTime; }
+  bool operator<(const service_info& o) const
+  { return stations[0].d_time < o.stations[0].d_time; }
 
    /**
-   * Returns a vector that stores how many night/day shifts have ocuured up
-   * to station i. Needed for splitting and merging.
+   * returns a vector that stores how many night/day shifts have ocuured up
+   * to station i. needed for splitting and merging.
    */
-  vector<int> getTrafficDayShifts()
+  vector<int> get_traffic_day_shifts()
   {
     //the last station has no traffic day info
     vector<int> ret(stations.size() - 1, 0);
@@ -180,7 +180,7 @@ struct ServiceInfo
     int shifts = 0;
     for(unsigned int i = 1; i < stations.size() - 1; ++i)
     {
-      if(stations[i].dTime < stations[i - 1].dTime)
+      if(stations[i].d_time < stations[i - 1].d_time)
         ++shifts;
       ret[i] = shifts;
     }
@@ -189,76 +189,76 @@ struct ServiceInfo
   }
 
   /**
-   * Splits itself into several ServiceInfos which are consistent in their
+   * splits itself into several service_infos which are consistent in their
    * traffic days.
-   * @return vector with the new ServiceInfos
+   * @return vector with the new service_infos
    */
-  vector<ServiceInfo> split(BitsetManager& bm)
+  vector<service_info> split(bitset_manager& bm)
   {
     //vector to return
-    vector<ServiceInfo> vsi;
+    vector<service_info> vsi;
 
-    //get night/day shifts so that we can shift all trafficDayIndices before
+    //get night/day shifts so that we can shift all traffic_day_indices before
     //comparing them
-    vector<int> shifts = getTrafficDayShifts();
+    vector<int> shifts = get_traffic_day_shifts();
 
     //check for each pair of adjacent stations whether their traffic days differ
     for(unsigned int i = 0; i < stations.size() - 2; ++i)
     {
-      //compare the two shifted masks ignoring the last N bits where
-      //N is the difference in shifts
+      //compare the two shifted masks ignoring the last n bits where
+      //n is the difference in shifts
       //after shifting we are unsure about the bits which were shifted in
       //so we cannot compare them
-      if(!bm.equals(bm.shiftL(stations[i].trafficDayIndex, shifts[i]),
-                    bm.shiftL(stations[i + 1].trafficDayIndex, shifts[i + 1]),
+      if(!bm.equals(bm.shift_l(stations[i].traffic_day_index, shifts[i]),
+                    bm.shift_l(stations[i + 1].traffic_day_index, shifts[i + 1]),
                     shifts[i + 1] - shifts[i]))
       {
-        int commonTrafficDays =
-          bm.commonBitset(bm.shiftL(stations[i].trafficDayIndex, shifts[i]),
-                     bm.shiftL(stations[i + 1].trafficDayIndex, shifts[i + 1]));
+        int common_traffic_days =
+          bm.common_bitset(bm.shift_l(stations[i].traffic_day_index, shifts[i]),
+                     bm.shift_l(stations[i + 1].traffic_day_index, shifts[i + 1]));
         //si2 will contain the incompatible traffic days of the first part
-        ServiceInfo si2;
+        service_info si2;
         for(unsigned int j = 0; j <= i + 1; ++j)
         {
           si2.stations.push_back(stations[j]);
           if(j < i + 1)
           {
-            si2.stations[j].trafficDayIndex =
-              bm.without(si2.stations[j].trafficDayIndex,
-                bm.shiftR(commonTrafficDays, shifts[j]));
+            si2.stations[j].traffic_day_index =
+              bm.without(si2.stations[j].traffic_day_index,
+                bm.shift_r(common_traffic_days, shifts[j]));
           }
         }
         //si3 will contain the incompatible traffic days of the second part
-        ServiceInfo si3;
+        service_info si3;
         for(unsigned int j = i + 1; j < stations.size(); ++j)
         {
           si3.stations.push_back(stations[j]);
           if(j < stations.size() - 1)
           {
-            si3.stations[j - i - 1].trafficDayIndex =
-            bm.without(si3.stations[j - i - 1].trafficDayIndex,
-                bm.shiftR(commonTrafficDays, shifts[j]));
+            si3.stations[j - i - 1].traffic_day_index =
+            bm.without(si3.stations[j - i - 1].traffic_day_index,
+                bm.shift_r(common_traffic_days, shifts[j]));
           }
         }
 
         //the first part cannot have anymore conflicts - add it if non-trivial
-        int trafficDayIndex = si2.stations[0].trafficDayIndex;
-        if(trafficDayIndex != EMPTY_BITSET)
+        int traffic_day_index = si2.stations[0].traffic_day_index;
+        if(traffic_day_index != EMPTY_BITSET)
           vsi.push_back(si2);
         //the second part may have further conflicts -> recursion
-        vector<ServiceInfo> vsi2 = si3.split(bm);
+        vector<service_info> vsi2 = si3.split(bm);
         vsi.insert(vsi.end(), vsi2.begin(), vsi2.end());
 
         //remove all traffic days which are not in common
         for(unsigned int j = 0; j < stations.size() - 1; ++j)
-          stations[j].trafficDayIndex =
-            bm.commonBitset(stations[j].trafficDayIndex,
-                bm.shiftR(commonTrafficDays, shifts[j]));
+          stations[j].traffic_day_index =
+            bm.common_bitset(stations[j].traffic_day_index,
+                bm.shift_r(common_traffic_days, shifts[j]));
 
         //the common part may also have further conflicts ->recursion
-        if(stations[0].trafficDayIndex != EMPTY_BITSET)
+        if(stations[0].traffic_day_index != EMPTY_BITSET)
         {
-          vector<ServiceInfo> vsi3 = this->split(bm);
+          vector<service_info> vsi3 = this->split(bm);
           vsi.insert(vsi.end(), vsi3.begin(), vsi3.end());
         }
 
@@ -267,7 +267,7 @@ struct ServiceInfo
     }
 
     //no more splitting needed? -> recursion anchor
-    if(stations[0].trafficDayIndex != EMPTY_BITSET)
+    if(stations[0].traffic_day_index != EMPTY_BITSET)
       vsi.push_back(*this);
 
     return vsi;
@@ -275,40 +275,40 @@ struct ServiceInfo
 
 
   /**
-   * Sets the traffic days of all stations to index
+   * sets the traffic days of all stations to index
    */
-  void setTrafficDays(int index, BitsetManager& bm)
+  void set_traffic_days(int index, bitset_manager& bm)
   {
-    vector<int> shifts = getTrafficDayShifts();
+    vector<int> shifts = get_traffic_day_shifts();
     for(unsigned int i = 0; i < stations.size() - 1; ++i)
-      stations[i].trafficDayIndex = bm.shiftR(index, shifts[i]);
+      stations[i].traffic_day_index = bm.shift_r(index, shifts[i]);
   }
 
   /**
-   * Removes the traffic days in index from all stations
+   * removes the traffic days in index from all stations
    */
-  ServiceInfo removeTrafficDays(int index, BitsetManager& bm)
+  service_info remove_traffic_days(int index, bitset_manager& bm)
   {
-    vector<int> shifts = getTrafficDayShifts();
-    ServiceInfo ret = *this;
+    vector<int> shifts = get_traffic_day_shifts();
+    service_info ret = *this;
     for(unsigned int i = 0; i < stations.size() - 1; ++i)
-      ret.stations[i].trafficDayIndex =
-       bm.without(ret.stations[i].trafficDayIndex, bm.shiftR(index, shifts[i]));
+      ret.stations[i].traffic_day_index =
+       bm.without(ret.stations[i].traffic_day_index, bm.shift_r(index, shifts[i]));
     return ret;
   }
 
   /**
-   * merges the two ServiceInfos and returns the number of resulting ServiceInfo
+   * merges the two service_infos and returns the number of resulting service_info
    * objects.
-   * If two objects are to be connected that have different traffic
-   * days, the common set of traffic days is used for the merged ServiceInfo.
-   * Up to two more ServiceInfos have to be created, that contain the remaining
+   * if two objects are to be connected that have different traffic
+   * days, the common set of traffic days is used for the merged service_info.
+   * up to two more service_infos have to be created, that contain the remaining
    * traffic days
-   * @param The ServiceInfo to merge with this
-   * @param If 3 is returned this parameter contains a new Service
-   * @return Number of Services after merging.
+   * @param the service_info to merge with this
+   * @param if 3 is returned this parameter contains a new service
+   * @return number of services after merging.
    **/
-  int merge(/*in/out*/ServiceInfo& o, /*out*/ServiceInfo& o2, BitsetManager& bm)
+  int merge(/*in/out*/service_info& o, /*out*/service_info& o2, bitset_manager& bm)
   {
     int size = stations.size();
     assert(size > 1);
@@ -318,62 +318,62 @@ struct ServiceInfo
 
     int shifts = 0;
     //day/night shift?
-    if(stations[size - 2].dTime > o.stations[0].dTime)
+    if(stations[size - 2].d_time > o.stations[0].d_time)
       shifts = 1;
 
-    int index1 = stations[size - 2].trafficDayIndex;
-    int index2 = bm.shiftL(o.stations[0].trafficDayIndex, shifts);
+    int index1 = stations[size - 2].traffic_day_index;
+    int index2 = bm.shift_l(o.stations[0].traffic_day_index, shifts);
 
     //ignore shifted bits
     if(bm.equals(index1, index2, shifts))
     {
-      int aTime = stations[size - 1].aTime;
-      bool skipArrival = stations[size - 1].skipArrival;
+      int a_time = stations[size - 1].a_time;
+      bool skip_arrival = stations[size - 1].skip_arrival;
       stations.pop_back();
 
       stations.insert(stations.end(), o.stations.begin(), o.stations.end());
-      stations[size - 1].aTime = aTime;
-      stations[size - 1].skipArrival = skipArrival;
+      stations[size - 1].a_time = a_time;
+      stations[size - 1].skip_arrival = skip_arrival;
 
       return 1;
     }
     else
     {
-      int common = bm.commonBitset(index1, index2);
+      int common = bm.common_bitset(index1, index2);
       //is the common set empty? (disregarding shifted bits)
       if(bm.equals(common, EMPTY_BITSET, shifts))
         return 2;
 
-      vector<int> shiftsVec = getTrafficDayShifts();
+      vector<int> shifts_vec = get_traffic_day_shifts();
 
-      o2 = o.removeTrafficDays(bm.shiftR(common, shifts), bm);
+      o2 = o.remove_traffic_days(bm.shift_r(common, shifts), bm);
 
-      ServiceInfo o3 =
-        removeTrafficDays(bm.shiftL(common, shiftsVec[size - 2]), bm);
+      service_info o3 =
+        remove_traffic_days(bm.shift_l(common, shifts_vec[size - 2]), bm);
 
-      setTrafficDays(bm.shiftL(common, shiftsVec[size - 2]), bm);
-      o.setTrafficDays(bm.shiftR(common, shifts), bm);
+      set_traffic_days(bm.shift_l(common, shifts_vec[size - 2]), bm);
+      o.set_traffic_days(bm.shift_r(common, shifts), bm);
 
-      int aTime = stations[size - 1].aTime;
-      bool skipArrival = stations[size - 1].skipArrival;
+      int a_time = stations[size - 1].a_time;
+      bool skip_arrival = stations[size - 1].skip_arrival;
       stations.pop_back();
 
       stations.insert(stations.end(), o.stations.begin(), o.stations.end());
-      stations[size - 1].aTime = aTime;
-      stations[size - 1].skipArrival = skipArrival;
+      stations[size - 1].a_time = a_time;
+      stations[size - 1].skip_arrival = skip_arrival;
 
       int ret = 1;
 
       //handle o2
-      if(!bm.equals(o2.stations[0].trafficDayIndex, EMPTY_BITSET, shifts))
+      if(!bm.equals(o2.stations[0].traffic_day_index, EMPTY_BITSET, shifts))
       {
         o = o2;
         ret++;
       }
 
       //handle o3
-      if(!bm.equals(o3.stations[0].trafficDayIndex, EMPTY_BITSET,
-                   shiftsVec[size - 2]))
+      if(!bm.equals(o3.stations[0].traffic_day_index, EMPTY_BITSET,
+                   shifts_vec[size - 2]))
       {
         if(ret == 2)
           o2 = o3;
@@ -387,14 +387,14 @@ struct ServiceInfo
   }
 };
 
-struct CompressedServiceInfo
+struct compressed_service_info
 {
-  vector<ServiceStationInfo> stations;
+  vector<service_station_info> stations;
   vector<int> times, bitfields;
   int index;
 };
 
-void readStation(istream& in, ServiceStationInfo& ssi, bool firstOrLast)
+void read_station(istream& in, service_station_info& ssi, bool first_or_last)
 {
   char c;
   in >> c;
@@ -403,15 +403,15 @@ void readStation(istream& in, ServiceStationInfo& ssi, bool firstOrLast)
   in >> ssi.location;
 
   in >> c;
-  if(!firstOrLast || c == 'a')
+  if(!first_or_last || c == 'a')
   {
     assert(c == 'a');
-    in >> ssi.skipArrival >> ssi.aTime;
+    in >> ssi.skip_arrival >> ssi.a_time;
   }
   else
     assert(c == 'd');
 
-  if(!firstOrLast)
+  if(!first_or_last)
   {
     in >> c;
     assert(c == 'd');
@@ -419,29 +419,29 @@ void readStation(istream& in, ServiceStationInfo& ssi, bool firstOrLast)
 
   if(c == 'd')
   {
-    in >> ssi.skipDeparture >> ssi.dTime >> ssi.trafficDayIndex
-       >> ssi.transferClass >> ssi.linienzuordnung >> ssi.family;
+    in >> ssi.skip_departure >> ssi.d_time >> ssi.traffic_day_index
+       >> ssi.transfer_class >> ssi.linienzuordnung >> ssi.family;
     unsigned int n;
     in >> n;
     ssi.attributes.resize(n);
     for(unsigned int i = 0; i < n; ++i)
       in >> ssi.attributes[i];
-    in >> ssi.trainNr;
+    in >> ssi.train_nr;
     in >> c;
     assert(c == '%');
-    getline(in, ssi.evaNr, '|');
+    getline(in, ssi.eva_nr, '|');
 
-    string trainName;
-    getline(in, trainName, '|');
+    string train_name;
+    getline(in, train_name, '|');
 
-    getline(in, ssi.lineIdentifier, '|');
+    getline(in, ssi.line_identifier, '|');
 
-    in >> ssi.dPlatform >> ssi.aPlatform;
+    in >> ssi.d_platform >> ssi.a_platform;
   }
 }
 
-int readService(istream& in, vector<vector<ServiceInfo> >& services,
-                vector<CompressedServiceInfo>& compressedServices)
+int read_service(istream& in, vector<vector<service_info> >& services,
+                vector<compressed_service_info>& compressed_services)
 {
   char c;
   in >> c;
@@ -457,10 +457,10 @@ int readService(istream& in, vector<vector<ServiceInfo> >& services,
   in >> c;
   if(c == 't')
   {
-    int ntimes, nBitfields;
+    int ntimes, n_bitfields;
     in >> ntimes;
 
-    CompressedServiceInfo csi;
+    compressed_service_info csi;
     csi.index = index;
 
     csi.times.resize(ntimes);
@@ -469,17 +469,17 @@ int readService(istream& in, vector<vector<ServiceInfo> >& services,
 
     in >> c;
     assert(c == 'b');
-    in >> nBitfields;
-    assert(nBitfields == ntimes);
-    csi.bitfields.resize(nBitfields);
-    for(int i = 0; i < nBitfields; ++i)
+    in >> n_bitfields;
+    assert(n_bitfields == ntimes);
+    csi.bitfields.resize(n_bitfields);
+    for(int i = 0; i < n_bitfields; ++i)
       in >> csi.bitfields[i];
 
     csi.stations.resize(n);
     for(unsigned int i = 0; i < n; ++i)
-      readStation(in, csi.stations[i], i == 0 || i == n - 1);
+      read_station(in, csi.stations[i], i == 0 || i == n - 1);
 
-    compressedServices.push_back(csi);
+    compressed_services.push_back(csi);
 
     return -2;
   }
@@ -487,22 +487,22 @@ int readService(istream& in, vector<vector<ServiceInfo> >& services,
   {
     in.putback(c);
 
-    ServiceInfo si;
+    service_info si;
     si.stations.resize(n);
     for(unsigned int i = 0; i < n; ++i)
-      readStation(in, si.stations[i], i == 0 || i == n - 1);
+      read_station(in, si.stations[i], i == 0 || i == n - 1);
 
     while(index >= (int)services.size())
-      services.push_back(vector<ServiceInfo>());
+      services.push_back(vector<service_info>());
     services[index].push_back(si);
 
     return index;
   }
 }
 
-int mergeServices(vector<ServiceInfo>& vsi, BitsetManager& bm)
+int merge_services(vector<service_info>& vsi, bitset_manager& bm)
 {
-  int mergeCount = 0;
+  int merge_count = 0;
 
   for(unsigned int i = 0; i < vsi.size(); ++i)
     for(unsigned int j = 0; j < vsi.size(); ++j)
@@ -510,10 +510,10 @@ int mergeServices(vector<ServiceInfo>& vsi, BitsetManager& bm)
       if(j == i)
         continue;
       int num;
-      ServiceInfo temp;
+      service_info temp;
       if((num = vsi[i].merge(vsi[j], temp, bm)) != 2)
       {
-        ++mergeCount;
+        ++merge_count;
         if(num == 1)
         {
           if(j < i)
@@ -527,40 +527,40 @@ int mergeServices(vector<ServiceInfo>& vsi, BitsetManager& bm)
       }
     }
 
-  return mergeCount;
+  return merge_count;
 }
 
-void extractRouteInfo(const ServiceInfo& si, RouteInfo& ri, TrainInfo& ti)
+void extract_route_info(const service_info& si, route_info& ri, train_info& ti)
 {
   for(unsigned int i = 0; i < si.stations.size(); ++i)
   {
-    RouteStationInfo rsi;
+    route_station_info rsi;
     rsi.location = si.stations[i].location;
-    rsi.skipArrival = si.stations[i].skipArrival;
-    rsi.skipDeparture = si.stations[i].skipDeparture;
+    rsi.skip_arrival = si.stations[i].skip_arrival;
+    rsi.skip_departure = si.stations[i].skip_departure;
     rsi.family = si.stations[i].family;
     ri.stations.push_back(rsi);
 
-    TrainStationInfo tsi;
-    tsi.aTime = si.stations[i].aTime;
-    tsi.aPlatform = (i != 0) ? si.stations[i - 1].aPlatform : 0;
-    tsi.dTime = si.stations[i].dTime;
-    tsi.dPlatform = si.stations[i].dPlatform;
-    tsi.trafficDayIndex = si.stations[i].trafficDayIndex;
-    tsi.transferClass = si.stations[i].transferClass;
+    train_station_info tsi;
+    tsi.a_time = si.stations[i].a_time;
+    tsi.a_platform = (i != 0) ? si.stations[i - 1].a_platform : 0;
+    tsi.d_time = si.stations[i].d_time;
+    tsi.d_platform = si.stations[i].d_platform;
+    tsi.traffic_day_index = si.stations[i].traffic_day_index;
+    tsi.transfer_class = si.stations[i].transfer_class;
     tsi.linienzuordnung = si.stations[i].linienzuordnung;
     tsi.attributes = si.stations[i].attributes;
-    tsi.trainNr = si.stations[i].trainNr;
-    tsi.evaNr = si.stations[i].evaNr;
-    tsi.lineIdentifier = si.stations[i].lineIdentifier;
+    tsi.train_nr = si.stations[i].train_nr;
+    tsi.eva_nr = si.stations[i].eva_nr;
+    tsi.line_identifier = si.stations[i].line_identifier;
     ti.stations.push_back(tsi);
   }
 }
 
-const char* BITFIELD_FILE = ".Bitfields.txt";
-const char* NEW_BITFIELD_FILE = ".Route.Bitfields.txt";
+const char* BITFIELD_FILE = ".bitfields.txt";
+const char* NEW_BITFIELD_FILE = ".route.bitfields.txt";
 
-void services2Routes(std::string const& prefix)
+void services2routes(std::string const& prefix)
 {
   /////////////////////////////////////////////////////////////////////////////
   //read bitfields
@@ -568,75 +568,75 @@ void services2Routes(std::string const& prefix)
   ifstream bin;
   bin.exceptions(std::ios_base::failbit);
   bin.open((prefix + BITFIELD_FILE).c_str());
-  BitsetManager bsMan(bin);
+  bitset_manager bs_man(bin);
   bin.close();
   LOG(info) << "done";
 
   ifstream in;
   in.open((prefix + SERVICES_FILE).c_str());
 
-  // The events of a train in the services file does not necessarily
+  // the events of a train in the services file does not necessarily
   // appear in consecutive lines and can be separated.
-  // Therefore, separated parts of the same train have to be merged
+  // therefore, separated parts of the same train have to be merged
   // to one complete train.
-  // The vector 'services' contains all trains in the services file.
-  // Each element is a vector containing all parts of the same train.
-  vector<vector<ServiceInfo>> services(100000);
-  vector<CompressedServiceInfo> compressedServices;
+  // the vector 'services' contains all trains in the services file.
+  // each element is a vector containing all parts of the same train.
+  vector<vector<service_info>> services(100000);
+  vector<compressed_service_info> compressed_services;
 
   /////////////////////////////////////////////////////////////////////////////
   //read services
   LOG(debug) << "reading services";
-  unsigned int lastI = 0;
+  unsigned int last_i = 0;
   while(!in.eof() && in.peek() != EOF)
   {
-    int index = readService(in, services, compressedServices);
+    int index = read_service(in, services, compressed_services);
     if(index == -1)
       break;
     else
     {
-      lastI = max(index, (int)lastI);
+      last_i = max(index, (int)last_i);
 
-      if(lastI % 5000 == 0)
-        LOG(debug) << lastI << " services read";
+      if(last_i % 5000 == 0)
+        LOG(debug) << last_i << " services read";
     }
   }
   in.close();
 
   //output number of trains
   int count = 0;
-  for(unsigned int i = 0; i <= lastI; ++i)
+  for(unsigned int i = 0; i <= last_i; ++i)
     count += services[i].size();
   LOG(info) << "total number of trains: " << count;
 
   /////////////////////////////////////////////////////////////////////////////
   //change bitfield indices
   LOG(info) << "updating bitfield indices";
-  for(unsigned int i = 0; i <= lastI; ++i)
+  for(unsigned int i = 0; i <= last_i; ++i)
     for(unsigned int j = 0; j < services[i].size(); ++j)
       for(unsigned int k = 0; k < services[i][j].stations.size() - 1; ++k)
       {
-        services[i][j].stations[k].trafficDayIndex =
-          bsMan.getNewIndex(services[i][j].stations[k].trafficDayIndex);
+        services[i][j].stations[k].traffic_day_index =
+          bs_man.get_new_index(services[i][j].stations[k].traffic_day_index);
       }
-  for(unsigned int i = 0; i < compressedServices.size(); ++i)
-    for(unsigned int j = 0; j < compressedServices[i].bitfields.size(); ++j)
-      compressedServices[i].bitfields[j] =
-        bsMan.getNewIndex(compressedServices[i].bitfields[j]);
+  for(unsigned int i = 0; i < compressed_services.size(); ++i)
+    for(unsigned int j = 0; j < compressed_services[i].bitfields.size(); ++j)
+      compressed_services[i].bitfields[j] =
+        bs_man.get_new_index(compressed_services[i].bitfields[j]);
 
   /////////////////////////////////////////////////////////////////////////////
   //split trains that consist of incompatible traffic days
   LOG(info) << "splitting trains";
   count = 0;
-  for(unsigned int i = 0; i <= lastI; ++i)
+  for(unsigned int i = 0; i <= last_i; ++i)
   {
-    vector<ServiceInfo> newServices;
+    vector<service_info> new_services;
     for(unsigned int j = 0; j < services[i].size(); ++j)
     {
-      vector<ServiceInfo> res = services[i][j].split(bsMan);
-      newServices.insert(newServices.end(), res.begin(), res.end());
+      vector<service_info> res = services[i][j].split(bs_man);
+      new_services.insert(new_services.end(), res.begin(), res.end());
     }
-    services[i] = newServices;
+    services[i] = new_services;
     count += services[i].size();
     if(i % 5000 == 0 && i != 0)
       LOG(debug) << i << " services splitted";
@@ -646,30 +646,30 @@ void services2Routes(std::string const& prefix)
   /////////////////////////////////////////////////////////////////////////////
   //merge trains
   LOG(debug) << "merging trains";
-  int mergeCount = 0;
+  int merge_count = 0;
   count = 0;
-  for(unsigned int i = 0; i <= lastI; ++i)
+  for(unsigned int i = 0; i <= last_i; ++i)
   {
-    mergeCount += mergeServices(services[i], bsMan);
+    merge_count += merge_services(services[i], bs_man);
     count += services[i].size();
     if(i % 5000 == 0 && i != 0)
       LOG(info) << i << " services merged";
   }
-  LOG(info) << "merges performed: " << mergeCount;
+  LOG(info) << "merges performed: " << merge_count;
   LOG(info) << "trains: " << count;
 
   /////////////////////////////////////////////////////////////////////////////
   //generate routes
   LOG(info) << "generating routes ";
-  map<RouteInfo, vector<TrainInfo> > routes;
-  for(unsigned int i = 0; i <= lastI; ++i)
+  map<route_info, vector<train_info> > routes;
+  for(unsigned int i = 0; i <= last_i; ++i)
   {
     for(unsigned int j = 0; j < services[i].size(); ++j)
     {
-      RouteInfo ri;
-      TrainInfo ti;
-      extractRouteInfo(services[i][j], ri, ti);
-      ti.trainIndex = i;
+      route_info ri;
+      train_info ti;
+      extract_route_info(services[i][j], ri, ti);
+      ti.train_index = i;
       routes[ri].push_back(ti);
     }
     if(i % 5000 == 0 && i != 0)
@@ -682,14 +682,14 @@ void services2Routes(std::string const& prefix)
   ofstream rout((prefix + string(ROUTES_FILE)).c_str());
   if(!rout)
     throw std::runtime_error("routes file for writing");
-  int currIndex = 0;
-  map<RouteInfo, vector<TrainInfo> >::iterator it, end = routes.end();
+  int curr_index = 0;
+  map<route_info, vector<train_info> >::iterator it, end = routes.end();
   for(it = routes.begin(); it != end; ++it)
   {
-    vector<TrainInfo>& trains = it->second;
+    vector<train_info>& trains = it->second;
     assert(trains.size() > 0);
     assert(it->first.stations.size() > 0);
-    rout << "r" << currIndex++ << " " << it->first.stations.size()
+    rout << "r" << curr_index++ << " " << it->first.stations.size()
          << " " << trains.size() << "\n";
     rout << " ";
     it->first.write(rout);
@@ -709,7 +709,7 @@ void services2Routes(std::string const& prefix)
   ofstream bfout;
   bfout.exceptions(std::ios_base::failbit);
   bfout.open((prefix + NEW_BITFIELD_FILE).c_str());
-  bsMan.write(bfout);
+  bs_man.write(bfout);
   bfout.close();
 }
 

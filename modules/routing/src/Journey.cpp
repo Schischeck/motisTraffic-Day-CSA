@@ -1,11 +1,11 @@
-#include "motis/routing/Journey.h"
+#include "motis/routing/journey.h"
 
 #include "boost/lexical_cast.hpp"
 
-#include "motis/core/schedule/Time.h"
-#include "motis/core/schedule/Schedule.h"
-#include "motis/routing/Label.h"
-#include "motis/routing/IntervalMap.h"
+#include "motis/core/schedule/time.h"
+#include "motis/core/schedule/schedule.h"
+#include "motis/routing/label.h"
+#include "motis/routing/interval_map.h"
 
 #define UNKNOWN_TRACK (1)
 
@@ -13,43 +13,43 @@ namespace td {
 
 namespace intermediate {
 
-struct Stop
+struct stop
 {
-  Stop() = default;
-  Stop(int index,
-       int stationId,
-       int aPlatform, int dPlatform,
-       Time aTime, Time dTime,
+  stop() = default;
+  stop(int index,
+       int station_id,
+       int a_platform, int d_platform,
+       time a_time, time d_time,
        bool interchange)
       : index(index),
-        stationId(stationId),
-        aPlatform(aPlatform),
-        dPlatform(dPlatform),
-        aTime(aTime),
-        dTime(dTime),
+        station_id(station_id),
+        a_platform(a_platform),
+        d_platform(d_platform),
+        a_time(a_time),
+        d_time(d_time),
         interchange(interchange)
   {}
 
   int index;
-  int stationId;
-  int aPlatform, dPlatform;
-  Time aTime, dTime;
+  int station_id;
+  int a_platform, d_platform;
+  time a_time, d_time;
   bool interchange;
 };
 
-struct Transport
+struct transport
 {
-  Transport() = default;
-  Transport(int from, int to,
-            LightConnection const* con)
+  transport() = default;
+  transport(int from, int to,
+            light_connection const* con)
       : from(from),
         to(to),
         con(con),
-        duration(con->aTime - con->dTime),
+        duration(con->a_time - con->d_time),
         slot(-1)
   {}
 
-  Transport(int from, int to, int duration, int slot)
+  transport(int from, int to, int duration, int slot)
       : from(from),
         to(to),
         con(nullptr),
@@ -58,41 +58,41 @@ struct Transport
   {}
 
   int from, to;
-  LightConnection const* con;
+  light_connection const* con;
   int duration;
   int slot;
 };
 
-std::pair<std::vector<intermediate::Stop>,
-          std::vector<intermediate::Transport>>
-  parseLabelChain(Label const* label)
+std::pair<std::vector<intermediate::stop>,
+          std::vector<intermediate::transport>>
+  parse_label_chain(label const* terminal_label)
 {
-  std::vector<Label const*> labels;
-  Label const* c = label;
+  std::vector<label const*> labels;
+  label const* c = terminal_label;
   do { labels.insert(begin(labels), c); } while ((c = c->_pred));
 
-  std::vector<intermediate::Stop> stops;
-  std::vector<intermediate::Transport> transports;
-  enum State {
+  std::vector<intermediate::stop> stops;
+  std::vector<intermediate::transport> transports;
+  enum state {
     AT_STATION,
     PRE_CONNECTION,
     IN_CONNECTION,
     WALK
   } state = AT_STATION;
-  LightConnection const* lastCon = nullptr;
-  Time walkArrival = INVALID_TIME;
-  int stationIndex = -1;
+  light_connection const* last_con = nullptr;
+  time walk_arrival = INVALID_TIME;
+  int station_index = -1;
 
   for (auto it = begin(labels); it != end(labels); ++it)
   {
     auto current = *it;
 
     if (state == IN_CONNECTION && current->_connection == nullptr)
-      state = current->_node->isStationNode() ? AT_STATION : WALK;
+      state = current->_node->is_station_node() ? AT_STATION : WALK;
 
     if (state == AT_STATION &&
         std::next(it) != end(labels) &&
-        (*std::next(it))->_node->isStationNode())
+        (*std::next(it))->_node->is_station_node())
     {
       state = WALK;
     }
@@ -101,35 +101,35 @@ std::pair<std::vector<intermediate::Stop>,
     {
       case AT_STATION:
       {
-        int aPlatform = UNKNOWN_TRACK;
-        int dPlatform = UNKNOWN_TRACK;
-        Time aTime = walkArrival;
-        Time dTime = INVALID_TIME;
-        if (aTime == INVALID_TIME && lastCon != nullptr)
+        int a_platform = UNKNOWN_TRACK;
+        int d_platform = UNKNOWN_TRACK;
+        time a_time = walk_arrival;
+        time d_time = INVALID_TIME;
+        if (a_time == INVALID_TIME && last_con != nullptr)
         {
-          aPlatform = lastCon->_fullCon->aPlatform;
-          aTime = lastCon->aTime;
+          a_platform = last_con->_full_con->a_platform;
+          a_time = last_con->a_time;
         }
 
-        walkArrival = INVALID_TIME;
+        walk_arrival = INVALID_TIME;
 
         auto s1 = std::next(it, 1);
         auto s2 = std::next(it, 2);
         if (s1 != end(labels) && s2 != end(labels) &&
             (*s2)->_connection != nullptr)
         {
-          dPlatform = (*s2)->_connection->_fullCon->dPlatform;
-          dTime = (*s2)->_connection->dTime;
+          d_platform = (*s2)->_connection->_full_con->d_platform;
+          d_time = (*s2)->_connection->d_time;
         }
 
         stops.emplace_back(
-            ++stationIndex,
-            current->_node->getStation()->_id,
-            aPlatform, dPlatform,
-            aTime, dTime,
-            aTime != INVALID_TIME &&
-                dTime != INVALID_TIME &&
-                lastCon != nullptr);
+            ++station_index,
+            current->_node->get_station()->_id,
+            a_platform, d_platform,
+            a_time, d_time,
+            a_time != INVALID_TIME &&
+                d_time != INVALID_TIME &&
+                last_con != nullptr);
 
         state = PRE_CONNECTION;
         break;
@@ -143,67 +143,67 @@ std::pair<std::vector<intermediate::Stop>,
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            ++stationIndex,
-            current->_node->getStation()->_id,
-            lastCon == nullptr ? UNKNOWN_TRACK : lastCon->_fullCon->aPlatform,
+            ++station_index,
+            current->_node->get_station()->_id,
+            last_con == nullptr ? UNKNOWN_TRACK : last_con->_full_con->a_platform,
             UNKNOWN_TRACK,
             stops.empty() ? INVALID_TIME : current->_now,
             current->_now,
-            lastCon != nullptr);
+            last_con != nullptr);
 
         transports.emplace_back(
-            stationIndex, stationIndex + 1,
+            station_index, station_index + 1,
             (*std::next(it))->_now - current->_now,
             -1);
 
-        walkArrival = (*std::next(it))->_now;
+        walk_arrival = (*std::next(it))->_now;
 
-        lastCon = nullptr;
+        last_con = nullptr;
 
         state = AT_STATION;
         break;
 
       case IN_CONNECTION:
         transports.emplace_back(
-            stationIndex, stationIndex + 1, current->_connection);
+            station_index, station_index + 1, current->_connection);
 
-        // Do not collect the last connection route node.
+        // do not collect the last connection route node.
         assert(std::next(it) != end(labels));
         auto succ = *std::next(it);
-        if (succ->_node->isRouteNode())
+        if (succ->_node->is_route_node())
         {
           stops.emplace_back(
-              ++stationIndex,
-              current->_node->getStation()->_id,
-              current->_connection->_fullCon->aPlatform,
-              succ->_connection->_fullCon->dPlatform,
-              current->_connection->aTime,
-              succ->_connection->dTime,
+              ++station_index,
+              current->_node->get_station()->_id,
+              current->_connection->_full_con->a_platform,
+              succ->_connection->_full_con->d_platform,
+              current->_connection->a_time,
+              succ->_connection->d_time,
               false);
         }
 
-        lastCon = current->_connection;
+        last_con = current->_connection;
         break;
     }
   }
 
-  transports.front().slot = label->getSlot(true);
-  transports.back().slot = label->getSlot(false);
+  transports.front().slot = terminal_label->get_slot(true);
+  transports.back().slot = terminal_label->get_slot(false);
 
   return {stops, transports};
 }
 
 }  // namespace intermediate
 
-Journey::Transport generateJourneyTransport(
-    int from, int to, intermediate::Transport const& t,
-    Schedule const& sched)
+journey::transport generate_journey_transport(
+    int from, int to, intermediate::transport const& t,
+    schedule const& sched)
 {
   bool walk = false;
   std::string name;
-  std::string catName;
-  int catId = 0;
-  int trainNr = 0;
+  std::string cat_name;
+  int cat_id = 0;
+  int train_nr = 0;
   int duration = t.duration;
   int slot = -1;
 
@@ -214,160 +214,160 @@ Journey::Transport generateJourneyTransport(
   }
   else
   {
-    ConnectionInfo const* conInfo = t.con->_fullCon->conInfo;
-    catId = conInfo->family;
-    catName = sched.categoryNames[catId];
-    name = catName + " ";
-    if (conInfo->trainNr != 0)
-      name += boost::lexical_cast<std::string>(conInfo->trainNr);
+    connection_info const* con_info = t.con->_full_con->con_info;
+    cat_id = con_info->family;
+    cat_name = sched.category_names[cat_id];
+    name = cat_name + " ";
+    if (con_info->train_nr != 0)
+      name += boost::lexical_cast<std::string>(con_info->train_nr);
     else
-      name += conInfo->lineIdentifier;
+      name += con_info->line_identifier;
   }
 
-  return { from, to, walk, name, catName, catId, trainNr, duration, slot };
+  return { from, to, walk, name, cat_name, cat_id, train_nr, duration, slot };
 }
 
-std::vector<Journey::Transport> generateJourneyTransports(
-    std::vector<intermediate::Transport> const& transports,
-    Schedule const& sched)
+std::vector<journey::transport> generate_journey_transports(
+    std::vector<intermediate::transport> const& transports,
+    schedule const& sched)
 {
-  auto conInfoEq = [](ConnectionInfo const* a,
-                      ConnectionInfo const* b) -> bool
+  auto con_info_eq = [](connection_info const* a,
+                      connection_info const* b) -> bool
   {
     if (a == nullptr || b == nullptr)
       return false;
     else
-      // Equals comparison ignoring attributes:
-      return a->lineIdentifier == b->lineIdentifier &&
+      // equals comparison ignoring attributes:
+      return a->line_identifier == b->line_identifier &&
              a->family == b->family &&
-             a->trainNr == b->trainNr &&
+             a->train_nr == b->train_nr &&
              a->service == b->service;
   };
 
-  std::vector<Journey::Transport> journeyTransports;
+  std::vector<journey::transport> journey_transports;
 
-  bool issetLast = false;
-  intermediate::Transport const* last = nullptr;
-  ConnectionInfo const* lastConInfo = nullptr;
+  bool isset_last = false;
+  intermediate::transport const* last = nullptr;
+  connection_info const* last_con_info = nullptr;
   int from = 1;
 
   for (auto const& transport : transports)
   {
-    ConnectionInfo const* conInfo = nullptr;
+    connection_info const* con_info = nullptr;
     if (transport.con != nullptr)
-      conInfo = transport.con->_fullCon->conInfo;
+      con_info = transport.con->_full_con->con_info;
 
-    if (!conInfoEq(conInfo, lastConInfo))
+    if (!con_info_eq(con_info, last_con_info))
     {
-      if (last != nullptr && issetLast)
+      if (last != nullptr && isset_last)
       {
-        journeyTransports.push_back(
-            generateJourneyTransport(from, transport.from, *last, sched));
+        journey_transports.push_back(
+            generate_journey_transport(from, transport.from, *last, sched));
       }
 
-      issetLast = true;
+      isset_last = true;
       last = &transport;
       from = transport.from;
     }
 
-    lastConInfo = conInfo;
+    last_con_info = con_info;
   }
 
   auto back = transports.back();
-  journeyTransports.push_back(
-      generateJourneyTransport(from, back.to, *last, sched));
+  journey_transports.push_back(
+      generate_journey_transport(from, back.to, *last, sched));
 
-  return journeyTransports;
+  return journey_transports;
 }
 
-std::vector<Journey::Stop> generateJourneyStops(
-    std::vector<intermediate::Stop> const& stops,
-    Schedule const& sched)
+std::vector<journey::stop> generate_journey_stops(
+    std::vector<intermediate::stop> const& stops,
+    schedule const& sched)
 {
-  auto getPlatform = [](Schedule const& sched, int platformId) -> std::string
+  auto get_platform = [](schedule const& sched, int platform_id) -> std::string
   {
-    auto it = sched.tracks.find(platformId);
+    auto it = sched.tracks.find(platform_id);
     return it == end(sched.tracks) ? "?" : it->second;
   };
 
-  std::vector<Journey::Stop> journeyStops;
+  std::vector<journey::stop> journey_stops;
   for (auto const& stop : stops)
-    journeyStops.push_back(
+    journey_stops.push_back(
         {
           stop.index,
           stop.interchange,
-          sched.stations[stop.stationId]->name,
-          sched.stations[stop.stationId]->evaNr,
-          sched.stations[stop.stationId]->width,
-          sched.stations[stop.stationId]->length,
-          stop.aTime != INVALID_TIME
-            ? Journey::Stop::EventInfo
+          sched.stations[stop.station_id]->name,
+          sched.stations[stop.station_id]->eva_nr,
+          sched.stations[stop.station_id]->width,
+          sched.stations[stop.station_id]->length,
+          stop.a_time != INVALID_TIME
+            ? journey::stop::event_info
                 { true,
-                  sched.dateManager.formatISO(stop.aTime),
-                  getPlatform(sched, stop.aPlatform) }
-            : Journey::Stop::EventInfo
+                  sched.date_manager.format_i_s_o(stop.a_time),
+                  get_platform(sched, stop.a_platform) }
+            : journey::stop::event_info
                 { false, "", "" },
-          stop.dTime != INVALID_TIME
-            ? Journey::Stop::EventInfo
+          stop.d_time != INVALID_TIME
+            ? journey::stop::event_info
                 { true,
-                  sched.dateManager.formatISO(stop.dTime),
-                  getPlatform(sched, stop.dPlatform) }
-            : Journey::Stop::EventInfo
+                  sched.date_manager.format_i_s_o(stop.d_time),
+                  get_platform(sched, stop.d_platform) }
+            : journey::stop::event_info
                 { false, "", "" }
         });
-  return journeyStops;
+  return journey_stops;
 }
 
-std::vector<Journey::Attribute> generateJourneyAttributes(
-    std::vector<intermediate::Transport> const& transports,
-    Schedule const& sched)
+std::vector<journey::attribute> generate_journey_attributes(
+    std::vector<intermediate::transport> const& transports,
+    schedule const& sched)
 {
-  IntervalMap attributes;
+  interval_map attributes;
   for (auto const& transport : transports)
     if (transport.con == nullptr)
       continue;
     else
-      for (auto const& attribute : transport.con->_fullCon->conInfo->attributes)
-        attributes.addEntry(attribute, transport.from, transport.to);
+      for (auto const& attribute : transport.con->_full_con->con_info->attributes)
+        attributes.add_entry(attribute, transport.from, transport.to);
 
-  std::vector<Journey::Attribute> journeyAttributes;
-  for (auto const& attribute : attributes.getAttributeRanges())
+  std::vector<journey::attribute> journey_attributes;
+  for (auto const& attribute : attributes.get_attribute_ranges())
   {
-    auto const& attributeId = attribute.first;
-    auto const& attributeRanges = attribute.second;
-    auto const& code = sched.attributes.at(attributeId)._code;
-    auto const& text = sched.attributes.at(attributeId)._str;
+    auto const& attribute_id = attribute.first;
+    auto const& attribute_ranges = attribute.second;
+    auto const& code = sched.attributes.at(attribute_id)._code;
+    auto const& text = sched.attributes.at(attribute_id)._str;
 
-    for (auto const& range : attributeRanges)
-      journeyAttributes.push_back({ range.from, range.to, code, text });
+    for (auto const& range : attribute_ranges)
+      journey_attributes.push_back({ range.from, range.to, code, text });
   }
 
-  return journeyAttributes;
+  return journey_attributes;
 }
 
-std::string generateDate(Label const* label, Schedule const& sched)
+std::string generate_date(label const* label, schedule const& sched)
 {
-  int startDay = label->_start / MINUTES_A_DAY;
-  DateManager::Date date = sched.dateManager.getDate(startDay);
+  int start_day = label->_start / MINUTES_A_DAY;
+  date_manager::date date = sched.date_manager.get_date(start_day);
   return boost::lexical_cast<std::string>(date.day) + "." +
          boost::lexical_cast<std::string>(date.month) + "." +
          boost::lexical_cast<std::string>(date.year);
 }
 
-Journey::Journey(Label const* label, Schedule const& sched)
+journey::journey(label const* label, schedule const& sched)
 {
-  auto parsed = intermediate::parseLabelChain(label);
-  std::vector<intermediate::Stop> const& s = parsed.first;
-  std::vector<intermediate::Transport> const& t = parsed.second;
+  auto parsed = intermediate::parse_label_chain(label);
+  std::vector<intermediate::stop> const& s = parsed.first;
+  std::vector<intermediate::transport> const& t = parsed.second;
 
-  stops = generateJourneyStops(s, sched);
-  transports = generateJourneyTransports(t, sched);
-  attributes = generateJourneyAttributes(t, sched);
+  stops = generate_journey_stops(s, sched);
+  transports = generate_journey_transports(t, sched);
+  attributes = generate_journey_attributes(t, sched);
 
-  date = generateDate(label, sched);
-  duration = label->_travelTime[0];
+  date = generate_date(label, sched);
+  duration = label->_travel_time[0];
   transfers = label->_transfers[0] - 1;
-  price = label->_totalPrice[0];
+  price = label->_total_price[0];
 }
 
 }  // namespace td
