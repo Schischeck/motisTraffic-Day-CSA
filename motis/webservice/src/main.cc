@@ -62,6 +62,15 @@ int main(int argc, char** argv) {
 
   loader.load_modules();
 
+  std::vector<conf::configuration*> module_confs;
+  for (auto const& module : dispatcher.modules_) {
+    module_confs.push_back(module.second);
+  }
+  conf::options_parser module_conf_parser(module_confs);
+  module_conf_parser.read_command_line_args(argc, argv);
+  module_conf_parser.read_configuration_file();
+  module_conf_parser.print_used(std::cout);
+
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 

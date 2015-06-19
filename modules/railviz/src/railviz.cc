@@ -1,13 +1,24 @@
 #include "motis/railviz/railviz.h"
-#include "motis/module/api.h"
 
 #include <iostream>
 
+#include "boost/program_options.hpp"
+
+#include "motis/module/api.h"
+
 using namespace json11;
 using namespace motis::module;
+namespace po = boost::program_options;
 
 namespace motis {
 namespace railviz {
+
+po::options_description railviz::desc() {
+  po::options_description desc("Railviz Module");
+  return desc;
+}
+
+void railviz::print(std::ostream& out) const {}
 
 std::vector<Json> all_stations(railviz* r, Json const& msg) {
   auto stations = Json::array();

@@ -2,7 +2,7 @@
 
   - Class/Struct/Union Names: lower case, underscore style (i.e. `my_class`)
   - Function Names: lower case, underscore style (i.e. `my_function`)
-  - Scope Variables: lower case, underscore styl (i.e. `my_var`)
+  - Scope Variables: lower case, underscore style (i.e. `my_var`)
   - Template Parameters: camel case (i.e. `MyTemplateVar`)
   - Member Variables: lower case, underscore, "_" postfix (i.e. `my_member_var`)
   - Constants (i.e. in enums): upper case, underscore (i.e. `enum class directions { ONE_TO_MANY, MANY_TO_ONE };` )

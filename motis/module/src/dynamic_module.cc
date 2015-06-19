@@ -49,6 +49,18 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
   return modules;
 }
 
+dynamic_module::dynamic_module(dynamic_module&& other)
+    : module_(other.module_), lib_(other.lib_) {
+  other.lib_ = nullptr;
+}
+
+dynamic_module& dynamic_module::operator=(dynamic_module&& other) {
+  lib_ = other.lib_;
+  module_ = other.module_;
+  other.lib_ = nullptr;
+  return *this;
+}
+
 #if defined _WIN32 || defined _WIN64
 dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
     : lib_(nullptr) {
@@ -69,7 +81,8 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
   }
 
   // Get address to load function.
-  load_module lib_fun = (load_module)GetProcAddress((HINSTANCE )lib_, "load_module");
+  load_module lib_fun =
+      (load_module)GetProcAddress((HINSTANCE)lib_, "load_module");
   if (nullptr == lib_fun) {
     FreeLibrary((HINSTANCE)lib_);
     throw std::runtime_error("unable to load module: load_module() not found");
@@ -82,7 +95,9 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
 
 dynamic_module::~dynamic_module() {
   // Close shared library.
-  FreeLibrary((HINSTANCE)lib_);
+  if (lib_ != nullptr) {
+    FreeLibrary((HINSTANCE)lib_);
+  }
 }
 #else  // defined _WIN32 || defined _WIN64
 dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
@@ -115,7 +130,9 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
 
 dynamic_module::~dynamic_module() {
   // Close shared library.
-  dlclose(lib_);
+  if (lib_ == nullptr) {
+    dlclose(lib_);
+  }
 }
 #endif  // defined _WIN32 || defined _WIN64
 

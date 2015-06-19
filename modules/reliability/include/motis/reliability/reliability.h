@@ -8,6 +8,9 @@ namespace reliability {
 struct reliability : public motis::module::module {
 	reliability();
 
+  virtual boost::program_options::options_description desc() override;
+  virtual void print(std::ostream& out) const override;
+
   virtual std::string name() const override { return "reliability"; }
   virtual std::vector<json11::Json> on_msg(json11::Json const&,
                                            motis::module::sid) override;

@@ -37,8 +37,8 @@ struct dynamic_module_loader {
   void load_modules() {
     dispatcher_.modules_.clear();
 
-    auto modules = modules_from_folder(modules_path_, schedule_);
-    for (auto const& module : modules) {
+    modules_ = modules_from_folder(modules_path_, schedule_);
+    for (auto const& module : modules_) {
       dispatcher_.modules_.insert({ module.module_->name(),
                                     module.module_.get() });
     }
@@ -54,6 +54,7 @@ struct dynamic_module_loader {
     std::cout << std::endl;
   }
 
+  std::vector<dynamic_module> modules_;
   std::string modules_path_;
   td::Schedule* schedule_;
   Dispatcher& dispatcher_;

@@ -12,6 +12,12 @@ namespace motis {
 namespace module {
 
 struct dynamic_module {
+  dynamic_module(dynamic_module const&) = delete;
+  dynamic_module& operator=(dynamic_module const&) = delete;
+
+  dynamic_module(dynamic_module&& module);
+  dynamic_module& operator=(dynamic_module&&);
+
   dynamic_module(std::string const& path, td::Schedule* schedule);
   ~dynamic_module();
 

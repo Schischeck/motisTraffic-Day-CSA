@@ -4,7 +4,7 @@ project(motis)
 set(CMAKE_SHARED_LIBRARY_SUFFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
-find_package(Boost COMPONENTS system filesystem regex)
+find_package(Boost COMPONENTS system filesystem regex program_options)
 find_package(Threads)
 
 add_library(json11 EXCLUDE_FROM_ALL external_lib/json11/json11.cpp)

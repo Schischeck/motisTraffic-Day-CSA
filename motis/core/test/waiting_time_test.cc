@@ -8,7 +8,6 @@
 auto schedule = td::loadSchedule("../schedule/test");
 
 TEST_CASE("Matrix", "[wzr]") {
-
   auto const& waitingTimeRules = schedule->waitingTimeRules;
 
   REQUIRE(waitingTimeRules.waitingTime(1, 1) == 3);
@@ -45,7 +44,8 @@ TEST_CASE("Matrix", "[wzr]") {
 TEST_CASE("Family to Category Assignment", "[wzr]") {
   auto const& waitingTimeRules = schedule->waitingTimeRules;
 
-  auto it = std::find(begin(schedule->categoryNames), end(schedule->categoryNames), "IC");
+  auto it = std::find(begin(schedule->categoryNames),
+                      end(schedule->categoryNames), "IC");
   REQUIRE(it != end(schedule->categoryNames));
 
   int family = std::distance(begin(schedule->categoryNames), it);

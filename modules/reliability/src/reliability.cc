@@ -2,13 +2,23 @@
 
 #include <iostream>
 
+#include "boost/program_options.hpp"
+
 #include "motis/module/api.h"
 
 using namespace json11;
 using namespace motis::module;
+namespace po = boost::program_options;
 
 namespace motis {
 namespace reliability {
+
+po::options_description reliability::desc() {
+  po::options_description desc("Railviz Module");
+  return desc;
+}
+
+void reliability::print(std::ostream& out) const {}
 
 std::vector<Json> get_distribution(reliability* r, Json const& msg) {
   std::cout << "Get Distribution" << std::endl;
