@@ -20,8 +20,9 @@ public:
     std::map<int, std::vector<interval_map::range>> ranges;
     for (auto const& attr : attributes) {
       ranges[attr.first].reserve(attr.second.size());
-      for (auto const& range : attr.second)
+      for (auto const& range : attr.second) {
         ranges[attr.first].emplace_back(range.lower(), range.upper() - 1);
+      }
     }
     return ranges;
   }

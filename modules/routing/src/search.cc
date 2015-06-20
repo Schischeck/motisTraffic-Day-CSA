@@ -25,13 +25,14 @@
 namespace motis {
 
 void remove_intersection(arrival& from, arrival& to) {
-  for (auto const& to_arr_part : to)
+  for (auto const& to_arr_part : to) {
     from.erase(
         std::remove_if(std::begin(from), std::end(from),
                        [&to_arr_part](arrival_part const& from_arr_part) {
           return to_arr_part.station == from_arr_part.station;
         }),
         std::end(from));
+  }
 }
 
 search::search(schedule& schedule, memory_manager<label>& label_store)
@@ -51,12 +52,14 @@ std::vector<journey> search::get_connections(
 
   // generate additional edges for the lower bound graph.
   std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
-  for (auto const& arr : to)
+  for (auto const& arr : to) {
     lb_graph_edges[dummy_target].push_back(
         simple_edge(arr.station, arr.time_cost));
-  for (auto const& arr : from)
+  }
+  for (auto const& arr : from) {
     lb_graph_edges[arr.station].push_back(
         simple_edge(dummy_source, arr.time_cost));
+  }
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
@@ -107,9 +110,10 @@ std::vector<journey> search::get_connections(
     station_node* arrival_station = _sched.station_nodes[arr.station].get();
 
     auto it = additional_edges.find(arrival_station);
-    if (it == end(additional_edges))
+    if (it == end(additional_edges)) {
       std::tie(it, std::ignore) =
           additional_edges.emplace(arrival_station, std::vector<edge>());
+    }
 
     it->second.emplace_back(
         make_mumo_edge(target, arr.time_cost, arr.price, arr.slot));
@@ -141,10 +145,11 @@ void search::generate_start_labels(time const from, time const to,
                                    station_node const* real_start, int time_off,
                                    int start_price, int slot,
                                    lower_bounds& lower_bounds) {
-  for (auto const& edge : start_station_node->_edges)
+  for (auto const& edge : start_station_node->_edges) {
     generate_start_labels(from, to, start_station_node, edge.get_destination(),
                           indices, real_start, time_off, start_price, slot,
                           lower_bounds);
+  }
 }
 
 void search::generate_start_labels(time const from, time const to,
@@ -156,7 +161,9 @@ void search::generate_start_labels(time const from, time const to,
                                    lower_bounds& lower_bounds) {
   for (auto const& edge : route_node->_edges) {
     // not a route-edge?
-    if (edge.get_destination() == start_station_node) continue;
+    if (edge.get_destination() == start_station_node) {
+      continue;
+    }
 
     time t = from + time_off;
 
@@ -168,17 +175,22 @@ void search::generate_start_labels(time const from, time const to,
 
     while (t <= to + time_off) {
       light_connection const* con = edge.get_connection(t);
-      if (con == nullptr) break;
+      if (con == nullptr) {
+        break;
+      }
 
       t = con->d_time;
 
-      if (t > to + time_off) break;
+      if (t > to + time_off) {
+        break;
+      }
 
       // was there an earlier start station?
       label* earlier = nullptr;
-      if (real_start != nullptr)
+      if (real_start != nullptr) {
         earlier = new (_label_store.create())
             label(real_start, nullptr, t - time_off, lower_bounds);
+      }
 
       label* station_node_label = new (_label_store.create())
           label(start_station_node, earlier, t, lower_bounds);

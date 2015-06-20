@@ -18,9 +18,9 @@ po::options_description reliability::desc() {
   return desc;
 }
 
-void reliability::print(std::ostream& out) const {}
+void reliability::print(std::ostream&) const {}
 
-std::vector<Json> get_distribution(reliability* r, Json const& msg) {
+std::vector<Json> get_distribution(reliability*, Json const& msg) {
   std::cout << "Get Distribution" << std::endl;
   return {Json::object{{"status", "success"}}};
 }

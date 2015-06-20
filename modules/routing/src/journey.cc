@@ -73,8 +73,9 @@ parse_label_chain(label const* terminal_label) {
   for (auto it = begin(labels); it != end(labels); ++it) {
     auto current = *it;
 
-    if (state == IN_CONNECTION && current->_connection == nullptr)
+    if (state == IN_CONNECTION && current->_connection == nullptr) {
       state = current->_node->is_station_node() ? AT_STATION : WALK;
+    }
 
     if (state == AT_STATION && std::next(it) != end(labels) &&
         (*std::next(it))->_node->is_station_node()) {
@@ -180,10 +181,11 @@ journey::transport generate_journey_transport(int from, int to,
     cat_id = con_info->family;
     cat_name = sched.category_names[cat_id];
     name = cat_name + " ";
-    if (con_info->train_nr != 0)
+    if (con_info->train_nr != 0) {
       name += boost::lexical_cast<std::string>(con_info->train_nr);
-    else
+    } else {
       name += con_info->line_identifier;
+    }
   }
 
   return {from, to, walk, name, cat_name, cat_id, train_nr, duration, slot};
@@ -194,13 +196,14 @@ std::vector<journey::transport> generate_journey_transports(
     schedule const& sched) {
   auto con_info_eq =
       [](connection_info const* a, connection_info const* b) -> bool {
-    if (a == nullptr || b == nullptr)
+    if (a == nullptr || b == nullptr) {
       return false;
-    else
+    } else {
       // equals comparison ignoring attributes:
       return a->line_identifier == b->line_identifier &&
              a->family == b->family && a->train_nr == b->train_nr &&
              a->service == b->service;
+    }
   };
 
   std::vector<journey::transport> journey_transports;
@@ -212,7 +215,9 @@ std::vector<journey::transport> generate_journey_transports(
 
   for (auto const& transport : transports) {
     connection_info const* con_info = nullptr;
-    if (transport.con != nullptr) con_info = transport.con->_full_con->con_info;
+    if (transport.con != nullptr) {
+      con_info = transport.con->_full_con->con_info;
+    }
 
     if (!con_info_eq(con_info, last_con_info)) {
       if (last != nullptr && isset_last) {
@@ -244,7 +249,7 @@ std::vector<journey::stop> generate_journey_stops(
   };
 
   std::vector<journey::stop> journey_stops;
-  for (auto const& stop : stops)
+  for (auto const& stop : stops) {
     journey_stops.push_back(
         {stop.index, stop.interchange, sched.stations[stop.station_id]->name,
          sched.stations[stop.station_id]->eva_nr,
@@ -260,6 +265,7 @@ std::vector<journey::stop> generate_journey_stops(
                    true, sched.date_manager.format_i_s_o(stop.d_time),
                    get_platform(sched, stop.d_platform)}
              : journey::stop::event_info{false, "", ""}});
+  }
   return journey_stops;
 }
 
@@ -267,13 +273,16 @@ std::vector<journey::attribute> generate_journey_attributes(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
   interval_map attributes;
-  for (auto const& transport : transports)
-    if (transport.con == nullptr)
+  for (auto const& transport : transports) {
+    if (transport.con == nullptr) {
       continue;
-    else
+    } else {
       for (auto const& attribute :
-           transport.con->_full_con->con_info->attributes)
+           transport.con->_full_con->con_info->attributes) {
         attributes.add_entry(attribute, transport.from, transport.to);
+      }
+    }
+  }
 
   std::vector<journey::attribute> journey_attributes;
   for (auto const& attribute : attributes.get_attribute_ranges()) {
@@ -282,8 +291,9 @@ std::vector<journey::attribute> generate_journey_attributes(
     auto const& code = sched.attributes.at(attribute_id)._code;
     auto const& text = sched.attributes.at(attribute_id)._str;
 
-    for (auto const& range : attribute_ranges)
+    for (auto const& range : attribute_ranges) {
       journey_attributes.push_back({range.from, range.to, code, text});
+    }
   }
 
   return journey_attributes;

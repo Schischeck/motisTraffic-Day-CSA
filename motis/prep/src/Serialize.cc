@@ -30,7 +30,9 @@ offset<void const*>::type get_offset(offset_map const& map, void const* ptr) {
       [](std::pair<void const*, offset<void const*>::type> const& a,
          void const* b) { return a.first < b; };
   auto it = std::lower_bound(std::begin(map), std::end(map), ptr, comparator);
-  if (it->first != ptr) throw std::runtime_error("not found");
+  if (it->first != ptr) {
+    throw std::runtime_error("not found");
+  }
   return it->second;
 }
 
@@ -65,8 +67,9 @@ serialize_pointer_pair serialize(array<t>& array, offset_map& offsets,
                                  serialize_pointer next_p) {
   serialize_pointer start = p;
   next_p = p + (sizeof(t) * array.size());
-  for (t const& el : array)
+  for (t const& el : array) {
     std::tie(p, next_p) = serialize(el, offsets, p, next_p);
+  }
 
   array._el._offset = start.offset();
   array._self_allocated = false;
@@ -125,9 +128,10 @@ serialize_pointer_pair serialize(edge const& e, offset_map& offsets,
   edge* copy = nullptr;
   std::tie(p, copy) = simple_copy(p, e);
 
-  if (e._m._type == edge::ROUTE_EDGE)
+  if (e._m._type == edge::ROUTE_EDGE) {
     std::tie(next_p, std::ignore) =
         serialize(copy->_m._route_edge._conns, offsets, next_p, next_p);
+  }
 
   return {p, next_p};
 }
@@ -160,8 +164,9 @@ serialize_pointer_pair serialize(station_node const& n, offset_map& offsets,
   std::tie(p, next_p) = serialize(copy->_edges, offsets, p, next_p);
   std::tie(p, next_p) = serialize(copy->_incoming_edges, offsets, p, next_p);
 
-  for (auto const& edge : make_offset_array_view(copy->_edges, p.base()))
+  for (auto const& edge : make_offset_array_view(copy->_edges, p.base())) {
     std::tie(p, next_p) = serialize(*edge._to, offsets, p, next_p);
+  }
 
   return {p, next_p};
 }
@@ -178,8 +183,9 @@ void pointers_to_offsets(pointer<t>& ptr, serialize_pointer const&,
 template <typename t>
 void pointers_to_offsets(array<t>& array, serialize_pointer const& base,
                          offset_map& offsets) {
-  for (auto& el : make_offset_array_view(array, base.base()))
+  for (auto& el : make_offset_array_view(array, base.base())) {
     pointers_to_offsets(el, base, offsets);
+  }
 }
 
 template <>
@@ -226,8 +232,9 @@ void pointers_to_offsets(station_node& station_node,
 
   pointers_to_offsets(station_node._edges, base, offsets);
 
-  for (auto& edge : make_offset_array_view(station_node._edges, base.base()))
+  for (auto& edge : make_offset_array_view(station_node._edges, base.base())) {
     pointers_to_offsets(*base.absolute<node>(edge._to._offset), base, offsets);
+  }
 
   pointers_to_offsets(station_node._incoming_edges, base, offsets);
 }
@@ -238,8 +245,9 @@ void pointers_to_offsets(edge& edge, serialize_pointer const& base,
   edge._to._offset = get_offset(offsets, edge._to._ptr);
   edge._from._offset = get_offset(offsets, edge._from._ptr);
 
-  if (edge._m._type == edge::ROUTE_EDGE)
+  if (edge._m._type == edge::ROUTE_EDGE) {
     pointers_to_offsets(edge._m._route_edge._conns, base, offsets);
+  }
 }
 
 void write_file(std::string const& file_name, serialize_pointer p) {
@@ -305,14 +313,17 @@ int serialize(text_schedule const& sched, std::string const& prefix) {
   });
 
   // transform pointers to offsets.
-  for (auto offset : index.full_connections)
+  for (auto offset : index.full_connections) {
     pointers_to_offsets(*p.absolute<connection>(offset), p, offsets);
+  }
 
-  for (auto offset : index.connection_infos)
+  for (auto offset : index.connection_infos) {
     pointers_to_offsets(*p.absolute<connection_info>(offset), p, offsets);
+  }
 
-  for (auto offset : index.station_nodes)
+  for (auto offset : index.station_nodes) {
     pointers_to_offsets(*p.absolute<station_node>(offset), p, offsets);
+  }
 
   // write memory to file.
   write_file(prefix + SCHEDULE_FILE, p);

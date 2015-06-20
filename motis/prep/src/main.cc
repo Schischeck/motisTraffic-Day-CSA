@@ -107,10 +107,11 @@ int main(int argc, char* argv[]) {
   schedule_ptr schedule;
   if (serialize_opt.serialize || serialize_opt.station_graph) {
     scoped_timer timer("reading_schedule");
-    if (serialize_opt.serialize)
+    if (serialize_opt.serialize) {
       schedule = load_text_schedule(serialize_opt.schedule_prefix);
-    else
+    } else {
       schedule = load_binary_schedule(serialize_opt.schedule_prefix);
+    }
   }
 
   if (serialize_opt.station_graph) {

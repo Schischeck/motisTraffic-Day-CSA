@@ -14,5 +14,5 @@ add_dependencies(motis-reliability-reload motis-reliability)
 
 file(GLOB_RECURSE motis-reliability-test-files test/*.cc)
 add_executable(motis-reliability-test ${motis-reliability-files} ${motis-reliability-test-files})
-set_target_properties(motis-reliability-test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+set_target_properties(motis-reliability-test PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
 target_link_libraries(motis-reliability-test ${Boost_SYSTEM_LIBRARY} json11 motis-loader)

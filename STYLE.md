@@ -14,7 +14,18 @@ Do not use very long variable and class names.
 
 # Formatting
 
-Use clang-format (the .clang-format file is located in this repository)
+Use clang-format (the .clang-format file is located in this repository).
+
+Don't leave out brackets:
+
+    // Wrong.
+    if (exit) return;
+
+    // Correct.
+    if (exit) {
+      return;
+    }
+
 
 Minimize use of vertical whitespace:
 Don't put more than one or two blank lines between functions, resist starting functions with a blank line, don't end functions with a blank line, and be discriminating with your use of blank lines inside functions. The basic principle is: The more code that fits on one screen, the easier it is to follow and understand the control flow of the program. Of course, readability can suffer from code being too dense as well as too spread out, so use your judgement. But in general, minimize use of vertical whitespace.

@@ -16,20 +16,22 @@ std::map<int, int> build_category_class_map(
 
   for (unsigned i = 0; i < category_names.size(); ++i) {
     auto it = classes.find(category_names[i]);
-    if (it == end(classes))
+    if (it == end(classes)) {
       category_class_map[i] = 9;
-    else
+    } else {
       category_class_map[i] = it->second;
+    }
   }
 
   return category_class_map;
 }
 
 schedule_ptr load_schedule(std::string const& prefix) {
-  if (boost::filesystem::exists(prefix + SCHEDULE_FILE))
+  if (boost::filesystem::exists(prefix + SCHEDULE_FILE)) {
     return load_binary_schedule(prefix);
-  else
+  } else {
     return load_text_schedule(prefix);
+  }
 }
 
 schedule_ptr load_text_schedule(std::string const& prefix) {

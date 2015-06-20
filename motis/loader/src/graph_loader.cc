@@ -54,16 +54,16 @@ public:
   int d_time, a_time;
 };
 
-template <typename t>
-std::vector<t> join(std::vector<std::vector<t>> vecs) {
-  if (vecs.empty())
+template <typename T>
+std::vector<T> join(std::vector<std::vector<T>> vecs) {
+  if (vecs.empty()) {
     return {};
-  else if (vecs.size() == 1)
+  } else if (vecs.size() == 1) {
     return vecs[0];
-  else {
-    std::vector<t> ret = std::move(*std::begin(vecs));
+  } else {
+    std::vector<T> ret = std::move(*std::begin(vecs));
     std::for_each(std::next(std::begin(vecs)), std::end(vecs),
-                  [&ret](std::vector<t> const& vec) {
+                  [&ret](std::vector<T> const& vec) {
       ret.insert(std::end(ret), std::begin(vec), std::end(vec));
     });
     return ret;
@@ -128,8 +128,9 @@ int graph_loader::load_stations(std::vector<station_ptr>& stations,
 
     stations.emplace_back(new station(), deleter<station>(true));
     in >> *stations[i];
-    if (stations[i]->index != i)
+    if (stations[i]->index != i) {
       std::cout << i << " " << stations[i]->index << "\n";
+    }
     assert(stations[i]->index == i);
 
     station_nodes.emplace_back(new station_node(node_id++),
@@ -198,6 +199,7 @@ int graph_loader::load_routes(
         in >> c;
         assert(c == ',');
       }
+
       in >> c;
       assert(c == 'l');
       in >> locations[i];
@@ -209,6 +211,7 @@ int graph_loader::load_routes(
         in >> temp;
         skip_arrival[i] = (temp == 1);
       }
+
       if (i < n_stations - 1) {
         in >> c;
         assert(c == 'd');
@@ -279,8 +282,9 @@ int graph_loader::load_routes(
           int n;
           in >> n;
           input_connections[station_i][train_i].attributes.resize(n);
-          for (int k = 0; k < n; ++k)
+          for (int k = 0; k < n; ++k) {
             in >> input_connections[station_i][train_i].attributes[k];
+          }
 
           in >> input_connections[station_i][train_i].train_nr;
 
@@ -312,9 +316,10 @@ int graph_loader::load_routes(
 
         connection_info con_info(input_connections[con_i][train_i]);
         auto it = con_infos.find(con_info);
-        if (it == std::end(con_infos))
+        if (it == std::end(con_infos)) {
           std::tie(it, std::ignore) = con_infos.insert(
               std::make_pair(std::move(con_info), con_info_id++));
+        }
 
         connection* full_con =
             new connection(input_connections[con_i][train_i]);
@@ -354,10 +359,11 @@ int graph_loader::load_routes(
             route_node, join(expanded_connections[station_i - 1])));
       }
 
-      if (station_i < n_stations - 1 && !skip_departure[station_i])
+      if (station_i < n_stations - 1 && !skip_departure[station_i]) {
         station->_edges.push_back(make_foot_edge(route_node));
-      else
+      } else {
         station->_edges.push_back(make_invalid_edge(route_node));
+      }
 
       prev_route_node = route_node;
     }
@@ -375,8 +381,9 @@ int graph_loader::load_routes(
   }
 
   // initialize pointers from the full connections to connection infos
-  for (auto& full_con : full_connections)
+  for (auto& full_con : full_connections) {
     full_con->con_info = con_info_id2con_info_ptr[full_con->con_info_id];
+  }
 
   return node_id;
 }
@@ -393,7 +400,9 @@ void graph_loader::assign_predecessors(
       link_predecessor(station_node.get(), station_edge);
 
       node* node = station_edge.get_destination();
-      for (auto& edge : node->_edges) link_predecessor(node, edge);
+      for (auto& edge : node->_edges) {
+        link_predecessor(node, edge);
+      }
     }
   }
 }
@@ -571,9 +580,10 @@ void graph_loader::load_dates(date_manager& dm) {
   vector<date_manager::date> dates(n);
   char c;
   int ind;
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < n; ++i) {
     in >> ind >> c >> dates[i].day >> c >> dates[i].month >> c >>
         dates[i].year >> c;
+  }
 
   dm.load(dates);
 }
