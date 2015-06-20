@@ -1,5 +1,8 @@
 #include "motis/webservice/ws_server.h"
 
+#include <memory>
+#include <functional>
+
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
@@ -22,7 +25,6 @@ struct ws_server::ws_server_impl {
         open_handler_(nullptr),
         close_handler_(nullptr) {
     namespace p = std::placeholders;
-    server_.set_reuse_addr(true);
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
@@ -59,13 +61,6 @@ struct ws_server::ws_server_impl {
   }
 
   void stop() {
-    server_.stop_listening();
-    for (auto con : sid_con_map_) {
-      try {
-        server_.close(con.second, websocketpp::close::status::normal, "");
-      } catch (...) {
-      }
-    }
     server_.stop();
   }
 
