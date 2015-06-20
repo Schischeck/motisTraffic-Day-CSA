@@ -63,5 +63,5 @@ struct dynamic_module_loader {
   boost::asio::signal_set signals_;
 };
 
-}  // namespace motis
+}  // namespace module
 }  // namespace motis

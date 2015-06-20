@@ -81,7 +81,7 @@ public:
     _m._foot_edge._transfer = transfer;
     _m._foot_edge._slot = slot;
 
-    assert(_m._type != type::ROUTE_EDGE);
+    assert(_m._type != ROUTE_EDGE);
   }
 
   edge_cost get_edge_cost(time start_time,
