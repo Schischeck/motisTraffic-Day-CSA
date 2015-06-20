@@ -6,7 +6,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/files.h"
 
-namespace td {
+namespace motis {
 
 typedef std::pair<int /* to node id */, int /* train class */>
     station_graph_edge;
@@ -56,4 +56,4 @@ void write_station_graph(schedule const& sched, std::string const& prefix) {
   }
 }
 
-}  // namespace td
+}  // namespace motis

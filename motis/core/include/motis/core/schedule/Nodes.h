@@ -11,7 +11,7 @@
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/time.h"
 
-namespace td {
+namespace motis {
 
 class station_node;
 class node;
@@ -118,4 +118,4 @@ public:
 
 typedef std::unique_ptr<station_node, deleter<station_node>> station_node_ptr;
 
-}  // namespace td
+}  // namespace motis

@@ -12,7 +12,7 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/station.h"
 
-namespace td {
+namespace motis {
 
 class bitset_manager;
 class date_manager;
@@ -63,4 +63,4 @@ private:
   std::string _prefix;
 };
 
-}  // namespace td
+}  // namespace motis

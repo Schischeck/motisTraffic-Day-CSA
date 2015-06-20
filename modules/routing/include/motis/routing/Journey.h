@@ -5,7 +5,7 @@
 
 #include "motis/routing/label.h"
 
-namespace td {
+namespace motis {
 
 class label;
 struct schedule;
@@ -51,4 +51,4 @@ struct journey {
   std::vector<attribute> attributes;
 };
 
-}  // namespace td
+}  // namespace motis

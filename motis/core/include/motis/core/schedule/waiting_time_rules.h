@@ -7,7 +7,7 @@
 
 #include "motis/core/common/flat_matrix.h"
 
-namespace td {
+namespace motis {
 
 struct schedule;
 class graph_loader;
@@ -59,4 +59,4 @@ private:
   std::vector<bool> _other_trains_wait_for;
 };
 
-}  // namespace td
+}  // namespace motis

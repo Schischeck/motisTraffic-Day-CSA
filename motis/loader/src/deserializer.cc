@@ -8,7 +8,7 @@
 #include "motis/loader/files.h"
 #include "motis/loader/binary_schedule_index.h"
 
-namespace td {
+namespace motis {
 
 std::unique_ptr<char[]> read_raw_file(std::string const& file) {
   std::ifstream in(file, std::ios_base::in | std::ios_base::binary);
@@ -136,4 +136,4 @@ std::pair<int, std::unique_ptr<char[]>> deserializer::load_graph(
   return {node_count, std::move(schedule_buffer)};
 }
 
-}  // namespace td
+}  // namespace motis

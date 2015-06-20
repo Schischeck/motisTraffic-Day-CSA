@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <atomic>
 
-namespace td {
+namespace motis {
 
 /// this class provides synchronization and distinguishes two kinds of access:
 ///
@@ -77,4 +77,4 @@ struct synchronization {
   std::condition_variable write_queue_cv_;
 };
 
-}  // namespace td
+}  // namespace motis

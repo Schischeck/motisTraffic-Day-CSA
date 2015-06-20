@@ -22,7 +22,7 @@
 
 using namespace motis::webservice;
 using namespace motis::module;
-using namespace td;
+using namespace motis;
 
 int main(int argc, char** argv) {
   listener_settings listener_opt("0.0.0.0", "8080");

@@ -10,7 +10,7 @@
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/nodes.h"
 
-namespace td {
+namespace motis {
 
 class deserializer {
 public:
@@ -24,4 +24,4 @@ private:
   std::string _prefix;
 };
 
-}  // namespace td
+}  // namespace motis

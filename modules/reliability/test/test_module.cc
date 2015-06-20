@@ -10,7 +10,7 @@ using namespace json11;
 using namespace motis::reliability;
 
 TEST_CASE("Initial distributions are calculated", "[initial]") {
-  auto schedule = td::load_schedule("../schedule/test");
+  auto schedule = motis::load_schedule("../schedule/test");
 
   reliability rel;
   rel.schedule_ = schedule.get();

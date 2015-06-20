@@ -4,8 +4,8 @@
 
 #include "motis/core/schedule/schedule.h"
 
-namespace td {
+namespace motis {
 
 int serialize(text_schedule const& sched, std::string const& prefix);
 
-}  // namespace td
+}  // namespace motis

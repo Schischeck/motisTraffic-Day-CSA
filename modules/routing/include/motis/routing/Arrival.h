@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-namespace td {
+namespace motis {
 
 struct arrival_part {
   arrival_part() : station(0), time_cost(0), price(0), slot(0) {}
@@ -21,4 +21,4 @@ struct arrival_part {
 
 typedef std::vector<arrival_part> arrival;
 
-}  // namespace td
+}  // namespace motis

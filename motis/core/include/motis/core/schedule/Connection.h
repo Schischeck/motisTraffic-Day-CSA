@@ -8,19 +8,19 @@
 #include "motis/core/common/pointer.h"
 #include "motis/core/schedule/time.h"
 
-namespace td {
+namespace motis {
 
 enum {
-  TD_ICE = 0,
-  TD_IC = 1,
-  TD_N = 2,
-  TD_RE = 3,
-  TD_RB = 4,
-  TD_S = 5,
-  TD_U = 6,
-  TD_STR = 7,
-  TD_BUS = 8,
-  TD_X = 9
+  MOTIS_ICE = 0,
+  MOTIS_IC = 1,
+  MOTIS_N = 2,
+  MOTIS_RE = 3,
+  MOTIS_RB = 4,
+  MOTIS_S = 5,
+  MOTIS_U = 6,
+  MOTIS_STR = 7,
+  MOTIS_BUS = 8,
+  MOTIS_X = 9
 };
 
 class connection_info {
@@ -96,4 +96,4 @@ public:
   enum : uint32_t { INVALID_CON_ID = 0xffffffff };
 };
 
-}  // namespace td
+}  // namespace motis

@@ -22,7 +22,7 @@
 #include "motis/routing/label.h"
 #include "motis/routing/timing.h"
 
-namespace td {
+namespace motis {
 
 void remove_intersection(arrival& from, arrival& to) {
   for (auto const& to_arr_part : to)
@@ -63,21 +63,21 @@ std::vector<journey> search::get_connections(
 
   lower_bounds lower_bounds(_sched.lower_bounds, dummy_target, lb_graph_edges);
 
-  TD_START_TIMING(lower_bounds_timing);
+  MOTIS_START_TIMING(lower_bounds_timing);
 
-  TD_START_TIMING(travel_l_b_time_timing);
+  MOTIS_START_TIMING(travel_l_b_time_timing);
   lower_bounds.travel_time.run();
-  TD_STOP_TIMING(travel_l_b_time_timing);
+  MOTIS_STOP_TIMING(travel_l_b_time_timing);
 
-  TD_START_TIMING(transfers_l_b_timing);
+  MOTIS_START_TIMING(transfers_l_b_timing);
   lower_bounds.transfers.run();
-  TD_STOP_TIMING(transfers_l_b_timing);
+  MOTIS_STOP_TIMING(transfers_l_b_timing);
 
-  TD_START_TIMING(price_l_b_timing);
+  MOTIS_START_TIMING(price_l_b_timing);
   lower_bounds.price.run();
-  TD_STOP_TIMING(price_l_b_timing);
+  MOTIS_STOP_TIMING(price_l_b_timing);
 
-  TD_STOP_TIMING(lower_bounds_timing);
+  MOTIS_STOP_TIMING(lower_bounds_timing);
 
   if (lower_bounds.travel_time.get_distance(dummy_source) ==
       std::numeric_limits<uint32_t>::max()) {
@@ -122,9 +122,9 @@ std::vector<journey> search::get_connections(
 
   if (stats != nullptr) {
     *stats = pd.get_statistics();
-    stats->travel_time_l_b = TD_TIMING_MS(travel_l_b_time_timing);
-    stats->transfers_l_b = TD_TIMING_MS(transfers_l_b_timing);
-    stats->price_l_b = TD_TIMING_MS(price_l_b_timing);
+    stats->travel_time_l_b = MOTIS_TIMING_MS(travel_l_b_time_timing);
+    stats->transfers_l_b = MOTIS_TIMING_MS(transfers_l_b_timing);
+    stats->price_l_b = MOTIS_TIMING_MS(price_l_b_timing);
   }
 
   std::vector<journey> journeys;
@@ -197,4 +197,4 @@ void search::generate_start_labels(time const from, time const to,
   }
 }
 
-}  // namespace td
+}  // namespace motis

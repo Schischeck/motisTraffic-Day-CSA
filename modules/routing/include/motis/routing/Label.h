@@ -15,17 +15,17 @@
 #define TRANSFER_WAGE 0
 #define MAX_LABELS 100000000
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
-#define TD_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
+#define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
-namespace td {
+namespace motis {
 
 class label {
 public:
   enum {
-    TD_LOCAL_TRANSPORT_PRICE,
-    TD_REGIONAL_TRAIN_PRICE,
-    TD_IC_PRICE,
-    TD_ICE_PRICE,
+    MOTIS_LOCAL_TRANSPORT_PRICE,
+    MOTIS_REGIONAL_TRAIN_PRICE,
+    MOTIS_IC_PRICE,
+    MOTIS_ICE_PRICE,
     ADDITIONAL_PRICE
   };
 
@@ -189,44 +189,44 @@ public:
     if (ec.connection != nullptr) {
       connection const* con = ec.connection->_full_con;
       switch (con->clasz) {
-        case TD_ICE:
-          if (_prices[TD_ICE_PRICE] == 0) {
-            if (_prices[TD_IC_PRICE] != 0)
-              _prices[TD_ICE_PRICE] += 100 + con->price;
+        case MOTIS_ICE:
+          if (_prices[MOTIS_ICE_PRICE] == 0) {
+            if (_prices[MOTIS_IC_PRICE] != 0)
+              _prices[MOTIS_ICE_PRICE] += 100 + con->price;
             else
-              _prices[TD_ICE_PRICE] += 700 + con->price;
+              _prices[MOTIS_ICE_PRICE] += 700 + con->price;
           } else
-            _prices[TD_ICE_PRICE] += con->price;
+            _prices[MOTIS_ICE_PRICE] += con->price;
 
           break;
 
-        case TD_IC:
-          if (_prices[TD_IC_PRICE] == 0) {
-            if (_prices[TD_ICE_PRICE] != 0)
-              _prices[TD_IC_PRICE] += con->price;
+        case MOTIS_IC:
+          if (_prices[MOTIS_IC_PRICE] == 0) {
+            if (_prices[MOTIS_ICE_PRICE] != 0)
+              _prices[MOTIS_IC_PRICE] += con->price;
             else
-              _prices[TD_IC_PRICE] += 600 + con->price;
+              _prices[MOTIS_IC_PRICE] += 600 + con->price;
           } else
-            _prices[TD_IC_PRICE] += 600 + con->price;
+            _prices[MOTIS_IC_PRICE] += 600 + con->price;
 
           break;
 
-        case TD_RE:
-        case TD_RB:
-        case TD_S:
-          _prices[TD_REGIONAL_TRAIN_PRICE] += con->price;
-          if (_prices[TD_REGIONAL_TRAIN_PRICE] >
-              TD_MAX_REGIONAL_TRAIN_TICKET_PRICE)
-            _prices[TD_REGIONAL_TRAIN_PRICE] =
-                TD_MAX_REGIONAL_TRAIN_TICKET_PRICE;
+        case MOTIS_RE:
+        case MOTIS_RB:
+        case MOTIS_S:
+          _prices[MOTIS_REGIONAL_TRAIN_PRICE] += con->price;
+          if (_prices[MOTIS_REGIONAL_TRAIN_PRICE] >
+              MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE)
+            _prices[MOTIS_REGIONAL_TRAIN_PRICE] =
+                MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE;
 
           break;
 
-        case TD_N:
-        case TD_U:
-        case TD_STR:
-        case TD_BUS:
-        case TD_X: _prices[TD_LOCAL_TRANSPORT_PRICE] += con->price;
+        case MOTIS_N:
+        case MOTIS_U:
+        case MOTIS_STR:
+        case MOTIS_BUS:
+        case MOTIS_X: _prices[MOTIS_LOCAL_TRANSPORT_PRICE] += con->price;
       }
     } else {
       _prices[4] += ec[2];
@@ -244,10 +244,10 @@ public:
     _total_price[1] =
         _prices[ADDITIONAL_PRICE] +
         std::min(14000u,
-                 _prices[TD_LOCAL_TRANSPORT_PRICE] + _prices[TD_IC_PRICE] +
-                     _prices[TD_ICE_PRICE] +
-                     std::min(_prices[TD_REGIONAL_TRAIN_PRICE] + lower_bound,
-                              TD_MAX_REGIONAL_TRAIN_TICKET_PRICE));
+                 _prices[MOTIS_LOCAL_TRANSPORT_PRICE] +
+                     _prices[MOTIS_IC_PRICE] + _prices[MOTIS_ICE_PRICE] +
+                     std::min(_prices[MOTIS_REGIONAL_TRAIN_PRICE] + lower_bound,
+                              MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE));
   }
 
   void set_slot(bool start, int slot) {
@@ -286,4 +286,4 @@ public:
   uint8_t _target_slot;
 };
 
-}  // namespace td
+}  // namespace motis

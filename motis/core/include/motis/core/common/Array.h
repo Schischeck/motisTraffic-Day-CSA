@@ -11,7 +11,7 @@
 
 #include "motis/core/common/pointer.h"
 
-namespace td {
+namespace motis {
 
 inline uint64_t next_power_of_two(uint64_t n) {
   n--;
@@ -301,4 +301,4 @@ inline void getline(std::istream& in, string& s, char delim) {
   s = string(tmp.c_str());
 }
 
-}  // namespace td
+}  // namespace motis

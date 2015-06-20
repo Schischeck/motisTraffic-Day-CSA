@@ -2,7 +2,7 @@
 
 #include "motis/core/common/offset.h"
 
-namespace td {
+namespace motis {
 
 class serialize_pointer {
 public:
@@ -56,4 +56,4 @@ private:
   offset_type _offset = 0;
 };
 
-}  // namespace td
+}  // namespace motis

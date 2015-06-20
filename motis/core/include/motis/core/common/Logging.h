@@ -9,12 +9,12 @@
 
 #define LOG(lvl)                                          \
   std::cerr << "\n"                                       \
-            << "[" << td::logging::str[lvl] << "]"        \
-            << "[" << td::logging::time() << "]"          \
+            << "[" << motis::logging::str[lvl] << "]"     \
+            << "[" << motis::logging::time() << "]"       \
             << "[" << FILE_NAME << ":" << __LINE__ << "]" \
             << " "
 
-namespace td {
+namespace motis {
 namespace logging {
 
 enum log_level { emrg, alrt, crit, error, warn, notice, info, debug };
@@ -49,4 +49,4 @@ struct scoped_timer final {
 };
 
 }  // namespace logging
-}  // namespace td
+}  // namespace motis

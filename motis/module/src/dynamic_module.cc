@@ -17,7 +17,7 @@ namespace motis {
 namespace module {
 
 std::vector<dynamic_module> modules_from_folder(std::string const& path,
-                                                td::schedule* schedule) {
+                                                motis::schedule* schedule) {
   std::vector<dynamic_module> modules;
 
   // check that the specified path is a directory.
@@ -62,7 +62,7 @@ dynamic_module& dynamic_module::operator=(dynamic_module&& other) {
 }
 
 #if defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
     : lib_(nullptr) {
   // define module map and get_modules to simplify code.
   typedef void*(__cdecl * load_module)(void*);
@@ -100,7 +100,7 @@ dynamic_module::~dynamic_module() {
   }
 }
 #else  // defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
     : lib_(nullptr) {
   // discover package name.
   using boost::filesystem::path;

@@ -16,7 +16,7 @@ po::options_description modules_settings::desc() {
   po::options_description desc("Listener Options");
   desc.add_options()(MODULES_PATH,
                      po::value<std::string>(&path)->default_value(path),
-                     "TD Dataset root");
+                     "MOTIS Dataset root");
   return desc;
 }
 

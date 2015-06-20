@@ -7,7 +7,7 @@
 
 #include "motis/core/schedule/nodes.h"
 
-namespace td {
+namespace motis {
 
 struct simple_edge {
   simple_edge() : to(0) {}
@@ -114,4 +114,4 @@ public:
   std::unordered_map<int, std::vector<simple_edge>> const& _additional_edges;
 };
 
-}  // namespace td
+}  // namespace motis

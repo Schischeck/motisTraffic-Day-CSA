@@ -7,7 +7,7 @@
 #include "motis/loader/deserializer.h"
 #include "motis/loader/files.h"
 
-namespace td {
+namespace motis {
 
 std::map<int, int> build_category_class_map(
     std::vector<std::string> const& category_names,
@@ -78,4 +78,4 @@ schedule_ptr load_binary_schedule(std::string const& prefix) {
   return schedule_ptr(s.release());
 }
 
-}  // namespace td
+}  // namespace motis

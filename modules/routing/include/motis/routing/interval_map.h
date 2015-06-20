@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace td {
+namespace motis {
 
 class interval_map {
 public:
@@ -25,4 +25,4 @@ private:
   std::unique_ptr<interval_map_impl> _impl;
 };
 
-}  // namespace td
+}  // namespace motis

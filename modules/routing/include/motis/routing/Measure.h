@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace td {
+namespace motis {
 
 template <typename time_type = std::chrono::milliseconds>
 struct measure {
@@ -16,4 +16,4 @@ struct measure {
   }
 };
 
-}  // namespace td
+}  // namespace motis

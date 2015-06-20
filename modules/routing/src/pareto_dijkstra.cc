@@ -7,7 +7,7 @@
 const bool DOMINANCE = true;
 const bool FORWARDING = true;
 
-using namespace td;
+using namespace motis;
 
 pareto_dijkstra::pareto_dijkstra(
     int node_count, station_node const* goal,

@@ -24,22 +24,22 @@
 
 using namespace std;
 
-namespace td {
+namespace motis {
 
 static int get_price_per_km(int clasz) {
   switch (clasz) {
-    case TD_ICE: return 22;
+    case MOTIS_ICE: return 22;
 
-    case TD_N:
-    case TD_IC:
-    case TD_X: return 18;
+    case MOTIS_N:
+    case MOTIS_IC:
+    case MOTIS_X: return 18;
 
-    case TD_RE:
-    case TD_RB:
-    case TD_S:
-    case TD_U:
-    case TD_STR:
-    case TD_BUS: return 15;
+    case MOTIS_RE:
+    case MOTIS_RB:
+    case MOTIS_S:
+    case MOTIS_U:
+    case MOTIS_STR:
+    case MOTIS_BUS: return 15;
 
     default: return 0;
   }
@@ -633,4 +633,5 @@ double graph_loader::get_distance(const station& s1, const station& s2) {
   double d = 6367 * c;
   return d;
 }
-}
+
+}  // namespace motis

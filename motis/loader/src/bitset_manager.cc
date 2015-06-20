@@ -3,7 +3,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace td;
+using namespace motis;
 
 bitset_manager::bitset_manager(istream& in) {
   // add empty bitset

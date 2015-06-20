@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <memory>
 
-namespace td {
+namespace motis {
 
 template <typename t>
 class memory_manager {
@@ -30,4 +30,4 @@ private:
   t* _next_position;
 };
 
-}  // namespace td
+}  // namespace motis

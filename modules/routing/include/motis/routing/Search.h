@@ -10,7 +10,7 @@
 #include "motis/routing/label.h"
 #include "motis/routing/journey.h"
 
-namespace td {
+namespace motis {
 
 struct schedule;
 
@@ -40,4 +40,4 @@ public:
   memory_manager<label>& _label_store;
 };
 
-}  // namespace td
+}  // namespace motis

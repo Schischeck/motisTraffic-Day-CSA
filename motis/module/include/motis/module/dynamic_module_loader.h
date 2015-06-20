@@ -12,8 +12,9 @@ namespace module {
 
 template <typename dispatcher>
 struct dynamic_module_loader {
-  dynamic_module_loader(std::string const& modules_path, td::schedule* schedule,
-                        dispatcher& d, boost::asio::io_service& ios)
+  dynamic_module_loader(std::string const& modules_path,
+                        motis::schedule* schedule, dispatcher& d,
+                        boost::asio::io_service& ios)
       : modules_path_(modules_path),
         schedule_(schedule),
         dispatcher_(d),
@@ -57,7 +58,7 @@ struct dynamic_module_loader {
 
   std::vector<dynamic_module> modules_;
   std::string modules_path_;
-  td::schedule* schedule_;
+  motis::schedule* schedule_;
   dispatcher& dispatcher_;
   boost::asio::signal_set signals_;
 };

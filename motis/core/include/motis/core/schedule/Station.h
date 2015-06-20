@@ -8,7 +8,7 @@
 #include "motis/core/common/array.h"
 #include "motis/core/common/deleter.h"
 
-namespace td {
+namespace motis {
 
 class station {
 public:
@@ -35,4 +35,4 @@ public:
 
 typedef std::unique_ptr<station, deleter<station>> station_ptr;
 
-}  // namespace td
+}  // namespace motis

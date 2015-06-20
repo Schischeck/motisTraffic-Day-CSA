@@ -8,7 +8,7 @@
 #define MAX_TRANSFERS (6)
 #define MAX_WAITING_TIME (200)
 
-namespace td {
+namespace motis {
 
 inline bool is_filtered_travel_time(unsigned const n_travel_time) {
   return n_travel_time > MAX_TRAVEL_TIME;
@@ -25,4 +25,4 @@ inline bool is_filtered_waiting_time(light_connection const* con,
   return next_travel_time - pred_travel_time - con_time > MAX_WAITING_TIME;
 }
 
-}  // namespace td
+}  // namespace motis

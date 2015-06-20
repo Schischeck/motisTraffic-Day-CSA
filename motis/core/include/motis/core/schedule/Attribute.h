@@ -2,11 +2,11 @@
 
 #include <string>
 
-namespace td {
+namespace motis {
 
 struct attribute {
   std::string _str;
   std::string _code;
 };
 
-}  // namespace td
+}  // namespace motis

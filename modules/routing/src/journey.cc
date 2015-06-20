@@ -9,7 +9,7 @@
 
 #define UNKNOWN_TRACK (1)
 
-namespace td {
+namespace motis {
 
 namespace intermediate {
 
@@ -312,4 +312,4 @@ journey::journey(label const* label, schedule const& sched) {
   price = label->_total_price[0];
 }
 
-}  // namespace td
+}  // namespace motis

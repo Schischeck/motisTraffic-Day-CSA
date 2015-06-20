@@ -2,8 +2,8 @@
 
 #include <string>
 
-namespace td {
+namespace motis {
 
 void services2routes(std::string const& prefix);
 
-}  // namespace td
+}  // namespace motis

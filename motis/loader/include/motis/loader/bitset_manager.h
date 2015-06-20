@@ -14,7 +14,7 @@
 #include <ostream>
 #include <istream>
 
-namespace td {
+namespace motis {
 
 const int MAXDAYS = 64;
 typedef std::bitset<MAXDAYS> schedule_bitset;
@@ -131,4 +131,4 @@ private:
   int _real_size;
 };
 
-}  // namespace td
+}  // namespace motis

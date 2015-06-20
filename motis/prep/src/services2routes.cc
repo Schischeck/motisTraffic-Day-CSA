@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace td {
+namespace motis {
 
 using namespace logging;
 
@@ -629,7 +629,7 @@ void services2routes(std::string const& prefix) {
   bfout.close();
 }
 
-}  // namespace td
+}  // namespace motis
 
 ///////////////////////////////////////////////////////////////////////////////
 //                             ROUTES FORMAT                                 //

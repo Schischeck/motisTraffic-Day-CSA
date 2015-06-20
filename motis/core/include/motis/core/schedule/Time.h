@@ -8,7 +8,7 @@
 
 #define MINUTES_A_DAY 1440
 
-namespace td {
+namespace motis {
 
 typedef uint16_t time;
 typedef uint16_t duration;
@@ -32,4 +32,4 @@ inline std::string format_time(time time) {
   return out.str();
 }
 
-}  // namespace td
+}  // namespace motis

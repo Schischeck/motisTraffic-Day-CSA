@@ -2,7 +2,7 @@
 
 #include "motis/core/common/offset.h"
 
-namespace td {
+namespace motis {
 
 template <typename T>
 union pointer final {
@@ -30,4 +30,4 @@ union pointer final {
   typename offset<T*>::type _offset;
 };
 
-}  // namespace td
+}  // namespace motis

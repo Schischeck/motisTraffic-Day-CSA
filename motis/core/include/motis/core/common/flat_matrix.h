@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace td {
+namespace motis {
 
 template <typename t>
 struct flat_matrix {
@@ -44,4 +44,4 @@ struct flat_matrix {
   std::vector<t> entries_;
 };
 
-}  // namespace td
+}  // namespace motis

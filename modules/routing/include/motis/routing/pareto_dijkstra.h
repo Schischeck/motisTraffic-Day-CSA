@@ -8,7 +8,7 @@
 #include "motis/routing/label.h"
 #include "motis/routing/lower_bounds.h"
 
-namespace td {
+namespace motis {
 
 class heuristic;
 class node;
@@ -107,4 +107,4 @@ private:
   statistics _stats;
 };
 
-}  // namespace td
+}  // namespace motis

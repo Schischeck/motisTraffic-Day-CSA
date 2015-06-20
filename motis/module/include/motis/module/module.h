@@ -21,7 +21,7 @@ struct module : public conf::configuration {
   virtual void on_open(sid){};
   virtual void on_close(sid){};
 
-  td::schedule* schedule_;
+  motis::schedule* schedule_;
 };
 
 }  // namespace motis

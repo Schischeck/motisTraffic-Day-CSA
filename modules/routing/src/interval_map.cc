@@ -2,7 +2,7 @@
 
 #include "boost/icl/interval_set.hpp"
 
-namespace td {
+namespace motis {
 
 class interval_map::interval_map_impl {
 public:
@@ -46,4 +46,4 @@ interval_map::get_attribute_ranges() {
   return _impl->get_attribute_ranges();
 }
 
-}  // namespace td
+}  // namespace motis

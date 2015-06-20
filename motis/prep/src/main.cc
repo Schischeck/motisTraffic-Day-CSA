@@ -20,8 +20,8 @@
 #define SERIALIZE_GRAPH ("serialize_graph")
 #define WRITE_STATION_GRAPH ("station_graph")
 
-using namespace td;
-using namespace td::logging;
+using namespace motis;
+using namespace motis::logging;
 namespace po = boost::program_options;
 
 class serialize_settings : public conf::configuration {
@@ -83,17 +83,17 @@ int main(int argc, char* argv[]) {
   parser.read_command_line_args(argc, argv);
 
   if (parser.help()) {
-    std::cout << "\n\tTD serialize\n\n";
+    std::cout << "\n\tMOTIS serialize\n\n";
     parser.print_help(std::cout);
     return 0;
   } else if (parser.version()) {
-    std::cout << "TD serialize\n";
+    std::cout << "MOTIS serialize\n";
     return 0;
   }
 
   parser.read_configuration_file();
 
-  std::cout << "\n\tTD serialize\n\n";
+  std::cout << "\n\tMOTIS serialize\n\n";
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 

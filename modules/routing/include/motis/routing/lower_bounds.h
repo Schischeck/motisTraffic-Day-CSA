@@ -2,7 +2,7 @@
 
 #include "motis/core/schedule/constant_graph.h"
 
-namespace td {
+namespace motis {
 
 struct lower_bounds {
   lower_bounds(
@@ -17,4 +17,4 @@ struct lower_bounds {
   constant_graph_dijkstra<2> price;
 };
 
-}  // namespace td
+}  // namespace motis

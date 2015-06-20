@@ -9,7 +9,7 @@
 #include "motis/core/common/array.h"
 #include "motis/core/common/pointer.h"
 
-namespace td {
+namespace motis {
 
 class node;
 
@@ -272,4 +272,4 @@ inline edge make_invalid_edge(node* to) {
   return edge(to, edge::type::INVALID_EDGE, 0, 0, false, 0);
 }
 
-}  // namespace td
+}  // namespace motis

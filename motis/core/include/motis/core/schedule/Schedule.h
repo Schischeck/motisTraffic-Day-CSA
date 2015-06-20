@@ -13,7 +13,7 @@
 #include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/common/synchronization.h"
 
-namespace td {
+namespace motis {
 
 class connection;
 class connection_info;
@@ -45,4 +45,4 @@ struct binary_schedule : public schedule {
   std::unique_ptr<char[]> raw_memory;
 };
 
-}  // namespace td
+}  // namespace motis

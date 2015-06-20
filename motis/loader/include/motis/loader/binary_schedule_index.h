@@ -3,7 +3,7 @@
 #include "motis/core/common/offset.h"
 #include "motis/core/common/array.h"
 
-namespace td {
+namespace motis {
 
 struct binary_schedule_index {
   typedef offset<connection*>::type connection_offset;
@@ -28,4 +28,4 @@ struct binary_schedule_index {
   array<station_node_offset> station_nodes;
 };
 
-}  // namespace td
+}  // namespace motis

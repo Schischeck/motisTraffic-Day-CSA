@@ -8,7 +8,7 @@
 
 #include "motis/core/schedule/time.h"
 
-namespace td {
+namespace motis {
 
 /** hides away all indexing details of dates. it's main task is to convert
  *  dates into day-indices */
@@ -97,4 +97,4 @@ private:
   date _first_date, _last_date;
 };
 
-}  // namespace td
+}  // namespace motis

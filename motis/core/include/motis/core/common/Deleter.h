@@ -1,6 +1,6 @@
 #pragma once
 
-namespace td {
+namespace motis {
 
 template <typename T>
 struct deleter {
@@ -11,4 +11,4 @@ struct deleter {
   bool _active;
 };
 
-}  // namespace td
+}  // namespace motis

@@ -5,7 +5,7 @@
 #include "motis/loader/loader.h"
 #include "motis/core/schedule/waiting_time_rules.h"
 
-auto schedule = td::load_schedule("../schedule/test");
+auto schedule = motis::load_schedule("../schedule/test");
 
 TEST_CASE("matrix", "[wzr]") {
   auto const& waiting_time_rules = schedule->waiting_time_rules;

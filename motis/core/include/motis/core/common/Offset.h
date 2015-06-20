@@ -2,7 +2,7 @@
 
 #include <cinttypes>
 
-namespace td {
+namespace motis {
 
 template <class t, class enable = void>
 struct offset;
@@ -17,4 +17,4 @@ struct offset<t, typename std::enable_if<sizeof(t) == 8>::type> {
   typedef uint64_t type;
 };
 
-}  // namespace td
+}  // namespace motis

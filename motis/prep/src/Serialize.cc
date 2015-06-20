@@ -19,7 +19,7 @@
 
 #define GIGABYTE (static_cast<std::size_t>(1024 * 1024 * 1024))
 
-namespace td {
+namespace motis {
 
 typedef std::pair<serialize_pointer, serialize_pointer> serialize_pointer_pair;
 typedef std::vector<std::pair<void const*, offset<void const*>::type>>
@@ -328,4 +328,4 @@ int serialize(text_schedule const& sched, std::string const& prefix) {
   return 0;
 }
 
-}  // namespace td
+}  // namespace motis
