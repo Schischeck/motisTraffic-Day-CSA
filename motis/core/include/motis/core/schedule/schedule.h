@@ -21,7 +21,7 @@ class connection_info;
 struct schedule {
   virtual ~schedule() {}
 
-  date_manager date_manager;
+  date_manager date_mgr;
   std::vector<station_ptr> stations;
   std::vector<std::string> category_names;
   std::map<int, std::string> tracks;
@@ -30,7 +30,7 @@ struct schedule {
   unsigned node_count;
   std::vector<station_node_ptr> station_nodes;
   std::vector<node*> route_index_to_first_route_node;
-  waiting_time_rules waiting_time_rules;
+  waiting_time_rules waiting_time_rules_;
   synchronization sync;
 };
 

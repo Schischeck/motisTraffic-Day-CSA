@@ -40,7 +40,7 @@ schedule_ptr load_text_schedule(std::string const& prefix) {
   std::map<std::string, int> classes;
 
   graph_loader loader(prefix);
-  loader.load_dates(s->date_manager);
+  loader.load_dates(s->date_mgr);
   int node_id = loader.load_stations(s->stations, s->station_nodes);
   loader.load_classes(classes);
   loader.load_category_names(s->category_names);
@@ -52,7 +52,7 @@ schedule_ptr load_text_schedule(std::string const& prefix) {
   loader.load_tracks(s->tracks);
   loader.load_attributes(s->attributes);
   loader.assign_predecessors(s->station_nodes);
-  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules);
+  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules_);
 
   s->node_count = node_id;
 
@@ -65,11 +65,11 @@ schedule_ptr load_binary_schedule(std::string const& prefix) {
   std::unique_ptr<binary_schedule> s(new binary_schedule());
 
   graph_loader loader(prefix);
-  loader.load_dates(s->date_manager);
+  loader.load_dates(s->date_mgr);
   loader.load_category_names(s->category_names);
   loader.load_tracks(s->tracks);
   loader.load_attributes(s->attributes);
-  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules);
+  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules_);
 
   deserializer deserializer(prefix);
   std::tie(s->node_count, s->raw_memory) =

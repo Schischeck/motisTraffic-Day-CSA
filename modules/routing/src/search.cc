@@ -169,7 +169,7 @@ void search::generate_start_labels(time const from, time const to,
 
     // don't set label on foot node
     // this isn't neccesary in a intermodal scenario.
-    if (edge._m._type != edge::type::ROUTE_EDGE) {
+    if (edge._m._type != edge::ROUTE_EDGE) {
       continue;
     }
 

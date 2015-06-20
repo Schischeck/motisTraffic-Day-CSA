@@ -50,6 +50,14 @@ const edge_cost NO_EDGE(-1);
 
 class edge {
 public:
+  enum type {
+    INVALID_EDGE,
+    ROUTE_EDGE,
+    FOOT_EDGE,
+    AFTER_TRAIN_FOOT_EDGE,
+    MUMO_EDGE
+  };
+
   edge() = default;
 
   /** route edge constructor. */
@@ -79,12 +87,12 @@ public:
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (_m._type) {
-      case type::ROUTE_EDGE: return get_route_edge_cost(start_time);
+      case ROUTE_EDGE: return get_route_edge_cost(start_time);
 
-      case type::AFTER_TRAIN_FOOT_EDGE:
+      case AFTER_TRAIN_FOOT_EDGE:
         if (last_con == nullptr) return NO_EDGE;
-      case type::MUMO_EDGE:
-      case type::FOOT_EDGE:
+      case MUMO_EDGE:
+      case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
 
@@ -147,14 +155,6 @@ public:
   inline bool empty() const {
     return (type() != ROUTE_EDGE) ? true : _m._route_edge._conns.empty();
   }
-
-  enum type {
-    INVALID_EDGE,
-    ROUTE_EDGE,
-    FOOT_EDGE,
-    AFTER_TRAIN_FOOT_EDGE,
-    MUMO_EDGE
-  };
 
   pointer<node> _to;
   pointer<node> _from;
@@ -255,21 +255,21 @@ inline edge make_route_edge(node* to,
 
 inline edge make_foot_edge(node* to, uint16_t time_cost = 0,
                            bool transfer = false) {
-  return edge(to, edge::type::FOOT_EDGE, time_cost, 0, transfer);
+  return edge(to, edge::FOOT_EDGE, time_cost, 0, transfer);
 }
 
 inline edge make_after_train_edge(node* to, uint16_t time_cost = 0,
                                   bool transfer = false) {
-  return edge(to, edge::type::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
+  return edge(to, edge::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
 }
 
 inline edge make_mumo_edge(node* to, uint16_t time_cost = 0, uint16_t price = 0,
                            uint8_t slot = 0) {
-  return edge(to, edge::type::MUMO_EDGE, time_cost, price, false, slot);
+  return edge(to, edge::MUMO_EDGE, time_cost, price, false, slot);
 }
 
 inline edge make_invalid_edge(node* to) {
-  return edge(to, edge::type::INVALID_EDGE, 0, 0, false, 0);
+  return edge(to, edge::INVALID_EDGE, 0, 0, false, 0);
 }
 
 }  // namespace motis

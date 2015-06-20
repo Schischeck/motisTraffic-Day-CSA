@@ -257,12 +257,12 @@ std::vector<journey::stop> generate_journey_stops(
          sched.stations[stop.station_id]->length,
          stop.a_time != INVALID_TIME
              ? journey::stop::event_info{
-                   true, sched.date_manager.format_i_s_o(stop.a_time),
+                   true, sched.date_mgr.format_i_s_o(stop.a_time),
                    get_platform(sched, stop.a_platform)}
              : journey::stop::event_info{false, "", ""},
          stop.d_time != INVALID_TIME
              ? journey::stop::event_info{
-                   true, sched.date_manager.format_i_s_o(stop.d_time),
+                   true, sched.date_mgr.format_i_s_o(stop.d_time),
                    get_platform(sched, stop.d_platform)}
              : journey::stop::event_info{false, "", ""}});
   }
@@ -301,7 +301,7 @@ std::vector<journey::attribute> generate_journey_attributes(
 
 std::string generate_date(label const* label, schedule const& sched) {
   int start_day = label->_start / MINUTES_A_DAY;
-  date_manager::date date = sched.date_manager.get_date(start_day);
+  date_manager::date date = sched.date_mgr.get_date(start_day);
   return boost::lexical_cast<std::string>(date.day) + "." +
          boost::lexical_cast<std::string>(date.month) + "." +
          boost::lexical_cast<std::string>(date.year);

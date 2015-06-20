@@ -85,7 +85,7 @@ public:
     l->_travel_time[1] = n_travel_time_l_b;
     l->_transfers[0] = n_transfers;
     l->_transfers[1] = n_transfers_l_b;
-    l->add_price_of_connection(ec, edge._m._type == edge::type::MUMO_EDGE);
+    l->add_price_of_connection(ec, edge._m._type == edge::MUMO_EDGE);
     l->set_total_price_lower_bound(lower_bounds.price.get_distance(n_node));
     l->_pred = this;
     l->_start = _start;
