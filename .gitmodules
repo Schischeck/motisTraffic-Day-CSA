@@ -9,4 +9,4 @@
 	url = https://github.com/dropbox/json11.git
 [submodule "external_lib/websocketpp"]
 	path = external_lib/websocketpp
-	url = https://wireshark@bitbucket.org/makielski/websocketpp.git
+	url = https://bitbucket.org/makielski/websocketpp.git
