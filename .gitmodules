@@ -4,9 +4,6 @@
 [submodule "external_lib/net"]
 	path = external_lib/net
 	url = https://github.com/felixguendling/net.git
-[submodule "external_lib/websocketpp"]
-	path = external_lib/websocketpp
-	url = https://github.com/zaphoyd/websocketpp.git
 [submodule "external_lib/json11"]
 	path = external_lib/json11
 	url = https://github.com/dropbox/json11.git
