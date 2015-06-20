@@ -260,7 +260,7 @@ int serialize(text_schedule const& sched, std::string const& prefix) {
       sched.node_count, sched.stations.size(), sched.full_connections.size(),
       sched.connection_infos.size(), sched.station_nodes.size()};
 
-  std::unique_ptr<char[]> memory(new char[5 * GIGABYTE]);
+  std::unique_ptr<char[]> memory(new char[2 * GIGABYTE]);
   serialize_pointer p(memory.get());
   offset_map offsets{{nullptr, 0}};
 

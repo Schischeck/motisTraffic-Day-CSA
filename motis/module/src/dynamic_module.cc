@@ -75,16 +75,16 @@ dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
   }
 
   // Load library.
-  lib_ = load_library(p.c_str());
+  lib_ = LoadLibrary(p.c_str());
   if (nullptr == lib_) {
     throw std::runtime_error("unable to load module: not a library");
   }
 
   // Get address to load function.
   load_module lib_fun =
-      (load_module)get_proc_address((HINSTANCE)lib_, "load_module");
+      (load_module)GetProcAddress((HINSTANCE)lib_, "load_module");
   if (nullptr == lib_fun) {
-    free_library((HINSTANCE)lib_);
+    FreeLibrary((HINSTANCE)lib_);
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
@@ -101,7 +101,7 @@ dynamic_module::~dynamic_module() {
 
   // Close shared library.
   if (lib_ != nullptr) {
-    free_library((HINSTANCE)lib_);
+    FreeLibrary((HINSTANCE)lib_);
   }
 }
 #else  // defined _WIN32 || defined _WIN64
