@@ -489,8 +489,8 @@ void extract_route_info(const service_info& si, route_info& ri,
   }
 }
 
-const char* BITFIELD_FILE = ".bitfields.txt";
-const char* NEW_BITFIELD_FILE = ".route.bitfields.txt";
+const char* BITFIELD_FILE = ".Bitfields.txt";
+const char* NEW_BITFIELD_FILE = ".Route.Bitfields.txt";
 
 void services2routes(std::string const& prefix) {
   /////////////////////////////////////////////////////////////////////////////
