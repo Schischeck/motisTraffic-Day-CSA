@@ -90,7 +90,9 @@ public:
       case ROUTE_EDGE: return get_route_edge_cost(start_time);
 
       case AFTER_TRAIN_FOOT_EDGE:
-        if (last_con == nullptr) return NO_EDGE;
+        if (last_con == nullptr) {
+          return NO_EDGE;
+        }
       case MUMO_EDGE:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
@@ -102,9 +104,9 @@ public:
 
   edge_cost get_minimum_cost() const {
     if (_m._type == ROUTE_EDGE) {
-      if (_m._route_edge._conns.size() == 0)
+      if (_m._route_edge._conns.size() == 0) {
         return NO_EDGE;
-      else {
+      } else {
         return edge_cost(
             std::min_element(
                 std::begin(_m._route_edge._conns),
@@ -114,14 +116,17 @@ public:
                 })->travel_time(),
             false, std::begin(_m._route_edge._conns)->_full_con->price);
       }
-    } else if (_m._type == FOOT_EDGE || _m._type == AFTER_TRAIN_FOOT_EDGE)
+    } else if (_m._type == FOOT_EDGE || _m._type == AFTER_TRAIN_FOOT_EDGE) {
       return edge_cost(0, _m._foot_edge._transfer);
-    else
+    } else {
       return edge_cost(0);
+    }
   }
 
   light_connection const* get_connection(time const start_time) const {
-    if (_m._route_edge._conns.size() == 0) return nullptr;
+    if (_m._route_edge._conns.size() == 0) {
+      return nullptr;
+    }
 
     auto it = std::lower_bound(std::begin(_m._route_edge._conns),
                                std::end(_m._route_edge._conns),
