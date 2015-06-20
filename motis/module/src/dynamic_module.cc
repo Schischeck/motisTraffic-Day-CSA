@@ -130,7 +130,7 @@ dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
 
 dynamic_module::~dynamic_module() {
   // close shared library.
-  if (lib_ == nullptr) {
+  if (lib_ != nullptr) {
     dlclose(lib_);
   }
 }
