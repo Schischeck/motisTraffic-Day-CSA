@@ -1,0 +1,7 @@
+.cproject
+.project
+/build
+/schedule/test.Routes.txt
+/schedule/test.Route.Bitfields.txt
+/schedule/test.Schedule.index
+/schedule/test.Schedule.raw

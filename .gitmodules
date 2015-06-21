@@ -1,0 +1,12 @@
+[submodule "external_lib/conf"]
+	path = external_lib/conf
+	url = https://github.com/felixguendling/conf.git
+[submodule "external_lib/net"]
+	path = external_lib/net
+	url = https://github.com/felixguendling/net.git
+[submodule "external_lib/json11"]
+	path = external_lib/json11
+	url = https://github.com/dropbox/json11.git
+[submodule "external_lib/websocketpp"]
+	path = external_lib/websocketpp
+	url = https://bitbucket.org/makielski/websocketpp.git
