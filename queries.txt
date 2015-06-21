@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><Query><Interval definitionFor="departure"><Begin dateTime="2014-10-16T16:00"/><End dateTime="2014-10-16T17:00"/></Interval><PathDescription><Via number="0"/><Station name="Stuttgart Hbf"/><Section categories="0"><AttributeList/></Section><Station name="Darmstadt Hbf"/></PathDescription></Query>
