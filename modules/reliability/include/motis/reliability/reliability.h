@@ -12,12 +12,10 @@ struct reliability : public motis::module::module {
   virtual void print(std::ostream& out) const override;
 
   virtual std::string name() const override { return "reliability"; }
-  virtual std::vector<json11::Json> on_msg(json11::Json const&,
-                                           motis::module::sid) override;
+  virtual json11::Json on_msg(json11::Json const&, motis::module::sid) override;
 
-  typedef std::function<std::vector<json11::Json>(
-      reliability*, json11::Json const& msg)> operation;
-  std::map<std::string, operation> ops_;
+  typedef std::function<json11::Json(reliability*, json11::Json const& msg)> op;
+  std::map<std::string, op> ops_;
 };
 
 }  // namespace reliability

@@ -20,11 +20,7 @@ po::options_description routing::desc() {
 
 void routing::print(std::ostream& out) const {}
 
-motis::station* get_station(Json const& json) {
-}
-
-void routing::on_msg(json11::Json const& msg, sid session, callback cb) {
-}
+json11::Json routing::on_msg(json11::Json const& msg, sid session) {}
 
 MOTIS_MODULE_DEF_MODULE(routing)
 

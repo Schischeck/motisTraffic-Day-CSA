@@ -51,18 +51,18 @@ struct ws_server::ws_server_impl {
   }
 
   void send(sid session, json11::Json const& message) {
-    auto sid_it = sid_con_map_.find(session);
-    if (sid_it == end(sid_con_map_)) {
-      return;
-    }
+    ios_.post([this, session, message]() {
+      auto sid_it = sid_con_map_.find(session);
+      if (sid_it == end(sid_con_map_)) {
+        return;
+      }
 
-    error_code send_ec;
-    server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+      error_code send_ec;
+      server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+    });
   }
 
-  void stop() {
-    server_.stop();
-  }
+  void stop() { server_.stop(); }
 
   void on_open(connection_hdl hdl) {
     sid_con_map_.insert({next_sid_, hdl});
@@ -107,10 +107,7 @@ struct ws_server::ws_server_impl {
     std::string parse_error;
     auto json = json11::Json::parse(msg->get_payload(), parse_error);
     if (parse_error.empty()) {
-      auto response = msg_handler_(json, con_it->second);
-      for (auto const& msg : response) {
-        send(con_it->second, msg);
-      }
+      send(con_it->second, msg_handler_(json, con_it->second));
     } else {
       std::cerr << "parser error for message:\n";
       std::cout << msg->get_payload();

@@ -20,14 +20,14 @@ po::options_description reliability::desc() {
 
 void reliability::print(std::ostream&) const {}
 
-std::vector<Json> get_distribution(reliability*, Json const& msg) {
+Json get_distribution(reliability*, Json const& msg) {
   std::cout << "Get Distribution" << std::endl;
-  return {Json::object{{"status", "success"}}};
+  return Json::object{{"status", "success"}};
 }
 
 reliability::reliability() : ops_{{"get-distribution", get_distribution}} {}
 
-std::vector<Json> reliability::on_msg(Json const& msg, sid) {
+Json reliability::on_msg(Json const& msg, sid) {
   auto op = ops_.find(msg["type"].string_value());
   if (op == end(ops_)) {
     return {};

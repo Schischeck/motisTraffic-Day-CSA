@@ -21,15 +21,17 @@ struct dispatcher {
     server.on_close(std::bind(&dispatcher::on_close, this, p::_1));
   }
 
-  std::vector<json11::Json> on_msg(json11::Json const& msg, sid session) {
-    std::cout << "--> " << msg.dump() << "\n";
+  void send(sid session, json11::Json const& msg) {
+    server_.send(session, msg);
+  }
+
+  json11::Json on_msg(json11::Json const& msg, sid session) {
     auto module_name = msg["module"].string_value();
     auto module_it = modules_.find(module_name);
     if (module_it == end(modules_)) {
       return {};
     }
     auto res = module_it->second->on_msg(msg, session);
-    std::cout << "<-- " << json11::Json(res).dump() << "\n";
     return res;
   }
 

@@ -21,5 +21,5 @@ TEST_CASE("Initial distributions are calculated", "[initial]") {
 
   auto reply = rel.on_msg(msg, 0);
 
-  REQUIRE(reply.size() == 1);
+  REQUIRE(reply.is_object());
 }

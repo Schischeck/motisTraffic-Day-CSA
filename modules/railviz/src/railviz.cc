@@ -20,7 +20,7 @@ po::options_description railviz::desc() {
 
 void railviz::print(std::ostream& out) const {}
 
-std::vector<Json> all_stations(railviz* r, Json const& msg) {
+Json all_stations(railviz* r, Json const& msg) {
   auto stations = Json::array();
   for (auto const& station : r->schedule_->stations) {
     stations.push_back(Json::object{{"latitude", station->width},
@@ -29,7 +29,7 @@ std::vector<Json> all_stations(railviz* r, Json const& msg) {
   return {Json::object{{"type", "stations"}, {"stations", stations}}};
 }
 
-std::vector<Json> station_info(railviz* r, Json const& msg) {
+Json station_info(railviz* r, Json const& msg) {
   int index = msg["station_index"].int_value();
   if (index < 0 || index >= r->schedule_->stations.size()) {
     return {};
@@ -42,7 +42,7 @@ std::vector<Json> station_info(railviz* r, Json const& msg) {
 railviz::railviz()
     : ops_{{"all_stations", all_stations}, {"station_info", station_info}} {}
 
-std::vector<Json> railviz::on_msg(Json const& msg, sid) {
+Json railviz::on_msg(Json const& msg, sid) {
   auto op = ops_.find(msg["type"].string_value());
   if (op == end(ops_)) {
     return {};
