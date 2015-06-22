@@ -41,7 +41,7 @@ public:
     int day, month, year;
   };
 
-  std::string format_i_s_o(time time) const {
+  std::string format_ISO(time time) const {
     if (time == INVALID_TIME) return "INVALID";
 
     int day = time / MINUTES_A_DAY;

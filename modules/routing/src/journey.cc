@@ -257,12 +257,12 @@ std::vector<journey::stop> generate_journey_stops(
          sched.stations[stop.station_id]->length,
          stop.a_time != INVALID_TIME
              ? journey::stop::event_info{
-                   true, sched.date_mgr.format_i_s_o(stop.a_time),
+                   true, sched.date_mgr.format_ISO(stop.a_time),
                    get_platform(sched, stop.a_platform)}
              : journey::stop::event_info{false, "", ""},
          stop.d_time != INVALID_TIME
              ? journey::stop::event_info{
-                   true, sched.date_mgr.format_i_s_o(stop.d_time),
+                   true, sched.date_mgr.format_ISO(stop.d_time),
                    get_platform(sched, stop.d_platform)}
              : journey::stop::event_info{false, "", ""}});
   }
