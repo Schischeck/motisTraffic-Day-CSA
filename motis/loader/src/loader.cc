@@ -28,10 +28,8 @@ std::map<int, int> build_category_class_map(
 
 schedule_ptr load_schedule(std::string const& prefix) {
   if (boost::filesystem::exists(prefix + SCHEDULE_FILE)) {
-    std::cout << "binsched" << std::endl;
     return load_binary_schedule(prefix);
   } else {
-    std::cout << "textsched" << std::endl;
     return load_text_schedule(prefix);
   }
 }

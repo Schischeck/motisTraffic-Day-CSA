@@ -14,7 +14,7 @@ set_target_properties(json11 PROPERTIES COMPILE_FLAGS "-std=c++11 -fPIC")
 file(GLOB_RECURSE global_headers *.h *.hpp)
 
 link_directories(${Boost_LIBRARY_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/external_lib)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
