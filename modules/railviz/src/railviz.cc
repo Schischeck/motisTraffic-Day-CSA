@@ -161,8 +161,8 @@ void railviz::init()
         motis::station* station = this->schedule_->stations[station_node.get()->_id].get();
         for (auto const& route_node : station_node->get_route_nodes()) {
             for (auto const& edge : route_node->_edges) {
-                auto const& l_connections = edge._m._route_edge._conns;
                 if (edge._m._type != motis::edge::ROUTE_EDGE) continue;
+                auto const& l_connections = edge._m._route_edge._conns;
                 if(l_connections.size() == 0) continue;
                 // get Classz
                 int classz = l_connections[0]._full_con->clasz;
