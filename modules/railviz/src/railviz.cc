@@ -144,7 +144,12 @@ std::vector<Json> all_trains(railviz* r, Json const& msg) {
 }
 
 railviz::railviz()
-    : ops_{{"all_stations", all_stations}, {"station_info", station_info}, {"all_trains", all_trains}} {}
+    : ops_{
+        {"all_stations", all_stations},
+        {"station_info", station_info},
+        {"all_trains", all_trains},
+        {"init_context", init_context}}
+{}
 
 std::vector<Json> railviz::on_msg(Json const& msg, sid) {
     auto op = ops_.find(msg["type"].string_value());

@@ -43,10 +43,8 @@ int main(int argc, char** argv) {
 
   parser.read_configuration_file();
 
-  std::cout << "\n\tMOTIS Webservice\n\n";
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
-
   auto sched = load_schedule(dataset_opt.dataset);
 
   boost::asio::io_service ios;

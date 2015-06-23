@@ -8,12 +8,6 @@
 namespace motis {
 namespace railviz {
 
-namespace bg = boost::geometry;
-
-typedef bg::model::point<double, 2, bg::cs::cartesian> rtree_point;
-typedef bg::model::box<rtree_point> rtree_box;
-typedef std::pair<rtree_box, const motis::edge*> rtree_value;
-
 struct railviz : public motis::module::module {
   railviz();
 
