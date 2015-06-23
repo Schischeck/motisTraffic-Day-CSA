@@ -151,6 +151,42 @@ railviz::railviz()
         {"init_context", init_context}}
 {}
 
+void railviz::init()
+{
+    // load 10 rtrees
+    for( int i = 0; i < 10; i++ )
+        rtrees.push_back(RTree());
+    // reorganize td-graph in rtrees
+    for (auto const& station_node : this->schedule_->station_nodes) {
+        motis::station* station = this->schedule_->stations[station_node.get()->_id].get();
+        for (auto const& route_node : station_node->get_route_nodes()) {
+            for (auto const& edge : route_node->_edges) {
+                auto const& l_connections = edge._m._route_edge._conns;
+                if (edge._m._type != motis::edge::ROUTE_EDGE) continue;
+                if(l_connections.size() == 0) continue;
+                // get Classz
+                int classz = l_connections[0]._full_con->clasz;
+
+                // calculate tracks bounding-box
+                RTreePoint p1;
+                p1.set<0>( station->length );
+                p1.set<1>( station->width );
+
+                motis::station* station2 = this->schedule_->stations[edge._to->get_station()->_id].get();
+                RTreePoint p2;
+                p2.set<0>( station2->length );
+                p2.set<1>( station2->width );
+
+                RTreeBox bb(p1, p2);
+                const motis::edge* edgePTR = &edge;
+                RTreeValue val = std::make_pair(bb, std::make_pair(station->index,edgePTR));
+                rtrees.at(classz).insert(val);
+            }
+        }
+    }
+    std::cout << "railviz initialized" << std::endl;
+}
+
 std::vector<Json> railviz::on_msg(Json const& msg, sid) {
     auto op = ops_.find(msg["type"].string_value());
     if (op == end(ops_)) {

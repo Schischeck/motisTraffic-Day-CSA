@@ -15,6 +15,7 @@ namespace module {
 
 struct module : public conf::configuration {
   virtual std::string name() const = 0;
+    virtual void init() {}
   virtual std::vector<json11::Json> on_msg(json11::Json const&, sid) {
     return {};
   }
