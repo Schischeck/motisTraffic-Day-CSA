@@ -75,24 +75,24 @@ int getUnixTimeStamp() {
     return ms.count();
 }
 
-int tdTimeToEpochTime(railviz* r, td::Time td_time) {
+int tdTimeToEpochTime(railviz* r, motis::time td_time) {
     // Be aware TD works with a local time (Europe/Berlin)
     int td_day_index = td_time / MINUTES_A_DAY;
     int td_minutes = td_time % MINUTES_A_DAY;
-    td::DateManager const& date_manager =  r->schedule_->dateManager;
+    motis::date_manager const& date_manager =  r->schedule_->date_mgr;
     int td_day = 0;
     int td_month = 0;
     int td_year = 0;
     // there is a bug/feature in backend, you can get indexofaday out of bounds!
-    if (td_day_index > date_manager.getDayIndex(date_manager.lastDate())) {
-        td::DateManager::Date const& td_date = date_manager.lastDate();
+    if (td_day_index > date_manager.get_day_index(date_manager.last_date())) {
+        motis::date_manager::date const& td_date = date_manager.last_date();
         td_day = td_date.day;
         td_month = td_date.month;
         td_year = td_date.year;
-        int td_index_delta = td_day_index - date_manager.getDayIndex(date_manager.lastDate());
+        int td_index_delta = td_day_index - date_manager.get_day_index(date_manager.last_date());
         td_day =+ td_index_delta;
     } else {
-        td::DateManager::Date const& td_date = date_manager.getDate(td_day_index);
+        motis::date_manager::date const& td_date = date_manager.get_date(td_day_index);
         td_day = td_date.day;
         td_month = td_date.month;
         td_year = td_date.year;
@@ -118,20 +118,20 @@ std::vector<Json> all_trains(railviz* r, Json const& msg) {
     // trains are represented by lightconnections
     auto trains = Json::array();
     auto train_type = msg["train_class"].int_value();
-    for (auto const& station_node : r->schedule_->stationNodes) {
-        for (auto const& route_node : station_node->getRouteNodes()) {
+    for (auto const& station_node : r->schedule_->station_nodes) {
+        for (auto const& route_node : station_node->get_route_nodes()) {
             for (auto const& edge : route_node->_edges) {
-                if (edge._m._type != td::Edge::Type::ROUTE_EDGE) continue;
-                auto const& l_connections = edge._m._routeEdge._conns;
-                if (l_connections._usedSize != 0 && l_connections[0]._fullCon->clasz == train_type){
-                    if (l_connections._usedSize != 0){
-                        for (auto const& l_conn : l_connections) {
-                            int dstStation = edge._to->getStation()->_id;
+                if (edge._m._type != motis::edge::type::ROUTE_EDGE) continue;
+                motis::array<motis::light_connection> const& l_connections = edge._m._route_edge._conns;
+                if (l_connections._used_size != 0 && l_connections[0]._full_con->clasz == train_type){
+                    if (l_connections._used_size != 0){
+                        for (motis::light_connection const& l_conn : l_connections) {
+                            int dst_station = edge._to->get_station()->_id;
                             trains.push_back(Json::object{
-                                                 {"dTime", tdTimeToEpochTime(r, l_conn.dTime)},
-                                                 {"aTime", tdTimeToEpochTime(r, l_conn.aTime)},
+                                                 {"dTime", tdTimeToEpochTime(r, l_conn.d_time)},
+                                                 {"aTime", tdTimeToEpochTime(r, l_conn.a_time)},
                                                  {"dStation", (int) station_node.get()->_id},
-                                                 {"aStation", (int) dstStation}
+                                                 {"aStation", (int) dst_station}
                                              });
                         }
                     }

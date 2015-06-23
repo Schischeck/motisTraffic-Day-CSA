@@ -1,9 +1,18 @@
 #pragma once
 
 #include "motis/module/module.h"
+#include "motis/railviz/rtree.h"
+#include "motis/railviz/mercator.h"
+#include "motis/railviz/context_manager.h"
 
 namespace motis {
 namespace railviz {
+
+namespace bg = boost::geometry;
+
+typedef bg::model::point<double, 2, bg::cs::cartesian> rtree_point;
+typedef bg::model::box<rtree_point> rtree_box;
+typedef std::pair<rtree_box, const motis::edge*> rtree_value;
 
 struct railviz : public motis::module::module {
   railviz();
@@ -18,6 +27,11 @@ struct railviz : public motis::module::module {
   typedef std::function<std::vector<json11::Json>(
       railviz*, json11::Json const& msg)> operation;
   std::map<std::string, operation> ops_;
+
+  void getTrainsInRect( std::vector<RTreeValue>&, RTreeBox rect );
+
+  std::vector<RTree> rtrees;
+  ContextManager cmgr;
 };
 
 }  // namespace railviz
