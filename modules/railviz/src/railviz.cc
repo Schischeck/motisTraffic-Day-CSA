@@ -121,7 +121,7 @@ std::vector<Json> all_trains(railviz* r, Json const& msg) {
     for (auto const& station_node : r->schedule_->station_nodes) {
         for (auto const& route_node : station_node->get_route_nodes()) {
             for (auto const& edge : route_node->_edges) {
-                if (edge._m._type != motis::edge::type::ROUTE_EDGE) continue;
+                if (edge._m._type != motis::edge::ROUTE_EDGE) continue;
                 motis::array<motis::light_connection> const& l_connections = edge._m._route_edge._conns;
                 if (l_connections._used_size != 0 && l_connections[0]._full_con->clasz == train_type){
                     if (l_connections._used_size != 0){
