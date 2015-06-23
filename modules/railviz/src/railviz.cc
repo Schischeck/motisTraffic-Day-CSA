@@ -172,10 +172,14 @@ void railviz::init()
                 p1.set<0>( station->length );
                 p1.set<1>( station->width );
 
-                motis::station* station2 = this->schedule_->stations[edge._to->get_station()->_id].get();
+//                motis::station* station2 = this->schedule_->stations[edge._to->get_station()->_id].get();
+//                RTreePoint p2;
+//                p2.set<0>( station2->length );
+//                p2.set<1>( station2->width );
+
                 RTreePoint p2;
-                p2.set<0>( station2->length );
-                p2.set<1>( station2->width );
+                p2.set<0>( station->length );
+                p2.set<1>( station->width );
 
                 RTreeBox bb(p1, p2);
                 const motis::edge* edgePTR = &edge;
