@@ -15,6 +15,8 @@ TEST_CASE("Initial distributions are calculated", "[initial]") {
   reliability rel;
   rel.schedule_ = schedule.get();
 
+  REQUIRE(rel.initialize());
+
   Json msg = Json::object{{"module", "reliability"},
                           {"type", "get-distribution"},
                           {"query-start", "Frankfurt"}};

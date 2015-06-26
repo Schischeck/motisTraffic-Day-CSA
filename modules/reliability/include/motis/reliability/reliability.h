@@ -6,7 +6,9 @@ namespace motis {
 namespace reliability {
 
 struct reliability : public motis::module::module {
-	reliability();
+  reliability();
+
+  bool initialize();
 
   virtual std::string name() const override { return "reliability"; }
   virtual std::vector<json11::Json> on_msg(json11::Json const&,
@@ -16,7 +18,6 @@ struct reliability : public motis::module::module {
       reliability*, json11::Json const& msg)> operation;
   std::map<std::string, operation> ops_;
 };
-
 
 }  // namespace reliability
 }  // namespace motis

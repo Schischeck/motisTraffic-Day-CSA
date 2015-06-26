@@ -22,6 +22,7 @@ include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 
+add_subdirectory(motis/core EXCLUDE_FROM_ALL)
 add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
 add_subdirectory(motis/module EXCLUDE_FROM_ALL)
 
