@@ -3,7 +3,7 @@
 namespace motis{
 namespace railviz{
 
-Context::Context(unsigned int id, RTreeBox bounds)
+Context::Context(unsigned int id, rtree_box bounds)
 {
     this->id = id;
     this->bounds = bounds;
@@ -50,12 +50,12 @@ std::time_t Context::getCurrentTime() const
     return time + runSince;
 }
 
-void Context::setBounds(const RTreeBox &bounds)
+void Context::setBounds(const rtree_box &bounds)
 {
     this->bounds = bounds;
 }
 
-const RTreeBox& Context::getBounds() const
+const rtree_box& Context::getBounds() const
 {
     return bounds;
 }

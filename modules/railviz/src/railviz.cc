@@ -24,12 +24,12 @@ void railviz::print(std::ostream& out) const {}
 
 std::vector<Json> init_context( railviz* r, Json const& msg )
 {
-    RTreePoint p1,p2;
+    rtree_point p1,p2;
     p1.set<0>(msg["p1"]["lat"].number_value());
     p1.set<1>(msg["p1"]["lng"].number_value());
     p2.set<0>(msg["p2"]["lat"].number_value());
     p2.set<1>(msg["p2"]["lng"].number_value());
-    RTreeBox bounds(p1, p2);
+    rtree_box bounds(p1, p2);
     Context c = r->cmgr.createContext(bounds);
     return {Json::object{{"type", "init_context"}, {"context_id", (int)c.getID()}}};
 }
@@ -38,12 +38,12 @@ std::vector<Json> all_trains( railviz* r, Json const& msg );
 
 std::vector<Json> change_bounds( railviz* r, Json const& msg )
 {
-    RTreePoint p1,p2;
+    rtree_point p1,p2;
     p1.set<0>(msg["p1"]["lat"].number_value());
     p1.set<1>(msg["p1"]["lng"].number_value());
     p2.set<0>(msg["p2"]["lat"].number_value());
     p2.set<1>(msg["p2"]["lng"].number_value());
-    RTreeBox bounds(p1, p2);
+    rtree_box bounds(p1, p2);
     Context& c = r->cmgr.getContext(msg["context_id"].int_value());
     c.setBounds(bounds);
     return all_trains(r, msg);
@@ -153,39 +153,29 @@ railviz::railviz()
 
 void railviz::init()
 {
-    // load 10 rtrees
-    for( int i = 0; i < 10; i++ )
-        rtrees.push_back(RTree());
     // reorganize td-graph in rtrees
-    for (auto const& station_node : this->schedule_->station_nodes) {
-        motis::station* station = this->schedule_->stations[station_node.get()->_id].get();
+    for (auto const& station_node : schedule_->station_nodes) {
+        unsigned int station_id = station_node.get()->_id;
+        std::set<unsigned int> related_station_ids;
+
+        motis::station* station = schedule_->stations[station_node.get()->_id].get();
+        rtree_point station_point1( station->width, station->length );
+
+        //std::cout << "processing related stations for " << station_id << std::endl;
         for (auto const& route_node : station_node->get_route_nodes()) {
-            for (auto const& edge : route_node->_edges) {
-                if (edge._m._type != motis::edge::ROUTE_EDGE) continue;
-                auto const& l_connections = edge._m._route_edge._conns;
-                if(l_connections.size() == 0) continue;
-                // get Classz
-                int classz = l_connections[0]._full_con->clasz;
+              unsigned int station_id2 = route_node->get_station()->_id;
+              related_station_ids.insert(station_id2);
+        }
+        for(const unsigned int& station_id2 : related_station_ids)
+        {
+            motis::station* station2 = schedule_->stations[station_id2].get();
+            rtree_point station_point2( station2->width, station2->length );
+            rtree_box bounding(station_point1, station_point2);
 
-                // calculate tracks bounding-box
-                RTreePoint p1;
-                p1.set<0>( station->length );
-                p1.set<1>( station->width );
-
-                motis::station* station2 = this->schedule_->stations[edge._to->get_station()->_id].get();
-                RTreePoint p2;
-//                motis::station* station2 = this->schedule_->stations[edge._to->get_station()->_id].get();
-//                RTreePoint p2;
-//                p2.set<0>( station2->length );
-//                p2.set<1>( station2->width );
-                p2.set<0>( station->length );
-                p2.set<1>( station->width );
-
-                RTreeBox bb(p1, p2);
-                const motis::edge* edgePTR = &edge;
-                RTreeValue val = std::make_pair(bb, std::make_pair(station->index,edgePTR));
-                rtrees.at(classz).insert(val);
-            }
+            tracks_tree.insert( std::make_pair(bounding, std::make_pair(station_id, station_id2)) );
+            //std::cout << "bound inserted: " << station_id << " " << station_id2 << " ";
+            //std::cout << station_point1.get<0>() << "|" << station_point1.get<1>() << " ";
+            //std::cout << station_point2.get<0>() << "|" << station_point2.get<1>() << std::endl;
         }
     }
     std::cout << "railviz initialized" << std::endl;

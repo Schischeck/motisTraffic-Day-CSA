@@ -1,3 +1,5 @@
+#pragma once
+
 #include "boost/geometry.hpp"
 #include "boost/geometry/geometries/point.hpp"
 #include "boost/geometry/geometries/box.hpp"
@@ -11,10 +13,10 @@ namespace railviz {
 
 namespace bg = boost::geometry;
 
-typedef bg::model::point<double, 2ul, bg::cs::cartesian> RTreePoint;
-typedef bg::model::box<RTreePoint> RTreeBox;
-typedef std::pair<RTreeBox, std::pair<int,const motis::edge*>> RTreeValue;
-typedef bg::index::rtree<RTreeValue, bg::index::rstar<16>> RTree;
+typedef bg::model::point<double, 2, bg::cs::cartesian> rtree_point;
+typedef bg::model::box<rtree_point> rtree_box;
+typedef std::pair<rtree_box, std::pair<unsigned int,unsigned int>> rtree_value;
+typedef bg::index::rtree<rtree_value, bg::index::rstar<16>> rtree;
 
 }
 }

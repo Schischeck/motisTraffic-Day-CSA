@@ -13,6 +13,9 @@ set_target_properties(json11 PROPERTIES COMPILE_FLAGS "-std=c++11 -fPIC")
 
 file(GLOB_RECURSE global_headers *.h *.hpp)
 
+MESSAGE(STATUS "boost-heads found at: " ${Boost_INCLUDE_DIR})
+MESSAGE(STATUS "boost-libs found at: " ${Boost_LIBRARY_DIRS})
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/external_lib)

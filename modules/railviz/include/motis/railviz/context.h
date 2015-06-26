@@ -10,7 +10,7 @@ namespace railviz {
 class Context
 {
 public:
-    Context( unsigned int id, RTreeBox bounds );
+    Context( unsigned int id, rtree_box bounds );
     Context( const Context& );
 
     unsigned int getID() const;
@@ -19,8 +19,8 @@ public:
     std::time_t getTime() const;
     std::time_t getCurrentTime() const;
 
-    void setBounds( const RTreeBox& bounds );
-    const RTreeBox& getBounds() const;
+    void setBounds( const rtree_box& bounds );
+    const rtree_box& getBounds() const;
 private:
     unsigned int id;
 
@@ -28,7 +28,7 @@ private:
     std::time_t time;
 
 
-    RTreeBox bounds;
+    rtree_box bounds;
 
 };
 

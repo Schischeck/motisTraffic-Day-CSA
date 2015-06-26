@@ -3,7 +3,7 @@
 namespace motis {
 namespace railviz {
 
-Context& ContextManager::createContext( RTreeBox bounds )
+Context& ContextManager::createContext( rtree_box bounds )
 {
     Context* c = new Context(nextSessid, bounds);
     contextMap.insert( std::pair<unsigned int, ContextPtr>(nextSessid, ContextPtr(c)) );

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <set>
+
 #include "motis/module/module.h"
 #include "motis/railviz/rtree.h"
-#include "motis/railviz/mercator.h"
 #include "motis/railviz/context_manager.h"
 
 namespace motis {
@@ -23,9 +24,9 @@ struct railviz : public motis::module::module {
       railviz*, json11::Json const& msg)> operation;
   std::map<std::string, operation> ops_;
 
-  void getTrainsInRect( std::vector<RTreeValue>&, RTreeBox rect );
+  //void get_trains_in_rect( std::vector<RTreeValue>&, RTreeBox rect );
 
-  std::vector<RTree> rtrees;
+  rtree tracks_tree;
   ContextManager cmgr;
 };
 
