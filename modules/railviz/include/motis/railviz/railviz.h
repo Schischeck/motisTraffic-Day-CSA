@@ -3,11 +3,16 @@
 #include <set>
 
 #include "motis/module/module.h"
-#include "motis/railviz/rtree.h"
+#include "motis/railviz/geometry.h"
 #include "motis/railviz/context_manager.h"
 
 namespace motis {
 namespace railviz {
+
+namespace bgi = boost::geometry::index;
+
+typedef std::pair<geometry::box, unsigned int> rtree_value;
+typedef bgi::rtree<rtree_value, bgi::rstar<16>> rtree_T;
 
 struct railviz : public motis::module::module {
   railviz();
@@ -26,7 +31,8 @@ struct railviz : public motis::module::module {
 
   //void get_trains_in_rect( std::vector<RTreeValue>&, RTreeBox rect );
 
-  rtree tracks_tree;
+  rtree_T rtree;
+  std::vector<std::pair<int, const motis::edge*>> station_conns;
   ContextManager cmgr;
 };
 

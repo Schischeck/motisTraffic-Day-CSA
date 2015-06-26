@@ -14,7 +14,7 @@ typedef std::unique_ptr<Context> ContextPtr;
 class ContextManager
 {
 public:
-    Context& createContext(rtree_box);
+    Context& createContext(geometry::box);
     void removeContext(unsigned int id);
     bool contextExists(unsigned int id);
     Context& getContext(unsigned int id);

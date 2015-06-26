@@ -10,13 +10,14 @@
 
 namespace motis {
 namespace railviz {
+namespace geometry{
 
 namespace bg = boost::geometry;
 
-typedef bg::model::point<double, 2, bg::cs::cartesian> rtree_point;
-typedef bg::model::box<rtree_point> rtree_box;
-typedef std::pair<rtree_box, std::pair<unsigned int,unsigned int>> rtree_value;
-typedef bg::index::rtree<rtree_value, bg::index::rstar<16>> rtree;
+typedef bg::cs::spherical_equatorial<bg::degree> coordinate_system;
+typedef bg::model::point<double, 2, coordinate_system> point;
+typedef bg::model::box<point> box;
 
+}
 }
 }
