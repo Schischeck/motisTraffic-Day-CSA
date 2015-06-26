@@ -8,7 +8,7 @@
 auto schedule = motis::load_schedule("../schedule/test");
 
 TEST_CASE("matrix", "[wzr]") {
-  auto const& waiting_time_rules = schedule->waiting_time_rules;
+  auto const& waiting_time_rules = schedule->waiting_time_rules_;
 
   REQUIRE(waiting_time_rules.waiting_time(1, 1) == 3);
   REQUIRE(waiting_time_rules.waiting_time(1, 2) == 0);
@@ -42,7 +42,7 @@ TEST_CASE("matrix", "[wzr]") {
 }
 
 TEST_CASE("family to category assignment", "[wzr]") {
-  auto const& waiting_time_rules = schedule->waiting_time_rules;
+  auto const& waiting_time_rules = schedule->waiting_time_rules_;
 
   auto it = std::find(begin(schedule->category_names),
                       end(schedule->category_names), "IC");
@@ -53,14 +53,14 @@ TEST_CASE("family to category assignment", "[wzr]") {
 }
 
 TEST_CASE("train class waits for other trains", "[wzr]") {
-  auto const& waiting_time_rules = schedule->waiting_time_rules;
+  auto const& waiting_time_rules = schedule->waiting_time_rules_;
 
   REQUIRE(waiting_time_rules.waits_for_other_trains(1));
   REQUIRE(!waiting_time_rules.waits_for_other_trains(3));
 }
 
 TEST_CASE("other trains wait for train class", "[wzr]") {
-  auto const& waiting_time_rules = schedule->waiting_time_rules;
+  auto const& waiting_time_rules = schedule->waiting_time_rules_;
 
   REQUIRE(waiting_time_rules.other_trains_wait_for(1));
   REQUIRE(!waiting_time_rules.other_trains_wait_for(3));

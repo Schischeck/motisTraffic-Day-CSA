@@ -14,7 +14,7 @@ class graph_loader;
 
 class waiting_time_rules {
 public:
-  friend class graph_loader;
+  friend graph_loader;
 
   int waiting_time_category(const std::string& train_category) const {
     auto it = _category_map.find(train_category);
@@ -43,15 +43,6 @@ public:
   int default_group;
 
 private:
-  void add_category(int wzr_category, const std::string& train_categories) {
-    std::stringstream ss(train_categories);
-    std::string train_category;
-
-    while (std::getline(ss, train_category, ';')) {
-      _category_map[train_category] = wzr_category;
-    }
-  }
-
   std::unordered_map<std::string, int> _category_map;
   std::vector<int> _family_to_wtr_category;
   flat_matrix<duration> _waiting_time_matrix;

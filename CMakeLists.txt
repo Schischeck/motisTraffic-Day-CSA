@@ -24,12 +24,14 @@ include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 
+add_subdirectory(motis/core EXCLUDE_FROM_ALL)
 add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
 add_subdirectory(motis/module EXCLUDE_FROM_ALL)
 
 add_subdirectory(modules/railviz)
 add_subdirectory(modules/routing)
 add_subdirectory(modules/reliability)
+add_subdirectory(modules/guesser)
 
 add_subdirectory(motis/prep)
 add_subdirectory(motis/webservice)
