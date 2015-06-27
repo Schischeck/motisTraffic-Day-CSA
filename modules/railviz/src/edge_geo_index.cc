@@ -77,7 +77,7 @@ private:
 
   spherical_point station_coords(node const* n) const {
     auto station_node = n->get_station();
-    assert(node != nullptr);
+    assert(station_node != nullptr);
 
     auto station_id = station_node->_id;
     assert(station_id < sched_.stations.size());
