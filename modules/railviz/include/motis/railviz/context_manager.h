@@ -3,7 +3,6 @@
 #include <ctime>
 #include <map>
 
-#include "motis/railviz/rtree.h"
 #include "motis/railviz/context.h"
 
 namespace motis {

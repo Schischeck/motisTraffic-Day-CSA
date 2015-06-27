@@ -5,7 +5,7 @@ set(CMAKE_SHARED_LIBRARY_SUFFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost COMPONENTS system filesystem regex program_options REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options unit_test_framework REQUIRED)
 find_package(Threads)
 
 add_library(json11 EXCLUDE_FROM_ALL external_lib/json11/json11.cpp)

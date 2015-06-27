@@ -118,7 +118,6 @@ std::vector<Json> all_trains(railviz* r, Json const& msg) {
     // trains are represented by lightconnections
     auto trains = Json::array();
 
-    std::vector<index::rtree_value> edges;
     //r->rtree.query( r->cmgr.getContext(msg["context_id"].int_value()).getBounds(), std::back_inserter(edges) );
 
 /*
