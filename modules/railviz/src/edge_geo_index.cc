@@ -1,6 +1,5 @@
 #include "motis/railviz/edge_geo_index.h"
 
-#include <cmath>
 #include <vector>
 
 #include "boost/geometry/geometries/point.hpp"
@@ -9,8 +8,6 @@
 #include "boost/geometry/index/rtree.hpp"
 
 #include "motis/core/schedule/schedule.h"
-#include "motis/core/schedule/station.h"
-#include "motis/core/schedule/nodes.h"
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
