@@ -77,16 +77,35 @@ public:
   station_node(int node_id) : node(nullptr, node_id), _foot_node(nullptr) {}
 
   ~station_node() {
-    for (auto& route_node : get_route_nodes()) delete route_node;
+    for (auto& route_node : get_route_nodes()) {
+      delete route_node;
+    }
 
-    if (_foot_node != nullptr) delete _foot_node.ptr();
+    if (_foot_node != nullptr) {
+      delete _foot_node.ptr();
+    }
+  }
+
+  std::vector<node const*> get_route_nodes() const {
+    std::vector<node const*> route_nodes;
+
+    for (auto& edge : _edges) {
+      if (edge._to->is_route_node()) {
+        route_nodes.emplace_back(edge._to);
+      }
+    }
+
+    return route_nodes;
   }
 
   std::vector<node*> get_route_nodes() {
     std::vector<node*> route_nodes;
 
-    for (auto& edge : _edges)
-      if (edge._to->is_route_node()) route_nodes.emplace_back(edge._to);
+    for (auto& edge : _edges) {
+      if (edge._to->is_route_node()) {
+        route_nodes.emplace_back(edge._to);
+      }
+    }
 
     return route_nodes;
   }
@@ -94,10 +113,10 @@ public:
   int add_foot_edge(int node_id, edge fe) {
     if (_foot_node == nullptr) {
       _foot_node = new node(this, node_id++);
-      for (auto& route_node : get_route_nodes())
+      for (auto& route_node : get_route_nodes()) {
         // check whether it is allowed to transfer at the route-node
         // we do this by checking, whether it has an edge to the station
-        for (auto const& edge : route_node->_edges)
+        for (auto const& edge : route_node->_edges) {
           if (edge.get_destination() == this) {
             // the foot-edge may only be used
             // if a train was used beforewards when
@@ -106,6 +125,8 @@ public:
                 make_after_train_edge(_foot_node, 0, true));
             break;
           }
+        }
+      }
       _edges.emplace_back(make_foot_edge(_foot_node));
     }
     _foot_node->_edges.emplace_back(std::move(fe));

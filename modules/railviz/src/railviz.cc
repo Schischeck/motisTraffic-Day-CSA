@@ -4,10 +4,15 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/module/api.h"
+
+#include "motis/railviz/edge_geo_index.h"
 
 using namespace json11;
 using namespace motis::module;
+using namespace motis::logging;
 namespace po = boost::program_options;
 
 namespace motis {
@@ -41,6 +46,12 @@ Json station_info(railviz* r, Json const& msg) {
 
 railviz::railviz()
     : ops_{{"all_stations", all_stations}, {"station_info", station_info}} {}
+
+void railviz::init() {
+  scoped_timer geo_index_timer("geo index init");
+  edge_geo_index_ =
+      std::unique_ptr<edge_geo_index>(new edge_geo_index(*schedule_));
+}
 
 Json railviz::on_msg(Json const& msg, sid) {
   auto op = ops_.find(msg["type"].string_value());

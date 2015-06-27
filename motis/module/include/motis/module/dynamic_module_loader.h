@@ -49,7 +49,7 @@ struct dynamic_module_loader {
   };
 
   void print_modules() {
-    std::cout << "loaded modules: ";
+    std::cout << "\nloaded modules: ";
     for (auto const& loaded_module : dispatcher_.modules_) {
       std::cout << loaded_module.first << " ";
     }
