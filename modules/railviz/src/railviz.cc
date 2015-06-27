@@ -29,28 +29,34 @@ void railviz::print(std::ostream& out) const {}
 
 std::vector<Json> init_context( railviz* r, Json const& msg )
 {
-    geometry::point p1,p2;
-    p1.set<0>(msg["p1"]["lat"].number_value());
-    p1.set<1>(msg["p1"]["lng"].number_value());
-    p2.set<0>(msg["p2"]["lat"].number_value());
-    p2.set<1>(msg["p2"]["lng"].number_value());
-    geometry::box bounds(p1, p2);
-    Context c = r->cmgr.createContext(bounds);
-    return {Json::object{{"type", "init_context"}, {"context_id", (int)c.getID()}}};
+    geometry::point p1 = {
+        msg["p1"]["lat"].number_value(),
+        msg["p1"]["lng"].number_value()
+    };
+    geometry::point p2 = {
+        msg["p2"]["lat"].number_value(),
+        msg["p2"]["lng"].number_value()
+    };
+    geometry::box bounds = {p1, p2};
+    webclient_context c = r->cmgr.create_webclient_context(bounds);
+    return {Json::object{{"type", "init_context"}, {"context_id", (int)c.get_id()}}};
 }
 
 std::vector<Json> all_trains( railviz* r, Json const& msg );
 
 std::vector<Json> change_bounds( railviz* r, Json const& msg )
 {
-    geometry::point p1,p2;
-    p1.set<0>(msg["p1"]["lat"].number_value());
-    p1.set<1>(msg["p1"]["lng"].number_value());
-    p2.set<0>(msg["p2"]["lat"].number_value());
-    p2.set<1>(msg["p2"]["lng"].number_value());
-    geometry::box bounds(p1, p2);
-    Context& c = r->cmgr.getContext(msg["context_id"].int_value());
-    c.setBounds(bounds);
+    geometry::point p1 = {
+        msg["p1"]["lat"].number_value(),
+        msg["p1"]["lng"].number_value()
+    };
+    geometry::point p2 = {
+        msg["p2"]["lat"].number_value(),
+        msg["p2"]["lng"].number_value()
+    };
+    geometry::box bounds = {p1, p2};
+    webclient_context& c = r->cmgr.get_webclient_context(msg["context_id"].int_value());
+    c.set_bounds(bounds);
     return all_trains(r, msg);
 }
 
@@ -120,33 +126,9 @@ int tdTimeToEpochTime(railviz* r, motis::time td_time) {
 }
 
 std::vector<Json> all_trains(railviz* r, Json const& msg) {
-    // trains are represented by lightconnections
     auto trains = Json::array();
 
-    //r->rtree.query( r->cmgr.getContext(msg["context_id"].int_value()).getBounds(), std::back_inserter(edges) );
 
-/*
-    for (auto const& station_node : r->schedule_->station_nodes) {
-        for (auto const& route_node : station_node->get_route_nodes()) {
-            for (auto const& edge : route_node->_edges) {
-                if (edge._m._type != motis::edge::ROUTE_EDGE) continue;
-                motis::array<motis::light_connection> const& l_connections = edge._m._route_edge._conns;
-                if (l_connections._used_size != 0 && l_connections[0]._full_con->clasz == train_type){
-                    if (l_connections._used_size != 0){
-                        for (motis::light_connection const& l_conn : l_connections) {
-                            int dst_station = edge._to->get_station()->_id;
-                            trains.push_back(Json::object{
-                                                 {"dTime", tdTimeToEpochTime(r, l_conn.d_time)},
-                                                 {"aTime", tdTimeToEpochTime(r, l_conn.a_time)},
-                                                 {"dStation", (int) station_node.get()->_id},
-                                                 {"aStation", (int) dst_station}
-                                             });
-                        }
-                    }
-                }
-            }
-        }
-    }*/
     return {Json::object{
             {"type", "trains"}, {"server_time", getUnixTimeStamp()}, {"trains", trains}}};
 }
@@ -159,38 +141,9 @@ railviz::railviz()
         {"init_context", init_context}}
 {}
 
-/*
-void railviz::init()
+railviz::~railviz()
 {
-    std::cout << "initializing railviz...";
-    std::cout.flush();
-    for (auto const& station_node : schedule_->station_nodes) {
-        unsigned int station_id = station_node.get()->_id;
-
-        motis::station* station = schedule_->stations[station_node.get()->_id].get();
-        for (const motis::node* route_node : station_node->get_route_nodes()) {
-            // calculating target-stations
-            for(const motis::edge& target_edge : route_node->_edges)
-            {
-                unsigned int station_id2 = target_edge._to->get_station()->_id;
-                std::cout << "station2ID: " << station_id2 << std::endl;
-                motis::station* target_station = schedule_->stations[station_id2].get();
-
-                geometry::point station_point1( station->width, station->length );
-                geometry::point station_point2( target_station->width, target_station->length );
-                std::cout << "bb: " << station_point1.get<0>() << "|" << station_point1.get<1>() << " ";
-                std::cout << station_point2.get<0>() << "|" << station_point2.get<1>() << std::endl;
-                geometry::box bounding(station_point1, station_point2);
-
-                station_conns.push_back(std::make_pair(station_id, &target_edge));
-                unsigned int index = station_conns.size()-1;
-                rtree.insert( std::make_pair(bounding, index) );
-            }
-        }
-    }
-    std::cout << "done" << std::endl;
 }
-*/
 
 void railviz::init() {
   scoped_timer geo_index_timer("geo index init");

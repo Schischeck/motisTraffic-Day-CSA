@@ -16,6 +16,7 @@ struct Fixure
     {
         auto schedule = motis::load_schedule("../schedule/test");
         r.schedule_ = schedule.get();
+        r.init();
     }
 
     motis::railviz::railviz r;
@@ -27,6 +28,7 @@ BOOST_AUTO_TEST_CASE( railviz_protocol_test )
 {
     std::cout << "hallo welt" << std::endl;
 }
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }

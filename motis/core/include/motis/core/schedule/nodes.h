@@ -65,10 +65,6 @@ public:
       return _station_node;
   }
 
-  uint32_t get_id() const {
-      return _id;
-  }
-
   array<edge> _edges;
   array<pointer<edge>> _incoming_edges;
   pointer<station_node> _station_node;

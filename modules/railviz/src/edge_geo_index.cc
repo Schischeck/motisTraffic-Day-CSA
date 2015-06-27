@@ -88,7 +88,7 @@ private:
 
   schedule const& sched_;
   std::vector<edge const*> edges_;
-  bgi::rtree<value, bgi::quadratic<16>> rtree_;
+  bgi::rtree<value, bgi::rstar<16>> rtree_;
 };
 
 edge_geo_index::edge_geo_index(schedule const& s) : impl_(new impl(s)) {}

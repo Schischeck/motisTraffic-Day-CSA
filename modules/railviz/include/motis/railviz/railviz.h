@@ -3,8 +3,7 @@
 #include <set>
 
 #include "motis/module/module.h"
-#include "motis/railviz/geometry.h"
-#include "motis/railviz/context_manager.h"
+#include "motis/railviz/webclient_context_manager.h"
 
 namespace motis {
 namespace railviz {
@@ -13,6 +12,7 @@ class edge_geo_index;
 
 struct railviz : public motis::module::module {
   railviz();
+  ~railviz();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
@@ -24,7 +24,7 @@ struct railviz : public motis::module::module {
   typedef std::function<json11::Json(railviz*, json11::Json const& msg)> op;
   std::map<std::string, op> ops_;
   std::unique_ptr<edge_geo_index> edge_geo_index_;
-  ContextManager cmgr;
+  webclient_context_manager cmgr;
 };
 
 }  // namespace railviz
