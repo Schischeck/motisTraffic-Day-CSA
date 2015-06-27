@@ -15,8 +15,15 @@ namespace module {
 
 struct module : public conf::configuration {
   virtual std::string name() const = 0;
+<<<<<<< HEAD
   virtual void init() {}
   virtual json11::Json on_msg(json11::Json const&, sid) { return {}; }
+=======
+    virtual void init() {}
+  virtual std::vector<json11::Json> on_msg(json11::Json const&, sid) {
+    return {};
+  }
+>>>>>>> master
   virtual void on_open(sid){};
   virtual void on_close(sid){};
 

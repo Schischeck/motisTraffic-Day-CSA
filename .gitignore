@@ -1,3 +1,4 @@
+*.*~
 .cproject
 .project
 /build
@@ -5,3 +6,4 @@
 /schedule/test.Route.Bitfields.txt
 /schedule/test.Schedule.index
 /schedule/test.Schedule.raw
+*.user

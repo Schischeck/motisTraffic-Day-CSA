@@ -1,6 +1,10 @@
 #pragma once
 
+#include <set>
+
 #include "motis/module/module.h"
+#include "motis/railviz/geometry.h"
+#include "motis/railviz/context_manager.h"
 
 namespace motis {
 namespace railviz {
