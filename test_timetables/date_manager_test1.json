@@ -61,18 +61,8 @@
       "intervals": [
         {
           "fromTime": "07:56:00.000",
-          "untilTime": "07:56:00.000",
-          "interval": 1
-        },
-        {
-          "fromTime": "08:56:00.000",
-          "untilTime": "08:56:00.000",
-          "interval": 1
-        },
-        {
-          "fromTime": "09:56:00.000",
-          "untilTime": "09:56:00.000",
-          "interval": 1
+          "untilTime": "10:00:00.000",
+          "interval": 60
         }
       ]
     }
