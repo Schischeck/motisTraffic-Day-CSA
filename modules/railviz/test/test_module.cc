@@ -1,9 +1,8 @@
 #include <iostream>
 
 #include "motis/loader/loader.h"
-
 #include "motis/railviz/railviz.h"
-#define BOOST_TEST_MODULE RailvizProtocolTest
+
 #include "boost/test/unit_test.hpp"
 
 namespace motis {

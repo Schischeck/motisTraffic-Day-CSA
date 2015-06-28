@@ -24,7 +24,6 @@ public:
 
     train_list_ptr by_bounds_and_time_interval(geometry::box bounds, std::time_t start, std::time_t end, unsigned int limit=0) const;
 private:
-    std::time_t motis_time_to_unix_time( motis::time const& time );
     bool time_intervals_overlap( std::time_t t1_s, std::time_t t1_e, std::time_t t2_s, std::time_t t2_e ) const;
 
     edge_geo_index const& geo_index;

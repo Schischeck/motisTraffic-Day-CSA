@@ -1,0 +1,82 @@
+{
+  "stations": [
+    {
+      "name": "Mellrichstadt (VGem)",
+      "tracks": 2,
+      "latitude": 50.4540066662874,
+      "longitude": 10.317192077636719,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4793459",
+      "ds100Code": "4793459",
+      "KMInfo": 0
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen",
+      "tracks": 2,
+      "latitude": 50.44045197671471,
+      "longitude": 10.397529602050781,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "7267367",
+      "ds100Code": "7267367",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "Landkreis Schmalkalden-Meiningen-Mellrichstadt (VGem)",
+      "category": "RE",
+      "evaNumber": "7748390",
+      "trainNumber": 7748390,
+      "stations": [
+        {
+          "station": "7267367",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4793459",
+          "arrival": 4,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:56:00.000",
+          "untilTime": "07:56:00.000",
+          "interval": 1
+        },
+        {
+          "fromTime": "08:56:00.000",
+          "untilTime": "08:56:00.000",
+          "interval": 1
+        },
+        {
+          "fromTime": "09:56:00.000",
+          "untilTime": "09:56:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": []
+}

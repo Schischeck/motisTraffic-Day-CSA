@@ -69,10 +69,5 @@ bool train_query::time_intervals_overlap(std::time_t t1_s, std::time_t t1_e, std
     return false;
 }
 
-std::time_t train_query::motis_time_to_unix_time(const time &time)
-{
-
-}
-
 }
 }
