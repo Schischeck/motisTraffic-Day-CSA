@@ -41,11 +41,11 @@ std::time_t date_converter::convert_to_unix_time(const motis::time& td_time) {
     // Be aware TD works with a local time (Europe/Berlin)
     int td_day_index = td_time / MINUTES_A_DAY;
     // chach borders
-    if (td_day_index > mgr.get_day_index(mgr.last_date())
-            || td_day_index < mgr.get_day_index(mgr.first_date())) {
+    if (td_day_index > date_manager_->get_day_index(date_manager_->last_date())
+            || td_day_index < date_manager_->get_day_index(date_manager_->first_date())) {
         return 0;
     }
-    motis::date_manager::date const& td_date = mgr.get_date(td_day_index);
+    motis::date_manager::date const& td_date = date_manager_->get_date(td_day_index);
     std::tm local_time_struct;
     local_time_struct.tm_hour = 0;
     local_time_struct.tm_min = td_time % MINUTES_A_DAY;
