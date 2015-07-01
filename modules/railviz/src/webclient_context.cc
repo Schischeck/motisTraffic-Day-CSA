@@ -3,6 +3,17 @@
 namespace motis {
 namespace railviz {
 
+webclient_context::webclient_context(unsigned int id)
+{
+    this->id = id;
+    this->bounds = geometry::box();
+
+    // set time to current Server Time
+    using std::chrono::system_clock;
+    system_clock::time_point now = system_clock::now();
+    time = time_update_time = system_clock::to_time_t(now);
+}
+
 webclient_context::webclient_context(unsigned int id, geometry::box bounds)
 {
     this->id = id;

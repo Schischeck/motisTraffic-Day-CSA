@@ -3,9 +3,11 @@
 namespace motis {
 namespace railviz {
 
-webclient_context& webclient_context_manager::create_webclient_context( geometry::box bounds )
+unsigned int webclient_context_manager::next_sessid = 0;
+
+webclient_context& webclient_context_manager::create_webclient_context()
 {
-    webclient_context* c = new webclient_context(next_sessid, bounds);
+    webclient_context* c = new webclient_context(next_sessid);
     webclient_context_map.insert( std::pair<unsigned int, webclient_context_ptr>(next_sessid, webclient_context_ptr(c)) );
     next_sessid++;
     return *c;

@@ -10,6 +10,7 @@ namespace railviz {
 class webclient_context
 {
 public:
+    webclient_context( unsigned int id );
     webclient_context( unsigned int id, geometry::box bounds );
     webclient_context( const webclient_context& );
 

@@ -4,14 +4,23 @@
 namespace motis {
 namespace railviz {
 
+date_converter::date_converter(): date_manager_(0) {}
+
 date_converter::date_converter(const motis::date_manager &mgr) :
-    mgr(mgr) {}
+    date_manager_(&mgr) {}
+
+void date_converter::set_date_manager( const motis::date_manager &mgr )
+{
+    date_manager_ = &mgr;
+}
 
 std::time_t date_converter::convert(const time &t) const
 {
+    if(date_manager_ == 0)
+        return 0;
     unsigned int day = t / MINUTES_A_DAY;
     unsigned int seconds = (t%MINUTES_A_DAY)*60;
-    motis::date_manager::date const& date = mgr.get_date(day);
+    motis::date_manager::date const& date = date_manager_->get_date(day);
     std::time_t unix_basetime = convert(date);
     return unix_basetime + seconds;
 }

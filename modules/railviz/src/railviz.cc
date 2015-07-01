@@ -29,23 +29,35 @@ void railviz::print(std::ostream& out) const {}
 
 std::vector<Json> init_context( railviz* r, Json const& msg )
 {
-    geometry::point p1 = {
-        msg["p1"]["lat"].number_value(),
-        msg["p1"]["lng"].number_value()
-    };
-    geometry::point p2 = {
-        msg["p2"]["lat"].number_value(),
-        msg["p2"]["lng"].number_value()
-    };
-    geometry::box bounds = {p1, p2};
-    webclient_context c = r->cmgr.create_webclient_context(bounds);
+    webclient_context c = r->cmgr.create_webclient_context();
+    date_converter& cnv = r->date_converter_;
+    motis::date_manager::date date = r->schedule_->date_mgr.first_date();
+    c.set_time(cnv.convert(date));
+    std::cout << "context created: " << c.get_id() << std::endl;
     return {Json::object{{"type", "init_context"}, {"context_id", (int)c.get_id()}}};
+}
+
+std::vector<Json> date_bounds( railviz* r, Json const& msg )
+{
+    webclient_context c = r->cmgr.create_webclient_context();
+    date_converter& cnv = r->date_converter_;
+
+    motis::date_manager::date date = r->schedule_->date_mgr.first_date();
+    std::time_t from = cnv.convert( date );
+    date = r->schedule_->date_mgr.last_date();
+    date.day = date.day+1;
+    std::time_t to = cnv.convert( date );
+
+    std::cout << "context created: " << c.get_id() << std::endl;
+    return {Json::object{{"type", "date_bounds"}, {"start", (int)from},
+                        {"end", (int)to}}};
 }
 
 std::vector<Json> all_trains( railviz* r, Json const& msg );
 
 std::vector<Json> change_bounds( railviz* r, Json const& msg )
 {
+    std::cout << "changing bounds" << std::endl;
     geometry::point p1 = {
         msg["p1"]["lat"].number_value(),
         msg["p1"]["lng"].number_value()
@@ -126,11 +138,38 @@ int tdTimeToEpochTime(railviz* r, motis::time td_time) {
 }
 
 std::vector<Json> all_trains(railviz* r, Json const& msg) {
-    auto trains = Json::array();
+    auto trainsJSON = Json::array();
+    train_query query(*r->edge_geo_index_.get(), r->date_converter_);
 
+    webclient_context c = r->cmgr.get_webclient_context(msg["context_id"].int_value());
+    // request trains for the next 5 minutes
+    train_list_ptr trains = query.by_bounds_and_time_interval(
+        c.get_bounds(),
+        c.get_current_time(),
+        c.get_current_time()+(60*5),
+        1000
+    );
+
+    std::time_t smallest_time = 0;
+    auto& tp = *trains.get();
+    if(tp.size() > 0)
+        smallest_time = tp[0].get()->d_time;
+    std::cout << "smalles-init-time: " << smallest_time << std::endl;
+    for( auto &trainptr : *trains.get() )
+    {
+        train& t = *trainptr.get();
+        if( t.d_time < smallest_time )
+            smallest_time = t.d_time;
+        trainsJSON.push_back(Json::object{
+                             {"dTime", (int)t.d_time},
+                             {"aTime", (int)t.a_time},
+                             {"dStation", (int)t.d_station},
+                             {"aStation", (int)t.a_station}
+                         });
+    }
 
     return {Json::object{
-            {"type", "trains"}, {"server_time", getUnixTimeStamp()}, {"trains", trains}}};
+            {"type", "trains"}, {"server_time", getUnixTimeStamp()}, {"trains", trainsJSON}}};
 }
 
 railviz::railviz()
@@ -138,7 +177,8 @@ railviz::railviz()
         {"all_stations", all_stations},
         {"station_info", station_info},
         {"all_trains", all_trains},
-        {"init_context", init_context}}
+        {"init_context", init_context},
+        {"change_bounds", change_bounds}}
 {}
 
 railviz::~railviz()
@@ -149,6 +189,7 @@ void railviz::init() {
   scoped_timer geo_index_timer("geo index init");
   edge_geo_index_ =
       std::unique_ptr<edge_geo_index>(new edge_geo_index(*schedule_));
+  date_converter_.set_date_manager( schedule_->date_mgr );
 }
 
 Json railviz::on_msg(Json const& msg, sid) {
