@@ -11,22 +11,21 @@ train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
                                                         std::time_t end,
                                                         unsigned int limit) const
 {
-    std::cout << "called" << std::endl;
+    geometry::point top_left = bounds.top_left();
+    geometry::point bottom_right = bounds.bottom_right();
     train_list_ptr train_list(new std::vector<train_ptr>);
-    std::cout << "train_list" << std::endl;
-    /*std::vector<const motis::edge*> edges =*/ geo_index.edges(bounds.p1.lat, bounds.p1.lng,
-                                                            bounds.p2.lat, bounds.p2.lng);
-    std::cout << "edges" << std::endl;
+    std::vector<const motis::edge*> edges = geo_index.edges(bottom_right.lat, bottom_right.lng,
+                                                            top_left.lat, top_left.lng);
+
     int start_station_id, end_station_id;
     std::time_t start_time, end_time;
     for( int clasz = 0; clasz < 10; clasz++ )
     {
-        std::cout << "clasz: " << clasz << std::endl;
         // iteration breaks after trains-amount-limit is reached
         if( limit > 0 )
             if( train_list.get()->size() >= limit )
                 break;
-        /*
+
         for( auto* edge : edges )
         {
             // iteration breaks after trains-amount-limit is reached
@@ -37,17 +36,21 @@ train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
             if( edge->type() != motis::edge::ROUTE_EDGE )
                 continue;
 
-            start_station_id = edge->_from->get_station()->_id;
-            end_station_id = edge->_to->get_station()->_id;
-
             // Iteration skipps every connection whitch is not of type
             // clasz
             if( edge->_m._route_edge._conns._used_size > 0 )
                 if( edge->_m._route_edge._conns[0]._full_con->clasz != clasz )
                     continue;
 
+            start_station_id = edge->_from->get_station()->_id;
+            end_station_id = edge->_to->get_station()->_id;
+
             for( auto const& lcon : edge->_m._route_edge._conns )
             {
+                // iteration breaks after trains-amount-limit is reached
+                if( limit > 0 )
+                    if( train_list.get()->size() >= limit )
+                        break;
                 start_time = dconv.convert(lcon.d_time);
                 end_time = dconv.convert(lcon.a_time);
                 if(time_intervals_overlap(start, end, start_time, end_time))
@@ -62,7 +65,7 @@ train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
                 }
             }
         }
-        */
+
     }
     return std::move(train_list);
 }

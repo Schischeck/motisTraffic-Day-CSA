@@ -7,7 +7,7 @@
 
 namespace motis {
 namespace railviz {
-namespace test {
+namespace test_module {
 
 struct Fixure
 {

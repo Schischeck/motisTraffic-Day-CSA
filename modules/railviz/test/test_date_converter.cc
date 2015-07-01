@@ -8,7 +8,7 @@
 
 namespace motis {
 namespace railviz {
-namespace test {
+namespace test_date_converter {
 
 /**
  * The Tests operate on ../test_timetables/date_manager_test1/motis (relative to build path)
@@ -38,7 +38,9 @@ bool railviz_date_converter_simple_test_check_dtime( std::time_t* time )
     if( ptm->tm_hour == 7 || ptm->tm_hour == 8 || ptm->tm_hour == 9 )
         if( ptm->tm_min == 56 )
             if( ptm->tm_sec == 0 )
+            {
                 return true;
+            }
     return false;
 }
 
@@ -48,7 +50,9 @@ bool railviz_date_converter_simple_test_check_atime( std::time_t* time )
     if( ptm->tm_hour == 8 || ptm->tm_hour == 9 || ptm->tm_hour == 10 )
         if( ptm->tm_min == 0 )
             if( ptm->tm_sec == 0 )
+            {
                 return true;
+            }
     return false;
 }
 
