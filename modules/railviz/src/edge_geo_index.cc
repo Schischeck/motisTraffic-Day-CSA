@@ -48,6 +48,17 @@ public:
     return edges;
   }
 
+  geometry::box get_bounds() const
+  {
+      box b = rtree_.bounds();
+      spherical_point bottom_right = b.max_corner();
+      spherical_point top_left = b.min_corner();
+
+      geometry::point p1(top_left.get<0>(), top_left.get<1>());
+      geometry::point p2(bottom_right.get<0>(), bottom_right.get<1>());
+      return geometry::box( p1,p2 );
+  }
+
 private:
   void init_rtree() {
     for (const auto& node : sched_.station_nodes) {
@@ -101,6 +112,11 @@ std::vector<edge const*> edge_geo_index::edges(double top_left_lat,
                                                double bottom_right_lng) const {
   return impl_->edges(top_left_lat, top_left_lng, bottom_right_lat,
                       bottom_right_lng);
+}
+
+geometry::box edge_geo_index::get_bounds() const
+{
+    return impl_.get()->get_bounds();
 }
 
 }  // namespace railviz

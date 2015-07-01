@@ -6,6 +6,30 @@ namespace railviz {
 train_query::train_query(edge_geo_index const& geo_index , const date_converter &dconv) :
     geo_index(geo_index), dconv(dconv) {}
 
+std::time_t train_query::first_departure_time() const
+{
+    train_list_ptr train_list(new std::vector<train_ptr>);
+    geometry::box b = geo_index.get_bounds();
+    geometry::point bottom_right = b.bottom_right();
+    geometry::point top_left = b.top_left();
+    std::vector<const motis::edge*> edges = geo_index.edges(bottom_right.lat, bottom_right.lng,
+                                                         top_left.lat, top_left.lng);
+    std::time_t min_time = -1;
+    std::time_t current_time = 0;
+    for( auto* edge : edges )
+    {
+        if( edge->type() != motis::edge::ROUTE_EDGE )
+            continue;
+        for( auto const& lcon : edge->_m._route_edge._conns )
+        {
+            current_time = dconv.convert(lcon.d_time);
+            if(min_time < 0 || current_time < min_time)
+                min_time = current_time;
+        }
+    }
+    return min_time;
+}
+
 train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
                                                         std::time_t start,
                                                         std::time_t end,

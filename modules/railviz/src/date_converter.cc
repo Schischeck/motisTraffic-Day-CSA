@@ -18,6 +18,8 @@ std::time_t date_converter::convert(const time &t) const
 {
     if(date_manager_ == 0)
         return 0;
+    return convert_to_unix_time(t);
+
     unsigned int day = t / MINUTES_A_DAY;
     unsigned int seconds = (t%MINUTES_A_DAY)*60;
     motis::date_manager::date const& date = date_manager_->get_date(day);
@@ -37,7 +39,7 @@ std::time_t date_converter::convert(const motis::date_manager::date& d) const
     return std::mktime(&time_str);
 }
 
-std::time_t date_converter::convert_to_unix_time(const motis::time& td_time) {
+std::time_t date_converter::convert_to_unix_time(const motis::time& td_time) const {
     // Be aware TD works with a local time (Europe/Berlin)
     int td_day_index = td_time / MINUTES_A_DAY;
     // chach borders

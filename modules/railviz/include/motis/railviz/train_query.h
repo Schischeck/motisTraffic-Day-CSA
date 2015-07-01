@@ -23,6 +23,7 @@ public:
     train_query(edge_geo_index const&, date_converter const&);
 
     train_list_ptr by_bounds_and_time_interval(geometry::box bounds, std::time_t start, std::time_t end, unsigned int limit=0) const;
+    std::time_t first_departure_time() const;
 private:
     bool time_intervals_overlap( std::time_t t1_s, std::time_t t1_e, std::time_t t2_s, std::time_t t2_e ) const;
 

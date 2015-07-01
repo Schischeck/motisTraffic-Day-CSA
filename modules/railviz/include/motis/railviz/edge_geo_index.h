@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "motis/railviz/geometry.h"
+
 namespace motis {
 struct edge;
 struct schedule;
@@ -19,6 +21,7 @@ public:
   std::vector<edge const*> edges(double bottom_right_lat,
                                  double bottom_right_lng, double top_left_lat,
                                  double top_left_lng) const;
+  geometry::box get_bounds() const;
 
 private:
   class impl;
