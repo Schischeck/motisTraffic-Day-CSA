@@ -1,4 +1,4 @@
-cat > ~/Workspaces/qtcreator/bp-sose-2015-td-server-build/schedule/test.Classes.txt <<'EOF'
+cat > ~/Workspaces/qtcreator/bp-sose-2015-td-server-build/schedule/motis.Classes.txt <<'EOF'
 10
 0 4 ICE THA TGV RJ
 1 4 EC IC EX D
@@ -12,4 +12,4 @@ cat > ~/Workspaces/qtcreator/bp-sose-2015-td-server-build/schedule/test.Classes.
 9 11 Flug Schiff ZahnR Schw-B Fähre KAT EZ ALT AST RFB RT
 EOF
 
-motis/prep/motis-prep --dataset ~/Workspaces/qtcreator/bp-sose-2015-td-server-build/schedule/test --services_to_routes --serialize_graph
+motis/prep/motis-prep --dataset ~/Workspaces/qtcreator/bp-sose-2015-td-server-build/schedule/motis --services_to_routes --serialize_graph
