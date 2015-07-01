@@ -11,24 +11,31 @@ train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
                                                         std::time_t end,
                                                         unsigned int limit) const
 {
+    std::cout << "called" << std::endl;
     train_list_ptr train_list(new std::vector<train_ptr>);
-    std::vector<const motis::edge*> edges = geo_index.edges(bounds.p1.lat, bounds.p1.lng,
+    std::cout << "train_list" << std::endl;
+    /*std::vector<const motis::edge*> edges =*/ geo_index.edges(bounds.p1.lat, bounds.p1.lng,
                                                             bounds.p2.lat, bounds.p2.lng);
-
+    std::cout << "edges" << std::endl;
     int start_station_id, end_station_id;
     std::time_t start_time, end_time;
     for( int clasz = 0; clasz < 10; clasz++ )
     {
+        std::cout << "clasz: " << clasz << std::endl;
         // iteration breaks after trains-amount-limit is reached
         if( limit > 0 )
             if( train_list.get()->size() >= limit )
                 break;
+        /*
         for( auto* edge : edges )
         {
             // iteration breaks after trains-amount-limit is reached
             if( limit > 0 )
                 if( train_list.get()->size() >= limit )
                     break;
+
+            if( edge->type() != motis::edge::ROUTE_EDGE )
+                continue;
 
             start_station_id = edge->_from->get_station()->_id;
             end_station_id = edge->_to->get_station()->_id;
@@ -55,6 +62,7 @@ train_list_ptr train_query::by_bounds_and_time_interval(geometry::box bounds,
                 }
             }
         }
+        */
     }
     return std::move(train_list);
 }

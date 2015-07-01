@@ -32,22 +32,32 @@ struct Fixure
 
 BOOST_FIXTURE_TEST_SUITE( railviz_date_converter, Fixure )
 
-void print_time( const std::time_t& time )
+bool railviz_date_converter_simple_test_check_dtime( std::time_t* time )
 {
-    std::tm *ptm = std::localtime(&time);
-    char buffer[32];
-    // Format: Mo, 15.06.2009 20:20:00
-    std::strftime(buffer, 32, "%a, %d.%m.%Y %H:%M:%S", ptm);
-    std::cout << buffer << std::endl;
+    std::tm *ptm = std::localtime(time);
+    if( ptm->tm_hour == 7 || ptm->tm_hour == 8 || ptm->tm_hour == 9 )
+        if( ptm->tm_min == 56 )
+            if( ptm->tm_sec == 0 )
+                return true;
+    return false;
+}
+
+bool railviz_date_converter_simple_test_check_atime( std::time_t* time )
+{
+    std::tm *ptm = std::localtime(time);
+    if( ptm->tm_hour == 8 || ptm->tm_hour == 9 || ptm->tm_hour == 10 )
+        if( ptm->tm_min == 0 )
+            if( ptm->tm_sec == 0 )
+                return true;
+    return false;
 }
 
 /*
- * This test extracting all trains driving at the first day and validates
- * the correct conversion of their times
+ * This test extracting all trains and validates
+ * the correct conversion of their arrival and departure times
  */
-BOOST_AUTO_TEST_CASE( railviz_train_query_test )
+BOOST_AUTO_TEST_CASE( railviz_date_converter_simple_test )
 {
-    /*
     motis::railviz::date_converter dcnv( schedule.get()->date_mgr );
 
     motis::date_manager &mgr = schedule.get()->date_mgr;
@@ -57,24 +67,20 @@ BOOST_AUTO_TEST_CASE( railviz_train_query_test )
         station_node const* station_node = station_node_pointer.get();
         for( auto const& route_node : station_node->get_route_nodes() )
         {
-            std::cout << &(route_node->_edges) << std::endl;
             for( auto const& edge : route_node->_edges )
             {
-                std::cout << "it" << std::endl;
+                if( edge.type() != motis::edge::ROUTE_EDGE )
+                    continue;
                 for( auto const& lcon : edge._m._route_edge._conns )
                 {
-                    std::cout << "it2" << std::endl;
-                    std::cout << "dtime " << lcon.d_time << std::endl;
-                    //std::time_t d_time = dcnv.convert( lcon.d_time );
-                    //std::time_t a_time = dcnv.convert( lcon.a_time );
-                    //print_time(d_time);
-                    //print_time(a_time);
-                    std::cout << std::endl;
+                    std::time_t d_time = dcnv.convert( lcon.d_time );
+                    std::time_t a_time = dcnv.convert( lcon.a_time );
+                    BOOST_CHECK( railviz_date_converter_simple_test_check_dtime(&d_time) );
+                    BOOST_CHECK( railviz_date_converter_simple_test_check_atime(&a_time) );
                 }
             }
         }
     }
-    */
 }
 
 BOOST_AUTO_TEST_SUITE_END()
