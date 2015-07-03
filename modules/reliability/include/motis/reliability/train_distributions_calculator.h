@@ -15,16 +15,17 @@ namespace reliability {
 
 struct queue_element {
   queue_element(td::Node* from, td::Node* to,
-      td::LightConnection const* light_connection,
-      unsigned short light_connection_idx,
-      bool const is_first_route_node)
-      : from_(from), to_(to),
+                td::LightConnection const* light_connection,
+                unsigned short light_connection_idx,
+                bool const is_first_route_node)
+      : from_(from),
+        to_(to),
         light_connection_(light_connection),
         light_connection_idx_(light_connection_idx),
         is_first_route_node_(is_first_route_node) {}
 
-  td::Node * from_;
-  td::Node * to_;
+  td::Node* from_;
+  td::Node* to_;
   td::LightConnection const* light_connection_;
   unsigned short light_connection_idx_;
   bool is_first_route_node_;
@@ -50,8 +51,8 @@ private:
 
   td::Schedule* schedule_;
 
-  std::priority_queue< queue_element, std::vector<queue_element>,
-                       queue_element_cmp > queue_;
+  std::priority_queue<queue_element, std::vector<queue_element>,
+                      queue_element_cmp> queue_;
 };
 
 }  // namespace reliability

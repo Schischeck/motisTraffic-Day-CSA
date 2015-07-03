@@ -35,6 +35,4 @@ TEST_CASE("Test queue", "[train_dist_calc]") {
   REQUIRE(queue.top().light_connection_->dTime == 1);
 }
 
-TEST_CASE("Test first departures", "[train_dist_calc]") {
-
-}
+TEST_CASE("Test first departures", "[train_dist_calc]") {}

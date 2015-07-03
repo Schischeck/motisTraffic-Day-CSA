@@ -17,9 +17,8 @@ train_distributions_calculator::train_distributions_calculator(
 bool train_distributions_calculator::calculate_initial_distributions() {
   insert_first_route_elements_into_queue();
 
-  while(!queue_.empty()) {
-    if(!process_element(queue_.top()))
-      return false;
+  while (!queue_.empty()) {
+    if (!process_element(queue_.top())) return false;
     queue_.pop();
   }
 
@@ -28,12 +27,14 @@ bool train_distributions_calculator::calculate_initial_distributions() {
 
 bool train_distributions_calculator::insert_first_route_elements_into_queue() {
   for (auto first_route_node : schedule_->routeIndexToFirstRouteNode) {
-    auto route_edge = graph_accessor::get_departing_route_edge(*first_route_node);
-    for (unsigned short light_conn_idx=0;
-        light_conn_idx < route_edge->_m._routeEdge._conns.size();
-        ++light_conn_idx) {
+    auto route_edge =
+        graph_accessor::get_departing_route_edge(*first_route_node);
+    for (unsigned short light_conn_idx = 0;
+         light_conn_idx < route_edge->_m._routeEdge._conns.size();
+         ++light_conn_idx) {
       auto& light_conn = route_edge->_m._routeEdge._conns[light_conn_idx];
-      queue_.emplace(first_route_node, route_edge->_to, &light_conn, light_conn_idx, true);
+      queue_.emplace(first_route_node, route_edge->_to, &light_conn,
+                     light_conn_idx, true);
     }
   }
   return true;

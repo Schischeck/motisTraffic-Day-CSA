@@ -3,15 +3,17 @@
 namespace motis {
 namespace reliability {
 
-
-class probability_distribution;
-
+#include "motis/reliability/probability_distribution.h"
 
 struct tt_distribution_manager {
 
+  probability_distribution const& get_start_distribution(
+      std::string const& train_category) const {
+    return start_dist;
+  }
 
-  probability_distribution const& get_start_distribution(std::string const& train_category) const;
-
+private:
+  probability_distribution start_dist;
 };
 
 }  // namespace reliability
