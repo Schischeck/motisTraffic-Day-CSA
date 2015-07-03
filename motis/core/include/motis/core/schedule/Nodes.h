@@ -12,6 +12,9 @@
 #include "motis/core/schedule/Edges.h"
 #include "motis/core/schedule/Time.h"
 
+
+class probability_distribution;
+
 namespace td
 {
 
@@ -84,6 +87,9 @@ public:
   Pointer<StationNode> _stationNode;
   int32_t _route;
   uint32_t _id;
+
+  Array<probability_distribution*> departure_distributions;
+  Array<probability_distribution*> arrival_distributions;
 };
 
 class StationNode : public Node
