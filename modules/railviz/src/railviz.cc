@@ -55,6 +55,18 @@ void railviz::init() {
       std::unique_ptr<train_retriever>(new train_retriever(*schedule_));
 }
 
+void railviz::on_open(sid session) {
+  // Session initialization goes here.
+  // TODO send initial bootstrap data like station positions
+  // TODO create client context
+  (*send_)(Json::object{{"hello", "world"}}, session);
+}
+
+void railviz::on_close(sid session) {
+  // TODO clean up client context data
+  std::cout << "Hope to see " << session << " again, soon!\n";
+}
+
 Json railviz::on_msg(Json const& msg, sid) {
   auto op = ops_.find(msg["type"].string_value());
   if (op == end(ops_)) {

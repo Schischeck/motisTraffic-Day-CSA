@@ -16,6 +16,8 @@ struct railviz : public motis::module::module {
 
   virtual std::string name() const override { return "railviz"; }
   virtual void init() override;
+  virtual void on_open(motis::module::sid) override;
+  virtual void on_close(motis::module::sid) override;
   virtual json11::Json on_msg(json11::Json const&, motis::module::sid) override;
 
   typedef std::function<json11::Json(railviz*, json11::Json const& msg)> op;

@@ -54,11 +54,8 @@ int main(int argc, char** argv) {
   ws_server server(ios);
   server.listen(listener_opt.host, listener_opt.port);
 
-  typedef dispatcher<ws_server> ws_dispatcher;
-  ws_dispatcher dispatcher(server);
-
-  dynamic_module_loader<ws_dispatcher> loader(modules_opt.path, sched.get(),
-                                              dispatcher, ios);
+  dispatcher dispatcher(server);
+  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios);
 
   loader.load_modules();
 

@@ -7,15 +7,18 @@
 
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/module/dispatcher.h"
+
 namespace motis {
 namespace module {
 
-template <typename dispatcher>
 struct dynamic_module_loader {
   dynamic_module_loader(std::string const& modules_path,
                         motis::schedule* schedule, dispatcher& d,
                         boost::asio::io_service& ios)
-      : modules_path_(modules_path),
+      : send_(std::bind(&dispatcher::send, &d, std::placeholders::_1,
+                        std::placeholders::_2)),
+        modules_path_(modules_path),
         schedule_(schedule),
         dispatcher_(d),
         signals_(ios) {
@@ -39,7 +42,7 @@ struct dynamic_module_loader {
   void load_modules() {
     dispatcher_.modules_.clear();
 
-    modules_ = modules_from_folder(modules_path_, schedule_);
+    modules_ = modules_from_folder(modules_path_, schedule_, &send_);
     for (auto const& module : modules_) {
       dispatcher_.modules_.insert(
           {module.module_->name(), module.module_.get()});
@@ -56,6 +59,7 @@ struct dynamic_module_loader {
     std::cout << std::endl;
   }
 
+  send_fun send_;
   std::vector<dynamic_module> modules_;
   std::string modules_path_;
   motis::schedule* schedule_;
