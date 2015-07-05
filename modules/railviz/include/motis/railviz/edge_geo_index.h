@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "motis/railviz/geo.h"
+
 namespace motis {
 struct edge;
 struct schedule;
@@ -13,12 +15,10 @@ namespace railviz {
 
 class edge_geo_index {
 public:
-  explicit edge_geo_index(schedule const&);
+  explicit edge_geo_index(int clasz, schedule const&);
   virtual ~edge_geo_index();
 
-  std::vector<edge const*> edges(double bottom_right_lat,
-                                 double bottom_right_lng, double top_left_lat,
-                                 double top_left_lng) const;
+  std::vector<edge const*> edges(geo::box area) const;
 
 private:
   class impl;

@@ -8,7 +8,7 @@
 
 #include "motis/module/api.h"
 
-#include "motis/railviz/edge_geo_index.h"
+#include "motis/railviz/train_retriever.h"
 
 using namespace json11;
 using namespace motis::module;
@@ -47,10 +47,12 @@ Json station_info(railviz* r, Json const& msg) {
 railviz::railviz()
     : ops_{{"all_stations", all_stations}, {"station_info", station_info}} {}
 
+railviz::~railviz() {}
+
 void railviz::init() {
-  scoped_timer geo_index_timer("geo index init");
-  edge_geo_index_ =
-      std::unique_ptr<edge_geo_index>(new edge_geo_index(*schedule_));
+  scoped_timer geo_index_timer("train retriever init");
+  train_retriever_ =
+      std::unique_ptr<train_retriever>(new train_retriever(*schedule_));
 }
 
 Json railviz::on_msg(Json const& msg, sid) {
