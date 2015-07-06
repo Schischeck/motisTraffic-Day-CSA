@@ -33,13 +33,13 @@ std::time_t date_converter::convert(const motis::date_manager::date& d) const
 
 time date_converter::convert_to_motis(std::time_t t) const {
   std::time_t first_time_in_timetable = convert(date_manager_->first_date());
-  return t-first_time_in_timetable;
+  return (t-first_time_in_timetable)/60;
 }
 
 time date_converter::convert_to_motis(const motis::date_manager::date d) const {
   std::time_t time_of_date = convert(d);
   std::time_t first_time_in_timetable = convert(date_manager_->first_date());
-  return time_of_date-first_time_in_timetable;
+  return (time_of_date-first_time_in_timetable)/60;
 }
 
 std::time_t date_converter::convert_to_unix_time(const motis::time& td_time) const {

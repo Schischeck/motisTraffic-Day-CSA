@@ -36,8 +36,8 @@ public:
 
   std::vector<edge const*> edges(geo::box b) const {
     std::vector<value> result_n;
-    auto bounds = bounding_box(spherical_point{b.min.lng, b.min.lat},
-                               spherical_point{b.max.lng, b.max.lat});
+    auto bounds = bounding_box(spherical_point{b.min().lng, b.min().lat},
+                               spherical_point{b.max().lng, b.max().lat});
     rtree_.query(bgi::intersects(bounds), std::back_inserter(result_n));
 
     std::vector<edge const*> edges(result_n.size());

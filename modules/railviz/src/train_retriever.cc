@@ -19,7 +19,7 @@ train_list_ptr train_retriever::trains(const time from,
                                                      const time to,
                                                      geo::box area,
                                                      int max_count) {
-  train_list_ptr train_list;
+  train_list_ptr train_list = std::unique_ptr<std::vector<train_ptr>>(new std::vector<train_ptr>);
 
   for (int clasz = 0; clasz <= 9; ++clasz) {
     auto edges = edge_index_[clasz]->edges(area);
