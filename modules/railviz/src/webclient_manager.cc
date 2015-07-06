@@ -3,13 +3,10 @@
 namespace motis {
 namespace railviz {
 
-motis::module::sid webclient_manager::next_sessid = 0;
-
-webclient& webclient_manager::create_webclient()
+webclient& webclient_manager::create_webclient(motis::module::sid session)
 {
-    webclient* c = new webclient(next_sessid);
-    webclient_map.insert( std::pair<motis::module::sid, webclient_ptr>(next_sessid, webclient_ptr(c)) );
-    ++next_sessid;
+    webclient* c = new webclient(session);
+    webclient_map.insert( std::pair<motis::module::sid, webclient_ptr>(session, webclient_ptr(c)) );
     return *c;
 }
 

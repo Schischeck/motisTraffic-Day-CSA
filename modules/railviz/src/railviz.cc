@@ -30,7 +30,7 @@ std::vector<Json> date_bounds( railviz* r, webclient& webclient_, Json const& ms
     date_converter& cnv = r->date_converter_;
 
     motis::date_manager::date date = r->schedule_->date_mgr.first_date();
-    std::time_t from = webclient_.get_current_time();
+    std::time_t from = cnv.convert( date );
     date = r->schedule_->date_mgr.last_date();
     date.day = date.day+1;
     std::time_t to = cnv.convert( date );
@@ -81,8 +81,8 @@ std::vector<Json> all_trains(railviz* r, webclient& webclient_, Json const& msg)
 
     // request trains for the next 5 minutes
     train_list_ptr trains = r->train_retriever_.get()->trains(
-        webclient_.get_current_time(),
-        webclient_.get_current_time()+(60*5),
+        r->date_converter_.convert_to_motis(webclient_.get_current_time()),
+        r->date_converter_.convert_to_motis(webclient_.get_current_time()+(60*5)),
         webclient_.get_bounds(),
         1000
     );
@@ -130,12 +130,17 @@ void railviz::init() {
 void railviz::on_open(sid session) {
   // Session initialization goes here.
   // TODO send initial bootstrap data like station positions
-  // TODO create client context
+
+  if(webclient_manager_.webclient_exists(session))
+      webclient_manager_.remove_webclient(session);
+  webclient_manager_.create_webclient(session);
   (*send_)(Json::object{{"hello", "world"}}, session);
 }
 
 void railviz::on_close(sid session) {
   // TODO clean up client context data
+  if(webclient_manager_.webclient_exists(session))
+      webclient_manager_.remove_webclient(session);
   std::cout << "Hope to see " << session << " again, soon!\n";
 }
 
