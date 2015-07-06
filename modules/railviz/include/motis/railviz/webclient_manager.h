@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "motis/railviz/webclient.h"
+#include "motis/module/module.h"
 
 namespace motis {
 namespace railviz {
@@ -15,12 +16,12 @@ class webclient_manager
 {
 public:
     webclient& create_webclient();
-    void remove_webclient(unsigned int id);
-    bool webclient_exists(unsigned int id);
-    webclient& get_webclient(unsigned int id);
+    void remove_webclient(motis::module::sid);
+    bool webclient_exists(motis::module::sid);
+    webclient& get_webclient(motis::module::sid);
 private:
-    static unsigned int next_sessid;
-    std::map<unsigned int, webclient_ptr> webclient_map;
+    static motis::module::sid next_sessid;
+    std::map<motis::module::sid, webclient_ptr> webclient_map;
 };
 
 }
