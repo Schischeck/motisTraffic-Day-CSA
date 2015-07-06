@@ -2,17 +2,17 @@
 
 #include <ctime>
 #include <chrono>
-#include "motis/railviz/geometry.h"
+#include "motis/railviz/geo.h"
 
 namespace motis {
 namespace railviz {
 
-class webclient_context
+class webclient
 {
 public:
-    webclient_context( unsigned int id );
-    webclient_context( unsigned int id, geometry::box bounds );
-    webclient_context( const webclient_context& );
+    webclient( unsigned int id );
+    webclient( unsigned int id, geo::box bounds );
+    webclient( const webclient& );
 
     unsigned int get_id() const;
 
@@ -20,8 +20,8 @@ public:
     std::time_t get_time() const;
     std::time_t get_current_time() const;
 
-    void set_bounds( const geometry::box& bounds );
-    const geometry::box& get_bounds() const;
+    void set_bounds( const geo::box& bounds );
+    const geo::box& get_bounds() const;
 private:
     unsigned int id;
 
@@ -29,7 +29,7 @@ private:
     std::time_t time;
 
 
-    geometry::box bounds;
+    geo::box bounds;
 
 };
 

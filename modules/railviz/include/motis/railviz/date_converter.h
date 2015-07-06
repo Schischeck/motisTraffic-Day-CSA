@@ -17,6 +17,9 @@ public:
     void set_date_manager( const motis::date_manager &mgr );
     std::time_t convert(motis::time const& t) const;
     std::time_t convert(motis::date_manager::date const& d) const;
+    time convert_to_motis(std::time_t) const;
+    time convert_to_motis(const motis::date_manager::date d) const;
+
     std::time_t convert_to_unix_time(const motis::time& td_time) const;
     std::time_t get_unix_timestamp();
 private:

@@ -1,31 +1,31 @@
-#include "motis/railviz/webclient_context_manager.h"
+#include "motis/railviz/webclient_manager.h"
 
 namespace motis {
 namespace railviz {
 
-unsigned int webclient_context_manager::next_sessid = 0;
+unsigned int webclient_manager::next_sessid = 0;
 
-webclient_context& webclient_context_manager::create_webclient_context()
+webclient& webclient_manager::create_webclient()
 {
-    webclient_context* c = new webclient_context(next_sessid);
-    webclient_context_map.insert( std::pair<unsigned int, webclient_context_ptr>(next_sessid, webclient_context_ptr(c)) );
+    webclient* c = new webclient(next_sessid);
+    webclient_map.insert( std::pair<unsigned int, webclient_ptr>(next_sessid, webclient_ptr(c)) );
     next_sessid++;
     return *c;
 }
 
-void webclient_context_manager::remove_webclient_context(unsigned int id)
+void webclient_manager::remove_webclient(unsigned int id)
 {
-    webclient_context_map.erase(id);
+    webclient_map.erase(id);
 }
 
-webclient_context& webclient_context_manager::get_webclient_context(unsigned int id)
+webclient& webclient_manager::get_webclient(unsigned int id)
 {
-    return *(webclient_context_map.at(id).get());
+    return *(webclient_map.at(id).get());
 }
 
-bool webclient_context_manager::webclient_context_exists(unsigned int id)
+bool webclient_manager::webclient_exists(unsigned int id)
 {
-    if( webclient_context_map.find(id) == webclient_context_map.end() )
+    if( webclient_map.find(id) == webclient_map.end() )
         return false;
     return true;
 }

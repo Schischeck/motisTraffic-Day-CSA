@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motis/module/module.h"
+#include "motis/module/handler_functions.h"
 
 #if defined _WIN32 || defined _WIN64
 #define MOTIS_EXP_FUNCTION __declspec(dllexport)
@@ -12,16 +13,17 @@
 
 extern "C" {
 
-MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION load_module(void*);
+MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION load_module(void*, void*);
 
 }  // extern "C"
 
 #define MOTIS_MODULE_DEF_MODULE(name)                       \
   extern "C" {                                              \
   MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION         \
-      load_module(void* schedule) {                         \
+      load_module(void* schedule, void* send) {             \
     auto m = new motis::name::name();                       \
     m->schedule_ = static_cast<motis::schedule*>(schedule); \
+    m->send_ = static_cast<motis::module::send_fun*>(send); \
     m->init();                                              \
     return m;                                               \
   }                                                         \

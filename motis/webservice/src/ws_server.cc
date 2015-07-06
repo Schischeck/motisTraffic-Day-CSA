@@ -6,7 +6,7 @@
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
-typedef websocketpp::server<websocketpp::config::asio> server;
+typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
@@ -21,6 +21,7 @@ namespace webservice {
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios)
       : ios_(ios),
+        next_sid_(0),
         msg_handler_(nullptr),
         open_handler_(nullptr),
         close_handler_(nullptr) {
@@ -50,7 +51,7 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(sid session, json11::Json const& message) {
+  void send(json11::Json const& message, sid session) {
     ios_.post([this, session, message]() {
       auto sid_it = sid_con_map_.find(session);
       if (sid_it == end(sid_con_map_)) {
@@ -94,7 +95,7 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  void on_msg(connection_hdl con, server::message_ptr msg) {
+  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg) {
     if (!msg_handler_) {
       return;
     }
@@ -107,7 +108,7 @@ struct ws_server::ws_server_impl {
     std::string parse_error;
     auto json = json11::Json::parse(msg->get_payload(), parse_error);
     if (parse_error.empty()) {
-      send(con_it->second, msg_handler_(json, con_it->second));
+      send(msg_handler_(json, con_it->second), con_it->second);
     } else {
       std::cerr << "parser error for message:\n";
       std::cout << msg->get_payload();
@@ -116,7 +117,7 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  server server_;
+  asio_ws_server server_;
   boost::asio::io_service& ios_;
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
@@ -150,7 +151,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(sid s, json11::Json const& msg) { impl_->send(s, msg); }
+void ws_server::send(json11::Json const& msg, sid s) { impl_->send(msg, s); }
 
 }  // namespace webservice
 }  // namespace motis
