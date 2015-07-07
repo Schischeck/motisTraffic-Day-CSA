@@ -9,8 +9,8 @@
 #include "motis/module/api.h"
 
 #include "motis/protocol/RailVizStations_generated.h"
-#include "motis/protocol/RailvizStationDetail_generated.h"
-#include "motis/protocol/RailvizStationDetailRequest_generated.h"
+#include "motis/protocol/RailVizStationDetail_generated.h"
+#include "motis/protocol/RailVizStationDetailRequest_generated.h"
 
 #include "motis/railviz/train_retriever.h"
 
