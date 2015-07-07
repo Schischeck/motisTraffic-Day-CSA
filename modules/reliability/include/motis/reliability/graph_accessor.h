@@ -6,8 +6,6 @@
 namespace motis {
 namespace reliability {
 
-struct probability_distribution;
-
 namespace graph_accessor {
 
 inline td::Edge* get_departing_route_edge(td::Node& route_node) {
@@ -28,7 +26,7 @@ inline td::Edge const* get_arriving_route_edge(td::Node const& route_node) {
   return nullptr;
 }
 
-inline std::pair<td::LightConnection const*, probability_distribution const*>
+inline std::pair<td::LightConnection const*, unsigned int>
 get_previous_light_connection(td::Node const& route_node,
                               td::LightConnection const& departing_light_conn) {
   auto arriving_route_edge = get_arriving_route_edge(route_node);
@@ -40,13 +38,13 @@ get_previous_light_connection(td::Node const& route_node,
     ++pos;
   }
 
-  return std::make_pair(&all_connections[pos],
-                        route_node.arrival_distributions[pos]);
+  return std::make_pair(&all_connections[pos], pos);
 }
 
-typedef std::tuple<td::Node const*, td::LightConnection const*,
-                   probability_distribution const*> feeder_info;
-inline std::vector<feeder_info> get_feeders(
+/* feeder-route-node, feeder-light-connection, feeder-distribution-position */
+typedef std::tuple<td::Node const*, td::LightConnection const*, unsigned int>
+    feeder_info;
+inline std::vector<feeder_info> get_all_potential_feeders(
     td::Node& route_node, td::LightConnection const& departing_light_conn) {
   std::vector<feeder_info> feeders;
 
@@ -54,8 +52,8 @@ inline std::vector<feeder_info> get_feeders(
     if (!in_edge->_to->isRouteNode() || in_edge->_from->_id == route_node._id)
       continue;
 
-    td::Time const time_end = departing_light_conn.dTime -
-                              in_edge->_m._footEdge._timeCost;  // XXX correct?
+    td::Time const time_end =
+        departing_light_conn.dTime - in_edge->_m._footEdge._timeCost;
     td::Time const time_begin = time_end - 30;  // XXX 30 minutes
 
     auto& feeder_route_node = *in_edge->_from._ptr;
@@ -67,8 +65,7 @@ inline std::vector<feeder_info> get_feeders(
     for (unsigned int i = 0; i < all_connections.size(); i++) {
       if (all_connections[i].aTime >= time_begin &&
           all_connections[i].aTime <= time_end) {
-        feeders.emplace_back(&feeder_route_node, &all_connections[i],
-                             feeder_route_node.arrival_distributions[i]);
+        feeders.emplace_back(&feeder_route_node, &all_connections[i], i);
       }
     }
   }

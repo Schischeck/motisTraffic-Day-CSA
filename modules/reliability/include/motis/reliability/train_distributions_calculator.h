@@ -13,6 +13,8 @@ class Node;
 namespace motis {
 namespace reliability {
 
+struct train_distributions_container;
+
 struct queue_element {
   queue_element(td::Node* from, td::Node* to,
                 td::LightConnection const* light_connection,
@@ -40,7 +42,9 @@ public:
 
 class train_distributions_calculator {
 public:
-  train_distributions_calculator(td::Schedule* schedule);
+  train_distributions_calculator(
+      td::Schedule* schedule,
+      train_distributions_container& distributions_container);
 
   bool calculate_initial_distributions();
 
@@ -50,6 +54,8 @@ private:
   bool process_element(queue_element element);
 
   td::Schedule* schedule_;
+
+  train_distributions_container& distributions_container_;
 
   std::priority_queue<queue_element, std::vector<queue_element>,
                       queue_element_cmp> queue_;

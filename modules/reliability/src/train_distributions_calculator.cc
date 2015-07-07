@@ -4,6 +4,7 @@
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data.h"
+#include "motis/reliability/train_distributions.h"
 
 using namespace td;
 
@@ -11,8 +12,8 @@ namespace motis {
 namespace reliability {
 
 train_distributions_calculator::train_distributions_calculator(
-    Schedule* schedule)
-    : schedule_(schedule) {}
+    Schedule* schedule, train_distributions_container& distributions_container)
+    : schedule_(schedule), distributions_container_(distributions_container) {}
 
 bool train_distributions_calculator::calculate_initial_distributions() {
   insert_first_route_elements_into_queue();

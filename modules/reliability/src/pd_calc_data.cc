@@ -3,9 +3,11 @@
 #include <algorithm>
 
 #include "motis/core/schedule/Schedule.h"
+#include "motis/core/schedule/WaitingTimeRules.h"
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/train_distributions.h"
 #include "motis/reliability/tt_distribution_manager.h"
 
 namespace motis {
@@ -14,70 +16,95 @@ namespace reliability {
 pd_calc_data_departure::pd_calc_data_departure(
     td::Node& route_node, td::LightConnection const& light_connection,
     bool const is_first_route_node, td::Schedule const& schedule,
-    tt_distribution_manager const& tt_dist_manager)
+    tt_distribution_manager const& tt_dist_manager,
+    train_distributions_container& distributions_container)
     : route_node_(route_node),
       light_connection_(light_connection),
-      is_first_route_node_(is_first_route_node) {
+      is_first_route_node_(is_first_route_node),
+      maximum_waiting_time_(0) {
 
-  maximum_waiting_time_ = 0;
+  init_train_info(schedule.categoryNames, tt_dist_manager,
+                  distributions_container.node_to_train_distributions_);
+  init_feeder_info(schedule,
+                   distributions_container.node_to_train_distributions_);
+}
 
+void pd_calc_data_departure::init_train_info(
+    std::vector<std::string> const& category_names,
+    tt_distribution_manager const& tt_dist_manager,
+    std::vector<std::unique_ptr<train_distributions> > const&
+        node_to_train_distributions) {
   if (is_first_route_node_) {
     auto const& train_category =
-        schedule.categoryNames[light_connection_._fullCon->conInfo->family];
+        category_names[light_connection_._fullCon->conInfo->family];
     train_info_.first_departure_distribution =
         &tt_dist_manager.get_start_distribution(train_category);
   } else {
     td::LightConnection const* arriving_light_conn;
-    probability_distribution const* arriving_light_conn_distribution;
-    std::tie(arriving_light_conn, arriving_light_conn_distribution) =
+    unsigned int distribution_pos;
+    std::tie(arriving_light_conn, distribution_pos) =
         graph_accessor::get_previous_light_connection(route_node_,
                                                       light_connection_);
 
     train_info_.preceding_arrival_info_.arrival_time_ =
         arriving_light_conn->aTime;
     train_info_.preceding_arrival_info_.arrival_distribution_ =
-        arriving_light_conn_distribution;
+        &node_to_train_distributions[route_node_._id]
+             ->arrival_distributions_[distribution_pos];
 
     // the standing-time is always less or equal 2 minutes
     train_info_.preceding_arrival_info_.min_standing_ =
         std::min(2, light_connection_.dTime - arriving_light_conn->aTime);
   }
+}
 
-  auto const feeder_infos =
-      graph_accessor::get_feeders(route_node, light_connection);
-  for (unsigned int i = 0; i < feeder_infos.size(); i++) {
+inline td::Duration get_waiting_time(
+    td::WaitingTimeRules const& waiting_time_rules,
+    td::LightConnection const& feeder_light_conn,
+    td::LightConnection const& connecting_light_conn) {
+  return (td::Duration)waiting_time_rules.waitingTime(
+      waiting_time_rules.waitingTimeCategory(
+          connecting_light_conn._fullCon->conInfo->family),
+      waiting_time_rules.waitingTimeCategory(
+          feeder_light_conn._fullCon->conInfo->family));
+}
+
+void pd_calc_data_departure::init_feeder_info(
+    td::Schedule const& schedule,
+    std::vector<std::unique_ptr<train_distributions> > const&
+        node_to_train_distributions) {
+  auto const all_feeders_data =
+      graph_accessor::get_all_potential_feeders(route_node_, light_connection_);
+
+  for (unsigned int i = 0; i < all_feeders_data.size(); i++) {
     td::Node const* feeder_route_node;
     td::LightConnection const* feeder_light_conn;
-    probability_distribution const* feeder_distribution;
-    // TODO: anstatt sich hier ein tuple zu holen, sollte ich direkt struct
-    // feeder_info
-    // aus dieser Klasse verwenden. Dann koennte man die Daten direkt in den
-    // vector "feeders_" speichern.
-    std::tie(feeder_route_node, feeder_light_conn, feeder_distribution) =
-        graph_accessor::get_feeders(route_node_, light_connection_);
-  }
+    unsigned int feeder_distribution_pos;
 
-#if 0
-  if(numFeeders > 0) {
+    std::tie(feeder_route_node, feeder_light_conn, feeder_distribution_pos) =
+        all_feeders_data[i];
 
-    unsigned short wait[numFeeders];
-    const FeederEdge* feeder = NULL;
+    auto waiting_time = get_waiting_time(schedule.waitingTimeRules,
+                                         *feeder_light_conn, light_connection_);
 
-    for(unsigned int i=0 ; i<depNode->getFeederDegree() ; i++) {
-      feeder = (const FeederEdge*) depNode->getFeederEdge(i);
-      feeders[i] = feeder->getTail()->getProbDist();
-      arrTimeFeeders[i] = feeder->getTail()->getRegularTimeMT();
-      if(!arrTimeFeeders[i].isValid())
-        success = false;
-      transferTimes[i] = feeder->getChangeTime();
-      wait[i] = feeder->getWaitingTime();
-      if(storeTrainIDs)
-        trainIDs[i] = feeder->getTail()->getExternalTrainIndex();
+    if (waiting_time > 0) {
+      auto const transfer_time =
+          schedule.stations[feeder_route_node->_stationNode->_id]
+              ->getTransferTime();
+      td::Time const latest_feasible_arrival =
+          (light_connection_.dTime + waiting_time) - transfer_time;
+
+      probability_distribution const& feeder_distribution =
+          node_to_train_distributions[feeder_route_node->_id]
+              ->arrival_distributions_[feeder_distribution_pos];
+
+      feeders_.emplace_back(feeder_distribution, feeder_light_conn->aTime,
+                            latest_feasible_arrival, transfer_time);
+
+      if (waiting_time > maximum_waiting_time_)
+        maximum_waiting_time_ = waiting_time;
     }
-
-    initLFA(wait);
   }
-#endif
 }
 
 td::Duration pd_calc_data_departure::get_largest_delay(void) const {
@@ -108,7 +135,7 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
      << " maximum-waiting-time: " << maximum_waiting_time_ << "\n";
   for (auto const& feeder : feeders_) {
     os << "Feeder -- arrival-time: " << feeder.arrival_time_
-       //<< " distribution: " << feeder.distribution_
+       << " distribution: " << &feeder.distribution_
        << " latest-feasible-arr: " << feeder.latest_feasible_arrival_
        << " transfer-time: " << feeder.transfer_time_ << "\n";
   }

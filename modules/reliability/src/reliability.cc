@@ -6,6 +6,9 @@
 
 #include "motis/module/api.h"
 
+#include "motis/reliability/train_distributions_calculator.h"
+#include "motis/reliability/train_distributions.h"
+
 using namespace json11;
 using namespace td;
 using namespace motis::module;
@@ -30,6 +33,10 @@ Edge const* route_edge(Node const* routeNode) {
 }
 
 bool reliability::initialize() {
+
+  train_distributions_container distributions_container(schedule_->nodeCount);
+  train_distributions_calculator calculator(schedule_, distributions_container);
+
   for (auto const& firstRouteNode : schedule_->routeIndexToFirstRouteNode) {
     Node const* node = firstRouteNode;
     Edge const* edge = nullptr;

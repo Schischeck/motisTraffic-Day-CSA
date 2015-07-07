@@ -13,12 +13,6 @@
 #include "motis/core/schedule/Time.h"
 
 
-namespace motis {
-namespace reliability {
-struct probability_distribution;
-}
-}
-
 namespace td
 {
 
@@ -91,11 +85,6 @@ public:
   Pointer<StationNode> _stationNode;
   int32_t _route;
   uint32_t _id;
-
-  std::vector<motis::reliability::probability_distribution*>
-    departure_distributions;
-  std::vector<motis::reliability::probability_distribution*>
-    arrival_distributions;
 };
 
 class StationNode : public Node
