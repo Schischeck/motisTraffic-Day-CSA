@@ -4,7 +4,9 @@ project(motis)
 set(CMAKE_SHARED_LIBRARY_SUFFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
-set(Boost_USE_STATIC_LIBS ON)
+if (MSVC)
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
 find_package(Boost COMPONENTS system filesystem regex program_options REQUIRED)
 find_package(Threads)
 
