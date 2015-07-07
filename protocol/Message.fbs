@@ -1,0 +1,21 @@
+include "guesser/StationGuesserRequest.fbs";
+include "guesser/StationGuesserResponse.fbs";
+include "railviz/RailVizStations.fbs";
+include "railviz/RailVizStationDetail.fbs";
+include "railviz/RailVizStationDetailRequest.fbs";
+
+namespace motis;
+
+union MsgContent {
+  motis.guesser.StationGuesserRequest,
+  motis.guesser.StationGuesserResponse,
+  motis.railviz.RailVizStations,
+  motis.railviz.RailVizStationDetail,
+  motis.railviz.RailVizStationDetailRequest
+}
+
+table Message {
+  content:MsgContent;
+}
+
+root_type Message;

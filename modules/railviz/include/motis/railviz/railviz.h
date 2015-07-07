@@ -15,13 +15,18 @@ struct railviz : public motis::module::module {
   virtual void print(std::ostream& out) const override;
 
   virtual std::string name() const override { return "railviz"; }
+  virtual std::vector<MsgContent> subscriptions() const {
+    return {MsgContent_RailVizStationDetailRequest};
+  }
   virtual void init() override;
   virtual void on_open(motis::module::sid) override;
   virtual void on_close(motis::module::sid) override;
-  virtual json11::Json on_msg(json11::Json const&, motis::module::sid) override;
+  virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
+                                        motis::module::sid) override;
 
-  typedef std::function<json11::Json(railviz*, json11::Json const& msg)> op;
-  std::map<std::string, op> ops_;
+  typedef std::function<motis::module::msg_ptr(railviz*,
+                                               motis::module::msg_ptr)> op;
+  std::map<MsgContent, op> ops_;
   std::unique_ptr<train_retriever> train_retriever_;
 };
 

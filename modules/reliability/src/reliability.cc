@@ -11,8 +11,6 @@
 #include "motis/reliability/train_distributions_calculator.h"
 #include "motis/reliability/train_distributions.h"
 
-using namespace json11;
-using namespace td;
 using namespace motis::module;
 namespace po = boost::program_options;
 
@@ -26,23 +24,12 @@ po::options_description reliability::desc() {
 
 void reliability::print(std::ostream&) const {}
 
-Json get_distribution(reliability*, Json const& msg) {
-  std::cout << "Get Distribution" << std::endl;
-  return Json::object{{"status", "success"}};
-}
+reliability::reliability() {}
 
-reliability::reliability() : ops_{{"get-distribution", get_distribution}} {}
+msg_ptr reliability::on_msg(msg_ptr const& msg, sid) { return {}; }
 
-Json reliability::on_msg(Json const& msg, sid) {
-  auto op = ops_.find(msg["type"].string_value());
-  if (op == end(ops_)) {
-    return {};
-  }
-  return op->second(this, msg);
-}
-
-edge const* route_edge(Node const* routeNode) {
-  for (auto const& edge : routeNode->_edges) {
+edge const* route_edge(node const* route_node) {
+  for (auto const& edge : route_node->_edges) {
     if (!edge.empty()) {
       return &edge;
     }
@@ -53,16 +40,16 @@ edge const* route_edge(Node const* routeNode) {
 bool reliability::initialize() {
 
   train_distributions_container distributions_container(schedule_->node_count);
-  train_distributions_calculator calculator(schedule_, distributions_container);
+  train_distributions_calculator calculator(*schedule_, distributions_container);
 
   for (auto const& firstRouteNode : schedule_->route_index_to_first_route_node) {
-    Node const* node = firstRouteNode;
+    node const* node = firstRouteNode;
     edge const* edge = nullptr;
 
     while ((edge = route_edge(node)) != nullptr) {
       auto conInfo = edge->_m._route_edge._conns[0]._full_con->con_info;
       std::cout << "route from "
-                << schedule_->stations[node->getStation()->_id]->name << " to "
+                << schedule_->stations[node->get_station()->_id]->name << " to "
                 << schedule_->stations[edge->_to->get_station()->_id]->name
                 << ": " << schedule_->category_names[conInfo->family] << " "
                 << conInfo->train_nr << "\n";

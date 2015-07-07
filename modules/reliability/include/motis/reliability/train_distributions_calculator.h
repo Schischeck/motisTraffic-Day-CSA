@@ -5,12 +5,11 @@
 
 #include "motis/core/schedule/connection.h"
 
-namespace td {
+namespace motis {
+
 struct schedule;
 class node;
-}
 
-namespace motis {
 namespace reliability {
 
 struct train_distributions_container;

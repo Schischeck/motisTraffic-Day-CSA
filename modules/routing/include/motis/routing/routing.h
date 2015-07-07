@@ -10,7 +10,9 @@ struct routing : public motis::module::module {
   virtual void print(std::ostream& out) const override;
 
   virtual std::string name() const override { return "routing"; }
-  virtual json11::Json on_msg(json11::Json const&, motis::module::sid) override;
+  virtual std::vector<MsgContent> subscriptions() const { return {}; }
+  virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
+                                        motis::module::sid) override;
 };
 
 }  // namespace routing
