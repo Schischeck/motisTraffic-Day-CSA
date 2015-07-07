@@ -8,7 +8,7 @@
 
 #include "conf/options_parser.h"
 
-#include "motis/loader/Loader.h"
+#include "motis/loader/loader.h"
 
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
@@ -22,7 +22,7 @@
 
 using namespace motis::webservice;
 using namespace motis::module;
-using namespace td;
+using namespace motis;
 
 int main(int argc, char** argv) {
   listener_settings listener_opt("0.0.0.0", "8080");
@@ -47,20 +47,26 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  auto sched = loadSchedule(dataset_opt.dataset);
+  auto sched = load_schedule(dataset_opt.dataset);
 
   boost::asio::io_service ios;
 
   ws_server server(ios);
   server.listen(listener_opt.host, listener_opt.port);
 
-  typedef dispatcher<ws_server> ws_dispatcher;
-  ws_dispatcher dispatcher(server);
-
-  dynamic_module_loader<ws_dispatcher> loader(
-      modules_opt.modules_path, sched.get(), dispatcher, ios);
+  dispatcher dispatcher(server);
+  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios);
 
   loader.load_modules();
+
+  std::vector<conf::configuration*> module_confs;
+  for (auto const& module : dispatcher.modules_) {
+    module_confs.push_back(module.second);
+  }
+  conf::options_parser module_conf_parser(module_confs);
+  module_conf_parser.read_command_line_args(argc, argv);
+  module_conf_parser.read_configuration_file();
+  module_conf_parser.print_used(std::cout);
 
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);

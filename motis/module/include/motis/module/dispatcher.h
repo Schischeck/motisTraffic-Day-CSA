@@ -7,29 +7,30 @@
 
 #include "motis/module/module.h"
 
-#include "motis/module/sid.h"
+#include "motis/module/server.h"
 
 namespace motis {
 namespace module {
 
-template <typename Server>
 struct dispatcher {
-  dispatcher(Server& server) : server_(server) {
+  dispatcher(server& server) : server_(server) {
     namespace p = std::placeholders;
-    server.on_msg(std::bind(&dispatcher::on_msg, this, p::_1, p::_2));
-    server.on_open(std::bind(&dispatcher::on_open, this, p::_1));
-    server.on_close(std::bind(&dispatcher::on_close, this, p::_1));
+    server_.on_msg(std::bind(&dispatcher::on_msg, this, p::_1, p::_2));
+    server_.on_open(std::bind(&dispatcher::on_open, this, p::_1));
+    server_.on_close(std::bind(&dispatcher::on_close, this, p::_1));
   }
 
-  std::vector<json11::Json> on_msg(json11::Json const& msg, sid session) {
-    std::cout << "--> " << msg.dump() << "\n";
+  void send(json11::Json const& msg, sid session) {
+    server_.send(msg, session);
+  }
+
+  json11::Json on_msg(json11::Json const& msg, sid session) {
     auto module_name = msg["module"].string_value();
     auto module_it = modules_.find(module_name);
     if (module_it == end(modules_)) {
       return {};
     }
     auto res = module_it->second->on_msg(msg, session);
-    std::cout << "<-- " << json11::Json(res).dump() << "\n";
     return res;
   }
 
@@ -45,7 +46,7 @@ struct dispatcher {
     }
   }
 
-  Server& server_;
+  server& server_;
   std::map<std::string, module*> modules_;
 };
 

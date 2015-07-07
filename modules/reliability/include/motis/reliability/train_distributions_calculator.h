@@ -3,11 +3,11 @@
 #include <queue>
 #include <tuple>
 
-#include "motis/core/schedule/Connection.h"
+#include "motis/core/schedule/connection.h"
 
 namespace td {
-struct Schedule;
-class Node;
+struct schedule;
+class node;
 }
 
 namespace motis {
@@ -16,8 +16,8 @@ namespace reliability {
 struct train_distributions_container;
 
 struct queue_element {
-  queue_element(td::Node* from, td::Node* to,
-                td::LightConnection const* light_connection,
+  queue_element(node* from, node* to,
+                light_connection const* light_connection,
                 unsigned short light_connection_idx,
                 bool const is_first_route_node)
       : from_(from),
@@ -26,9 +26,9 @@ struct queue_element {
         light_connection_idx_(light_connection_idx),
         is_first_route_node_(is_first_route_node) {}
 
-  td::Node* from_;
-  td::Node* to_;
-  td::LightConnection const* light_connection_;
+  node* from_;
+  node* to_;
+  light_connection const* light_connection_;
   unsigned short light_connection_idx_;
   bool is_first_route_node_;
 };
@@ -36,14 +36,14 @@ struct queue_element {
 class queue_element_cmp {
 public:
   bool operator()(queue_element const& a, queue_element const& b) {
-    return a.light_connection_->dTime < b.light_connection_->dTime;
+    return a.light_connection_->d_time < b.light_connection_->d_time;
   }
 };
 
 class train_distributions_calculator {
 public:
   train_distributions_calculator(
-      td::Schedule* schedule,
+      schedule& schedule,
       train_distributions_container& distributions_container);
 
   bool calculate_initial_distributions();
@@ -53,7 +53,7 @@ private:
 
   bool process_element(queue_element element);
 
-  td::Schedule* schedule_;
+  schedule& schedule_;
 
   train_distributions_container& distributions_container_;
 

@@ -9,19 +9,19 @@ namespace webservice {
 
 namespace po = boost::program_options;
 
-modules_settings::modules_settings(std::string default_modules_path)
-    : modules_path(std::move(default_modules_path)) {}
+modules_settings::modules_settings(std::string default_path)
+    : path(std::move(default_path)) {}
 
 po::options_description modules_settings::desc() {
   po::options_description desc("Listener Options");
-  desc.add_options()(MODULES_PATH, po::value<std::string>(&modules_path)
-                                       ->default_value(modules_path),
-                     "TD Dataset root");
+  desc.add_options()(MODULES_PATH,
+                     po::value<std::string>(&path)->default_value(path),
+                     "MOTIS Dataset root");
   return desc;
 }
 
 void modules_settings::print(std::ostream& out) const {
-  out << "  " << MODULES_PATH << ": " << modules_path;
+  out << "  " << MODULES_PATH << ": " << path;
 }
 
 }  // namespace webservice

@@ -1,14 +1,17 @@
 #pragma once
 
-#include "motis/core/schedule/Nodes.h"
-#include "motis/core/schedule/Edges.h"
+#include <tuple>
+#include <vector>
+
+#include "motis/core/schedule/nodes.h"
+#include "motis/core/schedule/edges.h"
 
 namespace motis {
 namespace reliability {
 
 namespace graph_accessor {
 
-inline td::Edge* get_departing_route_edge(td::Node& route_node) {
+inline edge* get_departing_route_edge(node& route_node) {
   for (auto& edge : route_node._edges) {
     if (!edge.empty()) {
       return &edge;
@@ -17,8 +20,8 @@ inline td::Edge* get_departing_route_edge(td::Node& route_node) {
   return nullptr;
 }
 
-inline td::Edge const* get_arriving_route_edge(td::Node const& route_node) {
-  for (auto& edge : route_node._incomingEdges) {
+inline edge const* get_arriving_route_edge(node const& route_node) {
+  for (auto& edge : route_node._incoming_edges) {
     if (!edge->empty()) {
       return edge;
     }
@@ -26,15 +29,15 @@ inline td::Edge const* get_arriving_route_edge(td::Node const& route_node) {
   return nullptr;
 }
 
-inline std::pair<td::LightConnection const*, unsigned int>
-get_previous_light_connection(td::Node const& route_node,
-                              td::LightConnection const& departing_light_conn) {
+inline std::pair<light_connection const*, unsigned int>
+get_previous_light_connection(node const& route_node,
+                              light_connection const& departing_light_conn) {
   auto arriving_route_edge = get_arriving_route_edge(route_node);
 
-  auto& all_connections = arriving_route_edge->_m._routeEdge._conns;
+  auto& all_connections = arriving_route_edge->_m._route_edge._conns;
   unsigned int pos = 0;
   while (pos + 1 < all_connections.size() &&
-         all_connections[pos + 1].aTime <= departing_light_conn.dTime) {
+         all_connections[pos + 1].a_time <= departing_light_conn.d_time) {
     ++pos;
   }
 
@@ -42,29 +45,29 @@ get_previous_light_connection(td::Node const& route_node,
 }
 
 /* feeder-route-node, feeder-light-connection, feeder-distribution-position */
-typedef std::tuple<td::Node const*, td::LightConnection const*, unsigned int>
+typedef std::tuple<node const*, light_connection const*, unsigned int>
     feeder_info;
 inline std::vector<feeder_info> get_all_potential_feeders(
-    td::Node& route_node, td::LightConnection const& departing_light_conn) {
+    node& route_node, light_connection const& departing_light_conn) {
   std::vector<feeder_info> feeders;
 
-  for (auto const in_edge : route_node._stationNode->_incomingEdges) {
-    if (!in_edge->_to->isRouteNode() || in_edge->_from->_id == route_node._id)
+  for (auto const in_edge : route_node._station_node->_incoming_edges) {
+    if (!in_edge->_to->is_route_node() || in_edge->_from->_id == route_node._id)
       continue;
 
-    td::Time const time_end =
-        departing_light_conn.dTime - in_edge->_m._footEdge._timeCost;
-    td::Time const time_begin = time_end - 30;  // XXX 30 minutes
+    time const time_end =
+        departing_light_conn.d_time - in_edge->_m._foot_edge._time_cost;
+    time const time_begin = time_end - 30;  // XXX 30 minutes
 
     auto& feeder_route_node = *in_edge->_from._ptr;
     auto const feeder_route_edge = get_arriving_route_edge(feeder_route_node);
     if (feeder_route_edge == nullptr) continue;
 
-    auto& all_connections = feeder_route_edge->_m._routeEdge._conns;
+    auto& all_connections = feeder_route_edge->_m._route_edge._conns;
 
     for (unsigned int i = 0; i < all_connections.size(); i++) {
-      if (all_connections[i].aTime >= time_begin &&
-          all_connections[i].aTime <= time_end) {
+      if (all_connections[i].a_time >= time_begin &&
+          all_connections[i].a_time <= time_end) {
         feeders.emplace_back(&feeder_route_node, &all_connections[i], i);
       }
     }

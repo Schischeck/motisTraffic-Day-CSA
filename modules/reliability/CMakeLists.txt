@@ -5,7 +5,7 @@ include_directories(include)
 
 file(GLOB_RECURSE motis-reliability-files src/*.cc)
 add_library(motis-reliability SHARED ${motis-reliability-files})
-target_link_libraries(motis-reliability ${Boost_SYSTEM_LIBRARY} json11)
+target_link_libraries(motis-reliability ${Boost_SYSTEM_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} json11 motis-module)
 set_target_properties(motis-reliability PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
 set_target_properties(motis-reliability PROPERTIES OUTPUT_NAME reliability.module)
 

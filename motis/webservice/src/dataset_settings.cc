@@ -13,10 +13,10 @@ dataset_settings::dataset_settings(std::string default_dataset)
     : dataset(std::move(default_dataset)) {}
 
 po::options_description dataset_settings::desc() {
-  po::options_description desc("Listener Options");
+  po::options_description desc("Dataset Settings");
   desc.add_options()(DATASET,
                      po::value<std::string>(&dataset)->default_value(dataset),
-                     "TD Dataset root");
+                     "MOTIS Dataset root");
   return desc;
 }
 

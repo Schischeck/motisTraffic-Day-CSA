@@ -17,7 +17,8 @@ namespace motis {
 namespace module {
 
 std::vector<dynamic_module> modules_from_folder(std::string const& path,
-                                                td::Schedule* schedule) {
+                                                motis::schedule* schedule,
+                                                send_fun* send) {
   std::vector<dynamic_module> modules;
 
   // Check that the specified path is a directory.
@@ -26,7 +27,7 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
     return modules;
   }
 
-  // Iterate specified directory.
+  // Tterate specified directory.
   auto i = fs::recursive_directory_iterator(path);
   for (; i != fs::recursive_directory_iterator(); ++i) {
     // Don't load hidden files.
@@ -40,7 +41,7 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
     }
 
     try {
-      modules.emplace_back(i->path().generic_string(), schedule);
+      modules.emplace_back(i->path().generic_string(), schedule, send);
     } catch (...) {
       std::cerr << "unable to load " << i->path().generic_string() << "\n";
     }
@@ -49,11 +50,24 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
   return modules;
 }
 
+dynamic_module::dynamic_module(dynamic_module&& other)
+    : module_(other.module_), lib_(other.lib_) {
+  other.lib_ = nullptr;
+}
+
+dynamic_module& dynamic_module::operator=(dynamic_module&& other) {
+  lib_ = other.lib_;
+  module_ = std::move(other.module_);
+  other.lib_ = nullptr;
+  return *this;
+}
+
 #if defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule,
+                               send_fun* send)
     : lib_(nullptr) {
   // Define module map and get_modules to simplify code.
-  typedef void*(__cdecl * load_module)(void*);
+  typedef void*(__cdecl * load_module)(void*, void*);
 
   // Discover package name.
   std::string name = boost::filesystem::path(p).filename().generic_string();
@@ -69,23 +83,32 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
   }
 
   // Get address to load function.
-  load_module lib_fun = (load_module)GetProcAddress((HINSTANCE )lib_, "load_module");
+  load_module lib_fun =
+      (load_module)GetProcAddress((HINSTANCE)lib_, "load_module");
   if (nullptr == lib_fun) {
     FreeLibrary((HINSTANCE)lib_);
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
   // Call load function.
-  auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
-  module_ = std::shared_ptr<motis::module::module>(ptr);
+  auto ptr = static_cast<module*>((*lib_fun)(schedule, send));
+  module_ = std::shared_ptr<module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {
+  // Free the module itself.
+  // This calls the destructor and must
+  // therefore be done *before* freeing the shared library.
+  module_ = nullptr;
+
   // Close shared library.
-  FreeLibrary((HINSTANCE)lib_);
+  if (lib_ != nullptr) {
+    FreeLibrary((HINSTANCE)lib_);
+  }
 }
 #else  // defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule,
+                               send_fun* send)
     : lib_(nullptr) {
   // Discover package name.
   using boost::filesystem::path;
@@ -102,20 +125,27 @@ dynamic_module::dynamic_module(const std::string& p, td::Schedule* schedule)
   }
 
   // Get pointer to the load function.
-  void* (*lib_fun)(void*);
+  void* (*lib_fun)(void*, void*);
   *(void**)(&lib_fun) = dlsym(lib_, "load_module");
   if (nullptr == lib_fun) {
     throw std::runtime_error("unable to load module: load_module() not found");
   }
 
   // Read modules.
-  auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
-  module_ = std::shared_ptr<motis::module::module>(ptr);
+  auto ptr = static_cast<module*>((*lib_fun)(schedule, send));
+  module_ = std::shared_ptr<module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {
+  // Free the module itself.
+  // This calls the destructor and must
+  // therefore be done *before* freeing the shared library.
+  module_ = nullptr;
+
   // Close shared library.
-  dlclose(lib_);
+  if (lib_ != nullptr) {
+    dlclose(lib_);
+  }
 }
 #endif  // defined _WIN32 || defined _WIN64
 

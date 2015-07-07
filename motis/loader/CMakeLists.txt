@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-file(GLOB_RECURSE motis-loader-files src/*.cpp)
+file(GLOB_RECURSE motis-loader-files src/*.cc)
 add_library(motis-loader STATIC ${motis-loader-files})
 target_link_libraries(motis-loader ${Boost_FILESYSTEM_LIBRARY} conf)
 if (NOT MSVC)

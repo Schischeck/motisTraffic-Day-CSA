@@ -3,15 +3,15 @@
 #include <memory>
 #include <vector>
 
-#include "motis/core/schedule/Time.h"
+#include "motis/core/schedule/time.h"
 
-namespace td {
-class LightConnection;
-class Node;
-struct Schedule;
-}
 
 namespace motis {
+
+class light_connection;
+class node;
+struct schedule;
+
 namespace reliability {
 
 struct probability_distribution;
@@ -26,42 +26,42 @@ struct pd_calc_data_departure {
 
   struct feeder_info {
     feeder_info(probability_distribution const& distribution,
-                td::Time const arrival_time,
-                td::Time const latest_feasible_arrival,
-                td::Duration const transfer_time)
+                time const arrival_time,
+                time const latest_feasible_arrival,
+                duration const transfer_time)
         : distribution_(distribution),
           arrival_time_(arrival_time),
           latest_feasible_arrival_(latest_feasible_arrival),
           transfer_time_(transfer_time) {}
 
     probability_distribution const& distribution_;
-    td::Time const arrival_time_;
+    time const arrival_time_;
     /** latest arrival times of the feeder such that an interchange
      * from the feeder into the departing train is possible */
-    td::Time const latest_feasible_arrival_;
+    time const latest_feasible_arrival_;
     /** required times for an interchange from a feeder into the train */
-    td::Duration const transfer_time_;
+    duration const transfer_time_;
   };
 
   pd_calc_data_departure(
-      td::Node& route_node, td::LightConnection const& light_connection,
-      bool const is_first_route_node, td::Schedule const& schedule,
+      node& route_node, light_connection const& light_connection,
+      bool const is_first_route_node, schedule const& schedule,
       tt_distribution_manager const& tt_dist_manager,
       train_distributions_container& distributions_container);
 
-  td::Duration get_largest_delay(void) const;
+  duration get_largest_delay(void) const;
 
   void debug_output(std::ostream& os) const;
 
-  td::Node& route_node_;  // XXX is required?
+  node& route_node_;  // XXX is required?
 
-  td::LightConnection const& light_connection_;  // XXX is required?
+  light_connection const& light_connection_;  // XXX is required?
 
   /** arrival distributions of the feeder trains */
   std::vector<feeder_info> feeders_;
 
   /** maximal waiting time of the departing train of any feeder */
-  td::Duration maximum_waiting_time_;
+  duration maximum_waiting_time_;
 
   bool const is_first_route_node_;
 
@@ -69,14 +69,14 @@ struct pd_calc_data_departure {
     struct preceding_arrival_info {
       /** scheduled arrival time of the preceding arrival event of the train
        * (0 if this is the first departure) */
-      td::Time arrival_time_;
+      time arrival_time_;
 
       /** arrival distribution of the preceding arrival event of the train
        * (Null if this is the first departure) */
       probability_distribution const* arrival_distribution_;
 
       /** minimum standing time of the train at the station */
-      td::Duration min_standing_;
+      duration min_standing_;
     } preceding_arrival_info_;
 
     probability_distribution const* first_departure_distribution;
@@ -89,7 +89,7 @@ private:
                            node_to_train_distributions);
 
   void init_feeder_info(
-      td::Schedule const& schedule,
+      schedule const& schedule,
       std::vector<std::unique_ptr<train_distributions> > const&
           node_to_train_distributions);
 };

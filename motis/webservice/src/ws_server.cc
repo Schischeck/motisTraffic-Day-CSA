@@ -1,9 +1,12 @@
 #include "motis/webservice/ws_server.h"
 
+#include <memory>
+#include <functional>
+
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
-typedef websocketpp::server<websocketpp::config::asio> server;
+typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
@@ -18,11 +21,11 @@ namespace webservice {
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios)
       : ios_(ios),
+        next_sid_(0),
         msg_handler_(nullptr),
         open_handler_(nullptr),
         close_handler_(nullptr) {
     namespace p = std::placeholders;
-    server_.set_reuse_addr(true);
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
@@ -48,30 +51,23 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(sid session, json11::Json const& message) {
-    auto sid_it = sid_con_map_.find(session);
-    if (sid_it == end(sid_con_map_)) {
-      return;
-    }
-
-    error_code send_ec;
-    server_.send(sid_it->second, message.dump(), TEXT, send_ec);
-  }
-
-  void stop() {
-    server_.stop_listening();
-    for (auto con : sid_con_map_) {
-      try {
-        server_.close(con.second, websocketpp::close::status::normal, "");
-      } catch (...) {
+  void send(json11::Json const& message, sid session) {
+    ios_.post([this, session, message]() {
+      auto sid_it = sid_con_map_.find(session);
+      if (sid_it == end(sid_con_map_)) {
+        return;
       }
-    }
-    server_.stop();
+
+      error_code send_ec;
+      server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+    });
   }
+
+  void stop() { server_.stop(); }
 
   void on_open(connection_hdl hdl) {
-    sid_con_map_.insert({ next_sid_, hdl });
-    con_sid_map_.insert({ hdl, next_sid_ });
+    sid_con_map_.insert({next_sid_, hdl});
+    con_sid_map_.insert({hdl, next_sid_});
 
     if (open_handler_) {
       open_handler_(next_sid_);
@@ -99,7 +95,7 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  void on_msg(connection_hdl con, server::message_ptr msg) {
+  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg) {
     if (!msg_handler_) {
       return;
     }
@@ -112,10 +108,7 @@ struct ws_server::ws_server_impl {
     std::string parse_error;
     auto json = json11::Json::parse(msg->get_payload(), parse_error);
     if (parse_error.empty()) {
-      auto response = msg_handler_(json, con_it->second);
-      for (auto const& msg : response) {
-        send(con_it->second, msg);
-      }
+      send(msg_handler_(json, con_it->second), con_it->second);
     } else {
       std::cerr << "parser error for message:\n";
       std::cout << msg->get_payload();
@@ -124,7 +117,7 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  server server_;
+  asio_ws_server server_;
   boost::asio::io_service& ios_;
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
@@ -158,7 +151,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(sid s, json11::Json const& msg) { impl_->send(s, msg); }
+void ws_server::send(json11::Json const& msg, sid s) { impl_->send(msg, s); }
 
 }  // namespace webservice
 }  // namespace motis
