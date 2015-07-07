@@ -17,6 +17,11 @@ struct message {
   message(flatbuffers::unique_ptr_t mem, Message const* msg, void* buf)
       : mem_(std::move(mem)), msg_(msg), buf_(buf) {}
 
+  template <typename T>
+  T content() {
+    return reinterpret_cast<T>(msg_->content());
+  }
+
   operator bool() { return msg_ != nullptr || buf_ == nullptr; }
 
   std::string to_json() const;

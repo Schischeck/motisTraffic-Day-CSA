@@ -29,9 +29,8 @@ po::options_description railviz::desc() {
 void railviz::print(std::ostream& out) const {}
 
 msg_ptr station_info(railviz* r, msg_ptr const& msg) {
-  auto& req = *reinterpret_cast<RailVizStationDetailRequest const*>(
-                  msg->msg_->content());
-  int index = req.station_index();
+  auto req = msg->content<RailVizStationDetailRequest const*>();
+  int index = req->station_index();
   auto const& stations = r->schedule_->stations;
   if (index < 0 || index >= stations.size()) {
     return {};
