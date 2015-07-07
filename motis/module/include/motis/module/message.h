@@ -12,16 +12,14 @@ namespace motis {
 namespace module {
 
 struct message {
-  message() : msg_(nullptr) {}
+  message() : msg_(nullptr), buf_(nullptr) {}
   message(std::string const& json);
   message(flatbuffers::unique_ptr_t mem, Message const* msg, void* buf)
       : mem_(std::move(mem)), msg_(msg), buf_(buf) {}
 
-  operator bool() { return msg_ != nullptr; }
+  operator bool() { return msg_ != nullptr || buf_ == nullptr; }
 
   std::string to_json() const;
-
-  Message const& operator->() const { return *msg_; }
 
   static void init_parser();
 

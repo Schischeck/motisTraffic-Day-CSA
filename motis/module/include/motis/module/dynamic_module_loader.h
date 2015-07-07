@@ -47,7 +47,6 @@ struct dynamic_module_loader {
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.module_.get());
       for (auto const& subscription : module.module_->subscriptions()) {
-        std::cout << "registering " << module.module_->name() << " to " << subscription << "\n";
         dispatcher_.subscriptions_.insert({subscription, module.module_.get()});
       }
     }
