@@ -4,8 +4,6 @@
 
 #include "boost/asio/io_service.hpp"
 
-#include "json11/json11.hpp"
-
 #include "motis/module/server.h"
 
 namespace motis {
@@ -18,7 +16,7 @@ struct ws_server : public module::server {
   virtual void on_msg(module::msg_handler) override;
   virtual void on_open(module::sid_handler) override;
   virtual void on_close(module::sid_handler) override;
-  virtual void send(json11::Json const& msg, module::sid session) override;
+  virtual void send(motis::module::msg_ptr const& msg, module::sid session) override;
 
   void listen(std::string const& host, std::string const& port);
   void stop();

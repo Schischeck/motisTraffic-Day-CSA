@@ -3,9 +3,9 @@
 #include <functional>
 #include <map>
 
-#include "json11/json11.hpp"
-
 #include "motis/module/module.h"
+
+#include "motis/protocol/Message_generated.h"
 
 #include "motis/module/server.h"
 
@@ -20,34 +20,34 @@ struct dispatcher {
     server_.on_close(std::bind(&dispatcher::on_close, this, p::_1));
   }
 
-  void send(json11::Json const& msg, sid session) {
+  void send(msg_ptr const& msg, sid session) {
     server_.send(msg, session);
   }
 
-  json11::Json on_msg(json11::Json const& msg, sid session) {
-    auto module_name = msg["module"].string_value();
-    auto module_it = modules_.find(module_name);
-    if (module_it == end(modules_)) {
+  msg_ptr on_msg(msg_ptr const& msg, sid session) {
+    auto module_it = subscriptions_.find(msg->msg_->content_type());
+    if (module_it == end(subscriptions_)) {
       return {};
     }
-    auto res = module_it->second->on_msg(msg, session);
-    return res;
+    auto response = module_it->second->on_msg(msg, session);
+    return response;
   }
 
   void on_open(sid session) {
     for (auto const& module : modules_) {
-      module.second->on_open(session);
+      module->on_open(session);
     }
   }
 
   void on_close(sid session) {
     for (auto const& module : modules_) {
-      module.second->on_close(session);
+      module->on_close(session);
     }
   }
 
   server& server_;
-  std::map<std::string, module*> modules_;
+  std::vector<module*> modules_;
+  std::map<MsgContent, module*> subscriptions_;
 };
 
 }  // namespace module

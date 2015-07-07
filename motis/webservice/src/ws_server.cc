@@ -51,15 +51,19 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(json11::Json const& message, sid session) {
-    ios_.post([this, session, message]() {
+  void send(msg_ptr const& msg, sid session) {
+    if (!msg) {
+      return;
+    }
+
+    ios_.post([this, session, msg]() {
       auto sid_it = sid_con_map_.find(session);
       if (sid_it == end(sid_con_map_)) {
         return;
       }
 
       error_code send_ec;
-      server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+      server_.send(sid_it->second, msg->to_json(), TEXT, send_ec);
     });
   }
 
@@ -105,16 +109,8 @@ struct ws_server::ws_server_impl {
       return;
     }
 
-    std::string parse_error;
-    auto json = json11::Json::parse(msg->get_payload(), parse_error);
-    if (parse_error.empty()) {
-      send(msg_handler_(json, con_it->second), con_it->second);
-    } else {
-      std::cerr << "parser error for message:\n";
-      std::cout << msg->get_payload();
-      std::cout << "\n";
-      std::cout << parse_error << "\n";
-    }
+    send(msg_handler_(make_msg(msg->get_payload()), con_it->second),
+         con_it->second);
   }
 
   asio_ws_server server_;
@@ -151,7 +147,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(json11::Json const& msg, sid s) { impl_->send(msg, s); }
+void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s); }
 
 }  // namespace webservice
 }  // namespace motis

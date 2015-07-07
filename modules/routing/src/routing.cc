@@ -6,7 +6,6 @@
 
 #include "motis/module/api.h"
 
-using namespace json11;
 using namespace motis::module;
 namespace po = boost::program_options;
 
@@ -20,8 +19,8 @@ po::options_description routing::desc() {
 
 void routing::print(std::ostream& out) const {}
 
-Json routing::on_msg(Json const& msg, sid session) {
-  return Json::object{};
+msg_ptr routing::on_msg(msg_ptr const& msg, sid session) {
+  return {};
 }
 
 MOTIS_MODULE_DEF_MODULE(routing)

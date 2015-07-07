@@ -6,7 +6,6 @@
 
 #include "motis/module/api.h"
 
-using namespace json11;
 using namespace motis::module;
 namespace po = boost::program_options;
 
@@ -20,20 +19,9 @@ po::options_description reliability::desc() {
 
 void reliability::print(std::ostream&) const {}
 
-Json get_distribution(reliability*, Json const& msg) {
-  std::cout << "Get Distribution" << std::endl;
-  return Json::object{{"status", "success"}};
-}
+reliability::reliability() {}
 
-reliability::reliability() : ops_{{"get-distribution", get_distribution}} {}
-
-Json reliability::on_msg(Json const& msg, sid) {
-  auto op = ops_.find(msg["type"].string_value());
-  if (op == end(ops_)) {
-    return {};
-  }
-  return op->second(this, msg);
-}
+msg_ptr reliability::on_msg(msg_ptr const& msg, sid) { return {}; }
 
 MOTIS_MODULE_DEF_MODULE(reliability)
 

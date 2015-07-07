@@ -10,6 +10,7 @@
 
 #include "motis/loader/loader.h"
 
+#include "motis/module/message.h"
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 #include "motis/module/dynamic_module.h"
@@ -25,6 +26,8 @@ using namespace motis::module;
 using namespace motis;
 
 int main(int argc, char** argv) {
+  message::init_parser();
+
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("data/test");
   modules_settings modules_opt("modules");
@@ -61,7 +64,7 @@ int main(int argc, char** argv) {
 
   std::vector<conf::configuration*> module_confs;
   for (auto const& module : dispatcher.modules_) {
-    module_confs.push_back(module.second);
+    module_confs.push_back(module);
   }
   conf::options_parser module_conf_parser(module_confs);
   module_conf_parser.read_command_line_args(argc, argv);

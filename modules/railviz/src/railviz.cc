@@ -8,9 +8,12 @@
 
 #include "motis/module/api.h"
 
+#include "motis/protocol/RailVizStations_generated.h"
+#include "motis/protocol/RailvizStationDetail_generated.h"
+#include "motis/protocol/RailvizStationDetailRequest_generated.h"
+
 #include "motis/railviz/train_retriever.h"
 
-using namespace json11;
 using namespace motis::module;
 using namespace motis::logging;
 namespace po = boost::program_options;
@@ -25,27 +28,25 @@ po::options_description railviz::desc() {
 
 void railviz::print(std::ostream& out) const {}
 
-Json all_stations(railviz* r, Json const& msg) {
-  auto stations = Json::array();
-  for (auto const& station : r->schedule_->stations) {
-    stations.push_back(Json::object{{"latitude", station->width},
-                                    {"longitude", station->length}});
-  }
-  return {Json::object{{"type", "stations"}, {"stations", stations}}};
-}
-
-Json station_info(railviz* r, Json const& msg) {
-  int index = msg["station_index"].int_value();
-  if (index < 0 || index >= r->schedule_->stations.size()) {
+msg_ptr station_info(railviz* r, msg_ptr const& msg) {
+  auto& req = *reinterpret_cast<RailVizStationDetailRequest const*>(
+                  msg->msg_->content());
+  int index = req.station_index();
+  auto const& stations = r->schedule_->stations;
+  if (index < 0 || index >= stations.size()) {
     return {};
   }
-  return {Json::object{
-      {"type", "station_detail"},
-      {"station_name", r->schedule_->stations[index]->name.to_string()}}};
+
+  flatbuffers::FlatBufferBuilder b;
+  b.Finish(CreateMessage(
+      b, MsgContent_RailVizStationDetail,
+      CreateRailVizStationDetail(
+          b, b.CreateString(stations[index]->name.to_string())).Union()));
+  return make_msg(b);
 }
 
 railviz::railviz()
-    : ops_{{"all_stations", all_stations}, {"station_info", station_info}} {}
+    : ops_({{MsgContent_RailVizStationDetailRequest, station_info}}) {}
 
 railviz::~railviz() {}
 
@@ -56,23 +57,26 @@ void railviz::init() {
 }
 
 void railviz::on_open(sid session) {
-  // Session initialization goes here.
-  // TODO send initial bootstrap data like station positions
-  // TODO create client context
-  (*send_)(Json::object{{"hello", "world"}}, session);
+  std::vector<Position> stations;
+  for (auto const& station : schedule_->stations) {
+    stations.emplace_back(station->width, station->length);
+  }
+
+  flatbuffers::FlatBufferBuilder b;
+  b.Finish(CreateMessage(
+      b, MsgContent_RailVizStations,
+      CreateRailVizStations(b, b.CreateVectorOfStructs(stations)).Union()));
+  (*send_)(make_msg(b), session);
 }
 
-void railviz::on_close(sid session) {
-  // TODO clean up client context data
-  std::cout << "Hope to see " << session << " again, soon!\n";
-}
+void railviz::on_close(sid session) {}
 
-Json railviz::on_msg(Json const& msg, sid) {
-  auto op = ops_.find(msg["type"].string_value());
-  if (op == end(ops_)) {
+msg_ptr railviz::on_msg(msg_ptr const& msg, sid session) {
+  auto it = ops_.find(msg->msg_->content_type());
+  if (it == end(ops_)) {
     return {};
   }
-  return op->second(this, msg);
+  return it->second(this, msg);
 }
 
 MOTIS_MODULE_DEF_MODULE(railviz)

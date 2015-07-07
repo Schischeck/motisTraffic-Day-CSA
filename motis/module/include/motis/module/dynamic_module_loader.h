@@ -41,11 +41,15 @@ struct dynamic_module_loader {
 
   void load_modules() {
     dispatcher_.modules_.clear();
+    dispatcher_.subscriptions_.clear();
 
     modules_ = modules_from_folder(modules_path_, schedule_, &send_);
     for (auto const& module : modules_) {
-      dispatcher_.modules_.insert(
-          {module.module_->name(), module.module_.get()});
+      dispatcher_.modules_.push_back(module.module_.get());
+      for (auto const& subscription : module.module_->subscriptions()) {
+        std::cout << "registering " << module.module_->name() << " to " << subscription << "\n";
+        dispatcher_.subscriptions_.insert({subscription, module.module_.get()});
+      }
     }
 
     print_modules();
@@ -54,7 +58,7 @@ struct dynamic_module_loader {
   void print_modules() {
     std::cout << "\nloaded modules: ";
     for (auto const& loaded_module : dispatcher_.modules_) {
-      std::cout << loaded_module.first << " ";
+      std::cout << loaded_module->name() << " ";
     }
     std::cout << std::endl;
   }
