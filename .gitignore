@@ -1,6 +1,6 @@
 .cproject
 .project
-/build
+/build*
 /schedule/test.Routes.txt
 /schedule/test.Route.Bitfields.txt
 /schedule/test.Schedule.index
