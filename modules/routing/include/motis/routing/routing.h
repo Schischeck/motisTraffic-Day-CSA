@@ -10,6 +10,7 @@ namespace routing {
 
 struct routing : public motis::module::module {
   routing();
+  virtual ~routing() {}
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;

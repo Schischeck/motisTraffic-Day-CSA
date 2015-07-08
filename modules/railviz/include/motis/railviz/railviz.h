@@ -9,7 +9,7 @@ class train_retriever;
 
 struct railviz : public motis::module::module {
   railviz();
-  ~railviz();
+  virtual ~railviz();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
@@ -24,8 +24,8 @@ struct railviz : public motis::module::module {
   virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
                                         motis::module::sid) override;
 
-  typedef std::function<motis::module::msg_ptr(railviz*,
-                                               motis::module::msg_ptr)> op;
+  typedef std::function<
+      motis::module::msg_ptr(railviz*, motis::module::msg_ptr)> op;
   std::map<MsgContent, op> ops_;
   std::unique_ptr<train_retriever> train_retriever_;
 };
