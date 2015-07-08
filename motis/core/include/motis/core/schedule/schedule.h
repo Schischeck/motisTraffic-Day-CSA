@@ -23,6 +23,7 @@ struct schedule {
 
   date_manager date_mgr;
   std::vector<station_ptr> stations;
+  std::map<int, station*> eva_to_station;
   std::vector<std::string> category_names;
   std::map<int, std::string> tracks;
   std::map<int, attribute> attributes;

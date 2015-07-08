@@ -3,6 +3,8 @@ include "guesser/StationGuesserResponse.fbs";
 include "railviz/RailVizStations.fbs";
 include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
+include "routing/RoutingRequest.fbs";
+include "routing/RoutingResponse.fbs";
 
 namespace motis;
 
@@ -11,7 +13,9 @@ union MsgContent {
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizStations,
   motis.railviz.RailVizStationDetail,
-  motis.railviz.RailVizStationDetailRequest
+  motis.railviz.RailVizStationDetailRequest,
+  motis.routing.RoutingRequest,
+  motis.routing.RoutingResponse
 }
 
 table Message {

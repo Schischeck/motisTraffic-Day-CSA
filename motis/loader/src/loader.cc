@@ -1,6 +1,7 @@
 #include "motis/loader/loader.h"
 
 #include "boost/filesystem.hpp"
+#include "boost/lexical_cast.hpp"
 
 #include "motis/loader/bitset_manager.h"
 #include "motis/loader/graph_loader.h"
@@ -58,6 +59,10 @@ schedule_ptr load_text_schedule(std::string const& prefix) {
 
   s->lower_bounds = constant_graph(s->station_nodes);
 
+  for (auto const& station : s->stations) {
+    s->eva_to_station[boost::lexical_cast<int>(station->eva_nr)] = station.get();
+  }
+
   return schedule_ptr(s.release());
 }
 
@@ -76,6 +81,10 @@ schedule_ptr load_binary_schedule(std::string const& prefix) {
       deserializer.load_graph(s->stations, s->station_nodes);
 
   s->lower_bounds = constant_graph(s->station_nodes);
+
+  for (auto const& station : s->stations) {
+    s->eva_to_station[boost::lexical_cast<int>(station->eva_nr)] = station.get();
+  }
 
   return schedule_ptr(s.release());
 }

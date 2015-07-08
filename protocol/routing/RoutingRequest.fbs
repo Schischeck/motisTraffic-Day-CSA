@@ -1,0 +1,39 @@
+namespace motis.routing;
+
+table StationPathElement {
+  name:string;
+  eva_nr:uint = 0;
+}
+
+enum Type : byte { PreTrip, OnTrip }
+enum Direction : byte { Forward, Backward }
+
+// Uses unix timestamps.
+struct Interval {
+  begin:ulong;
+  end:ulong;
+}
+
+// JSON Example:
+// --
+// {
+//   "content_type": "RoutingRequest",
+//   "content": {
+//     "interval": {
+//       "begin": 1427702400,
+//       "end": 1427706000
+//     },
+//     "type": "PreTrip",
+//     "direction": "Forward",
+//     "path": [
+//       { "eva_nr": 8000068, "name": "" },
+//       { "eva_nr": 8000152, "name": "" }
+//     ]
+//   }
+// }
+table RoutingRequest {
+  interval:Interval;
+  type:Type = PreTrip;
+  direction:Direction = Forward;
+  path:[StationPathElement];
+}

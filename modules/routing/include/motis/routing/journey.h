@@ -21,6 +21,7 @@ struct journey {
     std::string category_name;
     int category_id;
     int train_nr;
+    std::string line_identifier;
     int duration;
     int slot;
   };
