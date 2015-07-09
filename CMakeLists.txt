@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-set(CMAKE_SHARED_LIBRARY_SUFFIX "")
-set(CMAKE_SHARED_LIBRARY_PREFIX "")
+option(MOTIS_STATIC_MODULES "MOTIS_STATIC_MODULES" OFF)
+if (MOTIS_STATIC_MODULES)
+  add_definitions(-DMOTIS_STATIC_MODULES)
+else()
+  set(CMAKE_SHARED_LIBRARY_SUFFIX "")
+  set(CMAKE_SHARED_LIBRARY_PREFIX "")
+endif()
 
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)

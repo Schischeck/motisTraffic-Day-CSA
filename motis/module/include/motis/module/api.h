@@ -3,6 +3,8 @@
 #include "motis/module/module.h"
 #include "motis/module/handler_functions.h"
 
+#ifndef MOTIS_STATIC_MODULES
+
 #if defined _WIN32 || defined _WIN64
 #define MOTIS_EXP_FUNCTION __declspec(dllexport)
 #define MOTIS_CALLING_CONVENTION __cdecl
@@ -30,3 +32,9 @@ MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION
     return m;                                                           \
   }                                                                     \
   }
+
+#else  // MOTIS_STATIC_MODULES
+
+#define MOTIS_MODULE_DEF_MODULE(name)
+
+#endif  // MOTIS_STATIC_MODULES

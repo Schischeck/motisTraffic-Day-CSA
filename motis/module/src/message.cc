@@ -1,5 +1,7 @@
 #include "motis/module/message.h"
 
+#include <stdexcept>
+
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
