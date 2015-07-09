@@ -4,6 +4,7 @@
 
 #include "motis/routing/memory_manager.h"
 #include "motis/routing/label.h"
+#include "motis/routing/arrival.h"
 
 namespace motis {
 namespace routing {
@@ -21,6 +22,8 @@ struct routing : public motis::module::module {
   }
   virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
                                         motis::module::sid) override;
+
+  arrival read_path_element(StationPathElement const* el);
 
   memory_manager<label> label_store_;
 };

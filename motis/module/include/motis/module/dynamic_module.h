@@ -21,7 +21,8 @@ struct dynamic_module {
   dynamic_module(dynamic_module&& module);
   dynamic_module& operator=(dynamic_module&&);
 
-  dynamic_module(std::string const& path, motis::schedule*, send_fun*);
+  dynamic_module(std::string const& path, motis::schedule*, send_fun*,
+                 dispatch_fun*);
   ~dynamic_module();
 
   std::shared_ptr<motis::module::module> module_;
@@ -30,7 +31,8 @@ struct dynamic_module {
 
 std::vector<dynamic_module> modules_from_folder(std::string const& path,
                                                 motis::schedule* schedule,
-                                                send_fun* send);
+                                                send_fun* send,
+                                                dispatch_fun* dispatch);
 
 }  // module
 }  // motis

@@ -24,6 +24,7 @@ struct module : public conf::configuration {
   virtual void on_close(sid){};
 
   send_fun* send_;
+  dispatch_fun* dispatch_;
   motis::schedule* schedule_;
 };
 

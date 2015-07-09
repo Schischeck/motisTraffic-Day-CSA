@@ -18,6 +18,8 @@ struct dynamic_module_loader {
                         boost::asio::io_service& ios)
       : send_(std::bind(&dispatcher::send, &d, std::placeholders::_1,
                         std::placeholders::_2)),
+        dispatch_(std::bind(&dispatcher::on_msg, &d, std::placeholders::_1,
+                            std::placeholders::_2)),
         modules_path_(modules_path),
         schedule_(schedule),
         dispatcher_(d),
@@ -43,7 +45,8 @@ struct dynamic_module_loader {
     dispatcher_.modules_.clear();
     dispatcher_.subscriptions_.clear();
 
-    modules_ = modules_from_folder(modules_path_, schedule_, &send_);
+    modules_ =
+        modules_from_folder(modules_path_, schedule_, &send_, &dispatch_);
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.module_.get());
       for (auto const& subscription : module.module_->subscriptions()) {
@@ -63,6 +66,7 @@ struct dynamic_module_loader {
   }
 
   send_fun send_;
+  dispatch_fun dispatch_;
   std::vector<dynamic_module> modules_;
   std::string modules_path_;
   motis::schedule* schedule_;

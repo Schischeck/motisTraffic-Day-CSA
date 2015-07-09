@@ -109,8 +109,14 @@ struct ws_server::ws_server_impl {
       return;
     }
 
-    send(msg_handler_(make_msg(msg->get_payload()), con_it->second),
-         con_it->second);
+    try {
+      send(msg_handler_(make_msg(msg->get_payload()), con_it->second),
+           con_it->second);
+    } catch (std::exception const& e) {
+      std::cout << "error: " << e.what() << "\n";
+    } catch (...) {
+      std::cout << "unknown error occured\n";
+    }
   }
 
   asio_ws_server server_;

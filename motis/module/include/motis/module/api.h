@@ -13,18 +13,20 @@
 
 extern "C" {
 
-MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION load_module(void*, void*);
+MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION
+    load_module(void*, void*, void*);
 
 }  // extern "C"
 
-#define MOTIS_MODULE_DEF_MODULE(name)                       \
-  extern "C" {                                              \
-  MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION         \
-      load_module(void* schedule, void* send) {             \
-    auto m = new motis::name::name();                       \
-    m->schedule_ = static_cast<motis::schedule*>(schedule); \
-    m->send_ = static_cast<motis::module::send_fun*>(send); \
-    m->init();                                              \
-    return m;                                               \
-  }                                                         \
+#define MOTIS_MODULE_DEF_MODULE(name)                                   \
+  extern "C" {                                                          \
+  MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION                     \
+      load_module(void* schedule, void* send, void* dispatch) {         \
+    auto m = new motis::name::name();                                   \
+    m->schedule_ = static_cast<motis::schedule*>(schedule);             \
+    m->send_ = static_cast<motis::module::send_fun*>(send);             \
+    m->dispatch_ = static_cast<motis::module::dispatch_fun*>(dispatch); \
+    m->init();                                                          \
+    return m;                                                           \
+  }                                                                     \
   }

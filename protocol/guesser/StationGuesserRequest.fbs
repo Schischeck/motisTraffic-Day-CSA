@@ -1,5 +1,15 @@
 namespace motis.guesser;
 
+// JSON example:
+// --
+// {
+//   "content_type": "StationGuesserRequest",
+//   "content": {
+//     "input": "Darmst",
+//     "guess_count": 10
+//   }
+// }
 table StationGuesserRequest {
+  guess_count:ushort=8;
   input:string;
 }

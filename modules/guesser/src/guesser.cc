@@ -36,7 +36,8 @@ msg_ptr guesser::on_msg(msg_ptr const& msg, sid) {
   FlatBufferBuilder b;
 
   std::vector<Offset<Station>> guesses;
-  for (auto const& guess : guesser_->guess(req->input()->str())) {
+  for (auto const& guess :
+       guesser_->guess(req->input()->str(), req->guess_count())) {
     if (guess < 0 || guess >= schedule_->stations.size()) {
       continue;
     }
