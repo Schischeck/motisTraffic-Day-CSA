@@ -8,6 +8,8 @@ namespace motis {
 namespace guesser {
 
 struct guesser : public motis::module::module {
+  virtual ~guesser() {}
+
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
 

@@ -6,6 +6,8 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/module/api.h"
 
 #include "motis/protocol/RoutingRequest_generated.h"
@@ -14,13 +16,14 @@
 #include "motis/routing/search.h"
 #include "motis/routing/response_builder.h"
 
+using namespace motis::logging;
 using namespace motis::module;
 namespace po = boost::program_options;
 
 namespace motis {
 namespace routing {
 
-routing::routing() : label_store_(MAX_LABELS) {}
+routing::routing() : label_store_(1000) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
@@ -45,17 +48,34 @@ msg_ptr routing::on_msg(msg_ptr const& msg, sid session) {
     return {};
   }
 
-  arrival_part from, to;
   auto from_eva = req->path()->Get(0)->eva_nr();
+  auto from_station_it = schedule_->eva_to_station.find(from_eva);
+  if (from_station_it == end(schedule_->eva_to_station)) {
+    return {};
+  }
+  arrival_part from;
+  from.station = from_station_it->second->index;
+
   auto to_eva = req->path()->Get(req->path()->Length() - 1)->eva_nr();
-  from.station = schedule_->eva_to_station[from_eva]->index;
-  to.station = schedule_->eva_to_station[to_eva]->index;
+  auto to_station_it = schedule_->eva_to_station.find(to_eva);
+  if (to_station_it == end(schedule_->eva_to_station)) {
+    return {};
+  }
+  arrival_part to;
+  to.station = to_station_it->second->index;
 
   auto interv_begin = unix_to_motis_time(*schedule_, req->interval()->begin());
-  auto interv_end = unix_to_motis_time(*schedule_, req->interval()->begin());
+  auto interv_end = unix_to_motis_time(*schedule_, req->interval()->end());
 
   search s(*schedule_, label_store_);
   auto journeys = s.get_connections({from}, {to}, interv_begin, interv_end);
+
+  LOG(info) << from_station_it->second->name << " to "
+            << to_station_it->second->name << " "
+            << "(" << format_time(interv_begin) << ", "
+            << format_time(interv_end) << ") -> " << journeys.size()
+            << " connections found";
+
   return journeys_to_message(journeys);
 }
 

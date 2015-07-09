@@ -15,6 +15,7 @@ namespace motis {
 namespace module {
 
 struct module : public conf::configuration {
+  virtual ~module() {}
   virtual std::string name() const = 0;
   virtual std::vector<MsgContent> subscriptions() const = 0;
   virtual void init() {}
