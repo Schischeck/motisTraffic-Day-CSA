@@ -2,7 +2,6 @@
 
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/lexical_cast.hpp"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
@@ -42,9 +41,8 @@ std::vector<Offset<Stop>> convert_stops(
                                b.CreateString(stop.arrival.platform));
     auto dep = CreateEventInfo(b, iso_to_unix_time(stop.departure.date_time),
                                b.CreateString(stop.departure.platform));
-    buf_stops.push_back(CreateStop(b, boost::lexical_cast<int>(stop.eva_no),
-                                   b.CreateString(stop.name), arr, dep,
-                                   stop.interchange));
+    buf_stops.push_back(CreateStop(b, stop.eva_no, b.CreateString(stop.name),
+                                   arr, dep, stop.interchange));
   }
 
   return buf_stops;

@@ -20,7 +20,7 @@ table EventInfo {
 //     "name": "Darmstadt Hbf"
 // }
 table Stop {
-  eva_nr:uint;
+  eva_nr:int;
   name:string;
   arrival:EventInfo;
   departure:EventInfo;

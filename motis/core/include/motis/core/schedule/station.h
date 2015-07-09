@@ -25,7 +25,7 @@ public:
   double length, width;
   int us_hoch, us_nieder;
   std::array<int, 10> arr_class_events, dep_class_events;
-  string eva_nr;
+  int eva_nr;
   string name;
 
   // normally us_hoch should be equal to us_nieder

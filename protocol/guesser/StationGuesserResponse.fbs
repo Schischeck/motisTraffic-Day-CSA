@@ -2,7 +2,7 @@ namespace motis.guesser;
 
 table Station {
   name:string;
-  eva:uint;
+  eva:int;
   lat:double;
   lng:double;
 }

@@ -42,14 +42,9 @@ msg_ptr guesser::on_msg(msg_ptr const& msg, sid) {
     }
 
     auto const& station = *schedule_->stations[guess];
-    try {
-      guesses.emplace_back(
-          CreateStation(b, b.CreateString(station.name),
-                        boost::lexical_cast<int>(station.eva_nr), station.width,
-                        station.length));
-    } catch (boost::bad_lexical_cast const&) {
-      continue;
-    }
+    guesses.emplace_back(CreateStation(b, b.CreateString(station.name),
+                                       station.eva_nr, station.width,
+                                       station.length));
   }
 
   b.Finish(motis::CreateMessage(
