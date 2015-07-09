@@ -16,6 +16,13 @@
 #include "motis/module/dynamic_module.h"
 #include "motis/module/dynamic_module_loader.h"
 
+#ifdef MOTIS_STATIC_MODULES
+#include "motis/railviz/railviz.h"
+#include "motis/guesser/guesser.h"
+#include "motis/routing/routing.h"
+#include "motis/reliability/reliability.h"
+#endif
+
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
 #include "motis/webservice/listener_settings.h"
@@ -58,9 +65,33 @@ int main(int argc, char** argv) {
   server.listen(listener_opt.host, listener_opt.port);
 
   dispatcher dispatcher(server);
-  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios);
 
+#ifndef MOTIS_STATIC_MODULES
+  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios);
   loader.load_modules();
+#else
+  namespace p = std::placeholders;
+  send_fun send = std::bind(&dispatcher::send, &dispatcher, p::_1, p::_2);
+  dispatch_fun dispatch = std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2);
+
+  std::vector<std::unique_ptr<motis::module::module>> modules;
+  modules.emplace_back(std::unique_ptr<motis::module::module>(new motis::guesser::guesser()));
+  modules.emplace_back(std::unique_ptr<motis::module::module>(new motis::railviz::railviz()));
+  modules.emplace_back(std::unique_ptr<motis::module::module>(new motis::routing::routing()));
+  modules.emplace_back(std::unique_ptr<motis::module::module>(new motis::reliability::reliability()));
+
+  for (auto const& module : modules) {
+    dispatcher.modules_.push_back(module.get());
+    for (auto const& subscription : module->subscriptions()) {
+      dispatcher.subscriptions_.insert({subscription, module.get()});
+    }
+
+    module->schedule_ = sched.get();
+    module->send_ = &send;
+    module->dispatch_ = &dispatch;
+    module->init();
+  }
+#endif
 
   std::vector<conf::configuration*> module_confs;
   for (auto const& module : dispatcher.modules_) {
