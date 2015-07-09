@@ -45,13 +45,6 @@ time unix_to_motis_time(schedule const& s, uint64_t unix_timestamp) {
 arrival routing::read_path_element(StationPathElement const* el) {
   auto eva = el->eva_nr();
 
-  // Resolve eva number if required.
-  // This churnes out a request to the station guesser module.
-  // This failes if:
-  // - The module is not available or does responde with an empy message.
-  // - The module does not responde with a message of type
-  //   StationGuesserResponse.
-  // - The guess list is empty.
   if (eva == 0) {
     FlatBufferBuilder b;
     b.Finish(
@@ -91,6 +84,7 @@ msg_ptr routing::on_msg(msg_ptr const& msg, sid session) {
   auto req = msg->content<RoutingRequest const*>();
 
   if (req->path()->Length() < 2) {
+    std::cout << "request does not contain at least 2 path elements\n";
     return {};
   }
 
