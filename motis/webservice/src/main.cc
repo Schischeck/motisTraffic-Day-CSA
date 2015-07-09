@@ -10,13 +10,13 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/module/message.h"
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
+
+#ifndef MOTIS_STATIC_MODULES
 #include "motis/module/dynamic_module.h"
 #include "motis/module/dynamic_module_loader.h"
-
-#ifdef MOTIS_STATIC_MODULES
+#else
 #include "motis/railviz/railviz.h"
 #include "motis/guesser/guesser.h"
 #include "motis/routing/routing.h"
