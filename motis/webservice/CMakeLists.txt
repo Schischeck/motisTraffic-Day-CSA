@@ -6,6 +6,11 @@ include_directories(include)
 file(GLOB_RECURSE motis-webservice-files src/*.cc)
 add_executable(motis-webservice ${motis-webservice-files})
 if (MOTIS_STATIC_MODULES)
+  include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
+  include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
+  include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
+  include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
+
   target_link_libraries(motis-webservice
     ${CMAKE_THREAD_LIBS_INIT}
     conf

@@ -76,10 +76,10 @@ int main(int argc, char** argv) {
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2);
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
-  modules.emplace_back(new motis::guesser::guesser());
-  modules.emplace_back(new motis::railviz::railviz());
-  modules.emplace_back(new motis::routing::routing());
-  modules.emplace_back(new motis::reliability::reliability());
+  modules.emplace_back(new guesser::guesser());
+  modules.emplace_back(new railviz::railviz());
+  modules.emplace_back(new routing::routing());
+  modules.emplace_back(new reliability::reliability());
 
   for (auto const& module : modules) {
     dispatcher.modules_.push_back(module.get());
