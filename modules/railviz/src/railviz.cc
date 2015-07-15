@@ -39,24 +39,6 @@ std::vector<Json> date_bounds( railviz* r, webclient& webclient_, Json const& ms
                         {"end", (int)to}}};
 }
 
-std::vector<Json> all_trains( railviz* r, webclient& webclient_, Json const& msg );
-
-std::vector<Json> change_bounds( railviz* r, webclient& webclient_, Json const& msg )
-{
-    std::cout << "changing bounds" << std::endl;
-    geo::coord p1 = {
-        msg["p1"]["lat"].number_value(),
-        msg["p1"]["lng"].number_value()
-    };
-    geo::coord p2 = {
-        msg["p2"]["lat"].number_value(),
-        msg["p2"]["lng"].number_value()
-    };
-    geo::box bounds = {p1, p2};
-    webclient_.set_bounds(bounds);
-    return all_trains(r, webclient_, msg);
-}
-
 std::vector<Json> all_stations(railviz* r, webclient& webclient_, Json const& msg) {
     auto stations = Json::array();
     for (auto const& station : r->schedule_->stations) {
@@ -79,34 +61,40 @@ std::vector<Json> station_info(railviz* r, webclient& webclient_, Json const& ms
 std::vector<Json> all_trains(railviz* r, webclient& webclient_, Json const& msg) {
     auto trainsJSON = Json::array();
 
+    geo::coord p1 = {
+        msg["p1"]["lat"].number_value(),
+        msg["p1"]["lng"].number_value()
+    };
+    geo::coord p2 = {
+        msg["p2"]["lat"].number_value(),
+        msg["p2"]["lng"].number_value()
+    };
+    geo::box bounds = {p1, p2};
+    webclient_.bounds = bounds;
+    webclient_.time = msg["time"].number_value();
+
     // request trains for the next 5 minutes
     train_list_ptr trains = r->train_retriever_.get()->trains(
-        r->date_converter_.convert_to_motis(webclient_.get_current_time()),
-        r->date_converter_.convert_to_motis(webclient_.get_current_time()+(60*5)),
-        webclient_.get_bounds(),
+        r->date_converter_.convert_to_motis(webclient_.time),
+        r->date_converter_.convert_to_motis(webclient_.time+(60*5)),
+        webclient_.bounds,
         1000
     );
 
-    std::time_t smallest_time = 0;
-    auto& tp = *trains.get();
-    if(tp.size() > 0)
-        smallest_time = tp[0].get()->d_time;
-    std::cout << "smalles-init-time: " << smallest_time << std::endl;
     for( auto &trainptr : *trains.get() )
     {
         train& t = *trainptr.get();
-        if( t.d_time < smallest_time )
-            smallest_time = t.d_time;
         trainsJSON.push_back(Json::object{
-                             {"dTime", (int)t.d_time},
-                             {"aTime", (int)t.a_time},
+                             {"dTime", (int)r->date_converter_.convert(t.d_time)},
+                             {"aTime", (int)r->date_converter_.convert(t.a_time)},
                              {"dStation", (int)t.d_station},
                              {"aStation", (int)t.a_station}
                          });
     }
 
+    std::cout << "trains: " << trains.get()->size() << std::endl;
     return {Json::object{
-            {"type", "trains"}, {"server_time", (int)smallest_time}, {"trains", trainsJSON}}};
+            {"type", "trains"}, {"trains", trainsJSON}}};
 }
 
 railviz::railviz()
@@ -114,8 +102,7 @@ railviz::railviz()
         {"all_stations", all_stations},
         {"station_info", station_info},
         {"all_trains", all_trains},
-        {"date_bounds", date_bounds},
-        {"change_bounds", change_bounds}}
+        {"date_bounds", date_bounds}}
 {}
 
 railviz::~railviz() {}
