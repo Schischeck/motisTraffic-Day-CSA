@@ -33,8 +33,10 @@ train_retriever::train_vector train_retriever::trains(const time from,
 
       for (auto const& edge_con : edge_conns) {
         if (edge_con.a_time >= from && edge_con.d_time <= to) {
-          train_pair trainp_ = std::make_pair(e, &(edge_con));
-          train_vec.push_back(std::move(trainp_));
+          std::cout << "dtime" << edge_con.d_time << std::endl;
+          std::cout << "atime" << edge_con.a_time << std::endl << std::endl;
+          train_pair train_pair_ = std::make_pair(e, &(edge_con));
+          train_vec.push_back(train_pair_);
 
           if (train_vec.size() >= max_count) {
             goto end;
@@ -49,7 +51,7 @@ train_retriever::train_vector train_retriever::trains(const time from,
   }
 
 end:
-  return std::move(train_vec);
+  return train_vec;
 }
 
 }  // namespace railviz

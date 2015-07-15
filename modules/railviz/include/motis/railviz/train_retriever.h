@@ -27,7 +27,7 @@ struct train_retriever {
   typedef std::vector<train_pair> train_vector;
 
   train_vector trains(const time from, const time to,
-                                                        geo::box area, int max_count=INT_MAX);
+                       geo::box area, int max_count=INT_MAX);
 
   std::vector<std::unique_ptr<edge_geo_index>> edge_index_;
 };

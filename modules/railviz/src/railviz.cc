@@ -81,10 +81,14 @@ std::vector<Json> all_trains(railviz* r, webclient& webclient_, Json const& msg)
         1000
     );
 
-    for( train_retriever::train_pair trainp : trains )
+    for( train_retriever::train_pair& trainp : trains )
     {
         const motis::edge* e = trainp.first;
         const motis::light_connection* lc = trainp.second;
+
+        std::cout << "atime: " << lc->a_time << std::endl;
+        std::cout << "dtime: " << lc->d_time << std::endl << std::endl;
+
         trainsJSON.push_back(Json::object{
                                  {"dTime", (int)r->date_converter_.convert(lc->d_time)},
                                  {"aTime", (int)r->date_converter_.convert(lc->a_time)},
