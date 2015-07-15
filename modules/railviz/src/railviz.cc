@@ -74,30 +74,25 @@ std::vector<Json> all_trains(railviz* r, webclient& webclient_, Json const& msg)
     webclient_.time = msg["time"].number_value();
 
     // request trains for the next 5 minutes
-    train_retriever::train_vector trains = r->train_retriever_.get()->trains(
+    train_retriever::train_list_ptr trains = r->train_retriever_.get()->trains(
         r->date_converter_.convert_to_motis(webclient_.time),
         r->date_converter_.convert_to_motis(webclient_.time+(60*5)),
         webclient_.bounds,
         1000
     );
 
-    for( train_retriever::train_pair& trainp : trains )
+    for( train& train : *trains.get() )
     {
-        const motis::edge* e = trainp.first;
-        const motis::light_connection* lc = trainp.second;
-
-        std::cout << "atime: " << lc->a_time << std::endl;
-        std::cout << "dtime: " << lc->d_time << std::endl << std::endl;
 
         trainsJSON.push_back(Json::object{
-                                 {"dTime", (int)r->date_converter_.convert(lc->d_time)},
-                                 {"aTime", (int)r->date_converter_.convert(lc->a_time)},
-                                 {"dStation", (int)e->_from->get_station()->_id},
-                                 {"aStation", (int)e->_to->get_station()->_id}
+                                 {"dTime", (int)r->date_converter_.convert(train.d_time)},
+                                 {"aTime", (int)r->date_converter_.convert(train.a_time)},
+                                 {"dStation", (int)train.d_station},
+                                 {"aStation", (int)train.a_station}
                              });
     }
 
-    std::cout << "trains: " << trains.size() << std::endl;
+    std::cout << "trains: " << trains.get()->size() << std::endl;
     return {Json::object{
             {"type", "trains"}, {"trains", trainsJSON}}};
 }

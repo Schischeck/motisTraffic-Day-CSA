@@ -6,7 +6,7 @@
 #include <utility>  // std::pair, std::make_pair
 
 #include "motis/core/schedule/time.h"
-
+#include "motis/railviz/train.h"
 #include "motis/railviz/geo.h"
 
 namespace motis {
@@ -23,10 +23,9 @@ struct train_retriever {
   train_retriever(schedule const& s);
   ~train_retriever();
 
-  typedef std::pair<edge const*, light_connection const*> train_pair;
-  typedef std::vector<train_pair> train_vector;
+  typedef std::unique_ptr<std::vector<train>> train_list_ptr;
 
-  train_vector trains(const time from, const time to,
+  train_list_ptr trains(const time from, const time to,
                        geo::box area, int max_count=INT_MAX);
 
   std::vector<std::unique_ptr<edge_geo_index>> edge_index_;
