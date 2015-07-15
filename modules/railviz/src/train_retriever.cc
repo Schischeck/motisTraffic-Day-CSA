@@ -15,11 +15,12 @@ train_retriever::train_retriever(schedule const& s) {
 
 train_retriever::~train_retriever() {}
 
-train_list_ptr train_retriever::trains(const time from,
+train_retriever::train_vector train_retriever::trains(const time from,
                                                      const time to,
                                                      geo::box area,
                                                      int max_count) {
-  train_list_ptr train_list = std::unique_ptr<std::vector<train_ptr>>(new std::vector<train_ptr>);
+
+  train_vector train_vec;
 
   for (int clasz = 0; clasz <= 9; ++clasz) {
     auto edges = edge_index_[clasz]->edges(area);
@@ -32,14 +33,10 @@ train_list_ptr train_retriever::trains(const time from,
 
       for (auto const& edge_con : edge_conns) {
         if (edge_con.a_time >= from && edge_con.d_time <= to) {
-          train_ptr train_(new train());
-          train_.get()->d_time = edge_con.d_time;
-          train_.get()->a_time = edge_con.a_time;
-          train_.get()->d_station = e->_from->get_station()->_id;
-          train_.get()->a_station = e->_to->get_station()->_id;
-          train_list.get()->push_back(std::move(train_));
-          
-          if (train_list.get()->size() >= max_count) {
+          train_pair trainp_ = std::make_pair(e, &(edge_con));
+          train_vec.push_back(std::move(trainp_));
+
+          if (train_vec.size() >= max_count) {
             goto end;
           }
         }
@@ -52,7 +49,7 @@ train_list_ptr train_retriever::trains(const time from,
   }
 
 end:
-  return std::move(train_list);
+  return std::move(train_vec);
 }
 
 }  // namespace railviz

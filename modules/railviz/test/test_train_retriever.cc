@@ -25,7 +25,7 @@ struct Fixure
 };
 
 BOOST_FIXTURE_TEST_SUITE( railviz_train_query, Fixure )
-
+/*
 BOOST_AUTO_TEST_CASE( railviz_train_query_time_interval )
 {
     motis::railviz::date_converter date_converter( schedule.get()->date_mgr );
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( railviz_train_query_bounds )
     trainlist = train_query.trains(from, to, b);
     BOOST_CHECK( trainlist.get()->size() == 2 );
 }
-
+*/
 BOOST_AUTO_TEST_SUITE_END()
 
 }
