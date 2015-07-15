@@ -5,7 +5,6 @@
 
 #include "motis/core/schedule/time.h"
 
-
 namespace motis {
 
 class light_connection;
@@ -17,17 +16,30 @@ namespace reliability {
 struct probability_distribution;
 class train_distributions;
 struct train_distributions_container;
-class tt_distribution_manager;
+class tt_distributions_manager;
 
 /**
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct pd_calc_data_departure {
 
+  pd_calc_data_departure(
+      node& route_node, light_connection const& light_connection,
+      bool const is_first_route_node, schedule const& schedule,
+      tt_distributions_manager const& tt_dist_manager,
+      train_distributions_container& distributions_container);
+
+  duration get_largest_delay(void) const;
+
+  void debug_output(std::ostream& os) const;
+
+  node& route_node_;  // XXX is required?
+
+  light_connection const& light_connection_;  // XXX is required?
+
   struct feeder_info {
     feeder_info(probability_distribution const& distribution,
-                time const arrival_time,
-                time const latest_feasible_arrival,
+                time const arrival_time, time const latest_feasible_arrival,
                 duration const transfer_time)
         : distribution_(distribution),
           arrival_time_(arrival_time),
@@ -42,20 +54,6 @@ struct pd_calc_data_departure {
     /** required times for an interchange from a feeder into the train */
     duration const transfer_time_;
   };
-
-  pd_calc_data_departure(
-      node& route_node, light_connection const& light_connection,
-      bool const is_first_route_node, schedule const& schedule,
-      tt_distribution_manager const& tt_dist_manager,
-      train_distributions_container& distributions_container);
-
-  duration get_largest_delay(void) const;
-
-  void debug_output(std::ostream& os) const;
-
-  node& route_node_;  // XXX is required?
-
-  light_connection const& light_connection_;  // XXX is required?
 
   /** arrival distributions of the feeder trains */
   std::vector<feeder_info> feeders_;
@@ -84,7 +82,7 @@ struct pd_calc_data_departure {
 
 private:
   void init_train_info(std::vector<std::string> const& category_names,
-                       tt_distribution_manager const& tt_dist_manager,
+                       tt_distributions_manager const& tt_dist_manager,
                        std::vector<std::unique_ptr<train_distributions> > const&
                            node_to_train_distributions);
 

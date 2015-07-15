@@ -2,13 +2,13 @@
 
 #include <algorithm>
 
+#include "../include/motis/reliability/tt_distributions_manager.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/waiting_time_rules.h"
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/train_distributions.h"
-#include "motis/reliability/tt_distribution_manager.h"
 
 namespace motis {
 namespace reliability {
@@ -16,7 +16,7 @@ namespace reliability {
 pd_calc_data_departure::pd_calc_data_departure(
     node& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
-    tt_distribution_manager const& tt_dist_manager,
+    tt_distributions_manager const& tt_dist_manager,
     train_distributions_container& distributions_container)
     : route_node_(route_node),
       light_connection_(light_connection),
@@ -31,7 +31,7 @@ pd_calc_data_departure::pd_calc_data_departure(
 
 void pd_calc_data_departure::init_train_info(
     std::vector<std::string> const& category_names,
-    tt_distribution_manager const& tt_dist_manager,
+    tt_distributions_manager const& tt_dist_manager,
     std::vector<std::unique_ptr<train_distributions> > const&
         node_to_train_distributions) {
   if (is_first_route_node_) {
