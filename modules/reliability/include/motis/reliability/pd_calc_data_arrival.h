@@ -15,26 +15,26 @@ namespace reliability {
 
 struct probability_distribution;
 struct tt_distributions_manager;
+struct train_distributions_container;
 
 /**
  * struct storing all data necessary for calculating an arrival distribution.
  */
 struct pd_calc_data_arrival {
-  pd_calc_data_arrival(tt_distributions_manager const& distributions_manager,
-                       node& route_node,
-                       light_connection const& light_connection,
-                       schedule const& schedule);
+  pd_calc_data_arrival(
+      node const& route_node, light_connection const& light_connection,
+      schedule const& schedule, tt_distributions_manager const& tt_dist_manager,
+      train_distributions_container const& distributions_container);
 
-  duration get_scheduled_travel_duration() const {
-    return scheduled_arrival_time_ - departure_info_.scheduled_departure_time_;
-  }
+  time get_scheduled_arrival_time_() const;
+  duration get_scheduled_travel_duration() const;
 
   probability_distribution const& get_travel_time_distribution(
       unsigned int delay) const;
 
   void debug_output(std::ostream& os) const;
 
-  node& route_node_;  // XXX is required?
+  node const& route_node_;  // XXX is required?
 
   light_connection const& light_connection_;  // XXX is required?
 
@@ -42,8 +42,6 @@ struct pd_calc_data_arrival {
     probability_distribution const* distribution_;
     time scheduled_departure_time_;
   } departure_info_;
-
-  time scheduled_arrival_time_;
 
   struct travel_time_info {
     friend struct pd_calc_data_arrival;

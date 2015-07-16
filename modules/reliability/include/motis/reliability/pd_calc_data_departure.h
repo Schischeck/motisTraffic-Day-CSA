@@ -24,16 +24,16 @@ class tt_distributions_manager;
 struct pd_calc_data_departure {
 
   pd_calc_data_departure(
-      node& route_node, light_connection const& light_connection,
+      node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
       tt_distributions_manager const& tt_dist_manager,
-      train_distributions_container& distributions_container);
+      train_distributions_container const& distributions_container);
 
   duration get_largest_delay(void) const;
 
   void debug_output(std::ostream& os) const;
 
-  node& route_node_;  // XXX is required?
+  node const& route_node_;  // XXX is required?
 
   light_connection const& light_connection_;  // XXX is required?
 
@@ -81,15 +81,14 @@ struct pd_calc_data_departure {
   } train_info_;
 
 private:
-  void init_train_info(std::vector<std::string> const& category_names,
-                       tt_distributions_manager const& tt_dist_manager,
-                       std::vector<std::unique_ptr<train_distributions> > const&
-                           node_to_train_distributions);
+  void init_train_info(
+      std::vector<std::string> const& category_names,
+      tt_distributions_manager const& tt_dist_manager,
+      train_distributions_container const& distributions_container);
 
   void init_feeder_info(
       schedule const& schedule,
-      std::vector<std::unique_ptr<train_distributions> > const&
-          node_to_train_distributions);
+      train_distributions_container const& distributions_container);
 };
 
 }  // namespace reliability

@@ -48,7 +48,7 @@ get_previous_light_connection(node const& route_node,
 typedef std::tuple<node const*, light_connection const*, unsigned int>
     feeder_info;
 inline std::vector<feeder_info> get_all_potential_feeders(
-    node& route_node, light_connection const& departing_light_conn) {
+    node const& route_node, light_connection const& departing_light_conn) {
   std::vector<feeder_info> feeders;
 
   for (auto const in_edge : route_node._station_node->_incoming_edges) {
@@ -75,7 +75,22 @@ inline std::vector<feeder_info> get_all_potential_feeders(
 
   return feeders;
 }
+
+inline std::pair<unsigned int, unsigned int> get_departure_distribution_indices(
+    node const& arrival_route_node,
+    light_connection const& arriving_light_conn) {
+  auto const& route_edge = get_arriving_route_edge(arrival_route_node);
+  // find index of 'arriving_light_conn'
+  auto const& all_connections = route_edge->_m._route_edge._conns;
+  unsigned int pos = 0;
+  while (pos < all_connections.size() &&
+         (all_connections[pos].d_time != arriving_light_conn.d_time
+             || all_connections[pos].a_time != arriving_light_conn.a_time)) {
+    ++pos;
+  }
+  return std::make_pair(route_edge->_from->_id, pos);
 }
 
+}  // namespace graph_accessor
 }  // namespace reliability
 }  // namespace motis

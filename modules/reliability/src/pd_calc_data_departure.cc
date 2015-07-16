@@ -14,26 +14,24 @@ namespace motis {
 namespace reliability {
 
 pd_calc_data_departure::pd_calc_data_departure(
-    node& route_node, light_connection const& light_connection,
+    node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
     tt_distributions_manager const& tt_dist_manager,
-    train_distributions_container& distributions_container)
+    train_distributions_container const& distributions_container)
     : route_node_(route_node),
       light_connection_(light_connection),
       is_first_route_node_(is_first_route_node),
       maximum_waiting_time_(0) {
 
   init_train_info(schedule.category_names, tt_dist_manager,
-                  distributions_container.node_to_train_distributions_);
-  init_feeder_info(schedule,
-                   distributions_container.node_to_train_distributions_);
+                  distributions_container);
+  init_feeder_info(schedule, distributions_container);
 }
 
 void pd_calc_data_departure::init_train_info(
     std::vector<std::string> const& category_names,
     tt_distributions_manager const& tt_dist_manager,
-    std::vector<std::unique_ptr<train_distributions> > const&
-        node_to_train_distributions) {
+    train_distributions_container const& distributions_container) {
   if (is_first_route_node_) {
     auto const& train_category =
         category_names[light_connection_._full_con->con_info->family];
@@ -49,8 +47,9 @@ void pd_calc_data_departure::init_train_info(
     train_info_.preceding_arrival_info_.arrival_time_ =
         arriving_light_conn->a_time;
     train_info_.preceding_arrival_info_.arrival_distribution_ =
-        &node_to_train_distributions[route_node_._id]
-             ->arrival_distributions_[distribution_pos];
+        &distributions_container.get_train_distribution(
+            route_node_._id, distribution_pos,
+            train_distributions_container::arrival);
 
     // the standing-time is always less or equal 2 minutes
     train_info_.preceding_arrival_info_.min_standing_ =
@@ -71,8 +70,7 @@ inline duration get_waiting_time(
 
 void pd_calc_data_departure::init_feeder_info(
     schedule const& schedule,
-    std::vector<std::unique_ptr<train_distributions> > const&
-        node_to_train_distributions) {
+    train_distributions_container const& distributions_container) {
   auto const all_feeders_data =
       graph_accessor::get_all_potential_feeders(route_node_, light_connection_);
 
@@ -94,9 +92,10 @@ void pd_calc_data_departure::init_feeder_info(
       time const latest_feasible_arrival =
           (light_connection_.d_time + waiting_time) - transfer_time;
 
-      probability_distribution const& feeder_distribution =
-          node_to_train_distributions[feeder_route_node->_id]
-              ->arrival_distributions_[feeder_distribution_pos];
+      auto const& feeder_distribution =
+          distributions_container.get_train_distribution(
+              feeder_route_node->_id, feeder_distribution_pos,
+              train_distributions_container::arrival);
 
       feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
                             latest_feasible_arrival, transfer_time);
