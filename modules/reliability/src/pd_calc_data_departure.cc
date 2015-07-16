@@ -16,8 +16,8 @@ namespace reliability {
 pd_calc_data_departure::pd_calc_data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
-    tt_distributions_manager const& tt_dist_manager,
-    train_distributions_container const& distributions_container)
+    train_distributions_container const& distributions_container,
+    tt_distributions_manager const& tt_dist_manager)
     : route_node_(route_node),
       light_connection_(light_connection),
       is_first_route_node_(is_first_route_node),
@@ -57,17 +57,6 @@ void pd_calc_data_departure::init_train_info(
   }
 }
 
-inline duration get_waiting_time(
-    waiting_time_rules const& waiting_time_rules,
-    light_connection const& feeder_light_conn,
-    light_connection const& connecting_light_conn) {
-  return (duration)waiting_time_rules.waiting_time(
-      waiting_time_rules.waiting_time_category(
-          connecting_light_conn._full_con->con_info->family),
-      waiting_time_rules.waiting_time_category(
-          feeder_light_conn._full_con->con_info->family));
-}
-
 void pd_calc_data_departure::init_feeder_info(
     schedule const& schedule,
     train_distributions_container const& distributions_container) {
@@ -82,8 +71,8 @@ void pd_calc_data_departure::init_feeder_info(
     std::tie(feeder_route_node, feeder_light_conn, feeder_distribution_pos) =
         all_feeders_data[i];
 
-    auto waiting_time = get_waiting_time(schedule.waiting_time_rules_,
-                                         *feeder_light_conn, light_connection_);
+    auto waiting_time = graph_accessor::get_waiting_time(
+        schedule.waiting_time_rules_, *feeder_light_conn, light_connection_);
 
     if (waiting_time > 0) {
       auto const transfer_time =

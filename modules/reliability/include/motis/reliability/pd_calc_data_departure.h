@@ -26,8 +26,8 @@ struct pd_calc_data_departure {
   pd_calc_data_departure(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
-      tt_distributions_manager const& tt_dist_manager,
-      train_distributions_container const& distributions_container);
+      train_distributions_container const& distributions_container,
+      tt_distributions_manager const& tt_dist_manager);
 
   duration get_largest_delay(void) const;
 

@@ -29,6 +29,14 @@ inline edge const* get_arriving_route_edge(node const& route_node) {
   return nullptr;
 }
 
+/**
+ * returns the light-connection that belongs to the train of
+ * 'departing_light_conn', arrives at the departure station of
+ * 'departing_light_conn', and has an arrival time next to the departure time of
+ * 'departing_light_conn'.
+ * This function also returns the position of the light-connection's arrival
+ * distribution stored in 'route_node'.
+ */
 inline std::pair<light_connection const*, unsigned int>
 get_previous_light_connection(node const& route_node,
                               light_connection const& departing_light_conn) {
@@ -52,19 +60,18 @@ inline std::vector<feeder_info> get_all_potential_feeders(
   std::vector<feeder_info> feeders;
 
   for (auto const in_edge : route_node._station_node->_incoming_edges) {
-    if (!in_edge->_to->is_route_node() || in_edge->_from->_id == route_node._id)
-      continue;
+    // ignore transfer edge to route_node itself
+    if (in_edge->_from->_id == route_node._id) continue;
 
+    time const time_begin = departing_light_conn.d_time - 30;  // XXX
     time const time_end =
         departing_light_conn.d_time - in_edge->_m._foot_edge._time_cost;
-    time const time_begin = time_end - 30;  // XXX 30 minutes
 
     auto& feeder_route_node = *in_edge->_from._ptr;
     auto const feeder_route_edge = get_arriving_route_edge(feeder_route_node);
     if (feeder_route_edge == nullptr) continue;
 
     auto& all_connections = feeder_route_edge->_m._route_edge._conns;
-
     for (unsigned int i = 0; i < all_connections.size(); i++) {
       if (all_connections[i].a_time >= time_begin &&
           all_connections[i].a_time <= time_end) {
@@ -76,19 +83,35 @@ inline std::vector<feeder_info> get_all_potential_feeders(
   return feeders;
 }
 
+/**
+ * Given a route-node and a light-connection
+ * arriving at this route node,
+ * get the indices of the probability distribution
+ * of light-connection's departure event.
+ */
 inline std::pair<unsigned int, unsigned int> get_departure_distribution_indices(
-    node const& arrival_route_node,
-    light_connection const& arriving_light_conn) {
-  auto const& route_edge = get_arriving_route_edge(arrival_route_node);
+    node const& head_route_node, light_connection const& light_connection) {
+  auto const& route_edge = get_arriving_route_edge(head_route_node);
   // find index of 'arriving_light_conn'
   auto const& all_connections = route_edge->_m._route_edge._conns;
   unsigned int pos = 0;
   while (pos < all_connections.size() &&
-         (all_connections[pos].d_time != arriving_light_conn.d_time
-             || all_connections[pos].a_time != arriving_light_conn.a_time)) {
+         (all_connections[pos].d_time != light_connection.d_time ||
+          all_connections[pos].a_time != light_connection.a_time)) {
     ++pos;
   }
   return std::make_pair(route_edge->_from->_id, pos);
+}
+
+inline duration get_waiting_time(
+    waiting_time_rules const& waiting_time_rules,
+    light_connection const& feeder_light_conn,
+    light_connection const& connecting_light_conn) {
+  return (duration)waiting_time_rules.waiting_time(
+      waiting_time_rules.waiting_time_category(
+          connecting_light_conn._full_con->con_info->family),
+      waiting_time_rules.waiting_time_category(
+          feeder_light_conn._full_con->con_info->family));
 }
 
 }  // namespace graph_accessor

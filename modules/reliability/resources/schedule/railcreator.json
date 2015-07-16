@@ -239,15 +239,15 @@
         {
           "station": "4219971",
           "arrival": 10,
-          "departure": 12,
+          "departure": 16,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true
         },
         {
           "station": "9335048",
-          "arrival": 32,
-          "departure": 34,
+          "arrival": 50,
+          "departure": 52,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true

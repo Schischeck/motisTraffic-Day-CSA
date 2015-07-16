@@ -10,6 +10,7 @@
 
 #include "motis/reliability/train_distributions_calculator.h"
 #include "motis/reliability/train_distributions.h"
+#include "motis/reliability/tt_distributions_manager.h"
 
 using namespace motis::module;
 namespace po = boost::program_options;
@@ -40,7 +41,8 @@ edge const* route_edge(node const* route_node) {
 bool reliability::initialize() {
 
   train_distributions_container distributions_container(schedule_->node_count);
-  train_distributions_calculator calculator(*schedule_, distributions_container);
+  tt_distributions_manager tt_distributions;
+  train_distributions_calculator calculator(*schedule_, distributions_container, tt_distributions);
 
   for (auto const& firstRouteNode : schedule_->route_index_to_first_route_node) {
     node const* node = firstRouteNode;

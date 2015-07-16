@@ -13,6 +13,7 @@ class node;
 namespace reliability {
 
 struct train_distributions_container;
+struct tt_distributions_manager;
 
 struct queue_element {
   queue_element(node* from, node* to,
@@ -42,8 +43,8 @@ public:
 class train_distributions_calculator {
 public:
   train_distributions_calculator(
-      schedule& schedule,
-      train_distributions_container& distributions_container);
+      schedule& schedule, train_distributions_container& distributions_container,
+      tt_distributions_manager& tt_dist_manager);
 
   bool calculate_initial_distributions();
 
@@ -55,6 +56,8 @@ private:
   schedule& schedule_;
 
   train_distributions_container& distributions_container_;
+
+  tt_distributions_manager& tt_distributions_manager_;
 
   std::priority_queue<queue_element, std::vector<queue_element>,
                       queue_element_cmp> queue_;

@@ -23,8 +23,9 @@ struct train_distributions_container;
 struct pd_calc_data_arrival {
   pd_calc_data_arrival(
       node const& route_node, light_connection const& light_connection,
-      schedule const& schedule, tt_distributions_manager const& tt_dist_manager,
-      train_distributions_container const& distributions_container);
+      schedule const& schedule,
+      train_distributions_container const& distributions_container,
+      tt_distributions_manager const& tt_dist_manager);
 
   time get_scheduled_arrival_time_() const;
   duration get_scheduled_travel_duration() const;
