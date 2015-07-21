@@ -24,7 +24,6 @@ MOTIS_EXP_FUNCTION void* MOTIS_CALLING_CONVENTION load_module(void*, void*);
     auto m = new motis::name::name();                       \
     m->schedule_ = static_cast<motis::schedule*>(schedule); \
     m->send_ = static_cast<motis::module::send_fun*>(send); \
-    m->init();                                              \
     return m;                                               \
   }                                                         \
   }

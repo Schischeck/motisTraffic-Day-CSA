@@ -68,6 +68,10 @@ int main(int argc, char** argv) {
   module_conf_parser.read_configuration_file();
   module_conf_parser.print_used(std::cout);
 
+  for (auto const& module : dispatcher.modules_) {
+    module.second->init();
+  }
+
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 
