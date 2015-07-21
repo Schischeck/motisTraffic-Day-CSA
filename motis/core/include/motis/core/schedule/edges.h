@@ -134,6 +134,12 @@ public:
 
     return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
   }
+  
+  light_connection* get_connection(time const start_time) {
+    return const_cast<light_connection*>(
+          static_cast<const edge*>(this)->get_connection(start_time)
+    );
+  }
 
   edge_cost get_route_edge_cost(time const start_time) const {
     light_connection const* c = get_connection(start_time);
