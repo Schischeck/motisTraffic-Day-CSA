@@ -24,6 +24,7 @@ struct schedule {
   date_manager date_mgr;
   std::vector<station_ptr> stations;
   std::vector<std::string> category_names;
+  std::map<std::string, int> classes;
   std::map<int, std::string> tracks;
   std::map<int, attribute> attributes;
   constant_graph lower_bounds;
