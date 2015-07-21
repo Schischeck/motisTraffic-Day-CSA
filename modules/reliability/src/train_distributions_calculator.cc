@@ -4,6 +4,7 @@
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data_departure.h"
+#include "motis/reliability/pd_calc_data_arrival.h"
 #include "motis/reliability/train_distributions.h"
 #include "motis/reliability/tt_distributions_manager.h"
 
@@ -52,21 +53,21 @@ bool train_distributions_calculator::insert_first_route_elements_into_queue() {
 }
 
 bool train_distributions_calculator::process_element(queue_element element) {
-#if 0
+
   pd_calc_data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
       schedule_, distributions_container_, tt_distributions_manager_);
   probability_distribution departure_distribution;
   // pd_calculator.calc_prob_dist_departure(departure_distribution, d_data);
 
-  pd_calc_data_arrival a_data(element.to_, element.light_connection_, schedule_,
+  pd_calc_data_arrival a_data(*element.to_, *element.light_connection_, schedule_,
                               distributions_container_,
                               tt_distributions_manager_);
   probability_distribution arrival_distribution;
   // pd_calculator.calc_prob_dist_arrival(arrival_distribution, d_data);
 
   // TODO add successors
-#endif
+
   return true;
 }
 

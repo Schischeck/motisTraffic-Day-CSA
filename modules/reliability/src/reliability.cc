@@ -42,6 +42,7 @@ bool reliability::initialize() {
 
   train_distributions_container distributions_container(schedule_->node_count);
   tt_distributions_manager tt_distributions;
+  tt_distributions.initialize();
   train_distributions_calculator calculator(*schedule_, distributions_container, tt_distributions);
 
   for (auto const& firstRouteNode : schedule_->route_index_to_first_route_node) {

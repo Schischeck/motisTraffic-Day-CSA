@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-include_directories(include)
+include_directories(include test)
 
 file(GLOB_RECURSE motis-reliability-files src/*.cc)
 add_library(motis-reliability SHARED ${motis-reliability-files})

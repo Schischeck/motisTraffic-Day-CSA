@@ -29,13 +29,34 @@ struct pd_calc_data_departure {
       train_distributions_container const& distributions_container,
       tt_distributions_manager const& tt_dist_manager);
 
-  duration get_largest_delay(void) const;
+  time scheduled_departure_time() const;
+
+  duration largest_delay(void) const;
 
   void debug_output(std::ostream& os) const;
 
   node const& route_node_;  // XXX is required?
 
   light_connection const& light_connection_;  // XXX is required?
+
+  bool const is_first_route_node_;
+
+  union train_info {
+    struct preceding_arrival_info {
+      /** scheduled arrival time of the preceding arrival event of the train
+       * (0 if this is the first departure) */
+      time arrival_time_;
+
+      /** arrival distribution of the preceding arrival event of the train
+       * (Null if this is the first departure) */
+      probability_distribution const* arrival_distribution_;
+
+      /** minimum standing time of the train at the station */
+      duration min_standing_;
+    } preceding_arrival_info_;
+
+    probability_distribution const* first_departure_distribution;
+  } train_info_;
 
   struct feeder_info {
     feeder_info(probability_distribution const& distribution,
@@ -60,25 +81,6 @@ struct pd_calc_data_departure {
 
   /** maximal waiting time of the departing train of any feeder */
   duration maximum_waiting_time_;
-
-  bool const is_first_route_node_;
-
-  union train_info {
-    struct preceding_arrival_info {
-      /** scheduled arrival time of the preceding arrival event of the train
-       * (0 if this is the first departure) */
-      time arrival_time_;
-
-      /** arrival distribution of the preceding arrival event of the train
-       * (Null if this is the first departure) */
-      probability_distribution const* arrival_distribution_;
-
-      /** minimum standing time of the train at the station */
-      duration min_standing_;
-    } preceding_arrival_info_;
-
-    probability_distribution const* first_departure_distribution;
-  } train_info_;
 
 private:
   void init_train_info(

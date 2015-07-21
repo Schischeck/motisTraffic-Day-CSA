@@ -2,13 +2,14 @@
 
 #include <algorithm>
 
-#include "../include/motis/reliability/tt_distributions_manager.h"
+#include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/waiting_time_rules.h"
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/train_distributions.h"
+#include "motis/reliability/tt_distributions_manager.h"
 
 namespace motis {
 namespace reliability {
@@ -95,16 +96,20 @@ void pd_calc_data_departure::init_feeder_info(
   }
 }
 
-duration pd_calc_data_departure::get_largest_delay(void) const {
+time pd_calc_data_departure::scheduled_departure_time() const {
+  return light_connection_.d_time;
+}
+
+duration pd_calc_data_departure::largest_delay(void) const {
   duration maximum_train_delay = 0;
   if (is_first_route_node_) {
     maximum_train_delay =
         light_connection_.d_time +
-        train_info_.first_departure_distribution->get_last_minute();
+        train_info_.first_departure_distribution->last_minute();
   } else {
     maximum_train_delay = (train_info_.preceding_arrival_info_.arrival_time_ +
                            train_info_.preceding_arrival_info_
-                               .arrival_distribution_->get_last_minute() +
+                               .arrival_distribution_->last_minute() +
                            train_info_.preceding_arrival_info_.min_standing_) -
                           light_connection_.d_time;
   }
@@ -113,21 +118,37 @@ duration pd_calc_data_departure::get_largest_delay(void) const {
 }
 
 void pd_calc_data_departure::debug_output(std::ostream& os) const {
-  os << "scheduled-departure-time: " << light_connection_.d_time
-     << " minimum-standing: "
-     << train_info_.preceding_arrival_info_.min_standing_
-     << " preceding-arrival-time: "
-     << train_info_.preceding_arrival_info_.arrival_time_
-     << " preceding-arrival-distribution: "
-     << train_info_.preceding_arrival_info_.arrival_distribution_
-     << " maximum-waiting-time: " << maximum_waiting_time_ << "\n";
-  for (auto const& feeder : feeders_) {
-    os << "Feeder -- arrival-time: " << feeder.arrival_time_
-       << " distribution: " << &feeder.distribution_
-       << " latest-feasible-arr: " << feeder.latest_feasible_arrival_
-       << " transfer-time: " << feeder.transfer_time_ << "\n";
+  os << "pd_calc_data_departure:\n"
+     << "route-node-id: " << route_node_._id
+     << " station: " << route_node_._station_node->_id
+     << "\nlight-connection: d" << light_connection_.d_time << " a"
+     << light_connection_.a_time << " tr"
+     << light_connection_._full_con->con_info->train_nr
+     << "\nscheduled-departure-time: " << scheduled_departure_time()
+     << " largest-delay: " << largest_delay()
+     << " is-first-route-node: " << is_first_route_node_;
+
+  if (is_first_route_node_) {
+    os << "\nstart-distribution: " << *train_info_.first_departure_distribution;
+  } else {
+    os << "\npreceding-arrival-time: "
+       << train_info_.preceding_arrival_info_.arrival_time_
+       << " min-stanging: " << train_info_.preceding_arrival_info_.min_standing_
+       << "\npreceding-arrival-distribution: "
+       << *train_info_.preceding_arrival_info_.arrival_distribution_;
   }
-  os << std::flush;
+
+  os << "\nFeeders:";
+
+  for (auto const& feeder : feeders_) {
+    os << "\nfeeder-arrival-time: " << feeder.arrival_time_
+       << " lfa: " << feeder.latest_feasible_arrival_
+       << " transfer-time: " << feeder.transfer_time_
+       << "\nfeeder-distribution: " << feeder.distribution_ << "\n";
+  }
+
+  os << "maximum-waiting-time: " << maximum_waiting_time_;
+  os << std::endl;
 }
 
 }  // namespace reliability
