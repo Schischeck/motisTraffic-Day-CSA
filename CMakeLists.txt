@@ -32,6 +32,7 @@ add_subdirectory(modules/railviz)
 add_subdirectory(modules/routing)
 add_subdirectory(modules/reliability)
 add_subdirectory(modules/guesser)
+add_subdirectory(modules/realtime)
 
 add_subdirectory(motis/prep)
 add_subdirectory(motis/webservice)
