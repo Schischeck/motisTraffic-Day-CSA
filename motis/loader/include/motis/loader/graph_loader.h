@@ -50,14 +50,16 @@ public:
   void load_waiting_time_rules(std::vector<std::string> const& category_names,
                                waiting_time_rules& rules);
 
+  /** @return the distance between the given stations. */
+  static double get_distance(const station& s1, const station& s2);
+  
+  static int get_price_per_km(int clasz);
+
 private:
   /** bitfield rollout (= absolute times, relative to day 0 of schedule) */
   static std::vector<light_connection> expand_bitfields(
       connection const* full_con, input_connection const& con,
       bitset_manager const& bm);
-
-  /** @return the distance between the given stations. */
-  double get_distance(const station& s1, const station& s2);
 
   // prefix of schedule files
   std::string _prefix;
