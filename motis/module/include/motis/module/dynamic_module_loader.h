@@ -51,6 +51,7 @@ struct dynamic_module_loader {
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.module_.get());
       dispatcher_.add_module(module.module_.get());
+      module.module_->init_(&context);
     }
 
     print_modules();

@@ -28,7 +28,7 @@ using namespace std;
 
 namespace motis {
 
-static int get_price_per_km(int clasz) {
+int graph_loader::get_price_per_km(int clasz) {
   switch (clasz) {
     case MOTIS_ICE: return 22;
 

@@ -117,16 +117,15 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     }
 
     auto lock = synced_sched<schedule_access::RO>();
-    auto const& sched = lock.sched();
 
-    auto i_begin = unix_to_motis_time(sched, req->interval()->begin());
-    auto i_end = unix_to_motis_time(sched, req->interval()->end());
+    auto i_begin = unix_to_motis_time(lock.sched(), req->interval()->begin());
+    auto i_end = unix_to_motis_time(lock.sched(), req->interval()->end());
 
-    search s(sched, label_store_);
+    search s(lock.sched(), label_store_);
     auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end);
 
-    LOG(info) << sched.stations[path->at(0)[0].station]->name << " to "
-              << sched.stations[path->at(1)[0].station]->name << " "
+    LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
+              << lock.sched().stations[path->at(1)[0].station]->name << " "
               << "(" << format_time(i_begin) << ", " << format_time(i_end)
               << ") -> " << journeys.size() << " connections found";
 

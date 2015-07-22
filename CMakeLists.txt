@@ -45,7 +45,7 @@ function(add_modules)
     add_subdirectory(modules/${module})
   endforeach(module)
 endfunction()
-add_modules(railviz routing reliability guesser)
+add_modules(railviz routing reliability guesser realtime)
 
 add_subdirectory(motis/prep)
 add_subdirectory(motis/webservice)

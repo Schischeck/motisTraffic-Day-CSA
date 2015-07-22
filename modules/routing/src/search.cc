@@ -198,7 +198,10 @@ void search::generate_start_labels(time const from, time const to,
           label(route_node, station_node_label, t, lower_bounds);
       route_node_label->set_slot(true, slot);
 
-      indices.push_back(route_node_label);
+      if (route_node_label->_travel_time[1] !=
+          std::numeric_limits<uint16_t>::max()) {
+        indices.push_back(route_node_label);
+      }
 
       t = t + 1;
     }

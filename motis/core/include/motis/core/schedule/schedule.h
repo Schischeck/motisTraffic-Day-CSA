@@ -25,6 +25,7 @@ struct schedule {
   std::vector<station_ptr> stations;
   std::map<int, station*> eva_to_station;
   std::vector<std::string> category_names;
+  std::map<std::string, int> classes;
   std::map<int, std::string> tracks;
   std::map<int, attribute> attributes;
   constant_graph lower_bounds;

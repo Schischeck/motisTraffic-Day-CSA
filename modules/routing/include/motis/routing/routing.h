@@ -10,7 +10,6 @@ namespace motis {
 namespace routing {
 
 struct routing : public motis::module::module {
-
   routing();
   virtual ~routing() {}
 
