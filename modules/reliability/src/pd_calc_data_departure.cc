@@ -23,7 +23,6 @@ pd_calc_data_departure::pd_calc_data_departure(
       light_connection_(light_connection),
       is_first_route_node_(is_first_route_node),
       maximum_waiting_time_(0) {
-
   init_train_info(schedule.category_names, tt_dist_manager,
                   distributions_container);
   init_feeder_info(schedule, distributions_container);
@@ -114,17 +113,19 @@ duration pd_calc_data_departure::largest_delay(void) const {
                           light_connection_.d_time;
   }
 
-  return std::max(maximum_train_delay, maximum_waiting_time_);
+  return std::max((duration)(maximum_train_delay - scheduled_departure_time()),
+                  maximum_waiting_time_);
 }
 
 void pd_calc_data_departure::debug_output(std::ostream& os) const {
   os << "pd_calc_data_departure:\n"
      << "route-node-id: " << route_node_._id
      << " station: " << route_node_._station_node->_id
-     << "\nlight-connection: d" << light_connection_.d_time << " a"
-     << light_connection_.a_time << " tr"
+     << "\nlight-connection: d" << format_time(light_connection_.d_time) << " a"
+     << format_time(light_connection_.a_time) << " tr"
      << light_connection_._full_con->con_info->train_nr
-     << "\nscheduled-departure-time: " << scheduled_departure_time()
+     << "\nscheduled-departure-time: "
+     << format_time(scheduled_departure_time())
      << " largest-delay: " << largest_delay()
      << " is-first-route-node: " << is_first_route_node_;
 
@@ -132,7 +133,7 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
     os << "\nstart-distribution: " << *train_info_.first_departure_distribution;
   } else {
     os << "\npreceding-arrival-time: "
-       << train_info_.preceding_arrival_info_.arrival_time_
+       << format_time(train_info_.preceding_arrival_info_.arrival_time_)
        << " min-stanging: " << train_info_.preceding_arrival_info_.min_standing_
        << "\npreceding-arrival-distribution: "
        << *train_info_.preceding_arrival_info_.arrival_distribution_;
@@ -141,7 +142,7 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
   os << "\nFeeders:";
 
   for (auto const& feeder : feeders_) {
-    os << "\nfeeder-arrival-time: " << feeder.arrival_time_
+    os << "\nfeeder-arrival-time: " << format_time(feeder.arrival_time_)
        << " lfa: " << feeder.latest_feasible_arrival_
        << " transfer-time: " << feeder.transfer_time_
        << "\nfeeder-distribution: " << feeder.distribution_ << "\n";

@@ -5,6 +5,8 @@
 #include <limits>
 #include <vector>
 
+#include "motis/core/schedule/time.h"
+
 namespace motis {
 namespace reliability {
 
@@ -38,6 +40,10 @@ private:
 
   static const double THRESHOLD_SMALL_VALUES;
 };
+
+inline int timestamp_to_delay(time const& scheduled_time, time const& delayed_time) {
+  return delayed_time - scheduled_time;
+}
 
 inline bool equal(probability const& a, probability const& b) {
   // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
