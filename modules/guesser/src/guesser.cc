@@ -23,26 +23,25 @@ po::options_description guesser::desc() {
 void guesser::print(std::ostream& out) const {}
 
 void guesser::init() {
-  std::vector<std::string> station_names(schedule_->stations.size());
-  std::transform(begin(schedule_->stations), end(schedule_->stations),
+  auto sync = synced_sched<schedule_access::RO>();
+  std::vector<std::string> station_names(sync.sched().stations.size());
+  std::transform(begin(sync.sched().stations), end(sync.sched().stations),
                  begin(station_names),
                  [](station_ptr const& s) { return s->name; });
   guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(station_names));
 }
 
-msg_ptr guesser::on_msg(msg_ptr const& msg, sid) {
+void guesser::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<StationGuesserRequest const*>();
+
+  auto sync = synced_sched<schedule_access::RO>();
 
   FlatBufferBuilder b;
 
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
        guesser_->guess(req->input()->str(), req->guess_count())) {
-    if (guess < 0 || guess >= schedule_->stations.size()) {
-      continue;
-    }
-
-    auto const& station = *schedule_->stations[guess];
+    auto const& station = *sync.sched().stations[guess];
     guesses.emplace_back(CreateStation(b, b.CreateString(station.name),
                                        station.eva_nr, station.width,
                                        station.length));
@@ -52,7 +51,7 @@ msg_ptr guesser::on_msg(msg_ptr const& msg, sid) {
       b, MsgContent_StationGuesserResponse,
       CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union()));
 
-  return make_msg(b);
+  return cb(make_msg(b), boost::system::error_code());
 }
 
 MOTIS_MODULE_DEF_MODULE(guesser)

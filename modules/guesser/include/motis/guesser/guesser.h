@@ -15,11 +15,11 @@ struct guesser : public motis::module::module {
 
   virtual std::string name() const override { return "guesser"; }
   virtual void init() override;
-  virtual std::vector<MsgContent> subscriptions() const {
+  virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_StationGuesserRequest};
   }
-  virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
-                                        motis::module::sid) override;
+  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
+                      motis::module::callback) override;
 
   std::unique_ptr<guess::guesser> guesser_;
 };

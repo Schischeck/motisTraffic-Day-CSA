@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include "boost/filesystem.hpp"
 #include "boost/asio/io_service.hpp"
@@ -59,38 +60,43 @@ int main(int argc, char** argv) {
 
   auto sched = load_schedule(dataset_opt.dataset);
 
-  boost::asio::io_service ios;
+  boost::asio::io_service ios, thread_pool;
 
   ws_server server(ios);
   server.listen(listener_opt.host, listener_opt.port);
 
-  dispatcher dispatcher(server);
+  dispatcher dispatcher(server, ios);
 
 #ifndef MOTIS_STATIC_MODULES
-  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios);
+  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios,
+                               thread_pool);
   loader.load_modules();
 #else
   namespace p = std::placeholders;
   send_fun send = std::bind(&dispatcher::send, &dispatcher, p::_1, p::_2);
-  dispatch_fun dispatch =
-      std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2);
+  msg_handler dispatch =
+      std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
-  modules.emplace_back(new guesser::guesser());
-  modules.emplace_back(new railviz::railviz());
-  modules.emplace_back(new routing::routing());
-  modules.emplace_back(new reliability::reliability());
+  for (int i = 0; i < 8; ++i) {
+    modules.emplace_back(new guesser::guesser());
+    // modules.emplace_back(new railviz::railviz());
+    modules.emplace_back(new routing::routing());
+    // modules.emplace_back(new reliability::reliability());
+  }
+
+  motis::module::context c;
+  c.schedule_ = sched.get();
+  c.ios_ = &ios;
+  c.thread_pool_ = &thread_pool;
+  c.send_ = &send;
+  c.dispatch_ = &dispatch;
 
   for (auto const& module : modules) {
     dispatcher.modules_.push_back(module.get());
-    for (auto const& subscription : module->subscriptions()) {
-      dispatcher.subscriptions_.insert({subscription, module.get()});
-    }
+    dispatcher.add_module(module.get());
 
-    module->schedule_ = sched.get();
-    module->send_ = &send;
-    module->dispatch_ = &dispatch;
-    module->init();
+    module->init_(&c);
   }
 #endif
 
@@ -106,5 +112,13 @@ int main(int argc, char** argv) {
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 
+  boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
+  std::vector<std::thread> threads(8);
+  for (unsigned i = 0; i < threads.size(); ++i) {
+    threads[i] = std::thread([&]() { thread_pool.run(); });
+  }
+
   ios.run();
+  thread_pool.stop();
+  std::for_each(begin(threads), end(threads), [](std::thread& t) { t.join(); });
 }

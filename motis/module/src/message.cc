@@ -7,6 +7,8 @@
 
 #include "motis/protocol/resources.h"
 
+#include "motis/module/error.h"
+
 namespace motis {
 namespace module {
 
@@ -33,7 +35,7 @@ void message::init_parser() {
 message::message(std::string const& json) {
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
-    throw std::runtime_error("error while parsing JSON");
+    throw boost::system::system_error(error::unable_to_parse_msg);
   }
 
   buf_ = parser->builder_.GetBufferPointer();

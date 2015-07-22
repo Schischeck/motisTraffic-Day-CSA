@@ -26,8 +26,24 @@ struct Interval {
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": 8000068, "name": "" },
+//       { "eva_nr": 8000096, "name": "" },
 //       { "eva_nr": 8000105, "name": "" }
+//     ]
+//   }
+// }
+//
+// {
+//   "content_type": "RoutingRequest",
+//   "content": {
+//     "interval": {
+//       "begin": 1413475200,
+//       "end": 1413478800
+//     },
+//     "type": "PreTrip",
+//     "direction": "Forward",
+//     "path": [
+//       { "name": "Stutt" },
+//       { "name": "Darm" }
 //     ]
 //   }
 // }

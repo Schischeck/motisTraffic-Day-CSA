@@ -8,7 +8,23 @@ include "routing/RoutingResponse.fbs";
 
 namespace motis;
 
+// JSON example:
+// --
+// {
+//   "content_type": "MotisError",
+//   "content": {
+//     "error_code": 1,
+//     "reason": "module: there is no module capable of handling the message"
+//   }
+// }
+table MotisError {
+  error_code:ushort;
+  category:string;
+  reason:string;
+}
+
 union MsgContent {
+  motis.MotisError,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizStations,

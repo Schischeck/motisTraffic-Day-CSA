@@ -17,7 +17,7 @@ struct schedule;
 
 class search {
 public:
-  search(schedule& schedule, memory_manager<label>& label_store);
+  search(schedule const& schedule, memory_manager<label>& label_store);
 
   std::vector<journey> get_connections(
       arrival from, arrival to, time interval_start, time interval_end,
@@ -35,7 +35,7 @@ public:
                              station_node const* real_start, int time_off,
                              int start_price, int slot, lower_bounds& context);
 
-  schedule& _sched;
+  schedule const& _sched;
   memory_manager<label>& _label_store;
 };
 

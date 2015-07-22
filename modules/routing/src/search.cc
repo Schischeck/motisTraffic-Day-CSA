@@ -14,13 +14,13 @@
 #include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/label.h"
-#include "motis/routing/timing.h"
 
 namespace motis {
 
@@ -35,7 +35,7 @@ void remove_intersection(arrival& from, arrival& to) {
   }
 }
 
-search::search(schedule& schedule, memory_manager<label>& label_store)
+search::search(schedule const& schedule, memory_manager<label>& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
 std::vector<journey> search::get_connections(

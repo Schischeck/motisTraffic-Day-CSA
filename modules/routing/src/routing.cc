@@ -7,6 +7,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/timing.h"
 
 #include "motis/module/api.h"
 
@@ -15,11 +16,14 @@
 #include "motis/routing/label.h"
 #include "motis/routing/search.h"
 #include "motis/routing/response_builder.h"
+#include "motis/routing/error.h"
 
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
 namespace po = boost::program_options;
+namespace p = std::placeholders;
+using boost::system::error_code;
 
 namespace motis {
 namespace routing {
@@ -42,68 +46,98 @@ time unix_to_motis_time(schedule const& s, uint64_t unix_timestamp) {
   return ((query_time - schedule_begin).total_milliseconds() / 1000) / 60;
 }
 
-arrival routing::read_path_element(StationPathElement const* el) {
+void routing::read_path_element(StationPathElement const* el,
+                                routing::path_el_cb cb) {
   auto eva = el->eva_nr();
 
   if (eva == 0) {
+    // Eva number not set.
+    // Try to guess entered station name.
     FlatBufferBuilder b;
     b.Finish(
         CreateMessage(b, MsgContent_StationGuesserRequest,
                       motis::guesser::CreateStationGuesserRequest(
                           b, 1, b.CreateString(el->name()->str())).Union()));
-    auto res = (*dispatch_)(make_msg(b), 0);
 
-    if (!res) {
-      std::cout << "no response\n";
-      return {};
+    return dispatch(make_msg(b), 0, std::bind(&routing::handle_station_guess,
+                                              this, p::_1, p::_2, cb));
+  } else {
+    // Eva number set.
+    // Try to get station using the eva_to_station map.
+    auto lock = synced_sched<RO>();
+    auto station_it = lock.sched().eva_to_station.find(eva);
+    if (station_it == end(lock.sched().eva_to_station)) {
+      return cb({}, error::given_eva_not_available);
+    } else {
+      return cb({arrival_part(station_it->second->index)}, error::ok);
     }
-
-    if (res->content_type() != MsgContent_StationGuesserResponse) {
-      std::cout << "wrong content type " << res->content_type() << "\n";
-      return {};
-    }
-
-    auto guess = res->content<motis::guesser::StationGuesserResponse const*>();
-    if (guess->guesses()->Length() == 0) {
-      std::cout << "no guesses for " << el->name()->c_str() << "\n";
-      return {};
-    }
-
-    eva = guess->guesses()->Get(0)->eva();
   }
-
-  auto station_it = schedule_->eva_to_station.find(eva);
-  if (station_it == end(schedule_->eva_to_station)) {
-    return {};
-  }
-
-  return {arrival_part(station_it->second->index)};
 }
 
-msg_ptr routing::on_msg(msg_ptr const& msg, sid session) {
+void routing::handle_station_guess(msg_ptr res, boost::system::error_code e,
+                                   routing::path_el_cb cb) {
+  if (e) {
+    return cb({}, e);
+  } else {
+    auto guess = res->content<motis::guesser::StationGuesserResponse const*>();
+    if (guess->guesses()->Length() == 0) {
+      return cb({}, error::no_guess_for_station);
+    } else {
+      auto lock = synced_sched<RO>();
+      auto eva = guess->guesses()->Get(0)->eva();
+      auto station_it = lock.sched().eva_to_station.find(eva);
+      return cb({arrival_part(station_it->second->index)}, error::ok);
+    }
+  }
+}
+
+void routing::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<RoutingRequest const*>();
 
   if (req->path()->Length() < 2) {
-    std::cout << "request does not contain at least 2 path elements\n";
-    return {};
+    return cb({}, error::path_length_too_short);
   }
 
-  auto from = read_path_element(req->path()->Get(0));
-  auto to = read_path_element(req->path()->Get(req->path()->Length() - 1));
+  auto path = std::make_shared<std::vector<arrival>>(req->path()->Length());
+  auto path_complete = [path] {
+    return std::all_of(begin(*path), end(*path),
+                       [](arrival const& a) { return !a.empty(); });
+  };
+  auto path_cb = [=](int index, arrival arr, error_code e) {
+    auto req = msg->content<RoutingRequest const*>();
 
-  auto interv_begin = unix_to_motis_time(*schedule_, req->interval()->begin());
-  auto interv_end = unix_to_motis_time(*schedule_, req->interval()->end());
+    if (e) {
+      return cb({}, e);
+    }
 
-  search s(*schedule_, label_store_);
-  auto journeys = s.get_connections({from}, {to}, interv_begin, interv_end);
+    (*path)[index] = arr;
 
-  LOG(info) << schedule_->stations[from[0].station]->name << " to "
-            << schedule_->stations[to[0].station]->name << " "
-            << "(" << format_time(interv_begin) << ", "
-            << format_time(interv_end) << ") -> " << journeys.size()
-            << " connections found";
+    if (!path_complete()) {
+      return;
+    }
 
-  return journeys_to_message(journeys);
+    auto lock = synced_sched<schedule_access::RO>();
+    auto const& sched = lock.sched();
+
+    auto i_begin = unix_to_motis_time(sched, req->interval()->begin());
+    auto i_end = unix_to_motis_time(sched, req->interval()->end());
+
+    search s(sched, label_store_);
+    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end);
+
+    LOG(info) << sched.stations[path->at(0)[0].station]->name << " to "
+              << sched.stations[path->at(1)[0].station]->name << " "
+              << "(" << format_time(i_begin) << ", " << format_time(i_end)
+              << ") -> " << journeys.size() << " connections found";
+
+    return cb(journeys_to_message(journeys), error::ok);
+  };
+
+  read_path_element(req->path()->Get(0), std::bind(path_cb, 0, p::_1, p::_2));
+  read_path_element(req->path()->Get(req->path()->Length() - 1),
+                    std::bind(path_cb, 1, p::_1, p::_2));
+
+  return;
 }
 
 MOTIS_MODULE_DEF_MODULE(routing)
