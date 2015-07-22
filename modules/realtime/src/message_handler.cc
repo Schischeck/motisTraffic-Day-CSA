@@ -170,6 +170,7 @@ void message_handler::handle_additional_train(
   connection_info* ci = new connection_info();
   ci->train_nr = events[0]._train_nr;
   ci->family = category_index;
+  ci->line_identifier = "-";
 
   // family = category -> _schedule.category_names[ci->family]
   _rts._new_connection_infos.emplace_back(ci);
