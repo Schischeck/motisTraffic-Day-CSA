@@ -17,7 +17,7 @@ std::unique_ptr<flatbuffers::Parser> message::parser =
 
 void message::init_parser() {
   int message_symbol_index = -1;
-  for (int i = 0; i < number_of_symbols; ++i) {
+  for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {
       message_symbol_index = i;
     } else if (!parser->Parse((const char*)symbols[i], nullptr, filenames[i])) {

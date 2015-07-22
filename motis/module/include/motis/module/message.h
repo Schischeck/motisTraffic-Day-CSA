@@ -5,7 +5,7 @@
 #include "motis/protocol/Message_generated.h"
 
 namespace flatbuffers {
-struct Parser;
+class Parser;
 }
 
 namespace motis {
