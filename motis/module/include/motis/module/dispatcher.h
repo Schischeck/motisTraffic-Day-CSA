@@ -89,7 +89,7 @@ struct dispatcher {
   void reschedule_held_back_msgs() {
     auto held_back_msgs_copy = held_back_msgs_;
     held_back_msgs_.clear();
-    for (auto const& m : held_back_msgs_) {
+    for (auto const& m : held_back_msgs_copy) {
       on_msg(m.msg, m.session, m.cb);
     }
   }

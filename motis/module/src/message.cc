@@ -33,6 +33,10 @@ void message::init_parser() {
 }
 
 message::message(std::string const& json) {
+  if (!parser->root_struct_def_) {
+    init_parser();
+  }
+
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
     throw boost::system::system_error(error::unable_to_parse_msg);
@@ -46,6 +50,10 @@ message::message(std::string const& json) {
 }
 
 std::string message::to_json() const {
+  if (!parser->root_struct_def_) {
+    init_parser();
+  }
+
   auto opt = flatbuffers::GeneratorOptions();
   opt.strict_json = true;
 
