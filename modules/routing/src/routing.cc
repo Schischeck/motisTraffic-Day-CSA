@@ -18,12 +18,12 @@
 #include "motis/routing/response_builder.h"
 #include "motis/routing/error.h"
 
+namespace p = std::placeholders;
+namespace po = boost::program_options;
+using boost::system::error_code;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
-namespace po = boost::program_options;
-namespace p = std::placeholders;
-using boost::system::error_code;
 
 namespace motis {
 namespace routing {
@@ -74,7 +74,7 @@ void routing::read_path_element(StationPathElement const* el,
   }
 }
 
-void routing::handle_station_guess(msg_ptr res, boost::system::error_code e,
+void routing::handle_station_guess(msg_ptr res, error_code e,
                                    routing::path_el_cb cb) {
   if (e) {
     return cb({}, e);
