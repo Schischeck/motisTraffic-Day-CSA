@@ -16,7 +16,6 @@ private:
     distribution.init(std::vector<probability>() = {0.5, 0.5}, 0);
     distribution_class_to_start_distribution_["FV"] = distribution;
     distribution_class_to_start_distribution_["RV"] = distribution;
-    std::cout << "Set start distributions to " << distribution << std::endl;
   }
 
   void generate_distribution(

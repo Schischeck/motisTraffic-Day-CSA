@@ -31,6 +31,14 @@ namespace detail {
 probability departure_independent_from_feeders(
     std::vector<pd_calc_data_departure::feeder_info> const& feeders,
     time const timestamp);
+
+/**
+ * Cut all minutes which are later than the
+ * latest feasible arrival time of the feeder.
+ */
+void cut_minutes_after_latest_feasible_arrival(
+    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    std::vector<probability_distribution>& part_before_lfa);
 }
 };
 

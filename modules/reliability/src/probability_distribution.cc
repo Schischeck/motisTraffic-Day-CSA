@@ -8,7 +8,6 @@ namespace reliability {
 
 void probability_distribution::init(std::vector<probability> const& values,
                                     int const first_minute) {
-
   probabilities_.clear();
 
   /* determine the left bound (ignore all values smaller than

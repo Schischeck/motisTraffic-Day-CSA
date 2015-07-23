@@ -459,35 +459,6 @@ void compute_arrival_distribution(
 
 namespace detail {
 
-/**
- * Calculate the probability that from the time stored in 'timestamp'
- * the departure of the train does not depend on any feeder.
- */
-probability departure_independent_from_feeders(
-    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
-    time const timestamp) {
-  probability prob_no_waiting = 1.0, prob_no_waiting_feeder = 0.0,
-              prob_waiting_feeder = 0.0;
-
-  for (auto const& feeder : feeders) {
-    time const waiting_interval_begin = timestamp - feeder.transfer_time_;
-    if (waiting_interval_begin >= feeder.latest_feasible_arrival_) {
-      prob_no_waiting_feeder = 1.0;
-    } else {
-      prob_waiting_feeder =
-          feeder.distribution_.probability_smaller_equal(timestamp_to_delay(
-              feeder.arrival_time_, feeder.latest_feasible_arrival_)) -
-          feeder.distribution_.probability_smaller_equal(
-              timestamp_to_delay(feeder.arrival_time_, waiting_interval_begin));
-
-      prob_no_waiting_feeder = 1.0 - prob_waiting_feeder;
-    }
-    prob_no_waiting *= prob_no_waiting_feeder;
-  }
-
-  return prob_no_waiting;
-}
-
 #if 0
 
 /**
@@ -931,22 +902,43 @@ probability get_prob_dep_after_waiting_interval(pd_calc_data_departure* data,
   return prob_res;
 }
 
-/**
- * Feeder distributions are modified to contain only probabilities
- * which have an influence on the departure distribution.
- */
-void get_feasible_part_of_distributions(
-    pd_calc_data_departure const& data,
-    std::vector<probability_distribution>& feeder_distributions_feasible_part) {
+#endif
 
-  feeder_distributions_feasible_part(data.feeders_.size());
+probability departure_independent_from_feeders(
+    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    time const timestamp) {
+  probability prob_no_waiting = 1.0, prob_no_waiting_feeder = 0.0,
+              prob_waiting_feeder = 0.0;
 
-  for (unsigned int feeder_idx = 0; feeder_idx < data.feeders_.size();
-       feeder_idx++) {
-    auto const& feeder = data.feeders_[feeder_idx];
+  for (auto const& feeder : feeders) {
+    time const waiting_interval_begin = timestamp - feeder.transfer_time_;
+    if (waiting_interval_begin >= feeder.latest_feasible_arrival_) {
+      prob_no_waiting_feeder = 1.0;
+    } else {
+      prob_waiting_feeder =
+          feeder.distribution_.probability_smaller_equal(timestamp_to_delay(
+              feeder.arrival_time_, feeder.latest_feasible_arrival_)) -
+          feeder.distribution_.probability_smaller_equal(
+              timestamp_to_delay(feeder.arrival_time_, waiting_interval_begin));
+
+      prob_no_waiting_feeder = 1.0 - prob_waiting_feeder;
+    }
+    prob_no_waiting *= prob_no_waiting_feeder;
+  }
+
+  return prob_no_waiting;
+}
+
+void cut_minutes_after_latest_feasible_arrival(
+    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    std::vector<probability_distribution>& minutes_up_to_lfa) {
+  minutes_up_to_lfa.resize(feeders.size());
+
+  for (unsigned int feeder_idx = 0; feeder_idx < feeders.size(); feeder_idx++) {
+    auto const& feeder = feeders[feeder_idx];
     std::vector<probability> probabilities;
-    int first_minute = feeder.distribution_.first_minute();
 
+    assert(feeder.latest_feasible_arrival_ >= feeder.arrival_time_);
     time lfa_minute = feeder.latest_feasible_arrival_ - feeder.arrival_time_;
 
     for (int feeder_delay = feeder.distribution_.first_minute();
@@ -958,12 +950,10 @@ void get_feasible_part_of_distributions(
             feeder.distribution_.probability_equal(feeder_delay));
     }
 
-    feeder_distributions_feasible_part[feeder_idx].init(probabilities,
-                                                        first_minute);
+    minutes_up_to_lfa[feeder_idx].init(probabilities,
+                                       feeder.distribution_.first_minute());
   }
 }
-
-#endif
 
 }  // namespace detail
 }  // namespace distributions_calculator
