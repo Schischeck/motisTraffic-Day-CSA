@@ -95,7 +95,8 @@ TEST_CASE("ignore small values", "[probability_distribution]") {
 
 TEST_CASE("only small values", "[probability_distribution]") {
   probability small_value = 0.0000001;
-  std::vector<probability> const values = {small_value, small_value, small_value};
+  std::vector<probability> const values = {small_value, small_value,
+                                           small_value};
   probability_distribution pd;
   pd.init(values, 0);
   REQUIRE(pd.first_minute() == 2);
@@ -143,4 +144,17 @@ TEST_CASE("sum smaller than 1", "[probability_distribution]") {
   REQUIRE(equal(pd.probability_greater(first_minute + 1), 0.2));
   REQUIRE(equal(pd.probability_greater(first_minute + 2), 0.0));
   REQUIRE(equal(pd.probability_greater(first_minute + 3), 0.0));
+}
+
+TEST_CASE("get_probabilities", "[probability_distribution]") {
+  std::vector<probability> probabilies_in = {0.5, 0.4, 0.1};
+  probability_distribution pd;
+  pd.init(probabilies_in, 2);
+
+  std::vector<probability> probabilies_out;
+  pd.get_probabilities(probabilies_out);
+
+  REQUIRE(probabilies_in.size() == probabilies_out.size());
+  for(unsigned int i=0 ; i<probabilies_in.size() ; i++)
+    REQUIRE(equal(probabilies_in[i], probabilies_out[i]));
 }

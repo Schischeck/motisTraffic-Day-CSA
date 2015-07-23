@@ -14,7 +14,8 @@ typedef double probability;
 
 struct probability_distribution {
 
-  void init(std::vector<probability> const& values, int const first_minute);
+  void init(std::vector<probability> const& probabilities,
+            int const first_minute);
   void init_one_point(int const minute, probability const prob);
 
   int first_minute() const { return first_minute_; }
@@ -26,6 +27,9 @@ struct probability_distribution {
   probability probability_greater_equal(int const minute) const;
   probability probability_greater(int const minute) const;
   probability sum() const;
+
+  /* insert all probabilities in to the vector 'probabilities' */
+  void get_probabilities(std::vector<probability>& probabilities) const;
 
   friend std::ostream& operator<<(std::ostream& os,
                                   probability_distribution const& distribution);
@@ -41,7 +45,8 @@ private:
   static const double THRESHOLD_SMALL_VALUES;
 };
 
-inline int timestamp_to_delay(time const& scheduled_time, time const& delayed_time) {
+inline int timestamp_to_delay(time const& scheduled_time,
+                              time const& delayed_time) {
   return delayed_time - scheduled_time;
 }
 
@@ -49,7 +54,7 @@ inline bool equal(probability const& a, probability const& b) {
   // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
   return (a == b ||
           std::abs(a - b) < std::numeric_limits<probability>::epsilon()
-                                /* * std::abs(a + b) * 6*/);
+          /* * std::abs(a + b) * 6*/);
 }
 
 inline bool smaller(probability const& a, probability const& b) {

@@ -6,27 +6,27 @@
 namespace motis {
 namespace reliability {
 
-void probability_distribution::init(std::vector<probability> const& values,
-                                    int const first_minute) {
+void probability_distribution::init(
+    std::vector<probability> const& probabilities, int const first_minute) {
   probabilities_.clear();
 
   /* determine the left bound (ignore all values smaller than
    * THRESHOLD_SMALL_VALUES) */
   probability error = 0.0;  // sum of all ignored values
   int idx_first_value = 0;
-  while (idx_first_value+1 < values.size() &&
-         values[idx_first_value] < THRESHOLD_SMALL_VALUES) {
-    error += values[idx_first_value];
+  while (idx_first_value + 1 < probabilities.size() &&
+         probabilities[idx_first_value] < THRESHOLD_SMALL_VALUES) {
+    error += probabilities[idx_first_value];
     idx_first_value++;
   }
   first_minute_ = first_minute + idx_first_value;
 
   /* determine the right bound (ignore all values smaller than
    * THRESHOLD_SMALL_VALUES) */
-  unsigned int idx_last_value = values.size() - 1;
+  unsigned int idx_last_value = probabilities.size() - 1;
   while (idx_last_value > idx_first_value &&
-         values[idx_last_value] < THRESHOLD_SMALL_VALUES) {
-    error += values[idx_last_value];
+         probabilities[idx_last_value] < THRESHOLD_SMALL_VALUES) {
+    error += probabilities[idx_last_value];
     idx_last_value--;
   }
 
@@ -38,8 +38,8 @@ void probability_distribution::init(std::vector<probability> const& values,
   // error is added to the probability of first-minute
   probability cumulative_probability = error;
   for (unsigned int i = idx_first_value; i <= idx_last_value; i++) {
-    assert(!smaller(values[i], 0.0));
-    cumulative_probability += values[i];
+    assert(!smaller(probabilities[i], 0.0));
+    cumulative_probability += probabilities[i];
     probabilities_.push_back(cumulative_probability);
   }
 }
@@ -105,12 +105,19 @@ probability probability_distribution::sum() const {
   return probabilities_[probabilities_.size() - 1];
 }
 
+void probability_distribution::get_probabilities(
+    std::vector<probability>& probabilities) const {
+  for (int i = first_minute_; i <= last_minute(); i++)
+    probabilities.push_back(probability_equal(i));
+}
+
 std::ostream& operator<<(std::ostream& os,
                          probability_distribution const& distribution) {
   os << "[sum=" << distribution.sum()
      << " first-min=" << distribution.first_minute()
      << " last-min=" << distribution.last_minute() << " values=";
-  for (int i = distribution.first_minute(); i <= distribution.last_minute(); i++) {
+  for (int i = distribution.first_minute(); i <= distribution.last_minute();
+       i++) {
     os << distribution.probability_equal(i);
     if (i + 1 <= distribution.last_minute()) {
       os << ",";

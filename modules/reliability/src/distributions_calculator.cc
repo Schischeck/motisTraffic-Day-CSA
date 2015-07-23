@@ -14,26 +14,25 @@ namespace distributions_calculator {
 void compute_departure_distribution(
     pd_calc_data_departure const& data,
     probability_distribution& departure_distribution) {
+  std::vector<probability> probabilties;
+  duration const largest_delay = data.largest_delay();
+
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(
       data.feeders_, modified_feeders_distributions);
 
-  std::vector<probability> probabilties;
-  duration const largest_delay = data.largest_delay();
-
   for (duration delay = 0; delay <= largest_delay; delay++) {
     time const departure_time = data.scheduled_departure_time() + delay;
     probability departure_probability = 0.0;
-
     if (delay == 0) {
       departure_probability = detail::departure_at_scheduled_time(data);
     } else if (delay > 0 && delay <= data.maximum_waiting_time_) {
       departure_probability = detail::departure_within_waiting_interval(
           data, modified_feeders_distributions, departure_time);
     } else {
-      departure_probability = detail::departure_after_waiting_interval(data, departure_time);
+      departure_probability =
+          detail::departure_after_waiting_interval(data, departure_time);
     }
-
     probabilties.push_back(departure_probability);
   }
 
@@ -47,15 +46,7 @@ void compute_arrival_distribution(
     pd_calc_data_arrival const& data,
     probability_distribution& arrival_distribution) {
 
-  if (LOGGING) {
-    log_str << "\n\n\n\n---------------------------------------\n\n"
-            << "calculate ARRIVAL PD: " << std::endl;
-    data->output(log_str);
-  }
-
-  // index-variable used to access probability arrays ("probs" and
-  // "dep_dist")
-  unsigned int probs_idx = 0;
+  // TODO (new): use probability_distribution.get_probabilities() for dep_dist
 
   // store all probabilities of the departure-distribution in the probability
   // array "dep_dist"
