@@ -13,7 +13,7 @@ struct tt_distributions_test_manager : tt_distributions_manager {
 private:
   void init_start_distributions() {
     probability_distribution distribution;
-    distribution.init(std::vector<probability>() = {0.5, 0.5}, 0);
+    distribution.init(std::vector<probability>() = {0.6, 0.4}, 0);
     distribution_class_to_start_distribution_["FV"] = distribution;
     distribution_class_to_start_distribution_["RV"] = distribution;
   }

@@ -76,7 +76,10 @@ struct pd_calc_data_departure {
     duration const transfer_time_;
   };
 
-  /** arrival distributions of the feeder trains */
+  /** arrival distributions of the feeder trains
+   * TODO: do not store the interchange feeder in this vector!
+   * (distributions_calculator makes this assumption).
+   */
   std::vector<feeder_info> feeders_;
 
   /** maximal waiting time of the departing train of any feeder */

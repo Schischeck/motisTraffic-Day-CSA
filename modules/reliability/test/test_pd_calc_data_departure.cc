@@ -35,17 +35,18 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.route_node_._station_node->_id == 2);
   REQUIRE(data.light_connection_.d_time == 5 * 60 + 55);
   REQUIRE(data.light_connection_.a_time == 6 * 60 + 5);
-  REQUIRE(data.scheduled_departure_time() == 5*60+55);
+  REQUIRE(data.scheduled_departure_time() == 5 * 60 + 55);
   REQUIRE(data.largest_delay() == 1);
   REQUIRE(data.light_connection_._full_con->con_info->train_nr == 5);
   REQUIRE(data.is_first_route_node_);
 
-  auto const& start_distribution = data.train_info_.first_departure_distribution;
+  auto const& start_distribution =
+      data.train_info_.first_departure_distribution;
   REQUIRE(equal(start_distribution->sum(), 1.0));
   REQUIRE(start_distribution->first_minute() == 0);
   REQUIRE(start_distribution->last_minute() == 1);
-  REQUIRE(equal(start_distribution->probability_equal(0), 0.5));
-  REQUIRE(equal(start_distribution->probability_equal(1), 0.5));
+  REQUIRE(equal(start_distribution->probability_equal(0), 0.6));
+  REQUIRE(equal(start_distribution->probability_equal(1), 0.4));
 }
 
 TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
@@ -63,7 +64,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(first_route_node)->_to;
   // route edge from Darmstadt to Heidelberg
   auto const route_edge =
-        graph_accessor::get_departing_route_edge(*second_route_node);
+      graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
   /*pd_calc_data_departure data(*second_route_node, light_connection, false,
@@ -72,9 +73,23 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
 }
 
 TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
 
+  train_distributions_container train_distributions(schedule->node_count);
+  tt_distributions_test_manager tt_distributions;
+  tt_distributions.initialize();
+
+  // route node at Darmstadt of train IC_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[0];
+  // route edge from Darmstadt to Heidelberg
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  // light connection d07:00 a07:28
+  auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
+
+  /*pd_calc_data_departure data(first_route_node, light_connection, true,
+                              *schedule, train_distributions, tt_distributions);*/
 }
 
-TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
-
-}
+TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {}

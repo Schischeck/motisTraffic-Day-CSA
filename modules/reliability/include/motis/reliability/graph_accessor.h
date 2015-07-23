@@ -63,7 +63,9 @@ inline std::vector<feeder_info> get_all_potential_feeders(
     // ignore transfer edge to route_node itself
     if (in_edge->_from->_id == route_node._id) continue;
 
-    time const time_begin = departing_light_conn.d_time - 30;  // XXX
+    time const time_begin = (departing_light_conn.d_time <= 30
+                                 ? 0
+                                 : departing_light_conn.d_time - 30);  // XXX
     time const time_end =
         departing_light_conn.d_time - in_edge->_m._foot_edge._time_cost;
 

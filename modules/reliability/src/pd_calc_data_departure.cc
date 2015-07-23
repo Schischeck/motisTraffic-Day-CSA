@@ -86,6 +86,10 @@ void pd_calc_data_departure::init_feeder_info(
               feeder_route_node->_id, feeder_distribution_pos,
               train_distributions_container::arrival);
 
+      /** arrival distributions of the feeder trains
+       * TODO: do not store the interchange feeder in this vector!
+       * (distributions_calculator makes this assumption).
+       */
       feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
                             latest_feasible_arrival, transfer_time);
 
