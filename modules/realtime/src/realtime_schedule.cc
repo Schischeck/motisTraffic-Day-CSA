@@ -492,7 +492,7 @@ motis::light_connection* realtime_schedule::get_connection_with_arrival_time(
   auto it = std::lower_bound(
       std::begin(route_edge->_m._route_edge._conns),
       std::end(route_edge->_m._route_edge._conns), arrival_time,
-      [](const light_connection& elm, const motis::time t) {
+      [](const motis::light_connection& elm, const motis::time t) {
         return elm.a_time < t;
       });
 
@@ -519,9 +519,8 @@ realtime_schedule::get_last_connection_with_arrival_before(
   auto it =
       std::lower_bound(std::begin(route_edge->_m._route_edge._conns),
                        std::end(route_edge->_m._route_edge._conns), max_time,
-                       [](const light_connection& elm, const motis::time t) {
-                         return elm.a_time < t;
-                       });
+                       [](const motis::light_connection& elm,
+                          const motis::time t) { return elm.a_time < t; });
 
   if (it == std::end(route_edge->_m._route_edge._conns)) {
     return &route_edge->_m._route_edge._conns.back();

@@ -29,20 +29,28 @@ void message_class::reset_parse_result() { _parse_result = message_class::OK; }
  */
 std::string stop_type_to_string(message_stop::type type) {
   switch (type) {
-    case message_stop::departure: return "departure";
-    case message_stop::arrival: return "arrival";
-    case message_stop::first_stop: return "begin";
-    case message_stop::last_stop: return "end";
+    case message_stop::departure:
+      return "departure";
+    case message_stop::arrival:
+      return "arrival";
+    case message_stop::first_stop:
+      return "begin";
+    case message_stop::last_stop:
+      return "end";
   }
   return "unknown";
 }
 
 message_stop::type type_char_to_stop_type(char type) {
   switch (type) {
-    case 'd': return message_stop::departure;
-    case 'a': return message_stop::arrival;
-    case 'b': return message_stop::first_stop;
-    case 'e': return message_stop::last_stop;
+    case 'd':
+      return message_stop::departure;
+    case 'a':
+      return message_stop::arrival;
+    case 'b':
+      return message_stop::first_stop;
+    case 'e':
+      return message_stop::last_stop;
   }
   return message_stop::last_stop;  // unknown type
 }
@@ -50,10 +58,14 @@ message_stop::type type_char_to_stop_type(char type) {
 std::string timestamp_reason_to_string(
     message_stop::timestamp_reason_type const& reason) {
   switch (reason) {
-    case message_stop::schedule: return "schedule";
-    case message_stop::is_message: return "is_message";
-    case message_stop::forecast: return "forecast";
-    case message_stop::propagation: return "propagation";
+    case message_stop::schedule:
+      return "schedule";
+    case message_stop::is_message:
+      return "is_message";
+    case message_stop::forecast:
+      return "forecast";
+    case message_stop::propagation:
+      return "propagation";
   }
   return "unknown";
 }
@@ -120,7 +132,8 @@ message_class* message_class::read_message_from_stream(
       return new reroute_train_message_sg(input_stream, eva_numbers,
                                           message_handler);
       break;
-    case message_class_type::no_message: break;
+    case message_class_type::no_message:
+      break;
   }
   return nullptr;
 }
@@ -638,30 +651,42 @@ bool interchange_info_element::describes_same_interchange(
 
 char connection_status_to_char(connection_status::decision_type const& type) {
   switch (type) {
-    case connection_status::kept: return 'k';
-    case connection_status::unkept: return 'u';
-    case connection_status::new_connection: return 'n';
-    case connection_status::undecided: return 'd';
+    case connection_status::kept:
+      return 'k';
+    case connection_status::unkept:
+      return 'u';
+    case connection_status::new_connection:
+      return 'n';
+    case connection_status::undecided:
+      return 'd';
   }
   return 'd';
 }
 
 connection_status::decision_type char_to_connection_status(char& c) {
   switch (c) {
-    case 'k': return connection_status::kept;
-    case 'u': return connection_status::unkept;
-    case 'n': return connection_status::new_connection;
-    case 'd': return connection_status::undecided;
+    case 'k':
+      return connection_status::kept;
+    case 'u':
+      return connection_status::unkept;
+    case 'n':
+      return connection_status::new_connection;
+    case 'd':
+      return connection_status::undecided;
   }
   return connection_status::undecided;
 }
 
 std::string connection_status_decision_message::get_status_string() const {
   switch (this->status) {
-    case connection_status::kept: return "kept";
-    case connection_status::unkept: return "unkept";
-    case connection_status::new_connection: return "new_connection";
-    case connection_status::undecided: return "undecided";
+    case connection_status::kept:
+      return "kept";
+    case connection_status::unkept:
+      return "unkept";
+    case connection_status::new_connection:
+      return "new_connection";
+    case connection_status::undecided:
+      return "undecided";
   }
   return "unknown";
 }

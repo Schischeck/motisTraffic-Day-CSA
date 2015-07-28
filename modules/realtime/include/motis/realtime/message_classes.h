@@ -181,7 +181,8 @@ public:
       */
       case message_class_type::additional_train_message:
         return "additional train";
-      case message_class_type::canceled_train_message: return "canceled train";
+      case message_class_type::canceled_train_message:
+        return "canceled train";
       case message_class_type::connection_status_decision_message:
         return "connection status decision";
       case message_class_type::
@@ -192,20 +193,26 @@ public:
       case message_class_type::
           connection_status_assessment_db_message_different_stations:
         return "connection status assessment (different stations)";
-      case message_class_type::reroute_train_message: return "reroute train";
+      case message_class_type::reroute_train_message:
+        return "reroute train";
       case message_class_type::reroute_train_message_sg:
         return "reroute train (SG)";
-      case message_class_type::no_message: return "no message";
+      case message_class_type::no_message:
+        return "no message";
     }
     return "unknown";
   }
 
   static message_class_type::type char_to_type(char c) {
     switch (c) {
-      case 'D': return message_class_type::delayed_train_message;
-      case 'A': return message_class_type::additional_train_message;
-      case 'C': return message_class_type::canceled_train_message;
-      case 'S': return message_class_type::connection_status_decision_message;
+      case 'D':
+        return message_class_type::delayed_train_message;
+      case 'A':
+        return message_class_type::additional_train_message;
+      case 'C':
+        return message_class_type::canceled_train_message;
+      case 'S':
+        return message_class_type::connection_status_decision_message;
       case 's':
         return message_class_type::
             connection_status_decision_message_different_stations;
@@ -214,8 +221,10 @@ public:
       case 'b':
         return message_class_type::
             connection_status_assessment_db_message_different_stations;
-      case 'R': return message_class_type::reroute_train_message;
-      case 'r': return message_class_type::reroute_train_message_sg;
+      case 'R':
+        return message_class_type::reroute_train_message;
+      case 'r':
+        return message_class_type::reroute_train_message_sg;
     }
     // default - should never be reached
     return message_class_type::no_message;
@@ -223,10 +232,14 @@ public:
 
   static char type_to_char(message_class_type::type type) {
     switch (type) {
-      case message_class_type::delayed_train_message: return 'D';
-      case message_class_type::additional_train_message: return 'A';
-      case message_class_type::canceled_train_message: return 'C';
-      case message_class_type::connection_status_decision_message: return 'S';
+      case message_class_type::delayed_train_message:
+        return 'D';
+      case message_class_type::additional_train_message:
+        return 'A';
+      case message_class_type::canceled_train_message:
+        return 'C';
+      case message_class_type::connection_status_decision_message:
+        return 'S';
       case message_class_type::
           connection_status_decision_message_different_stations:
         return 's';
@@ -235,9 +248,12 @@ public:
       case message_class_type::
           connection_status_assessment_db_message_different_stations:
         return 'b';
-      case message_class_type::reroute_train_message: return 'R';
-      case message_class_type::reroute_train_message_sg: return 'r';
-      case message_class_type::no_message: return 'N';
+      case message_class_type::reroute_train_message:
+        return 'R';
+      case message_class_type::reroute_train_message_sg:
+        return 'r';
+      case message_class_type::no_message:
+        return 'N';
     }
     return '?';
   }

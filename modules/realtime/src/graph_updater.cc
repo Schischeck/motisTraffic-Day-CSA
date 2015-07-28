@@ -153,14 +153,31 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
 
   motis::node* start_node;
   motis::light_connection* start_lc;
-  std::tie(start_node, start_lc) =
-      _rts.locate_start_of_train(route_node, lc);  // liefert andere route!!
+  std::tie(start_node, start_lc) = _rts.locate_start_of_train(route_node, lc);
 
   graph_train_info gti = get_graph_train_info(start_node, start_lc, updates);
 
   if (!gti._times_valid) {
     LOG(warn) << "ignoring updates for this train because of invalid times:";
-    for (auto& u : updates) LOG(warn) << "-- " << u;
+    for (const auto& e : gti._edges) {
+      LOG(warn) << "train=" << e._lc->_full_con->con_info->train_nr
+                << ", service=" << e._lc->_full_con->con_info->service
+                << ", D: " << motis::format_time(e._lc->d_time) << " -> "
+                << motis::format_time(e.new_departure_time())
+                << ", A: " << motis::format_time(e._lc->a_time) << " -> "
+                << motis::format_time(e.new_arrival_time())
+                << ", stations: " << e._from_route_node->get_station()->_id
+                << " -> "
+                << _rts.get_next_node(e._from_route_node)->get_station()->_id;
+    }
+    for (const auto& e : gti._edges) {
+      if (e._dep_update.valid()) {
+        LOG(warn) << e._dep_update;
+      }
+      if (e._arr_update.valid()) {
+        LOG(warn) << e._arr_update;
+      }
+    }
     return;
   }
 

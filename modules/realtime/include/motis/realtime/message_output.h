@@ -30,11 +30,16 @@ private:
 
   int reason_number(timestamp_reason reason) {
     switch (reason) {
-      case timestamp_reason::SCHEDULE: return 0;
-      case timestamp_reason::FORECAST: return 1;
-      case timestamp_reason::IS: return 2;
-      case timestamp_reason::PROPAGATION: return 3;
-      default: return 0;
+      case timestamp_reason::SCHEDULE:
+        return 0;
+      case timestamp_reason::FORECAST:
+        return 1;
+      case timestamp_reason::IS:
+        return 2;
+      case timestamp_reason::PROPAGATION:
+        return 3;
+      default:
+        return 0;
     }
   }
 

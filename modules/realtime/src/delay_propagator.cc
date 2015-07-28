@@ -354,13 +354,27 @@ timestamp_reason delay_propagator::new_reason(delay_info* di) const {
 
 std::ostream& operator<<(std::ostream& os, const queue_reason& r) {
   switch (r) {
-    case queue_reason::IS: os << "is"; break;
-    case queue_reason::FORECAST: os << "forecast"; break;
-    case queue_reason::STANDING: os << "standing"; break;
-    case queue_reason::TRAIN: os << "train"; break;
-    case queue_reason::WAITING: os << "waiting"; break;
-    case queue_reason::CANCELED: os << "canceled"; break;
-    case queue_reason::RECALC: os << "recalc"; break;
+    case queue_reason::IS:
+      os << "is";
+      break;
+    case queue_reason::FORECAST:
+      os << "forecast";
+      break;
+    case queue_reason::STANDING:
+      os << "standing";
+      break;
+    case queue_reason::TRAIN:
+      os << "train";
+      break;
+    case queue_reason::WAITING:
+      os << "waiting";
+      break;
+    case queue_reason::CANCELED:
+      os << "canceled";
+      break;
+    case queue_reason::RECALC:
+      os << "recalc";
+      break;
   }
   return os;
 }

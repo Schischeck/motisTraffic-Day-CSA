@@ -50,7 +50,8 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
     if (it->second == update->_delay_info) {
       _current_map.erase(it);
     } else {
-      LOG(debug) << "not removing old entry: " << *it->second;
+      LOG(debug) << "update delay info: " << *update
+                 << " - not removing old entry: " << *it->second;
     }
   } else {
     LOG(warn) << "old entry in current_map not found: " << *update;
@@ -120,10 +121,18 @@ motis::time delay_info_manager::current_time(
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
   switch (r) {
-    case timestamp_reason::SCHEDULE: os << "s"; break;
-    case timestamp_reason::IS: os << "i"; break;
-    case timestamp_reason::FORECAST: os << "f"; break;
-    case timestamp_reason::PROPAGATION: os << "p"; break;
+    case timestamp_reason::SCHEDULE:
+      os << "s";
+      break;
+    case timestamp_reason::IS:
+      os << "i";
+      break;
+    case timestamp_reason::FORECAST:
+      os << "f";
+      break;
+    case timestamp_reason::PROPAGATION:
+      os << "p";
+      break;
   }
   return os;
 }

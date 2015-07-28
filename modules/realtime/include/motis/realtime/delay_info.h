@@ -82,9 +82,13 @@ public:
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const delay_info_update& diu) {
-    os << "<di=" << *diu._delay_info
-       << ", new_time=" << motis::format_time(diu._new_time)
-       << ", new_reason=" << diu._new_reason << ">";
+    if (diu.valid()) {
+      os << "<di=" << *diu._delay_info
+         << ", new_time=" << motis::format_time(diu._new_time)
+         << ", new_reason=" << diu._new_reason << ">";
+    } else {
+      os << "<invalid>";
+    }
     return os;
   }
 
