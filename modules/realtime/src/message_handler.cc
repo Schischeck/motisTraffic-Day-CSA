@@ -433,19 +433,21 @@ void message_handler::handle_rerouted_train(
     // ignore event if it is already in the list
     if (std::find(all_events.begin(), all_events.end(), ne) != all_events.end())
       continue;
+    graph_event ge;
+    if (_rts.event_exists(ne, &ge)) {
+      if (ge._route_id != mt->_new_route_id) {
+        LOG(warn)
+            << "new event included in rerouted train already exists in graph: "
+            << ne << ": " << _rts.get_graph_event(ne) << " / " << ge;
+        // TODO: restore previous train
+        break;
+      }
+    }
     const auto it = std::upper_bound(all_events.begin(), all_events.end(), ne);
-    if (it == all_events.end() || *it > ne) all_events.insert(it, ne);
+    if (it == all_events.end() || *it > ne) {
+      all_events.insert(it, ne);
+    }
   }
-
-  //  // fix event order when multiple events have the same timestamp
-  //  for (std::size_t i = 0; i < all_events.size() - 1; i++) {
-  //    schedule_event& e1 = all_events[i];
-  //    schedule_event& e2 = all_events[i + 1];
-  //    if (e1._schedule_time == e2._schedule_time
-  //        && e1.departure() && e2.arrival()) {
-  //      std::swap(e1, e2);
-  //    }
-  //  }
 
   if (_rts.is_debug_mode()) {
     LOG(debug) << "new event list (all_events):";

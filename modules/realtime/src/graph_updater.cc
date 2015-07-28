@@ -191,7 +191,12 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
       graph_event gdep(e._from_route_node->get_station()->_id,
                        e._lc->_full_con->con_info->train_nr, true,
                        e._lc->d_time, e._from_route_node->_route);
-      assert(_rts._delay_info_manager.get_delay_info(gdep) != nullptr);
+      delay_info* di = _rts._delay_info_manager.get_delay_info(gdep);
+      if (di == nullptr) {
+        LOG(error) << "delay info not found for " << gdep
+                   << ", update: " << e._dep_update;
+      }
+      assert(di != nullptr);
       e._lc->d_time = e._dep_update._new_time;
       _rts._delay_info_manager.update_delay_info(&e._dep_update);
     }

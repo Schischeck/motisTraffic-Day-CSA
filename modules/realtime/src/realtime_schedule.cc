@@ -299,9 +299,13 @@ schedule_event realtime_schedule::find_departure_event(uint32_t train_nr,
   return schedule_event();
 }
 
-bool realtime_schedule::event_exists(const schedule_event& sched_event) const {
+bool realtime_schedule::event_exists(const schedule_event& sched_event,
+                                     graph_event* ge_out) const {
   delay_info* di = _delay_info_manager.get_delay_info(sched_event);
   if (di != nullptr /*&& !di->_canceled*/) {
+    if (ge_out != nullptr) {
+      *ge_out = di->graph_event();
+    }
     return true;
   }
   motis::node* route_node;
@@ -312,6 +316,9 @@ bool realtime_schedule::event_exists(const schedule_event& sched_event) const {
                    lc->_full_con->con_info->train_nr, sched_event.departure(),
                    sched_event.departure() ? lc->d_time : lc->a_time,
                    route_node->_route);
+    if (ge_out != nullptr) {
+      *ge_out = ge;
+    }
     di = _delay_info_manager.get_delay_info(ge);
     if (di != nullptr) {
       return di->schedule_event() == sched_event;
