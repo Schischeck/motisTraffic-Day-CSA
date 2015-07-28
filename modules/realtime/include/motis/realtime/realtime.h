@@ -23,6 +23,7 @@ struct realtime : public motis::module::module {
 
   virtual std::string name() const override { return "realtime"; }
   virtual void init() override;
+  virtual void on_config_loaded() override;
   virtual std::vector<MsgContent> subscriptions() const override { return {}; }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;

@@ -74,6 +74,10 @@ void realtime::print(std::ostream& out) const {
 realtime::realtime() : from_time_(0), to_time_(0), interval_(1) {}
 
 void realtime::init() {
+  //
+}
+
+void realtime::on_config_loaded() {
   rts_ = std::unique_ptr<realtime_schedule>(
       new realtime_schedule(synced_sched<schedule_access::RW>().sched()));
   rts_->_debug_mode = debug_;
