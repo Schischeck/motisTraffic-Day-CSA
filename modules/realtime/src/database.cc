@@ -41,14 +41,12 @@ std::string delay_database::get_messages(time_t t1, time_t t2) {
           query_.store(static_cast<int>(t1), static_cast<int>(t2))) {
     const unsigned int number_of_rows = res.num_rows();
     for (size_t i = 0; i < number_of_rows; ++i) {
-      msgs << res[i][0];  // << "\n";
-      if (i < number_of_rows - 1) msgs << ",";
+      msgs << res[i][0] << "\n";
     }
   } else {
     std::cerr << query_.error() << "\n";
-    return ".";
+    return "";
   }
-  msgs << ".";
   return msgs.str();
 }
 
