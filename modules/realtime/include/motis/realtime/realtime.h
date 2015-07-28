@@ -11,6 +11,7 @@
 #include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/database.h"
 #include "motis/realtime/message_fetcher.h"
+#include "motis/realtime/opt_time.h"
 
 namespace motis {
 namespace realtime {
@@ -38,8 +39,15 @@ struct realtime : public motis::module::module {
   std::vector<uint32_t> track_trains_;
   std::string load_msg_file_;
   bool debug_;
-  std::time_t from_time_, to_time_;
+  opt_time from_time_, to_time_;
   unsigned interval_;
+
+private:
+  void get_train_info(motis::module::msg_ptr msg, motis::module::callback cb);
+
+  typedef std::function<void(motis::module::msg_ptr, motis::module::callback)>
+      op;
+  std::map<MsgContent, op> ops_;
 };
 
 }  // namespace realtime

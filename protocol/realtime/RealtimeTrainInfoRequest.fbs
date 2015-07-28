@@ -1,0 +1,12 @@
+namespace motis.realtime;
+
+table GraphTrainEvent {
+  train_nr:uint;
+  station_index:uint;
+  departure:bool = true;
+  real_time:ushort;
+}
+
+table RealtimeTrainInfoRequest {
+  first_stop:GraphTrainEvent;
+}

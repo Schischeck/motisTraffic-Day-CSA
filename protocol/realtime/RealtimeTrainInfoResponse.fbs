@@ -1,0 +1,16 @@
+namespace motis.realtime;
+
+enum TimestampReason : byte { Schedule, Is, Forecast, Propagation }
+
+table EventInfo {
+  train_nr:uint;
+  station_index:uint;
+  departure:bool = true;
+  real_time:ushort;
+  scheduled_time:ushort;
+  reason:TimestampReason = Schedule;
+}
+
+table RealtimeTrainInfoResponse {
+  stops:[EventInfo];
+}

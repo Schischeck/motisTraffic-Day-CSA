@@ -5,6 +5,8 @@ include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
+include "realtime/RealtimeTrainInfoRequest.fbs";
+include "realtime/RealtimeTrainInfoResponse.fbs";
 
 namespace motis;
 
@@ -31,7 +33,9 @@ union MsgContent {
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
   motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse
+  motis.routing.RoutingResponse,
+  motis.realtime.RealtimeTrainInfoRequest,
+  motis.realtime.RealtimeTrainInfoResponse
 }
 
 table Message {
