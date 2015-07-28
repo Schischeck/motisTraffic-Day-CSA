@@ -87,8 +87,9 @@ graph_event realtime_schedule::get_previous_graph_event(
       motis::edge* prev_edge = get_prev_edge(ref_node);
       if (prev_edge != nullptr) {
         const motis::light_connection* prev_lc =
-            get_last_connection_with_arrival_before(prev_edge,
-                                                    ref_graph_event.time());
+            get_last_connection_with_arrival_before(
+                prev_edge, ref_graph_event.time(),
+                ref_lc->_full_con->con_info->service);
         if (prev_lc != nullptr) {
           return graph_event(ref_graph_event._station_index,
                              prev_lc->_full_con->con_info->train_nr, false,
@@ -182,8 +183,8 @@ realtime_schedule::locate_start_of_train(
     motis::edge* prev_edge = get_prev_edge(route_node);
     if (prev_edge == nullptr) break;
     motis::node* prev_node = get_prev_node(route_node);
-    motis::light_connection* prev_lc =
-        get_last_connection_with_arrival_before(prev_edge, lc->d_time);
+    motis::light_connection* prev_lc = get_last_connection_with_arrival_before(
+        prev_edge, lc->d_time, lc->_full_con->con_info->service);
 
     if (prev_lc != nullptr) {
       route_node = prev_node;
@@ -540,7 +541,7 @@ motis::light_connection* realtime_schedule::get_connection_with_arrival_time(
 
 motis::light_connection*
 realtime_schedule::get_last_connection_with_arrival_before(
-    motis::edge* route_edge, motis::time max_time) const {
+    motis::edge* route_edge, motis::time max_time, uint32_t service) const {
   if (route_edge->empty())
     return nullptr;
   else if (route_edge->_m._route_edge._conns.size() == 1)
@@ -552,16 +553,23 @@ realtime_schedule::get_last_connection_with_arrival_before(
                        [](const motis::light_connection& elm,
                           const motis::time t) { return elm.a_time < t; });
 
+  motis::light_connection* lc = nullptr;
   if (it == std::end(route_edge->_m._route_edge._conns)) {
-    return &route_edge->_m._route_edge._conns.back();
+    lc = &route_edge->_m._route_edge._conns.back();
   } else {
-    if (it->a_time == max_time)
-      return it;
-    else if (it == std::begin(route_edge->_m._route_edge._conns))
-      return nullptr;
-    else
-      return it - 1;
+    if (it->a_time == max_time) {
+      lc = it;
+    } else if (it == std::begin(route_edge->_m._route_edge._conns)) {
+      lc = nullptr;
+    } else {
+      lc = it - 1;
+    }
   }
+
+  if (lc != nullptr && lc->_full_con->con_info->service != service) {
+    lc = nullptr;
+  }
+  return lc;
 }
 
 }  // namespace realtime

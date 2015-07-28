@@ -80,7 +80,7 @@ public:
       motis::edge* route_edge, motis::time arrival_time,
       uint32_t train_nr) const;
   motis::light_connection* get_last_connection_with_arrival_before(
-      motis::edge* route_edge, motis::time max_time) const;
+      motis::edge* route_edge, motis::time max_time, uint32_t service) const;
 
   motis::schedule& _schedule;
   waiting_edges _waiting_edges;

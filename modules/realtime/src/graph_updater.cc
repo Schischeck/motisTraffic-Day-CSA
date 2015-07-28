@@ -349,8 +349,8 @@ graph_train_info graph_updater::get_graph_train_info(
         // TODO: this code does not work if no updates are applied
         motis::edge* prev_edge = _rts.get_prev_edge(route_node);
         if (prev_edge != nullptr) {
-          prev_lc = _rts.get_last_connection_with_arrival_before(prev_edge,
-                                                                 new_dep_time);
+          prev_lc = _rts.get_last_connection_with_arrival_before(
+              prev_edge, new_dep_time, lc->_full_con->con_info->service);
           // assert(prev_lc != nullptr);
           if (prev_lc != nullptr) extract |= !is_same_train(lc, prev_lc);
         }
