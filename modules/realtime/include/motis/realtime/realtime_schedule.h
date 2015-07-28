@@ -52,6 +52,8 @@ public:
 
   schedule_event find_departure_event(uint32_t train_nr, int day_index) const;
 
+  bool event_exists(const schedule_event& sched_event) const;
+
   void track_train(uint32_t train_nr);
   bool is_tracked(uint32_t train_nr) const;
   bool is_debug_mode() const { return _debug_mode; }

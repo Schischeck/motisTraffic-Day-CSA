@@ -155,7 +155,7 @@ void message_handler::handle_additional_train(
   //    return;
   //  }
   for (const schedule_event& e : events) {
-    if (std::get<0>(_rts.locate_event(_rts.get_graph_event(e))) != nullptr) {
+    if (_rts.event_exists(e)) {
       LOG(warn) << "event included in additional train already exists in graph"
                    ", skipping message";
       _rts._stats._counters.additional.ignore();

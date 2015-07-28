@@ -299,6 +299,29 @@ schedule_event realtime_schedule::find_departure_event(uint32_t train_nr,
   return schedule_event();
 }
 
+bool realtime_schedule::event_exists(const schedule_event& sched_event) const {
+  delay_info* di = _delay_info_manager.get_delay_info(sched_event);
+  if (di != nullptr /*&& !di->_canceled*/) {
+    return true;
+  }
+  motis::node* route_node;
+  motis::light_connection* lc;
+  std::tie(route_node, lc) = locate_event(graph_event(sched_event));
+  if (route_node != nullptr && lc != nullptr) {
+    graph_event ge(route_node->get_station()->_id,
+                   lc->_full_con->con_info->train_nr, sched_event.departure(),
+                   sched_event.departure() ? lc->d_time : lc->a_time,
+                   route_node->_route);
+    di = _delay_info_manager.get_delay_info(ge);
+    if (di != nullptr) {
+      return di->schedule_event() == sched_event;
+    } else {
+      return true;
+    }
+  }
+  return false;
+}
+
 void realtime_schedule::track_train(uint32_t train_nr) {
   if (is_tracked(train_nr)) return;
   LOG(debug) << "tracking train " << train_nr;
