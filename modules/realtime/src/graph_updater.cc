@@ -159,25 +159,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
 
   if (!gti._times_valid) {
     LOG(warn) << "ignoring updates for this train because of invalid times:";
-    for (const auto& e : gti._edges) {
-      LOG(warn) << "train=" << e._lc->_full_con->con_info->train_nr
-                << ", service=" << e._lc->_full_con->con_info->service
-                << ", D: " << motis::format_time(e._lc->d_time) << " -> "
-                << motis::format_time(e.new_departure_time())
-                << ", A: " << motis::format_time(e._lc->a_time) << " -> "
-                << motis::format_time(e.new_arrival_time())
-                << ", stations: " << e._from_route_node->get_station()->_id
-                << " -> "
-                << _rts.get_next_node(e._from_route_node)->get_station()->_id;
-    }
-    for (const auto& e : gti._edges) {
-      if (e._dep_update.valid()) {
-        LOG(warn) << e._dep_update;
-      }
-      if (e._arr_update.valid()) {
-        LOG(warn) << e._arr_update;
-      }
-    }
+    LOG(warn) << gti;
     return;
   }
 
@@ -195,6 +177,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
       if (di == nullptr) {
         LOG(error) << "delay info not found for " << gdep
                    << ", update: " << e._dep_update;
+        LOG(error) << gti;
       }
       assert(di != nullptr);
       e._lc->d_time = e._dep_update._new_time;
@@ -391,6 +374,10 @@ graph_train_info graph_updater::get_graph_train_info(
     motis::time dep = e.new_departure_time();
     motis::time arr = e.new_arrival_time();
     if (dep < last_time || arr < dep) {
+      LOG(warn) << "gti: invalid time in " << e << ": "
+                << "last_time=" << motis::format_time(last_time)
+                << ", dep=" << motis::format_time(dep)
+                << ", arr=" << motis::format_time(arr);
       r._times_valid = false;
       break;
     }
