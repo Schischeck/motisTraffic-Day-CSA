@@ -1,0 +1,535 @@
+s1 4
+l2
+d0 600 125 0 0 3 0 1%4002212|1|-|2 1
+l3
+a0 606
+d0 608 125 0 0 3 0 1%4002212|1|-|1 1
+l4
+a0 610
+d0 617 125 0 0 3 0 1%4002212|1|-|1 5
+l5
+a0 626
+s5 3
+l5
+d0 645 125 0 0 2 0 2%5275940|123|-|8 1
+l6
+a0 646
+d0 648 125 0 0 2 0 2%5275940|123|-|1 3
+l7
+a0 671
+s8 2
+l8
+d0 690 125 0 0 5 0 3%9749786|456|-|2 1
+l10
+a0 700
+s10 3
+l11
+d0 1020 125 0 0 4 0 10%3610648|Wiesbaden Hbf-Mainz Hbf|-|4 2
+l12
+a1 1030
+d0 1038 125 0 0 4 0 10%3610648|Wiesbaden Hbf-Mainz Hbf|-|2 7
+l13
+a0 1050
+s13 2
+l11
+d0 551 125 0 0 5 0 11%1253968|Wiesbaden Hbf-Frankfurt Hbf Tief|-|1 1
+l2
+a0 596
+s15 8
+l14
+d0 1320 127 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l19
+a0 1397
+d0 1399 127 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l18
+a0 9
+d0 11 64 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l1
+a0 69
+d0 71 64 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l7
+a0 99
+d0 101 64 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l17
+a0 138
+d0 140 64 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l16
+a0 193
+d0 195 64 0 0 1 0 12%1646945|Berlin Hbf-München Hbf|-|1 1
+l15
+a0 217
+s23 3
+l5
+d0 754 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|3 1
+l4
+a0 769
+d0 771 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|1 10
+l1
+a0 785
+s26 3
+l5
+d0 814 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|3 1
+l4
+a0 829
+d0 831 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|1 10
+l1
+a0 845
+s29 3
+l5
+d0 874 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|3 1
+l4
+a0 889
+d0 891 125 0 0 4 0 20%4681054|Darmstadt Hbf-Frankfurt Hbf|-|1 10
+l1
+a0 905
+s32 3
+l1
+d0 790 125 0 0 4 0 21%3960618|Frankfurt Hbf-Mainz Hbf|-|12 5
+l11
+a0 825
+d0 830 125 0 0 4 0 21%3960618|Frankfurt Hbf-Mainz Hbf|-|5 3
+l13
+a0 845
+s35 2
+l1
+d0 792 125 0 0 2 0 22%0537506|Frankfurt Hbf-Mainz Hbf|-|9 4
+l13
+a0 825
+s37 2
+l1
+d0 795 125 0 0 3 0 23%7780990|Frankfurt Hbf-Offenbach Hbf|-|21 3
+l20
+a0 805
+s39 2
+l1
+d0 855 125 0 0 3 0 23%7780990|Frankfurt Hbf-Offenbach Hbf|-|21 3
+l20
+a0 865
+s41 2
+l1
+d0 915 125 0 0 3 0 23%7780990|Frankfurt Hbf-Offenbach Hbf|-|21 3
+l20
+a0 925
+s43 2
+l21
+d0 1360 125 0 0 4 0 30%6235012|Wolfsburg Hbf-Braunschweig Hbf|-|2 5
+l19
+a0 1390
+s45 2
+l15
+d0 235 125 0 0 5 0 33%6031617|München Hbf-Starnberg|-|20 2
+l22
+a0 268
+s47 2
+l5
+d0 840 65 0 0 1 0 40%4787123|Darmstadt Hbf-Ober-Ramstadt|-|1 1
+l23
+a0 850
+s49 2
+l23
+d0 860 65 0 0 1 0 41%1041824|Ober-Ramstadt-Darmstadt Süd|-|2 1
+l6
+a0 870
+s51 2
+l4
+d0 900 125 0 0 4 0 42%7740951|Langen-Dieburg|-|1 1
+l24
+a0 920
+s53 2
+l4
+d0 960 125 0 0 4 0 42%7740951|Langen-Dieburg|-|1 1
+l24
+a0 980
+s55 2
+l4
+d0 1020 125 0 0 4 0 42%7740951|Langen-Dieburg|-|1 1
+l24
+a0 1040
+s57 2
+l4
+d0 1080 125 0 0 4 0 42%7740951|Langen-Dieburg|-|1 1
+l24
+a0 1100
+s59 2
+l24
+d0 930 125 0 0 4 0 43%5706770|Dieburg-Ober-Ramstadt|-|3 5
+l23
+a0 945
+s61 2
+l24
+d0 990 125 0 0 4 0 43%5706770|Dieburg-Ober-Ramstadt|-|3 5
+l23
+a0 1005
+s63 2
+l24
+d0 1050 125 0 0 4 0 43%5706770|Dieburg-Ober-Ramstadt|-|3 5
+l23
+a0 1065
+s65 2
+l24
+d0 1110 125 0 0 4 0 43%5706770|Dieburg-Ober-Ramstadt|-|3 5
+l23
+a0 1125
+s67 5
+l29
+d0 480 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 540
+d0 545 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 583
+d0 586 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 622
+d0 625 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 684
+s72 5
+l29
+d0 540 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 600
+d0 605 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 643
+d0 646 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 682
+d0 685 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 744
+s77 5
+l29
+d0 600 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 660
+d0 665 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 703
+d0 706 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 742
+d0 745 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 804
+s82 5
+l29
+d0 660 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 720
+d0 725 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 763
+d0 766 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 802
+d0 805 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 864
+s87 5
+l29
+d0 720 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 780
+d0 785 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 823
+d0 826 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 862
+d0 865 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 924
+s92 5
+l29
+d0 780 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 840
+d0 845 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 883
+d0 886 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 922
+d0 925 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 984
+s97 5
+l29
+d0 840 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 900
+d0 905 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 943
+d0 946 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 982
+d0 985 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 1044
+s102 5
+l29
+d0 900 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 960
+d0 965 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 1003
+d0 1006 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 1042
+d0 1045 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 1104
+s107 5
+l29
+d0 960 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 1020
+d0 1025 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 1063
+d0 1066 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 1102
+d0 1105 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 1164
+s112 5
+l29
+d0 1020 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 1080
+d0 1085 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 1123
+d0 1126 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 1162
+d0 1165 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 1224
+s117 5
+l29
+d0 1080 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|3 5
+l1
+a0 1140
+d0 1145 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|5 2
+l25
+a0 1183
+d0 1186 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|2 7
+l26
+a0 1222
+d0 1225 125 0 0 1 0 50%9820267|Köln Hbf-München Hbf|-|7 4
+l15
+a0 1284
+s122 5
+l15
+d0 480 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 539
+d0 541 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 577
+d0 579 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 617
+d0 620 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 680
+s127 5
+l15
+d0 540 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 599
+d0 601 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 637
+d0 639 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 677
+d0 680 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 740
+s132 5
+l15
+d0 600 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 659
+d0 661 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 697
+d0 699 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 737
+d0 740 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 800
+s137 5
+l15
+d0 660 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 719
+d0 721 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 757
+d0 759 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 797
+d0 800 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 860
+s142 5
+l15
+d0 720 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 779
+d0 781 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 817
+d0 819 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 857
+d0 860 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 920
+s147 5
+l15
+d0 780 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 839
+d0 841 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 877
+d0 879 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 917
+d0 920 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 980
+s152 5
+l15
+d0 840 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 899
+d0 901 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 937
+d0 939 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 977
+d0 980 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 1040
+s157 5
+l15
+d0 900 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 959
+d0 961 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 997
+d0 999 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 1037
+d0 1040 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 1100
+s162 5
+l15
+d0 960 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 1019
+d0 1021 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 1057
+d0 1059 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 1097
+d0 1100 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 1160
+s167 5
+l15
+d0 1020 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 1079
+d0 1081 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 1117
+d0 1119 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 1157
+d0 1160 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 1220
+s172 5
+l15
+d0 1080 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|12 4
+l26
+a0 1139
+d0 1141 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|4 5
+l25
+a0 1177
+d0 1179 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|5 9
+l1
+a0 1217
+d0 1220 128 0 0 1 0 51%8623728|München Hbf-Köln Hbf|-|9 4
+l29
+a0 1280
+s177 4
+l16
+d0 553 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|4 9
+l25
+a0 647
+d0 649 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|9 3
+l30
+a0 695
+d0 697 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|3 5
+l18
+a0 743
+s181 4
+l16
+d0 673 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|4 9
+l25
+a0 767
+d0 769 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|9 3
+l30
+a0 815
+d0 817 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|3 5
+l18
+a0 863
+s185 4
+l16
+d0 793 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|4 9
+l25
+a0 887
+d0 889 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|9 3
+l30
+a0 935
+d0 937 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|3 5
+l18
+a0 983
+s189 4
+l16
+d0 913 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|4 9
+l25
+a0 1007
+d0 1009 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|9 3
+l30
+a0 1055
+d0 1057 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|3 5
+l18
+a0 1103
+s193 4
+l16
+d0 1033 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|4 9
+l25
+a0 1127
+d0 1129 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|9 3
+l30
+a0 1175
+d0 1177 128 0 0 2 0 55%4991207|Augsburg Hbf-Kassel Hbf|-|3 5
+l18
+a0 1223

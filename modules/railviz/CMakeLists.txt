@@ -6,10 +6,13 @@ include_directories(include)
 # prepare all test-
 
 file(GLOB_RECURSE motis-railviz-files src/*.cc)
-add_library(motis-railviz SHARED ${motis-railviz-files} ${global_headers})
-MESSAGE(STATUS "boost-system-library: " ${Boost_SYSTEM_LIBRARY})
-target_link_libraries(motis-railviz ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} json11)
-set_target_properties(motis-railviz PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
+if (MOTIS_STATIC_MODULES)
+  add_library(motis-railviz STATIC ${motis-railviz-files})
+else()
+  add_library(motis-railviz SHARED ${motis-railviz-files})
+endif()
+target_link_libraries(motis-railviz ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} motis-module)
+set_target_properties(motis-railviz PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
 set_target_properties(motis-railviz PROPERTIES OUTPUT_NAME railviz.module)
 
 add_custom_target(motis-railviz-reload killall -SIGUSR1 motis-webservice)

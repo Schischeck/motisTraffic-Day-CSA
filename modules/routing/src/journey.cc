@@ -170,6 +170,7 @@ journey::transport generate_journey_transport(int from, int to,
   std::string cat_name;
   int cat_id = 0;
   int train_nr = 0;
+  std::string line_identifier;
   int duration = t.duration;
   int slot = -1;
 
@@ -178,8 +179,10 @@ journey::transport generate_journey_transport(int from, int to,
     slot = t.slot;
   } else {
     connection_info const* con_info = t.con->_full_con->con_info;
+    line_identifier = con_info->line_identifier;
     cat_id = con_info->family;
     cat_name = sched.category_names[cat_id];
+    train_nr = con_info->train_nr;
     name = cat_name + " ";
     if (con_info->train_nr != 0) {
       name += boost::lexical_cast<std::string>(con_info->train_nr);
@@ -188,7 +191,8 @@ journey::transport generate_journey_transport(int from, int to,
     }
   }
 
-  return {from, to, walk, name, cat_name, cat_id, train_nr, duration, slot};
+  return {from, to, walk, name, cat_name, cat_id, train_nr, line_identifier,
+          duration, slot};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -256,14 +260,14 @@ std::vector<journey::stop> generate_journey_stops(
          sched.stations[stop.station_id]->width,
          sched.stations[stop.station_id]->length,
          stop.a_time != INVALID_TIME
-             ? journey::stop::event_info{
-                   true, sched.date_mgr.format_ISO(stop.a_time),
-                   get_platform(sched, stop.a_platform)}
+             ? journey::stop::event_info{true,
+                                         sched.date_mgr.format_ISO(stop.a_time),
+                                         get_platform(sched, stop.a_platform)}
              : journey::stop::event_info{false, "", ""},
          stop.d_time != INVALID_TIME
-             ? journey::stop::event_info{
-                   true, sched.date_mgr.format_ISO(stop.d_time),
-                   get_platform(sched, stop.d_platform)}
+             ? journey::stop::event_info{true,
+                                         sched.date_mgr.format_ISO(stop.d_time),
+                                         get_platform(sched, stop.d_platform)}
              : journey::stop::event_info{false, "", ""}});
   }
   return journey_stops;

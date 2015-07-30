@@ -79,9 +79,9 @@ private:
       if (e.empty() || e._m._route_edge._conns[0]._full_con->clasz != clasz_) {
         continue;
       }
-      rtree_.insert(std::make_pair(
+      rtree_.insert({ std::make_pair(
           bounding_box(station_coords(e._from), station_coords(e._to)),
-          edges_.size()));
+          static_cast<long unsigned int>(edges_.size())) });
       edges_.push_back(&e);
     }
   }

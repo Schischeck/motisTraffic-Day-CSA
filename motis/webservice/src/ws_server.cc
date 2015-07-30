@@ -3,7 +3,7 @@
 #include <memory>
 #include <functional>
 
-#define WEBSOCKETPP_STRICT_MASKING
+#include "boost/system/system_error.hpp"
 
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
@@ -32,7 +32,7 @@ struct ws_server::ws_server_impl {
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
     server_.set_message_handler(
-        bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
+        std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
   }
 
   void set_msg_handler(msg_handler handler) {
@@ -53,16 +53,29 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(json11::Json const& message, sid session) {
-    ios_.post([this, session, message]() {
+  void send(msg_ptr const& msg, sid session) {
+    if (!msg) {
+      return;
+    }
+
+    ios_.post([this, session, msg]() {
       auto sid_it = sid_con_map_.find(session);
       if (sid_it == end(sid_con_map_)) {
         return;
       }
 
       error_code send_ec;
-      server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+      server_.send(sid_it->second, msg->to_json(), TEXT, send_ec);
     });
+  }
+
+  void send_error(boost::system::error_code e, sid session) {
+    flatbuffers::FlatBufferBuilder b;
+    b.Finish(CreateMessage(
+        b, MsgContent_MotisError,
+        CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
+                         b.CreateString(e.message())).Union()));
+    send(make_msg(b), session);
   }
 
   void stop() { server_.stop(); }
@@ -107,15 +120,21 @@ struct ws_server::ws_server_impl {
       return;
     }
 
-    std::string parse_error;
-    auto json = json11::Json::parse(msg->get_payload(), parse_error);
-    if (parse_error.empty()) {
-      send(msg_handler_(json, con_it->second), con_it->second);
-    } else {
-      std::cerr << "parser error for message:\n";
-      std::cout << msg->get_payload();
-      std::cout << "\n";
-      std::cout << parse_error << "\n";
+    auto session = con_it->second;
+    try {
+      auto req = make_msg(msg->get_payload());
+      msg_handler_(req, session,
+                   [this, session](msg_ptr res, boost::system::error_code ec) {
+                     if (ec) {
+                       send_error(ec, session);
+                     } else {
+                       send(res, session);
+                     }
+                   });
+    } catch (boost::system::system_error const& e) {
+      send_error(e.code(), session);
+    } catch (...) {
+      std::cout << "unknown error occured\n";
     }
   }
 
@@ -153,7 +172,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(json11::Json const& msg, sid s) { impl_->send(msg, s); }
+void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s); }
 
 }  // namespace webservice
 }  // namespace motis

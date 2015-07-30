@@ -1,0 +1,10 @@
+namespace motis.railviz;
+
+struct Position {
+  lat: double;
+  lng: double;
+}
+
+table RailVizStations {
+  stations:[Position];
+}

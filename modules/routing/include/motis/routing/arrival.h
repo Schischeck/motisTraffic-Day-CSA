@@ -6,6 +6,8 @@
 namespace motis {
 
 struct arrival_part {
+  arrival_part(int station)
+      : station(station), time_cost(0), price(0), slot(0) {}
   arrival_part() : station(0), time_cost(0), price(0), slot(0) {}
 
   int station;

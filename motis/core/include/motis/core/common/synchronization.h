@@ -30,39 +30,59 @@ struct synchronization {
     lock(lock const&) = delete;
     lock& operator=(lock&) = delete;
 
-    lock(synchronization& s, bool write) : s_(s), write_(write) {
-      std::unique_lock<std::mutex> lock(s_.write_queue_mutex_);
+    lock(lock&& o) : s_(o.s_), write_(o.write_), active_(true) {
+      o.active_ = false;
+    }
+
+    lock& operator=(lock&& o) {
+      s_ = o.s_;
+      write_ = o.write_;
+      active_ = o.active_;
+      o.active_ = false;
+      return *this;
+    }
+
+    lock(synchronization& s, bool write)
+        : s_(&s), write_(write), active_(true) {
+      std::unique_lock<std::mutex> lock(s_->write_queue_mutex_);
 
       if (write_) {
-        auto my_id = ++s_.next_id_;
-        s_.write_queue_.push(my_id);
-        s_.write_queue_cv_.wait(lock, [this, my_id] {
-          return s_.usage_count_ == 0 && s_.write_queue_.front() == my_id;
+        auto my_id = ++s_->next_id_;
+        s_->write_queue_.push(my_id);
+        s_->write_queue_cv_.wait(lock, [this, my_id] {
+          return s_->usage_count_ == 0 && s_->write_queue_.front() == my_id;
         });
       } else {
-        s_.write_queue_cv_.wait(lock,
-                                [this] { return s_.write_queue_.empty(); });
+        s_->write_queue_cv_.wait(lock,
+                                 [this] { return s_->write_queue_.empty(); });
       }
 
-      ++s_.usage_count_;
+      ++s_->usage_count_;
     }
 
     ~lock() {
-      std::lock_guard<std::mutex> lock(s_.write_queue_mutex_);
+      if (!active_) {
+        return;
+      }
+
+      std::lock_guard<std::mutex> lock(s_->write_queue_mutex_);
 
       {
         if (write_) {
-          s_.write_queue_.pop();
+          s_->write_queue_.pop();
         }
 
-        --s_.usage_count_;
+        --s_->usage_count_;
       }
 
-      s_.write_queue_cv_.notify_all();
+      active_ = false;
+
+      s_->write_queue_cv_.notify_all();
     }
 
-    synchronization& s_;
+    synchronization* s_;
     bool write_;
+    bool active_;
   };
 
   synchronization(synchronization const&) = delete;
