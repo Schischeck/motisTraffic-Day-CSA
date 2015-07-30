@@ -4,7 +4,6 @@
 
 #include "motis/module/module.h"
 #include "motis/railviz/date_converter.h"
-#include "motis/railviz/webclient_manager.h"
 #include "motis/railviz/webclient.h"
 
 namespace motis {
@@ -21,7 +20,8 @@ struct railviz : public motis::module::module {
 
   virtual std::string name() const override { return "railviz"; }
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RailVizStationDetailRequest};
+    return {MsgContent_RailVizStationDetailRequest,
+            MsgContent_RailVizAllTrainsRequest};
   }
   virtual void init() override;
   virtual void on_open(motis::module::sid) override;
@@ -30,11 +30,21 @@ struct railviz : public motis::module::module {
                       motis::module::callback) override;
 
 private:
-  void station_info(motis::module::msg_ptr msg, motis::module::callback cb);
+  void init(motis::module::msg_ptr msg, webclient& client,
+            motis::module::callback cb);
+  void all_station(motis::module::msg_ptr msg, webclient& client,
+                   motis::module::callback cb);
+  void station_info(motis::module::msg_ptr msg, webclient& client,
+                    motis::module::callback cb);
+  void all_trains(motis::module::msg_ptr msg, webclient& client,
+                  motis::module::callback cb);
 
-  typedef std::function<void(motis::module::msg_ptr, motis::module::callback)>
-      op;
+  typedef std::function<void(motis::module::msg_ptr, webclient&,
+                             motis::module::callback)> op;
+
   std::map<MsgContent, op> ops_;
+  std::map<motis::module::sid, webclient> clients_;
+  date_converter date_converter_;
   std::unique_ptr<train_retriever> train_retriever_;
 };
 

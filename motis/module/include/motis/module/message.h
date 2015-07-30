@@ -38,16 +38,16 @@ struct message {
 
 typedef std::shared_ptr<message> msg_ptr;
 
+inline msg_ptr make_msg(std::string const& json) {
+  return std::make_shared<message>(json);
+}
+
 inline msg_ptr make_msg(flatbuffers::FlatBufferBuilder& builder) {
   auto buf = builder.GetBufferPointer();
   auto msg = GetMessage(buf);
   auto mem = builder.ReleaseBufferPointer();
   builder.Clear();
   return std::make_shared<message>(std::move(mem), msg, buf);
-}
-
-inline msg_ptr make_msg(std::string const& json) {
-  return std::make_shared<message>(json);
 }
 
 }  // namespace module
