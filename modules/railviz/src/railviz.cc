@@ -111,10 +111,12 @@ std::vector<Json> all_trains(railviz* r, webclient& webclient_, Json const& msg)
         1000
     );
 
+    std::cout << "sending " << trains.size() << " trains" << std::endl;
+
     for( train& train_ : trains )
     {
         // turn on to compile with -O2
-        //std::cout << train_.light_conenction_->d_time << "-" << train_.light_conenction_->a_time << std::endl;
+        std::cout << train_.light_conenction_->d_time << "-" << train_.light_conenction_->a_time << std::endl;
         int d_time = (int)r->date_converter_.convert(train_.light_conenction_->d_time);
         int a_time = (int)r->date_converter_.convert(train_.light_conenction_->a_time);
         //std::cout << d_time << "-" << a_time << std::endl;
