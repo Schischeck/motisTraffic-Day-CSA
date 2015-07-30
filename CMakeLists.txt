@@ -16,6 +16,10 @@ file(GLOB_RECURSE global_headers *.h *.hpp)
 MESSAGE(STATUS "boost-heads found at: " ${Boost_INCLUDE_DIR})
 MESSAGE(STATUS "boost-libs found at: " ${Boost_LIBRARY_DIRS})
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "-O1")        ## Optimize
+endif()
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib)

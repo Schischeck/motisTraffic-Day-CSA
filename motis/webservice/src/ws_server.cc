@@ -3,6 +3,8 @@
 #include <memory>
 #include <functional>
 
+#define WEBSOCKETPP_STRICT_MASKING
+
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 

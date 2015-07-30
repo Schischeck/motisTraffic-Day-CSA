@@ -4,6 +4,7 @@
 #include "motis/loader/loader.h"
 #include "motis/railviz/date_converter.h"
 #include "motis/railviz/train_retriever.h"
+#include "motis/railviz/train.h"
 
 #include "boost/test/unit_test.hpp"
 
@@ -25,7 +26,7 @@ struct Fixure
 };
 
 BOOST_FIXTURE_TEST_SUITE( railviz_train_query, Fixure )
-/*
+
 BOOST_AUTO_TEST_CASE( railviz_train_query_time_interval )
 {
     motis::railviz::date_converter date_converter( schedule.get()->date_mgr );
@@ -39,13 +40,13 @@ BOOST_AUTO_TEST_CASE( railviz_train_query_time_interval )
     date.day = date.day+1;
     time to = date_converter.convert_to_motis( date );
 
-    train_list_ptr trainlist = train_query.trains(from, to, b);
-    BOOST_CHECK( trainlist.get()->size() == 10 );
+    std::vector<train> trainlist = train_query.trains(from, to, b);
+    BOOST_CHECK( trainlist.size() == 10 );
 
     date.day = date.day + 1;
     to = date_converter.convert_to_motis( date );
     trainlist = train_query.trains(from, to, b);
-    BOOST_CHECK( trainlist.get()->size() == 20 );
+    BOOST_CHECK( trainlist.size() == 20 );
 }
 
 BOOST_AUTO_TEST_CASE( railviz_train_query_limit )
@@ -61,14 +62,14 @@ BOOST_AUTO_TEST_CASE( railviz_train_query_limit )
     date = schedule.get()->date_mgr.last_date();
     time to = date_converter.convert_to_motis( date );
 
-    train_list_ptr trainlist = train_query.trains(from, to, b, 42);
-    BOOST_CHECK( trainlist.get()->size() == 42 );
+    std::vector<train> trainlist = train_query.trains(from, to, b, 42);
+    BOOST_CHECK( trainlist.size() == 42 );
 
     trainlist = train_query.trains(from, to, b, 142);
-    BOOST_CHECK( trainlist.get()->size() == 142 );
+    BOOST_CHECK( trainlist.size() == 142 );
 
     trainlist = train_query.trains(from, to, b, 259);
-    BOOST_CHECK( trainlist.get()->size() == 200 );
+    BOOST_CHECK( trainlist.size() == 200 );
 }
 
 BOOST_AUTO_TEST_CASE( railviz_train_query_bounds )
@@ -83,25 +84,24 @@ BOOST_AUTO_TEST_CASE( railviz_train_query_bounds )
     time from = date_converter.convert_to_motis( date );
     date.day = date.day+1;
     time to = date_converter.convert_to_motis( date );
-
-    train_list_ptr trainlist = train_query.trains(from, to, b);
-    BOOST_CHECK( trainlist.get()->size() == 10 );
+    std::vector<train> trainlist = train_query.trains(from, to, b);
+    BOOST_CHECK( trainlist.size() == 10 );
 
     left_top = geo::coord{50.620, 10.583};
     right_bottom = geo::coord{50.640, 10.598};
     b = geo::box{left_top, right_bottom};
 
     trainlist = train_query.trains(from, to, b);
-    BOOST_CHECK( trainlist.get()->size() == 5 );
+    BOOST_CHECK( trainlist.size() == 5 );
 
     left_top = geo::coord{50.630, 10.753};
     right_bottom = geo::coord{50.652, 10.785};
     b = geo::box{left_top, right_bottom};
 
     trainlist = train_query.trains(from, to, b);
-    BOOST_CHECK( trainlist.get()->size() == 2 );
+    BOOST_CHECK( trainlist.size() == 2 );
 }
-*/
+
 BOOST_AUTO_TEST_SUITE_END()
 
 }

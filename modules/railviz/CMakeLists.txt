@@ -3,6 +3,8 @@ project(motis)
 
 include_directories(include)
 
+# prepare all test-
+
 file(GLOB_RECURSE motis-railviz-files src/*.cc)
 add_library(motis-railviz SHARED ${motis-railviz-files} ${global_headers})
 MESSAGE(STATUS "boost-system-library: " ${Boost_SYSTEM_LIBRARY})
