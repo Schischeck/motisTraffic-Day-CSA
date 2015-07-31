@@ -1,23 +1,20 @@
 #pragma once
 
 #include <ctime>
-#include <chrono>
+
 #include "motis/railviz/geo.h"
 
 namespace motis {
 namespace railviz {
 
-class webclient
-{
+class webclient {
 public:
-    webclient( unsigned int id );
-    webclient( const webclient& );
+  webclient(unsigned int id) : id(id), bounds({{0, 0}, {0, 0}}), time(0) {}
 
-    unsigned int id;
-    std::time_t time;
-    geo::box bounds;
-
+  unsigned int id;
+  std::time_t time;
+  geo::box bounds;
 };
 
-}
-}
+}  // namespace railviz
+}  // namespace motis

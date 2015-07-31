@@ -114,7 +114,8 @@ void railviz::on_open(sid session) {
       CreateRailVizInit(
           b, b.CreateVectorOfStructs(stations),
           date_converter_.convert(lock.sched().date_mgr.first_date()),
-          date_converter_.convert(lock.sched().date_mgr.last_date())).Union()));
+          date_converter_.convert(lock.sched().date_mgr.last_date()) +
+              MINUTES_A_DAY * 60).Union()));
   send(make_msg(b), session);
 }
 
@@ -123,7 +124,7 @@ void railviz::on_close(sid session) { clients_.erase(session); }
 void railviz::on_msg(msg_ptr msg, sid session, callback cb) {
   auto client_it = clients_.find(session);
   if (client_it == end(clients_)) {
-    throw boost::system::system_error(error::client_not_registered);
+    return cb({}, error::client_not_registered);
   }
 
   auto it = ops_.find(msg->msg_->content_type());
