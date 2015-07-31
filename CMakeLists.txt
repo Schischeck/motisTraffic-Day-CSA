@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+file(GLOB_RECURSE global_headers *.h *.hpp)
+
 option(MOTIS_STATIC_MODULES "MOTIS_STATIC_MODULES" OFF)
 if (MOTIS_STATIC_MODULES)
   add_definitions(-DMOTIS_STATIC_MODULES)

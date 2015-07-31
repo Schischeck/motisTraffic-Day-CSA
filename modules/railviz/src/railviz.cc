@@ -60,6 +60,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
 }
 
 void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
+  auto lock = synced_sched<schedule_access::RO>();
   auto req = msg->content<RailVizAllTrainsRequest const*>();
 
   client.bounds = {{req->p1()->lat(), req->p1()->lng()},
