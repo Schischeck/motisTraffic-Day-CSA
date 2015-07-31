@@ -49,9 +49,8 @@ std::time_t date_converter::convert_to_unix_time(const time& td_time) const {
 
   date_manager::date const& td_date = date_manager_->get_date(day_index);
   std::tm local_time_struct;
-  local_time_struct.tm_hour = 0;
+  std::memset(&local_time_struct, 0, sizeof(local_time_struct));
   local_time_struct.tm_min = td_time % MINUTES_A_DAY;
-  local_time_struct.tm_sec = 0;
   local_time_struct.tm_year = td_date.year - 1900;
   local_time_struct.tm_mon = td_date.month - 1;
   local_time_struct.tm_mday = td_date.day;
