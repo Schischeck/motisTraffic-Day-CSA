@@ -1,5 +1,7 @@
 #include "motis/railviz/date_converter.h"
 
+#include <cstring>
+
 namespace motis {
 namespace railviz {
 
@@ -17,9 +19,7 @@ std::time_t date_converter::convert(const time& t) const {
 
 std::time_t date_converter::convert(const date_manager::date& d) const {
   std::tm time_str;
-  time_str.tm_hour = 0;
-  time_str.tm_min = 0;
-  time_str.tm_sec = 0;
+  std::memset(&time_str, 0, sizeof(time_str));
   time_str.tm_year = d.year - 1900;
   time_str.tm_mon = d.month - 1;
   time_str.tm_mday = d.day;
