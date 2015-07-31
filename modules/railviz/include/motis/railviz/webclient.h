@@ -9,7 +9,7 @@ namespace railviz {
 
 class webclient {
 public:
-  webclient(unsigned int id) : id(id), bounds({{0, 0}, {0, 0}}), time(0) {}
+  webclient(unsigned int id) : id(id), time(0), bounds({{0, 0}, {0, 0}}) {}
 
   unsigned int id;
   std::time_t time;

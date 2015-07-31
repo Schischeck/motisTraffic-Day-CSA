@@ -34,7 +34,7 @@ po::options_description railviz::desc() {
 void railviz::print(std::ostream& out) const {}
 
 railviz::railviz()
-    : ops_{{MsgContent_RailVizStationDetail,
+    : ops_{{MsgContent_RailVizStationDetailRequest,
             std::bind(&railviz::station_info, this, p::_1, p::_2, p::_3)},
            {MsgContent_RailVizAllTrainsRequest,
             std::bind(&railviz::all_trains, this, p::_1, p::_2, p::_3)}} {}
