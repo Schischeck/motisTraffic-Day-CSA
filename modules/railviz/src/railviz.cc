@@ -43,19 +43,61 @@ railviz::~railviz() {}
 
 void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
+  auto const& stations = lock.sched().stations;
+  auto const& station_nodes = lock.sched().station_nodes;
+  flatbuffers::FlatBufferBuilder b;
 
   auto req = msg->content<RailVizStationDetailRequest const*>();
   int index = req->station_index();
-  auto const& stations = lock.sched().stations;
+
   if (index < 0 || index >= stations.size()) {
     return cb({}, error::station_index_out_of_bounds);
   }
 
-  flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateMessage(
-      b, MsgContent_RailVizStationDetail,
-      CreateRailVizStationDetail(
-          b, b.CreateString(stations[index]->name.to_string())).Union()));
+  timetable timetable_ = timetable_retriever_.ordered_timetable_for_station(
+      *station_nodes[index].get());
+
+  std::vector<flatbuffers::Offset<TimetableEntry>> timetable_fb;
+  for (const timetable_entry& entry : timetable_) {
+    const light_connection* lc = std::get<0>(entry);
+    const station_node* next_prev_station = std::get<1>(entry);
+    const station_node* end_start_station = std::get<2>(entry);
+    unsigned int route = std::get<4>(entry);
+
+    std::string event_name =
+        lock.sched().category_names[(int)lc->_full_con->clasz] + " ";
+    std::string direction = "from: ";
+    if (!std::get<3>(entry)) direction = "to: ";
+    event_name.append(lc->_full_con->con_info->line_identifier.to_string())
+        .append(" ");
+    event_name.append(direction)
+        .append(lock.sched().stations[end_start_station->_id].get()->name);
+    std::time_t a_time = date_converter_.convert(lc->a_time);
+    std::time_t d_time = date_converter_.convert(lc->d_time);
+    if (std::get<3>(entry)) {
+      std::cout << d_time << ": " << event_name << std::endl;
+    } else {
+      std::cout << a_time << ": " << event_name << std::endl;
+    }
+    int a_station, d_station;
+    if (std::get<3>(entry)) {
+      a_station = next_prev_station->_id;
+      d_station = index;
+    } else {
+      d_station = next_prev_station->_id;
+      a_station = index;
+    }
+    TrainS t(d_time, a_time, d_station, a_station, route);
+
+    timetable_fb.push_back(CreateTimetableEntry(
+        b, b.CreateString(event_name), &t, end_start_station->_id, true));
+  }
+
+  b.Finish(
+      CreateMessage(b, MsgContent_RailVizStationDetail,
+                    CreateRailVizStationDetail(
+                        b, b.CreateString(stations[index]->name.to_string()),
+                        b.CreateVector(timetable_fb)).Union()));
   return cb(make_msg(b), boost::system::error_code());
 }
 
@@ -73,7 +115,7 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
       date_converter_.convert_to_motis(client.time + (60 * 5)), 1000,
       client.bounds);
 
-  std::vector<Train> trains_output;
+  std::vector<TrainT> trains_output;
   for (auto const& t : trains) {
     light_connection const* con;
     edge const* e;

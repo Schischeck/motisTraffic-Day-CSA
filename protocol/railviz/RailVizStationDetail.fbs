@@ -1,5 +1,21 @@
 namespace motis.railviz;
 
+struct TrainS {
+	dTime : int;
+	aTime : int;
+	dStation : int;
+	aStation : int;
+	route_id : int;
+}
+
+table TimetableEntry {
+	name : string;
+	train : TrainS;
+	startEndStation : int;
+	outgoing : bool;
+}
+
 table RailVizStationDetail {
-  name:string;
+  name : string;
+  timetable : [TimetableEntry];
 }
