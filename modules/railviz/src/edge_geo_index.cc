@@ -29,7 +29,7 @@ box bounding_box(spherical_point c1, spherical_point c2) {
 }
 
 class edge_geo_index::impl {
-public:
+ public:
   impl(int clasz, schedule const& s) : clasz_(clasz), sched_(s) {
     init_rtree();
   }
@@ -47,19 +47,18 @@ public:
     return edges;
   }
 
-  geo::box get_bounds() const
-  {
-      box b = rtree_.bounds();
-      spherical_point bottom_right = b.max_corner();
-      spherical_point top_left = b.min_corner();
+  geo::box get_bounds() const {
+    box b = rtree_.bounds();
+    spherical_point bottom_right = b.max_corner();
+    spherical_point top_left = b.min_corner();
 
-      geo::coord p1 = {top_left.get<0>(), top_left.get<1>()};
-      geo::coord p2 = {bottom_right.get<0>(), bottom_right.get<1>()};
-      geo::box box_ = {p1,p2};
-      return box_;
+    geo::coord p1 = {top_left.get<0>(), top_left.get<1>()};
+    geo::coord p2 = {bottom_right.get<0>(), bottom_right.get<1>()};
+    geo::box box_ = {p1, p2};
+    return box_;
   }
 
-private:
+ private:
   void init_rtree() {
     for (const auto& node : sched_.station_nodes) {
       add_edges_of_station(node.get());
@@ -79,9 +78,9 @@ private:
       if (e.empty() || e._m._route_edge._conns[0]._full_con->clasz != clasz_) {
         continue;
       }
-      rtree_.insert({ std::make_pair(
+      rtree_.insert({std::make_pair(
           bounding_box(station_coords(e._from), station_coords(e._to)),
-          static_cast<long unsigned int>(edges_.size())) });
+          static_cast<long unsigned int>(edges_.size()))});
       edges_.push_back(&e);
     }
   }
@@ -112,9 +111,8 @@ std::vector<edge const*> edge_geo_index::edges(geo::box area) const {
   return impl_->edges(area);
 }
 
-geo::box edge_geo_index::get_bounds() const
-{
-    return impl_.get()->get_bounds();
+geo::box edge_geo_index::get_bounds() const {
+  return impl_.get()->get_bounds();
 }
 
 }  // namespace railviz

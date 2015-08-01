@@ -12,8 +12,14 @@ struct coord {
 
 struct box {
   coord first, second;
-  coord max() const { return coord{std::max(first.lat,second.lat), std::max(first.lng,second.lng)}; }
-  coord min() const { return coord{std::min(first.lat,second.lat), std::min(first.lng,second.lng)}; }
+  coord max() const {
+    return coord{std::max(first.lat, second.lat),
+                 std::max(first.lng, second.lng)};
+  }
+  coord min() const {
+    return coord{std::min(first.lat, second.lat),
+                 std::min(first.lng, second.lng)};
+  }
 };
 
 }  // geo

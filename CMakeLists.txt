@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+file(GLOB_RECURSE global_headers *.h *.hpp)
+
 foreach(flags CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()

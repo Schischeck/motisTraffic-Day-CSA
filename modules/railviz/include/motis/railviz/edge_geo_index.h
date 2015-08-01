@@ -14,14 +14,14 @@ namespace motis {
 namespace railviz {
 
 class edge_geo_index {
-public:
+ public:
   explicit edge_geo_index(int clasz, schedule const&);
   virtual ~edge_geo_index();
 
   std::vector<edge const*> edges(geo::box area) const;
   geo::box get_bounds() const;
 
-private:
+ private:
   class impl;
   std::unique_ptr<impl> impl_;
 };

@@ -4,6 +4,7 @@
 
 #include "motis/module/module.h"
 #include "motis/railviz/date_converter.h"
+#include "motis/railviz/timetable_receiver.h"
 #include "motis/railviz/webclient.h"
 
 namespace motis {
@@ -29,7 +30,7 @@ struct railviz : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-private:
+ private:
   void init(motis::module::msg_ptr msg, webclient& client,
             motis::module::callback cb);
   void all_station(motis::module::msg_ptr msg, webclient& client,
@@ -39,13 +40,14 @@ private:
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
 
-  typedef std::function<void(motis::module::msg_ptr, webclient&,
-                             motis::module::callback)> op;
+  typedef std::function<
+      void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;
 
   std::map<MsgContent, op> ops_;
   std::map<motis::module::sid, webclient> clients_;
   date_converter date_converter_;
   std::unique_ptr<train_retriever> train_retriever_;
+  timetable_retriever timetable_retriever_;
 };
 
 }  // namespace railviz

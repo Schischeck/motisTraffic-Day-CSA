@@ -1,6 +1,5 @@
 #pragma once
 
-//#include <ctime>
 #include <chrono>
 
 #include "motis/core/schedule/time.h"
@@ -10,7 +9,7 @@ namespace motis {
 namespace railviz {
 
 class date_converter {
-public:
+ public:
   date_converter();
   date_converter(const date_manager& mgr);
   void set_date_manager(const motis::date_manager& mgr);
@@ -21,7 +20,7 @@ public:
 
   std::time_t convert_to_unix_time(const motis::time& td_time) const;
 
-private:
+ private:
   const date_manager* date_manager_;
 };
 

@@ -16,7 +16,7 @@ enum error_code_t {
 }  // namespace error
 
 class error_category_impl : public boost::system::error_category {
-public:
+ public:
   virtual const char* name() const noexcept { return "motis::railviz"; }
 
   virtual std::string message(int ev) const noexcept {
