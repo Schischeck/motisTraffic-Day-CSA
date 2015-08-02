@@ -1,10 +1,11 @@
 #pragma once
 
+#include <sstream>
 #include <set>
 
 #include "motis/module/module.h"
 #include "motis/railviz/date_converter.h"
-#include "motis/railviz/timetable_receiver.h"
+#include "motis/railviz/timetable_retriever.h"
 #include "motis/railviz/webclient.h"
 
 namespace motis {

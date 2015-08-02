@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <set>
+#include <unordered_map>
 #include <utility>
 #include <algorithm>
 
+#include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/connection.h"
@@ -16,6 +18,9 @@ typedef std::tuple<light_connection const*, station_node const*,
                    station_node const*, bool, unsigned int> timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
+typedef std::tuple<unsigned int, station_node const*, light_connection const*> route_entry;
+typedef std::vector<route_entry> route;
+
 struct timetable_retriever {
   struct timetable_sort_struct {
     bool operator()(const timetable_entry& e1, const timetable_entry& e2) {
@@ -26,6 +31,11 @@ struct timetable_retriever {
       return t1 < t2;
     }
   } timetable_sort;
+
+  void init( schedule const& sched );
+
+  std::vector<route> get_routes_on_time( unsigned int route_id, motis::time time ) const;
+  std::vector<std::pair<int, const light_connection*>> get_track_information( const station_node& station, unsigned int route_id, std::vector<int>& tracks ) const;
 
   timetable ordered_timetable_for_station(const station_node& station) const;
 
@@ -55,6 +65,13 @@ struct timetable_retriever {
   const motis::station_node* start_station_for_route(
       unsigned int route_id, const node* current_node,
       std::set<unsigned int>&) const;
+
+  std::vector<unsigned int> routes_at_station( const station_node& ) const;
+  std::vector<motis::time> get_route_departure_times( unsigned int route_id ) const;
+  std::vector<motis::time> get_route_arrival_times( unsigned int route_id ) const;
+
+  std::map<unsigned int, station_node const*> route_start_station;
+  std::map<unsigned int, station_node const*> route_end_station;
 };
 }
 }
