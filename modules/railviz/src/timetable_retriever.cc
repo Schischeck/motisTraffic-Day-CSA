@@ -59,7 +59,7 @@ std::vector<std::pair<int, const light_connection*>> get_track_information( cons
       break;
     }
   }
-  return track_information;
+  return track_information;43
 }
 
 
