@@ -33,18 +33,11 @@ struct schedule {
   std::vector<station_node_ptr> station_nodes;
   std::vector<node*> route_index_to_first_route_node;
   waiting_time_rules waiting_time_rules_;
+  std::vector<std::unique_ptr<connection>> full_connections;
+  std::vector<std::unique_ptr<connection_info>> connection_infos;
   synchronization sync;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;
-
-struct text_schedule : public schedule {
-  std::vector<std::unique_ptr<connection>> full_connections;
-  std::vector<std::unique_ptr<connection_info>> connection_infos;
-};
-
-struct binary_schedule : public schedule {
-  std::unique_ptr<char[]> raw_memory;
-};
 
 }  // namespace motis

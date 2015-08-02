@@ -1,0 +1,15 @@
+namespace motis.loader;
+
+include "Train.fbs";
+include "Station.fbs";
+include "Route.fbs";
+include "Platform.fbs";
+include "Attribute.fbs"
+
+table Schedule {
+  trains : [Train];
+  stations: [Station];
+  attributes: [Attribute];
+  platforms: [Platform];
+  routes: [Route];
+}

@@ -18,10 +18,11 @@ public:
 
   int waiting_time_category(const std::string& train_category) const {
     auto it = _category_map.find(train_category);
-    if (it == end(_category_map))
+    if (it == end(_category_map)) {
       return default_group;
-    else
+    } else {
       return it->second;
+    }
   }
 
   inline int waiting_time_category(int family) const {

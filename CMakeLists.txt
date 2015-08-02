@@ -33,6 +33,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/FlatBuffersUtil.cmake)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 
@@ -47,5 +48,4 @@ function(add_modules)
 endfunction()
 add_modules(railviz routing reliability guesser realtime)
 
-add_subdirectory(motis/prep)
 add_subdirectory(motis/webservice)

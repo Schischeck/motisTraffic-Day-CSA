@@ -9,8 +9,6 @@
 #include <type_traits>
 #include <string>
 
-#include "motis/core/common/pointer.h"
-
 namespace motis {
 
 inline uint64_t next_power_of_two(uint64_t n) {
@@ -208,7 +206,7 @@ struct array final {
     _self_allocated = true;
     _allocated_size = next_size;
   }
-  
+
   T* erase(T* pos) {
     T* last = end() - 1;
     while (pos < last) {
@@ -225,12 +223,12 @@ struct array final {
   operator std::string() const { return to_string(); }
 
 #ifdef USE_STANDARD_LAYOUT
-  pointer<T> _el;
+  T* _el;
   TemplateSizeType _used_size;
   TemplateSizeType _allocated_size;
   bool _self_allocated;
 #else
-  pointer<T> _el;
+  T* _el;
   TemplateSizeType _used_size;
   bool _self_allocated : 1;
   TemplateSizeType _allocated_size : 31;

@@ -7,7 +7,6 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
-#include "motis/core/common/pointer.h"
 
 namespace motis {
 
@@ -134,7 +133,7 @@ public:
 
     return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
   }
-  
+
   light_connection* get_connection(time const start_time) {
     return const_cast<light_connection*>(
           static_cast<const edge*>(this)->get_connection(start_time)
@@ -167,8 +166,8 @@ public:
     return (type() != ROUTE_EDGE) ? true : _m._route_edge._conns.empty();
   }
 
-  pointer<node> _to;
-  pointer<node> _from;
+  node* _to;
+  node* _from;
 
   union edge_details {
     edge_details() { std::memset(this, 0, sizeof(*this)); }

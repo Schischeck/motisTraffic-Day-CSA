@@ -4,8 +4,6 @@
 #include <vector>
 #include <tuple>
 
-#include "motis/core/common/array.h"
-#include "motis/core/common/pointer.h"
 #include "motis/core/schedule/time.h"
 
 namespace motis {
@@ -25,12 +23,7 @@ enum {
 
 class connection_info {
 public:
-  connection_info()
-      : attributes(array<int>::size_type(0)),
-        line_identifier(string::size_type(0)),
-        family(0),
-        train_nr(0),
-        service(0) {}
+  connection_info() : family(0), train_nr(0), service(0) {}
 
   bool operator<(connection_info const& o) const {
     return as_tuple() < o.as_tuple();
@@ -47,8 +40,8 @@ public:
                            service);
   }
 
-  array<int> attributes;
-  string line_identifier;
+  std::vector<int> attributes;
+  std::string line_identifier;
   uint32_t family;
   uint32_t train_nr;
   uint32_t service;
@@ -63,10 +56,7 @@ public:
     return clasz == o.clasz && price == o.price && con_info_id == o.con_info_id;
   }
 
-  union {
-    pointer<connection_info const> con_info;
-    uint32_t con_info_id;
-  };
+  connection_info const* con_info;
   uint16_t price;
   uint16_t d_platform, a_platform;
   uint8_t clasz;
@@ -90,7 +80,7 @@ public:
            *_full_con == *o._full_con;
   }
 
-  pointer<connection const> _full_con;
+  connection const* _full_con;
   time d_time, a_time;
 
   enum : uint32_t { INVALID_CON_ID = 0xffffffff };

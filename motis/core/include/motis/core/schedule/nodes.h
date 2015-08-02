@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "motis/core/common/array.h"
-#include "motis/core/common/pointer.h"
 #include "motis/core/common/deleter.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/time.h"
@@ -66,8 +65,8 @@ public:
   }
 
   array<edge> _edges;
-  array<pointer<edge>> _incoming_edges;
-  pointer<station_node> _station_node;
+  array<edge*> _incoming_edges;
+  station_node* _station_node;
   int32_t _route;
   uint32_t _id;
 };
@@ -134,7 +133,7 @@ public:
     return node_id;
   }
 
-  pointer<node> _foot_node;
+  node* _foot_node;
 };
 
 typedef std::unique_ptr<station_node, deleter<station_node>> station_node_ptr;
