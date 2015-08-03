@@ -77,10 +77,11 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
 
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
+    std::cout << route << " ";
     if (std::get<3>(entry)) {
-      std::cout << d_time << ": " << event_name << std::endl;
+      std::cout << lc->d_time << ": " << event_name << std::endl;
     } else {
-      std::cout << a_time << ": " << event_name << std::endl;
+      std::cout << lc->a_time << ": " << event_name << std::endl;
     }
     int a_station, d_station;
     if (std::get<3>(entry)) {

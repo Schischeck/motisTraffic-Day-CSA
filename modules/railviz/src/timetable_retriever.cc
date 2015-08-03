@@ -22,6 +22,30 @@ void timetable_retriever::init( const schedule& sched )
       {
         const station_node* start_station = start_station_for_route(route_id, &station_node_);
         const station_node* end_station = end_station_for_route( route_id, &station_node_ );
+        if( start_station == end_station ) {
+          // find start and stop-station of a cycle
+          const station_node* current_station = next_station_on_route(*start_station, route_id);
+          const station_node* earliest_reached_station = start_station;
+          const light_connection* earlies_lc = get_track_information(*start_station, route_id, 0);
+          const station_node* latest_reached_station = end_station;
+          const light_connection* latest_lc = earlies_lc;
+          while(current_station != NULL && current_station != start_station) {
+            const light_connection* lc = get_track_information(*current_station, route_id, 0);
+            if( lc != NULL ) {
+              if( lc->d_time < earlies_lc->d_time ) {
+                earliest_reached_station = current_station;
+                earlies_lc = lc;
+              }
+              if( lc->a_time > latest_lc->a_time ) {
+                latest_reached_station = current_station;
+                latest_lc = lc;
+              }
+            }
+            current_station = next_station_on_route(*current_station, route_id);
+          }
+          start_station = earliest_reached_station;
+          end_station = latest_reached_station;
+        }
         route_start_station[route_id] = start_station;
         route_end_station[route_id] = end_station;
       }
@@ -36,30 +60,46 @@ std::vector<route> timetable_retriever::get_routes_on_time(unsigned int route_id
   std::vector<motis::time> departure_times = get_route_departure_times(route_id);
   std::vector<motis::time> arrival_times = get_route_arrival_times(route_id);
   std::vector<int> requested_tracks;
-
   for( int i = 0; i < departure_times.size(); ++i )
   {
-    if( departure_times[i] <= time && time <= arrival_times[i] )
+    if( departure_times[i] <= time && time <= arrival_times[i] ) {
       requested_tracks.push_back(i);
+    }
   }
 
+  if( requested_tracks.size() == 0 ) {
+    return {};
+  }
+
+  std::vector<route> routes;
+  for(int i : requested_tracks) {
+    routes.emplace_back();
+  }
+
+  const station_node* current_node = route_start_station.at(route_id);
+  do {
+    int j = 0;
+    for( int i : requested_tracks ) {
+      routes.at(j).emplace_back( current_node, get_track_information(*current_node, route_id, i) );
+      ++j;
+    }
+    current_node = next_station_on_route( *current_node, route_id );
+  } while( current_node != NULL && current_node != route_start_station.at(route_id) );
+  return routes;
 }
 
-std::vector<std::pair<int, const light_connection*>> get_track_information( const station_node& station, unsigned int route_id, std::vector<int>& tracks ) const {
-  std::vector<std::pair<int, const light_connection*>> track_information;
+const light_connection* timetable_retriever::get_track_information( const station_node& station, unsigned int route_id, int track ) const {
   for( const node* n : station.get_route_nodes() ) {
     if( n->_route == route_id ) {
       for( const edge& e : n->_edges ) {
         if( e.type() == edge::ROUTE_EDGE ) {
-          for( int track : tracks ) {
-            track_information.push_back(std::pair<int, const light_connection*>(track, &(e._m._route_edge._conns[track])));
-          }
+            return &(e._m._route_edge._conns[track]);
         }
       }
       break;
     }
   }
-  return track_information;43
+  return NULL;
 }
 
 
@@ -117,7 +157,7 @@ const motis::station_node* timetable_retriever::next_station_on_route(
     }
   }
 
-  return route_node.get_station();
+  return NULL;
 }
 
 const motis::station_node* timetable_retriever::next_station_on_route(
@@ -138,7 +178,7 @@ const motis::station_node* timetable_retriever::end_station_for_route(
     unsigned int route_id, const node* current_node,
     std::set<unsigned int>& cycle_detection) const {
   if (!current_node->is_route_node() && !current_node->is_station_node()) {
-    std::cout << "no route or station- _node" << std::endl;
+    std::cout << "no route or station-node" << std::endl;
     return NULL;
   }
 
@@ -161,6 +201,9 @@ const motis::station_node* timetable_retriever::end_station_for_route(
     next_station_node = next_station_on_route(*current_node);
   }
 
+  if( next_station_node == NULL )
+    return current_station;
+
   if (next_station_node != current_station)
     return end_station_for_route(route_id, next_station_node, cycle_detection);
 
@@ -181,7 +224,7 @@ const motis::station_node* timetable_retriever::prev_station_on_route(
     }
   }
 
-  return route_node.get_station();
+  return NULL;
 }
 
 const motis::station_node* timetable_retriever::prev_station_on_route(
@@ -202,7 +245,7 @@ const motis::station_node* timetable_retriever::start_station_for_route(
     unsigned int route_id, const node* current_node,
     std::set<unsigned int>& cycle_detection) const {
   if (!current_node->is_route_node() && !current_node->is_station_node()) {
-    std::cout << "no route or station- _node" << std::endl;
+    std::cout << "no route or station-node" << std::endl;
     return NULL;
   }
 
@@ -224,6 +267,9 @@ const motis::station_node* timetable_retriever::start_station_for_route(
   } else {
     prev_station_node = prev_station_on_route(*current_node);
   }
+
+  if(prev_station_node == NULL)
+    return current_station;
 
   if (prev_station_node != current_station)
     return start_station_for_route(route_id, prev_station_node,
@@ -254,10 +300,10 @@ std::vector<motis::time> timetable_retriever::get_route_departure_times( unsigne
     return {};
 
   std::vector<motis::time> times;
-  const station_node* start_station = route_start_station.find(route_id);
+  const station_node* start_station = route_start_station.at(route_id);
   for( const auto* node : start_station->get_route_nodes() ) {
     if( node->_route == route_id ) {
-      for( const edge& e : node._edges ) {
+      for( const edge& e : node->_edges ) {
         if( e.type() == edge::ROUTE_EDGE ) {
           for( const light_connection& lc : e._m._route_edge._conns ) {
             times.push_back(lc.d_time);
@@ -275,12 +321,12 @@ std::vector<motis::time> timetable_retriever::get_route_arrival_times( unsigned 
     return {};
 
   std::vector<motis::time> times;
-  const station_node* end_station = route_end_station.find(route_id);
+  const station_node* end_station = route_end_station.at(route_id);
   for( const auto* node : end_station->get_incoming_route_nodes() ) {
     if( node->_route == route_id ) {
-      for( const edge& e : node._edges ) {
-        if( e.type() == edge::ROUTE_EDGE ) {
-          for( const light_connection& lc : e._m._route_edge._conns ) {
+      for( const auto& e : node->_incoming_edges ) {
+        if( e->type() == edge::ROUTE_EDGE ) {
+          for( const light_connection& lc : e->_m._route_edge._conns ) {
             times.push_back(lc.a_time);
           }
         }

@@ -18,7 +18,7 @@ typedef std::tuple<light_connection const*, station_node const*,
                    station_node const*, bool, unsigned int> timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
-typedef std::tuple<unsigned int, station_node const*, light_connection const*> route_entry;
+typedef std::pair<station_node const*, light_connection const*> route_entry;
 typedef std::vector<route_entry> route;
 
 struct timetable_retriever {
@@ -35,7 +35,7 @@ struct timetable_retriever {
   void init( schedule const& sched );
 
   std::vector<route> get_routes_on_time( unsigned int route_id, motis::time time ) const;
-  std::vector<std::pair<int, const light_connection*>> get_track_information( const station_node& station, unsigned int route_id, std::vector<int>& tracks ) const;
+  const light_connection* get_track_information( const station_node& station, unsigned int route_id, int track ) const;
 
   timetable ordered_timetable_for_station(const station_node& station) const;
 
