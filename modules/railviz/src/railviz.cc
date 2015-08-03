@@ -65,14 +65,17 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     unsigned int route = std::get<4>(entry);
 
     std::stringstream event_name_builder;
-    event_name_builder << lock.sched().category_names[(int)lc->_full_con->clasz] + " ";
-    event_name_builder << lc->_full_con->con_info->line_identifier.to_string() << " ";
-    if( !std::get<3>(entry) ) {
+    event_name_builder
+        << lock.sched().category_names[(int)lc->_full_con->clasz] + " ";
+    event_name_builder << lc->_full_con->con_info->line_identifier.to_string()
+                       << " ";
+    if (!std::get<3>(entry)) {
       event_name_builder << "to: ";
     } else {
       event_name_builder << "from: ";
     }
-    event_name_builder << lock.sched().stations[end_start_station->_id].get()->name;
+    event_name_builder
+        << lock.sched().stations[end_start_station->_id].get()->name;
     std::string event_name = event_name_builder.str();
 
     std::time_t a_time = date_converter_.convert(lc->a_time);

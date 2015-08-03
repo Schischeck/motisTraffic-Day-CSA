@@ -32,10 +32,13 @@ struct timetable_retriever {
     }
   } timetable_sort;
 
-  void init( schedule const& sched );
+  void init(schedule const& sched);
 
-  std::vector<route> get_routes_on_time( unsigned int route_id, motis::time time ) const;
-  const light_connection* get_track_information( const station_node& station, unsigned int route_id, int track ) const;
+  std::vector<route> get_routes_on_time(unsigned int route_id,
+                                        motis::time time) const;
+  const light_connection* get_track_information(const station_node& station,
+                                                unsigned int route_id,
+                                                int track) const;
 
   timetable ordered_timetable_for_station(const station_node& station) const;
 
@@ -66,9 +69,10 @@ struct timetable_retriever {
       unsigned int route_id, const node* current_node,
       std::set<unsigned int>&) const;
 
-  std::vector<unsigned int> routes_at_station( const station_node& ) const;
-  std::vector<motis::time> get_route_departure_times( unsigned int route_id ) const;
-  std::vector<motis::time> get_route_arrival_times( unsigned int route_id ) const;
+  std::vector<unsigned int> routes_at_station(const station_node&) const;
+  std::vector<motis::time> get_route_departure_times(
+      unsigned int route_id) const;
+  std::vector<motis::time> get_route_arrival_times(unsigned int route_id) const;
 
   std::map<unsigned int, station_node const*> route_start_station;
   std::map<unsigned int, station_node const*> route_end_station;
