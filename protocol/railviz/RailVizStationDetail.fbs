@@ -12,7 +12,7 @@ table TimetableEntry {
 	line_name : string;
 	train : TrainS;
 	startEndStation_name : string;
-	end_station_id : int;
+	startend_station_id : int;
 	outgoing : bool;
 }
 
