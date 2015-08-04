@@ -64,28 +64,12 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     const station_node* end_start_station = std::get<2>(entry);
     unsigned int route = std::get<4>(entry);
 
-    std::stringstream event_name_builder;
-    event_name_builder
-        << lock.sched().category_names[(int)lc->_full_con->clasz] + " ";
-    event_name_builder << lc->_full_con->con_info->line_identifier.to_string()
-                       << " ";
-    if (!std::get<3>(entry)) {
-      event_name_builder << "to: ";
-    } else {
-      event_name_builder << "from: ";
-    }
-    event_name_builder
-        << lock.sched().stations[end_start_station->_id].get()->name;
-    std::string event_name = event_name_builder.str();
+    std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
+    std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
+
 
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
-    std::cout << route << " ";
-    if (std::get<3>(entry)) {
-      std::cout << lc->d_time << ": " << event_name << std::endl;
-    } else {
-      std::cout << lc->a_time << ": " << event_name << std::endl;
-    }
     int a_station, d_station;
     if (std::get<3>(entry)) {
       a_station = next_prev_station->_id;
@@ -97,7 +81,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     TrainS t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateTimetableEntry(
-        b, b.CreateString(event_name), &t, end_start_station->_id, true));
+        b, b.CreateString(line_name), &t, b.CreateString(end_station_name), end_start_station->_id, true));
   }
 
   b.Finish(

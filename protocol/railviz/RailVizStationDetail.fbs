@@ -9,9 +9,10 @@ struct TrainS {
 }
 
 table TimetableEntry {
-	name : string;
+	line_name : string;
 	train : TrainS;
-	startEndStation : int;
+	startEndStation_name : string;
+	end_station_id : int;
 	outgoing : bool;
 }
 
