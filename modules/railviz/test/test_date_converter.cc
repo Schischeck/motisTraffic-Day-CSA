@@ -6,6 +6,7 @@
 #include "motis/loader/loader.h"
 #include "motis/railviz/date_converter.h"
 
+using namespace motis;
 using namespace motis::railviz;
 
 /**
@@ -42,14 +43,14 @@ bool railviz_date_converter_simple_test_check_atime(std::time_t* time) {
 
 TEST_CASE("simple_time_test", "[railviz]") {
   auto schedule =
-      motis::load_schedule("../test_timetables/date_manager_test1/motis");
-  motis::railviz::date_converter dcnv(schedule.get()->date_mgr);
-  motis::date_manager& mgr = schedule.get()->date_mgr;
+      loader::load_schedule("../test_timetables/date_manager_test1/motis");
+  railviz::date_converter dcnv(schedule.get()->date_mgr);
+  date_manager& mgr = schedule.get()->date_mgr;
 
   for (auto const& station_node : schedule->station_nodes) {
     for (auto const& route_node : station_node->get_route_nodes()) {
       for (auto const& edge : route_node->_edges) {
-        if (edge.type() != motis::edge::ROUTE_EDGE) continue;
+        if (edge.type() != edge::ROUTE_EDGE) continue;
         for (auto const& lcon : edge._m._route_edge._conns) {
           std::time_t d_time = dcnv.convert(lcon.d_time);
           std::time_t a_time = dcnv.convert(lcon.a_time);
