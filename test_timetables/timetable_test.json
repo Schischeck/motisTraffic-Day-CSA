@@ -1,0 +1,116 @@
+{
+  "stations": [
+    {
+      "name": "Lanitz-Hassel-Tal Spielberg",
+      "tracks": 2,
+      "latitude": 51.13800148806257,
+      "longitude": 11.6455078125,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "1017002",
+      "ds100Code": "1017002",
+      "KMInfo": 0
+    },
+    {
+      "name": "Dolmar-Salzbrücke Ziegelhütte",
+      "tracks": 2,
+      "latitude": 50.583236614805855,
+      "longitude": 10.56884765625,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2161074",
+      "ds100Code": "2161074",
+      "KMInfo": 0
+    },
+    {
+      "name": "Werra-Meißner-Kreis Bad Sooden",
+      "tracks": 2,
+      "latitude": 51.289405902716794,
+      "longitude": 9.931640625,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "9352251",
+      "ds100Code": "9352251",
+      "KMInfo": 0
+    },
+    {
+      "name": "Landkreis Mansfeld-Südharz Biesenrode",
+      "tracks": 2,
+      "latitude": 51.61801654877371,
+      "longitude": 11.3818359375,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "3381409",
+      "ds100Code": "3381409",
+      "KMInfo": 0
+    },
+    {
+      "name": "Blankenburg",
+      "tracks": 2,
+      "latitude": 51.78143560443118,
+      "longitude": 10.83251953125,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "6758982",
+      "ds100Code": "6758982",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "Blankenburg-Lanitz-Hassel-Tal Spielberg",
+      "category": "RE",
+      "evaNumber": "7936524",
+      "trainNumber": 7936524,
+      "stations": [
+        {
+          "station": "6758982",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3381409",
+          "arrival": 31,
+          "departure": 33,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1017002",
+          "arrival": 75,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "00:00:00.000",
+          "untilTime": "12:00:00.000",
+          "interval": 75
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": []
+}

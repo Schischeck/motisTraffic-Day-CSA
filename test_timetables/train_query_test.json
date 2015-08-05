@@ -1,0 +1,400 @@
+{
+  "stations": [
+    {
+      "name": "Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "tracks": 2,
+      "latitude": 50.63051778092671,
+      "longitude": 10.583953857421875,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "1106481",
+      "ds100Code": "1106481",
+      "KMInfo": 0
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "tracks": 2,
+      "latitude": 50.63051778092671,
+      "longitude": 10.596656799316406,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2047489",
+      "ds100Code": "2047489",
+      "KMInfo": 0
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "tracks": 2,
+      "latitude": 50.6222415611237,
+      "longitude": 10.584297180175781,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4859880",
+      "ds100Code": "4859880",
+      "KMInfo": 0
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen",
+      "tracks": 2,
+      "latitude": 50.62028119042918,
+      "longitude": 10.594596862792969,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2052070",
+      "ds100Code": "2052070",
+      "KMInfo": 0
+    },
+    {
+      "name": "Suhl Neundorf",
+      "tracks": 2,
+      "latitude": 50.57560617036381,
+      "longitude": 10.69793701171875,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "9531929",
+      "ds100Code": "9531929",
+      "KMInfo": 0
+    },
+    {
+      "name": "Schleusingen",
+      "tracks": 2,
+      "latitude": 50.58410858688501,
+      "longitude": 10.724029541015625,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "1371452",
+      "ds100Code": "1371452",
+      "KMInfo": 0
+    },
+    {
+      "name": "Schleusingen",
+      "tracks": 2,
+      "latitude": 50.57277169042027,
+      "longitude": 10.724029541015625,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4268152",
+      "ds100Code": "4268152",
+      "KMInfo": 0
+    },
+    {
+      "name": "Suhl",
+      "tracks": 2,
+      "latitude": 50.65054891213481,
+      "longitude": 10.754241943359375,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "9810697",
+      "ds100Code": "9810697",
+      "KMInfo": 0
+    },
+    {
+      "name": "Suhl",
+      "tracks": 2,
+      "latitude": 50.6337843087893,
+      "longitude": 10.765228271484375,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "1579759",
+      "ds100Code": "1579759",
+      "KMInfo": 0
+    },
+    {
+      "name": "Suhl Vesser",
+      "tracks": 2,
+      "latitude": 50.642493940103236,
+      "longitude": 10.783767700195312,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "6223851",
+      "ds100Code": "6223851",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "Landkreis Schmalkalden-Meiningen-Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "category": "RE",
+      "evaNumber": "2264547",
+      "trainNumber": 2264547,
+      "stations": [
+        {
+          "station": "2052070",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2047489",
+          "arrival": 30,
+          "departure": 32,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen-Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "category": "RE",
+      "evaNumber": "6510937",
+      "trainNumber": 6510937,
+      "stations": [
+        {
+          "station": "2052070",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4859880",
+          "arrival": 15,
+          "departure": 17,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen Ebertshausen-Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "category": "RE",
+      "evaNumber": "4747398",
+      "trainNumber": 4747398,
+      "stations": [
+        {
+          "station": "4859880",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1106481",
+          "arrival": 60,
+          "departure": 62,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen Ebertshausen-Landkreis Schmalkalden-Meiningen Ebertshausen",
+      "category": "RE",
+      "evaNumber": "5861332",
+      "trainNumber": 5861332,
+      "stations": [
+        {
+          "station": "1106481",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2047489",
+          "arrival": 30,
+          "departure": 32,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Landkreis Schmalkalden-Meiningen-Suhl Neundorf",
+      "category": "RE",
+      "evaNumber": "2715504",
+      "trainNumber": 2715504,
+      "stations": [
+        {
+          "station": "2052070",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9531929",
+          "arrival": 30,
+          "departure": 31,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4268152",
+          "arrival": 60,
+          "departure": 61,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1371452",
+          "arrival": 90,
+          "departure": 91,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9531929",
+          "arrival": 120,
+          "departure": 122,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Suhl-Suhl",
+      "category": "RE",
+      "evaNumber": "4197447",
+      "trainNumber": 4197447,
+      "stations": [
+        {
+          "station": "1579759",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6223851",
+          "arrival": 1,
+          "departure": 3,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9810697",
+          "arrival": 4,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": []
+}

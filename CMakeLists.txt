@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+foreach(flags CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG)
+  string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
+endforeach()
+
+foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
+  string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
+endforeach()
+
 option(MOTIS_STATIC_MODULES "MOTIS_STATIC_MODULES" OFF)
 if (MOTIS_STATIC_MODULES)
   add_definitions(-DMOTIS_STATIC_MODULES)
@@ -46,6 +54,6 @@ function(add_modules)
     add_subdirectory(modules/${module})
   endforeach(module)
 endfunction()
-add_modules(railviz routing reliability guesser realtime)
+add_modules(railviz routing reliability guesser)
 
 add_subdirectory(motis/webservice)

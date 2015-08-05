@@ -5,6 +5,7 @@
 
 #include "boost/system/system_error.hpp"
 
+#define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
@@ -96,13 +97,15 @@ struct ws_server::ws_server_impl {
     if (con_it == end(con_sid_map_)) {
       return;
     }
-    con_sid_map_.erase(con_it);
 
     auto sid = con_it->second;
+    con_sid_map_.erase(con_it);
+
     auto sid_it = sid_con_map_.find(sid);
     if (sid_it == end(sid_con_map_)) {
       return;
     }
+
     sid_con_map_.erase(sid_it);
 
     if (close_handler_) {

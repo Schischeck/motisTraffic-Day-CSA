@@ -53,8 +53,6 @@ int main(int argc, char** argv) {
   }
 
   parser.read_configuration_file();
-
-  std::cout << "\n\tMOTIS Webservice\n\n";
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
@@ -78,12 +76,7 @@ int main(int argc, char** argv) {
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
-  for (int i = 0; i < 8; ++i) {
-    modules.emplace_back(new guesser::guesser());
-    // modules.emplace_back(new railviz::railviz());
-    modules.emplace_back(new routing::routing());
-    // modules.emplace_back(new reliability::reliability());
-  }
+  modules.emplace_back(new railviz::railviz());
 
   motis::module::context c;
   c.schedule_ = sched.get();

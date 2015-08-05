@@ -1,0 +1,42 @@
+s1 2
+l4
+d0 420 125 0 0 3 0 2264547%2264547|Landkreis Schmalkalden-Meiningen-Landkreis Schmalkalden-Meiningen Ebertshausen|-|1 1
+l2
+a0 450
+s3 2
+l4
+d0 420 125 0 0 3 0 6510937%6510937|Landkreis Schmalkalden-Meiningen-Landkreis Schmalkalden-Meiningen Ebertshausen|-|1 1
+l3
+a0 435
+s5 2
+l3
+d0 420 125 0 0 3 0 4747398%4747398|Landkreis Schmalkalden-Meiningen Ebertshausen-Landkreis Schmalkalden-Meiningen Ebertshausen|-|1 1
+l1
+a0 480
+s7 2
+l1
+d0 420 125 0 0 3 0 5861332%5861332|Landkreis Schmalkalden-Meiningen Ebertshausen-Landkreis Schmalkalden-Meiningen Ebertshausen|-|1 1
+l2
+a0 450
+s9 5
+l4
+d0 420 125 0 0 3 0 2715504%2715504|Landkreis Schmalkalden-Meiningen-Suhl Neundorf|-|1 1
+l5
+a0 450
+d0 451 125 0 0 3 0 2715504%2715504|Landkreis Schmalkalden-Meiningen-Suhl Neundorf|-|1 1
+l7
+a0 480
+d0 481 125 0 0 3 0 2715504%2715504|Landkreis Schmalkalden-Meiningen-Suhl Neundorf|-|1 1
+l6
+a0 510
+d0 511 125 0 0 3 0 2715504%2715504|Landkreis Schmalkalden-Meiningen-Suhl Neundorf|-|1 1
+l5
+a0 540
+s14 3
+l9
+d0 420 125 0 0 3 0 4197447%4197447|Suhl-Suhl|-|1 1
+l10
+a0 421
+d0 423 125 0 0 3 0 4197447%4197447|Suhl-Suhl|-|1 1
+l8
+a0 424
