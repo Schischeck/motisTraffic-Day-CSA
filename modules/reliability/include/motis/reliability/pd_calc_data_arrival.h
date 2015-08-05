@@ -56,7 +56,7 @@ struct pd_calc_data_arrival {
 
     int max_travel_delay_;
 
-    unsigned int max_departure_delay_;
+    unsigned int max_departure_delay_; // XXX used?!
 
   private:
     /** a travel-time distribution for each delay value */

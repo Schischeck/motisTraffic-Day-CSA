@@ -1,7 +1,10 @@
 #include "motis/reliability/tt_distributions_manager.h"
-#include "motis/reliability/probability_distribution.h"
 
 #include <iostream>
+#include <cassert>
+
+#include "motis/reliability/probability_distribution.h"
+
 
 namespace motis {
 namespace reliability {
@@ -29,8 +32,10 @@ void tt_distributions_manager::init_start_distributions() {}
 std::tuple<std::vector<probability_distribution> const&, unsigned int, int, int>
 tt_distributions_manager::get_travel_time_distributions(
     std::string const& train_category, duration const travel_time) const {
+  assert(travel_time < longest_travel_time_);
   auto const& distribution =
       travel_time_to_generated_distribution_[travel_time]; // XXX category
+  std::cout << "dist: " << distribution.distributions.size() << std::endl;
   return std::make_tuple(
       distribution.distributions, distribution.max_departure_delay_,
       distribution.min_travel_delay, distribution.max_travel_delay);

@@ -12,7 +12,7 @@ namespace reliability {
 
 struct pd_calc_data_arrival;
 
-namespace distributions_calculator {
+namespace calc_departure_distribution {
 
 void compute_departure_distribution(
     pd_calc_data_departure const& data,
@@ -88,7 +88,7 @@ void cut_minutes_after_latest_feasible_arrival(
     std::vector<pd_calc_data_departure::feeder_info> const& feeders,
     std::vector<probability_distribution>& part_before_lfa);
 }
-};
+}
 
 }  // namespace reliability
 }  // namespace motis

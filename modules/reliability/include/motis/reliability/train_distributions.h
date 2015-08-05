@@ -32,7 +32,9 @@ struct train_distributions_container {
   train_distributions_container(unsigned num_nodes)
       : node_to_train_distributions_(num_nodes) {}
 
-  probability_distribution const& get_train_distribution(
+  virtual ~train_distributions_container() {}
+
+  virtual probability_distribution const& get_train_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
       type const t) const {
     return (t == arrival)

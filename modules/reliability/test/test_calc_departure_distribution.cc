@@ -7,7 +7,7 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/calc_departure_distribution.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data_departure.h"
 #include "motis/reliability/probability_distribution.h"
@@ -17,10 +17,10 @@
 
 using namespace motis;
 using namespace motis::reliability;
-using namespace motis::reliability::distributions_calculator;
-using namespace motis::reliability::distributions_calculator::detail;
+using namespace motis::reliability::calc_departure_distribution;
+using namespace motis::reliability::calc_departure_distribution::detail;
 
-TEST_CASE("departure_independent_from_feeders", "[distributions_calculator]") {
+TEST_CASE("departure_independent_from_feeders", "[calc_departure_distribution]") {
   std::vector<pd_calc_data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -66,7 +66,7 @@ TEST_CASE("departure_independent_from_feeders", "[distributions_calculator]") {
 }
 
 TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
-          "[distributions_calculator]") {
+          "[calc_departure_distribution]") {
   probability_distribution feeder1_dist;
   std::vector<pd_calc_data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -86,7 +86,7 @@ TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
 }
 
 TEST_CASE("cut_minutes_after_latest_feasible_arrival2",
-          "[distributions_calculator]") {
+          "[calc_departure_distribution]") {
   probability_distribution feeder1_dist;
   std::vector<pd_calc_data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -216,7 +216,7 @@ TEST_CASE("had_to_wait_for_feeders2", "[pd_calc_data_departure]") {
 }
 
 // first route node without feeders
-TEST_CASE("departure_at_scheduled_time1", "[distributions_calculator]") {
+TEST_CASE("departure_at_scheduled_time1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
@@ -238,12 +238,12 @@ TEST_CASE("departure_at_scheduled_time1", "[distributions_calculator]") {
 }
 
 // route node with feeders
-TEST_CASE("departure_at_scheduled_time2", "[distributions_calculator]") {}
+TEST_CASE("departure_at_scheduled_time2", "[calc_departure_distribution]") {}
 
-TEST_CASE("departure_within_waiting_interval", "[distributions_calculator]") {}
+TEST_CASE("departure_within_waiting_interval", "[calc_departure_distribution]") {}
 
 // first route node
-TEST_CASE("departure_after_waiting_interval1", "[distributions_calculator]") {
+TEST_CASE("departure_after_waiting_interval1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
@@ -265,10 +265,10 @@ TEST_CASE("departure_after_waiting_interval1", "[distributions_calculator]") {
 }
 
 // route node with preceding arrival
-TEST_CASE("departure_after_waiting_interval2", "[distributions_calculator]") {}
+TEST_CASE("departure_after_waiting_interval2", "[calc_departure_distribution]") {}
 
 // first route node with no feeders
-TEST_CASE("compute_departure_distribution1", "[distributions_calculator]") {
+TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
