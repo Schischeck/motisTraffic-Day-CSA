@@ -62,6 +62,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     const light_connection* lc = std::get<0>(entry);
     const station_node* next_prev_station = std::get<1>(entry);
     const station_node* end_start_station = std::get<2>(entry);
+    bool outgoing = std::get<3>(entry);
     unsigned int route = std::get<4>(entry);
 
     std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
@@ -81,7 +82,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     TrainS t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateTimetableEntry(
-        b, b.CreateString(line_name), &t, b.CreateString(end_station_name), end_start_station->_id, true));
+        b, b.CreateString(line_name), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
