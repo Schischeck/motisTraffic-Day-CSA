@@ -40,7 +40,7 @@ struct transport {
 class test_schedule {
 public:
   test_schedule()
-      : _schedule(motis::load_schedule(
+      : _schedule(motis::loader::load_schedule(
             "../modules/realtime/test/test-schedule/motis")),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),

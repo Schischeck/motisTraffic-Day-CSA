@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "motis/core/common/array.h"
-#include "motis/core/common/deleter.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/time.h"
 
@@ -81,7 +80,7 @@ public:
     }
 
     if (_foot_node != nullptr) {
-      delete _foot_node.ptr();
+      delete _foot_node;
     }
   }
 
@@ -136,6 +135,6 @@ public:
   node* _foot_node;
 };
 
-typedef std::unique_ptr<station_node, deleter<station_node>> station_node_ptr;
+typedef std::unique_ptr<station_node> station_node_ptr;
 
 }  // namespace motis

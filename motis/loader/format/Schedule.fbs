@@ -1,10 +1,10 @@
-namespace motis.loader;
-
 include "Train.fbs";
 include "Station.fbs";
 include "Route.fbs";
 include "Platform.fbs";
-include "Attribute.fbs"
+include "subfolder/Attribute.fbs";
+
+namespace motis.loader;
 
 table Schedule {
   trains : [Train];
@@ -13,3 +13,5 @@ table Schedule {
   platforms: [Platform];
   routes: [Route];
 }
+
+root_type Schedule;

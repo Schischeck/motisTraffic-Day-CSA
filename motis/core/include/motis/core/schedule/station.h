@@ -6,7 +6,6 @@
 #include <array>
 
 #include "motis/core/common/array.h"
-#include "motis/core/common/deleter.h"
 
 namespace motis {
 
@@ -33,6 +32,6 @@ public:
   int get_transfer_time() const { return std::max(us_hoch, us_nieder); }
 };
 
-typedef std::unique_ptr<station, deleter<station>> station_ptr;
+typedef std::unique_ptr<station> station_ptr;
 
 }  // namespace motis

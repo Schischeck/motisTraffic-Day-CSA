@@ -8,8 +8,8 @@
 
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/price.h"
 #include "motis/core/common/logging.h"
-#include "motis/loader/graph_loader.h"
 
 #include "motis/realtime/graph_updater.h"
 #include "motis/realtime/realtime_schedule.h"
@@ -555,7 +555,7 @@ modified_train* graph_updater::make_modified_train(
     delay_info* arr_di =
         _rts._delay_info_manager.get_delay_info(original_arrival);
 
-    const motis::connection* full_con = lc->_full_con.ptr();
+    const motis::connection* full_con = lc->_full_con;
 
     mt->_original_events.emplace_back(original_departure, full_con,
                                       has_entering_edge(route_node),
@@ -725,17 +725,17 @@ void graph_updater::adjust_train(modified_train* mt,
           // this connection object is only used for this single
           // light_connection, so we can safely modify it without
           // affecting other trains.
-          con = const_cast<connection*>(lc._full_con.ptr());
+          con = const_cast<connection*>(lc._full_con);
           con->con_info = mt->_connection_info;
           con->clasz = mt->_clasz;
         }
       }
       if (update_full_con) {
         con->price =
-            motis::graph_loader::get_distance(
+            get_distance(
                 *_rts._schedule.stations[departure_event._station_index].get(),
                 *_rts._schedule.stations[new_event._station_index].get()) *
-            motis::graph_loader::get_price_per_km(mt->_clasz);
+            get_price_per_km(mt->_clasz);
       }
     }
 
@@ -964,7 +964,7 @@ void graph_updater::remove_incoming_edges(motis::node* node) {
       motis::node* target = e._to;
       assert(e._from == node);
       for (auto& ie : target->_incoming_edges) {
-        if (ie.ptr() == &e) {
+        if (ie == &e) {
           target->_incoming_edges.erase(&ie);
           break;
         }

@@ -1,7 +1,8 @@
-namespace motis.loader;
-
 include "Route.fbs";
-include "Section.fbs"
+include "Section.fbs";
+include "Platform.fbs";
+
+namespace motis.loader;
 
 table Train {
   route : Route;

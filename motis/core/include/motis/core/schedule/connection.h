@@ -34,8 +34,8 @@ public:
            family == o.family && train_nr == o.train_nr && service == o.service;
   }
 
-  std::tuple<array<int>, string, uint32_t, uint32_t, uint32_t> as_tuple()
-      const {
+  std::tuple<std::vector<int>, std::string, uint32_t, uint32_t, uint32_t>
+  as_tuple() const {
     return std::make_tuple(attributes, line_identifier, family, train_nr,
                            service);
   }
@@ -50,10 +50,10 @@ public:
 class connection {
 public:
   connection()
-      : con_info_id(0), price(0), d_platform(0), a_platform(0), clasz(0) {}
+      : con_info(nullptr), price(0), d_platform(0), a_platform(0), clasz(0) {}
 
   bool operator==(connection const& o) const {
-    return clasz == o.clasz && price == o.price && con_info_id == o.con_info_id;
+    return clasz == o.clasz && price == o.price && con_info == o.con_info;
   }
 
   connection_info const* con_info;

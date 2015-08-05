@@ -74,7 +74,7 @@ void waiting_edges::create_waiting_edges() {
       bool found_exit_edge = false;
       for (const motis::edge& check_edge : route_node->_edges) {
         if (check_edge.type() == motis::edge::FOOT_EDGE &&
-            check_edge._to.ptr() == station_node.get()) {
+            check_edge._to == station_node.get()) {
           found_exit_edge = true;
           break;
         }

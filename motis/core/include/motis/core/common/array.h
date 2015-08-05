@@ -140,7 +140,7 @@ struct array final {
     reserve(range_size);
 
     auto copy_source = begin_it;
-    auto copy_target = _el.ptr();
+    auto copy_target = _el;
     for (; copy_source != end_it; ++copy_source, ++copy_target) {
       new (copy_target) T(*copy_source);
     }
@@ -218,7 +218,7 @@ struct array final {
     return end();
   }
 
-  std::string to_string() const { return std::string(_el._ptr); }
+  std::string to_string() const { return std::string(_el); }
 
   operator std::string() const { return to_string(); }
 
@@ -314,11 +314,11 @@ inline std::ostream& operator<<(std::ostream& out, offset_string const& a) {
 }
 
 inline std::string operator+(std::string& str, string const& a) {
-  return str + a._el._ptr;
+  return str + a._el;
 }
 
 inline std::string& operator+=(std::string& str, string const& a) {
-  return str += a._el._ptr;
+  return str += a._el;
 }
 
 inline void getline(std::istream& in, string& s, char delim) {
