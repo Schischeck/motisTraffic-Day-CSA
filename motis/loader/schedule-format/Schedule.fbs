@@ -2,7 +2,7 @@ include "Train.fbs";
 include "Station.fbs";
 include "Route.fbs";
 include "Platform.fbs";
-include "subfolder/Attribute.fbs";
+include "Attribute.fbs";
 
 namespace motis.loader;
 
