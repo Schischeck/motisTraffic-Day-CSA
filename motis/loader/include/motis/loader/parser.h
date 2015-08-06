@@ -1,6 +1,17 @@
 #pragma once
 
+#include <string>
+
+#define SCHEDULE_FILE ("schedule.bin")
+
+namespace motis {
+namespace loader {
+
 struct parser {
-  virtual void std::vector<station> stations() = 0;
-  virtual void std::vector<station_node> station_nodes();
+  virtual ~parser(){};
+  virtual bool applicable(std::string const& path) = 0;
+  virtual void parse(std::string const& path) = 0;
 };
+
+}  // namespace loader
+}  // namespace motis

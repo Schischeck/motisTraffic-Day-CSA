@@ -31,6 +31,7 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib)  # catch library
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
+include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)

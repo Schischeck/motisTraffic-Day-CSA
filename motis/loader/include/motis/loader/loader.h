@@ -5,7 +5,7 @@
 namespace motis {
 namespace loader {
 
-inline schedule_ptr load_schedule(std::string const&) { return {}; }
+schedule_ptr load_schedule(std::string const&);
 
 }  // namespace loader
 }  // namespace motis
