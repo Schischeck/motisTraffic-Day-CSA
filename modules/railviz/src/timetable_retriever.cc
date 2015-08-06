@@ -292,6 +292,8 @@ std::vector<unsigned int> timetable_retriever::routes_at_station(
   for (auto const* node : station.get_incoming_route_nodes()) {
     if (node->_route > 0) route_ids.push_back(node->_route);
   }
+
+  return route_ids;
 }
 
 std::vector<motis::time> timetable_retriever::get_route_departure_times(
