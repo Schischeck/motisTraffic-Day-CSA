@@ -20,8 +20,7 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   // container delivering the departure distribution 0.8, 0.2
-  train_distributions_test_container train_distributions({0.8, 0.2},
-                                                         schedule->node_count);
+  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
   tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
 
   // route node at Frankfurt of train ICE_FR_DA_H

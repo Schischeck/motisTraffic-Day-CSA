@@ -8,6 +8,8 @@
 #include "motis/reliability/pd_calc_data_departure.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
 #include "motis/reliability/train_distributions.h"
+
+#include "include/train_distributions_test_container.h"
 #include "include/tt_distributions_test_manager.h"
 
 using namespace motis;
@@ -17,7 +19,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container* train_distributions = nullptr;
+  train_distributions_container dummy(0);
   tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -28,7 +30,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, *train_distributions, tt_distributions);
+                              *schedule, dummy, tt_distributions);
 
   REQUIRE(data.route_node_._id == 15);
   REQUIRE(data.route_node_._station_node->_id == 2);
@@ -52,7 +54,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container train_distributions(schedule->node_count);
+  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
   tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -65,9 +67,9 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  /*pd_calc_data_departure data(*second_route_node, light_connection, false,
+  pd_calc_data_departure data(*second_route_node, light_connection, false,
                               *schedule, train_distributions, tt_distributions);
-  data.debug_output(std::cout);*/
+  data.debug_output(std::cout);
 }
 
 TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {

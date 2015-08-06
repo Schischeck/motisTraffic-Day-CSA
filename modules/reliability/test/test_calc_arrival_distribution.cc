@@ -46,8 +46,7 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   // container delivering the departure distribution 0.8, 0.2
-  train_distributions_test_container train_distributions({0.8, 0.2},
-                                                         schedule->node_count);
+  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
   tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -73,4 +72,38 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
   REQUIRE(
       equal(arrival_distribution.probability_equal(1), 0.8 * 0.2 + 0.2 * 0.7));
   REQUIRE(equal(arrival_distribution.probability_equal(2), 0.2 * 0.2));
+}
+
+/* sum lower than 1.0 */
+TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  // container delivering the departure distribution 0.8, 0.2
+  train_distributions_test_container train_distributions({0.7, 0.15}, 0);
+  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& second_route_node = *first_route_edge->_to;
+
+  pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
+                            train_distributions, tt_distributions);
+  probability_distribution arrival_distribution;
+
+  compute_arrival_distribution(data, arrival_distribution);
+
+  REQUIRE(arrival_distribution.first_minute() == -1);
+  REQUIRE(arrival_distribution.last_minute() == 2);
+  REQUIRE(equal(arrival_distribution.sum(), 0.85));
+  REQUIRE(equal(arrival_distribution.probability_equal(-1), 0.7 * 0.1));
+  REQUIRE(
+      equal(arrival_distribution.probability_equal(0), 0.7 * 0.7 + 0.15 * 0.1));
+  REQUIRE(
+      equal(arrival_distribution.probability_equal(1), 0.7 * 0.2 + 0.15 * 0.7));
+  REQUIRE(equal(arrival_distribution.probability_equal(2), 0.15 * 0.2));
 }

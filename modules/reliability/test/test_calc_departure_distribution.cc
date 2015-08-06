@@ -220,7 +220,7 @@ TEST_CASE("departure_at_scheduled_time1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container const* const train_distributions = nullptr;
+  train_distributions_container dummy(0);
   tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -231,7 +231,7 @@ TEST_CASE("departure_at_scheduled_time1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, *train_distributions, tt_distributions);
+                              *schedule, dummy, tt_distributions);
 
   REQUIRE(equal(departure_at_scheduled_time(data), 0.6));
 }
@@ -246,7 +246,7 @@ TEST_CASE("departure_after_waiting_interval1", "[calc_departure_distribution]") 
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container const* const train_distributions = nullptr;
+  train_distributions_container dummy(0);
   tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -257,7 +257,7 @@ TEST_CASE("departure_after_waiting_interval1", "[calc_departure_distribution]") 
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, *train_distributions, tt_distributions);
+                              *schedule, dummy, tt_distributions);
 
   REQUIRE(equal(departure_after_waiting_interval(data, 5 * 60 + 56), 0.4));
 }
@@ -270,7 +270,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container const* const train_distributions = nullptr;
+  train_distributions_container dummy(0);
   tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -281,7 +281,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, *train_distributions, tt_distributions);
+                              *schedule, dummy, tt_distributions);
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 
