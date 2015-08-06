@@ -5,7 +5,7 @@ set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/protocol")
 set(resource-header "${generated-headers-dir}/resources.h")
 compile_flatbuffers_to_resource_header("${CMAKE_SOURCE_DIR}/protocol/Message.fbs" "${resource-header}")
 
-file(GLOB_RECURSE protocol-files protocol/*.fbs)
+file(GLOB_RECURSE protocol-files ${CMAKE_SOURCE_DIR}/protocol/*.fbs)
 compile_flatbuffers_schema_to_cpp(${generated-headers-dir} generated-headers ${protocol-files})
 
 file(GLOB_RECURSE motis-module-files src/*.cc)
