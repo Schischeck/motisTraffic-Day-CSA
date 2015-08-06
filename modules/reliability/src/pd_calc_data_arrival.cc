@@ -14,13 +14,16 @@ namespace reliability {
 
 pd_calc_data_arrival::pd_calc_data_arrival(
     node const& route_node, light_connection const& light_connection,
-    schedule const& schedule,
+    schedule const& schedule,  // XXX only category_names required?!
     train_distributions_container const& distributions_container,
     tt_distributions_manager const& tt_dist_manager)
     : route_node_(route_node), light_connection_(light_connection) {
+  init_departure_info(distributions_container);
+  init_travel_time_info(schedule.category_names, tt_dist_manager);
+}
 
-  /* departure info */
-
+void pd_calc_data_arrival::init_departure_info(
+    train_distributions_container const& distributions_container) {
   unsigned int route_node_id = 0;
   unsigned int distribution_pos = 0;
   std::tie(route_node_id, distribution_pos) =
@@ -31,20 +34,19 @@ pd_calc_data_arrival::pd_calc_data_arrival(
           route_node_id, distribution_pos,
           train_distributions_container::departure);
   departure_info_.scheduled_departure_time_ = light_connection_.d_time;
+}
 
-  /* travel time distribution */
-
+void pd_calc_data_arrival::init_travel_time_info(
+    std::vector<std::string> const& category_names,
+    tt_distributions_manager const& tt_dist_manager) {
   auto const& train_category =
-      schedule.category_names[light_connection_._full_con->con_info->family];
+      category_names[light_connection_._full_con->con_info->family];
   duration const travel_duration =
       std::min(get_scheduled_travel_duration(),
                (duration)(tt_dist_manager.longest_travel_time_ - 1));
-  std::tie(travel_time_info_.travel_time_distributions, /* XXX vector copy*/
-           travel_time_info_.max_departure_delay_,
-           travel_time_info_.min_travel_delay_,
-           travel_time_info_.max_travel_delay_) =
-      tt_dist_manager.get_travel_time_distributions(train_category,
-                                                    travel_duration);
+
+  travel_time_info_ = &tt_dist_manager.get_travel_time_distributions(
+      train_category, travel_duration);
 }
 
 time pd_calc_data_arrival::get_scheduled_arrival_time_() const {
@@ -54,13 +56,6 @@ time pd_calc_data_arrival::get_scheduled_arrival_time_() const {
 duration pd_calc_data_arrival::get_scheduled_travel_duration() const {
   return get_scheduled_arrival_time_() -
          departure_info_.scheduled_departure_time_;
-}
-
-probability_distribution const&
-pd_calc_data_arrival::travel_time_info::get_travel_time_distribution(
-    unsigned int departure_delay) const {
-  return travel_time_distributions[std::min(departure_delay,
-                                            max_departure_delay_ - 1)];
 }
 
 void pd_calc_data_arrival::debug_output(std::ostream& os) const {

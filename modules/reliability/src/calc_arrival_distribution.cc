@@ -2,6 +2,7 @@
 
 #include "motis/reliability/calc_arrival_distribution.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
+#include "motis/reliability/tt_distributions_manager.h"
 
 namespace motis {
 namespace reliability {
@@ -18,9 +19,9 @@ void compute_arrival_distribution(
   data.departure_info_.distribution_->get_probabilities(dep_dist);
 
   int const first_minute = data.departure_info_.distribution_->first_minute() +
-                           data.travel_time_info_.min_travel_delay_;
+                           data.travel_time_info_->min_travel_delay_;
   int const last_minute = data.departure_info_.distribution_->last_minute() +
-                          data.travel_time_info_.max_travel_delay_;
+                          data.travel_time_info_->max_travel_delay_;
 
   // This step is a "convolution" of the departure distribution
   // with the travel time distributions. For each arrival delay,
@@ -37,7 +38,7 @@ void compute_arrival_distribution(
           dep_prob_idx;
       int const travel_time_delay = arr_delay - dep_delay;
       auto const& travel_time_dist =
-          data.travel_time_info_.get_travel_time_distribution(dep_delay);
+          data.travel_time_info_->get_travel_time_distribution(dep_delay);
 
       if (travel_time_delay < travel_time_dist.first_minute() ||
           travel_time_delay > travel_time_dist.last_minute()) {

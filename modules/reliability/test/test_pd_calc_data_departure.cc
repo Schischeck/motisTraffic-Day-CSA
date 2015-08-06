@@ -17,9 +17,8 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container train_distributions(schedule->node_count);
-  tt_distributions_test_manager tt_distributions;
-  tt_distributions.initialize();
+  train_distributions_container* train_distributions = nullptr;
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -29,7 +28,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, train_distributions, tt_distributions);
+                              *schedule, *train_distributions, tt_distributions);
 
   REQUIRE(data.route_node_._id == 15);
   REQUIRE(data.route_node_._station_node->_id == 2);
@@ -54,8 +53,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_container train_distributions(schedule->node_count);
-  tt_distributions_test_manager tt_distributions;
-  tt_distributions.initialize();
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -77,8 +75,7 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_container train_distributions(schedule->node_count);
-  tt_distributions_test_manager tt_distributions;
-  tt_distributions.initialize();
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[0];
