@@ -13,6 +13,7 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/train_distributions.h"
 
+#include "include/train_distributions_test_container.h"
 #include "include/tt_distributions_test_manager.h"
 
 using namespace motis;
@@ -20,7 +21,8 @@ using namespace motis::reliability;
 using namespace motis::reliability::calc_departure_distribution;
 using namespace motis::reliability::calc_departure_distribution::detail;
 
-TEST_CASE("departure_independent_from_feeders", "[calc_departure_distribution]") {
+TEST_CASE("departure_independent_from_feeders",
+          "[calc_departure_distribution]") {
   std::vector<pd_calc_data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -64,6 +66,11 @@ TEST_CASE("departure_independent_from_feeders", "[calc_departure_distribution]")
   // and depends on the second feeder
   REQUIRE(equal(departure_independent_from_feeders(feeders, 16), 0.1 * 0.0));
 }
+
+// TODO
+TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {}
+// TODO
+TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {}
 
 TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
           "[calc_departure_distribution]") {
@@ -216,56 +223,6 @@ TEST_CASE("had_to_wait_for_feeders2", "[pd_calc_data_departure]") {
 }
 
 // first route node without feeders
-TEST_CASE("departure_at_scheduled_time1", "[calc_departure_distribution]") {
-  auto schedule =
-      load_text_schedule("../modules/reliability/resources/schedule/motis");
-
-  train_distributions_container dummy(0);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
-
-  // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
-  // route edge from Frankfurt to Darmstadt
-  auto const first_route_edge =
-      graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
-
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, tt_distributions);
-
-  REQUIRE(equal(departure_at_scheduled_time(data), 0.6));
-}
-
-// route node with feeders
-TEST_CASE("departure_at_scheduled_time2", "[calc_departure_distribution]") {}
-
-TEST_CASE("departure_within_waiting_interval", "[calc_departure_distribution]") {}
-
-// first route node
-TEST_CASE("departure_after_waiting_interval1", "[calc_departure_distribution]") {
-  auto schedule =
-      load_text_schedule("../modules/reliability/resources/schedule/motis");
-
-  train_distributions_container dummy(0);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
-
-  // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
-  // route edge from Frankfurt to Darmstadt
-  auto const first_route_edge =
-      graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
-
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, tt_distributions);
-
-  REQUIRE(equal(departure_after_waiting_interval(data, 5 * 60 + 56), 0.4));
-}
-
-// route node with preceding arrival
-TEST_CASE("departure_after_waiting_interval2", "[calc_departure_distribution]") {}
-
-// first route node with no feeders
 TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
@@ -291,3 +248,53 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   REQUIRE(equal(departure_distribution.probability_equal(0), 0.6));
   REQUIRE(equal(departure_distribution.probability_equal(1), 0.4));
 }
+
+// first route node with feeders
+TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  train_distributions_test_container train_distributions(
+      {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+
+  // route node at Darmstadt of train IC_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[0];
+  // route edge from Darmstadt to Heidelberg
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  // light connection d07:00 a07:28
+  auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
+
+  pd_calc_data_departure data(first_route_node, light_connection, true,
+                              *schedule, train_distributions, tt_distributions);
+
+  data.debug_output(std::cout);
+
+  probability_distribution departure_distribution;
+  compute_departure_distribution(data, departure_distribution);
+
+  /* Scheduled departure time: 07:00
+   * First Feeder:
+   *   feeder-arrival-time: 06:54, lfa: 06:58, transfer-time: 5
+   *   06:53=0.1, 06:54=0.4, 06:55=0.1, 06:56=0.1, 06:57=0.1, 06:58=0.1,
+   * 06:59=0.1
+   * The second feeder has to influence on this departure
+   */
+
+  /* [sum=1 first-min=0 last-min=3 values=0.42,0.38,0.1,0.1] */
+
+  REQUIRE(departure_distribution.first_minute() == 0);
+  REQUIRE(departure_distribution.last_minute() == 3);
+  REQUIRE(equal(departure_distribution.sum(), 1.0));
+  REQUIRE(equal(departure_distribution.probability_equal(0), 0.6 * 0.6)); // TODO: test train_early_enough (siehe oben)
+  REQUIRE(equal(departure_distribution.probability_equal(1), 0.4));
+  REQUIRE(equal(departure_distribution.probability_equal(2), 0.4));
+  REQUIRE(equal(departure_distribution.probability_equal(3), 0.4));
+}
+
+// route node with preceding arrival and without feeders
+TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {}
+
+// route node with preceding arrival and feeders
+TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {}

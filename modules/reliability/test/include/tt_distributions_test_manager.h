@@ -10,16 +10,9 @@ namespace motis {
 namespace reliability {
 
 struct tt_distributions_test_manager : tt_distributions_manager {
-
   tt_distributions_test_manager(
       std::vector<probability> const& start_probabilities) {
     start_distribution_.init(start_probabilities, 0);
-  }
-
-  probability_distribution const& get_start_distribution(
-      std::string const& train_category) const override {
-    (void)train_category;
-    return start_distribution_;
   }
 
   tt_distributions_test_manager(
@@ -35,6 +28,12 @@ struct tt_distributions_test_manager : tt_distributions_manager {
         std::unique_ptr<travel_distribution_info>(new travel_distribution_info(
             distributions, max_departure_delay, first_minute,
             (first_minute + traveltime_probabilities.size()) - 1));
+  }
+
+  probability_distribution const& get_start_distribution(
+      std::string const& train_category) const override {
+    (void)train_category;
+    return start_distribution_;
   }
 
   travel_distribution_info const& get_travel_time_distributions(
