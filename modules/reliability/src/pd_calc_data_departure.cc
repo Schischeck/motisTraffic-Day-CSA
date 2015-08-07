@@ -77,7 +77,7 @@ void pd_calc_data_departure::init_feeder_info(
     if (waiting_time > 0) {
       auto const transfer_time =
           schedule.stations[feeder_route_node->_station_node->_id]
-              ->get_transfer_time();
+              ->get_transfer_time();  // TODO: use track change time if possible
       time const latest_feasible_arrival =
           (light_connection_.d_time + waiting_time) - transfer_time;
 
@@ -103,22 +103,22 @@ time pd_calc_data_departure::scheduled_departure_time() const {
   return light_connection_.d_time;
 }
 
-duration pd_calc_data_departure::largest_delay(void) const {
+duration pd_calc_data_departure::largest_delay() const {
   duration maximum_train_delay = 0;
   if (is_first_route_node_) {
     maximum_train_delay =
-        light_connection_.d_time +
-        train_info_.first_departure_distribution->last_minute();
+        (duration)train_info_.first_departure_distribution->last_minute();
   } else {
-    maximum_train_delay = (train_info_.preceding_arrival_info_.arrival_time_ +
-                           train_info_.preceding_arrival_info_
-                               .arrival_distribution_->last_minute() +
-                           train_info_.preceding_arrival_info_.min_standing_) -
-                          light_connection_.d_time;
+    time const latest_arrival =
+        train_info_.preceding_arrival_info_.arrival_time_ +
+        train_info_.preceding_arrival_info_.arrival_distribution_
+            ->last_minute() +
+        train_info_.preceding_arrival_info_.min_standing_;
+    maximum_train_delay = latest_arrival < light_connection_.d_time
+                              ? 0
+                              : latest_arrival - scheduled_departure_time();
   }
-
-  return std::max((duration)(maximum_train_delay - scheduled_departure_time()),
-                  maximum_waiting_time_);
+  return std::max(maximum_train_delay, maximum_waiting_time_);
 }
 
 void pd_calc_data_departure::debug_output(std::ostream& os) const {

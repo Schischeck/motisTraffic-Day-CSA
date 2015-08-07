@@ -59,6 +59,42 @@
       "evaNumber": "9335048",
       "ds100Code": "9335048",
       "KMInfo": 0
+    },
+    {
+      "name": "Hanau",
+      "tracks": 2,
+      "latitude": 50.149,
+      "longitude": 8.914999999999964,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 1,
+      "evaNumber": "7492229",
+      "ds100Code": "7492229",
+      "KMInfo": 0
+    },
+    {
+      "name": "Würzburg",
+      "tracks": 2,
+      "latitude": 49.803,
+      "longitude": 9.909999999999968,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 1,
+      "evaNumber": "0064254",
+      "ds100Code": "0064254",
+      "KMInfo": 0
+    },
+    {
+      "name": "Heilbronn",
+      "tracks": 2,
+      "latitude": 49.185,
+      "longitude": 9.240000000000009,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 1,
+      "evaNumber": "1427540",
+      "ds100Code": "1427540",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -267,6 +303,54 @@
           "fromTime": "05:55:00.000",
           "untilTime": "23:10:00.000",
           "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "ICE_HA_W_HE",
+      "category": "ICE",
+      "evaNumber": "4452549",
+      "trainNumber": 4452549,
+      "stations": [
+        {
+          "station": "7492229",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0064254",
+          "arrival": 32,
+          "departure": 34,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1427540",
+          "arrival": 67,
+          "departure": 69,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
+          "interval": 1
         }
       ]
     }

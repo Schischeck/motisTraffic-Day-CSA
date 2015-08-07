@@ -45,7 +45,6 @@ struct tt_distributions_test_manager : tt_distributions_manager {
     return *travel_distribution_;
   }
 
-private:
   probability_distribution start_distribution_;
 
   std::unique_ptr<travel_distribution_info> travel_distribution_;

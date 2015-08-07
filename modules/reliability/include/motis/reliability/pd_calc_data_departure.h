@@ -31,7 +31,7 @@ struct pd_calc_data_departure {
 
   time scheduled_departure_time() const;
 
-  duration largest_delay(void) const;
+  duration largest_delay() const;
 
   void debug_output(std::ostream& os) const;
 

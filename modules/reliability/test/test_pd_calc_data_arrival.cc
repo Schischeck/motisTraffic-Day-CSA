@@ -46,6 +46,9 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   REQUIRE(equal(data.departure_info_.distribution_->probability_equal(0), 0.8));
   REQUIRE(equal(data.departure_info_.distribution_->probability_equal(1), 0.2));
 
+  REQUIRE(data.travel_time_info_ ==
+          tt_distributions.travel_distribution_.get());
+
   for (unsigned int dep_delay = 0; dep_delay <= 1; dep_delay++) {
     auto const& distribution =
         data.travel_time_info_->get_travel_time_distribution(dep_delay);
@@ -58,5 +61,72 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   }
 }
 
-// TODO: test train_category and travel-duration when accessing
-// travel-time-distributions
+TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  struct train_distributions_test2_container : train_distributions_container {
+    train_distributions_test2_container() : train_distributions_container(0) {}
+    virtual probability_distribution const& get_train_distribution(
+        unsigned int const route_node_idx, unsigned int const light_conn_idx,
+        type const t) const {
+      if (route_node_idx == 18 && light_conn_idx == 1 && t == departure)
+        return train;
+      return fail;
+    }
+    probability_distribution train;
+    probability_distribution fail;
+  } train_distributions;
+
+  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto departure_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const route_edge =
+      graph_accessor::get_departing_route_edge(departure_route_node);
+  // get the second light connection
+  auto const& light_connection = route_edge->_m._route_edge._conns[1];
+  // route node at Darmstadt
+  auto const& arrival_route_node = *route_edge->_to;
+
+  pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
+                            train_distributions, tt_distributions);
+
+  REQUIRE(departure_route_node._id == 18);
+  REQUIRE(data.departure_info_.distribution_ == &train_distributions.train);
+}
+
+TEST_CASE("test tt_distributions", "[pd_calc_data_arrival]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  struct tt_distributions_test2_manager : tt_distributions_manager {
+
+    travel_distribution_info const& get_travel_time_distributions(
+        std::string const& train_category,
+        duration const travel_time) const override {
+      if (train_category == "ICE" && travel_time == 10) return distribution;
+      return fail;
+    }
+    travel_distribution_info distribution;
+    travel_distribution_info fail;
+  } tt_distributions;
+
+  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
+
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto departure_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const route_edge =
+      graph_accessor::get_departing_route_edge(departure_route_node);
+  // get the second light connection
+  auto const& light_connection = route_edge->_m._route_edge._conns[1];
+  // route node at Darmstadt
+  auto const& arrival_route_node = *route_edge->_to;
+
+  pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
+                            train_distributions, tt_distributions);
+
+  REQUIRE(data.travel_time_info_ == &tt_distributions.distribution);
+}
