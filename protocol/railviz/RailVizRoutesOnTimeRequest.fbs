@@ -1,10 +1,6 @@
 namespace motis.railviz;
  
-struct RouteIdAndTime {
+table RailVizRoutesOnTimeRequest {
   route_id: uint;
-  time: ushort;
-}
-
-table RailVizInit {
-  route_and_time: RouteIdAndTime;
+  time: ulong;
 }
