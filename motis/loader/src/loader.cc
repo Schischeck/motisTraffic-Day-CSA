@@ -1,11 +1,12 @@
 #include "motis/loader/loader.h"
 
+#include <memory>
+#include <vector>
+
 #include "boost/filesystem.hpp"
 
 #include "motis/loader/parsers/gtfs/gtfs_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
-
-#include <memory>
 
 namespace fs = boost::filesystem;
 

@@ -5,8 +5,8 @@ namespace loader {
 namespace hrd {
 
 struct hrd_parser : public parser {
-  virtual bool applicable(std::string const& path) override;
-  virtual void parse(std::string const& path) override;
+  virtual bool applicable(boost::filesystem::path const& path) override;
+  virtual void parse(boost::filesystem::path const& path) override;
 };
 
 }  // namespace hrd
