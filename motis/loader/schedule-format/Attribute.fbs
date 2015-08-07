@@ -1,6 +1,6 @@
 namespace motis.loader;
 
 table Attribute {
-  name : string;
   code : string;
+  text : string;
 }

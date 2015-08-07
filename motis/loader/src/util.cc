@@ -10,7 +10,7 @@ using namespace parser;
 namespace motis {
 namespace loader {
 
-void write_schedule(FlatBufferBuilder& b, std::string const& path) {
+void write_schedule(FlatBufferBuilder& b, boost::filesystem::path const& path) {
   file f(path.c_str(), "rw");
   f.write(b.GetBufferPointer(), b.GetSize());
 }

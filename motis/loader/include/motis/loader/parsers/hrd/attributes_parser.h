@@ -10,8 +10,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-std::vector<Offset<Attribute>> parse_attributes(flatbuffers::FlatBufferBuilder&,
-                                                boost::filesystem::path const&);
+std::vector<flatbuffers::Offset<Attribute>> parse_attributes(
+    flatbuffers::FlatBufferBuilder&, boost::filesystem::path const&);
 
 }  // hrd
 }  // loader

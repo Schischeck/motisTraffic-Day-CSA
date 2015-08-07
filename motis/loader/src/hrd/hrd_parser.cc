@@ -7,6 +7,7 @@
 
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
@@ -22,7 +23,6 @@ bool hrd_parser::applicable(fs::path const& path) {
   }
 
   std::vector<std::string> file_names = {HRD_ATTRIBUTES};
-
   for (auto const& file_name : file_names) {
     if (!fs::is_regular_file(path / "stamm" / file_name)) {
       return false;
@@ -32,20 +32,12 @@ bool hrd_parser::applicable(fs::path const& path) {
   return true;
 }
 
-/*
- * TODO(tobias) remove / implement
-std::vector<Offset<Train>> read_trains(FlatBufferBuilder& b,
-                                       boost::filesystem::path const& path) {
-  std::vector<Offset<Train>> trains;
-  trains.push_back(CreateTrain(b, )) return trains;
-}
-*/
-
 void hrd_parser::parse(fs::path const& path) {
   FlatBufferBuilder b;
+  auto attributes = parse_attributes(b, path);
 
   // TODO(tobias) remove / implement
-  // CreateSchedule(b, b.CreateVector(reat_trains(b, path)));
+  // CreateSchedule(b, b.CreateVector(read_trains(b, path)));
 
   write_schedule(b, path);
 }
