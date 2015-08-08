@@ -6,7 +6,6 @@ include "railviz/RailVizStationDetailRequest.fbs";
 include "railviz/RailVizAllTrainsRequest.fbs";
 include "railviz/RailVizAllTrainsResponse.fbs";
 include "railviz/RailVizRoutesOnTimeRequest.fbs";
-include "railviz/RailVizRoutesOnTimeResponse.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 
@@ -37,7 +36,6 @@ union MsgContent {
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
   motis.railviz.RailVizRoutesOnTimeRequest,
-  motis.railviz.RailVizRoutesOnTimeResponse,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse
 }
