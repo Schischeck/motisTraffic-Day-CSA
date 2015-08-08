@@ -18,4 +18,4 @@
 	url = https://github.com/felixguendling/guess.git
 [submodule "external_lib/parser"]
 	path = external_lib/parser
-	url = git@github.com:felixguendling/parser.git
+	url = https://github.com/felixguendling/parser.git
