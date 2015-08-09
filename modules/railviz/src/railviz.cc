@@ -14,6 +14,7 @@
 #include "motis/protocol/RailVizAllTrainsRequest_generated.h"
 #include "motis/protocol/RailVizAllTrainsResponse_generated.h"
 #include "motis/protocol/RailVizRoutesOnTimeRequest_generated.h"
+#include "motis/protocol/RailVizRoutesOnTimeResponse_generated.h"
 
 #include "motis/railviz/train_retriever.h"
 #include "motis/railviz/error.h"
@@ -150,8 +151,9 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
     // should we make this?
     client.time = req->time();
 
-    std::vector<route> routes = timetable_retriever_.get_routes_on_time(req->route_id(),
-                                                                         date_converter_.convert_to_motis(client.time));
+    auto motis_time = date_converter_.convert_to_motis(client.time);
+
+    std::vector<route> routes = timetable_retriever_.get_routes_on_time(req->route_id, motis_time);
 
     flatbuffers::FlatBufferBuilder b;
 
