@@ -4,7 +4,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct hrd_parser : public parser {
+struct hrd_parser : public format_parser {
   virtual bool applicable(boost::filesystem::path const& path) override;
   virtual void parse(boost::filesystem::path const& path) override;
 };

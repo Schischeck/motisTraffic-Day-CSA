@@ -13,8 +13,8 @@ namespace fs = boost::filesystem;
 namespace motis {
 namespace loader {
 
-std::vector<std::unique_ptr<parser>> parsers() {
-  std::vector<std::unique_ptr<parser>> p;
+std::vector<std::unique_ptr<format_parser>> parsers() {
+  std::vector<std::unique_ptr<format_parser>> p;
   p.emplace_back(new gtfs::gtfs_parser());
   p.emplace_back(new hrd::hrd_parser());
   return p;

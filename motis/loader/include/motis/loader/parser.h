@@ -7,8 +7,8 @@
 namespace motis {
 namespace loader {
 
-struct parser {
-  virtual ~parser(){};
+struct format_parser {
+  virtual ~format_parser(){};
   virtual bool applicable(boost::filesystem::path const& path) = 0;
   virtual void parse(boost::filesystem::path const& path) = 0;
 };

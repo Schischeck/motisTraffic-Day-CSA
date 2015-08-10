@@ -3,16 +3,14 @@
 #include "parser/file.h"
 #include "parser/cstr.h"
 
+#include "motis/loader/util.h"
+
 using namespace parser;
 using namespace flatbuffers;
 
 namespace motis {
 namespace loader {
 namespace hrd {
-
-Offset<String> to_fbs_string(FlatBufferBuilder& b, cstr s) {
-  return b.CreateString(s.str, s.len);
-}
 
 std::vector<Offset<Attribute>> parse_attributes(
     FlatBufferBuilder& b, boost::filesystem::path const& path) {

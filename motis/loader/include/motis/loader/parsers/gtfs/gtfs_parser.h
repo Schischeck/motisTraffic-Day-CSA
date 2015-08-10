@@ -4,7 +4,7 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-struct gtfs_parser : public parser {
+struct gtfs_parser : public format_parser {
   virtual bool applicable(boost::filesystem::path const& path) override;
   virtual void parse(boost::filesystem::path const& path) override;
 };
