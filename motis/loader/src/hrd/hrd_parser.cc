@@ -5,6 +5,8 @@
 
 #include "boost/filesystem.hpp"
 
+#include "parser/file.h"
+
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
@@ -34,7 +36,10 @@ bool hrd_parser::applicable(fs::path const& path) {
 
 void hrd_parser::parse(fs::path const& path) {
   FlatBufferBuilder b;
-  auto attributes = parse_attributes(b, path);
+
+  auto buf = parser::file(path.c_str(), "ro").content();
+  auto attributes =
+      parse_attributes(b, {static_cast<char const*>(buf.buf_), buf.size_});
 
   // TODO(tobias) remove / implement
   // CreateSchedule(b, b.CreateVector(read_trains(b, path)));

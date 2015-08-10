@@ -11,3 +11,8 @@ target_link_libraries(motis-loader ${Boost_FILESYSTEM_LIBRARY})
 if (NOT MSVC)
   set_target_properties(motis-loader PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
 endif()
+
+file(GLOB_RECURSE motis-loader-test-files test/*.cc)
+add_executable(motis-loader-test EXCLUDE_FROM_ALL ${motis-loader-test-files})
+set_target_properties(motis-loader-test PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
+target_link_libraries(motis-loader-test ${Boost_SYSTEM_LIBRARY} motis-loader)

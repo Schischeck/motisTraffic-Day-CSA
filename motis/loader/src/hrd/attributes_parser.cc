@@ -14,8 +14,6 @@ namespace hrd {
 
 std::vector<Offset<Attribute>> parse_attributes(FlatBufferBuilder& b,
                                                 cstr file_content) {
-  // auto buf = file(path.c_str(), "ro").content();
-
   std::vector<Offset<Attribute>> attributes;
   for_each_line(file_content, [&](cstr line) {
     if (line.len < 13) {
