@@ -2,7 +2,6 @@ namespace motis.loader;
 
 table Station {
   name : string;
-  index : int;
   eva : int;
   lat : double;
   lng : double;

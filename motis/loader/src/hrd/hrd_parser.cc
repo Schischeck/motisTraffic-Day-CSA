@@ -24,7 +24,7 @@ bool hrd_parser::applicable(fs::path const& path) {
     return false;
   }
 
-  std::vector<std::string> file_names = {HRD_ATTRIBUTES};
+  std::vector<std::string> file_names = {ATTRIBUTES_FILE};
   for (auto const& file_name : file_names) {
     if (!fs::is_regular_file(path / "stamm" / file_name)) {
       return false;
@@ -38,8 +38,8 @@ void hrd_parser::parse(fs::path const& path) {
   FlatBufferBuilder b;
 
   auto buf = parser::file(path.c_str(), "ro").content();
-  auto attributes =
-      parse_attributes(b, {static_cast<char const*>(buf.buf_), buf.size_});
+  auto attributes = parse_attributes(
+      {ATTRIBUTES_FILE, {static_cast<char const*>(buf.buf_), buf.size_}}, b);
 
   // TODO(tobias) remove / implement
   // CreateSchedule(b, b.CreateVector(read_trains(b, path)));

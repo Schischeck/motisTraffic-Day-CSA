@@ -53,8 +53,8 @@ std::vector<Offset<Station>> read_stations(fs::path const& path,
   auto stops = read_file<stop>(path / STOPS_FILE, stop_columns);
   for (auto const& stop : stops) {
     stations.push_back(CreateStation(b, to_fbs_string(b, get<stop_name>(stop)),
-                                     get<stop_id>(stop), get<stop_id>(stop),
-                                     get<stop_lat>(stop), get<stop_lon>(stop)));
+                                     get<stop_id>(stop), get<stop_lat>(stop),
+                                     get<stop_lon>(stop)));
   }
   return stations;
 }
