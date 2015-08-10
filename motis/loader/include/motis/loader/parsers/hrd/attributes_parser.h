@@ -11,7 +11,7 @@ namespace loader {
 namespace hrd {
 
 std::vector<flatbuffers::Offset<Attribute>> parse_attributes(
-    flatbuffers::FlatBufferBuilder&, boost::filesystem::path const&);
+    flatbuffers::FlatBufferBuilder&, cstr);
 
 }  // hrd
 }  // loader
