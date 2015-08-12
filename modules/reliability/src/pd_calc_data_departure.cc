@@ -138,7 +138,7 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
   } else {
     os << "\npreceding-arrival-time: "
        << format_time(train_info_.preceding_arrival_info_.arrival_time_)
-       << " min-stanging: " << train_info_.preceding_arrival_info_.min_standing_
+       << " min-standing: " << train_info_.preceding_arrival_info_.min_standing_
        << "\npreceding-arrival-distribution: "
        << *train_info_.preceding_arrival_info_.arrival_distribution_;
   }

@@ -52,8 +52,8 @@ inline int timestamp_to_delay(time const& scheduled_time,
 
 inline bool equal(probability const& a, probability const& b) {
   // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-  return (a == b ||
-          std::abs(a - b) < std::numeric_limits<probability>::epsilon()
+  return (a == b || std::abs(a - b) < 0.000001
+          /*std::abs(a - b) < std::numeric_limits<probability>::epsilon()*/
           /* * std::abs(a + b) * 6*/);
 }
 

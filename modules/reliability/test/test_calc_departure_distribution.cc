@@ -67,10 +67,52 @@ TEST_CASE("departure_independent_from_feeders",
   REQUIRE(equal(departure_independent_from_feeders(feeders, 16), 0.1 * 0.0));
 }
 
-// TODO
-TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {}
-// TODO
-TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {}
+// first route node
+TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  train_distributions_container dummy(0);
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+
+  pd_calc_data_departure data(first_route_node, first_light_conn, true,
+                              *schedule, dummy, tt_distributions);
+  train_early_enough(data);
+
+  REQUIRE(equal(train_early_enough(data), 0.6));
+}
+
+// preceding arrival
+TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+
+  // route node at Hanau of train ICE_HA_W_HE
+  auto& first_route_node = *schedule->route_index_to_first_route_node[5];
+  // route node at Wuerzburg
+  auto second_route_node =
+      graph_accessor::get_departing_route_edge(first_route_node)->_to;
+  // route edge from Wuerzburg to Heilbronn
+  auto const route_edge =
+      graph_accessor::get_departing_route_edge(*second_route_node);
+  auto const& light_connection = route_edge->_m._route_edge._conns[0];
+
+  pd_calc_data_departure data(*second_route_node, light_connection, false,
+                              *schedule, train_distributions, tt_distributions);
+  train_early_enough(data);
+
+  REQUIRE(equal(train_early_enough(data), 0.8));
+}
 
 TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
           "[calc_departure_distribution]") {
@@ -266,35 +308,324 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
   // light connection d07:00 a07:28
   auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
 
-  pd_calc_data_departure data(first_route_node, light_connection, true,
-                              *schedule, train_distributions, tt_distributions);
-
-  data.debug_output(std::cout);
-
-  probability_distribution departure_distribution;
-  compute_departure_distribution(data, departure_distribution);
-
   /* Scheduled departure time: 07:00
    * First Feeder:
    *   feeder-arrival-time: 06:54, lfa: 06:58, transfer-time: 5
-   *   06:53=0.1, 06:54=0.4, 06:55=0.1, 06:56=0.1, 06:57=0.1, 06:58=0.1,
-   * 06:59=0.1
-   * The second feeder has to influence on this departure
+   *   06:53=0.1, 06:54=0.4, 06:55=0.1, 06:56=0.1,
+   *   06:57=0.1, 06:58=0.1, 06:59=0.1
+   * The second feeder has no influence on this departure
    */
+  pd_calc_data_departure data(first_route_node, light_connection, true,
+                              *schedule, train_distributions, tt_distributions);
+
+  REQUIRE(
+      equal(train_arrives_at_time(data, data.scheduled_departure_time()), 0.6));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.4));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.0));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
+      0.6));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
+      1.0));
+
+  REQUIRE(equal(departure_independent_from_feeders(
+                    data.feeders_, data.scheduled_departure_time() + 1),
+                0.8));
+
+  probability_distribution departure_distribution;
+  compute_departure_distribution(data, departure_distribution);
 
   /* [sum=1 first-min=0 last-min=3 values=0.42,0.38,0.1,0.1] */
 
   REQUIRE(departure_distribution.first_minute() == 0);
   REQUIRE(departure_distribution.last_minute() == 3);
   REQUIRE(equal(departure_distribution.sum(), 1.0));
-  REQUIRE(equal(departure_distribution.probability_equal(0), 0.6 * 0.6)); // TODO: test train_early_enough (siehe oben)
-  REQUIRE(equal(departure_distribution.probability_equal(1), 0.4));
-  REQUIRE(equal(departure_distribution.probability_equal(2), 0.4));
-  REQUIRE(equal(departure_distribution.probability_equal(3), 0.4));
+  REQUIRE(equal(departure_distribution.probability_equal(0),
+                0.6 * (0.1 + 0.4 + 0.1 + 0.1)));
+  REQUIRE(equal(departure_distribution.probability_equal(1),
+                0.4 * (0.1 + 0.4 + 0.1 + 0.1 + 0.1) + 0.6 * 0.1));
+  REQUIRE(equal(departure_distribution.probability_equal(2), 0.1));
+  REQUIRE(equal(departure_distribution.probability_equal(3), 0.1));
 }
 
 // route node with preceding arrival and without feeders
-TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {}
+TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
+  tt_distributions_test_manager const* dummy = nullptr;
+
+  // route node at Hanau of train ICE_HA_W_HE
+  auto& first_route_node = *schedule->route_index_to_first_route_node[5];
+  // route node at Wuerzburg
+  auto second_route_node =
+      graph_accessor::get_departing_route_edge(first_route_node)->_to;
+  // route edge from Wuerzburg to Heilbronn
+  auto const route_edge =
+      graph_accessor::get_departing_route_edge(*second_route_node);
+  auto const& light_connection = route_edge->_m._route_edge._conns[0];
+
+  /* scheduled-departure-time: 10:34 largest-delay: 1 is-first-route-node: 0
+   * preceding-arrival-time: 10:32 min-standing: 2
+   * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
+   * no feeders. */
+  pd_calc_data_departure data(*second_route_node, light_connection, false,
+                              *schedule, train_distributions, *dummy);
+
+  REQUIRE(equal(train_early_enough(data), 0.8));
+  REQUIRE(
+      equal(train_arrives_at_time(data, data.scheduled_departure_time()), 0.7));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.2));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.0));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time()), 0.1));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
+      0.8));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
+      1.0));
+
+  probability_distribution departure_distribution;
+  compute_departure_distribution(data, departure_distribution);
+
+  /* [sum=1 first-min=0 last-min=1 values=0.8,0.2] */
+
+  REQUIRE(departure_distribution.first_minute() == 0);
+  REQUIRE(departure_distribution.last_minute() == 1);
+  REQUIRE(equal(departure_distribution.sum(), 1.0));
+  REQUIRE(equal(departure_distribution.probability_equal(0), 0.8));
+  REQUIRE(equal(departure_distribution.probability_equal(1), 0.2));
+}
 
 // route node with preceding arrival and feeders
-TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {}
+TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  std::vector<probability> values;
+  values.push_back(0.043);
+  for (unsigned int i = 0; i < 29; i++) {
+    values.push_back(0.033);
+  }
+
+  train_distributions_test_container train_distributions(values, 0);
+  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+
+  // route node at Darmstadt of train ICE_FR_DA_H
+  auto& route_node = *graph_accessor::get_departing_route_edge(
+                          *schedule->route_index_to_first_route_node[4])->_to;
+  auto const& light_connection = graph_accessor::get_departing_route_edge(
+                                     route_node)->_m._route_edge._conns[0];
+
+  /* scheduled-departure-time: 06:11 largest-delay: 3
+   * preceding-arrival-time: 06:05 min-standing: 2
+   * preceding-arrival-distribution: 06:05=0.043, 06:06=0.033, ..., 06:34=0.033
+   * Feeders:
+   * feeder-arrival-time: 05:41 lfa: 06:09 transfer-time: 5
+   * feeder-distribution: 05:41=0.043, 05:42=0.033, ..., 06:10=0.033
+   *
+   * feeder-arrival-time: 05:56 lfa: 06:09 transfer-time: 5
+   * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
+   */
+  pd_calc_data_departure data(route_node, light_connection, false, *schedule,
+                              train_distributions, tt_distributions);
+
+  std::vector<probability_distribution> modified_feeders_distributions;
+  detail::cut_minutes_after_latest_feasible_arrival(
+      data.feeders_, modified_feeders_distributions);
+
+  /* dep-dist: 0=0.142065, 1=0.0393849, 2=0.0439064, 3=0.0486436,
+     * 4=0.033, ..., 25=0.033 */
+  probability_distribution departure_distribution;
+  compute_departure_distribution(data, departure_distribution);
+
+  REQUIRE(departure_distribution.first_minute() == 0);
+  REQUIRE(departure_distribution.last_minute() == 25);
+  REQUIRE(equal(departure_distribution.sum(), 1.0));
+
+  /******************* minute 0 *******************/
+
+  REQUIRE(equal(train_early_enough(data), 0.043 + 4 * 0.033));
+  REQUIRE(equal(departure_independent_from_feeders(
+                    data.feeders_, data.scheduled_departure_time()),
+                (1.0 - 3 * (0.033)) * (1.0 - 3 * (0.033))));
+
+  // probability 0=0.142065
+  REQUIRE(equal(departure_distribution.probability_equal(0), 0.142065));
+  REQUIRE(equal(departure_distribution.probability_equal(0),
+                train_early_enough(data) *
+                    departure_independent_from_feeders(
+                        data.feeders_, data.scheduled_departure_time())));
+
+  /******************* minute 1 *******************/
+
+  REQUIRE(equal(departure_independent_from_feeders(
+                    data.feeders_, data.scheduled_departure_time() + 1),
+                (1.0 - 2 * (0.033)) * (1.0 - 2 * (0.033))));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.033));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
+      0.043 + 4 * 0.033));
+  {
+    // feeder1 = 06:07 * (feeder2 < 06:07 + feeder2 > 06:09)
+    probability const prob_feeder1 =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) *
+        (data.feeders_[1].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7)) +
+         data.feeders_[1].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+    // feeder2 = 06:07 * (feeder1 < 06:07 + feeder1 > 06:09)
+    probability const prob_feeder2 =
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7)) *
+        (data.feeders_[0].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) +
+         data.feeders_[0].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+    // feeder1 = 06:07 * feeder2 = 06:07
+    probability const prob_both_feeders =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) *
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7));
+
+    REQUIRE(equal(
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 1),
+        prob_feeder1 + prob_feeder2 + prob_both_feeders));
+  }
+
+  // probability 1=0.0393849
+  REQUIRE(equal(departure_distribution.probability_equal(1), 0.0393849));
+  REQUIRE(equal(
+      departure_distribution.probability_equal(1),
+      (departure_independent_from_feeders(data.feeders_,
+                                          data.scheduled_departure_time() + 1) *
+           train_arrives_at_time(data, data.scheduled_departure_time() + 1) +
+       (train_arrives_before_time(data, data.scheduled_departure_time() + 1) *
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 1)))));
+
+  /******************* minute 2 *******************/
+
+  REQUIRE(equal(departure_independent_from_feeders(
+                    data.feeders_, data.scheduled_departure_time() + 2),
+                (1.0 - 0.033) * (1.0 - 0.033)));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.033));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
+      0.043 + 5 * 0.033));
+
+  {
+    // feeder1 = 06:08 * (feeder2 < 06:08 + feeder2 > 06:09)
+    probability const prob_feeder1 =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) *
+        (data.feeders_[1].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8)) +
+         data.feeders_[1].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+    // feeder2 = 06:08 * (feeder1 < 06:08 + feeder1 > 06:09)
+    probability const prob_feeder2 =
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8)) *
+        (data.feeders_[0].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) +
+         data.feeders_[0].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+    // feeder1 = 06:08 * feeder2 = 06:08
+    probability const prob_both_feeders =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) *
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8));
+
+    REQUIRE(equal(
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 2),
+        prob_feeder1 + prob_feeder2 + prob_both_feeders));
+  }
+
+  // probability 2=0.0439064
+  REQUIRE(equal(departure_distribution.probability_equal(2), 0.0439064));
+  REQUIRE(equal(
+      departure_distribution.probability_equal(2),
+      (departure_independent_from_feeders(data.feeders_,
+                                          data.scheduled_departure_time() + 2) *
+           train_arrives_at_time(data, data.scheduled_departure_time() + 2) +
+       (train_arrives_before_time(data, data.scheduled_departure_time() + 2) *
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 2)))));
+
+  /******************* minute 3 *******************/
+
+  REQUIRE(equal(departure_independent_from_feeders(
+                    data.feeders_, data.scheduled_departure_time() + 3),
+                1.0));
+  REQUIRE(equal(
+      train_arrives_at_time(data, data.scheduled_departure_time() + 3), 0.033));
+  REQUIRE(equal(
+      train_arrives_before_time(data, data.scheduled_departure_time() + 3),
+      0.043 + 6 * 0.033));
+
+  {
+    // feeder1 = 06:09 * (feeder2 < 06:09 + feeder2 > 06:09)
+    probability const prob_feeder1 =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) *
+        (data.feeders_[1].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)) +
+         data.feeders_[1].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+    // feeder2 = 06:09 * (feeder1 < 06:09 + feeder1 > 06:09)
+    probability const prob_feeder2 =
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)) *
+        (data.feeders_[0].distribution_.probability_smaller(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) +
+         data.feeders_[0].distribution_.probability_greater(
+             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+    // feeder1 = 06:09 * feeder2 = 06:09
+    probability const prob_both_feeders =
+        data.feeders_[0].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) *
+        data.feeders_[1].distribution_.probability_equal(
+            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9));
+
+    REQUIRE(equal(
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 3),
+        prob_feeder1 + prob_feeder2 + prob_both_feeders));
+  }
+
+  // probability 3=0.0486436
+  REQUIRE(equal(departure_distribution.probability_equal(3), 0.0486436));
+  REQUIRE(equal(
+      departure_distribution.probability_equal(3),
+      (departure_independent_from_feeders(data.feeders_,
+                                          data.scheduled_departure_time() + 3) *
+           train_arrives_at_time(data, data.scheduled_departure_time() + 3) +
+       (train_arrives_before_time(data, data.scheduled_departure_time() + 3) *
+        had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                                data.scheduled_departure_time() + 3)))));
+
+
+  /******************* minutes 4-25 *******************/
+
+  for (unsigned int d = 4; d <= 25; d++) {
+    REQUIRE(
+        equal(train_arrives_at_time(data, data.scheduled_departure_time() + d),
+              0.033));
+    REQUIRE(equal(departure_distribution.probability_equal(d), 0.033));
+  }
+}

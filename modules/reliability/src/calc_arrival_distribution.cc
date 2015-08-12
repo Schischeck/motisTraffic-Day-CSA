@@ -72,9 +72,9 @@ void correct_rounding_errors(probability const& expected_sum,
   int index_max = 0;
 
   // compute sum and find max
-  for(unsigned int i=0 ; i<computed_probabilities.size() ; i++) {
+  for (unsigned int i = 0; i < computed_probabilities.size(); i++) {
     sum += computed_probabilities[i];
-    if(computed_probabilities[i] > computed_probabilities[index_max]) {
+    if (computed_probabilities[i] > computed_probabilities[index_max]) {
       index_max = i;
     }
   }
@@ -86,7 +86,7 @@ void correct_rounding_errors(probability const& expected_sum,
 
   computed_probabilities[index_max] += difference;
 }
-}
-}
-}
-}
+}  // namespace detail
+}  // namespace calc_arrival_distibution
+}  // namespace reliability
+}  // namespace motis

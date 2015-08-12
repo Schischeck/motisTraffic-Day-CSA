@@ -342,7 +342,6 @@ probability departure_independent_from_feeders(
               feeder.arrival_time_, feeder.latest_feasible_arrival_)) -
           feeder.distribution_.probability_smaller_equal(
               timestamp_to_delay(feeder.arrival_time_, waiting_interval_begin));
-
       prob_no_waiting_feeder = 1.0 - prob_waiting_feeder;
     }
     prob_no_waiting *= prob_no_waiting_feeder;
@@ -356,23 +355,19 @@ probability had_to_wait_for_feeders(
     std::vector<probability_distribution> const& modified_feeders_distributions,
     time const timestamp) {
   assert(feeders.size() == modified_feeders_distributions.size());
-
   if (feeders.size() == 0) {
     return 0.0;
   }
 
   probability prob_max_feeders_delay1 = 1.0, prob_max_feeders_delay2 = 1.0;
-
   for (unsigned int i = 0; i < feeders.size(); i++) {
     auto const& feeder = feeders[i];
     auto const& modified_distribution = modified_feeders_distributions[i];
-
     int const feeder_delay = timestamp_to_delay(
         feeder.arrival_time_, timestamp - feeder.transfer_time_);
 
     prob_max_feeders_delay1 *=
         (1.0 - modified_distribution.probability_greater(feeder_delay));
-
     prob_max_feeders_delay2 *=
         (1.0 - modified_distribution.probability_greater(feeder_delay - 1));
   }
