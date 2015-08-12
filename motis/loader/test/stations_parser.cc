@@ -2,6 +2,7 @@
 
 #include "catch/catch.hpp"
 
+#include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
@@ -23,11 +24,12 @@ TEST_CASE("parse_stations") {
       "0100002 8.68179300 50.1109020        ";
 
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateSchedule(b, {},
-                          b.CreateVector(parse_stations(
-                              {STATIONS_FILE, stations_file_content},
-                              {COORDINATES_FILE, coordinates_file_content}, b)),
-                          {}, {}, {}));
+  auto station_data =
+      parse_stations({STATIONS_FILE, stations_file_content},
+                     {COORDINATES_FILE, coordinates_file_content}, b);
+
+  b.Finish(
+      CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}, {}, {}));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
@@ -44,6 +46,10 @@ TEST_CASE("parse_stations") {
           "Römer/Paulskirche, Frankfurt am Main");
   REQUIRE(std::abs(stations->Get(1)->lng() - 8.681793) <= 0.001);
   REQUIRE(std::abs(stations->Get(1)->lat() - 50.1109020) <= 0.001);
+
+  REQUIRE(station_data.size() == 2);
+  REQUIRE(station_data.find(100001) != end(station_data));
+  REQUIRE(station_data.find(100002) != end(station_data));
 }
 
 }  // hrd
