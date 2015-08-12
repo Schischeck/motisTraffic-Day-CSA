@@ -1,6 +1,7 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 
 #include <string>
+#include <algorithm>
 
 #include "flatbuffers/util.h"
 
@@ -62,6 +63,12 @@ std::map<int, Offset<String>> parse_bitfields(
     bitfields[bitfield_num] =
         b.CreateString(bitset_to_string<BIT_COUNT>(bit_str));
   });
+
+  std::string all_days_bit_str;
+  all_days_bit_str.resize(BIT_COUNT);
+  std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
+  std::bitset<BIT_COUNT> all_days(all_days_bit_str);
+  bitfields[0] = b.CreateString(bitset_to_string<BIT_COUNT>(all_days));
 
   return bitfields;
 }
