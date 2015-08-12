@@ -16,8 +16,7 @@ struct train_distributions_container;
 struct tt_distributions_manager;
 
 struct queue_element {
-  queue_element(node* from, node* to,
-                light_connection const* light_connection,
+  queue_element(node* from, node* to, light_connection const* light_connection,
                 unsigned short light_connection_idx,
                 bool const is_first_route_node)
       : from_(from),
@@ -43,15 +42,17 @@ public:
 class train_distributions_calculator {
 public:
   train_distributions_calculator(
-      schedule& schedule, train_distributions_container& distributions_container,
+      schedule& schedule,
+      train_distributions_container& distributions_container,
       tt_distributions_manager& tt_dist_manager);
 
-  bool calculate_initial_distributions();
+  void calculate_initial_distributions();
 
 private:
-  bool insert_first_route_elements_into_queue();
+  void process_element(queue_element element);
 
-  bool process_element(queue_element element);
+  void insert_all_light_connections(node& tail_node,
+                                    bool const is_first_route_node);
 
   schedule& schedule_;
 

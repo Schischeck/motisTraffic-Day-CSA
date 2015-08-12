@@ -18,10 +18,6 @@ void compute_departure_distribution(
     pd_calc_data_departure const& data,
     probability_distribution& departure_distribution);
 
-void compute_arrival_distribution(
-    pd_calc_data_arrival const& data,
-    probability_distribution& arrival_distribution);
-
 namespace detail {
 
 /**
