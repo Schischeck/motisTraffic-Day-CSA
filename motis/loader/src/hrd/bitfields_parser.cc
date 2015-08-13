@@ -68,7 +68,8 @@ std::map<int, Offset<String>> parse_bitfields(
   all_days_bit_str.resize(BIT_COUNT);
   std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
   std::bitset<BIT_COUNT> all_days(all_days_bit_str);
-  bitfields[0] = b.CreateString(bitset_to_string<BIT_COUNT>(all_days));
+  bitfields[ALL_DAYS_KEY] =
+      b.CreateString(bitset_to_string<BIT_COUNT>(all_days));
 
   return bitfields;
 }

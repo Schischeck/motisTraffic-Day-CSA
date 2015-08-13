@@ -1,7 +1,6 @@
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 
 #include "motis/loader/util.h"
-
 #include "motis/loader/parser_error.h"
 
 using namespace parser;

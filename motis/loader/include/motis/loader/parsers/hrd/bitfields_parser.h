@@ -15,6 +15,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+constexpr int ALL_DAYS_KEY = 0;
+
 std::bitset<BIT_COUNT> to_bitset(parser::cstr hex, char const* filename,
                                  int line_number);
 

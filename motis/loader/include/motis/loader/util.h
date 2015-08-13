@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cinttypes>
 #include <string>
 #include <bitset>
@@ -45,12 +46,13 @@ inline std::string bitset_to_string(std::bitset<BitCount> const& bitset) {
 }
 
 template <int BitCount>
-inline std::bitset<BitCount> string_to_bitset(char const* str) {
-  constexpr int number_of_bytes = BitCount >> 3;
+inline std::bitset<BitCount> string_to_bitset(parser::cstr str) {
+  constexpr std::size_t number_of_bytes = BitCount >> 3;
 
   std::bitset<BitCount> bits;
   int bit_it = 0;
-  for (int byte = 0; byte < number_of_bytes; ++byte) {
+  auto limit = std::min(number_of_bytes, str.len);
+  for (int byte = 0; byte < limit; ++byte) {
     std::bitset<8> byte_bit_set(str[byte]);
     for (int i = 0; i < 8; ++i) {
       bits.set(bit_it, byte_bit_set.test(i));
@@ -66,8 +68,8 @@ inline std::vector<ValueType> values(std::map<IndexType, ValueType> const& m) {
   std::vector<ValueType> v(m.size());
   std::transform(begin(m), end(m), begin(v),
                  [](std::pair<IndexType, ValueType> const& entry) {
-                   return entry.second;
-                 });
+    return entry.second;
+  });
   return v;
 }
 
@@ -77,6 +79,8 @@ inline IntType string_to_int(parser::cstr s) {
   std::memcpy(&key, s.str, std::min(s.len, sizeof(IntType)));
   return key;
 }
+
+inline int hhmm_to_min(int hhmm) { return (hhmm / 100) * 60 + (hhmm % 100); }
 
 }  // namespace loader
 }  // namespace motis
