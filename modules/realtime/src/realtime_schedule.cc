@@ -151,25 +151,28 @@ schedule_event realtime_schedule::get_next_schedule_event(
 
 schedule_event realtime_schedule::get_schedule_event(
     const graph_event& graph_event) const {
-  if (!graph_event.found())
+  if (!graph_event.found()) {
     return schedule_event(graph_event._station_index, graph_event._train_nr,
                           graph_event._departure, graph_event._current_time);
+  }
 
   delay_info* delay_info = _delay_info_manager.get_delay_info(graph_event);
-  if (delay_info != nullptr)
+  if (delay_info != nullptr) {
     return delay_info->schedule_event();
-  else
+  } else {
     return schedule_event(graph_event._station_index, graph_event._train_nr,
                           graph_event._departure, graph_event._current_time);
+  }
 }
 
 graph_event realtime_schedule::get_graph_event(
     const schedule_event& schedule_event) const {
   delay_info* di = _delay_info_manager.get_delay_info(schedule_event);
-  if (di == nullptr)
+  if (di == nullptr) {
     return graph_event(schedule_event);
-  else
+  } else {
     return di->graph_event();
+  }
 }
 
 std::pair<motis::node*, motis::light_connection*>
@@ -257,12 +260,13 @@ realtime_schedule::get_train_events(const schedule_event& start_event) const {
       schedule_event departure_event;
       route_edge = get_next_edge(route_node);
       if (route_edge != nullptr && !route_edge->empty()) {
-        if (single_train_route)
+        if (single_train_route) {
           lc = &route_edge->_m._route_edge._conns[0];
-        else
+        } else {
           lc = get_connection_with_service(
               route_edge, last_lc->a_time,
               last_lc->_full_con->con_info->service);
+        }
         graph_event._departure = true;
         graph_event._current_time = lc->d_time;
         graph_event._train_nr = lc->_full_con->con_info->train_nr;
@@ -353,12 +357,9 @@ bool realtime_schedule::is_tracked(uint32_t train_nr) const {
 bool realtime_schedule::is_single_train_route(
     const motis::node* start_node) const {
   assert(start_node != nullptr);
-  // assert(get_prev_node(start_node) == nullptr);
   if (get_prev_node(start_node) != nullptr) {
     return false;
   }
-  // TODO ^^ partial train... nicht nur hier, sondern auch in extract route
-  // usw...
 
   uint32_t service;
   if (get_next_edge(start_node)->_m._route_edge._conns.size() == 1) {
@@ -375,8 +376,9 @@ bool realtime_schedule::is_single_train_route(
     if (edge != nullptr) {
       if (edge->_m._route_edge._conns.size() != 1 ||
           edge->_m._route_edge._conns.front()._full_con->con_info->service !=
-              service)
+              service) {
         return false;
+      }
       route_node = edge->get_destination();
     } else {
       route_node = nullptr;
@@ -487,9 +489,15 @@ motis::light_connection* realtime_schedule::get_connection_with_service(
   motis::light_connection* lc = route_edge->get_connection(start_time);
   if (lc != nullptr && lc->_full_con->con_info->service != service) {
     while (lc->_full_con->con_info->service != service &&
-           lc != std::end(route_edge->_m._route_edge._conns))
+           lc != std::end(route_edge->_m._route_edge._conns)) {
       lc++;
-    if (lc == std::end(route_edge->_m._route_edge._conns)) lc = nullptr;
+    }
+    // TODO: time should be == time of con returned by get_connection
+    // 24h doesn't work because of delays
+    if (lc == std::end(route_edge->_m._route_edge._conns) ||
+        lc->d_time >= start_time + MINUTES_A_DAY) {
+      lc = nullptr;
+    }
   }
   return lc;
 }
@@ -566,7 +574,8 @@ realtime_schedule::get_last_connection_with_arrival_before(
     }
   }
 
-  if (lc != nullptr && lc->_full_con->con_info->service != service) {
+  if (lc != nullptr && service != 0 &&
+      lc->_full_con->con_info->service != service) {
     lc = nullptr;
   }
   return lc;

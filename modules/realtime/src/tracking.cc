@@ -9,7 +9,7 @@ tracking::tracking(realtime_schedule& rts)
 
 void tracking::in_message(const message_class& msg) {
   msg.write_to_stream(_in_msg_file);
-  _in_msg_file << "\n";
+  _in_msg_file.flush();
 }
 
 }  // namespace realtime

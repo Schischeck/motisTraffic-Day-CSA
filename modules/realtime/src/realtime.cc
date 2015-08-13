@@ -101,22 +101,29 @@ void realtime::on_config_loaded() {
               << std::endl;
   }
 
+  {
+    std::ofstream f("stats.csv", std::ofstream::trunc);
+    rts_->_stats.write_csv_header(f);
+  }
+
   if (!load_msg_file_.empty()) {
+    operation_timer timer(rts_->_stats._total_processing);
     std::cout << "Loading messages from " << load_msg_file_ << "..."
               << std::endl;
     std::ifstream f(load_msg_file_);
     rts_->_message_handler.process_message_stream(f);
+    std::cout << "\nMessages loaded from " << load_msg_file_ << "."
+              << std::endl;
+
+    rts_->_stats.print(std::cout);
+    std::ofstream sf("stats.csv", std::ofstream::app);
+    rts_->_stats.write_csv(sf, 0, 0);
   }
 
   db_ = std::unique_ptr<delay_database>(
       new delay_database(db_name_, db_server_, db_user_, db_password_));
   message_fetcher_ =
       std::unique_ptr<message_fetcher>(new message_fetcher(*rts_, *db_, ios_));
-
-  {
-    std::ofstream f("stats.csv", std::ofstream::trunc);
-    rts_->_stats.write_csv_header(f);
-  }
 
   if (!db_name_.empty() && load_msg_file_.empty()) {
     std::cout << "Connecting to DB..." << std::endl;
@@ -138,6 +145,7 @@ void realtime::on_config_loaded() {
       rts_->_stats.write_csv(f, t1, t2);
     }
   }
+  std::cout << "\nRealtime module initialized" << std::endl;
 }
 
 TimestampReason encode_reason(timestamp_reason reason) {
