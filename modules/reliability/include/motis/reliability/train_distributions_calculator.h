@@ -21,7 +21,7 @@ struct train_distributions_calculator {
   struct queue_element {
     struct queue_element_cmp {
       bool operator()(queue_element const& a, queue_element const& b) {
-        return a.light_connection_->d_time < b.light_connection_->d_time;
+        return a.light_connection_->d_time >= b.light_connection_->d_time;
       }
     };
 
@@ -49,8 +49,15 @@ struct train_distributions_calculator {
 
   void calculate_initial_distributions();
 
+  static bool compute_distributions(schedule const& schedule,
+                                    edge const& route_edge);
+
 private:
-  void process_element(queue_element element);
+  void insert_into_queue(node const* from, node const* to,
+                         light_connection const* light_connection,
+                         unsigned short const light_connection_idx,
+                         bool const is_first_route_node);
+  void process_element(queue_element const& element);
   void insert_all_light_connections(node const& tail_node,
                                     bool const is_first_route_node);
   void manage_train_distributions(edge const& route_edge);

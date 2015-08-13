@@ -25,6 +25,9 @@ TEST_CASE("Initial distributions", "[train_dist_calc]") {
   train_distributions_calculator calculator(*schedule, train_distributions,
                                             tt_distributions);
   calculator.calculate_initial_distributions();
+
+  // TODO: check whether for all relevant categories the distributions have been
+  // computed
 }
 
 TEST_CASE("Test queue element", "[train_dist_calc]") {
@@ -45,16 +48,18 @@ TEST_CASE("Test queue element", "[train_dist_calc]") {
   queue.emplace(&dummy_node, &dummy_node, &lc1, 0, false);
   queue.emplace(&dummy_node, &dummy_node, &lc3, 0, false);
 
-  REQUIRE(queue.top().light_connection_->d_time == 3);
-  queue.pop();
-  REQUIRE(queue.top().light_connection_->d_time == 3);
+  REQUIRE(queue.top().light_connection_->d_time == 1);
   queue.pop();
   REQUIRE(queue.top().light_connection_->d_time == 2);
+  queue.pop();
+  REQUIRE(queue.top().light_connection_->d_time == 3);
   queue.pop();
 
   queue.emplace(&dummy_node, &dummy_node, &lc2, 0, false);
 
   REQUIRE(queue.top().light_connection_->d_time == 2);
   queue.pop();
-  REQUIRE(queue.top().light_connection_->d_time == 1);
+  REQUIRE(queue.top().light_connection_->d_time == 3);
+  queue.pop();
+  REQUIRE(queue.empty());
 }

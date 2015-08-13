@@ -33,13 +33,56 @@ void train_distributions_calculator::calculate_initial_distributions() {
   }
 }
 
-void train_distributions_calculator::process_element(queue_element element) {
+// void output_element(
+//    std::ostream& os, schedule const& schedule,
+//    train_distributions_calculator::queue_element const& element) {
+//  output_element(os, schedule, *element.from_, *element.to_,
+//                 *element.light_connection_, element.light_connection_idx_,
+//                 element.is_first_route_node_);
+//}
+void output_element(std::ostream& os, schedule const& schedule,
+                    node const& from, node const& to,
+                    light_connection const& light_connection,
+                    unsigned short const light_connection_idx,
+                    bool const is_first_route_node) {
+  os << schedule.stations[from._station_node->_id]->name << "(" << from._id
+     << ")"
+     << " " << format_time(light_connection.d_time) << "--"
+     << schedule.category_names[light_connection._full_con->con_info->family]
+     << "->" << format_time(light_connection.a_time) << " "
+     << schedule.stations[to._station_node->_id]->name << "(" << to._id << ")"
+     << " first=" << is_first_route_node << std::endl;
+}
+
+bool x = false;
+void train_distributions_calculator::insert_into_queue(
+    node const* from, node const* to, light_connection const* light_connection,
+    unsigned short const light_connection_idx, bool const is_first_route_node) {
+  std::cout << "Insert element: ";
+  output_element(std::cout, schedule_, *from, *to, *light_connection,
+                 light_connection_idx, is_first_route_node);
+  if (from->_id == 19 && light_connection_idx == 0) {
+    assert(!x);
+    x = true;
+  }
+  queue_.emplace(from, to, light_connection, light_connection_idx,
+                 is_first_route_node);
+}
+
+void train_distributions_calculator::process_element(
+    queue_element const& element) {
+  std::cout << "Process element: ";
+  output_element(std::cout, schedule_, *element.from_, *element.to_,
+                 *element.light_connection_, element.light_connection_idx_,
+                 element.is_first_route_node_);
+
   /* departure distribution */
   auto& departure_distribution =
       distributions_container_.get_train_distributions(
                                    element.from_->_id,
                                    train_distributions_container::departure)
           .get_distribution_non_const(element.light_connection_idx_);
+  assert(departure_distribution.empty());
   pd_calc_data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
       schedule_, distributions_container_, tt_distributions_manager_);
@@ -52,23 +95,25 @@ void train_distributions_calculator::process_element(queue_element element) {
                                    element.to_->_id,
                                    train_distributions_container::arrival)
           .get_distribution_non_const(element.light_connection_idx_);
+  assert(arrival_distribution.empty());
   pd_calc_data_arrival a_data(*element.to_, *element.light_connection_,
                               schedule_, distributions_container_,
                               tt_distributions_manager_);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 
-  insert_all_light_connections(*element.to_, false);
-
-  std::cout << schedule_.stations[element.from_->_station_node->_id]->name
-            << " --"
-            << schedule_.category_names[element.light_connection_->_full_con
-                                            ->con_info->family] << "-> "
-            << schedule_.stations[element.to_->_station_node->_id]->name
-            << std::endl;
+  // insert all light connections out-going from the head-node
+  // into the queue. Note that, process element is called
+  // for all light-connections of the route-edge.
+  // But we have to insert the light connections of the head-node
+  // only once into the queue.
+  if (element.light_connection_idx_ == 0) {
+    insert_all_light_connections(*element.to_, false);
+  }
 }
 
-bool compute_distributions(schedule const& schedule, edge const& route_edge) {
+bool train_distributions_calculator::compute_distributions(
+    schedule const& schedule, edge const& route_edge) {
   return schedule.waiting_time_rules_.other_trains_wait_for(
       schedule.waiting_time_rules_.waiting_time_category(
           route_edge._m._route_edge._conns[0]._full_con->con_info->family));
@@ -76,16 +121,19 @@ bool compute_distributions(schedule const& schedule, edge const& route_edge) {
 
 void train_distributions_calculator::insert_all_light_connections(
     node const& tail_node, bool const is_first_route_node) {
-  auto const& route_edge = *graph_accessor::get_departing_route_edge(tail_node);
+  auto const route_edge = graph_accessor::get_departing_route_edge(tail_node);
+  if (route_edge == nullptr) {
+    return;
+  }
 
-  if (compute_distributions(schedule_, route_edge)) {
-    manage_train_distributions(route_edge);
+  if (compute_distributions(schedule_, *route_edge)) {
+    manage_train_distributions(*route_edge);
     for (unsigned short light_conn_idx = 0;
-         light_conn_idx < route_edge._m._route_edge._conns.size();
+         light_conn_idx < route_edge->_m._route_edge._conns.size();
          ++light_conn_idx) {
-      auto& light_conn = route_edge._m._route_edge._conns[light_conn_idx];
-      queue_.emplace(&tail_node, route_edge._to, &light_conn, light_conn_idx,
-                     is_first_route_node);
+      auto& light_conn = route_edge->_m._route_edge._conns[light_conn_idx];
+      insert_into_queue(&tail_node, route_edge->_to, &light_conn,
+                        light_conn_idx, is_first_route_node);
     }
   }
 }

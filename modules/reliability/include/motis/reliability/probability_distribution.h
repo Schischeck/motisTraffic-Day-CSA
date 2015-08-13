@@ -13,10 +13,13 @@ namespace reliability {
 typedef double probability;
 
 struct probability_distribution {
+  probability_distribution() : first_minute_(0) {}
 
   void init(std::vector<probability> const& probabilities,
             int const first_minute);
   void init_one_point(int const minute, probability const prob);
+
+  bool empty() const { return probabilities_.size() == 0; }
 
   int first_minute() const { return first_minute_; }
   int last_minute() const;

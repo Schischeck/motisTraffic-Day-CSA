@@ -5,6 +5,26 @@
 using namespace motis;
 using namespace motis::reliability;
 
+TEST_CASE("empty-distribution", "[probability_distribution]") {
+  probability_distribution pd;
+
+  REQUIRE(pd.empty());
+
+  REQUIRE(pd.first_minute() == 0);
+  REQUIRE(pd.last_minute() == -1);
+
+  REQUIRE(equal(pd.probability_smaller(0), 0.0));
+  REQUIRE(equal(pd.probability_smaller_equal(0), 0.0));
+  REQUIRE(equal(pd.probability_equal(0), 0.0));
+  REQUIRE(equal(pd.probability_greater_equal(0), 0.0));
+  REQUIRE(equal(pd.probability_greater(0), 0.0));
+  REQUIRE(equal(pd.sum(), 0.0));
+
+  std::vector<probability> probabilities;
+  pd.get_probabilities(probabilities);
+  REQUIRE(probabilities.size() == 0);
+}
+
 TEST_CASE("one-point-distribution", "[probability_distribution]") {
   probability_distribution pd;
   pd.init_one_point(0, 1.0);
@@ -155,6 +175,6 @@ TEST_CASE("get_probabilities", "[probability_distribution]") {
   pd.get_probabilities(probabilies_out);
 
   REQUIRE(probabilies_in.size() == probabilies_out.size());
-  for(unsigned int i=0 ; i<probabilies_in.size() ; i++)
+  for (unsigned int i = 0; i < probabilies_in.size(); i++)
     REQUIRE(equal(probabilies_in[i], probabilies_out[i]));
 }

@@ -28,6 +28,8 @@ struct train_distributions {
   }
 
 private:
+  void init(unsigned int const size) { distributions_.resize(size); }
+
   std::vector<probability_distribution> distributions_;
 };
 
@@ -70,14 +72,12 @@ struct train_distributions_container {
       assert(!node_to_departure_distributions_[route_node_idx]);
       node_to_departure_distributions_[route_node_idx] =
           std::unique_ptr<train_distributions>(new train_distributions);
-      node_to_departure_distributions_[route_node_idx]->distributions_.reserve(
-          size);
+      node_to_departure_distributions_[route_node_idx]->init(size);
     } else {
       assert(!node_to_arrival_distributions_[route_node_idx]);
       node_to_arrival_distributions_[route_node_idx] =
           std::unique_ptr<train_distributions>(new train_distributions);
-      node_to_arrival_distributions_[route_node_idx]->distributions_.reserve(
-          size);
+      node_to_arrival_distributions_[route_node_idx]->init(size);
     }
   }
 
