@@ -30,7 +30,7 @@ void pd_calc_data_arrival::init_departure_info(
       graph_accessor::get_departure_distribution_indices(route_node_,
                                                          light_connection_);
   departure_info_.distribution_ =
-      &distributions_container.get_train_distribution(
+      &distributions_container.get_probability_distribution(
           route_node_id, distribution_pos,
           train_distributions_container::departure);
   departure_info_.scheduled_departure_time_ = light_connection_.d_time;

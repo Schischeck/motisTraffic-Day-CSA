@@ -67,9 +67,9 @@ TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
 
   struct train_distributions_test2_container : train_distributions_container {
     train_distributions_test2_container() : train_distributions_container(0) {}
-    virtual probability_distribution const& get_train_distribution(
+    probability_distribution const& get_probability_distribution(
         unsigned int const route_node_idx, unsigned int const light_conn_idx,
-        type const t) const {
+        type const t) const override {
       if (route_node_idx == 18 && light_conn_idx == 1 && t == departure)
         return train;
       return fail;

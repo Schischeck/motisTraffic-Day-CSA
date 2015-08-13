@@ -47,7 +47,7 @@ void pd_calc_data_departure::init_train_info(
     train_info_.preceding_arrival_info_.arrival_time_ =
         arriving_light_conn->a_time;
     train_info_.preceding_arrival_info_.arrival_distribution_ =
-        &distributions_container.get_train_distribution(
+        &distributions_container.get_probability_distribution(
             route_node_._id, distribution_pos,
             train_distributions_container::arrival);
 
@@ -82,7 +82,7 @@ void pd_calc_data_departure::init_feeder_info(
           (light_connection_.d_time + waiting_time) - transfer_time;
 
       auto const& feeder_distribution =
-          distributions_container.get_train_distribution(
+          distributions_container.get_probability_distribution(
               feeder_route_node->_id, feeder_distribution_pos,
               train_distributions_container::arrival);
 

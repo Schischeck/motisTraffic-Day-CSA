@@ -11,7 +11,7 @@ namespace reliability {
 
 namespace graph_accessor {
 
-inline edge* get_departing_route_edge(node& route_node) {
+inline edge const* const get_departing_route_edge(node const& route_node) {
   for (auto& edge : route_node._edges) {
     if (!edge.empty()) {
       return &edge;
@@ -20,7 +20,7 @@ inline edge* get_departing_route_edge(node& route_node) {
   return nullptr;
 }
 
-inline edge const* get_arriving_route_edge(node const& route_node) {
+inline edge const* const get_arriving_route_edge(node const& route_node) {
   for (auto& edge : route_node._incoming_edges) {
     if (!edge->empty()) {
       return edge;
@@ -37,7 +37,7 @@ inline edge const* get_arriving_route_edge(node const& route_node) {
  * This function also returns the position of the light-connection's arrival
  * distribution stored in 'route_node'.
  */
-inline std::pair<light_connection const*, unsigned int>
+inline std::pair<light_connection const* const, unsigned int>
 get_previous_light_connection(node const& route_node,
                               light_connection const& departing_light_conn) {
   auto arriving_route_edge = get_arriving_route_edge(route_node);
@@ -53,8 +53,8 @@ get_previous_light_connection(node const& route_node,
 }
 
 /* feeder-route-node, feeder-light-connection, feeder-distribution-position */
-typedef std::tuple<node const*, light_connection const*, unsigned int>
-    feeder_info;
+typedef std::tuple<node const* const, light_connection const* const,
+                   unsigned int> feeder_info;
 inline std::vector<feeder_info> get_all_potential_feeders(
     node const& route_node, light_connection const& departing_light_conn) {
   std::vector<feeder_info> feeders;
