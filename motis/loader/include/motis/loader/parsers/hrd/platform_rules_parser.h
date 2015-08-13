@@ -19,10 +19,6 @@ struct platform_rule {
   int time;
 };
 
-namespace platform_rule_key_accessors {
-enum { EVA_NUM, TRAIN_NUM, TRAIN_ADMIN };
-}  // platform_rule_key_accessors
-
 typedef std::tuple<int, int, uint64_t> platform_rule_key;
 typedef std::map<platform_rule_key, std::vector<platform_rule>> platform_rules;
 
