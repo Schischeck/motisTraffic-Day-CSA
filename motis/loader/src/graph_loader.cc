@@ -222,14 +222,15 @@ const light_connection* get_connection_with_arrival_time(
 }
 
 bool contains_duplicate_event(
-    vector<light_connection>& lcs, const station_node* departure_node,
+    std::vector<std::vector<light_connection>>& trains, int train_i,
+    const station_node* departure_node,
     std::map<uint32_t, const connection_info*>& con_infos) {
   for (const node* route_node : departure_node->get_route_nodes()) {
     const edge* route_edge = get_next_edge(route_node);
     if (route_edge == nullptr) {
       continue;
     }
-    for (const auto& lc : lcs) {
+    for (const auto& lc : trains[train_i]) {
       uint32_t train_nr = con_infos[lc._full_con->con_info_id]->train_nr;
       const light_connection* other_dep = get_connection_with_departure_time(
           route_edge, lc.d_time, train_nr, con_infos);
@@ -248,6 +249,24 @@ bool contains_duplicate_event(
                    << "), shares event with service="
                    << con_infos[other_arr->_full_con->con_info_id]->service;
         return true;
+      }
+    }
+  }
+  for (auto i = 0; i < train_i; i++) {
+    for (const auto& new_lc : trains[train_i]) {
+      for (const auto& existing_lc : trains[i]) {
+        if (existing_lc.d_time == new_lc.d_time ||
+            existing_lc.a_time == new_lc.a_time) {
+          LOG(debug) << "Ignoring train "
+                     << con_infos[new_lc._full_con->con_info_id]->train_nr
+                     << " (service="
+                     << con_infos[new_lc._full_con->con_info_id]->service
+                     << "), shares event with other train in same route ("
+                     << "service="
+                     << con_infos[existing_lc._full_con->con_info_id]->service
+                     << ")";
+          return true;
+        }
       }
     }
   }
@@ -436,7 +455,7 @@ int graph_loader::load_routes(
                       con_info.train_nr) != std::end(train_nrs)) {
           // check for duplicate events
           skip_train |= contains_duplicate_event(
-              expanded_connections[con_i][train_i],
+              expanded_connections[con_i], train_i,
               station_nodes[locations[con_i]].get(), reverse_con_infos);
         } else {
           new_train_nrs.insert(con_info.train_nr);
