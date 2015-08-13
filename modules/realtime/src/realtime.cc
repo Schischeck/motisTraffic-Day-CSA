@@ -153,6 +153,7 @@ TimestampReason encode_reason(timestamp_reason reason) {
     case timestamp_reason::SCHEDULE:
       return TimestampReason_Schedule;
     case timestamp_reason::IS:
+    case timestamp_reason::REPAIR:
       return TimestampReason_Is;
     case timestamp_reason::FORECAST:
       return TimestampReason_Forecast;

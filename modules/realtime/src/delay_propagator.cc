@@ -16,10 +16,16 @@ void delay_propagator::handle_delay_message(const schedule_event& event_id,
                                             motis::time new_time,
                                             timestamp_reason reason) {
   operation_timer timer(_rts._stats._delay_propagator);
-  if (_rts.is_debug_mode())
+
+  bool old_debug = _rts._debug_mode;
+  if (_rts.is_tracked(event_id._train_nr)) {
+    _rts._debug_mode = true;
+  }
+  if (_rts.is_debug_mode()) {
     LOG(debug) << "handle_delay_message: " << event_id
                << ", new_time = " << format_time(new_time)
                << ", reason = " << reason;
+  }
 
   delay_info* di = _rts._delay_info_manager.get_delay_info(event_id);
   bool delay_info_exists = di != nullptr;
@@ -29,23 +35,29 @@ void delay_propagator::handle_delay_message(const schedule_event& event_id,
         _rts.locate_event(graph_event(event_id));
     if (route_node == nullptr) {
       if (_rts.is_debug_mode()) LOG(debug) << "event not found: " << event_id;
+      _rts._debug_mode = old_debug;
       return;
     }
     di = _rts._delay_info_manager.create_delay_info(event_id,
                                                     route_node->_route);
   }
 
-  if (_rts.is_debug_mode())
+  if (_rts.is_debug_mode()) {
     LOG(debug) << "--delay_info = " << *di
                << (delay_info_exists ? " (existing)" : " (new)");
+  }
 
   if (reason == timestamp_reason::IS) {
     add_update(di, new_time, reason);
     enqueue(di, queue_reason::IS);
+  } else if (reason == timestamp_reason::REPAIR) {
+    add_update(di, new_time, reason);
+    enqueue(di, queue_reason::REPAIR);
   } else if (reason == timestamp_reason::FORECAST) {
     di->_forecast_time = new_time;
     enqueue(di, queue_reason::FORECAST);
   }
+  _rts._debug_mode = old_debug;
 }
 
 void delay_propagator::process_queue() {
@@ -58,16 +70,23 @@ void delay_propagator::process_queue() {
     auto it = _queue.begin();
     const delay_queue_entry& entry = *it;
 
-    if (_rts.is_debug_mode())
+    bool old_debug = _rts._debug_mode;
+    if (_rts.is_tracked(entry._delay_info->_schedule_event._train_nr)) {
+      _rts._debug_mode = true;
+    }
+
+    if (_rts.is_debug_mode()) {
       LOG(debug) << "** unqueued: (" << entry._queue_reason << ") "
                  << *entry._delay_info
                  << " - remaining queue size: " << _queue.size();
+    }
 
     _rts._stats._ops.propagator.events++;
 
     bool event_updated;
 
     if (entry._queue_reason != queue_reason::IS &&
+        entry._queue_reason != queue_reason::REPAIR &&
         entry._queue_reason != queue_reason::CANCELED) {
       // recalculate maximum
       event_updated = calculate_max(entry);
@@ -82,44 +101,55 @@ void delay_propagator::process_queue() {
       queue_dependent_events(entry);
     }
 
-    if (entry._queue_reason == queue_reason::IS) {
-      schedule_event prev_event =
-          _rts.get_previous_schedule_event(entry._delay_info->graph_event());
-      if (prev_event.found()) {
-        motis::time this_time = new_time(entry._delay_info);
-        motis::time prev_time = new_time(prev_event);
-        if (this_time < prev_time) {
-          if (_rts.is_debug_mode())
-            LOG(debug) << "*** creating fake is message to fix timestamp of "
-                       << prev_event << " (" << format_time(prev_time) << " > "
-                       << format_time(this_time) << ")";
-          handle_delay_message(prev_event, this_time, timestamp_reason::IS);
-        }
-      }
-    } else if (entry._queue_reason != queue_reason::CANCELED) {
+    // Repair invalid timestamps
+
+    if (!entry._delay_info->canceled()) {
+      motis::time this_time = new_time(entry._delay_info);
+      timestamp_reason this_reason = new_reason(entry._delay_info);
       schedule_event next_event =
           _rts.get_next_schedule_event(entry._delay_info->graph_event());
       if (next_event.found()) {
-        motis::time this_time = new_time(entry._delay_info);
         delay_info* next_di =
             _rts._delay_info_manager.get_delay_info(next_event);
         if (next_di != nullptr) {
           motis::time next_time = new_time(next_di);
           timestamp_reason next_reason = new_reason(next_di);
-          if (next_reason == timestamp_reason::IS && this_time > next_time) {
-            timestamp_reason this_reason = new_reason(entry._delay_info);
-            LOG(warn) << "** invalid time for " << *entry._delay_info << ": "
-                      << format_time(this_time) << " (" << this_reason
-                      << "), next train event: " << next_event
-                      << " has new time " << format_time(next_time)
-                      << " with reason " << next_reason;
-            add_update(entry._delay_info, next_time, timestamp_reason::IS);
+          if (this_time > next_time &&
+              (next_reason == timestamp_reason::IS ||
+               next_reason == timestamp_reason::REPAIR)) {
+
+            if (this_reason == timestamp_reason::IS ||
+                this_reason == timestamp_reason::REPAIR) {
+              LOG(info) << "Repair timestamp using repair message (forward): "
+                        << *entry._delay_info << ": "
+                        << motis::format_time(this_time) << " " << this_reason
+                        << " => " << motis::format_time(next_time);
+              handle_delay_message(entry._delay_info->schedule_event(),
+                                   next_time, timestamp_reason::REPAIR);
+            }
+          }
+        }
+      }
+
+      if (this_reason == timestamp_reason::IS ||
+          this_reason == timestamp_reason::REPAIR) {
+        schedule_event prev_event =
+            _rts.get_previous_schedule_event(entry._delay_info->graph_event());
+        if (prev_event.found()) {
+          motis::time prev_time = new_time(prev_event);
+          if (this_time < prev_time) {
+            LOG(info) << "Repair timestamp using repair message (backward): "
+                      << prev_event << ": " << motis::format_time(prev_time)
+                      << " => " << motis::format_time(this_time);
+            handle_delay_message(prev_event, this_time,
+                                 timestamp_reason::REPAIR);
           }
         }
       }
     }
 
     _queue.erase(it);
+    _rts._debug_mode = old_debug;
   }
   if (_rts.is_debug_mode()) LOG(debug) << "all delays processed";
   apply_updates();
@@ -133,7 +163,11 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
     LOG(debug) << "calculate_max: " << *di << " (new reason: " << new_reason(di)
                << ", new time: " << motis::format_time(new_time(di)) << ")";
 
-  if (new_reason(di) == timestamp_reason::IS) return false;
+  auto check_reason = new_reason(di);
+  if (check_reason == timestamp_reason::IS ||
+      check_reason == timestamp_reason::REPAIR) {
+    return false;
+  }
 
   _rts._stats._ops.propagator.calc_max++;
 
@@ -233,8 +267,10 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 
     // check if we have to queue the event
     if (connector_di != nullptr &&
-        connector_di->_reason == timestamp_reason::IS)
+        (connector_di->_reason == timestamp_reason::IS ||
+         connector_di->_reason == timestamp_reason::REPAIR)) {
       continue;  // event already has is message
+    }
 
     // calc if connector would wait
     if (is_delayed && !entry._delay_info->canceled()) {
@@ -266,9 +302,11 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 void delay_propagator::add_update(delay_info* di, motis::time new_time,
                                   timestamp_reason new_reason) {
   if (_rts.is_debug_mode())
+  if (_rts.is_debug_mode()) {
     LOG(debug) << "==> add_update: " << *di
                << ", new_time = " << format_time(new_time)
                << ", new_reason = " << new_reason;
+  }
 
   _rts._stats._ops.propagator.updates++;
 
@@ -374,6 +412,9 @@ std::ostream& operator<<(std::ostream& os, const queue_reason& r) {
       break;
     case queue_reason::RECALC:
       os << "recalc";
+      break;
+    case queue_reason::REPAIR:
+      os << "repair";
       break;
   }
   return os;

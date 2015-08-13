@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include <motis/realtime/statistics.h>
 
 #include "boost/lexical_cast.hpp"
 
@@ -91,10 +92,25 @@ void message_handler::handle_delay(const schedule_event& schedule_event,
                                    motis::time new_time,
                                    timestamp_reason reason) {
   _rts._stats._counters.delay_events.increment();
-  if (reason == timestamp_reason::IS)
+  if (reason == timestamp_reason::IS) {
     _rts._stats._counters.delay_is.increment();
-  else if (reason == timestamp_reason::FORECAST)
+  } else if (reason == timestamp_reason::FORECAST) {
     _rts._stats._counters.delay_fc.increment();
+  }
+
+  if (std::abs(new_time - schedule_event._schedule_time) > MINUTES_A_DAY) {
+    LOG(warn) << "invalid delay message received for " << schedule_event
+              << ", new_time=" << motis::format_time(new_time)
+              << ", reason=" << reason << " - ignoring message";
+
+    _rts._stats._counters.delay_events.ignore();
+    if (reason == timestamp_reason::IS) {
+      _rts._stats._counters.delay_is.ignore();
+    } else if (reason == timestamp_reason::FORECAST) {
+      _rts._stats._counters.delay_fc.ignore();
+    }
+    return;
+  }
 
   _rts._delay_propagator.handle_delay_message(schedule_event, new_time, reason);
 }

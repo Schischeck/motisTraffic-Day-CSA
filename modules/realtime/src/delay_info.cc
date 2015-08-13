@@ -16,10 +16,11 @@ delay_info_manager::~delay_info_manager() {
 delay_info* delay_info_manager::get_delay_info(
     const schedule_event& event_id) const {
   auto it = _schedule_map.find(event_id);
-  if (it != _schedule_map.end())
+  if (it != _schedule_map.end()) {
     return it->second;
-  else
+  } else {
     return nullptr;
+  }
 }
 
 delay_info* delay_info_manager::create_delay_info(
@@ -68,10 +69,11 @@ motis::time delay_info_manager::reset_to_schedule(
     const schedule_event& event_id) {
   delay_info* di = get_delay_info(event_id);
   if (di != nullptr) {
-    if (di->_reason == timestamp_reason::IS) {
+    if (di->_reason == timestamp_reason::IS ||
+        di->_reason == timestamp_reason::REPAIR) {
       // make sure that we don't forget is messages
       _rts._delay_propagator.handle_delay_message(event_id, di->_current_time,
-                                                  timestamp_reason::IS);
+                                                  di->_reason);
     }
     delay_info_update update(di, event_id._schedule_time,
                              timestamp_reason::SCHEDULE);
@@ -83,10 +85,11 @@ motis::time delay_info_manager::reset_to_schedule(
 delay_info* delay_info_manager::get_delay_info(
     const graph_event& event_id) const {
   auto it = _current_map.find(event_id);
-  if (it != _current_map.end())
+  if (it != _current_map.end()) {
     return it->second;
-  else
+  } else {
     return nullptr;
+  }
 }
 
 delay_info* delay_info_manager::cancel_event(const schedule_event& event_id,
@@ -113,10 +116,11 @@ delay_info* delay_info_manager::undo_cancelation(
 motis::time delay_info_manager::current_time(
     const schedule_event& event_id) const {
   delay_info* delay_info = get_delay_info(event_id);
-  if (delay_info != nullptr)
+  if (delay_info != nullptr) {
     return delay_info->_current_time;
-  else
+  } else {
     return event_id._schedule_time;
+  }
 }
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
@@ -132,6 +136,9 @@ std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
       break;
     case timestamp_reason::PROPAGATION:
       os << "p";
+      break;
+    case timestamp_reason::REPAIR:
+      os << "r";
       break;
   }
   return os;

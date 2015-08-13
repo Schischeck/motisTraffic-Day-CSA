@@ -18,7 +18,13 @@
 namespace motis {
 namespace realtime {
 
-enum class timestamp_reason : uint8_t { SCHEDULE, IS, FORECAST, PROPAGATION };
+enum class timestamp_reason : uint8_t {
+  SCHEDULE,
+  IS,
+  FORECAST,
+  PROPAGATION,
+  REPAIR
+};
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r);
 

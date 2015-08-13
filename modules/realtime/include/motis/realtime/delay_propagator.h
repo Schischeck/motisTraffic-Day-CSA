@@ -22,8 +22,10 @@ enum class queue_reason : uint8_t {
   TRAIN,  // traveling train edge
   WAITING,  // waiting edge
   CANCELED,  // event canceled
-  RECALC  // recalculate (event added, cancelation revoked, other train
+  RECALC,  // recalculate (event added, cancelation revoked, other train
   // event canceled)
+  REPAIR  // fake message to repair an otherwise broken train because of
+  // conflicting is messages
 };
 
 std::ostream& operator<<(std::ostream& os, const queue_reason& r);

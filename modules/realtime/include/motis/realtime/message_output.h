@@ -35,6 +35,7 @@ private:
       case timestamp_reason::FORECAST:
         return 1;
       case timestamp_reason::IS:
+      case timestamp_reason::REPAIR:
         return 2;
       case timestamp_reason::PROPAGATION:
         return 3;

@@ -32,11 +32,18 @@ struct graph_train_edge {
   friend std::ostream& operator<<(std::ostream& os, const graph_train_edge& e) {
     os << "<gte from={route_id=" << e._from_route_node->_route << ", "
        << "station=" << e._from_route_node->get_station()->_id << "}, lc={"
-       << motis::format_time(e._lc->d_time) << " -> "
-       << motis::format_time(e._lc->a_time) << ", train_nr="
-       << e._lc->_full_con->con_info->train_nr << ", service="
-       << e._lc->_full_con->con_info->service << "}, dep_update="
-       << e._dep_update << ", arr_update=" << e._arr_update << ">";
+       << motis::format_time(e._lc->d_time);
+    if (e._dep_update.valid()) {
+      os << " [new: " << motis::format_time(e._dep_update._new_time) << " "
+         << e._dep_update._new_reason << "]";
+    }
+    os << " -> " << motis::format_time(e._lc->a_time);
+    if (e._arr_update.valid()) {
+      os << " [new: " << motis::format_time(e._arr_update._new_time) << " "
+         << e._arr_update._new_reason << "]";
+    }
+    os << ", train_nr=" << e._lc->_full_con->con_info->train_nr
+       << ", service=" << e._lc->_full_con->con_info->service << ">";
     return os;
   }
 

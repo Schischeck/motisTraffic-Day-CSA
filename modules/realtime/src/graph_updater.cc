@@ -313,8 +313,7 @@ graph_train_info graph_updater::get_graph_train_info(
     r._edges.emplace_back(route_node, lc, diu_dep, diu_arr);
 
     // check if train must be extracted from the route
-    if (!r._extract_required && (new_dep_time != gdep._current_time ||
-                                 new_arr_time != garr._current_time)) {
+    if (!r._extract_required && !single_train_route) {
 
       // get the previous and next connection of this route edge
       //      const light_connection* prev_lc =
@@ -334,26 +333,17 @@ graph_train_info graph_updater::get_graph_train_info(
       // to be moved into a new route
       bool extract = false;
 
-      // if this is the only connection in the route, we won't have to split
-      // the route. also note that this is the case for newly generated routes.
-      // these routes may be temporarily invalid (i.e. departure event after
-      // the next arrival event etc.) during the update process.
-      if (!single_train_route) {
+      // check against previous and next LC in this route edge
+      extract |= (prev_lc != nullptr) && (new_dep_time <= prev_lc->d_time);
+      extract |= (next_lc != nullptr) && (new_dep_time >= next_lc->d_time);
+      extract |= (prev_lc != nullptr) && (new_arr_time <= prev_lc->a_time);
+      extract |= (next_lc != nullptr) && (new_arr_time >= next_lc->a_time);
 
-        // check against previous and next LC in this route edge
-        extract |= (prev_lc != nullptr) && (new_dep_time <= prev_lc->d_time);
-        extract |= (next_lc != nullptr) && (new_dep_time >= next_lc->d_time);
-        extract |= (prev_lc != nullptr) && (new_arr_time <= prev_lc->a_time);
-        extract |= (next_lc != nullptr) && (new_arr_time >= next_lc->a_time);
-
-        // TODO: this code does not work if no updates are applied
-        motis::edge* prev_edge = _rts.get_prev_edge(route_node);
-        if (prev_edge != nullptr) {
-          prev_lc = _rts.get_last_connection_with_arrival_before(
-              prev_edge, new_dep_time, lc->_full_con->con_info->service);
-          // assert(prev_lc != nullptr);
-          if (prev_lc != nullptr) extract |= !is_same_train(lc, prev_lc);
-        }
+      motis::edge* prev_edge = _rts.get_prev_edge(route_node);
+      if (prev_edge != nullptr) {
+        prev_lc = _rts.get_last_connection_with_arrival_before(prev_edge,
+                                                               new_dep_time, 0);
+        if (prev_lc != nullptr) extract |= !is_same_train(lc, prev_lc);
       }
 
       r._extract_required = extract;
@@ -500,8 +490,6 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
   assert(new_route_start != nullptr);
   add_incoming_edges(new_route_start);
 
-  // kante neue route -> alte route ???
-
   if (_rts.is_debug_mode()) {
     dump_route(old_route_start, "updated old route", day_index);
     dump_route(new_route_start, "new route", day_index);
@@ -521,17 +509,18 @@ modified_train* graph_updater::make_modified_train(
 
   _rts._stats._ops.updater.make_modified++;
 
-  assert(_rts.get_prev_node(start_route_node) == nullptr);
+  //  assert(_rts.get_prev_node(start_route_node) == nullptr);
   assert(check_route(start_route_node, true));
 
   int32_t old_route_id = start_route_node->_route;
   bool new_route = !_rts.is_single_train_route(start_route_node);
   int32_t new_route_id = new_route ? ++_rts._max_route_id : old_route_id;
 
-  if (_rts.is_debug_mode())
+  if (_rts.is_debug_mode()) {
     LOG(debug) << "make_modified_train: old_route_id=" << old_route_id
                << ", new_route=" << new_route
                << ", new_route_id=" << new_route_id;
+  }
 
   motis::connection_info* ci = new connection_info(*lc->_full_con->con_info);
   _rts._new_connection_infos.emplace_back(ci);
@@ -539,7 +528,7 @@ modified_train* graph_updater::make_modified_train(
   modified_train* mt =
       new modified_train(old_route_id, new_route_id, ci, lc->_full_con->clasz);
 
-  while (route_edge != nullptr) {
+  while (route_edge != nullptr && lc != nullptr) {
     motis::node* next_route_node = route_edge->_to;
     assert(next_route_node != nullptr);
     motis::edge* next_route_edge = _rts.get_next_edge(next_route_node);
