@@ -103,7 +103,8 @@ void waiting_edges::create_waiting_edges() {
           const motis::node* connector_route_node = out_edge.get_destination();
           if (out_edge.type() == motis::edge::FOOT_EDGE &&
               connector_route_node->is_route_node() &&
-              connector_route_node != route_node) {
+              connector_route_node != route_node &&
+              route_node->_route != connector_route_node->_route) {
 
             for (const motis::edge& route_edge : connector_route_node->_edges) {
               if (route_edge.empty()) continue;
