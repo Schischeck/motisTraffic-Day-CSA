@@ -7,6 +7,7 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/train_distributions_calculator.h"
 #include "motis/reliability/train_distributions.h"
 
@@ -14,6 +15,54 @@
 
 using namespace motis;
 using namespace motis::reliability;
+
+void test_distributions(node const& route_node,
+                        train_distributions_container& train_distributions,
+                        bool const pre_computed_distributions) {
+  auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
+  // last route node
+  if (route_edge == nullptr) {
+    REQUIRE_FALSE(
+        train_distributions.contains_departure_distributions(route_node._id));
+    return;
+  }
+  auto const& head_route_node = *route_edge->_to;
+  if (pre_computed_distributions) {
+    REQUIRE(
+        train_distributions.contains_departure_distributions(route_node._id));
+    // first route node
+    if (graph_accessor::get_arriving_route_edge(route_node) == nullptr) {
+      REQUIRE_FALSE(
+          train_distributions.contains_arrival_distributions(route_node._id));
+    } else {
+      REQUIRE(
+          train_distributions.contains_arrival_distributions(route_node._id));
+    }
+
+    auto const& departure_distributions =
+        train_distributions.get_train_distributions(
+            route_node._id, train_distributions_container::departure);
+    auto const& arrival_distributions =
+        train_distributions.get_train_distributions(
+            head_route_node._id, train_distributions_container::arrival);
+
+    for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size();
+         l++) {
+      REQUIRE_FALSE(departure_distributions.get_distribution(l).empty());
+      REQUIRE(departure_distributions.get_distribution(l).sum());
+      REQUIRE_FALSE(arrival_distributions.get_distribution(l).empty());
+      REQUIRE(arrival_distributions.get_distribution(l).sum());
+    }
+  } else {
+    REQUIRE_FALSE(
+        train_distributions.contains_departure_distributions(route_node._id));
+    REQUIRE_FALSE(train_distributions.contains_arrival_distributions(
+        head_route_node._id));
+  }
+
+  test_distributions(head_route_node, train_distributions,
+                     pre_computed_distributions);
+}
 
 TEST_CASE("Initial distributions", "[train_dist_calc]") {
   auto schedule =
@@ -26,8 +75,13 @@ TEST_CASE("Initial distributions", "[train_dist_calc]") {
                                             tt_distributions);
   calculator.calculate_initial_distributions();
 
-  // TODO: check whether for all relevant categories the distributions have been
-  // computed
+  for (auto const first_route_node :
+       schedule->route_index_to_first_route_node) {
+    test_distributions(*first_route_node, train_distributions,
+                       train_distributions_calculator::compute_distributions(
+                           *schedule, *graph_accessor::get_departing_route_edge(
+                                          *first_route_node)));
+  }
 }
 
 TEST_CASE("Test queue element", "[train_dist_calc]") {

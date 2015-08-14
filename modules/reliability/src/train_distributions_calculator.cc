@@ -33,49 +33,29 @@ void train_distributions_calculator::calculate_initial_distributions() {
   }
 }
 
-// void output_element(
-//    std::ostream& os, schedule const& schedule,
-//    train_distributions_calculator::queue_element const& element) {
-//  output_element(os, schedule, *element.from_, *element.to_,
-//                 *element.light_connection_, element.light_connection_idx_,
-//                 element.is_first_route_node_);
-//}
-void output_element(std::ostream& os, schedule const& schedule,
-                    node const& from, node const& to,
-                    light_connection const& light_connection,
-                    unsigned short const light_connection_idx,
-                    bool const is_first_route_node) {
+void train_distributions_calculator::output_element(
+    std::ostream& os, schedule const& schedule, node const& from,
+    node const& to, light_connection const& light_connection,
+    unsigned short const light_connection_idx, bool const is_first_route_node) {
   os << schedule.stations[from._station_node->_id]->name << "(" << from._id
      << ")"
      << " " << format_time(light_connection.d_time) << "--"
      << schedule.category_names[light_connection._full_con->con_info->family]
-     << "->" << format_time(light_connection.a_time) << " "
+     << light_connection._full_con->con_info->train_nr << "->"
+     << format_time(light_connection.a_time) << " "
      << schedule.stations[to._station_node->_id]->name << "(" << to._id << ")"
      << " first=" << is_first_route_node << std::endl;
 }
 
-bool x = false;
 void train_distributions_calculator::insert_into_queue(
     node const* from, node const* to, light_connection const* light_connection,
     unsigned short const light_connection_idx, bool const is_first_route_node) {
-  std::cout << "Insert element: ";
-  output_element(std::cout, schedule_, *from, *to, *light_connection,
-                 light_connection_idx, is_first_route_node);
-  if (from->_id == 19 && light_connection_idx == 0) {
-    assert(!x);
-    x = true;
-  }
   queue_.emplace(from, to, light_connection, light_connection_idx,
                  is_first_route_node);
 }
 
 void train_distributions_calculator::process_element(
     queue_element const& element) {
-  std::cout << "Process element: ";
-  output_element(std::cout, schedule_, *element.from_, *element.to_,
-                 *element.light_connection_, element.light_connection_idx_,
-                 element.is_first_route_node_);
-
   /* departure distribution */
   auto& departure_distribution =
       distributions_container_.get_train_distributions(

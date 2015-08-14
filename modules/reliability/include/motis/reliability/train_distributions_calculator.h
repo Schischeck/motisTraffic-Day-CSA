@@ -52,6 +52,12 @@ struct train_distributions_calculator {
   static bool compute_distributions(schedule const& schedule,
                                     edge const& route_edge);
 
+  static void output_element(std::ostream& os, schedule const& schedule,
+                             node const& from, node const& to,
+                             light_connection const& light_connection,
+                             unsigned short const light_connection_idx,
+                             bool const is_first_route_node);
+
 private:
   void insert_into_queue(node const* from, node const* to,
                          light_connection const* light_connection,
