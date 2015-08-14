@@ -449,7 +449,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
       if (_rts.is_debug_mode())
         LOG(debug) << "    updating departure DI route_id " << *dep_di << " -> "
                    << new_route_id;
-      dep_di->_route_id = new_route_id;
+      _rts._delay_info_manager.update_route(dep_di, new_route_id);
     } else if (_rts.is_debug_mode()) {
       LOG(debug) << "    no departure DI for " << old_departure;
     }
@@ -459,7 +459,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
       if (_rts.is_debug_mode())
         LOG(debug) << "    updating arrival DI route_id " << *arr_di << " -> "
                    << new_route_id;
-      arr_di->_route_id = new_route_id;
+      _rts._delay_info_manager.update_route(arr_di, new_route_id);
     } else if (_rts.is_debug_mode()) {
       LOG(debug) << "    no arrival DI for " << old_arrival;
     }
@@ -568,8 +568,12 @@ modified_train* graph_updater::make_modified_train(
                                                    old_route_id, new_route_id);
       _rts._waiting_edges.event_moved_to_new_route(original_arrival,
                                                    old_route_id, new_route_id);
-      if (dep_di != nullptr) dep_di->_route_id = new_route_id;
-      if (arr_di != nullptr) arr_di->_route_id = new_route_id;
+      if (dep_di != nullptr) {
+        _rts._delay_info_manager.update_route(dep_di, new_route_id);
+      }
+      if (arr_di != nullptr) {
+        _rts._delay_info_manager.update_route(arr_di, new_route_id);
+      }
     } else {
       // create new connection so that we can modify it later
       motis::connection* connection_copy = new connection(*lc->_full_con);

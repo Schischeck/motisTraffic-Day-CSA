@@ -119,6 +119,7 @@ public:
                                 uint32_t route_id);
   void update_delay_info(const delay_info_update* update);
   motis::time reset_to_schedule(const schedule_event& event_id);
+  void update_route(delay_info* di, int32_t new_route);
 
   delay_info* get_delay_info(const graph_event& event_id) const;
 

@@ -99,9 +99,11 @@ public:
   motis::time time() const { return _current_time; }
 
   bool operator==(const graph_event& other) const {
+    assert(_route_id != -1);
+    assert(other._route_id != -1);
     return _station_index == other._station_index &&
            _train_nr == other._train_nr && _departure == other._departure &&
-           _current_time == other._current_time;
+           _current_time == other._current_time && _route_id == other._route_id;
   }
 
   bool operator<(const graph_event& rhs) const {

@@ -28,12 +28,13 @@ delay_info* delay_info_manager::create_delay_info(
   assert(event_id.found());
   delay_info* di = new delay_info(event_id);
   di->_route_id = route_id;
+  assert(route_id != -1);
 
   _delay_infos.push_back(di);
   _schedule_map[event_id] = di;
 
   // no delay so far
-  _current_map[graph_event(event_id)] = di;
+  _current_map[di->graph_event()] = di;
 
   return di;
 }
@@ -61,6 +62,7 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
   delay_info->_current_time = update->_new_time;
   delay_info->_reason = update->_new_reason;
 
+  assert(delay_info->_route_id != -1);
   // add new entry to mapping
   _current_map[delay_info->graph_event()] = delay_info;
 }
@@ -82,6 +84,23 @@ motis::time delay_info_manager::reset_to_schedule(
   return event_id._schedule_time;
 }
 
+void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
+  // remove old entry from mapping
+  auto it = _current_map.find(di->graph_event());
+  if (it != _current_map.end()) {
+    assert(it->second == di);
+    _current_map.erase(it);
+  } else {
+    LOG(warn) << "old entry in current_map not found: " << *di;
+  }
+
+  assert(new_route != -1);
+  di->_route_id = new_route;
+
+  // add new entry to mapping
+  _current_map[di->graph_event()] = di;
+}
+
 delay_info* delay_info_manager::get_delay_info(
     const graph_event& event_id) const {
   auto it = _current_map.find(event_id);
@@ -95,10 +114,11 @@ delay_info* delay_info_manager::get_delay_info(
 delay_info* delay_info_manager::cancel_event(const schedule_event& event_id,
                                              int32_t route_id) {
   delay_info* di = get_delay_info(event_id);
+  assert(route_id != -1);
   if (di == nullptr) {
     di = create_delay_info(event_id, route_id);
   } else {
-    di->_route_id = route_id;
+    update_route(di, route_id);
   }
   di->_canceled = true;
   return di;
