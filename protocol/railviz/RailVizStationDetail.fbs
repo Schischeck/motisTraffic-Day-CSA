@@ -18,5 +18,6 @@ table TimetableEntry {
 
 table RailVizStationDetail {
   name : string;
+  station_id : int;
   timetable : [TimetableEntry];
 }

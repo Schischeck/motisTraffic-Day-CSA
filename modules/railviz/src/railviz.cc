@@ -93,6 +93,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
       CreateMessage(b, MsgContent_RailVizStationDetail,
                     CreateRailVizStationDetail(
                         b, b.CreateString(stations[index]->name.to_string()),
+                        index,
                         b.CreateVector(timetable_fb)).Union()));
   return cb(make_msg(b), boost::system::error_code());
 }
