@@ -107,6 +107,8 @@ TEST_CASE("parse_platform_rules_line_too_short") {
     auto plf_rules = parse_platform_rules(
         {PLATFORMS_FILE, platform_file_content}, bitfields, b);
   } catch (parser_error const& e) {
+    REQUIRE(e.line_number == 2);
+    REQUIRE(e.filename == PLATFORMS_FILE);
     catched = true;
   }
   REQUIRE(catched);
