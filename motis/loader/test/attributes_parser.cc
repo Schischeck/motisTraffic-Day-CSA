@@ -24,8 +24,8 @@ TEST_CASE("parse_line") {
 
   auto attributes_map = parse_attributes({ATTRIBUTES_FILE, file_content}, b);
 
-  REQUIRE(attributes_map.find(string_to_int<uint16_t>(", ")) !=
-          attributes_map.end());
+  REQUIRE(attributes_map.find(raw_to_int<uint16_t>(", ")) !=
+          end(attributes_map));
 
   b.Finish(CreateSchedule(b, {}, {}, b.CreateVector(values(attributes_map)), {},
                           {}));
@@ -46,8 +46,8 @@ TEST_CASE("parse_and_ignore_line") {
 
   auto attributes_map = parse_attributes({ATTRIBUTES_FILE, file_content}, b);
 
-  REQUIRE(attributes_map.find(string_to_int<uint16_t>("ZZ")) !=
-          attributes_map.end());
+  REQUIRE(attributes_map.find(raw_to_int<uint16_t>("ZZ")) !=
+          end(attributes_map));
 
   b.Finish(CreateSchedule(b, {}, {}, b.CreateVector(values(attributes_map)), {},
                           {}));

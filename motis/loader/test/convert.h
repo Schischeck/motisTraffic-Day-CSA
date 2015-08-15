@@ -5,7 +5,7 @@
 namespace motis {
 namespace loader {
 
-inline std::string fbs_str_offset_to_str(
+inline std::string to_string(
     flatbuffers::Offset<flatbuffers::String> fbs_str,
     flatbuffers::FlatBufferBuilder& b) {
   b.Finish(CreateConverter(b, fbs_str));

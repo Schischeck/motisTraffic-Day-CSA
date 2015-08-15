@@ -17,8 +17,8 @@ namespace hrd {
 
 constexpr int ALL_DAYS_KEY = 0;
 
-std::bitset<BIT_COUNT> to_bitset(parser::cstr hex, char const* filename,
-                                 int line_number);
+std::bitset<BIT_COUNT> hex_str_to_bitset(parser::cstr hex, char const* filename,
+                                         int line_number);
 
 std::map<int, flatbuffers::Offset<flatbuffers::String>> parse_bitfields(
     loaded_file, flatbuffers::FlatBufferBuilder& b);

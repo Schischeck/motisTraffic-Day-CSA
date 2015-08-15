@@ -33,8 +33,8 @@ std::string hex_to_string(T const& char_collection) {
   return bit_str;
 }
 
-std::bitset<BIT_COUNT> to_bitset(cstr hex, char const* filename,
-                                 int line_number) {
+std::bitset<BIT_COUNT> hex_str_to_bitset(cstr hex, char const* filename,
+                                         int line_number) {
   std::string bit_str = hex_to_string(hex);
   auto period_begin = bit_str.find("11");
   auto period_end = bit_str.rfind("11");
@@ -59,9 +59,9 @@ std::map<int, Offset<String>> parse_bitfields(
     }
 
     auto bitfield_num = parse<int>(line.substr(0, size(6)));
-    auto bit_str = to_bitset(line.substr(7), f.name, line_number);
+    auto bit_str = hex_str_to_bitset(line.substr(7), f.name, line_number);
     bitfields[bitfield_num] =
-        b.CreateString(bitset_to_string<BIT_COUNT>(bit_str));
+        b.CreateString(serialize_bitset<BIT_COUNT>(bit_str));
   });
 
   std::string all_days_bit_str;
@@ -69,7 +69,7 @@ std::map<int, Offset<String>> parse_bitfields(
   std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
   std::bitset<BIT_COUNT> all_days(all_days_bit_str);
   bitfields[ALL_DAYS_KEY] =
-      b.CreateString(bitset_to_string<BIT_COUNT>(all_days));
+      b.CreateString(serialize_bitset<BIT_COUNT>(all_days));
 
   return bitfields;
 }

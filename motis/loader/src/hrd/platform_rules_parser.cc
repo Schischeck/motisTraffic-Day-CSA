@@ -30,9 +30,9 @@ platform_rules parse_platform_rules(
 
     auto eva_num = parse<int>(line.substr(0, size(7)));
     auto train_num = parse<int>(line.substr(8, size(5)));
-    auto train_admin = string_to_int<uint64_t>(line.substr(14, size(6)));
+    auto train_admin = raw_to_int<uint64_t>(line.substr(14, size(6)));
     auto platform_name_str = trim(line.substr(21, size(8)));
-    auto platform_name = string_to_int<uint64_t>(platform_name_str);
+    auto platform_name = raw_to_int<uint64_t>(platform_name_str);
     auto time =
         hhmm_to_min(parse<int>(trim(line.substr(30, size(4))), TIME_NOT_SET));
     auto bitfield = parse<int>(trim(line.substr(35, size(6))), ALL_DAYS_KEY);

@@ -21,7 +21,7 @@ std::map<uint16_t, Offset<Attribute>> parse_attributes(loaded_file file,
     }
     auto code = line.substr(0, size(2));
     auto text = to_fbs_string(b, line.substr(12, line.len - 1));
-    attributes[string_to_int<uint16_t>(code)] =
+    attributes[raw_to_int<uint16_t>(code)] =
         CreateAttribute(b, to_fbs_string(b, code), text);
   });
   return attributes;
