@@ -40,6 +40,8 @@ struct railviz : public motis::module::module {
                     motis::module::callback cb);
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
+  void routes_on_time(motis::module::msg_ptr msg, webclient& client,
+                      motis::module::callback cb);
 
   typedef std::function<
       void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;

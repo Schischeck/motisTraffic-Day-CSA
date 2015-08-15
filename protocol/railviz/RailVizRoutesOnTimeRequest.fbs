@@ -1,0 +1,6 @@
+namespace motis.railviz;
+ 
+table RailVizRoutesOnTimeRequest {
+  route_id: int;
+  time: ulong;
+}

@@ -1,9 +1,0 @@
-namespace motis.railviz;
-
-struct Train {
-	dTime : int;
-	aTime : int;
-	dStation : int;
-	aStation : int;
-	route_id : int;
-}
