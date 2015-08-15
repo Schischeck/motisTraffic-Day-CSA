@@ -1,0 +1,49 @@
+include "guesser/StationGuesserRequest.fbs";
+include "guesser/StationGuesserResponse.fbs";
+include "railviz/RailVizInit.fbs";
+include "railviz/RailVizStationDetail.fbs";
+include "railviz/RailVizStationDetailRequest.fbs";
+include "railviz/RailVizAllTrainsRequest.fbs";
+include "railviz/RailVizAllTrainsResponse.fbs";
+include "railviz/RailVizRoutesOnTimeRequest.fbs";
+include "railviz/RailVizRoutesOnTimeResponse.fbs";
+include "routing/RoutingRequest.fbs";
+include "routing/RoutingResponse.fbs";
+
+namespace motis;
+
+// JSON example:
+// --
+// {
+//   "content_type": "MotisError",
+//   "content": {
+//     "error_code": 1,
+//     "reason": "module: there is no module capable of handling the message"
+//   }
+// }
+table MotisError {
+  error_code:ushort;
+  category:string;
+  reason:string;
+}
+
+union MsgContent {
+  motis.MotisError,
+  motis.guesser.StationGuesserRequest,
+  motis.guesser.StationGuesserResponse,
+  motis.railviz.RailVizInit,
+  motis.railviz.RailVizAllTrainsRequest,
+  motis.railviz.RailVizAllTrainsResponse,
+  motis.railviz.RailVizStationDetail,
+  motis.railviz.RailVizStationDetailRequest,
+  motis.railviz.RailVizRoutesOnTimeRequest,
+  motis.railviz.RailVizRoutesOnTimeResponse,
+  motis.routing.RoutingRequest,
+  motis.routing.RoutingResponse
+}
+
+table Message {
+  content:MsgContent;
+}
+
+root_type Message;

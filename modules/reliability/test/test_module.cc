@@ -6,7 +6,6 @@
 
 #include "motis/reliability/reliability.h"
 
-using namespace json11;
 using namespace motis::reliability;
 
 TEST_CASE("Initial distributions are calculated", "[initial]") {
@@ -14,12 +13,4 @@ TEST_CASE("Initial distributions are calculated", "[initial]") {
 
   reliability rel;
   rel.schedule_ = schedule.get();
-
-  Json msg = Json::object{{"module", "reliability"},
-                          {"type", "get-distribution"},
-                          {"query-start", "Frankfurt"}};
-
-  auto reply = rel.on_msg(msg, 0);
-
-  REQUIRE(reply.is_object());
 }

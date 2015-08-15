@@ -4,23 +4,21 @@
 
 #include "boost/asio/io_service.hpp"
 
-#include "json11/json11.hpp"
-
-#include "motis/module/sid.h"
+#include "motis/module/server.h"
 
 namespace motis {
 namespace webservice {
 
-struct ws_server final {
+struct ws_server : public module::server {
   ws_server(boost::asio::io_service& ios);
   ~ws_server();
 
-  void on_msg(module::msg_handler);
-  void on_open(module::sid_handler);
-  void on_close(module::sid_handler);
+  virtual void on_msg(module::msg_handler) override;
+  virtual void on_open(module::sid_handler) override;
+  virtual void on_close(module::sid_handler) override;
+  virtual void send(motis::module::msg_ptr const& msg, module::sid session) override;
 
   void listen(std::string const& host, std::string const& port);
-  void send(module::sid session, json11::Json const& msg);
   void stop();
 
   struct ws_server_impl;

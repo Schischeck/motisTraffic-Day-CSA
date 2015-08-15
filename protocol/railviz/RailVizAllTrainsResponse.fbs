@@ -1,0 +1,13 @@
+namespace motis.railviz;
+
+struct TrainT {
+	dTime : int;
+	aTime : int;
+	dStation : int;
+	aStation : int;
+	route_id : int;
+}
+
+table RailVizAllTrainsResponse {
+	trains : [TrainT];
+}

@@ -1,32 +1,56 @@
 #pragma once
 
+#include <sstream>
 #include <set>
 
 #include "motis/module/module.h"
-#include "motis/railviz/webclient_context_manager.h"
-#include "motis/railviz/train_query.h"
+#include "motis/railviz/date_converter.h"
+#include "motis/railviz/timetable_retriever.h"
+#include "motis/railviz/webclient.h"
 
 namespace motis {
 namespace railviz {
 
-class edge_geo_index;
+class train_retriever;
 
 struct railviz : public motis::module::module {
   railviz();
-  ~railviz();
+  virtual ~railviz();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
 
   virtual std::string name() const override { return "railviz"; }
+  virtual std::vector<MsgContent> subscriptions() const override {
+    return {MsgContent_RailVizStationDetailRequest,
+            MsgContent_RailVizAllTrainsRequest};
+  }
   virtual void init() override;
-  virtual json11::Json on_msg(json11::Json const&, motis::module::sid) override;
+  virtual void on_open(motis::module::sid) override;
+  virtual void on_close(motis::module::sid) override;
+  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
+                      motis::module::callback) override;
 
-  typedef std::function<json11::Json(railviz*, json11::Json const& msg)> op;
-  std::map<std::string, op> ops_;
-  std::unique_ptr<edge_geo_index> edge_geo_index_;
+ private:
+  void init(motis::module::msg_ptr msg, webclient& client,
+            motis::module::callback cb);
+  void all_station(motis::module::msg_ptr msg, webclient& client,
+                   motis::module::callback cb);
+  void station_info(motis::module::msg_ptr msg, webclient& client,
+                    motis::module::callback cb);
+  void all_trains(motis::module::msg_ptr msg, webclient& client,
+                  motis::module::callback cb);
+  void routes_on_time(motis::module::msg_ptr msg, webclient& client,
+                      motis::module::callback cb);
+
+  typedef std::function<
+      void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;
+
+  std::map<MsgContent, op> ops_;
+  std::map<motis::module::sid, webclient> clients_;
   date_converter date_converter_;
-  webclient_context_manager cmgr;
+  std::unique_ptr<train_retriever> train_retriever_;
+  timetable_retriever timetable_retriever_;
 };
 
 }  // namespace railviz

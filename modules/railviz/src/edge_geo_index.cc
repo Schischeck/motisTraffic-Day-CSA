@@ -1,6 +1,7 @@
 #include "motis/railviz/edge_geo_index.h"
 
 #include <vector>
+#include <algorithm>
 
 #include "boost/geometry/geometries/point.hpp"
 #include "boost/geometry/geometries/segment.hpp"
@@ -28,38 +29,36 @@ box bounding_box(spherical_point c1, spherical_point c2) {
 }
 
 class edge_geo_index::impl {
-public:
-  impl(schedule const& s) : sched_(s) { init_rtree(); }
+ public:
+  impl(int clasz, schedule const& s) : clasz_(clasz), sched_(s) {
+    init_rtree();
+  }
 
-  std::vector<edge const*> edges(double top_left_lat, double top_left_lng,
-                                 double bottom_right_lat,
-                                 double bottom_right_lng) const {
-    spherical_point top_left(top_left_lng, top_left_lat);
-    spherical_point bottom_right(bottom_right_lng, bottom_right_lat);
-
+  std::vector<edge const*> edges(geo::box b) const {
     std::vector<value> result_n;
-    rtree_.query(bgi::intersects(box(bottom_right, top_left)),
-                 std::back_inserter(result_n));
+    auto bounds = bounding_box(spherical_point{b.min().lng, b.min().lat},
+                               spherical_point{b.max().lng, b.max().lat});
+    rtree_.query(bgi::intersects(bounds), std::back_inserter(result_n));
 
-    std::vector<edge const*> edges;
-    for (const auto& result : result_n) {
-      edges.push_back(edges_[result.second]);
-    }
+    std::vector<edge const*> edges(result_n.size());
+    std::transform(
+        begin(result_n), end(result_n), begin(edges),
+        [this](value const& result) { return edges_[result.second]; });
     return edges;
   }
 
-  geometry::box get_bounds() const
-  {
-      box b = rtree_.bounds();
-      spherical_point bottom_right = b.max_corner();
-      spherical_point top_left = b.min_corner();
+  geo::box get_bounds() const {
+    box b = rtree_.bounds();
+    spherical_point bottom_right = b.max_corner();
+    spherical_point top_left = b.min_corner();
 
-      geometry::point p1(top_left.get<0>(), top_left.get<1>());
-      geometry::point p2(bottom_right.get<0>(), bottom_right.get<1>());
-      return geometry::box( p1,p2 );
+    geo::coord p1 = {top_left.get<0>(), top_left.get<1>()};
+    geo::coord p2 = {bottom_right.get<0>(), bottom_right.get<1>()};
+    geo::box box_ = {p1, p2};
+    return box_;
   }
 
-private:
+ private:
   void init_rtree() {
     for (const auto& node : sched_.station_nodes) {
       add_edges_of_station(node.get());
@@ -76,12 +75,12 @@ private:
   void add_edges_of_route_node(node const* route_node) {
     assert(route_node->is_route_node());
     for (auto const& e : route_node->_edges) {
-      if (e.empty()) {
+      if (e.empty() || e._m._route_edge._conns[0]._full_con->clasz != clasz_) {
         continue;
       }
-      rtree_.insert(std::make_pair(
+      rtree_.insert({std::make_pair(
           bounding_box(station_coords(e._from), station_coords(e._to)),
-          edges_.size()));
+          static_cast<long unsigned int>(edges_.size()))});
       edges_.push_back(&e);
     }
   }
@@ -97,26 +96,23 @@ private:
     return spherical_point(station.length, station.width);
   }
 
+  int clasz_;
   schedule const& sched_;
   std::vector<edge const*> edges_;
   bgi::rtree<value, bgi::rstar<16>> rtree_;
 };
 
-edge_geo_index::edge_geo_index(schedule const& s) : impl_(new impl(s)) {}
+edge_geo_index::edge_geo_index(int clasz, schedule const& s)
+    : impl_(new impl(clasz, s)) {}
 
 edge_geo_index::~edge_geo_index() {}
 
-std::vector<edge const*> edge_geo_index::edges(double top_left_lat,
-                                               double top_left_lng,
-                                               double bottom_right_lat,
-                                               double bottom_right_lng) const {
-  return impl_->edges(top_left_lat, top_left_lng, bottom_right_lat,
-                      bottom_right_lng);
+std::vector<edge const*> edge_geo_index::edges(geo::box area) const {
+  return impl_->edges(area);
 }
 
-geometry::box edge_geo_index::get_bounds() const
-{
-    return impl_.get()->get_bounds();
+geo::box edge_geo_index::get_bounds() const {
+  return impl_.get()->get_bounds();
 }
 
 }  // namespace railviz

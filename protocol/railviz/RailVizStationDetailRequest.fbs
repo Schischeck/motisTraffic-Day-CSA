@@ -1,0 +1,11 @@
+namespace motis.railviz;
+
+// {
+//   "content_type": "RailVizStationDetailRequest",
+//   "content": {
+//     "station_index": 55
+//   }
+// }
+table RailVizStationDetailRequest {
+  station_index:int;
+}

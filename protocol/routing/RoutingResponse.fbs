@@ -1,0 +1,101 @@
+namespace motis.routing;
+
+table EventInfo {
+  time:ulong;
+  platform:string;
+}
+
+// JSON example
+// --
+// {
+//     "arrival": {
+//         "platform": "unbekannt",
+//         "time": 1427702400
+//     },
+//     "departure": {
+//         "platform": "8",
+//         "time": 1427702400
+//     },
+//     "eva_nr": 8000068,
+//     "name": "Darmstadt Hbf"
+// }
+table Stop {
+  eva_nr:int;
+  name:string;
+  arrival:EventInfo;
+  departure:EventInfo;
+  interchange:bool;
+}
+
+struct Range {
+  from:short;
+  to:short;
+}
+
+table Transport {
+  range:Range;
+  category_name:string;
+  train_nr:uint;
+  line_id:string;
+}
+
+table Walk {
+  range:Range;
+}
+
+union Move { Transport, Walk }
+
+// JSON example (walk)
+// --
+// {
+//     "move": {
+//         "range": {
+//             "from": 0,
+//             "to": 1
+//         }
+//     },
+//     "move_type": "Walk"
+// }
+//
+// JSON example (transport)
+// --
+// {
+//     "move_type": "Transport",
+//     "move": {
+//         "range": {
+//             "from": 1,
+//             "to": 2
+//         },
+//         "category_name": "RB",
+//         "train_nr": 15747,
+//         "line_id": ""
+//     }
+// }
+table MoveWrapper {
+  move:Move;
+}
+
+// JSON example
+// --
+// {
+//     "code": "BR",
+//     "from": 3,
+//     "text": "Bordrestaurant",
+//     "to": 6
+// }
+table Attribute {
+  from:short;
+  to:short;
+  code:string;
+  text:string;
+}
+
+table Connection {
+  stops:[Stop];
+  transports:[MoveWrapper];
+  attributes:[Attribute];
+}
+
+table RoutingResponse {
+  connections:[Connection];
+}

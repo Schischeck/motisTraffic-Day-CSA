@@ -208,6 +208,17 @@ struct array final {
     _self_allocated = true;
     _allocated_size = next_size;
   }
+  
+  T* erase(T* pos) {
+    T* last = end() - 1;
+    while (pos < last) {
+      std::swap(*pos, *(pos + 1));
+      pos = pos + 1;
+    }
+    pos->~T();
+    --_used_size;
+    return end();
+  }
 
   std::string to_string() const { return std::string(_el._ptr); }
 

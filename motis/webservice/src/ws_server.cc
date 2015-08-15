@@ -3,10 +3,13 @@
 #include <memory>
 #include <functional>
 
+#include "boost/system/system_error.hpp"
+
+#define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
-typedef websocketpp::server<websocketpp::config::asio> server;
+typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
@@ -21,6 +24,7 @@ namespace webservice {
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios)
       : ios_(ios),
+        next_sid_(0),
         msg_handler_(nullptr),
         open_handler_(nullptr),
         close_handler_(nullptr) {
@@ -29,7 +33,7 @@ struct ws_server::ws_server_impl {
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
     server_.set_message_handler(
-        bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
+        std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
   }
 
   void set_msg_handler(msg_handler handler) {
@@ -50,16 +54,29 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(sid session, json11::Json const& message) {
-    ios_.post([this, session, message]() {
+  void send(msg_ptr const& msg, sid session) {
+    if (!msg) {
+      return;
+    }
+
+    ios_.post([this, session, msg]() {
       auto sid_it = sid_con_map_.find(session);
       if (sid_it == end(sid_con_map_)) {
         return;
       }
 
       error_code send_ec;
-      server_.send(sid_it->second, message.dump(), TEXT, send_ec);
+      server_.send(sid_it->second, msg->to_json(), TEXT, send_ec);
     });
+  }
+
+  void send_error(boost::system::error_code e, sid session) {
+    flatbuffers::FlatBufferBuilder b;
+    b.Finish(CreateMessage(
+        b, MsgContent_MotisError,
+        CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
+                         b.CreateString(e.message())).Union()));
+    send(make_msg(b), session);
   }
 
   void stop() { server_.stop(); }
@@ -80,13 +97,15 @@ struct ws_server::ws_server_impl {
     if (con_it == end(con_sid_map_)) {
       return;
     }
-    con_sid_map_.erase(con_it);
 
     auto sid = con_it->second;
+    con_sid_map_.erase(con_it);
+
     auto sid_it = sid_con_map_.find(sid);
     if (sid_it == end(sid_con_map_)) {
       return;
     }
+
     sid_con_map_.erase(sid_it);
 
     if (close_handler_) {
@@ -94,7 +113,7 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  void on_msg(connection_hdl con, server::message_ptr msg) {
+  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg) {
     if (!msg_handler_) {
       return;
     }
@@ -104,19 +123,25 @@ struct ws_server::ws_server_impl {
       return;
     }
 
-    std::string parse_error;
-    auto json = json11::Json::parse(msg->get_payload(), parse_error);
-    if (parse_error.empty()) {
-      send(con_it->second, msg_handler_(json, con_it->second));
-    } else {
-      std::cerr << "parser error for message:\n";
-      std::cout << msg->get_payload();
-      std::cout << "\n";
-      std::cout << parse_error << "\n";
+    auto session = con_it->second;
+    try {
+      auto req = make_msg(msg->get_payload());
+      msg_handler_(req, session,
+                   [this, session](msg_ptr res, boost::system::error_code ec) {
+                     if (ec) {
+                       send_error(ec, session);
+                     } else {
+                       send(res, session);
+                     }
+                   });
+    } catch (boost::system::system_error const& e) {
+      send_error(e.code(), session);
+    } catch (...) {
+      std::cout << "unknown error occured\n";
     }
   }
 
-  server server_;
+  asio_ws_server server_;
   boost::asio::io_service& ios_;
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
@@ -150,7 +175,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(sid s, json11::Json const& msg) { impl_->send(s, msg); }
+void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s); }
 
 }  // namespace webservice
 }  // namespace motis

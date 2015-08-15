@@ -14,13 +14,13 @@
 #include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/label.h"
-#include "motis/routing/timing.h"
 
 namespace motis {
 
@@ -35,11 +35,11 @@ void remove_intersection(arrival& from, arrival& to) {
   }
 }
 
-search::search(schedule& schedule, memory_manager<label>& label_store)
+search::search(schedule const& schedule, memory_manager<label>& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
 std::vector<journey> search::get_connections(
-    arrival from, arrival to, int time1, int time2, int day,
+    arrival from, arrival to, time interval_start, time interval_end,
     pareto_dijkstra::statistics* stats) {
   _label_store.reset();
   remove_intersection(from, to);
@@ -63,7 +63,6 @@ std::vector<journey> search::get_connections(
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
-
   lower_bounds lower_bounds(_sched.lower_bounds, dummy_target, lb_graph_edges);
 
   MOTIS_START_TIMING(lower_bounds_timing);
@@ -89,9 +88,6 @@ std::vector<journey> search::get_connections(
     return {};
   }
 
-  int day2 = day;
-  if (time1 > time2) ++day2;
-
   std::vector<label*> start_labels;
   station_node* dummy_source_station = _sched.station_nodes[dummy_source].get();
   for (const auto& s : from) {
@@ -99,9 +95,9 @@ std::vector<journey> search::get_connections(
 
     // generate labels at all route nodes
     // for all trains departing in the specified interval
-    generate_start_labels(to_time(day, time1), to_time(day2, time2), station,
-                          start_labels, dummy_source_station, s.time_cost,
-                          s.price, s.slot, lower_bounds);
+    generate_start_labels(interval_start, interval_end, station, start_labels,
+                          dummy_source_station, s.time_cost, s.price, s.slot,
+                          lower_bounds);
   }
 
   std::unordered_map<node const*, std::vector<edge>> additional_edges;
@@ -202,7 +198,10 @@ void search::generate_start_labels(time const from, time const to,
           label(route_node, station_node_label, t, lower_bounds);
       route_node_label->set_slot(true, slot);
 
-      indices.push_back(route_node_label);
+      if (route_node_label->_travel_time[1] !=
+          std::numeric_limits<uint16_t>::max()) {
+        indices.push_back(route_node_label);
+      }
 
       t = t + 1;
     }

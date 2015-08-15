@@ -17,7 +17,7 @@ namespace motis {
 namespace module {
 
 std::vector<dynamic_module> modules_from_folder(std::string const& path,
-                                                motis::schedule* schedule) {
+                                                context* c) {
   std::vector<dynamic_module> modules;
 
   // Check that the specified path is a directory.
@@ -26,7 +26,7 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
     return modules;
   }
 
-  // Tterate specified directory.
+  // Iterate specified directory.
   auto i = fs::recursive_directory_iterator(path);
   for (; i != fs::recursive_directory_iterator(); ++i) {
     // Don't load hidden files.
@@ -40,7 +40,7 @@ std::vector<dynamic_module> modules_from_folder(std::string const& path,
     }
 
     try {
-      modules.emplace_back(i->path().generic_string(), schedule);
+      modules.emplace_back(i->path().generic_string(), c);
     } catch (...) {
       std::cerr << "unable to load " << i->path().generic_string() << "\n";
     }
@@ -62,7 +62,7 @@ dynamic_module& dynamic_module::operator=(dynamic_module&& other) {
 }
 
 #if defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, context* c)
     : lib_(nullptr) {
   // Define module map and get_modules to simplify code.
   typedef void*(__cdecl * load_module)(void*);
@@ -89,8 +89,8 @@ dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
   }
 
   // Call load function.
-  auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
-  module_ = std::shared_ptr<motis::module::module>(ptr);
+  auto ptr = static_cast<module*>((*lib_fun)(c));
+  module_ = std::shared_ptr<module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {
@@ -105,7 +105,7 @@ dynamic_module::~dynamic_module() {
   }
 }
 #else  // defined _WIN32 || defined _WIN64
-dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
+dynamic_module::dynamic_module(const std::string& p, context* c)
     : lib_(nullptr) {
   // Discover package name.
   using boost::filesystem::path;
@@ -129,8 +129,8 @@ dynamic_module::dynamic_module(const std::string& p, motis::schedule* schedule)
   }
 
   // Read modules.
-  auto ptr = static_cast<motis::module::module*>((*lib_fun)(schedule));
-  module_ = std::shared_ptr<motis::module::module>(ptr);
+  auto ptr = static_cast<module*>((*lib_fun)(c));
+  module_ = std::shared_ptr<module>(ptr);
 }
 
 dynamic_module::~dynamic_module() {

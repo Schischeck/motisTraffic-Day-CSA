@@ -10,3 +10,9 @@
 [submodule "external_lib/websocketpp"]
 	path = external_lib/websocketpp
 	url = https://bitbucket.org/makielski/websocketpp.git
+[submodule "external_lib/flatbuffers"]
+	path = external_lib/flatbuffers
+	url = https://github.com/felixguendling/flatbuffers.git
+[submodule "external_lib/guess"]
+	path = external_lib/guess
+	url = https://github.com/felixguendling/guess.git
