@@ -174,17 +174,22 @@ void railviz::on_open(sid session) {
   clients_.emplace(session, session);
 
   auto lock = synced_sched<schedule_access::RO>();
+  auto const& stations = lock.sched().stations;
+  flatbuffers::FlatBufferBuilder b;
 
-  std::vector<StationCoordinate> stations;
-  for (auto const& station : lock.sched().stations) {
-    stations.emplace_back(station->width, station->length);
+  std::vector<flatbuffers::Offset<RailVizInitEntry>> station_entries;
+  for (auto const& station : stations) {
+    StationCoordinate sc (station->width, station->length);
+    station_entries.push_back(CreateRailVizInitEntry(
+                      b, b.CreateString(stations[station->index]->name.to_string()),
+                      &sc));
   }
 
-  flatbuffers::FlatBufferBuilder b;
+
   b.Finish(CreateMessage(
       b, MsgContent_RailVizInit,
       CreateRailVizInit(
-          b, b.CreateVectorOfStructs(stations),
+          b, b.CreateVector(station_entries),
           date_converter_.convert(lock.sched().date_mgr.first_date()),
           date_converter_.convert(lock.sched().date_mgr.last_date()) +
               MINUTES_A_DAY * 60).Union()));
