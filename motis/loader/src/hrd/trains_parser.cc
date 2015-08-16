@@ -26,6 +26,15 @@ struct service {
     return !is_empty() && !internal_service.starts_with("*Z");
   }
 
+  void reset() {
+    internal_service = cstr(nullptr, 0);
+    travel_days.clear();
+    categories.clear();
+    line_information.clear();
+    attributes.clear();
+    stops.clear();
+  }
+
   cstr internal_service;
   std::vector<cstr> travel_days;
   std::vector<cstr> categories;
@@ -110,7 +119,7 @@ void parse_trains(loaded_file file,
     }
 
     // Next try! Re-read first line of next service.
-    current_service = {};
+    current_service.reset();
     read_line(line, file.name, line_number, current_service);
   });
 }
