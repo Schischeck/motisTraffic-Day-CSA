@@ -45,6 +45,10 @@ struct service {
 
 bool read_line(cstr line, char const* filename, int line_number,
                service& current_service) {
+  if (line.len == 0) {
+    return false;
+  }
+
   if (isnumber(line[0])) {
     current_service.stops.push_back(line);
     return false;

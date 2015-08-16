@@ -73,24 +73,29 @@ cstr platforms_rules_file_content = R"(
 8000377 02292 80____ 2             000000)";
 
 TEST_CASE("parse_trains") {
-  flatbuffers::FlatBufferBuilder b;
+  try {
+    flatbuffers::FlatBufferBuilder b;
 
-  auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfields_file_content}, b);
-  auto attributes =
-      parse_attributes({ATTRIBUTES_FILE, attributes_file_content}, b);
-  auto stations =
-      parse_stations({STATIONS_FILE, stations_file_content},
-                     {COORDINATES_FILE, station_coordinates_file_content}, b);
-  auto platforms = parse_platform_rules(
-      {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
+    auto bitfields =
+        parse_bitfields({BITFIELDS_FILE, bitfields_file_content}, b);
+    auto attributes =
+        parse_attributes({ATTRIBUTES_FILE, attributes_file_content}, b);
+    auto stations =
+        parse_stations({STATIONS_FILE, stations_file_content},
+                       {COORDINATES_FILE, station_coordinates_file_content}, b);
+    auto platforms = parse_platform_rules(
+        {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
 
-  std::vector<Offset<Train>> trains;
-  parse_trains({"trains.101", trains_file_content}, stations, attributes,
-               bitfields, platforms, b, trains);
+    std::vector<Offset<Train>> trains;
+    parse_trains({"trains.101", trains_file_content}, stations, attributes,
+                 bitfields, platforms, b, trains);
 
-  b.Finish(CreateSchedule(b, b.CreateVector(trains),
-                          b.CreateVector(values(stations)),
-                          b.CreateVector(values(attributes)), {}));
+    b.Finish(CreateSchedule(b, b.CreateVector(trains),
+                            b.CreateVector(values(stations)),
+                            b.CreateVector(values(attributes)), {}));
+  } catch (parser_error const& e) {
+    printf("parser error: %s:%d\n", e.filename, e.line_number);
+  }
 }
 
 }  // hrd

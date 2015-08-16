@@ -6,7 +6,7 @@
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 
-#include "./convert.h"
+#include "../convert.h"
 
 using namespace parser;
 

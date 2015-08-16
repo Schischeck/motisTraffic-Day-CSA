@@ -10,51 +10,25 @@
 
 using namespace flatbuffers;
 using namespace parser;
-namespace fs = boost::filesystem;
 using std::get;
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
-using stop = std::tuple<int,  // stop_id
-                        parser::cstr,  // stop_code
-                        parser::cstr,  // stop_name
-                        parser::cstr,  // stop_desc
-                        float,  // stop_lat
-                        float,  // stop_lon
-                        int,  // zone_id
-                        parser::cstr,  // stop_url
-                        int,  // location_type
-                        int  // parent_station
-                        >;
+enum { stop_id, stop_name, stop_lat, stop_lon };
+using stop = std::tuple<cstr, cstr, float, float>;
+static const column_mapping<stop> stop_columns = {
+    {"stop_id", "stop_name", "stop_lat", "stop_lon"}};
 
-static const std::array<parser::cstr, std::tuple_size<stop>::value>
-    stop_columns = {{"stop_id", "stop_code", "stop_name", "stop_desc",
-                     "stop_lat", "stop_lon", "zone_id", "stop_url",
-                     "location_type", "parent_statiom"}};
-
-enum {
-  stop_id,
-  stop_code,
-  stop_name,
-  stop_desc,
-  stop_lat,
-  stop_lon,
-  zone_id,
-  stop_url,
-  location_type,
-  parent_station
-};
-
-std::vector<Offset<Station>> read_stations(fs::path const& path,
+std::vector<Offset<Station>> read_stations(loaded_file file,
                                            FlatBufferBuilder& b) {
   std::vector<Offset<Station>> stations;
-  auto stops = read_file<stop>(path / STOPS_FILE, stop_columns);
+  std::vector<stop> stops = read<stop>(file.content, stop_columns);
   for (auto const& stop : stops) {
-    stations.push_back(CreateStation(b, to_fbs_string(b, get<stop_name>(stop)),
-                                     get<stop_id>(stop), get<stop_lat>(stop),
-                                     get<stop_lon>(stop)));
+    stations.push_back(CreateStation(b, to_fbs_string(b, get<stop_id>(stop)),
+                                     to_fbs_string(b, get<stop_name>(stop)),
+                                     get<stop_lat>(stop), get<stop_lon>(stop)));
   }
   return stations;
 }

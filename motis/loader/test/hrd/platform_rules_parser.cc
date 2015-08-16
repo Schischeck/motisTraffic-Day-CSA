@@ -14,7 +14,7 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "./convert.h"
+#include "../convert.h"
 
 using namespace parser;
 

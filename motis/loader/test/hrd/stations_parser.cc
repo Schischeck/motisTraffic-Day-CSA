@@ -36,12 +36,12 @@ TEST_CASE("parse_stations") {
 
   REQUIRE(stations->size() == 2);
 
-  REQUIRE(stations->Get(0)->eva() == 100001);
+  REQUIRE(stations->Get(0)->id()->str() == "100001");
   REQUIRE(stations->Get(0)->name()->str() == "Hauptwache, Frankfurt am Main");
   REQUIRE(std::abs(stations->Get(0)->lng() - 8.679296) <= 0.001);
   REQUIRE(std::abs(stations->Get(0)->lat() - 50.1139630) <= 0.001);
 
-  REQUIRE(stations->Get(1)->eva() == 100002);
+  REQUIRE(stations->Get(1)->id()->str() == "100002");
   REQUIRE(stations->Get(1)->name()->str() ==
           "Römer/Paulskirche, Frankfurt am Main");
   REQUIRE(std::abs(stations->Get(1)->lng() - 8.681793) <= 0.001);
