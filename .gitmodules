@@ -13,3 +13,6 @@
 [submodule "external_lib/flatbuffers"]
 	path = external_lib/flatbuffers
 	url = https://github.com/felixguendling/flatbuffers.git
+[submodule "external_lib/parser"]
+	path = external_lib/parser
+	url = https://github.com/felixguendling/parser.git
