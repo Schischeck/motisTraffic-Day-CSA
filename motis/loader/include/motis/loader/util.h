@@ -80,7 +80,13 @@ inline IntType raw_to_int(parser::cstr s) {
   return key;
 }
 
-inline int hhmm_to_min(int hhmm) { return (hhmm / 100) * 60 + (hhmm % 100); }
+inline int hhmm_to_min(int hhmm) {
+  if (hhmm < 0) {
+    return hhmm;
+  } else {
+    return (hhmm / 100) * 60 + (hhmm % 100);
+  }
+}
 
 }  // namespace loader
 }  // namespace motis

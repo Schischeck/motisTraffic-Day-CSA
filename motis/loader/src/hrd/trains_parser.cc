@@ -93,17 +93,67 @@ bool read_line(cstr line, char const* filename, int line_number,
   return false;
 }
 
-Offset<Train> create_train(service const& /* s */, char const* /* filename */,
-                           int /* line_number */, FlatBufferBuilder& b) {
-  return CreateTrain(b, {}, {}, {}, {}, {}, {});
-}
+static constexpr int NOT_SET = -1;
+struct event {
+  int time;
+  bool in_out_allowed;
+};
+
+struct section {
+  int train_num;
+  cstr admin;
+};
+
+struct train {
+  train(service const& s) : s_(s), sections_(1) {}
+
+  void parse_initializer_line() {
+    sections_[0] = {parse<int>(s_.internal_service.substr(3, size(5))),
+                    s_.internal_service.substr(9, size(6))};
+  }
+
+  void route() {
+    eva_nums_.reserve(s_.stops.size());
+    events_.reserve(s_.stops.size());
+
+    for (auto const& stop : s_.stops) {
+      eva_nums_.push_back(parse<int>(stop.substr(0, size(7))));
+      events_.push_back(
+          {{hhmm_to_min(parse<int>(stop.substr(30, size(5)), NOT_SET)),
+            stop[29] != '-'},
+           {hhmm_to_min(parse<int>(stop.substr(37, size(5)), NOT_SET)),
+            stop[36] != '-'}});
+
+      auto train_num = stop.substr(43, size(5));
+      auto admin = stop.substr(43, size(6));
+    }
+  }
+
+  service const& s_;
+  std::vector<int> eva_nums_;
+  std::vector<std::pair<event, event>> events_;
+  std::vector<section> sections_;
+};
+
+struct train_builder {
+  Offset<Train> create_train(service const& s, char const* filename,
+                             int line_number, FlatBufferBuilder& b) {
+    return CreateTrain(b, route(s, b), {}, {}, {}, traffic_days(s, b), {});
+  }
+
+  std::map<std::vector<int>, Offset<Route>> routes_;
+};
+
+Offset<Train> create_train(service const& s, char const* filename,
+                           int line_number, FlatBufferBuilder& b) {}
 
 void parse_trains(loaded_file file,
                   std::map<int, Offset<Station>> const& /* stations */,
                   std::map<uint16_t, Offset<Attribute>> const& /* attributes */,
                   std::map<int, Offset<String>> const& /* bitfields */,
-                  platform_rules const&, FlatBufferBuilder& b,
+                  platform_rules const&, FlatBufferBuilder& fbb,
                   std::vector<Offset<Train>>& trains) {
+  train_builder tb;
   service current_service;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     bool finished = read_line(line, file.name, line_number, current_service);
@@ -119,7 +169,7 @@ void parse_trains(loaded_file file,
     // Store if relevant.
     if (!current_service.ignore()) {
       trains.push_back(
-          create_train(current_service, file.name, line_number, b));
+          tb.create_train(current_service, file.name, line_number, fbb));
     }
 
     // Next try! Re-read first line of next service.

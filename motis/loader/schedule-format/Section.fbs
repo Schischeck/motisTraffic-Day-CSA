@@ -4,8 +4,7 @@ namespace motis.loader;
 
 table Section {
   train_nr : int;
-  train_class : int;
-  category : int;
+  category : string;
   line_id : string;
   attributes: [Attribute];
 }

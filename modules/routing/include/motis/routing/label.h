@@ -104,19 +104,22 @@ public:
 
   bool dominates(label const& o, bool lower_bound) const {
     /* --- CHECK MAY DOMINATE --- */
-    if (_start < o._start || _now > o._now) return false;
+    if (_start < o._start || _now > o._now) {
+      return false;
+    }
 
     int index = lower_bound ? 1 : 0;
     bool could_dominate = false;
 
     /* --- TRANSFERS --- */
-    if (_transfers[index] > o._transfers[index]) return false;
-    could_dominate = could_dominate || _transfers[index] < o._transfers[index];
+    if (_transfers[index] > o._transfers[index]) {
+      return false;
+    }
 
     /* --- TRAVEL TIME --- */
-    if (_travel_time[index] > o._travel_time[index]) return false;
-    could_dominate =
-        could_dominate || _travel_time[index] < o._travel_time[index];
+    if (_travel_time[index] > o._travel_time[index]) {
+      return false;
+    }
 
     /* --- PRICE --- */
     unsigned my_price = _total_price[index];
@@ -138,7 +141,9 @@ public:
     unsigned tolerance = std::floor(0.01 * std::min(my_price, o_price));
     if (std::labs(my_price - o_price) > tolerance) {
 #endif
-      if (my_price > o_price) return false;
+      if (my_price > o_price) {
+        return false;
+      }
 
       could_dominate = could_dominate || my_price < o_price;
 #ifdef PRICE_TOLERANCE
@@ -146,6 +151,7 @@ public:
 #endif
 
     /* --- ALL CRITERIA --- */
+    // since all criteria are NOT larger at *this
     return true;
   }
 
