@@ -4,7 +4,7 @@ include "Platform.fbs";
 
 namespace motis.loader;
 
-table Train {
+table Service {
   route : Route;
   sections : [Section];
   platforms : [Platform];

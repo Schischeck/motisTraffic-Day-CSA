@@ -1,4 +1,4 @@
-include "Train.fbs";
+include "Service.fbs";
 include "Station.fbs";
 include "Route.fbs";
 include "Platform.fbs";
@@ -7,7 +7,7 @@ include "Attribute.fbs";
 namespace motis.loader;
 
 table Schedule {
-  trains : [Train];
+  services : [Service];
   stations: [Station];
   attributes: [Attribute];
   platforms: [Platform];

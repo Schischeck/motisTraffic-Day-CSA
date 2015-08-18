@@ -1,8 +1,13 @@
 #pragma once
 
 #include <tuple>
+#include <map>
+
+#include "flatbuffers/flatbuffers.h"
 
 #include "parser/cstr.h"
+
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {

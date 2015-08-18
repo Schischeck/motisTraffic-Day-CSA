@@ -29,9 +29,7 @@ TEST_CASE("hhmm_to_int_1") { REQUIRE(hhmm_to_min(parse<int>("0130")) == 90); }
 
 TEST_CASE("hhmm_to_int_2") { REQUIRE(hhmm_to_min(parse<int>("")) == 0); }
 
-TEST_CASE("hhmm_to_int_3") {
-  REQUIRE(hhmm_to_min(parse<int>(trim("2501"))) == 1501);
-}
+TEST_CASE("hhmm_to_int_3") { REQUIRE(hhmm_to_min(parse<int>("2501")) == 1501); }
 
 }  // hrd
 }  // loader

@@ -11,7 +11,7 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
-#include "motis/loader/parsers/hrd/trains_parser.h"
+#include "motis/loader/parsers/hrd/service/service_parser.h"
 #include "motis/loader/util.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -86,9 +86,9 @@ TEST_CASE("parse_trains") {
     auto platforms = parse_platform_rules(
         {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
 
-    std::vector<Offset<Train>> trains;
-    parse_trains({"trains.101", trains_file_content}, stations, attributes,
-                 bitfields, platforms, b, trains);
+    std::vector<Offset<Service>> trains;
+    parse_services({"trains.101", trains_file_content}, stations, attributes,
+                   bitfields, platforms, b, trains);
 
     b.Finish(CreateSchedule(b, b.CreateVector(trains),
                             b.CreateVector(values(stations)),
