@@ -23,7 +23,8 @@ TEST_CASE("additional train with existing category", "[msgs],[additional]") {
       rt::schedule_event(Langen->index, 999, true, t(9, 17)),
       rt::schedule_event(da_hbf->index, 999, false, t(9, 30))};
 
-  ts._rts._message_handler.handle_additional_train(events, "RB");
+  ts._rts._message_handler.handle_additional_train(
+      rt::additional_train_message("RB", events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -60,7 +61,8 @@ TEST_CASE("additional train with new category", "[msgs],[additional]") {
       rt::schedule_event(Langen->index, 1000, true, t(h, 17)),
       rt::schedule_event(da_hbf->index, 1000, false, t(h, 30))};
 
-  ts._rts._message_handler.handle_additional_train(events, "FOO");
+  ts._rts._message_handler.handle_additional_train(
+      rt::additional_train_message("FOO", events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -98,7 +100,8 @@ TEST_CASE("cancel complete train", "[msgs],[cancel]") {
       rt::schedule_event(Langen->index, 20, true, t(13, 51)),
       rt::schedule_event(ffm_hbf->index, 20, false, t(14, 5))};
 
-  ts._rts._message_handler.handle_canceled_train(events);
+  ts._rts._message_handler.handle_canceled_train(
+      rt::cancel_train_message(events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -121,7 +124,8 @@ TEST_CASE("cancel beginning of train", "[msgs],[cancel]") {
       rt::schedule_event(da_hbf->index, 20, true, t(13, 34)),
       rt::schedule_event(Langen->index, 20, false, t(13, 49))};
 
-  ts._rts._message_handler.handle_canceled_train(events);
+  ts._rts._message_handler.handle_canceled_train(
+      rt::cancel_train_message(events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -151,7 +155,8 @@ TEST_CASE("cancel end of train", "[msgs],[cancel]") {
       rt::schedule_event(Langen->index, 20, true, t(13, 51)),
       rt::schedule_event(ffm_hbf->index, 20, false, t(14, 5))};
 
-  ts._rts._message_handler.handle_canceled_train(events);
+  ts._rts._message_handler.handle_canceled_train(
+      rt::cancel_train_message(events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -197,7 +202,8 @@ TEST_CASE("reroute: cancel stops in the middle", "[msgs],[reroute]") {
       rt::schedule_event(dreieich->index, 1, false, t(10, 6)),
       rt::schedule_event(dreieich->index, 1, true, t(10, 8))};
 
-  ts._rts._message_handler.handle_rerouted_train(canceled_events, {}, "RE");
+  ts._rts._message_handler.handle_rerouted_train(
+      rt::reroute_train_message("RE", canceled_events, {}));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -227,7 +233,8 @@ TEST_CASE("reroute: cancel stops in the middle", "[msgs],[reroute]") {
 
   // now undo the cancelation
 
-  ts._rts._message_handler.handle_rerouted_train({}, canceled_events, "RE");
+  ts._rts._message_handler.handle_rerouted_train(
+      rt::reroute_train_message("RE", {}, canceled_events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -303,8 +310,8 @@ TEST_CASE("reroute: change start", "[msgs],[reroute]") {
   std::cout << "\n+++++++++++++++++++++++++++++++++++++" << std::endl;
   std::cerr << "\n+++++++++++++++++++++++++++++++++++++" << std::endl;
 
-  ts._rts._message_handler.handle_rerouted_train(canceled_events, new_events,
-                                                 "RE");
+  ts._rts._message_handler.handle_rerouted_train(
+      rt::reroute_train_message("RE", canceled_events, new_events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -339,8 +346,8 @@ TEST_CASE("reroute: change start", "[msgs],[reroute]") {
   std::cout << "\n+++++++++++++++++++++++++++++++++++++" << std::endl;
   std::cerr << "\n+++++++++++++++++++++++++++++++++++++" << std::endl;
 
-  ts._rts._message_handler.handle_rerouted_train(new_events, canceled_events,
-                                                 "RE");
+  ts._rts._message_handler.handle_rerouted_train(
+      rt::reroute_train_message("RE", new_events, canceled_events));
   ts._rts._delay_propagator.process_queue();
   ts._rts._graph_updater.finish_graph_update();
 
@@ -413,7 +420,8 @@ TEST_CASE("csd kept", "[msgs],[csd]") {
 
   // now keep the connection, RE 23 should be delayed by 3 min
   ts._rts._message_handler.handle_connection_status_decision(
-      feeder_arrival, connector_departure, rt::status_decision::kept);
+      rt::connection_status_decision_message(
+          feeder_arrival, connector_departure, rt::status_decision::kept));
   ts._rts._delay_propagator.process_queue();
 
   journeys = ts.find_connections(da_hbf, off_hbf, t(13, 30));

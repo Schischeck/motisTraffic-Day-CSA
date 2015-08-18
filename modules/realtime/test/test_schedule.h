@@ -9,6 +9,7 @@
 #include "catch/catch.hpp"
 
 #include "motis/realtime/realtime_schedule.h"
+#include "motis/realtime/messages.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/time.h"
