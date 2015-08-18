@@ -1,5 +1,7 @@
 #include "motis/loader/parsers/hrd/trains_parser.h"
 
+#include <cctype>
+
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 
@@ -49,7 +51,7 @@ bool read_line(cstr line, char const* filename, int line_number,
     return false;
   }
 
-  if (isnumber(line[0])) {
+  if (std::isdigit(line[0])) {
     current_service.stops.push_back(line);
     return false;
   }
