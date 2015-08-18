@@ -413,8 +413,7 @@ TEST_CASE("csd kept", "[msgs],[csd]") {
 
   // now keep the connection, RE 23 should be delayed by 3 min
   ts._rts._message_handler.handle_connection_status_decision(
-      feeder_arrival, connector_departure,
-      rt::connection_status::decision_type::kept);
+      feeder_arrival, connector_departure, rt::status_decision::kept);
   ts._rts._delay_propagator.process_queue();
 
   journeys = ts.find_connections(da_hbf, off_hbf, t(13, 30));

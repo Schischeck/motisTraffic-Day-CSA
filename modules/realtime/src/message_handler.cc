@@ -17,33 +17,26 @@ namespace realtime {
 
 using namespace motis::logging;
 
-message_handler::message_handler(realtime_schedule& rts) : _rts(rts) {}
+message_handler::message_handler(realtime_schedule& rts)
+    : _rts(rts), _msg_reader(rts) {}
 
 void message_handler::process_message_stream(std::istream& stream,
                                              bool eva_numbers) {
   unsigned messages = 0;
-  std::vector<std::unique_ptr<message_class>> msg_objects;
+  std::vector<std::unique_ptr<message>> msg_objects;
   std::time_t max_release_time = 0;
 
   while (!stream.eof()) {
-    message_class* msg =
-        message_class::read_message_from_stream(stream, eva_numbers, this);
+    std::unique_ptr<message> msg = _msg_reader.read_message(stream);
     if (stream.fail()) {
       if (!stream.eof()) LOG(warn) << "failed to read message stream";
-      break;
-    }
-    if (message_class::parse_error_occured() &&
-        message_class::_parse_result !=
-            message_class::parse_result::EVA_NO_CONVERSION_FAILED) {
-      LOG(warn) << "parse error in message stream";
       break;
     }
     if (msg == nullptr) continue;
     handle_message(*msg);
     messages++;
-    msg_objects.emplace_back(msg);
-    max_release_time =
-        std::max(max_release_time, msg->release_time.get_timestamp());
+    max_release_time = std::max(max_release_time, msg->release_time_);
+    msg_objects.push_back(std::move(msg));
   }
   if (messages != 0) {
     _rts._delay_propagator.process_queue();
@@ -53,32 +46,29 @@ void message_handler::process_message_stream(std::istream& stream,
   }
 }
 
-void message_handler::handle_message(const message_class& msg) {
+void message_handler::handle_message(const message& msg) {
   _rts._stats._counters.messages.increment();
-  switch (msg.get_type()) {
-    case message_class_type::delayed_train_message:
-      handle_delay(dynamic_cast<const delayed_train_message&>(msg));
+  switch (msg.type_) {
+    case message_type::delay:
+      handle_delay(static_cast<const delay_message&>(msg));
       break;
-    case message_class_type::additional_train_message:
+    case message_type::additional:
       handle_additional_train(
-          dynamic_cast<const additional_or_canceled_train_message&>(msg));
+          static_cast<const additional_train_message&>(msg));
       _rts._message_output.add_message(&msg);
       break;
-    case message_class_type::canceled_train_message:
-      handle_canceled_train(
-          dynamic_cast<const additional_or_canceled_train_message&>(msg));
+    case message_type::cancel:
+      handle_canceled_train(static_cast<const cancel_train_message&>(msg));
       _rts._message_output.add_message(&msg);
       break;
-    case message_class_type::reroute_train_message:
-      handle_rerouted_train(dynamic_cast<const reroute_train_message&>(msg));
+    case message_type::reroute:
+      handle_rerouted_train(static_cast<const reroute_train_message&>(msg));
       //_rts._message_output.add_message(&msg); // TODO:
       // reroute_train_message_s_g
       break;
-    case message_class_type::connection_status_decision_message:
-    case message_class_type::
-        connection_status_decision_message_different_stations:
+    case message_type::status_decision:
       handle_connection_status_decision(
-          dynamic_cast<const connection_status_decision_message&>(msg));
+          static_cast<const connection_status_decision_message&>(msg));
       _rts._message_output.add_message(&msg);
       break;
     default:
@@ -115,31 +105,21 @@ void message_handler::handle_delay(const schedule_event& schedule_event,
   _rts._delay_propagator.handle_delay_message(schedule_event, new_time, reason);
 }
 
-void message_handler::handle_delay(const delayed_train_message& msg) {
-  const date_manager& date_mgr = _rts._schedule.date_mgr;
+void message_handler::handle_delay(const delay_message& msg) {
   bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.get_train_index())) {
+  if (_rts.is_tracked(msg.train_nr_)) {
     _rts._tracking.in_message(msg);
     _rts._debug_mode = true;
   }
   _rts._stats._counters.delay_msgs.increment();
-  if (msg.contains_happened_event()) {
-    delayed_stop* delayed_stop = msg.delay;
-    schedule_event schedule_event =
-        get_schedule_event(delayed_stop, msg.get_train_index());
-    if (schedule_event._schedule_time != INVALID_TIME &&
-        schedule_event._station_index != 0) {
-      motis::time new_time = delayed_stop->new_event_time.to_time(date_mgr);
-      handle_delay(schedule_event, new_time, timestamp_reason::IS);
-    }
+  if (msg.is_.valid() && msg.is_.delayed_time_ != motis::INVALID_TIME) {
+    handle_delay(msg.is_, msg.is_.delayed_time_, timestamp_reason::IS);
   }
-  for (delayed_stop* delayed_stop : msg.forecasts) {
-    schedule_event schedule_event =
-        get_schedule_event(delayed_stop, msg.get_train_index());
-    if (schedule_event._schedule_time != INVALID_TIME &&
-        schedule_event._station_index != 0) {
-      motis::time new_time = delayed_stop->new_event_time.to_time(date_mgr);
-      handle_delay(schedule_event, new_time, timestamp_reason::FORECAST);
+  for (const delayed_event& delayed_stop : msg.forecasts_) {
+    if (delayed_stop.valid() &&
+        delayed_stop.delayed_time_ != motis::INVALID_TIME) {
+      handle_delay(delayed_stop, delayed_stop.delayed_time_,
+                   timestamp_reason::FORECAST);
     }
   }
   _rts._debug_mode = old_debug;
@@ -204,22 +184,16 @@ void message_handler::handle_additional_train(
 }
 
 void message_handler::handle_additional_train(
-    const additional_or_canceled_train_message& msg) {
-  assert(msg.message_type == train_message_type::additional_train);
+    const additional_train_message& msg) {
   std::vector<schedule_event> events;
 
   bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.get_train_index())) {
+  if (_rts.is_tracked(msg.train_nr_)) {
     _rts._tracking.in_message(msg);
     _rts._debug_mode = true;
   }
 
-  for (schedule_stop* stop : msg.stops) {
-    if (stop->station_index != 0)
-      events.push_back(get_schedule_event(stop, msg.get_train_index()));
-  }
-
-  handle_additional_train(std::move(events), msg.get_category());
+  handle_additional_train(msg.events_, msg.category_);
   _rts._debug_mode = old_debug;
 }
 
@@ -314,23 +288,16 @@ void message_handler::handle_canceled_train(
   _rts._delay_propagator.process_queue();
 }
 
-void message_handler::handle_canceled_train(
-    const additional_or_canceled_train_message& msg) {
-  assert(msg.message_type == train_message_type::canceled_train);
+void message_handler::handle_canceled_train(const cancel_train_message& msg) {
   std::vector<schedule_event> events;
 
   bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.get_train_index())) {
+  if (_rts.is_tracked(msg.train_nr_)) {
     _rts._tracking.in_message(msg);
     _rts._debug_mode = true;
   }
 
-  for (schedule_stop* stop : msg.stops) {
-    if (stop->station_index != 0)
-      events.push_back(get_schedule_event(stop, msg.get_train_index()));
-  }
-
-  handle_canceled_train(std::move(events));
+  handle_canceled_train(msg.events_);
   _rts._debug_mode = old_debug;
 }
 
@@ -523,34 +490,20 @@ void message_handler::handle_rerouted_train(
 }
 
 void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
-  std::vector<schedule_event> canceled_events;
-  std::vector<schedule_event> new_events;
-
   bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.get_train_index())) {
+  if (_rts.is_tracked(msg.train_nr_)) {
     _rts._tracking.in_message(msg);
     _rts._debug_mode = true;
   }
 
-  for (reroute_stop* stop : msg.canceled_stops) {
-    if (stop->station_index != 0)
-      canceled_events.push_back(
-          get_schedule_event(stop, msg.get_train_index()));
-  }
-
-  for (reroute_stop* stop : msg.new_stops) {
-    if (stop->station_index != 0)
-      new_events.push_back(get_schedule_event(stop, msg.get_train_index()));
-  }
-
-  handle_rerouted_train(canceled_events, new_events, msg.category);
+  handle_rerouted_train(msg.canceled_events_, msg.new_events_, msg.category_);
   _rts._debug_mode = old_debug;
 }
 
 void message_handler::handle_connection_status_decision(
     const schedule_event& arrival, const schedule_event& departure,
-    connection_status::decision_type status) {
-  if (status == connection_status::decision_type::kept) {
+    status_decision status) {
+  if (status == status_decision::kept) {
     _rts._waiting_edges.add_additional_edge(arrival, departure,
                                             std::numeric_limits<int>::max());
   } else {
@@ -563,22 +516,18 @@ void message_handler::handle_connection_status_decision(
 void message_handler::handle_connection_status_decision(
     const connection_status_decision_message& msg) {
   _rts._stats._counters.csd.increment();
-  schedule_event arrival(
-      msg.get_station_from_index(), msg.get_train_from_index(), false,
-      msg.get_train_from_time().to_time(_rts._schedule.date_mgr));
-  schedule_event departure(
-      msg.get_station_to_index(), msg.get_train_to_index(), true,
-      msg.get_train_to_time().to_time(_rts._schedule.date_mgr));
   bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.get_train_from_index()) ||
-      _rts.is_tracked(msg.get_train_to_index())) {
+  if (_rts.is_tracked(msg.arrival_._train_nr) ||
+      _rts.is_tracked(msg.departure_._train_nr)) {
     _rts._tracking.in_message(msg);
     _rts._debug_mode = true;
   }
-  if (arrival._station_index != 0 && departure._station_index != 0)
-    handle_connection_status_decision(arrival, departure, msg.status);
-  else
+  if (msg.departure_.valid() && msg.arrival_.valid()) {
+    handle_connection_status_decision(msg.arrival_, msg.departure_,
+                                      msg.decision_);
+  } else {
     _rts._stats._counters.csd.ignore();
+  }
   _rts._debug_mode = old_debug;
 }
 
@@ -658,26 +607,6 @@ bool message_handler::train_exists(
   } else {
     if (_rts.is_debug_mode()) LOG(warn) << "partial train match (v2)";
     return false;
-  }
-}
-
-schedule_event message_handler::get_schedule_event(const schedule_stop* stop,
-                                                   int train_nr) const {
-  motis::time scheduled_time =
-      stop->scheduled_event_time.to_time(_rts._schedule.date_mgr);
-  bool departure = stop->stop_type == message_stop::departure ||
-                   stop->stop_type == message_stop::first_stop;
-  return schedule_event(stop->station_index, train_nr, departure,
-                        scheduled_time);
-}
-
-const station* message_handler::get_station_by_eva(std::string eva_nr) const {
-  try {
-    int eva = boost::lexical_cast<int>(eva_nr);
-    auto it = _rts._schedule.eva_to_station.find(eva);
-    return it == std::end(_rts._schedule.eva_to_station) ? nullptr : it->second;
-  } catch (boost::bad_lexical_cast&) {
-    return nullptr;
   }
 }
 

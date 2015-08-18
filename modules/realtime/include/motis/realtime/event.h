@@ -43,6 +43,10 @@ public:
 
   motis::time time() const { return _schedule_time; }
 
+  inline bool valid() const {
+    return _schedule_time != motis::INVALID_TIME && _station_index != 0;
+  }
+
   bool operator==(const schedule_event& other) const {
     return _station_index == other._station_index &&
            _train_nr == other._train_nr && _departure == other._departure &&
@@ -98,9 +102,13 @@ public:
 
   motis::time time() const { return _current_time; }
 
+  bool valid() {
+    return _current_time != motis::INVALID_TIME && _station_index != 0;
+  }
+
   bool operator==(const graph_event& other) const {
-    assert(_route_id != -1);
-    assert(other._route_id != -1);
+    assert((_route_id != -1 && other._route_id != -1) ||
+           (_route_id == -1 && other._route_id == -1));
     return _station_index == other._station_index &&
            _train_nr == other._train_nr && _departure == other._departure &&
            _current_time == other._current_time && _route_id == other._route_id;

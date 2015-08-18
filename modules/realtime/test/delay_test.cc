@@ -24,6 +24,7 @@ TEST_CASE("original events don't have delay", "[delay]") {
     CHECK(route_node != nullptr);
     CHECK(lc != nullptr);
     if (lc) CHECK(lc->a_time == t(9 + offset, 43));
+
     CHECK(rt::graph_event(ts._rts.get_schedule_event(event)) == event);
     CHECK(ts._rts._delay_info_manager.get_delay_info(event) == nullptr);
   }
