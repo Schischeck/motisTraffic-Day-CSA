@@ -10,6 +10,7 @@ struct RailViz_station_detail_res_train {
 
 table RailViz_station_detail_res_entry {
 	line_name : string;
+	line_type : int;
 	train : RailViz_station_detail_res_train;
 	startEndStation_name : string;
 	startend_station_id : int;
