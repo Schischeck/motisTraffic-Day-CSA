@@ -19,19 +19,20 @@ namespace db_distributions_loader {
 
 using mapping_csv = std::tuple<int, std::string, int, int, int, int>;
 
+template <typename Distribution>
 struct distribution_mapping {
-  distribution_mapping(unsigned int const distribution_id,
+  distribution_mapping(Distribution distribution,
                        std::string const& distribution_class,
                        unsigned int const travel_time_from,
                        unsigned int const travel_time_to, int const delay_from,
                        int const delay_to)
-      : distribution_id_(distribution_id),
+      : distribution_(distribution),
         distribution_class_(distribution_class),
         travel_time_from_(travel_time_from),
         travel_time_to_(travel_time_to),
         delay_from_(delay_from),
         delay_to_(delay_to) {}
-  unsigned int const distribution_id_;
+  Distribution distribution_;
   std::string distribution_class_;
   unsigned int const travel_time_from_;
   unsigned int const travel_time_to_;
@@ -39,7 +40,15 @@ struct distribution_mapping {
   int const delay_to_;
 };
 
-void load_distributions(std::string const root);
+void load_distributions(
+    std::string root,
+    std::map<std::string, std::string>& family_to_distribution_class,
+    std::vector<std::pair<unsigned int, probability_distribution> >&
+        probability_distributions,
+    std::vector<distribution_mapping<unsigned int const> >&
+        distribution_mappings,
+    std::map<std::string, probability_distribution>&
+        class_to_probability_distributions);
 
 namespace detail {
 void load_distributions_classes(
@@ -51,7 +60,8 @@ void load_distributions(
         probability_distributions);
 void load_distribution_mappings(
     std::string const filepath,
-    std::vector<distribution_mapping>& distribution_mappings);
+    std::vector<distribution_mapping<unsigned int const> >&
+        distribution_mappings);
 void load_start_distributions(std::string const filepath,
                               std::map<std::string, probability_distribution>&
                                   class_to_probability_distributions);

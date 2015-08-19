@@ -107,3 +107,34 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
       equal(arrival_distribution.probability_equal(1), 0.7 * 0.2 + 0.15 * 0.7));
   REQUIRE(equal(arrival_distribution.probability_equal(2), 0.15 * 0.2));
 }
+
+/* arrival distribution with a gap */
+TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  // container delivering the departure distribution 0.8, 0.2
+  train_distributions_test_container train_distributions({0.5, 0.0, 0.5}, 0);
+  tt_distributions_test_manager tt_distributions({1.0}, 0, 2);
+
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& second_route_node = *first_route_edge->_to;
+
+  pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
+                            train_distributions, tt_distributions);
+  probability_distribution arrival_distribution;
+
+  compute_arrival_distribution(data, arrival_distribution);
+
+  REQUIRE(arrival_distribution.first_minute() == 0);
+  REQUIRE(arrival_distribution.last_minute() == 2);
+  REQUIRE(equal(arrival_distribution.sum(), 1.0));
+  REQUIRE(equal(arrival_distribution.probability_equal(0), 0.5));
+  REQUIRE(equal(arrival_distribution.probability_equal(1), 0.0));
+  REQUIRE(equal(arrival_distribution.probability_equal(2), 0.5));
+}

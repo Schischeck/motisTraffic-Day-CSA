@@ -38,7 +38,6 @@ TEST_CASE("load_distributions", "[distributions_loader]") {
   for (unsigned int id = 0; id < 5; id++) {
     REQUIRE(distributions[id].first == id);
   }
-
   {
     probability_distribution const& pd = distributions[0].second;
     REQUIRE(pd.first_minute() == -5);
@@ -88,7 +87,7 @@ TEST_CASE("load_distributions", "[distributions_loader]") {
 }
 
 TEST_CASE("load_mappings", "[distributions_loader]") {
-  std::vector<distribution_mapping> distribution_mappings;
+  std::vector<distribution_mapping<unsigned int const> > distribution_mappings;
   detail::load_distribution_mappings(
       "../modules/reliability/resources/distributions/Mapping.csv",
       distribution_mappings);
@@ -102,7 +101,6 @@ TEST_CASE("load_start_distributions", "[distributions_loader]") {
       class_to_probability_distributions);
 
   REQUIRE(class_to_probability_distributions.size() == 2);
-
   {
     auto const it = class_to_probability_distributions.find("FV");
     REQUIRE(it != class_to_probability_distributions.end());
@@ -119,11 +117,10 @@ TEST_CASE("load_start_distributions", "[distributions_loader]") {
     auto const it = class_to_probability_distributions.find("RV");
     REQUIRE(it != class_to_probability_distributions.end());
     probability_distribution const& pd = it->second;
-    REQUIRE(pd.first_minute() == -1);
+    REQUIRE(pd.first_minute() == 0);
     REQUIRE(pd.last_minute() == 1);
     REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-1), 0.1));
-    REQUIRE(equal(pd.probability_equal(0), 0.8));
+    REQUIRE(equal(pd.probability_equal(0), 0.9));
     REQUIRE(equal(pd.probability_equal(1), 0.1));
   }
 }

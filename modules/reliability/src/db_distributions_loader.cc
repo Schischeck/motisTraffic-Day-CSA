@@ -4,15 +4,35 @@
 
 #include "parser/csv.h"
 
+#include "motis/reliability/db_distributions.h"
+
 namespace motis {
 namespace reliability {
 namespace db_distributions_loader {
 
-void load_distributions(std::string const root) {
-  /*detail::load_distributions_classes();
-  detail::load_distributions();
-  detail::load_distribution_mappings();
-  detail::load_start_distributions();*/
+void load_distributions(
+    std::string root,
+    std::map<std::string, std::string>& family_to_distribution_class,
+    std::vector<std::pair<unsigned int, probability_distribution> >&
+        probability_distributions,
+    std::vector<distribution_mapping<unsigned int const> >&
+        distribution_mappings,
+    std::map<std::string, probability_distribution>&
+        class_to_probability_distributions) {
+  if (root.length() == 0) {
+    root = "./";
+  }
+  if (root[root.length() - 1] != '/') {
+    root += '/';
+  }
+  detail::load_distributions_classes(root + "Classes.csv",
+                                     family_to_distribution_class);
+  detail::load_distributions(root + "Distributions.csv",
+                             probability_distributions);
+  detail::load_distribution_mappings(root + "Mapping.csv",
+                                     distribution_mappings);
+  detail::load_start_distributions(root + "StartDistributions.csv",
+                                   class_to_probability_distributions);
 }
 
 namespace detail {
@@ -161,8 +181,8 @@ bool mapping_is_smaller(mapping_csv a, mapping_csv b) {
   return false;
 }
 
-void check_mapping(distribution_mapping const& previous,
-                   distribution_mapping const& current) {
+void check_mapping(distribution_mapping<unsigned int const> const& previous,
+                   distribution_mapping<unsigned int const> const& current) {
   assert(current.travel_time_from_ <= current.travel_time_to_);
   assert(current.delay_from_ <= current.delay_to_);
   if (previous.distribution_class_ == current.distribution_class_) {
@@ -209,7 +229,8 @@ void load_distributions(
 
 void load_distribution_mappings(
     std::string const filepath,
-    std::vector<distribution_mapping>& distribution_mappings) {
+    std::vector<distribution_mapping<unsigned int const> >&
+        distribution_mappings) {
   std::vector<mapping_csv> mapping_entries;
   parser::read_file<mapping_csv, ';'>(filepath.c_str(), mapping_entries,
                                       mapping_columns);
@@ -249,7 +270,24 @@ void load_start_distributions(std::string const filepath,
       distributions_entries, probability_distributions);
 
   for (auto it : probability_distributions) {
-    class_to_probability_distributions[it.first] = it.second;
+    assert(class_to_probability_distributions.find(it.first) ==
+           class_to_probability_distributions.end());
+
+    /* We do not expect departures earlier than scheduled.
+     * If the distribution has delay minutes smaller than 0,
+     * add their probabilities to delay minute 0 */
+    if (it.second.first_minute() >= 0) {
+      class_to_probability_distributions[it.first] = it.second;
+    } else {
+      std::vector<probability> probabilities;
+      probabilities.push_back(it.second.probability_smaller_equal(0));
+      for (unsigned int d = 1; d <= it.second.last_minute(); d++) {
+        probabilities.push_back(it.second.probability_equal(d));
+      }
+      probability_distribution pd;
+      pd.init(probabilities, 0);
+      class_to_probability_distributions[it.first] = pd;
+    }
   }
 }
 
