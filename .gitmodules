@@ -16,3 +16,6 @@
 [submodule "external_lib/parser"]
 	path = external_lib/parser
 	url = https://github.com/felixguendling/parser.git
+[submodule "external_lib/guess"]
+	path = external_lib/guess
+	url = https://github.com/felixguendling/guess.git

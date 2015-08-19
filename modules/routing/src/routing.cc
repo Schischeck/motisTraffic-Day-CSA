@@ -3,14 +3,32 @@
 #include <iostream>
 
 #include "boost/program_options.hpp"
+#include "boost/date_time/gregorian/gregorian_types.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+
+#include "motis/core/common/logging.h"
+#include "motis/core/common/timing.h"
 
 #include "motis/module/api.h"
 
-using namespace motis::module;
+#include "motis/protocol/StationGuesserRequest_generated.h"
+
+#include "motis/routing/label.h"
+#include "motis/routing/search.h"
+#include "motis/routing/response_builder.h"
+#include "motis/routing/error.h"
+
+namespace p = std::placeholders;
 namespace po = boost::program_options;
+using boost::system::error_code;
+using namespace flatbuffers;
+using namespace motis::logging;
+using namespace motis::module;
 
 namespace motis {
 namespace routing {
+
+routing::routing() : label_store_(MAX_LABELS) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
@@ -19,8 +37,106 @@ po::options_description routing::desc() {
 
 void routing::print(std::ostream& out) const {}
 
-msg_ptr routing::on_msg(msg_ptr const& msg, sid session) {
-  return {};
+time unix_to_motis_time(schedule const& s, uint64_t unix_timestamp) {
+  auto first_date = s.date_mgr.first_date();
+  boost::posix_time::ptime schedule_begin(boost::gregorian::date(
+      first_date.year, first_date.month, first_date.day));
+  boost::posix_time::ptime query_time =
+      boost::posix_time::from_time_t(unix_timestamp);
+  return ((query_time - schedule_begin).total_milliseconds() / 1000) / 60;
+}
+
+void routing::read_path_element(StationPathElement const* el,
+                                routing::path_el_cb cb) {
+  auto eva = el->eva_nr();
+
+  if (eva == 0) {
+    // Eva number not set.
+    // Try to guess entered station name.
+    FlatBufferBuilder b;
+    b.Finish(
+        CreateMessage(b, MsgContent_StationGuesserRequest,
+                      motis::guesser::CreateStationGuesserRequest(
+                          b, 1, b.CreateString(el->name()->str())).Union()));
+
+    return dispatch(make_msg(b), 0, std::bind(&routing::handle_station_guess,
+                                              this, p::_1, p::_2, cb));
+  } else {
+    // Eva number set.
+    // Try to get station using the eva_to_station map.
+    auto lock = synced_sched<RO>();
+    auto station_it = lock.sched().eva_to_station.find(eva);
+    if (station_it == end(lock.sched().eva_to_station)) {
+      return cb({}, error::given_eva_not_available);
+    } else {
+      return cb({arrival_part(station_it->second->index)}, error::ok);
+    }
+  }
+}
+
+void routing::handle_station_guess(msg_ptr res, error_code e,
+                                   routing::path_el_cb cb) {
+  if (e) {
+    return cb({}, e);
+  } else {
+    auto guess = res->content<motis::guesser::StationGuesserResponse const*>();
+    if (guess->guesses()->Length() == 0) {
+      return cb({}, error::no_guess_for_station);
+    } else {
+      auto lock = synced_sched<RO>();
+      auto eva = guess->guesses()->Get(0)->eva();
+      auto station_it = lock.sched().eva_to_station.find(eva);
+      return cb({arrival_part(station_it->second->index)}, error::ok);
+    }
+  }
+}
+
+void routing::on_msg(msg_ptr msg, sid, callback cb) {
+  auto req = msg->content<RoutingRequest const*>();
+
+  if (req->path()->Length() < 2) {
+    return cb({}, error::path_length_too_short);
+  }
+
+  auto path = std::make_shared<std::vector<arrival>>(req->path()->Length());
+  auto path_complete = [path] {
+    return std::all_of(begin(*path), end(*path),
+                       [](arrival const& a) { return !a.empty(); });
+  };
+  auto path_cb = [=](int index, arrival arr, error_code e) {
+    auto req = msg->content<RoutingRequest const*>();
+
+    if (e) {
+      return cb({}, e);
+    }
+
+    (*path)[index] = arr;
+
+    if (!path_complete()) {
+      return;
+    }
+
+    auto lock = synced_sched<schedule_access::RO>();
+
+    auto i_begin = unix_to_motis_time(lock.sched(), req->interval()->begin());
+    auto i_end = unix_to_motis_time(lock.sched(), req->interval()->end());
+
+    search s(lock.sched(), label_store_);
+    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end);
+
+    LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
+              << lock.sched().stations[path->at(1)[0].station]->name << " "
+              << "(" << format_time(i_begin) << ", " << format_time(i_end)
+              << ") -> " << journeys.size() << " connections found";
+
+    return cb(journeys_to_message(journeys), error::ok);
+  };
+
+  read_path_element(req->path()->Get(0), std::bind(path_cb, 0, p::_1, p::_2));
+  read_path_element(req->path()->Get(req->path()->Length() - 1),
+                    std::bind(path_cb, 1, p::_1, p::_2));
+
+  return;
 }
 
 MOTIS_MODULE_DEF_MODULE(routing)

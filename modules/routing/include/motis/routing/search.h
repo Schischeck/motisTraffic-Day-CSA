@@ -9,6 +9,7 @@
 #include "motis/routing/arrival.h"
 #include "motis/routing/label.h"
 #include "motis/routing/journey.h"
+#include "motis/core/schedule/time.h"
 
 namespace motis {
 
@@ -16,13 +17,11 @@ struct schedule;
 
 class search {
 public:
-  search(schedule& schedule, memory_manager<label>& label_store);
+  search(schedule const& schedule, memory_manager<label>& label_store);
 
   std::vector<journey> get_connections(
-      arrival from, arrival to, int time1, int time2, int day,
+      arrival from, arrival to, time interval_start, time interval_end,
       pareto_dijkstra::statistics* stats = nullptr);
-
-  void output_path_compact(journey const& journey, std::ostream& out);
 
   void generate_start_labels(time const from, time const to,
                              station_node const* start_station_node,
@@ -36,7 +35,7 @@ public:
                              station_node const* real_start, int time_off,
                              int start_price, int slot, lower_bounds& context);
 
-  schedule& _sched;
+  schedule const& _sched;
   memory_manager<label>& _label_store;
 };
 

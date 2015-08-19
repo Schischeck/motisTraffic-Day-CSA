@@ -22,21 +22,36 @@ po::options_description guesser::desc() {
 
 void guesser::print(std::ostream& out) const {}
 
-msg_ptr guesser::on_msg(msg_ptr const& msg, sid) {
-  FlatBufferBuilder fbb;
+void guesser::init() {
+  auto sync = synced_sched<schedule_access::RO>();
+  std::vector<std::string> station_names(sync.sched().stations.size());
+  std::transform(begin(sync.sched().stations), end(sync.sched().stations),
+                 begin(station_names),
+                 [](station_ptr const& s) { return s->name; });
+  guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(station_names));
+}
 
-  std::vector<Offset<String>> guesses;
-  guesses.emplace_back(fbb.CreateString("a"));
-  guesses.emplace_back(fbb.CreateString("b"));
-  guesses.emplace_back(fbb.CreateString("c"));
-  auto vec = fbb.CreateVector(std::move(guesses));
-  auto mloc = CreateStationGuesserResponse(fbb, vec);
+void guesser::on_msg(msg_ptr msg, sid, callback cb) {
+  auto req = msg->content<StationGuesserRequest const*>();
 
-  auto mmloc = motis::CreateMessage(
-      fbb, motis::MsgContent_StationGuesserResponse, mloc.Union());
-  fbb.Finish(mmloc);
+  auto sync = synced_sched<schedule_access::RO>();
 
-  return make_msg(fbb);
+  FlatBufferBuilder b;
+
+  std::vector<Offset<Station>> guesses;
+  for (auto const& guess :
+       guesser_->guess(req->input()->str(), req->guess_count())) {
+    auto const& station = *sync.sched().stations[guess];
+    guesses.emplace_back(CreateStation(b, b.CreateString(station.name),
+                                       station.eva_nr, station.width,
+                                       station.length));
+  }
+
+  b.Finish(motis::CreateMessage(
+      b, MsgContent_StationGuesserResponse,
+      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union()));
+
+  return cb(make_msg(b), boost::system::error_code());
 }
 
 MOTIS_MODULE_DEF_MODULE(guesser)

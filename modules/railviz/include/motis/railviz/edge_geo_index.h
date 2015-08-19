@@ -19,6 +19,7 @@ public:
   virtual ~edge_geo_index();
 
   std::vector<edge const*> edges(geo::box area) const;
+  geo::box get_bounds() const;
 
 private:
   class impl;

@@ -9,6 +9,7 @@ namespace reliability {
 
 struct reliability : public motis::module::module {
   reliability();
+  virtual ~reliability() {}
 
   bool initialize();
 
@@ -16,9 +17,9 @@ struct reliability : public motis::module::module {
   virtual void print(std::ostream& out) const override;
 
   virtual std::string name() const override { return "reliability"; }
-  virtual std::vector<MsgContent> subscriptions() const { return {}; }
-  virtual motis::module::msg_ptr on_msg(motis::module::msg_ptr const&,
-                                        motis::module::sid) override;
+  virtual std::vector<MsgContent> subscriptions() const override { return {}; }
+  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
+                      motis::module::callback) override;
 };
 
 }  // namespace reliability

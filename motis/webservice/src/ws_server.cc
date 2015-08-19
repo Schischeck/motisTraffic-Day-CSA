@@ -3,6 +3,9 @@
 #include <memory>
 #include <functional>
 
+#include "boost/system/system_error.hpp"
+
+#define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
@@ -30,7 +33,7 @@ struct ws_server::ws_server_impl {
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
     server_.set_message_handler(
-        bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
+        std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
   }
 
   void set_msg_handler(msg_handler handler) {
@@ -67,6 +70,15 @@ struct ws_server::ws_server_impl {
     });
   }
 
+  void send_error(boost::system::error_code e, sid session) {
+    flatbuffers::FlatBufferBuilder b;
+    b.Finish(CreateMessage(
+        b, MsgContent_MotisError,
+        CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
+                         b.CreateString(e.message())).Union()));
+    send(make_msg(b), session);
+  }
+
   void stop() { server_.stop(); }
 
   void on_open(connection_hdl hdl) {
@@ -85,13 +97,15 @@ struct ws_server::ws_server_impl {
     if (con_it == end(con_sid_map_)) {
       return;
     }
-    con_sid_map_.erase(con_it);
 
     auto sid = con_it->second;
+    con_sid_map_.erase(con_it);
+
     auto sid_it = sid_con_map_.find(sid);
     if (sid_it == end(sid_con_map_)) {
       return;
     }
+
     sid_con_map_.erase(sid_it);
 
     if (close_handler_) {
@@ -109,8 +123,22 @@ struct ws_server::ws_server_impl {
       return;
     }
 
-    send(msg_handler_(make_msg(msg->get_payload()), con_it->second),
-         con_it->second);
+    auto session = con_it->second;
+    try {
+      auto req = make_msg(msg->get_payload());
+      msg_handler_(req, session,
+                   [this, session](msg_ptr res, boost::system::error_code ec) {
+                     if (ec) {
+                       send_error(ec, session);
+                     } else {
+                       send(res, session);
+                     }
+                   });
+    } catch (boost::system::system_error const& e) {
+      send_error(e.code(), session);
+    } catch (...) {
+      std::cout << "unknown error occured\n";
+    }
   }
 
   asio_ws_server server_;

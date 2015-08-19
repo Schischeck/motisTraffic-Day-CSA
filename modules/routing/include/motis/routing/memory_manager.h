@@ -5,17 +5,17 @@
 
 namespace motis {
 
-template <typename t>
+template <typename T>
 class memory_manager {
 public:
   memory_manager(std::size_t size)
       : _size(size),
-        _memory_buffer(new t[_size]),
+        _memory_buffer(new T[_size]),
         _next_position(_memory_buffer.get()) {}
 
   void reset() { _next_position = _memory_buffer.get(); }
 
-  t* create() {
+  T* create() {
     assert(_next_position <= _memory_buffer.get() + _size);
     return _next_position++;
   }
@@ -26,8 +26,8 @@ public:
 
 private:
   std::size_t _size;
-  std::unique_ptr<t[]> _memory_buffer;
-  t* _next_position;
+  std::unique_ptr<T[]> _memory_buffer;
+  T* _next_position;
 };
 
 }  // namespace motis

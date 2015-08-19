@@ -39,13 +39,19 @@ public:
         _now(now),
         _dominated(false),
         _target_slot(pred == nullptr ? 0 : pred->_target_slot) {
+    auto transfers_lb = lower_bounds.transfers.get_distance(node->_id);
+    if (transfers_lb == std::numeric_limits<uint32_t>::max()) {
+      _travel_time[1] = std::numeric_limits<uint16_t>::max();
+      return;
+    }
+
     _travel_time[0] = _now - _start;
     _travel_time[1] = _travel_time[0];
     _travel_time[1] += lower_bounds.travel_time.get_distance(node->_id);
 
     _transfers[0] = pred != nullptr ? pred->_transfers[0] : 0;
     _transfers[1] = _transfers[0];
-    _transfers[1] += lower_bounds.transfers.get_distance(node->_id);
+    _transfers[1] += transfers_lb;
 
     _total_price[0] = pred != nullptr ? pred->_total_price[0] : 0;
 

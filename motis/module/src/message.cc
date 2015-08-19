@@ -1,9 +1,13 @@
 #include "motis/module/message.h"
 
+#include <stdexcept>
+
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
 #include "motis/protocol/resources.h"
+
+#include "motis/module/error.h"
 
 namespace motis {
 namespace module {
@@ -13,7 +17,7 @@ std::unique_ptr<flatbuffers::Parser> message::parser =
 
 void message::init_parser() {
   int message_symbol_index = -1;
-  for (int i = 0; i < number_of_symbols; ++i) {
+  for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {
       message_symbol_index = i;
     } else if (!parser->Parse((const char*)symbols[i], nullptr, filenames[i])) {
@@ -29,9 +33,13 @@ void message::init_parser() {
 }
 
 message::message(std::string const& json) {
+  if (!parser->root_struct_def_) {
+    init_parser();
+  }
+
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
-    throw std::runtime_error("error while parsing JSON");
+    throw boost::system::system_error(error::unable_to_parse_msg);
   }
 
   buf_ = parser->builder_.GetBufferPointer();
@@ -42,6 +50,10 @@ message::message(std::string const& json) {
 }
 
 std::string message::to_json() const {
+  if (!parser->root_struct_def_) {
+    init_parser();
+  }
+
   auto opt = flatbuffers::GeneratorOptions();
   opt.strict_json = true;
 

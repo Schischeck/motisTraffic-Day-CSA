@@ -5,7 +5,7 @@
 #include "motis/protocol/Message_generated.h"
 
 namespace flatbuffers {
-struct Parser;
+class Parser;
 }
 
 namespace motis {
@@ -22,6 +22,8 @@ struct message {
     return reinterpret_cast<T>(msg_->content());
   }
 
+  MsgContent content_type() const { return msg_->content_type(); }
+
   operator bool() { return msg_ != nullptr || buf_ == nullptr; }
 
   std::string to_json() const;
@@ -36,16 +38,16 @@ struct message {
 
 typedef std::shared_ptr<message> msg_ptr;
 
+inline msg_ptr make_msg(std::string const& json) {
+  return std::make_shared<message>(json);
+}
+
 inline msg_ptr make_msg(flatbuffers::FlatBufferBuilder& builder) {
   auto buf = builder.GetBufferPointer();
   auto msg = GetMessage(buf);
   auto mem = builder.ReleaseBufferPointer();
   builder.Clear();
   return std::make_shared<message>(std::move(mem), msg, buf);
-}
-
-inline msg_ptr make_msg(std::string const& json) {
-  return std::make_shared<message>(json);
 }
 
 }  // namespace module

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 
+#include "boost/lexical_cast.hpp"
+
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/date_manager.h"
 #include "motis/core/schedule/edges.h"
@@ -26,7 +28,7 @@ using namespace std;
 
 namespace motis {
 
-static int get_price_per_km(int clasz) {
+int graph_loader::get_price_per_km(int clasz) {
   switch (clasz) {
     case MOTIS_ICE: return 22;
 
@@ -79,7 +81,7 @@ std::istream& operator>>(std::istream& in, station& station) {
   getline(in, s);
   int i1 = s.find('|');
   int i2 = s.find('|', i1 + 1);
-  station.eva_nr = s.substr(0, i1);
+  station.eva_nr = boost::lexical_cast<int>(s.substr(0, i1));
   station.name = s.substr(i1 + 1, i2 - i1 - 1);
 
   int i3 = s.rfind('|');
@@ -111,7 +113,7 @@ int graph_loader::load_stations(std::vector<station_ptr>& stations,
   int node_id = 0;
 
   station dummy1;
-  dummy1.eva_nr = "-1";
+  dummy1.eva_nr = -1;
   dummy1.index = node_id;
   dummy1.name = "DUMMY";
 
@@ -141,7 +143,7 @@ int graph_loader::load_stations(std::vector<station_ptr>& stations,
   }
 
   station dummy2 = dummy1;
-  dummy2.eva_nr = "-2";
+  dummy2.eva_nr = -2;
   dummy2.index = node_id;
   dummy2.name = "DUMMY";
 
