@@ -1,0 +1,14 @@
+namespace motis.railviz;
+
+struct RailViz_routes_on_time_req_train {
+	dTime : int;
+	aTime : int;
+	dStation : int;
+	aStation : int;
+	route_id : int;
+}
+
+table RailViz_routes_on_time_req {
+  time: ulong;
+  train: RailViz_routes_on_time_req_train;
+}

@@ -1,6 +1,6 @@
 namespace motis.railviz;
 
-struct TrainS {
+struct RailViz_station_detail_res_train {
 	dTime : int;
 	aTime : int;
 	dStation : int;
@@ -8,16 +8,16 @@ struct TrainS {
 	route_id : int;
 }
 
-table TimetableEntry {
+table RailViz_station_detail_res_entry {
 	line_name : string;
-	train : TrainS;
+	train : RailViz_station_detail_res_train;
 	startEndStation_name : string;
 	startend_station_id : int;
 	outgoing : bool;
 }
 
-table RailVizStationDetail {
+table RailViz_station_detail_res {
   name : string;
   station_id : int;
-  timetable : [TimetableEntry];
+  timetable : [RailViz_station_detail_res_entry];
 }

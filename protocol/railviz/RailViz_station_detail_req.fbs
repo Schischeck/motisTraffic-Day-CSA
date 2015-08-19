@@ -6,6 +6,6 @@ namespace motis.railviz;
 //     "station_index": 55
 //   }
 // }
-table RailVizStationDetailRequest {
+table RailViz_station_detail_req {
   station_index:int;
 }

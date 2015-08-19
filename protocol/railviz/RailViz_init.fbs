@@ -1,0 +1,17 @@
+namespace motis.railviz;
+
+struct RailViz_init_station_coordinate {
+  lat: double;
+  lng: double;
+}
+
+table RailViz_init_entry {
+  station_name : string;
+  station_coord : RailViz_init_station_coordinate;
+}
+
+table RailViz_init {
+  stations : [RailViz_init_entry];
+  schedule_start: int;
+  schedule_end: int;
+}

@@ -1,6 +1,6 @@
 namespace motis.railviz;
 
-struct TrainT {
+struct RailViz_alltra_res_train {
 	dTime : int;
 	aTime : int;
 	dStation : int;
@@ -8,6 +8,6 @@ struct TrainT {
 	route_id : int;
 }
 
-table RailVizAllTrainsResponse {
-	trains : [TrainT];
+table RailViz_alltra_res {
+	trains : [RailViz_alltra_res_train];
 }
