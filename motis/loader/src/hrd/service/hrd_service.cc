@@ -70,7 +70,7 @@ std::vector<std::pair<cstr, range>> compute_ranges(
 ///
 /// \param spec_lines  what to parse (lines parsed from the specification)
 /// \param parse_info  indices to parse (where is the range / information)
-/// \param stop        needed to compute ranges (eva numbers, event times)
+/// \param stops       needed to compute ranges (eva numbers, event times)
 /// \param sections    sections to fill with this information (where to write)
 /// \param member      pointer to member to fill with this information
 void parse_range(std::vector<cstr> const& spec_lines,
