@@ -17,10 +17,9 @@ bool is_index(cstr s) { return s[0] == '#'; }
 
 int parse_index(cstr s) { return parse<int>(s.substr(1)); }
 
-int get_index(hrd_service const& service, cstr eva_or_idx, cstr hhmm_or_idx,
-              bool is_departure_event) {
+int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
+              cstr hhmm_or_idx, bool is_departure_event) {
   assert(!eva_or_idx.empty() && !hhmm_or_idx.empty());
-
   if (is_index(eva_or_idx)) {
     // eva_or_idx is an index which is already definite
     return parse_index(eva_or_idx);
@@ -31,31 +30,31 @@ int get_index(hrd_service const& service, cstr eva_or_idx, cstr hhmm_or_idx,
     const auto eva_num = parse<int>(eva_or_idx);
     const auto n = is_index(hhmm_or_idx) ? parse_index(hhmm_or_idx) + 1 : 1;
     const auto it = find_nth(
-        begin(service.stops_), end(service.stops_), n,
+        begin(stops), end(stops), n,
         [&](hrd_service::stop const& s) { return s.eva_num == eva_num; });
-    verify(it != end(service.stops_),
-           "%dth occurrence of eva number %d not found", n, eva_num);
-    return std::distance(begin(service.stops_), it);
+    verify(it != end(stops), "%dth occurrence of eva number %d not found", n,
+           eva_num);
+    return std::distance(begin(stops), it);
   } else {
     // hhmm_or_idx must be a time
     // -> return stop where eva number and time matches
     const auto eva_num = parse<int>(eva_or_idx);
     const auto time = hhmm_to_min(parse<int>(hhmm_or_idx));
-    const auto it = std::find_if(begin(service.stops_), end(service.stops_),
-                                 [&](hrd_service::stop const& s) {
-      return s.eva_num == eva_num &&
-             (is_departure_event ? s.dep.time : s.arr.time) == time;
-    });
-    verify(it != end(service.stops_),
-           "event with time %d at eva number %d not found", time, eva_num);
-    return std::distance(begin(service.stops_), it);
+    const auto it =
+        std::find_if(begin(stops), end(stops), [&](hrd_service::stop const& s) {
+          return s.eva_num == eva_num &&
+                 (is_departure_event ? s.dep.time : s.arr.time) == time;
+        });
+    verify(it != end(stops), "event with time %d at eva number %d not found",
+           time, eva_num);
+    return std::distance(begin(stops), it);
   }
 }
 
-range::range(hrd_service const& service, cstr from_eva_or_idx,
+range::range(std::vector<hrd_service::stop> const& stops, cstr from_eva_or_idx,
              cstr to_eva_or_idx, cstr from_hhmm_or_idx, cstr to_hhmm_or_idx)
-    : from_idx(get_index(service, from_eva_or_idx, from_hhmm_or_idx, true)),
-      to_idx(get_index(service, to_eva_or_idx, to_hhmm_or_idx, false)) {}
+    : from_idx(get_index(stops, from_eva_or_idx, from_hhmm_or_idx, true)),
+      to_idx(get_index(stops, to_eva_or_idx, to_hhmm_or_idx, false)) {}
 
 }  // hrd
 }  // loader

@@ -28,8 +28,9 @@ namespace hrd {
 cstr service_file_content = R"(
 *Z 02292 80____    01                                     % 02292 80____    01 (001)
 *G IC  8000096 8000105                                    % 02292 80____    01 (002)
-*A VE 8000096 8000105 002687                              % 02292 80____    01 (003)
-*I FZ                        0129939                      % 02292 80____    01 (004)
+*L 381   8000096 8000105                                  % 09988 80____    01 (003)
+*A VE 8000096 8000105 002687                              % 02292 80____    01 (004)
+*I FZ                        0129939                      % 02292 80____    01 (005)
 *A BT 8000096 8000105                                     % 02292 80____    01 (006)
 *A FR 8000096 8000105                                     % 02292 80____    01 (007)
 *A G  8000096 8000105                                     % 02292 80____    01 (008)
@@ -130,7 +131,10 @@ TEST_CASE("parse_hrd_service") {
   REQUIRE(std::all_of(std::begin(service.sections_),
                       std::end(service.sections_),
                       [](hrd_service::section const& s) {
-    return s.train_num == 2292 && s.admin == "80____";
+    return s.train_num == 2292 && s.admin == "80____" &&
+           s.attribute_codes == std::vector<cstr>({"BT", "FR", "G "}) &&
+           s.category == std::vector<cstr>({"IC"}) &&
+           s.line_information == std::vector<cstr>({"381 "});
   }));
 
   REQUIRE(service.stops_.size() == 6);

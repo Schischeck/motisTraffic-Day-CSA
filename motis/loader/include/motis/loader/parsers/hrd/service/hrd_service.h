@@ -25,11 +25,20 @@ struct hrd_service {
   };
 
   struct section {
+    section() = default;
+    section(int train_num, parser::cstr admin)
+        : train_num(train_num), admin(admin) {}
+
     int train_num;
     parser::cstr admin;
+    std::vector<parser::cstr> attribute_codes;
+    std::vector<parser::cstr> category;
+    std::vector<parser::cstr> line_information;
   };
 
   hrd_service(specification const& spec);
+
+  bool valid() const;
 
   std::vector<stop> stops_;
   std::vector<section> sections_;
