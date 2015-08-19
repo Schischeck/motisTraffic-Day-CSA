@@ -12,11 +12,16 @@ namespace hrd {
 
 struct hrd_service {
 
-  static constexpr int NOT_SET = -1;
+  static const int NOT_SET;
 
   struct event {
     int time;
     bool in_out_allowed;
+  };
+
+  struct stop {
+    int eva_num;
+    event arr, dep;
   };
 
   struct section {
@@ -26,9 +31,7 @@ struct hrd_service {
 
   hrd_service(specification const& spec);
 
-  specification const& spec_;
-  std::vector<int> eva_nums_;
-  std::vector<std::pair<event, event>> events_;
+  std::vector<stop> stops_;
   std::vector<section> sections_;
 };
 }  // hrd

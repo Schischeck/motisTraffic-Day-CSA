@@ -12,7 +12,10 @@
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
+#include "motis/loader/parsers/hrd/service/specification.h"
+#include "motis/loader/parsers/hrd/service/hrd_service.h"
 #include "motis/loader/util.h"
+
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace parser;
@@ -22,7 +25,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-cstr trains_file_content = R"(
+cstr service_file_content = R"(
 *Z 02292 80____    01                                     % 02292 80____    01 (001)
 *G IC  8000096 8000105                                    % 02292 80____    01 (002)
 *A VE 8000096 8000105 002687                              % 02292 80____    01 (003)
@@ -86,16 +89,90 @@ TEST_CASE("parse_trains") {
     auto platforms = parse_platform_rules(
         {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
 
-    std::vector<Offset<Service>> trains;
-    parse_services({"trains.101", trains_file_content}, stations, attributes,
-                   bitfields, platforms, b, trains);
+    std::vector<Offset<Service>> services;
+    parse_services({"trains.101", service_file_content}, stations, attributes,
+                   bitfields, platforms, b, services);
 
-    b.Finish(CreateSchedule(b, b.CreateVector(trains),
+    b.Finish(CreateSchedule(b, b.CreateVector(services),
                             b.CreateVector(values(stations)),
                             b.CreateVector(values(attributes)), {}));
   } catch (parser_error const& e) {
     printf("parser error: %s:%d\n", e.filename, e.line_number);
   }
+}
+
+TEST_CASE("parse_specification") {
+  specification spec;
+  for_each_line_numbered(service_file_content,
+                         [&spec](cstr const& line, int line_number) {
+    spec.read_line(line, "services.101", line_number);
+  });
+
+  REQUIRE(spec.valid());
+  REQUIRE(!spec.is_empty());
+  REQUIRE(!spec.internal_service.empty());
+  REQUIRE(spec.travel_days.size() == 1);
+  REQUIRE(spec.categories.size() == 1);
+  REQUIRE(spec.attributes.size() == 3);
+  REQUIRE(spec.stops.size() == 6);
+}
+
+TEST_CASE("parse_hrd_service") {
+  specification spec;
+  for_each_line_numbered(service_file_content,
+                         [&spec](cstr const& line, int line_number) {
+    spec.read_line(line, "services.101", line_number);
+  });
+
+  auto service = hrd_service(spec);
+
+  REQUIRE(service.sections_.size() == 5);
+  REQUIRE(std::all_of(std::begin(service.sections_),
+                      std::end(service.sections_),
+                      [](hrd_service::section const& s) {
+    return s.train_num == 2292 && s.admin == "80____";
+  }));
+
+  REQUIRE(service.stops_.size() == 6);
+  auto stop = service.stops_[0];
+  REQUIRE(stop.eva_num == 8000096);
+  REQUIRE(stop.arr.time == hrd_service::NOT_SET);
+  REQUIRE(stop.dep.time == 965);
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[1];
+  REQUIRE(stop.eva_num == 8000156);
+  REQUIRE(stop.arr.time == hhmm_to_min(1644));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hhmm_to_min(1646));
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[2];
+  REQUIRE(stop.eva_num == 8000377);
+  REQUIRE(stop.arr.time == hhmm_to_min(1659));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hhmm_to_min(1700));
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[3];
+  REQUIRE(stop.eva_num == 8000031);
+  REQUIRE(stop.arr.time == hhmm_to_min(1708));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hhmm_to_min(1709));
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[4];
+  REQUIRE(stop.eva_num == 8000068);
+  REQUIRE(stop.arr.time == hhmm_to_min(1722));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hhmm_to_min(1724));
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[5];
+  REQUIRE(stop.eva_num == 8000105);
+  REQUIRE(stop.arr.time == hhmm_to_min(1740));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hrd_service::NOT_SET);
 }
 
 }  // hrd

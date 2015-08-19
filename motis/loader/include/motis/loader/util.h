@@ -68,8 +68,8 @@ inline std::vector<ValueType> values(std::map<IndexType, ValueType> const& m) {
   std::vector<ValueType> v(m.size());
   std::transform(begin(m), end(m), begin(v),
                  [](std::pair<IndexType, ValueType> const& entry) {
-                   return entry.second;
-                 });
+    return entry.second;
+  });
   return v;
 }
 
@@ -86,6 +86,29 @@ inline int hhmm_to_min(int hhmm) {
   } else {
     return (hhmm / 100) * 60 + (hhmm % 100);
   }
+}
+
+template <typename It, typename Predicate>
+inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
+  assert(n != 0);
+  std::size_t num_elements_found = 0;
+  auto it = begin;
+  while (it != end && num_elements_found != n) {
+    it = std::find_if(it, end, fun);
+    ++num_elements_found;
+    if (num_elements_found != n) {
+      ++it;
+    }
+  }
+  return it;
+}
+
+template <typename TargetCollection, typename It, typename UnaryOperation>
+inline TargetCollection transform(It begin, It end, UnaryOperation op) {
+  TargetCollection c;
+  std::transform(begin, end, std::back_insert_iterator<TargetCollection>(c),
+                 op);
+  return c;
 }
 
 }  // namespace loader
