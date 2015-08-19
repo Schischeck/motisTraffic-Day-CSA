@@ -204,16 +204,16 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
              di->schedule_event(), di->_route_id)) {
       delay_info* feeder_di =
           _rts._delay_info_manager.get_delay_info(we._feeder_arrival);
-      if (feeder_di != nullptr && feeder_di->canceled()) continue;
+      if (feeder_di == nullptr || feeder_di->canceled()) {
+        continue;
+      }
 
-      motis::time feeder_arrival_time = feeder_di == nullptr
-                                            ? we._feeder_arrival._schedule_time
-                                            : new_time(feeder_di);
-      bool feeder_delayed =
-          feeder_arrival_time != we._feeder_arrival._schedule_time;
-      if (!feeder_delayed) continue;
+      motis::time feeder_arrival_time = new_time(feeder_di);
+      if (feeder_arrival_time == we._feeder_arrival._schedule_time) {
+        continue;
+      }
       int ic = _rts._schedule.stations[di->schedule_event()._station_index]
-                   ->get_transfer_time();  // TODO: minct
+                   ->get_transfer_time();
       if (we._waiting_time == std::numeric_limits<int>::max() ||
           feeder_arrival_time + ic <=
               di->schedule_event()._schedule_time + we._waiting_time) {
@@ -260,6 +260,7 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
   bool was_delayed = di->delayed();
 
   // waiting edges
+  if (di->_schedule_event.departure()) return;
   for (const single_waiting_edge& we : _rts._waiting_edges.get_edges_from(
            di->schedule_event(), di->_route_id)) {
     delay_info* connector_di =
@@ -275,7 +276,7 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
     // calc if connector would wait
     if (is_delayed && !entry._delay_info->canceled()) {
       int ic = _rts._schedule.stations[di->schedule_event()._station_index]
-                   ->get_transfer_time();  // TODO: minct
+                   ->get_transfer_time();
       motis::time wait_time = new_time(di) + ic;
       bool would_wait = (we._connector_departure._schedule_time < wait_time) &&
                         (wait_time <= we._connector_departure._schedule_time +
