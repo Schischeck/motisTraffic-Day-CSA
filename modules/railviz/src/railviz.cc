@@ -147,6 +147,47 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
     int req_route_id = req->train()->route_id();
 
     std::vector<route> routes = timetable_retriever_.get_routes_on_time(req_route_id, date_converter_.convert_to_motis(client.time));
+    std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_route>> routes_on_time_routes;
+
+    for (auto r : routes) {
+        bool match = false;
+        std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_entry>> a_route_on_time_entries;
+        auto line_name = r[0].second->_full_con->con_info->line_identifier.to_string();
+        int line_clas = r[0].second->_full_con->clasz;
+
+        for (auto re : r) {
+            station_node const* stn;
+            light_connection const* lcn;
+            std::tie(stn, lcn) = re;
+            int actual_station_id = stn->_id;
+            std::time_t actual_d_time = lcn->d_time;
+            std::time_t actual_a_time = lcn->a_time;
+
+            if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
+                    ||
+                    (actual_station_id == req_a_station && actual_a_time == req_a_time)) {
+                match = true;
+            }
+
+            RailViz_routes_on_time_res_station s(actual_d_time, actual_a_time, actual_station_id);
+            a_route_on_time_entries.push_back(CreateRailViz_routes_on_time_res_entry(
+                                    b, b.CreateString(stations[stn->_id]->name.to_string()),
+                                    &s));
+        }
+
+        if (match) {
+            routes_on_time_routes.push_back(CreateRailViz_routes_on_time_res_route(
+                                    b, b.CreateString(line_name), line_clas, b.CreateVector(a_route_on_time_entries)));
+        }
+    }
+
+    b.Finish(
+        CreateMessage(b, MsgContent_RailViz_routes_on_time_res,
+                      CreateRailViz_routes_on_time_res(
+                         b, b.CreateVector(routes_on_time_routes)).Union()));
+    return cb(make_msg(b), boost::system::error_code());
+
+    /*
     std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_entry>> routes_on_time_entries;
 
     for (auto r : routes) {
@@ -182,6 +223,7 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
                       CreateRailViz_routes_on_time_res(
                          b, b.CreateVector(routes_on_time_entries)).Union()));
     return cb(make_msg(b), boost::system::error_code());
+    */
 }
 
 void railviz::init() {

@@ -11,6 +11,12 @@ table RailViz_routes_on_time_res_entry {
         station_struct : RailViz_routes_on_time_res_station;
 }
 
+table RailViz_routes_on_time_res_route {
+        line_name : string;
+	line_type : int;
+	route_table : [RailViz_routes_on_time_res_entry];
+}
+
 table RailViz_routes_on_time_res {
-        route_table : [RailViz_routes_on_time_res_entry];
+        routes : [RailViz_routes_on_time_res_route];
 }
