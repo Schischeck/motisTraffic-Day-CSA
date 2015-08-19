@@ -22,8 +22,9 @@ struct railviz : public motis::module::module {
 
   virtual std::string name() const override { return "railviz"; }
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RailVizStationDetailRequest,
-            MsgContent_RailVizAllTrainsRequest};
+    return {MsgContent_RailViz_alltra_req,
+            MsgContent_RailViz_station_detail_req,
+            MsgContent_RailViz_routes_on_time_req};
   }
   virtual void init() override;
   virtual void on_open(motis::module::sid) override;

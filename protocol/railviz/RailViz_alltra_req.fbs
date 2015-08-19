@@ -1,0 +1,12 @@
+namespace motis.railviz;
+
+struct RailViz_alltra_req_coordinate {
+  lat : double;
+  lng : double;
+}
+
+table RailViz_alltra_req {
+  p1 : RailViz_alltra_req_coordinate;
+  p2 : RailViz_alltra_req_coordinate;
+  time : ulong;
+}
