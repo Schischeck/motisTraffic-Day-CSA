@@ -16,7 +16,7 @@ bool specification::is_empty() const {
 
 bool specification::valid() const {
   return ignore() || (!categories.empty() && stops.size() >= 2 &&
-                      !travel_days.empty() && !is_empty());
+                      !traffic_days.empty() && !is_empty());
 }
 
 bool specification::ignore() const {
@@ -25,7 +25,7 @@ bool specification::ignore() const {
 
 void specification::reset() {
   internal_service = cstr(nullptr, 0);
-  travel_days.clear();
+  traffic_days.clear();
   categories.clear();
   line_information.clear();
   attributes.clear();
@@ -65,7 +65,7 @@ bool specification::read_line(cstr line, char const* filename,
       break;
     case 'A':
       if (line.starts_with("*A VE")) {
-        travel_days.push_back(line);
+        traffic_days.push_back(line);
       } else {  // *A based on HRD format version 5.00.8
         attributes.push_back(line);
       }

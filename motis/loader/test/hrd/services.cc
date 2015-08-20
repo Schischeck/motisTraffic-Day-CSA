@@ -112,7 +112,7 @@ TEST_CASE("parse_specification") {
   REQUIRE(spec.valid());
   REQUIRE(!spec.is_empty());
   REQUIRE(!spec.internal_service.empty());
-  REQUIRE(spec.travel_days.size() == 1);
+  REQUIRE(spec.traffic_days.size() == 1);
   REQUIRE(spec.categories.size() == 1);
   REQUIRE(spec.attributes.size() == 3);
   REQUIRE(spec.stops.size() == 6);
@@ -132,9 +132,12 @@ TEST_CASE("parse_hrd_service") {
                       std::end(service.sections_),
                       [](hrd_service::section const& s) {
     return s.train_num == 2292 && s.admin == "80____" &&
-           s.attribute_codes == std::vector<cstr>({"BT", "FR", "G "}) &&
-           s.category == std::vector<cstr>({"IC"}) &&
-           s.line_information == std::vector<cstr>({"381 "});
+           s.attributes == std::vector<hrd_service::attribute>(
+                               {hrd_service::attribute(0, "BT"),
+                                hrd_service::attribute(0, "FR"),
+                                hrd_service::attribute(0, "G ")}) &&
+           s.category == std::vector<cstr>({"IC "}) &&
+           s.line_information == std::vector<cstr>({"381  "});
   }));
 
   REQUIRE(service.stops_.size() == 6);

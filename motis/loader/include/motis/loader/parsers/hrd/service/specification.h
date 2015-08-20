@@ -22,7 +22,7 @@ struct specification {
   bool read_line(parser::cstr line, char const* filename, int line_number);
 
   parser::cstr internal_service;
-  std::vector<parser::cstr> travel_days;
+  std::vector<parser::cstr> traffic_days;
   std::vector<parser::cstr> categories;
   std::vector<parser::cstr> line_information;
   std::vector<parser::cstr> attributes;

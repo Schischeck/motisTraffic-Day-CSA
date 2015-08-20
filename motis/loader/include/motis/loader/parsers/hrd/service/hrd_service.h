@@ -24,6 +24,18 @@ struct hrd_service {
     event arr, dep;
   };
 
+  struct attribute {
+    attribute(int bitfield_num, parser::cstr code)
+        : bitfield_num(bitfield_num), code(code) {}
+
+    int bitfield_num;
+    parser::cstr code;
+
+    friend bool operator==(attribute const& lhs, attribute const& rhs) {
+      return lhs.bitfield_num == rhs.bitfield_num && lhs.code == rhs.code;
+    }
+  };
+
   struct section {
     section() = default;
     section(int train_num, parser::cstr admin)
@@ -31,9 +43,10 @@ struct hrd_service {
 
     int train_num;
     parser::cstr admin;
-    std::vector<parser::cstr> attribute_codes;
+    std::vector<attribute> attributes;
     std::vector<parser::cstr> category;
     std::vector<parser::cstr> line_information;
+    std::vector<int> traffic_days;
   };
 
   hrd_service(specification const& spec);
