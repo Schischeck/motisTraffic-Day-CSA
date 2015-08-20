@@ -4,15 +4,13 @@
 #include "motis/loader/parser_error.h"
 
 using namespace parser;
-using namespace flatbuffers;
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
-std::map<uint16_t, Offset<Attribute>> parse_attributes(loaded_file file,
-                                                       FlatBufferBuilder& b) {
-  std::map<uint16_t, Offset<Attribute>> attributes;
+std::map<uint16_t, std::string> parse_attributes(loaded_file file) {
+  std::map<uint16_t, std::string> attributes;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0 || line.str[0] == '#') {
       return;
@@ -20,9 +18,8 @@ std::map<uint16_t, Offset<Attribute>> parse_attributes(loaded_file file,
       throw parser_error(file.name, line_number);
     }
     auto code = line.substr(0, size(2));
-    auto text = to_fbs_string(b, line.substr(12, line.len - 1));
-    attributes[raw_to_int<uint16_t>(code)] =
-        CreateAttribute(b, to_fbs_string(b, code), text);
+    auto text = line.substr(12, line.len - 1);
+    attributes[raw_to_int<uint16_t>(code)] = std::string(text.str, text.len);
   });
   return attributes;
 }

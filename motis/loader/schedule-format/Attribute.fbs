@@ -3,4 +3,5 @@ namespace motis.loader;
 table Attribute {
   code : string;
   text : string;
+  traffic_days : string;
 }

@@ -1,5 +1,6 @@
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
 
+#include <tuple>
 #include <algorithm>
 
 #include "parser/util.h"
@@ -28,7 +29,7 @@ hrd_service::stop parse_stop(cstr stop) {
 std::vector<hrd_service::section> parse_section(
     std::vector<hrd_service::section>& sections, cstr stop) {
   auto train_num = stop.substr(43, size(5)).trim();
-  auto admin = stop.substr(43, size(6)).trim();
+  auto admin = stop.substr(49, size(6)).trim();
 
   auto& last_section = sections.back();
   sections.emplace_back(
@@ -38,25 +39,23 @@ std::vector<hrd_service::section> parse_section(
   return sections;
 }
 
-struct parse_information {
-  int id_start, id_length;
+struct range_parse_information {
   int from_eva_or_idx_start;
   int to_eva_or_idx_start;
   int from_hhmm_or_idx_start;
   int to_hhmm_or_idx_start;
-} attribute_parse_info{3, 2, 6, 14, 29, 36},
-  line_parse_info{3, 4, 9, 17, 25, 32},
-  category_parse_info{3, 2, 7, 15, 23, 30};
+} attribute_parse_info{6, 14, 29, 36}, line_parse_info{9, 17, 25, 32},
+  category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36};
 
 std::vector<std::pair<cstr, range>> compute_ranges(
     std::vector<cstr> const& spec_lines,
     std::vector<hrd_service::stop> const& stops,
-    parse_information const& parse_info) {
+    range_parse_information const& parse_info) {
   std::vector<std::pair<cstr, range>> parsed(spec_lines.size());
   std::transform(begin(spec_lines), end(spec_lines), begin(parsed),
                  [&](cstr spec) {
     return std::make_pair(
-        spec.substr(parse_info.id_start, size(parse_info.id_length)),
+        spec,
         range(stops, spec.substr(parse_info.from_eva_or_idx_start, size(7)),
               spec.substr(parse_info.to_eva_or_idx_start, size(7)),
               spec.substr(parse_info.from_hhmm_or_idx_start, size(6)),
@@ -65,22 +64,19 @@ std::vector<std::pair<cstr, range>> compute_ranges(
   return parsed;
 }
 
-/// Generic method to parse "ranged" information that needs to be written
-/// to a section.
-///
-/// \param spec_lines  what to parse (lines parsed from the specification)
-/// \param parse_info  indices to parse (where is the range / information)
-/// \param stops       needed to compute ranges (eva numbers, event times)
-/// \param sections    sections to fill with this information (where to write)
-/// \param member      pointer to member to fill with this information
-void parse_range(std::vector<cstr> const& spec_lines,
-                 parse_information const& parse_info,
-                 std::vector<hrd_service::stop> const& stops,
-                 std::vector<hrd_service::section>& sections,
-                 std::vector<cstr> hrd_service::section::*member) {
+template <typename TargetInformationType, typename TargetInformationParserFun>
+void parse_range(
+    std::vector<cstr> const& spec_lines,
+    range_parse_information const& parse_info,
+    std::vector<hrd_service::stop> const& stops,
+    std::vector<hrd_service::section>& sections,
+    std::vector<TargetInformationType> hrd_service::section::*member,
+    TargetInformationParserFun parse_target_info) {
+  using std::get;
   for (auto const& r : compute_ranges(spec_lines, stops, parse_info)) {
+    TargetInformationType target_info = parse_target_info(r.first);
     for (int i = r.second.from_idx; i < r.second.to_idx; ++i) {
-      (sections[i].*member).push_back(r.first);
+      (sections[i].*member).push_back(target_info);
     }
   }
 }
@@ -95,22 +91,40 @@ hrd_service::hrd_service(specification const& spec)
               {section(parse<int>(spec.internal_service.substr(3, size(5))),
                        spec.internal_service.substr(9, size(6)))}),
           parse_section)) {
-  parse_range(spec.attributes, attribute_parse_info, stops_, sections_,
-              &section::attribute_codes);
-  parse_range(spec.categories, category_parse_info, stops_, sections_,
-              &section::category);
-  parse_range(spec.line_information, line_parse_info, stops_, sections_,
-              &section::line_information);
-  verify(valid(), "service invalid (line information / category)");
+  parse_range<attribute>(spec.attributes, attribute_parse_info, stops_,
+                         sections_, &section::attributes,
+                         [](cstr line) -> attribute {
+    return {parse<int>(line.substr(22, size(6))), line.substr(3, size(2))};
+  });
+
+  parse_range<cstr>(spec.categories, category_parse_info, stops_, sections_,
+                    &section::category,
+                    [](cstr line) { return line.substr(3, size(3)); });
+
+  parse_range<cstr>(spec.line_information, line_parse_info, stops_, sections_,
+                    &section::line_information,
+                    [](cstr line) { return line.substr(3, size(5)); });
+
+  parse_range<int>(spec.traffic_days, traffic_days_parse_info, stops_,
+                   sections_, &section::traffic_days, [](cstr line) {
+    return parse<int>(line.substr(22, size(6)));
+  });
+
+  verify_service();
 }
 
-bool hrd_service::valid() const {
+void hrd_service::verify_service() const {
   for (auto const& section : sections_) {
-    if (section.line_information.size() > 1 || section.category.size() != 1) {
-      return false;
-    }
+    verify(section.traffic_days.size() == 1,
+           "service invalid: multiple traffic days: expected 1 but was %lu",
+           section.traffic_days.size());
+    verify(section.line_information.size() <= 1,
+           "service invalid: multiple line information: expected 1 but was %lu",
+           section.line_information.size());
+    verify(section.category.size() == 1,
+           "service invalid: multiple categories: expected 1 but was %lu",
+           section.category.size());
   }
-  return true;
 }
 
 }  // hrd

@@ -28,8 +28,7 @@ TEST_CASE("parse_stations") {
       parse_stations({STATIONS_FILE, stations_file_content},
                      {COORDINATES_FILE, coordinates_file_content}, b);
 
-  b.Finish(
-      CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}, {}, {}));
+  b.Finish(CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}, {}));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();

@@ -9,6 +9,4 @@ table Service {
   sections : [Section];
   platforms : [Platform];
   times : [ulong];
-  traffic_days : string;
-  category: string;
 }
