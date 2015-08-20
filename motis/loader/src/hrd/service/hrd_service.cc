@@ -115,15 +115,15 @@ hrd_service::hrd_service(specification const& spec)
 
 void hrd_service::verify_service() const {
   for (auto const& section : sections_) {
+    verify(section.traffic_days.size() == 1,
+           "service invalid: multiple traffic days: expected 1 but was %lu",
+           section.traffic_days.size());
     verify(section.line_information.size() <= 1,
-           "service invalid: multiple line information: expected 1 but was %d",
+           "service invalid: multiple line information: expected 1 but was %lu",
            section.line_information.size());
     verify(section.category.size() == 1,
-           "service invalid: multiple categories: expected 1 but was %d",
+           "service invalid: multiple categories: expected 1 but was %lu",
            section.category.size());
-    verify(section.traffic_days.size() == 1,
-           "service invalid: multiple traffic days: expected 1 but was %d",
-           section.traffic_days.size());
   }
 }
 

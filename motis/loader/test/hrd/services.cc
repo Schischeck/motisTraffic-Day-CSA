@@ -54,6 +54,16 @@ cstr service_file_content_2 = R"(
 8000068 Darmstadt Hbf         01722  01724 02293 81____   % 02292 80____    01 (010)
 8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (011))";
 
+cstr service_file_content_invalid_traffic_days = R"(
+*Z 02292 80____    01                                     % 02292 80____    01 (001)
+*G IC  8000096 8000105                                    % 02292 80____    01 (002)
+*L 381   8000096 8000105                                  % 09988 80____    01 (003)
+*A VE 8000096 8000105                                     % 02292 80____    01 (004)
+*A VE 8000096 8000105 002687                              % 02292 80____    01 (005)
+8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
+8000068 Darmstadt Hbf         01722  01724 02293 81____   % 02292 80____    01 (010)
+8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (011))";
+
 cstr attributes_file_content = R"(
 BT   0    450    11  Bordbistro#
 FR   0    260    03  Fahrradmitnahme reservierungspflichtig#
@@ -244,6 +254,21 @@ TEST_CASE("parse_hrd_service_multiple_ranges") {
   REQUIRE(stop.arr.time == hhmm_to_min(1740));
   REQUIRE(stop.arr.in_out_allowed);
   REQUIRE(stop.dep.time == hrd_service::NOT_SET);
+}
+
+TEST_CASE("parse_hrd_service_invalid_traffic_days") {
+  bool catched = false;
+  try {
+    specification spec;
+    for_each_line_numbered(service_file_content_invalid_traffic_days,
+                           [&spec](cstr const& line, int line_number) {
+      spec.read_line(line, "services.101", line_number);
+    });
+    auto service = hrd_service(spec);
+  } catch (std::runtime_error const& e) {
+    catched = true;
+  }
+  REQUIRE(catched);
 }
 
 }  // hrd
