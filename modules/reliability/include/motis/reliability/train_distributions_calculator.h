@@ -14,7 +14,7 @@ class edge;
 namespace reliability {
 
 struct train_distributions_container;
-struct tt_distributions_manager;
+struct start_and_travel_distributions;
 
 struct train_distributions_calculator {
 
@@ -45,7 +45,7 @@ struct train_distributions_calculator {
   train_distributions_calculator(
       schedule const& schedule,
       train_distributions_container& distributions_container,
-      tt_distributions_manager const& tt_dist_manager);
+      start_and_travel_distributions const& s_t_dist_manager);
 
   void calculate_initial_distributions();
 
@@ -69,7 +69,7 @@ private:
   void manage_train_distributions(edge const& route_edge);
 
   schedule const& schedule_;
-  tt_distributions_manager const& tt_distributions_manager_;
+  start_and_travel_distributions const& s_t_distributions_;
   train_distributions_container& distributions_container_;
 
   std::priority_queue<queue_element, std::vector<queue_element>,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include "motis/core/schedule/time.h"
@@ -18,6 +19,19 @@ void compute_arrival_distribution(
     probability_distribution& arrival_distribution);
 
 namespace detail {
+using travel_distributions_type =
+    std::vector<std::reference_wrapper<probability_distribution const> >;
+
+/**
+ * For each delay minute of the departure distribution,
+ * the vector 'travel_distributions' is initialized
+ * with the corresponding travel time distribution.
+ * Entry travel_distributions[i] contains the travel-time-distribution
+ * for departure delay i.
+ */
+void init_travel_distributions(pd_calc_data_arrival const& data,
+                               travel_distributions_type& travel_distributions,
+                               int& first_minute, int& last_minute);
 
 /**
  * Because of rounding errors, the sum of the calculated arrival distribution

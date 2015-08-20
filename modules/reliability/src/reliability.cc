@@ -8,10 +8,10 @@
 
 #include "motis/module/api.h"
 
+#include "motis/reliability/db_distributions.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/train_distributions_calculator.h"
 #include "motis/reliability/train_distributions.h"
-#include "motis/reliability/tt_distributions_manager.h"
 
 using namespace motis::module;
 namespace po = boost::program_options;
@@ -46,10 +46,9 @@ bool reliability::initialize() {
   schedule const& schedule = lock.sched();
 
   train_distributions_container distributions_container(schedule.node_count);
-  tt_distributions_manager tt_distributions;
-  tt_distributions.initialize();
+  db_distributions db_distributions("");  // TODO
   train_distributions_calculator calculator(schedule, distributions_container,
-                                            tt_distributions);
+                                            db_distributions);
 
   for (auto const& firstRouteNode : schedule.route_index_to_first_route_node) {
     node const* node = firstRouteNode;

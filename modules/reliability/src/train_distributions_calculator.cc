@@ -8,7 +8,6 @@
 #include "motis/reliability/pd_calc_data_departure.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
 #include "motis/reliability/train_distributions.h"
-#include "motis/reliability/tt_distributions_manager.h"
 
 namespace motis {
 namespace reliability {
@@ -16,10 +15,10 @@ namespace reliability {
 train_distributions_calculator::train_distributions_calculator(
     schedule const& schedule,
     train_distributions_container& distributions_container,
-    tt_distributions_manager const& tt_dist_manager)
+    start_and_travel_distributions const& s_t_dist_manager)
     : schedule_(schedule),
       distributions_container_(distributions_container),
-      tt_distributions_manager_(tt_dist_manager) {}
+      s_t_distributions_(s_t_dist_manager) {}
 
 void train_distributions_calculator::calculate_initial_distributions() {
   for (auto const first_route_node :
@@ -63,9 +62,9 @@ void train_distributions_calculator::process_element(
                                    train_distributions_container::departure)
           .get_distribution_non_const(element.light_connection_idx_);
   assert(departure_distribution.empty());
-  pd_calc_data_departure d_data(
-      *element.from_, *element.light_connection_, element.is_first_route_node_,
-      schedule_, distributions_container_, tt_distributions_manager_);
+  pd_calc_data_departure d_data(*element.from_, *element.light_connection_,
+                                element.is_first_route_node_, schedule_,
+                                distributions_container_, s_t_distributions_);
   calc_departure_distribution::compute_departure_distribution(
       d_data, departure_distribution);
 
@@ -78,7 +77,7 @@ void train_distributions_calculator::process_element(
   assert(arrival_distribution.empty());
   pd_calc_data_arrival a_data(*element.to_, *element.light_connection_,
                               schedule_, distributions_container_,
-                              tt_distributions_manager_);
+                              s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 

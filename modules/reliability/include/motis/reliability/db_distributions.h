@@ -1,29 +1,18 @@
 #pragma once
 
 #include "motis/reliability/db_distributions_loader.h"
+#include "start_and_travel_distributions.h"
 
 namespace motis {
 namespace reliability {
 
 struct probability_distribution;
 
-struct db_distributions {
-  struct travel_time_distribution {
-    travel_time_distribution(probability_distribution const& distribution,
-                             unsigned int const departure_delay_from,
-                             unsigned int const departure_delay_to)
-        : distribution_(distribution),
-          departure_delay_from_(departure_delay_from),
-          departure_delay_to_(departure_delay_to) {}
-    probability_distribution const& distribution_;
-    unsigned int const departure_delay_from_;
-    unsigned int const departure_delay_to_;
-  };
-
+struct db_distributions : start_and_travel_distributions {
   db_distributions(std::string const root);
 
   probability_distribution const& get_start_distribution(
-      std::string const& family) const;
+      std::string const& family) const override;
 
   /**
    * Returns vector containing pairs of departure-delay and
@@ -31,7 +20,7 @@ struct db_distributions {
    */
   void get_travel_time_distributions(
       std::string const& family, unsigned int const travel_time,
-      std::vector<travel_time_distribution>& distributions) const;
+      std::vector<travel_time_distribution>& distributions) const override;
 
 private:
   std::string const& get_distribution_class(std::string const& family) const;

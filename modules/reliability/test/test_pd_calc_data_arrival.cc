@@ -9,7 +9,7 @@
 #include "motis/reliability/pd_calc_data_arrival.h"
 #include "motis/reliability/train_distributions.h"
 
-#include "include/tt_distributions_test_manager.h"
+#include "include/start_and_travel_test_distributions.h"
 #include "include/train_distributions_test_container.h"
 
 using namespace motis;
@@ -21,7 +21,8 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
 
   // container delivering the departure distribution 0.8, 0.2
   train_distributions_test_container train_distributions({0.8, 0.2}, 0);
-  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1, 0,
+                                                        1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -32,7 +33,7 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto const& second_route_node = *first_route_edge->_to;
 
   pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
 
   REQUIRE(&data.route_node_ == &second_route_node);
   REQUIRE(&data.light_connection_ == &light_connection);
@@ -46,19 +47,13 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   REQUIRE(equal(data.departure_info_.distribution_->probability_equal(0), 0.8));
   REQUIRE(equal(data.departure_info_.distribution_->probability_equal(1), 0.2));
 
-  REQUIRE(data.travel_time_info_ ==
-          tt_distributions.travel_distribution_.get());
-
-  for (unsigned int dep_delay = 0; dep_delay <= 1; dep_delay++) {
-    auto const& distribution =
-        data.travel_time_info_->get_travel_time_distribution(dep_delay);
-    REQUIRE(distribution.first_minute() == -1);
-    REQUIRE(distribution.last_minute() == 1);
-    REQUIRE(distribution.last_minute() == 1);
-    REQUIRE(equal(distribution.probability_equal(-1), 0.1));
-    REQUIRE(equal(distribution.probability_equal(0), 0.7));
-    REQUIRE(equal(distribution.probability_equal(1), 0.2));
-  }
+  REQUIRE(data.travel_distributions_.size() == 1);
+  REQUIRE(data.travel_distributions_[0].departure_delay_from_ ==
+          s_t_distributions.travel_time_distribution_->departure_delay_from_);
+  REQUIRE(data.travel_distributions_[0].departure_delay_to_ ==
+          s_t_distributions.travel_time_distribution_->departure_delay_to_);
+  REQUIRE(&data.travel_distributions_[0].distribution_ ==
+          &s_t_distributions.travel_time_distribution_->distribution_);
 }
 
 TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
@@ -78,7 +73,8 @@ TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
     probability_distribution fail;
   } train_distributions;
 
-  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1, 0,
+                                                        1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto departure_route_node = *schedule->route_index_to_first_route_node[4];
@@ -91,27 +87,34 @@ TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
   auto const& arrival_route_node = *route_edge->_to;
 
   pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
 
   REQUIRE(departure_route_node._id == 18);
   REQUIRE(data.departure_info_.distribution_ == &train_distributions.train);
 }
 
-TEST_CASE("test tt_distributions", "[pd_calc_data_arrival]") {
+TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  struct tt_distributions_test2_manager : tt_distributions_manager {
-
-    travel_distribution_info const& get_travel_time_distributions(
-        std::string const& train_category,
-        duration const travel_time) const override {
-      if (train_category == "ICE" && travel_time == 10) return distribution;
-      return fail;
+  struct start_and_travel_test2_distributions : start_and_travel_distributions {
+    struct travel_time_test_distribution : travel_time_distribution {
+      travel_time_test_distribution() : travel_time_distribution(dummy, 0, 0){};
+      probability_distribution dummy;
+    };
+    probability_distribution const& get_start_distribution(
+        std::string const& family) const override {
+      return distribution.dummy;
     }
-    travel_distribution_info distribution;
-    travel_distribution_info fail;
-  } tt_distributions;
+    void get_travel_time_distributions(
+        std::string const& family, unsigned int const travel_time,
+        std::vector<travel_time_distribution>& distributions) const override {
+      if (family == "ICE" && travel_time == 10) {
+        distributions.push_back(distribution);
+      }
+    }
+    travel_time_test_distribution distribution;
+  } s_t_distributions;
 
   train_distributions_test_container train_distributions({0.8, 0.2}, 0);
 
@@ -126,7 +129,13 @@ TEST_CASE("test tt_distributions", "[pd_calc_data_arrival]") {
   auto const& arrival_route_node = *route_edge->_to;
 
   pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
 
-  REQUIRE(data.travel_time_info_ == &tt_distributions.distribution);
+  REQUIRE(data.travel_distributions_.size() == 1);
+  REQUIRE(data.travel_distributions_[0].departure_delay_from_ ==
+          s_t_distributions.distribution.departure_delay_from_);
+  REQUIRE(data.travel_distributions_[0].departure_delay_to_ ==
+          s_t_distributions.distribution.departure_delay_to_);
+  REQUIRE(&data.travel_distributions_[0].distribution_ ==
+          &s_t_distributions.distribution.distribution_);
 }

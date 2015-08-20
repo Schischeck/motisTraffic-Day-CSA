@@ -13,8 +13,8 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/train_distributions.h"
 
+#include "include/start_and_travel_test_distributions.h"
 #include "include/train_distributions_test_container.h"
-#include "include/tt_distributions_test_manager.h"
 
 using namespace motis;
 using namespace motis::reliability;
@@ -73,7 +73,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_container dummy(0);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -83,7 +83,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, tt_distributions);
+                              *schedule, dummy, s_t_distributions);
   train_early_enough(data);
 
   REQUIRE(equal(train_early_enough(data), 0.6));
@@ -95,7 +95,7 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Hanau of train ICE_HA_W_HE
   auto& first_route_node = *schedule->route_index_to_first_route_node[5];
@@ -108,7 +108,8 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(*second_route_node, light_connection, false,
-                              *schedule, train_distributions, tt_distributions);
+                              *schedule, train_distributions,
+                              s_t_distributions);
   train_early_enough(data);
 
   REQUIRE(equal(train_early_enough(data), 0.8));
@@ -270,7 +271,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_container dummy(0);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -280,7 +281,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, tt_distributions);
+                              *schedule, dummy, s_t_distributions);
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 
@@ -298,7 +299,7 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
 
   train_distributions_test_container train_distributions(
       {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[0];
@@ -316,7 +317,8 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
    * The second feeder has no influence on this departure
    */
   pd_calc_data_departure data(first_route_node, light_connection, true,
-                              *schedule, train_distributions, tt_distributions);
+                              *schedule, train_distributions,
+                              s_t_distributions);
 
   REQUIRE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time()), 0.6));
@@ -357,7 +359,7 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
-  tt_distributions_test_manager const* dummy = nullptr;
+  start_and_travel_test_distributions const* dummy = nullptr;
 
   // route node at Hanau of train ICE_HA_W_HE
   auto& first_route_node = *schedule->route_index_to_first_route_node[5];
@@ -416,7 +418,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   }
 
   train_distributions_test_container train_distributions(values, 0);
-  tt_distributions_test_manager tt_distributions({0.6, 0.4});
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node = *graph_accessor::get_departing_route_edge(
@@ -435,7 +437,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
   pd_calc_data_departure data(route_node, light_connection, false, *schedule,
-                              train_distributions, tt_distributions);
+                              train_distributions, s_t_distributions);
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(
@@ -618,7 +620,6 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
        (train_arrives_before_time(data, data.scheduled_departure_time() + 3) *
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
                                 data.scheduled_departure_time() + 3)))));
-
 
   /******************* minutes 4-25 *******************/
 

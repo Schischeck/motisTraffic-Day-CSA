@@ -14,9 +14,8 @@ struct schedule;
 namespace reliability {
 
 struct probability_distribution;
-class train_distributions;
+struct start_and_travel_distributions;
 struct train_distributions_container;
-class tt_distributions_manager;
 
 /**
  * Class storing all data necessary for calculating a departure distribution.
@@ -27,7 +26,7 @@ struct pd_calc_data_departure {
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
       train_distributions_container const& distributions_container,
-      tt_distributions_manager const& tt_dist_manager);
+      start_and_travel_distributions const& s_t_distributions);
 
   time scheduled_departure_time() const;
 
@@ -88,7 +87,7 @@ struct pd_calc_data_departure {
 private:
   void init_train_info(
       std::vector<std::string> const& category_names,
-      tt_distributions_manager const& tt_dist_manager,
+      start_and_travel_distributions const& s_t_distributions,
       train_distributions_container const& distributions_container);
 
   void init_feeder_info(

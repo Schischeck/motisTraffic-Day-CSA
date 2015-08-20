@@ -13,8 +13,8 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/train_distributions.h"
 
+#include "include/start_and_travel_test_distributions.h"
 #include "include/train_distributions_test_container.h"
-#include "include/tt_distributions_test_manager.h"
 
 using namespace motis;
 using namespace motis::reliability;
@@ -22,7 +22,6 @@ using namespace motis::reliability::calc_arrival_distribution;
 using namespace motis::reliability::calc_arrival_distribution::detail;
 
 TEST_CASE("correct_rounding_errors", "[calc_arrival_distribution]") {
-
   std::vector<probability> probabilities = {0.1, 0.5, 0.25, 0.15};
 
   correct_rounding_errors(1.0, probabilities);
@@ -41,13 +40,57 @@ TEST_CASE("correct_rounding_errors", "[calc_arrival_distribution]") {
   REQUIRE(equal(probabilities[3], 0.15));
 }
 
+void test_init_travel_distributions(int const departure_delay_to) {
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+
+  // container delivering the departure distribution 0.8, 0.2
+  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
+  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1, 0,
+                                                        departure_delay_to);
+  // route node at Frankfurt of train ICE_FR_DA_H
+  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  // route edge from Frankfurt to Darmstadt
+  auto const first_route_edge =
+      graph_accessor::get_departing_route_edge(first_route_node);
+  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& second_route_node = *first_route_edge->_to;
+
+  pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
+                            train_distributions, s_t_distributions);
+
+  int first_minute, last_minute;
+  detail::travel_distributions_type travel_distributions;
+  detail::init_travel_distributions(data, travel_distributions, first_minute,
+                                    last_minute);
+
+  REQUIRE(first_minute == -1);
+  REQUIRE(last_minute == 2);
+  REQUIRE(travel_distributions.size() == 2);
+  REQUIRE(travel_distributions[0].get().first_minute() == -1);
+  REQUIRE(travel_distributions[0].get().last_minute() == 1);
+  REQUIRE(equal(travel_distributions[0].get().probability_equal(-1), 0.1));
+  REQUIRE(equal(travel_distributions[0].get().probability_equal(0), 0.7));
+  REQUIRE(equal(travel_distributions[0].get().probability_equal(1), 0.2));
+  REQUIRE(&travel_distributions[0].get() == &travel_distributions[1].get());
+}
+
+TEST_CASE("init_travel_distributions", "[calc_arrival_distribution]") {
+  // for each departure delay there is a travel distribution
+  test_init_travel_distributions(1);
+  // test the case that for departure delay 1
+  // there is no travel-time distribution
+  test_init_travel_distributions(0);
+}
+
 TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   // container delivering the departure distribution 0.8, 0.2
   train_distributions_test_container train_distributions({0.8, 0.2}, 0);
-  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1, 0,
+                                                        1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -58,7 +101,7 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
   auto const& second_route_node = *first_route_edge->_to;
 
   pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -81,7 +124,8 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
 
   // container delivering the departure distribution 0.8, 0.2
   train_distributions_test_container train_distributions({0.7, 0.15}, 0);
-  tt_distributions_test_manager tt_distributions({0.1, 0.7, 0.2}, -1, 1);
+  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1, 0,
+                                                        1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -92,7 +136,7 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
   auto const& second_route_node = *first_route_edge->_to;
 
   pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -115,7 +159,7 @@ TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
 
   // container delivering the departure distribution 0.8, 0.2
   train_distributions_test_container train_distributions({0.5, 0.0, 0.5}, 0);
-  tt_distributions_test_manager tt_distributions({1.0}, 0, 2);
+  start_and_travel_test_distributions s_t_distributions({1.0}, 0, 0, 2);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *schedule->route_index_to_first_route_node[4];
@@ -126,7 +170,7 @@ TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
   auto const& second_route_node = *first_route_edge->_to;
 
   pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
-                            train_distributions, tt_distributions);
+                            train_distributions, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);

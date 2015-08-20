@@ -8,8 +8,8 @@
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/train_distributions.h"
-#include "motis/reliability/tt_distributions_manager.h"
 
 namespace motis {
 namespace reliability {
@@ -18,25 +18,25 @@ pd_calc_data_departure::pd_calc_data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
     train_distributions_container const& distributions_container,
-    tt_distributions_manager const& tt_dist_manager)
+    start_and_travel_distributions const& s_t_distributions)
     : route_node_(route_node),
       light_connection_(light_connection),
       is_first_route_node_(is_first_route_node),
       maximum_waiting_time_(0) {
-  init_train_info(schedule.category_names, tt_dist_manager,
+  init_train_info(schedule.category_names, s_t_distributions,
                   distributions_container);
   init_feeder_info(schedule, distributions_container);
 }
 
 void pd_calc_data_departure::init_train_info(
     std::vector<std::string> const& category_names,
-    tt_distributions_manager const& tt_dist_manager,
+    start_and_travel_distributions const& s_t_distributions,
     train_distributions_container const& distributions_container) {
   if (is_first_route_node_) {
     auto const& train_category =
         category_names[light_connection_._full_con->con_info->family];
     train_info_.first_departure_distribution =
-        &tt_dist_manager.get_start_distribution(train_category);
+        &s_t_distributions.get_start_distribution(train_category);
   } else {
     light_connection const* arriving_light_conn;
     unsigned int distribution_pos;
