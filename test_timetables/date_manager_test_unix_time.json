@@ -1,0 +1,112 @@
+{
+  "stations": [
+    {
+      "name": "Wiesbaden Südost",
+      "tracks": 2,
+      "latitude": 50.06988018572929,
+      "longitude": 8.244102001190186,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "9926026",
+      "ds100Code": "9926026",
+      "KMInfo": 0
+    },
+    {
+      "name": "Darmstadt Am Kavalleriesand",
+      "tracks": 2,
+      "latitude": 49.87299999999999,
+      "longitude": 8.629000000000019,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "8758593",
+      "ds100Code": "8758593",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "test_unix_time_1",
+      "category": "RE",
+      "evaNumber": "2086381",
+      "trainNumber": 2086381,
+      "stations": [
+        {
+          "station": "9926026",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8758593",
+          "arrival": 26,
+          "departure": 28,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "intervals": [
+        {
+          "fromTime": "21:56:00.000",
+          "untilTime": "21:56:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "test_unix_time_2",
+      "category": "ICE",
+      "evaNumber": "1970465",
+      "trainNumber": 1970465,
+      "stations": [
+        {
+          "station": "8758593",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9926026",
+          "arrival": 33,
+          "departure": 35,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "23:50:00.000",
+          "untilTime": "23:50:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": []
+}

@@ -36,8 +36,8 @@ public:
 
   std::vector<edge const*> edges(geo::box b) const {
     std::vector<value> result_n;
-    auto bounds = bounding_box(spherical_point{b.min.lng, b.min.lat},
-                               spherical_point{b.max.lng, b.max.lat});
+    auto bounds = bounding_box(spherical_point{b.min().lng, b.min().lat},
+                               spherical_point{b.max().lng, b.max().lat});
     rtree_.query(bgi::intersects(bounds), std::back_inserter(result_n));
 
     std::vector<edge const*> edges(result_n.size());
@@ -45,6 +45,18 @@ public:
         begin(result_n), end(result_n), begin(edges),
         [this](value const& result) { return edges_[result.second]; });
     return edges;
+  }
+
+  geo::box get_bounds() const
+  {
+      box b = rtree_.bounds();
+      spherical_point bottom_right = b.max_corner();
+      spherical_point top_left = b.min_corner();
+
+      geo::coord p1 = {top_left.get<0>(), top_left.get<1>()};
+      geo::coord p2 = {bottom_right.get<0>(), bottom_right.get<1>()};
+      geo::box box_ = {p1,p2};
+      return box_;
   }
 
 private:
@@ -88,7 +100,7 @@ private:
   int clasz_;
   schedule const& sched_;
   std::vector<edge const*> edges_;
-  bgi::rtree<value, bgi::quadratic<16>> rtree_;
+  bgi::rtree<value, bgi::rstar<16>> rtree_;
 };
 
 edge_geo_index::edge_geo_index(int clasz, schedule const& s)
@@ -98,6 +110,11 @@ edge_geo_index::~edge_geo_index() {}
 
 std::vector<edge const*> edge_geo_index::edges(geo::box area) const {
   return impl_->edges(area);
+}
+
+geo::box edge_geo_index::get_bounds() const
+{
+    return impl_.get()->get_bounds();
 }
 
 }  // namespace railviz

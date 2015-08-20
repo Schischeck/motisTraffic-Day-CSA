@@ -1,0 +1,12 @@
+namespace motis.railviz;
+
+struct Coordinate {
+  lat : double;
+  lng : double;
+}
+
+table RailVizAllTrainsRequest {
+  p1 : Coordinate;
+  p2 : Coordinate;
+  time : ulong;
+}

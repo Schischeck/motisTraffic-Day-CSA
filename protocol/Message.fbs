@@ -1,8 +1,10 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
-include "railviz/RailVizStations.fbs";
+include "railviz/RailVizInit.fbs";
 include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
+include "railviz/RailVizAllTrainsRequest.fbs";
+include "railviz/RailVizAllTrainsResponse.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
@@ -29,7 +31,9 @@ union MsgContent {
   motis.MotisError,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
-  motis.railviz.RailVizStations,
+  motis.railviz.RailVizInit,
+  motis.railviz.RailVizAllTrainsRequest,
+  motis.railviz.RailVizAllTrainsResponse,
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
   motis.routing.RoutingRequest,

@@ -11,6 +11,7 @@ enum error_code_t {
   ok = 0,
 
   station_index_out_of_bounds = 1,
+  client_not_registered = 2
 };
 }  // namespace error
 
@@ -22,6 +23,8 @@ public:
     switch (ev) {
       case error::station_index_out_of_bounds:
         return "railviz: station index out of bounds";
+      case error::client_not_registered:
+        return "railviz: client not registered";
       default:
         return "railviz: unkown error";
     }
