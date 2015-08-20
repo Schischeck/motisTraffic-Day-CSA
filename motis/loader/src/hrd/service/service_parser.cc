@@ -16,20 +16,19 @@ namespace hrd {
 
 struct train_builder {
 
-  void create_services(specification const& s, char const* filename,
-                       int line_number, FlatBufferBuilder& b,
+  void create_services(specification const& s, shared_data const& stamm,
+                       FlatBufferBuilder& b,
                        std::vector<Offset<Service>>& services) {
-    // CreateTrain(b, route(s, b), {}, {}, {}, traffic_days(s, b), {});
+
+    // CreateService(b, route(s, b), {}, {}, {}, traffic_days(s, b), {});
   }
 
   std::map<std::vector<int>, Offset<Route>> routes_;
 };
 
-void parse_services(
-    loaded_file file, std::map<int, Offset<Station>> const& /* stations */,
-    std::map<uint16_t, Offset<Attribute>> const& /* attributes */,
-    std::map<int, Offset<String>> const& /* bitfields */, platform_rules const&,
-    FlatBufferBuilder& fbb, std::vector<Offset<Service>>& services) {
+void parse_services(loaded_file file, shared_data const& stamm,
+                    FlatBufferBuilder& fbb,
+                    std::vector<Offset<Service>>& services) {
   train_builder tb;
   specification spec;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
@@ -45,7 +44,11 @@ void parse_services(
 
     // Store if relevant.
     if (!spec.ignore()) {
-      tb.create_services(spec, file.name, line_number, fbb, services);
+      try {
+        tb.create_services(spec, stamm, fbb, services);
+      } catch (std::runtime_error const& e) {
+        throw parser_error(file.name, line_number);
+      }
     }
 
     // Next try! Re-read first line of next service.
