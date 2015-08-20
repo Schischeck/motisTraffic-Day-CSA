@@ -9,7 +9,6 @@
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/util.h"
-#include "motis/schedule-format/Schedule_generated.h"
 
 using namespace parser;
 
@@ -19,54 +18,31 @@ namespace hrd {
 
 TEST_CASE("parse_line") {
   cstr file_content = ",  0 260 10 Bus mit Fahrradanhänger#";
+  auto attributes = parse_attributes({ATTRIBUTES_FILE, file_content});
+  REQUIRE(attributes.size() == 1);
 
-  flatbuffers::FlatBufferBuilder b;
-
-  auto attributes_map = parse_attributes({ATTRIBUTES_FILE, file_content}, b);
-
-  REQUIRE(attributes_map.find(raw_to_int<uint16_t>(", ")) !=
-          end(attributes_map));
-
-  b.Finish(CreateSchedule(b, {}, {}, b.CreateVector(values(attributes_map)), {},
-                          {}));
-
-  auto schedule = GetSchedule(b.GetBufferPointer());
-  auto attributes_serialized = schedule->attributes();
-
-  REQUIRE(attributes_serialized->size() == 1);
-  REQUIRE(attributes_serialized->Get(0)->code()->str() == ", ");
-  REQUIRE(attributes_serialized->Get(0)->text()->str() ==
-          "Bus mit Fahrradanhänger");
+  auto it = attributes.find(raw_to_int<uint16_t>(", "));
+  REQUIRE(it != end(attributes));
+  REQUIRE(it->second == "Bus mit Fahrradanhänger");
 }
 
 TEST_CASE("parse_and_ignore_line") {
   cstr file_content = "ZZ 0 060 10 zusätzlicher Zug#\n# ,  ,  ,";
 
-  flatbuffers::FlatBufferBuilder b;
+  auto attributes = parse_attributes({ATTRIBUTES_FILE, file_content});
+  REQUIRE(attributes.size() == 1);
 
-  auto attributes_map = parse_attributes({ATTRIBUTES_FILE, file_content}, b);
-
-  REQUIRE(attributes_map.find(raw_to_int<uint16_t>("ZZ")) !=
-          end(attributes_map));
-
-  b.Finish(CreateSchedule(b, {}, {}, b.CreateVector(values(attributes_map)), {},
-                          {}));
-
-  auto schedule = GetSchedule(b.GetBufferPointer());
-  auto attributes = schedule->attributes();
-
-  REQUIRE(attributes->size() == 1);
-  REQUIRE(attributes->Get(0)->code()->str() == "ZZ");
-  REQUIRE(attributes->Get(0)->text()->str() == "zusätzlicher Zug");
+  auto it = attributes.find(raw_to_int<uint16_t>("ZZ"));
+  REQUIRE(it != end(attributes));
+  REQUIRE(it->second == "zusätzlicher Zug");
 }
 
 TEST_CASE("invalid_line") {
   cstr file_content = ",  0 260 10 ";
-  flatbuffers::FlatBufferBuilder b;
 
   bool catched = false;
   try {
-    parse_attributes({ATTRIBUTES_FILE, file_content}, b);
+    parse_attributes({ATTRIBUTES_FILE, file_content});
   } catch (parser_error const& e) {
     catched = true;
     REQUIRE(strcmp(e.filename, ATTRIBUTES_FILE) == 0);
@@ -78,15 +54,7 @@ TEST_CASE("invalid_line") {
 
 TEST_CASE("ignore_output_rules") {
   cstr file_content = "# ,  ,  ,";
-  flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateSchedule(b, {}, {}, b.CreateVector(values(parse_attributes(
-                                         {ATTRIBUTES_FILE, file_content}, b))),
-                          {}, {}));
-
-  auto schedule = GetSchedule(b.GetBufferPointer());
-  auto attributes = schedule->attributes();
-
-  REQUIRE(attributes->size() == 0);
+  REQUIRE(parse_attributes({ATTRIBUTES_FILE, file_content}).size() == 0);
 }
 
 }  // hrd

@@ -39,7 +39,7 @@ void hrd_parser::parse(fs::path const& path) {
 
   auto buf = parser::file((path / ATTRIBUTES_FILE).c_str(), "ro").content();
   auto attributes = parse_attributes(
-      {ATTRIBUTES_FILE, {static_cast<char const*>(buf.buf_), buf.size_}}, b);
+      {ATTRIBUTES_FILE, {static_cast<char const*>(buf.buf_), buf.size_}});
 
   // TODO(tobias) remove / implement
   // CreateSchedule(b, b.CreateVector(read_trains(b, path)));

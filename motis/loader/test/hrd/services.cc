@@ -106,7 +106,7 @@ TEST_CASE("parse_trains") {
     auto bitfields =
         parse_bitfields({BITFIELDS_FILE, bitfields_file_content}, b);
     auto attributes =
-        parse_attributes({ATTRIBUTES_FILE, attributes_file_content}, b);
+        parse_attributes({ATTRIBUTES_FILE, attributes_file_content});
     auto stations =
         parse_stations({STATIONS_FILE, stations_file_content},
                        {COORDINATES_FILE, station_coordinates_file_content}, b);
@@ -114,12 +114,12 @@ TEST_CASE("parse_trains") {
         {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
 
     std::vector<Offset<Service>> services;
-    parse_services({"trains.101", service_file_content_1}, stations, attributes,
-                   bitfields, platforms, b, services);
+    parse_services({"trains.101", service_file_content_1},
+                   shared_data(stations, attributes, bitfields, platforms), b,
+                   services);
 
     b.Finish(CreateSchedule(b, b.CreateVector(services),
-                            b.CreateVector(values(stations)),
-                            b.CreateVector(values(attributes)), {}));
+                            b.CreateVector(values(stations)), {}));
   } catch (parser_error const& e) {
     printf("parser error: %s:%d\n", e.filename, e.line_number);
   }

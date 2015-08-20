@@ -111,5 +111,14 @@ inline TargetCollection transform(It begin, It end, UnaryOperation op) {
   return c;
 }
 
+template <typename It, typename UnaryOperation>
+inline auto transform_to_vec(It s, It e, UnaryOperation op)
+    -> std::vector<decltype(op(*s))> {
+  using target_collection_t = std::vector<decltype(op(*s))>;
+  target_collection_t vec(std::distance(s, e));
+  std::transform(s, e, std::begin(vec), op);
+  return vec;
+}
+
 }  // namespace loader
 }  // namespace motis
