@@ -25,7 +25,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-cstr service_file_content = R"(
+cstr service_file_content_1 = R"(
 *Z 02292 80____    01                                     % 02292 80____    01 (001)
 *G IC  8000096 8000105                                    % 02292 80____    01 (002)
 *L 381   8000096 8000105                                  % 09988 80____    01 (003)
@@ -36,10 +36,23 @@ cstr service_file_content = R"(
 *A G  8000096 8000105                                     % 02292 80____    01 (008)
 8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
 8000156 Heidelberg Hbf        01644  01646                % 02292 80____    01 (010)
-8000377 Weinheim(Bergstr)     01659  01700                % 02292 80____    01 (011)
+8000377 Weinheim(Bergstr)    -01659 -01700                % 02292 80____    01 (011)
 8000031 Bensheim              01708  01709                % 02292 80____    01 (012)
 8000068 Darmstadt Hbf         01722  01724                % 02292 80____    01 (013)
 8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (014))";
+
+cstr service_file_content_2 = R"(
+*Z 02292 80____    01                                     % 02292 80____    01 (001)
+*G IC  8000096 8000105                                    % 02292 80____    01 (002)
+*L 381   8000096 8000105                                  % 09988 80____    01 (003)
+*A VE 8000096 8000068                                     % 02292 80____    01 (004)
+*A VE 8000068 8000105 002687                              % 02292 80____    01 (005)
+*A BT 8000068 8000105 001337                              % 02292 80____    01 (006)
+*A FR 8000096 8000068                                     % 02292 80____    01 (007)
+*A G  8000096 8000068                                     % 02292 80____    01 (008)
+8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
+8000068 Darmstadt Hbf         01722  01724 02293 81____   % 02292 80____    01 (010)
+8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (011))";
 
 cstr attributes_file_content = R"(
 BT   0    450    11  Bordbistro#
@@ -91,7 +104,7 @@ TEST_CASE("parse_trains") {
         {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
 
     std::vector<Offset<Service>> services;
-    parse_services({"trains.101", service_file_content}, stations, attributes,
+    parse_services({"trains.101", service_file_content_1}, stations, attributes,
                    bitfields, platforms, b, services);
 
     b.Finish(CreateSchedule(b, b.CreateVector(services),
@@ -104,7 +117,7 @@ TEST_CASE("parse_trains") {
 
 TEST_CASE("parse_specification") {
   specification spec;
-  for_each_line_numbered(service_file_content,
+  for_each_line_numbered(service_file_content_1,
                          [&spec](cstr const& line, int line_number) {
     spec.read_line(line, "services.101", line_number);
   });
@@ -118,29 +131,29 @@ TEST_CASE("parse_specification") {
   REQUIRE(spec.stops.size() == 6);
 }
 
-TEST_CASE("parse_hrd_service") {
+TEST_CASE("parse_hrd_service_full_range") {
   specification spec;
-  for_each_line_numbered(service_file_content,
+  for_each_line_numbered(service_file_content_1,
                          [&spec](cstr const& line, int line_number) {
     spec.read_line(line, "services.101", line_number);
   });
 
   auto service = hrd_service(spec);
-
   REQUIRE(service.sections_.size() == 5);
-  REQUIRE(std::all_of(std::begin(service.sections_),
-                      std::end(service.sections_),
-                      [](hrd_service::section const& s) {
-    return s.train_num == 2292 && s.admin == "80____" &&
-           s.attributes == std::vector<hrd_service::attribute>(
-                               {hrd_service::attribute(0, "BT"),
-                                hrd_service::attribute(0, "FR"),
-                                hrd_service::attribute(0, "G ")}) &&
-           s.category == std::vector<cstr>({"IC "}) &&
-           s.line_information == std::vector<cstr>({"381  "});
-  }));
-
+  std::for_each(std::begin(service.sections_), std::end(service.sections_),
+                [](hrd_service::section const& s) {
+    REQUIRE(s.traffic_days == std::vector<int>({2687}));
+    REQUIRE(s.train_num == 2292);
+    REQUIRE(s.admin == "80____");
+    REQUIRE(s.attributes == std::vector<hrd_service::attribute>(
+                                {hrd_service::attribute(0, "BT"),
+                                 hrd_service::attribute(0, "FR"),
+                                 hrd_service::attribute(0, "G ")}));
+    REQUIRE(s.category == std::vector<cstr>({"IC "}));
+    REQUIRE(s.line_information == std::vector<cstr>({"381  "}));
+  });
   REQUIRE(service.stops_.size() == 6);
+
   auto stop = service.stops_[0];
   REQUIRE(stop.eva_num == 8000096);
   REQUIRE(stop.arr.time == hrd_service::NOT_SET);
@@ -157,9 +170,9 @@ TEST_CASE("parse_hrd_service") {
   stop = service.stops_[2];
   REQUIRE(stop.eva_num == 8000377);
   REQUIRE(stop.arr.time == hhmm_to_min(1659));
-  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(!stop.arr.in_out_allowed);
   REQUIRE(stop.dep.time == hhmm_to_min(1700));
-  REQUIRE(stop.dep.in_out_allowed);
+  REQUIRE(!stop.dep.in_out_allowed);
 
   stop = service.stops_[3];
   REQUIRE(stop.eva_num == 8000031);
@@ -176,6 +189,57 @@ TEST_CASE("parse_hrd_service") {
   REQUIRE(stop.dep.in_out_allowed);
 
   stop = service.stops_[5];
+  REQUIRE(stop.eva_num == 8000105);
+  REQUIRE(stop.arr.time == hhmm_to_min(1740));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hrd_service::NOT_SET);
+}
+
+TEST_CASE("parse_hrd_service_multiple_ranges") {
+  specification spec;
+  for_each_line_numbered(service_file_content_2,
+                         [&spec](cstr const& line, int line_number) {
+    spec.read_line(line, "services.101", line_number);
+  });
+
+  auto service = hrd_service(spec);
+  REQUIRE(service.sections_.size() == 2);
+
+  auto section = service.sections_[0];
+  REQUIRE(section.train_num == 2292);
+  REQUIRE(section.admin == "80____");
+  REQUIRE(section.attributes == std::vector<hrd_service::attribute>(
+                                    {hrd_service::attribute(0, "FR"),
+                                     hrd_service::attribute(0, "G ")}));
+  REQUIRE(section.category == std::vector<cstr>({"IC "}));
+  REQUIRE(section.line_information == std::vector<cstr>({"381  "}));
+  REQUIRE(section.traffic_days == std::vector<int>({0}));
+
+  section = service.sections_[1];
+  REQUIRE(section.train_num == 2293);
+  REQUIRE(section.admin == "81____");
+  REQUIRE(section.attributes == std::vector<hrd_service::attribute>(
+                                    {hrd_service::attribute(1337, "BT")}));
+  REQUIRE(section.category == std::vector<cstr>({"IC "}));
+  REQUIRE(section.line_information == std::vector<cstr>({"381  "}));
+  REQUIRE(section.traffic_days == std::vector<int>({2687}));
+
+  REQUIRE(service.stops_.size() == 3);
+
+  auto stop = service.stops_[0];
+  REQUIRE(stop.eva_num == 8000096);
+  REQUIRE(stop.arr.time == hrd_service::NOT_SET);
+  REQUIRE(stop.dep.time == 965);
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[1];
+  REQUIRE(stop.eva_num == 8000068);
+  REQUIRE(stop.arr.time == hhmm_to_min(1722));
+  REQUIRE(stop.arr.in_out_allowed);
+  REQUIRE(stop.dep.time == hhmm_to_min(1724));
+  REQUIRE(stop.dep.in_out_allowed);
+
+  stop = service.stops_[2];
   REQUIRE(stop.eva_num == 8000105);
   REQUIRE(stop.arr.time == hhmm_to_min(1740));
   REQUIRE(stop.arr.in_out_allowed);

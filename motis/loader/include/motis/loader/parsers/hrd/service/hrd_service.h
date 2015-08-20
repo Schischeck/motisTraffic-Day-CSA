@@ -51,7 +51,7 @@ struct hrd_service {
 
   hrd_service(specification const& spec);
 
-  bool valid() const;
+  void verify_service() const;
 
   std::vector<stop> stops_;
   std::vector<section> sections_;

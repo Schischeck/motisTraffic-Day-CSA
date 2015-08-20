@@ -29,7 +29,7 @@ hrd_service::stop parse_stop(cstr stop) {
 std::vector<hrd_service::section> parse_section(
     std::vector<hrd_service::section>& sections, cstr stop) {
   auto train_num = stop.substr(43, size(5)).trim();
-  auto admin = stop.substr(43, size(6)).trim();
+  auto admin = stop.substr(49, size(6)).trim();
 
   auto& last_section = sections.back();
   sections.emplace_back(
@@ -110,17 +110,21 @@ hrd_service::hrd_service(specification const& spec)
     return parse<int>(line.substr(22, size(6)));
   });
 
-  verify(valid(), "service invalid (line information / category)");
+  verify_service();
 }
 
-bool hrd_service::valid() const {
+void hrd_service::verify_service() const {
   for (auto const& section : sections_) {
-    if (section.line_information.size() > 1 || section.category.size() != 1 ||
-        section.traffic_days.size() != 1) {
-      return false;
-    }
+    verify(section.line_information.size() <= 1,
+           "service invalid: multiple line information: expected 1 but was %d",
+           section.line_information.size());
+    verify(section.category.size() == 1,
+           "service invalid: multiple categories: expected 1 but was %d",
+           section.category.size());
+    verify(section.traffic_days.size() == 1,
+           "service invalid: multiple traffic days: expected 1 but was %d",
+           section.traffic_days.size());
   }
-  return true;
 }
 
 }  // hrd
