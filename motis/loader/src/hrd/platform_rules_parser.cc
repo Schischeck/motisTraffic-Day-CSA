@@ -14,10 +14,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-platform_rules parse_platform_rules(
-    loaded_file file,
-    std::map<int, flatbuffers::Offset<flatbuffers::String>> const& bitfields,
-    flatbuffers::FlatBufferBuilder& b) {
+platform_rules parse_platform_rules(loaded_file file,
+                                    flatbuffers::FlatBufferBuilder& b) {
   platform_rules prs;
   std::map<uint64_t, Offset<String>> platform_names;
 
@@ -44,14 +42,8 @@ platform_rules parse_platform_rules(
           platform_name, to_fbs_string(b, platform_name_str));
     }
 
-    // Resolve bitfield (throw if not found)
-    auto bitfield_it = bitfields.find(bitfield);
-    if (bitfield_it == end(bitfields)) {
-      throw parser_error(file.name, line_number);
-    }
-
     prs[std::make_tuple(eva_num, train_num, train_admin)].push_back(
-        {platform_name_it->second, bitfield_it->second, time});
+        {platform_name_it->second, bitfield, time});
   });
   return prs;
 }

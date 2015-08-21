@@ -7,5 +7,4 @@ table Section {
   category : string;
   line_id : string;
   attributes: [Attribute];
-  traffic_days : string;
 }

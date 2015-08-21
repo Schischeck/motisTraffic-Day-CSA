@@ -11,7 +11,6 @@
 #include "motis/loader/parser_error.h"
 
 using namespace parser;
-using namespace flatbuffers;
 
 namespace motis {
 namespace loader {
@@ -19,7 +18,7 @@ namespace hrd {
 
 std::string hex_to_string(char c) {
   char str[2] = {c, '\0'};
-  auto i = StringToInt(str, 16);
+  auto i = flatbuffers::StringToInt(str, 16);
   std::bitset<4> bits(i);
   return bits.to_string();
 }
@@ -33,8 +32,7 @@ std::string hex_to_string(T const& char_collection) {
   return bit_str;
 }
 
-std::bitset<BIT_COUNT> hex_str_to_bitset(cstr hex, char const* filename,
-                                         int line_number) {
+bitfield hex_str_to_bitset(cstr hex, char const* filename, int line_number) {
   std::string bit_str = hex_to_string(hex);
   auto period_begin = bit_str.find("11");
   auto period_end = bit_str.rfind("11");
@@ -42,15 +40,12 @@ std::bitset<BIT_COUNT> hex_str_to_bitset(cstr hex, char const* filename,
       period_begin == period_end || period_end - period_begin <= 2) {
     throw parser_error(filename, line_number);
   }
-  return std::bitset<BIT_COUNT>{
-      std::string(std::next(begin(bit_str), period_begin + 2),
-                  std::next(begin(bit_str), period_end))};
+  return bitfield{std::string(std::next(begin(bit_str), period_begin + 2),
+                              std::next(begin(bit_str), period_end))};
 }
 
-std::map<int, Offset<String>> parse_bitfields(
-    loaded_file f, flatbuffers::FlatBufferBuilder& b) {
-
-  std::map<int, Offset<String>> bitfields;
+std::map<int, bitfield> parse_bitfields(loaded_file f) {
+  std::map<int, bitfield> bitfields;
   for_each_line_numbered(f.content, [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
@@ -58,18 +53,11 @@ std::map<int, Offset<String>> parse_bitfields(
       throw parser_error(f.name, line_number);
     }
 
-    auto bitfield_num = parse<int>(line.substr(0, size(6)));
-    auto bit_str = hex_str_to_bitset(line.substr(7), f.name, line_number);
-    bitfields[bitfield_num] =
-        b.CreateString(serialize_bitset<BIT_COUNT>(bit_str));
+    bitfields[parse<int>(line.substr(0, size(6)))] =
+        hex_str_to_bitset(line.substr(7), f.name, line_number);
   });
 
-  std::string all_days_bit_str;
-  all_days_bit_str.resize(BIT_COUNT);
-  std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
-  std::bitset<BIT_COUNT> all_days(all_days_bit_str);
-  bitfields[ALL_DAYS_KEY] =
-      b.CreateString(serialize_bitset<BIT_COUNT>(all_days));
+  bitfields[ALL_DAYS_KEY] = create_uniform_bitfield<BIT_COUNT>('1');
 
   return bitfields;
 }

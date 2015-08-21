@@ -16,6 +16,32 @@
 namespace motis {
 namespace loader {
 
+template <std::size_t BitSetSize>
+struct bitset_comparator {
+  bool operator()(std::bitset<BitSetSize> const& lhs,
+                  std::bitset<BitSetSize> const& rhs) {
+    for (std::size_t i = 0; i < BitSetSize; ++i) {
+      int lhs_bit = lhs.test(i) ? 1 : 0;
+      int rhs_bit = rhs.test(i) ? 1 : 0;
+      if (lhs_bit != rhs_bit) {
+        return lhs_bit < rhs_bit;
+      }
+    }
+    return false;
+  }
+};
+
+template <std::size_t BitSetSize>
+std::bitset<BitSetSize> create_uniform_bitfield(char val) {
+  assert(val == '1' || val == '0');
+
+  std::string all_days_bit_str;
+  all_days_bit_str.resize(BitSetSize);
+  std::fill(begin(all_days_bit_str), end(all_days_bit_str), val);
+
+  return std::bitset<BitSetSize>(all_days_bit_str);
+}
+
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 
@@ -24,6 +50,14 @@ inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
     flatbuffers::FlatBufferBuilder& b, T const& s) {
   return b.CreateString(s.c_str(), s.length());
 }
+
+flatbuffers::Offset<flatbuffers::String> to_fbs_string(
+    flatbuffers::FlatBufferBuilder& b, std::string const& s,
+    std::string const& charset);
+
+flatbuffers::Offset<flatbuffers::String> to_fbs_string(
+    flatbuffers::FlatBufferBuilder& b, parser::cstr const& s,
+    std::string const& charset);
 
 template <int BitCount>
 inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {

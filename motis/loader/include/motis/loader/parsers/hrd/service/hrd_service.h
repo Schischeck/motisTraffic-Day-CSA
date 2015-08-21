@@ -4,6 +4,7 @@
 
 #include "parser/cstr.h"
 
+#include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/service/specification.h"
 
 namespace motis {
@@ -49,13 +50,21 @@ struct hrd_service {
     std::vector<int> traffic_days;
   };
 
-  hrd_service(specification const& spec);
+  hrd_service(std::vector<stop> stops, std::vector<section> sections,
+              bitfield traffic_days)
+      : stops_(std::move(stops)),
+        sections_(std::move(sections)),
+        traffic_days_(std::move(traffic_days)) {}
+
+  explicit hrd_service(specification const& spec);
 
   void verify_service() const;
 
   std::vector<stop> stops_;
   std::vector<section> sections_;
+  bitfield traffic_days_;
 };
+
 }  // hrd
 }  // loader
 }  // motis

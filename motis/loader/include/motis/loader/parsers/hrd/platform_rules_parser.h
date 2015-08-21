@@ -15,17 +15,15 @@ namespace hrd {
 constexpr int TIME_NOT_SET = -1;
 struct platform_rule {
   flatbuffers::Offset<flatbuffers::String> platform_name;
-  flatbuffers::Offset<flatbuffers::String> bitfield;
+  int bitfield_num;
   int time;
 };
 
 typedef std::tuple<int, int, uint64_t> platform_rule_key;
 typedef std::map<platform_rule_key, std::vector<platform_rule>> platform_rules;
 
-platform_rules parse_platform_rules(
-    loaded_file,
-    std::map<int, flatbuffers::Offset<flatbuffers::String>> const& bitfields,
-    flatbuffers::FlatBufferBuilder& b);
+platform_rules parse_platform_rules(loaded_file,
+                                    flatbuffers::FlatBufferBuilder& b);
 
 }  // hrd
 }  // loader

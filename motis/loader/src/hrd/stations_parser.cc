@@ -5,8 +5,8 @@
 #include "parser/arg_parser.h"
 
 #include "motis/loader/util.h"
-
 #include "motis/loader/parser_error.h"
+#include "motis/loader/parsers/hrd/files.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -44,8 +44,9 @@ void parse_station_coordinates(loaded_file file,
 
     auto eva_num = parse<int>(line.substr(0, size(7)));
     auto& station = stations[eva_num];
-    station.lng = parse<double>(line.substr(8, size(10)));
-    station.lat = parse<double>(line.substr(19, size(10)));
+
+    station.lng = parse<double>(line.substr(8, size(10)).trim());
+    station.lat = parse<double>(line.substr(19, size(10)).trim());
   });
 }
 
@@ -61,9 +62,9 @@ std::map<int, Offset<Station>> parse_stations(loaded_file stations_file,
     auto& eva_num = station_entry.first;
     auto& station = station_entry.second;
     stations.emplace(eva_num,
-                     CreateStation(b, b.CreateString(std::to_string(eva_num)),
-                                   to_fbs_string(b, station.name), station.lat,
-                                   station.lng));
+                     CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
+                                   to_fbs_string(b, station.name, ENCODING),
+                                   station.lat, station.lng));
   }
   return stations;
 }

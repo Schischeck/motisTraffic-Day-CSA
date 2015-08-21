@@ -8,8 +8,10 @@
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 
+#include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/service/specification.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/parsers/hrd/service/split_service.h"
 #include "motis/loader/util.h"
 
 using namespace parser;
@@ -20,7 +22,10 @@ namespace loader {
 namespace hrd {
 
 struct service_builder {
-  service_builder(shared_data const& stamm) : stamm_(stamm) {}
+  service_builder(shared_data const& stamm, FlatBufferBuilder& builder)
+      : stamm_(stamm),
+        bitfields_(stamm.bitfields, builder),
+        builder_(builder) {}
 
   Offset<String> get_or_create_category(cstr category) {
     auto key = raw_to_int<uint32_t>(category);
@@ -79,10 +84,11 @@ struct service_builder {
       auto stamm_attributes_it = stamm_.attributes.find(key);
       verify(stamm_attributes_it != end(stamm_.attributes),
              "attribute with bitfield number %s not found\n", attr.code.str);
-      auto text = builder_.CreateString(stamm_attributes_it->second);
+      auto text =
+          to_fbs_string(builder_, stamm_attributes_it->second, ENCODING);
       auto fbs_attribute =
           CreateAttribute(builder_, to_fbs_string(builder_, attr.code), text,
-                          get_traffic_days(attr.bitfield_num));
+                          bitfields_.get_or_create_bitfield(attr.bitfield_num));
       attributes_[key] = fbs_attribute;
       return fbs_attribute;
     }
@@ -97,13 +103,6 @@ struct service_builder {
         }));
   }
 
-  Offset<String> get_traffic_days(int bitfield_num) {
-    auto it = stamm_.bitfields.find(bitfield_num);
-    verify(it != end(stamm_.bitfields),
-           "bitfield with bitfield number %d not found\n", bitfield_num);
-    return it->second;
-  }
-
   Offset<Vector<Offset<Section>>> create_sections(
       std::vector<hrd_service::section> const& sections) {
     return builder_.CreateVector(transform_to_vec(
@@ -111,8 +110,7 @@ struct service_builder {
           return CreateSection(builder_, s.train_num,
                                get_or_create_category(s.category[0]),
                                get_or_create_line_info(s.line_information[0]),
-                               create_attributes(s.attributes),
-                               get_traffic_days(s.traffic_days[0]));
+                               create_attributes(s.attributes));
         }));
   }
 
@@ -125,8 +123,9 @@ struct service_builder {
 
     for (auto const& rule : dep_plr_it->second) {
       if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
-        platforms.push_back(
-            CreatePlatform(builder_, rule.bitfield, rule.platform_name));
+        platforms.push_back(CreatePlatform(
+            builder_, bitfields_.get_or_create_bitfield(rule.bitfield_num),
+            rule.platform_name));
       }
     }
   }
@@ -183,9 +182,14 @@ struct service_builder {
 
   void create_services(hrd_service const& s, FlatBufferBuilder& b,
                        std::vector<Offset<Service>>& services) {
-    services.push_back(CreateService(
-        b, create_route(s.stops_), create_sections(s.sections_),
-        create_platforms(s.sections_, s.stops_), create_times(s.stops_)));
+    for (auto const& expanded_service : expand(s, bitfields_)) {
+      services.push_back(CreateService(
+          b, create_route(expanded_service.stops_),
+          bitfields_.get_or_create_bitfield(expanded_service.traffic_days_),
+          create_sections(expanded_service.sections_),
+          create_platforms(expanded_service.sections_, expanded_service.stops_),
+          create_times(expanded_service.stops_)));
+    }
   }
 
   shared_data const& stamm_;
@@ -193,13 +197,14 @@ struct service_builder {
   std::map<uint32_t, Offset<String>> categories_;
   std::map<uint64_t, Offset<String>> line_infos_;
   std::map<std::vector<int>, Offset<Route>> routes_;
-  FlatBufferBuilder builder_;
+  bitfield_translator bitfields_;
+  FlatBufferBuilder& builder_;
 };
 
 void parse_services(loaded_file file, shared_data const& stamm,
                     FlatBufferBuilder& fbb,
                     std::vector<Offset<Service>>& services) {
-  service_builder sb(stamm);
+  service_builder sb(stamm, fbb);
   specification spec;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     bool finished = spec.read_line(line, file.name, line_number);

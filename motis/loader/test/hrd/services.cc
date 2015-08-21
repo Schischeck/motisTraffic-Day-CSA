@@ -103,15 +103,14 @@ TEST_CASE("parse_trains") {
   try {
     flatbuffers::FlatBufferBuilder b;
 
-    auto bitfields =
-        parse_bitfields({BITFIELDS_FILE, bitfields_file_content}, b);
+    auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfields_file_content});
     auto attributes =
         parse_attributes({ATTRIBUTES_FILE, attributes_file_content});
     auto stations =
         parse_stations({STATIONS_FILE, stations_file_content},
                        {COORDINATES_FILE, station_coordinates_file_content}, b);
-    auto platforms = parse_platform_rules(
-        {PLATFORMS_FILE, platforms_rules_file_content}, bitfields, b);
+    auto platforms =
+        parse_platform_rules({PLATFORMS_FILE, platforms_rules_file_content}, b);
 
     std::vector<Offset<Service>> services;
     parse_services({"trains.101", service_file_content_1},

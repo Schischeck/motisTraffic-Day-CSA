@@ -3,8 +3,6 @@
 #include <map>
 #include <bitset>
 
-#include "flatbuffers/flatbuffers.h"
-
 #include "parser/cstr.h"
 
 #include "motis/loader/loaded_file.h"
@@ -16,12 +14,12 @@ namespace loader {
 namespace hrd {
 
 constexpr int ALL_DAYS_KEY = 0;
+typedef std::bitset<BIT_COUNT> bitfield;
 
-std::bitset<BIT_COUNT> hex_str_to_bitset(parser::cstr hex, char const* filename,
-                                         int line_number);
+bitfield hex_str_to_bitset(parser::cstr hex, char const* filename,
+                           int line_number);
 
-std::map<int, flatbuffers::Offset<flatbuffers::String>> parse_bitfields(
-    loaded_file, flatbuffers::FlatBufferBuilder& b);
+std::map<int, bitfield> parse_bitfields(loaded_file);
 
 }  // hrd
 }  // loader
