@@ -20,7 +20,6 @@ namespace loader {
 namespace hrd {
 
 struct service_builder {
-
   service_builder(shared_data const& stamm) : stamm_(stamm) {}
 
   Offset<String> get_or_create_category(cstr category) {
@@ -117,27 +116,76 @@ struct service_builder {
         }));
   }
 
-  Offset<Vector<Offset<Platform>>> create_platforms(
+  void resolve_platform_rule(platform_rule_key const& key, int time,
+                             std::vector<Offset<Platform>>& platforms) {
+    auto dep_plr_it = stamm_.pf_rules.find(key);
+    if (dep_plr_it == end(stamm_.pf_rules)) {
+      return;
+    }
+
+    for (auto const& rule : dep_plr_it->second) {
+      if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
+        platforms.push_back(
+            CreatePlatform(builder_, rule.bitfield, rule.platform_name));
+      }
+    }
+  }
+
+  Offset<Vector<Offset<PlatformRules>>> create_platforms(
       std::vector<hrd_service::section> const& sections,
       std::vector<hrd_service::stop> const& stops) {
-    std::vector<Offset<Platform>> platforms;
-    for (int i = 1; i < stops.size(); ++i) {
-      auto section = sections[i - 1];
-      auto prev_stop = stops[i - 1];
-      auto curr_stop = stops[i];
-      auto dep_event_key = std::make_tuple(prev_stop.eva_num, section.train_num,
+    struct stop_platforms {
+      typedef std::vector<Offset<Platform>> platforms;
+      platforms dep_platforms;
+      platforms arr_platforms;
+    };
+
+    std::vector<stop_platforms> stops_platforms;
+
+    for (unsigned i = 0; i < sections.size(); ++i) {
+      int section_index = i;
+      int from_stop_index = section_index;
+      int to_stop_index = from_stop_index + 1;
+
+      auto section = sections[section_index];
+      auto from_stop = stops[from_stop_index];
+      auto to_stop = stops[to_stop_index];
+
+      auto dep_event_key = std::make_tuple(from_stop.eva_num, section.train_num,
                                            raw_to_int<uint64_t>(section.admin));
-      auto arr_event_key = std::make_tuple(curr_stop.eva_num, section.train_num,
+      auto arr_event_key = std::make_tuple(to_stop.eva_num, section.train_num,
                                            raw_to_int<uint64_t>(section.admin));
+
+      resolve_platform_rule(dep_event_key, from_stop.dep.time,
+                            stops_platforms[from_stop_index].dep_platforms);
+      resolve_platform_rule(arr_event_key, from_stop.arr.time,
+                            stops_platforms[to_stop_index].arr_platforms);
     }
-    return builder_.CreateVector(platforms);
+
+    return builder_.CreateVector(
+        transform_to_vec(begin(stops_platforms), end(stops_platforms),
+                         [&](stop_platforms const& sp) {
+          return CreatePlatformRules(builder_,
+                                     builder_.CreateVector(sp.dep_platforms),
+                                     builder_.CreateVector(sp.arr_platforms));
+        }));
+  }
+
+  Offset<Vector<uint64_t>> create_times(
+      std::vector<hrd_service::stop> const& stops) {
+    std::vector<uint64_t> times;
+    for (auto const& stop : stops) {
+      times.push_back(stop.arr.time);
+      times.push_back(stop.dep.time);
+    }
+    return builder_.CreateVector(times);
   }
 
   void create_services(hrd_service const& s, FlatBufferBuilder& b,
                        std::vector<Offset<Service>>& services) {
-    services.push_back(
-        CreateService(b, create_route(s.stops_), create_sections(s.sections_),
-                      create_platforms(s.sections_, s.stops_), {}));
+    services.push_back(CreateService(
+        b, create_route(s.stops_), create_sections(s.sections_),
+        create_platforms(s.sections_, s.stops_), create_times(s.stops_)));
   }
 
   shared_data const& stamm_;

@@ -1,9 +1,11 @@
 namespace motis.loader;
 
-enum EventType : byte { BOTH, ARRIVAL, DEPARTURE }
-
 table Platform {
-  event_type: EventType;
   bitfield: string;
   name : string;
+}
+
+table PlatformRules {
+  dep_platforms: [Platform];
+  arr_platforms: [Platform];
 }

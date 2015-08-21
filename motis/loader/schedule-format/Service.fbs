@@ -7,6 +7,6 @@ namespace motis.loader;
 table Service {
   route : Route;
   sections : [Section];
-  platforms : [Platform];
+  platforms : [PlatformRules];
   times : [ulong];
 }

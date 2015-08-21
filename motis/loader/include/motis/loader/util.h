@@ -19,9 +19,10 @@ namespace loader {
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 
+template <typename T>
 inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
-    flatbuffers::FlatBufferBuilder& b, parser::cstr s) {
-  return b.CreateString(s.str, s.len);
+    flatbuffers::FlatBufferBuilder& b, T const& s) {
+  return b.CreateString(s.c_str(), s.length());
 }
 
 template <int BitCount>
