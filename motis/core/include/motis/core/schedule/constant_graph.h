@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <array>
+#include <functional>
 
 #include "motis/core/schedule/nodes.h"
 

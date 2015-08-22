@@ -3,8 +3,6 @@
 #include <map>
 #include <vector>
 
-#include "boost/filesystem.hpp"
-
 #include "motis/core/schedule/date_manager.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/nodes.h"

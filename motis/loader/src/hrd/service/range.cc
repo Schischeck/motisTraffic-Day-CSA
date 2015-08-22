@@ -34,7 +34,7 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
         [&](hrd_service::stop const& s) { return s.eva_num == eva_num; });
     verify(it != end(stops), "%dth occurrence of eva number %d not found", n,
            eva_num);
-    return std::distance(begin(stops), it);
+    return static_cast<int>(std::distance(begin(stops), it));
   } else {
     // hhmm_or_idx must be a time
     // -> return stop where eva number and time matches
@@ -47,7 +47,7 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
         });
     verify(it != end(stops), "event with time %d at eva number %d not found",
            time, eva_num);
-    return std::distance(begin(stops), it);
+    return static_cast<int>(std::distance(begin(stops), it));
   }
 }
 

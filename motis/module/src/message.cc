@@ -9,6 +9,8 @@
 
 #include "motis/module/error.h"
 
+#undef GetMessage
+
 namespace motis {
 namespace module {
 

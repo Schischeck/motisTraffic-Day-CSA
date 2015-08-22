@@ -13,7 +13,7 @@
 
 namespace motis {
 
-struct edge;
+class edge;
 struct schedule;
 struct light_connection;
 
