@@ -21,7 +21,7 @@ static const parser::column_mapping<stop> stop_columns = {
 
 std::vector<Offset<Station>> read_stations(loaded_file file,
                                            FlatBufferBuilder& b) {
-  std::vector<stop> stops;/* = parser::read<stop>(file.content, stop_columns);*/
+  std::vector<stop> stops = parser::read<stop>(file.content, stop_columns);
   std::vector<Offset<Station>> stations(stops.size());
   std::transform(begin(stops), end(stops), begin(stations), [&](stop const& s) {
     return CreateStation(b, to_fbs_string(b, get<stop_id>(s)),
