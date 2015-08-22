@@ -20,7 +20,7 @@ endif()
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
-find_package(Boost COMPONENTS system filesystem regex program_options locale REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options REQUIRED)
 find_package(Threads)
 
 link_directories(${Boost_LIBRARY_DIRS})

@@ -33,7 +33,7 @@ TEST_CASE("read_stations_example_data") {
   b.Finish(CreateSchedule(b, {},
                           b.CreateVector(read_stations(
                               {STOPS_FILE, example_stops_file_content}, b)),
-                          {}, {}, {}));
+                          {}, {}));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
@@ -64,7 +64,7 @@ TEST_CASE("read_stations_berlin_data") {
   b.Finish(CreateSchedule(
       b, {},
       b.CreateVector(read_stations({STOPS_FILE, berlin_stops_file_content}, b)),
-      {}, {}, {}));
+      {}, {}));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();

@@ -19,7 +19,7 @@ namespace loader {
 template <std::size_t BitSetSize>
 struct bitset_comparator {
   bool operator()(std::bitset<BitSetSize> const& lhs,
-                  std::bitset<BitSetSize> const& rhs) {
+                  std::bitset<BitSetSize> const& rhs) const {
     for (std::size_t i = 0; i < BitSetSize; ++i) {
       int lhs_bit = lhs.test(i) ? 1 : 0;
       int rhs_bit = rhs.test(i) ? 1 : 0;
@@ -51,13 +51,27 @@ inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
   return b.CreateString(s.c_str(), s.length());
 }
 
+template <typename T>
 flatbuffers::Offset<flatbuffers::String> to_fbs_string(
-    flatbuffers::FlatBufferBuilder& b, std::string const& s,
-    std::string const& charset);
-
-flatbuffers::Offset<flatbuffers::String> to_fbs_string(
-    flatbuffers::FlatBufferBuilder& b, parser::cstr const& s,
-    std::string const& charset);
+    flatbuffers::FlatBufferBuilder& b, T const& s,
+    std::string const& /* charset -> currently only supported: ISO-8859-1 */) {
+  std::vector<unsigned char> utf8(s.length() * 2, '\0');
+  auto number_of_input_bytes = s.length();
+  unsigned char const* in = reinterpret_cast<unsigned char const*>(s.c_str());
+  unsigned char* out_begin = &utf8[0];
+  unsigned char* out = out_begin;
+  for (std::size_t i = 0; i < number_of_input_bytes; ++i) {
+    if (*in < 128) {
+      *out++ = *in++;
+    } else {
+      *out++ = 0xc2 + (*in > 0xbf);
+      *out++ = (*in++ & 0x3f) + 0x80;
+    }
+  }
+  return to_fbs_string(b,
+                       parser::cstr(reinterpret_cast<char const*>(out_begin),
+                                    std::distance(out_begin, out)));
+}
 
 template <int BitCount>
 inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {
@@ -103,8 +117,8 @@ inline std::vector<ValueType> values(std::map<IndexType, ValueType> const& m) {
   std::vector<ValueType> v(m.size());
   std::transform(begin(m), end(m), begin(v),
                  [](std::pair<IndexType, ValueType> const& entry) {
-    return entry.second;
-  });
+                   return entry.second;
+                 });
   return v;
 }
 

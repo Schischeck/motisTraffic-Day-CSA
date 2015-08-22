@@ -17,7 +17,8 @@ namespace hrd {
 struct shared_data {
   shared_data(std::map<int, flatbuffers::Offset<Station>> const& stations,
               std::map<uint16_t, std::string> const& attributes,
-              std::map<int, bitfield> const&, platform_rules const& pf_rules)
+              std::map<int, bitfield> const& bitfields,
+              platform_rules const& pf_rules)
       : stations(stations),
         attributes(attributes),
         bitfields(bitfields),

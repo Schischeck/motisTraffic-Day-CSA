@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <algorithm>
+#include <numeric>
 
 #include "parser/util.h"
 #include "parser/arg_parser.h"
@@ -97,15 +98,15 @@ hrd_service::hrd_service(specification const& spec)
     return {parse<int>(line.substr(22, size(6))), line.substr(3, size(2))};
   });
 
-  parse_range<cstr>(spec.categories, category_parse_info, stops_, sections_,
+  parse_range(spec.categories, category_parse_info, stops_, sections_,
                     &section::category,
                     [](cstr line) { return line.substr(3, size(3)); });
 
-  parse_range<cstr>(spec.line_information, line_parse_info, stops_, sections_,
+  parse_range(spec.line_information, line_parse_info, stops_, sections_,
                     &section::line_information,
                     [](cstr line) { return line.substr(3, size(5)); });
 
-  parse_range<int>(spec.traffic_days, traffic_days_parse_info, stops_,
+  parse_range(spec.traffic_days, traffic_days_parse_info, stops_,
                    sections_, &section::traffic_days, [](cstr line) {
     return parse<int>(line.substr(22, size(6)));
   });
