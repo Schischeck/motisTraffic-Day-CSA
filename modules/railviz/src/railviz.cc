@@ -100,7 +100,7 @@ void railviz::init() {
 }
 
 void railviz::on_open(sid session) {
-  clients_.emplace(session, session);
+  clients_.insert(std::make_pair(session, session));
 
   auto lock = synced_sched<schedule_access::RO>();
 

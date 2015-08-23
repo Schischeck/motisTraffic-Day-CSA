@@ -38,8 +38,8 @@ platform_rules parse_platform_rules(loaded_file file,
     // Resolve platform name (create it if not found)
     auto platform_name_it = platform_names.find(platform_name);
     if (platform_name_it == end(platform_names)) {
-      std::tie(platform_name_it, std::ignore) = platform_names.emplace(
-          platform_name, to_fbs_string(b, platform_name_str));
+      std::tie(platform_name_it, std::ignore) = platform_names.insert(
+          std::make_pair(platform_name, to_fbs_string(b, platform_name_str)));
     }
 
     prs[std::make_tuple(eva_num, train_num, train_admin)].push_back(

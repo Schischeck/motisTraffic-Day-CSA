@@ -58,7 +58,7 @@ struct service_builder {
     auto it = routes_.find(eva_nums);
     if (it == end(routes_)) {
       return routes_
-          .emplace(eva_nums,
+          .insert(std::make_pair(eva_nums,
                    CreateRoute(
                        builder_,
                        builder_.CreateVector(transform_to_vec(
@@ -68,7 +68,7 @@ struct service_builder {
                                     "station with eva number %d not found\n",
                                     eva_num);
                              return it->second;
-                           }))))
+                           })))))
           .first->second;
     } else {
       return it->second;
