@@ -22,8 +22,9 @@ Offset<String> bitfield_translator::get_or_create_bitfield(int bitfield_num) {
 Offset<String> bitfield_translator::get_or_create_bitfield(bitfield const& b) {
   auto fbs_bitfields_it = fbs_bitfields_.find(b);
   if (fbs_bitfields_it == end(fbs_bitfields_)) {
-    std::tie(fbs_bitfields_it, std::ignore) = fbs_bitfields_.insert(
-        std::make_pair(b, builder_.CreateString(serialize_bitset<BIT_COUNT>(b))));
+    std::tie(fbs_bitfields_it, std::ignore) =
+        fbs_bitfields_.insert(std::make_pair(
+            b, builder_.CreateString(serialize_bitset<BIT_COUNT>(b))));
   }
   return fbs_bitfields_it->second;
 }

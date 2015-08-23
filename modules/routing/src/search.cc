@@ -29,8 +29,8 @@ void remove_intersection(arrival& from, arrival& to) {
     from.erase(
         std::remove_if(std::begin(from), std::end(from),
                        [&to_arr_part](arrival_part const& from_arr_part) {
-          return to_arr_part.station == from_arr_part.station;
-        }),
+                         return to_arr_part.station == from_arr_part.station;
+                       }),
         std::end(from));
   }
 }

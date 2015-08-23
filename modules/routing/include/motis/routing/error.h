@@ -22,16 +22,14 @@ public:
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {
-      case error::ok:
-        return "routing: no error";
+      case error::ok: return "routing: no error";
       case error::no_guess_for_station:
         return "routing: station could not be guessed";
       case error::given_eva_not_available:
         return "routing: given eva number is not available in this schedule";
       case error::path_length_too_short:
         return "routing: path length < 2 not sensible";
-      default:
-        return "routing: unkown error";
+      default: return "routing: unkown error";
     }
   }
 };

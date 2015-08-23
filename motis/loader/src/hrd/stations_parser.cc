@@ -61,10 +61,10 @@ std::map<int, Offset<Station>> parse_stations(loaded_file stations_file,
   for (auto const& station_entry : stations_map) {
     auto& eva_num = station_entry.first;
     auto& station = station_entry.second;
-    stations.insert(std::make_pair(eva_num,
-                     CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
-                                   to_fbs_string(b, station.name, ENCODING),
-                                   station.lat, station.lng)));
+    stations.insert(std::make_pair(
+        eva_num, CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
+                               to_fbs_string(b, station.name, ENCODING),
+                               station.lat, station.lng)));
   }
   return stations;
 }

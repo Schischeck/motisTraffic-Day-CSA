@@ -12,7 +12,6 @@
 #include "motis/routing/memory_manager.h"
 
 #define MINUTELY_WAGE 8
-#define TRANSFER_WAGE 0
 #define MAX_LABELS 100000000
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
@@ -109,7 +108,6 @@ public:
     }
 
     int index = lower_bound ? 1 : 0;
-    bool could_dominate = false;
 
     /* --- TRANSFERS --- */
     if (_transfers[index] > o._transfers[index]) {
@@ -126,15 +124,11 @@ public:
     unsigned o_price = o._total_price[index];
 
     if (lower_bound) {
-      my_price +=
-          _travel_time[1] * MINUTELY_WAGE + _transfers[1] * TRANSFER_WAGE;
-      o_price +=
-          o._travel_time[1] * MINUTELY_WAGE + o._transfers[1] * TRANSFER_WAGE;
+      my_price += _travel_time[1] * MINUTELY_WAGE + _transfers[1];
+      o_price += o._travel_time[1] * MINUTELY_WAGE + o._transfers[1];
     } else {
-      my_price +=
-          (o._now - _start) * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
-      o_price +=
-          (o._now - o._start) * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
+      my_price += (o._now - _start) * MINUTELY_WAGE + _transfers[0];
+      o_price += (o._now - o._start) * MINUTELY_WAGE + o._transfers[0];
     }
 
 #ifdef PRICE_TOLERANCE
@@ -144,8 +138,6 @@ public:
       if (my_price > o_price) {
         return false;
       }
-
-      could_dominate = could_dominate || my_price < o_price;
 #ifdef PRICE_TOLERANCE
     }
 #endif
@@ -193,8 +185,7 @@ public:
 
   int get_price_with_wages(bool lower_bound) const {
     return _total_price[lower_bound ? 1 : 0] +
-           _travel_time[lower_bound ? 1 : 0] * MINUTELY_WAGE +
-           _transfers[lower_bound ? 1 : 0] * TRANSFER_WAGE;
+           _travel_time[lower_bound ? 1 : 0] * MINUTELY_WAGE;
   }
 
   void add_price_of_connection(edge_cost const& ec, bool mumo_edge) {

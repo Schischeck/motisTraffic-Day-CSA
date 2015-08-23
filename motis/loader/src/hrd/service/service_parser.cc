@@ -58,17 +58,18 @@ struct service_builder {
     auto it = routes_.find(eva_nums);
     if (it == end(routes_)) {
       return routes_
-          .insert(std::make_pair(eva_nums,
-                   CreateRoute(
-                       builder_,
-                       builder_.CreateVector(transform_to_vec(
-                           begin(eva_nums), end(eva_nums), [&](int eva_num) {
-                             auto it = stamm_.stations.find(eva_num);
-                             verify(it != end(stamm_.stations),
-                                    "station with eva number %d not found\n",
-                                    eva_num);
-                             return it->second;
-                           })))))
+          .insert(std::make_pair(
+              eva_nums,
+              CreateRoute(builder_,
+                          builder_.CreateVector(transform_to_vec(
+                              begin(eva_nums), end(eva_nums),
+                              [&](int eva_num) {
+                                auto it = stamm_.stations.find(eva_num);
+                                verify(it != end(stamm_.stations),
+                                       "station with eva number %d not found\n",
+                                       eva_num);
+                                return it->second;
+                              })))))
           .first->second;
     } else {
       return it->second;
@@ -99,8 +100,8 @@ struct service_builder {
     return builder_.CreateVector(
         transform_to_vec(begin(attributes), end(attributes),
                          [&](hrd_service::attribute const& a) {
-          return get_or_create_attribute(a);
-        }));
+                           return get_or_create_attribute(a);
+                         }));
   }
 
   Offset<Vector<Offset<Section>>> create_sections(
@@ -161,9 +162,9 @@ struct service_builder {
                             stops_platforms[to_stop_index].arr_platforms);
     }
 
-    return builder_.CreateVector(
-        transform_to_vec(begin(stops_platforms), end(stops_platforms),
-                         [&](stop_platforms const& sp) {
+    return builder_.CreateVector(transform_to_vec(
+        begin(stops_platforms), end(stops_platforms),
+        [&](stop_platforms const& sp) {
           return CreatePlatformRules(builder_,
                                      builder_.CreateVector(sp.dep_platforms),
                                      builder_.CreateVector(sp.arr_platforms));

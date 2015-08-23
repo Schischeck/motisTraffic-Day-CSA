@@ -128,8 +128,8 @@ TEST_CASE("parse_specification") {
   specification spec;
   for_each_line_numbered(service_file_content_1,
                          [&spec](cstr const& line, int line_number) {
-    spec.read_line(line, "services.101", line_number);
-  });
+                           spec.read_line(line, "services.101", line_number);
+                         });
 
   REQUIRE(spec.valid());
   REQUIRE(!spec.is_empty());
@@ -144,23 +144,24 @@ TEST_CASE("parse_hrd_service_full_range") {
   specification spec;
   for_each_line_numbered(service_file_content_1,
                          [&spec](cstr const& line, int line_number) {
-    spec.read_line(line, "services.101", line_number);
-  });
+                           spec.read_line(line, "services.101", line_number);
+                         });
 
   auto service = hrd_service(spec);
   REQUIRE(service.sections_.size() == 5);
-  std::for_each(std::begin(service.sections_), std::end(service.sections_),
-                [](hrd_service::section const& s) {
-    REQUIRE(s.traffic_days == std::vector<int>({2687}));
-    REQUIRE(s.train_num == 2292);
-    REQUIRE(s.admin == "80____");
-    REQUIRE(s.attributes == std::vector<hrd_service::attribute>(
-                                {hrd_service::attribute(0, "BT"),
-                                 hrd_service::attribute(0, "FR"),
-                                 hrd_service::attribute(0, "G ")}));
-    REQUIRE(s.category == std::vector<cstr>({"IC "}));
-    REQUIRE(s.line_information == std::vector<cstr>({"381  "}));
-  });
+  std::for_each(
+      std::begin(service.sections_), std::end(service.sections_),
+      [](hrd_service::section const& s) {
+        REQUIRE(s.traffic_days == std::vector<int>({2687}));
+        REQUIRE(s.train_num == 2292);
+        REQUIRE(s.admin == "80____");
+        REQUIRE(s.attributes == std::vector<hrd_service::attribute>(
+                                    {hrd_service::attribute(0, "BT"),
+                                     hrd_service::attribute(0, "FR"),
+                                     hrd_service::attribute(0, "G ")}));
+        REQUIRE(s.category == std::vector<cstr>({"IC "}));
+        REQUIRE(s.line_information == std::vector<cstr>({"381  "}));
+      });
   REQUIRE(service.stops_.size() == 6);
 
   auto stop = service.stops_[0];
@@ -208,8 +209,8 @@ TEST_CASE("parse_hrd_service_multiple_ranges") {
   specification spec;
   for_each_line_numbered(service_file_content_2,
                          [&spec](cstr const& line, int line_number) {
-    spec.read_line(line, "services.101", line_number);
-  });
+                           spec.read_line(line, "services.101", line_number);
+                         });
 
   auto service = hrd_service(spec);
   REQUIRE(service.sections_.size() == 2);
@@ -261,8 +262,8 @@ TEST_CASE("parse_hrd_service_invalid_traffic_days") {
     specification spec;
     for_each_line_numbered(service_file_content_invalid_traffic_days,
                            [&spec](cstr const& line, int line_number) {
-      spec.read_line(line, "services.101", line_number);
-    });
+                             spec.read_line(line, "services.101", line_number);
+                           });
     auto service = hrd_service(spec);
   } catch (std::runtime_error const& e) {
     catched = true;

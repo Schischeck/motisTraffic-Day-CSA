@@ -136,8 +136,7 @@ public:
 
   light_connection* get_connection(time const start_time) {
     return const_cast<light_connection*>(
-          static_cast<const edge*>(this)->get_connection(start_time)
-    );
+        static_cast<const edge*>(this)->get_connection(start_time));
   }
 
   edge_cost get_route_edge_cost(time const start_time) const {

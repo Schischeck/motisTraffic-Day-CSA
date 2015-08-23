@@ -37,7 +37,8 @@ bool hrd_parser::applicable(fs::path const& path) {
 void hrd_parser::parse(fs::path const& path) {
   FlatBufferBuilder b;
 
-  auto buf = parser::file((path / ATTRIBUTES_FILE).string().c_str(), "ro").content();
+  auto buf =
+      parser::file((path / ATTRIBUTES_FILE).string().c_str(), "ro").content();
   auto attributes = parse_attributes(
       {ATTRIBUTES_FILE, {static_cast<char const*>(buf.buf_), buf.size_}});
 

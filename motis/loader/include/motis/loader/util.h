@@ -68,9 +68,8 @@ flatbuffers::Offset<flatbuffers::String> to_fbs_string(
       *out++ = (*in++ & 0x3f) + 0x80;
     }
   }
-  return to_fbs_string(b,
-                       parser::cstr(reinterpret_cast<char const*>(out_begin),
-                                    std::distance(out_begin, out)));
+  return to_fbs_string(b, parser::cstr(reinterpret_cast<char const*>(out_begin),
+                                       std::distance(out_begin, out)));
 }
 
 template <int BitCount>

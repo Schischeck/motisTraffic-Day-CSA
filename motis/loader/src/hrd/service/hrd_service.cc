@@ -73,7 +73,6 @@ void parse_range(
     std::vector<hrd_service::section>& sections,
     std::vector<TargetInformationType> hrd_service::section::*member,
     TargetInformationParserFun parse_target_info) {
-  using std::get;
   for (auto const& r : compute_ranges(spec_lines, stops, parse_info)) {
     TargetInformationType target_info = parse_target_info(r.first);
     for (int i = r.second.from_idx; i < r.second.to_idx; ++i) {

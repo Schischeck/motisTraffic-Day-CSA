@@ -20,12 +20,9 @@ public:
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {
-      case error::ok:
-        return "realtime: no error";
-      case error::not_implemented:
-        return "realtime: not implemented";
-      default:
-        return "realtime: unkown error";
+      case error::ok: return "realtime: no error";
+      case error::not_implemented: return "realtime: not implemented";
+      default: return "realtime: unkown error";
     }
   }
 };

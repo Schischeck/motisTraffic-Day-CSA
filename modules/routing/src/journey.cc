@@ -200,15 +200,15 @@ std::vector<journey::transport> generate_journey_transports(
     schedule const& sched) {
   auto con_info_eq =
       [](connection_info const* a, connection_info const* b) -> bool {
-    if (a == nullptr || b == nullptr) {
-      return false;
-    } else {
-      // equals comparison ignoring attributes:
-      return a->line_identifier == b->line_identifier &&
-             a->family == b->family && a->train_nr == b->train_nr &&
-             a->service == b->service;
-    }
-  };
+        if (a == nullptr || b == nullptr) {
+          return false;
+        } else {
+          // equals comparison ignoring attributes:
+          return a->line_identifier == b->line_identifier &&
+                 a->family == b->family && a->train_nr == b->train_nr &&
+                 a->service == b->service;
+        }
+      };
 
   std::vector<journey::transport> journey_transports;
 
@@ -248,9 +248,9 @@ std::vector<journey::stop> generate_journey_stops(
     std::vector<intermediate::stop> const& stops, schedule const& sched) {
   auto get_platform =
       [](schedule const& sched, int platform_id) -> std::string {
-    auto it = sched.tracks.find(platform_id);
-    return it == end(sched.tracks) ? "?" : it->second;
-  };
+        auto it = sched.tracks.find(platform_id);
+        return it == end(sched.tracks) ? "?" : it->second;
+      };
 
   std::vector<journey::stop> journey_stops;
   for (auto const& stop : stops) {

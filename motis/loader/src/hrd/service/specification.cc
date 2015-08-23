@@ -75,9 +75,7 @@ bool specification::read_line(cstr line, char const* filename,
         categories.push_back(line);
       }
       break;
-    case 'L':
-      line_information.push_back(line);
-      break;
+    case 'L': line_information.push_back(line); break;
   }
 
   return false;

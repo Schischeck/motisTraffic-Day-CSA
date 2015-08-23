@@ -20,12 +20,9 @@ public:
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {
-      case error::ok:
-        return "reliability: no error";
-      case error::not_implemented:
-        return "reliability: not implemented";
-      default:
-        return "reliability: unkown error";
+      case error::ok: return "reliability: no error";
+      case error::not_implemented: return "reliability: not implemented";
+      default: return "reliability: unkown error";
     }
   }
 };
