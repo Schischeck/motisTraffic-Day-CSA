@@ -46,22 +46,22 @@ struct range_parse_information {
   int from_hhmm_or_idx_start;
   int to_hhmm_or_idx_start;
 } attribute_parse_info{6, 14, 29, 36}, line_parse_info{9, 17, 25, 32},
-  category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36};
+    category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36};
 
 std::vector<std::pair<cstr, range>> compute_ranges(
     std::vector<cstr> const& spec_lines,
     std::vector<hrd_service::stop> const& stops,
     range_parse_information const& parse_info) {
   std::vector<std::pair<cstr, range>> parsed(spec_lines.size());
-  std::transform(begin(spec_lines), end(spec_lines), begin(parsed),
-                 [&](cstr spec) {
-    return std::make_pair(
-        spec,
-        range(stops, spec.substr(parse_info.from_eva_or_idx_start, size(7)),
-              spec.substr(parse_info.to_eva_or_idx_start, size(7)),
-              spec.substr(parse_info.from_hhmm_or_idx_start, size(6)),
-              spec.substr(parse_info.to_hhmm_or_idx_start, size(6))));
-  });
+  std::transform(
+      begin(spec_lines), end(spec_lines), begin(parsed), [&](cstr spec) {
+        return std::make_pair(
+            spec,
+            range(stops, spec.substr(parse_info.from_eva_or_idx_start, size(7)),
+                  spec.substr(parse_info.to_eva_or_idx_start, size(7)),
+                  spec.substr(parse_info.from_hhmm_or_idx_start, size(6)),
+                  spec.substr(parse_info.to_hhmm_or_idx_start, size(6))));
+      });
   return parsed;
 }
 
@@ -92,24 +92,23 @@ hrd_service::hrd_service(specification const& spec)
               {section(parse<int>(spec.internal_service.substr(3, size(5))),
                        spec.internal_service.substr(9, size(6)))}),
           parse_section)) {
-  parse_range<attribute>(spec.attributes, attribute_parse_info, stops_,
-                         sections_, &section::attributes,
-                         [](cstr line) -> attribute {
-    return {parse<int>(line.substr(22, size(6))), line.substr(3, size(2))};
-  });
+  parse_range(spec.attributes, attribute_parse_info, stops_, sections_,
+              &section::attributes, [](cstr line) {
+                return attribute{parse<int>(line.substr(22, size(6))),
+                                 line.substr(3, size(2))};
+              });
 
   parse_range(spec.categories, category_parse_info, stops_, sections_,
-                    &section::category,
-                    [](cstr line) { return line.substr(3, size(3)); });
+              &section::category,
+              [](cstr line) { return line.substr(3, size(3)); });
 
   parse_range(spec.line_information, line_parse_info, stops_, sections_,
-                    &section::line_information,
-                    [](cstr line) { return line.substr(3, size(5)); });
+              &section::line_information,
+              [](cstr line) { return line.substr(3, size(5)); });
 
-  parse_range(spec.traffic_days, traffic_days_parse_info, stops_,
-                   sections_, &section::traffic_days, [](cstr line) {
-    return parse<int>(line.substr(22, size(6)));
-  });
+  parse_range(spec.traffic_days, traffic_days_parse_info, stops_, sections_,
+              &section::traffic_days,
+              [](cstr line) { return parse<int>(line.substr(22, size(6))); });
 
   verify_service();
 }
