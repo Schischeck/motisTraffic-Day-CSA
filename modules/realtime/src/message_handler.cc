@@ -526,6 +526,12 @@ bool message_handler::is_valid_train(
         LOG(warn) << "invalid new event list (stations)";
       return false;
     }
+    if (dep._station_index == arr._station_index) {
+      if (_rts.is_debug_mode()) {
+        LOG(warn) << "invalid new event list (departure == arrival)";
+      }
+      return false;
+    }
     if (arr._schedule_time < dep._schedule_time) {
       if (_rts.is_debug_mode()) LOG(warn) << "invalid times";
       return false;
