@@ -1,9 +1,11 @@
 #pragma once
 
 #include <queue>
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
+
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
+#include "boost/thread/lock_types.hpp"
 
 namespace motis {
 
@@ -44,7 +46,7 @@ struct synchronization {
 
     lock(synchronization& s, bool write)
         : s_(&s), write_(write), active_(true) {
-      std::unique_lock<std::mutex> lock(s_->write_queue_mutex_);
+      boost::unique_lock<boost::mutex> lock(s_->write_queue_mutex_);
 
       if (write_) {
         auto my_id = ++s_->next_id_;
@@ -65,7 +67,7 @@ struct synchronization {
         return;
       }
 
-      std::lock_guard<std::mutex> lock(s_->write_queue_mutex_);
+      boost::lock_guard<boost::mutex> lock(s_->write_queue_mutex_);
 
       {
         if (write_) {
@@ -93,8 +95,8 @@ struct synchronization {
   std::atomic<unsigned> usage_count_;
   std::atomic<unsigned> next_id_;
   std::queue<unsigned> write_queue_;
-  std::mutex write_queue_mutex_;
-  std::condition_variable write_queue_cv_;
+  boost::mutex write_queue_mutex_;
+  boost::condition_variable write_queue_cv_;
 };
 
 }  // namespace motis

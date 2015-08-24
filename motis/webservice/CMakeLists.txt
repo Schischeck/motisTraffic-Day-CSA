@@ -13,6 +13,9 @@ if (MOTIS_STATIC_MODULES)
 
   target_link_libraries(motis-webservice
     ${CMAKE_THREAD_LIBS_INIT}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${NETWORKING}
     conf
     motis-loader
     motis-module

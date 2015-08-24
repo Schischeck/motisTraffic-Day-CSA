@@ -1,9 +1,9 @@
 #include <iostream>
-#include <thread>
 
 #include "boost/filesystem.hpp"
 #include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
+#include "boost/thread.hpp"
 
 #include "net/http/server/shutdown_handler.hpp"
 
@@ -106,12 +106,12 @@ int main(int argc, char** argv) {
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 
   boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
-  std::vector<std::thread> threads(8);
+  std::vector<boost::thread> threads(8);
   for (unsigned i = 0; i < threads.size(); ++i) {
-    threads[i] = std::thread([&]() { thread_pool.run(); });
+    threads[i] = boost::thread([&]() { thread_pool.run(); });
   }
 
   ios.run();
   thread_pool.stop();
-  std::for_each(begin(threads), end(threads), [](std::thread& t) { t.join(); });
+  std::for_each(begin(threads), end(threads), [](boost::thread& t) { t.join(); });
 }
