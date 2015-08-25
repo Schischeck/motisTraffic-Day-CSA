@@ -150,8 +150,8 @@ void waiting_edges::create_waiting_edges(
 
     const motis::light_connection* connector_lc =
         connector->get_connection(feeder_lc->a_time + interchange_time);
-    while (connector_lc != nullptr) {
-      if (connector_lc->d_time - feeder_lc->a_time > 30) break;
+    while (connector_lc != nullptr &&
+           connector_lc->d_time - feeder_lc->a_time <= 30) {
       // ADD WAITING EDGE
       //      LOG(debug) << "    waiting edge between the following two LCs:"
       //                 << " (interchange time = " << interchange_time << ")";

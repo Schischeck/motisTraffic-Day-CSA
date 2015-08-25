@@ -161,6 +161,9 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
     LOG(warn) << "ignoring updates for this train because of invalid times:";
     LOG(warn) << gti;
     return;
+  } else if (_rts.is_debug_mode()) {
+    LOG(debug) << "update_train_times:";
+    LOG(debug) << gti;
   }
 
   if (gti._extract_required) {
@@ -179,7 +182,6 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
                    << ", update: " << e._dep_update;
         LOG(error) << gti;
       }
-      assert(di != nullptr);
       e._lc->d_time = e._dep_update._new_time;
       _rts._delay_info_manager.update_delay_info(&e._dep_update);
     }

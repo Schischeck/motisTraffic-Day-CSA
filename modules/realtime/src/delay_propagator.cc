@@ -120,10 +120,12 @@ void delay_propagator::process_queue() {
 
             if (this_reason == timestamp_reason::IS ||
                 this_reason == timestamp_reason::REPAIR) {
-              LOG(info) << "Repair timestamp using repair message (forward): "
-                        << *entry._delay_info << ": "
-                        << motis::format_time(this_time) << " " << this_reason
-                        << " => " << motis::format_time(next_time);
+              if (_rts.is_debug_mode()) {
+                LOG(info) << "Repair timestamp using repair message (forward): "
+                          << *entry._delay_info << ": "
+                          << motis::format_time(this_time) << " " << this_reason
+                          << " => " << motis::format_time(next_time);
+              }
               handle_delay_message(entry._delay_info->schedule_event(),
                                    next_time, timestamp_reason::REPAIR);
             }
@@ -138,9 +140,11 @@ void delay_propagator::process_queue() {
         if (prev_event.found()) {
           motis::time prev_time = new_time(prev_event);
           if (this_time < prev_time) {
-            LOG(info) << "Repair timestamp using repair message (backward): "
-                      << prev_event << ": " << motis::format_time(prev_time)
-                      << " => " << motis::format_time(this_time);
+            if (_rts.is_debug_mode()) {
+              LOG(info) << "Repair timestamp using repair message (backward): "
+                        << prev_event << ": " << motis::format_time(prev_time)
+                        << " => " << motis::format_time(this_time);
+            }
             handle_delay_message(prev_event, this_time,
                                  timestamp_reason::REPAIR);
           }
