@@ -12,8 +12,8 @@ namespace calc_departure_distribution {
 void compute_departure_distribution(
     pd_calc_data_departure const& data,
     probability_distribution& departure_distribution) {
-  std::vector<probability> probabilties;
   duration const largest_delay = data.largest_delay();
+  std::vector<probability> probabilties(largest_delay + 1);
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(
@@ -21,24 +21,21 @@ void compute_departure_distribution(
 
   for (duration delay = 0; delay <= largest_delay; delay++) {
     time const departure_time = data.scheduled_departure_time() + delay;
-    probability departure_probability = 0.0;
     if (delay == 0) {
-      departure_probability = detail::departure_at_scheduled_time(data);
+      probabilties[delay] = detail::departure_at_scheduled_time(data);
     } else if (delay > 0 && delay <= data.maximum_waiting_time_) {
-      departure_probability = detail::departure_within_waiting_interval(
+      probabilties[delay] = detail::departure_within_waiting_interval(
           data, modified_feeders_distributions, departure_time);
     } else {
-      departure_probability =
+      probabilties[delay] =
           detail::departure_after_waiting_interval(data, departure_time);
     }
-    probabilties.push_back(departure_probability);
   }
 
   departure_distribution.init(probabilties, 0);
 
   assert(equal(departure_distribution.sum(), 1.0));
 }
-
 
 namespace detail {
 

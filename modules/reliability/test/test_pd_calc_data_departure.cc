@@ -247,7 +247,9 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
     }
     void get_travel_time_distributions(
         std::string const& family, unsigned int const travel_time,
-        std::vector<travel_time_distribution>& distributions) const override {}
+        unsigned int const to_departure_delay,
+        std::vector<probability_distribution_cref>& distributions)
+        const override {}
     probability_distribution distribution;
     probability_distribution fail;
   } s_t_distributions;

@@ -42,12 +42,18 @@ struct pd_calc_data_arrival {
     time scheduled_departure_time_;
   } departure_info_;
 
-  std::vector<start_and_travel_distributions::travel_time_distribution>
+  std::vector<start_and_travel_distributions::probability_distribution_cref>
       travel_distributions_;
+
+  /* bounds of the arrival distribution */
+  int left_bound_;
+  int right_bound_;
 
 private:
   void init_departure_info(
       train_distributions_container const& distributions_container);
+  void init_travel_info(start_and_travel_distributions const& s_t_distributions,
+                        std::vector<std::string> const& category_names);
 };
 
 }  // namespace reliability

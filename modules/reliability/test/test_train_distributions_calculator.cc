@@ -65,15 +65,43 @@ void test_distributions(node const& route_node,
                      pre_computed_distributions);
 }
 
-TEST_CASE("Initial distributions", "[train_dist_calc]") {
+TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
+  std::cout << "Initial_distributions_simple" << std::endl;
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
   train_distributions_container train_distributions(schedule->node_count);
-  start_and_travel_test_distributions s_t_distributions(
-      {0.8, 0.2}, {0.1, 0.8, 0.1}, -1, 0, 1);
+  start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
+                                                        {0.1, 0.8, 0.1}, -1);
 
+  std::cout << "calculator" << std::endl;
   train_distributions_calculator calculator(*schedule, train_distributions,
                                             s_t_distributions);
+  calculator.calculate_initial_distributions();
+
+  std::cout << "test" << std::endl;
+
+  for (auto const first_route_node :
+       schedule->route_index_to_first_route_node) {
+    test_distributions(*first_route_node, train_distributions,
+                       train_distributions_calculator::compute_distributions(
+                           *schedule, *graph_accessor::get_departing_route_edge(
+                                          *first_route_node)));
+  }
+
+  std::cout << "finished" << std::endl;
+}
+
+#include "motis/reliability/db_distributions.h"
+TEST_CASE("Initial_distributions_db_distributions", "[train_dist_calc]") {
+  std::cout << "Initial_distributions_db_distributions" << std::endl;
+  auto schedule =
+      load_text_schedule("../modules/reliability/resources/schedule/motis");
+  train_distributions_container train_distributions(schedule->node_count);
+  db_distributions db_dists(
+      "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/");
+
+  train_distributions_calculator calculator(*schedule, train_distributions,
+                                            db_dists);
   calculator.calculate_initial_distributions();
 
   for (auto const first_route_node :

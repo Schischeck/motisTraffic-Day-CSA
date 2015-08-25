@@ -1,6 +1,9 @@
 #include "motis/reliability/db_distributions_loader.h"
 
+#include <climits>
 #include <utility>
+
+#include <boost/lexical_cast.hpp>
 
 #include "parser/csv.h"
 
@@ -15,8 +18,7 @@ void load_distributions(
     std::map<std::string, std::string>& family_to_distribution_class,
     std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions,
-    std::vector<distribution_mapping<unsigned int const> >&
-        distribution_mappings,
+    std::vector<resolved_mapping>& distribution_mappings,
     std::map<std::string, probability_distribution>&
         class_to_probability_distributions) {
   if (root.length() == 0) {
@@ -43,20 +45,26 @@ namespace detail {
 using classes_csv = std::tuple<std::string, std::string>;
 parser::column_mapping<classes_csv> const classes_columns = {
     {"Zuggattung", "Zuggattungsklasse"}};
-enum classes { c_family, c_distribution_class };
+enum classes_pos { c_family, c_distribution_class };
 
 /* distributions */
 using distributions_csv = std::tuple<int, int, probability>;
 parser::column_mapping<distributions_csv> const distributions_columns = {
     {"KLASSEN_ID", "verspaetungsDelta", "p_Verspaetungsdelta"}};
-enum distributions { d_distribution_id, d_delay_minute, d_delay_probability };
+enum distributions_pos {
+  d_distribution_id,
+  d_delay_minute,
+  d_delay_probability
+};
 
 /* distribution mapping */
+using mapping_csv = std::tuple<int, std::string, std::string, std::string,
+                               std::string, std::string>;
 parser::column_mapping<mapping_csv> const mapping_columns = {
     {"KLASSEN_ID", "ZUGGATTUNGSKLASSE", "VORSCHAUZEITKLASSE_VON",
      "VORSCHAUZEITKLASSE_BIS", "AKTUELLEVERSPAETUNGSLAGE_VON",
      "AKTUELLEVERSPAETUNGSLAGE_BIS"}};
-enum mapping {
+enum mapping_pos {
   m_distribution_id,
   m_distribution_class,
   m_from_travel_time,
@@ -70,7 +78,7 @@ using start_distributions_csv = std::tuple<std::string, int, probability>;
 parser::column_mapping<start_distributions_csv> const
     start_distributions_columns = {
         {"Zuggattungsklasse", "Startverspaetung", "p_startverspaetung"}};
-enum start_distributions {
+enum start_distributions_pos {
   s_distribution_class,
   s_delay_minute,
   s_delay_probability
@@ -157,40 +165,97 @@ void parse_distributions(
   }
 }
 
-bool mapping_is_smaller(mapping_csv a, mapping_csv b) {
-  if (std::get<mapping::m_distribution_class>(a) <
-      std::get<mapping::m_distribution_class>(b)) {
-    return true;
+inline int parse_integer(std::string const& str,
+                         int const default_value = INT_MAX) {
+  try {
+    return boost::lexical_cast<int>(str);
+  } catch (const boost::bad_lexical_cast&) {
+    return default_value;
   }
-  if (std::get<mapping::m_distribution_class>(a) ==
-      std::get<mapping::m_distribution_class>(b)) {
-    if (std::get<mapping::m_from_travel_time>(a) <
-        std::get<mapping::m_from_travel_time>(b)) {
-      return true;
+}
+
+inline unsigned int map_negative_to_zero(int number) {
+  return (unsigned int)std::max(0, number);
+}
+
+void to_integer_mappings(std::vector<mapping_csv> const& mapping_entries,
+                         std::vector<mapping_int>& integer_mappings) {
+  for (auto m : mapping_entries) {
+    assert(std::get<mapping_pos::m_distribution_id>(m) >= 0);
+    int to_travel_time =
+        parse_integer(std::get<mapping_pos::m_to_travel_time>(m),
+                      MAXIMUM_EXPECTED_TRAVEL_TIME);
+    int to_delay = parse_integer(std::get<mapping_pos::m_to_delay>(m),
+                                 MAXIMUM_EXPECTED_DEPARTURE_DELAY);
+    if (to_delay != MAXIMUM_EXPECTED_DEPARTURE_DELAY) {
+      --to_delay;  // right-open interval
     }
-    if (std::get<mapping::m_from_travel_time>(a) ==
-            std::get<mapping::m_from_travel_time>(b) &&
-        std::get<mapping::m_to_travel_time>(a) ==
-            std::get<mapping::m_to_travel_time>(b)) {
-      if (std::get<mapping::m_from_delay>(a) <
-          std::get<mapping::m_from_delay>(b)) {
-        return true;
+
+    if (to_travel_time >= 0 && to_delay >= 0) {
+      unsigned int const from_travel_time = map_negative_to_zero(
+          parse_integer(std::get<mapping_pos::m_from_travel_time>(m)) +
+          1);  // left-open interval
+      unsigned int const from_delay = map_negative_to_zero(
+          parse_integer(std::get<mapping_pos::m_from_delay>(m)));
+
+      assert(from_travel_time <= to_travel_time);
+      assert(from_delay <= to_delay);
+      assert(to_travel_time <= MAXIMUM_EXPECTED_TRAVEL_TIME);
+      assert(to_delay <= MAXIMUM_EXPECTED_DEPARTURE_DELAY);
+
+      integer_mappings.emplace_back(
+          std::get<mapping_pos::m_distribution_id>(m),
+          std::get<mapping_pos::m_distribution_class>(m), from_travel_time,
+          (unsigned int)to_travel_time, from_delay, (unsigned int)to_delay);
+    }
+  }
+}
+
+void to_resolved_mappings(std::vector<mapping_int> const& integer_mappings,
+                          std::vector<resolved_mapping>& resolved_mappings) {
+  for (auto const& im : integer_mappings) {
+    for (unsigned int t = std::get<mapping_pos::m_from_travel_time>(im);
+         t <= std::get<mapping_pos::m_to_travel_time>(im); t++) {
+      for (unsigned int d = std::get<mapping_pos::m_from_delay>(im);
+           d <= std::get<mapping_pos::m_to_delay>(im); d++) {
+        resolved_mappings.emplace_back(
+            std::get<mapping_pos::m_distribution_class>(im), t, d,
+            std::get<mapping_pos::m_distribution_id>(im));
       }
+    }
+  }
+}
+
+bool mapping_is_smaller(resolved_mapping const& a, resolved_mapping const& b) {
+  if (std::get<resolved_mapping_pos::rm_class>(a) <
+      std::get<resolved_mapping_pos::rm_class>(b)) {
+    return true;
+  } else if (std::get<resolved_mapping_pos::rm_class>(a) ==
+             std::get<resolved_mapping_pos::rm_class>(b)) {
+    if (std::get<resolved_mapping_pos::rm_travel_time>(a) <
+        std::get<resolved_mapping_pos::rm_travel_time>(b)) {
+      return true;
+    } else if (std::get<resolved_mapping_pos::rm_travel_time>(a) ==
+                   std::get<resolved_mapping_pos::rm_travel_time>(b) &&
+               std::get<resolved_mapping_pos::rm_delay>(a) <
+                   std::get<resolved_mapping_pos::rm_delay>(b)) {
+      return true;
     }
   }
   return false;
 }
 
-void check_mapping(distribution_mapping<unsigned int const> const& previous,
-                   distribution_mapping<unsigned int const> const& current) {
-  assert(current.travel_time_from_ <= current.travel_time_to_);
-  assert(current.delay_from_ <= current.delay_to_);
-  if (previous.distribution_class_ == current.distribution_class_) {
-    if (previous.travel_time_from_ == current.travel_time_from_) {
-      assert(previous.travel_time_to_ == current.travel_time_to_);
-      assert(previous.delay_to_ + 1 == current.delay_from_);
+void check_mapping(resolved_mapping const& current,
+                   resolved_mapping const& next) {
+  if (std::get<resolved_mapping_pos::rm_class>(current) ==
+      std::get<resolved_mapping_pos::rm_class>(next)) {
+    if (std::get<resolved_mapping_pos::rm_travel_time>(current) ==
+        std::get<resolved_mapping_pos::rm_travel_time>(next)) {
+      assert(std::get<resolved_mapping_pos::rm_delay>(current) + 1 ==
+             std::get<resolved_mapping_pos::rm_delay>(next));
     } else {
-      assert(previous.travel_time_to_ + 1 == current.travel_time_from_);
+      assert(std::get<resolved_mapping_pos::rm_travel_time>(current) + 1 ==
+             std::get<resolved_mapping_pos::rm_travel_time>(next));
     }
   }
 }
@@ -205,8 +270,10 @@ void load_distributions_classes(
                                       classes_columns);
 
   for (auto const& entry : classes_entries) {
-    family_to_distribution_class[std::get<classes::c_family>(entry)] =
-        std::get<classes::c_distribution_class>(entry);
+    if (!std::get<classes_pos::c_distribution_class>(entry).empty()) {
+      family_to_distribution_class[std::get<classes_pos::c_family>(entry)] =
+          std::get<classes_pos::c_distribution_class>(entry);
+    }
   }
 }
 
@@ -219,35 +286,32 @@ void load_distributions(
       filepath.c_str(), distributions_entries, distributions_columns);
   std::sort(distributions_entries.begin(), distributions_entries.end(),
             distribution_is_smaller<distributions_csv,
-                                    distributions::d_distribution_id,
-                                    distributions::d_delay_minute>);
-  parse_distributions<
-      distributions_csv, unsigned int, distributions::d_distribution_id,
-      distributions::d_delay_minute, distributions::d_delay_probability>(
+                                    distributions_pos::d_distribution_id,
+                                    distributions_pos::d_delay_minute>);
+  parse_distributions<distributions_csv, unsigned int,
+                      distributions_pos::d_distribution_id,
+                      distributions_pos::d_delay_minute,
+                      distributions_pos::d_delay_probability>(
       distributions_entries, probability_distributions);
 }
 
 void load_distribution_mappings(
     std::string const filepath,
-    std::vector<distribution_mapping<unsigned int const> >&
-        distribution_mappings) {
+    std::vector<resolved_mapping>& resolved_mappings) {
   std::vector<mapping_csv> mapping_entries;
   parser::read_file<mapping_csv, ';'>(filepath.c_str(), mapping_entries,
                                       mapping_columns);
-  std::sort(mapping_entries.begin(), mapping_entries.end(), mapping_is_smaller);
 
-  for (auto m : mapping_entries) {
-    distribution_mappings.emplace_back(
-        std::get<mapping::m_distribution_id>(m),
-        std::get<mapping::m_distribution_class>(m),
-        std::get<mapping::m_from_travel_time>(m),
-        std::get<mapping::m_to_travel_time>(m),
-        std::get<mapping::m_from_delay>(m), std::get<mapping::m_to_delay>(m));
+  std::vector<mapping_int> integer_mappings;
+  to_integer_mappings(mapping_entries, integer_mappings);
 
-    if (distribution_mappings.size() > 1) {
-      check_mapping(distribution_mappings[distribution_mappings.size() - 2],
-                    distribution_mappings[distribution_mappings.size() - 1]);
-    }
+  to_resolved_mappings(integer_mappings, resolved_mappings);
+
+  std::sort(resolved_mappings.begin(), resolved_mappings.end(),
+            mapping_is_smaller);
+
+  for (unsigned int i = 0; i + 1 < resolved_mappings.size(); i++) {
+    check_mapping(resolved_mappings[i], resolved_mappings[i + 1]);
   }
 }
 
@@ -257,16 +321,17 @@ void load_start_distributions(std::string const filepath,
   std::vector<start_distributions_csv> distributions_entries;
   parser::read_file<start_distributions_csv, ';'>(
       filepath.c_str(), distributions_entries, start_distributions_columns);
-  std::sort(distributions_entries.begin(), distributions_entries.end(),
-            distribution_is_smaller<start_distributions_csv,
-                                    start_distributions::s_distribution_class,
-                                    start_distributions::s_delay_minute>);
+  std::sort(
+      distributions_entries.begin(), distributions_entries.end(),
+      distribution_is_smaller<start_distributions_csv,
+                              start_distributions_pos::s_distribution_class,
+                              start_distributions_pos::s_delay_minute>);
   std::vector<std::pair<std::string, probability_distribution> >
       probability_distributions;
   parse_distributions<start_distributions_csv, std::string,
-                      start_distributions::s_distribution_class,
-                      start_distributions::s_delay_minute,
-                      start_distributions::s_delay_probability>(
+                      start_distributions_pos::s_distribution_class,
+                      start_distributions_pos::s_delay_minute,
+                      start_distributions_pos::s_delay_probability>(
       distributions_entries, probability_distributions);
 
   for (auto it : probability_distributions) {

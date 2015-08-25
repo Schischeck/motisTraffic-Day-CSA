@@ -16,41 +16,31 @@ namespace reliability {
  * Float-values have to use '.' as decimal mark.
  */
 namespace db_distributions_loader {
-
-using mapping_csv = std::tuple<int, std::string, int, int, int, int>;
-
-template <typename Distribution>
-struct distribution_mapping {
-  distribution_mapping(Distribution distribution,
-                       std::string const& distribution_class,
-                       unsigned int const travel_time_from,
-                       unsigned int const travel_time_to, int const delay_from,
-                       int const delay_to)
-      : distribution_(distribution),
-        distribution_class_(distribution_class),
-        travel_time_from_(travel_time_from),
-        travel_time_to_(travel_time_to),
-        delay_from_(delay_from),
-        delay_to_(delay_to) {}
-  Distribution distribution_;
-  std::string distribution_class_;
-  unsigned int const travel_time_from_;
-  unsigned int const travel_time_to_;
-  int const delay_from_;
-  int const delay_to_;
+using resolved_mapping =
+    std::tuple<std::string, unsigned int, unsigned int, unsigned int>;
+enum resolved_mapping_pos {
+  rm_class,
+  rm_travel_time,
+  rm_delay,
+  rm_distribution_id
 };
+
+unsigned int const MAXIMUM_EXPECTED_DEPARTURE_DELAY = 600;
+unsigned int const MAXIMUM_EXPECTED_TRAVEL_TIME = 1440;
 
 void load_distributions(
     std::string root,
     std::map<std::string, std::string>& family_to_distribution_class,
     std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions,
-    std::vector<distribution_mapping<unsigned int const> >&
-        distribution_mappings,
+    std::vector<resolved_mapping>& distribution_mappings,
     std::map<std::string, probability_distribution>&
         class_to_probability_distributions);
 
 namespace detail {
+using mapping_int = std::tuple<unsigned int, std::string, unsigned int,
+                               unsigned int, unsigned int, unsigned int>;
+
 void load_distributions_classes(
     std::string const filepath,
     std::map<std::string, std::string>& family_to_distribution_class);
@@ -60,13 +50,14 @@ void load_distributions(
         probability_distributions);
 void load_distribution_mappings(
     std::string const filepath,
-    std::vector<distribution_mapping<unsigned int const> >&
-        distribution_mappings);
+    std::vector<resolved_mapping>& resolved_mappings);
 void load_start_distributions(std::string const filepath,
                               std::map<std::string, probability_distribution>&
                                   class_to_probability_distributions);
 
-bool mapping_is_smaller(mapping_csv a, mapping_csv b);
+void to_resolved_mappings(std::vector<mapping_int> const& integer_mappings,
+                          std::vector<resolved_mapping>& resolved_mappings);
+bool mapping_is_smaller(resolved_mapping const& a, resolved_mapping const& b);
 
 }  // namespace detail
 }  // namespace distributions_loader

@@ -17,19 +17,14 @@ void compute_arrival_distribution(
   std::vector<probability> dep_dist;
   data.departure_info_.distribution_->get_probabilities(dep_dist);
 
-  // for each departure delay get the corresponding travel time distribution
-  int first_minute, last_minute;
-  detail::travel_distributions_type travel_distributions;
-  detail::init_travel_distributions(data, travel_distributions, first_minute,
-                                    last_minute);
-
-  std::vector<probability> computed_probabilities((last_minute - first_minute) +
-                                                  1);
+  std::vector<probability> computed_probabilities(
+      (data.right_bound_ - data.left_bound_) + 1);
   // This step is a "convolution" of the departure distribution
   // with the travel time distributions. For each arrival delay,
   // we sum up the probabilities of all departure delay and travel time
   // combinations that result in that arrival delay.
-  for (int arr_delay = first_minute; arr_delay <= last_minute; arr_delay++) {
+  for (int arr_delay = data.left_bound_; arr_delay <= data.right_bound_;
+       arr_delay++) {
     probability computed_probability = 0.0;
     for (unsigned int dep_prob_idx = 0; dep_prob_idx < dep_dist.size();
          dep_prob_idx++) {
@@ -37,10 +32,11 @@ void compute_arrival_distribution(
           (unsigned int)data.departure_info_.distribution_->first_minute() +
           dep_prob_idx;
       int const travel_time_delay = arr_delay - dep_delay;
-      auto const& travel_time_dist = travel_distributions[dep_delay];
+      auto const& travel_time_dist =
+          data.travel_distributions_[dep_delay].get();
 
-      if (travel_time_delay < travel_time_dist.get().first_minute() ||
-          travel_time_delay > travel_time_dist.get().last_minute()) {
+      if (travel_time_delay < travel_time_dist.first_minute() ||
+          travel_time_delay > travel_time_dist.last_minute()) {
         continue;
       }
 
@@ -48,73 +44,20 @@ void compute_arrival_distribution(
       // depending on departures with departure delays stored in "dep_delay" and
       // travel time delays stored in "travel_time_delay".
       computed_probability +=
-          (travel_time_dist.get().probability_equal(travel_time_delay) *
+          (travel_time_dist.probability_equal(travel_time_delay) *
            dep_dist[dep_prob_idx]);
 
     }  // end of for dep_prob_idx
-    computed_probabilities[arr_delay - first_minute] = computed_probability;
+    computed_probabilities[arr_delay - data.left_bound_] = computed_probability;
   }  // end of for arr_delay
 
   detail::correct_rounding_errors(data.departure_info_.distribution_->sum(),
                                   computed_probabilities);
 
-  arrival_distribution.init(computed_probabilities, first_minute);
+  arrival_distribution.init(computed_probabilities, data.left_bound_);
 }
 
 namespace detail {
-
-inline void add_travel_distribution(
-    int const dep_delay, probability_distribution const& travel_distribution,
-    travel_distributions_type& travel_distributions, int& first_minute,
-    int& last_minute) {
-  travel_distributions.push_back(travel_distribution);
-  if (dep_delay + travel_distribution.first_minute() < first_minute) {
-    first_minute = dep_delay + travel_distribution.first_minute();
-  }
-  if (dep_delay + travel_distribution.last_minute() > last_minute) {
-    last_minute = dep_delay + travel_distribution.last_minute();
-  }
-}
-
-inline void init_travel_distributions(
-    pd_calc_data_arrival const& data,
-    travel_distributions_type& travel_distributions, int& first_minute,
-    int& last_minute) {
-  assert(data.travel_distributions_.size() > 0);
-  assert(data.travel_distributions_[0].departure_delay_from_ == 0);
-
-  first_minute = data.departure_info_.distribution_->first_minute() +
-                 data.travel_distributions_[0].distribution_.first_minute();
-  last_minute = data.departure_info_.distribution_->first_minute() +
-                data.travel_distributions_[0].distribution_.last_minute();
-
-  // for each delay minute of the departure distribution
-  // store the corresponding travel distribution into the
-  // vector 'travel_distributions'
-  for (auto const& travel_dist : data.travel_distributions_) {
-    for (int dep_delay = travel_dist.departure_delay_from_;
-         dep_delay <= travel_dist.departure_delay_to_ &&
-             dep_delay <= data.departure_info_.distribution_->last_minute();
-         dep_delay++) {
-      add_travel_distribution(dep_delay, travel_dist.distribution_,
-                              travel_distributions, first_minute, last_minute);
-    }
-  }
-  // if the departure distribution has more minutes than
-  // the largest delay expected by data.travel_distributions_
-  // use the last distribution contained in data.travel_distributions_
-  // for those delay minutes.
-  for (int d = travel_distributions.size();
-       d <= data.departure_info_.distribution_->last_minute(); d++) {
-    add_travel_distribution(
-        d, data.travel_distributions_[data.travel_distributions_.size() - 1]
-               .distribution_,
-        travel_distributions, first_minute, last_minute);
-  }
-
-  assert(travel_distributions.size() ==
-         data.departure_info_.distribution_->last_minute() + 1);
-}
 
 void correct_rounding_errors(probability const& expected_sum,
                              std::vector<probability>& computed_probabilities) {
