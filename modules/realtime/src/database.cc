@@ -1,3 +1,4 @@
+#ifdef WITH_MYSQL
 #include "motis/realtime/database.h"
 
 #include <iostream>
@@ -52,3 +53,4 @@ std::string delay_database::get_messages(time_t t1, time_t t2) {
 
 }  // namespace realtime
 }  // namespace motis
+#endif

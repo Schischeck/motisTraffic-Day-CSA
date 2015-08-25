@@ -9,7 +9,6 @@
 
 #include "motis/module/module.h"
 #include "motis/realtime/realtime_schedule.h"
-#include "motis/realtime/database.h"
 #include "motis/realtime/message_fetcher.h"
 #include "motis/realtime/opt_time.h"
 
@@ -31,16 +30,19 @@ struct realtime : public motis::module::module {
 
   boost::asio::io_service ios_;
   std::unique_ptr<realtime_schedule> rts_;
-  std::unique_ptr<delay_database> db_;
   std::unique_ptr<message_fetcher> message_fetcher_;
 
-  // settings
+// settings
+#ifdef WITH_MYSQL
   std::string db_server_, db_name_, db_user_, db_password_;
+#endif
   std::vector<uint32_t> track_trains_;
-  std::string load_msg_file_;
+  std::vector<std::string> msg_files_;
   bool debug_;
   opt_time from_time_, to_time_;
-  unsigned interval_;
+  bool live_;
+  bool manual_;
+  unsigned db_fetch_size_;
 
 private:
   void get_train_info(motis::module::msg_ptr msg, motis::module::callback cb);

@@ -20,19 +20,14 @@ using namespace motis::logging;
 message_handler::message_handler(realtime_schedule& rts)
     : _rts(rts), _msg_reader(rts) {}
 
-void message_handler::process_message_stream(std::istream& stream,
-                                             bool eva_numbers) {
+void message_handler::process_message_stream(message_stream& stream) {
   unsigned messages = 0;
   std::vector<std::unique_ptr<message>> msg_objects;
   std::time_t max_release_time = 0;
 
-  while (!stream.eof()) {
-    std::unique_ptr<message> msg = _msg_reader.read_message(stream);
-    if (stream.fail()) {
-      if (!stream.eof()) LOG(warn) << "failed to read message stream";
-      break;
-    }
-    if (msg == nullptr) continue;
+  while (true) {
+    std::unique_ptr<message> msg = stream.next_message();
+    if (msg == nullptr) break;
     handle_message(*msg);
     messages++;
     max_release_time = std::max(max_release_time, msg->release_time_);

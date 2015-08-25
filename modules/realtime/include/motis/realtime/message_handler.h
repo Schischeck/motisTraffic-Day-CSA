@@ -3,10 +3,9 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <istream>
 #include <unordered_map>
 
-#include "motis/realtime/message_reader.h"
+#include "motis/realtime/message_stream.h"
 #include "motis/realtime/event.h"
 #include "motis/realtime/delay_info.h"
 
@@ -19,7 +18,7 @@ class message_handler {
 public:
   message_handler(realtime_schedule& rts);
 
-  void process_message_stream(std::istream& stream, bool eva_numbers = true);
+  void process_message_stream(message_stream& stream);
 
   void handle_message(const message& msg);
 
