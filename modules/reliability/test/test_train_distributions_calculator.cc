@@ -50,9 +50,9 @@ void test_distributions(node const& route_node,
     for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size();
          l++) {
       REQUIRE_FALSE(departure_distributions.get_distribution(l).empty());
-      REQUIRE(departure_distributions.get_distribution(l).sum());
+      REQUIRE(equal(departure_distributions.get_distribution(l).sum(), 1.0));
       REQUIRE_FALSE(arrival_distributions.get_distribution(l).empty());
-      REQUIRE(arrival_distributions.get_distribution(l).sum());
+      REQUIRE(equal(arrival_distributions.get_distribution(l).sum(), 1.0));
     }
   } else {
     REQUIRE_FALSE(
@@ -66,7 +66,6 @@ void test_distributions(node const& route_node,
 }
 
 TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
-  std::cout << "Initial_distributions_simple" << std::endl;
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
   train_distributions_container train_distributions(schedule->node_count);
@@ -78,8 +77,6 @@ TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
                                             s_t_distributions);
   calculator.calculate_initial_distributions();
 
-  std::cout << "test" << std::endl;
-
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
     test_distributions(*first_route_node, train_distributions,
@@ -87,8 +84,6 @@ TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
                            *schedule, *graph_accessor::get_departing_route_edge(
                                           *first_route_node)));
   }
-
-  std::cout << "finished" << std::endl;
 }
 
 #include "motis/reliability/db_distributions.h"
@@ -98,7 +93,7 @@ TEST_CASE("Initial_distributions_db_distributions", "[train_dist_calc]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
   train_distributions_container train_distributions(schedule->node_count);
   db_distributions db_dists(
-      "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/");
+      "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120, 120);
 
   train_distributions_calculator calculator(*schedule, train_distributions,
                                             db_dists);

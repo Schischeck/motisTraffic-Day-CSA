@@ -14,7 +14,8 @@ namespace reliability {
 namespace db_distributions_loader {
 
 void load_distributions(
-    std::string root,
+    std::string root, unsigned int const max_expected_travel_time,
+    unsigned int const max_expected_departure_delay,
     std::map<std::string, std::string>& family_to_distribution_class,
     std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions,
@@ -31,8 +32,9 @@ void load_distributions(
                                      family_to_distribution_class);
   detail::load_distributions(root + "Distributions.csv",
                              probability_distributions);
-  detail::load_distribution_mappings(root + "Mapping.csv",
-                                     distribution_mappings);
+  detail::load_distribution_mappings(
+      root + "Mapping.csv", max_expected_travel_time,
+      max_expected_departure_delay, distribution_mappings);
   detail::load_start_distributions(root + "StartDistributions.csv",
                                    class_to_probability_distributions);
 }
@@ -165,12 +167,12 @@ void parse_distributions(
   }
 }
 
-inline int parse_integer(std::string const& str,
-                         int const default_value = INT_MAX) {
+inline bool parse_integer(std::string const& str, int& number) {
   try {
-    return boost::lexical_cast<int>(str);
+    number = boost::lexical_cast<int>(str);
+    return true;
   } catch (const boost::bad_lexical_cast&) {
-    return default_value;
+    return false;
   }
 }
 
@@ -178,41 +180,85 @@ inline unsigned int map_negative_to_zero(int number) {
   return (unsigned int)std::max(0, number);
 }
 
-void to_integer_mappings(std::vector<mapping_csv> const& mapping_entries,
-                         std::vector<mapping_int>& integer_mappings) {
+inline bool parse_travel_time_interval(
+    std::string const& from_travel_time_str,
+    std::string const& to_travel_time_str,
+    unsigned int const max_expected_travel_time, unsigned int& from_travel_time,
+    unsigned int& to_travel_time) {
+  int to_travel_time_int;
+  if (!parse_integer(to_travel_time_str, to_travel_time_int)) {
+    to_travel_time = max_expected_travel_time;
+  } else {
+    if (to_travel_time_int < 0) {
+      return false;
+    } else if (to_travel_time_int > max_expected_travel_time) {
+      to_travel_time = max_expected_travel_time;
+    } else /* to_travel_time_int <= max_expected_travel_time */ {
+      to_travel_time = (unsigned int)to_travel_time_int;
+    }
+  }
+
+  int from_travel_time_int;
+  if (!parse_integer(from_travel_time_str, from_travel_time_int)) {
+    return false;
+  }
+  from_travel_time =
+      map_negative_to_zero(from_travel_time_int + 1);  // left-open interval
+
+  return from_travel_time <= to_travel_time;
+}
+
+inline bool parse_departure_delay_interval(
+    std::string const& from_delay_str, std::string const& to_delay_str,
+    unsigned int const max_expected_departure_delay, unsigned int& from_delay,
+    unsigned int& to_delay) {
+  int to_delay_int;
+  if (!parse_integer(to_delay_str, to_delay_int)) {
+    to_delay = max_expected_departure_delay;
+  } else {
+    if (to_delay_int <= 0) {
+      return false;
+    } else if (to_delay_int <= max_expected_departure_delay) {
+      to_delay = to_delay_int - 1;  // right-open interval
+    } else /* to_delay_int > max_expected_departure_delay */ {
+      to_delay = max_expected_departure_delay;
+    }
+  }
+
+  int from_delay_int;
+  if (!parse_integer(from_delay_str, from_delay_int)) {
+    return false;
+  }
+  from_delay = map_negative_to_zero(from_delay_int);
+
+  return from_delay <= to_delay;
+}
+
+void parse_mappings(std::vector<mapping_csv> const& mapping_entries,
+                    unsigned int const max_expected_travel_time,
+                    unsigned int const max_expected_departure_delay,
+                    std::vector<mapping_int>& parsed_mappings) {
   for (auto m : mapping_entries) {
     assert(std::get<mapping_pos::m_distribution_id>(m) >= 0);
-    int to_travel_time =
-        parse_integer(std::get<mapping_pos::m_to_travel_time>(m),
-                      MAXIMUM_EXPECTED_TRAVEL_TIME);
-    int to_delay = parse_integer(std::get<mapping_pos::m_to_delay>(m),
-                                 MAXIMUM_EXPECTED_DEPARTURE_DELAY);
-    if (to_delay != MAXIMUM_EXPECTED_DEPARTURE_DELAY) {
-      --to_delay;  // right-open interval
-    }
-
-    if (to_travel_time >= 0 && to_delay >= 0) {
-      unsigned int const from_travel_time = map_negative_to_zero(
-          parse_integer(std::get<mapping_pos::m_from_travel_time>(m)) +
-          1);  // left-open interval
-      unsigned int const from_delay = map_negative_to_zero(
-          parse_integer(std::get<mapping_pos::m_from_delay>(m)));
-
-      assert(from_travel_time <= to_travel_time);
-      assert(from_delay <= to_delay);
-      assert(to_travel_time <= MAXIMUM_EXPECTED_TRAVEL_TIME);
-      assert(to_delay <= MAXIMUM_EXPECTED_DEPARTURE_DELAY);
-
-      integer_mappings.emplace_back(
+    unsigned int from_travel_time, to_travel_time, from_delay, to_delay;
+    if (parse_travel_time_interval(std::get<mapping_pos::m_from_travel_time>(m),
+                                   std::get<mapping_pos::m_to_travel_time>(m),
+                                   max_expected_travel_time, from_travel_time,
+                                   to_travel_time) &&
+        parse_departure_delay_interval(std::get<mapping_pos::m_from_delay>(m),
+                                       std::get<mapping_pos::m_to_delay>(m),
+                                       max_expected_departure_delay, from_delay,
+                                       to_delay)) {
+      parsed_mappings.emplace_back(
           std::get<mapping_pos::m_distribution_id>(m),
           std::get<mapping_pos::m_distribution_class>(m), from_travel_time,
-          (unsigned int)to_travel_time, from_delay, (unsigned int)to_delay);
+          to_travel_time, from_delay, to_delay);
     }
   }
 }
 
-void to_resolved_mappings(std::vector<mapping_int> const& integer_mappings,
-                          std::vector<resolved_mapping>& resolved_mappings) {
+void resolve_mappings(std::vector<mapping_int> const& integer_mappings,
+                      std::vector<resolved_mapping>& resolved_mappings) {
   for (auto const& im : integer_mappings) {
     for (unsigned int t = std::get<mapping_pos::m_from_travel_time>(im);
          t <= std::get<mapping_pos::m_to_travel_time>(im); t++) {
@@ -226,7 +272,8 @@ void to_resolved_mappings(std::vector<mapping_int> const& integer_mappings,
   }
 }
 
-bool mapping_is_smaller(resolved_mapping const& a, resolved_mapping const& b) {
+inline bool mapping_is_smaller(resolved_mapping const& a,
+                               resolved_mapping const& b) {
   if (std::get<resolved_mapping_pos::rm_class>(a) <
       std::get<resolved_mapping_pos::rm_class>(b)) {
     return true;
@@ -296,16 +343,18 @@ void load_distributions(
 }
 
 void load_distribution_mappings(
-    std::string const filepath,
+    std::string const filepath, unsigned int const max_expected_travel_time,
+    unsigned int const max_expected_departure_delay,
     std::vector<resolved_mapping>& resolved_mappings) {
   std::vector<mapping_csv> mapping_entries;
   parser::read_file<mapping_csv, ';'>(filepath.c_str(), mapping_entries,
                                       mapping_columns);
 
-  std::vector<mapping_int> integer_mappings;
-  to_integer_mappings(mapping_entries, integer_mappings);
+  std::vector<mapping_int> parsed_mappings;
+  parse_mappings(mapping_entries, max_expected_travel_time,
+                 max_expected_departure_delay, parsed_mappings);
 
-  to_resolved_mappings(integer_mappings, resolved_mappings);
+  resolve_mappings(parsed_mappings, resolved_mappings);
 
   std::sort(resolved_mappings.begin(), resolved_mappings.end(),
             mapping_is_smaller);

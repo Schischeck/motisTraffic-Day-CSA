@@ -11,23 +11,20 @@ namespace reliability {
 
 struct start_and_travel_test_distributions : start_and_travel_distributions {
   start_and_travel_test_distributions(
-      std::vector<probability> const& start_probabilities)
-      : travel_time_mapping_(travel_distribution_, 0, 0) {
+      std::vector<probability> const& start_probabilities) {
     init_start_distribution(start_probabilities);
   }
 
   start_and_travel_test_distributions(
       std::vector<probability> const& traveltime_probabilities,
-      int const first_minute)
-      : travel_time_mapping_(travel_distribution_, 0, 0) {
+      int const first_minute) {
     init_travel_distributions(traveltime_probabilities, first_minute);
   }
 
   start_and_travel_test_distributions(
       std::vector<probability> const& start_probabilities,
       std::vector<probability> const& traveltime_probabilities,
-      int const first_minute)
-      : travel_time_mapping_(travel_distribution_, 0, 0) {
+      int const first_minute) {
     init_start_distribution(start_probabilities);
     init_travel_distributions(traveltime_probabilities, first_minute);
   }
@@ -46,12 +43,12 @@ struct start_and_travel_test_distributions : start_and_travel_distributions {
     (void)family;
     (void)travel_time;
     for (unsigned int d = 0; d <= to_departure_delay; d++) {
-      distributions.push_back(std::cref(travel_time_mapping_.distribution_));
+      distributions.push_back(std::cref(travel_distribution_));
     }
   }
 
   probability_distribution start_distribution_;
-  distribution_mapping const travel_time_mapping_;
+  probability_distribution travel_distribution_;
 
 private:
   void init_start_distribution(
@@ -65,8 +62,6 @@ private:
       int const first_minute) {
     travel_distribution_.init(traveltime_probabilities, first_minute);
   }
-
-  probability_distribution travel_distribution_;
 };
 
 }  // namespace reliability

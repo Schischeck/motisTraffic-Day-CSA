@@ -6,7 +6,8 @@
 using namespace motis::reliability;
 
 TEST_CASE("start_distributions", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/");
+  db_distributions db_dists("../modules/reliability/resources/distributions/",
+                            10, 10);
   {
     auto const& pd = db_dists.get_start_distribution("RB");
     REQUIRE(pd.first_minute() == 0);
@@ -40,7 +41,8 @@ TEST_CASE("start_distributions", "[db_distributions]") {
 }
 
 TEST_CASE("travel_time_distributions_Unknown", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/");
+  db_distributions db_dists("../modules/reliability/resources/distributions/",
+                            10, 10);
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       distributions;
   db_dists.get_travel_time_distributions("UNKNOWN", 0, 0, distributions);
@@ -49,15 +51,16 @@ TEST_CASE("travel_time_distributions_Unknown", "[db_distributions]") {
 
 /* RV and to_departure_delay not covered by the original mapping */
 TEST_CASE("travel_time_distributions_RV", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/");
+  db_distributions db_dists("../modules/reliability/resources/distributions/",
+                            10, 10);
 
   std::vector<std::string> const categories = {"RB", "RE"};
   for (auto const& category : categories) {
     for (unsigned int t = 0; t <= 10; t++) {
       std::vector<start_and_travel_distributions::probability_distribution_cref>
           distributions;
-      /* 4;RV;0;5;-2;2    note: -2 --> 0
-         4;RV;6;10;-2;2 */
+      /* 4;RV;-1;5;-2;3    note: -2 --> 0
+         4;RV;5;10;-2;3 */
       // get distributions for departure delays 0 and 1
       db_dists.get_travel_time_distributions(category, t, 3, distributions);
       REQUIRE(distributions.size() == 4);
@@ -76,15 +79,16 @@ TEST_CASE("travel_time_distributions_RV", "[db_distributions]") {
 
 /* FV and to_departure_delay covered by the original mapping */
 TEST_CASE("travel_time_distributions_FV", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/");
+  db_distributions db_dists("../modules/reliability/resources/distributions/",
+                            10, 10);
 
   std::vector<std::string> const categories = {"IC", "ICE"};
   for (auto const& category : categories) {
     for (unsigned int t = 0; t <= 5; t++) {
       std::vector<start_and_travel_distributions::probability_distribution_cref>
           distributions;
-      /* 0;FV;0;5;-5;5
-       * 2;FV;0;5;6;10 */
+      /* 0;FV;-1;5;-5;6
+       * 2;FV;-1;5;6;11 */
       db_dists.get_travel_time_distributions(category, t, 8, distributions);
 
       REQUIRE(distributions.size() == 9);
@@ -111,8 +115,8 @@ TEST_CASE("travel_time_distributions_FV", "[db_distributions]") {
     for (unsigned int t = 6; t <= 7; t++) {
       std::vector<start_and_travel_distributions::probability_distribution_cref>
           distributions;
-      /* 1;FV;6;10;-5;5
-       * 3;FV;6;10;6;10 */
+      /* 1;FV;5;10;-5;6
+       * 3;FV;5;10;6;11 */
       db_dists.get_travel_time_distributions(category, t, 7, distributions);
 
       REQUIRE(distributions.size() == 8);
@@ -139,7 +143,8 @@ TEST_CASE("travel_time_distributions_FV", "[db_distributions]") {
 
 /* travel time longer than the existing mappings */
 TEST_CASE("long_travel_time", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/");
+  db_distributions db_dists("../modules/reliability/resources/distributions/",
+                            10, 10);
 
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       distributions10;

@@ -6,10 +6,14 @@
 namespace motis {
 namespace reliability {
 
-db_distributions::db_distributions(std::string const root) : empty_string_("") {
+db_distributions::db_distributions(
+    std::string const root, unsigned int const max_expected_travel_time,
+    unsigned int const max_expected_departure_delay)
+    : empty_string_("") {
   std::vector<db_distributions_loader::resolved_mapping> distribution_mappings;
   db_distributions_loader::load_distributions(
-      root, family_to_distribution_class_, all_probability_distributions_,
+      root, max_expected_travel_time, max_expected_departure_delay,
+      family_to_distribution_class_, all_probability_distributions_,
       distribution_mappings, class_to_probability_distributions_);
 
   // convert distribution_mappings (vector)
@@ -43,8 +47,6 @@ void db_distributions::get_travel_time_distributions(
     std::string const& family, unsigned int const travel_time,
     unsigned int const to_departure_delay,
     std::vector<probability_distribution_cref>& distributions) const {
-  assert(travel_time <= db_distributions_loader::MAXIMUM_EXPECTED_TRAVEL_TIME);
-
   std::string const& distribution_class = get_distribution_class(family);
   if (distribution_class != empty_string_) {
     auto const mappings_vector_it =
@@ -82,14 +84,13 @@ std::string const& db_distributions::get_distribution_class(
 namespace db_distributions_helpers {
 void get_distributions(
     unsigned int const travel_time, unsigned int const to_departure_delay,
-    std::vector<start_and_travel_distributions::distribution_mapping> const&
-        all_mappings,
+    std::vector<db_distributions::distribution_mapping> const& all_mappings,
     std::vector<start_and_travel_distributions::probability_distribution_cref>&
         distributions) {
-  auto const mapping_begin = std::lower_bound(
-      all_mappings.begin(), all_mappings.end(), travel_time,
-      [](start_and_travel_distributions::distribution_mapping const& a,
-         unsigned int const b) { return a.travel_time_ < b; });
+  auto const mapping_begin =
+      std::lower_bound(all_mappings.begin(), all_mappings.end(), travel_time,
+                       [](db_distributions::distribution_mapping const& a,
+                          unsigned int const b) { return a.travel_time_ < b; });
   // if there are no mappings for 'travel_time'
   // deliver the mappings for the largest travel time
   if (mapping_begin == all_mappings.end()) {
@@ -98,12 +99,12 @@ void get_distributions(
     return;
   }
 
-  auto mapping_end = std::upper_bound(
-      mapping_begin, all_mappings.end(), travel_time,
-      [](unsigned int const a,
-         start_and_travel_distributions::distribution_mapping const& b) {
-        return a < b.travel_time_;
-      });
+  auto mapping_end =
+      std::upper_bound(mapping_begin, all_mappings.end(), travel_time,
+                       [](unsigned int const a,
+                          db_distributions::distribution_mapping const& b) {
+                         return a < b.travel_time_;
+                       });
   --mapping_end;
 
   assert(std::distance(mapping_begin, mapping_end) >= 0);

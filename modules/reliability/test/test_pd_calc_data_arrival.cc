@@ -48,9 +48,9 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==
-          &s_t_distributions.travel_time_mapping_.distribution_);
+          &s_t_distributions.travel_distribution_);
   REQUIRE(&data.travel_distributions_[1].get() ==
-          &s_t_distributions.travel_time_mapping_.distribution_);
+          &s_t_distributions.travel_distribution_);
 
   REQUIRE(data.left_bound_ == -1);
   REQUIRE(data.right_bound_ == 2);
@@ -100,15 +100,12 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   struct start_and_travel_test2_distributions : start_and_travel_distributions {
-    struct distribution_test_mapping : distribution_mapping {
-      distribution_test_mapping() : distribution_mapping(dummy, 0, 0) {
-        dummy.init_one_point(0, 1.0);
-      };
-      probability_distribution dummy;
-    };
+    start_and_travel_test2_distributions() {
+      distribution_.init_one_point(0, 1.0);
+    }
     probability_distribution const& get_start_distribution(
         std::string const& family) const override {
-      return distribution.dummy;
+      return distribution_;
     }
     void get_travel_time_distributions(
         std::string const& family, unsigned int const travel_time,
@@ -117,11 +114,11 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
         const override {
       if (family == "ICE" && travel_time == 10) {
         for (unsigned int d = 0; d <= to_departure_delay; d++) {
-          distributions.push_back(std::cref(distribution.dummy));
+          distributions.push_back(std::cref(distribution_));
         }
       }
     }
-    distribution_test_mapping distribution;
+    probability_distribution distribution_;
   } s_t_distributions;
 
   train_distributions_test_container train_distributions({0.8, 0.2}, 0);
@@ -141,7 +138,7 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==
-          &s_t_distributions.distribution.dummy);
+          &s_t_distributions.distribution_);
   REQUIRE(&data.travel_distributions_[1].get() ==
-          &s_t_distributions.distribution.dummy);
+          &s_t_distributions.distribution_);
 }

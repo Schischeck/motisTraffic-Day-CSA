@@ -87,17 +87,153 @@ TEST_CASE("load_distributions", "[distributions_loader]") {
   }
 }
 
+TEST_CASE("parse_travel_time_interval", "[distributions_loader]") {
+
+  unsigned int from_travel_time, to_travel_time;
+  bool success;
+
+  success = detail::parse_travel_time_interval("0", "2", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 1);
+  REQUIRE(to_travel_time == 2);
+
+  success = detail::parse_travel_time_interval("-1", "2", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 0);
+  REQUIRE(to_travel_time == 2);
+
+  success = detail::parse_travel_time_interval("-2", "2", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 0);
+  REQUIRE(to_travel_time == 2);
+
+  success = detail::parse_travel_time_interval("-2", "-1", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE_FALSE(success);
+
+  success = detail::parse_travel_time_interval("-2", "0", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 0);
+  REQUIRE(to_travel_time == 0);
+
+  success = detail::parse_travel_time_interval("0", "10", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 1);
+  REQUIRE(to_travel_time == 10);
+
+  success = detail::parse_travel_time_interval("0", "11", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 1);
+  REQUIRE(to_travel_time == 10);
+
+  success = detail::parse_travel_time_interval("9", "10", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 10);
+  REQUIRE(to_travel_time == 10);
+
+  success = detail::parse_travel_time_interval("10", "11", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE_FALSE(success);
+
+  success = detail::parse_travel_time_interval("0", "", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 1);
+  REQUIRE(to_travel_time == 10);
+
+  success = detail::parse_travel_time_interval("0", "-", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE(success);
+  REQUIRE(from_travel_time == 1);
+  REQUIRE(to_travel_time == 10);
+
+  success = detail::parse_travel_time_interval("10", "", 10, from_travel_time,
+                                               to_travel_time);
+  REQUIRE_FALSE(success);
+}
+
+TEST_CASE("parse_departure_delay_interval", "[distributions_loader]") {
+  unsigned int from_delay, to_delay;
+  bool success;
+
+  success = detail::parse_departure_delay_interval("0", "2", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 0);
+  REQUIRE(to_delay == 1);
+
+  success = detail::parse_departure_delay_interval("-1", "2", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 0);
+  REQUIRE(to_delay == 1);
+
+  success = detail::parse_departure_delay_interval("-1", "0", 10, from_delay,
+                                                   to_delay);
+  REQUIRE_FALSE(success);
+
+  success = detail::parse_departure_delay_interval("0", "10", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 0);
+  REQUIRE(to_delay == 9);
+
+  success = detail::parse_departure_delay_interval("0", "11", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 0);
+  REQUIRE(to_delay == 10);
+
+  success = detail::parse_departure_delay_interval("0", "12", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 0);
+  REQUIRE(to_delay == 10);
+
+  success = detail::parse_departure_delay_interval("10", "11", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 10);
+  REQUIRE(to_delay == 10);
+
+  success = detail::parse_departure_delay_interval("11", "12", 10, from_delay,
+                                                   to_delay);
+  REQUIRE_FALSE(success);
+
+  success = detail::parse_departure_delay_interval("10", "", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 10);
+  REQUIRE(to_delay == 10);
+
+  success = detail::parse_departure_delay_interval("10", "-", 10, from_delay,
+                                                   to_delay);
+  REQUIRE(success);
+  REQUIRE(from_delay == 10);
+  REQUIRE(to_delay == 10);
+
+  success = detail::parse_departure_delay_interval("11", "", 10, from_delay,
+                                                   to_delay);
+  REQUIRE_FALSE(success);
+}
+
 TEST_CASE("to_resolved_mappings", "[distributions_loader]") {
   std::vector<detail::mapping_int> integer_mappings;
 
   integer_mappings.emplace_back(1, "RV", 0, 2, 0, 1);
   integer_mappings.emplace_back(2, "RV", 0, 2, 2, 3);
   integer_mappings.emplace_back(3, "RV", 3, 5, 0, 2);
-  integer_mappings.emplace_back(4, "RV", 0, MAXIMUM_EXPECTED_TRAVEL_TIME, 4,
-                                MAXIMUM_EXPECTED_DEPARTURE_DELAY);
+  integer_mappings.emplace_back(4, "RV", 0, 10, 4, 10);
 
   std::vector<resolved_mapping> resolved_mappings;
-  detail::to_resolved_mappings(integer_mappings, resolved_mappings);
+  detail::resolve_mappings(integer_mappings, resolved_mappings);
 
   for (auto const& mapping : resolved_mappings) {
     REQUIRE(std::get<resolved_mapping_pos::rm_class>(mapping) == "RV");
@@ -128,20 +264,18 @@ TEST_CASE("to_resolved_mappings", "[distributions_loader]") {
       REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
-  std::cout << "begin" << std::endl;
-  for (unsigned int t = 0; t <= MAXIMUM_EXPECTED_TRAVEL_TIME; t++) {
-    for (unsigned int d = 4; d <= MAXIMUM_EXPECTED_DEPARTURE_DELAY; d++) {
+  for (unsigned int t = 0; t <= 10; t++) {
+    for (unsigned int d = 4; d <= 10; d++) {
       auto const& mapping = resolved_mappings[mapping_index++];
       REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) == 4);
       REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
       REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
-  std::cout << "end" << std::endl;
 
   REQUIRE(resolved_mappings.size() == mapping_index);
 }
-
+#include <cassert>
 void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
                   unsigned int& distribution_mappings_idx,
                   unsigned int const distribution_id,
@@ -165,37 +299,37 @@ void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
 TEST_CASE("load_mappings", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping.csv",
+      "../modules/reliability/resources/distributions/Mapping.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;
 
   for (unsigned int t = 0; t <= 5; t++) {
-    // 0;FV;0;5;0;5
+    // 0;FV;-1;5;-5;6
     test_mapping(distribution_mappings, distribution_mappings_idx, 0, "FV", t,
                  t, 0, 5);
-    // 2;FV;0;5;6;10
+    // 2;FV;-1;5;6;11
     test_mapping(distribution_mappings, distribution_mappings_idx, 2, "FV", t,
                  t, 6, 10);
   }
 
   for (unsigned int t = 6; t <= 10; t++) {
-    // 1;FV;6;10;0;5
+    // 1;FV;5;10;-5;6
     test_mapping(distribution_mappings, distribution_mappings_idx, 1, "FV", t,
                  t, 0, 5);
-    // 3;FV;6;10;6;10
+    // 3;FV;5;10;6;11
     test_mapping(distribution_mappings, distribution_mappings_idx, 3, "FV", t,
                  t, 6, 10);
   }
 
   for (unsigned int t = 0; t <= 5; t++) {
-    // 4;RV;0;5;0;2
+    // 4;RV;-1;5;-2;3
     test_mapping(distribution_mappings, distribution_mappings_idx, 4, "RV", t,
                  t, 0, 2);
   }
 
   for (unsigned int t = 6; t <= 10; t++) {
-    // 4;RV;6;10;0;2
+    // 4;RV;5;10;-2;3
     test_mapping(distribution_mappings, distribution_mappings_idx, 4, "RV", t,
                  t, 0, 2);
   }
@@ -208,43 +342,39 @@ TEST_CASE("load_mappings", "[distributions_loader]") {
 TEST_CASE("load_mappings2", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping2.csv",
+      "../modules/reliability/resources/distributions/Mapping2.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;
 
   for (unsigned int t = 0; t <= 1; t++) {
-    // 6;FV;0;1;0;1
+    // 6;FV;-3;1;-4;2
     test_mapping(distribution_mappings, distribution_mappings_idx, 6, "FV", t,
                  t, 0, 1);
-    // 4;FV;0;1;2;3
+    // 4;FV;-3;1;2;4
     test_mapping(distribution_mappings, distribution_mappings_idx, 4, "FV", t,
                  t, 2, 3);
   }
 
-  // 5;FV;2;3;0;1
+  // 5;FV;1;3;-2;2
   for (unsigned int t = 2; t <= 3; t++) {
     test_mapping(distribution_mappings, distribution_mappings_idx, 5, "FV", t,
                  t, 0, 1);
   }
 
-  // 7;FV;4;5;4;5
+  // 7;FV;3;5;4;6
   for (unsigned int t = 4; t <= 5; t++) {
     test_mapping(distribution_mappings, distribution_mappings_idx, 7, "FV", t,
                  t, 4, 5);
   }
 
-  std::cout << "begin" << std::endl;
-  // 8;FV;6;;0;
-  test_mapping(distribution_mappings, distribution_mappings_idx, 8, "FV", 6,
-               db_distributions_loader::MAXIMUM_EXPECTED_TRAVEL_TIME, 0,
-               db_distributions_loader::MAXIMUM_EXPECTED_DEPARTURE_DELAY);
+  // 8;FV;5;-;0;
+  test_mapping(distribution_mappings, distribution_mappings_idx, 8, "FV", 6, 10,
+               0, 10);
 
-  // 9;RV;6;-;0;-
-  test_mapping(distribution_mappings, distribution_mappings_idx, 9, "RV", 6,
-               db_distributions_loader::MAXIMUM_EXPECTED_TRAVEL_TIME, 0,
-               db_distributions_loader::MAXIMUM_EXPECTED_DEPARTURE_DELAY);
-  std::cout << "end" << std::endl;
+  // 9;RV;5;-;0;-
+  test_mapping(distribution_mappings, distribution_mappings_idx, 9, "RV", 6, 10,
+               0, 10);
 
   REQUIRE(distribution_mappings.size() == distribution_mappings_idx);
 }
@@ -253,7 +383,7 @@ TEST_CASE("load_mappings2", "[distributions_loader]") {
 TEST_CASE("load_mappings3", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping3.csv",
+      "../modules/reliability/resources/distributions/Mapping3.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;

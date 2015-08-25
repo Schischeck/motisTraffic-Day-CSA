@@ -25,11 +25,9 @@ enum resolved_mapping_pos {
   rm_distribution_id
 };
 
-unsigned int const MAXIMUM_EXPECTED_DEPARTURE_DELAY = 600;
-unsigned int const MAXIMUM_EXPECTED_TRAVEL_TIME = 1440;
-
 void load_distributions(
-    std::string root,
+    std::string root, unsigned int const max_expected_travel_time,
+    unsigned int const max_expected_departure_delay,
     std::map<std::string, std::string>& family_to_distribution_class,
     std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions,
@@ -49,14 +47,25 @@ void load_distributions(
     std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions);
 void load_distribution_mappings(
-    std::string const filepath,
+    std::string const filepath, unsigned int const max_expected_travel_time,
+    unsigned int const max_expected_departure_delay,
     std::vector<resolved_mapping>& resolved_mappings);
 void load_start_distributions(std::string const filepath,
                               std::map<std::string, probability_distribution>&
                                   class_to_probability_distributions);
 
-void to_resolved_mappings(std::vector<mapping_int> const& integer_mappings,
-                          std::vector<resolved_mapping>& resolved_mappings);
+bool parse_travel_time_interval(std::string const& from_travel_time_str,
+                                std::string const& to_travel_time_str,
+                                unsigned int const max_expected_travel_time,
+                                unsigned int& from_travel_time,
+                                unsigned int& to_travel_time);
+bool parse_departure_delay_interval(
+    std::string const& from_delay_str, std::string const& to_delay_str,
+    unsigned int const max_expected_departure_delay, unsigned int& from_delay,
+    unsigned int& to_delay);
+
+void resolve_mappings(std::vector<mapping_int> const& integer_mappings,
+                      std::vector<resolved_mapping>& resolved_mappings);
 bool mapping_is_smaller(resolved_mapping const& a, resolved_mapping const& b);
 
 }  // namespace detail

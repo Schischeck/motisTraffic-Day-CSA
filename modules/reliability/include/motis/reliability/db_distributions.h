@@ -9,7 +9,21 @@ namespace reliability {
 struct probability_distribution;
 
 struct db_distributions : start_and_travel_distributions {
-  db_distributions(std::string const root);
+  struct distribution_mapping {
+    distribution_mapping(probability_distribution const& distribution,
+                         unsigned int const travel_time,
+                         unsigned int const delay)
+        : distribution_(distribution),
+          travel_time_(travel_time),
+          delay_(delay) {}
+    probability_distribution const& distribution_;
+    unsigned int const travel_time_;
+    unsigned int const delay_;
+  };
+
+  db_distributions(std::string const root,
+                   unsigned int const max_expected_travel_time,
+                   unsigned int const max_expected_departure_delay);
 
   probability_distribution const& get_start_distribution(
       std::string const& family) const override;
@@ -31,6 +45,7 @@ private:
   std::vector<std::pair<unsigned int, probability_distribution>>
       all_probability_distributions_;
 
+  // TODO: enable access in constant time (a vector for each travel time)
   std::map<std::string, /* distribution class */
            std::vector<distribution_mapping>> distribution_mappings_;
 
@@ -44,8 +59,7 @@ private:
 namespace db_distributions_helpers {
 void get_distributions(
     unsigned int const travel_time, unsigned int const to_departure_delay,
-    std::vector<start_and_travel_distributions::distribution_mapping> const&
-        all_mappings,
+    std::vector<db_distributions::distribution_mapping> const& all_mappings,
     std::vector<start_and_travel_distributions::probability_distribution_cref>&
         distributions);
 }
