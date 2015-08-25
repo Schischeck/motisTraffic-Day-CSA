@@ -12,6 +12,8 @@ enum error_code_t {
 
   not_implemented = 1,
   event_not_found = 2,
+  invalid_time = 3,
+  no_message_stream = 4
 };
 }  // namespace error
 
@@ -27,6 +29,10 @@ public:
         return "realtime: not implemented";
       case error::event_not_found:
         return "realtime: event not found";
+      case error::invalid_time:
+        return "realtime: invalid time";
+      case error::no_message_stream:
+        return "realtime: no message stream";
       default:
         return "realtime: unkown error";
     }

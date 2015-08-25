@@ -13,6 +13,7 @@
 #include "motis/protocol/Message_generated.h"
 #include "motis/protocol/RealtimeTrainInfoRequest_generated.h"
 #include "motis/protocol/RealtimeTrainInfoResponse_generated.h"
+#include "motis/protocol/RealtimeForwardTimeRequest_generated.h"
 
 #include "motis/realtime/error.h"
 
@@ -96,8 +97,11 @@ void realtime::print(std::ostream& out) const {
 }
 
 realtime::realtime()
+    : db_fetch_size_(15),
       ops_{{MsgContent_RealtimeTrainInfoRequest,
-            std::bind(&realtime::get_train_info, this, p::_1, p::_2)}} {}
+            std::bind(&realtime::get_train_info, this, p::_1, p::_2)},
+           {MsgContent_RealtimeForwardTimeRequest,
+            std::bind(&realtime::forward_time, this, p::_1, p::_2)}} {}
 
 void realtime::init() {
   //
@@ -254,6 +258,23 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
       b, MsgContent_RealtimeTrainInfoResponse,
       CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos)).Union()));
   cb(make_msg(b), error::ok);
+}
+
+void realtime::forward_time(motis::module::msg_ptr msg,
+                            motis::module::callback cb) {
+  auto req = msg->content<RealtimeForwardTimeRequest const*>();
+
+  std::time_t new_time = static_cast<std::time_t>(req->new_time());
+  if (message_fetcher_ != nullptr) {
+    if (message_fetcher_->_msg_stream->forward_to(new_time)) {
+      message_fetcher_->process_stream();
+      cb({}, error::ok);
+    } else {
+      cb({}, error::invalid_time);
+    }
+  } else {
+    cb({}, error::no_message_stream);
+  }
 }
 
 void realtime::on_msg(msg_ptr msg, sid, callback cb) {

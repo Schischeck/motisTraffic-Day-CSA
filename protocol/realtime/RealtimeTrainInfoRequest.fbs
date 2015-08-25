@@ -7,6 +7,19 @@ table GraphTrainEvent {
   real_time:ushort;
 }
 
+// JSON example:
+// --
+// {
+//   "content_type": "RealtimeTrainInfoRequest",
+//   "content": {
+//     "first_stop": {
+//       "train_nr": 10359,
+//       "station_index": 43,
+//       "departure": true,
+//       "real_time": 2856
+//     }
+//   }
+// }
 table RealtimeTrainInfoRequest {
   first_stop:GraphTrainEvent;
 }

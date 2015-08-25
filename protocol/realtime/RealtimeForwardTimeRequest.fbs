@@ -1,0 +1,13 @@
+namespace motis.realtime;
+
+// JSON example:
+// --
+// {
+//   "content_type": "RealtimeForwardTimeRequest",
+//   "content": {
+//     "new_time": 1439935200
+//   }
+// }
+table RealtimeForwardTimeRequest {
+  new_time:long;
+}

@@ -9,6 +9,7 @@ include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
 include "realtime/RealtimeTrainInfoResponse.fbs";
+include "realtime/RealtimeForwardTimeRequest.fbs";
 
 namespace motis;
 
@@ -39,7 +40,8 @@ union MsgContent {
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse,
   motis.realtime.RealtimeTrainInfoRequest,
-  motis.realtime.RealtimeTrainInfoResponse
+  motis.realtime.RealtimeTrainInfoResponse,
+  motis.realtime.RealtimeForwardTimeRequest
 }
 
 table Message {
