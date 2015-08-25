@@ -123,7 +123,6 @@ void message_handler::handle_delay(const delay_message& msg) {
 void message_handler::handle_additional_train(
     const additional_train_message& msg) {
   _rts._stats._counters.additional.increment();
-  _rts._delay_propagator.process_queue();
 
   if (_rts.is_tracked(msg.train_nr_)) {
     _rts._tracking.in_message(msg);
@@ -187,7 +186,6 @@ void message_handler::handle_canceled_train(const cancel_train_message& msg) {
     _rts._stats._counters.canceled.ignore();
     return;
   }
-  _rts._delay_propagator.process_queue();
 
   std::vector<std::tuple<node*, schedule_event, schedule_event>> current_events;
   modified_train* mt;
@@ -268,8 +266,6 @@ void message_handler::handle_canceled_train(const cancel_train_message& msg) {
         _rts._delay_info_manager.cancel_event(e, mt->_new_route_id);
     _rts._delay_propagator.enqueue(di, queue_reason::CANCELED);
   }
-
-  _rts._delay_propagator.process_queue();
 }
 
 void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
@@ -281,7 +277,6 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
     _rts._stats._counters.reroutings.ignore();
     return;
   }
-  _rts._delay_propagator.process_queue();
 
   modified_train* mt = nullptr;
   std::vector<std::tuple<node*, schedule_event, schedule_event>> current_events;
@@ -459,8 +454,6 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
     delay_info* di = _rts._delay_info_manager.undo_cancelation(e);
     if (di != nullptr) _rts._delay_propagator.enqueue(di, queue_reason::RECALC);
   }
-
-  _rts._delay_propagator.process_queue();
 }
 
 void message_handler::handle_connection_status_decision(
