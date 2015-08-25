@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-option(WITH_MYSQL "MySQL support" ON)
+option(WITH_MYSQL "MySQL support" OFF)
 
 include_directories(include)
 include_directories(../routing/include)
