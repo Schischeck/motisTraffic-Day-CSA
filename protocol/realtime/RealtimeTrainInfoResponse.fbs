@@ -5,12 +5,17 @@ enum TimestampReason : byte { Schedule, Is, Forecast, Propagation }
 table EventInfo {
   train_nr:uint;
   station_index:uint;
-  departure:bool = true;
+  departure:bool;
+  /// Current time of the event (as in the graph, i.e. the delayed time)
   real_time:ushort;
+  /// Scheduled time of the event (as in the original schedule)
   scheduled_time:ushort;
+  /// Reason for the timestamp/delay
   reason:TimestampReason = Schedule;
 }
 
+/// Sent in response to a RealtimeTrainInfoRequest.
 table RealtimeTrainInfoResponse {
   stops:[EventInfo];
+  route_id:int;
 }

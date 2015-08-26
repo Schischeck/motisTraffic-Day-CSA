@@ -52,6 +52,9 @@ To automatically load and process all messages from a text file, remove
 
 ## Module Messages
 
+For more information about the format and fields of a message, see the .fbs
+files in /protocol/realtime.
+
 ### RealtimeForwardTimeRequest
 
 To manually forward the time, use `--realtime.manual` and then send a
@@ -62,18 +65,68 @@ Example (JSON Syntax):
 `{"content_type": "RealtimeForwardTimeRequest", "content":
 {"new_time": 1439852400}}`
 
-### RealtimeTrainInfoRequest
+### RealtimeCurrentTimeRequest
 
-This message contains information about the first stop of a train from the
-current graph. It will return a RealtimeTrainInfoResponse message with
-delay information (scheduled time, real time, delay reason) for all stops of
-the train.
+This message can be used to request the timestamp of the last realtime message
+that was processed.
 
 Example request:
 
+`{"content_type": "RealtimeCurrentTimeRequest"}`
+
+Example response:
+
+    {
+      "content_type": "RealtimeCurrentTimeResponse",
+      "content": {
+        "last_message_time": 1439675970,
+        "stream_end_time": 1439852400
+      }
+    }
+    
+In this example, the realtime message stream was forwarded to 1439852400 and the
+timestamp of the last realtime message that was processed is 1439675970.
+If no messages have been processed so far, the time returned is 0.
+
+### RealtimeTrainInfoRequest
+
+This message requests delay information about a train. It can be used to either
+request information for a single event or for all events of a train starting
+with the given event.
+It will return a RealtimeTrainInfoResponse message with
+delay information (scheduled time, real time, delay reason) for these stops.
+
+Example request (single event):
+
+`{"content_type": "RealtimeTrainInfoRequest", "content":
+{"first_stop": {"train_nr": 46120, "station_index": 6886, "departure": false,
+"real_time": 2744, "route_id": 6819}, "single_event": true}}`
+
+Example response:
+
+
+    {
+      "content_type": "RealtimeTrainInfoResponse",
+      "content": {
+        "stops": [
+          {
+            "train_nr": 46120,
+            "station_index": 6886,
+            "real_time": 2744,
+            "scheduled_time": 2739,
+            "reason": "Forecast"
+          }
+        ],
+        "route_id": 6819
+      }
+    }
+
+
+Example request (all events of the train starting with the given event):
+
 `{"content_type": "RealtimeTrainInfoRequest", "content":
 {"first_stop": {"train_nr": 46120, "station_index": 6871, "departure": true,
-"real_time": 2741}}}`
+"real_time": 2741, "route_id": 6819}, "single_event": false}}`
 
 Example response:
 
@@ -85,6 +138,7 @@ Example response:
           {
             "train_nr": 46120,
             "station_index": 6871,
+            "departure": 1,
             "real_time": 2741,
             "scheduled_time": 2736,
             "reason": "Forecast"
@@ -92,7 +146,6 @@ Example response:
           {
             "train_nr": 46120,
             "station_index": 6886,
-            "departure": 0,
             "real_time": 2744,
             "scheduled_time": 2739,
             "reason": "Forecast"
@@ -100,6 +153,7 @@ Example response:
           {
             "train_nr": 46120,
             "station_index": 6886,
+            "departure": 1,
             "real_time": 2745,
             "scheduled_time": 2740,
             "reason": "Forecast"
@@ -107,12 +161,12 @@ Example response:
           {
             "train_nr": 46120,
             "station_index": 6774,
-            "departure": 0,
             "real_time": 2747,
             "scheduled_time": 2742,
             "reason": "Propagation"
           }
-        ]
+        ],
+        "route_id": 6819
       }
     }
 

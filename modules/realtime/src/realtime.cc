@@ -10,11 +10,6 @@
 #include "motis/module/api.h"
 #include "motis/core/common/logging.h"
 
-#include "motis/protocol/Message_generated.h"
-#include "motis/protocol/RealtimeTrainInfoRequest_generated.h"
-#include "motis/protocol/RealtimeTrainInfoResponse_generated.h"
-#include "motis/protocol/RealtimeForwardTimeRequest_generated.h"
-
 #include "motis/realtime/error.h"
 
 #ifdef WITH_MYSQL
@@ -101,7 +96,9 @@ realtime::realtime()
       ops_{{MsgContent_RealtimeTrainInfoRequest,
             std::bind(&realtime::get_train_info, this, p::_1, p::_2)},
            {MsgContent_RealtimeForwardTimeRequest,
-            std::bind(&realtime::forward_time, this, p::_1, p::_2)}} {}
+            std::bind(&realtime::forward_time, this, p::_1, p::_2)},
+           {MsgContent_RealtimeCurrentTimeRequest,
+            std::bind(&realtime::current_time, this, p::_1, p::_2)}} {}
 
 void realtime::init() {
   //
@@ -196,7 +193,8 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
   auto first_stop = req->first_stop();
 
   graph_event first_event(first_stop->station_index(), first_stop->train_nr(),
-                          first_stop->departure(), first_stop->real_time(), -1);
+                          first_stop->departure(), first_stop->real_time(),
+                          first_stop->route_id());
 
   motis::node* route_node;
   motis::light_connection* lc;
@@ -207,41 +205,68 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
     return;
   }
 
+  first_event._route_id = route_node->_route;
+
   flatbuffers::FlatBufferBuilder b;
   std::vector<flatbuffers::Offset<EventInfo>> event_infos;
 
+  if (first_event.arrival()) {
+    delay_info* di_arr = rts_->_delay_info_manager.get_delay_info(first_event);
+    motis::time sched_arr = di_arr == nullptr
+                                ? first_event._current_time
+                                : di_arr->_schedule_event._schedule_time;
+    timestamp_reason reason_arr =
+        di_arr == nullptr ? timestamp_reason::SCHEDULE : di_arr->_reason;
+    auto ei_arr = CreateEventInfo(
+        b, lc->_full_con->con_info->train_nr, first_event._station_index, false,
+        first_event._current_time, sched_arr, encode_reason(reason_arr));
+    event_infos.push_back(ei_arr);
+
+    if (req->single_event()) {
+      lc = nullptr;
+    } else {
+      motis::edge* next_edge = rts_->get_next_edge(route_node);
+      if (next_edge != nullptr) {
+        lc = rts_->get_connection_with_service(
+            next_edge, lc->a_time, lc->_full_con->con_info->service);
+      } else {
+        lc = nullptr;
+      }
+    }
+  }
+
   while (route_node != nullptr && lc != nullptr) {
-    motis::node* next_node = rts_->get_next_node(route_node);
     auto train_nr = lc->_full_con->con_info->train_nr;
+
     graph_event g_dep(route_node->get_station()->_id, train_nr, true,
                       lc->d_time, route_node->_route);
-    graph_event g_arr(next_node->get_station()->_id, train_nr, false,
-                      lc->a_time, route_node->_route);
-
     delay_info* di_dep = rts_->_delay_info_manager.get_delay_info(g_dep);
-    delay_info* di_arr = rts_->_delay_info_manager.get_delay_info(g_arr);
-
     motis::time sched_dep = di_dep == nullptr
                                 ? g_dep._current_time
                                 : di_dep->_schedule_event._schedule_time;
-    motis::time sched_arr = di_arr == nullptr
-                                ? g_arr._current_time
-                                : di_arr->_schedule_event._schedule_time;
-
     timestamp_reason reason_dep =
         di_dep == nullptr ? timestamp_reason::SCHEDULE : di_dep->_reason;
-    timestamp_reason reason_arr =
-        di_arr == nullptr ? timestamp_reason::SCHEDULE : di_arr->_reason;
-
     auto ei_dep = CreateEventInfo(b, train_nr, g_dep._station_index, true,
                                   g_dep._current_time, sched_dep,
                                   encode_reason(reason_dep));
+    event_infos.push_back(ei_dep);
 
+    if (req->single_event()) {
+      break;
+    }
+
+    motis::node* next_node = rts_->get_next_node(route_node);
+    graph_event g_arr(next_node->get_station()->_id, train_nr, false,
+                      lc->a_time, route_node->_route);
+    delay_info* di_arr = rts_->_delay_info_manager.get_delay_info(g_arr);
+    motis::time sched_arr = di_arr == nullptr
+                                ? g_arr._current_time
+                                : di_arr->_schedule_event._schedule_time;
+    timestamp_reason reason_arr =
+        di_arr == nullptr ? timestamp_reason::SCHEDULE : di_arr->_reason;
     auto ei_arr = CreateEventInfo(b, train_nr, g_arr._station_index, false,
                                   g_arr._current_time, sched_arr,
                                   encode_reason(reason_arr));
-
-    event_infos.push_back(ei_dep);
     event_infos.push_back(ei_arr);
 
     route_node = next_node;
@@ -256,7 +281,8 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
   b.Finish(CreateMessage(
       b, MsgContent_RealtimeTrainInfoResponse,
-      CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos)).Union()));
+      CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
+                                      first_event._route_id).Union()));
   cb(make_msg(b), error::ok);
 }
 
@@ -265,13 +291,29 @@ void realtime::forward_time(motis::module::msg_ptr msg,
   auto req = msg->content<RealtimeForwardTimeRequest const*>();
 
   std::time_t new_time = static_cast<std::time_t>(req->new_time());
-  if (message_fetcher_ != nullptr) {
+  if (message_fetcher_ != nullptr && message_fetcher_->_msg_stream != nullptr) {
     if (message_fetcher_->_msg_stream->forward_to(new_time)) {
       message_fetcher_->process_stream();
       cb({}, error::ok);
     } else {
       cb({}, error::invalid_time);
     }
+  } else {
+    cb({}, error::no_message_stream);
+  }
+}
+
+void realtime::current_time(motis::module::msg_ptr msg,
+                            motis::module::callback cb) {
+  if (message_fetcher_ != nullptr && message_fetcher_->_msg_stream != nullptr) {
+    flatbuffers::FlatBufferBuilder b;
+    b.Finish(
+        CreateMessage(b, MsgContent_RealtimeCurrentTimeResponse,
+                      CreateRealtimeCurrentTimeResponse(
+                          b, message_fetcher_->_msg_stream->current_time(),
+                          message_fetcher_->_msg_stream->start_time(),
+                          message_fetcher_->_msg_stream->end_time()).Union()));
+    cb(make_msg(b), error::ok);
   } else {
     cb({}, error::no_message_stream);
   }

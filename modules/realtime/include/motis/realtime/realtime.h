@@ -11,6 +11,7 @@
 #include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/message_fetcher.h"
 #include "motis/realtime/opt_time.h"
+#include "motis/protocol/Message_generated.h"
 
 namespace motis {
 namespace realtime {
@@ -26,7 +27,8 @@ struct realtime : public motis::module::module {
   virtual void on_config_loaded() override;
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RealtimeTrainInfoRequest,
-            MsgContent_RealtimeForwardTimeRequest};
+            MsgContent_RealtimeForwardTimeRequest,
+            MsgContent_RealtimeCurrentTimeRequest};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
@@ -50,6 +52,7 @@ struct realtime : public motis::module::module {
 private:
   void get_train_info(motis::module::msg_ptr msg, motis::module::callback cb);
   void forward_time(motis::module::msg_ptr msg, motis::module::callback cb);
+  void current_time(motis::module::msg_ptr msg, motis::module::callback cb);
 
   typedef std::function<void(motis::module::msg_ptr, motis::module::callback)>
       op;
