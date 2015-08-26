@@ -89,6 +89,7 @@ public:
                         std::vector<schedule_event> canceled_events,
                         std::vector<schedule_event> new_events)
       : message(message_type::reroute),
+        category_(category),
         canceled_events_(canceled_events),
         new_events_(new_events) {}
 
