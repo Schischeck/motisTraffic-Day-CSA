@@ -152,18 +152,16 @@ inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
 }
 
 template <typename TargetCollection, typename It, typename UnaryOperation>
-inline TargetCollection transform(It begin, It end, UnaryOperation op) {
+inline TargetCollection transform(It s, It e, UnaryOperation op) {
   TargetCollection c;
-  std::transform(begin, end, std::back_insert_iterator<TargetCollection>(c),
-                 op);
+  std::transform(s, e, std::back_insert_iterator<TargetCollection>(c), op);
   return c;
 }
 
 template <typename It, typename UnaryOperation>
 inline auto transform_to_vec(It s, It e, UnaryOperation op)
     -> std::vector<decltype(op(*s))> {
-  using target_collection_t = std::vector<decltype(op(*s))>;
-  target_collection_t vec(std::distance(s, e));
+  std::vector<decltype(op(*s))> vec(std::distance(s, e));
   std::transform(s, e, std::begin(vec), op);
   return vec;
 }

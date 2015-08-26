@@ -15,10 +15,6 @@ target_link_libraries(motis-realtime ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SY
 target_link_libraries(motis-realtime ${MYSQL_LIBRARIES} ${MYSQLPP_LIBRARIES})
 target_link_libraries(motis-realtime motis-loader)
 set_target_properties(motis-realtime PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
-set_target_properties(motis-realtime PROPERTIES OUTPUT_NAME realtime.module)
-
-add_custom_target(motis-realtime-reload killall -SIGUSR1 motis-webservice)
-add_dependencies(motis-realtime-reload motis-realtime motis-webservice)
 
 file(GLOB_RECURSE motis-realtime-test-files test/*.cc)
 add_executable(motis-realtime-test ${motis-realtime-test-files})

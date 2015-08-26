@@ -6,8 +6,6 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/module/api.h"
-
 #include "motis/protocol/RailVizInit_generated.h"
 #include "motis/protocol/RailVizStationDetail_generated.h"
 #include "motis/protocol/RailVizStationDetailRequest_generated.h"
@@ -131,8 +129,6 @@ void railviz::on_msg(msg_ptr msg, sid session, callback cb) {
   auto it = ops_.find(msg->msg_->content_type());
   return it->second(msg, client_it->second, cb);
 }
-
-MOTIS_MODULE_DEF_MODULE(railviz)
 
 }  // namespace railviz
 }  // namespace motis

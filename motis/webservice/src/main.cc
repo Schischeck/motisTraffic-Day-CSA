@@ -14,15 +14,10 @@
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 
-#ifndef MOTIS_STATIC_MODULES
-#include "motis/module/dynamic_module.h"
-#include "motis/module/dynamic_module_loader.h"
-#else
 #include "motis/railviz/railviz.h"
 #include "motis/guesser/guesser.h"
 #include "motis/routing/routing.h"
 #include "motis/reliability/reliability.h"
-#endif
 
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
@@ -65,11 +60,6 @@ int main(int argc, char** argv) {
 
   dispatcher dispatcher(server, ios);
 
-#ifndef MOTIS_STATIC_MODULES
-  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios,
-                               thread_pool);
-  loader.load_modules();
-#else
   namespace p = std::placeholders;
   send_fun send = std::bind(&dispatcher::send, &dispatcher, p::_1, p::_2);
   msg_handler dispatch =
@@ -91,7 +81,6 @@ int main(int argc, char** argv) {
 
     module->init_(&c);
   }
-#endif
 
   std::vector<conf::configuration*> module_confs;
   for (auto const& module : dispatcher.modules_) {
@@ -113,5 +102,6 @@ int main(int argc, char** argv) {
 
   ios.run();
   thread_pool.stop();
-  std::for_each(begin(threads), end(threads), [](boost::thread& t) { t.join(); });
+  std::for_each(begin(threads), end(threads),
+                [](boost::thread& t) { t.join(); });
 }
