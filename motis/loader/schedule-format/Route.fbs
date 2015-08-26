@@ -1,0 +1,7 @@
+include "Station.fbs";
+
+namespace motis.loader;
+
+table Route {
+  stations : [Station];
+}

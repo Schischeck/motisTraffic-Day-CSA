@@ -39,8 +39,6 @@ include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
-include(${CMAKE_SOURCE_DIR}/cmake/FlatBuffersUtil.cmake)
-
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)

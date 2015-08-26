@@ -1,0 +1,11 @@
+include "Attribute.fbs";
+
+namespace motis.loader;
+
+table Section {
+  train_nr : int;
+  train_class : int;
+  category : int;
+  line_id : string;
+  attributes: [Attribute];
+}
