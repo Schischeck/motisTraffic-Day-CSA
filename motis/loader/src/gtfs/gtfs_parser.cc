@@ -38,9 +38,7 @@ bool gtfs_parser::applicable(fs::path const& path) {
   return true;
 }
 
-void gtfs_parser::parse(fs::path const& path) {
-  FlatBufferBuilder b;
-
+void gtfs_parser::parse(fs::path const& path, FlatBufferBuilder& b) {
   auto buf = file((path / STOPS_FILE).string().c_str(), "ro").content();
   auto stations = read_stations(
       {STOPS_FILE, {static_cast<char const*>(buf.buf_), buf.size_}}, b);

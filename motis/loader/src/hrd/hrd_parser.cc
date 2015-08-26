@@ -13,6 +13,7 @@
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
+using namespace parser;
 namespace fs = boost::filesystem;
 
 namespace motis {
@@ -24,7 +25,9 @@ bool hrd_parser::applicable(fs::path const& path) {
     return false;
   }
 
-  std::vector<std::string> file_names = {ATTRIBUTES_FILE};
+  std::vector<std::string> file_names = {ATTRIBUTES_FILE, STATIONS_FILE,
+                                         COORDINATES_FILE, BITFIELDS_FILE,
+                                         PLATFORMS_FILE};
   for (auto const& file_name : file_names) {
     if (!fs::is_regular_file(path / "stamm" / file_name)) {
       return false;
@@ -34,18 +37,16 @@ bool hrd_parser::applicable(fs::path const& path) {
   return true;
 }
 
-void hrd_parser::parse(fs::path const& path) {
-  FlatBufferBuilder b;
+buffer load_file(fs::path const& p) {
+  return file(p.string().c_str(), "ro").content();
+}
 
-  auto buf =
-      parser::file((path / ATTRIBUTES_FILE).string().c_str(), "ro").content();
-  auto attributes = parse_attributes(
-      {ATTRIBUTES_FILE, {static_cast<char const*>(buf.buf_), buf.size_}});
+void hrd_parser::parse(fs::path const& path, FlatBufferBuilder& b) {
+  auto stamm_path = path / "stamm";
 
-  // TODO(tobias) remove / implement
-  // CreateSchedule(b, b.CreateVector(read_trains(b, path)));
-
-  write_schedule(b, path);
+  auto buf = load_file(stamm_path / ATTRIBUTES_FILE);
+  auto attributes =
+      parse_attributes({ATTRIBUTES_FILE, {buf.data(), buf.size()}});
 }
 
 }  // hrd
