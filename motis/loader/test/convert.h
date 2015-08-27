@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 #include "motis/converter/Converter_generated.h"

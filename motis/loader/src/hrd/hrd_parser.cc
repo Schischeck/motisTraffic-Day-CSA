@@ -37,10 +37,6 @@ bool hrd_parser::applicable(fs::path const& path) {
   return true;
 }
 
-buffer load_file(fs::path const& p) {
-  return file(p.string().c_str(), "ro").content();
-}
-
 void hrd_parser::parse(fs::path const& path, FlatBufferBuilder& b) {
   auto stamm_path = path / "stamm";
 

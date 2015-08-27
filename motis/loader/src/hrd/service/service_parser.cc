@@ -9,7 +9,6 @@
 #include "motis/loader/parser_error.h"
 
 #include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/service/specification.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
 #include "motis/loader/parsers/hrd/service/split_service.h"
 #include "motis/loader/util.h"
@@ -135,13 +134,11 @@ struct service_builder {
       std::vector<hrd_service::section> const& sections,
       std::vector<hrd_service::stop> const& stops) {
     struct stop_platforms {
-      typedef std::vector<Offset<Platform>> platforms;
-      platforms dep_platforms;
-      platforms arr_platforms;
+      std::vector<Offset<Platform>> dep_platforms;
+      std::vector<Offset<Platform>> arr_platforms;
     };
 
-    std::vector<stop_platforms> stops_platforms;
-
+    std::vector<stop_platforms> stops_platforms(stops.size());
     for (unsigned i = 0; i < sections.size(); ++i) {
       int section_index = i;
       int from_stop_index = section_index;
@@ -202,10 +199,8 @@ struct service_builder {
   FlatBufferBuilder& builder_;
 };
 
-void parse_services(loaded_file file, shared_data const& stamm,
-                    FlatBufferBuilder& fbb,
-                    std::vector<Offset<Service>>& services) {
-  service_builder sb(stamm, fbb);
+void parse_services(loaded_file const& file,
+                    std::function<void(specification const&)> builder) {
   specification spec;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     bool finished = spec.read_line(line, file.name, line_number);
@@ -221,7 +216,7 @@ void parse_services(loaded_file file, shared_data const& stamm,
     // Store if relevant.
     if (!spec.ignore()) {
       try {
-        sb.create_services(hrd_service(spec), fbb, services);
+        builder(spec);
       } catch (std::runtime_error const& e) {
         throw parser_error(file.name, line_number);
       }
@@ -231,6 +226,20 @@ void parse_services(loaded_file file, shared_data const& stamm,
     spec.reset();
     spec.read_line(line, file.name, line_number);
   });
+
+  if (spec.valid()) {
+    builder(spec);
+  }
+}
+
+void parse_services(loaded_file const& file, shared_data const& stamm,
+                    FlatBufferBuilder& fbb,
+                    std::vector<flatbuffers::Offset<Service>>& services) {
+  service_builder sb(stamm, fbb);
+  auto builder_func = [&fbb, &sb, &services](specification spec) {
+    sb.create_services(hrd_service(spec), fbb, services);
+  };
+  parse_services(file, builder_func);
 }
 
 }  // hrd

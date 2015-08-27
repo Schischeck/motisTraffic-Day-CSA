@@ -3,6 +3,8 @@
 
 #include "catch/catch.hpp"
 
+#include "test_spec.h"
+
 #include "parser/cstr.h"
 
 #include "motis/loader/parser_error.h"
@@ -20,134 +22,20 @@
 
 using namespace parser;
 using namespace flatbuffers;
+namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
-cstr service_file_content_1 = R"(
-*Z 02292 80____    01                                     % 02292 80____    01 (001)
-*G IC  8000096 8000105                                    % 02292 80____    01 (002)
-*L 381   8000096 8000105                                  % 09988 80____    01 (003)
-*A VE 8000096 8000105 002687                              % 02292 80____    01 (004)
-*I FZ                        0129939                      % 02292 80____    01 (005)
-*A BT 8000096 8000105                                     % 02292 80____    01 (006)
-*A FR 8000096 8000105                                     % 02292 80____    01 (007)
-*A G  8000096 8000105                                     % 02292 80____    01 (008)
-8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
-8000156 Heidelberg Hbf        01644  01646                % 02292 80____    01 (010)
-8000377 Weinheim(Bergstr)    -01659 -01700                % 02292 80____    01 (011)
-8000031 Bensheim              01708  01709                % 02292 80____    01 (012)
-8000068 Darmstadt Hbf         01722  01724                % 02292 80____    01 (013)
-8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (014))";
-
-cstr service_file_content_2 = R"(
-*Z 02292 80____    01                                     % 02292 80____    01 (001)
-*G IC  8000096 8000105                                    % 02292 80____    01 (002)
-*L 381   8000096 8000105                                  % 09988 80____    01 (003)
-*A VE 8000096 8000068                                     % 02292 80____    01 (004)
-*A VE 8000068 8000105 002687                              % 02292 80____    01 (005)
-*A BT 8000068 8000105 001337                              % 02292 80____    01 (006)
-*A FR 8000096 8000068                                     % 02292 80____    01 (007)
-*A G  8000096 8000068                                     % 02292 80____    01 (008)
-8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
-8000068 Darmstadt Hbf         01722  01724 02293 81____   % 02292 80____    01 (010)
-8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (011))";
-
-cstr service_file_content_invalid_traffic_days = R"(
-*Z 02292 80____    01                                     % 02292 80____    01 (001)
-*G IC  8000096 8000105                                    % 02292 80____    01 (002)
-*L 381   8000096 8000105                                  % 09988 80____    01 (003)
-*A VE 8000096 8000105                                     % 02292 80____    01 (004)
-*A VE 8000096 8000105 002687                              % 02292 80____    01 (005)
-8000096 Stuttgart Hbf                01605                % 02292 80____    01 (009)
-8000068 Darmstadt Hbf         01722  01724 02293 81____   % 02292 80____    01 (010)
-8000105 Frankfurt(Main)Hbf    01740                       % 02292 80____    01 (011))";
-
-cstr attributes_file_content = R"(
-BT   0    450    11  Bordbistro#
-FR   0    260    03  Fahrradmitnahme reservierungspflichtig#
-G    0    260    05  Fahrradmitnahme begrenzt möglich#)";
-
-cstr stations_file_content = R"(
-8000096 VVS Stuttgart Hbf$S$Stoccarda
-8000156 VRN Heidelberg Hbf$HD
-8000377 VRN Weinheim(Bergstr)
-8000031 VRN Bensheim
-8000068 RMV Darmstadt Hbf$DA
-8000105 RMV Frankfurt(Main)Hbf$Francfort (Main))";
-
-cstr station_coordinates_file_content = R"(
-8000096   9.181635  48.784084 Stuttgart Hbf
-8000156   8.675442  49.403567 Heidelberg Hbf
-8000377   8.665351  49.553302 Weinheim(Bergstr)
-8000031   8.616717  49.681329 Bensheim
-8000068   8.629636  49.872503 Darmstadt Hbf
-8000105   8.663789  50.107145 Frankfurt(Main)Hbf)";
-
-cstr bitfields_file_content = R"(
-002687 ffffffffffffffffffffffffffffffffffffffe7cf9f1e7fffffffffffffffffffffffffffffffffffffffffffff0000
-596114 ffffffffffffffffffffffffffffffffffffffe7cf9f1c7fffffffffffffffffffffffffffffffffffffffffffff0000
-304723 ffffffffffffffffffffffffffffffffffffffe7cf9f127fffffffffffffffffffffffffffffffffffffffffffff0000)";
-
-cstr platforms_rules_file_content = R"(
-8000031 02292 80____ 1             000000
-8000068 02292 80____ 5             000000
-8000096 02292 80____ 7             000000
-8000105 02292 80____ 10       1740 596114
-8000105 02292 80____ 12       1740 304723
-8000156 02292 80____ 3             000000
-8000377 02292 80____ 2             000000)";
-
-TEST_CASE("parse_trains") {
-  try {
-    flatbuffers::FlatBufferBuilder b;
-
-    auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfields_file_content});
-    auto attributes =
-        parse_attributes({ATTRIBUTES_FILE, attributes_file_content});
-    auto stations =
-        parse_stations({STATIONS_FILE, stations_file_content},
-                       {COORDINATES_FILE, station_coordinates_file_content}, b);
-    auto platforms =
-        parse_platform_rules({PLATFORMS_FILE, platforms_rules_file_content}, b);
-
-    std::vector<Offset<Service>> services;
-    parse_services({"trains.101", service_file_content_1},
-                   shared_data(stations, attributes, bitfields, platforms), b,
-                   services);
-
-    b.Finish(CreateSchedule(b, b.CreateVector(services),
-                            b.CreateVector(values(stations)), {}));
-  } catch (parser_error const& e) {
-    printf("parser error: %s:%d\n", e.filename, e.line_number);
-  }
-}
-
-TEST_CASE("parse_specification") {
-  specification spec;
-  for_each_line_numbered(service_file_content_1,
-                         [&spec](cstr const& line, int line_number) {
-                           spec.read_line(line, "services.101", line_number);
-                         });
-
-  REQUIRE(spec.valid());
-  REQUIRE(!spec.is_empty());
-  REQUIRE(!spec.internal_service.empty());
-  REQUIRE(spec.traffic_days.size() == 1);
-  REQUIRE(spec.categories.size() == 1);
-  REQUIRE(spec.attributes.size() == 3);
-  REQUIRE(spec.stops.size() == 6);
-}
-
 TEST_CASE("parse_hrd_service_full_range") {
-  specification spec;
-  for_each_line_numbered(service_file_content_1,
-                         [&spec](cstr const& line, int line_number) {
-                           spec.read_line(line, "services.101", line_number);
-                         });
+  test_spec services_file(SCHEDULES / "hand-crafted" / "fahrten",
+                          "services-1.101");
 
-  auto service = hrd_service(spec);
+  auto services = services_file.get_services();
+  REQUIRE(services.size() == 1);
+
+  auto const& service = services[0];
   REQUIRE(service.sections_.size() == 5);
   std::for_each(
       std::begin(service.sections_), std::end(service.sections_),
@@ -206,13 +94,13 @@ TEST_CASE("parse_hrd_service_full_range") {
 }
 
 TEST_CASE("parse_hrd_service_multiple_ranges") {
-  specification spec;
-  for_each_line_numbered(service_file_content_2,
-                         [&spec](cstr const& line, int line_number) {
-                           spec.read_line(line, "services.101", line_number);
-                         });
+  test_spec services_file(SCHEDULES / "hand-crafted" / "fahrten",
+                          "services-2.101");
 
-  auto service = hrd_service(spec);
+  auto services = services_file.get_services();
+  REQUIRE(services.size() == 1);
+
+  auto const& service = services[0];
   REQUIRE(service.sections_.size() == 2);
 
   auto section = service.sections_[0];
@@ -256,19 +144,38 @@ TEST_CASE("parse_hrd_service_multiple_ranges") {
   REQUIRE(stop.dep.time == hrd_service::NOT_SET);
 }
 
-TEST_CASE("parse_hrd_service_invalid_traffic_days") {
-  bool catched = false;
+TEST_CASE("parse_trains") {
   try {
-    specification spec;
-    for_each_line_numbered(service_file_content_invalid_traffic_days,
-                           [&spec](cstr const& line, int line_number) {
-                             spec.read_line(line, "services.101", line_number);
-                           });
-    auto service = hrd_service(spec);
-  } catch (std::runtime_error const& e) {
-    catched = true;
+    const auto stamm = (SCHEDULES / "hand-crafted") / "stamm";
+    const auto fahrten = (SCHEDULES / "hand-crafted") / "fahrten";
+
+    const test_spec bitfields_file(stamm, BITFIELDS_FILE);
+    auto bitfields = parse_bitfields(bitfields_file.lf_);
+
+    const test_spec attributes_file(stamm, ATTRIBUTES_FILE);
+    auto attributes = parse_attributes(attributes_file.lf_);
+
+    FlatBufferBuilder b;
+
+    const test_spec stations_file(stamm, STATIONS_FILE);
+    const test_spec coordinates_file(stamm, COORDINATES_FILE);
+    auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_, b);
+
+    const test_spec platforms_file(stamm, PLATFORMS_FILE);
+    auto platforms = parse_platform_rules(platforms_file.lf_, b);
+
+    const test_spec services_file(fahrten, "services-all.101");
+    std::vector<Offset<Service>> services;
+    parse_services(services_file.lf_,
+                   shared_data(stations, attributes, bitfields, platforms), b,
+                   services);
+
+    b.Finish(CreateSchedule(b, b.CreateVector(services),
+                            b.CreateVector(values(stations)), {}));
+
+  } catch (parser_error const& e) {
+    printf("parser error: %s:%d\n", e.filename, e.line_number);
   }
-  REQUIRE(catched);
 }
 
 }  // hrd

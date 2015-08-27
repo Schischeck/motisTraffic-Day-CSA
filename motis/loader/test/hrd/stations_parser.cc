@@ -22,10 +22,9 @@ namespace hrd {
 fs::path res_path("motis/loader/test_resources/");
 
 TEST_CASE("parse_stations") {
-  auto stations_file_buf =
-      file((res_path / STATIONS_FILE).c_str(), "ro").content();
-  cstr stations_file_content(static_cast<char const*>(stations_file_buf.buf_),
-                             stations_file_buf.size_);
+  auto stations_file_buf = load_file(res_path / STATIONS_FILE);
+  cstr stations_file_content(
+      {stations_file_buf.data(), stations_file_buf.size()});
 
   auto coordinates_file_buf =
       file((res_path / COORDINATES_FILE).c_str(), "ro").content();

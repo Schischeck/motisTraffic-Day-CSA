@@ -5,6 +5,8 @@
 
 #include "boost/filesystem.hpp"
 
+#include "flatbuffers/flatbuffers.h"
+
 #include "motis/loader/parsers/gtfs/gtfs_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
 
@@ -30,7 +32,8 @@ schedule_ptr load_schedule(std::string const& path) {
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
-        parser->parse(path);
+        flatbuffers::FlatBufferBuilder b;
+        parser->parse(path, b);
         return build_graph(binary_schedule_file);
       }
     }

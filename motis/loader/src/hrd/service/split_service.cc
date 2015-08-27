@@ -25,7 +25,7 @@ struct splitter {
     for (auto const& w : written) {
       verify((b & w.traffic_days) == none, "invalid bitfields");
     }
-    written.push_back({b, start, pos});
+    written.push_back({b, start, pos - 1});
   }
 
   void write_and_remove(std::vector<bitfield>& sections, unsigned start,
@@ -82,13 +82,13 @@ std::vector<split_info> split(hrd_service const& s,
 
 hrd_service new_service_from_split(split_info const& s,
                                    hrd_service const& origin) {
-  auto number_of_stops = s.to_section_idx - s.from_section_idx + 1;
+  auto number_of_stops = s.to_section_idx - s.from_section_idx + 2;
   std::vector<hrd_service::stop> stops(number_of_stops);
   std::copy(std::next(begin(origin.stops_), s.from_section_idx),
             std::next(begin(origin.stops_), s.to_section_idx + 2),
             begin(stops));
 
-  auto number_of_sections = s.to_section_idx - s.from_section_idx;
+  auto number_of_sections = s.to_section_idx - s.from_section_idx + 1;
   std::vector<hrd_service::section> sections(number_of_sections);
   std::copy(std::next(begin(origin.sections_), s.from_section_idx),
             std::next(begin(origin.sections_), s.to_section_idx + 1),

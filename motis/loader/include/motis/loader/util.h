@@ -8,6 +8,7 @@
 #include <map>
 
 #include "parser/cstr.h"
+#include "parser/file.h"
 
 #include "boost/filesystem/path.hpp"
 
@@ -167,6 +168,8 @@ inline auto transform_to_vec(It s, It e, UnaryOperation op)
   std::transform(s, e, std::begin(vec), op);
   return vec;
 }
+
+parser::buffer load_file(boost::filesystem::path const&);
 
 }  // namespace loader
 }  // namespace motis
