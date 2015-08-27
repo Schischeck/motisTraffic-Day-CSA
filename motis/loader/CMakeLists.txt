@@ -4,11 +4,11 @@ project(motis)
 set(schedule-dir ${CMAKE_CURRENT_SOURCE_DIR}/schedule-format)
 set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/schedule-format")
 file(GLOB_RECURSE schedule-format-files ${schedule-dir}/*.fbs)
-compile_flatbuffers_schema_to_cpp(${generated-headers-dir} generated-headers ${schedule-format-files})
+compile_flatbuffers_schema_to_cpp(${schedule-dir} ${generated-headers-dir} generated-headers ${schedule-format-files})
 
 set(generated-converter-header-dir "${CMAKE_BINARY_DIR}/generated/motis/converter")
 file(GLOB converter-files ${CMAKE_CURRENT_SOURCE_DIR}/test/Converter.fbs)
-compile_flatbuffers_schema_to_cpp(${generated-converter-header-dir} converter-headers ${converter-files})
+compile_flatbuffers_schema_to_cpp(${CMAKE_CURRENT_SOURCE_DIR}/test ${generated-converter-header-dir} converter-headers ${converter-files})
 
 file(GLOB_RECURSE motis-loader-files src/*.cc)
 add_library(motis-loader STATIC ${motis-loader-files} ${generated-headers})
