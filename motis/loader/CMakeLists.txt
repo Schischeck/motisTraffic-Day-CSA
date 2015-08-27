@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+set(schedule-dir ${CMAKE_CURRENT_SOURCE_DIR}/schedule-format)
 set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/schedule-format")
-file(GLOB_RECURSE schedule-format-files ${CMAKE_CURRENT_SOURCE_DIR}/schedule-format/*.fbs)
+file(GLOB_RECURSE schedule-format-files ${schedule-dir}/*.fbs)
 compile_flatbuffers_schema_to_cpp(${generated-headers-dir} generated-headers ${schedule-format-files})
 
 set(generated-converter-header-dir "${CMAKE_BINARY_DIR}/generated/motis/converter")
