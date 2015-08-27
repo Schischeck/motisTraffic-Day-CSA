@@ -7,10 +7,12 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "parser/file.h"
 #include "motis/loader/parsers/gtfs/gtfs_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
 
 namespace fs = boost::filesystem;
+using namespace flatbuffers;
 
 namespace motis {
 namespace loader {
@@ -32,8 +34,10 @@ schedule_ptr load_schedule(std::string const& path) {
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
-        flatbuffers::FlatBufferBuilder b;
-        parser->parse(path, b);
+        FlatBufferBuilder builder;
+        parser->parse(path, builder);
+        parser::file(binary_schedule_file.string().c_str(), "w")
+            .write(builder.GetBufferPointer(), builder.GetSize());
         return build_graph(binary_schedule_file);
       }
     }

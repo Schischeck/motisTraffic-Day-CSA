@@ -4,8 +4,6 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/module/api.h"
-
 #include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
@@ -53,8 +51,6 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
 
   return cb(make_msg(b), boost::system::error_code());
 }
-
-MOTIS_MODULE_DEF_MODULE(guesser)
 
 }  // namespace guesser
 }  // namespace motis

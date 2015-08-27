@@ -9,8 +9,6 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 
-#include "motis/module/api.h"
-
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
 #include "motis/routing/label.h"
@@ -138,8 +136,6 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
 
   return;
 }
-
-MOTIS_MODULE_DEF_MODULE(routing)
 
 }  // namespace routing
 }  // namespace motis
