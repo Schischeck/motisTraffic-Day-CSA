@@ -1,13 +1,10 @@
-namespace motis.railviz;
+include "railviz/RailVizCoordinate.fbs";
 
-struct RailViz_init_station_coordinate {
-  lat: double;
-  lng: double;
-}
+namespace motis.railviz;
 
 table RailViz_init_entry {
   station_name : string;
-  station_coord : RailViz_init_station_coordinate;
+  station_coord : RailVizCoordinate;
 }
 
 table RailViz_init {

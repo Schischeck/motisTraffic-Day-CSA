@@ -59,7 +59,7 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
       date_converter_.convert_to_motis(client.time + (60 * 5)), 1000,
       client.bounds);
 
-  std::vector<RailViz_alltra_res_train> trains_output;
+  std::vector<RailVizTrain> trains_output;
   for (auto const& t : trains) {
     light_connection const* con;
     edge const* e;
@@ -116,7 +116,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
       d_station = next_prev_station->_id;
       a_station = index;
     }
-    RailViz_station_detail_res_train t(d_time, a_time, d_station, a_station, route);
+    RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
         b, b.CreateString(line_name), lc->_full_con->clasz, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
@@ -243,7 +243,7 @@ void railviz::on_open(sid session) {
 
   std::vector<flatbuffers::Offset<RailViz_init_entry>> station_entries;
   for (auto const& station : stations) {
-    RailViz_init_station_coordinate sc (station->width, station->length);
+    RailVizCoordinate sc (station->width, station->length);
     station_entries.push_back(CreateRailViz_init_entry(
                       b, b.CreateString(stations[station->index]->name.to_string()),
                       &sc));

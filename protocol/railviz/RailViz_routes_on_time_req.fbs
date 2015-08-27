@@ -1,14 +1,8 @@
-namespace motis.railviz;
+include "railviz/RailVizTrain.fbs";
 
-struct RailViz_routes_on_time_req_train {
-	dTime : int;
-	aTime : int;
-	dStation : int;
-	aStation : int;
-	route_id : int;
-}
+namespace motis.railviz;
 
 table RailViz_routes_on_time_req {
   time: ulong;
-  train: RailViz_routes_on_time_req_train;
+  train: RailVizTrain;
 }

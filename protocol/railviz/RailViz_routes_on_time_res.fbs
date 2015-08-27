@@ -1,22 +1,22 @@
 namespace motis.railviz;
 
 struct RailViz_routes_on_time_res_station {
-	dTime : int;
-	aTime : int;
-	station_id : int;
+  dTime : int;
+  aTime : int;
+  station_id : int;
 }
 
 table RailViz_routes_on_time_res_entry {
-        station_name : string;
-        station_struct : RailViz_routes_on_time_res_station;
+  station_name : string;
+  station_struct : RailViz_routes_on_time_res_station;
 }
 
 table RailViz_routes_on_time_res_route {
-        line_name : string;
-	line_type : int;
-	route_table : [RailViz_routes_on_time_res_entry];
+  line_name : string;
+  line_type : int;
+  route_table : [RailViz_routes_on_time_res_entry];
 }
 
 table RailViz_routes_on_time_res {
-        routes : [RailViz_routes_on_time_res_route];
+  routes : [RailViz_routes_on_time_res_route];
 }
