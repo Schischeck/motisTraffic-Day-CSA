@@ -5,6 +5,7 @@
 #include "motis/loader/loader.h"
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/time.h"
 
 #include "motis/reliability/graph_accessor.h"
 
@@ -37,12 +38,55 @@ TEST_CASE("get_previous_light_connection", "[graph_accessor]") {
   REQUIRE(previous_light_conn.second == 0);
 }
 
+TEST_CASE("get_feeder_time_interval", "[graph_accessor]") {
+  bool success;
+  motis::time time_begin, time_end;
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(0, 5, 30);
+  REQUIRE_FALSE(success);
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(5, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 0);
+  REQUIRE(time_end == 0);
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(6, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 0);
+  REQUIRE(time_end == 1);
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(29, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 0);
+  REQUIRE(time_end == 24);
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(30, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 0);
+  REQUIRE(time_end == 25);
+
+  std::tie(success, time_begin, time_end) = get_feeder_time_interval(31, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 1);
+  REQUIRE(time_end == 26);
+
+  std::tie(success, time_begin, time_end) =
+      get_feeder_time_interval(2000, 5, 30);
+  REQUIRE(success);
+  REQUIRE(time_begin == 1970);
+  REQUIRE(time_end == 1995);
+
+  std::tie(success, time_begin, time_end) =
+      get_feeder_time_interval(31, 31, 30);
+  REQUIRE_FALSE(success);
+}
+
 TEST_CASE("get_feeders", "[graph_accessor]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge = get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
@@ -155,8 +199,8 @@ TEST_CASE("get_departure_distribution_indices", "[graph_accessor]") {
   auto const first_route_edge = get_departing_route_edge(first_route_node);
   // journey 07:00 --> 07:28
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
-  auto const indices =
-      get_departure_distribution_indices(*first_route_edge->_to, first_light_conn);
+  auto const indices = get_departure_distribution_indices(
+      *first_route_edge->_to, first_light_conn);
 
   REQUIRE(indices.first == first_route_node._id);
   REQUIRE(indices.second == 1);

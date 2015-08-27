@@ -1,5 +1,7 @@
 #include "motis/reliability/train_distributions_calculator.h"
 
+#include <fstream>
+
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/calc_arrival_distribution.h"
@@ -12,6 +14,8 @@
 namespace motis {
 namespace reliability {
 
+std::ofstream os("calculator.log");
+
 train_distributions_calculator::train_distributions_calculator(
     schedule const& schedule,
     train_distributions_container& distributions_container,
@@ -21,15 +25,24 @@ train_distributions_calculator::train_distributions_calculator(
       s_t_distributions_(s_t_dist_manager) {}
 
 void train_distributions_calculator::calculate_initial_distributions() {
+  std::cout << schedule_.route_index_to_first_route_node.size()
+            << " first route nodes" << std::endl;
   for (auto const first_route_node :
        schedule_.route_index_to_first_route_node) {
     insert_all_light_connections(*first_route_node, true);
   }
 
+  unsigned int num_processed = 0;
+
   while (!queue_.empty()) {
     process_element(queue_.top());
     queue_.pop();
+    if (++num_processed % 1000 == 0) {
+      std::cout << "." << std::flush;
+    }
   }
+
+  std::cout << num_processed - 1 << " processed elements" << std::endl;
 }
 
 void train_distributions_calculator::output_element(
@@ -51,10 +64,18 @@ void train_distributions_calculator::insert_into_queue(
     unsigned short const light_connection_idx, bool const is_first_route_node) {
   queue_.emplace(from, to, light_connection, light_connection_idx,
                  is_first_route_node);
+
+  os << "Insert ";
+  output_element(os, schedule_, *from, *to, *light_connection,
+                 light_connection_idx, is_first_route_node);
 }
 
 void train_distributions_calculator::process_element(
     queue_element const& element) {
+  os << "Process ";
+  output_element(os, schedule_, *element.from_, *element.to_,
+                 *element.light_connection_, element.light_connection_idx_,
+                 element.is_first_route_node_);
   /* departure distribution */
   auto& departure_distribution =
       distributions_container_.get_train_distributions(
@@ -91,7 +112,7 @@ void train_distributions_calculator::process_element(
   }
 }
 
-bool train_distributions_calculator::compute_distributions(
+bool train_distributions_calculator::is_pre_computed_train(
     schedule const& schedule, edge const& route_edge) {
   return schedule.waiting_time_rules_.other_trains_wait_for(
       schedule.waiting_time_rules_.waiting_time_category(
@@ -105,7 +126,7 @@ void train_distributions_calculator::insert_all_light_connections(
     return;
   }
 
-  if (compute_distributions(schedule_, *route_edge)) {
+  if (is_pre_computed_train(schedule_, *route_edge)) {
     manage_train_distributions(*route_edge);
     for (unsigned short light_conn_idx = 0;
          light_conn_idx < route_edge->_m._route_edge._conns.size();

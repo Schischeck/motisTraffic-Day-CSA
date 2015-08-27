@@ -30,20 +30,24 @@ namespace motis {
 
 int graph_loader::get_price_per_km(int clasz) {
   switch (clasz) {
-    case MOTIS_ICE: return 22;
+    case MOTIS_ICE:
+      return 22;
 
     case MOTIS_N:
     case MOTIS_IC:
-    case MOTIS_X: return 18;
+    case MOTIS_X:
+      return 18;
 
     case MOTIS_RE:
     case MOTIS_RB:
     case MOTIS_S:
     case MOTIS_U:
     case MOTIS_STR:
-    case MOTIS_BUS: return 15;
+    case MOTIS_BUS:
+      return 15;
 
-    default: return 0;
+    default:
+      return 0;
   }
 }
 
@@ -66,8 +70,8 @@ std::vector<T> join(std::vector<std::vector<T>> vecs) {
     std::vector<T> ret = std::move(*std::begin(vecs));
     std::for_each(std::next(std::begin(vecs)), std::end(vecs),
                   [&ret](std::vector<T> const& vec) {
-      ret.insert(std::end(ret), std::begin(vec), std::end(vec));
-    });
+                    ret.insert(std::end(ret), std::begin(vec), std::end(vec));
+                  });
     return ret;
   }
 }
@@ -592,7 +596,7 @@ void graph_loader::load_dates(date_manager& dm) {
 
 void graph_loader::load_waiting_time_rules(
     std::vector<std::string> const& category_names, waiting_time_rules& rules) {
-  rules.default_group = 5;
+  rules.default_group = 6;
 
   // clang-format off
   std::vector<std::vector<std::string>> categories{
@@ -600,17 +604,19 @@ void graph_loader::load_waiting_time_rules(
   { "EN", "NZ", "D", "CNL", "TLG", "DNZ" },
   { "IRE", "RE", "RB" },
   { "S", "s" },
-  { "DPE", "DPN", "R", "IRX", "X", "E", "SCH", "BSV", "RT", "FB", "LX", "REX" }
+  { "DPE", "DPN", "R", "IRX", "X", "E", "SCH", "BSV", "RT", "FB", "LX", "REX" },
+  { } /* default group */
   };
   // clang-format on
 
   // clang-format off
   std::vector<int> waiting_times{
-  3, 0, 0, 0, 0,
-  10, 10, 0, 0, 5,
-  0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0,
-  5, 5, 0, 5, 5
+  3, 0, 0, 0, 0, 0,
+  10, 10, 0, 0, 5, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  5, 5, 0, 5, 5, 0,
+  0, 0, 0, 0, 0, 0 /* default group */
   };
   // clang-format on
 

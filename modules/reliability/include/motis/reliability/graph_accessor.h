@@ -5,6 +5,7 @@
 
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/schedule.h"
 
 namespace motis {
 namespace reliability {
@@ -52,6 +53,22 @@ get_previous_light_connection(node const& route_node,
   return std::make_pair(&all_connections[pos], pos);
 }
 
+/* returns success, begin_time, end_time */
+inline std::tuple<bool, time, time> get_feeder_time_interval(
+    time const departure_time, duration const change_time,
+    duration const feeder_threshold) {
+  time const begin_time =
+      (departure_time <= feeder_threshold ? 0
+                                          : departure_time - feeder_threshold);
+  time const end_time = departure_time - change_time;
+  bool const success =
+      (begin_time <= end_time && departure_time >= change_time);
+
+  return std::make_tuple(success, begin_time, end_time);
+}
+
+#define FEEDER_THRESHOLD 30 /* XXX */
+
 /* feeder-route-node, feeder-light-connection, feeder-distribution-position */
 typedef std::tuple<node const* const, light_connection const* const,
                    unsigned int> feeder_info;
@@ -61,13 +78,18 @@ inline std::vector<feeder_info> get_all_potential_feeders(
 
   for (auto const in_edge : route_node._station_node->_incoming_edges) {
     // ignore transfer edge to route_node itself
-    if (in_edge->_from->_id == route_node._id) continue;
+    if (in_edge->_from->_id == route_node._id) {
+      continue;
+    }
 
-    time const time_begin = (departing_light_conn.d_time <= 30
-                                 ? 0
-                                 : departing_light_conn.d_time - 30);  // XXX
-    time const time_end =
-        departing_light_conn.d_time - in_edge->_m._foot_edge._time_cost;
+    bool success;
+    time time_begin, time_end;
+    std::tie(success, time_begin, time_end) = get_feeder_time_interval(
+        departing_light_conn.d_time, in_edge->_m._foot_edge._time_cost,
+        FEEDER_THRESHOLD);
+    if (!success) {
+      continue;
+    }
 
     auto& feeder_route_node = *in_edge->_from._ptr;
     auto const feeder_route_edge = get_arriving_route_edge(feeder_route_node);
@@ -114,6 +136,15 @@ inline duration get_waiting_time(
           connecting_light_conn._full_con->con_info->family),
       waiting_time_rules.waiting_time_category(
           feeder_light_conn._full_con->con_info->family));
+}
+
+#include <sstream>
+inline std::string train_name(light_connection const& conn,
+                              schedule const& sched) {
+  std::stringstream sst;
+  sst << sched.category_names[conn._full_con->con_info->family]
+      << conn._full_con->con_info->train_nr;
+  return sst.str();
 }
 
 }  // namespace graph_accessor

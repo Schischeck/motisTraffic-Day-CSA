@@ -76,7 +76,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
@@ -98,7 +98,7 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Hanau of train ICE_HA_W_HE
-  auto& first_route_node = *schedule->route_index_to_first_route_node[5];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[7];
   // route node at Wuerzburg
   auto second_route_node =
       graph_accessor::get_departing_route_edge(first_route_node)->_to;
@@ -274,7 +274,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
@@ -362,7 +362,7 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
   start_and_travel_test_distributions const* dummy = nullptr;
 
   // route node at Hanau of train ICE_HA_W_HE
-  auto& first_route_node = *schedule->route_index_to_first_route_node[5];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[7];
   // route node at Wuerzburg
   auto second_route_node =
       graph_accessor::get_departing_route_edge(first_route_node)->_to;
@@ -422,7 +422,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node = *graph_accessor::get_departing_route_edge(
-                          *schedule->route_index_to_first_route_node[4])->_to;
+                          *schedule->route_index_to_first_route_node[6])->_to;
   auto const& light_connection = graph_accessor::get_departing_route_edge(
                                      route_node)->_m._route_edge._conns[0];
 

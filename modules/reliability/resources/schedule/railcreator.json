@@ -95,6 +95,42 @@
       "evaNumber": "1427540",
       "ds100Code": "1427540",
       "KMInfo": 0
+    },
+    {
+      "name": "Kaiserslautern",
+      "tracks": 2,
+      "latitude": 49.528999999999996,
+      "longitude": 7.783999999999992,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 1,
+      "evaNumber": "6669592",
+      "ds100Code": "6669592",
+      "KMInfo": 0
+    },
+    {
+      "name": "Karlsruhe",
+      "tracks": 2,
+      "latitude": 49.08100000000002,
+      "longitude": 8.372000000000071,
+      "interchangeTime": 5,
+      "minInterchangeTime": 3,
+      "platformInterchangeTime": 3,
+      "evaNumber": "7226036",
+      "ds100Code": "7226036",
+      "KMInfo": 0
+    },
+    {
+      "name": "Stuttgart",
+      "tracks": 2,
+      "latitude": 48.831999999999994,
+      "longitude": 9.134999999999991,
+      "interchangeTime": 5,
+      "minInterchangeTime": 3,
+      "platformInterchangeTime": 3,
+      "evaNumber": "6270627",
+      "ds100Code": "6270627",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -163,7 +199,7 @@
       ],
       "serviceDays": [
         true,
-        false,
+        true,
         false,
         false,
         false,
@@ -350,6 +386,86 @@
         {
           "fromTime": "10:00:00.000",
           "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_K_K",
+      "category": "ICE",
+      "evaNumber": "1701997",
+      "trainNumber": 7,
+      "stations": [
+        {
+          "station": "6669592",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7226036",
+          "arrival": 26,
+          "departure": 28,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "12:16:00.000",
+          "untilTime": "12:16:00.000",
+          "interval": 10
+        }
+      ]
+    },
+    {
+      "name": "RE_K_S",
+      "category": "RE",
+      "evaNumber": "3997490",
+      "trainNumber": 8,
+      "stations": [
+        {
+          "station": "7226036",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6270627",
+          "arrival": 46,
+          "departure": 48,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "13:00:00.000",
+          "untilTime": "13:00:00.000",
           "interval": 1
         }
       ]

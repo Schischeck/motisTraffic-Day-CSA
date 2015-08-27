@@ -63,6 +63,12 @@ void pd_calc_data_departure::init_feeder_info(
   auto const all_feeders_data =
       graph_accessor::get_all_potential_feeders(route_node_, light_connection_);
 
+  if (route_node_._id == 27237) {
+    debug_output(std::cout);
+    std::cout << "TRAIN " << graph_accessor::train_name(light_connection_,
+                                                        schedule) << std::endl;
+  }
+
   for (unsigned int i = 0; i < all_feeders_data.size(); i++) {
     node const* feeder_route_node;
     light_connection const* feeder_light_conn;
@@ -80,6 +86,12 @@ void pd_calc_data_departure::init_feeder_info(
               ->get_transfer_time();  // TODO: use track change time if possible
       time const latest_feasible_arrival =
           (light_connection_.d_time + waiting_time) - transfer_time;
+
+      if (route_node_._id == 27237)
+        std::cout << "\nFeeder "
+                  << graph_accessor::train_name(*feeder_light_conn, schedule)
+                  << " d" << feeder_light_conn->d_time << " a"
+                  << feeder_light_conn->a_time << std::endl;
 
       auto const& feeder_distribution =
           distributions_container.get_probability_distribution(

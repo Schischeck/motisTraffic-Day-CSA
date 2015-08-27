@@ -20,10 +20,12 @@ struct train_distributions {
 
   probability_distribution const& get_distribution(
       unsigned int const index) const {
+    assert(index < distributions_.size());
     return distributions_[index];
   }
   probability_distribution& get_distribution_non_const(
       unsigned int const index) {
+    assert(index < distributions_.size());
     return distributions_[index];
   }
 
@@ -54,11 +56,17 @@ struct train_distributions_container {
   virtual probability_distribution const& get_probability_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
       type const t) const {
-    return (t == arrival)
-               ? node_to_arrival_distributions_[route_node_idx]
-                     ->get_distribution(light_conn_idx)
-               : node_to_departure_distributions_[route_node_idx]
-                     ->get_distribution(light_conn_idx);
+    if (t == arrival) {
+      assert(route_node_idx < node_to_arrival_distributions_.size());
+      assert(node_to_arrival_distributions_[route_node_idx]);
+      return node_to_arrival_distributions_[route_node_idx]->get_distribution(
+          light_conn_idx);
+    } else {
+      assert(route_node_idx < node_to_departure_distributions_.size());
+      assert(node_to_departure_distributions_[route_node_idx]);
+      return node_to_departure_distributions_[route_node_idx]->get_distribution(
+          light_conn_idx);
+    }
   }
 
   train_distributions& get_train_distributions(

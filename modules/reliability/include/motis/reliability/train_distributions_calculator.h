@@ -49,7 +49,7 @@ struct train_distributions_calculator {
 
   void calculate_initial_distributions();
 
-  static bool compute_distributions(schedule const& schedule,
+  static bool is_pre_computed_train(schedule const& schedule,
                                     edge const& route_edge);
 
   static void output_element(std::ostream& os, schedule const& schedule,

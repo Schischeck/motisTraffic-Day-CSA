@@ -24,7 +24,7 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[4];
+  auto& first_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
@@ -60,26 +60,10 @@ TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  struct train_distributions_test2_container : train_distributions_container {
-    train_distributions_test2_container() : train_distributions_container(0) {
-      train.init_one_point(0, 1.0);
-      fail.init_one_point(0, 1.0);
-    }
-    probability_distribution const& get_probability_distribution(
-        unsigned int const route_node_idx, unsigned int const light_conn_idx,
-        type const t) const override {
-      if (route_node_idx == 18 && light_conn_idx == 1 && t == departure)
-        return train;
-      return fail;
-    }
-    probability_distribution train;
-    probability_distribution fail;
-  } train_distributions;
-
   start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto departure_route_node = *schedule->route_index_to_first_route_node[4];
+  auto departure_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const route_edge =
       graph_accessor::get_departing_route_edge(departure_route_node);
@@ -88,10 +72,28 @@ TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
   // route node at Darmstadt
   auto const& arrival_route_node = *route_edge->_to;
 
+  struct train_distributions_test2_container : train_distributions_container {
+    train_distributions_test2_container(unsigned int const route_node_id)
+        : train_distributions_container(0), route_node_id_(route_node_id) {
+      train.init_one_point(0, 1.0);
+      fail.init_one_point(0, 1.0);
+    }
+    probability_distribution const& get_probability_distribution(
+        unsigned int const route_node_idx, unsigned int const light_conn_idx,
+        type const t) const override {
+      if (route_node_idx == route_node_id_ && light_conn_idx == 1 &&
+          t == departure)
+        return train;
+      return fail;
+    }
+    probability_distribution train;
+    probability_distribution fail;
+    unsigned int const route_node_id_;
+  } train_distributions(departure_route_node._id);
+
   pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
                             train_distributions, s_t_distributions);
 
-  REQUIRE(departure_route_node._id == 18);
   REQUIRE(data.departure_info_.distribution_ == &train_distributions.train);
 }
 
@@ -124,7 +126,7 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   train_distributions_test_container train_distributions({0.8, 0.2}, 0);
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto departure_route_node = *schedule->route_index_to_first_route_node[4];
+  auto departure_route_node = *schedule->route_index_to_first_route_node[6];
   // route edge from Frankfurt to Darmstadt
   auto const route_edge =
       graph_accessor::get_departing_route_edge(departure_route_node);
