@@ -17,9 +17,6 @@ namespace hrd {
 void parse_services(loaded_file const&,
                     std::function<void(specification const&)>);
 
-void parse_services(loaded_file const&, shared_data const&,
-                    flatbuffers::FlatBufferBuilder&,
-                    std::vector<flatbuffers::Offset<Service>>&);
 }  // hrd
 }  // loader
 }  // motis

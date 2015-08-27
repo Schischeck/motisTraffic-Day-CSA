@@ -9,7 +9,6 @@ namespace motis.loader;
 table Schedule {
   services : [Service];
   stations: [Station];
-  platforms: [Platform];
   routes: [Route];
 }
 

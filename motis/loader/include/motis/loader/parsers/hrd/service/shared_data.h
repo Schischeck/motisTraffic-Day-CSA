@@ -19,15 +19,15 @@ struct shared_data {
               std::map<uint16_t, std::string> const& attributes,
               std::map<int, bitfield> const& bitfields,
               platform_rules const& pf_rules)
-      : stations(stations),
-        attributes(attributes),
-        bitfields(bitfields),
-        pf_rules(pf_rules) {}
+      : stations(std::move(stations)),
+        attributes(std::move(attributes)),
+        bitfields(std::move(bitfields)),
+        pf_rules(std::move(pf_rules)) {}
 
-  std::map<int, flatbuffers::Offset<Station>> const& stations;
-  std::map<uint16_t, std::string> const& attributes;
-  std::map<int, bitfield> const& bitfields;
-  platform_rules const& pf_rules;
+  std::map<int, flatbuffers::Offset<Station>> stations;
+  std::map<uint16_t, std::string> attributes;
+  std::map<int, bitfield> bitfields;
+  platform_rules pf_rules;
 };
 
 }  // namespace hrd

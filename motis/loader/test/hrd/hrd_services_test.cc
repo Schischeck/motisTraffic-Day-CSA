@@ -9,6 +9,7 @@
 
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/hrd_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
@@ -16,6 +17,7 @@
 #include "motis/loader/parsers/hrd/service/service_parser.h"
 #include "motis/loader/parsers/hrd/service/specification.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/parsers/hrd/service/service_builder.h"
 #include "motis/loader/util.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
@@ -28,7 +30,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-TEST(loader_hrd_services, parse_hrd_service_full_range) {
+TEST(loader_hrd_hrd_services, parse_hrd_service_full_range) {
   test_spec services_file(SCHEDULES / "hand-crafted" / "fahrten",
                           "services-1.101");
 
@@ -93,7 +95,7 @@ TEST(loader_hrd_services, parse_hrd_service_full_range) {
   ASSERT_TRUE(stop.dep.time == hrd_service::NOT_SET);
 }
 
-TEST(loader_hrd_services, parse_hrd_service_multiple_ranges) {
+TEST(loader_hrd_hrd_services, parse_hrd_service_multiple_ranges) {
   test_spec services_file(SCHEDULES / "hand-crafted" / "fahrten",
                           "services-2.101");
 
@@ -144,38 +146,100 @@ TEST(loader_hrd_services, parse_hrd_service_multiple_ranges) {
   ASSERT_TRUE(stop.dep.time == hrd_service::NOT_SET);
 }
 
-TEST(loader_hrd_services, parse_trains) {
-  try {
-    const auto stamm = (SCHEDULES / "hand-crafted") / "stamm";
-    const auto fahrten = (SCHEDULES / "hand-crafted") / "fahrten";
+TEST(loader_hrd_hrd_services, index_bus) {
+  test_spec services_file(SCHEDULES / "single-index-bus" / "fahrten",
+                          "services.101");
 
-    const test_spec bitfields_file(stamm, BITFIELDS_FILE);
-    auto bitfields = parse_bitfields(bitfields_file.lf_);
+  auto services = services_file.get_services();
+  ASSERT_TRUE(services.size() == 1);
 
-    const test_spec attributes_file(stamm, ATTRIBUTES_FILE);
-    auto attributes = parse_attributes(attributes_file.lf_);
+  auto const& service = services[0];
+  ASSERT_TRUE(service.sections_.size() == 51);
 
-    FlatBufferBuilder b;
+  std::for_each(
+      std::begin(service.sections_), std::end(service.sections_),
+      [](hrd_service::section const& section) {
+        ASSERT_TRUE(section.train_num == 0);
+        ASSERT_TRUE(section.admin == "rmvNOL");
+        ASSERT_TRUE(section.attributes ==
+                    std::vector<hrd_service::attribute>(
+                        {hrd_service::attribute(0, "OB")}));
+        ASSERT_TRUE(section.category == std::vector<cstr>({"Bus"}));
+        ASSERT_TRUE(section.line_information == std::vector<cstr>({"84/85"}));
+        ASSERT_TRUE(section.traffic_days == std::vector<int>({2310}));
+      });
+}
 
-    const test_spec stations_file(stamm, STATIONS_FILE);
-    const test_spec coordinates_file(stamm, COORDINATES_FILE);
-    auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_, b);
+TEST(loader_hrd_hrd_services, parse_trains) {
+  const auto stamm_path = (SCHEDULES / "hand-crafted") / "stamm";
+  const auto fahrten_path = (SCHEDULES / "hand-crafted") / "fahrten";
 
-    const test_spec platforms_file(stamm, PLATFORMS_FILE);
-    auto platforms = parse_platform_rules(platforms_file.lf_, b);
+  const test_spec bitfields_file(stamm_path, BITFIELDS_FILE);
+  auto bitfields = parse_bitfields(bitfields_file.lf_);
 
-    const test_spec services_file(fahrten, "services-all.101");
-    std::vector<Offset<Service>> services;
-    parse_services(services_file.lf_,
-                   shared_data(stations, attributes, bitfields, platforms), b,
-                   services);
+  const test_spec attributes_file(stamm_path, ATTRIBUTES_FILE);
+  auto attributes = parse_attributes(attributes_file.lf_);
 
-    b.Finish(CreateSchedule(b, b.CreateVector(services),
-                            b.CreateVector(values(stations)), {}));
+  FlatBufferBuilder b;
 
-  } catch (parser_error const& e) {
-    printf("parser error: %s:%d\n", e.filename, e.line_number);
-  }
+  const test_spec stations_file(stamm_path, STATIONS_FILE);
+  const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
+  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_, b);
+
+  const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
+  auto platforms = parse_platform_rules(platforms_file.lf_, b);
+
+  const test_spec services_file(fahrten_path, "services-all.101");
+  std::vector<Offset<Service>> services;
+
+  shared_data stamm(stations, attributes, bitfields, platforms);
+  service_builder sb(stamm, b);
+  parse_services(services_file.lf_,
+                 [&b, &sb, &services](specification const& spec) {
+                   sb.create_services(hrd_service(spec), b, services);
+                 });
+}
+
+TEST(loader_hrd_hrd_services, parse_trains_ice) {
+  const auto stamm_path = SCHEDULES / "multiple-ice-services" / "stamm";
+  const auto fahrten_path = SCHEDULES / "multiple-ice-services" / "fahrten";
+
+  const test_spec bitfields_file(stamm_path, BITFIELDS_FILE);
+  auto bitfields = parse_bitfields(bitfields_file.lf_);
+
+  const test_spec attributes_file(stamm_path, ATTRIBUTES_FILE);
+  auto attributes = parse_attributes(attributes_file.lf_);
+
+  FlatBufferBuilder b;
+
+  const test_spec stations_file(stamm_path, STATIONS_FILE);
+  const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
+  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_, b);
+
+  const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
+  auto platforms = parse_platform_rules(platforms_file.lf_, b);
+
+  const test_spec services_file(fahrten_path, "services.101");
+  std::vector<Offset<Service>> services;
+
+  shared_data stamm(stations, attributes, bitfields, platforms);
+  service_builder sb(stamm, b);
+  parse_services(services_file.lf_,
+                 [&b, &sb, &services](specification const& spec) {
+                   sb.create_services(hrd_service(spec), b, services);
+                 });
+}
+
+TEST(loader_hrd_hrd_services, parse_full_schedule) {
+  hrd_parser parser;
+
+  const auto schedule_path = SCHEDULES / "multiple-ice-files";
+  ASSERT_TRUE(parser.applicable(schedule_path));
+
+  FlatBufferBuilder b;
+  parser.parse(schedule_path, b);
+
+  auto schedule = GetSchedule(b.GetBufferPointer());
 }
 
 }  // hrd
