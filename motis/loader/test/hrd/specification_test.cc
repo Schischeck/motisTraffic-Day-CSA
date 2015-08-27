@@ -1,6 +1,7 @@
 #include <cinttypes>
 #include <cstring>
-#include "catch/catch.hpp"
+
+#include "gtest/gtest.h"
 
 #include "test_spec.h"
 
@@ -17,26 +18,26 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-TEST_CASE("parse_specification") {
+TEST(loader_hrd_specification, parse_specification) {
   const auto fahrten = SCHEDULES / "hand-crafted" / "fahrten";
   test_spec services_file(fahrten, "services-1.101");
 
   const auto specs = services_file.get_specs();
-  REQUIRE(specs.size() == 1);
+  ASSERT_TRUE(specs.size() == 1);
 
   auto& spec = specs[0];
-  REQUIRE(!spec.is_empty());
-  REQUIRE(spec.valid());
-  REQUIRE(!spec.internal_service.empty());
-  REQUIRE(spec.traffic_days.size() == 1);
-  REQUIRE(spec.categories.size() == 1);
-  REQUIRE(spec.attributes.size() == 3);
-  REQUIRE(spec.stops.size() == 6);
+  ASSERT_TRUE(!spec.is_empty());
+  ASSERT_TRUE(spec.valid());
+  ASSERT_TRUE(!spec.internal_service.empty());
+  ASSERT_TRUE(spec.traffic_days.size() == 1);
+  ASSERT_TRUE(spec.categories.size() == 1);
+  ASSERT_TRUE(spec.attributes.size() == 3);
+  ASSERT_TRUE(spec.stops.size() == 6);
 }
 
 void require_parser_err(char const* schedule_name, char const* filename) {}
 
-TEST_CASE("parse_hrd_service_invalid_traffic_days") {
+TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
   bool catched = false;
   try {
     test_spec(SCHEDULES / "hand-crafted" / "fahrten", "services-3.101")
@@ -44,7 +45,7 @@ TEST_CASE("parse_hrd_service_invalid_traffic_days") {
   } catch (std::runtime_error const& e) {
     catched = true;
   }
-  REQUIRE(catched);
+  ASSERT_TRUE(catched);
 }
 
 }  // hrd

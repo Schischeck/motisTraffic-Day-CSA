@@ -11,4 +11,4 @@ set_target_properties(motis-railviz PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -W
 file(GLOB_RECURSE motis-railviz-test-files test/*.cc)
 add_executable(motis-railviz-test ${motis-railviz-test-files})
 set_target_properties(motis-railviz-test PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
-target_link_libraries(motis-railviz-test ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} motis-railviz motis-loader motis-module)
+target_link_libraries(motis-railviz-test motis-railviz motis-loader motis-module gtest gtest_main)

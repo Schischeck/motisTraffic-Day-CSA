@@ -2,7 +2,7 @@
 #include <cstring>
 #include <bitset>
 
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
@@ -22,7 +22,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-TEST_CASE("parse_platform_rules_1") {
+TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
   flatbuffers::FlatBufferBuilder b;
 
   auto bitfield_file_content = "000001 EF";
@@ -34,32 +34,32 @@ TEST_CASE("parse_platform_rules_1") {
   auto plf_rules =
       parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
 
-  REQUIRE(plf_rules.size() == 1);
+  ASSERT_TRUE(plf_rules.size() == 1);
 
   auto key = std::make_tuple(8509404, 30467, raw_to_int<uint64_t>("85____"));
   auto entry = plf_rules.find(key);
 
-  REQUIRE(entry != end(plf_rules));
+  ASSERT_TRUE(entry != end(plf_rules));
 
   auto rule_set = entry->second;
 
-  REQUIRE(rule_set.size() == 2);
-  REQUIRE(cstr(to_string(rule_set[0].platform_name, b).c_str()) == "3");
+  ASSERT_TRUE(rule_set.size() == 2);
+  ASSERT_TRUE(cstr(to_string(rule_set[0].platform_name, b).c_str()) == "3");
 
   std::string all_days_bit_str;
   all_days_bit_str.resize(BIT_COUNT);
   std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
   std::bitset<BIT_COUNT> all_days(all_days_bit_str);
 
-  REQUIRE(rule_set[0].bitfield_num == 0);
-  REQUIRE(rule_set[0].time == TIME_NOT_SET);
+  ASSERT_TRUE(rule_set[0].bitfield_num == 0);
+  ASSERT_TRUE(rule_set[0].time == TIME_NOT_SET);
 
-  REQUIRE(cstr(to_string(rule_set[1].platform_name, b).c_str()) == "5");
-  REQUIRE(rule_set[1].bitfield_num == 1);
-  REQUIRE(rule_set[1].time == TIME_NOT_SET);
+  ASSERT_TRUE(cstr(to_string(rule_set[1].platform_name, b).c_str()) == "5");
+  ASSERT_TRUE(rule_set[1].bitfield_num == 1);
+  ASSERT_TRUE(rule_set[1].time == TIME_NOT_SET);
 }
 
-TEST_CASE("parse_platform_rules_2") {
+TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
   flatbuffers::FlatBufferBuilder b;
 
   auto bitfield_file_content = "000001 FF";
@@ -70,24 +70,24 @@ TEST_CASE("parse_platform_rules_2") {
   auto plf_rules =
       parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
 
-  REQUIRE(plf_rules.size() == 1);
+  ASSERT_TRUE(plf_rules.size() == 1);
 
   auto key = std::make_tuple(8000000, 1, raw_to_int<uint64_t>("80____"));
   auto entry = plf_rules.find(key);
 
-  REQUIRE(entry != plf_rules.end());
+  ASSERT_TRUE(entry != plf_rules.end());
 
   auto rule_set = entry->second;
 
-  REQUIRE(rule_set.size() == 1);
+  ASSERT_TRUE(rule_set.size() == 1);
 
   // 800000 00001 80____ 1A       0130 000001->[...01111 == (0xFF)]
-  REQUIRE(cstr(to_string(rule_set[0].platform_name, b).c_str()) == "1A");
-  REQUIRE(rule_set[0].bitfield_num == 1);
-  REQUIRE(rule_set[0].time == 90);
+  ASSERT_TRUE(cstr(to_string(rule_set[0].platform_name, b).c_str()) == "1A");
+  ASSERT_TRUE(rule_set[0].bitfield_num == 1);
+  ASSERT_TRUE(rule_set[0].time == 90);
 }
 
-TEST_CASE("parse_platform_rules_line_too_short") {
+TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
   bool catched = false;
   try {
     flatbuffers::FlatBufferBuilder b;
@@ -101,11 +101,11 @@ TEST_CASE("parse_platform_rules_line_too_short") {
     auto plf_rules =
         parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
   } catch (parser_error const& e) {
-    REQUIRE(e.line_number == 2);
-    REQUIRE(e.filename == PLATFORMS_FILE);
+    ASSERT_TRUE(e.line_number == 2);
+    ASSERT_TRUE(e.filename == PLATFORMS_FILE);
     catched = true;
   }
-  REQUIRE(catched);
+  ASSERT_TRUE(catched);
 }
 
 }  // hrd

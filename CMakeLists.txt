@@ -28,7 +28,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib)  # catch library
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
@@ -39,6 +39,8 @@ include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib)  # catch library
+add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/loader/loader.h"
 #include "motis/railviz/date_converter.h"
@@ -41,7 +41,7 @@ bool railviz_date_converter_simple_test_check_atime(std::time_t* time) {
   return false;
 }
 
-TEST_CASE("simple_time_test", "[railviz]") {
+TEST(simple_time_test, railviz) {
   auto schedule =
       loader::load_schedule("../test_timetables/date_manager_test1/motis");
   railviz::date_converter dcnv(schedule.get()->date_mgr);
@@ -54,8 +54,8 @@ TEST_CASE("simple_time_test", "[railviz]") {
         for (auto const& lcon : edge._m._route_edge._conns) {
           std::time_t d_time = dcnv.convert(lcon.d_time);
           std::time_t a_time = dcnv.convert(lcon.a_time);
-          REQUIRE(railviz_date_converter_simple_test_check_dtime(&d_time));
-          REQUIRE(railviz_date_converter_simple_test_check_atime(&a_time));
+          ASSERT_TRUE(railviz_date_converter_simple_test_check_dtime(&d_time));
+          ASSERT_TRUE(railviz_date_converter_simple_test_check_atime(&a_time));
         }
       }
     }

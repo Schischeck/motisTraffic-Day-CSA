@@ -1,7 +1,7 @@
 #include <cinttypes>
 #include <cstring>
 
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "parser/cstr.h"
 
@@ -16,28 +16,28 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-TEST_CASE("parse_line") {
+TEST(loader_hrd_attributes, parse_line) {
   cstr file_content = ",  0 260 10 Bus mit Fahrradanhänger#";
   auto attributes = parse_attributes({ATTRIBUTES_FILE, file_content});
-  REQUIRE(attributes.size() == 1);
+  ASSERT_TRUE(attributes.size() == 1);
 
   auto it = attributes.find(raw_to_int<uint16_t>(", "));
-  REQUIRE(it != end(attributes));
-  REQUIRE(it->second == "Bus mit Fahrradanhänger");
+  ASSERT_TRUE(it != end(attributes));
+  ASSERT_TRUE(it->second == "Bus mit Fahrradanhänger");
 }
 
-TEST_CASE("parse_and_ignore_line") {
+TEST(loader_hrd_attributes, parse_and_ignore_line) {
   cstr file_content = "ZZ 0 060 10 zusätzlicher Zug#\n# ,  ,  ,";
 
   auto attributes = parse_attributes({ATTRIBUTES_FILE, file_content});
-  REQUIRE(attributes.size() == 1);
+  ASSERT_TRUE(attributes.size() == 1);
 
   auto it = attributes.find(raw_to_int<uint16_t>("ZZ"));
-  REQUIRE(it != end(attributes));
-  REQUIRE(it->second == "zusätzlicher Zug");
+  ASSERT_TRUE(it != end(attributes));
+  ASSERT_TRUE(it->second == "zusätzlicher Zug");
 }
 
-TEST_CASE("invalid_line") {
+TEST(loader_hrd_attributes, invalid_line) {
   cstr file_content = ",  0 260 10 ";
 
   bool catched = false;
@@ -45,16 +45,16 @@ TEST_CASE("invalid_line") {
     parse_attributes({ATTRIBUTES_FILE, file_content});
   } catch (parser_error const& e) {
     catched = true;
-    REQUIRE(strcmp(e.filename, ATTRIBUTES_FILE) == 0);
-    REQUIRE(e.line_number == 1);
+    ASSERT_TRUE(strcmp(e.filename, ATTRIBUTES_FILE) == 0);
+    ASSERT_TRUE(e.line_number == 1);
   }
 
-  REQUIRE(catched);
+  ASSERT_TRUE(catched);
 }
 
-TEST_CASE("ignore_output_rules") {
+TEST(loader_hrd_attributes, ignore_output_rules) {
   cstr file_content = "# ,  ,  ,";
-  REQUIRE(parse_attributes({ATTRIBUTES_FILE, file_content}).size() == 0);
+  ASSERT_TRUE(parse_attributes({ATTRIBUTES_FILE, file_content}).size() == 0);
 }
 
 }  // hrd

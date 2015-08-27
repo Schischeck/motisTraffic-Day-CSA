@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/loader/parsers/gtfs/stop.h"
 #include "motis/loader/parsers/gtfs/files.h"
@@ -28,7 +28,7 @@ cstr berlin_stops_file_content =
 9230005,,S Potsdam Hauptbahnhof Nord,,52.3927320,13.0668480,,,0,
 9230006,,"Potsdam, Charlottenhof Bhf",,52.3930040,13.0362980,,,0,)";
 
-TEST_CASE("read_stations_example_data") {
+TEST(loader_gtfs_stop, read_stations_example_data) {
   flatbuffers::FlatBufferBuilder b;
   b.Finish(CreateSchedule(b, {},
                           b.CreateVector(read_stations(
@@ -38,28 +38,28 @@ TEST_CASE("read_stations_example_data") {
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
 
-  REQUIRE(stations->size() == 8);
+  ASSERT_TRUE(stations->size() == 8);
 
   auto station_1 = stations->Get(0);
-  REQUIRE(station_1->id()->str() == "S1");
-  REQUIRE(station_1->name()->str() == "Mission St. & Silver Ave.");
-  REQUIRE(std::abs(station_1->lat() - 37.728631) < 0.00001);
-  REQUIRE(std::abs(station_1->lng() - -122.431282) < 0.00001);
+  ASSERT_TRUE(station_1->id()->str() == "S1");
+  ASSERT_TRUE(station_1->name()->str() == "Mission St. & Silver Ave.");
+  ASSERT_TRUE(std::abs(station_1->lat() - 37.728631) < 0.00001);
+  ASSERT_TRUE(std::abs(station_1->lng() - -122.431282) < 0.00001);
 
   auto station_6 = stations->Get(5);
-  REQUIRE(station_6->id()->str() == "S6");
-  REQUIRE(station_6->name()->str() == "Mission St. & 15th St.");
-  REQUIRE(std::abs(station_6->lat() - 37.766629) < 0.00001);
-  REQUIRE(std::abs(station_6->lng() - -122.419782) < 0.00001);
+  ASSERT_TRUE(station_6->id()->str() == "S6");
+  ASSERT_TRUE(station_6->name()->str() == "Mission St. & 15th St.");
+  ASSERT_TRUE(std::abs(station_6->lat() - 37.766629) < 0.00001);
+  ASSERT_TRUE(std::abs(station_6->lng() - -122.419782) < 0.00001);
 
   auto station_8 = stations->Get(7);
-  REQUIRE(station_8->id()->str() == "S8");
-  REQUIRE(station_8->name()->str() == "24th St. Mission Station");
-  REQUIRE(std::abs(station_8->lat() - 37.752240) < 0.00001);
-  REQUIRE(std::abs(station_8->lng() - -122.418450) < 0.00001);
+  ASSERT_TRUE(station_8->id()->str() == "S8");
+  ASSERT_TRUE(station_8->name()->str() == "24th St. Mission Station");
+  ASSERT_TRUE(std::abs(station_8->lat() - 37.752240) < 0.00001);
+  ASSERT_TRUE(std::abs(station_8->lng() - -122.418450) < 0.00001);
 }
 
-TEST_CASE("read_stations_berlin_data") {
+TEST(loader_gtfs_stop, read_stations_berlin_data) {
   flatbuffers::FlatBufferBuilder b;
   b.Finish(CreateSchedule(
       b, {},
@@ -69,25 +69,25 @@ TEST_CASE("read_stations_berlin_data") {
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
 
-  REQUIRE(stations->size() == 3);
+  ASSERT_TRUE(stations->size() == 3);
 
   auto station_1 = stations->Get(0);
-  REQUIRE(station_1->id()->str() == "5100071");
-  REQUIRE(station_1->name()->str() == "Zbaszynek");
-  REQUIRE(std::abs(station_1->lat() - 52.2425040) < 0.00001);
-  REQUIRE(std::abs(station_1->lng() - 15.8180870) < 0.00001);
+  ASSERT_TRUE(station_1->id()->str() == "5100071");
+  ASSERT_TRUE(station_1->name()->str() == "Zbaszynek");
+  ASSERT_TRUE(std::abs(station_1->lat() - 52.2425040) < 0.00001);
+  ASSERT_TRUE(std::abs(station_1->lng() - 15.8180870) < 0.00001);
 
   auto station_6 = stations->Get(1);
-  REQUIRE(station_6->id()->str() == "9230005");
-  REQUIRE(station_6->name()->str() == "S Potsdam Hauptbahnhof Nord");
-  REQUIRE(std::abs(station_6->lat() - 52.3927320) < 0.00001);
-  REQUIRE(std::abs(station_6->lng() - 13.0668480) < 0.00001);
+  ASSERT_TRUE(station_6->id()->str() == "9230005");
+  ASSERT_TRUE(station_6->name()->str() == "S Potsdam Hauptbahnhof Nord");
+  ASSERT_TRUE(std::abs(station_6->lat() - 52.3927320) < 0.00001);
+  ASSERT_TRUE(std::abs(station_6->lng() - 13.0668480) < 0.00001);
 
   auto station_8 = stations->Get(2);
-  REQUIRE(station_8->id()->str() == "9230006");
-  REQUIRE(station_8->name()->str() == "Potsdam, Charlottenhof Bhf");
-  REQUIRE(std::abs(station_8->lat() - 52.3930040) < 0.00001);
-  REQUIRE(std::abs(station_8->lng() - 13.0362980) < 0.00001);
+  ASSERT_TRUE(station_8->id()->str() == "9230006");
+  ASSERT_TRUE(station_8->name()->str() == "Potsdam, Charlottenhof Bhf");
+  ASSERT_TRUE(std::abs(station_8->lat() - 52.3930040) < 0.00001);
+  ASSERT_TRUE(std::abs(station_8->lng() - 13.0362980) < 0.00001);
 }
 
 }  // gtfs

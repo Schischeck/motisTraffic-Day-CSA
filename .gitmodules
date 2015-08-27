@@ -19,3 +19,6 @@
 [submodule "external_lib/parser"]
 	path = external_lib/parser
 	url = https://github.com/felixguendling/parser.git
+[submodule "external_lib/googletest"]
+	path = external_lib/googletest
+	url = https://github.com/google/googletest.git

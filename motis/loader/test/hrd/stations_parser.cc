@@ -2,7 +2,7 @@
 
 #include "boost/filesystem/path.hpp"
 
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "parser/file.h"
 
@@ -21,7 +21,7 @@ namespace hrd {
 
 fs::path res_path("motis/loader/test_resources/");
 
-TEST_CASE("parse_stations") {
+TEST(loader_hrd_stations, parse_stations) {
   auto stations_file_buf = load_file(res_path / STATIONS_FILE);
   cstr stations_file_content(
       {stations_file_buf.data(), stations_file_buf.size()});
@@ -42,22 +42,23 @@ TEST_CASE("parse_stations") {
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
 
-  REQUIRE(stations->size() == 2);
+  ASSERT_TRUE(stations->size() == 2);
 
-  REQUIRE(stations->Get(0)->id()->str() == "100001");
-  REQUIRE(stations->Get(0)->name()->str() == "Hauptwache, Frankfurt am Main");
-  REQUIRE(std::abs(stations->Get(0)->lng() - 8.679296) <= 0.001);
-  REQUIRE(std::abs(stations->Get(0)->lat() - 50.113963) <= 0.001);
+  ASSERT_TRUE(stations->Get(0)->id()->str() == "100001");
+  ASSERT_TRUE(stations->Get(0)->name()->str() ==
+              "Hauptwache, Frankfurt am Main");
+  ASSERT_TRUE(std::abs(stations->Get(0)->lng() - 8.679296) <= 0.001);
+  ASSERT_TRUE(std::abs(stations->Get(0)->lat() - 50.113963) <= 0.001);
 
-  REQUIRE(stations->Get(1)->id()->str() == "100002");
-  REQUIRE(stations->Get(1)->name()->str() ==
-          "Römer/Paulskirche, Frankfurt am Main");
-  REQUIRE(std::abs(stations->Get(1)->lng() - 8.681793) <= 0.001);
-  REQUIRE(std::abs(stations->Get(1)->lat() - 50.110902) <= 0.001);
+  ASSERT_TRUE(stations->Get(1)->id()->str() == "100002");
+  ASSERT_TRUE(stations->Get(1)->name()->str() ==
+              "Römer/Paulskirche, Frankfurt am Main");
+  ASSERT_TRUE(std::abs(stations->Get(1)->lng() - 8.681793) <= 0.001);
+  ASSERT_TRUE(std::abs(stations->Get(1)->lat() - 50.110902) <= 0.001);
 
-  REQUIRE(station_data.size() == 2);
-  REQUIRE(station_data.find(100001) != end(station_data));
-  REQUIRE(station_data.find(100002) != end(station_data));
+  ASSERT_TRUE(station_data.size() == 2);
+  ASSERT_TRUE(station_data.find(100001) != end(station_data));
+  ASSERT_TRUE(station_data.find(100002) != end(station_data));
 }
 
 }  // hrd
