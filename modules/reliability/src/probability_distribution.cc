@@ -8,7 +8,6 @@ namespace reliability {
 
 void probability_distribution::init(
     std::vector<probability> const& probabilities, int const first_minute) {
-  probabilities_.clear();
 
   /* determine the left bound (ignore all values smaller than
    * THRESHOLD_SMALL_VALUES) */
@@ -29,25 +28,33 @@ void probability_distribution::init(
     error += probabilities[idx_last_value];
     idx_last_value--;
   }
+  assert(error <= 0.005);
+  assert(idx_first_value <= idx_last_value);
 
-  if (error > 0.005) {
-    std::cout << "\nWarning(probability_distribution::init): error too large: "
-              << error << std::endl;
-  }
+  probabilities_.resize((idx_last_value - idx_first_value) + 1);
 
   // error is added to the probability of first-minute
-  probability cumulative_probability = error;
-  for (unsigned int i = idx_first_value; i <= idx_last_value; i++) {
+  probabilities_[0] = probabilities[idx_first_value] + error;
+  unsigned int current_delay = 1;
+  for (unsigned int i = idx_first_value + 1; i <= idx_last_value;
+       ++i, ++current_delay) {
     assert(!smaller(probabilities[i], 0.0));
-    cumulative_probability += probabilities[i];
-    probabilities_.push_back(cumulative_probability);
+    probabilities_[current_delay] =
+        probabilities_[current_delay - 1] + probabilities[i];  // cumulative
   }
 }
 
+void probability_distribution::init(probability_distribution const& other) {
+  first_minute_ = other.first_minute_;
+  probabilities_.resize(other.probabilities_.size());
+  std::copy(other.probabilities_.begin(), other.probabilities_.end(),
+            probabilities_.begin());
+}
+
 void probability_distribution::init_one_point(int minute, probability prob) {
+  first_minute_ = minute;
   probabilities_.clear();
   probabilities_.push_back(prob);
-  first_minute_ = minute;
 }
 
 int probability_distribution::last_minute() const {
@@ -113,17 +120,21 @@ void probability_distribution::get_probabilities(
 
 std::ostream& operator<<(std::ostream& os,
                          probability_distribution const& distribution) {
-  os << "[sum=" << distribution.sum()
-     << " first-min=" << distribution.first_minute()
-     << " last-min=" << distribution.last_minute() << " values=";
-  for (int i = distribution.first_minute(); i <= distribution.last_minute();
-       i++) {
-    os << distribution.probability_equal(i);
-    if (i + 1 <= distribution.last_minute()) {
-      os << ",";
+  if (distribution.empty()) {
+    os << "empty distribution";
+  } else {
+    os << "[sum=" << distribution.sum()
+       << " first-min=" << distribution.first_minute()
+       << " last-min=" << distribution.last_minute() << " values=";
+    for (int i = distribution.first_minute(); i <= distribution.last_minute();
+         i++) {
+      os << distribution.probability_equal(i);
+      if (i + 1 <= distribution.last_minute()) {
+        os << ",";
+      }
     }
+    os << "]";
   }
-  os << "]";
   return os;
 }
 

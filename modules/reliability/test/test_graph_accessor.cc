@@ -188,20 +188,3 @@ TEST_CASE("get_feeders_first_departure", "[graph_accessor]") {
     }
   }
 }
-
-TEST_CASE("get_departure_distribution_indices", "[graph_accessor]") {
-  auto schedule =
-      load_text_schedule("../modules/reliability/resources/schedule/motis");
-
-  // route node at Darmstadt of train IC_DA_H
-  auto& first_route_node = *schedule->route_index_to_first_route_node[0];
-  // route edge from Darmstadt to Heidelberg
-  auto const first_route_edge = get_departing_route_edge(first_route_node);
-  // journey 07:00 --> 07:28
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
-  auto const indices = get_departure_distribution_indices(
-      *first_route_edge->_to, first_light_conn);
-
-  REQUIRE(indices.first == first_route_node._id);
-  REQUIRE(indices.second == 1);
-}

@@ -19,8 +19,8 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  // container delivering the departure distribution 0.8, 0.2
-  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
+  probability_distribution dep_dist;
+  dep_dist.init({0.8, 0.2}, 0);
   start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1);
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -31,8 +31,8 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  pd_calc_data_arrival data(second_route_node, light_connection, *schedule,
-                            train_distributions, s_t_distributions);
+  pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
+                            *schedule, s_t_distributions);
 
   REQUIRE(&data.route_node_ == &second_route_node);
   REQUIRE(&data.light_connection_ == &light_connection);
@@ -42,9 +42,7 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
 
   REQUIRE(data.departure_info_.scheduled_departure_time_ ==
           data.light_connection_.d_time);
-  REQUIRE(data.departure_info_.distribution_->first_minute() == 0);
-  REQUIRE(equal(data.departure_info_.distribution_->probability_equal(0), 0.8));
-  REQUIRE(equal(data.departure_info_.distribution_->probability_equal(1), 0.2));
+  REQUIRE(&data.departure_info_.distribution_ == &dep_dist);
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==
@@ -54,47 +52,6 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
 
   REQUIRE(data.left_bound_ == -1);
   REQUIRE(data.right_bound_ == 2);
-}
-
-TEST_CASE("test train_distributions", "[pd_calc_data_arrival]") {
-  auto schedule =
-      load_text_schedule("../modules/reliability/resources/schedule/motis");
-
-  start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1);
-
-  // route node at Frankfurt of train ICE_FR_DA_H
-  auto departure_route_node = *schedule->route_index_to_first_route_node[6];
-  // route edge from Frankfurt to Darmstadt
-  auto const route_edge =
-      graph_accessor::get_departing_route_edge(departure_route_node);
-  // get the second light connection
-  auto const& light_connection = route_edge->_m._route_edge._conns[1];
-  // route node at Darmstadt
-  auto const& arrival_route_node = *route_edge->_to;
-
-  struct train_distributions_test2_container : train_distributions_container {
-    train_distributions_test2_container(unsigned int const route_node_id)
-        : train_distributions_container(0), route_node_id_(route_node_id) {
-      train.init_one_point(0, 1.0);
-      fail.init_one_point(0, 1.0);
-    }
-    probability_distribution const& get_probability_distribution(
-        unsigned int const route_node_idx, unsigned int const light_conn_idx,
-        type const t) const override {
-      if (route_node_idx == route_node_id_ && light_conn_idx == 1 &&
-          t == departure)
-        return train;
-      return fail;
-    }
-    probability_distribution train;
-    probability_distribution fail;
-    unsigned int const route_node_id_;
-  } train_distributions(departure_route_node._id);
-
-  pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
-                            train_distributions, s_t_distributions);
-
-  REQUIRE(data.departure_info_.distribution_ == &train_distributions.train);
 }
 
 TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
@@ -123,7 +80,8 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
     probability_distribution distribution_;
   } s_t_distributions;
 
-  train_distributions_test_container train_distributions({0.8, 0.2}, 0);
+  probability_distribution dep_dist;
+  dep_dist.init({0.8, 0.2}, 0);
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto departure_route_node = *schedule->route_index_to_first_route_node[6];
@@ -135,8 +93,8 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   // route node at Darmstadt
   auto const& arrival_route_node = *route_edge->_to;
 
-  pd_calc_data_arrival data(arrival_route_node, light_connection, *schedule,
-                            train_distributions, s_t_distributions);
+  pd_calc_data_arrival data(arrival_route_node, light_connection, dep_dist,
+                            *schedule, s_t_distributions);
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==

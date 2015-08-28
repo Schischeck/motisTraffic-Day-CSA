@@ -315,6 +315,7 @@ int graph_loader::load_routes(
     // third layer: expanded connections (expanded, absolute times)
     vector<vector<vector<light_connection>>> expanded_connections(n_stations -
                                                                   1);
+    time prev_arr_time = 0;
     for (unsigned train_i = 0; train_i < n_trains; ++train_i) {
       for (unsigned con_i = 0; con_i < input_connections.size(); ++con_i) {
         if (expanded_connections[con_i].size() != n_trains)
@@ -334,9 +335,6 @@ int graph_loader::load_routes(
 
         expanded_connections[con_i][train_i] =
             expand_bitfields(full_con, input_connections[con_i][train_i], bm);
-
-        std::sort(std::begin(expanded_connections[con_i][train_i]),
-                  std::end(expanded_connections[con_i][train_i]));
       }
     }
 
@@ -355,14 +353,24 @@ int graph_loader::load_routes(
       }
 
       if (station_i > 0) {
+        auto joined_connections = join(expanded_connections[station_i - 1]);
+        std::sort(joined_connections.begin(), joined_connections.end());
+        if (station_i > 1 && (joined_connections.size() == 0 ||
+                              joined_connections[0].d_time < prev_arr_time)) {
+          std::cout << "ignore rest of route " << index << std::endl;
+          delete route_node;
+          break;
+        }
+        prev_arr_time = joined_connections[0].a_time;
+
         if (!skip_arrival[station_i]) {
           route_node->_edges.emplace_back(make_foot_edge(
               station_nodes[locations[station_i]].get(),
               stations[locations[station_i]]->get_transfer_time(), true));
         }
 
-        prev_route_node->_edges.emplace_back(make_route_edge(
-            route_node, join(expanded_connections[station_i - 1])));
+        prev_route_node->_edges.emplace_back(
+            make_route_edge(route_node, joined_connections));
       }
 
       if (station_i < n_stations - 1 && !skip_departure[station_i]) {

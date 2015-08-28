@@ -17,6 +17,7 @@ struct probability_distribution {
 
   void init(std::vector<probability> const& probabilities,
             int const first_minute);
+  void init(probability_distribution const& other);
   void init_one_point(int const minute, probability const prob);
 
   bool empty() const { return probabilities_.size() == 0; }

@@ -5,7 +5,6 @@
 
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/edges.h"
-#include "motis/core/schedule/schedule.h"
 
 namespace motis {
 namespace reliability {
@@ -107,26 +106,6 @@ inline std::vector<feeder_info> get_all_potential_feeders(
   return feeders;
 }
 
-/**
- * Given a route-node and a light-connection
- * arriving at this route node,
- * get the indices of the probability distribution
- * of light-connection's departure event.
- */
-inline std::pair<unsigned int, unsigned int> get_departure_distribution_indices(
-    node const& head_route_node, light_connection const& light_connection) {
-  auto const& route_edge = get_arriving_route_edge(head_route_node);
-  // find index of 'arriving_light_conn'
-  auto const& all_connections = route_edge->_m._route_edge._conns;
-  unsigned int pos = 0;
-  while (pos < all_connections.size() &&
-         (all_connections[pos].d_time != light_connection.d_time ||
-          all_connections[pos].a_time != light_connection.a_time)) {
-    ++pos;
-  }
-  return std::make_pair(route_edge->_from->_id, pos);
-}
-
 inline duration get_waiting_time(
     waiting_time_rules const& waiting_time_rules,
     light_connection const& feeder_light_conn,
@@ -140,9 +119,9 @@ inline duration get_waiting_time(
 
 #include <sstream>
 inline std::string train_name(light_connection const& conn,
-                              schedule const& sched) {
+                              std::vector<std::string> const& category_names) {
   std::stringstream sst;
-  sst << sched.category_names[conn._full_con->con_info->family]
+  sst << category_names[conn._full_con->con_info->family]
       << conn._full_con->con_info->train_nr;
   return sst.str();
 }

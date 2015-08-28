@@ -13,9 +13,16 @@ namespace calc_arrival_distribution {
 void compute_arrival_distribution(
     pd_calc_data_arrival const& data,
     probability_distribution& arrival_distribution) {
+  // if there is no travel distribution for this class,
+  // copy this arrival distribution
+  if (data.travel_distributions_.size() == 0) {
+    arrival_distribution.init(data.departure_info_.distribution_);
+    return;
+  }
+
   // Efficient access to the probabilities of the departure distribution
   std::vector<probability> dep_dist;
-  data.departure_info_.distribution_->get_probabilities(dep_dist);
+  data.departure_info_.distribution_.get_probabilities(dep_dist);
 
   std::vector<probability> computed_probabilities(
       (data.right_bound_ - data.left_bound_) + 1);
@@ -29,7 +36,7 @@ void compute_arrival_distribution(
     for (unsigned int dep_prob_idx = 0; dep_prob_idx < dep_dist.size();
          dep_prob_idx++) {
       unsigned int const dep_delay =
-          (unsigned int)data.departure_info_.distribution_->first_minute() +
+          (unsigned int)data.departure_info_.distribution_.first_minute() +
           dep_prob_idx;
       int const travel_time_delay = arr_delay - dep_delay;
       auto const& travel_time_dist =
@@ -51,7 +58,7 @@ void compute_arrival_distribution(
     computed_probabilities[arr_delay - data.left_bound_] = computed_probability;
   }  // end of for arr_delay
 
-  detail::correct_rounding_errors(data.departure_info_.distribution_->sum(),
+  detail::correct_rounding_errors(data.departure_info_.distribution_.sum(),
                                   computed_probabilities);
 
   arrival_distribution.init(computed_probabilities, data.left_bound_);

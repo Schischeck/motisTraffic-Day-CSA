@@ -22,11 +22,11 @@ struct train_distributions_container;
  * struct storing all data necessary for calculating an arrival distribution.
  */
 struct pd_calc_data_arrival {
-  pd_calc_data_arrival(
-      node const& route_node, light_connection const& light_connection,
-      schedule const& schedule,
-      train_distributions_container const& distributions_container,
-      start_and_travel_distributions const& s_t_distributions);
+  pd_calc_data_arrival(node const& route_node,
+                       light_connection const& light_connection,
+                       probability_distribution const& departure_distribution,
+                       schedule const& schedule,
+                       start_and_travel_distributions const& s_t_distributions);
 
   time scheduled_arrival_time_() const;
   duration scheduled_travel_duration() const;
@@ -38,8 +38,12 @@ struct pd_calc_data_arrival {
   light_connection const& light_connection_;  // XXX is required?
 
   struct departure_info {
-    probability_distribution const* distribution_;
-    time scheduled_departure_time_;
+    departure_info(probability_distribution const& distribution,
+                   time const scheduled_departure_time)
+        : distribution_(distribution),
+          scheduled_departure_time_(scheduled_departure_time) {}
+    probability_distribution const& distribution_;
+    time const scheduled_departure_time_;
   } departure_info_;
 
   std::vector<start_and_travel_distributions::probability_distribution_cref>
@@ -50,8 +54,6 @@ struct pd_calc_data_arrival {
   int right_bound_;
 
 private:
-  void init_departure_info(
-      train_distributions_container const& distributions_container);
   void init_travel_info(start_and_travel_distributions const& s_t_distributions,
                         std::vector<std::string> const& category_names);
 };

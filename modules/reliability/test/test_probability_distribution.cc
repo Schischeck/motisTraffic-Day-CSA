@@ -178,3 +178,16 @@ TEST_CASE("get_probabilities", "[probability_distribution]") {
   for (unsigned int i = 0; i < probabilies_in.size(); i++)
     REQUIRE(equal(probabilies_in[i], probabilies_out[i]));
 }
+
+TEST_CASE("copy", "[probability_distribution]") {
+  probability_distribution a, b;
+  a.init({0.1, 0.2, 0.5, 0.2}, -1);
+  b.init(a);
+  REQUIRE(b.first_minute() == a.first_minute());
+  REQUIRE(b.last_minute() == a.last_minute());
+  REQUIRE(equal(b.sum(), 1.0));
+  REQUIRE(equal(b.probability_equal(-1), 0.1));
+  REQUIRE(equal(b.probability_equal(0), 0.2));
+  REQUIRE(equal(b.probability_equal(1), 0.5));
+  REQUIRE(equal(b.probability_equal(2), 0.2));
+}

@@ -64,8 +64,9 @@ private:
                          unsigned short const light_connection_idx,
                          bool const is_first_route_node);
   void process_element(queue_element const& element);
-  void insert_all_light_connections(node const& tail_node,
-                                    bool const is_first_route_node);
+  /* check_class: check whether the distributions have to be pre-computed */
+  template <bool FirstRouteNode, bool CheckClass>
+  void insert_all_light_connections(node const& tail_node);
   void manage_train_distributions(edge const& route_edge);
 
   schedule const& schedule_;
