@@ -8,11 +8,14 @@
 #include "flatbuffers/flatbuffers.h"
 
 #include "parser/file.h"
+
+#include "motis/loader/graph_builder.h"
 #include "motis/loader/parsers/gtfs/gtfs_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
 
 namespace fs = boost::filesystem;
 using namespace flatbuffers;
+using namespace parser;
 
 namespace motis {
 namespace loader {
@@ -24,13 +27,12 @@ std::vector<std::unique_ptr<format_parser>> parsers() {
   return p;
 }
 
-schedule_ptr build_graph(fs::path const&) { return {}; }
-
 schedule_ptr load_schedule(std::string const& path) {
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {
-    return build_graph(binary_schedule_file);
+    auto buf = file(binary_schedule_file.string().c_str(), "ro").content();
+    return build_graph(GetSchedule(buf.buf_));
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
@@ -38,7 +40,7 @@ schedule_ptr load_schedule(std::string const& path) {
         parser->parse(path, builder);
         parser::file(binary_schedule_file.string().c_str(), "w")
             .write(builder.GetBufferPointer(), builder.GetSize());
-        return build_graph(binary_schedule_file);
+        return build_graph(GetSchedule(builder.GetBufferPointer()));
       }
     }
 

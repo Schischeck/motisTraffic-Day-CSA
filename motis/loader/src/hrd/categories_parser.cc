@@ -26,8 +26,8 @@ Offset<String> categories_parser::get_category_info(uint32_t category_key) {
 
 categories_parser::fbs_categories_t categories_parser::get_export_data(
     FlatBufferBuilder const& b) {
-
-  return nullptr;
+  categories_parser::fbs_categories_t s;
+  return s;
 }
 
 }  // hrd

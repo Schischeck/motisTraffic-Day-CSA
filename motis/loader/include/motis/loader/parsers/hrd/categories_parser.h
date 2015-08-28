@@ -3,6 +3,8 @@
 #include <cinttypes>
 #include <map>
 
+#include "flatbuffers/flatbuffers.h"
+
 #include "boost/filesystem/path.hpp"
 
 #include "motis/loader/loaded_file.h"
