@@ -50,9 +50,11 @@ struct hrd_service {
     std::vector<int> traffic_days;
   };
 
-  hrd_service(std::vector<stop> stops, std::vector<section> sections,
-              bitfield traffic_days)
-      : stops_(std::move(stops)),
+  hrd_service(int num_repetitions, int interval, std::vector<stop> stops,
+              std::vector<section> sections, bitfield traffic_days)
+      : num_repetitions_(num_repetitions),
+        interval_(interval),
+        stops_(std::move(stops)),
         sections_(std::move(sections)),
         traffic_days_(std::move(traffic_days)) {}
 
@@ -60,6 +62,7 @@ struct hrd_service {
 
   void verify_service() const;
 
+  int num_repetitions_, interval_;
   std::vector<stop> stops_;
   std::vector<section> sections_;
   bitfield traffic_days_;

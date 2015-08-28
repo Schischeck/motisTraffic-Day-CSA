@@ -44,7 +44,7 @@ struct service_builder {
   create_platforms(std::vector<hrd_service::section> const&,
                    std::vector<hrd_service::stop> const&);
 
-  flatbuffers::Offset<flatbuffers::Vector<uint64_t>> create_times(
+  flatbuffers::Offset<flatbuffers::Vector<int32_t>> create_times(
       std::vector<hrd_service::stop> const&);
 
   void create_services(hrd_service const&, flatbuffers::FlatBufferBuilder&,

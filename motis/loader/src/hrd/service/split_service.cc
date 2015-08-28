@@ -94,11 +94,12 @@ hrd_service new_service_from_split(split_info const& s,
             std::next(begin(origin.sections_), s.to_section_idx + 1),
             begin(sections));
 
-  return hrd_service(std::move(stops), std::move(sections), s.traffic_days);
+  return hrd_service(origin.num_repetitions_, origin.interval_, stops, sections,
+                     s.traffic_days);
 }
 
-std::vector<hrd_service> expand(hrd_service const& service,
-                                bitfield_translator& bitfields) {
+std::vector<hrd_service> expand_traffic_days(hrd_service const& service,
+                                             bitfield_translator& bitfields) {
   std::vector<hrd_service> expanded;
   for (auto const& s : split(service, bitfields)) {
     expanded.emplace_back(new_service_from_split(s, service));

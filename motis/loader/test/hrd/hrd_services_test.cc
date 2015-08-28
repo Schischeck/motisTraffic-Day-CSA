@@ -1,5 +1,6 @@
 #include <cinttypes>
 #include <cstring>
+#include <iostream>
 
 #include "gtest/gtest.h"
 
@@ -228,6 +229,92 @@ TEST(loader_hrd_hrd_services, parse_trains_ice) {
                  [&b, &sb, &services](specification const& spec) {
                    sb.create_services(hrd_service(spec), b, services);
                  });
+}
+
+TEST(loader_hrd_hrd_services, parse_repetition_service) {
+  const auto stamm_path = SCHEDULES / "single-ice" / "stamm";
+  const auto fahrten_path = SCHEDULES / "single-ice" / "fahrten";
+
+  const test_spec bitfields_file(stamm_path, BITFIELDS_FILE);
+  auto bitfields = parse_bitfields(bitfields_file.lf_);
+
+  const test_spec attributes_file(stamm_path, ATTRIBUTES_FILE);
+  auto attributes = parse_attributes(attributes_file.lf_);
+
+  FlatBufferBuilder b;
+
+  const test_spec stations_file(stamm_path, STATIONS_FILE);
+  const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
+  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_, b);
+
+  const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
+  auto platforms = parse_platform_rules(platforms_file.lf_, b);
+
+  const test_spec services_file(fahrten_path, "repeated_service.101");
+
+  shared_data stamm(stations, attributes, bitfields, platforms);
+  service_builder sb(stamm, b);
+
+  std::vector<Offset<Service>> services;
+  parse_services(services_file.lf_,
+                 [&b, &sb, &services](specification const& spec) {
+                   sb.create_services(hrd_service(spec), b, services);
+                 });
+
+  ASSERT_TRUE(services.size() == 3);
+
+  b.Finish(CreateSchedule(b, b.CreateVector(services),
+                          b.CreateVector(values(stamm.stations)),
+                          b.CreateVector(values(sb.routes_))));
+
+  auto schedule = GetSchedule(b.GetBufferPointer());
+
+  ASSERT_TRUE(schedule->services()->size() == 3);
+
+  auto service1 = schedule->services()->Get(0);
+  ASSERT_TRUE(service1->times()->size() == 4);
+  ASSERT_TRUE(service1->times()->Get(0) == -1);
+  ASSERT_TRUE(service1->times()->Get(1) == 1059);
+  ASSERT_TRUE(service1->times()->Get(2) == 1388);
+  ASSERT_TRUE(service1->times()->Get(3) == -1);
+  ASSERT_TRUE(service1->sections()->size() == 1);
+  ASSERT_TRUE(
+      !deserialize_bitset<512>(service1->traffic_days()->c_str()).any());
+  ASSERT_TRUE(service1->sections()->Get(0)->category()->str() == "ICE");
+  ASSERT_TRUE(service1->platforms()->size() == 2);
+  ASSERT_TRUE(service1->platforms()->Get(0)->arr_platforms()->size() == 0);
+  ASSERT_TRUE(service1->platforms()->Get(0)->dep_platforms()->size() == 2);
+  ASSERT_STREQ(
+      service1->platforms()->Get(0)->dep_platforms()->Get(0)->name()->c_str(),
+      "15");
+  ASSERT_STREQ(
+      service1->platforms()->Get(0)->dep_platforms()->Get(1)->name()->c_str(),
+      "18");
+  ASSERT_TRUE(service1->platforms()->Get(1)->arr_platforms()->size() == 1);
+  ASSERT_STREQ(
+      service1->platforms()->Get(1)->arr_platforms()->Get(0)->name()->c_str(),
+      "9");
+  ASSERT_TRUE(service1->platforms()->Get(1)->dep_platforms()->size() == 0);
+
+  auto service2 = schedule->services()->Get(1);
+  ASSERT_TRUE(service2->times()->Get(0) == -1);
+  ASSERT_TRUE(service2->times()->Get(1) == 1059 + 120);
+  ASSERT_TRUE(service2->times()->Get(2) == 1388 + 120);
+  ASSERT_TRUE(service2->times()->Get(3) == -1);
+  ASSERT_TRUE(service2->sections()->size() == 1);
+  ASSERT_TRUE(
+      !deserialize_bitset<512>(service2->traffic_days()->c_str()).any());
+  ASSERT_TRUE(service2->sections()->Get(0)->category()->str() == "ICE");
+
+  auto service3 = schedule->services()->Get(2);
+  ASSERT_TRUE(service3->times()->Get(0) == -1);
+  ASSERT_TRUE(service3->times()->Get(1) == 1059 + 240);
+  ASSERT_TRUE(service3->times()->Get(2) == 1388 + 240);
+  ASSERT_TRUE(service3->times()->Get(3) == -1);
+  ASSERT_TRUE(service3->sections()->size() == 1);
+  ASSERT_TRUE(
+      !deserialize_bitset<512>(service3->traffic_days()->c_str()).any());
+  ASSERT_TRUE(service3->sections()->Get(0)->category()->str() == "ICE");
 }
 
 TEST(loader_hrd_hrd_services, parse_full_schedule) {

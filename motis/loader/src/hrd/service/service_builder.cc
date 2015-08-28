@@ -3,6 +3,7 @@
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/service/split_service.h"
+#include "motis/loader/parsers/hrd/service/repeat_service.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -172,9 +173,9 @@ Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
       }));
 }
 
-Offset<Vector<uint64_t>> service_builder::create_times(
+Offset<Vector<int32_t>> service_builder::create_times(
     std::vector<hrd_service::stop> const& stops) {
-  std::vector<uint64_t> times;
+  std::vector<int32_t> times;
   for (auto const& stop : stops) {
     times.push_back(stop.arr.time);
     times.push_back(stop.dep.time);
@@ -185,7 +186,9 @@ Offset<Vector<uint64_t>> service_builder::create_times(
 void service_builder::create_services(hrd_service const& s,
                                       FlatBufferBuilder& b,
                                       std::vector<Offset<Service>>& services) {
-  for (auto const& expanded_service : expand(s, bitfields_)) {
+  auto expanded_services = expand_traffic_days(s, bitfields_);
+  expand_repetitions(expanded_services);
+  for (auto const& expanded_service : expanded_services) {
     services.push_back(CreateService(
         b, create_route(expanded_service.stops_),
         bitfields_.get_or_create_bitfield(expanded_service.traffic_days_),

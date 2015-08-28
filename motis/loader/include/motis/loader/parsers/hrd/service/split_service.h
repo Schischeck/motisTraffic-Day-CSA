@@ -10,8 +10,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-std::vector<hrd_service> expand(hrd_service const& s,
-                                bitfield_translator& bitfields);
+std::vector<hrd_service> expand_traffic_days(hrd_service const& s,
+                                             bitfield_translator& bitfields);
 
 }  // hrd
 }  // loader

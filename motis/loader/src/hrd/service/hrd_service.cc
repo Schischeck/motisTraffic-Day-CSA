@@ -82,7 +82,9 @@ void parse_range(
 }
 
 hrd_service::hrd_service(specification const& spec)
-    : stops_(transform<decltype(stops_)>(begin(spec.stops), end(spec.stops),
+    : num_repetitions_(parse<int>(spec.internal_service.substr(22, size(3)))),
+      interval_(parse<int>(spec.internal_service.substr(26, size(3)))),
+      stops_(transform<decltype(stops_)>(begin(spec.stops), end(spec.stops),
                                          parse_stop)),
       sections_(std::accumulate(
           std::next(begin(spec.stops)),

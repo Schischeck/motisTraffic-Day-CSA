@@ -9,5 +9,5 @@ table Service {
   traffic_days : string;
   sections : [Section];
   platforms : [PlatformRules];
-  times : [ulong];
+  times : [int];
 }
