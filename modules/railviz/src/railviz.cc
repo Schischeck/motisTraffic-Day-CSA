@@ -151,22 +151,56 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
 
     for (auto r : routes) {
         bool match = false;
+        bool first_run = true;
         std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_entry>> a_route_on_time_entries;
         auto line_name = r[0].second->_full_con->con_info->line_identifier.to_string();
         int line_clas = r[0].second->_full_con->clasz;
+
+        std::time_t actual_d_time;
+        std::time_t actual_a_time;
 
         for (auto re : r) {
             station_node const* stn;
             light_connection const* lcn;
             std::tie(stn, lcn) = re;
 
-            //last entry in route does not have a lightconnection!
-            //and we did not need it here
-            if (lcn == NULL) break;
-
             int actual_station_id = stn->_id;
-            std::time_t actual_d_time = lcn->d_time;
-            std::time_t actual_a_time = lcn->a_time;
+
+            //std::time_t actual_d_time = lcn->d_time;
+            //std::time_t actual_a_time = lcn->a_time;
+
+            RailViz_routes_on_time_res_entryBuilder eb(b);
+            eb.add_station_name(b.CreateString(stations[actual_station_id]->name.to_string()));
+
+            if (lcn != NULL) {
+
+                //filter
+                if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
+                        ||
+                        (actual_station_id == req_a_station && actual_a_time == req_a_time)) {
+                    match = true;
+                }
+
+                if (first_run) {
+                    actual_a_time = lcn->a_time;
+                    actual_d_time = lcn->d_time;
+                    eb.add_dTime(actual_d_time);
+                } else {
+                    eb.add_aTime(actual_a_time);
+                    actual_a_time = lcn->a_time;
+                    actual_d_time = lcn->d_time;
+                    eb.add_dTime(actual_d_time);
+                }
+            } else if (r.size() > 1) {
+                eb.add_aTime(actual_a_time);
+            }
+
+            eb.add_station_id(actual_station_id);
+
+            auto ebe = eb.Finish();
+            a_route_on_time_entries.push_back(ebe);
+
+            first_run = false;
 
             /*
             if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
@@ -176,17 +210,19 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
             }
             */
 
+            /*
             RailViz_routes_on_time_res_station st(actual_d_time, actual_a_time, actual_station_id);
 
             a_route_on_time_entries.push_back(CreateRailViz_routes_on_time_res_entry(
                                     b, b.CreateString(stations[actual_station_id]->name.to_string()),
                                     &st));
+                                    */
         }
 
-        //if (match) {
+        if (match) {
             routes_on_time_routes.push_back(CreateRailViz_routes_on_time_res_route(
                                     b, b.CreateString(line_name), line_clas, b.CreateVector(a_route_on_time_entries)));
-        //}
+        }
     }
 
     b.Finish(

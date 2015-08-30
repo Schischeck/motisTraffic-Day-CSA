@@ -1,14 +1,10 @@
 namespace motis.railviz;
 
-struct RailViz_routes_on_time_res_station {
-  dTime : int;
-  aTime : int;
-  station_id : int;
-}
-
 table RailViz_routes_on_time_res_entry {
   station_name : string;
-  station_struct : RailViz_routes_on_time_res_station;
+  aTime : int;
+  dTime : int;
+  station_id : int;
 }
 
 table RailViz_routes_on_time_res_route {
