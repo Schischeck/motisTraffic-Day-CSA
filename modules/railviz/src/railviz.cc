@@ -168,11 +168,13 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
             std::time_t actual_d_time = lcn->d_time;
             std::time_t actual_a_time = lcn->a_time;
 
+            /*
             if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
                     ||
                     (actual_station_id == req_a_station && actual_a_time == req_a_time)) {
                 match = true;
             }
+            */
 
             RailViz_routes_on_time_res_station st(actual_d_time, actual_a_time, actual_station_id);
 
@@ -181,10 +183,10 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
                                     &st));
         }
 
-        if (match) {
+        //if (match) {
             routes_on_time_routes.push_back(CreateRailViz_routes_on_time_res_route(
                                     b, b.CreateString(line_name), line_clas, b.CreateVector(a_route_on_time_entries)));
-        }
+        //}
     }
 
     b.Finish(
