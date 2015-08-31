@@ -43,7 +43,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.is_first_route_node_);
 
   auto const& start_distribution =
-      data.train_info_.first_departure_distribution;
+      data.train_info_.first_departure_distribution_;
   REQUIRE(equal(start_distribution->sum(), 1.0));
   REQUIRE(start_distribution->first_minute() == 0);
   REQUIRE(start_distribution->last_minute() == 1);
@@ -121,7 +121,7 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.largest_delay() == data.maximum_waiting_time_);
   REQUIRE(data.is_first_route_node_);
 
-  REQUIRE(data.train_info_.first_departure_distribution ==
+  REQUIRE(data.train_info_.first_departure_distribution_ ==
           &s_t_distributions.get_start_distribution("dummy"));
 
   REQUIRE(data.maximum_waiting_time_ == 3);
@@ -221,7 +221,7 @@ TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
   REQUIRE(data.is_first_route_node_);
 
   auto const& start_distribution =
-      data.train_info_.first_departure_distribution;
+      data.train_info_.first_departure_distribution_;
   REQUIRE(equal(start_distribution->sum(), 1.0));
   REQUIRE(start_distribution->first_minute() == 0);
   REQUIRE(start_distribution->last_minute() == 1);
@@ -248,7 +248,11 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
         : route_node_train_(route_node_train),
           route_node_feeder1_(route_node_feeder1),
           route_node_feeder2_(route_node_feeder2),
-          train_distributions_container(0) {}
+          train_distributions_container(0) {
+      train.init_one_point(0, 1.0);
+      feeder1.init_one_point(0, 1.0);
+      feeder2.init_one_point(0, 1.0);
+    }
     probability_distribution const& get_probability_distribution(
         unsigned int const route_node_idx, unsigned int const light_conn_idx,
         type const t) const override {
@@ -263,6 +267,13 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
         return feeder2;
       return fail;
     }
+    bool contains_arrival_distributions(
+        unsigned int const route_node_idx) const override {
+      return (route_node_idx == route_node_train_ ||
+              route_node_idx == route_node_feeder1_ ||
+              route_node_idx == route_node_feeder2_);
+    }
+
     probability_distribution train;
     probability_distribution feeder1;
     probability_distribution feeder2;
@@ -293,8 +304,11 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container dummy(0);
+  train_distributions_test_container distributions_container({0.1}, 0);
   struct start_and_travel_test2_distributions : start_and_travel_distributions {
+    start_and_travel_test2_distributions() {
+      distribution.init_one_point(0, 1.0);
+    }
     probability_distribution const& get_start_distribution(
         std::string const& train_category) const override {
       if (train_category == "ICE") return distribution;
@@ -317,9 +331,10 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, s_t_distributions);
+                              *schedule, distributions_container,
+                              s_t_distributions);
 
-  REQUIRE(data.train_info_.first_departure_distribution ==
+  REQUIRE(data.train_info_.first_departure_distribution_ ==
           &s_t_distributions.distribution);
 }
 

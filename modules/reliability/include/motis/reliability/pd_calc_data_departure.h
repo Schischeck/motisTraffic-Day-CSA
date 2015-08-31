@@ -54,7 +54,7 @@ struct pd_calc_data_departure {
       duration min_standing_;
     } preceding_arrival_info_;
 
-    probability_distribution const* first_departure_distribution;
+    probability_distribution const* first_departure_distribution_;
   } train_info_;
 
   struct feeder_info {

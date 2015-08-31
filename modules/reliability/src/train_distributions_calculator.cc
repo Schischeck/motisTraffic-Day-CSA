@@ -57,7 +57,8 @@ void train_distributions_calculator::output_element(
      << light_connection_idx << ")->" << format_time(light_connection.a_time)
      << " " << schedule.stations[to._station_node->_id]->name << "(" << to._id
      << ")"
-     << " first=" << is_first_route_node << std::endl;
+     << " first=" << is_first_route_node << " " << &light_connection
+     << std::endl;
 }
 
 void train_distributions_calculator::insert_into_queue(

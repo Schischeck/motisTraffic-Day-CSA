@@ -1,10 +1,13 @@
 #pragma once
 
+#include <iostream>
+#include <sstream>
 #include <tuple>
 #include <vector>
 
-#include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/nodes.h"
+#include "motis/core/schedule/schedule.h"
 
 namespace motis {
 namespace reliability {
@@ -117,13 +120,48 @@ inline duration get_waiting_time(
           feeder_light_conn._full_con->con_info->family));
 }
 
-#include <sstream>
 inline std::string train_name(light_connection const& conn,
                               std::vector<std::string> const& category_names) {
   std::stringstream sst;
   sst << category_names[conn._full_con->con_info->family]
       << conn._full_con->con_info->train_nr;
   return sst.str();
+}
+
+inline node const& get_first_route_node(node const& route_node) {
+  node const* curr_node = &route_node;
+  edge const* edge;
+  while ((edge = get_arriving_route_edge(*curr_node)) != nullptr) {
+    curr_node = edge->_from;
+  }
+  return *curr_node;
+}
+
+inline void print_route(node const* const first_route_node,
+                        schedule const& schedule, std::ostream& os) {
+  node const* node = first_route_node;
+  edge const* edge = nullptr;
+  while ((edge = get_departing_route_edge(*node)) != nullptr) {
+    os << "route-edge from "
+       << schedule.stations[node->get_station()->_id]->name << " to "
+       << schedule.stations[edge->_to->get_station()->_id]->name << ":\n";
+    unsigned int light_connection_idx = 0;
+    for (auto const& light_connection : edge->_m._route_edge._conns) {
+      os << schedule.stations[edge->_from->_station_node->_id]->name << "("
+         << edge->_from->_id << ")"
+         << " " << format_time(light_connection.d_time) << "--"
+         << schedule
+                .category_names[light_connection._full_con->con_info->family]
+         << light_connection._full_con->con_info->train_nr << "("
+         << light_connection_idx++ << ")->"
+         << format_time(light_connection.a_time) << " "
+         << schedule.stations[edge->_to->_station_node->_id]->name << "("
+         << edge->_to->_id << ")"
+         << " " << &light_connection << "\n";
+    }
+    node = edge->_to;
+  }
+  os << std::endl;
 }
 
 }  // namespace graph_accessor

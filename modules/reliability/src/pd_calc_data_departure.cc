@@ -35,8 +35,9 @@ void pd_calc_data_departure::init_train_info(
   if (is_first_route_node_) {
     auto const& train_category =
         category_names[light_connection_._full_con->con_info->family];
-    train_info_.first_departure_distribution =
+    train_info_.first_departure_distribution_ =
         &s_t_distributions.get_start_distribution(train_category);
+    assert(!train_info_.first_departure_distribution_->empty());
   } else {
     light_connection const* arriving_light_conn;
     unsigned int distribution_pos;
@@ -50,10 +51,13 @@ void pd_calc_data_departure::init_train_info(
         &distributions_container.get_probability_distribution(
             route_node_._id, distribution_pos,
             train_distributions_container::arrival);
-
     // the standing-time is always less or equal 2 minutes
     train_info_.preceding_arrival_info_.min_standing_ =
         std::min(2, light_connection_.d_time - arriving_light_conn->a_time);
+
+    assert(train_info_.preceding_arrival_info_.arrival_time_ <=
+           scheduled_departure_time());
+    assert(!train_info_.preceding_arrival_info_.arrival_distribution_->empty());
   }
 }
 
@@ -63,23 +67,15 @@ void pd_calc_data_departure::init_feeder_info(
   auto const all_feeders_data =
       graph_accessor::get_all_potential_feeders(route_node_, light_connection_);
 
-  if (route_node_._id == 27237) {
-    debug_output(std::cout);
-    std::cout << "TRAIN " << graph_accessor::train_name(light_connection_,
-                                                        schedule) << std::endl;
-  }
-
   for (unsigned int i = 0; i < all_feeders_data.size(); i++) {
     node const* feeder_route_node;
     light_connection const* feeder_light_conn;
     unsigned int feeder_distribution_pos;
-
     std::tie(feeder_route_node, feeder_light_conn, feeder_distribution_pos) =
         all_feeders_data[i];
 
     auto waiting_time = graph_accessor::get_waiting_time(
         schedule.waiting_time_rules_, *feeder_light_conn, light_connection_);
-
     if (waiting_time > 0) {
       auto const transfer_time =
           schedule.stations[feeder_route_node->_station_node->_id]
@@ -87,28 +83,28 @@ void pd_calc_data_departure::init_feeder_info(
       time const latest_feasible_arrival =
           (light_connection_.d_time + waiting_time) - transfer_time;
 
-      if (route_node_._id == 27237)
-        std::cout << "\nFeeder "
-                  << graph_accessor::train_name(*feeder_light_conn, schedule)
-                  << " d" << feeder_light_conn->d_time << " a"
-                  << feeder_light_conn->a_time << std::endl;
+      if (distributions_container.contains_arrival_distributions(
+              feeder_route_node->_id)) {
+        auto const& feeder_distribution =
+            distributions_container.get_probability_distribution(
+                feeder_route_node->_id, feeder_distribution_pos,
+                train_distributions_container::arrival);
 
-      auto const& feeder_distribution =
-          distributions_container.get_probability_distribution(
-              feeder_route_node->_id, feeder_distribution_pos,
-              train_distributions_container::arrival);
+        /** arrival distributions of the feeder trains
+         * TODO: do not store the interchange feeder in this vector!
+         * (distributions_calculator makes this assumption).
+         */
+        feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
+                              latest_feasible_arrival, transfer_time);
 
-      /** arrival distributions of the feeder trains
-       * TODO: do not store the interchange feeder in this vector!
-       * (distributions_calculator makes this assumption).
-       */
-      feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
-                            latest_feasible_arrival, transfer_time);
-
-      if (waiting_time > maximum_waiting_time_)
-        maximum_waiting_time_ = waiting_time;
+        if (waiting_time > maximum_waiting_time_) {
+          maximum_waiting_time_ = waiting_time;
+        }
+      } else {
+        std::cout << "," << std::flush;
+      }
     }
-  }
+  }  // end of for all_feeders_data
 }
 
 time pd_calc_data_departure::scheduled_departure_time() const {
@@ -119,7 +115,7 @@ duration pd_calc_data_departure::largest_delay() const {
   duration maximum_train_delay = 0;
   if (is_first_route_node_) {
     maximum_train_delay =
-        (duration)train_info_.first_departure_distribution->last_minute();
+        (duration)train_info_.first_departure_distribution_->last_minute();
   } else {
     time const latest_arrival =
         train_info_.preceding_arrival_info_.arrival_time_ +
@@ -146,7 +142,8 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
      << " is-first-route-node: " << is_first_route_node_;
 
   if (is_first_route_node_) {
-    os << "\nstart-distribution: " << *train_info_.first_departure_distribution;
+    os << "\nstart-distribution: "
+       << *train_info_.first_departure_distribution_;
   } else {
     os << "\npreceding-arrival-time: "
        << format_time(train_info_.preceding_arrival_info_.arrival_time_)

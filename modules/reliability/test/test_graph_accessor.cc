@@ -188,3 +188,15 @@ TEST_CASE("get_feeders_first_departure", "[graph_accessor]") {
     }
   }
 }
+
+TEST_CASE("get_first_route_node", "[graph_accessor]") {
+  auto schedule = load_text_schedule("../schedule/test");
+  auto const node =
+      get_departing_route_edge(
+          *get_departing_route_edge(
+               *get_departing_route_edge(
+                    *schedule->route_index_to_first_route_node[0])->_to)->_to)
+          ->_to;
+  assert(&get_first_route_node(*node) ==
+         schedule->route_index_to_first_route_node[0]);
+}

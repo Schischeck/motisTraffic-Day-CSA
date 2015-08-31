@@ -357,7 +357,6 @@ int graph_loader::load_routes(
         std::sort(joined_connections.begin(), joined_connections.end());
         if (station_i > 1 && (joined_connections.size() == 0 ||
                               joined_connections[0].d_time < prev_arr_time)) {
-          std::cout << "ignore rest of route " << index << std::endl;
           delete route_node;
           break;
         }

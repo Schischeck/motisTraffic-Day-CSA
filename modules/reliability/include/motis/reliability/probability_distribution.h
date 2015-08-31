@@ -65,8 +65,16 @@ inline bool smaller(probability const& a, probability const& b) {
   return (a < b && !equal(a, b));
 }
 
+inline bool smaller_equal(probability const& a, probability const& b) {
+  return (a <= b || equal(a, b));
+}
+
 inline bool greater(probability const& a, probability const& b) {
   return (a > b && !equal(a, b));
+}
+
+inline bool greater_equal(probability const& a, probability const& b) {
+  return (a >= b || equal(a, b));
 }
 
 }  // namespace reliability

@@ -31,7 +31,6 @@ void compute_departure_distribution(
           detail::departure_after_waiting_interval(data, departure_time);
     }
   }
-
   departure_distribution.init(probabilties, 0);
 
   assert(equal(departure_distribution.sum(), 1.0));
@@ -42,7 +41,7 @@ namespace detail {
 /* helper for departure_at_scheduled_time */
 probability train_early_enough(pd_calc_data_departure const& data) {
   if (data.is_first_route_node_) {
-    return data.train_info_.first_departure_distribution
+    return data.train_info_.first_departure_distribution_
         ->probability_smaller_equal(0);
   }
 
@@ -96,7 +95,7 @@ probability departure_at_scheduled_time(pd_calc_data_departure const& data) {
 probability train_arrives_at_time(pd_calc_data_departure const& data,
                                   time const timestamp) {
   if (data.is_first_route_node_) {
-    return data.train_info_.first_departure_distribution->probability_equal(
+    return data.train_info_.first_departure_distribution_->probability_equal(
         timestamp_to_delay(data.scheduled_departure_time(), timestamp));
   }
 
@@ -116,7 +115,7 @@ probability train_arrives_at_time(pd_calc_data_departure const& data,
 probability train_arrives_before_time(pd_calc_data_departure const& data,
                                       time const timestamp) {
   if (data.is_first_route_node_) {
-    return data.train_info_.first_departure_distribution->probability_smaller(
+    return data.train_info_.first_departure_distribution_->probability_smaller(
         timestamp_to_delay(data.scheduled_departure_time(), timestamp));
   }
 
@@ -288,34 +287,6 @@ probability get_prob_dep_waiting_interval_interchange(
 
   // departure probability
   prob_res = (prob_train_has_delay + prob_train_waits);
-
-  if (LOGGING)
-    log_str << "get_prob_dist_dep_waiting_interval(" << format_time(timestamp)
-            << "): " << std::endl
-            << "prob_train_has_delay = " << prob_train_has_delay
-            << ", prob_train_waits = " << prob_train_waits << std::endl
-            << "prob_train_arr_at_time(" << latest_arr_time_train.output()
-            << ") = " << prob_train_arr_at_time
-            << ", prob_train_arr_before_time = " << prob_train_arr_before_time
-            << std::endl
-            << "prob_no_waiting_for_feeders = " << prob_no_waiting_for_feeders
-            << ", prob_waiting_for_feeders = " << prob_waiting_for_feeders
-            << std::endl
-            << "prob_i_c_feeder_a_t_time("
-            << latest_arr_time_i_c_feeder.output()
-            << ") = " << prob_i_c_feeder_a_t_time
-            << ", prob_i_c_feeder_not_later_than_time = "
-            << prob_i_c_feeder_not_later_than_time << std::endl
-            << "prob_waiting = " << prob_waiting
-            << ", latest_feasible_arr_i_c_feeder = "
-            << data->latest_feasible_arr_feeders[feeder_idx].output()
-            << ", difference = "
-            << (prob_no_waiting_for_feeders - prob_waiting_for_feeders)
-            << std::endl;
-
-  if (prob_res < 0.0)
-    cout << "\n\n_warning(get_prob_dist_dep_waiting_"
-            "interval_interchange): negative probability" << std::endl;
 
   return prob_res;
 }

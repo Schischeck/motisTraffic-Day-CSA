@@ -49,7 +49,8 @@ struct train_distributions_container {
     return (bool)node_to_departure_distributions_[route_node_idx];
   }
 
-  bool contains_arrival_distributions(unsigned int const route_node_idx) const {
+  virtual bool contains_arrival_distributions(
+      unsigned int const route_node_idx) const {
     return (bool)node_to_arrival_distributions_[route_node_idx];
   }
 

@@ -34,9 +34,9 @@ TEST_CASE("load_distributions", "[distributions_loader]") {
       "../modules/reliability/resources/distributions/Distributions.csv",
       distributions);
 
-  REQUIRE(distributions.size() == 5);
+  REQUIRE(distributions.size() == 6);
 
-  for (unsigned int id = 0; id < 5; id++) {
+  for (unsigned int id = 0; id < distributions.size(); id++) {
     REQUIRE(distributions[id].first == id);
   }
   {
@@ -84,6 +84,18 @@ TEST_CASE("load_distributions", "[distributions_loader]") {
     REQUIRE(equal(pd.probability_equal(0), 0.2));
     REQUIRE(equal(pd.probability_equal(1), 0.2));
     REQUIRE(equal(pd.probability_equal(2), 0.2));
+  }
+  {
+    probability_distribution const& pd = distributions[5].second;
+    REQUIRE(pd.first_minute() == -6);
+    REQUIRE(pd.last_minute() == 6);
+    REQUIRE(equal(pd.sum(), 1.0));
+    REQUIRE(equal(pd.probability_equal(-6), 0.1));
+    REQUIRE(equal(pd.probability_equal(-3), 0.1));
+    REQUIRE(equal(pd.probability_equal(-1), 0.1));
+    REQUIRE(equal(pd.probability_equal(1), 0.1));
+    REQUIRE(equal(pd.probability_equal(3), 0.1));
+    REQUIRE(equal(pd.probability_equal(6), 0.5));
   }
 }
 

@@ -41,6 +41,7 @@ db_distributions::db_distributions(
   }
 
   default_start_distribution_.init_one_point(0, 1.0);
+  default_travel_time_distribution_.init_one_point(0, 1.0);
 }
 
 void db_distributions::get_travel_time_distributions(
@@ -52,9 +53,8 @@ void db_distributions::get_travel_time_distributions(
     auto const mappings_vector_it =
         distribution_mappings_.find(distribution_class);
     if (mappings_vector_it != distribution_mappings_.end()) {
-      db_distributions_helpers::get_distributions(
-          travel_time, to_departure_delay, mappings_vector_it->second,
-          distributions);
+      get_distributions(travel_time, to_departure_delay,
+                        mappings_vector_it->second, distributions);
     }
   }
 }
@@ -81,12 +81,11 @@ std::string const& db_distributions::get_distribution_class(
   return empty_string_;
 }
 
-namespace db_distributions_helpers {
-void get_distributions(
+void db_distributions::get_distributions(
     unsigned int const travel_time, unsigned int const to_departure_delay,
     std::vector<db_distributions::distribution_mapping> const& all_mappings,
     std::vector<start_and_travel_distributions::probability_distribution_cref>&
-        distributions) {
+        distributions) const {
   auto const mapping_begin =
       std::lower_bound(all_mappings.begin(), all_mappings.end(), travel_time,
                        [](db_distributions::distribution_mapping const& a,
@@ -107,6 +106,13 @@ void get_distributions(
                        });
   --mapping_end;
 
+  if (std::distance(mapping_begin, mapping_end) < 0 && travel_time == 0) {
+    for (unsigned int i = 0; i <= to_departure_delay; i++) {
+      distributions.push_back(std::ref(default_travel_time_distribution_));
+    }
+    return;
+  }
+
   assert(std::distance(mapping_begin, mapping_end) >= 0);
   assert(mapping_begin->travel_time_ == travel_time);
   assert(mapping_end->travel_time_ == travel_time);
@@ -125,7 +131,6 @@ void get_distributions(
   }
   assert(distributions.size() == to_departure_delay + 1);
 }
-}  // namespace db_distributions_helpers
 
 }  // namespace reliability
 }  // namespace motis

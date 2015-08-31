@@ -13,11 +13,13 @@ struct start_and_travel_test_distributions : start_and_travel_distributions {
   start_and_travel_test_distributions(
       std::vector<probability> const& start_probabilities) {
     init_start_distribution(start_probabilities);
+    init_travel_distributions({1.0}, 0);
   }
 
   start_and_travel_test_distributions(
       std::vector<probability> const& traveltime_probabilities,
       int const first_minute) {
+    init_start_distribution({1.0});
     init_travel_distributions(traveltime_probabilities, first_minute);
   }
 

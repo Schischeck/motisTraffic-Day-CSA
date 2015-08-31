@@ -38,7 +38,7 @@ void probability_distribution::init(
   unsigned int current_delay = 1;
   for (unsigned int i = idx_first_value + 1; i <= idx_last_value;
        ++i, ++current_delay) {
-    assert(!smaller(probabilities[i], 0.0));
+    assert(greater_equal(probabilities[i], 0.0));
     probabilities_[current_delay] =
         probabilities_[current_delay - 1] + probabilities[i];  // cumulative
   }

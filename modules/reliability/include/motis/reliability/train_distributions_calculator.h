@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/nodes.h"
 
 namespace motis {
 
@@ -21,7 +22,10 @@ struct train_distributions_calculator {
   struct queue_element {
     struct queue_element_cmp {
       bool operator()(queue_element const& a, queue_element const& b) {
-        return a.light_connection_->d_time >= b.light_connection_->d_time;
+        if (a.light_connection_->d_time == b.light_connection_->d_time) {
+          return a.from_->_id > b.from_->_id;
+        }
+        return a.light_connection_->d_time > b.light_connection_->d_time;
       }
     };
 

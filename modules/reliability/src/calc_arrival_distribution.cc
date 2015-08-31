@@ -55,6 +55,7 @@ void compute_arrival_distribution(
            dep_dist[dep_prob_idx]);
 
     }  // end of for dep_prob_idx
+    assert(computed_probability >= 0.0);
     computed_probabilities[arr_delay - data.left_bound_] = computed_probability;
   }  // end of for arr_delay
 
@@ -81,10 +82,14 @@ void correct_rounding_errors(probability const& expected_sum,
 
   probability const difference = expected_sum - sum;
 
-  assert(!greater(sum, expected_sum));
-  assert(!greater(difference, 0.0001));
+  if (!equal(difference, 0.0)) {
+    assert(smaller_equal(sum + difference, expected_sum));
+    assert(smaller_equal(std::abs(difference), 0.0001));
 
-  computed_probabilities[index_max] += difference;
+    computed_probabilities[index_max] += difference;
+
+    assert(computed_probabilities[index_max] >= 0.0);
+  }
 }
 }  // namespace detail
 }  // namespace calc_arrival_distibution

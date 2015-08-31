@@ -38,31 +38,28 @@ struct db_distributions : start_and_travel_distributions {
       std::vector<probability_distribution_cref>& distributions) const override;
 
 private:
+  void get_distributions(
+      unsigned int const travel_time, unsigned int const to_departure_delay,
+      std::vector<db_distributions::distribution_mapping> const& all_mappings,
+      std::vector<
+          start_and_travel_distributions::probability_distribution_cref>&
+          distributions) const;
+
   std::string const& get_distribution_class(std::string const& family) const;
 
   std::map<std::string, std::string> family_to_distribution_class_;
-
   std::vector<std::pair<unsigned int, probability_distribution>>
       all_probability_distributions_;
-
   // TODO: enable access in constant time (a vector for each travel time)
   std::map<std::string, /* distribution class */
            std::vector<distribution_mapping>> distribution_mappings_;
-
   std::map<std::string, probability_distribution>
       class_to_probability_distributions_;
 
   probability_distribution default_start_distribution_;
+  probability_distribution default_travel_time_distribution_;
   std::string const empty_string_;
 };  // struct db_distributions
-
-namespace db_distributions_helpers {
-void get_distributions(
-    unsigned int const travel_time, unsigned int const to_departure_delay,
-    std::vector<db_distributions::distribution_mapping> const& all_mappings,
-    std::vector<start_and_travel_distributions::probability_distribution_cref>&
-        distributions);
-}
 
 }  // namespace reliability
 }  // namespace motis

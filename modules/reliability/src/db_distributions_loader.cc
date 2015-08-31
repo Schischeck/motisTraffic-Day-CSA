@@ -50,7 +50,7 @@ parser::column_mapping<classes_csv> const classes_columns = {
 enum classes_pos { c_family, c_distribution_class };
 
 /* distributions */
-using distributions_csv = std::tuple<int, int, probability>;
+using distributions_csv = std::tuple<int, int, std::string>;
 parser::column_mapping<distributions_csv> const distributions_columns = {
     {"KLASSEN_ID", "verspaetungsDelta", "p_Verspaetungsdelta"}};
 enum distributions_pos {
@@ -76,7 +76,7 @@ enum mapping_pos {
 };
 
 /* start distributions */
-using start_distributions_csv = std::tuple<std::string, int, probability>;
+using start_distributions_csv = std::tuple<std::string, int, std::string>;
 parser::column_mapping<start_distributions_csv> const
     start_distributions_columns = {
         {"Zuggattungsklasse", "Startverspaetung", "p_startverspaetung"}};
@@ -124,8 +124,10 @@ void store_probability(std::vector<EnteriesType> const& distributions_entries,
     for (unsigned int i = 0; i < num_missing_enteries; i++)
       probabilities.push_back(0.0);
   }
-  probabilities.push_back(
+  probability const prob = std::stod(
       std::get<DelayProbabilityPos>(distributions_entries[entry_index]));
+  assert(smaller_equal(prob, 1.0));
+  probabilities.push_back(prob);
 }
 
 template <typename EnteriesType, typename DistributionIDType,
@@ -164,6 +166,7 @@ void parse_distributions(
     probability_distributions[i].first = distribution_infos[i].distribution_id_;
     probability_distributions[i].second.init(
         distribution_infos[i].probabilities_, distribution_infos[i].first_min_);
+    assert(equal(probability_distributions[i].second.sum(), 1.0));
   }
 }
 
