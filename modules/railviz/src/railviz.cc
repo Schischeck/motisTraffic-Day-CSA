@@ -119,7 +119,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), lc->_full_con->clasz, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+        b, b.CreateString(line_name), lc->_full_con->clasz, lc->_full_con->con_info->family, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
@@ -174,12 +174,14 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
 
             if (lcn != NULL) {
 
+                /*
                 //filter
                 if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
                         ||
                         (actual_station_id == req_a_station && actual_a_time == req_a_time)) {
                     match = true;
                 }
+                */
 
                 if (first_run) {
                     actual_a_time = lcn->a_time;
@@ -219,10 +221,10 @@ void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
                                     */
         }
 
-        if (match) {
+        //if (match) {
             routes_on_time_routes.push_back(CreateRailViz_routes_on_time_res_route(
                                     b, b.CreateString(line_name), line_clas, b.CreateVector(a_route_on_time_entries)));
-        }
+        //}
     }
 
     b.Finish(
