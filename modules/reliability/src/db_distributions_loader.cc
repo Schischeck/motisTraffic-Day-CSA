@@ -183,11 +183,11 @@ inline unsigned int map_negative_to_zero(int number) {
   return (unsigned int)std::max(0, number);
 }
 
-inline bool parse_travel_time_interval(
-    std::string const& from_travel_time_str,
-    std::string const& to_travel_time_str,
-    unsigned int const max_expected_travel_time, unsigned int& from_travel_time,
-    unsigned int& to_travel_time) {
+bool parse_travel_time_interval(std::string const& from_travel_time_str,
+                                std::string const& to_travel_time_str,
+                                unsigned int const max_expected_travel_time,
+                                unsigned int& from_travel_time,
+                                unsigned int& to_travel_time) {
   int to_travel_time_int;
   if (!parse_integer(to_travel_time_str, to_travel_time_int)) {
     to_travel_time = max_expected_travel_time;
@@ -211,7 +211,7 @@ inline bool parse_travel_time_interval(
   return from_travel_time <= to_travel_time;
 }
 
-inline bool parse_departure_delay_interval(
+bool parse_departure_delay_interval(
     std::string const& from_delay_str, std::string const& to_delay_str,
     unsigned int const max_expected_departure_delay, unsigned int& from_delay,
     unsigned int& to_delay) {
