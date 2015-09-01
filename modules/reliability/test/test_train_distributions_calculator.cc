@@ -59,10 +59,10 @@ void test_distributions(node const& route_node,
     }
 
     auto const& departure_distributions =
-        train_distributions.get_train_distributions(
+        train_distributions.get_route_node_distributions(
             route_node._id, train_distributions_container::departure);
     auto const& arrival_distributions =
-        train_distributions.get_train_distributions(
+        train_distributions.get_route_node_distributions(
             head_route_node._id, train_distributions_container::arrival);
 
     for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size();

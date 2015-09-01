@@ -17,32 +17,32 @@ TEST_CASE("test", "[train_dist_container]") {
   REQUIRE_FALSE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
-  container.create_train_distributions(
+  container.create_route_node_distributions(
       0, train_distributions_container::arrival, 2);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
-  container.create_train_distributions(
+  container.create_route_node_distributions(
       0, train_distributions_container::departure, 1);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
-  container.create_train_distributions(
+  container.create_route_node_distributions(
       1, train_distributions_container::departure, 1);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE(container.contains_departure_distributions(0));
   REQUIRE(container.contains_departure_distributions(1));
 
-  auto& arrival_distributions = container.get_train_distributions(
+  auto& arrival_distributions = container.get_route_node_distributions(
       0, train_distributions_container::arrival);
-  auto& departure_distributions = container.get_train_distributions(
+  auto& departure_distributions = container.get_route_node_distributions(
       0, train_distributions_container::departure);
-  auto& departure_distributions2 = container.get_train_distributions(
+  auto& departure_distributions2 = container.get_route_node_distributions(
       1, train_distributions_container::departure);
 
   REQUIRE(arrival_distributions.get_distribution(0).empty());
@@ -65,15 +65,15 @@ TEST_CASE("test", "[train_dist_container]") {
       departure_distributions2.get_distribution(0).probability_equal(0), 0.6));
 
   REQUIRE(&arrival_distributions.get_distribution(0) ==
-          &container.get_probability_distribution(
+          &container.get_distribution(
               0, 0, train_distributions_container::arrival));
   REQUIRE(&arrival_distributions.get_distribution(1) ==
-          &container.get_probability_distribution(
+          &container.get_distribution(
               0, 1, train_distributions_container::arrival));
   REQUIRE(&departure_distributions.get_distribution(0) ==
-          &container.get_probability_distribution(
+          &container.get_distribution(
               0, 0, train_distributions_container::departure));
   REQUIRE(&departure_distributions2.get_distribution(0) ==
-          &container.get_probability_distribution(
+          &container.get_distribution(
               1, 0, train_distributions_container::departure));
 }

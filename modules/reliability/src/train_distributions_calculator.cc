@@ -72,7 +72,7 @@ void train_distributions_calculator::process_element(
     queue_element const& element) {
   /* departure distribution */
   auto& departure_distribution =
-      distributions_container_.get_train_distributions(
+      distributions_container_.get_route_node_distributions(
                                    element.from_->_id,
                                    train_distributions_container::departure)
           .get_distribution_non_const(element.light_connection_idx_);
@@ -85,7 +85,7 @@ void train_distributions_calculator::process_element(
 
   /* arrival distribution */
   auto& arrival_distribution =
-      distributions_container_.get_train_distributions(
+      distributions_container_.get_route_node_distributions(
                                    element.to_->_id,
                                    train_distributions_container::arrival)
           .get_distribution_non_const(element.light_connection_idx_);
@@ -144,10 +144,10 @@ void train_distributions_calculator::insert_all_light_connections(
 
 void train_distributions_calculator::prepare_distributions_container(
     edge const& route_edge) {
-  distributions_container_.create_train_distributions(
+  distributions_container_.create_route_node_distributions(
       route_edge._from->_id, train_distributions_container::departure,
       route_edge._m._route_edge._conns.size());
-  distributions_container_.create_train_distributions(
+  distributions_container_.create_route_node_distributions(
       route_edge._to->_id, train_distributions_container::arrival,
       route_edge._m._route_edge._conns.size());
 }

@@ -89,7 +89,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
           10 * 60 + 32);
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 }
 
@@ -133,14 +133,14 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.feeders_[0].latest_feasible_arrival_ ==
           (7 * 60 + 3) - 5);  // TODO use platform change time
   REQUIRE(&data.feeders_[0].distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 6 * 60 + 41);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (7 * 60 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 }
 
@@ -172,7 +172,7 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_time_ == 6 * 60 + 5);
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 
   REQUIRE(data.maximum_waiting_time_ == 3);
@@ -182,14 +182,14 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.feeders_[0].transfer_time_ == 5);
   REQUIRE(data.feeders_[0].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[0].distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 5 * 60 + 56);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
-          &train_distributions.get_probability_distribution(
+          &train_distributions.get_distribution(
               0, 0, train_distributions_container::type::arrival));
 }
 
@@ -253,7 +253,7 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
       feeder1.init_one_point(0, 1.0);
       feeder2.init_one_point(0, 1.0);
     }
-    probability_distribution const& get_probability_distribution(
+    probability_distribution const& get_distribution(
         unsigned int const route_node_idx, unsigned int const light_conn_idx,
         type const t) const override {
       if (route_node_idx == route_node_train_ && light_conn_idx == 0 &&

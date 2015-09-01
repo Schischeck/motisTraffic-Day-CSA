@@ -16,7 +16,7 @@ struct train_distributions_calculator;
  * that contains all arrival and departure distributions
  * of its arriving and departing light connections.
  */
-struct train_distributions {
+struct route_node_distributions {
   friend struct train_distributions_container;
 
   probability_distribution const& get_distribution(
@@ -55,7 +55,7 @@ struct train_distributions_container {
     return (bool)node_to_arrival_distributions_[route_node_idx];
   }
 
-  virtual probability_distribution const& get_probability_distribution(
+  virtual probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
       type const t) const {
     if (t == arrival) {
@@ -71,31 +71,31 @@ struct train_distributions_container {
     }
   }
 
-  train_distributions& get_train_distributions(
+  route_node_distributions& get_route_node_distributions(
       unsigned int const route_node_idx, type const t) {
     return (t == arrival) ? *node_to_arrival_distributions_[route_node_idx]
                           : *node_to_departure_distributions_[route_node_idx];
   }
 
-  void create_train_distributions(unsigned int const route_node_idx,
+  void create_route_node_distributions(unsigned int const route_node_idx,
                                   type const t, unsigned int const size) {
     if (t == departure) {
       assert(!node_to_departure_distributions_[route_node_idx]);
       node_to_departure_distributions_[route_node_idx] =
-          std::unique_ptr<train_distributions>(new train_distributions);
+          std::unique_ptr<route_node_distributions>(new route_node_distributions);
       node_to_departure_distributions_[route_node_idx]->init(size);
     } else {
       assert(!node_to_arrival_distributions_[route_node_idx]);
       node_to_arrival_distributions_[route_node_idx] =
-          std::unique_ptr<train_distributions>(new train_distributions);
+          std::unique_ptr<route_node_distributions>(new route_node_distributions);
       node_to_arrival_distributions_[route_node_idx]->init(size);
     }
   }
 
 private:
-  std::vector<std::unique_ptr<train_distributions> >
+  std::vector<std::unique_ptr<route_node_distributions> >
       node_to_departure_distributions_;
-  std::vector<std::unique_ptr<train_distributions> >
+  std::vector<std::unique_ptr<route_node_distributions> >
       node_to_arrival_distributions_;
 };
 
