@@ -19,8 +19,7 @@ struct service_builder {
   service_builder(shared_data const& stamm,
                   flatbuffers::FlatBufferBuilder& builder);
 
-  flatbuffers::Offset<flatbuffers::String> get_or_create_category(
-      parser::cstr category);
+  flatbuffers::Offset<Category> get_or_create_category(parser::cstr category);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_line_info(
       parser::cstr line_info);
@@ -52,7 +51,7 @@ struct service_builder {
 
   shared_data const& stamm_;
   std::map<uint16_t, flatbuffers::Offset<Attribute>> attributes_;
-  std::map<uint32_t, flatbuffers::Offset<flatbuffers::String>> categories_;
+  std::map<uint32_t, flatbuffers::Offset<Category>> categories_;
   std::map<uint64_t, flatbuffers::Offset<flatbuffers::String>> line_infos_;
   std::map<std::vector<int>, flatbuffers::Offset<Route>> routes_;
   bitfield_translator bitfields_;

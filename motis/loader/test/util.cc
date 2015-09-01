@@ -7,6 +7,7 @@
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
 #include "motis/loader/util.h"
+#include "motis/loader/bitfield.h"
 
 using namespace parser;
 

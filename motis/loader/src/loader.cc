@@ -27,12 +27,12 @@ std::vector<std::unique_ptr<format_parser>> parsers() {
   return p;
 }
 
-schedule_ptr load_schedule(std::string const& path) {
+schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {
     auto buf = file(binary_schedule_file.string().c_str(), "ro").content();
-    return build_graph(GetSchedule(buf.buf_));
+    return build_graph(GetSchedule(buf.buf_), from, to);
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
@@ -40,7 +40,7 @@ schedule_ptr load_schedule(std::string const& path) {
         parser->parse(path, builder);
         parser::file(binary_schedule_file.string().c_str(), "w")
             .write(builder.GetBufferPointer(), builder.GetSize());
-        return build_graph(GetSchedule(builder.GetBufferPointer()));
+        return build_graph(GetSchedule(builder.GetBufferPointer()), from, to);
       }
     }
 

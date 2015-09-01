@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include "motis/core/schedule/time.h"
+#include "motis/core/schedule/attribute.h"
 
 namespace motis {
 
@@ -23,28 +24,26 @@ enum {
 
 class connection_info {
 public:
-  connection_info() : family(0), train_nr(0), service(0) {}
+  connection_info() : family(0), train_nr(0) {}
 
   bool operator<(connection_info const& o) const {
     return as_tuple() < o.as_tuple();
   }
 
   bool operator==(connection_info const& o) const {
-    return attributes == o.attributes && line_identifier == o.line_identifier &&
-           family == o.family && train_nr == o.train_nr && service == o.service;
+    return train_nr == o.train_nr && family == o.family &&
+           line_identifier == o.line_identifier && attributes == o.attributes;
   }
 
-  std::tuple<std::vector<int>, std::string, uint32_t, uint32_t, uint32_t>
+  std::tuple<uint32_t, uint32_t, std::string, std::vector<attribute const*>>
   as_tuple() const {
-    return std::make_tuple(attributes, line_identifier, family, train_nr,
-                           service);
+    return std::make_tuple(train_nr, family, line_identifier, attributes);
   }
 
-  std::vector<int> attributes;
+  std::vector<attribute const*> attributes;
   std::string line_identifier;
   uint32_t family;
   uint32_t train_nr;
-  uint32_t service;
 };
 
 class connection {
@@ -54,6 +53,15 @@ public:
 
   bool operator==(connection const& o) const {
     return clasz == o.clasz && price == o.price && con_info == o.con_info;
+  }
+
+  bool operator<(connection const& o) const {
+    return as_tuple() < o.as_tuple();
+  }
+
+  std::tuple<uint8_t, uint16_t, uint16_t, uint16_t, connection_info const*>
+  as_tuple() const {
+    return std::make_tuple(clasz, d_platform, a_platform, price, con_info);
   }
 
   connection_info const* con_info;

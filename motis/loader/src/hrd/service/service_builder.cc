@@ -16,63 +16,40 @@ service_builder::service_builder(shared_data const& stamm,
                                  FlatBufferBuilder& builder)
     : stamm_(stamm), bitfields_(stamm.bitfields, builder), builder_(builder) {}
 
-Offset<String> service_builder::get_or_create_category(cstr category) {
-  auto key = raw_to_int<uint32_t>(category);
-  auto it = categories_.find(key);
-  if (it != end(categories_)) {
-    return it->second;
-  } else {
-    auto fbs_category = to_fbs_string(builder_, category);
-    categories_[key] = fbs_category;
-    return fbs_category;
-  }
+Offset<Category> service_builder::get_or_create_category(cstr category) {
+  return get_or_create(categories_, raw_to_int<uint32_t>(category), [&]() {
+    return CreateCategory(builder_, to_fbs_string(builder_, category),
+                          CategoryOutputRule_CATEGORY_AND_TRAIN_NUM);
+  });
 }
 
 Offset<String> service_builder::get_or_create_line_info(cstr line_info) {
-  auto key = raw_to_int<uint64_t>(line_info);
-  auto it = line_infos_.find(key);
-  if (it != end(line_infos_)) {
-    return it->second;
-  } else {
-    auto fbs_line_info = to_fbs_string(builder_, line_info);
-    line_infos_[key] = fbs_line_info;
-    return fbs_line_info;
-  }
+  return get_or_create(line_infos_, raw_to_int<uint64_t>(line_info),
+                       [&]() { return to_fbs_string(builder_, line_info); });
 }
 
 Offset<Route> service_builder::create_route(
     std::vector<hrd_service::stop> const& stops) {
-  auto eva_nums = transform<std::vector<int>>(
-      begin(stops), end(stops),
-      [&](hrd_service::stop const& s) { return s.eva_num; });
-  auto it = routes_.find(eva_nums);
-  if (it == end(routes_)) {
-    return routes_
-        .insert(std::make_pair(
-            eva_nums,
-            CreateRoute(builder_,
-                        builder_.CreateVector(transform_to_vec(
-                            begin(eva_nums), end(eva_nums),
-                            [&](int eva_num) {
-                              auto it = stamm_.stations.find(eva_num);
-                              verify(it != end(stamm_.stations),
-                                     "station with eva number %d not found\n",
-                                     eva_num);
-                              return it->second;
-                            })))))
-        .first->second;
-  } else {
-    return it->second;
-  }
+  auto eva_nums =
+      transform_to_vec(begin(stops), end(stops),
+                       [&](hrd_service::stop const& s) { return s.eva_num; });
+  return get_or_create(routes_, eva_nums, [&]() {
+    return CreateRoute(builder_,
+                       builder_.CreateVector(transform_to_vec(
+                           begin(eva_nums), end(eva_nums), [&](int eva_num) {
+                             auto it = stamm_.stations.find(eva_num);
+                             verify(it != end(stamm_.stations),
+                                    "station with eva number %d not found\n",
+                                    eva_num);
+                             return it->second;
+                           })));
+  });
 }
 
 Offset<Attribute> service_builder::get_or_create_attribute(
     hrd_service::attribute attr) {
   auto key = raw_to_int<uint16_t>(attr.code);
-  auto fbs_attributes_it = attributes_.find(key);
-  if (fbs_attributes_it != end(attributes_)) {
-    return fbs_attributes_it->second;
-  } else {
+  return get_or_create(attributes_, key, [&]() {
     auto stamm_attributes_it = stamm_.attributes.find(key);
     verify(stamm_attributes_it != end(stamm_.attributes),
            "attribute with bitfield number %s not found\n", attr.code.str);
@@ -82,7 +59,7 @@ Offset<Attribute> service_builder::get_or_create_attribute(
                         bitfields_.get_or_create_bitfield(attr.bitfield_num));
     attributes_[key] = fbs_attribute;
     return fbs_attribute;
-  }
+  });
 }
 
 Offset<Vector<Offset<Attribute>>> service_builder::create_attributes(
@@ -168,8 +145,8 @@ Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
       begin(stops_platforms), end(stops_platforms),
       [&](stop_platforms const& sp) {
         return CreatePlatformRules(builder_,
-                                   builder_.CreateVector(sp.dep_platforms),
-                                   builder_.CreateVector(sp.arr_platforms));
+                                   builder_.CreateVector(sp.arr_platforms),
+                                   builder_.CreateVector(sp.dep_platforms));
       }));
 }
 

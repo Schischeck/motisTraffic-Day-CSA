@@ -5,6 +5,7 @@
 namespace motis {
 
 struct attribute {
+  attribute() = default;
   std::string _str;
   std::string _code;
 };

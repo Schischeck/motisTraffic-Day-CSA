@@ -280,7 +280,7 @@ TEST(loader_hrd_hrd_services, parse_repetition_service) {
   ASSERT_TRUE(service1->sections()->size() == 1);
   ASSERT_TRUE(
       !deserialize_bitset<512>(service1->traffic_days()->c_str()).any());
-  ASSERT_TRUE(service1->sections()->Get(0)->category()->str() == "ICE");
+  ASSERT_TRUE(service1->sections()->Get(0)->category()->name()->str() == "ICE");
   ASSERT_TRUE(service1->platforms()->size() == 2);
   ASSERT_TRUE(service1->platforms()->Get(0)->arr_platforms()->size() == 0);
   ASSERT_TRUE(service1->platforms()->Get(0)->dep_platforms()->size() == 2);
@@ -304,7 +304,7 @@ TEST(loader_hrd_hrd_services, parse_repetition_service) {
   ASSERT_TRUE(service2->sections()->size() == 1);
   ASSERT_TRUE(
       !deserialize_bitset<512>(service2->traffic_days()->c_str()).any());
-  ASSERT_TRUE(service2->sections()->Get(0)->category()->str() == "ICE");
+  ASSERT_TRUE(service2->sections()->Get(0)->category()->name()->str() == "ICE");
 
   auto service3 = schedule->services()->Get(2);
   ASSERT_TRUE(service3->times()->Get(0) == -1);
@@ -314,7 +314,7 @@ TEST(loader_hrd_hrd_services, parse_repetition_service) {
   ASSERT_TRUE(service3->sections()->size() == 1);
   ASSERT_TRUE(
       !deserialize_bitset<512>(service3->traffic_days()->c_str()).any());
-  ASSERT_TRUE(service3->sections()->Get(0)->category()->str() == "ICE");
+  ASSERT_TRUE(service3->sections()->Get(0)->category()->name()->str() == "ICE");
 }
 
 TEST(loader_hrd_hrd_services, parse_full_schedule) {

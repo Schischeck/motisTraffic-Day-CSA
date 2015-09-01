@@ -1,0 +1,15 @@
+namespace motis.loader;
+
+enum CategoryOutputRule : byte {
+  CATEGORY_AND_TRAIN_NUM,
+  CATEGORY,
+  TRAIN_NUM,
+  NOTHING,
+  PROVIDER_AND_TRAIN_NUM,
+  PROVIDER
+}
+
+table Category {
+  name: string;
+  output_rule: CategoryOutputRule;
+}

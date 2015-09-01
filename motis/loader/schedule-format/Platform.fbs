@@ -6,6 +6,6 @@ table Platform {
 }
 
 table PlatformRules {
-  dep_platforms: [Platform];
   arr_platforms: [Platform];
+  dep_platforms: [Platform];
 }

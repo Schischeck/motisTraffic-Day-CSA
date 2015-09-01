@@ -6,10 +6,16 @@ include "Attribute.fbs";
 
 namespace motis.loader;
 
+struct Interval {
+  from: int;
+  to: int;
+}
+
 table Schedule {
   services : [Service];
   stations: [Station];
   routes: [Route];
+  interval: Interval;
 }
 
 root_type Schedule;

@@ -24,16 +24,17 @@ struct schedule {
   std::map<int, station*> eva_to_station;
   std::vector<std::string> category_names;
   std::map<std::string, int> classes;
-  std::map<int, std::string> tracks;
-  std::map<int, attribute> attributes;
+  std::vector<std::string> tracks;
   constant_graph lower_bounds;
   unsigned node_count;
   std::vector<station_node_ptr> station_nodes;
   std::vector<node*> route_index_to_first_route_node;
   waiting_time_rules waiting_time_rules_;
+  synchronization sync;
+
   std::vector<std::unique_ptr<connection>> full_connections;
   std::vector<std::unique_ptr<connection_info>> connection_infos;
-  synchronization sync;
+  std::vector<std::unique_ptr<attribute>> attributes;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

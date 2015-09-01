@@ -1,10 +1,13 @@
 include "Attribute.fbs";
+include "Provider.fbs";
+include "Category.fbs";
 
 namespace motis.loader;
 
 table Section {
-  train_nr : int;
-  category : string;
-  line_id : string;
+  category: Category;
+  provider: Provider;
+  train_nr: int;
+  line_id: string;
   attributes: [Attribute];
 }

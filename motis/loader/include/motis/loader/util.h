@@ -17,32 +17,6 @@
 namespace motis {
 namespace loader {
 
-template <std::size_t BitSetSize>
-struct bitset_comparator {
-  bool operator()(std::bitset<BitSetSize> const& lhs,
-                  std::bitset<BitSetSize> const& rhs) const {
-    for (std::size_t i = 0; i < BitSetSize; ++i) {
-      int lhs_bit = lhs.test(i) ? 1 : 0;
-      int rhs_bit = rhs.test(i) ? 1 : 0;
-      if (lhs_bit != rhs_bit) {
-        return lhs_bit < rhs_bit;
-      }
-    }
-    return false;
-  }
-};
-
-template <std::size_t BitSetSize>
-std::bitset<BitSetSize> create_uniform_bitfield(char val) {
-  assert(val == '1' || val == '0');
-
-  std::string all_days_bit_str;
-  all_days_bit_str.resize(BitSetSize);
-  std::fill(begin(all_days_bit_str), end(all_days_bit_str), val);
-
-  return std::bitset<BitSetSize>(all_days_bit_str);
-}
-
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 
@@ -71,45 +45,6 @@ flatbuffers::Offset<flatbuffers::String> to_fbs_string(
   }
   return to_fbs_string(b, parser::cstr(reinterpret_cast<char const*>(out_begin),
                                        std::distance(out_begin, out)));
-}
-
-template <int BitCount>
-inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {
-  constexpr int number_of_bytes = BitCount >> 3;
-
-  char buf[number_of_bytes];
-  std::fill(std::begin(buf), std::end(buf), 0);
-
-  int bit_it = 0;
-  for (int byte = 0; byte < number_of_bytes; ++byte) {
-    uint8_t next_byte = 0;
-    for (int bit = 0; bit < 8; ++bit) {
-      uint8_t bit_value = bitset.test(bit_it) ? 1 : 0;
-      next_byte += (bit_value << bit);
-      ++bit_it;
-    }
-    buf[byte] = next_byte;
-  }
-
-  return std::string(buf, number_of_bytes);
-}
-
-template <int BitCount>
-inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
-  constexpr std::size_t number_of_bytes = BitCount >> 3;
-
-  std::bitset<BitCount> bits;
-  int bit_it = 0;
-  auto limit = std::min(number_of_bytes, str.len);
-  for (unsigned byte = 0; byte < limit; ++byte) {
-    std::bitset<8> byte_bit_set(str[byte]);
-    for (int i = 0; i < 8; ++i) {
-      bits.set(bit_it, byte_bit_set.test(i));
-      ++bit_it;
-    }
-  }
-
-  return bits;
 }
 
 template <typename IndexType, typename ValueType>
@@ -152,6 +87,16 @@ inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
   return it;
 }
 
+template <typename K, typename V, typename CreateFun>
+V& get_or_create(std::map<K, V>& m, K const& key, CreateFun f) {
+  auto it = m.find(key);
+  if (it != end(m)) {
+    return it->second;
+  } else {
+    return m[key] = f();
+  }
+}
+
 template <typename TargetCollection, typename It, typename UnaryOperation>
 inline TargetCollection transform(It s, It e, UnaryOperation op) {
   TargetCollection c;
@@ -165,6 +110,16 @@ inline auto transform_to_vec(It s, It e, UnaryOperation op)
   std::vector<decltype(op(*s))> vec(std::distance(s, e));
   std::transform(s, e, std::begin(vec), op);
   return vec;
+}
+
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique_helper(std::false_type, Args&&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+  return make_unique_helper<T>(std::is_array<T>(), std::forward<Args>(args)...);
 }
 
 parser::buffer load_file(boost::filesystem::path const&);
