@@ -49,6 +49,11 @@ using queue_type =
     std::priority_queue<queue_element, std::vector<queue_element>,
                         queue_element::queue_element_cmp>;
 
+void process_queue(queue_type& queue,
+                   precomputed_distributions_container& container,
+                   start_and_travel_distributions const& s_t_distributions,
+                   schedule const& schedule);
+
 void compute_dep_and_arr_distribution(
     queue_element const& element,
     precomputed_distributions_container& container,
@@ -77,9 +82,16 @@ void output_element(std::ostream& os, schedule const& schedule,
 namespace precomputed_distributions_calculator {
 void perform_precomputation(
     schedule const& schedule,
-    precomputed_distributions_container& distributions_container,
-    start_and_travel_distributions const& s_t_distributions);
+    start_and_travel_distributions const& s_t_distributions,
+    precomputed_distributions_container& distributions_container);
 };
+
+namespace route_distributions_calculator {
+void compute_distributions_for_route(
+    unsigned int const route_id, schedule const& schedule,
+    start_and_travel_distributions const& s_t_distributions,
+    precomputed_distributions_container& distributions_container);
+}
 
 }  // namespace reliability
 }  // namespace motis

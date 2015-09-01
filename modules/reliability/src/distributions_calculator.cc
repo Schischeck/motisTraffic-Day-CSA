@@ -15,21 +15,32 @@ namespace reliability {
 
 namespace distributions_calculator {
 
-void output_element(std::ostream& os, schedule const& schedule,
-                    node const& from, node const& to,
-                    light_connection const& light_connection,
-                    unsigned short const light_connection_idx,
-                    bool const is_first_route_node) {
-  os << schedule.stations[from._station_node->_id]->name << "(" << from._id
-     << ")"
-     << " " << format_time(light_connection.d_time) << "--"
-     << schedule.category_names[light_connection._full_con->con_info->family]
-     << light_connection._full_con->con_info->train_nr << "("
-     << light_connection_idx << ")->" << format_time(light_connection.a_time)
-     << " " << schedule.stations[to._station_node->_id]->name << "(" << to._id
-     << ")"
-     << " first=" << is_first_route_node << " " << &light_connection
-     << std::endl;
+void process_queue(queue_type& queue,
+                   precomputed_distributions_container& container,
+                   start_and_travel_distributions const& s_t_distributions,
+                   schedule const& schedule) {
+  unsigned int num_processed = 0;
+
+  while (!queue.empty()) {
+    auto const& element = queue.top();
+    compute_dep_and_arr_distribution(element, container, s_t_distributions,
+                                     schedule);
+    // insert all light connections out-going from the head-node
+    // into the queue. Note that, process element is called
+    // for all light-connections of the route-edge.
+    // But we have to insert the light connections of the head-node
+    // only once into the queue.
+    if (element.light_connection_idx_ == 0) {
+      insert_all_light_connections<false, false>(*element.to_, queue, container,
+                                                 schedule);
+    }
+    queue.pop();
+    if (++num_processed % 10000 == 0) {
+      std::cout << "." << std::flush;
+    }
+  }
+
+  std::cout << num_processed - 1 << " processed elements" << std::endl;
 }
 
 void compute_dep_and_arr_distribution(
@@ -112,12 +123,29 @@ bool is_pre_computed_route(schedule const& schedule,
   return false;
 }
 
+void output_element(std::ostream& os, schedule const& schedule,
+                    node const& from, node const& to,
+                    light_connection const& light_connection,
+                    unsigned short const light_connection_idx,
+                    bool const is_first_route_node) {
+  os << schedule.stations[from._station_node->_id]->name << "(" << from._id
+     << ")"
+     << " " << format_time(light_connection.d_time) << "--"
+     << schedule.category_names[light_connection._full_con->con_info->family]
+     << light_connection._full_con->con_info->train_nr << "("
+     << light_connection_idx << ")->" << format_time(light_connection.a_time)
+     << " " << schedule.stations[to._station_node->_id]->name << "(" << to._id
+     << ")"
+     << " first=" << is_first_route_node << " " << &light_connection
+     << std::endl;
+}
+
 }  // namespace distributions_calculator
 
 void precomputed_distributions_calculator::perform_precomputation(
     schedule const& schedule,
-    precomputed_distributions_container& distributions_container,
-    start_and_travel_distributions const& s_t_distributions) {
+    start_and_travel_distributions const& s_t_distributions,
+    precomputed_distributions_container& distributions_container) {
   distributions_calculator::queue_type queue;
 
   for (auto const first_route_node : schedule.route_index_to_first_route_node) {
@@ -125,28 +153,20 @@ void precomputed_distributions_calculator::perform_precomputation(
         *first_route_node, queue, distributions_container, schedule);
   }
 
-  unsigned int num_processed = 0;
+  distributions_calculator::process_queue(queue, distributions_container,
+                                          s_t_distributions, schedule);
+}
 
-  while (!queue.empty()) {
-    auto const& element = queue.top();
-    distributions_calculator::compute_dep_and_arr_distribution(
-        element, distributions_container, s_t_distributions, schedule);
-    // insert all light connections out-going from the head-node
-    // into the queue. Note that, process element is called
-    // for all light-connections of the route-edge.
-    // But we have to insert the light connections of the head-node
-    // only once into the queue.
-    if (element.light_connection_idx_ == 0) {
-      distributions_calculator::insert_all_light_connections<false, false>(
-          *element.to_, queue, distributions_container, schedule);
-    }
-    queue.pop();
-    if (++num_processed % 10000 == 0) {
-      std::cout << "." << std::flush;
-    }
-  }
-
-  std::cout << num_processed - 1 << " processed elements" << std::endl;
+namespace route_distributions_calculator {
+void compute_distributions_for_route(
+    unsigned int const route_id, schedule const& schedule,
+    start_and_travel_distributions const& s_t_distributions,
+    precomputed_distributions_container& distributions_container) {
+  distributions_calculator::queue_type queue;
+  distributions_calculator::insert_all_light_connections<true, false>(
+      *schedule.route_index_to_first_route_node[route_id], queue,
+      distributions_container, schedule);
+}
 }
 
 }  // namespace reliability

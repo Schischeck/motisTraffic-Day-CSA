@@ -92,7 +92,7 @@ TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
                                                         {0.1, 0.8, 0.1}, -1);
 
   precomputed_distributions_calculator::perform_precomputation(
-      *schedule, train_distributions, s_t_distributions);
+      *schedule, s_t_distributions, train_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
@@ -113,7 +113,7 @@ TEST_CASE("Initial_distributions_db_distributions", "[train_dist_calc]") {
       120);  // todo: read max travel time from graph
 
   precomputed_distributions_calculator::perform_precomputation(
-      *schedule, train_distributions, db_dists);
+      *schedule, db_dists, train_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
@@ -136,7 +136,7 @@ TEST_CASE("Initial_distributions_db_distributions2", "[train_dist_calc]") {
       120);  // todo: read max travel time from graph
 
   precomputed_distributions_calculator::perform_precomputation(
-      *schedule, train_distributions, db_dists);
+      *schedule, db_dists, train_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
