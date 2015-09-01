@@ -5,4 +5,5 @@ table Station {
   name : string;
   lat : double;
   lng : double;
+  interchange_time : int;
 }
