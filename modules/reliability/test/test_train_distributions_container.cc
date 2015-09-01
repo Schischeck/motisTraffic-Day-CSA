@@ -5,7 +5,7 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/train_distributions.h"
+#include "motis/reliability/distributions_container.h"
 
 using namespace motis;
 using namespace motis::reliability;

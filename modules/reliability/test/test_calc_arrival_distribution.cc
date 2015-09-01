@@ -8,11 +8,10 @@
 #include "motis/loader/loader.h"
 
 #include "motis/reliability/calc_arrival_distribution.h"
+#include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
 #include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/train_distributions.h"
-
 #include "include/start_and_travel_test_distributions.h"
 #include "include/train_distributions_test_container.h"
 

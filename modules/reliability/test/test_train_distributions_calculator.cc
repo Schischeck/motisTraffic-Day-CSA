@@ -8,9 +8,9 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/train_distributions_calculator.h"
-#include "motis/reliability/train_distributions.h"
 
 #include "include/start_and_travel_test_distributions.h"
 

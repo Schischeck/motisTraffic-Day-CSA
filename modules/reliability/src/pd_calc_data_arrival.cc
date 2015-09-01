@@ -3,11 +3,11 @@
 #include <algorithm>
 #include <climits>
 
+#include "../include/motis/reliability/distributions_container.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/train_distributions.h"
 
 namespace motis {
 namespace reliability {

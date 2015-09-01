@@ -9,9 +9,9 @@
 #include "motis/module/api.h"
 
 #include "motis/reliability/db_distributions.h"
+#include "motis/reliability/distributions_container.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/train_distributions_calculator.h"
-#include "motis/reliability/train_distributions.h"
 
 using namespace motis::module;
 namespace po = boost::program_options;

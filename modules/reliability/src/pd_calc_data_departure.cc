@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "../include/motis/reliability/distributions_container.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/waiting_time_rules.h"
@@ -9,7 +10,6 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/start_and_travel_distributions.h"
-#include "motis/reliability/train_distributions.h"
 
 namespace motis {
 namespace reliability {

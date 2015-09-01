@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "../include/motis/reliability/distributions_container.h"
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/calc_arrival_distribution.h"
@@ -9,7 +10,6 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data_departure.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
-#include "motis/reliability/train_distributions.h"
 
 namespace motis {
 namespace reliability {
@@ -37,7 +37,7 @@ void train_distributions_calculator::calculate_initial_distributions() {
   while (!queue_.empty()) {
     process_element(queue_.top());
     queue_.pop();
-    if (++num_processed % 1000 == 0) {
+    if (++num_processed % 10000 == 0) {
       std::cout << "." << std::flush;
     }
   }
