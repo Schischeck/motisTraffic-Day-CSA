@@ -16,7 +16,7 @@ struct schedule;
 namespace reliability {
 
 struct probability_distribution;
-struct train_distributions_container;
+struct precomputed_distributions_container;
 
 /**
  * struct storing all data necessary for calculating an arrival distribution.

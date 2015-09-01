@@ -17,7 +17,7 @@ struct train_distributions_calculator;
  * of its arriving and departing light connections.
  */
 struct route_node_distributions {
-  friend struct train_distributions_container;
+  friend struct precomputed_distributions_container;
 
   probability_distribution const& get_distribution(
       unsigned int const index) const {
@@ -36,14 +36,14 @@ private:
   std::vector<probability_distribution> distributions_;
 };
 
-struct train_distributions_container {
+struct precomputed_distributions_container {
   enum type { arrival, departure };
 
-  train_distributions_container(unsigned num_nodes)
+  precomputed_distributions_container(unsigned num_nodes)
       : node_to_departure_distributions_(num_nodes),
         node_to_arrival_distributions_(num_nodes) {}
 
-  virtual ~train_distributions_container() {}
+  virtual ~precomputed_distributions_container() {}
 
   bool contains_departure_distributions(
       unsigned int const route_node_idx) const {

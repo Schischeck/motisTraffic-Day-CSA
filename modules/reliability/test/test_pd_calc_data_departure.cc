@@ -1,7 +1,5 @@
 #include "catch/catch.hpp"
 
-#include "include/start_and_travel_test_distributions.h"
-
 #include "motis/loader/loader.h"
 
 #include "motis/core/schedule/schedule.h"
@@ -10,7 +8,9 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/pd_calc_data_departure.h"
 #include "motis/reliability/pd_calc_data_arrival.h"
-#include "include/train_distributions_test_container.h"
+
+#include "include/precomputed_distributions_test_container.h"
+#include "include/start_and_travel_test_distributions.h"
 
 using namespace motis;
 using namespace motis::reliability;
@@ -19,7 +19,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container dummy(0);
+  precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -57,7 +57,8 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
+  precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
+                                                               -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Hanau of train ICE_HA_W_HE
@@ -90,14 +91,15 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 }
 
 TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
+  precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
+                                                               -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
@@ -134,21 +136,22 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
           (7 * 60 + 3) - 5);  // TODO use platform change time
   REQUIRE(&data.feeders_[0].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 6 * 60 + 41);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (7 * 60 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 }
 
 TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_test_container train_distributions({0.1, 0.7, 0.2}, -1);
+  precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
+                                                               -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train ICE_FR_DA_H
@@ -173,7 +176,7 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.feeders_.size() == 2);
@@ -183,21 +186,21 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.feeders_[0].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[0].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 5 * 60 + 56);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, train_distributions_container::type::arrival));
+              0, 0, precomputed_distributions_container::type::arrival));
 }
 
 TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_container dummy(0);
+  precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Karlsruhe of train RE_K_S
@@ -241,14 +244,15 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
   auto const& light_connection = graph_accessor::get_departing_route_edge(
                                      route_node)->_m._route_edge._conns[0];
 
-  struct train_distributions_test2_container : train_distributions_container {
+  struct train_distributions_test2_container
+      : precomputed_distributions_container {
     train_distributions_test2_container(unsigned int const route_node_train,
                                         unsigned int const route_node_feeder1,
                                         unsigned int const route_node_feeder2)
         : route_node_train_(route_node_train),
           route_node_feeder1_(route_node_feeder1),
           route_node_feeder2_(route_node_feeder2),
-          train_distributions_container(0) {
+          precomputed_distributions_container(0) {
       train.init_one_point(0, 1.0);
       feeder1.init_one_point(0, 1.0);
       feeder2.init_one_point(0, 1.0);
@@ -304,7 +308,7 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_test_container distributions_container({0.1}, 0);
+  precomputed_distributions_test_container distributions_container({0.1}, 0);
   struct start_and_travel_test2_distributions : start_and_travel_distributions {
     start_and_travel_test2_distributions() {
       distribution.init_one_point(0, 1.0);
@@ -345,7 +349,7 @@ TEST_CASE("check largest delay", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  train_distributions_test_container train_distributions(
+  precomputed_distributions_test_container train_distributions(
       {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 

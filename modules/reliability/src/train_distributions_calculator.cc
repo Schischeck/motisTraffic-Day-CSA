@@ -18,7 +18,7 @@ namespace reliability {
 
 train_distributions_calculator::train_distributions_calculator(
     schedule const& schedule,
-    train_distributions_container& distributions_container,
+    precomputed_distributions_container& distributions_container,
     start_and_travel_distributions const& s_t_dist_manager)
     : schedule_(schedule),
       distributions_container_(distributions_container),
@@ -74,7 +74,7 @@ void train_distributions_calculator::process_element(
   auto& departure_distribution =
       distributions_container_.get_route_node_distributions(
                                    element.from_->_id,
-                                   train_distributions_container::departure)
+                                   precomputed_distributions_container::departure)
           .get_distribution_non_const(element.light_connection_idx_);
   assert(departure_distribution.empty());
   pd_calc_data_departure d_data(*element.from_, *element.light_connection_,
@@ -87,7 +87,7 @@ void train_distributions_calculator::process_element(
   auto& arrival_distribution =
       distributions_container_.get_route_node_distributions(
                                    element.to_->_id,
-                                   train_distributions_container::arrival)
+                                   precomputed_distributions_container::arrival)
           .get_distribution_non_const(element.light_connection_idx_);
   assert(arrival_distribution.empty());
   pd_calc_data_arrival a_data(*element.to_, *element.light_connection_,
@@ -145,10 +145,10 @@ void train_distributions_calculator::insert_all_light_connections(
 void train_distributions_calculator::prepare_distributions_container(
     edge const& route_edge) {
   distributions_container_.create_route_node_distributions(
-      route_edge._from->_id, train_distributions_container::departure,
+      route_edge._from->_id, precomputed_distributions_container::departure,
       route_edge._m._route_edge._conns.size());
   distributions_container_.create_route_node_distributions(
-      route_edge._to->_id, train_distributions_container::arrival,
+      route_edge._to->_id, precomputed_distributions_container::arrival,
       route_edge._m._route_edge._conns.size());
 }
 

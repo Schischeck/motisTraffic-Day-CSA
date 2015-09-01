@@ -4,15 +4,16 @@
 #include <memory>
 #include <vector>
 
-#include "../../include/motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions_container.h"
 
 namespace motis {
 namespace reliability {
 
-struct train_distributions_test_container : train_distributions_container {
-  train_distributions_test_container(
+struct precomputed_distributions_test_container
+    : precomputed_distributions_container {
+  precomputed_distributions_test_container(
       std::vector<probability> const probabilities, int const first_minute)
-      : train_distributions_container(0) {
+      : precomputed_distributions_container(0) {
     dist.init(probabilities, first_minute);
   }
 

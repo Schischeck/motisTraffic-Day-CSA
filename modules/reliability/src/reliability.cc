@@ -45,7 +45,7 @@ bool reliability::initialize() {
   auto const lock = synced_sched<RO>();
   schedule const& schedule = lock.sched();
 
-  train_distributions_container distributions_container(schedule.node_count);
+  precomputed_distributions_container distributions_container(schedule.node_count);
   db_distributions db_distributions(
       "", 120,
       120);  // TODO: read max travel time from graph

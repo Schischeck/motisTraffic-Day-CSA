@@ -11,39 +11,39 @@ using namespace motis;
 using namespace motis::reliability;
 
 TEST_CASE("test", "[train_dist_container]") {
-  train_distributions_container container(2);
+  precomputed_distributions_container container(2);
 
   REQUIRE_FALSE(container.contains_arrival_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
   container.create_route_node_distributions(
-      0, train_distributions_container::arrival, 2);
+      0, precomputed_distributions_container::arrival, 2);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
   container.create_route_node_distributions(
-      0, train_distributions_container::departure, 1);
+      0, precomputed_distributions_container::departure, 1);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE(container.contains_departure_distributions(0));
   REQUIRE_FALSE(container.contains_departure_distributions(1));
 
   container.create_route_node_distributions(
-      1, train_distributions_container::departure, 1);
+      1, precomputed_distributions_container::departure, 1);
 
   REQUIRE(container.contains_arrival_distributions(0));
   REQUIRE(container.contains_departure_distributions(0));
   REQUIRE(container.contains_departure_distributions(1));
 
   auto& arrival_distributions = container.get_route_node_distributions(
-      0, train_distributions_container::arrival);
+      0, precomputed_distributions_container::arrival);
   auto& departure_distributions = container.get_route_node_distributions(
-      0, train_distributions_container::departure);
+      0, precomputed_distributions_container::departure);
   auto& departure_distributions2 = container.get_route_node_distributions(
-      1, train_distributions_container::departure);
+      1, precomputed_distributions_container::departure);
 
   REQUIRE(arrival_distributions.get_distribution(0).empty());
   REQUIRE(arrival_distributions.get_distribution(1).empty());
@@ -66,14 +66,14 @@ TEST_CASE("test", "[train_dist_container]") {
 
   REQUIRE(&arrival_distributions.get_distribution(0) ==
           &container.get_distribution(
-              0, 0, train_distributions_container::arrival));
+              0, 0, precomputed_distributions_container::arrival));
   REQUIRE(&arrival_distributions.get_distribution(1) ==
           &container.get_distribution(
-              0, 1, train_distributions_container::arrival));
+              0, 1, precomputed_distributions_container::arrival));
   REQUIRE(&departure_distributions.get_distribution(0) ==
           &container.get_distribution(
-              0, 0, train_distributions_container::departure));
+              0, 0, precomputed_distributions_container::departure));
   REQUIRE(&departure_distributions2.get_distribution(0) ==
           &container.get_distribution(
-              1, 0, train_distributions_container::departure));
+              1, 0, precomputed_distributions_container::departure));
 }

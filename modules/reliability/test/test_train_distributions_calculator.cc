@@ -36,7 +36,7 @@ TEST_CASE("is_pre_computed_train", "[train_dist_calc]") {
 }
 
 void test_distributions(node const& route_node,
-                        train_distributions_container& train_distributions,
+                        precomputed_distributions_container& train_distributions,
                         bool const pre_computed_distributions) {
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   // last route node
@@ -60,10 +60,10 @@ void test_distributions(node const& route_node,
 
     auto const& departure_distributions =
         train_distributions.get_route_node_distributions(
-            route_node._id, train_distributions_container::departure);
+            route_node._id, precomputed_distributions_container::departure);
     auto const& arrival_distributions =
         train_distributions.get_route_node_distributions(
-            head_route_node._id, train_distributions_container::arrival);
+            head_route_node._id, precomputed_distributions_container::arrival);
 
     for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size();
          l++) {
@@ -86,7 +86,7 @@ void test_distributions(node const& route_node,
 TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
-  train_distributions_container train_distributions(schedule->node_count);
+  precomputed_distributions_container train_distributions(schedule->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
 
@@ -107,7 +107,7 @@ TEST_CASE("Initial_distributions_db_distributions", "[train_dist_calc]") {
   std::cout << "Initial_distributions_db_distributions" << std::endl;
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
-  train_distributions_container train_distributions(schedule->node_count);
+  precomputed_distributions_container train_distributions(schedule->node_count);
   db_distributions db_dists(
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
@@ -131,7 +131,7 @@ TEST_CASE("Initial_distributions_db_distributions2", "[train_dist_calc]") {
       "/data/schedule/2015-08-26_motis_6904ee18-73a0-474e-840b-f49586f4baf1/"
       "schedule/motis");
   std::cout << "schedule loaded" << std::endl;
-  train_distributions_container train_distributions(schedule->node_count);
+  precomputed_distributions_container train_distributions(schedule->node_count);
   db_distributions db_dists(
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph

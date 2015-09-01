@@ -14,7 +14,7 @@ class edge;
 
 namespace reliability {
 
-struct train_distributions_container;
+struct precomputed_distributions_container;
 struct start_and_travel_distributions;
 
 struct train_distributions_calculator {
@@ -48,7 +48,7 @@ struct train_distributions_calculator {
 
   train_distributions_calculator(
       schedule const& schedule,
-      train_distributions_container& distributions_container,
+      precomputed_distributions_container& distributions_container,
       start_and_travel_distributions const& s_t_dist_manager);
 
   void calculate_initial_distributions();
@@ -75,7 +75,7 @@ private:
 
   schedule const& schedule_;
   start_and_travel_distributions const& s_t_distributions_;
-  train_distributions_container& distributions_container_;
+  precomputed_distributions_container& distributions_container_;
 
   std::priority_queue<queue_element, std::vector<queue_element>,
                       queue_element::queue_element_cmp> queue_;
