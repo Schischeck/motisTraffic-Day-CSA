@@ -50,12 +50,16 @@ void parse_station_coordinates(loaded_file file,
   });
 }
 
-std::map<int, Offset<Station>> parse_stations(loaded_file stations_file,
-                                              loaded_file coordinates_file,
-                                              FlatBufferBuilder& b) {
+void parse_ds100_mappings(loaded_file ds100_mappings_file,
+                          std::map<int, station>& stations) {}
+
+std::map<int, Offset<Station>> parse_stations(
+    loaded_file station_names_file, loaded_file station_coordinates_file,
+    loaded_file ds100_mappings_file, flatbuffers::FlatBufferBuilder& b) {
   std::map<int, station> stations_map;
-  parse_station_names(stations_file, stations_map);
-  parse_station_coordinates(coordinates_file, stations_map);
+  parse_station_names(station_names_file, stations_map);
+  parse_station_coordinates(station_coordinates_file, stations_map);
+  parse_ds100_mappings(ds100_mappings_file, stations_map);
 
   std::map<int, Offset<Station>> stations;
   for (auto const& station_entry : stations_map) {

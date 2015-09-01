@@ -32,10 +32,15 @@ TEST(loader_hrd_stations, parse_stations) {
       static_cast<char const*>(coordinates_file_buf.buf_),
       coordinates_file_buf.size_);
 
+  auto infotext_file_buf = load_file(res_path / STATIONS_FILE);
+  cstr infotext_file_content(
+      {infotext_file_buf.data(), infotext_file_buf.size()});
+
   flatbuffers::FlatBufferBuilder b;
   auto station_data =
       parse_stations({STATIONS_FILE, stations_file_content},
-                     {COORDINATES_FILE, coordinates_file_content}, b);
+                     {COORDINATES_FILE, coordinates_file_content},
+                     {INFOTEXT_FILE, infotext_file_content}, b);
 
   b.Finish(CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}));
 

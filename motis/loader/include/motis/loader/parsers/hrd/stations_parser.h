@@ -10,8 +10,8 @@ namespace loader {
 namespace hrd {
 
 std::map<int, flatbuffers::Offset<Station>> parse_stations(
-    loaded_file stations_file, loaded_file station_coordinates_file,
-    flatbuffers::FlatBufferBuilder& b);
+    loaded_file station_names_file, loaded_file station_coordinates_file,
+    loaded_file ds100_mappings_file, flatbuffers::FlatBufferBuilder& b);
 
 }  // hrd
 }  // loader
