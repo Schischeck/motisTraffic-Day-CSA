@@ -21,20 +21,18 @@ TEST_CASE("is_pre_computed_train", "[train_dist_calc]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  REQUIRE(train_distributions_calculator::is_pre_computed_train(
+  REQUIRE(train_distributions_calculator::is_pre_computed_route(
       *schedule,
-      *graph_accessor::get_departing_route_edge(
-          *schedule->route_index_to_first_route_node[0])));  // IC_DA_H
+      *schedule->route_index_to_first_route_node[0]));  // IC_DA_H
 
-  REQUIRE(train_distributions_calculator::is_pre_computed_train(
+  REQUIRE(train_distributions_calculator::is_pre_computed_route(
       *schedule,
-      *graph_accessor::get_departing_route_edge(
-          *schedule->route_index_to_first_route_node[6])));  // ICE_FR_DA_H
+
+      *schedule->route_index_to_first_route_node[6]));  // ICE_FR_DA_H
 
   // RE_K_S
-  REQUIRE_FALSE(train_distributions_calculator::is_pre_computed_train(
-      *schedule, *graph_accessor::get_departing_route_edge(
-                     *schedule->route_index_to_first_route_node[5])));
+  REQUIRE_FALSE(train_distributions_calculator::is_pre_computed_route(
+      *schedule, *schedule->route_index_to_first_route_node[5]));
 }
 
 void test_distributions(node const& route_node,
@@ -99,9 +97,8 @@ TEST_CASE("Initial_distributions_simple", "[train_dist_calc]") {
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
     test_distributions(*first_route_node, train_distributions,
-                       train_distributions_calculator::is_pre_computed_train(
-                           *schedule, *graph_accessor::get_departing_route_edge(
-                                          *first_route_node)));
+                       train_distributions_calculator::is_pre_computed_route(
+                           *schedule, *first_route_node));
   }
 }
 
@@ -122,9 +119,8 @@ TEST_CASE("Initial_distributions_db_distributions", "[train_dist_calc]") {
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
     test_distributions(*first_route_node, train_distributions,
-                       train_distributions_calculator::is_pre_computed_train(
-                           *schedule, *graph_accessor::get_departing_route_edge(
-                                          *first_route_node)));
+                       train_distributions_calculator::is_pre_computed_route(
+                           *schedule, *first_route_node));
   }
 }
 
@@ -148,9 +144,8 @@ TEST_CASE("Initial_distributions_db_distributions2", "[train_dist_calc]") {
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
     test_distributions(*first_route_node, train_distributions,
-                       train_distributions_calculator::is_pre_computed_train(
-                           *schedule, *graph_accessor::get_departing_route_edge(
-                                          *first_route_node)));
+                       train_distributions_calculator::is_pre_computed_route(
+                           *schedule, *first_route_node));
   }
 }
 #endif

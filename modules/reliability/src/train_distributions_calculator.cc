@@ -14,7 +14,7 @@
 namespace motis {
 namespace reliability {
 
-std::ofstream os("calculator.log");
+// std::ofstream os("calculator.log");
 
 train_distributions_calculator::train_distributions_calculator(
     schedule const& schedule,
@@ -66,18 +66,10 @@ void train_distributions_calculator::insert_into_queue(
     unsigned short const light_connection_idx, bool const is_first_route_node) {
   queue_.emplace(from, to, light_connection, light_connection_idx,
                  is_first_route_node);
-
-  os << "Insert ";
-  output_element(os, schedule_, *from, *to, *light_connection,
-                 light_connection_idx, is_first_route_node);
 }
 
 void train_distributions_calculator::process_element(
     queue_element const& element) {
-  os << "Process ";
-  output_element(os, schedule_, *element.from_, *element.to_,
-                 *element.light_connection_, element.light_connection_idx_,
-                 element.is_first_route_node_);
   /* departure distribution */
   auto& departure_distribution =
       distributions_container_.get_train_distributions(
@@ -114,23 +106,32 @@ void train_distributions_calculator::process_element(
   }
 }
 
-bool train_distributions_calculator::is_pre_computed_train(
-    schedule const& schedule, edge const& route_edge) {
-  return schedule.waiting_time_rules_.other_trains_wait_for(
-      schedule.waiting_time_rules_.waiting_time_category(
-          route_edge._m._route_edge._conns[0]._full_con->con_info->family));
+bool train_distributions_calculator::is_pre_computed_route(
+    schedule const& schedule, node const& first_route_node) {
+  node const* node = &first_route_node;
+  edge const* route_edge = nullptr;
+  while ((route_edge = graph_accessor::get_departing_route_edge(*node)) !=
+         nullptr) {
+    if (schedule.waiting_time_rules_.other_trains_wait_for(
+            schedule.waiting_time_rules_.waiting_time_category(
+                route_edge->_m._route_edge._conns[0]
+                    ._full_con->con_info->family))) {
+      return true;
+    }
+    node = route_edge->_to;
+  }
+  return false;
 }
 
 template <bool FirstRouteNode, bool CheckClass>
 void train_distributions_calculator::insert_all_light_connections(
     node const& tail_node) {
-  auto const route_edge = graph_accessor::get_departing_route_edge(tail_node);
-  if (route_edge == nullptr) {
-    return;
-  }
-
-  if (!CheckClass || is_pre_computed_train(schedule_, *route_edge)) {
-    manage_train_distributions(*route_edge);
+  if (!CheckClass || is_pre_computed_route(schedule_, tail_node)) {
+    auto const route_edge = graph_accessor::get_departing_route_edge(tail_node);
+    if (route_edge == nullptr) {
+      return;
+    }
+    prepare_distributions_container(*route_edge);
     for (unsigned short light_conn_idx = 0;
          light_conn_idx < route_edge->_m._route_edge._conns.size();
          ++light_conn_idx) {
@@ -138,19 +139,10 @@ void train_distributions_calculator::insert_all_light_connections(
       insert_into_queue(&tail_node, route_edge->_to, &light_conn,
                         light_conn_idx, FirstRouteNode);
     }
-  } else {
-    for (unsigned short light_conn_idx = 0;
-         light_conn_idx < route_edge->_m._route_edge._conns.size();
-         ++light_conn_idx) {
-      auto& light_conn = route_edge->_m._route_edge._conns[light_conn_idx];
-      os << "Do not insert ";
-      output_element(os, schedule_, tail_node, *route_edge->_to, light_conn,
-                     light_conn_idx, FirstRouteNode);
-    }
   }
 }
 
-void train_distributions_calculator::manage_train_distributions(
+void train_distributions_calculator::prepare_distributions_container(
     edge const& route_edge) {
   distributions_container_.create_train_distributions(
       route_edge._from->_id, train_distributions_container::departure,

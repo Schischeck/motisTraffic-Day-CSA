@@ -53,8 +53,8 @@ struct train_distributions_calculator {
 
   void calculate_initial_distributions();
 
-  static bool is_pre_computed_train(schedule const& schedule,
-                                    edge const& route_edge);
+  static bool is_pre_computed_route(schedule const& schedule,
+                                    node const& first_route_node);
 
   static void output_element(std::ostream& os, schedule const& schedule,
                              node const& from, node const& to,
@@ -71,7 +71,7 @@ private:
   /* check_class: check whether the distributions have to be pre-computed */
   template <bool FirstRouteNode, bool CheckClass>
   void insert_all_light_connections(node const& tail_node);
-  void manage_train_distributions(edge const& route_edge);
+  void prepare_distributions_container(edge const& route_edge);
 
   schedule const& schedule_;
   start_and_travel_distributions const& s_t_distributions_;
