@@ -78,16 +78,18 @@ struct precomputed_distributions_container {
   }
 
   void create_route_node_distributions(unsigned int const route_node_idx,
-                                  type const t, unsigned int const size) {
+                                       type const t, unsigned int const size) {
     if (t == departure) {
       assert(!node_to_departure_distributions_[route_node_idx]);
       node_to_departure_distributions_[route_node_idx] =
-          std::unique_ptr<route_node_distributions>(new route_node_distributions);
+          std::unique_ptr<route_node_distributions>(
+              new route_node_distributions);
       node_to_departure_distributions_[route_node_idx]->init(size);
     } else {
       assert(!node_to_arrival_distributions_[route_node_idx]);
       node_to_arrival_distributions_[route_node_idx] =
-          std::unique_ptr<route_node_distributions>(new route_node_distributions);
+          std::unique_ptr<route_node_distributions>(
+              new route_node_distributions);
       node_to_arrival_distributions_[route_node_idx]->init(size);
     }
   }
