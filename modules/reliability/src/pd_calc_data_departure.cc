@@ -17,7 +17,7 @@ namespace reliability {
 pd_calc_data_departure::pd_calc_data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
-    distributions_container const& distributions_container,
+    precomputed_distributions_container const& distributions_container,
     start_and_travel_distributions const& s_t_distributions)
     : route_node_(route_node),
       light_connection_(light_connection),
@@ -31,7 +31,7 @@ pd_calc_data_departure::pd_calc_data_departure(
 void pd_calc_data_departure::init_train_info(
     std::vector<std::string> const& category_names,
     start_and_travel_distributions const& s_t_distributions,
-    distributions_container const& distributions_container) {
+    precomputed_distributions_container const& distributions_container) {
   if (is_first_route_node_) {
     auto const& train_category =
         category_names[light_connection_._full_con->con_info->family];
@@ -50,7 +50,7 @@ void pd_calc_data_departure::init_train_info(
     train_info_.preceding_arrival_info_.arrival_distribution_ =
         &distributions_container.get_distribution(
             route_node_._id, distribution_pos,
-            distributions_container::arrival);
+            precomputed_distributions_container::arrival);
     // the standing-time is always less or equal 2 minutes
     train_info_.preceding_arrival_info_.min_standing_ =
         std::min(2, light_connection_.d_time - arriving_light_conn->a_time);
@@ -63,7 +63,7 @@ void pd_calc_data_departure::init_train_info(
 
 void pd_calc_data_departure::init_feeder_info(
     schedule const& schedule,
-    distributions_container const& distributions_container) {
+    precomputed_distributions_container const& distributions_container) {
   auto const all_feeders_data =
       graph_accessor::get_all_potential_feeders(route_node_, light_connection_);
 

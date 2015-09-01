@@ -10,7 +10,7 @@
 using namespace motis;
 using namespace motis::reliability;
 
-TEST_CASE("test", "[train_dist_container]") {
+TEST_CASE("precomputed_distributions_container", "[distributions_container]") {
   precomputed_distributions_container container(2);
 
   REQUIRE_FALSE(container.contains_arrival_distributions(0));
@@ -76,4 +76,32 @@ TEST_CASE("test", "[train_dist_container]") {
   REQUIRE(&departure_distributions2.get_distribution(0) ==
           &container.get_distribution(
               1, 0, precomputed_distributions_container::departure));
+}
+
+TEST_CASE("ride_distributions_container", "[distributions_container]") {
+  ride_distributions_container container;
+
+  auto& dist1 = container.create_and_get_distribution_non_const(
+      2, 1, ride_distributions_container::departure);
+  auto& dist2 = container.create_and_get_distribution_non_const(
+      4, 1, ride_distributions_container::arrival);
+
+  dist1.init_one_point(1, 1.0);
+  dist2.init_one_point(2, 1.0);
+
+  auto const& departure_dist =
+      container.get_distribution(2, 1, ride_distributions_container::departure);
+  auto const& arrival_dist =
+      container.get_distribution(4, 1, ride_distributions_container::arrival);
+
+  REQUIRE(&dist1 == &departure_dist);
+  REQUIRE(&dist2 == &arrival_dist);
+
+  REQUIRE_FALSE(departure_dist.empty());
+  REQUIRE(departure_dist.first_minute() == 1);
+  REQUIRE(equal(departure_dist.probability_equal(1), 1.0));
+
+  REQUIRE_FALSE(arrival_dist.empty());
+  REQUIRE(arrival_dist.first_minute() == 2);
+  REQUIRE(equal(arrival_dist.probability_equal(2), 1.0));
 }
