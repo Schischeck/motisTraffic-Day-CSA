@@ -119,7 +119,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), lc->_full_con->clasz, lc->_full_con->con_info->family, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+        b, b.CreateString(line_name), lc->_full_con->clasz, b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
