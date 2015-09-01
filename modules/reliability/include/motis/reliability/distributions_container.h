@@ -36,9 +36,30 @@ private:
   std::vector<probability_distribution> distributions_;
 };
 
-struct precomputed_distributions_container {
+struct distributions_container {
   enum type { arrival, departure };
 
+  virtual ~distributions_container() {}
+
+  virtual bool contains_departure_distributions(
+      unsigned int const route_node_idx) const = 0;
+
+  virtual bool contains_arrival_distributions(
+      unsigned int const route_node_idx) const = 0;
+
+  virtual probability_distribution const& get_distribution(
+      unsigned int const route_node_idx, unsigned int const light_conn_idx,
+      type const t) const = 0;
+
+  virtual route_node_distributions& get_route_node_distributions(
+      unsigned int const route_node_idx, type const t) = 0;
+
+  virtual void create_route_node_distributions(
+      unsigned int const route_node_idx, type const t,
+      unsigned int const size) = 0;
+};
+
+struct precomputed_distributions_container : distributions_container {
   precomputed_distributions_container(unsigned num_nodes)
       : node_to_departure_distributions_(num_nodes),
         node_to_arrival_distributions_(num_nodes) {}
@@ -46,18 +67,18 @@ struct precomputed_distributions_container {
   virtual ~precomputed_distributions_container() {}
 
   bool contains_departure_distributions(
-      unsigned int const route_node_idx) const {
+      unsigned int const route_node_idx) const override {
     return (bool)node_to_departure_distributions_[route_node_idx];
   }
 
   virtual bool contains_arrival_distributions(
-      unsigned int const route_node_idx) const {
+      unsigned int const route_node_idx) const override {
     return (bool)node_to_arrival_distributions_[route_node_idx];
   }
 
   virtual probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      type const t) const {
+      distributions_container::type const t) const override {
     if (t == arrival) {
       assert(route_node_idx < node_to_arrival_distributions_.size());
       assert(node_to_arrival_distributions_[route_node_idx]);
@@ -72,14 +93,16 @@ struct precomputed_distributions_container {
   }
 
   route_node_distributions& get_route_node_distributions(
-      unsigned int const route_node_idx, type const t) {
+      unsigned int const route_node_idx,
+      distributions_container::type const t) override {
     return (t == arrival) ? *node_to_arrival_distributions_[route_node_idx]
                           : *node_to_departure_distributions_[route_node_idx];
   }
 
   void create_route_node_distributions(unsigned int const route_node_idx,
-                                       type const t, unsigned int const size) {
-    if (t == departure) {
+                                       distributions_container::type const t,
+                                       unsigned int const size) override {
+    if (t == distributions_container::departure) {
       assert(!node_to_departure_distributions_[route_node_idx]);
       node_to_departure_distributions_[route_node_idx] =
           std::unique_ptr<route_node_distributions>(
