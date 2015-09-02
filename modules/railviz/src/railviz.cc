@@ -106,6 +106,8 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
 
 
+    std::vector<std::string> clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
+
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
     int a_station, d_station;
@@ -119,7 +121,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), lc->_full_con->clasz, lc->_full_con->con_info->family, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+        b, b.CreateString(line_name), b.CreateString(clasz_names[lc->_full_con->clasz]), b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
