@@ -105,12 +105,14 @@ private:
         continue;
       }
 
+      // Build connection info.
       connection_info con_info;
       con_info.line_identifier = section->line_id()->str();
       con_info.train_nr = section->train_nr();
       con_info.attributes = read_attributes(day, section->attributes());
       con_info.family = get_or_create_category_index(section->category());
 
+      // Build connection.
       connection con;
       con.con_info = get_or_create(con_infos_, con_info, [&con_info]() {
         return make_unique<connection_info>(con_info);
@@ -123,6 +125,7 @@ private:
       con.clasz = (clasz_it == end(classes_)) ? 9 : clasz_it->second;
       con.price = get_distance(from, to) * get_price_per_km(con.clasz);
 
+      // Build light connection.
       e->_m._route_edge._conns.emplace_back(
           day * MINUTES_A_DAY + dep_time, day * MINUTES_A_DAY + arr_time,
           get_or_create(connections_, con, [&con]() {
