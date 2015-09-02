@@ -43,7 +43,7 @@ struct railviz : public motis::module::module {
                   motis::module::callback cb);
   void route_at_time(motis::module::msg_ptr msg, webclient& client,
                       motis::module::callback cb);
-  std::vector<flatbuffers::Offset<RailViz_route_entry>> route_to_flatbuffers(flatbuffers::FlatBufferBuilder& b, const std::vector<station_ptr>&, const route& ) const;
+  motis::module::msg_ptr make_route_at_time_msg(const motis::schedule&, const route& ) const;
 
   typedef std::function<
       void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;
