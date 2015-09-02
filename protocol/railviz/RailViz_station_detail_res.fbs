@@ -4,7 +4,8 @@ namespace motis.railviz;
 
 table RailViz_station_detail_res_entry {
 	line_name : string;
-	line_type : int;
+	line_type : string;
+	line_family : string;
 	train : RailVizTrain;
 	startEndStation_name : string;
 	startend_station_id : int;

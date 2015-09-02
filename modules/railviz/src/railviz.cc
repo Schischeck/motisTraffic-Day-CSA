@@ -13,8 +13,8 @@
 #include "motis/protocol/RailViz_alltra_res_generated.h"
 #include "motis/protocol/RailViz_station_detail_req_generated.h"
 #include "motis/protocol/RailViz_station_detail_res_generated.h"
-#include "motis/protocol/RailViz_routes_on_time_req_generated.h"
-#include "motis/protocol/RailViz_routes_on_time_res_generated.h"
+#include "motis/protocol/RailViz_route_at_time_req_generated.h"
+#include "motis/protocol/RailViz_route_at_time_res_generated.h"
 
 #include "motis/railviz/train_retriever.h"
 #include "motis/railviz/error.h"
@@ -40,8 +40,8 @@ railviz::railviz()
             std::bind(&railviz::all_trains, this, p::_1, p::_2, p::_3)},
            {MsgContent_RailViz_station_detail_req,
             std::bind(&railviz::station_info, this, p::_1, p::_2, p::_3)},
-           {MsgContent_RailViz_routes_on_time_req,
-            std::bind(&railviz::routes_on_time, this, p::_1, p::_2, p::_3)}} {}
+           {MsgContent_RailViz_route_at_time_req,
+            std::bind(&railviz::route_at_time, this, p::_1, p::_2, p::_3)}} {}
 
 railviz::~railviz() {}
 
@@ -106,6 +106,8 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
 
 
+    std::vector<std::string> clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
+
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
     int a_station, d_station;
@@ -119,7 +121,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), lc->_full_con->clasz, &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+        b, b.CreateString(line_name), b.CreateString(clasz_names[lc->_full_con->clasz]), b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
@@ -131,69 +133,91 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
   return cb(make_msg(b), boost::system::error_code());
 }
 
-void railviz::routes_on_time(msg_ptr msg, webclient &client, callback cb) {
-    auto lock = synced_sched<schedule_access::RO>();
-    auto const& stations = lock.sched().stations;
-    auto req = msg->content<RailViz_routes_on_time_req const*>();
-    flatbuffers::FlatBufferBuilder b;
+void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {
+  auto lock = synced_sched<schedule_access::RO>();
+  auto const& stations = lock.sched().stations;
 
-    // should we make this?
-    client.time = req->time();
+  RailViz_route_at_time_req const* req = msg->content<RailViz_route_at_time_req const*>();
+  unsigned int station_id = req->station_id();
+  motis::time departure_time = date_converter_.convert_to_motis(req->departure_time());
+  unsigned int route_id = req->route_id();
 
-    std::time_t req_d_time = req->train()->dTime();
-    std::time_t req_a_time = req->train()->aTime();
-    int req_d_station = req->train()->dStation();
-    int req_a_station = req->train()->aStation();
-    int req_route_id = req->train()->route_id();
+  std::vector<route> routes = timetable_retriever_.get_routes_on_time(route_id, departure_time);
 
-    std::vector<route> routes = timetable_retriever_.get_routes_on_time(req_route_id, date_converter_.convert_to_motis(client.time));
-    std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_route>> routes_on_time_routes;
+  // search the valid route
+  const route* found_route = nullptr;
+  if( routes.size() == 1 ) {
+    found_route = &routes.at(0);
+  } else {
+    for( const route& route_ : routes ) {
+      for( const route_entry& route_entry_ : route_ ) {
+        if( route_entry_.second == nullptr )
+          break;
+        //if( route_entry_.second->d_time > departure_time )
+        //  break;
 
-    for (auto r : routes) {
-        bool match = false;
-        std::vector<flatbuffers::Offset<RailViz_routes_on_time_res_entry>> a_route_on_time_entries;
-        auto line_name = r[0].second->_full_con->con_info->line_identifier.to_string();
-        int line_clas = r[0].second->_full_con->clasz;
-
-        for (auto re : r) {
-            station_node const* stn;
-            light_connection const* lcn;
-            std::tie(stn, lcn) = re;
-
-            //last entry in route does not have a lightconnection!
-            //and we did not need it here
-            if (lcn == NULL) break;
-
-            int actual_station_id = stn->_id;
-            std::time_t actual_d_time = lcn->d_time;
-            std::time_t actual_a_time = lcn->a_time;
-
-            /*
-            if ((actual_station_id == req_d_station && actual_d_time == req_d_time)
-                    ||
-                    (actual_station_id == req_a_station && actual_a_time == req_a_time)) {
-                match = true;
-            }
-            */
-
-            RailViz_routes_on_time_res_station st(actual_d_time, actual_a_time, actual_station_id);
-
-            a_route_on_time_entries.push_back(CreateRailViz_routes_on_time_res_entry(
-                                    b, b.CreateString(stations[actual_station_id]->name.to_string()),
-                                    &st));
+        if( route_entry_.first->_id == station_id ) {
+          if( route_entry_.second->d_time == departure_time ) {
+            std::cout << "identified route" << std::endl;
+            found_route = &route_;
+            goto search_for_route_end;
+          }
         }
-
-        //if (match) {
-            routes_on_time_routes.push_back(CreateRailViz_routes_on_time_res_route(
-                                    b, b.CreateString(line_name), line_clas, b.CreateVector(a_route_on_time_entries)));
-        //}
+      }
     }
+  }
+search_for_route_end:
+  if( found_route != nullptr )
+  {
+    std::vector<flatbuffers::Offset<RailViz_route_entry>> fb_route_array;
+    msg_ptr msg = make_route_at_time_msg( lock.sched(), *found_route );
+    return cb(msg, boost::system::error_code());
+  }
 
-    b.Finish(
-        CreateMessage(b, MsgContent_RailViz_routes_on_time_res,
-                      CreateRailViz_routes_on_time_res(
-                         b, b.CreateVector(routes_on_time_routes)).Union()));
-    return cb(make_msg(b), boost::system::error_code());
+
+  // ERROR HANDLING
+  flatbuffers::FlatBufferBuilder b;
+  MessageBuilder msgBuilder(b);
+  MotisErrorBuilder errorBuilder(b);
+  errorBuilder.add_reason(b.CreateString("route not found"));
+  msgBuilder.add_content_type( MsgContent_MotisError );
+  msgBuilder.add_content( errorBuilder.Finish().Union() );
+
+  b.Finish(msgBuilder.Finish());
+  b.Finish(CreateMessage(b, MsgContent_MotisError, errorBuilder.Finish().Union()));
+  return cb(make_msg(b), boost::system::error_code());
+}
+
+msg_ptr railviz::make_route_at_time_msg(const motis::schedule& sched, const route& route_ ) const
+{
+  flatbuffers::FlatBufferBuilder b;
+  auto& stations = sched.stations;
+
+  std::vector<flatbuffers::Offset<RailViz_route_entry>> fb_route_offsets;
+  for( auto it = route_.begin(); it != route_.end(); ++it ) {
+    unsigned int departure_id = it->first->_id;
+    motis::string station_name = stations[departure_id].get()->name;
+    RailViz_route_entryBuilder entryBuilder(b);
+    entryBuilder.add_departure_id(departure_id);
+    entryBuilder.add_departure_station_name(b.CreateString(station_name.to_string()));
+    if( it != route_.end()-1 ) {
+      auto it_next = it +1;
+      RailVizTrain t(it->second->d_time, it->second->a_time, departure_id, it_next->first->_id, 0);
+      entryBuilder.add_train_departure(&t);
+    }
+    fb_route_offsets.push_back( entryBuilder.Finish() );
+  }
+
+  RailViz_route_at_time_resBuilder resBuilder(b);
+  const route_entry& first_entry = route_.at(0);
+  resBuilder.add_line_name(b.CreateString(first_entry.second->_full_con->con_info->line_identifier.to_string()));
+  resBuilder.add_line_type(first_entry.second->_full_con->clasz);
+  resBuilder.add_route(b.CreateVector(fb_route_offsets));
+
+  b.Finish(CreateMessage(b, MsgContent_RailViz_route_at_time_res, resBuilder.Finish().Union()));
+
+  msg_ptr msg = make_msg(b);
+  return msg;
 }
 
 void railviz::init() {
