@@ -1,6 +1,7 @@
-#include "motis/loader/parsers/hrd/db_interchange_times.h"
+#include "motis/loader/parsers/hrd/db_interchange_times_parser.h"
 
 #include <cinttypes>
+#include <string>
 
 #include <vector>
 #include <array>
@@ -16,8 +17,7 @@ namespace hrd {
 
 using namespace parser;
 
-constexpr char const* DEFAULT_INTERCHANGE_TIME_KEY_DS100 = "";
-constexpr int DEFAULT_INTERCHANGE_TIME_KEY_EVA_NUM = -1;
+constexpr int DEFAULT_INTERCHANGE_TIME = 5;
 
 //   0: <Gültig-Ab-Datum>
 //   1: <Gelöscht-Flag>
@@ -37,19 +37,20 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
                           std::map<cstr, int>& ds100_to_eva_number) {
   enum { eva_number, ds100_code };
   typedef std::tuple<int, cstr> entry;
-  std::array<uint8_t, detail::MAX_COLUMNS> column_map = {
-      {detail::NO_COLUMN_IDX, detail::NO_COLUMN_IDX, detail::NO_COLUMN_IDX, 0,
-       1}};
+
+  std::array<uint8_t, detail::MAX_COLUMNS> column_map;
+  std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
+  column_map[3] = 0;
+  column_map[4] = 1;
 
   std::vector<entry> entries;
-  auto s = infotext_file.content;
-  while (s) {
-    s = skip_lines(s, [](cstr const& line) { return line.length() < 38; });
-    if (!s) {
+  auto next = infotext_file.content;
+  while (next) {
+    next = skip_lines(next, [](cstr const& line) { return line.len < 38; });
+    if (!next) {
       break;
     }
-
-    auto row = detail::read_row<entry, ':'>(s, column_map, 4);
+    auto row = detail::read_row<entry, ':'>(next, column_map, 5);
     entry e;
     read(e, row);
     auto const eva_num = std::get<eva_number>(e);
@@ -61,51 +62,33 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 }
 
 void load_interchange_times(std::map<cstr, int>& ds100_to_interchange_time) {
-  //  enum {
-  //    from_ds100,
-  //    to_ds100,
-  //    station_interchange_time,
-  //    platform_interchange_time
-  //  };
-  //  typedef std::tuple<cstr, cstr, int, int> minct;
-  //
-  //  loaded_file minct_file{"minct.csv", {db_interchange_times::MINCT}};
-  //  std::vector<minct> records =
-  //      detail::read_rows<minct, ';'>(minct_file.content, {{0, 1, 2, 3}});
-  //
-  //  verify(records.size() > 1, "invalid minct.csv: found %ul records",
-  //         records.size());
-  //
-  //  std::for_each(std::begin(records), std::end(records),
-  //                [&ds100_to_interchange_time](minct const& record) {
-  //                  ds100_to_interchange_time[get<from_ds100>(record)] =
-  //                      get<station_interchange_time>(record);
-  //                });
-}
+  enum {
+    from_ds100,
+    to_ds100,
+    station_interchange_time,
+    platform_interchange_time
+  };
+  typedef std::tuple<cstr, cstr, int, int> minct;
 
-void resolve_interchange_times(
-    std::map<cstr, int>& ds100_to_eva_num,
-    std::map<cstr, int>& ds100_to_interchange_time,
-    std::map<int, int>& eva_num_to_interchange_time) {
-  //  // set default interchange time
-  //  auto& default_interchange_time_it =
-  //      ds100_to_interchange_time.find(DEFAULT_INTERCHANGE_TIME_KEY_DS100);
-  //  verify(default_interchange_time_it != std::end(ds100_to_interchange_time),
-  //         "default interchange time missing");
-  //  eva_num_to_interchange_time[DEFAULT_INTERCHANGE_TIME_KEY_EVA_NUM] =
-  //      default_interchange_time_it->second;
-  //
-  //  // set explict interchange times
-  //  std::for_each(std::begin(eva_num_to_interchange_time) + 1,
-  //                std::end(eva_num_to_interchange_time),
-  //                [&](std::pair<cstr, int> const& entry) {
-  //                  auto const eva_number_it =
-  //                  ds100_to_eva_num.find(entry.first);
-  //                  if (eva_number_it != std::end(ds100_to_eva_num)) {
-  //                    eva_num_to_interchange_time[eva_number_it->second] =
-  //                        entry.second;
-  //                  }
-  //                });
+  loaded_file minct_file{"minct.csv", {db_interchange_times::MINCT}};
+
+  std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
+  std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
+  column_map[0] = 0;
+  column_map[1] = 1;
+  column_map[2] = 2;
+  column_map[3] = 3;
+  auto rows = detail::read_rows<minct, ';'>(minct_file.content, column_map);
+
+  std::vector<minct> records;
+  read(records, rows);
+
+  for (auto const& record : records) {
+    if (std::get<to_ds100>(record).len == 0) {
+      ds100_to_interchange_time[std::get<from_ds100>(record)] =
+          std::get<station_interchange_time>(record);
+    }
+  }
 }
 
 std::map<int, int> get_interchange_times(loaded_file const& infotext_file) {
@@ -116,8 +99,12 @@ std::map<int, int> get_interchange_times(loaded_file const& infotext_file) {
   load_interchange_times(ds100_to_interchange_time);
 
   std::map<int, int> eva_num_to_interchange_time;
-  resolve_interchange_times(ds100_to_eva_num, ds100_to_interchange_time,
-                            eva_num_to_interchange_time);
+  for (auto const& entry : ds100_to_interchange_time) {
+    auto const eva_number_it = ds100_to_eva_num.find(entry.first);
+    if (eva_number_it != end(ds100_to_eva_num)) {
+      eva_num_to_interchange_time[eva_number_it->second] = entry.second;
+    }
+  }
 
   return eva_num_to_interchange_time;
 }
@@ -125,18 +112,16 @@ std::map<int, int> get_interchange_times(loaded_file const& infotext_file) {
 db_interchange_times::db_interchange_times(loaded_file const& infotext_file)
     : eva_num_to_interchange_time_(get_interchange_times(infotext_file)) {}
 
-int db_interchange_times::get_interchange_time(int eva_num) {
+int db_interchange_times::get_interchange_time(int eva_num) const {
   auto it = eva_num_to_interchange_time_.find(eva_num);
   if (it == std::end(eva_num_to_interchange_time_)) {
-    return eva_num_to_interchange_time_[DEFAULT_INTERCHANGE_TIME_KEY_EVA_NUM];
+    return DEFAULT_INTERCHANGE_TIME;
   } else {
     return it->second;
   }
 }
 
-const char* db_interchange_times::MINCT =
-    R"(;;5;-
-AA;;7;4
+const char* db_interchange_times::MINCT = R"(AA;;7;4
 ABCH;;6;3
 ABG;;5;4
 ABLZ;;5;3

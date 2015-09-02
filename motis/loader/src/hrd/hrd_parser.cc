@@ -56,14 +56,12 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto bitfields_buf = load_file(stamm_path / BITFIELDS_FILE);
   auto platforms_buf = load_file(stamm_path / PLATFORMS_FILE);
 
-  shared_data stamm(
-      parse_stations({STATIONS_FILE, stations_names_buf},
-                     {COORDINATES_FILE, stations_coords_buf},
-                     {INFOTEXT_FILE, infotext_buf},
-                     b),  // TODO (Tobias) integrate interchange times parser
-      parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-      parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
+  shared_data stamm(parse_stations({STATIONS_FILE, stations_names_buf},
+                                   {COORDINATES_FILE, stations_coords_buf},
+                                   {INFOTEXT_FILE, infotext_buf}, b),
+                    parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
+                    parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
+                    parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
 
   service_builder sb(stamm, b);
 

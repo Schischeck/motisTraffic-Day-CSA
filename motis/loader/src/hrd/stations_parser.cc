@@ -50,25 +50,24 @@ void parse_station_coordinates(loaded_file file,
   });
 }
 
-void parse_ds100_mappings(loaded_file ds100_mappings_file,
-                          std::map<int, station>& stations) {}
-
 std::map<int, Offset<Station>> parse_stations(
     loaded_file station_names_file, loaded_file station_coordinates_file,
     loaded_file ds100_mappings_file, flatbuffers::FlatBufferBuilder& b) {
   std::map<int, station> stations_map;
   parse_station_names(station_names_file, stations_map);
   parse_station_coordinates(station_coordinates_file, stations_map);
-  parse_ds100_mappings(ds100_mappings_file, stations_map);
+  db_interchange_times const interchange_times(ds100_mappings_file);
 
   std::map<int, Offset<Station>> stations;
   for (auto const& station_entry : stations_map) {
     auto& eva_num = station_entry.first;
     auto& station = station_entry.second;
     stations.insert(std::make_pair(
-        eva_num, CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
-                               to_fbs_string(b, station.name, ENCODING),
-                               station.lat, station.lng)));
+        eva_num,
+        CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
+                      to_fbs_string(b, station.name, ENCODING), station.lat,
+                      station.lng,
+                      interchange_times.get_interchange_time(eva_num))));
   }
   return stations;
 }

@@ -15,8 +15,9 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-const boost::filesystem::path SCHEDULES =
-    boost::filesystem::path("motis/loader/test_resources/schedules");
+boost::filesystem::path const TEST_RESOURCES("motis/loader/test_resources/");
+
+boost::filesystem::path const SCHEDULES = TEST_RESOURCES / "schedules";
 
 struct test_spec {
   test_spec(boost::filesystem::path const& root, char const* filename)
