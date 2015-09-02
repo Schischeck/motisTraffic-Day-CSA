@@ -21,18 +21,21 @@ TEST_CASE("is_pre_computed_train", "[distributions_calculator]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  REQUIRE(distributions_calculator::detail::is_pre_computed_route(
-      *schedule,
-      *schedule->route_index_to_first_route_node[0]));  // IC_DA_H
+  REQUIRE(
+      distributions_calculator::precomputation::detail::is_pre_computed_route(
+          *schedule,
+          *schedule->route_index_to_first_route_node[0]));  // IC_DA_H
 
-  REQUIRE(distributions_calculator::detail::is_pre_computed_route(
-      *schedule,
+  REQUIRE(
+      distributions_calculator::precomputation::detail::is_pre_computed_route(
+          *schedule,
 
-      *schedule->route_index_to_first_route_node[6]));  // ICE_FR_DA_H
+          *schedule->route_index_to_first_route_node[6]));  // ICE_FR_DA_H
 
   // RE_K_S
-  REQUIRE_FALSE(distributions_calculator::detail::is_pre_computed_route(
-      *schedule, *schedule->route_index_to_first_route_node[5]));
+  REQUIRE_FALSE(
+      distributions_calculator::precomputation::detail::is_pre_computed_route(
+          *schedule, *schedule->route_index_to_first_route_node[5]));
 }
 
 void test_distributions(
@@ -92,14 +95,15 @@ TEST_CASE("Initial_distributions_simple", "[distributions_calculator]") {
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
 
-  distributions_calculator::perform_precomputation(*schedule, s_t_distributions,
-                                                   precomputed_distributions);
+  distributions_calculator::precomputation::perform_precomputation(
+      *schedule, s_t_distributions, precomputed_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
-    test_distributions(*first_route_node, precomputed_distributions,
-                       distributions_calculator::detail::is_pre_computed_route(
-                           *schedule, *first_route_node));
+    test_distributions(
+        *first_route_node, precomputed_distributions,
+        distributions_calculator::precomputation::detail::is_pre_computed_route(
+            *schedule, *first_route_node));
   }
 }
 
@@ -115,14 +119,15 @@ TEST_CASE("Initial_distributions_db_distributions",
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
-  distributions_calculator::perform_precomputation(*schedule, db_dists,
-                                                   precomputed_distributions);
+  distributions_calculator::precomputation::perform_precomputation(
+      *schedule, db_dists, precomputed_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
-    test_distributions(*first_route_node, precomputed_distributions,
-                       distributions_calculator::detail::is_pre_computed_route(
-                           *schedule, *first_route_node));
+    test_distributions(
+        *first_route_node, precomputed_distributions,
+        distributions_calculator::precomputation::detail::is_pre_computed_route(
+            *schedule, *first_route_node));
   }
 }
 
@@ -140,14 +145,15 @@ TEST_CASE("Initial_distributions_db_distributions2",
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
-  distributions_calculator::perform_precomputation(*schedule, db_dists,
-                                                   precomputed_distributions);
+  distributions_calculator::precomputation::perform_precomputation(
+      *schedule, db_dists, precomputed_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
-    test_distributions(*first_route_node, precomputed_distributions,
-                       distributions_calculator::detail::is_pre_computed_route(
-                           *schedule, *first_route_node));
+    test_distributions(
+        *first_route_node, precomputed_distributions,
+        distributions_calculator::precomputation::detail::is_pre_computed_route(
+            *schedule, *first_route_node));
   }
 }
 #endif
@@ -159,8 +165,8 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
       schedule->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
-  distributions_calculator::perform_precomputation(*schedule, s_t_distributions,
-                                                   precomputed_distributions);
+  distributions_calculator::precomputation::perform_precomputation(
+      *schedule, s_t_distributions, precomputed_distributions);
   ride_distributions_container container;
 
   // route node at Karlsruhe of train RE_K_S
@@ -168,7 +174,7 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
   node const& second_route_node =
       *graph_accessor::get_departing_route_edge(first_route_node)->_to;
 
-  distributions_calculator::compute_distributions_for_a_ride(
+  distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
       first_route_node, 0, second_route_node, *schedule, s_t_distributions,
       precomputed_distributions, container);
 
@@ -196,8 +202,8 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
       schedule->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
-  distributions_calculator::perform_precomputation(*schedule, s_t_distributions,
-                                                   precomputed_distributions);
+  distributions_calculator::precomputation::perform_precomputation(
+      *schedule, s_t_distributions, precomputed_distributions);
   ride_distributions_container container;
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -209,7 +215,7 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
 
   unsigned int const light_conn_idx = 1;
 
-  distributions_calculator::compute_distributions_for_a_ride(
+  distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
       first_route_node, light_conn_idx, last_route_node, *schedule,
       s_t_distributions, precomputed_distributions, container);
 
@@ -244,7 +250,7 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
 }
 
 TEST_CASE("Test queue element", "[distributions_calculator]") {
-  distributions_calculator::detail::queue_type queue;
+  distributions_calculator::common::queue_type queue;
 
   node dummy_node(nullptr, 0);
 

@@ -21,20 +21,7 @@ struct ride_distributions_container;
 struct start_and_travel_distributions;
 
 namespace distributions_calculator {
-void perform_precomputation(
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    precomputed_distributions_container& distributions_container);
-
-void compute_distributions_for_a_ride(
-    node const& first_route_node, unsigned int const light_connection_idx,
-    node const& last_route_node, schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    precomputed_distributions_container const&
-        precomputed_distributions_container,
-    ride_distributions_container& ride_distributions_container);
-
-namespace detail {
+namespace common {
 struct queue_element {
   struct queue_element_cmp {
     bool operator()(queue_element const& a, queue_element const& b) {
@@ -65,38 +52,31 @@ struct queue_element {
 using queue_type =
     std::priority_queue<queue_element, std::vector<queue_element>,
                         queue_element::queue_element_cmp>;
+}  // namespace common
 
-void process_queue(queue_type& queue, distributions_container& container,
-                   start_and_travel_distributions const& s_t_distributions,
-                   schedule const& schedule);
-
-/** distributions_container is the container in which
- * the computed distributions have to be stored */
-void compute_dep_and_arr_distribution(
-    queue_element const& element, precomputed_distributions_container const&
-                                      precomputed_distributions_container,
+namespace precomputation {
+void perform_precomputation(
+    schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
-    schedule const& schedule, probability_distribution& departure_distribution,
-    probability_distribution& arrival_distribution);
+    precomputed_distributions_container& distributions_container);
 
-/* check_class: check whether the distributions have to be pre-computed */
-template <bool FirstRouteNode, bool CheckClass>
-void insert_all_light_connections(
-    node const& tail_node, queue_type& queue,
-    precomputed_distributions_container& container, schedule const& schedule);
-
-void prepare_distributions_container(
-    edge const& route_edge, precomputed_distributions_container& container);
-
+namespace detail {
 bool is_pre_computed_route(schedule const& schedule,
                            node const& first_route_node);
-
-void output_element(std::ostream& os, schedule const& schedule,
-                    node const& from, node const& to,
-                    light_connection const& light_connection,
-                    unsigned short const light_connection_idx,
-                    bool const is_first_route_node);
 }  // namespace detail
+}  // namespace precomputation
+
+namespace ride_distribution {
+void compute_distributions_for_a_ride(
+    node const& first_route_node, unsigned int const light_connection_idx,
+    node const& last_route_node, schedule const& schedule,
+    start_and_travel_distributions const& s_t_distributions,
+    precomputed_distributions_container const&
+        precomputed_distributions_container,
+    ride_distributions_container& ride_distributions_container);
+
+}  // namespace ride_distribution
+
 }  // namespace distributions_calculator
 
 }  // namespace reliability

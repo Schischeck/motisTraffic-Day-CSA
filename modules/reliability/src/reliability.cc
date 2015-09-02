@@ -50,8 +50,8 @@ bool reliability::initialize() {
   db_distributions db_distributions(
       "", 120,
       120);  // TODO: read max travel time from graph
-  distributions_calculator::perform_precomputation(schedule, db_distributions,
-                                                   distributions_container);
+  distributions_calculator::precomputation::perform_precomputation(
+      schedule, db_distributions, distributions_container);
 
   for (auto const& firstRouteNode : schedule.route_index_to_first_route_node) {
     node const* node = firstRouteNode;
