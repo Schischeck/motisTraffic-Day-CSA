@@ -112,7 +112,7 @@ private:
       con_info.attributes = read_attributes(day, section->attributes());
       con_info.family = get_or_create_category_index(section->category());
 
-      // Build connection.
+      // Build full connection.
       connection con;
       con.con_info = get_or_create(con_infos_, con_info, [&con_info]() {
         return make_unique<connection_info>(con_info);
