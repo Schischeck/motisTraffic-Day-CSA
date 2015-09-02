@@ -31,7 +31,7 @@ TEST(loader_hrd_stations, parse_stations) {
       static_cast<char const*>(coordinates_file_buf.buf_),
       coordinates_file_buf.size_);
 
-  auto infotext_file_buf = load_file(TEST_RESOURCES / INFOTEXT_FILE);
+  auto infotext_file_buf = load_file(TEST_RESOURCES / "infotext_minimal.101");
   cstr infotext_file_content(
       {infotext_file_buf.data(), infotext_file_buf.size()});
 
