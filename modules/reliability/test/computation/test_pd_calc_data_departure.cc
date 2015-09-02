@@ -19,7 +19,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  precomputed_distributions_container dummy(0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -91,7 +91,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 }
 
 TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
@@ -136,14 +136,14 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
           (7 * 60 + 3) - 5);  // TODO use platform change time
   REQUIRE(&data.feeders_[0].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 6 * 60 + 41);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (7 * 60 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 }
 
 TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
@@ -176,7 +176,7 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.feeders_.size() == 2);
@@ -186,21 +186,21 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   REQUIRE(data.feeders_[0].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[0].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 
   REQUIRE(data.feeders_[1].arrival_time_ == 5 * 60 + 56);
   REQUIRE(data.feeders_[1].transfer_time_ == 5);
   REQUIRE(data.feeders_[1].latest_feasible_arrival_ == (6 * 60 + 11 + 3) - 5);
   REQUIRE(&data.feeders_[1].distribution_ ==
           &train_distributions.get_distribution(
-              0, 0, precomputed_distributions_container::type::arrival));
+              0, 0, distributions_container::arrival));
 }
 
 TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  precomputed_distributions_container dummy(0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Karlsruhe of train RE_K_S
@@ -245,7 +245,7 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
                                      route_node)->_m._route_edge._conns[0];
 
   struct train_distributions_test2_container
-      : precomputed_distributions_container {
+      : distributions_container::precomputed_distributions_container {
     train_distributions_test2_container(unsigned int const route_node_train,
                                         unsigned int const route_node_feeder1,
                                         unsigned int const route_node_feeder2)
@@ -259,15 +259,15 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
     }
     probability_distribution const& get_distribution(
         unsigned int const route_node_idx, unsigned int const light_conn_idx,
-        type const t) const override {
+        distributions_container::event_type const t) const override {
       if (route_node_idx == route_node_train_ && light_conn_idx == 0 &&
-          t == arrival)
+          t == distributions_container::arrival)
         return train;
       if (route_node_idx == route_node_feeder1_ && light_conn_idx == 0 &&
-          t == arrival)
+          t == distributions_container::arrival)
         return feeder1;
       if (route_node_idx == route_node_feeder2_ && light_conn_idx == 1 &&
-          t == arrival)
+          t == distributions_container::arrival)
         return feeder2;
       return fail;
     }

@@ -3,44 +3,17 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "motis/reliability/probability_distribution.h"
 
 namespace motis {
 namespace reliability {
-
-/**
- * Each route-node has a train_distributions object
- * that contains all arrival and departure distributions
- * of its arriving and departing light connections.
- */
-struct route_node_distributions {
-  friend struct precomputed_distributions_container;
-
-  probability_distribution const& get_distribution(
-      unsigned int const index) const {
-    assert(index < distributions_.size());
-    return distributions_[index];
-  }
-  probability_distribution& get_distribution_non_const(
-      unsigned int const index) {
-    assert(index < distributions_.size());
-    return distributions_[index];
-  }
-
-private:
-  void init(unsigned int const size) {
-    assert(distributions_.empty());
-    distributions_.resize(size);
-  }
-
-  std::vector<probability_distribution> distributions_;
-};
+namespace distributions_container {
+enum event_type { arrival, departure };
 
 struct precomputed_distributions_container {
-  enum type { arrival, departure };
-
   precomputed_distributions_container(unsigned num_nodes)
       : node_to_departure_distributions_(num_nodes),
         node_to_arrival_distributions_(num_nodes) {}
@@ -49,66 +22,57 @@ struct precomputed_distributions_container {
 
   bool contains_departure_distributions(
       unsigned int const route_node_idx) const {
-    return (bool)node_to_departure_distributions_[route_node_idx];
+    return node_to_departure_distributions_.at(route_node_idx).size() > 0;
   }
 
   virtual bool contains_arrival_distributions(
       unsigned int const route_node_idx) const {
-    return (bool)node_to_arrival_distributions_[route_node_idx];
+    return node_to_arrival_distributions_.at(route_node_idx).size() > 0;
   }
 
   virtual probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      type const t) const {
-    if (t == arrival) {
-      assert(route_node_idx < node_to_arrival_distributions_.size());
-      assert(node_to_arrival_distributions_[route_node_idx]);
-      return node_to_arrival_distributions_[route_node_idx]->get_distribution(
-          light_conn_idx);
-    } else {
-      assert(route_node_idx < node_to_departure_distributions_.size());
-      assert(node_to_departure_distributions_[route_node_idx]);
-      return node_to_departure_distributions_[route_node_idx]->get_distribution(
-          light_conn_idx);
-    }
+      event_type const t) const {
+    return (t == departure
+                ? node_to_departure_distributions_.at(route_node_idx)
+                      .at(light_conn_idx)
+                : node_to_arrival_distributions_.at(route_node_idx)
+                      .at(light_conn_idx));
   }
 
-  route_node_distributions& get_route_node_distributions(
-      unsigned int const route_node_idx, type const t) {
-    return (t == arrival) ? *node_to_arrival_distributions_[route_node_idx]
-                          : *node_to_departure_distributions_[route_node_idx];
+  probability_distribution& get_distribution_non_const(
+      unsigned int const route_node_idx, unsigned int const light_conn_idx,
+      event_type const t) {
+    return (t == departure
+                ? node_to_departure_distributions_.at(route_node_idx)
+                      .at(light_conn_idx)
+                : node_to_arrival_distributions_.at(route_node_idx)
+                      .at(light_conn_idx));
   }
 
   void create_route_node_distributions(unsigned int const route_node_idx,
-                                       type const t, unsigned int const size) {
-    if (t == departure) {
-      assert(!node_to_departure_distributions_[route_node_idx]);
-      node_to_departure_distributions_[route_node_idx] =
-          std::unique_ptr<route_node_distributions>(
-              new route_node_distributions);
-      node_to_departure_distributions_[route_node_idx]->init(size);
-    } else {
-      assert(!node_to_arrival_distributions_[route_node_idx]);
-      node_to_arrival_distributions_[route_node_idx] =
-          std::unique_ptr<route_node_distributions>(
-              new route_node_distributions);
-      node_to_arrival_distributions_[route_node_idx]->init(size);
-    }
+                                       event_type const t,
+                                       unsigned int const size) {
+    auto& vec =
+        (t == departure ? node_to_departure_distributions_.at(route_node_idx)
+                        : node_to_arrival_distributions_.at(route_node_idx));
+    assert(vec.size() == 0);
+    vec.resize(size);
   }
 
 private:
-  std::vector<std::unique_ptr<route_node_distributions> >
+  /* two dimensional vector [route-node-id][light-conn-idx] */
+  std::vector<std::vector<probability_distribution> >
       node_to_departure_distributions_;
-  std::vector<std::unique_ptr<route_node_distributions> >
+  /* two dimensional vector [route-node-id][light-conn-idx] */
+  std::vector<std::vector<probability_distribution> >
       node_to_arrival_distributions_;
-};
+};  // struct precomputed_distributions_container
 
 struct ride_distributions_container {
-  enum type { arrival, departure };
-
   probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      type const t) const {
+      event_type const t) const {
     auto const it =
         distributions_.find(std::make_tuple(route_node_idx, light_conn_idx, t));
     assert(it != distributions_.end());
@@ -117,7 +81,7 @@ struct ride_distributions_container {
 
   probability_distribution& create_and_get_distribution_non_const(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      type const t) {
+      event_type const t) {
     auto key = std::make_tuple(route_node_idx, light_conn_idx, t);
     assert(distributions_.find(key) == distributions_.end());
     auto& pd = distributions_[key];
@@ -128,7 +92,8 @@ private:
   /* key: route_node_idx, light_conn_idx, type */
   std::map<std::tuple<unsigned int, unsigned int, unsigned int>,
            probability_distribution> distributions_;
-};
+};  // struct ride_distributions_container
 
+}  // namespace distributions_container
 }  // namespace reliability
 }  // namespace motis

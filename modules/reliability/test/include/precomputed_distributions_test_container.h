@@ -10,7 +10,7 @@ namespace motis {
 namespace reliability {
 
 struct precomputed_distributions_test_container
-    : precomputed_distributions_container {
+    : distributions_container::precomputed_distributions_container {
   precomputed_distributions_test_container(
       std::vector<probability> const probabilities, int const first_minute)
       : precomputed_distributions_container(0) {
@@ -19,7 +19,7 @@ struct precomputed_distributions_test_container
 
   probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      type const t) const override {
+      distributions_container::event_type const t) const override {
     (void)route_node_idx;
     (void)light_conn_idx;
     (void)t;

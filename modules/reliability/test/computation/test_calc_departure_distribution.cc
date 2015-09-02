@@ -72,7 +72,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  precomputed_distributions_container dummy(0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -271,7 +271,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto schedule =
       load_text_schedule("../modules/reliability/resources/schedule/motis");
 
-  precomputed_distributions_container dummy(0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H

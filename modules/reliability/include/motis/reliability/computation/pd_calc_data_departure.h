@@ -15,7 +15,10 @@ namespace reliability {
 
 struct probability_distribution;
 struct start_and_travel_distributions;
+
+namespace distributions_container {
 struct precomputed_distributions_container;
+}
 
 /**
  * Class storing all data necessary for calculating a departure distribution.
@@ -24,7 +27,8 @@ struct pd_calc_data_departure {
   pd_calc_data_departure(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
-      precomputed_distributions_container const& distributions_container,
+      distributions_container::precomputed_distributions_container const&
+          distributions_container,
       start_and_travel_distributions const& s_t_distributions);
 
   time scheduled_departure_time() const;
@@ -87,11 +91,13 @@ private:
   void init_train_info(
       std::vector<std::string> const& category_names,
       start_and_travel_distributions const& s_t_distributions,
-      precomputed_distributions_container const& distributions_container);
+      distributions_container::precomputed_distributions_container const&
+          distributions_container);
 
   void init_feeder_info(
       schedule const& schedule,
-      precomputed_distributions_container const& distributions_container);
+      distributions_container::precomputed_distributions_container const&
+          distributions_container);
 };
 
 }  // namespace reliability

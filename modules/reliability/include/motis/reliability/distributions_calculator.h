@@ -12,9 +12,12 @@ class node;
 class edge;
 
 namespace reliability {
+struct start_and_travel_distributions;
+
+namespace distributions_container {
 struct precomputed_distributions_container;
 struct ride_distributions_container;
-struct start_and_travel_distributions;
+}
 
 namespace distributions_calculator {
 namespace common {
@@ -52,7 +55,8 @@ namespace precomputation {
 void perform_precomputation(
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
-    precomputed_distributions_container& distributions_container);
+    distributions_container::precomputed_distributions_container&
+        distributions_container);
 
 namespace detail {
 bool is_pre_computed_route(schedule const& schedule,
@@ -65,9 +69,10 @@ void compute_distributions_for_a_ride(
     node const& first_route_node, unsigned int const light_connection_idx,
     node const& last_route_node, schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
-    precomputed_distributions_container const&
+    distributions_container::precomputed_distributions_container const&
         precomputed_distributions_container,
-    ride_distributions_container& ride_distributions_container);
+    distributions_container::ride_distributions_container&
+        ride_distributions_container);
 
 }  // namespace ride_distribution
 
