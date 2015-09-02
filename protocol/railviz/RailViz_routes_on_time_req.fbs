@@ -1,8 +1,0 @@
-include "railviz/RailVizTrain.fbs";
-
-namespace motis.railviz;
-
-table RailViz_routes_on_time_req {
-  time: ulong;
-  train: RailVizTrain;
-}

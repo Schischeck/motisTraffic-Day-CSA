@@ -5,8 +5,8 @@ include "railviz/RailViz_alltra_req.fbs";
 include "railviz/RailViz_alltra_res.fbs";
 include "railviz/RailViz_station_detail_req.fbs";
 include "railviz/RailViz_station_detail_res.fbs";
-include "railviz/RailViz_routes_on_time_req.fbs";
-include "railviz/RailViz_routes_on_time_res.fbs";
+include "railviz/RailViz_route_at_time_req.fbs";
+include "railviz/RailViz_route_at_time_res.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 
@@ -36,8 +36,8 @@ union MsgContent {
   motis.railviz.RailViz_alltra_res,
   motis.railviz.RailViz_station_detail_req,
   motis.railviz.RailViz_station_detail_res,
-  motis.railviz.RailViz_routes_on_time_req,
-  motis.railviz.RailViz_routes_on_time_res,
+  motis.railviz.RailViz_route_at_time_req,
+  motis.railviz.RailViz_route_at_time_res,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse
 }
