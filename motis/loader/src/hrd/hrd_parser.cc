@@ -10,6 +10,7 @@
 
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
@@ -33,9 +34,8 @@ bool hrd_parser::applicable(fs::path const& path) {
   }
 
   std::vector<std::string> file_names = {
-      ATTRIBUTES_FILE, STATIONS_FILE,  COORDINATES_FILE,
-      BITFIELDS_FILE,  PLATFORMS_FILE, INFOTEXT_FILE,
-  };
+      ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
+      PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE};
   for (auto const& file_name : file_names) {
     if (!fs::is_regular_file(path / "stamm" / file_name)) {
       return false;
@@ -49,6 +49,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto stamm_path = hrd_root / "stamm";
   auto fahrten_path = hrd_root / "fahrten";
 
+  auto basic_info_buf = load_file(stamm_path / BASIC_DATA_FILE);
   auto stations_names_buf = load_file(stamm_path / STATIONS_FILE);
   auto stations_coords_buf = load_file(stamm_path / COORDINATES_FILE);
   auto infotext_buf = load_file(stamm_path / INFOTEXT_FILE);
@@ -56,6 +57,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto bitfields_buf = load_file(stamm_path / BITFIELDS_FILE);
   auto platforms_buf = load_file(stamm_path / PLATFORMS_FILE);
 
+  auto interval = parse_interval({BASIC_DATA_FILE, basic_info_buf});
   shared_data stamm(parse_stations({STATIONS_FILE, stations_names_buf},
                                    {COORDINATES_FILE, stations_coords_buf},
                                    {INFOTEXT_FILE, infotext_buf}, b),
@@ -80,7 +82,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& b) {
 
   b.Finish(CreateSchedule(b, b.CreateVector(services),
                           b.CreateVector(values(stamm.stations)),
-                          b.CreateVector(values(sb.routes_))));
+                          b.CreateVector(values(sb.routes_)), &interval));
 }
 
 }  // hrd

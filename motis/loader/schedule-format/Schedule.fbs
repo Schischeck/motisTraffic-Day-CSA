@@ -3,13 +3,9 @@ include "Station.fbs";
 include "Route.fbs";
 include "Platform.fbs";
 include "Attribute.fbs";
+include "Interval.fbs";
 
 namespace motis.loader;
-
-struct Interval {
-  from: int;
-  to: int;
-}
 
 table Schedule {
   services : [Service];
