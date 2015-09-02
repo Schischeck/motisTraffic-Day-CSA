@@ -22,7 +22,8 @@ bool is_in_schedule(int day_index, time_t from, time_t to,
          point_in_time < schedule_interval->to() && point_in_time < to;
 }
 
-struct graph_builder {
+class graph_builder {
+public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
                 time_t to)
       : next_node_id_(-1),
@@ -32,10 +33,10 @@ struct graph_builder {
         to_(to),
         classes_(class_mapping()) {}
 
-  void add_stations(Vector<Offset<Station>> const& stations) {
-    sched_.station_nodes.resize(stations.size());
-    for (unsigned i = 0; i < stations.size(); ++i) {
-      auto const& input_station = stations.Get(i);
+  void add_stations(Vector<Offset<Station>> const* stations) {
+    sched_.station_nodes.resize(stations->size());
+    for (unsigned i = 0; i < stations->size(); ++i) {
+      auto const& input_station = stations->Get(i);
 
       // Create station node.
       auto node_ptr = make_unique<station_node>(i);
@@ -53,7 +54,7 @@ struct graph_builder {
 
     // First regular node id:
     // first id after station node ids
-    next_node_id_ = stations.size();
+    next_node_id_ = stations->size();
   }
 
   void add_service(Service const* service) {
@@ -80,6 +81,7 @@ struct graph_builder {
     }
   }
 
+private:
   bitfield const& get_or_create_bitfield(String const* serialized_bitfield) {
     return get_or_create(bitfields_, serialized_bitfield, [&]() {
       return deserialize_bitset<BIT_COUNT>(
@@ -190,13 +192,13 @@ struct graph_builder {
       // Connect the new route node with the corresponding station node:
       // route -> station: edge cost = change time, interchange count
       // station -> route: free
-      station_node->_edges.push_back(make_foot_edge(route_node));
+      station_node->_edges.push_back(make_foot_edge(station_node, route_node));
       route_node->_edges.push_back(make_foot_edge(
-          station_node, sched_.stations[station_id]->get_transfer_time(),
-          true));
+          route_node, station_node,
+          sched_.stations[station_id]->get_transfer_time(), true));
 
       // Connect route nodes with route edges.
-      route_node->_edges.push_back(make_route_edge(nullptr, {}));
+      route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
       if (last_route_edge != nullptr) {
         last_route_edge->_to = route_node;
       }

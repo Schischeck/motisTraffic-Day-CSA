@@ -32,9 +32,10 @@ bool hrd_parser::applicable(fs::path const& path) {
     return false;
   }
 
-  std::vector<std::string> file_names = {ATTRIBUTES_FILE, STATIONS_FILE,
-                                         COORDINATES_FILE, BITFIELDS_FILE,
-                                         PLATFORMS_FILE};
+  std::vector<std::string> file_names = {
+      ATTRIBUTES_FILE, STATIONS_FILE,  COORDINATES_FILE,
+      BITFIELDS_FILE,  PLATFORMS_FILE, INFOTEXT_FILE,
+  };
   for (auto const& file_name : file_names) {
     if (!fs::is_regular_file(path / "stamm" / file_name)) {
       return false;

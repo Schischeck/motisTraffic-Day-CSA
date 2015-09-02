@@ -149,7 +149,7 @@ public:
           }
         }
       }
-      _edges.emplace_back(make_foot_edge(_foot_node));
+      _edges.emplace_back(make_foot_edge(this, _foot_node));
     }
     _foot_node->_edges.emplace_back(std::move(fe));
 
