@@ -1,10 +1,10 @@
+#include "motis/reliability/computation/calc_arrival_distribution.h"
+
 #include <algorithm>
 #include <cassert>
 
-#include "motis/reliability/calc_arrival_distribution.h"
-
 #include "motis/reliability/start_and_travel_distributions.h"
-#include "motis/reliability/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/pd_calc_data_arrival.h"
 
 namespace motis {
 namespace reliability {

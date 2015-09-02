@@ -1,14 +1,15 @@
+#include "motis/reliability/distributions_calculator.h"
+
 #include <fstream>
 
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/calc_arrival_distribution.h"
-#include "motis/reliability/calc_departure_distribution.h"
-#include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/pd_calc_data_departure.h"
-#include "motis/reliability/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/calc_arrival_distribution.h"
+#include "motis/reliability/computation/calc_departure_distribution.h"
+#include "motis/reliability/computation/pd_calc_data_departure.h"
+#include "motis/reliability/computation/pd_calc_data_arrival.h"
 
 namespace motis {
 namespace reliability {

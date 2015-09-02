@@ -1,8 +1,9 @@
+#include "motis/reliability/computation/calc_departure_distribution.h"
+
 #include <cassert>
 #include <iostream>
 
-#include "motis/reliability/calc_departure_distribution.h"
-#include "motis/reliability/pd_calc_data_departure.h"
+#include "motis/reliability/computation/pd_calc_data_departure.h"
 
 namespace motis {
 namespace reliability {

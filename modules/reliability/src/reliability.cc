@@ -6,10 +6,10 @@
 
 #include "boost/program_options.hpp"
 
-#include "../include/motis/reliability/distributions_calculator.h"
 #include "motis/module/api.h"
 
 #include "motis/reliability/db_distributions.h"
+#include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/error.h"
 

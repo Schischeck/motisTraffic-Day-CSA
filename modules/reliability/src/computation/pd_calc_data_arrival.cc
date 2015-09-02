@@ -1,4 +1,4 @@
-#include "motis/reliability/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/pd_calc_data_arrival.h"
 
 #include <algorithm>
 #include <climits>
