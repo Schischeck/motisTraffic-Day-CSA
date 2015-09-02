@@ -35,6 +35,8 @@ po::options_description railviz::desc() {
 
 void railviz::print(std::ostream& out) const {}
 
+std::vector<std::string> railviz::clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
+
 railviz::railviz()
     : ops_{{MsgContent_RailViz_alltra_req,
             std::bind(&railviz::all_trains, this, p::_1, p::_2, p::_3)},
@@ -106,7 +108,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
 
 
-    std::vector<std::string> clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
+    //std::vector<std::string> clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
 
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
@@ -121,7 +123,7 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
     RailVizTrain t(d_time, a_time, d_station, a_station, route);
 
     timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), b.CreateString(clasz_names[lc->_full_con->clasz]), b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+        b, b.CreateString(line_name), b.CreateString(railviz::clasz_names[lc->_full_con->clasz]), b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), &t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
   }
 
   b.Finish(
@@ -211,7 +213,7 @@ msg_ptr railviz::make_route_at_time_msg(const motis::schedule& sched, const rout
   RailViz_route_at_time_resBuilder resBuilder(b);
   const route_entry& first_entry = route_.at(0);
   resBuilder.add_line_name(b.CreateString(first_entry.second->_full_con->con_info->line_identifier.to_string()));
-  resBuilder.add_line_type(first_entry.second->_full_con->clasz);
+  resBuilder.add_line_type(b.CreateString(railviz::clasz_names[first_entry.second->_full_con->clasz]));
   resBuilder.add_route(b.CreateVector(fb_route_offsets));
 
   b.Finish(CreateMessage(b, MsgContent_RailViz_route_at_time_res, resBuilder.Finish().Union()));
