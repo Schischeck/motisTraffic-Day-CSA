@@ -7,16 +7,12 @@
 #include "motis/core/schedule/nodes.h"
 
 namespace motis {
-
 struct schedule;
 class node;
 class edge;
 
 namespace reliability {
-
-struct distributions_container;
 struct precomputed_distributions_container;
-struct probability_distribution;
 struct ride_distributions_container;
 struct start_and_travel_distributions;
 
@@ -31,7 +27,6 @@ struct queue_element {
       return a.light_connection_->d_time > b.light_connection_->d_time;
     }
   };
-
   queue_element(node const* from, node const* to,
                 light_connection const* light_connection,
                 unsigned short const light_connection_idx,
@@ -41,7 +36,6 @@ struct queue_element {
         light_connection_(light_connection),
         light_connection_idx_(light_connection_idx),
         is_first_route_node_(is_first_route_node) {}
-
   node const* from_;
   node const* to_;
   light_connection const* light_connection_;
