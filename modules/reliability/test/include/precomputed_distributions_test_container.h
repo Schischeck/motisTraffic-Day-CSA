@@ -26,8 +26,11 @@ struct precomputed_distributions_test_container
     return dist;
   }
 
-  bool contains_arrival_distributions(
-      unsigned int const route_node_idx) const override {
+  bool contains_distributions(
+      unsigned int const route_node_idx,
+      distributions_container::event_type const t) const override {
+    (void)route_node_idx;
+    (void)t;
     return true;
   }
 

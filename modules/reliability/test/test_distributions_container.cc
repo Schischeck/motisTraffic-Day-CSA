@@ -14,30 +14,30 @@ using namespace motis::reliability::distributions_container;
 TEST_CASE("precomputed_distributions_container", "[distributions_container]") {
   precomputed_distributions_container container(2);
 
-  REQUIRE_FALSE(container.contains_arrival_distributions(0));
-  REQUIRE_FALSE(container.contains_departure_distributions(0));
-  REQUIRE_FALSE(container.contains_departure_distributions(1));
+  REQUIRE_FALSE(container.contains_distributions(0, arrival));
+  REQUIRE_FALSE(container.contains_distributions(0, departure));
+  REQUIRE_FALSE(container.contains_distributions(1, departure));
 
   container.create_route_node_distributions(0, distributions_container::arrival,
                                             2);
 
-  REQUIRE(container.contains_arrival_distributions(0));
-  REQUIRE_FALSE(container.contains_departure_distributions(0));
-  REQUIRE_FALSE(container.contains_departure_distributions(1));
+  REQUIRE(container.contains_distributions(0, arrival));
+  REQUIRE_FALSE(container.contains_distributions(0, departure));
+  REQUIRE_FALSE(container.contains_distributions(1, departure));
 
   container.create_route_node_distributions(
       0, distributions_container::departure, 1);
 
-  REQUIRE(container.contains_arrival_distributions(0));
-  REQUIRE(container.contains_departure_distributions(0));
-  REQUIRE_FALSE(container.contains_departure_distributions(1));
+  REQUIRE(container.contains_distributions(0, arrival));
+  REQUIRE(container.contains_distributions(0, departure));
+  REQUIRE_FALSE(container.contains_distributions(1, departure));
 
   container.create_route_node_distributions(
       1, distributions_container::departure, 1);
 
-  REQUIRE(container.contains_arrival_distributions(0));
-  REQUIRE(container.contains_departure_distributions(0));
-  REQUIRE(container.contains_departure_distributions(1));
+  REQUIRE(container.contains_distributions(0, arrival));
+  REQUIRE(container.contains_distributions(0, departure));
+  REQUIRE(container.contains_distributions(1, departure));
 
   auto& arrival_distributions00 = container.get_distribution_non_const(
       0, 0, distributions_container::arrival);

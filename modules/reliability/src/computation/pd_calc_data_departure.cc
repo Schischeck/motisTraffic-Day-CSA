@@ -86,25 +86,22 @@ void pd_calc_data_departure::init_feeder_info(
       time const latest_feasible_arrival =
           (light_connection_.d_time + waiting_time) - transfer_time;
 
-      if (distributions_container.contains_arrival_distributions(
-              feeder_route_node->_id)) {
-        auto const& feeder_distribution =
-            distributions_container.get_distribution(
-                feeder_route_node->_id, feeder_distribution_pos,
-                distributions_container::arrival);
+      assert(distributions_container.contains_distributions(
+          feeder_route_node->_id, distributions_container::arrival));
+      auto const& feeder_distribution =
+          distributions_container.get_distribution(
+              feeder_route_node->_id, feeder_distribution_pos,
+              distributions_container::arrival);
 
-        /** arrival distributions of the feeder trains
-         * TODO: do not store the interchange feeder in this vector!
-         * (distributions_calculator makes this assumption).
-         */
-        feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
-                              latest_feasible_arrival, transfer_time);
+      /** arrival distributions of the feeder trains
+       * TODO: do not store the interchange feeder in this vector!
+       * (distributions_calculator makes this assumption).
+       */
+      feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
+                            latest_feasible_arrival, transfer_time);
 
-        if (waiting_time > maximum_waiting_time_) {
-          maximum_waiting_time_ = waiting_time;
-        }
-      } else {
-        std::cout << "," << std::flush;
+      if (waiting_time > maximum_waiting_time_) {
+        maximum_waiting_time_ = waiting_time;
       }
     }
   }  // end of for all_feeders_data

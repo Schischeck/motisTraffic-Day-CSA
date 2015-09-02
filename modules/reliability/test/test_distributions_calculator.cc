@@ -46,21 +46,21 @@ void test_distributions(
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   // last route node
   if (route_edge == nullptr) {
-    REQUIRE_FALSE(precomputed_distributions.contains_departure_distributions(
-        route_node._id));
+    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+        route_node._id, distributions_container::departure));
     return;
   }
   auto const& head_route_node = *route_edge->_to;
   if (pre_computed_distributions) {
-    REQUIRE(precomputed_distributions.contains_departure_distributions(
-        route_node._id));
+    REQUIRE(precomputed_distributions.contains_distributions(
+        route_node._id, distributions_container::departure));
     // first route node
     if (graph_accessor::get_arriving_route_edge(route_node) == nullptr) {
-      REQUIRE_FALSE(precomputed_distributions.contains_arrival_distributions(
-          route_node._id));
+      REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+          route_node._id, distributions_container::arrival));
     } else {
-      REQUIRE(precomputed_distributions.contains_arrival_distributions(
-          route_node._id));
+      REQUIRE(precomputed_distributions.contains_distributions(
+          route_node._id, distributions_container::arrival));
     }
 
     for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size();
@@ -77,10 +77,10 @@ void test_distributions(
       REQUIRE(equal(arrival_distribution.sum(), 1.0));
     }
   } else {
-    REQUIRE_FALSE(precomputed_distributions.contains_departure_distributions(
-        route_node._id));
-    REQUIRE_FALSE(precomputed_distributions.contains_arrival_distributions(
-        head_route_node._id));
+    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+        route_node._id, distributions_container::departure));
+    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+        head_route_node._id, distributions_container::arrival));
   }
 
   test_distributions(head_route_node, precomputed_distributions,

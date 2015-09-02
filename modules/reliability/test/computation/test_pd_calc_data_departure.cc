@@ -271,11 +271,13 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
         return feeder2;
       return fail;
     }
-    bool contains_arrival_distributions(
-        unsigned int const route_node_idx) const override {
-      return (route_node_idx == route_node_train_ ||
-              route_node_idx == route_node_feeder1_ ||
-              route_node_idx == route_node_feeder2_);
+    bool contains_distributions(
+        unsigned int const route_node_idx,
+        distributions_container::event_type const t) const override {
+      return (t == distributions_container::arrival &&
+              (route_node_idx == route_node_train_ ||
+               route_node_idx == route_node_feeder1_ ||
+               route_node_idx == route_node_feeder2_));
     }
 
     probability_distribution train;

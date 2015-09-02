@@ -20,14 +20,11 @@ struct precomputed_distributions_container {
 
   virtual ~precomputed_distributions_container() {}
 
-  bool contains_departure_distributions(
-      unsigned int const route_node_idx) const {
-    return node_to_departure_distributions_.at(route_node_idx).size() > 0;
-  }
-
-  virtual bool contains_arrival_distributions(
-      unsigned int const route_node_idx) const {
-    return node_to_arrival_distributions_.at(route_node_idx).size() > 0;
+  virtual bool contains_distributions(unsigned int const route_node_idx,
+                                      event_type const t) const {
+    return (t == departure
+                ? node_to_departure_distributions_.at(route_node_idx).size() > 0
+                : node_to_arrival_distributions_.at(route_node_idx).size() > 0);
   }
 
   virtual probability_distribution const& get_distribution(
