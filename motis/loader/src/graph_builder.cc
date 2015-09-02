@@ -9,6 +9,7 @@
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
+#include "motis/loader/waiting_time_rules_parser.h"
 
 using namespace flatbuffers;
 
@@ -30,8 +31,7 @@ public:
         sched_(sched),
         schedule_interval_(schedule_interval),
         from_(from),
-        to_(to),
-        classes_(class_mapping()) {}
+        to_(to) {}
 
   void add_stations(Vector<Offset<Station>> const* stations) {
     sched_.station_nodes.resize(stations->size());
@@ -50,6 +50,8 @@ public:
       s->width = input_station->lat();
       s->length = input_station->lng();
       sched_.stations.emplace_back(std::move(s));
+      sched_.eva_to_station.insert(
+          std::make_pair(input_station->id()->str(), s.get()));
     }
 
     // First regular node id:
@@ -61,9 +63,9 @@ public:
     auto const& sections = service->sections();
     auto const& stops = service->route()->stations();
 
-    auto route_nodes =
-        get_or_create(routes_, service->route(),
-                      std::bind(&graph_builder::create_route, this, stops));
+    auto route_nodes = get_or_create(
+        routes_, service->route(),
+        std::bind(&graph_builder::create_route, this, stops, routes_.size()));
 
     auto serialized_traffic_days = service->traffic_days()->c_str();
     auto traffic_days = deserialize_bitset<512>(
@@ -80,6 +82,20 @@ public:
           service->times()->Get(section_idx * 2 + 2), traffic_days);
     }
   }
+
+  void transfer_connections() {
+    for (auto& con_info : con_infos_) {
+      sched_.connection_infos.emplace_back(std::move(con_info.second));
+    }
+    for (auto& con : connections_) {
+      sched_.full_connections.emplace_back(std::move(con.second));
+    }
+    for (auto& attr : attributes_) {
+      sched_.attributes.emplace_back(std::move(attr.second));
+    }
+  }
+
+  int node_count() const { return next_node_id_; }
 
 private:
   bitfield const& get_or_create_bitfield(String const* serialized_bitfield) {
@@ -121,8 +137,8 @@ private:
       con.d_platform = get_or_create_platform(day, dep_platforms);
       con.a_platform = get_or_create_platform(day, arr_platforms);
 
-      auto clasz_it = classes_.find(section->category()->name()->str());
-      con.clasz = (clasz_it == end(classes_)) ? 9 : clasz_it->second;
+      auto clasz_it = sched_.classes.find(section->category()->name()->str());
+      con.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
       con.price = get_distance(from, to) * get_price_per_km(con.clasz);
 
       // Build light connection.
@@ -184,13 +200,15 @@ private:
     }
   }
 
-  std::vector<node*> create_route(Vector<Offset<Station>> const* stops) {
+  std::vector<node*> create_route(Vector<Offset<Station>> const* stops,
+                                  int route_index) {
     std::vector<node*> route_nodes;
     edge* last_route_edge = nullptr;
     for (auto const& stop : *stops) {
       auto const& station_node = stations_.at(stop);
       auto station_id = station_node->_id;
       auto route_node = new node(station_node, next_node_id_++);
+      route_node->_route = route_index;
 
       // Connect the new route node with the corresponding station node:
       // route -> station: edge cost = change time, interchange count
@@ -204,6 +222,8 @@ private:
       route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
       if (last_route_edge != nullptr) {
         last_route_edge->_to = route_node;
+      } else {
+        sched_.route_index_to_first_route_node[route_index] = route_node;
       }
 
       last_route_edge = &route_node->_edges.back();
@@ -224,16 +244,22 @@ private:
   schedule& sched_;
   Interval const* schedule_interval_;
   time_t from_, to_;
-  std::map<std::string, int> classes_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   schedule_ptr sched(new schedule());
+  sched->classes = class_mapping();
+  sched->waiting_time_rules_ = parse_waiting_time_rules(sched->category_names);
+  sched->schedule_begin_ = serialized->interval()->from();
+  sched->schedule_end_ = serialized->interval()->to();
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to);
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
   }
+
+  sched->node_count = builder.node_count();
+  sched->lower_bounds = constant_graph(sched->station_nodes);
 
   return sched;
 }

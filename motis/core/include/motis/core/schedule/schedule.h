@@ -1,9 +1,9 @@
 #pragma once
 
+#include <ctime>
 #include <map>
 #include <vector>
 
-#include "motis/core/schedule/date_manager.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/constant_graph.h"
@@ -19,9 +19,9 @@ class connection_info;
 struct schedule {
   virtual ~schedule() {}
 
-  date_manager date_mgr;
+  std::time_t schedule_begin_, schedule_end_;
   std::vector<station_ptr> stations;
-  std::map<int, station*> eva_to_station;
+  std::map<std::string, station*> eva_to_station;
   std::vector<std::string> category_names;
   std::map<std::string, int> classes;
   std::vector<std::string> tracks;
