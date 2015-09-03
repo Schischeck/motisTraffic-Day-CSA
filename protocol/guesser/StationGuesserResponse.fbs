@@ -1,12 +1,12 @@
 namespace motis.guesser;
 
 table Station {
-  name:string;
-  eva:int;
-  lat:double;
-  lng:double;
+  name: string;
+  eva: string;
+  lat: double;
+  lng: double;
 }
 
 table StationGuesserResponse {
-  guesses:[Station];
+  guesses: [Station];
 }

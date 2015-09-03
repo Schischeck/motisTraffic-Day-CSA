@@ -1,8 +1,8 @@
 namespace motis.routing;
 
 table StationPathElement {
-  name:string;
-  eva_nr:uint = 0;
+  name : string;
+  eva_nr : string;
 }
 
 enum Type : byte { PreTrip, OnTrip }

@@ -4,8 +4,11 @@
 #include <vector>
 #include <memory>
 
+#include "boost/icl/interval_set.hpp"
+
 namespace motis {
 
+template <typename T>
 class interval_map {
 public:
   struct range {
@@ -14,15 +17,29 @@ public:
     int from, to;
   };
 
-  interval_map();
-  ~interval_map();
-  void add_entry(int attribute, int index);
-  void add_entry(int attribute, int from_index, int to_index);
-  std::map<int, std::vector<range>> get_attribute_ranges();
+  typedef boost::icl::interval<int>::type interval;
+
+  void add_entry(T attribute, int index) {
+    attributes[attribute] += interval(index, index + 1);
+  }
+
+  void add_entry(T attribute, int from_index, int to_index) {
+    attributes[attribute] += interval(from_index, to_index + 1);
+  }
+
+  std::map<T, std::vector<interval_map::range>> get_attribute_ranges() {
+    std::map<T, std::vector<interval_map::range>> ranges;
+    for (auto const& attr : attributes) {
+      ranges[attr.first].reserve(attr.second.size());
+      for (auto const& range : attr.second) {
+        ranges[attr.first].emplace_back(range.lower(), range.upper() - 1);
+      }
+    }
+    return ranges;
+  }
 
 private:
-  class interval_map_impl;
-  std::unique_ptr<interval_map_impl> _impl;
+  std::map<T, boost::icl::interval_set<int>> attributes;
 };
 
 }  // namespace motis

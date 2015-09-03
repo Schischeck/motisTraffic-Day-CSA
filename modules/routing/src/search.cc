@@ -111,8 +111,8 @@ std::vector<journey> search::get_connections(
           additional_edges.emplace(arrival_station, std::vector<edge>());
     }
 
-    it->second.emplace_back(
-        make_mumo_edge(target, arr.time_cost, arr.price, arr.slot));
+    it->second.emplace_back(make_mumo_edge(arrival_station, target,
+                                           arr.time_cost, arr.price, arr.slot));
   }
 
   pareto_dijkstra pd(_sched.node_count,

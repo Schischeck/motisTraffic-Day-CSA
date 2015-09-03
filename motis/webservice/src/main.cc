@@ -51,7 +51,8 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  auto sched = loader::load_schedule(dataset_opt.dataset);
+  // TODO set date
+  auto sched = loader::load_schedule(dataset_opt.dataset, 0, 0);
 
   boost::asio::io_service ios, thread_pool;
 

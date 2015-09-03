@@ -34,7 +34,7 @@ struct journey {
     double lat, lng;
     struct event_info {
       bool valid;
-      std::string date_time;
+      std::time_t timestamp;
       std::string platform;
     } arrival, departure;
   };
@@ -45,7 +45,6 @@ struct journey {
     std::string text;
   };
 
-  std::string date;
   int duration, transfers, price;
   std::vector<stop> stops;
   std::vector<transport> transports;

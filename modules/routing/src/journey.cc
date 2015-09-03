@@ -205,8 +205,7 @@ std::vector<journey::transport> generate_journey_transports(
         } else {
           // equals comparison ignoring attributes:
           return a->line_identifier == b->line_identifier &&
-                 a->family == b->family && a->train_nr == b->train_nr &&
-                 a->service == b->service;
+                 a->family == b->family && a->train_nr == b->train_nr;
         }
       };
 
@@ -246,12 +245,6 @@ std::vector<journey::transport> generate_journey_transports(
 
 std::vector<journey::stop> generate_journey_stops(
     std::vector<intermediate::stop> const& stops, schedule const& sched) {
-  auto get_platform =
-      [](schedule const& sched, int platform_id) -> std::string {
-        auto it = sched.tracks.find(platform_id);
-        return it == end(sched.tracks) ? "?" : it->second;
-      };
-
   std::vector<journey::stop> journey_stops;
   for (auto const& stop : stops) {
     journey_stops.push_back(
@@ -260,15 +253,17 @@ std::vector<journey::stop> generate_journey_stops(
          sched.stations[stop.station_id]->width,
          sched.stations[stop.station_id]->length,
          stop.a_time != INVALID_TIME
-             ? journey::stop::event_info{true,
-                                         sched.date_mgr.format_ISO(stop.a_time),
-                                         get_platform(sched, stop.a_platform)}
-             : journey::stop::event_info{false, "", ""},
+             ? journey::stop::event_info{true, motis_to_unixtime(
+                                                   sched.schedule_begin_,
+                                                   stop.a_time),
+                                         sched.tracks[stop.a_platform]}
+             : journey::stop::event_info{false, 0, ""},
          stop.d_time != INVALID_TIME
-             ? journey::stop::event_info{true,
-                                         sched.date_mgr.format_ISO(stop.d_time),
-                                         get_platform(sched, stop.d_platform)}
-             : journey::stop::event_info{false, "", ""}});
+             ? journey::stop::event_info{true, motis_to_unixtime(
+                                                   sched.schedule_begin_,
+                                                   stop.d_time),
+                                         sched.tracks[stop.d_platform]}
+             : journey::stop::event_info{false, 0, ""}});
   }
   return journey_stops;
 }
@@ -276,7 +271,7 @@ std::vector<journey::stop> generate_journey_stops(
 std::vector<journey::attribute> generate_journey_attributes(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
-  interval_map attributes;
+  interval_map<attribute const*> attributes;
   for (auto const& transport : transports) {
     if (transport.con == nullptr) {
       continue;
@@ -289,11 +284,11 @@ std::vector<journey::attribute> generate_journey_attributes(
   }
 
   std::vector<journey::attribute> journey_attributes;
-  for (auto const& attribute : attributes.get_attribute_ranges()) {
-    auto const& attribute_id = attribute.first;
-    auto const& attribute_ranges = attribute.second;
-    auto const& code = sched.attributes.at(attribute_id)._code;
-    auto const& text = sched.attributes.at(attribute_id)._str;
+  for (auto const& attribute_range : attributes.get_attribute_ranges()) {
+    auto const& attribute = attribute_range.first;
+    auto const& attribute_ranges = attribute_range.second;
+    auto const& code = attribute->_code;
+    auto const& text = attribute->_str;
 
     for (auto const& range : attribute_ranges) {
       journey_attributes.push_back({range.from, range.to, code, text});
@@ -301,14 +296,6 @@ std::vector<journey::attribute> generate_journey_attributes(
   }
 
   return journey_attributes;
-}
-
-std::string generate_date(label const* label, schedule const& sched) {
-  int start_day = label->_start / MINUTES_A_DAY;
-  date_manager::date date = sched.date_mgr.get_date(start_day);
-  return boost::lexical_cast<std::string>(date.day) + "." +
-         boost::lexical_cast<std::string>(date.month) + "." +
-         boost::lexical_cast<std::string>(date.year);
 }
 
 journey::journey(label const* label, schedule const& sched) {
@@ -320,7 +307,6 @@ journey::journey(label const* label, schedule const& sched) {
   transports = generate_journey_transports(t, sched);
   attributes = generate_journey_attributes(t, sched);
 
-  date = generate_date(label, sched);
   duration = label->_travel_time[0];
   transfers = label->_transfers[0] - 1;
   price = label->_total_price[0];

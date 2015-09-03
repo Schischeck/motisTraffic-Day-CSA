@@ -7,8 +7,3 @@ file(GLOB_RECURSE motis-railviz-files src/*.cc)
 add_library(motis-railviz STATIC ${motis-railviz-files})
 target_link_libraries(motis-railviz ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} motis-module)
 set_target_properties(motis-railviz PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
-
-file(GLOB_RECURSE motis-railviz-test-files test/*.cc)
-add_executable(motis-railviz-test ${motis-railviz-test-files})
-set_target_properties(motis-railviz-test PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
-target_link_libraries(motis-railviz-test motis-railviz motis-loader motis-module gtest gtest_main)
