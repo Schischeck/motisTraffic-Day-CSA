@@ -30,7 +30,7 @@ struct journey {
     int index;
     bool interchange;
     std::string name;
-    int eva_no;
+    std::string eva_no;
     double lat, lng;
     struct event_info {
       bool valid;

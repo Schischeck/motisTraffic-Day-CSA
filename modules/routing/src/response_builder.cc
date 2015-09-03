@@ -20,8 +20,9 @@ std::vector<Offset<Stop>> convert_stops(
                                b.CreateString(stop.arrival.platform));
     auto dep = CreateEventInfo(b, stop.departure.timestamp,
                                b.CreateString(stop.departure.platform));
-    buf_stops.push_back(CreateStop(b, stop.eva_no, b.CreateString(stop.name),
-                                   arr, dep, stop.interchange));
+    buf_stops.push_back(CreateStop(b, b.CreateString(stop.eva_no),
+                                   b.CreateString(stop.name), arr, dep,
+                                   stop.interchange));
   }
 
   return buf_stops;

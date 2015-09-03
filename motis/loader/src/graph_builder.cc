@@ -50,6 +50,8 @@ public:
       s->name = input_station->name()->str();
       s->width = input_station->lat();
       s->length = input_station->lng();
+      s->eva_nr = input_station->id()->str();
+      s->transfer_time = input_station->interchange_time();
       sched_.eva_to_station.insert(
           std::make_pair(input_station->id()->str(), s.get()));
       sched_.stations.emplace_back(std::move(s));
