@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
   message::init_parser();
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("data/test");
+  dataset_settings dataset_opt("data/test", "TODAY", 2);
   modules_settings modules_opt("modules");
 
   conf::options_parser parser({&listener_opt, &dataset_opt, &modules_opt});
@@ -51,8 +51,9 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  // TODO set date
-  auto sched = loader::load_schedule(dataset_opt.dataset, 0, 0);
+  auto schedule_interval = dataset_opt.interval();
+  auto sched = loader::load_schedule(
+      dataset_opt.dataset, schedule_interval.first, schedule_interval.second);
 
   boost::asio::io_service ios, thread_pool;
 

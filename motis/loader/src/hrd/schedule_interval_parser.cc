@@ -1,10 +1,9 @@
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 
-#include "boost/date_time/gregorian/gregorian_types.hpp"
-#include "boost/date_time/posix_time/posix_time.hpp"
-
 #include "parser/util.h"
 #include "parser/arg_parser.h"
+
+#include "motis/core/common/date_util.h"
 
 using namespace flatbuffers;
 using namespace parser;
@@ -22,12 +21,9 @@ void verify_line_format(cstr s) {
 }
 
 time_t str_to_unixtime(cstr s) {
-  auto day = parse<int>(s.substr(0, size(2)));
-  auto month = parse<int>(s.substr(3, size(2)));
-  auto year = parse<int>(s.substr(6, size(4)));
-  boost::posix_time::ptime t(boost::gregorian::date(year, month, day));
-  boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
-  return (t - epoch).total_seconds();
+  return to_unix_time(parse<int>(s.substr(6, size(4))),
+                      parse<int>(s.substr(3, size(2))),
+                      parse<int>(s.substr(0, size(2))));
 }
 
 Interval parse_interval(loaded_file const& basic_info_file) {

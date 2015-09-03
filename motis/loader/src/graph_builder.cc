@@ -18,9 +18,11 @@ namespace loader {
 
 bool is_in_schedule(int day_index, time_t from, time_t to,
                     Interval const* schedule_interval) {
-  time_t point_in_time = from + day_index * 1440;
+  uint64_t point_in_time = from + day_index * 1440;
   return point_in_time >= schedule_interval->from() &&
-         point_in_time < schedule_interval->to() && point_in_time < to;
+         point_in_time < schedule_interval->to() &&
+         point_in_time >= static_cast<uint64_t>(from) &&
+         point_in_time < static_cast<uint64_t>(to);
 }
 
 class graph_builder {
