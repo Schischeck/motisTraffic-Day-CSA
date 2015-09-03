@@ -8,8 +8,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct db_interchange_times {
-  db_interchange_times(loaded_file const& infotext_file);
+struct change_times {
+  change_times(loaded_file const& infotext_file);
 
   int get_interchange_time(int eva_num) const;
 

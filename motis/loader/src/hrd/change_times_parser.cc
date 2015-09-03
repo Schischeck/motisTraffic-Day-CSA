@@ -1,5 +1,3 @@
-#include "motis/loader/parsers/hrd/db_interchange_times_parser.h"
-
 #include <cinttypes>
 #include <string>
 
@@ -7,6 +5,7 @@
 #include <array>
 #include <functional>
 
+#include "../../include/motis/loader/parsers/hrd/change_times_parser.h"
 #include "parser/csv.h"
 #include "parser/cstr.h"
 #include "parser/util.h"
@@ -70,7 +69,7 @@ void load_interchange_times(std::map<cstr, int>& ds100_to_interchange_time) {
   };
   typedef std::tuple<cstr, cstr, int, int> minct;
 
-  loaded_file minct_file{"minct.csv", {db_interchange_times::MINCT}};
+  loaded_file minct_file{"minct.csv", {change_times::MINCT}};
 
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
@@ -109,10 +108,10 @@ std::map<int, int> get_interchange_times(loaded_file const& infotext_file) {
   return eva_num_to_interchange_time;
 }
 
-db_interchange_times::db_interchange_times(loaded_file const& infotext_file)
+change_times::change_times(loaded_file const& infotext_file)
     : eva_num_to_interchange_time_(get_interchange_times(infotext_file)) {}
 
-int db_interchange_times::get_interchange_time(int eva_num) const {
+int change_times::get_interchange_time(int eva_num) const {
   auto it = eva_num_to_interchange_time_.find(eva_num);
   if (it == std::end(eva_num_to_interchange_time_)) {
     return DEFAULT_INTERCHANGE_TIME;
@@ -121,7 +120,7 @@ int db_interchange_times::get_interchange_time(int eva_num) const {
   }
 }
 
-const char* db_interchange_times::MINCT = R"(AA;;7;4
+const char* change_times::MINCT = R"(AA;;7;4
 ABCH;;6;3
 ABG;;5;4
 ABLZ;;5;3

@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include "../include/motis/loader/wzr_loader.h"
 #include "parser/cstr.h"
 
 #include "motis/core/schedule/price.h"
@@ -9,7 +10,6 @@
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
-#include "motis/loader/waiting_time_rules_parser.h"
 
 using namespace flatbuffers;
 
@@ -249,7 +249,7 @@ private:
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   schedule_ptr sched(new schedule());
   sched->classes = class_mapping();
-  sched->waiting_time_rules_ = parse_waiting_time_rules(sched->category_names);
+  sched->waiting_time_rules_ = load_waiting_time_rules(sched->category_names);
   sched->schedule_begin_ = serialized->interval()->from();
   sched->schedule_end_ = serialized->interval()->to();
 

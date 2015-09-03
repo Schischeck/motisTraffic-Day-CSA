@@ -5,7 +5,7 @@
 namespace motis {
 namespace loader {
 
-waiting_time_rules parse_waiting_time_rules(
+waiting_time_rules load_waiting_time_rules(
     std::vector<std::string> const& category_names);
 
 }  // loader

@@ -1,9 +1,9 @@
-#include "motis/loader/waiting_time_rules_parser.h"
+#include "../include/motis/loader/wzr_loader.h"
 
 namespace motis {
 namespace loader {
 
-waiting_time_rules parse_waiting_time_rules(
+waiting_time_rules load_waiting_time_rules(
     std::vector<std::string> const& category_names) {
   waiting_time_rules rules;
 

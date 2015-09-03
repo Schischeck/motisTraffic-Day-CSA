@@ -5,7 +5,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "boost/filesystem/path.hpp"
+#include "motis/schedule-format/Category_generated.h"
 
 #include "motis/loader/loaded_file.h"
 
@@ -14,27 +14,17 @@ namespace loader {
 namespace hrd {
 
 struct categories_parser {
+  struct category {
+    category(std::string name, CategoryOutputRule output_rule)
+        : name(std::move(name)), output_rule(output_rule) {}
 
-  // fbs_category := (category_info, is_export_candidate) TODO (string, offset)
-  typedef std::pair<flatbuffers::Offset<flatbuffers::String>, bool>
-      fbs_category_t;
+    std::string name;
+    CategoryOutputRule output_rule;
+  };
 
-  typedef flatbuffers::Offset<flatbuffers::Vector<
-      flatbuffers::Offset<flatbuffers::String>>> fbs_categories_t;
+  void parse(loaded_file const& categories_file);
 
-  void parse(boost::filesystem::path const& categories,
-             boost::filesystem::path const& providers);
-
-  void parse(loaded_file const& categories, loaded_file const& providers);
-
-  // NOTE: Implicitly adds the corresponding category information to the export
-  // data.
-  flatbuffers::Offset<flatbuffers::String> get_category_info(
-      uint32_t category_key);
-
-  fbs_categories_t get_export_data(flatbuffers::FlatBufferBuilder const&);
-
-  std::map<uint32_t, fbs_category_t> fbs_categories_;
+  std::map<uint32_t, category> fbs_categories_;
 };
 
 }  // hrd

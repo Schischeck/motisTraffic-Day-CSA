@@ -2,12 +2,12 @@
 
 #include <map>
 
+#include "../../include/motis/loader/parsers/hrd/change_times_parser.h"
 #include "parser/arg_parser.h"
 
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/db_interchange_times_parser.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -57,7 +57,7 @@ std::map<int, Offset<Station>> parse_stations(
   std::map<int, station> stations_map;
   parse_station_names(station_names_file, stations_map);
   parse_station_coordinates(station_coordinates_file, stations_map);
-  db_interchange_times const ic_times(ds100_mappings_file);
+  change_times const ic_times(ds100_mappings_file);
 
   std::map<int, Offset<Station>> stations;
   for (auto const& station_entry : stations_map) {

@@ -1,12 +1,11 @@
+#include "../include/motis/loader/wzr_loader.h"
 #include "gtest/gtest.h"
-
-#include "motis/loader/waiting_time_rules_parser.h"
 
 namespace motis {
 namespace loader {
 
 TEST(wzr, matrix) {
-  auto const& waiting_time_rules = parse_waiting_time_rules({});
+  auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.waiting_time(1, 1) == 3);
   ASSERT_TRUE(waiting_time_rules.waiting_time(1, 2) == 0);
@@ -40,19 +39,19 @@ TEST(wzr, matrix) {
 }
 
 TEST(wzr, family_to_category_assignment) {
-  auto const& waiting_time_rules = parse_waiting_time_rules({"IC"});
+  auto waiting_time_rules = load_waiting_time_rules({"IC"});
   ASSERT_TRUE(waiting_time_rules.waiting_time_category(0) == 1);
 }
 
 TEST(wzr, train_class_waits_for_other_trains) {
-  auto const& waiting_time_rules = parse_waiting_time_rules({});
+  auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.waits_for_other_trains(1));
   ASSERT_TRUE(!waiting_time_rules.waits_for_other_trains(3));
 }
 
 TEST(wzr, other_trains_wait_for_train_class) {
-  auto const& waiting_time_rules = parse_waiting_time_rules({});
+  auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.other_trains_wait_for(1));
   ASSERT_TRUE(!waiting_time_rules.other_trains_wait_for(3));
