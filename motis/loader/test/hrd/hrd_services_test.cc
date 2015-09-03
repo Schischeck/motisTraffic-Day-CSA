@@ -10,6 +10,7 @@
 
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
@@ -186,8 +187,12 @@ TEST(loader_hrd_hrd_services, parse_trains) {
   const test_spec stations_file(stamm_path, STATIONS_FILE);
   const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
   const test_spec infotext_file(stamm_path, INFOTEXT_FILE);
-  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_,
-                                 infotext_file.lf_, b);
+
+  station_meta_data metas;
+  parse_station_meta_data(infotext_file.lf_, metas);
+
+  auto stations =
+      parse_stations(stations_file.lf_, coordinates_file.lf_, metas, b);
 
   const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
   auto platforms = parse_platform_rules(platforms_file.lf_, b);
@@ -218,8 +223,12 @@ TEST(loader_hrd_hrd_services, parse_trains_ice) {
   const test_spec stations_file(stamm_path, STATIONS_FILE);
   const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
   const test_spec infotext_file(stamm_path, INFOTEXT_FILE);
-  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_,
-                                 infotext_file.lf_, b);
+
+  station_meta_data metas;
+  parse_station_meta_data(infotext_file.lf_, metas);
+
+  auto stations =
+      parse_stations(stations_file.lf_, coordinates_file.lf_, metas, b);
 
   const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
   auto platforms = parse_platform_rules(platforms_file.lf_, b);
@@ -250,8 +259,12 @@ TEST(loader_hrd_hrd_services, parse_repetition_service) {
   const test_spec stations_file(stamm_path, STATIONS_FILE);
   const test_spec coordinates_file(stamm_path, COORDINATES_FILE);
   const test_spec infotext_file(stamm_path, INFOTEXT_FILE);
-  auto stations = parse_stations(stations_file.lf_, coordinates_file.lf_,
-                                 infotext_file.lf_, b);
+
+  station_meta_data metas;
+  parse_station_meta_data(infotext_file.lf_, metas);
+
+  auto stations =
+      parse_stations(stations_file.lf_, coordinates_file.lf_, metas, b);
 
   const test_spec platforms_file(stamm_path, PLATFORMS_FILE);
   auto platforms = parse_platform_rules(platforms_file.lf_, b);

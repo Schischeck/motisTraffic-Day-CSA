@@ -1,5 +1,7 @@
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 
+#include "parser/cstr.h"
+
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 

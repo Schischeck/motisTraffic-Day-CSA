@@ -2,7 +2,6 @@
 
 #include <map>
 
-#include "../../include/motis/loader/parsers/hrd/change_times_parser.h"
 #include "parser/arg_parser.h"
 
 #include "motis/loader/util.h"
@@ -60,11 +59,10 @@ void parse_station_coordinates(loaded_file file,
 
 std::map<int, Offset<Station>> parse_stations(
     loaded_file station_names_file, loaded_file station_coordinates_file,
-    loaded_file ds100_mappings_file, flatbuffers::FlatBufferBuilder& b) {
+    station_meta_data const& metas, flatbuffers::FlatBufferBuilder& b) {
   std::map<int, station> stations_map;
   parse_station_names(station_names_file, stations_map);
   parse_station_coordinates(station_coordinates_file, stations_map);
-  change_times const ic_times(ds100_mappings_file);
 
   std::map<int, Offset<Station>> stations;
   for (auto const& station_entry : stations_map) {
@@ -74,7 +72,7 @@ std::map<int, Offset<Station>> parse_stations(
         eva_num,
         CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
                       to_fbs_string(b, station.name, ENCODING), station.lat,
-                      station.lng, ic_times.get_interchange_time(eva_num))));
+                      station.lng, metas.get_interchange_time(eva_num))));
   }
   return stations;
 }

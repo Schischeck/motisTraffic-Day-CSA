@@ -14,6 +14,7 @@
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
+#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/service/shared_data.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
@@ -58,12 +59,16 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto platforms_buf = load_file(stamm_path / PLATFORMS_FILE);
 
   auto interval = parse_interval({BASIC_DATA_FILE, basic_info_buf});
-  shared_data stamm(parse_stations({STATIONS_FILE, stations_names_buf},
-                                   {COORDINATES_FILE, stations_coords_buf},
-                                   {INFOTEXT_FILE, infotext_buf}, b),
-                    parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-                    parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-                    parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
+
+  station_meta_data metas;
+  parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
+
+  shared_data stamm(
+      parse_stations({STATIONS_FILE, stations_names_buf},
+                     {COORDINATES_FILE, stations_coords_buf}, metas, b),
+      parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
+      parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
+      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
 
   service_builder sb(stamm, b);
 
