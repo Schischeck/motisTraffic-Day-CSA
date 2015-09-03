@@ -1,11 +1,11 @@
+#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
+
 #include <cinttypes>
 #include <string>
-
 #include <vector>
 #include <array>
 #include <functional>
 
-#include "../../include/motis/loader/parsers/hrd/change_times_parser.h"
 #include "parser/csv.h"
 #include "parser/cstr.h"
 #include "parser/util.h"
@@ -16,7 +16,7 @@ namespace hrd {
 
 using namespace parser;
 
-constexpr int DEFAULT_INTERCHANGE_TIME = 5;
+constexpr int DEFAULT_CHANGE_TIME = 5;
 
 //   0: <Gültig-Ab-Datum>
 //   1: <Gelöscht-Flag>
@@ -60,17 +60,10 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
   }
 }
 
-void load_interchange_times(std::map<cstr, int>& ds100_to_interchange_time) {
-  enum {
-    from_ds100,
-    to_ds100,
-    station_interchange_time,
-    platform_interchange_time
-  };
-  typedef std::tuple<cstr, cstr, int, int> minct;
-
-  loaded_file minct_file{"minct.csv", {change_times::MINCT}};
-
+enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
+typedef std::tuple<cstr, cstr, int, int> minct;
+void load_minct(std::vector<minct>& records) {
+  loaded_file minct_file{"minct.csv", {station_meta_data::MINCT}};
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;
@@ -78,49 +71,49 @@ void load_interchange_times(std::map<cstr, int>& ds100_to_interchange_time) {
   column_map[2] = 2;
   column_map[3] = 3;
   auto rows = detail::read_rows<minct, ';'>(minct_file.content, column_map);
-
-  std::vector<minct> records;
   read(records, rows);
-
-  for (auto const& record : records) {
-    if (std::get<to_ds100>(record).len == 0) {
-      ds100_to_interchange_time[std::get<from_ds100>(record)] =
-          std::get<station_interchange_time>(record);
-    }
-  }
 }
 
-std::map<int, int> get_interchange_times(loaded_file const& infotext_file) {
-  std::map<cstr, int> ds100_to_eva_num;
-  parse_ds100_mappings(infotext_file, ds100_to_eva_num);
-
-  std::map<cstr, int> ds100_to_interchange_time;
-  load_interchange_times(ds100_to_interchange_time);
-
-  std::map<int, int> eva_num_to_interchange_time;
-  for (auto const& entry : ds100_to_interchange_time) {
-    auto const eva_number_it = ds100_to_eva_num.find(entry.first);
-    if (eva_number_it != end(ds100_to_eva_num)) {
-      eva_num_to_interchange_time[eva_number_it->second] = entry.second;
-    }
-  }
-
-  return eva_num_to_interchange_time;
-}
-
-change_times::change_times(loaded_file const& infotext_file)
-    : eva_num_to_interchange_time_(get_interchange_times(infotext_file)) {}
-
-int change_times::get_interchange_time(int eva_num) const {
-  auto it = eva_num_to_interchange_time_.find(eva_num);
-  if (it == std::end(eva_num_to_interchange_time_)) {
-    return DEFAULT_INTERCHANGE_TIME;
+int station_meta_data::get_interchange_time(int eva_num) const {
+  auto it = normal_change_times_.find(eva_num);
+  if (it == std::end(normal_change_times_)) {
+    return DEFAULT_CHANGE_TIME;
   } else {
     return it->second;
   }
 }
 
-const char* change_times::MINCT = R"(AA;;7;4
+void parse_station_meta_data(loaded_file const& infotext_file,
+                             station_meta_data& metas) {
+  std::map<cstr, int> ds100_to_eva_num;
+  parse_ds100_mappings(infotext_file, ds100_to_eva_num);
+
+  std::vector<minct> records;
+  load_minct(records);
+
+  for (auto const& record : records) {
+    cstr const from_ds100 = std::get<from_ds100_key>(record);
+    cstr const to_ds100 = std::get<to_ds100_key>(record);
+    int const duration = std::get<duration_key>(record);
+
+    if (to_ds100.len == 0) {
+      auto eva_number_it = ds100_to_eva_num.find(from_ds100);
+      if (eva_number_it != end(ds100_to_eva_num)) {
+        metas.normal_change_times_[eva_number_it->second] = duration;
+      }
+    } else {
+      auto from_eva_num_it = ds100_to_eva_num.find(from_ds100);
+      auto to_eva_num_it = ds100_to_eva_num.find(to_ds100);
+      if (from_eva_num_it != end(ds100_to_eva_num) &&
+          to_eva_num_it != end(ds100_to_eva_num)) {
+        metas.footpaths_.push_back(
+            {from_eva_num_it->second, to_eva_num_it->second, duration});
+      }
+    }
+  }
+}
+
+const char* station_meta_data::MINCT = R"(AA;;7;4
 ABCH;;6;3
 ABG;;5;4
 ABLZ;;5;3

@@ -12,6 +12,7 @@
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
+#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 
 using namespace parser;
 namespace fs = boost::filesystem;
@@ -32,14 +33,16 @@ TEST(loader_hrd_stations, parse_stations) {
       coordinates_file_buf.size_);
 
   auto infotext_file_buf = load_file(TEST_RESOURCES / "infotext_minimal.101");
-  cstr infotext_file_content(
-      {infotext_file_buf.data(), infotext_file_buf.size()});
+  cstr infotext_file_content(static_cast<char const*>(infotext_file_buf.buf_),
+                             infotext_file_buf.size_);
+
+  station_meta_data metas;
+  parse_station_meta_data({INFOTEXT_FILE, infotext_file_content}, metas);
 
   flatbuffers::FlatBufferBuilder b;
   auto station_data =
       parse_stations({STATIONS_FILE, stations_file_content},
-                     {COORDINATES_FILE, coordinates_file_content},
-                     {INFOTEXT_FILE, infotext_file_content}, b);
+                     {COORDINATES_FILE, coordinates_file_content}, metas, b);
 
   b.Finish(CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}));
 
