@@ -32,14 +32,14 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
                               *schedule, dummy, s_t_distributions);
 
-  REQUIRE(&data.route_node_ == &first_route_node);
-  REQUIRE(data.route_node_._station_node->_id == 2);
-  REQUIRE(data.light_connection_.d_time == 5 * 60 + 55);
-  REQUIRE(data.light_connection_.a_time == 6 * 60 + 5);
-  REQUIRE(data.scheduled_departure_time() == data.light_connection_.d_time);
+  REQUIRE(first_route_node._station_node->_id == 2);
+  REQUIRE(first_light_conn.d_time == 5 * 60 + 55);
+  REQUIRE(first_light_conn.a_time == 6 * 60 + 5);
+  REQUIRE(first_light_conn._full_con->con_info->train_nr == 5);
+
+  REQUIRE(data.scheduled_departure_time_ == first_light_conn.d_time);
   REQUIRE(data.largest_delay() == 1);
   REQUIRE(data.maximum_waiting_time_ == 0);
-  REQUIRE(data.light_connection_._full_con->con_info->train_nr == 5);
   REQUIRE(data.is_first_route_node_);
 
   auto const& start_distribution =
@@ -75,12 +75,11 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
                               *schedule, train_distributions,
                               s_t_distributions);
 
-  REQUIRE(&data.route_node_ == second_route_node);
-  REQUIRE(&data.light_connection_ == &light_connection);
-  REQUIRE(data.route_node_._station_node->_id == 7);  // Wuerzburg
-  REQUIRE(data.light_connection_.d_time == 10 * 60 + 34);
-  REQUIRE(data.light_connection_.a_time == 11 * 60 + 7);
-  REQUIRE(data.scheduled_departure_time() == data.light_connection_.d_time);
+  REQUIRE(second_route_node->_station_node->_id == 7);  // Wuerzburg
+  REQUIRE(light_connection.d_time == 10 * 60 + 34);
+  REQUIRE(light_connection.a_time == 11 * 60 + 7);
+
+  REQUIRE(data.scheduled_departure_time_ == light_connection.d_time);
   REQUIRE(data.largest_delay() == 1);
   REQUIRE(!data.is_first_route_node_);
   REQUIRE(data.maximum_waiting_time_ == 0);
@@ -114,12 +113,11 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
                               *schedule, train_distributions,
                               s_t_distributions);
 
-  REQUIRE(&data.route_node_ == &first_route_node);
-  REQUIRE(&data.light_connection_ == &light_connection);
-  REQUIRE(data.route_node_._station_node->_id == 1);  // Darmstadt
-  REQUIRE(data.light_connection_.d_time == 7 * 60);
-  REQUIRE(data.light_connection_.a_time == 7 * 60 + 28);
-  REQUIRE(data.scheduled_departure_time() == data.light_connection_.d_time);
+  REQUIRE(first_route_node._station_node->_id == 1);  // Darmstadt
+  REQUIRE(light_connection.d_time == 7 * 60);
+  REQUIRE(light_connection.a_time == 7 * 60 + 28);
+
+  REQUIRE(data.scheduled_departure_time_ == light_connection.d_time);
   REQUIRE(data.largest_delay() == data.maximum_waiting_time_);
   REQUIRE(data.is_first_route_node_);
 
@@ -163,12 +161,11 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   pd_calc_data_departure data(route_node, light_connection, false, *schedule,
                               train_distributions, s_t_distributions);
 
-  REQUIRE(&data.route_node_ == &route_node);
-  REQUIRE(&data.light_connection_ == &light_connection);
-  REQUIRE(data.route_node_._station_node->_id == 1);  // Darmstadt
-  REQUIRE(data.light_connection_.d_time == 6 * 60 + 11);
-  REQUIRE(data.light_connection_.a_time == 6 * 60 + 45);
-  REQUIRE(data.scheduled_departure_time() == data.light_connection_.d_time);
+  REQUIRE(route_node._station_node->_id == 1);  // Darmstadt
+  REQUIRE(light_connection.d_time == 6 * 60 + 11);
+  REQUIRE(light_connection.a_time == 6 * 60 + 45);
+
+  REQUIRE(data.scheduled_departure_time_ == light_connection.d_time);
   REQUIRE(data.largest_delay() == data.maximum_waiting_time_);
   REQUIRE(!data.is_first_route_node_);
 
@@ -213,14 +210,14 @@ TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
   pd_calc_data_departure data(first_route_node, first_light_conn, true,
                               *schedule, dummy, s_t_distributions);
 
-  REQUIRE(&data.route_node_ == &first_route_node);
-  REQUIRE(data.route_node_._station_node->_id == 10);
-  REQUIRE(data.light_connection_.d_time == 13 * 60);
-  REQUIRE(data.light_connection_.a_time == 13 * 60 + 46);
-  REQUIRE(data.scheduled_departure_time() == data.light_connection_.d_time);
+  REQUIRE(first_route_node._station_node->_id == 10);
+  REQUIRE(first_light_conn.d_time == 13 * 60);
+  REQUIRE(first_light_conn.a_time == 13 * 60 + 46);
+  REQUIRE(first_light_conn._full_con->con_info->train_nr == 8);
+
+  REQUIRE(data.scheduled_departure_time_ == first_light_conn.d_time);
   REQUIRE(data.largest_delay() == 1);
   REQUIRE(data.maximum_waiting_time_ == 0);
-  REQUIRE(data.light_connection_._full_con->con_info->train_nr == 8);
   REQUIRE(data.is_first_route_node_);
 
   auto const& start_distribution =

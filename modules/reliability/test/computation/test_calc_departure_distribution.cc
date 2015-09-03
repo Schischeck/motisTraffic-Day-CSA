@@ -322,20 +322,20 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
                               s_t_distributions);
 
   REQUIRE(
-      equal(train_arrives_at_time(data, data.scheduled_departure_time()), 0.6));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.4));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.0));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
-      0.6));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
-      1.0));
+      equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.6));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 1),
+                0.4));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 2),
+                0.0));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 1),
+            0.6));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
+            1.0));
 
   REQUIRE(equal(departure_independent_from_feeders(
-                    data.feeders_, data.scheduled_departure_time() + 1),
+                    data.feeders_, data.scheduled_departure_time_ + 1),
                 0.8));
 
   probability_distribution departure_distribution;
@@ -382,19 +382,19 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
 
   REQUIRE(equal(train_early_enough(data), 0.8));
   REQUIRE(
-      equal(train_arrives_at_time(data, data.scheduled_departure_time()), 0.7));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.2));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.0));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time()), 0.1));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
-      0.8));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
-      1.0));
+      equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.7));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 1),
+                0.2));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 2),
+                0.0));
+  REQUIRE(equal(train_arrives_before_time(data, data.scheduled_departure_time_),
+                0.1));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 1),
+            0.8));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
+            1.0));
 
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
@@ -458,7 +458,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
   REQUIRE(equal(train_early_enough(data), 0.043 + 4 * 0.033));
   REQUIRE(equal(departure_independent_from_feeders(
-                    data.feeders_, data.scheduled_departure_time()),
+                    data.feeders_, data.scheduled_departure_time_),
                 (1.0 - 3 * (0.033)) * (1.0 - 3 * (0.033))));
 
   // probability 0=0.142065
@@ -466,18 +466,18 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   REQUIRE(equal(departure_distribution.probability_equal(0),
                 train_early_enough(data) *
                     departure_independent_from_feeders(
-                        data.feeders_, data.scheduled_departure_time())));
+                        data.feeders_, data.scheduled_departure_time_)));
 
   /******************* minute 1 *******************/
 
   REQUIRE(equal(departure_independent_from_feeders(
-                    data.feeders_, data.scheduled_departure_time() + 1),
+                    data.feeders_, data.scheduled_departure_time_ + 1),
                 (1.0 - 2 * (0.033)) * (1.0 - 2 * (0.033))));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 1), 0.033));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 1),
-      0.043 + 4 * 0.033));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 1),
+                0.033));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 1),
+            0.043 + 4 * 0.033));
   {
     // feeder1 = 06:07 * (feeder2 < 06:07 + feeder2 > 06:09)
     probability const prob_feeder1 =
@@ -504,7 +504,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
     REQUIRE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 1),
+                                data.scheduled_departure_time_ + 1),
         prob_feeder1 + prob_feeder2 + prob_both_feeders));
   }
 
@@ -513,22 +513,22 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   REQUIRE(equal(
       departure_distribution.probability_equal(1),
       (departure_independent_from_feeders(data.feeders_,
-                                          data.scheduled_departure_time() + 1) *
-           train_arrives_at_time(data, data.scheduled_departure_time() + 1) +
-       (train_arrives_before_time(data, data.scheduled_departure_time() + 1) *
+                                          data.scheduled_departure_time_ + 1) *
+           train_arrives_at_time(data, data.scheduled_departure_time_ + 1) +
+       (train_arrives_before_time(data, data.scheduled_departure_time_ + 1) *
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 1)))));
+                                data.scheduled_departure_time_ + 1)))));
 
   /******************* minute 2 *******************/
 
   REQUIRE(equal(departure_independent_from_feeders(
-                    data.feeders_, data.scheduled_departure_time() + 2),
+                    data.feeders_, data.scheduled_departure_time_ + 2),
                 (1.0 - 0.033) * (1.0 - 0.033)));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 2), 0.033));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 2),
-      0.043 + 5 * 0.033));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 2),
+                0.033));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
+            0.043 + 5 * 0.033));
 
   {
     // feeder1 = 06:08 * (feeder2 < 06:08 + feeder2 > 06:09)
@@ -556,7 +556,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
     REQUIRE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 2),
+                                data.scheduled_departure_time_ + 2),
         prob_feeder1 + prob_feeder2 + prob_both_feeders));
   }
 
@@ -565,22 +565,22 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   REQUIRE(equal(
       departure_distribution.probability_equal(2),
       (departure_independent_from_feeders(data.feeders_,
-                                          data.scheduled_departure_time() + 2) *
-           train_arrives_at_time(data, data.scheduled_departure_time() + 2) +
-       (train_arrives_before_time(data, data.scheduled_departure_time() + 2) *
+                                          data.scheduled_departure_time_ + 2) *
+           train_arrives_at_time(data, data.scheduled_departure_time_ + 2) +
+       (train_arrives_before_time(data, data.scheduled_departure_time_ + 2) *
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 2)))));
+                                data.scheduled_departure_time_ + 2)))));
 
   /******************* minute 3 *******************/
 
   REQUIRE(equal(departure_independent_from_feeders(
-                    data.feeders_, data.scheduled_departure_time() + 3),
+                    data.feeders_, data.scheduled_departure_time_ + 3),
                 1.0));
-  REQUIRE(equal(
-      train_arrives_at_time(data, data.scheduled_departure_time() + 3), 0.033));
-  REQUIRE(equal(
-      train_arrives_before_time(data, data.scheduled_departure_time() + 3),
-      0.043 + 6 * 0.033));
+  REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 3),
+                0.033));
+  REQUIRE(
+      equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 3),
+            0.043 + 6 * 0.033));
 
   {
     // feeder1 = 06:09 * (feeder2 < 06:09 + feeder2 > 06:09)
@@ -608,7 +608,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
     REQUIRE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 3),
+                                data.scheduled_departure_time_ + 3),
         prob_feeder1 + prob_feeder2 + prob_both_feeders));
   }
 
@@ -617,17 +617,17 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   REQUIRE(equal(
       departure_distribution.probability_equal(3),
       (departure_independent_from_feeders(data.feeders_,
-                                          data.scheduled_departure_time() + 3) *
-           train_arrives_at_time(data, data.scheduled_departure_time() + 3) +
-       (train_arrives_before_time(data, data.scheduled_departure_time() + 3) *
+                                          data.scheduled_departure_time_ + 3) *
+           train_arrives_at_time(data, data.scheduled_departure_time_ + 3) +
+       (train_arrives_before_time(data, data.scheduled_departure_time_ + 3) *
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                                data.scheduled_departure_time() + 3)))));
+                                data.scheduled_departure_time_ + 3)))));
 
   /******************* minutes 4-25 *******************/
 
   for (unsigned int d = 4; d <= 25; d++) {
     REQUIRE(
-        equal(train_arrives_at_time(data, data.scheduled_departure_time() + d),
+        equal(train_arrives_at_time(data, data.scheduled_departure_time_ + d),
               0.033));
     REQUIRE(equal(departure_distribution.probability_equal(d), 0.033));
   }

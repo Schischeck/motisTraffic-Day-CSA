@@ -27,14 +27,7 @@ struct pd_calc_data_arrival {
                        schedule const& schedule,
                        start_and_travel_distributions const& s_t_distributions);
 
-  time scheduled_arrival_time_() const;
   duration scheduled_travel_duration() const;
-
-  void debug_output(std::ostream& os) const;
-
-  node const& route_node_;  // XXX is required?
-
-  light_connection const& light_connection_;  // XXX is required?
 
   struct departure_info {
     departure_info(probability_distribution const& distribution,
@@ -45,6 +38,8 @@ struct pd_calc_data_arrival {
     time const scheduled_departure_time_;
   } departure_info_;
 
+  time const scheduled_arrival_time_;
+
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       travel_distributions_;
 
@@ -53,7 +48,8 @@ struct pd_calc_data_arrival {
   int right_bound_;
 
 private:
-  void init_travel_info(start_and_travel_distributions const& s_t_distributions,
+  void init_travel_info(light_connection const& light_connection,
+                        start_and_travel_distributions const& s_t_distributions,
                         std::vector<std::string> const& category_names);
 };
 

@@ -21,7 +21,7 @@ void compute_departure_distribution(
       data.feeders_, modified_feeders_distributions);
 
   for (duration delay = 0; delay <= largest_delay; delay++) {
-    time const departure_time = data.scheduled_departure_time() + delay;
+    time const departure_time = data.scheduled_departure_time_ + delay;
     if (delay == 0) {
       probabilties[delay] = detail::departure_at_scheduled_time(data);
     } else if (delay > 0 && delay <= data.maximum_waiting_time_) {
@@ -48,7 +48,7 @@ probability train_early_enough(pd_calc_data_departure const& data) {
 
   int const delay = timestamp_to_delay(
       data.train_info_.preceding_arrival_info_.arrival_time_,
-      data.scheduled_departure_time() -
+      data.scheduled_departure_time_ -
           data.train_info_.preceding_arrival_info_.min_standing_);
   return data.train_info_.preceding_arrival_info_.arrival_distribution_
       ->probability_smaller_equal(delay);
@@ -57,7 +57,7 @@ probability train_early_enough(pd_calc_data_departure const& data) {
 probability departure_at_scheduled_time(pd_calc_data_departure const& data) {
   probability result = train_early_enough(data) *
                        departure_independent_from_feeders(
-                           data.feeders_, data.scheduled_departure_time());
+                           data.feeders_, data.scheduled_departure_time_);
 
 #if 0
   // if there is an interchange before this departure
@@ -97,7 +97,7 @@ probability train_arrives_at_time(pd_calc_data_departure const& data,
                                   time const timestamp) {
   if (data.is_first_route_node_) {
     return data.train_info_.first_departure_distribution_->probability_equal(
-        timestamp_to_delay(data.scheduled_departure_time(), timestamp));
+        timestamp_to_delay(data.scheduled_departure_time_, timestamp));
   }
 
   auto const& arrival_info = data.train_info_.preceding_arrival_info_;
@@ -117,7 +117,7 @@ probability train_arrives_before_time(pd_calc_data_departure const& data,
                                       time const timestamp) {
   if (data.is_first_route_node_) {
     return data.train_info_.first_departure_distribution_->probability_smaller(
-        timestamp_to_delay(data.scheduled_departure_time(), timestamp));
+        timestamp_to_delay(data.scheduled_departure_time_, timestamp));
   }
 
   auto const& arrival_info = data.train_info_.preceding_arrival_info_;

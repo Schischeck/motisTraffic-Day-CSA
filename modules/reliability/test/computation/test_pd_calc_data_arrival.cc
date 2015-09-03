@@ -34,15 +34,15 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
                             *schedule, s_t_distributions);
 
-  REQUIRE(&data.route_node_ == &second_route_node);
-  REQUIRE(&data.light_connection_ == &light_connection);
-  REQUIRE(data.route_node_._station_node->_id == 1);
-  REQUIRE(data.light_connection_.d_time == 5 * 60 + 55);
-  REQUIRE(data.light_connection_.a_time == 6 * 60 + 5);
+  REQUIRE(second_route_node._station_node->_id == 1);
+  REQUIRE(light_connection.d_time == 5 * 60 + 55);
+  REQUIRE(light_connection.a_time == 6 * 60 + 5);
 
   REQUIRE(data.departure_info_.scheduled_departure_time_ ==
-          data.light_connection_.d_time);
+          light_connection.d_time);
   REQUIRE(&data.departure_info_.distribution_ == &dep_dist);
+
+  REQUIRE(data.scheduled_arrival_time_ == light_connection.a_time);
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==

@@ -14,21 +14,22 @@ namespace reliability {
 pd_calc_data_arrival::pd_calc_data_arrival(
     node const& route_node, light_connection const& light_connection,
     probability_distribution const& departure_distribution,
-    schedule const& schedule,  // XXX only category_names required?!
+    schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions)
-    : route_node_(route_node),
-      light_connection_(light_connection),
-      departure_info_(departure_distribution, light_connection.d_time) {
-  init_travel_info(s_t_distributions, schedule.category_names);
+    : departure_info_(departure_distribution, light_connection.d_time),
+      scheduled_arrival_time_(light_connection.a_time) {
+  init_travel_info(light_connection, s_t_distributions,
+                   schedule.category_names);
 }
 
 void pd_calc_data_arrival::init_travel_info(
+    light_connection const& light_connection,
     start_and_travel_distributions const& s_t_distributions,
     std::vector<std::string> const& category_names) {
   assert(!departure_info_.distribution_.empty());
 
   s_t_distributions.get_travel_time_distributions(
-      category_names[light_connection_._full_con->con_info->family],
+      category_names[light_connection._full_con->con_info->family],
       scheduled_travel_duration(), departure_info_.distribution_.last_minute(),
       travel_distributions_);
 
@@ -55,16 +56,8 @@ void pd_calc_data_arrival::init_travel_info(
   }
 }
 
-time pd_calc_data_arrival::scheduled_arrival_time_() const {
-  return light_connection_.a_time;
-}
-
 duration pd_calc_data_arrival::scheduled_travel_duration() const {
-  return scheduled_arrival_time_() - departure_info_.scheduled_departure_time_;
-}
-
-void pd_calc_data_arrival::debug_output(std::ostream& os) const {
-  os << scheduled_arrival_time_();
+  return scheduled_arrival_time_ - departure_info_.scheduled_departure_time_;
 }
 
 }  // namespace reliability

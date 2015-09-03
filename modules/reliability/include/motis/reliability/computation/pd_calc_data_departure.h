@@ -31,17 +31,13 @@ struct pd_calc_data_departure {
           distributions_container,
       start_and_travel_distributions const& s_t_distributions);
 
-  time scheduled_departure_time() const;
-
   duration largest_delay() const;
 
   void debug_output(std::ostream& os) const;
 
-  node const& route_node_;  // XXX is required?
-
-  light_connection const& light_connection_;  // XXX is required?
-
   bool const is_first_route_node_;
+
+  time const scheduled_departure_time_;
 
   union train_info {
     struct preceding_arrival_info {
@@ -89,12 +85,14 @@ struct pd_calc_data_departure {
 
 private:
   void init_train_info(
+      node const& route_node, light_connection const& light_conn,
       std::vector<std::string> const& category_names,
       start_and_travel_distributions const& s_t_distributions,
       distributions_container::precomputed_distributions_container const&
           distributions_container);
 
   void init_feeder_info(
+      node const& route_node, light_connection const& light_conn,
       schedule const& schedule,
       distributions_container::precomputed_distributions_container const&
           distributions_container);
