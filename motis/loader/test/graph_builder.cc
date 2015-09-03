@@ -126,5 +126,24 @@ TEST_F(graph_builder_test, coordinates) {
   ASSERT_FLOAT_EQ(13.3695450, stations["8098160"]->length);
 }
 
+TEST_F(graph_builder_test, interchange_edges) {
+  // TODO(felix) check interchange times
+}
+
+TEST_F(graph_builder_test, route_nodes) {
+  EXPECT_EQ(2, sched_->route_index_to_first_route_node.size());
+
+  for (auto const& first_route_node : sched_->route_index_to_first_route_node) {
+    auto station_id = first_route_node->get_station()->_id;
+    auto station_eva = sched_->stations[station_id]->eva_nr;
+
+    EXPECT_TRUE(station_eva == "8000284" || station_eva == "8000261");
+
+    if (station_eva == "8000284") {
+    } else {
+    }
+  }
+}
+
 }  // loader
 }  // motis
