@@ -1,4 +1,4 @@
-#include "motis/reliability/computation/pd_calc_data_departure.h"
+#include "motis/reliability/computation/data_departure.h"
 
 #include <algorithm>
 
@@ -13,8 +13,9 @@
 
 namespace motis {
 namespace reliability {
+namespace calc_departure_distribution {
 
-pd_calc_data_departure::pd_calc_data_departure(
+data_departure::data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
     distributions_container::precomputed_distributions_container const&
@@ -29,7 +30,7 @@ pd_calc_data_departure::pd_calc_data_departure(
                    distributions_container);
 }
 
-void pd_calc_data_departure::init_train_info(
+void data_departure::init_train_info(
     node const& route_node, light_connection const& light_conn,
     std::vector<std::string> const& category_names,
     start_and_travel_distributions const& s_t_distributions,
@@ -62,7 +63,7 @@ void pd_calc_data_departure::init_train_info(
   }
 }
 
-void pd_calc_data_departure::init_feeder_info(
+void data_departure::init_feeder_info(
     node const& route_node, light_connection const& light_conn,
     schedule const& schedule,
     distributions_container::precomputed_distributions_container const&
@@ -107,7 +108,7 @@ void pd_calc_data_departure::init_feeder_info(
   }  // end of for all_feeders_data
 }
 
-duration pd_calc_data_departure::largest_delay() const {
+duration data_departure::largest_delay() const {
   duration maximum_train_delay = 0;
   if (is_first_route_node_) {
     maximum_train_delay =
@@ -125,7 +126,7 @@ duration pd_calc_data_departure::largest_delay() const {
   return std::max(maximum_train_delay, maximum_waiting_time_);
 }
 
-void pd_calc_data_departure::debug_output(std::ostream& os) const {
+void data_departure::debug_output(std::ostream& os) const {
   os << "pd_calc_data_departure:\n"
      << "scheduled-departure-time: " << format_time(scheduled_departure_time_)
      << " largest-delay: " << largest_delay()
@@ -155,5 +156,6 @@ void pd_calc_data_departure::debug_output(std::ostream& os) const {
   os << std::endl;
 }
 
+}  // namespace calc_departure_distribution
 }  // namespace reliability
 }  // namespace motis

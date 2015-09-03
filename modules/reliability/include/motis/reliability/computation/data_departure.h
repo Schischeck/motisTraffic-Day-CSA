@@ -20,11 +20,13 @@ namespace distributions_container {
 struct precomputed_distributions_container;
 }
 
+namespace calc_departure_distribution {
+
 /**
  * Class storing all data necessary for calculating a departure distribution.
  */
-struct pd_calc_data_departure {
-  pd_calc_data_departure(
+struct data_departure {
+  data_departure(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
       distributions_container::precomputed_distributions_container const&
@@ -98,5 +100,6 @@ private:
           distributions_container);
 };
 
+}  // namespace calc_departure_distribution
 }  // namespace reliability
 }  // namespace motis

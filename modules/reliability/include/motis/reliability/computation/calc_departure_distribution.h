@@ -2,20 +2,17 @@
 
 #include <vector>
 
+#include "data_departure.h"
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/computation/pd_calc_data_departure.h"
 
 namespace motis {
 namespace reliability {
-
-struct pd_calc_data_arrival;
-
 namespace calc_departure_distribution {
 
 void compute_departure_distribution(
-    pd_calc_data_departure const& data,
+    data_departure const& data,
     probability_distribution& departure_distribution);
 
 namespace detail {
@@ -23,7 +20,7 @@ namespace detail {
 /**
  * calculate the probability for a departure at the scheduled departure time.
  */
-probability departure_at_scheduled_time(pd_calc_data_departure const& data);
+probability departure_at_scheduled_time(data_departure const& data);
 
 /**
  * Calculate the probability for a departure in the waiting interval
@@ -38,7 +35,7 @@ probability departure_at_scheduled_time(pd_calc_data_departure const& data);
  *        'cut_minutes_after_latest_feasible_arrival'.
  */
 probability departure_within_waiting_interval(
-    pd_calc_data_departure const& data,
+    data_departure const& data,
     std::vector<probability_distribution> const& modified_feeders_distributions,
     time const timestamp);
 
@@ -46,7 +43,7 @@ probability departure_within_waiting_interval(
  * Calculate the probability for a departure after the waiting interval
  * at the point in time stored in 'timestamp'.
  */
-probability departure_after_waiting_interval(pd_calc_data_departure const& data,
+probability departure_after_waiting_interval(data_departure const& data,
                                              time const timestamp);
 
 /**
@@ -54,7 +51,7 @@ probability departure_after_waiting_interval(pd_calc_data_departure const& data,
  * the departure of the train does not depend on any feeder.
  */
 probability departure_independent_from_feeders(
-    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    std::vector<data_departure::feeder_info> const& feeders,
     time const timestamp);
 
 /**
@@ -72,7 +69,7 @@ probability departure_independent_from_feeders(
  *        'cut_minutes_after_latest_feasible_arrival'.
  */
 probability had_to_wait_for_feeders(
-    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    std::vector<data_departure::feeder_info> const& feeders,
     std::vector<probability_distribution> const& modified_feeders_distributions,
     time const timestamp);
 
@@ -81,20 +78,20 @@ probability had_to_wait_for_feeders(
  * latest feasible arrival time of the feeder.
  */
 void cut_minutes_after_latest_feasible_arrival(
-    std::vector<pd_calc_data_departure::feeder_info> const& feeders,
+    std::vector<data_departure::feeder_info> const& feeders,
     std::vector<probability_distribution>& part_before_lfa);
 
 /* helper for departure_at_scheduled_time */
-probability train_early_enough(pd_calc_data_departure const& data);
+probability train_early_enough(data_departure const& data);
 
 /* helper for departure_within_waiting_interval and
  * departure_after_waiting_interval */
-probability train_arrives_before_time(pd_calc_data_departure const& data,
+probability train_arrives_before_time(data_departure const& data,
                                       time const timestamp);
 
 /* helper for departure_within_waiting_interval and
  * departure_after_waiting_interval */
-probability train_arrives_at_time(pd_calc_data_departure const& data,
+probability train_arrives_at_time(data_departure const& data,
                                   time const timestamp);
 }
 }

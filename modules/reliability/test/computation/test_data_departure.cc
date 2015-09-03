@@ -6,14 +6,15 @@
 
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
-#include "motis/reliability/computation/pd_calc_data_departure.h"
+#include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/computation/data_departure.h"
 
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
 
 using namespace motis;
 using namespace motis::reliability;
+using namespace motis::reliability::calc_departure_distribution;
 
 TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule =
@@ -29,8 +30,8 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, *schedule,
+                      dummy, s_t_distributions);
 
   REQUIRE(first_route_node._station_node->_id == 2);
   REQUIRE(first_light_conn.d_time == 5 * 60 + 55);
@@ -71,9 +72,8 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(*second_route_node, light_connection, false,
-                              *schedule, train_distributions,
-                              s_t_distributions);
+  data_departure data(*second_route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(second_route_node->_station_node->_id == 7);  // Wuerzburg
   REQUIRE(light_connection.d_time == 10 * 60 + 34);
@@ -109,9 +109,8 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
   // light connection d07:00 a07:28
   auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
 
-  pd_calc_data_departure data(first_route_node, light_connection, true,
-                              *schedule, train_distributions,
-                              s_t_distributions);
+  data_departure data(first_route_node, light_connection, true, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(first_route_node._station_node->_id == 1);  // Darmstadt
   REQUIRE(light_connection.d_time == 7 * 60);
@@ -158,8 +157,8 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   auto const& light_connection = graph_accessor::get_departing_route_edge(
                                      route_node)->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(route_node, light_connection, false, *schedule,
-                              train_distributions, s_t_distributions);
+  data_departure data(route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(route_node._station_node->_id == 1);  // Darmstadt
   REQUIRE(light_connection.d_time == 6 * 60 + 11);
@@ -207,8 +206,8 @@ TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, *schedule,
+                      dummy, s_t_distributions);
 
   REQUIRE(first_route_node._station_node->_id == 10);
   REQUIRE(first_light_conn.d_time == 13 * 60);
@@ -294,8 +293,8 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
           *schedule->route_index_to_first_route_node[2])->_to->_id);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  pd_calc_data_departure data(route_node, light_connection, false, *schedule,
-                              train_distributions, s_t_distributions);
+  data_departure data(route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
           &train_distributions.train);
@@ -333,9 +332,8 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, distributions_container,
-                              s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, *schedule,
+                      distributions_container, s_t_distributions);
 
   REQUIRE(data.train_info_.first_departure_distribution_ ==
           &s_t_distributions.distribution);
@@ -358,8 +356,8 @@ TEST_CASE("check largest delay", "[pd_calc_data_departure]") {
   auto const& light_connection = graph_accessor::get_departing_route_edge(
                                      route_node)->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(route_node, light_connection, false, *schedule,
-                              train_distributions, s_t_distributions);
+  data_departure data(route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.largest_delay() == 4);

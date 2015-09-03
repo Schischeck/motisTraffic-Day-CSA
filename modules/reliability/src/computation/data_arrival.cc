@@ -1,4 +1,4 @@
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/data_arrival.h"
 
 #include <algorithm>
 #include <climits>
@@ -10,8 +10,9 @@
 
 namespace motis {
 namespace reliability {
+namespace calc_arrival_distribution {
 
-pd_calc_data_arrival::pd_calc_data_arrival(
+data_arrival::data_arrival(
     node const& route_node, light_connection const& light_connection,
     probability_distribution const& departure_distribution,
     schedule const& schedule,
@@ -22,7 +23,7 @@ pd_calc_data_arrival::pd_calc_data_arrival(
                    schedule.category_names);
 }
 
-void pd_calc_data_arrival::init_travel_info(
+void data_arrival::init_travel_info(
     light_connection const& light_connection,
     start_and_travel_distributions const& s_t_distributions,
     std::vector<std::string> const& category_names) {
@@ -56,9 +57,10 @@ void pd_calc_data_arrival::init_travel_info(
   }
 }
 
-duration pd_calc_data_arrival::scheduled_travel_duration() const {
+duration data_arrival::scheduled_travel_duration() const {
   return scheduled_arrival_time_ - departure_info_.scheduled_departure_time_;
 }
 
+}  // namespace calc_arrival_distribution
 }  // namespace reliability
 }  // namespace motis

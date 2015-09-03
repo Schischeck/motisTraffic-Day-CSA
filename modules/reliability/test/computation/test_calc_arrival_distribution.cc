@@ -11,7 +11,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/data_arrival.h"
 
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
@@ -56,8 +56,8 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
-                            *schedule, s_t_distributions);
+  data_arrival data(second_route_node, light_connection, dep_dist, *schedule,
+                    s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -90,8 +90,8 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
-                            *schedule, s_t_distributions);
+  data_arrival data(second_route_node, light_connection, dep_dist, *schedule,
+                    s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -124,8 +124,8 @@ TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
-                            *schedule, s_t_distributions);
+  data_arrival data(second_route_node, light_connection, dep_dist, *schedule,
+                    s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);

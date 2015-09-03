@@ -11,7 +11,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
-#include "motis/reliability/computation/pd_calc_data_departure.h"
+#include "motis/reliability/computation/data_departure.h"
 
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
@@ -23,7 +23,7 @@ using namespace motis::reliability::calc_departure_distribution::detail;
 
 TEST_CASE("departure_independent_from_feeders",
           "[calc_departure_distribution]") {
-  std::vector<pd_calc_data_departure::feeder_info> feeders;
+  std::vector<data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
   feeders.emplace_back(feeder1_dist, 13, 15, 5);  // sched, lfa, transfers
@@ -82,8 +82,8 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, *schedule,
+                      dummy, s_t_distributions);
   train_early_enough(data);
 
   REQUIRE(equal(train_early_enough(data), 0.6));
@@ -108,9 +108,8 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(*second_route_node, light_connection, false,
-                              *schedule, train_distributions,
-                              s_t_distributions);
+  data_departure data(*second_route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
   train_early_enough(data);
 
   REQUIRE(equal(train_early_enough(data), 0.8));
@@ -119,7 +118,7 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
 TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
           "[calc_departure_distribution]") {
   probability_distribution feeder1_dist;
-  std::vector<pd_calc_data_departure::feeder_info> feeders;
+  std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
 
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -139,7 +138,7 @@ TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
 TEST_CASE("cut_minutes_after_latest_feasible_arrival2",
           "[calc_departure_distribution]") {
   probability_distribution feeder1_dist;
-  std::vector<pd_calc_data_departure::feeder_info> feeders;
+  std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
 
   feeder1_dist.init({0.1, 0.5, 0.3, 0.1}, -1);  // distribution from 10 to 13
@@ -167,9 +166,9 @@ TEST_CASE("cut_minutes_after_latest_feasible_arrival2",
   REQUIRE(equal(modified_distributions[1].probability_greater_equal(1), 0.0));
 }
 
-TEST_CASE("had_to_wait_for_feeders1", "[pd_calc_data_departure]") {
+TEST_CASE("had_to_wait_for_feeders1", "[departure_data]") {
   probability_distribution feeder1_dist;
-  std::vector<pd_calc_data_departure::feeder_info> feeders;
+  std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
 
   feeder1_dist.init({0.1, 0.5, 0.3, 0.1}, -1);  // distribution from 10 to 13
@@ -215,9 +214,9 @@ TEST_CASE("had_to_wait_for_feeders1", "[pd_calc_data_departure]") {
 }
 
 /* different transfer times */
-TEST_CASE("had_to_wait_for_feeders2", "[pd_calc_data_departure]") {
+TEST_CASE("had_to_wait_for_feeders2", "[departure_data]") {
   probability_distribution feeder1_dist;
-  std::vector<pd_calc_data_departure::feeder_info> feeders;
+  std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
 
   feeder1_dist.init({0.1, 0.5, 0.3, 0.1}, -1);  // distribution from 10 to 13
@@ -281,8 +280,8 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  pd_calc_data_departure data(first_route_node, first_light_conn, true,
-                              *schedule, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, *schedule,
+                      dummy, s_t_distributions);
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 
@@ -317,9 +316,8 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
    *   06:57=0.1, 06:58=0.1, 06:59=0.1
    * The second feeder has no influence on this departure
    */
-  pd_calc_data_departure data(first_route_node, light_connection, true,
-                              *schedule, train_distributions,
-                              s_t_distributions);
+  data_departure data(first_route_node, light_connection, true, *schedule,
+                      train_distributions, s_t_distributions);
 
   REQUIRE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.6));
@@ -377,8 +375,8 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
    * preceding-arrival-time: 10:32 min-standing: 2
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
-  pd_calc_data_departure data(*second_route_node, light_connection, false,
-                              *schedule, train_distributions, *dummy);
+  data_departure data(*second_route_node, light_connection, false, *schedule,
+                      train_distributions, *dummy);
 
   REQUIRE(equal(train_early_enough(data), 0.8));
   REQUIRE(
@@ -438,8 +436,8 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
    * feeder-arrival-time: 05:56 lfa: 06:09 transfer-time: 5
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
-  pd_calc_data_departure data(route_node, light_connection, false, *schedule,
-                              train_distributions, s_t_distributions);
+  data_departure data(route_node, light_connection, false, *schedule,
+                      train_distributions, s_t_distributions);
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(

@@ -4,15 +4,14 @@
 #include <cassert>
 
 #include "motis/reliability/start_and_travel_distributions.h"
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/data_arrival.h"
 
 namespace motis {
 namespace reliability {
 namespace calc_arrival_distribution {
 
 void compute_arrival_distribution(
-    pd_calc_data_arrival const& data,
-    probability_distribution& arrival_distribution) {
+    data_arrival const& data, probability_distribution& arrival_distribution) {
   // if there is no travel distribution for this class,
   // copy this arrival distribution
   if (data.travel_distributions_.size() == 0) {

@@ -8,20 +8,20 @@
 #include "motis/reliability/start_and_travel_distributions.h"
 
 namespace motis {
-
 class light_connection;
 class node;
 struct schedule;
 
 namespace reliability {
-
 struct probability_distribution;
+
+namespace calc_arrival_distribution {
 
 /**
  * struct storing all data necessary for calculating an arrival distribution.
  */
-struct pd_calc_data_arrival {
-  pd_calc_data_arrival(node const& route_node,
+struct data_arrival {
+  data_arrival(node const& route_node,
                        light_connection const& light_connection,
                        probability_distribution const& departure_distribution,
                        schedule const& schedule,
@@ -53,5 +53,6 @@ private:
                         std::vector<std::string> const& category_names);
 };
 
+}  // namespace calc_arrival_distribution {
 }  // namespace reliability
 }  // namespace motis

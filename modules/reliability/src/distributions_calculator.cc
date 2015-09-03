@@ -8,8 +8,8 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
-#include "motis/reliability/computation/pd_calc_data_departure.h"
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
+#include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/computation/data_departure.h"
 
 namespace motis {
 namespace reliability {
@@ -25,16 +25,16 @@ void compute_dep_and_arr_distribution(
     probability_distribution& arrival_distribution) {
 
   assert(departure_distribution.empty());
-  pd_calc_data_departure d_data(
+  calc_departure_distribution::data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
       schedule, precomputed_distributions_container, s_t_distributions);
   calc_departure_distribution::compute_departure_distribution(
       d_data, departure_distribution);
 
   assert(arrival_distribution.empty());
-  pd_calc_data_arrival a_data(*element.to_, *element.light_connection_,
-                              departure_distribution, schedule,
-                              s_t_distributions);
+  calc_arrival_distribution::data_arrival a_data(
+      *element.to_, *element.light_connection_, departure_distribution,
+      schedule, s_t_distributions);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 }
@@ -162,7 +162,7 @@ void perform_precomputation(
       std::cout << "." << std::flush;
     }
   }
-  std::cout << num_processed - 1 << " processed elements" << std::endl;
+  std::cout << num_processed << " processed elements" << std::endl;
 }
 }  // namespace precomputation
 
@@ -233,7 +233,7 @@ void compute_distributions_for_a_ride(
     }
   }
 
-  std::cout << num_processed - 1 << " processed elements" << std::endl;
+  std::cout << num_processed << " processed elements" << std::endl;
 }
 }  // namespace ride_distribution
 

@@ -7,13 +7,13 @@
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/computation/pd_calc_data_arrival.h"
-
+#include "motis/reliability/computation/data_arrival.h"
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
 
 using namespace motis;
 using namespace motis::reliability;
+using namespace motis::reliability::calc_arrival_distribution;
 
 TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto schedule =
@@ -31,8 +31,8 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  pd_calc_data_arrival data(second_route_node, light_connection, dep_dist,
-                            *schedule, s_t_distributions);
+  data_arrival data(second_route_node, light_connection, dep_dist, *schedule,
+                    s_t_distributions);
 
   REQUIRE(second_route_node._station_node->_id == 1);
   REQUIRE(light_connection.d_time == 5 * 60 + 55);
@@ -93,8 +93,8 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   // route node at Darmstadt
   auto const& arrival_route_node = *route_edge->_to;
 
-  pd_calc_data_arrival data(arrival_route_node, light_connection, dep_dist,
-                            *schedule, s_t_distributions);
+  data_arrival data(arrival_route_node, light_connection, dep_dist, *schedule,
+                    s_t_distributions);
 
   REQUIRE(data.travel_distributions_.size() == 2);
   REQUIRE(&data.travel_distributions_[0].get() ==

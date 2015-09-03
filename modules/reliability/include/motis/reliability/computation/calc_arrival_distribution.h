@@ -9,13 +9,12 @@
 
 namespace motis {
 namespace reliability {
-
-struct pd_calc_data_arrival;
-
 namespace calc_arrival_distribution {
 
+struct data_arrival;
+
 void compute_arrival_distribution(
-    pd_calc_data_arrival const& data,
+    data_arrival const& data,
     probability_distribution& arrival_distribution);
 
 namespace detail {
