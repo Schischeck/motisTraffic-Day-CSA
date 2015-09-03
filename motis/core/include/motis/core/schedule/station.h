@@ -5,8 +5,6 @@
 #include <string>
 #include <array>
 
-#include "motis/core/common/array.h"
-
 namespace motis {
 
 class station {
@@ -25,7 +23,7 @@ public:
   int us_hoch, us_nieder;
   std::array<int, 10> arr_class_events, dep_class_events;
   int eva_nr;
-  string name;
+  std::string name;
 
   // normally us_hoch should be equal to us_nieder
   // not quite sure how to handle that

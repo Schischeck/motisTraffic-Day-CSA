@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "../include/motis/loader/wzr_loader.h"
+#include "motis/loader/wzr_loader.h"
 #include "parser/cstr.h"
 
 #include "motis/core/schedule/price.h"
@@ -50,9 +50,9 @@ public:
       s->name = input_station->name()->str();
       s->width = input_station->lat();
       s->length = input_station->lng();
-      sched_.stations.emplace_back(std::move(s));
       sched_.eva_to_station.insert(
           std::make_pair(input_station->id()->str(), s.get()));
+      sched_.stations.emplace_back(std::move(s));
     }
 
     // First regular node id:

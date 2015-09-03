@@ -30,7 +30,14 @@ void parse_station_names(loaded_file file, std::map<int, station>& stations) {
     }
 
     auto eva_num = parse<int>(line.substr(0, size(7)));
-    stations[eva_num].name = line.substr(12);
+    auto name = line.substr(12);
+
+    auto it = std::find(begin(name), end(name), '$');
+    if (it != end(name)) {
+      name.len = std::distance(begin(name), it);
+    }
+
+    stations[eva_num].name = name;
   });
 }
 

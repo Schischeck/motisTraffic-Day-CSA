@@ -50,10 +50,10 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
   }
 
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateMessage(
-      b, MsgContent_RailVizStationDetail,
-      CreateRailVizStationDetail(
-          b, b.CreateString(stations[index]->name.to_string())).Union()));
+  b.Finish(
+      CreateMessage(b, MsgContent_RailVizStationDetail,
+                    CreateRailVizStationDetail(
+                        b, b.CreateString(stations[index]->name)).Union()));
   return cb(make_msg(b), boost::system::error_code());
 }
 
