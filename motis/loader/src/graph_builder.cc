@@ -18,9 +18,11 @@ namespace loader {
 
 bool is_in_schedule(int day_index, time_t from, time_t to,
                     Interval const* schedule_interval) {
-  time_t point_in_time = from + day_index * 1440;
+  uint64_t point_in_time = from + day_index * 1440;
   return point_in_time >= schedule_interval->from() &&
-         point_in_time < schedule_interval->to() && point_in_time < to;
+         point_in_time < schedule_interval->to() &&
+         point_in_time >= static_cast<uint64_t>(from) &&
+         point_in_time < static_cast<uint64_t>(to);
 }
 
 class graph_builder {
@@ -34,7 +36,6 @@ public:
         to_(to) {}
 
   void add_stations(Vector<Offset<Station>> const* stations) {
-    sched_.station_nodes.resize(stations->size());
     for (unsigned i = 0; i < stations->size(); ++i) {
       auto const& input_station = stations->Get(i);
 
@@ -110,6 +111,8 @@ private:
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
                            bitfield const& traffic_days) {
+    assert(e->type() == edge::ROUTE_EDGE);
+
     // Departure station and arrival station.
     auto const& from = *sched_.stations[e->_from->get_station()->_id];
     auto const& to = *sched_.stations[e->_to->get_station()->_id];
@@ -123,7 +126,9 @@ private:
 
       // Build connection info.
       connection_info con_info;
-      con_info.line_identifier = section->line_id()->str();
+      if (section->line_id() != nullptr) {
+        con_info.line_identifier = section->line_id()->str();
+      }
       con_info.train_nr = section->train_nr();
       con_info.attributes = read_attributes(day, section->attributes());
       con_info.family = get_or_create_category_index(section->category());
@@ -204,8 +209,9 @@ private:
                                   int route_index) {
     std::vector<node*> route_nodes;
     edge* last_route_edge = nullptr;
-    for (auto const& stop : *stops) {
-      auto const& station_node = stations_.at(stop);
+    for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
+      auto const& from_stop = stops->Get(stop_idx);
+      auto const& station_node = stations_.at(from_stop);
       auto station_id = station_node->_id;
       auto route_node = new node(station_node, next_node_id_++);
       route_node->_route = route_index;
@@ -219,11 +225,13 @@ private:
           sched_.stations[station_id]->get_transfer_time(), true));
 
       // Connect route nodes with route edges.
-      route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
+      if (stop_idx != stops->size() - 1) {
+        route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
+      }
       if (last_route_edge != nullptr) {
         last_route_edge->_to = route_node;
       } else {
-        sched_.route_index_to_first_route_node[route_index] = route_node;
+        sched_.route_index_to_first_route_node.push_back(route_node);
       }
 
       last_route_edge = &route_node->_edges.back();
@@ -250,16 +258,18 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   schedule_ptr sched(new schedule());
   sched->classes = class_mapping();
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->category_names);
-  sched->schedule_begin_ = serialized->interval()->from();
-  sched->schedule_end_ = serialized->interval()->to();
+  sched->schedule_begin_ = from;
+  sched->schedule_end_ = to;
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to);
+  builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
   }
 
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
+  builder.transfer_connections();
 
   return sched;
 }
