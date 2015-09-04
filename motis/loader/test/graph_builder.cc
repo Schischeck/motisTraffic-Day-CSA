@@ -41,15 +41,15 @@ protected:
     }
   }
 
-  static std::vector<std::tuple<light_connection const*, int, int>>
+  static std::vector<
+      std::tuple<light_connection const*, node const*, node const*>>
   get_connections(node const* first_route_node, time departure_time) {
-    std::vector<std::tuple<light_connection const*, int, int>> cons;
+    decltype(get_connections(first_route_node, departure_time)) cons;
     edge const* route_edge = nullptr;
     node const* route_node = first_route_node;
     while ((route_edge = get_route_edge(route_node)) != nullptr) {
-      cons.emplace_back(route_edge->get_connection(departure_time),
-                        route_node->get_station()->_id,
-                        route_edge->_to->get_station()->_id);
+      cons.emplace_back(route_edge->get_connection(departure_time), route_node,
+                        route_edge->_to);
       route_node = route_edge->_to;
       departure_time = std::get<0>(cons.back())->a_time;
     }
@@ -198,15 +198,24 @@ TEST_F(graph_builder_test, route_nodes) {
       ASSERT_EQ(8, static_cast<int>(connections.size()));
 
       auto& stations = sched_->stations;
-      EXPECT_EQ("8000284", stations[get<1>(connections[0])]->eva_nr);
-      EXPECT_EQ("8000260", stations[get<1>(connections[1])]->eva_nr);
-      EXPECT_EQ("8010101", stations[get<1>(connections[2])]->eva_nr);
-      EXPECT_EQ("8010240", stations[get<1>(connections[3])]->eva_nr);
-      EXPECT_EQ("8010205", stations[get<1>(connections[4])]->eva_nr);
-      EXPECT_EQ("8010222", stations[get<1>(connections[5])]->eva_nr);
-      EXPECT_EQ("8011113", stations[get<1>(connections[6])]->eva_nr);
-      EXPECT_EQ("8098160", stations[get<1>(connections[7])]->eva_nr);
-      EXPECT_EQ("8011102", stations[get<2>(connections[7])]->eva_nr);
+      EXPECT_EQ("8000284",
+                stations[get<1>(connections[0])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8000260",
+                stations[get<1>(connections[1])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8010101",
+                stations[get<1>(connections[2])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8010240",
+                stations[get<1>(connections[3])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8010205",
+                stations[get<1>(connections[4])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8010222",
+                stations[get<1>(connections[5])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8011113",
+                stations[get<1>(connections[6])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8098160",
+                stations[get<1>(connections[7])->get_station()->_id]->eva_nr);
+      EXPECT_EQ("8011102",
+                stations[get<2>(connections[7])->get_station()->_id]->eva_nr);
 
       EXPECT_EQ(19 * 60 + 3, get<0>(connections[0])->d_time);
       EXPECT_EQ(20 * 60, get<0>(connections[1])->d_time);
@@ -228,7 +237,8 @@ TEST_F(graph_builder_test, route_nodes) {
 
       ASSERT_TRUE(std::all_of(
           begin(connections), end(connections),
-          [&](std::tuple<light_connection const*, int, int> const& con) {
+          [&](std::tuple<light_connection const*, node const*,
+                         node const*> const& con) {
             auto fc = std::get<0>(con)->_full_con;
             return fc->con_info->attributes.size() == 1 &&
                    fc->con_info->train_nr == 1000 &&
@@ -269,6 +279,31 @@ TEST_F(graph_builder_test, route_nodes) {
       EXPECT_EQ(sn, get<0>(connections[5])->_full_con->con_info->attributes[0]);
       EXPECT_EQ(sn, get<0>(connections[6])->_full_con->con_info->attributes[0]);
       EXPECT_EQ(sn, get<0>(connections[7])->_full_con->con_info->attributes[0]);
+
+      EXPECT_EQ(2, get<1>(connections[6])->_incoming_edges.size());
+      EXPECT_TRUE(std::any_of(
+          begin(get<1>(connections[6])->_incoming_edges),
+          end(get<1>(connections[6])->_incoming_edges), [&](edge const* e) {
+            return e->type() == edge::INVALID_EDGE &&
+                   e->_from == get<1>(connections[6])->get_station();
+          }));
+      EXPECT_TRUE(std::any_of(
+          begin(get<1>(connections[6])->_incoming_edges),
+          end(get<1>(connections[6])->_incoming_edges),
+          [](edge const* e) { return e->type() == edge::ROUTE_EDGE; }));
+
+      EXPECT_TRUE(std::none_of(
+          begin(get<1>(connections[5])->_incoming_edges),
+          end(get<1>(connections[5])->_incoming_edges),
+          [](edge const* e) { return e->type() == edge::INVALID_EDGE; }));
+    } else {
+      auto connections = get_connections(first_route_node, 17 * 60 + 39);
+      ASSERT_EQ(15, connections.size());
+
+      auto route_node = std::get<2>(connections[0]);
+      EXPECT_TRUE(std::any_of(
+          begin(route_node->_edges), end(route_node->_edges),
+          [](edge const& e) { return e.type() == edge::INVALID_EDGE; }));
     }
   }
 }

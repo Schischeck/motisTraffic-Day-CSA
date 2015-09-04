@@ -36,19 +36,31 @@ Offset<String> service_builder::get_or_create_line_info(cstr line_info) {
 
 Offset<Route> service_builder::create_route(
     std::vector<hrd_service::stop> const& stops) {
-  auto eva_nums =
+  auto events =
       transform_to_vec(begin(stops), end(stops),
-                       [&](hrd_service::stop const& s) { return s.eva_num; });
-  return get_or_create(routes_, eva_nums, [&]() {
-    return CreateRoute(builder_,
-                       builder_.CreateVector(transform_to_vec(
-                           begin(eva_nums), end(eva_nums), [&](int eva_num) {
-                             auto it = stamm_.stations.find(eva_num);
-                             verify(it != end(stamm_.stations),
-                                    "station with eva number %d not found\n",
-                                    eva_num);
-                             return it->second;
-                           })));
+                       [&](hrd_service::stop const& s) -> station_events {
+                         return std::make_tuple(s.eva_num, s.dep.in_out_allowed,
+                                                s.arr.in_out_allowed);
+                       });
+  return get_or_create(routes_, events, [&]() {
+    return CreateRoute(
+        builder_, builder_.CreateVector(transform_to_vec(
+                      begin(events), end(events),
+                      [&](station_events ev) {
+                        auto it = stamm_.stations.find(std::get<0>(ev));
+                        verify(it != end(stamm_.stations),
+                               "station with eva number %d not found\n",
+                               std::get<0>(ev));
+                        return it->second;
+                      })),
+        builder_.CreateVector(transform_to_vec(begin(events), end(events),
+                                               [](station_events e) -> uint8_t {
+                                                 return std::get<1>(e) ? 1 : 0;
+                                               })),
+        builder_.CreateVector(transform_to_vec(begin(events), end(events),
+                                               [](station_events e) -> uint8_t {
+                                                 return std::get<2>(e) ? 1 : 0;
+                                               })));
   });
 }
 

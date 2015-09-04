@@ -78,7 +78,7 @@ TEST(loader_hrd_hrd_services, simple_ranges) {
   stop = service.stops_[5];
   ASSERT_TRUE(stop.eva_num == 8000105);
   ASSERT_TRUE(stop.arr.time == hhmm_to_min(1740));
-  ASSERT_TRUE(stop.arr.in_out_allowed);
+  ASSERT_FALSE(stop.arr.in_out_allowed);
   ASSERT_TRUE(stop.dep.time == hrd_service::NOT_SET);
 }
 

@@ -54,11 +54,10 @@ public:
 
   void add_service(Service const* service) {
     auto const& sections = service->sections();
-    auto const& stops = service->route()->stations();
 
     auto route_nodes = get_or_create(
-        routes_, service->route(),
-        std::bind(&graph_builder::create_route, this, stops, routes_.size()));
+        routes_, service->route(), std::bind(&graph_builder::create_route, this,
+                                             service->route(), routes_.size()));
 
     auto serialized_traffic_days = service->traffic_days()->c_str();
     auto traffic_days = deserialize_bitset<512>(
@@ -216,8 +215,10 @@ private:
     }
   }
 
-  std::vector<node*> create_route(Vector<Offset<Station>> const* stops,
-                                  int route_index) {
+  std::vector<node*> create_route(Route const* route, int route_index) {
+    auto const& stops = route->stations();
+    auto const& in_allowed = route->in_allowed();
+    auto const& out_allowed = route->out_allowed();
     std::vector<node*> route_nodes;
     edge* last_route_edge = nullptr;
     for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
@@ -230,10 +231,21 @@ private:
       // Connect the new route node with the corresponding station node:
       // route -> station: edge cost = change time, interchange count
       // station -> route: free
-      station_node->_edges.push_back(make_foot_edge(station_node, route_node));
-      route_node->_edges.push_back(make_foot_edge(
-          route_node, station_node,
-          sched_.stations[station_id]->get_transfer_time(), true));
+      if (in_allowed->Get(stop_idx) == 0) {
+        station_node->_edges.push_back(
+            make_invalid_edge(station_node, route_node));
+      } else {
+        station_node->_edges.push_back(
+            make_foot_edge(station_node, route_node));
+      }
+      if (out_allowed->Get(stop_idx) == 0) {
+        route_node->_edges.push_back(
+            make_invalid_edge(route_node, station_node));
+      } else {
+        route_node->_edges.push_back(make_foot_edge(
+            route_node, station_node,
+            sched_.stations[station_id]->get_transfer_time(), true));
+      }
 
       // Connect route nodes with route edges.
       if (stop_idx != stops->size() - 1) {

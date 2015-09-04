@@ -3,5 +3,7 @@ include "Station.fbs";
 namespace motis.loader;
 
 table Route {
-  stations : [Station];
+  stations: [Station];
+  in_allowed: [bool];
+  out_allowed: [bool];
 }

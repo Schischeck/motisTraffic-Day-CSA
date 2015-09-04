@@ -16,6 +16,8 @@ namespace loader {
 namespace hrd {
 
 struct service_builder {
+  typedef std::tuple<int, bool, bool> station_events;
+
   service_builder(shared_data const& stamm,
                   flatbuffers::FlatBufferBuilder& builder);
 
@@ -53,7 +55,7 @@ struct service_builder {
   std::map<uint16_t, flatbuffers::Offset<Attribute>> attributes_;
   std::map<uint32_t, flatbuffers::Offset<Category>> categories_;
   std::map<uint64_t, flatbuffers::Offset<flatbuffers::String>> line_infos_;
-  std::map<std::vector<int>, flatbuffers::Offset<Route>> routes_;
+  std::map<std::vector<station_events>, flatbuffers::Offset<Route>> routes_;
   bitfield_translator bitfields_;
   flatbuffers::FlatBufferBuilder& builder_;
 };
