@@ -38,6 +38,11 @@ bool gtfs_parser::applicable(fs::path const& path) {
   return true;
 }
 
+std::vector<std::string> gtfs_parser::missing_files(
+    fs::path const& /* path */) const {
+  return {"all"};
+}
+
 void gtfs_parser::parse(fs::path const& path, FlatBufferBuilder& b) {
   auto buf = file((path / STOPS_FILE).string().c_str(), "ro").content();
   auto stations = read_stations(

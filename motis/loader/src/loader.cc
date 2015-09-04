@@ -44,6 +44,12 @@ schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
       }
     }
 
+    for (auto const& parser : parsers()) {
+      std::cout << "missing files:\n";
+      for (auto const& file : parser->missing_files(path)) {
+        std::cout << "  " << file << "\n";
+      }
+    }
     throw std::runtime_error("no parser was applicable");
   }
 }

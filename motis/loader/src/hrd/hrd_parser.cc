@@ -5,7 +5,10 @@
 #include "boost/range/iterator_range.hpp"
 
 #include "parser/file.h"
+
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
+#include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
@@ -19,23 +22,39 @@
 
 using namespace flatbuffers;
 using namespace parser;
+using namespace motis::logging;
 namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
+std::vector<std::string> const required_files = {
+    ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
+    PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE,  CATEGORIES_FILE};
+
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
-  std::vector<std::string> const filenames = {
-      ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
-      PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE,  CATEGORIES_FILE};
 
   return fs::is_directory(path / "fahrten") &&
-         std::all_of(begin(filenames), end(filenames),
+         std::all_of(begin(required_files), end(required_files),
                      [&master_data_root](std::string const& f) {
                        return fs::is_regular_file(master_data_root / f);
                      });
+}
+
+std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
+  std::vector<std::string> files;
+  if (!fs::is_directory(path / "fahrten")) {
+    files.push_back((path / "fahrten").string().c_str());
+  }
+  auto const master_data_root = path / "stamm";
+  std::copy_if(
+      begin(required_files), end(required_files), std::back_inserter(files),
+      [&](std::string const& f) {
+        return !fs::is_regular_file((master_data_root / f).string().c_str());
+      });
+  return files;
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
@@ -89,6 +108,7 @@ hrd_parser::parse_services_files(fs::path const& hrd_root,
     auto const& services_file_path = entry.path();
 
     if (fs::is_regular(services_file_path)) {
+      LOG(info) << "parsing " << services_file_path;
       parse_services_file(services_file_path, services, sb, fbb);
     }
   }
@@ -102,7 +122,12 @@ void hrd_parser::parse_services_file(
   auto services_buf = load_file(services_file_path);
   parse_services({services_file_path.string().c_str(), services_buf},
                  [&](specification const& spec) {
-                   sb.create_services(hrd_service(spec), fbb, services);
+                   try {
+                     sb.create_services(hrd_service(spec), fbb, services);
+                   } catch (parser_error const& e) {
+                     LOG(error) << "skipping bad service at " << e.filename
+                                << ":" << e.line_number;
+                   }
                  });
 }
 

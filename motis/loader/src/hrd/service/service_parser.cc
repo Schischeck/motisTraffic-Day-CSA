@@ -5,11 +5,13 @@
 
 #include "parser/util.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 
 using namespace parser;
 using namespace flatbuffers;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -26,15 +28,15 @@ void parse_services(loaded_file const& file,
     }
 
     if (!spec.valid()) {
-      throw parser_error(file.name, line_number);
-    }
-
-    // Store if relevant.
-    if (!spec.ignore()) {
+      LOG(error) << "skipping bad service at " << file.name << ":"
+                 << line_number;
+    } else if (!spec.ignore()) {
+      // Store if relevant.
       try {
         builder(spec);
       } catch (std::runtime_error const& e) {
-        throw parser_error(file.name, line_number);
+        LOG(error) << "unable to build service at " << file.name << ":"
+                   << line_number << ", skipping";
       }
     }
 

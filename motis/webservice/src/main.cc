@@ -24,6 +24,8 @@
 #include "motis/webservice/listener_settings.h"
 #include "motis/webservice/modules_settings.h"
 
+#include "motis/loader/parser_error.h"
+
 using namespace motis::webservice;
 using namespace motis::module;
 using namespace motis;
@@ -52,8 +54,15 @@ int main(int argc, char** argv) {
   parser.print_used(std::cout);
 
   auto schedule_interval = dataset_opt.interval();
-  auto sched = loader::load_schedule(
-      dataset_opt.dataset, schedule_interval.first, schedule_interval.second);
+  schedule_ptr sched;
+  try {
+    sched = loader::load_schedule(dataset_opt.dataset, schedule_interval.first,
+                                  schedule_interval.second);
+  } catch (motis::loader::parser_error const& e) {
+    std::cout << "unable to parse schedule\n";
+    std::cout << e.filename << ":" << e.line_number << "\n";
+    return 1;
+  }
 
   boost::asio::io_service ios, thread_pool;
 
