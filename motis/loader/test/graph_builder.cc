@@ -7,6 +7,8 @@
 
 #include "./hrd/test_spec.h"
 
+using std::get;
+
 namespace motis {
 namespace loader {
 
@@ -195,26 +197,78 @@ TEST_F(graph_builder_test, route_nodes) {
       auto connections = get_connections(first_route_node, 19 * 60 + 3);
       ASSERT_EQ(8, static_cast<int>(connections.size()));
 
-      for (auto const& con : connections) {
-        light_connection const* lc;
-        int from, to;
-        std::tie(lc, from, to) = con;
+      auto& stations = sched_->stations;
+      EXPECT_EQ("8000284", stations[get<1>(connections[0])]->eva_nr);
+      EXPECT_EQ("8000260", stations[get<1>(connections[1])]->eva_nr);
+      EXPECT_EQ("8010101", stations[get<1>(connections[2])]->eva_nr);
+      EXPECT_EQ("8010240", stations[get<1>(connections[3])]->eva_nr);
+      EXPECT_EQ("8010205", stations[get<1>(connections[4])]->eva_nr);
+      EXPECT_EQ("8010222", stations[get<1>(connections[5])]->eva_nr);
+      EXPECT_EQ("8011113", stations[get<1>(connections[6])]->eva_nr);
+      EXPECT_EQ("8098160", stations[get<1>(connections[7])]->eva_nr);
+      EXPECT_EQ("8011102", stations[get<2>(connections[7])]->eva_nr);
 
-        auto const& fc = lc->_full_con;
-        auto const& ci = fc->con_info;
+      EXPECT_EQ(19 * 60 + 3, get<0>(connections[0])->d_time);
+      EXPECT_EQ(20 * 60, get<0>(connections[1])->d_time);
+      EXPECT_EQ(21 * 60 + 55, get<0>(connections[2])->d_time);
+      EXPECT_EQ(22 * 60 + 34, get<0>(connections[3])->d_time);
+      EXPECT_EQ(23 * 60 + 18, get<0>(connections[4])->d_time);
+      EXPECT_EQ(23 * 60 + 49, get<0>(connections[5])->d_time);
+      EXPECT_EQ(24 * 60 + 25, get<0>(connections[6])->d_time);
+      EXPECT_EQ(24 * 60 + 33, get<0>(connections[7])->d_time);
 
-        std::cout << "[" << sched_->stations[from]->eva_nr << "] "
-                  << "[" << sched_->stations[to]->eva_nr << "]\t"
-                  << format_time(lc->d_time) << " - " << format_time(lc->a_time)
-                  << "\t[" << std::setw(1) << sched_->tracks[fc->d_platform]
-                  << "] [" << std::setw(1) << sched_->tracks[fc->a_platform]
-                  << "]\t" << sched_->category_names[ci->family] << " "
-                  << ci->train_nr << "\t";
-        for (auto const& attr : ci->attributes) {
-          std::cout << attr->_code << " [" << attr->_str << "]";
-        }
-        std::cout << "\n";
-      }
+      EXPECT_EQ(19 * 60 + 58, get<0>(connections[0])->a_time);
+      EXPECT_EQ(21 * 60 + 53, get<0>(connections[1])->a_time);
+      EXPECT_EQ(22 * 60 + 32, get<0>(connections[2])->a_time);
+      EXPECT_EQ(23 * 60 + 8, get<0>(connections[3])->a_time);
+      EXPECT_EQ(23 * 60 + 47, get<0>(connections[4])->a_time);
+      EXPECT_EQ(24 * 60 + 23, get<0>(connections[5])->a_time);
+      EXPECT_EQ(24 * 60 + 30, get<0>(connections[6])->a_time);
+      EXPECT_EQ(24 * 60 + 38, get<0>(connections[7])->a_time);
+
+      ASSERT_TRUE(std::all_of(
+          begin(connections), end(connections),
+          [&](std::tuple<light_connection const*, int, int> const& con) {
+            auto fc = std::get<0>(con)->_full_con;
+            return fc->con_info->attributes.size() == 1 &&
+                   fc->con_info->train_nr == 1000 &&
+                   sched_->category_names[fc->con_info->family] == "ICE";
+          }));
+
+      auto const& tracks = sched_->tracks;
+      EXPECT_EQ("6", tracks[get<0>(connections[0])->_full_con->d_platform]);
+      EXPECT_EQ("", tracks[get<0>(connections[1])->_full_con->d_platform]);
+      EXPECT_EQ("", tracks[get<0>(connections[2])->_full_con->d_platform]);
+      EXPECT_EQ("1", tracks[get<0>(connections[3])->_full_con->d_platform]);
+      EXPECT_EQ("", tracks[get<0>(connections[4])->_full_con->d_platform]);
+      EXPECT_EQ("3", tracks[get<0>(connections[5])->_full_con->d_platform]);
+      EXPECT_EQ("8", tracks[get<0>(connections[6])->_full_con->d_platform]);
+      EXPECT_EQ("7", tracks[get<0>(connections[7])->_full_con->d_platform]);
+
+      EXPECT_EQ("", tracks[get<0>(connections[0])->_full_con->a_platform]);
+      EXPECT_EQ("", tracks[get<0>(connections[1])->_full_con->a_platform]);
+      EXPECT_EQ("1", tracks[get<0>(connections[2])->_full_con->a_platform]);
+      EXPECT_EQ("", tracks[get<0>(connections[3])->_full_con->a_platform]);
+      EXPECT_EQ("3", tracks[get<0>(connections[4])->_full_con->a_platform]);
+      EXPECT_EQ("8", tracks[get<0>(connections[5])->_full_con->a_platform]);
+      EXPECT_EQ("7", tracks[get<0>(connections[6])->_full_con->a_platform]);
+      EXPECT_EQ("6", tracks[get<0>(connections[7])->_full_con->a_platform]);
+
+      auto bt = get<0>(connections[0])->_full_con->con_info->attributes[0];
+      auto sn = get<0>(connections[4])->_full_con->con_info->attributes[0];
+      EXPECT_STREQ("BT", bt->_code.c_str());
+      EXPECT_STREQ("SN", sn->_code.c_str());
+      EXPECT_STREQ("Bordbistro", bt->_str.c_str());
+      EXPECT_STREQ("SnackPoint/Imbiss im Zug", sn->_str.c_str());
+
+      EXPECT_EQ(bt, get<0>(connections[0])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(bt, get<0>(connections[1])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(bt, get<0>(connections[2])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(bt, get<0>(connections[3])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(sn, get<0>(connections[4])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(sn, get<0>(connections[5])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(sn, get<0>(connections[6])->_full_con->con_info->attributes[0]);
+      EXPECT_EQ(sn, get<0>(connections[7])->_full_con->con_info->attributes[0]);
     }
   }
 }
