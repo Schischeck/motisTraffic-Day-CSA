@@ -118,6 +118,12 @@ struct array final {
   T* begin() { return _el; }
   T* end() { return _el + _used_size; }
 
+  friend T const* begin(array const& a) { return a.begin(); }
+  friend T const* end(array const& a) { return a.end(); }
+
+  friend T* begin(array& a) { return a.begin(); }
+  friend T* end(array& a) { return a.end(); }
+
   inline T const& operator[](int index) const { return _el[index]; }
   inline T& operator[](int index) { return _el[index]; }
 

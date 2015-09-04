@@ -40,8 +40,10 @@ bitfield hex_str_to_bitset(cstr hex, char const* filename, int line_number) {
       period_begin == period_end || period_end - period_begin <= 2) {
     throw parser_error(filename, line_number);
   }
-  return bitfield{std::string(std::next(begin(bit_str), period_begin + 2),
-                              std::next(begin(bit_str), period_end))};
+  std::string bitstring(std::next(begin(bit_str), period_begin + 2),
+                        std::next(begin(bit_str), period_end));
+  std::reverse(begin(bitstring), end(bitstring));
+  return bitfield{bitstring};
 }
 
 std::map<int, bitfield> parse_bitfields(loaded_file f) {

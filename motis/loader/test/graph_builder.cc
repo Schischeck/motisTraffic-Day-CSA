@@ -10,8 +10,8 @@
 namespace motis {
 namespace loader {
 
-auto interval_begin = to_unix_time(2015, 9, 1);
-auto interval_end = to_unix_time(2015, 9, 2) + MINUTES_A_DAY * 60;
+auto interval_begin = to_unix_time(2015, 10, 25);
+auto interval_end = interval_begin + (2 * MINUTES_A_DAY * 60);
 
 class graph_builder_test : public ::testing::Test {
 protected:
@@ -26,6 +26,32 @@ protected:
     auto serialized = GetSchedule(b.GetBufferPointer());
 
     sched_ = build_graph(serialized, interval_begin, interval_end);
+  }
+
+  static edge const* get_route_edge(node const* route_node) {
+    auto it = std::find_if(
+        begin(route_node->_edges), end(route_node->_edges),
+        [](edge const& e) { return e.type() == edge::ROUTE_EDGE; });
+    if (it == end(route_node->_edges)) {
+      return nullptr;
+    } else {
+      return &(*it);
+    }
+  }
+
+  static std::vector<std::tuple<light_connection const*, int, int>>
+  get_connections(node const* first_route_node, time departure_time) {
+    std::vector<std::tuple<light_connection const*, int, int>> cons;
+    edge const* route_edge = nullptr;
+    node const* route_node = first_route_node;
+    while ((route_edge = get_route_edge(route_node)) != nullptr) {
+      cons.emplace_back(route_edge->get_connection(departure_time),
+                        route_node->get_station()->_id,
+                        route_edge->_to->get_station()->_id);
+      route_node = route_edge->_to;
+      departure_time = std::get<0>(cons.back())->a_time;
+    }
+    return cons;
   }
 
   schedule_ptr sched_;
@@ -134,13 +160,61 @@ TEST_F(graph_builder_test, route_nodes) {
   EXPECT_EQ(2, sched_->route_index_to_first_route_node.size());
 
   for (auto const& first_route_node : sched_->route_index_to_first_route_node) {
+    ASSERT_TRUE(first_route_node->is_route_node());
+
     auto station_id = first_route_node->get_station()->_id;
     auto station_eva = sched_->stations[station_id]->eva_nr;
 
     EXPECT_TRUE(station_eva == "8000284" || station_eva == "8000261");
 
     if (station_eva == "8000284") {
-    } else {
+      ASSERT_EQ(1, first_route_node->_incoming_edges.size());
+      ASSERT_EQ(2, first_route_node->_edges.size());
+
+      ASSERT_EQ(first_route_node->_incoming_edges[0]->_from,
+                first_route_node->get_station());
+      ASSERT_EQ(first_route_node->get_station(),
+                first_route_node[0]._edges[0]._to);
+
+      ASSERT_EQ(edge::FOOT_EDGE, first_route_node->_incoming_edges[0]->type());
+      ASSERT_EQ(edge::ROUTE_EDGE, first_route_node->_edges[1].type());
+      ASSERT_EQ(edge::FOOT_EDGE, first_route_node->_edges[0].type());
+
+      auto next_route_node = first_route_node->_edges[1]._to;
+      ASSERT_TRUE(next_route_node->is_route_node());
+
+      ASSERT_STREQ("8000260",
+                   sched_->stations[next_route_node->get_station()->_id]
+                       ->eva_nr.c_str());
+
+      ASSERT_EQ(1, first_route_node->_edges[1]._m._route_edge._conns.size());
+      auto& lcon = first_route_node->_edges[1]._m._route_edge._conns;
+      ASSERT_EQ(19 * 60 + 3, lcon[0].d_time);
+      ASSERT_EQ(19 * 60 + 58, lcon[0].a_time);
+
+      auto connections = get_connections(first_route_node, 19 * 60 + 3);
+      ASSERT_EQ(8, static_cast<int>(connections.size()));
+
+      for (auto const& con : connections) {
+        light_connection const* lc;
+        int from, to;
+        std::tie(lc, from, to) = con;
+
+        auto const& fc = lc->_full_con;
+        auto const& ci = fc->con_info;
+
+        std::cout << "[" << sched_->stations[from]->eva_nr << "] "
+                  << "[" << sched_->stations[to]->eva_nr << "]\t"
+                  << format_time(lc->d_time) << " - " << format_time(lc->a_time)
+                  << "\t[" << std::setw(1) << sched_->tracks[fc->d_platform]
+                  << "] [" << std::setw(1) << sched_->tracks[fc->a_platform]
+                  << "]\t" << sched_->category_names[ci->family] << " "
+                  << ci->train_nr << "\t";
+        for (auto const& attr : ci->attributes) {
+          std::cout << attr->_code << " [" << attr->_str << "]";
+        }
+        std::cout << "\n";
+      }
     }
   }
 }

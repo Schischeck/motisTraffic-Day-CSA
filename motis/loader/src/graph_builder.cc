@@ -16,24 +16,14 @@ using namespace flatbuffers;
 namespace motis {
 namespace loader {
 
-bool is_in_schedule(int day_index, time_t from, time_t to,
-                    Interval const* schedule_interval) {
-  uint64_t point_in_time = from + day_index * 1440;
-  return point_in_time >= schedule_interval->from() &&
-         point_in_time < schedule_interval->to() &&
-         point_in_time >= static_cast<uint64_t>(from) &&
-         point_in_time < static_cast<uint64_t>(to);
-}
-
 class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
                 time_t to)
       : next_node_id_(-1),
         sched_(sched),
-        schedule_interval_(schedule_interval),
-        from_(from),
-        to_(to) {}
+        first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60)) {}
 
   void add_stations(Vector<Offset<Station>> const* stations) {
     for (unsigned i = 0; i < stations->size(); ++i) {
@@ -93,8 +83,16 @@ public:
     for (auto& con : connections_) {
       sched_.full_connections.emplace_back(std::move(con.second));
     }
-    for (auto& attr : attributes_) {
-      sched_.attributes.emplace_back(std::move(attr.second));
+  }
+
+  void connect_reverse() {
+    for (auto& station_node : sched_.station_nodes) {
+      for (auto& station_edge : station_node->_edges) {
+        station_edge._to->_incoming_edges.push_back(&station_edge);
+        for (auto& edge : station_edge._to->_edges) {
+          edge._to->_incoming_edges.push_back(&edge);
+        }
+      }
     }
   }
 
@@ -120,11 +118,14 @@ private:
     auto const& to = *sched_.stations[e->_to->get_station()->_id];
 
     // Expand traffic days.
-    for (unsigned day = 0; day < traffic_days.size(); ++day) {
-      if (!traffic_days.test(day) ||
-          !is_in_schedule(day, from_, to_, schedule_interval_)) {
+    for (int day = 0; day < static_cast<int>(traffic_days.size()); ++day) {
+      if (!traffic_days.test(day) || day < first_day_ || day > last_day_) {
         continue;
       }
+
+      // Day indices for shifted bitfields (platforms, attributes)
+      int dep_day_index = day + (dep_time / MINUTES_A_DAY);
+      int arr_day_index = day + (arr_time / MINUTES_A_DAY);
 
       // Build connection info.
       connection_info con_info;
@@ -132,7 +133,8 @@ private:
         con_info.line_identifier = section->line_id()->str();
       }
       con_info.train_nr = section->train_nr();
-      con_info.attributes = read_attributes(day, section->attributes());
+      con_info.attributes =
+          read_attributes(dep_day_index, section->attributes());
       con_info.family = get_or_create_category_index(section->category());
 
       // Build full connection.
@@ -141,16 +143,18 @@ private:
         return make_unique<connection_info>(con_info);
       }).get();
 
-      con.d_platform = get_or_create_platform(day, dep_platforms);
-      con.a_platform = get_or_create_platform(day, arr_platforms);
+      con.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
+      con.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
 
       auto clasz_it = sched_.classes.find(section->category()->name()->str());
       con.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
       con.price = get_distance(from, to) * get_price_per_km(con.clasz);
 
       // Build light connection.
+      int day_index = day - first_day_;
       e->_m._route_edge._conns.emplace_back(
-          day * MINUTES_A_DAY + dep_time, day * MINUTES_A_DAY + arr_time,
+          day_index * MINUTES_A_DAY * 60 + dep_time,
+          day_index * MINUTES_A_DAY * 60 + arr_time,
           get_or_create(connections_, con, [&con]() {
             return make_unique<connection>(con);
           }).get());
@@ -175,7 +179,7 @@ private:
                 new_attr->_code = attr->code()->str();
                 new_attr->_str = attr->text()->str();
                 sched_.attributes.emplace_back(std::move(new_attr));
-                return new_attr.get();
+                return sched_.attributes.back().get();
               });
         });
   }
@@ -190,15 +194,20 @@ private:
 
   int get_or_create_platform(int day,
                              Vector<Offset<Platform>> const* platforms) {
-    auto arr_track_it = std::find_if(
+    static constexpr int NO_TRACK = 0;
+    if (sched_.tracks.empty()) {
+      sched_.tracks.push_back("");
+    }
+
+    auto track_it = std::find_if(
         std::begin(*platforms), std::end(*platforms),
         [&](Platform const* track) {
           return get_or_create_bitfield(track->bitfield()).test(day);
         });
-    if (arr_track_it == std::end(*platforms)) {
-      return -1;
+    if (track_it == std::end(*platforms)) {
+      return NO_TRACK;
     } else {
-      auto name = arr_track_it->name()->str();
+      auto name = track_it->name()->str();
       return get_or_create(tracks_, name, [&]() {
         int index = sched_.tracks.size();
         sched_.tracks.push_back(name);
@@ -252,8 +261,7 @@ private:
   std::map<std::string, int> tracks_;
   unsigned next_node_id_;
   schedule& sched_;
-  Interval const* schedule_interval_;
-  time_t from_, to_;
+  int first_day_, last_day_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
@@ -271,6 +279,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
 
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
+  builder.connect_reverse();
   builder.transfer_connections();
 
   return sched;
