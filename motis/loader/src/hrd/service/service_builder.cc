@@ -17,9 +17,15 @@ service_builder::service_builder(shared_data const& stamm,
     : stamm_(stamm), bitfields_(stamm.bitfields, builder), builder_(builder) {}
 
 Offset<Category> service_builder::get_or_create_category(cstr category) {
-  return get_or_create(categories_, raw_to_int<uint32_t>(category), [&]() {
-    return CreateCategory(builder_, to_fbs_string(builder_, category),
-                          CategoryOutputRule_CATEGORY_AND_TRAIN_NUM);
+  auto const category_key = raw_to_int<uint32_t>(category);
+
+  auto it = stamm_.categories.find(category_key);
+  verify(it != end(stamm_.categories), "missing category: %.*s",
+         static_cast<int>(category.length()), category.c_str());
+
+  return get_or_create(categories_, category_key, [&]() {
+    return CreateCategory(builder_, to_fbs_string(builder_, it->second.name),
+                          it->second.output_rule);
   });
 }
 
@@ -52,7 +58,8 @@ Offset<Attribute> service_builder::get_or_create_attribute(
   return get_or_create(attributes_, key, [&]() {
     auto stamm_attributes_it = stamm_.attributes.find(key);
     verify(stamm_attributes_it != end(stamm_.attributes),
-           "attribute with bitfield number %s not found\n", attr.code.str);
+           "attribute with bitfield number %.*s not found\n",
+           static_cast<int>(attr.code.length()), attr.code.c_str());
     auto text = to_fbs_string(builder_, stamm_attributes_it->second, ENCODING);
     auto fbs_attribute =
         CreateAttribute(builder_, to_fbs_string(builder_, attr.code), text,

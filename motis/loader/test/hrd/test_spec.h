@@ -25,7 +25,7 @@ struct test_spec {
         lf_({filename, parser::cstr(buf_.data(), buf_.size())}) {}
 
   std::vector<specification> get_specs();
-  std::vector<hrd_service> get_services();
+  std::vector<hrd_service> get_hrd_services();
 
   parser::buffer buf_;
   loaded_file lf_;
