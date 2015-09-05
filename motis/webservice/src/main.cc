@@ -77,6 +77,9 @@ int main(int argc, char** argv) {
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
+  modules.emplace_back(new routing::routing());
+  modules.emplace_back(new guesser::guesser());
+  modules.emplace_back(new reliability::reliability());
   modules.emplace_back(new railviz::railviz());
 
   motis::module::context c;
