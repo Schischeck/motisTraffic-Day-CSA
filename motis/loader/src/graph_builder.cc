@@ -164,25 +164,24 @@ private:
 
   std::vector<attribute const*> read_attributes(
       int day, Vector<Offset<Attribute>> const* attributes) {
-    std::vector<Attribute const*> active_attributes;
-    std::copy_if(
-        std::begin(*attributes), std::end(*attributes),
-        std::back_inserter(active_attributes), [&](Attribute const* attr) {
-          return get_or_create_bitfield(attr->traffic_days()).test(day);
-        });
-    return transform_to_vec(
-        begin(active_attributes), end(active_attributes),
-        [&](Attribute const* attr) -> attribute const* {
-          return get_or_create(
-              attributes_, {attr->code()->c_str(), attr->code()->Length()},
-              [&]() {
-                auto new_attr = make_unique<attribute>();
-                new_attr->_code = attr->code()->str();
-                new_attr->_str = attr->text()->str();
-                sched_.attributes.emplace_back(std::move(new_attr));
-                return sched_.attributes.back().get();
-              });
-        });
+    std::vector<attribute const*> active_attributes;
+    active_attributes.reserve(attributes->size());
+
+    for (auto const& attr : *attributes) {
+      if (!get_or_create_bitfield(attr->traffic_days()).test(day)) {
+        continue;
+      }
+      active_attributes.push_back(get_or_create(
+          attributes_, {attr->code()->c_str(), attr->code()->Length()}, [&]() {
+            auto new_attr = make_unique<attribute>();
+            new_attr->_code = attr->code()->str();
+            new_attr->_str = attr->text()->str();
+            sched_.attributes.emplace_back(std::move(new_attr));
+            return sched_.attributes.back().get();
+          }));
+    }
+
+    return active_attributes;
   }
 
   int get_or_create_category_index(Category const* category) {

@@ -27,17 +27,28 @@ public:
   connection_info() : family(0), train_nr(0) {}
 
   bool operator<(connection_info const& o) const {
-    return as_tuple() < o.as_tuple();
+    if (train_nr < o.train_nr) {
+      return true;
+    } else if (train_nr > o.train_nr) {
+      return false;
+    }
+    if (family < o.family) {
+      return true;
+    } else if (family > o.family) {
+      return false;
+    }
+    auto line_cmp = line_identifier.compare(o.line_identifier);
+    if (line_cmp < 0) {
+      return true;
+    } else if (line_cmp > 0) {
+      return false;
+    }
+    return attributes < o.attributes;
   }
 
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family &&
            line_identifier == o.line_identifier && attributes == o.attributes;
-  }
-
-  std::tuple<uint32_t, uint32_t, std::string, std::vector<attribute const*>>
-  as_tuple() const {
-    return std::make_tuple(train_nr, family, line_identifier, attributes);
   }
 
   std::vector<attribute const*> attributes;
