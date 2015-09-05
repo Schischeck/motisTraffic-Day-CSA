@@ -2,16 +2,19 @@
 
 #include "parser/cstr.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 
 using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
 std::map<uint16_t, std::string> parse_attributes(loaded_file file) {
+  scoped_timer timer("parsing attributes");
   std::map<uint16_t, std::string> attributes;
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0 || line.str[0] == '#') {

@@ -3,10 +3,12 @@
 #include "parser/util.h"
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/common/date_util.h"
 
 using namespace flatbuffers;
 using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -27,6 +29,8 @@ time_t str_to_unixtime(cstr s) {
 }
 
 Interval parse_interval(loaded_file const& basic_info_file) {
+  scoped_timer timer("parsing schedule interval");
+
   auto content = basic_info_file.content;
 
   auto from_line = parser::get_line(content);

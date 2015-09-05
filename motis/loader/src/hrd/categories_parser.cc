@@ -3,17 +3,20 @@
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+
+using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace parser;
-
 std::map<uint32_t, category> parse_categories(
     loaded_file const& categories_file) {
+  scoped_timer timer("parsing categories");
   bool ignore = false;
   std::map<uint32_t, category> categories;
   for_each_line_numbered(categories_file.content, [&](cstr line,

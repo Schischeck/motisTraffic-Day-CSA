@@ -7,10 +7,12 @@
 
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 
 using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -47,6 +49,8 @@ bitfield hex_str_to_bitset(cstr hex, char const* filename, int line_number) {
 }
 
 std::map<int, bitfield> parse_bitfields(loaded_file f) {
+  scoped_timer timer("parsing bitfields");
+
   std::map<int, bitfield> bitfields;
   for_each_line_numbered(f.content, [&](cstr line, int line_number) {
     if (line.len == 0) {

@@ -116,6 +116,7 @@ hrd_service::hrd_service(specification const& spec)
 
 void hrd_service::verify_service() const {
   int section_index = 0;
+  verify(stops_.size() >= 2, "service with less than 2 stops");
   for (auto const& section : sections_) {
     verify(section.traffic_days.size() == 1,
            "section %d invalid: %lu multiple traffic days", section_index,

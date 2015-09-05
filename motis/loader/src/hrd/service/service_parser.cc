@@ -45,7 +45,7 @@ void parse_services(loaded_file const& file,
     spec.read_line(line, file.name, line_number);
   });
 
-  if (spec.valid()) {
+  if (!spec.is_empty() && spec.valid() && !spec.ignore()) {
     builder(spec);
   }
 }

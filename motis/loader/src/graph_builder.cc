@@ -7,10 +7,12 @@
 
 #include "motis/core/schedule/price.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
 
+using namespace motis::logging;
 using namespace flatbuffers;
 
 namespace motis {
@@ -277,6 +279,8 @@ private:
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
+  scoped_timer timer("building graph");
+
   schedule_ptr sched(new schedule());
   sched->classes = class_mapping();
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->category_names);

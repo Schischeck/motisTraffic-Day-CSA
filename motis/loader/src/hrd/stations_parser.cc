@@ -4,12 +4,14 @@
 
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
 
 using namespace parser;
 using namespace flatbuffers;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -21,6 +23,7 @@ struct station {
 };
 
 void parse_station_names(loaded_file file, std::map<int, station>& stations) {
+  scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
@@ -42,6 +45,7 @@ void parse_station_names(loaded_file file, std::map<int, station>& stations) {
 
 void parse_station_coordinates(loaded_file file,
                                std::map<int, station>& stations) {
+  scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
@@ -60,6 +64,7 @@ void parse_station_coordinates(loaded_file file,
 std::map<int, Offset<Station>> parse_stations(
     loaded_file station_names_file, loaded_file station_coordinates_file,
     station_meta_data const& metas, flatbuffers::FlatBufferBuilder& b) {
+  scoped_timer timer("parsing stations");
   std::map<int, station> stations_map;
   parse_station_names(station_names_file, stations_map);
   parse_station_coordinates(station_coordinates_file, stations_map);
