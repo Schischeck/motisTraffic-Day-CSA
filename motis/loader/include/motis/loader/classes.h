@@ -43,8 +43,8 @@ std::map<std::string, int> class_mapping() {
     { "Os", 4 },
 
     // metro
-    {"S", 5 },
-    {"SB", 5 },
+    { "S", 5 },
+    { "SB", 5 },
 
     // subway
     { "U", 6 },

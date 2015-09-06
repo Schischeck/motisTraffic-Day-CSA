@@ -57,6 +57,11 @@ inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {
   return std::string(buf, number_of_bytes);
 }
 
+template<typename IntType>
+inline bool is_bit_set(int bit_idx, IntType value) {
+  return (value >> bit_idx) & 1;
+}
+
 template <int BitCount>
 inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
   constexpr std::size_t number_of_bytes = BitCount >> 3;
@@ -65,9 +70,8 @@ inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
   int bit_it = 0;
   auto limit = std::min(number_of_bytes, str.len);
   for (unsigned byte = 0; byte < limit; ++byte) {
-    std::bitset<8> byte_bit_set(str[byte]);
     for (int i = 0; i < 8; ++i) {
-      bits.set(bit_it, byte_bit_set.test(i));
+      bits.set(bit_it, is_bit_set(i, str[byte]));
       ++bit_it;
     }
   }

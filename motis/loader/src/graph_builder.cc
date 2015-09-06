@@ -2,21 +2,52 @@
 
 #include <functional>
 
-#include "motis/loader/wzr_loader.h"
+#include "google/dense_hash_set"
+#include "google/dense_hash_map"
+
 #include "parser/cstr.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
 
-#include "motis/core/common/logging.h"
+#include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
+#include "motis/loader/hash_helper.h"
 
+using google::dense_hash_set;
+using google::dense_hash_map;
 using namespace motis::logging;
 using namespace flatbuffers;
 
 namespace motis {
 namespace loader {
+
+struct hash_con {
+  std::size_t operator()(connection const& c) const {
+    std::size_t seed = 0;
+    hash_combine(seed, c.con_info);
+    hash_combine(seed, c.price);
+    hash_combine(seed, c.d_platform);
+    hash_combine(seed, c.a_platform);
+    hash_combine(seed, c.clasz);
+    return seed;
+  }
+};
+
+struct hash_con_info {
+  std::size_t operator()(connection_info const& c) const {
+    std::size_t seed = 0;
+    for (auto const& attr : c.attributes) {
+      hash_combine(seed, attr);
+    }
+    hash_combine(seed, c.line_identifier);
+    hash_combine(seed, c.family);
+    hash_combine(seed, c.train_nr);
+    return seed;
+  }
+};
 
 class graph_builder {
 public:
@@ -25,7 +56,11 @@ public:
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
-        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60)) {}
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60)) {
+    connections_.set_empty_key(nullptr);
+    con_infos_.set_empty_key(nullptr);
+    bitfields_.set_empty_key(nullptr);
+  }
 
   void add_stations(Vector<Offset<Station>> const* stations) {
     for (unsigned i = 0; i < stations->size(); ++i) {
@@ -60,10 +95,7 @@ public:
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-
-    auto serialized_traffic_days = service->traffic_days()->c_str();
-    auto traffic_days = deserialize_bitset<512>(
-        {serialized_traffic_days, service->traffic_days()->Length()});
+    auto traffic_days = get_or_create_bitfield(service->traffic_days());
 
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
@@ -74,15 +106,6 @@ public:
           service->platforms()->Get(section_idx)->dep_platforms(),
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days);
-    }
-  }
-
-  void transfer_connections() {
-    for (auto& con_info : con_infos_) {
-      sched_.connection_infos.emplace_back(std::move(con_info.second));
-    }
-    for (auto& con : connections_) {
-      sched_.full_connections.emplace_back(std::move(con.second));
     }
   }
 
@@ -101,10 +124,11 @@ public:
 
 private:
   bitfield const& get_or_create_bitfield(String const* serialized_bitfield) {
-    return get_or_create(bitfields_, serialized_bitfield, [&]() {
-      return deserialize_bitset<BIT_COUNT>(
-          {serialized_bitfield->c_str(), serialized_bitfield->Length()});
-    });
+    return get_or_create<decltype(bitfields_), String const*, bitfield>(
+        bitfields_, serialized_bitfield, [&]() {
+          return deserialize_bitset<BIT_COUNT>(
+              {serialized_bitfield->c_str(), serialized_bitfield->Length()});
+        });
   }
 
   void add_service_section(edge* e, Section const* section,
@@ -119,8 +143,8 @@ private:
     auto const& to = *sched_.stations[e->_to->get_station()->_id];
 
     // Expand traffic days.
-    for (int day = 0; day < static_cast<int>(traffic_days.size()); ++day) {
-      if (!traffic_days.test(day) || day < first_day_ || day > last_day_) {
+    for (int day = first_day_; day <= last_day_; ++day) {
+      if (!traffic_days.test(day)) {
         continue;
       }
 
@@ -129,44 +153,46 @@ private:
       int arr_day_index = day + (arr_time / MINUTES_A_DAY);
 
       // Build connection info.
-      connection_info con_info;
-      if (section->line_id() != nullptr) {
-        con_info.line_identifier = section->line_id()->str();
-      }
-      con_info.train_nr = section->train_nr();
-      con_info.attributes =
-          read_attributes(dep_day_index, section->attributes());
-      con_info.family = get_or_create_category_index(section->category());
+      con_info_.line_identifier =
+          section->line_id() ? section->line_id()->str() : "";
+      con_info_.train_nr = section->train_nr();
+      con_info_.family = get_or_create_category_index(section->category());
+      read_attributes(dep_day_index, section->attributes(),
+                      con_info_.attributes);
 
       // Build full connection.
-      connection con;
-      con.con_info = get_or_create(con_infos_, con_info, [&con_info]() {
-        return make_unique<connection_info>(con_info);
-      }).get();
+      con_.con_info = get_or_create<decltype(con_infos_), connection_info*>(
+          con_infos_, &con_info_, [&]() {
+            sched_.connection_infos.emplace_back(
+                make_unique<connection_info>(con_info_));
+            return sched_.connection_infos.back().get();
+          });
 
-      con.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
-      con.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
+      con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
+      con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
 
       auto clasz_it = sched_.classes.find(section->category()->name()->str());
-      con.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
-      con.price = get_distance(from, to) * get_price_per_km(con.clasz);
+      con_.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
+      con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
       int day_index = day - first_day_;
       e->_m._route_edge._conns.emplace_back(
           day_index * MINUTES_A_DAY * 60 + dep_time,
           day_index * MINUTES_A_DAY * 60 + arr_time,
-          get_or_create(connections_, con, [&con]() {
-            return make_unique<connection>(con);
-          }).get());
+          get_or_create<decltype(connections_), connection*>(
+              connections_, &con_, [&]() {
+                sched_.full_connections.emplace_back(
+                    make_unique<connection>(con_));
+                return sched_.full_connections.back().get();
+              }));
     }
   }
 
-  std::vector<attribute const*> read_attributes(
-      int day, Vector<Offset<Attribute>> const* attributes) {
-    std::vector<attribute const*> active_attributes;
+  void read_attributes(int day, Vector<Offset<Attribute>> const* attributes,
+                       std::vector<attribute const*>& active_attributes) {
+    active_attributes.clear();
     active_attributes.reserve(attributes->size());
-
     for (auto const& attr : *attributes) {
       if (!get_or_create_bitfield(attr->traffic_days()).test(day)) {
         continue;
@@ -180,8 +206,6 @@ private:
             return sched_.attributes.back().get();
           }));
     }
-
-    return active_attributes;
   }
 
   int get_or_create_category_index(Category const* category) {
@@ -265,16 +289,23 @@ private:
   }
 
   std::map<String const*, int> categories_;
-  std::map<String const*, bitfield> bitfields_;
   std::map<Route const*, std::vector<node*>> routes_;
   std::map<Station const*, station_node*> stations_;
-  std::map<parser::cstr, attribute*> attributes_;
-  std::map<connection_info, std::unique_ptr<connection_info>> con_infos_;
-  std::map<connection, std::unique_ptr<connection>> connections_;
   std::map<std::string, int> tracks_;
+  std::map<parser::cstr, attribute*> attributes_;
+  dense_hash_map<String const*, bitfield, std::hash<String const*>,
+                 std::equal_to<String const*>> bitfields_;
+  dense_hash_set<connection_info*,
+                 deep_ptr_hash<hash_con_info, connection_info>,
+                 deep_ptr_eq<connection_info>> con_infos_;
+  dense_hash_set<connection*, deep_ptr_hash<hash_con, connection>,
+                 deep_ptr_eq<connection>> connections_;
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
+
+  connection_info con_info_;
+  connection con_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
@@ -295,7 +326,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
   builder.connect_reverse();
-  builder.transfer_connections();
 
   return sched;
 }

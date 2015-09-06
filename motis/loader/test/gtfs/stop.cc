@@ -43,20 +43,20 @@ TEST(loader_gtfs_stop, read_stations_example_data) {
   auto station_1 = stations->Get(0);
   ASSERT_TRUE(station_1->id()->str() == "S1");
   ASSERT_TRUE(station_1->name()->str() == "Mission St. & Silver Ave.");
-  ASSERT_TRUE(std::abs(station_1->lat() - 37.728631) < 0.00001);
-  ASSERT_TRUE(std::abs(station_1->lng() - -122.431282) < 0.00001);
+  ASSERT_FLOAT_EQ(37.728631, station_1->lat());
+  ASSERT_FLOAT_EQ(-122.431282, station_1->lng());
 
   auto station_6 = stations->Get(5);
   ASSERT_TRUE(station_6->id()->str() == "S6");
   ASSERT_TRUE(station_6->name()->str() == "Mission St. & 15th St.");
-  ASSERT_TRUE(std::abs(station_6->lat() - 37.766629) < 0.00001);
-  ASSERT_TRUE(std::abs(station_6->lng() - -122.419782) < 0.00001);
+  ASSERT_FLOAT_EQ(37.766629, station_6->lat());
+  ASSERT_FLOAT_EQ(-122.419782, station_6->lng());
 
   auto station_8 = stations->Get(7);
   ASSERT_TRUE(station_8->id()->str() == "S8");
   ASSERT_TRUE(station_8->name()->str() == "24th St. Mission Station");
-  ASSERT_TRUE(std::abs(station_8->lat() - 37.752240) < 0.00001);
-  ASSERT_TRUE(std::abs(station_8->lng() - -122.418450) < 0.00001);
+  ASSERT_FLOAT_EQ(37.752240, station_8->lat());
+  ASSERT_FLOAT_EQ(-122.418450, station_8->lng());
 }
 
 TEST(loader_gtfs_stop, read_stations_berlin_data) {
@@ -74,20 +74,20 @@ TEST(loader_gtfs_stop, read_stations_berlin_data) {
   auto station_1 = stations->Get(0);
   ASSERT_TRUE(station_1->id()->str() == "5100071");
   ASSERT_TRUE(station_1->name()->str() == "Zbaszynek");
-  ASSERT_TRUE(std::abs(station_1->lat() - 52.2425040) < 0.00001);
-  ASSERT_TRUE(std::abs(station_1->lng() - 15.8180870) < 0.00001);
+  ASSERT_FLOAT_EQ(52.2425040, station_1->lat());
+  ASSERT_FLOAT_EQ(15.8180870, station_1->lng());
 
   auto station_6 = stations->Get(1);
   ASSERT_TRUE(station_6->id()->str() == "9230005");
   ASSERT_TRUE(station_6->name()->str() == "S Potsdam Hauptbahnhof Nord");
-  ASSERT_TRUE(std::abs(station_6->lat() - 52.3927320) < 0.00001);
-  ASSERT_TRUE(std::abs(station_6->lng() - 13.0668480) < 0.00001);
+  ASSERT_FLOAT_EQ(52.3927320, station_6->lat());
+  ASSERT_FLOAT_EQ(13.0668480, station_6->lng());
 
   auto station_8 = stations->Get(2);
   ASSERT_TRUE(station_8->id()->str() == "9230006");
   ASSERT_TRUE(station_8->name()->str() == "Potsdam, Charlottenhof Bhf");
-  ASSERT_TRUE(std::abs(station_8->lat() - 52.3930040) < 0.00001);
-  ASSERT_TRUE(std::abs(station_8->lng() - 13.0362980) < 0.00001);
+  ASSERT_FLOAT_EQ(52.3930040, station_8->lat());
+  ASSERT_FLOAT_EQ(13.0362980, station_8->lng());
 }
 
 }  // gtfs

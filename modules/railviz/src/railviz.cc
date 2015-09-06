@@ -92,6 +92,7 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
 }
 
 void railviz::init() {
+  scoped_timer timer("train index init");
   auto lock = synced_sched<schedule_access::RO>();
   train_retriever_ =
       std::unique_ptr<train_retriever>(new train_retriever(lock.sched()));
