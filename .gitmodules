@@ -24,4 +24,4 @@
 	url = https://github.com/google/googletest.git
 [submodule "external_lib/sparsehash"]
 	path = external_lib/sparsehash
-	url = https://github.com/sparsehash/sparsehash.git
+	url = https://github.com/felixguendling/sparsehash.git
