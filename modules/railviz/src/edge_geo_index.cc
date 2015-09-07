@@ -67,6 +67,7 @@ class edge_geo_index::impl {
 
   void add_edges_of_station(station_node const* node) {
     assert(node->is_station_node());
+    assert(node->get_station()->_id != 0);
     for (auto const& route_node : node->get_route_nodes()) {
       add_edges_of_route_node(route_node);
     }
@@ -75,7 +76,7 @@ class edge_geo_index::impl {
   void add_edges_of_route_node(node const* route_node) {
     assert(route_node->is_route_node());
     for (auto const& e : route_node->_edges) {
-      if (e.empty() || e._m._route_edge._conns[0]._full_con->clasz != clasz_) {
+      if (e.empty() || e._m._route_edge._conns[0]._full_con->clasz != clasz_ || e._from == 0 || e._to == 0) {
         continue;
       }
       rtree_.insert({std::make_pair(

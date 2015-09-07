@@ -63,11 +63,13 @@ std::vector<route> timetable_retriever::get_routes_on_time(
       get_route_departure_times(route_id);
   std::vector<motis::time> arrival_times = get_route_arrival_times(route_id);
   std::vector<int> requested_tracks;
+  std::cout << "processing req_tracks" << std::endl;
   for (int i = 0; i < departure_times.size(); ++i) {
     if (departure_times[i] <= time && time <= arrival_times[i]) {
       requested_tracks.push_back(i);
     }
   }
+  std::cout << "found " << requested_tracks.size() << "tracks" << std::endl;
 
   if (requested_tracks.size() == 0) {
     return {};
@@ -79,6 +81,7 @@ std::vector<route> timetable_retriever::get_routes_on_time(
   }
 
   const station_node* current_node = route_start_station.at(route_id);
+  std::cout << "loop through stations" << std::endl;
   do {
     int j = 0;
     for (int i : requested_tracks) {
@@ -86,9 +89,17 @@ std::vector<route> timetable_retriever::get_routes_on_time(
           current_node, get_track_information(*current_node, route_id, i));
       ++j;
     }
+    std::cout << "prev_current_node " << current_node << " route:" << route_id << " id(" << current_node->get_station()->_id << ");" << std::endl;
     current_node = next_station_on_route(*current_node, route_id);
+    if(current_node != nullptr)
+      std::cout << "current_node " << current_node << " id(" << current_node->get_station()->_id << ");" << std::endl;
+    else
+      std::cout << "current_node NULL" << std::endl;
+    std::cout << "\t start_id(" << route_start_station.at(route_id)->get_station()->_id << ")" << std::endl;
+    std::cout << "\t end_id(" << route_end_station.at(route_id)->get_station()->_id << ") " << std::endl;
   } while (current_node != NULL &&
            current_node != route_start_station.at(route_id));
+  std::cout << "endlloop" << std::endl;
   return routes;
 }
 
@@ -200,7 +211,7 @@ const motis::station_node* timetable_retriever::end_station_for_route(
   const station_node* next_station_node;
   if (current_node->is_station_node()) {
     next_station_node =
-        next_station_on_route(*current_node->as_station_node(), route_id);
+        next_station_on_route(*current_station, route_id);
   } else {
     next_station_node = next_station_on_route(*current_node);
   }
@@ -266,7 +277,7 @@ const motis::station_node* timetable_retriever::start_station_for_route(
   const station_node* prev_station_node;
   if (current_node->is_station_node()) {
     prev_station_node =
-        prev_station_on_route(*current_node->as_station_node(), route_id);
+        prev_station_on_route(*current_station, route_id);
   } else {
     prev_station_node = prev_station_on_route(*current_node);
   }

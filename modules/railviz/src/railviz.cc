@@ -50,6 +50,7 @@ railviz::~railviz() {}
 void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto req = msg->content<RailViz_alltra_req const*>();
+  FlatBufferBuilder b;
 
   client.bounds = {{req->p1()->lat(), req->p1()->lng()},
                    {req->p2()->lat(), req->p2()->lng()}};
@@ -62,6 +63,7 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
       client.bounds);
 
   std::vector<RailVizTrain> trains_output;
+  std::vector<flatbuffers::Offset<RailViz_alltra_res_route>> fb_routes;
   for (auto const& t : trains) {
     light_connection const* con;
     edge const* e;
@@ -70,13 +72,33 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
                                date_converter_.convert(con->a_time),
                                e->_from->get_station()->_id,
                                e->_to->get_station()->_id, e->_from->_route);
+
+    int route_id = e->_from->_route;
+    if( req->with_routes() ) {
+      std::vector<unsigned int> fb_route;
+      const motis::station_node* start_node = timetable_retriever_.route_start_station.at(route_id);
+      const motis::station_node* end_node = timetable_retriever_.route_end_station.at(route_id);
+      const motis::station_node* current_node = start_node;
+      if( current_node != nullptr ) {
+        do {
+          std::cout << "(" << lock.sched().stations[start_node->get_station()->_id].get()->name.to_string() << ")";
+          std::cout << "(" << lock.sched().stations[end_node->get_station()->_id].get()->name.to_string() << ")";
+          std::cout << lock.sched().stations[current_node->get_station()->_id].get()->name.to_string() << std::endl;
+          fb_route.push_back( current_node->get_station()->_id );
+        } while (
+          (current_node = timetable_retriever_.next_station_on_route(*current_node, route_id)) != nullptr &&
+          current_node != start_node
+        );
+      }
+      fb_routes.push_back( CreateRailViz_alltra_res_route(b, b.CreateVector(fb_route) ));
+    }
   }
 
-  FlatBufferBuilder b;
   b.Finish(
       CreateMessage(b, MsgContent_RailViz_alltra_res,
                     CreateRailViz_alltra_res(
-                        b, b.CreateVectorOfStructs(trains_output)).Union()));
+                        b, b.CreateVectorOfStructs(trains_output),
+                        b.CreateVector(fb_routes)).Union()));
   cb(make_msg(b), {});
 }
 
