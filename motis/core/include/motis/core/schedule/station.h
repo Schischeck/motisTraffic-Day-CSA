@@ -9,6 +9,15 @@ namespace motis {
 
 class station {
 public:
+  station(int index, double length, double width, int transfer_time,
+          std::string eva_nr, std::string name)
+      : index(index),
+        length(length),
+        width(width),
+        transfer_time(transfer_time),
+        eva_nr(std::move(eva_nr)),
+        name(std::move(name)) {}
+
   station()
       : index(0),
         length(0.0),

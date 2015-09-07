@@ -39,24 +39,22 @@ struct splitter {
     }
   }
 
-  bitfield split(std::vector<bitfield>& sections, unsigned start, unsigned pos,
-                 bitfield current) {
+  void split(std::vector<bitfield>& sections, unsigned start, unsigned pos,
+             bitfield current) {
     if (pos == sections.size()) {
       write_and_remove(sections, start, pos, current);
-      return current;
+      return;
     }
 
     auto intersection = current & sections[pos];
     if (intersection == none) {
       write_and_remove(sections, start, pos, current);
-      return current;
+      return;
     }
 
     split(sections, start, pos + 1, intersection);
-    auto diff = current & (~intersection);
+    auto const diff = current & (~intersection);
     write_and_remove(sections, start, pos, diff);
-
-    return diff;
   }
 
   std::vector<split_info> split(std::vector<bitfield>& sections) {

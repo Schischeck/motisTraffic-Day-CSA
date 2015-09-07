@@ -63,17 +63,32 @@ public:
   }
 
   void add_stations(Vector<Offset<Station>> const* stations) {
+    // Add dummy source station.
+    auto dummy_source = make_unique<station>(0, 0.0, 0.0, 0, "-1", "DUMMY");
+    sched_.eva_to_station.insert(
+        std::make_pair(dummy_source->eva_nr, dummy_source.get()));
+    sched_.stations.emplace_back(std::move(dummy_source));
+    sched_.station_nodes.emplace_back(make_unique<station_node>(0));
+
+    // Add dummy target stations.
+    auto dummy_target = make_unique<station>(1, 0.0, 0.0, 0, "-2", "DUMMY");
+    sched_.eva_to_station.insert(
+        std::make_pair(dummy_target->eva_nr, dummy_target.get()));
+    sched_.stations.emplace_back(std::move(dummy_target));
+    sched_.station_nodes.emplace_back(make_unique<station_node>(1));
+
     for (unsigned i = 0; i < stations->size(); ++i) {
       auto const& input_station = stations->Get(i);
+      auto const station_index = i + 2;
 
       // Create station node.
-      auto node_ptr = make_unique<station_node>(i);
+      auto node_ptr = make_unique<station_node>(station_index);
       stations_[input_station] = node_ptr.get();
       sched_.station_nodes.emplace_back(std::move(node_ptr));
 
       // Create station object.
       auto s = make_unique<station>();
-      s->index = i;
+      s->index = station_index;
       s->name = input_station->name()->str();
       s->width = input_station->lat();
       s->length = input_station->lng();
@@ -86,7 +101,7 @@ public:
 
     // First regular node id:
     // first id after station node ids
-    next_node_id_ = stations->size();
+    next_node_id_ = sched_.stations.size();
   }
 
   void add_service(Service const* service) {
