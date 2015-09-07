@@ -52,7 +52,9 @@ struct service_builder {
                        std::vector<flatbuffers::Offset<Service>>&);
 
   shared_data const& stamm_;
-  std::map<uint16_t, flatbuffers::Offset<Attribute>> attributes_;
+  std::map<uint16_t, flatbuffers::Offset<AttributeInfo>> attribute_infos_;
+  std::map<std::pair<uint16_t, int>, flatbuffers::Offset<Attribute>>
+      attributes_;
   std::map<uint32_t, flatbuffers::Offset<Category>> categories_;
   std::map<uint64_t, flatbuffers::Offset<flatbuffers::String>> line_infos_;
   std::map<std::vector<station_events>, flatbuffers::Offset<Route>> routes_;

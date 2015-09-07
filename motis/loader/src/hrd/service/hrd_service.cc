@@ -105,7 +105,7 @@ hrd_service::hrd_service(specification const& spec)
 
   parse_range(spec.line_information, line_parse_info, stops_, sections_,
               &section::line_information,
-              [](cstr line) { return line.substr(3, size(5)); });
+              [](cstr line) { return line.substr(3, size(5)).trim(); });
 
   parse_range(spec.traffic_days, traffic_days_parse_info, stops_, sections_,
               &section::traffic_days,

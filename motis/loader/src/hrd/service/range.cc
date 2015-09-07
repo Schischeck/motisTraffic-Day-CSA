@@ -23,7 +23,7 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
   if (is_index(eva_or_idx)) {
     // eva_or_idx is an index which is already definite
     return parse_index(eva_or_idx);
-  } else if (is_index(hhmm_or_idx) || hhmm_or_idx[0] == ' ') {
+  } else if (is_index(hhmm_or_idx) || hhmm_or_idx.trim().len == 0) {
     // eva_or_idx is not an index -> eva_or_idx is an eva number
     // hhmm_or_idx is empty -> search for first occurrence
     // hhmm_or_idx is an index -> search for nth occurrence
@@ -39,7 +39,7 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
     // hhmm_or_idx must be a time
     // -> return stop where eva number and time matches
     const auto eva_num = parse<int>(eva_or_idx);
-    const auto time = hhmm_to_min(parse<int>(hhmm_or_idx));
+    const auto time = hhmm_to_min(parse<int>(hhmm_or_idx.substr(1)));
     const auto it =
         std::find_if(begin(stops), end(stops), [&](hrd_service::stop const& s) {
           return s.eva_num == eva_num &&

@@ -157,6 +157,29 @@ TEST(loader_hrd_hrd_services, indices) {
       });
 }
 
+TEST(loader_hrd_hrd_services, time_prefixes) {
+  test_spec services_file(SCHEDULES / "complex-ranges" / "fahrten",
+                          "services.101");
+
+  auto services = services_file.get_hrd_services();
+  ASSERT_TRUE(services.size() == 1);
+
+  auto const& service = services[0];
+  ASSERT_TRUE(service.sections_.size() == 16);
+
+  std::for_each(
+      std::begin(service.sections_), std::end(service.sections_),
+      [](hrd_service::section const& section) {
+        ASSERT_TRUE(section.train_num == 0);
+        ASSERT_TRUE(section.admin == "rmv106");
+        ASSERT_TRUE(section.category == std::vector<cstr>({"rfb"}));
+        ASSERT_TRUE(section.line_information == std::vector<cstr>({"56"}));
+        ASSERT_TRUE(section.traffic_days == std::vector<int>({32283}));
+        ASSERT_TRUE(section.attributes == std::vector<hrd_service::attribute>(
+                                              {{0, "g5"}, {0, "j4"}}));
+      });
+}
+
 }  // hrd
 }  // loader
 }  // motis

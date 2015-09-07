@@ -66,17 +66,30 @@ Offset<Route> service_builder::create_route(
 
 Offset<Attribute> service_builder::get_or_create_attribute(
     hrd_service::attribute attr) {
-  auto key = raw_to_int<uint16_t>(attr.code);
-  return get_or_create(attributes_, key, [&]() {
-    auto stamm_attributes_it = stamm_.attributes.find(key);
-    verify(stamm_attributes_it != end(stamm_.attributes),
-           "attribute with bitfield number %.*s not found\n",
-           static_cast<int>(attr.code.length()), attr.code.c_str());
-    auto text = to_fbs_string(builder_, stamm_attributes_it->second, ENCODING);
-    auto fbs_attribute =
-        CreateAttribute(builder_, to_fbs_string(builder_, attr.code), text,
+  auto const attr_info_key = raw_to_int<uint16_t>(attr.code);
+  auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num);
+
+  return get_or_create(attributes_, attr_key, [&]() {
+    auto const attr_info =
+        get_or_create(attribute_infos_, attr_info_key, [&]() {
+          auto const stamm_attributes_it =
+              stamm_.attributes.find(attr_info_key);
+          verify(stamm_attributes_it != end(stamm_.attributes),
+                 "attribute with code %.*s not found\n",
+                 static_cast<int>(attr.code.length()), attr.code.c_str());
+
+          auto const fbs_attribute_info = CreateAttributeInfo(
+              builder_, to_fbs_string(builder_, attr.code),
+              to_fbs_string(builder_, stamm_attributes_it->second, ENCODING));
+
+          attribute_infos_[attr_info_key] = fbs_attribute_info;
+          return fbs_attribute_info;
+        });
+
+    auto const fbs_attribute =
+        CreateAttribute(builder_, attr_info,
                         bitfields_.get_or_create_bitfield(attr.bitfield_num));
-    attributes_[key] = fbs_attribute;
+    attributes_[attr_key] = fbs_attribute;
     return fbs_attribute;
   });
 }

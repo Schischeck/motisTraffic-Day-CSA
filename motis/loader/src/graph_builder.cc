@@ -197,11 +197,12 @@ private:
       if (!get_or_create_bitfield(attr->traffic_days()).test(day)) {
         continue;
       }
-      active_attributes.push_back(get_or_create(
-          attributes_, {attr->code()->c_str(), attr->code()->Length()}, [&]() {
+      auto const attribute_info = attr->info();
+      active_attributes.push_back(
+          get_or_create(attributes_, attribute_info, [&]() {
             auto new_attr = make_unique<attribute>();
-            new_attr->_code = attr->code()->str();
-            new_attr->_str = attr->text()->str();
+            new_attr->_code = attribute_info->code()->str();
+            new_attr->_str = attribute_info->text()->str();
             sched_.attributes.emplace_back(std::move(new_attr));
             return sched_.attributes.back().get();
           }));
@@ -292,7 +293,7 @@ private:
   std::map<Route const*, std::vector<node*>> routes_;
   std::map<Station const*, station_node*> stations_;
   std::map<std::string, int> tracks_;
-  std::map<parser::cstr, attribute*> attributes_;
+  std::map<AttributeInfo const*, attribute*> attributes_;
   dense_hash_map<String const*, bitfield, std::hash<String const*>,
                  std::equal_to<String const*>> bitfields_;
   dense_hash_set<connection_info*,
