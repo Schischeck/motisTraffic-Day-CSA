@@ -147,7 +147,7 @@ public:
             // if a train was used beforewards when
             // trying to use it from a route node
             route_node->_edges.push_back(
-                make_after_train_edge(_foot_node, 0, true));
+                make_after_train_edge(route_node, _foot_node, 0, true));
             break;
           }
         }
@@ -155,7 +155,6 @@ public:
       _edges.emplace_back(make_foot_edge(this, _foot_node));
     }
     _foot_node->_edges.emplace_back(std::move(fe));
-
     return node_id;
   }
 

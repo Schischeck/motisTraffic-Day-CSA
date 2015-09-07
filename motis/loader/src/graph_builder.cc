@@ -126,8 +126,8 @@ public:
 
   void add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
     for (auto const& footpath : *footpaths) {
-      auto const& from = stations_.at(footpath->from());
-      auto const& to = stations_.at(footpath->to());
+      station_node* from = stations_.at(footpath->from());
+      station_node* to = stations_.at(footpath->to());
       next_node_id_ = from->add_foot_edge(
           next_node_id_, make_foot_edge(from, to, footpath->duration()));
     }

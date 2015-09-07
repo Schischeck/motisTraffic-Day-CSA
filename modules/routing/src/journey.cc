@@ -7,7 +7,7 @@
 #include "motis/routing/label.h"
 #include "motis/routing/interval_map.h"
 
-#define UNKNOWN_TRACK (1)
+#define UNKNOWN_TRACK (0)
 
 namespace motis {
 

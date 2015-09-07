@@ -59,17 +59,17 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  shared_data sd;
-  Interval interval(0, 0);
-  Offset<Vector<Offset<Footpath>>> footpaths;
-  std::tie(sd, interval, footpaths) = parse_shared_data(hrd_root, fbb);
+  auto data = parse_shared_data(hrd_root, fbb);
+  auto const& sd = std::get<0>(data);
+  auto const& interval = std::get<1>(data);
+  auto const& footpaths = std::get<2>(data);
 
   auto services_data = parse_services_files(hrd_root, sd, fbb);
 
   fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(services_data.first),
                             fbb.CreateVector(values(sd.stations)),
                             fbb.CreateVector(services_data.second), &interval,
-                            std::move(footpaths)));
+                            footpaths));
 }
 
 std::tuple<shared_data, Interval, Offset<Vector<Offset<Footpath>>>>
@@ -95,11 +95,9 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
       parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
 
   auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
-  auto interval = parse_interval({BASIC_DATA_FILE, basic_data_buf});
-
-  auto footpaths = build_footpaths(metas.footpaths_, sd.stations, b);
-
-  return std::make_tuple(std::move(sd), interval, std::move(footpaths));
+  return std::make_tuple(std::move(sd),
+                         parse_interval({BASIC_DATA_FILE, basic_data_buf}),
+                         build_footpaths(metas.footpaths_, sd.stations, b));
 }
 
 std::pair<std::vector<Offset<Service>>, std::vector<Offset<Route>>>
