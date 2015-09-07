@@ -26,9 +26,17 @@ data_departure::data_departure(
       maximum_waiting_time_(0) {
   init_train_info(route_node, light_connection, schedule.category_names,
                   s_t_distributions, distributions_container);
-  init_feeder_info(route_node, light_connection, schedule,
+  auto const all_feeders_data =
+      graph_accessor::get_all_potential_feeders(route_node, light_connection);
+  init_feeder_info(light_connection, all_feeders_data, schedule,
                    distributions_container);
 }
+
+data_departure::data_departure(bool const is_first_route_node,
+                               time const scheduled_dep_time)
+    : is_first_route_node_(is_first_route_node),
+      scheduled_departure_time_(scheduled_dep_time),
+      maximum_waiting_time_(0) {}
 
 void data_departure::init_train_info(
     node const& route_node, light_connection const& light_conn,
@@ -64,44 +72,34 @@ void data_departure::init_train_info(
 }
 
 void data_departure::init_feeder_info(
-    node const& route_node, light_connection const& light_conn,
+    light_connection const& light_conn,
+    std::vector<std::unique_ptr<graph_accessor::feeder_info> > const&
+        all_feeders_data,
     schedule const& schedule,
     distributions_container::precomputed_distributions_container const&
         distributions_container) {
-  auto const all_feeders_data =
-      graph_accessor::get_all_potential_feeders(route_node, light_conn);
-
-  for (unsigned int i = 0; i < all_feeders_data.size(); i++) {
-    node const* feeder_route_node;
-    light_connection const* feeder_light_conn;
-    unsigned int feeder_distribution_pos;
-    std::tie(feeder_route_node, feeder_light_conn, feeder_distribution_pos) =
-        all_feeders_data[i];
-
+  for (auto const& feeder_data : all_feeders_data) {
     auto waiting_time = graph_accessor::get_waiting_time(
-        schedule.waiting_time_rules_, *feeder_light_conn, light_conn);
+        schedule.waiting_time_rules_, feeder_data->light_conn_, light_conn);
     if (waiting_time > 0) {
       auto const transfer_time =
-          schedule.stations[feeder_route_node->_station_node->_id]
+          schedule.stations[feeder_data->route_node_._station_node->_id]
               ->get_transfer_time();  // TODO: use track change time if possible
       time const latest_feasible_arrival =
           (scheduled_departure_time_ + waiting_time) - transfer_time;
 
       assert(distributions_container.contains_distributions(
-          feeder_route_node->_id, distributions_container::arrival));
+          feeder_data->route_node_._id, distributions_container::arrival));
       auto const& feeder_distribution =
           distributions_container.get_distribution(
-              feeder_route_node->_id, feeder_distribution_pos,
+              feeder_data->route_node_._id, feeder_data->light_conn_idx_,
               distributions_container::arrival);
 
-      /** arrival distributions of the feeder trains
-       * TODO: do not store the interchange feeder in this vector!
-       * (distributions_calculator makes this assumption).
-       */
-      feeders_.emplace_back(feeder_distribution, feeder_light_conn->a_time,
+      feeders_.emplace_back(feeder_distribution,
+                            feeder_data->light_conn_.a_time,
                             latest_feasible_arrival, transfer_time);
 
-      if (waiting_time > maximum_waiting_time_) {
+      if (maximum_waiting_time_ < waiting_time) {
         maximum_waiting_time_ = waiting_time;
       }
     }

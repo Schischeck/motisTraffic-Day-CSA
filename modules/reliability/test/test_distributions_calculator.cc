@@ -107,6 +107,7 @@ TEST_CASE("Initial_distributions_simple", "[distributions_calculator]") {
   }
 }
 
+#if 0
 #include "motis/reliability/db_distributions.h"
 TEST_CASE("Initial_distributions_db_distributions",
           "[distributions_calculator]") {
@@ -131,7 +132,6 @@ TEST_CASE("Initial_distributions_db_distributions",
   }
 }
 
-#if 1
 TEST_CASE("Initial_distributions_db_distributions2",
           "[distributions_calculator]") {
   std::cout << "Initial_distributions_db_distributions2" << std::endl;

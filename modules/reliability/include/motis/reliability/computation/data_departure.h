@@ -1,9 +1,10 @@
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include "motis/core/schedule/time.h"
+
+#include "motis/reliability/graph_accessor.h"
 
 namespace motis {
 
@@ -12,7 +13,6 @@ class node;
 struct schedule;
 
 namespace reliability {
-
 struct probability_distribution;
 struct start_and_travel_distributions;
 
@@ -32,6 +32,8 @@ struct data_departure {
       distributions_container::precomputed_distributions_container const&
           distributions_container,
       start_and_travel_distributions const& s_t_distributions);
+  /* constructor necessary for the derived struct data_departure_connection */
+  data_departure(bool const is_first_route_node, time const scheduled_dep_time);
 
   duration largest_delay() const;
 
@@ -43,12 +45,10 @@ struct data_departure {
 
   union train_info {
     struct preceding_arrival_info {
-      /** scheduled arrival time of the preceding arrival event of the train
-       * (0 if this is the first departure) */
+      /** scheduled arrival time of the preceding arrival event of the train */
       time arrival_time_;
 
-      /** arrival distribution of the preceding arrival event of the train
-       * (Null if this is the first departure) */
+      /** arrival distribution of the preceding arrival event of the train */
       probability_distribution const* arrival_distribution_;
 
       /** minimum standing time of the train at the station */
@@ -81,11 +81,10 @@ struct data_departure {
    * (distributions_calculator makes this assumption).
    */
   std::vector<feeder_info> feeders_;
-
   /** maximal waiting time of the departing train of any feeder */
   duration maximum_waiting_time_;
 
-private:
+protected:
   void init_train_info(
       node const& route_node, light_connection const& light_conn,
       std::vector<std::string> const& category_names,
@@ -94,7 +93,9 @@ private:
           distributions_container);
 
   void init_feeder_info(
-      node const& route_node, light_connection const& light_conn,
+      light_connection const& light_conn,
+      std::vector<std::unique_ptr<graph_accessor::feeder_info> > const&
+          all_feeders_data,
       schedule const& schedule,
       distributions_container::precomputed_distributions_container const&
           distributions_container);

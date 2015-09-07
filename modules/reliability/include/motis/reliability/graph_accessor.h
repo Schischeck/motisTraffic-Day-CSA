@@ -71,12 +71,19 @@ inline std::tuple<bool, time, time> get_feeder_time_interval(
 
 #define FEEDER_THRESHOLD 30 /* XXX */
 
-/* feeder-route-node, feeder-light-connection, feeder-distribution-position */
-typedef std::tuple<node const* const, light_connection const* const,
-                   unsigned int> feeder_info;
-inline std::vector<feeder_info> get_all_potential_feeders(
+struct feeder_info {
+  feeder_info(node const& route_node, light_connection const& light_conn,
+              unsigned int const light_conn_idx)
+      : route_node_(route_node),
+        light_conn_(light_conn),
+        light_conn_idx_(light_conn_idx) {}
+  node const& route_node_;
+  light_connection const& light_conn_;
+  unsigned int const light_conn_idx_;
+};
+inline std::vector<std::unique_ptr<feeder_info> > get_all_potential_feeders(
     node const& route_node, light_connection const& departing_light_conn) {
-  std::vector<feeder_info> feeders;
+  std::vector<std::unique_ptr<feeder_info> > feeders;
 
   for (auto const in_edge : route_node._station_node->_incoming_edges) {
     // ignore transfer edge to route_node itself
@@ -101,7 +108,8 @@ inline std::vector<feeder_info> get_all_potential_feeders(
     for (unsigned int i = 0; i < all_connections.size(); i++) {
       if (all_connections[i].a_time >= time_begin &&
           all_connections[i].a_time <= time_end) {
-        feeders.emplace_back(&feeder_route_node, &all_connections[i], i);
+        feeders.emplace_back(
+            new feeder_info(feeder_route_node, all_connections[i], i));
       }
     }
   }

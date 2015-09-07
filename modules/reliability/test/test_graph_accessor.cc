@@ -111,7 +111,7 @@ TEST_CASE("get_feeders", "[graph_accessor]") {
   REQUIRE(all_potential_feeders.size() == 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = *std::get<1>(all_potential_feeders[i]);
+    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
     auto const waiting_time = get_waiting_time(
         schedule->waiting_time_rules_, feeder_light_conn, second_light_conn);
     switch (i) {
@@ -160,7 +160,7 @@ TEST_CASE("get_feeders_first_departure", "[graph_accessor]") {
   REQUIRE(all_potential_feeders.size() == 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = *std::get<1>(all_potential_feeders[i]);
+    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
     auto const waiting_time = get_waiting_time(
         schedule->waiting_time_rules_, feeder_light_conn, first_light_conn);
     switch (i) {
