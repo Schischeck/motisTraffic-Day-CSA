@@ -31,10 +31,6 @@ public:
   int transfer_time;
   std::array<int, 10> arr_class_events, dep_class_events;
   std::string eva_nr, name;
-
-  // normally us_hoch should be equal to us_nieder
-  // not quite sure how to handle that
-  int get_transfer_time() const { return transfer_time; }
 };
 
 typedef std::unique_ptr<station> station_ptr;

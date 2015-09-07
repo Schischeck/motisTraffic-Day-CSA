@@ -283,9 +283,9 @@ private:
         route_node->_edges.push_back(
             make_invalid_edge(route_node, station_node));
       } else {
-        route_node->_edges.push_back(make_foot_edge(
-            route_node, station_node,
-            sched_.stations[station_id]->get_transfer_time(), true));
+        route_node->_edges.push_back(
+            make_foot_edge(route_node, station_node,
+                           sched_.stations[station_id]->transfer_time, true));
       }
 
       // Connect route nodes with route edges.

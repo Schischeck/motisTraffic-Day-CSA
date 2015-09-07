@@ -878,7 +878,7 @@ node* graph_updater::create_route_node(unsigned station_index, int32_t route_id,
 
   if (leave) {
     route_node->_edges.emplace_back(make_foot_edge(
-        station, _rts._schedule.stations[station_index]->get_transfer_time(),
+        station, _rts._schedule.stations[station_index]->get_transfer_time,
         true));
     if (station->_foot_node != nullptr) {
       route_node->_edges.emplace_back(
@@ -926,7 +926,7 @@ void graph_updater::fix_foot_edges(motis::node* route_node, bool enter,
     if (leave) {
       // add missing leaving edge
       route_node->_edges.emplace_back(make_foot_edge(
-          station, _rts._schedule.stations[station->_id]->get_transfer_time(),
+          station, _rts._schedule.stations[station->_id]->get_transfer_time,
           true));
       if (station->_foot_node != nullptr) {
         route_node->_edges.emplace_back(
