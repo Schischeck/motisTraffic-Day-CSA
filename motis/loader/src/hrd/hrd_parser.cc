@@ -10,6 +10,7 @@
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/footpath_builder.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/categories_parser.h"
@@ -58,17 +59,21 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  auto sd = parse_shared_data(hrd_root, fbb);
-  auto services_data = parse_services_files(hrd_root, sd.first, fbb);
+  shared_data sd;
+  Interval interval(0, 0);
+  Offset<Vector<Offset<Footpath>>> footpaths;
+  std::tie(sd, interval, footpaths) = parse_shared_data(hrd_root, fbb);
+
+  auto services_data = parse_services_files(hrd_root, sd, fbb);
 
   fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(services_data.first),
-                            fbb.CreateVector(values(sd.first.stations)),
-                            fbb.CreateVector(services_data.second),
-                            &sd.second));
+                            fbb.CreateVector(values(sd.stations)),
+                            fbb.CreateVector(services_data.second), &interval,
+                            std::move(footpaths)));
 }
 
-std::pair<shared_data, Interval> hrd_parser::parse_shared_data(
-    fs::path const& hrd_root, FlatBufferBuilder& b) {
+std::tuple<shared_data, Interval, Offset<Vector<Offset<Footpath>>>>
+hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto master_data_root = hrd_root / "stamm";
   auto stations_names_buf = load_file(master_data_root / STATIONS_FILE);
   auto stations_coords_buf = load_file(master_data_root / COORDINATES_FILE);
@@ -92,7 +97,9 @@ std::pair<shared_data, Interval> hrd_parser::parse_shared_data(
   auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
   auto interval = parse_interval({BASIC_DATA_FILE, basic_data_buf});
 
-  return std::make_pair(std::move(sd), interval);
+  auto footpaths = build_footpaths(metas.footpaths_, sd.stations, b);
+
+  return std::make_tuple(std::move(sd), interval, std::move(footpaths));
 }
 
 std::pair<std::vector<Offset<Service>>, std::vector<Offset<Route>>>

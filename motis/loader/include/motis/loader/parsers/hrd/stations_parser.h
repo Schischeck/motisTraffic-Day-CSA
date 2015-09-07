@@ -3,8 +3,8 @@
 #include <map>
 
 #include "motis/loader/loaded_file.h"
-#include "motis/schedule-format/Station_generated.h"
 #include "motis/loader/parsers/hrd/station_meta_data_parser.h"
+#include "motis/schedule-format/Station_generated.h"
 
 namespace motis {
 namespace loader {

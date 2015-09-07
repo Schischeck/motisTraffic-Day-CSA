@@ -109,6 +109,15 @@ public:
     }
   }
 
+  void add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
+    for (auto const& footpath : *footpaths) {
+      auto const& from = stations_.at(footpath->from());
+      auto const& to = stations_.at(footpath->to());
+      next_node_id_ = from->add_foot_edge(
+          next_node_id_, make_foot_edge(from, to, footpath->duration()));
+    }
+  }
+
   void connect_reverse() {
     for (auto& station_node : sched_.station_nodes) {
       for (auto& station_edge : station_node->_edges) {
@@ -323,6 +332,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
   }
+  builder.add_footpaths(serialized->footpaths());
 
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);

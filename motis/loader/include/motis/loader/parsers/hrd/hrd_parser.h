@@ -7,6 +7,7 @@
 #include "motis/schedule-format/Interval_generated.h"
 #include "motis/schedule-format/Service_generated.h"
 #include "motis/schedule-format/Route_generated.h"
+#include "motis/schedule-format/Footpath_generated.h"
 
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/service/shared_data.h"
@@ -23,8 +24,11 @@ struct hrd_parser : public format_parser {
   virtual void parse(boost::filesystem::path const& path,
                      flatbuffers::FlatBufferBuilder&) override;
 
-  std::pair<shared_data, Interval> parse_shared_data(
-      boost::filesystem::path const& hrd_root, flatbuffers::FlatBufferBuilder&);
+  std::tuple<
+      shared_data, Interval,
+      flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Footpath>>>>
+  parse_shared_data(boost::filesystem::path const& hrd_root,
+                    flatbuffers::FlatBufferBuilder&);
 
   std::pair<std::vector<flatbuffers::Offset<Service>>,
             std::vector<flatbuffers::Offset<Route>>>

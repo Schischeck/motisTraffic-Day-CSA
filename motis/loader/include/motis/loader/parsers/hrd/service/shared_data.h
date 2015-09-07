@@ -16,6 +16,7 @@ namespace loader {
 namespace hrd {
 
 struct shared_data {
+  shared_data() = default;
   shared_data(std::map<int, flatbuffers::Offset<Station>> stations,
               std::map<uint32_t, category> categories,
               std::map<uint16_t, std::string> attributes,

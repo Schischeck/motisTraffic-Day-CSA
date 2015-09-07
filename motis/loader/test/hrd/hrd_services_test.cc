@@ -37,7 +37,7 @@ TEST(loader_hrd_hrd_services, simple_ranges) {
                                          hrd_service::attribute(0, "FR"),
                                          hrd_service::attribute(0, "G ")}));
         ASSERT_TRUE(s.category == std::vector<cstr>({"IC "}));
-        ASSERT_TRUE(s.line_information == std::vector<cstr>({"381  "}));
+        EXPECT_EQ(std::vector<cstr>({"381"}), s.line_information);
       });
   ASSERT_TRUE(service.stops_.size() == 6);
 
@@ -99,7 +99,7 @@ TEST(loader_hrd_hrd_services, complex_ranges) {
                                         {hrd_service::attribute(0, "FR"),
                                          hrd_service::attribute(0, "G ")}));
   ASSERT_TRUE(section.category == std::vector<cstr>({"IC "}));
-  ASSERT_TRUE(section.line_information == std::vector<cstr>({"381  "}));
+  ASSERT_TRUE(section.line_information == std::vector<cstr>({"381"}));
   ASSERT_TRUE(section.traffic_days == std::vector<int>({0}));
 
   section = service.sections_[1];
@@ -108,7 +108,7 @@ TEST(loader_hrd_hrd_services, complex_ranges) {
   ASSERT_TRUE(section.attributes == std::vector<hrd_service::attribute>(
                                         {hrd_service::attribute(1337, "BT")}));
   ASSERT_TRUE(section.category == std::vector<cstr>({"IC "}));
-  ASSERT_TRUE(section.line_information == std::vector<cstr>({"381  "}));
+  ASSERT_TRUE(section.line_information == std::vector<cstr>({"381"}));
   ASSERT_TRUE(section.traffic_days == std::vector<int>({2687}));
 
   ASSERT_TRUE(service.stops_.size() == 3);

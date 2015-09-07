@@ -4,6 +4,7 @@ include "Route.fbs";
 include "Platform.fbs";
 include "Attribute.fbs";
 include "Interval.fbs";
+include "Footpath.fbs";
 
 namespace motis.loader;
 
@@ -12,6 +13,7 @@ table Schedule {
   stations: [Station];
   routes: [Route];
   interval: Interval;
+  footpaths: [Footpath];
 }
 
 root_type Schedule;
