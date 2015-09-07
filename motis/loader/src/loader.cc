@@ -9,6 +9,7 @@
 
 #include "parser/file.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/graph_builder.h"
 #include "motis/loader/parsers/gtfs/gtfs_parser.h"
 #include "motis/loader/parsers/hrd/hrd_parser.h"
@@ -16,6 +17,7 @@
 namespace fs = boost::filesystem;
 using namespace flatbuffers;
 using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -28,6 +30,8 @@ std::vector<std::unique_ptr<format_parser>> parsers() {
 }
 
 schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
+  scoped_timer time("loading schedule");
+
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {

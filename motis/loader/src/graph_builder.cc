@@ -77,6 +77,7 @@ public:
     sched_.stations.emplace_back(std::move(dummy_target));
     sched_.station_nodes.emplace_back(make_unique<station_node>(1));
 
+    // Add schedule stations.
     for (unsigned i = 0; i < stations->size(); ++i) {
       auto const& input_station = stations->Get(i);
       auto const station_index = i + 2;
