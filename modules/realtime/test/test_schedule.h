@@ -93,9 +93,9 @@ public:
       // TODO
       if (i == expected_stops.size() - 1) {
         exp_arrival = _rts._schedule.date_mgr.format_ISO(
-            estop.arrival.date_time + estop.station->get_transfer_time());
+            estop.arrival.date_time + estop.station->get_transfer_time);
         exp_departure = _rts._schedule.date_mgr.format_ISO(
-            estop.departure.date_time + estop.station->get_transfer_time());
+            estop.departure.date_time + estop.station->get_transfer_time);
       }
 
       CHECK(jstop.arrival.date_time == exp_arrival);

@@ -47,23 +47,22 @@ std::vector<journey> search::get_connections(
   // use dummy station as virtual station representing
   // all source stations as well as all target stations
   assert(!_sched.stations.empty());
-  int dummy_source = _sched.stations.front()->index;
-  int dummy_target = _sched.stations.back()->index;
 
   // generate additional edges for the lower bound graph.
   std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
   for (auto const& arr : to) {
-    lb_graph_edges[dummy_target].push_back(
+    lb_graph_edges[DUMMY_TARGET_IDX].push_back(
         simple_edge(arr.station, arr.time_cost));
   }
   for (auto const& arr : from) {
     lb_graph_edges[arr.station].push_back(
-        simple_edge(dummy_source, arr.time_cost));
+        simple_edge(DUMMY_SOURCE_IDX, arr.time_cost));
   }
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
-  lower_bounds lower_bounds(_sched.lower_bounds, dummy_target, lb_graph_edges);
+  lower_bounds lower_bounds(_sched.lower_bounds, DUMMY_TARGET_IDX,
+                            lb_graph_edges);
 
   MOTIS_START_TIMING(lower_bounds_timing);
 
@@ -81,15 +80,15 @@ std::vector<journey> search::get_connections(
 
   MOTIS_STOP_TIMING(lower_bounds_timing);
 
-  if (lower_bounds.travel_time.get_distance(dummy_source) ==
+  if (lower_bounds.travel_time.get_distance(DUMMY_SOURCE_IDX) ==
       std::numeric_limits<uint32_t>::max()) {
-    LOG(logging::error) << "no path from source[" << dummy_source << "] "
-                        << "to target[" << dummy_target << "] found";
+    LOG(logging::error) << "no path from source to target found";
     return {};
   }
 
   std::vector<label*> start_labels;
-  station_node* dummy_source_station = _sched.station_nodes[dummy_source].get();
+  station_node* dummy_source_station =
+      _sched.station_nodes[DUMMY_SOURCE_IDX].get();
   for (const auto& s : from) {
     station_node const* station = _sched.station_nodes[s.station].get();
 
@@ -101,7 +100,7 @@ std::vector<journey> search::get_connections(
   }
 
   std::unordered_map<node const*, std::vector<edge>> additional_edges;
-  station_node* target = _sched.station_nodes[dummy_target].get();
+  station_node* target = _sched.station_nodes[DUMMY_TARGET_IDX].get();
   for (auto const& arr : to) {
     station_node* arrival_station = _sched.station_nodes[arr.station].get();
 
@@ -116,7 +115,7 @@ std::vector<journey> search::get_connections(
   }
 
   pareto_dijkstra pd(_sched.node_count,
-                     _sched.station_nodes[dummy_target].get(), start_labels,
+                     _sched.station_nodes[DUMMY_TARGET_IDX].get(), start_labels,
                      additional_edges, lower_bounds, _label_store);
   std::vector<label*>& results = pd.search();
 

@@ -15,6 +15,9 @@ class station_node;
 class node;
 class label;
 
+constexpr int DUMMY_SOURCE_IDX = 0;
+constexpr int DUMMY_TARGET_IDX = 1;
+
 class node {
 public:
   node(station_node* station_node, int node_id)

@@ -54,7 +54,7 @@ void waiting_edges::create_waiting_edges() {
     const auto& station_node = _rts._schedule.station_nodes[station_index];
     const motis::station* station =
         _rts._schedule.stations[station_index].get();
-    const int transfer_time = station->get_transfer_time();
+    const int transfer_time = station->get_transfer_time;
     //    LOG(debug) << "station node:"
     //               << " index=" << station.index
     //               << " eva_nr=" << station.eva_nr
