@@ -145,6 +145,20 @@ public:
     }
   }
 
+  void sort_connections() {
+    for (auto& station_node : sched_.station_nodes) {
+      for (auto& station_edge : station_node->_edges) {
+        for (auto& edge : station_edge._to->_edges) {
+          if (edge.empty()) {
+            continue;
+          }
+          std::sort(begin(edge._m._route_edge._conns),
+                    end(edge._m._route_edge._conns));
+        }
+      }
+    }
+  }
+
   int node_count() const { return next_node_id_; }
 
 private:
@@ -203,8 +217,8 @@ private:
       // Build light connection.
       int day_index = day - first_day_;
       e->_m._route_edge._conns.emplace_back(
-          day_index * MINUTES_A_DAY * 60 + dep_time,
-          day_index * MINUTES_A_DAY * 60 + arr_time,
+          day_index * MINUTES_A_DAY + dep_time,
+          day_index * MINUTES_A_DAY + arr_time,
           get_or_create<decltype(connections_), connection*>(
               connections_, &con_, [&]() {
                 sched_.full_connections.emplace_back(
@@ -353,10 +367,11 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
     builder.add_service(service);
   }
   builder.add_footpaths(serialized->footpaths());
+  builder.connect_reverse();
+  builder.sort_connections();
 
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
-  builder.connect_reverse();
 
   return sched;
 }

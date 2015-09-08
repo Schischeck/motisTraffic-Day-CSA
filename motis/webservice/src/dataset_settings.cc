@@ -7,9 +7,9 @@
 
 #include "motis/core/common/date_util.h"
 
-#define DATASET "dataset"
-#define SCHEDULE_BEGIN "begin"
-#define NUM_DAYS "num_days"
+#define DATASET "dataset.path"
+#define SCHEDULE_BEGIN "dataset.begin"
+#define NUM_DAYS "dataset.num_days"
 
 namespace motis {
 namespace webservice {
