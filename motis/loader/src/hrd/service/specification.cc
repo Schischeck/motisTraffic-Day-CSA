@@ -47,7 +47,7 @@ bool specification::read_line(cstr line, char const* filename,
     throw parser_error(filename, line_number);
   }
 
-  // ignore *I, *R, *GR, *SH, *T, *KW, *KWZ
+  // ignore *I, *GR, *SH, *T, *KW, *KWZ
   bool potential_kurswagen = false;
   switch (line[1]) {
     case 'K':
@@ -76,6 +76,7 @@ bool specification::read_line(cstr line, char const* filename,
       }
       break;
     case 'L': line_information.push_back(line); break;
+    case 'R': directions.push_back(line); break;
   }
 
   return false;

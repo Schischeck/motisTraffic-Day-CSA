@@ -47,6 +47,7 @@ struct hrd_service {
     std::vector<attribute> attributes;
     std::vector<parser::cstr> category;
     std::vector<parser::cstr> line_information;
+    std::vector<parser::cstr> directions;
     std::vector<int> traffic_days;
   };
 

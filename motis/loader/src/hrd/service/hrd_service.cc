@@ -46,7 +46,8 @@ struct range_parse_information {
   int from_hhmm_or_idx_start;
   int to_hhmm_or_idx_start;
 } attribute_parse_info{6, 14, 29, 36}, line_parse_info{9, 17, 25, 32},
-    category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36};
+    category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36},
+    direction_parse_info{13, 21, 29, 36};
 
 std::vector<std::pair<cstr, range>> compute_ranges(
     std::vector<cstr> const& spec_lines,
@@ -111,6 +112,10 @@ hrd_service::hrd_service(specification const& spec)
               &section::traffic_days,
               [](cstr line) { return parse<int>(line.substr(22, size(6))); });
 
+  parse_range(spec.directions, direction_parse_info, stops_, sections_,
+              &section::directions,
+              [](cstr line) { return line.substr(5, size(7)); });
+
   verify_service();
 }
 
@@ -122,10 +127,13 @@ void hrd_service::verify_service() const {
            "section %d invalid: %lu multiple traffic days", section_index,
            section.traffic_days.size());
     verify(section.line_information.size() <= 1,
-           "section %d invalid: %lu line informations", section_index,
+           "section %d invalid: %lu line information", section_index,
            section.line_information.size());
     verify(section.category.size() == 1, "section %d invalid: %lu categories",
            section_index, section.category.size());
+    verify(section.directions.size() <= 1,
+           "section %d invalid: %lu direction information", section_index,
+           section.directions.size());
     ++section_index;
   }
 }
