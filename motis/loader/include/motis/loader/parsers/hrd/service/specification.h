@@ -26,6 +26,7 @@ struct specification {
   std::vector<parser::cstr> categories;
   std::vector<parser::cstr> line_information;
   std::vector<parser::cstr> attributes;
+  std::vector<parser::cstr> directions;
   std::vector<parser::cstr> stops;
 };
 

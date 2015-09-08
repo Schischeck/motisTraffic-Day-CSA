@@ -114,16 +114,20 @@ Offset<Vector<Offset<Section>>> service_builder::create_sections(
           line_info = get_or_create_line_info(s.line_information[0]);
         }
 
-        SectionBuilder sbuilder(builder_);
-        sbuilder.add_train_nr(s.train_num);
-        sbuilder.add_attributes(attributes);
-        sbuilder.add_category(category);
+        SectionBuilder sb(builder_);
+        sb.add_train_nr(s.train_num);
+        sb.add_attributes(attributes);
+        sb.add_category(category);
 
         if (!s.line_information.empty()) {
-          sbuilder.add_line_id(line_info);
+          sb.add_line_id(line_info);
         }
 
-        return sbuilder.Finish();
+        if (!s.directions.empty()) {
+          // TODO (Tobias Raffel) shared_data lookup
+        }
+
+        return sb.Finish();
       }));
 }
 
