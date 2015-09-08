@@ -164,8 +164,8 @@ private:
     assert(e->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
-    auto const& from = *sched_.stations[e->_from->get_station()->_id];
-    auto const& to = *sched_.stations[e->_to->get_station()->_id];
+    auto& from = *sched_.stations[e->_from->get_station()->_id];
+    auto& to = *sched_.stations[e->_to->get_station()->_id];
 
     // Expand traffic days.
     for (int day = first_day_; day <= last_day_; ++day) {
@@ -211,6 +211,10 @@ private:
                     make_unique<connection>(con_));
                 return sched_.full_connections.back().get();
               }));
+
+      // Count events.
+      ++from.dep_class_events[con_.clasz];
+      ++to.arr_class_events[con_.clasz];
     }
   }
 
