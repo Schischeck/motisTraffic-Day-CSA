@@ -21,6 +21,25 @@ using google::dense_hash_map;
 using namespace motis::logging;
 using namespace flatbuffers;
 
+template <typename Key, typename Value, typename Hash = std::hash<Key>,
+          typename Eq = std::equal_to<Key>>
+using hash_map = google::dense_hash_map<Key, Value, Hash, Eq>;
+
+template <typename Entry, typename Hash = std::hash<Entry>,
+          typename Eq = std::equal_to<Entry>>
+using hash_set = google::dense_hash_set<Entry, Hash, Eq>;
+
+template <typename Entry, typename Hash, typename Eq, typename CreateFun>
+auto get_or_create_set(hash_set<Entry, Hash, Eq>& s, Entry const& key,
+                       CreateFun f) -> decltype(*s.find(key)) {
+  auto it = s.find(key);
+  if (it != s.end()) {
+    return *it;
+  } else {
+    return *s.insert(f()).first;
+  }
+}
+
 namespace motis {
 namespace loader {
 
@@ -200,12 +219,11 @@ private:
                       con_info_.attributes);
 
       // Build full connection.
-      con_.con_info = get_or_create<decltype(con_infos_), connection_info*>(
-          con_infos_, &con_info_, [&]() {
-            sched_.connection_infos.emplace_back(
-                make_unique<connection_info>(con_info_));
-            return sched_.connection_infos.back().get();
-          });
+      con_.con_info = get_or_create_set(con_infos_, &con_info_, [&]() {
+        sched_.connection_infos.emplace_back(
+            make_unique<connection_info>(con_info_));
+        return sched_.connection_infos.back().get();
+      });
 
       con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
       con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
@@ -219,12 +237,10 @@ private:
       e->_m._route_edge._conns.emplace_back(
           day_index * MINUTES_A_DAY + dep_time,
           day_index * MINUTES_A_DAY + arr_time,
-          get_or_create<decltype(connections_), connection*>(
-              connections_, &con_, [&]() {
-                sched_.full_connections.emplace_back(
-                    make_unique<connection>(con_));
-                return sched_.full_connections.back().get();
-              }));
+          get_or_create_set(connections_, &con_, [&]() {
+            sched_.full_connections.emplace_back(make_unique<connection>(con_));
+            return sched_.full_connections.back().get();
+          }));
 
       // Count events.
       ++from.dep_class_events[con_.clasz];
@@ -337,13 +353,11 @@ private:
   std::map<Station const*, station_node*> stations_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
-  dense_hash_map<String const*, bitfield, std::hash<String const*>,
-                 std::equal_to<String const*>> bitfields_;
-  dense_hash_set<connection_info*,
-                 deep_ptr_hash<hash_con_info, connection_info>,
-                 deep_ptr_eq<connection_info>> con_infos_;
-  dense_hash_set<connection*, deep_ptr_hash<hash_con, connection>,
-                 deep_ptr_eq<connection>> connections_;
+  hash_map<String const*, bitfield> bitfields_;
+  hash_set<connection_info*, deep_ptr_hash<hash_con_info, connection_info>,
+           deep_ptr_eq<connection_info>> con_infos_;
+  hash_set<connection*, deep_ptr_hash<hash_con, connection>,
+           deep_ptr_eq<connection>> connections_;
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;

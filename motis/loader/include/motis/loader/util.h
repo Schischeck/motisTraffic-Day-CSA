@@ -107,16 +107,6 @@ V& get_or_create(Map& m, K const& key, CreateFun f) {
   }
 }
 
-template <typename Set, typename Entry, typename CreateFun>
-Entry get_or_create(Set& s, Entry const& key, CreateFun f) {
-  auto it = s.find(key);
-  if (it != s.end()) {
-    return *it;
-  } else {
-    return *s.insert(f()).first;
-  }
-}
-
 template <typename TargetCollection, typename It, typename UnaryOperation>
 inline TargetCollection transform(It s, It e, UnaryOperation op) {
   TargetCollection c;
