@@ -15,6 +15,8 @@ public:
         length(length),
         width(width),
         transfer_time(transfer_time),
+        arr_class_events({{0}}),
+        dep_class_events({{0}}),
         eva_nr(std::move(eva_nr)),
         name(std::move(name)) {}
 
@@ -29,7 +31,7 @@ public:
   int index;
   double length, width;
   int transfer_time;
-  std::array<int, 10> arr_class_events, dep_class_events;
+  std::array<uint64_t, 10> arr_class_events, dep_class_events;
   std::string eva_nr, name;
 };
 

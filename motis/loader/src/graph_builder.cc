@@ -75,7 +75,7 @@ public:
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
-        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60)) {
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
