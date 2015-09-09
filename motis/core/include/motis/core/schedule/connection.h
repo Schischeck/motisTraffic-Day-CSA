@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
 
@@ -24,6 +25,19 @@ enum {
 
 class connection_info {
 public:
+  struct hash {
+    std::size_t operator()(connection_info const& c) const {
+      std::size_t seed = 0;
+      for (auto const& attr : c.attributes) {
+        hash_combine(seed, attr);
+      }
+      hash_combine(seed, c.line_identifier);
+      hash_combine(seed, c.family);
+      hash_combine(seed, c.train_nr);
+      return seed;
+    }
+  };
+
   connection_info() : family(0), train_nr(0) {}
 
   bool operator<(connection_info const& o) const {
@@ -59,6 +73,18 @@ public:
 
 class connection {
 public:
+  struct hash {
+    std::size_t operator()(connection const& c) const {
+      std::size_t seed = 0;
+      hash_combine(seed, c.con_info);
+      hash_combine(seed, c.price);
+      hash_combine(seed, c.d_platform);
+      hash_combine(seed, c.a_platform);
+      hash_combine(seed, c.clasz);
+      return seed;
+    }
+  };
+
   connection()
       : con_info(nullptr), price(0), d_platform(0), a_platform(0), clasz(0) {}
 

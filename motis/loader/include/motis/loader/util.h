@@ -97,16 +97,6 @@ V& get_or_create(std::map<K, V>& m, K const& key, CreateFun f) {
   }
 }
 
-template <typename Map, typename K, typename V, typename CreateFun>
-V& get_or_create(Map& m, K const& key, CreateFun f) {
-  auto it = m.find(key);
-  if (it != end(m)) {
-    return it->second;
-  } else {
-    return m[key] = f();
-  }
-}
-
 template <typename TargetCollection, typename It, typename UnaryOperation>
 inline TargetCollection transform(It s, It e, UnaryOperation op) {
   TargetCollection c;

@@ -2,11 +2,11 @@
 
 #include <functional>
 
-#include "google/dense_hash_set"
-#include "google/dense_hash_map"
-
 #include "parser/cstr.h"
 
+#include "motis/core/common/hash_map.h"
+#include "motis/core/common/hash_set.h"
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
 
@@ -14,59 +14,12 @@
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
-#include "motis/loader/hash_helper.h"
 
-using google::dense_hash_set;
-using google::dense_hash_map;
 using namespace motis::logging;
 using namespace flatbuffers;
 
-template <typename Key, typename Value, typename Hash = std::hash<Key>,
-          typename Eq = std::equal_to<Key>>
-using hash_map = google::dense_hash_map<Key, Value, Hash, Eq>;
-
-template <typename Entry, typename Hash = std::hash<Entry>,
-          typename Eq = std::equal_to<Entry>>
-using hash_set = google::dense_hash_set<Entry, Hash, Eq>;
-
-template <typename Entry, typename Hash, typename Eq, typename CreateFun>
-auto get_or_create_set(hash_set<Entry, Hash, Eq>& s, Entry const& key,
-                       CreateFun f) -> decltype(*s.find(key)) {
-  auto it = s.find(key);
-  if (it != s.end()) {
-    return *it;
-  } else {
-    return *s.insert(f()).first;
-  }
-}
-
 namespace motis {
 namespace loader {
-
-struct hash_con {
-  std::size_t operator()(connection const& c) const {
-    std::size_t seed = 0;
-    hash_combine(seed, c.con_info);
-    hash_combine(seed, c.price);
-    hash_combine(seed, c.d_platform);
-    hash_combine(seed, c.a_platform);
-    hash_combine(seed, c.clasz);
-    return seed;
-  }
-};
-
-struct hash_con_info {
-  std::size_t operator()(connection_info const& c) const {
-    std::size_t seed = 0;
-    for (auto const& attr : c.attributes) {
-      hash_combine(seed, attr);
-    }
-    hash_combine(seed, c.line_identifier);
-    hash_combine(seed, c.family);
-    hash_combine(seed, c.train_nr);
-    return seed;
-  }
-};
 
 class graph_builder {
 public:
@@ -79,6 +32,7 @@ public:
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
+    stations_.set_empty_key(nullptr);
   }
 
   void add_stations(Vector<Offset<Station>> const* stations) {
@@ -146,8 +100,8 @@ public:
 
   void add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
     for (auto const& footpath : *footpaths) {
-      station_node* from = stations_.at(footpath->from());
-      station_node* to = stations_.at(footpath->to());
+      auto from = stations_[footpath->from()];
+      auto to = stations_[footpath->to()];
       next_node_id_ = from->add_foot_edge(
           next_node_id_, make_foot_edge(from, to, footpath->duration()));
     }
@@ -182,11 +136,10 @@ public:
 
 private:
   bitfield const& get_or_create_bitfield(String const* serialized_bitfield) {
-    return get_or_create<decltype(bitfields_), String const*, bitfield>(
-        bitfields_, serialized_bitfield, [&]() {
-          return deserialize_bitset<BIT_COUNT>(
-              {serialized_bitfield->c_str(), serialized_bitfield->Length()});
-        });
+    return map_get_or_create(bitfields_, serialized_bitfield, [&]() {
+      return deserialize_bitset<BIT_COUNT>(
+          {serialized_bitfield->c_str(), serialized_bitfield->Length()});
+    });
   }
 
   void add_service_section(edge* e, Section const* section,
@@ -219,7 +172,7 @@ private:
                       con_info_.attributes);
 
       // Build full connection.
-      con_.con_info = get_or_create_set(con_infos_, &con_info_, [&]() {
+      con_.con_info = set_get_or_create(con_infos_, &con_info_, [&]() {
         sched_.connection_infos.emplace_back(
             make_unique<connection_info>(con_info_));
         return sched_.connection_infos.back().get();
@@ -237,7 +190,7 @@ private:
       e->_m._route_edge._conns.emplace_back(
           day_index * MINUTES_A_DAY + dep_time,
           day_index * MINUTES_A_DAY + arr_time,
-          get_or_create_set(connections_, &con_, [&]() {
+          set_get_or_create(connections_, &con_, [&]() {
             sched_.full_connections.emplace_back(make_unique<connection>(con_));
             return sched_.full_connections.back().get();
           }));
@@ -308,7 +261,7 @@ private:
     edge* last_route_edge = nullptr;
     for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
       auto const& from_stop = stops->Get(stop_idx);
-      auto const& station_node = stations_.at(from_stop);
+      auto const& station_node = stations_[from_stop];
       auto station_id = station_node->_id;
       auto route_node = new node(station_node, next_node_id_++);
       route_node->_route = route_index;
@@ -350,13 +303,14 @@ private:
 
   std::map<String const*, int> categories_;
   std::map<Route const*, std::vector<node*>> routes_;
-  std::map<Station const*, station_node*> stations_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
+  hash_map<Station const*, station_node*> stations_;
   hash_map<String const*, bitfield> bitfields_;
-  hash_set<connection_info*, deep_ptr_hash<hash_con_info, connection_info>,
+  hash_set<connection_info*,
+           deep_ptr_hash<connection_info::hash, connection_info>,
            deep_ptr_eq<connection_info>> con_infos_;
-  hash_set<connection*, deep_ptr_hash<hash_con, connection>,
+  hash_set<connection*, deep_ptr_hash<connection::hash, connection>,
            deep_ptr_eq<connection>> connections_;
   unsigned next_node_id_;
   schedule& sched_;

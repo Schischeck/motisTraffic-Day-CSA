@@ -4,7 +4,6 @@
 #include <functional>
 
 namespace motis {
-namespace loader {
 
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v) {
@@ -37,5 +36,4 @@ struct deep_ptr_eq {
   }
 };
 
-}  // loader
-}  // motis
+}  // namespace motis

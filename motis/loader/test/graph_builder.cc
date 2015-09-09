@@ -59,11 +59,6 @@ protected:
   schedule_ptr sched_;
 };
 
-TEST_F(graph_builder_test, interval_test) {
-  ASSERT_EQ(interval_begin, sched_->schedule_begin_);
-  ASSERT_EQ(interval_end, sched_->schedule_end_);
-}
-
 TEST_F(graph_builder_test, eva_num) {
   auto& stations = sched_->eva_to_station;
   EXPECT_STREQ("8000013", stations["8000013"]->eva_nr.c_str());
