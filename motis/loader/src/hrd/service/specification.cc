@@ -29,6 +29,7 @@ void specification::reset() {
   categories.clear();
   line_information.clear();
   attributes.clear();
+  directions.clear();
   stops.clear();
 }
 
