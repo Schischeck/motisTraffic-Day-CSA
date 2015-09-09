@@ -52,9 +52,16 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
 }
 
 range::range(std::vector<hrd_service::stop> const& stops, cstr from_eva_or_idx,
-             cstr to_eva_or_idx, cstr from_hhmm_or_idx, cstr to_hhmm_or_idx)
-    : from_idx(get_index(stops, from_eva_or_idx, from_hhmm_or_idx, true)),
-      to_idx(get_index(stops, to_eva_or_idx, to_hhmm_or_idx, false)) {}
+             cstr to_eva_or_idx, cstr from_hhmm_or_idx, cstr to_hhmm_or_idx) {
+  if (from_eva_or_idx.trim().empty() && to_eva_or_idx.trim().empty() &&
+      from_hhmm_or_idx.trim().empty() && to_hhmm_or_idx.trim().empty()) {
+    from_idx = 0;
+    to_idx = stops.size() - 1;
+  } else {
+    from_idx = get_index(stops, from_eva_or_idx, from_hhmm_or_idx, true);
+    to_idx = get_index(stops, to_eva_or_idx, to_hhmm_or_idx, false);
+  }
+}
 
 }  // hrd
 }  // loader
