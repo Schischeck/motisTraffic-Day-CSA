@@ -4,6 +4,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/railviz/timetable_retriever.h"
 
+/*
 TEST_CASE("route-nodes have only one route-edge", "[railviz]") {
   std::cout << "load sched..." << std::endl;
   auto schedule =
@@ -65,3 +66,4 @@ TEST_CASE("train-routes are generated correctly", "[railviz]") {
     std::cout << "error" << std::endl;
   }
 }
+*/
