@@ -6,4 +6,5 @@ table RailViz_alltra_req {
   p1 : RailVizCoordinate;
   p2 : RailVizCoordinate;
   time : ulong;
+  with_routes : bool = false;
 }

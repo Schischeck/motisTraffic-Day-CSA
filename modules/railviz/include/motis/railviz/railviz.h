@@ -32,6 +32,7 @@ struct railviz : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
+  static std::vector<std::string> clasz_names;
  private:
   void init(motis::module::msg_ptr msg, webclient& client,
             motis::module::callback cb);

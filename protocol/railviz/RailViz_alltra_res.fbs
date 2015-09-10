@@ -2,6 +2,11 @@ include "railviz/RailVizTrain.fbs";
 
 namespace motis.railviz;
 
+table RailViz_alltra_res_route {
+	route: [uint];
+}
+
 table RailViz_alltra_res {
 	trains : [RailVizTrain];
+	routes : [RailViz_alltra_res_route];
 }

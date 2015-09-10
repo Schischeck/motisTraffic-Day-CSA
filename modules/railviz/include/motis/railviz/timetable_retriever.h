@@ -18,7 +18,7 @@ typedef std::tuple<light_connection const*, station_node const*,
                    station_node const*, bool, unsigned int> timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
-typedef std::pair<station_node const*, light_connection const*> route_entry;
+typedef std::tuple<station_node const*, motis::node const*, light_connection const*> route_entry;
 typedef std::vector<route_entry> route;
 
 struct timetable_retriever {
@@ -34,11 +34,11 @@ struct timetable_retriever {
 
   void init(schedule const& sched);
 
+  std::vector<motis::station_node const*> stations_on_route( unsigned int route_id ) const;
   std::vector<route> get_routes_on_time(unsigned int route_id,
                                         motis::time time) const;
-  const light_connection* get_track_information(const station_node& station,
-                                                unsigned int route_id,
-                                                int track) const;
+  const light_connection* get_light_connection_incoming(const node&, int) const;
+  const light_connection* get_light_connection_outgoing(const node&, int) const;
 
   timetable ordered_timetable_for_station(const station_node& station) const;
 
@@ -47,35 +47,19 @@ struct timetable_retriever {
   void timetable_for_station_incoming(const station_node& station,
                                       timetable& timetable_) const;
 
-  const motis::station_node* next_station_on_route(
-      const motis::node& route_node) const;
-  const motis::station_node* next_station_on_route(
-      const motis::station_node& node, unsigned int route_id) const;
+  const motis::node* parent_node( const motis::node& node ) const;
+  const motis::node* child_node( const motis::node& node ) const;
 
-  const motis::station_node* end_station_for_route(
-      unsigned int route_id, const node* current_node) const;
-  const motis::station_node* end_station_for_route(
-      unsigned int route_id, const node* current_node,
-      std::set<unsigned int>&) const;
+  const motis::node* start_node_for_route(unsigned int route_id, const station_node *current_node) const;
+  const motis::node* end_node_for_route(unsigned int route_id, const station_node *current_node) const;
 
-  const motis::station_node* prev_station_on_route(
-      const motis::node& route_node) const;
-  const motis::station_node* prev_station_on_route(
-      const motis::station_node& node, unsigned int route_id) const;
-
-  const motis::station_node* start_station_for_route(
-      unsigned int route_id, const node* current_node) const;
-  const motis::station_node* start_station_for_route(
-      unsigned int route_id, const node* current_node,
-      std::set<unsigned int>&) const;
-
-  std::vector<unsigned int> routes_at_station(const station_node&) const;
+  std::set<unsigned int> routes_at_station(const station_node&) const;
   std::vector<motis::time> get_route_departure_times(
       unsigned int route_id) const;
   std::vector<motis::time> get_route_arrival_times(unsigned int route_id) const;
 
-  std::map<unsigned int, station_node const*> route_start_station;
-  std::map<unsigned int, station_node const*> route_end_station;
+  std::map<unsigned int, motis::node const*> route_start_node;
+  std::map<unsigned int, motis::node const*> route_end_node;
 };
 }
 }
