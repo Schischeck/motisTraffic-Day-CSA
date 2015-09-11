@@ -156,9 +156,7 @@ void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {
   unsigned int station_id = req->station_id();
   motis::time departure_time = date_converter_.convert_to_motis(req->departure_time());
   unsigned int route_id = req->route_id();
-
   std::vector<route> routes = timetable_retriever_.get_routes_on_time(route_id, departure_time);
-
   // search the valid route
   const route* found_route = nullptr;
   if( routes.size() == 1 ) {

@@ -60,7 +60,6 @@ std::vector<route> timetable_retriever::get_routes_on_time(
       requested_tracks.push_back(i);
     }
   }
-  std::cout << "found " << requested_tracks.size() << "tracks" << std::endl;
 
   if (requested_tracks.size() == 0) {
     return {};
@@ -72,17 +71,15 @@ std::vector<route> timetable_retriever::get_routes_on_time(
   }
 
   const node* current_node = route_start_node.at(route_id);
-  const node* next_node = nullptr;
-  while( (next_node = child_node(*current_node)) != nullptr &&
-         next_node != current_node ) {
+  do {
     int j = 0;
     for(int i : requested_tracks) {
       routes.at(j).emplace_back(
             current_node->get_station(), current_node, get_light_connection_outgoing(*current_node, i));
       ++j;
     }
-    current_node = next_node;
-  }
+    current_node = child_node(*current_node);
+  } while( current_node != nullptr );
   return routes;
 }
 
@@ -248,10 +245,19 @@ std::vector<motis::time> timetable_retriever::get_route_departure_times(
 
   std::vector<motis::time> times;
   const motis::node* start_node = route_start_node.at(route_id);
-  if( start_node->_edges.size() > 1 ) {
-    std::cout << "railviz: WARNING: timetable_retreiver::get_route_departure_times: too many outgoing edges." << std::endl;
+
+  edge const* edge_ = nullptr;
+  for( auto const& edge_i : start_node->_edges ) {
+    if( edge_i.type() == motis::edge::ROUTE_EDGE ) {
+      edge_ = &edge_i;
+      break;
+    }
   }
-  edge const* edge_ = &start_node->_edges[0];
+  if( edge_ == nullptr ) {
+    std::cout << "railviz: WARNING: timetable_retreiver::get_route_departure_times: no incoming route-edges." << std::endl;
+    return {};
+  }
+
   for( auto const& lcon : edge_->_m._route_edge._conns ) {
     times.push_back(lcon.d_time);
   }
@@ -266,9 +272,20 @@ std::vector<motis::time> timetable_retriever::get_route_arrival_times(
   std::vector<motis::time> times;
   const motis::node* end_node = route_end_node.at(route_id);
   if( end_node->_incoming_edges.size() > 1 ) {
-    std::cout << "railviz: WARNING: timetable_retreiver::get_route_departure_times: too many incoming edges." << std::endl;
+
   }
-  edge const* edge_ = end_node->_incoming_edges[0].ptr();
+  edge const* edge_ = nullptr;
+  for( auto const& edge_ptr : end_node->_incoming_edges ) {
+    if( edge_ptr->type() == motis::edge::ROUTE_EDGE ) {
+      edge_ = edge_ptr.ptr();
+      break;
+    }
+  }
+  if( edge_ == nullptr ) {
+    std::cout << "railviz: WARNING: timetable_retreiver::get_route_departure_times: no incoming route-edges." << std::endl;
+    return {};
+  }
+
   for( auto const& lcon : edge_->_m._route_edge._conns ) {
     times.push_back(lcon.a_time);
   }
