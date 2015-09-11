@@ -14,10 +14,10 @@ struct station_meta_data {
     int from_eva_num, to_eva_num, duration;
   };
 
-  int get_interchange_time(int eva_num) const;
+  int get_station_change_time(int eva_num) const;
 
   static const char* MINCT;
-  std::map<int, int> normal_change_times_;
+  std::map<int, int> station_change_times_;
   std::vector<footpath> footpaths_;
 };
 

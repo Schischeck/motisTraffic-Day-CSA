@@ -75,7 +75,7 @@ void parse_range(
     std::vector<TargetInformationType> hrd_service::section::*member,
     TargetInformationParserFun parse_target_info) {
   for (auto const& r : compute_ranges(spec_lines, stops, parse_info)) {
-    TargetInformationType target_info = parse_target_info(r.first);
+    TargetInformationType target_info = parse_target_info(r.first, r.second);
     for (int i = r.second.from_idx; i < r.second.to_idx; ++i) {
       (sections[i].*member).push_back(target_info);
     }
@@ -95,26 +95,39 @@ hrd_service::hrd_service(specification const& spec)
                        spec.internal_service.substr(9, size(6)))}),
           parse_section)) {
   parse_range(spec.attributes, attribute_parse_info, stops_, sections_,
-              &section::attributes, [](cstr line) {
+              &section::attributes, [](cstr line, range const&) {
                 return attribute{parse<int>(line.substr(22, size(6))),
                                  line.substr(3, size(2))};
               });
 
   parse_range(spec.categories, category_parse_info, stops_, sections_,
               &section::category,
-              [](cstr line) { return line.substr(3, size(3)); });
+              [](cstr line, range const&) { return line.substr(3, size(3)); });
 
   parse_range(spec.line_information, line_parse_info, stops_, sections_,
-              &section::line_information,
-              [](cstr line) { return line.substr(3, size(5)).trim(); });
+              &section::line_information, [](cstr line, range const&) {
+                return line.substr(3, size(5)).trim();
+              });
 
   parse_range(spec.traffic_days, traffic_days_parse_info, stops_, sections_,
-              &section::traffic_days,
-              [](cstr line) { return parse<int>(line.substr(22, size(6))); });
+              &section::traffic_days, [](cstr line, range const&) {
+                return parse<int>(line.substr(22, size(6)));
+              });
 
-  parse_range(spec.directions, direction_parse_info, stops_, sections_,
-              &section::directions,
-              [](cstr line) { return line.substr(5, size(7)); });
+  parse_range(
+      spec.directions, direction_parse_info, stops_, sections_,
+      &section::directions, [&](cstr line, range const& r) {
+        if (isdigit(line[0])) {
+          return std::make_pair(parse<uint64_t>(line.substr(5, size(7))),
+                                EVA_NUMBER);
+        } else if (line[0] == ' ') {
+          return std::make_pair(static_cast<uint64_t>(stops_[r.to_idx].eva_num),
+                                EVA_NUMBER);
+        } else {
+          return std::make_pair(raw_to_int<uint64_t>(line.substr(5, size(7))),
+                                DIRECTION_CODE);
+        }
+      });
 
   verify_service();
 }

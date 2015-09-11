@@ -28,9 +28,9 @@ TEST(station_meta_data_parser, normal_change_times_minimal_file) {
   parse_station_meta_data({"infotext_minimal.101", info_text_file_content},
                           metas);
 
-  ASSERT_EQ(2, metas.normal_change_times_.size());
-  ASSERT_EQ(7, metas.get_interchange_time(8000068));
-  ASSERT_EQ(8, metas.get_interchange_time(8000105));
+  ASSERT_EQ(2, metas.station_change_times_.size());
+  ASSERT_EQ(7, metas.get_station_change_time(8000068));
+  ASSERT_EQ(8, metas.get_station_change_time(8000105));
 }
 
 TEST(station_meta_data_parser, normal_change_times_mixed_file) {
@@ -43,9 +43,9 @@ TEST(station_meta_data_parser, normal_change_times_mixed_file) {
   parse_station_meta_data({"infotext_mixed.101", info_text_file_content},
                           metas);
 
-  ASSERT_EQ(2, metas.normal_change_times_.size());
-  ASSERT_EQ(7, metas.get_interchange_time(8000068));
-  ASSERT_EQ(8, metas.get_interchange_time(8000105));
+  ASSERT_EQ(2, metas.station_change_times_.size());
+  ASSERT_EQ(7, metas.get_station_change_time(8000068));
+  ASSERT_EQ(8, metas.get_station_change_time(8000105));
 }
 
 }  // hrd

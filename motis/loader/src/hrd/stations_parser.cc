@@ -17,12 +17,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct station {
-  cstr name;
-  double lat, lng;
-};
-
-void parse_station_names(loaded_file file, std::map<int, station>& stations) {
+void parse_station_names(loaded_file file,
+                         std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0) {
@@ -39,12 +35,12 @@ void parse_station_names(loaded_file file, std::map<int, station>& stations) {
       name.len = std::distance(begin(name), it);
     }
 
-    stations[eva_num].name = name;
+    stations[eva_num].name = std::string(name.str, name.len);
   });
 }
 
 void parse_station_coordinates(loaded_file file,
-                               std::map<int, station>& stations) {
+                               std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     if (line.len == 0) {
@@ -61,24 +57,23 @@ void parse_station_coordinates(loaded_file file,
   });
 }
 
-std::map<int, Offset<Station>> parse_stations(
-    loaded_file station_names_file, loaded_file station_coordinates_file,
-    station_meta_data const& metas, flatbuffers::FlatBufferBuilder& b) {
-  scoped_timer timer("parsing stations");
-  std::map<int, station> stations_map;
-  parse_station_names(station_names_file, stations_map);
-  parse_station_coordinates(station_coordinates_file, stations_map);
-
-  std::map<int, Offset<Station>> stations;
-  for (auto const& station_entry : stations_map) {
-    auto& eva_num = station_entry.first;
-    auto& station = station_entry.second;
-    stations.insert(std::make_pair(
-        eva_num,
-        CreateStation(b, to_fbs_string(b, std::to_string(eva_num)),
-                      to_fbs_string(b, station.name, ENCODING), station.lat,
-                      station.lng, metas.get_interchange_time(eva_num))));
+void set_change_times(station_meta_data const& metas,
+                      std::map<int, intermediate_station>& stations) {
+  scoped_timer timer("set station change times");
+  for (auto& station_entry : stations) {
+    station_entry.second.change_time =
+        metas.get_station_change_time(station_entry.first);
   }
+}
+
+std::map<int, intermediate_station> parse_stations(
+    loaded_file station_names_file, loaded_file station_coordinates_file,
+    station_meta_data const& metas) {
+  scoped_timer timer("parsing stations");
+  std::map<int, intermediate_station> stations;
+  parse_station_names(station_names_file, stations);
+  parse_station_coordinates(station_coordinates_file, stations);
+  set_change_times(metas, stations);
   return stations;
 }
 

@@ -14,24 +14,23 @@ namespace hrd {
 
 service_builder::service_builder(shared_data const& stamm,
                                  FlatBufferBuilder& builder)
-    : stamm_(stamm), bitfields_(stamm.bitfields, builder), builder_(builder) {}
+    : stamm_(stamm),
+      bitfields_(stamm.bitfields, builder),
+      stations_(stamm.stations, builder),
+      builder_(builder) {}
 
-Offset<Category> service_builder::get_or_create_category(cstr category) {
-  auto const category_key = raw_to_int<uint32_t>(category);
-
-  auto it = stamm_.categories.find(category_key);
-  verify(it != end(stamm_.categories), "missing category: %.*s",
-         static_cast<int>(category.length()), category.c_str());
-
-  return get_or_create(categories_, category_key, [&]() {
-    return CreateCategory(builder_, to_fbs_string(builder_, it->second.name),
-                          it->second.output_rule);
-  });
-}
-
-Offset<String> service_builder::get_or_create_line_info(cstr line_info) {
-  return get_or_create(line_infos_, raw_to_int<uint64_t>(line_info),
-                       [&]() { return to_fbs_string(builder_, line_info); });
+void service_builder::create_services(hrd_service const& s) {
+  auto expanded_services = expand_traffic_days(s, bitfields_);
+  expand_repetitions(expanded_services);
+  for (auto const& expanded_service : expanded_services) {
+    auto const route = create_route(expanded_service.stops_);
+    services_.push_back(CreateService(
+        builder_, route,
+        bitfields_.get_or_create_bitfield(expanded_service.traffic_days_),
+        create_sections(expanded_service.sections_),
+        create_platforms(expanded_service.sections_, expanded_service.stops_),
+        create_times(expanded_service.stops_)));
+  }
 }
 
 Offset<Route> service_builder::create_route(
@@ -47,11 +46,7 @@ Offset<Route> service_builder::create_route(
         builder_, builder_.CreateVector(transform_to_vec(
                       begin(events), end(events),
                       [&](station_events ev) {
-                        auto it = stamm_.stations.find(std::get<0>(ev));
-                        verify(it != end(stamm_.stations),
-                               "station with eva number %d not found\n",
-                               std::get<0>(ev));
-                        return it->second;
+                        return stations_.get_or_create_station(std::get<0>(ev));
                       })),
         builder_.CreateVector(transform_to_vec(begin(events), end(events),
                                                [](station_events e) -> uint8_t {
@@ -62,6 +57,39 @@ Offset<Route> service_builder::create_route(
                                                  return std::get<2>(e) ? 1 : 0;
                                                })));
   });
+}
+
+Offset<Vector<Offset<Section>>> service_builder::create_sections(
+    std::vector<hrd_service::section> const& sections) {
+  return builder_.CreateVector(transform_to_vec(
+      begin(sections), end(sections), [&](hrd_service::section const& s) {
+        return CreateSection(builder_, get_or_create_category(s.category[0]), 0,
+                             s.train_num,
+                             get_or_create_line_info(s.line_information),
+                             create_attributes(s.attributes),
+                             get_or_create_direction(s.directions));
+      }));
+}
+
+Offset<Category> service_builder::get_or_create_category(cstr category) {
+  auto const category_key = raw_to_int<uint32_t>(category);
+
+  auto it = stamm_.categories.find(category_key);
+  verify(it != end(stamm_.categories), "missing category: %.*s",
+         static_cast<int>(category.length()), category.c_str());
+
+  return get_or_create(categories_, category_key, [&]() {
+    return CreateCategory(builder_, to_fbs_string(builder_, it->second.name),
+                          it->second.output_rule);
+  });
+}
+
+Offset<Vector<Offset<Attribute>>> service_builder::create_attributes(
+    std::vector<hrd_service::attribute> const& attributes) {
+  return builder_.CreateVector(transform_to_vec(
+      begin(attributes), end(attributes), [&](hrd_service::attribute const& a) {
+        return get_or_create_attribute(a);
+      }));
 }
 
 Offset<Attribute> service_builder::get_or_create_attribute(
@@ -94,57 +122,42 @@ Offset<Attribute> service_builder::get_or_create_attribute(
   });
 }
 
-Offset<Vector<Offset<Attribute>>> service_builder::create_attributes(
-    std::vector<hrd_service::attribute> const& attributes) {
-  return builder_.CreateVector(transform_to_vec(
-      begin(attributes), end(attributes), [&](hrd_service::attribute const& a) {
-        return get_or_create_attribute(a);
-      }));
-}
-
-Offset<Vector<Offset<Section>>> service_builder::create_sections(
-    std::vector<hrd_service::section> const& sections) {
-  return builder_.CreateVector(transform_to_vec(
-      begin(sections), end(sections), [&](hrd_service::section const& s) {
-        auto attributes = create_attributes(s.attributes);
-        auto category = get_or_create_category(s.category[0]);
-
-        Offset<String> line_info;
-        if (!s.line_information.empty()) {
-          line_info = get_or_create_line_info(s.line_information[0]);
-        }
-
-        SectionBuilder sb(builder_);
-        sb.add_train_nr(s.train_num);
-        sb.add_attributes(attributes);
-        sb.add_category(category);
-
-        if (!s.line_information.empty()) {
-          sb.add_line_id(line_info);
-        }
-
-        if (!s.directions.empty()) {
-          // TODO (Tobias Raffel) shared_data lookup
-        }
-
-        return sb.Finish();
-      }));
-}
-
-void service_builder::resolve_platform_rule(
-    platform_rule_key const& key, int time,
-    std::vector<Offset<Platform>>& platforms) {
-  auto dep_plr_it = stamm_.pf_rules.find(key);
-  if (dep_plr_it == end(stamm_.pf_rules)) {
-    return;
+Offset<String> service_builder::get_or_create_line_info(
+    std::vector<cstr> const& line_info) {
+  if (line_info.empty()) {
+    return 0;
+  } else {
+    return get_or_create(
+        line_infos_, raw_to_int<uint64_t>(line_info[0]),
+        [&]() { return to_fbs_string(builder_, line_info[0]); });
   }
+}
 
-  for (auto const& rule : dep_plr_it->second) {
-    if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
-      platforms.push_back(CreatePlatform(
-          builder_, bitfields_.get_or_create_bitfield(rule.bitfield_num),
-          rule.platform_name));
-    }
+Offset<Direction> service_builder::get_or_create_direction(
+    std::vector<std::pair<uint64_t, int>> const& directions) {
+  if (directions.empty()) {
+    return 0;
+  } else {
+    auto const direction_key = directions[0];
+    return get_or_create(directions_, direction_key.first, [&]() {
+      switch (direction_key.second) {
+        case hrd_service::EVA_NUMBER: {
+          auto stations_it = stations_.fbs_stations_.find(direction_key.first);
+          verify(stations_it != end(stations_.fbs_stations_),
+                 "missing station name for eva number: %lu",
+                 direction_key.first);
+          return CreateDirection(builder_, stations_it->second, 0);
+        }
+        case hrd_service::DIRECTION_CODE: {
+          auto it = stamm_.directions.find(direction_key.first);
+          verify(it != end(stamm_.directions), "missing direction info: %lu",
+                 direction_key.first);
+          return CreateDirection(builder_, 0,
+                                 to_fbs_string(builder_, it->second, ENCODING));
+        }
+      }
+      assert(false);
+    });
   }
 }
 
@@ -186,6 +199,23 @@ Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
       }));
 }
 
+void service_builder::resolve_platform_rule(
+    platform_rule_key const& key, int time,
+    std::vector<Offset<Platform>>& platforms) {
+  auto dep_plr_it = stamm_.pf_rules.find(key);
+  if (dep_plr_it == end(stamm_.pf_rules)) {
+    return;
+  }
+
+  for (auto const& rule : dep_plr_it->second) {
+    if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
+      platforms.push_back(CreatePlatform(
+          builder_, bitfields_.get_or_create_bitfield(rule.bitfield_num),
+          rule.platform_name));
+    }
+  }
+}
+
 Offset<Vector<int32_t>> service_builder::create_times(
     std::vector<hrd_service::stop> const& stops) {
   std::vector<int32_t> times;
@@ -194,21 +224,6 @@ Offset<Vector<int32_t>> service_builder::create_times(
     times.push_back(stop.dep.time);
   }
   return builder_.CreateVector(times);
-}
-
-void service_builder::create_services(hrd_service const& s,
-                                      FlatBufferBuilder& b,
-                                      std::vector<Offset<Service>>& services) {
-  auto expanded_services = expand_traffic_days(s, bitfields_);
-  expand_repetitions(expanded_services);
-  for (auto const& expanded_service : expanded_services) {
-    services.push_back(CreateService(
-        b, create_route(expanded_service.stops_),
-        bitfields_.get_or_create_bitfield(expanded_service.traffic_days_),
-        create_sections(expanded_service.sections_),
-        create_platforms(expanded_service.sections_, expanded_service.stops_),
-        create_times(expanded_service.stops_)));
-  }
 }
 
 }  // hrd

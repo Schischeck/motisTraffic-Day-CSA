@@ -24,20 +24,14 @@ struct hrd_parser : public format_parser {
   virtual void parse(boost::filesystem::path const& path,
                      flatbuffers::FlatBufferBuilder&) override;
 
-  std::tuple<
-      shared_data, Interval,
-      flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Footpath>>>>
-  parse_shared_data(boost::filesystem::path const& hrd_root,
-                    flatbuffers::FlatBufferBuilder&);
+  std::tuple<shared_data, Interval, station_meta_data> parse_shared_data(
+      boost::filesystem::path const& hrd_root, flatbuffers::FlatBufferBuilder&);
 
-  std::pair<std::vector<flatbuffers::Offset<Service>>,
-            std::vector<flatbuffers::Offset<Route>>>
-  parse_services_files(boost::filesystem::path const& hrd_root,
-                       shared_data const&, flatbuffers::FlatBufferBuilder&);
+  void parse_services_files(boost::filesystem::path const& hrd_root,
+                            service_builder&);
 
   void parse_services_file(boost::filesystem::path const& services_file_path,
-                           std::vector<flatbuffers::Offset<Service>>&,
-                           service_builder&, flatbuffers::FlatBufferBuilder&);
+                           service_builder&);
 };
 
 }  // namespace hrd

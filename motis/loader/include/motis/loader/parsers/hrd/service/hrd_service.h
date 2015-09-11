@@ -37,6 +37,7 @@ struct hrd_service {
     }
   };
 
+  enum direction_type { EVA_NUMBER, DIRECTION_CODE };
   struct section {
     section() = default;
     section(int train_num, parser::cstr admin)
@@ -47,7 +48,7 @@ struct hrd_service {
     std::vector<attribute> attributes;
     std::vector<parser::cstr> category;
     std::vector<parser::cstr> line_information;
-    std::vector<parser::cstr> directions;
+    std::vector<std::pair<uint64_t, int>> directions;
     std::vector<int> traffic_days;
   };
 

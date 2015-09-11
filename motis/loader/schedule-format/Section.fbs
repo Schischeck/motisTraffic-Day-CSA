@@ -1,6 +1,7 @@
 include "Attribute.fbs";
 include "Provider.fbs";
 include "Category.fbs";
+include "Direction.fbs";
 
 namespace motis.loader;
 
@@ -10,5 +11,5 @@ table Section {
   train_nr: int;
   line_id: string;
   attributes: [Attribute];
-  direction: string;
+  direction: Direction;
 }

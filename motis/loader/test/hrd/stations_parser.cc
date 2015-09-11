@@ -22,6 +22,7 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_stations, parse_stations) {
+
   auto stations_file_buf = load_file(TEST_RESOURCES / STATIONS_FILE);
   cstr stations_file_content(
       {stations_file_buf.data(), stations_file_buf.size()});
@@ -39,35 +40,29 @@ TEST(loader_hrd_stations, parse_stations) {
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_file_content}, metas);
 
-  flatbuffers::FlatBufferBuilder b;
-  auto station_data =
+  auto stations =
       parse_stations({STATIONS_FILE, stations_file_content},
-                     {COORDINATES_FILE, coordinates_file_content}, metas, b);
+                     {COORDINATES_FILE, coordinates_file_content}, metas);
 
-  b.Finish(CreateSchedule(b, {}, b.CreateVector(values(station_data)), {}));
+  ASSERT_TRUE(stations.size() == 2);
 
-  auto schedule = GetSchedule(b.GetBufferPointer());
-  auto stations = schedule->stations();
+  auto it = stations.find(100001);
+  ASSERT_TRUE(it != end(stations));
 
-  ASSERT_TRUE(stations->size() == 2);
+  auto station = it->second;
+  ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name.c_str());
+  ASSERT_TRUE(std::abs(station.lng - 8.679296) <= 0.001);
+  ASSERT_TRUE(std::abs(station.lat - 50.113963) <= 0.001);
+  ASSERT_EQ(5, station.change_time);
 
-  ASSERT_TRUE(stations->Get(0)->id()->str() == "100001");
-  ASSERT_TRUE(stations->Get(0)->name()->str() ==
-              "Hauptwache, Frankfurt am Main");
-  ASSERT_TRUE(std::abs(stations->Get(0)->lng() - 8.679296) <= 0.001);
-  ASSERT_TRUE(std::abs(stations->Get(0)->lat() - 50.113963) <= 0.001);
-  ASSERT_EQ(5, stations->Get(0)->interchange_time());
+  it = stations.find(100002);
+  ASSERT_TRUE(it != end(stations));
 
-  ASSERT_TRUE(stations->Get(1)->id()->str() == "100002");
-  ASSERT_TRUE(stations->Get(1)->name()->str() ==
-              "Römer/Paulskirche, Frankfurt am Main");
-  ASSERT_TRUE(std::abs(stations->Get(1)->lng() - 8.681793) <= 0.001);
-  ASSERT_TRUE(std::abs(stations->Get(1)->lat() - 50.110902) <= 0.001);
-  ASSERT_EQ(5, stations->Get(1)->interchange_time());
-
-  ASSERT_TRUE(station_data.size() == 2);
-  ASSERT_TRUE(station_data.find(100001) != end(station_data));
-  ASSERT_TRUE(station_data.find(100002) != end(station_data));
+  station = it->second;
+  ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main", station.name.c_str());
+  ASSERT_TRUE(std::abs(station.lng - 8.681793) <= 0.001);
+  ASSERT_TRUE(std::abs(station.lat - 50.110902) <= 0.001);
+  ASSERT_EQ(5, station.change_time);
 }
 
 }  // hrd

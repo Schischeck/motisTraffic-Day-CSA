@@ -74,9 +74,9 @@ void load_minct(std::vector<minct>& records) {
   read(records, rows);
 }
 
-int station_meta_data::get_interchange_time(int eva_num) const {
-  auto it = normal_change_times_.find(eva_num);
-  if (it == std::end(normal_change_times_)) {
+int station_meta_data::get_station_change_time(int eva_num) const {
+  auto it = station_change_times_.find(eva_num);
+  if (it == std::end(station_change_times_)) {
     return DEFAULT_CHANGE_TIME;
   } else {
     return it->second;
@@ -99,7 +99,7 @@ void parse_station_meta_data(loaded_file const& infotext_file,
     if (to_ds100.len == 0) {
       auto eva_number_it = ds100_to_eva_num.find(from_ds100);
       if (eva_number_it != end(ds100_to_eva_num)) {
-        metas.normal_change_times_[eva_number_it->second] = duration;
+        metas.station_change_times_[eva_number_it->second] = duration;
       }
     } else {
       auto from_eva_num_it = ds100_to_eva_num.find(from_ds100);

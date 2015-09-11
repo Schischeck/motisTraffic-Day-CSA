@@ -10,9 +10,11 @@
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/directions_parser.h"
 #include "motis/loader/parsers/hrd/footpath_builder.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
+#include "motis/loader/parsers/hrd/stations_translator.h"
 #include "motis/loader/parsers/hrd/categories_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
@@ -31,8 +33,9 @@ namespace loader {
 namespace hrd {
 
 std::vector<std::string> const required_files = {
-    ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
-    PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE,  CATEGORIES_FILE};
+    ATTRIBUTES_FILE, STATIONS_FILE,   COORDINATES_FILE,
+    BITFIELDS_FILE,  PLATFORMS_FILE,  INFOTEXT_FILE,
+    BASIC_DATA_FILE, CATEGORIES_FILE, DIRECTIONS_FILE};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
@@ -62,17 +65,21 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto data = parse_shared_data(hrd_root, fbb);
   auto const& sd = std::get<0>(data);
   auto const& interval = std::get<1>(data);
-  auto const& footpaths = std::get<2>(data);
+  auto const& metas = std::get<2>(data);
 
-  auto services_data = parse_services_files(hrd_root, sd, fbb);
+  service_builder sb(sd, fbb);
+  parse_services_files(hrd_root, sb);
 
-  fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(services_data.first),
-                            fbb.CreateVector(values(sd.stations)),
-                            fbb.CreateVector(services_data.second), &interval,
-                            footpaths));
+  auto footpaths =
+      build_footpaths(metas.footpaths_, sb.stations_.fbs_stations_, fbb);
+
+  fbb.Finish(CreateSchedule(
+      fbb, fbb.CreateVector(sb.services_),
+      fbb.CreateVector(values(sb.stations_.fbs_stations_)),
+      fbb.CreateVector(values(sb.routes_)), &interval, footpaths));
 }
 
-std::tuple<shared_data, Interval, Offset<Vector<Offset<Footpath>>>>
+std::tuple<shared_data, Interval, station_meta_data>
 hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto master_data_root = hrd_root / "stamm";
   auto stations_names_buf = load_file(master_data_root / STATIONS_FILE);
@@ -82,53 +89,45 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto bitfields_buf = load_file(master_data_root / BITFIELDS_FILE);
   auto platforms_buf = load_file(master_data_root / PLATFORMS_FILE);
   auto categories_buf = load_file(master_data_root / CATEGORIES_FILE);
+  auto directions_buf = load_file(master_data_root / DIRECTIONS_FILE);
 
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
 
-  shared_data sd(
-      parse_stations({STATIONS_FILE, stations_names_buf},
-                     {COORDINATES_FILE, stations_coords_buf}, metas, b),
-      parse_categories({CATEGORIES_FILE, categories_buf}),
-      parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-      parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b));
-
+  shared_data sd(parse_stations({STATIONS_FILE, stations_names_buf},
+                                {COORDINATES_FILE, stations_coords_buf}, metas),
+                 parse_categories({CATEGORIES_FILE, categories_buf}),
+                 parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
+                 parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
+                 parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
+                 parse_directions({DIRECTIONS_FILE, directions_buf}));
   auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
   return std::make_tuple(std::move(sd),
                          parse_interval({BASIC_DATA_FILE, basic_data_buf}),
-                         build_footpaths(metas.footpaths_, sd.stations, b));
+                         std::move(metas));
 }
 
-std::pair<std::vector<Offset<Service>>, std::vector<Offset<Route>>>
-hrd_parser::parse_services_files(fs::path const& hrd_root,
-                                 shared_data const& master_data,
-                                 FlatBufferBuilder& fbb) {
+void hrd_parser::parse_services_files(fs::path const& hrd_root,
+                                      service_builder& sb) {
   auto services_files_root = hrd_root / "fahrten";
-
-  service_builder sb(master_data, fbb);
-  std::vector<Offset<Service>> services;
   for (auto const& entry : boost::make_iterator_range(
            fs::directory_iterator(services_files_root), {})) {
     auto const& services_file_path = entry.path();
 
     if (fs::is_regular(services_file_path)) {
       LOG(info) << "parsing " << services_file_path;
-      parse_services_file(services_file_path, services, sb, fbb);
+      parse_services_file(services_file_path, sb);
     }
   }
-  return std::make_pair(std::move(services), values(sb.routes_));
 }
 
-void hrd_parser::parse_services_file(
-    fs::path const& services_file_path,
-    std::vector<flatbuffers::Offset<Service>>& services, service_builder& sb,
-    FlatBufferBuilder& fbb) {
+void hrd_parser::parse_services_file(fs::path const& services_file_path,
+                                     service_builder& sb) {
   auto services_buf = load_file(services_file_path);
   parse_services({services_file_path.string().c_str(), services_buf},
                  [&](specification const& spec) {
                    try {
-                     sb.create_services(hrd_service(spec), fbb, services);
+                     sb.create_services(hrd_service(spec));
                    } catch (parser_error const& e) {
                      LOG(error) << "skipping bad service at " << e.filename
                                 << ":" << e.line_number;
