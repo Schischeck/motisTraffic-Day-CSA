@@ -103,7 +103,8 @@ void waiting_edges::create_waiting_edges() {
           const motis::node* connector_route_node = out_edge.get_destination();
           if (out_edge.type() == motis::edge::FOOT_EDGE &&
               connector_route_node->is_route_node() &&
-              connector_route_node != route_node) {
+              connector_route_node != route_node &&
+              route_node->_route != connector_route_node->_route) {
 
             for (const motis::edge& route_edge : connector_route_node->_edges) {
               if (route_edge.empty()) continue;
@@ -149,8 +150,8 @@ void waiting_edges::create_waiting_edges(
 
     const motis::light_connection* connector_lc =
         connector->get_connection(feeder_lc->a_time + interchange_time);
-    while (connector_lc != nullptr) {
-      if (connector_lc->d_time - feeder_lc->a_time > 30) break;
+    while (connector_lc != nullptr &&
+           connector_lc->d_time - feeder_lc->a_time <= 30) {
       // ADD WAITING EDGE
       //      LOG(debug) << "    waiting edge between the following two LCs:"
       //                 << " (interchange time = " << interchange_time << ")";

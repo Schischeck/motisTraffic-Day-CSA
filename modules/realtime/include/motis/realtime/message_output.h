@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include "motis/realtime/message_classes.h"
+#include "motis/realtime/messages.h"
 #include "motis/realtime/delay_info.h"
 
 namespace motis {
@@ -17,7 +17,7 @@ public:
   message_output(realtime_schedule& rts);
 
   void add_delay(delay_info const* di);
-  void add_message(message_class const* msg);
+  void add_message(message const* msg);
   void set_current_time(std::time_t t);
   void finish();
 
@@ -30,11 +30,17 @@ private:
 
   int reason_number(timestamp_reason reason) {
     switch (reason) {
-      case timestamp_reason::SCHEDULE: return 0;
-      case timestamp_reason::FORECAST: return 1;
-      case timestamp_reason::IS: return 2;
-      case timestamp_reason::PROPAGATION: return 3;
-      default: return 0;
+      case timestamp_reason::SCHEDULE:
+        return 0;
+      case timestamp_reason::FORECAST:
+        return 1;
+      case timestamp_reason::IS:
+      case timestamp_reason::REPAIR:
+        return 2;
+      case timestamp_reason::PROPAGATION:
+        return 3;
+      default:
+        return 0;
     }
   }
 
@@ -42,7 +48,7 @@ private:
   std::time_t _base_time;
   std::time_t _current_time;
   std::vector<delay_info const*> _delays;
-  std::vector<message_class const*> _messages;
+  std::vector<message const*> _messages;
 };
 
 }  // namespace realtime

@@ -87,8 +87,9 @@ graph_event realtime_schedule::get_previous_graph_event(
       motis::edge* prev_edge = get_prev_edge(ref_node);
       if (prev_edge != nullptr) {
         const motis::light_connection* prev_lc =
-            get_last_connection_with_arrival_before(prev_edge,
-                                                    ref_graph_event.time());
+            get_last_connection_with_arrival_before(
+                prev_edge, ref_graph_event.time(),
+                ref_lc->_full_con->con_info->service);
         if (prev_lc != nullptr) {
           return graph_event(ref_graph_event._station_index,
                              prev_lc->_full_con->con_info->train_nr, false,
@@ -150,25 +151,28 @@ schedule_event realtime_schedule::get_next_schedule_event(
 
 schedule_event realtime_schedule::get_schedule_event(
     const graph_event& graph_event) const {
-  if (!graph_event.found())
+  if (!graph_event.found()) {
     return schedule_event(graph_event._station_index, graph_event._train_nr,
                           graph_event._departure, graph_event._current_time);
+  }
 
   delay_info* delay_info = _delay_info_manager.get_delay_info(graph_event);
-  if (delay_info != nullptr)
-    return delay_info->schedule_event();
-  else
+  if (delay_info != nullptr) {
+    return delay_info->sched_ev();
+  } else {
     return schedule_event(graph_event._station_index, graph_event._train_nr,
                           graph_event._departure, graph_event._current_time);
+  }
 }
 
 graph_event realtime_schedule::get_graph_event(
     const schedule_event& schedule_event) const {
   delay_info* di = _delay_info_manager.get_delay_info(schedule_event);
-  if (di == nullptr)
+  if (di == nullptr) {
     return graph_event(schedule_event);
-  else
-    return di->graph_event();
+  } else {
+    return di->graph_ev();
+  }
 }
 
 std::pair<motis::node*, motis::light_connection*>
@@ -182,8 +186,8 @@ realtime_schedule::locate_start_of_train(
     motis::edge* prev_edge = get_prev_edge(route_node);
     if (prev_edge == nullptr) break;
     motis::node* prev_node = get_prev_node(route_node);
-    motis::light_connection* prev_lc =
-        get_last_connection_with_arrival_before(prev_edge, lc->d_time);
+    motis::light_connection* prev_lc = get_last_connection_with_arrival_before(
+        prev_edge, lc->d_time, lc->_full_con->con_info->service);
 
     if (prev_lc != nullptr) {
       route_node = prev_node;
@@ -256,12 +260,13 @@ realtime_schedule::get_train_events(const schedule_event& start_event) const {
       schedule_event departure_event;
       route_edge = get_next_edge(route_node);
       if (route_edge != nullptr && !route_edge->empty()) {
-        if (single_train_route)
+        if (single_train_route) {
           lc = &route_edge->_m._route_edge._conns[0];
-        else
+        } else {
           lc = get_connection_with_service(
               route_edge, last_lc->a_time,
               last_lc->_full_con->con_info->service);
+        }
         graph_event._departure = true;
         graph_event._current_time = lc->d_time;
         graph_event._train_nr = lc->_full_con->con_info->train_nr;
@@ -299,6 +304,36 @@ schedule_event realtime_schedule::find_departure_event(uint32_t train_nr,
   return schedule_event();
 }
 
+bool realtime_schedule::event_exists(const schedule_event& sched_event,
+                                     graph_event* ge_out) const {
+  delay_info* di = _delay_info_manager.get_delay_info(sched_event);
+  if (di != nullptr /*&& !di->_canceled*/) {
+    if (ge_out != nullptr) {
+      *ge_out = di->graph_ev();
+    }
+    return true;
+  }
+  motis::node* route_node;
+  motis::light_connection* lc;
+  std::tie(route_node, lc) = locate_event(graph_event(sched_event));
+  if (route_node != nullptr && lc != nullptr) {
+    graph_event ge(route_node->get_station()->_id,
+                   lc->_full_con->con_info->train_nr, sched_event.departure(),
+                   sched_event.departure() ? lc->d_time : lc->a_time,
+                   route_node->_route);
+    if (ge_out != nullptr) {
+      *ge_out = ge;
+    }
+    di = _delay_info_manager.get_delay_info(ge);
+    if (di != nullptr) {
+      return di->sched_ev() == sched_event;
+    } else {
+      return true;
+    }
+  }
+  return false;
+}
+
 void realtime_schedule::track_train(uint32_t train_nr) {
   if (is_tracked(train_nr)) return;
   LOG(debug) << "tracking train " << train_nr;
@@ -322,12 +357,9 @@ bool realtime_schedule::is_tracked(uint32_t train_nr) const {
 bool realtime_schedule::is_single_train_route(
     const motis::node* start_node) const {
   assert(start_node != nullptr);
-  // assert(get_prev_node(start_node) == nullptr);
   if (get_prev_node(start_node) != nullptr) {
     return false;
   }
-  // TODO ^^ partial train... nicht nur hier, sondern auch in extract route
-  // usw...
 
   uint32_t service;
   if (get_next_edge(start_node)->_m._route_edge._conns.size() == 1) {
@@ -344,8 +376,9 @@ bool realtime_schedule::is_single_train_route(
     if (edge != nullptr) {
       if (edge->_m._route_edge._conns.size() != 1 ||
           edge->_m._route_edge._conns.front()._full_con->con_info->service !=
-              service)
+              service) {
         return false;
+      }
       route_node = edge->get_destination();
     } else {
       route_node = nullptr;
@@ -456,9 +489,15 @@ motis::light_connection* realtime_schedule::get_connection_with_service(
   motis::light_connection* lc = route_edge->get_connection(start_time);
   if (lc != nullptr && lc->_full_con->con_info->service != service) {
     while (lc->_full_con->con_info->service != service &&
-           lc != std::end(route_edge->_m._route_edge._conns))
+           lc != std::end(route_edge->_m._route_edge._conns)) {
       lc++;
-    if (lc == std::end(route_edge->_m._route_edge._conns)) lc = nullptr;
+    }
+    // TODO: time should be == time of con returned by get_connection
+    // 24h doesn't work because of delays
+    if (lc == std::end(route_edge->_m._route_edge._conns) ||
+        lc->d_time >= start_time + MINUTES_A_DAY) {
+      lc = nullptr;
+    }
   }
   return lc;
 }
@@ -492,7 +531,7 @@ motis::light_connection* realtime_schedule::get_connection_with_arrival_time(
   auto it = std::lower_bound(
       std::begin(route_edge->_m._route_edge._conns),
       std::end(route_edge->_m._route_edge._conns), arrival_time,
-      [](const light_connection& elm, const motis::time t) {
+      [](const motis::light_connection& elm, const motis::time t) {
         return elm.a_time < t;
       });
 
@@ -510,7 +549,7 @@ motis::light_connection* realtime_schedule::get_connection_with_arrival_time(
 
 motis::light_connection*
 realtime_schedule::get_last_connection_with_arrival_before(
-    motis::edge* route_edge, motis::time max_time) const {
+    motis::edge* route_edge, motis::time max_time, uint32_t service) const {
   if (route_edge->empty())
     return nullptr;
   else if (route_edge->_m._route_edge._conns.size() == 1)
@@ -519,20 +558,27 @@ realtime_schedule::get_last_connection_with_arrival_before(
   auto it =
       std::lower_bound(std::begin(route_edge->_m._route_edge._conns),
                        std::end(route_edge->_m._route_edge._conns), max_time,
-                       [](const light_connection& elm, const motis::time t) {
-                         return elm.a_time < t;
-                       });
+                       [](const motis::light_connection& elm,
+                          const motis::time t) { return elm.a_time < t; });
 
+  motis::light_connection* lc = nullptr;
   if (it == std::end(route_edge->_m._route_edge._conns)) {
-    return &route_edge->_m._route_edge._conns.back();
+    lc = &route_edge->_m._route_edge._conns.back();
   } else {
-    if (it->a_time == max_time)
-      return it;
-    else if (it == std::begin(route_edge->_m._route_edge._conns))
-      return nullptr;
-    else
-      return it - 1;
+    if (it->a_time == max_time) {
+      lc = it;
+    } else if (it == std::begin(route_edge->_m._route_edge._conns)) {
+      lc = nullptr;
+    } else {
+      lc = it - 1;
+    }
   }
+
+  if (lc != nullptr && service != 0 &&
+      lc->_full_con->con_info->service != service) {
+    lc = nullptr;
+  }
+  return lc;
 }
 
 }  // namespace realtime

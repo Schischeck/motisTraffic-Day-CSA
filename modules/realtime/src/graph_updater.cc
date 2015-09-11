@@ -25,7 +25,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
 
   bool old_debug = _rts._debug_mode;
   if (!updates.empty() &&
-      _rts.is_tracked(updates[0]._delay_info->schedule_event()._train_nr)) {
+      _rts.is_tracked(updates[0]._delay_info->sched_ev()._train_nr)) {
     _rts._debug_mode = true;
   }
 
@@ -42,7 +42,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
   while (!updates.empty()) {
     const delay_info_update& update = updates[0];
     delay_info* di = update._delay_info;
-    graph_event ge = di->graph_event();
+    graph_event ge = di->graph_ev();
     motis::node* route_node;
     motis::light_connection* lc;
     std::tie(route_node, lc) = _rts.locate_event(ge);
@@ -55,7 +55,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
     if (route_node == nullptr || lc == nullptr) {
       LOG(warn) << "did not find event: " << ge << ", update: " << update;
 
-      schedule_event orig_event = di->schedule_event();
+      schedule_event orig_event = di->sched_ev();
       uint32_t train_nr = orig_event._train_nr;
       schedule_event ref_event = _rts.find_departure_event(
           orig_event._train_nr, orig_event._schedule_time / MINUTES_A_DAY);
@@ -138,7 +138,6 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
 void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
                                        motis::node* route_node,
                                        motis::light_connection* lc) {
-  motis::node* original_route = route_node;
   motis::node* new_route = nullptr;
 
   _rts._stats._ops.updater.time_updates++;
@@ -153,15 +152,17 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
 
   motis::node* start_node;
   motis::light_connection* start_lc;
-  std::tie(start_node, start_lc) =
-      _rts.locate_start_of_train(route_node, lc);  // liefert andere route!!
+  std::tie(start_node, start_lc) = _rts.locate_start_of_train(route_node, lc);
 
   graph_train_info gti = get_graph_train_info(start_node, start_lc, updates);
 
   if (!gti._times_valid) {
     LOG(warn) << "ignoring updates for this train because of invalid times:";
-    for (auto& u : updates) LOG(warn) << "-- " << u;
+    LOG(warn) << gti;
     return;
+  } else if (_rts.is_debug_mode()) {
+    LOG(debug) << "update_train_times:";
+    LOG(debug) << gti;
   }
 
   if (gti._extract_required) {
@@ -174,7 +175,12 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
       graph_event gdep(e._from_route_node->get_station()->_id,
                        e._lc->_full_con->con_info->train_nr, true,
                        e._lc->d_time, e._from_route_node->_route);
-      assert(_rts._delay_info_manager.get_delay_info(gdep) != nullptr);
+      delay_info* di = _rts._delay_info_manager.get_delay_info(gdep);
+      if (di == nullptr) {
+        LOG(error) << "delay info not found for " << gdep
+                   << ", update: " << e._dep_update;
+        LOG(error) << gti;
+      }
       e._lc->d_time = e._dep_update._new_time;
       _rts._delay_info_manager.update_delay_info(&e._dep_update);
     }
@@ -273,7 +279,7 @@ graph_train_info graph_updater::get_graph_train_info(
 
     auto dit = std::find_if(updates.begin(), updates.end(),
                             [&](const delay_info_update& u) {
-                              return u._delay_info->graph_event() == gdep;
+                              return u._delay_info->graph_ev() == gdep;
                             });
     delay_info_update diu_dep;
     if (dit != updates.end()) {
@@ -290,7 +296,7 @@ graph_train_info graph_updater::get_graph_train_info(
 
     auto ait = std::find_if(updates.begin(), updates.end(),
                             [&](const delay_info_update& u) {
-                              return u._delay_info->graph_event() == garr;
+                              return u._delay_info->graph_ev() == garr;
                             });
     delay_info_update diu_arr;
     if (ait != updates.end()) {
@@ -308,8 +314,7 @@ graph_train_info graph_updater::get_graph_train_info(
     r._edges.emplace_back(route_node, lc, diu_dep, diu_arr);
 
     // check if train must be extracted from the route
-    if (!r._extract_required && (new_dep_time != gdep._current_time ||
-                                 new_arr_time != garr._current_time)) {
+    if (!r._extract_required && !single_train_route) {
 
       // get the previous and next connection of this route edge
       //      const light_connection* prev_lc =
@@ -329,26 +334,17 @@ graph_train_info graph_updater::get_graph_train_info(
       // to be moved into a new route
       bool extract = false;
 
-      // if this is the only connection in the route, we won't have to split
-      // the route. also note that this is the case for newly generated routes.
-      // these routes may be temporarily invalid (i.e. departure event after
-      // the next arrival event etc.) during the update process.
-      if (!single_train_route) {
+      // check against previous and next LC in this route edge
+      extract |= (prev_lc != nullptr) && (new_dep_time <= prev_lc->d_time);
+      extract |= (next_lc != nullptr) && (new_dep_time >= next_lc->d_time);
+      extract |= (prev_lc != nullptr) && (new_arr_time <= prev_lc->a_time);
+      extract |= (next_lc != nullptr) && (new_arr_time >= next_lc->a_time);
 
-        // check against previous and next LC in this route edge
-        extract |= (prev_lc != nullptr) && (new_dep_time <= prev_lc->d_time);
-        extract |= (next_lc != nullptr) && (new_dep_time >= next_lc->d_time);
-        extract |= (prev_lc != nullptr) && (new_arr_time <= prev_lc->a_time);
-        extract |= (next_lc != nullptr) && (new_arr_time >= next_lc->a_time);
-
-        // TODO: this code does not work if no updates are applied
-        motis::edge* prev_edge = _rts.get_prev_edge(route_node);
-        if (prev_edge != nullptr) {
-          prev_lc = _rts.get_last_connection_with_arrival_before(prev_edge,
-                                                                 new_dep_time);
-          // assert(prev_lc != nullptr);
-          if (prev_lc != nullptr) extract |= !is_same_train(lc, prev_lc);
-        }
+      motis::edge* prev_edge = _rts.get_prev_edge(route_node);
+      if (prev_edge != nullptr) {
+        prev_lc = _rts.get_last_connection_with_arrival_before(prev_edge,
+                                                               new_dep_time, 0);
+        if (prev_lc != nullptr) extract |= !is_same_train(lc, prev_lc);
       }
 
       r._extract_required = extract;
@@ -369,6 +365,10 @@ graph_train_info graph_updater::get_graph_train_info(
     motis::time dep = e.new_departure_time();
     motis::time arr = e.new_arrival_time();
     if (dep < last_time || arr < dep) {
+      LOG(warn) << "gti: invalid time in " << e << ": "
+                << "last_time=" << motis::format_time(last_time)
+                << ", dep=" << motis::format_time(dep)
+                << ", arr=" << motis::format_time(arr);
       r._times_valid = false;
       break;
     }
@@ -450,7 +450,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
       if (_rts.is_debug_mode())
         LOG(debug) << "    updating departure DI route_id " << *dep_di << " -> "
                    << new_route_id;
-      dep_di->_route_id = new_route_id;
+      _rts._delay_info_manager.update_route(dep_di, new_route_id);
     } else if (_rts.is_debug_mode()) {
       LOG(debug) << "    no departure DI for " << old_departure;
     }
@@ -460,7 +460,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
       if (_rts.is_debug_mode())
         LOG(debug) << "    updating arrival DI route_id " << *arr_di << " -> "
                    << new_route_id;
-      arr_di->_route_id = new_route_id;
+      _rts._delay_info_manager.update_route(arr_di, new_route_id);
     } else if (_rts.is_debug_mode()) {
       LOG(debug) << "    no arrival DI for " << old_arrival;
     }
@@ -491,8 +491,6 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
   assert(new_route_start != nullptr);
   add_incoming_edges(new_route_start);
 
-  // kante neue route -> alte route ???
-
   if (_rts.is_debug_mode()) {
     dump_route(old_route_start, "updated old route", day_index);
     dump_route(new_route_start, "new route", day_index);
@@ -512,17 +510,18 @@ modified_train* graph_updater::make_modified_train(
 
   _rts._stats._ops.updater.make_modified++;
 
-  assert(_rts.get_prev_node(start_route_node) == nullptr);
+  //  assert(_rts.get_prev_node(start_route_node) == nullptr);
   assert(check_route(start_route_node, true));
 
   int32_t old_route_id = start_route_node->_route;
   bool new_route = !_rts.is_single_train_route(start_route_node);
   int32_t new_route_id = new_route ? ++_rts._max_route_id : old_route_id;
 
-  if (_rts.is_debug_mode())
+  if (_rts.is_debug_mode()) {
     LOG(debug) << "make_modified_train: old_route_id=" << old_route_id
                << ", new_route=" << new_route
                << ", new_route_id=" << new_route_id;
+  }
 
   motis::connection_info* ci = new connection_info(*lc->_full_con->con_info);
   _rts._new_connection_infos.emplace_back(ci);
@@ -530,7 +529,7 @@ modified_train* graph_updater::make_modified_train(
   modified_train* mt =
       new modified_train(old_route_id, new_route_id, ci, lc->_full_con->clasz);
 
-  while (route_edge != nullptr) {
+  while (route_edge != nullptr && lc != nullptr) {
     motis::node* next_route_node = route_edge->_to;
     assert(next_route_node != nullptr);
     motis::edge* next_route_edge = _rts.get_next_edge(next_route_node);
@@ -570,8 +569,12 @@ modified_train* graph_updater::make_modified_train(
                                                    old_route_id, new_route_id);
       _rts._waiting_edges.event_moved_to_new_route(original_arrival,
                                                    old_route_id, new_route_id);
-      if (dep_di != nullptr) dep_di->_route_id = new_route_id;
-      if (arr_di != nullptr) arr_di->_route_id = new_route_id;
+      if (dep_di != nullptr) {
+        _rts._delay_info_manager.update_route(dep_di, new_route_id);
+      }
+      if (arr_di != nullptr) {
+        _rts._delay_info_manager.update_route(arr_di, new_route_id);
+      }
     } else {
       // create new connection so that we can modify it later
       motis::connection* connection_copy = new connection(*lc->_full_con);
@@ -911,7 +914,10 @@ void graph_updater::delete_route_node(motis::node* route_node) {
       break;
     }
   }
-  delete route_node;
+  // TODO: this leaks. nodes should only be deleted if the schedule
+  // was loaded from text files (not serialized) or if they were created
+  // by the graph updater.
+  //delete route_node;
   add_incoming_edges(station);
 }
 

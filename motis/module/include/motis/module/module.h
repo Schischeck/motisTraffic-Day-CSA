@@ -35,6 +35,7 @@ struct module : public conf::configuration {
   virtual void on_msg(msg_ptr msg, sid session, callback cb) = 0;
   virtual void on_open(sid /* session */) {}
   virtual void on_close(sid /* session */) {}
+  virtual void on_config_loaded() {}
 
   void init_(context* context) {
     context_ = context;

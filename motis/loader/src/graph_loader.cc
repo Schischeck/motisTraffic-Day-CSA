@@ -5,6 +5,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 #include "boost/lexical_cast.hpp"
 
@@ -15,6 +16,7 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/waiting_time_rules.h"
+#include "motis/core/common/logging.h"
 #include "motis/loader/bitset_manager.h"
 #include "motis/loader/files.h"
 
@@ -25,25 +27,30 @@
 #define d2r (M_PI / 180.0)
 
 using namespace std;
+using namespace motis::logging;
 
 namespace motis {
 
 int graph_loader::get_price_per_km(int clasz) {
   switch (clasz) {
-    case MOTIS_ICE: return 22;
+    case MOTIS_ICE:
+      return 22;
 
     case MOTIS_N:
     case MOTIS_IC:
-    case MOTIS_X: return 18;
+    case MOTIS_X:
+      return 18;
 
     case MOTIS_RE:
     case MOTIS_RB:
     case MOTIS_S:
     case MOTIS_U:
     case MOTIS_STR:
-    case MOTIS_BUS: return 15;
+    case MOTIS_BUS:
+      return 15;
 
-    default: return 0;
+    default:
+      return 0;
   }
 }
 
@@ -66,8 +73,8 @@ std::vector<T> join(std::vector<std::vector<T>> vecs) {
     std::vector<T> ret = std::move(*std::begin(vecs));
     std::for_each(std::next(std::begin(vecs)), std::end(vecs),
                   [&ret](std::vector<T> const& vec) {
-      ret.insert(std::end(ret), std::begin(vec), std::end(vec));
-    });
+                    ret.insert(std::end(ret), std::begin(vec), std::end(vec));
+                  });
     return ret;
   }
 }
@@ -161,6 +168,111 @@ void graph_loader::load_bitfields(bitset_manager& bm) {
   bm = bitset_manager(in);
 }
 
+const edge* get_next_edge(const node* route_node) {
+  for (auto& edge : route_node->_edges) {
+    if (edge.type() == edge::ROUTE_EDGE) {
+      assert(edge._to->_route == route_node->_route);
+      return &edge;
+    }
+  }
+  return nullptr;
+}
+
+const light_connection* get_connection_with_departure_time(
+    const edge* route_edge, time departure_time, uint32_t train_nr,
+    std::map<uint32_t, const connection_info*>& con_infos) {
+  if (route_edge->empty()) return nullptr;
+
+  auto it = std::lower_bound(std::begin(route_edge->_m._route_edge._conns),
+                             std::end(route_edge->_m._route_edge._conns),
+                             light_connection(departure_time));
+
+  while (it != std::end(route_edge->_m._route_edge._conns) &&
+         it->d_time == departure_time &&
+         con_infos[it->_full_con->con_info_id]->train_nr != train_nr) {
+    it++;
+  }
+
+  return (it == std::end(route_edge->_m._route_edge._conns) ||
+          it->d_time != departure_time)
+             ? nullptr
+             : it;
+}
+
+const light_connection* get_connection_with_arrival_time(
+    const edge* route_edge, time arrival_time, uint32_t train_nr,
+    std::map<uint32_t, const connection_info*>& con_infos) {
+  if (route_edge->empty()) return nullptr;
+
+  auto it = std::lower_bound(
+      std::begin(route_edge->_m._route_edge._conns),
+      std::end(route_edge->_m._route_edge._conns), arrival_time,
+      [](const light_connection& elm, const time t) { return elm.a_time < t; });
+
+  while (it != std::end(route_edge->_m._route_edge._conns) &&
+         it->a_time == arrival_time &&
+         con_infos[it->_full_con->con_info_id]->train_nr != train_nr) {
+    it++;
+  }
+
+  return (it == std::end(route_edge->_m._route_edge._conns) ||
+          it->a_time != arrival_time)
+             ? nullptr
+             : it;
+}
+
+bool contains_duplicate_event(
+    std::vector<std::vector<light_connection>>& trains, int train_i,
+    const station_node* departure_node,
+    std::map<uint32_t, const connection_info*>& con_infos) {
+  for (const node* route_node : departure_node->get_route_nodes()) {
+    const edge* route_edge = get_next_edge(route_node);
+    if (route_edge == nullptr) {
+      continue;
+    }
+    for (const auto& lc : trains[train_i]) {
+      uint32_t train_nr = con_infos[lc._full_con->con_info_id]->train_nr;
+      const light_connection* other_dep = get_connection_with_departure_time(
+          route_edge, lc.d_time, train_nr, con_infos);
+      if (other_dep != nullptr) {
+        LOG(debug) << "Ignoring train " << train_nr << " (service="
+                   << con_infos[lc._full_con->con_info_id]->service
+                   << "), shares event with service="
+                   << con_infos[other_dep->_full_con->con_info_id]->service;
+        return true;
+      }
+      const light_connection* other_arr = get_connection_with_arrival_time(
+          route_edge, lc.a_time, train_nr, con_infos);
+      if (other_arr != nullptr) {
+        LOG(debug) << "Ignoring train " << train_nr << " (service="
+                   << con_infos[lc._full_con->con_info_id]->service
+                   << "), shares event with service="
+                   << con_infos[other_arr->_full_con->con_info_id]->service;
+        return true;
+      }
+    }
+  }
+  for (auto i = 0; i < train_i; i++) {
+    for (const auto& new_lc : trains[train_i]) {
+      for (const auto& existing_lc : trains[i]) {
+        if (existing_lc.d_time == new_lc.d_time ||
+            existing_lc.a_time == new_lc.a_time) {
+          LOG(debug) << "Ignoring train "
+                     << con_infos[new_lc._full_con->con_info_id]->train_nr
+                     << " (service="
+                     << con_infos[new_lc._full_con->con_info_id]->service
+                     << "), shares event with other train in same route ("
+                     << "service="
+                     << con_infos[existing_lc._full_con->con_info_id]->service
+                     << ")";
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 int graph_loader::load_routes(
     int node_id, std::vector<station_ptr>& stations,
     std::vector<station_node_ptr> const& station_nodes,
@@ -177,6 +289,8 @@ int graph_loader::load_routes(
 
   uint32_t con_info_id = 0;
   std::map<connection_info, uint32_t> con_infos;
+  std::map<uint32_t, const connection_info*> reverse_con_infos;
+  std::unordered_set<uint32_t> train_nrs;
 
   unsigned index;
   while (!in.eof()) {
@@ -311,7 +425,9 @@ int graph_loader::load_routes(
     // third layer: expanded connections (expanded, absolute times)
     vector<vector<vector<light_connection>>> expanded_connections(n_stations -
                                                                   1);
+    std::unordered_set<uint32_t> new_train_nrs;
     for (unsigned train_i = 0; train_i < n_trains; ++train_i) {
+      bool skip_train = false;
       for (unsigned con_i = 0; con_i < input_connections.size(); ++con_i) {
         if (expanded_connections[con_i].size() != n_trains)
           expanded_connections[con_i].resize(n_trains);
@@ -321,6 +437,7 @@ int graph_loader::load_routes(
         if (it == std::end(con_infos)) {
           std::tie(it, std::ignore) = con_infos.insert(
               std::make_pair(std::move(con_info), con_info_id++));
+          reverse_con_infos[it->second] = &it->first;
         }
 
         connection* full_con =
@@ -333,8 +450,25 @@ int graph_loader::load_routes(
 
         std::sort(std::begin(expanded_connections[con_i][train_i]),
                   std::end(expanded_connections[con_i][train_i]));
+
+        if (std::find(std::begin(train_nrs), std::end(train_nrs),
+                      con_info.train_nr) != std::end(train_nrs)) {
+          // check for duplicate events
+          skip_train |= contains_duplicate_event(
+              expanded_connections[con_i], train_i,
+              station_nodes[locations[con_i]].get(), reverse_con_infos);
+        } else {
+          new_train_nrs.insert(con_info.train_nr);
+        }
+      }
+      if (skip_train) {
+        for (unsigned con_i = 0; con_i < input_connections.size(); ++con_i) {
+          expanded_connections[con_i][train_i].clear();
+        }
       }
     }
+    std::for_each(std::begin(new_train_nrs), std::end(new_train_nrs),
+                  [&train_nrs](uint32_t nr) { train_nrs.insert(nr); });
 
     // build graph for the route
     node* prev_route_node = nullptr;

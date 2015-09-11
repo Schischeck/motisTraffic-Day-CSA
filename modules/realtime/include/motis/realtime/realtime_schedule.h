@@ -52,6 +52,9 @@ public:
 
   schedule_event find_departure_event(uint32_t train_nr, int day_index) const;
 
+  bool event_exists(const schedule_event& sched_event,
+                    graph_event* ge_out = nullptr) const;
+
   void track_train(uint32_t train_nr);
   bool is_tracked(uint32_t train_nr) const;
   bool is_debug_mode() const { return _debug_mode; }
@@ -77,7 +80,7 @@ public:
       motis::edge* route_edge, motis::time arrival_time,
       uint32_t train_nr) const;
   motis::light_connection* get_last_connection_with_arrival_before(
-      motis::edge* route_edge, motis::time max_time) const;
+      motis::edge* route_edge, motis::time max_time, uint32_t service) const;
 
   motis::schedule& _schedule;
   waiting_edges _waiting_edges;

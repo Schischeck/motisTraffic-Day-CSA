@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#include <iostream>
 
 #include "motis/realtime/delay_info.h"
 #include "motis/realtime/modified_train.h"
@@ -28,6 +29,24 @@ struct graph_train_edge {
     return _arr_update.valid() ? _arr_update._new_time : _lc->a_time;
   }
 
+  friend std::ostream& operator<<(std::ostream& os, const graph_train_edge& e) {
+    os << "<gte from={route_id=" << e._from_route_node->_route << ", "
+       << "station=" << e._from_route_node->get_station()->_id << "}, lc={"
+       << motis::format_time(e._lc->d_time);
+    if (e._dep_update.valid()) {
+      os << " [new: " << motis::format_time(e._dep_update._new_time) << " "
+         << e._dep_update._new_reason << "]";
+    }
+    os << " -> " << motis::format_time(e._lc->a_time);
+    if (e._arr_update.valid()) {
+      os << " [new: " << motis::format_time(e._arr_update._new_time) << " "
+         << e._arr_update._new_reason << "]";
+    }
+    os << ", train_nr=" << e._lc->_full_con->con_info->train_nr
+       << ", service=" << e._lc->_full_con->con_info->service << ">";
+    return os;
+  }
+
   motis::node* _from_route_node;
   motis::light_connection* _lc;
   delay_info_update _dep_update;
@@ -36,6 +55,18 @@ struct graph_train_edge {
 
 struct graph_train_info {
   graph_train_info() : _extract_required(false), _times_valid(true) {}
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const graph_train_info& gti) {
+    os << "graph_train_info:"
+       << "\n  - extract_required: " << gti._extract_required
+       << "\n  - times_valid: " << gti._times_valid << "\n  - edges:";
+    for (const auto& e : gti._edges) {
+      os << "\n    " << e;
+    }
+    os << std::endl;
+    return os;
+  }
 
   std::vector<graph_train_edge> _edges;
   bool _extract_required;

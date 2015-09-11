@@ -1,4 +1,4 @@
-#include "motis/realtime/message_output.h"
+ #include "motis/realtime/message_output.h"
 
 #include <fstream>
 #include <string>
@@ -27,7 +27,7 @@ message_output::message_output(realtime_schedule& rts) : _rts(rts) {
 
 void message_output::add_delay(const delay_info* di) { _delays.push_back(di); }
 
-void message_output::add_message(message_class const* msg) {
+void message_output::add_message(message const* msg) {
   _messages.push_back(msg);
 }
 
@@ -51,9 +51,10 @@ void message_output::write_stream(std::ostream& out) {
       << "\" messages=\"true\">\n";
   out << _messages.size() << " " << _delays.size() << " 0 \n";
 
-  for (message_class const* msg : _messages) {
-    msg->write_to_stream(out);
-  }
+  // TODO
+  // for (message const* msg : _messages) {
+  //   msg->write_to_stream(out);
+  // }
 
   for (delay_info const* di : _delays) {
     out << di->_schedule_event._train_nr << " "

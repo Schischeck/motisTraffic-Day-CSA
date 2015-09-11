@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "motis/realtime/message_classes.h"
+#include "motis/realtime/messages.h"
 
 namespace motis {
 namespace realtime {
@@ -14,7 +14,7 @@ class tracking {
 public:
   tracking(realtime_schedule& rts);
 
-  void in_message(const message_class& msg);
+  void in_message(const message& msg);
 
   realtime_schedule& _rts;
 

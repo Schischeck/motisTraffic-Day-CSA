@@ -9,6 +9,7 @@
 #include "catch/catch.hpp"
 
 #include "motis/realtime/realtime_schedule.h"
+#include "motis/realtime/messages.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/time.h"
@@ -169,10 +170,12 @@ public:
 
       CHECK(graph_event(
                 cts->real_a_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->a_train_nr, false, cts->real_a_time, -1) == garr);
+                cts->a_train_nr, false, cts->real_a_time,
+                garr._route_id) == garr);
       CHECK(graph_event(
                 cts->real_d_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->d_train_nr, true, cts->real_d_time, -1) == gdep);
+                cts->d_train_nr, true, cts->real_d_time,
+                gdep._route_id) == gdep);
 
       light_connection* lc;
       if (garr.found()) {

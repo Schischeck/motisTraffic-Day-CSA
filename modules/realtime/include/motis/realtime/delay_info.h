@@ -18,7 +18,13 @@
 namespace motis {
 namespace realtime {
 
-enum class timestamp_reason : uint8_t { SCHEDULE, IS, FORECAST, PROPAGATION };
+enum class timestamp_reason : uint8_t {
+  SCHEDULE,
+  IS,
+  FORECAST,
+  PROPAGATION,
+  REPAIR
+};
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r);
 
@@ -37,9 +43,9 @@ public:
   }
   inline bool canceled() const { return _canceled; }
 
-  inline schedule_event schedule_event() const { return _schedule_event; }
+  inline schedule_event sched_ev() const { return _schedule_event; }
 
-  inline graph_event graph_event() const {
+  inline graph_event graph_ev() const {
     return motis::realtime::graph_event(
         _schedule_event._station_index, _schedule_event._train_nr,
         _schedule_event._departure, _current_time, _route_id);
@@ -82,9 +88,13 @@ public:
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const delay_info_update& diu) {
-    os << "<di=" << *diu._delay_info
-       << ", new_time=" << motis::format_time(diu._new_time)
-       << ", new_reason=" << diu._new_reason << ">";
+    if (diu.valid()) {
+      os << "<di=" << *diu._delay_info
+         << ", new_time=" << motis::format_time(diu._new_time)
+         << ", new_reason=" << diu._new_reason << ">";
+    } else {
+      os << "<invalid>";
+    }
     return os;
   }
 
@@ -109,6 +119,7 @@ public:
                                 uint32_t route_id);
   void update_delay_info(const delay_info_update* update);
   motis::time reset_to_schedule(const schedule_event& event_id);
+  void update_route(delay_info* di, int32_t new_route);
 
   delay_info* get_delay_info(const graph_event& event_id) const;
 
