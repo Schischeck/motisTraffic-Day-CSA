@@ -34,7 +34,7 @@ delay_info* delay_info_manager::create_delay_info(
   _schedule_map[event_id] = di;
 
   // no delay so far
-  _current_map[di->graph_event()] = di;
+  _current_map[di->graph_ev()] = di;
 
   return di;
 }
@@ -42,12 +42,12 @@ delay_info* delay_info_manager::create_delay_info(
 void delay_info_manager::update_delay_info(const delay_info_update* update) {
   delay_info* delay_info = update->_delay_info;
 
-  if (_rts.is_tracked(delay_info->schedule_event()._train_nr)) {
+  if (_rts.is_tracked(delay_info->sched_ev()._train_nr)) {
     LOG(debug) << "updating delay info: " << *update;
   }
 
   // remove old entry from mapping
-  auto it = _current_map.find(delay_info->graph_event());
+  auto it = _current_map.find(delay_info->graph_ev());
   if (it != _current_map.end()) {
     if (it->second == update->_delay_info) {
       _current_map.erase(it);
@@ -64,7 +64,7 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
 
   assert(delay_info->_route_id != -1);
   // add new entry to mapping
-  _current_map[delay_info->graph_event()] = delay_info;
+  _current_map[delay_info->graph_ev()] = delay_info;
 }
 
 motis::time delay_info_manager::reset_to_schedule(
@@ -86,7 +86,7 @@ motis::time delay_info_manager::reset_to_schedule(
 
 void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
   // remove old entry from mapping
-  auto it = _current_map.find(di->graph_event());
+  auto it = _current_map.find(di->graph_ev());
   if (it != _current_map.end()) {
     assert(it->second == di);
     _current_map.erase(it);
@@ -98,7 +98,7 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
   di->_route_id = new_route;
 
   // add new entry to mapping
-  _current_map[di->graph_event()] = di;
+  _current_map[di->graph_ev()] = di;
 }
 
 delay_info* delay_info_manager::get_delay_info(

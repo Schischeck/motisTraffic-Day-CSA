@@ -1,4 +1,4 @@
-#include "motis/realtime/message_output.h"
+ #include "motis/realtime/message_output.h"
 
 #include <fstream>
 #include <string>
@@ -51,9 +51,10 @@ void message_output::write_stream(std::ostream& out) {
       << "\" messages=\"true\">\n";
   out << _messages.size() << " " << _delays.size() << " 0 \n";
 
-  for (message const* msg : _messages) {
-    // msg->write_to_stream(out); // TODO
-  }
+  // TODO
+  // for (message const* msg : _messages) {
+  //   msg->write_to_stream(out);
+  // }
 
   for (delay_info const* di : _delays) {
     out << di->_schedule_event._train_nr << " "

@@ -7,7 +7,7 @@ namespace realtime {
 tracking::tracking(realtime_schedule& rts)
     : _rts(rts), _in_msg_file("tracking-in-messages.txt") {}
 
-void tracking::in_message(const message& msg) {
+void tracking::in_message(const message&) {
   // msg.write_to_stream(_in_msg_file); // TODO
   _in_msg_file.flush();
 }

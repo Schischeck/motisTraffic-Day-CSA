@@ -43,9 +43,9 @@ public:
   }
   inline bool canceled() const { return _canceled; }
 
-  inline schedule_event schedule_event() const { return _schedule_event; }
+  inline schedule_event sched_ev() const { return _schedule_event; }
 
-  inline graph_event graph_event() const {
+  inline graph_event graph_ev() const {
     return motis::realtime::graph_event(
         _schedule_event._station_index, _schedule_event._train_nr,
         _schedule_event._departure, _current_time, _route_id);

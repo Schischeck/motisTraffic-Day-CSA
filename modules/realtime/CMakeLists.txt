@@ -21,10 +21,10 @@ endif()
 
 file(GLOB_RECURSE motis-realtime-files src/*.cc)
 add_library(motis-realtime SHARED ${motis-realtime-files})
-target_link_libraries(motis-realtime ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(motis-realtime ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(motis-realtime ${DB_LIBRARIES})
 target_link_libraries(motis-realtime conf motis-loader)
-set_target_properties(motis-realtime PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
+set_target_properties(motis-realtime PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
 set_target_properties(motis-realtime PROPERTIES OUTPUT_NAME realtime.module)
 
 add_custom_target(motis-realtime-reload killall -SIGUSR1 motis-webservice)
