@@ -1,0 +1,304 @@
+{
+  "stations": [
+    {
+      "name": "Kassel",
+      "tracks": 2,
+      "latitude": 51.31999999999999,
+      "longitude": 9.437000000000012,
+      "interchangeTime": 5,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 3,
+      "evaNumber": "6380201",
+      "ds100Code": "6380201",
+      "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt",
+      "tracks": 2,
+      "latitude": 50.11900000000003,
+      "longitude": 8.668000000000006,
+      "interchangeTime": 5,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 3,
+      "evaNumber": "5744986",
+      "ds100Code": "5744986",
+      "KMInfo": 0
+    },
+    {
+      "name": "Stuttgart",
+      "tracks": 2,
+      "latitude": 48.807000000000016,
+      "longitude": 9.145999999999958,
+      "interchangeTime": 5,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 3,
+      "evaNumber": "7309882",
+      "ds100Code": "7309882",
+      "KMInfo": 0
+    },
+    {
+      "name": "Erlangen",
+      "tracks": 2,
+      "latitude": 49.625,
+      "longitude": 10.95900000000006,
+      "interchangeTime": 5,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 3,
+      "evaNumber": "0953067",
+      "ds100Code": "0953067",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "RE_K_F",
+      "category": "RE",
+      "evaNumber": "3857310",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "6380201",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5744986",
+          "arrival": 120,
+          "departure": 122,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "08:00:00.000",
+          "untilTime": "08:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_F_S",
+      "category": "ICE",
+      "evaNumber": "4095818",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "5744986",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7309882",
+          "arrival": 60,
+          "departure": 62,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:10:00.000",
+          "untilTime": "10:10:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_K_F_S",
+      "category": "ICE",
+      "evaNumber": "9248632",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "6380201",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5744986",
+          "arrival": 60,
+          "departure": 65,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7309882",
+          "arrival": 120,
+          "departure": 122,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "09:15:00.000",
+          "untilTime": "09:15:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_S_E",
+      "category": "S",
+      "evaNumber": "2188262",
+      "trainNumber": 4,
+      "stations": [
+        {
+          "station": "7309882",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0953067",
+          "arrival": 240,
+          "departure": 242,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "11:30:00.000",
+          "untilTime": "11:30:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_S_E",
+      "category": "ICE",
+      "evaNumber": "8055976",
+      "trainNumber": 5,
+      "stations": [
+        {
+          "station": "7309882",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0953067",
+          "arrival": 60,
+          "departure": 62,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "11:32:00.000",
+          "untilTime": "11:32:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_F_S",
+      "category": "S",
+      "evaNumber": "5136716",
+      "trainNumber": 6,
+      "stations": [
+        {
+          "station": "5744986",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7309882",
+          "arrival": 240,
+          "departure": 242,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:15:00.000",
+          "untilTime": "07:15:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": []
+}

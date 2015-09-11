@@ -38,12 +38,15 @@ struct data_departure_interchange : data_departure {
   struct interchange_feeder_info {
     time scheduled_arrival_time_;
     probability_distribution const* arrival_distribution_;
+    duration transfer_time_;
+    duration waiting_time_;
   } interchange_feeder_info_;
 
 private:
   void init_interchange_feeder_info(
-      light_connection const& arriving_light_conn,
-      probability_distribution const& arrival_distribution);
+      node const& route_node, light_connection const& arriving_light_conn,
+      probability_distribution const& arrival_distribution,
+      light_connection const& departing_light_conn, schedule const& schedule);
 };
 
 }  // namespace calc_departure_distribution
