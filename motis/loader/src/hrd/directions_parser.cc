@@ -16,7 +16,7 @@ std::map<uint64_t, std::string> parse_directions(
           throw parser_error(directions_file.name, line_number);
         } else {
           auto const text = line.substr(8);
-          directions[raw_to_int<uint64_t>(line.substr(1, size(7)))] =
+          directions[raw_to_int<uint64_t>(line.substr(0, size(7)))] =
               std::string(text.str, text.len);
         }
       });

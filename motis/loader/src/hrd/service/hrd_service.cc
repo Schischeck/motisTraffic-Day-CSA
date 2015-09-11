@@ -117,10 +117,10 @@ hrd_service::hrd_service(specification const& spec)
   parse_range(
       spec.directions, direction_parse_info, stops_, sections_,
       &section::directions, [&](cstr line, range const& r) {
-        if (isdigit(line[0])) {
+        if (isdigit(line[5])) {
           return std::make_pair(parse<uint64_t>(line.substr(5, size(7))),
                                 EVA_NUMBER);
-        } else if (line[0] == ' ') {
+        } else if (line[5] == ' ') {
           return std::make_pair(static_cast<uint64_t>(stops_[r.to_idx].eva_num),
                                 EVA_NUMBER);
         } else {
