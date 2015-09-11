@@ -21,7 +21,10 @@ get_all_potential_feeders_except_ic(
       all_feeders.begin(), all_feeders.end(),
       [arriving_light_conn](
           std::unique_ptr<graph_accessor::feeder_info> const& feeder) {
-        return &feeder->light_conn_ == &arriving_light_conn;
+        return feeder->light_conn_.d_time == arriving_light_conn.d_time &&
+               feeder->light_conn_.a_time == arriving_light_conn.a_time &&
+               feeder->light_conn_._full_con->con_info_id ==
+                   arriving_light_conn._full_con->con_info_id;
       });
   if (it != all_feeders.end()) {
     all_feeders.erase(it);

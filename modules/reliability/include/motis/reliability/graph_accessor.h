@@ -74,10 +74,10 @@ inline std::tuple<bool, time, time> get_feeder_time_interval(
 struct feeder_info {
   feeder_info(node const& route_node, light_connection const& light_conn,
               unsigned int const light_conn_idx)
-      : route_node_(route_node),
+      : head_route_node_(route_node),
         light_conn_(light_conn),
         light_conn_idx_(light_conn_idx) {}
-  node const& route_node_;
+  node const& head_route_node_;
   light_connection const& light_conn_;
   unsigned int const light_conn_idx_;
 };

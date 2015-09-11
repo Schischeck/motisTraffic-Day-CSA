@@ -83,16 +83,16 @@ void data_departure::init_feeder_info(
         schedule.waiting_time_rules_, feeder_data->light_conn_, light_conn);
     if (waiting_time > 0) {
       auto const transfer_time =
-          schedule.stations[feeder_data->route_node_._station_node->_id]
+          schedule.stations[feeder_data->head_route_node_._station_node->_id]
               ->get_transfer_time();  // TODO: use track change time if possible
       time const latest_feasible_arrival =
           (scheduled_departure_time_ + waiting_time) - transfer_time;
 
       assert(distributions_container.contains_distributions(
-          feeder_data->route_node_._id, distributions_container::arrival));
+          feeder_data->head_route_node_._id, distributions_container::arrival));
       auto const& feeder_distribution =
           distributions_container.get_distribution(
-              feeder_data->route_node_._id, feeder_data->light_conn_idx_,
+              feeder_data->head_route_node_._id, feeder_data->light_conn_idx_,
               distributions_container::arrival);
 
       feeders_.emplace_back(feeder_distribution,
