@@ -158,7 +158,7 @@ schedule_event realtime_schedule::get_schedule_event(
 
   delay_info* delay_info = _delay_info_manager.get_delay_info(graph_event);
   if (delay_info != nullptr) {
-    return delay_info->schedule_event();
+    return delay_info->sched_ev();
   } else {
     return schedule_event(graph_event._station_index, graph_event._train_nr,
                           graph_event._departure, graph_event._current_time);
@@ -171,7 +171,7 @@ graph_event realtime_schedule::get_graph_event(
   if (di == nullptr) {
     return graph_event(schedule_event);
   } else {
-    return di->graph_event();
+    return di->graph_ev();
   }
 }
 
@@ -309,7 +309,7 @@ bool realtime_schedule::event_exists(const schedule_event& sched_event,
   delay_info* di = _delay_info_manager.get_delay_info(sched_event);
   if (di != nullptr /*&& !di->_canceled*/) {
     if (ge_out != nullptr) {
-      *ge_out = di->graph_event();
+      *ge_out = di->graph_ev();
     }
     return true;
   }
@@ -326,7 +326,7 @@ bool realtime_schedule::event_exists(const schedule_event& sched_event,
     }
     di = _delay_info_manager.get_delay_info(ge);
     if (di != nullptr) {
-      return di->schedule_event() == sched_event;
+      return di->sched_ev() == sched_event;
     } else {
       return true;
     }

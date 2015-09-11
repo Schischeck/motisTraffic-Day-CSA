@@ -25,7 +25,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
 
   bool old_debug = _rts._debug_mode;
   if (!updates.empty() &&
-      _rts.is_tracked(updates[0]._delay_info->schedule_event()._train_nr)) {
+      _rts.is_tracked(updates[0]._delay_info->sched_ev()._train_nr)) {
     _rts._debug_mode = true;
   }
 
@@ -42,7 +42,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
   while (!updates.empty()) {
     const delay_info_update& update = updates[0];
     delay_info* di = update._delay_info;
-    graph_event ge = di->graph_event();
+    graph_event ge = di->graph_ev();
     motis::node* route_node;
     motis::light_connection* lc;
     std::tie(route_node, lc) = _rts.locate_event(ge);
@@ -55,7 +55,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
     if (route_node == nullptr || lc == nullptr) {
       LOG(warn) << "did not find event: " << ge << ", update: " << update;
 
-      schedule_event orig_event = di->schedule_event();
+      schedule_event orig_event = di->sched_ev();
       uint32_t train_nr = orig_event._train_nr;
       schedule_event ref_event = _rts.find_departure_event(
           orig_event._train_nr, orig_event._schedule_time / MINUTES_A_DAY);
@@ -138,7 +138,6 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
 void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
                                        motis::node* route_node,
                                        motis::light_connection* lc) {
-  motis::node* original_route = route_node;
   motis::node* new_route = nullptr;
 
   _rts._stats._ops.updater.time_updates++;
@@ -280,7 +279,7 @@ graph_train_info graph_updater::get_graph_train_info(
 
     auto dit = std::find_if(updates.begin(), updates.end(),
                             [&](const delay_info_update& u) {
-                              return u._delay_info->graph_event() == gdep;
+                              return u._delay_info->graph_ev() == gdep;
                             });
     delay_info_update diu_dep;
     if (dit != updates.end()) {
@@ -297,7 +296,7 @@ graph_train_info graph_updater::get_graph_train_info(
 
     auto ait = std::find_if(updates.begin(), updates.end(),
                             [&](const delay_info_update& u) {
-                              return u._delay_info->graph_event() == garr;
+                              return u._delay_info->graph_ev() == garr;
                             });
     delay_info_update diu_arr;
     if (ait != updates.end()) {

@@ -107,7 +107,7 @@ void delay_propagator::process_queue() {
       motis::time this_time = new_time(entry._delay_info);
       timestamp_reason this_reason = new_reason(entry._delay_info);
       schedule_event next_event =
-          _rts.get_next_schedule_event(entry._delay_info->graph_event());
+          _rts.get_next_schedule_event(entry._delay_info->graph_ev());
       if (next_event.found()) {
         delay_info* next_di =
             _rts._delay_info_manager.get_delay_info(next_event);
@@ -126,7 +126,7 @@ void delay_propagator::process_queue() {
                           << motis::format_time(this_time) << " " << this_reason
                           << " => " << motis::format_time(next_time);
               }
-              handle_delay_message(entry._delay_info->schedule_event(),
+              handle_delay_message(entry._delay_info->sched_ev(),
                                    next_time, timestamp_reason::REPAIR);
             }
           }
@@ -136,7 +136,7 @@ void delay_propagator::process_queue() {
       if (this_reason == timestamp_reason::IS ||
           this_reason == timestamp_reason::REPAIR) {
         schedule_event prev_event =
-            _rts.get_previous_schedule_event(entry._delay_info->graph_event());
+            _rts.get_previous_schedule_event(entry._delay_info->graph_ev());
         if (prev_event.found()) {
           motis::time prev_time = new_time(prev_event);
           if (this_time < prev_time) {
@@ -176,7 +176,7 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
   _rts._stats._ops.propagator.calc_max++;
 
   // schedule time
-  motis::time max = di->schedule_event()._schedule_time;
+  motis::time max = di->sched_ev()._schedule_time;
   timestamp_reason reason = timestamp_reason::SCHEDULE;
 
   // forecast time
@@ -187,13 +187,13 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
   }
 
   schedule_event prev_event =
-      _rts.get_previous_schedule_event(di->graph_event());
-  if (di->schedule_event().departure()) {  // departure event
+      _rts.get_previous_schedule_event(di->graph_ev());
+  if (di->sched_ev().departure()) {  // departure event
     // standing edge
     if (prev_event.found()) {
       motis::time prev_arrival_time = new_time(prev_event);
       int scheduled_standing =
-          di->schedule_event()._schedule_time - prev_event._schedule_time;
+          di->sched_ev()._schedule_time - prev_event._schedule_time;
       // TODO: constant/parameter for min standing time (2)
       motis::time standing =
           prev_arrival_time + std::min(scheduled_standing, 2);
@@ -205,7 +205,7 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
 
     // waiting edges
     for (const single_waiting_edge& we : _rts._waiting_edges.get_edges_to(
-             di->schedule_event(), di->_route_id)) {
+             di->sched_ev(), di->_route_id)) {
       delay_info* feeder_di =
           _rts._delay_info_manager.get_delay_info(we._feeder_arrival);
       if (feeder_di == nullptr || feeder_di->canceled()) {
@@ -216,11 +216,11 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
       if (feeder_arrival_time == we._feeder_arrival._schedule_time) {
         continue;
       }
-      int ic = _rts._schedule.stations[di->schedule_event()._station_index]
+      int ic = _rts._schedule.stations[di->sched_ev()._station_index]
                    ->get_transfer_time();
       if (we._waiting_time == std::numeric_limits<int>::max() ||
           feeder_arrival_time + ic <=
-              di->schedule_event()._schedule_time + we._waiting_time) {
+              di->sched_ev()._schedule_time + we._waiting_time) {
         motis::time wait_until = feeder_arrival_time + ic;
         if (wait_until > max) {
           max = wait_until;
@@ -233,7 +233,7 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
     // traveling edge
     motis::time prev_departure_time = new_time(prev_event);
     int scheduled_edge_length =
-        di->schedule_event()._schedule_time - prev_event._schedule_time;
+        di->sched_ev()._schedule_time - prev_event._schedule_time;
     motis::time traveling = prev_departure_time + scheduled_edge_length;
     if (traveling > max) {
       max = traveling;
@@ -256,17 +256,17 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
   if (_rts.is_debug_mode()) LOG(debug) << "queue_dependent_events: " << *di;
 
   // next event of this train
-  schedule_event next_event = _rts.get_next_schedule_event(di->graph_event());
+  schedule_event next_event = _rts.get_next_schedule_event(di->graph_ev());
   if (next_event.found())
     enqueue(next_event, queue_reason::TRAIN, di->_route_id);
 
-  bool is_delayed = new_time(di) != di->schedule_event()._schedule_time;
+  bool is_delayed = new_time(di) != di->sched_ev()._schedule_time;
   bool was_delayed = di->delayed();
 
   // waiting edges
   if (di->_schedule_event.departure()) return;
   for (const single_waiting_edge& we : _rts._waiting_edges.get_edges_from(
-           di->schedule_event(), di->_route_id)) {
+           di->sched_ev(), di->_route_id)) {
     delay_info* connector_di =
         _rts._delay_info_manager.get_delay_info(we._connector_departure);
 
@@ -279,7 +279,7 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 
     // calc if connector would wait
     if (is_delayed && !entry._delay_info->canceled()) {
-      int ic = _rts._schedule.stations[di->schedule_event()._station_index]
+      int ic = _rts._schedule.stations[di->sched_ev()._station_index]
                    ->get_transfer_time();
       motis::time wait_time = new_time(di) + ic;
       bool would_wait = (we._connector_departure._schedule_time < wait_time) &&

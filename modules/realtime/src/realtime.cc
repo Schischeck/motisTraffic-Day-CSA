@@ -187,6 +187,7 @@ TimestampReason encode_reason(timestamp_reason reason) {
     case timestamp_reason::PROPAGATION:
       return TimestampReason_Propagation;
   }
+  return TimestampReason_Propagation;
 }
 
 std::pair<boost::system::error_code,
@@ -342,7 +343,7 @@ void realtime::forward_time(motis::module::msg_ptr msg,
   }
 }
 
-void realtime::current_time(motis::module::msg_ptr msg,
+void realtime::current_time(motis::module::msg_ptr,
                             motis::module::callback cb) {
   if (message_fetcher_ != nullptr && message_fetcher_->_msg_stream != nullptr) {
     flatbuffers::FlatBufferBuilder b;
