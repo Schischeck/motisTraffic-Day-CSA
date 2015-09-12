@@ -155,8 +155,8 @@ Offset<Direction> service_builder::get_or_create_direction(
           return CreateDirection(builder_, 0,
                                  to_fbs_string(builder_, it->second, ENCODING));
         }
+        default: assert(false); return Offset<Direction>(0);
       }
-      assert(false);
     });
   }
 }

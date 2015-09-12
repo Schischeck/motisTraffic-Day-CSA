@@ -38,35 +38,16 @@ public:
     }
   };
 
-  connection_info() : family(0), train_nr(0) {}
-
-  bool operator<(connection_info const& o) const {
-    if (train_nr < o.train_nr) {
-      return true;
-    } else if (train_nr > o.train_nr) {
-      return false;
-    }
-    if (family < o.family) {
-      return true;
-    } else if (family > o.family) {
-      return false;
-    }
-    auto line_cmp = line_identifier.compare(o.line_identifier);
-    if (line_cmp < 0) {
-      return true;
-    } else if (line_cmp > 0) {
-      return false;
-    }
-    return attributes < o.attributes;
-  }
+  connection_info() : dir_(nullptr), family(0), train_nr(0) {}
 
   bool operator==(connection_info const& o) const {
-    return train_nr == o.train_nr && family == o.family &&
+    return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
            line_identifier == o.line_identifier && attributes == o.attributes;
   }
 
   std::vector<attribute const*> attributes;
   std::string line_identifier;
+  std::string const* dir_;
   uint32_t family;
   uint32_t train_nr;
 };

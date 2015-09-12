@@ -37,6 +37,7 @@ table Transport {
   category_name:string;
   train_nr:uint;
   line_id:string;
+  direction:string;
 }
 
 table Walk {

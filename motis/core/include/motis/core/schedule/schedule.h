@@ -35,6 +35,7 @@ struct schedule {
   std::vector<std::unique_ptr<connection>> full_connections;
   std::vector<std::unique_ptr<connection_info>> connection_infos;
   std::vector<std::unique_ptr<attribute>> attributes;
+  std::vector<std::unique_ptr<std::string>> directions;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

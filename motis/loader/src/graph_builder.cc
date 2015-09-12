@@ -168,6 +168,7 @@ private:
           section->line_id() ? section->line_id()->str() : "";
       con_info_.train_nr = section->train_nr();
       con_info_.family = get_or_create_category_index(section->category());
+      con_info_.dir_ = get_or_create_direction(section->direction());
       read_attributes(dep_day_index, section->attributes(),
                       con_info_.attributes);
 
@@ -218,6 +219,20 @@ private:
             sched_.attributes.emplace_back(std::move(new_attr));
             return sched_.attributes.back().get();
           }));
+    }
+  }
+
+  std::string const* get_or_create_direction(Direction const* dir) {
+    if (dir == nullptr) {
+      return nullptr;
+    } else if (dir->station()) {
+      return &sched_.stations[stations_[dir->station()]->_id]->name;
+    } else /* direction text */ {
+      return get_or_create(directions_, dir->text(), [&]() {
+        sched_.directions.emplace_back(
+            make_unique<std::string>(dir->text()->str()));
+        return sched_.directions.back().get();
+      });
     }
   }
 
@@ -305,6 +320,7 @@ private:
   std::map<Route const*, std::vector<node*>> routes_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
+  std::map<String const*, std::string const*> directions_;
   hash_map<Station const*, station_node*> stations_;
   hash_map<String const*, bitfield> bitfields_;
   hash_set<connection_info*,

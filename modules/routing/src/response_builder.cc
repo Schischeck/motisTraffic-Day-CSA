@@ -41,7 +41,8 @@ std::vector<Offset<MoveWrapper>> convert_moves(
       moves.push_back(CreateMoveWrapper(
           b, Move_Transport,
           CreateTransport(b, &r, b.CreateString(t.category_name), t.train_nr,
-                          b.CreateString(t.line_identifier)).Union()));
+                          b.CreateString(t.line_identifier),
+                          b.CreateString(t.direction)).Union()));
     }
   }
 

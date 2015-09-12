@@ -173,6 +173,7 @@ journey::transport generate_journey_transport(int from, int to,
   std::string line_identifier;
   int duration = t.duration;
   int slot = -1;
+  std::string direction;
 
   if (t.con == nullptr) {
     walk = true;
@@ -189,10 +190,13 @@ journey::transport generate_journey_transport(int from, int to,
     } else {
       name += con_info->line_identifier;
     }
+    if (con_info->dir_ != nullptr) {
+      direction = *con_info->dir_;
+    }
   }
 
   return {from, to, walk, name, cat_name, cat_id, train_nr, line_identifier,
-          duration, slot};
+          duration, slot, direction};
 }
 
 std::vector<journey::transport> generate_journey_transports(

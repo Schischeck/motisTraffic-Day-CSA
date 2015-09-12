@@ -24,6 +24,7 @@ struct journey {
     std::string line_identifier;
     int duration;
     int slot;
+    std::string direction;
   };
 
   struct stop {
