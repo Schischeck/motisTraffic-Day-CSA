@@ -97,6 +97,46 @@ TEST(loader_hrd_fbs_services, multiple_files) {
   p.parse(hrd_root, b);
 }
 
+TEST(loader_hrd_fbs_services, direction_service) {
+  auto const hrd_root = SCHEDULES / "direction-services";
+  hrd_parser p;
+  FlatBufferBuilder b;
+
+  ASSERT_TRUE(p.applicable(hrd_root));
+
+  p.parse(hrd_root, b);
+  auto schedule = GetSchedule(b.GetBufferPointer());
+
+  ASSERT_EQ(7, schedule->services()->size());
+
+  for (int i = 0; i < 4; i++) {
+    for (auto const& section : *schedule->services()->Get(i)->sections()) {
+      ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki",
+                   section->direction()->text()->c_str());
+      ASSERT_FALSE(section->direction()->station());
+    }
+  }
+
+  for (int service_idx = 4; service_idx < 6; service_idx++) {
+    auto section_idx = 0;
+    for (auto const& section :
+         *schedule->services()->Get(service_idx)->sections()) {
+      if (section->direction()) {
+        ASSERT_TRUE(0 <= section_idx && section_idx <= 11);
+        ASSERT_FALSE(section->direction()->text());
+        ASSERT_STREQ("8003436", section->direction()->station()->id()->c_str());
+      }
+      ++section_idx;
+    }
+  }
+
+  auto const last_service = schedule->services()->Get(6);
+  for (auto const& section : *last_service->sections()) {
+    ASSERT_FALSE(section->direction()->text());
+    ASSERT_STREQ("8000310", section->direction()->station()->id()->c_str());
+  }
+}
+
 }  // hrd
 }  // loader
 }  // motis
