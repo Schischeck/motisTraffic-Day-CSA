@@ -38,45 +38,12 @@ std::bitset<BitSetSize> create_uniform_bitfield(char val) {
 
 template <int BitCount>
 inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {
-  constexpr int number_of_bytes = BitCount >> 3;
-
-  char buf[number_of_bytes];
-  std::fill(std::begin(buf), std::end(buf), 0);
-
-  int bit_it = 0;
-  for (int byte = 0; byte < number_of_bytes; ++byte) {
-    uint8_t next_byte = 0;
-    for (int bit = 0; bit < 8; ++bit) {
-      uint8_t bit_value = bitset.test(bit_it) ? 1 : 0;
-      next_byte += (bit_value << bit);
-      ++bit_it;
-    }
-    buf[byte] = next_byte;
-  }
-
-  return std::string(buf, number_of_bytes);
-}
-
-template<typename IntType>
-inline bool is_bit_set(int bit_idx, IntType value) {
-  return (value >> bit_idx) & 1;
+  return bitset.to_string();
 }
 
 template <int BitCount>
 inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
-  constexpr std::size_t number_of_bytes = BitCount >> 3;
-
-  std::bitset<BitCount> bits;
-  int bit_it = 0;
-  auto limit = std::min(number_of_bytes, str.len);
-  for (unsigned byte = 0; byte < limit; ++byte) {
-    for (int i = 0; i < 8; ++i) {
-      bits.set(bit_it, is_bit_set(i, str[byte]));
-      ++bit_it;
-    }
-  }
-
-  return bits;
+  return std::bitset<BitCount>(std::string(str.str, str.len));
 }
 
 }  // loader

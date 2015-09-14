@@ -37,8 +37,7 @@ TEST(loader_hrd_fbs_services, repeated_service) {
   ASSERT_TRUE(service1->times()->Get(2) == 1388);
   ASSERT_TRUE(service1->times()->Get(3) == -1);
   ASSERT_TRUE(service1->sections()->size() == 1);
-  ASSERT_TRUE(
-      !deserialize_bitset<512>(service1->traffic_days()->c_str()).any());
+  ASSERT_TRUE(deserialize_bitset<512>(service1->traffic_days()->c_str()).any());
   ASSERT_STREQ("ICE",
                service1->sections()->Get(0)->category()->name()->c_str());
   ASSERT_TRUE(service1->platforms()->size() == 2);
@@ -62,8 +61,7 @@ TEST(loader_hrd_fbs_services, repeated_service) {
   ASSERT_TRUE(service2->times()->Get(2) == 1388 + 120);
   ASSERT_TRUE(service2->times()->Get(3) == -1);
   ASSERT_TRUE(service2->sections()->size() == 1);
-  ASSERT_TRUE(
-      !deserialize_bitset<512>(service2->traffic_days()->c_str()).any());
+  ASSERT_TRUE(deserialize_bitset<512>(service2->traffic_days()->c_str()).any());
   ASSERT_TRUE(service2->sections()->Get(0)->category()->name()->str() == "ICE");
 
   auto service3 = schedule->services()->Get(2);
@@ -72,8 +70,7 @@ TEST(loader_hrd_fbs_services, repeated_service) {
   ASSERT_TRUE(service3->times()->Get(2) == 1388 + 240);
   ASSERT_TRUE(service3->times()->Get(3) == -1);
   ASSERT_TRUE(service3->sections()->size() == 1);
-  ASSERT_TRUE(
-      !deserialize_bitset<512>(service3->traffic_days()->c_str()).any());
+  ASSERT_TRUE(deserialize_bitset<512>(service3->traffic_days()->c_str()).any());
   ASSERT_TRUE(service3->sections()->Get(0)->category()->name()->str() == "ICE");
 }
 
