@@ -215,7 +215,12 @@ msg_ptr railviz::make_route_at_time_msg(const motis::schedule& sched, const rout
     entryBuilder.add_departure_station_name(b.CreateString(station_name.to_string()));
     if( it != route_.end()-1 ) {
       auto it_next = it +1;
-      RailVizTrain t(std::get<2>(*it)->d_time, std::get<2>(*it)->a_time, departure_id, std::get<0>(*it_next)->_id, 0);
+      RailVizTrain t(
+            date_converter_.convert(std::get<2>(*it)->d_time),
+            date_converter_.convert(std::get<2>(*it)->a_time),
+            departure_id,
+            std::get<0>(*it_next)->_id,
+            0);
       entryBuilder.add_train_departure(&t);
     }
     fb_route_offsets.push_back( entryBuilder.Finish() );
