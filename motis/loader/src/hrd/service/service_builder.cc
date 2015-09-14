@@ -175,9 +175,9 @@ Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
     int from_stop_index = section_index;
     int to_stop_index = from_stop_index + 1;
 
-    auto section = sections[section_index];
-    auto from_stop = stops[from_stop_index];
-    auto to_stop = stops[to_stop_index];
+    auto const& section = sections[section_index];
+    auto const& from_stop = stops[from_stop_index];
+    auto const& to_stop = stops[to_stop_index];
 
     auto dep_event_key = std::make_tuple(from_stop.eva_num, section.train_num,
                                          raw_to_int<uint64_t>(section.admin));

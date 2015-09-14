@@ -36,7 +36,6 @@ std::map<uint32_t, category> parse_categories(
     categories[code] = {std::string(name.c_str(), name.length()),
                         static_cast<CategoryOutputRule>(output_rule)};
   });
-
   return categories;
 }
 
