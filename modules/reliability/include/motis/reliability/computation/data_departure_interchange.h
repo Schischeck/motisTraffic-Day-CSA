@@ -40,6 +40,7 @@ struct data_departure_interchange : data_departure {
     probability_distribution const* arrival_distribution_;
     duration transfer_time_;
     duration waiting_time_;
+    duration latest_feasible_arrival_;
   } interchange_feeder_info_;
 
 private:

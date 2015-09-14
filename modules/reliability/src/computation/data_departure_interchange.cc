@@ -67,6 +67,9 @@ void data_departure_interchange::init_interchange_feeder_info(
           ->get_transfer_time();  // TODO: use track change time if possible
   interchange_feeder_info_.waiting_time_ = graph_accessor::get_waiting_time(
       schedule.waiting_time_rules_, arriving_light_conn, departing_light_conn);
+  interchange_feeder_info_.latest_feasible_arrival_ =
+      (departing_light_conn.d_time - interchange_feeder_info_.transfer_time_) +
+      interchange_feeder_info_.waiting_time_;
 
   assert(interchange_feeder_info_.scheduled_arrival_time_ <=
          scheduled_departure_time_);

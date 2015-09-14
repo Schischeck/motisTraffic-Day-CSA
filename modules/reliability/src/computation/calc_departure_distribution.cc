@@ -9,38 +9,10 @@ namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
 
-/** method responsible for calculating a departure distribution */
-void compute_departure_distribution(
-    data_departure const& data,
-    probability_distribution& departure_distribution) {
-  duration const largest_delay = data.largest_delay();
-  std::vector<probability> probabilties(largest_delay + 1);
-
-  std::vector<probability_distribution> modified_feeders_distributions;
-  detail::cut_minutes_after_latest_feasible_arrival(
-      data.feeders_, modified_feeders_distributions);
-
-  for (duration delay = 0; delay <= largest_delay; delay++) {
-    time const departure_time = data.scheduled_departure_time_ + delay;
-    if (delay == 0) {
-      probabilties[delay] = detail::departure_at_scheduled_time(data);
-    } else if (delay > 0 && delay <= data.maximum_waiting_time_) {
-      probabilties[delay] = detail::departure_within_waiting_interval(
-          data, modified_feeders_distributions, departure_time);
-    } else {
-      probabilties[delay] =
-          detail::departure_after_waiting_interval(data, departure_time);
-    }
-  }
-  departure_distribution.init(probabilties, 0);
-
-  assert(equal(departure_distribution.sum(), 1.0));
-}
-
 namespace detail {
 
 /* helper for departure_at_scheduled_time */
-probability train_early_enough(data_departure const& data) {
+probability train_arrived(data_departure const& data) {
   if (data.is_first_route_node_) {
     return data.train_info_.first_departure_distribution_
         ->probability_smaller_equal(0);
@@ -52,43 +24,6 @@ probability train_early_enough(data_departure const& data) {
           data.train_info_.preceding_arrival_info_.min_standing_);
   return data.train_info_.preceding_arrival_info_.arrival_distribution_
       ->probability_smaller_equal(delay);
-}
-
-probability departure_at_scheduled_time(data_departure const& data) {
-  probability result = train_early_enough(data) *
-                       departure_independent_from_feeders(
-                           data.feeders_, data.scheduled_departure_time_);
-
-#if 0
-  // if there is an interchange before this departure
-  // consider the effect of the feeder involved in the interchange.
-  if (data->has_interchange()) {
-
-    // index of the feeder involved in the interchange
-    int feeder_idx = data->get_i_c_feeder_idx();
-
-    // latest arrival-time of the feeder-train so that the departure
-    // is possible at the scheduled time
-    time latest_arr_time_i_c_feeder(data->sched_dep_time);
-    latest_arr_time_i_c_feeder.subtract_minutes(
-        data->transfer_times[feeder_idx]);
-
-    // probability that there is no need to wait for the feeder involved in
-    // the interchange in the connection before this departure event
-    probability ic_feeder_early_enough =
-        data->feeders[feeder_idx]->get_prob_smaller_equal(
-            latest_arr_time_i_c_feeder.get_difference_in_minutes(
-                data->arr_time_feeders[feeder_idx]));
-
-    result *= ic_feeder_early_enough;
-
-    if (LOGGING)
-      log_str << "ic_feeder_early_enough=" << ic_feeder_early_enough
-              << std::endl;
-  }
-#endif
-
-  return result;
 }
 
 /* helper for departure_within_waiting_interval and
@@ -130,169 +65,6 @@ probability train_arrives_before_time(data_departure const& data,
   // get the probability that the train arrives with a delay of 'train_delay'
   return arrival_info.arrival_distribution_->probability_smaller(train_delay);
 }
-
-probability departure_within_waiting_interval(
-    data_departure const& data,
-    std::vector<probability_distribution> const& modified_feeders_distributions,
-    time const timestamp) {
-  // probability that there is no need to wait for a feeder train
-  probability const prob_no_waiting_for_feeders =
-      departure_independent_from_feeders(data.feeders_, timestamp);
-
-  // probability that the departure at the given time is because of the delay of
-  // the train itself
-  probability const prob_train_has_delay =
-      train_arrives_at_time(data, timestamp) * prob_no_waiting_for_feeders;
-
-  // probability that the departure at the given time is because of waiting of
-  // at least one feeder
-  probability const prob_a_feeder_has_delay =
-      train_arrives_before_time(data, timestamp) *
-      had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
-                              timestamp);
-
-  return prob_train_has_delay + prob_a_feeder_has_delay;
-}
-
-probability departure_after_waiting_interval(data_departure const& data,
-                                             time const timestamp) {
-  probability result = train_arrives_at_time(data, timestamp);
-
-#if 0
-  // if there is an interchange before this departure
-  // consider the effect of the feeder involved in the interchange.
-  if (data->has_interchange()) {
-    // index of the feeder involved in the interchange
-    int feeder_idx = data->get_i_c_feeder_idx();
-
-    // latest arrival-time of the feeder so that a departure at the given
-    // timestamp
-    // is possible
-    time latest_arr_time_i_c_feeder(timestamp);
-    latest_arr_time_i_c_feeder.subtract_minutes(
-        data->transfer_times[feeder_idx]);
-    int delay = latest_arr_time_i_c_feeder.get_difference_in_minutes(
-        data->arr_time_feeders[feeder_idx]);
-
-    // get the probabilty that the feeder has not a delay greater than 'delay'
-    // so that the train has not to wait for this feeder for a longer timestamp
-    probability prob_no_waiting_for_i_c_feeder =
-        data->feeders[feeder_idx]->get_prob_smaller_equal(delay);
-
-    // prob_res has to be multiplied with prob_no_waiting_for_i_c_feeder
-    result *= prob_no_waiting_for_i_c_feeder;
-
-    if (LOGGING)
-      log_str << "prob_no_wait_for_i_c_feeder: "
-              << prob_no_waiting_for_i_c_feeder << std::endl;
-  }
-#endif
-
-  return result;
-}
-
-#if 0
-
-/**
- * calculate the probability for a departure in the waiting interval
- * at a point in time stored in parameter 'timestamp'. this method is called
- * when there is an interchange before this departure event.
- *
- * @param departure_data* object containing all necessary data
- * @param const time& point in time
- * @param probability_distribution** arr_dists_only_feasible_part corresponding
- *modified arrival distributions of the feeders
- *                           (see comments of method init_arr_dists_y)
- * @return probability probability
- */
-probability get_prob_dep_waiting_interval_interchange(
-    data_departure* data, const time& timestamp,
-    probability_distribution** arr_dists_only_feasible_part) {
-
-  probability prob_res = 0.0;
-
-  /* probabilities of the departing train */
-
-  // latest arrival-time of the train so that a departure at the given time is
-  // possible
-  time latest_arr_time_train(timestamp);
-  latest_arr_time_train.subtract_minutes(data->min_standing);
-
-  // probability that the train arrives at the given timestamp
-  probability prob_train_arr_at_time = 0.0;
-  // probability that the train arrives before the given timestamp
-  probability prob_train_arr_before_time = 1.0;
-  if (data->arr_dist != NULL) {
-    int delay_train =
-        latest_arr_time_train.get_difference_in_minutes(data->arr_time_train);
-    prob_train_arr_at_time = data->arr_dist->get_prob_equal(delay_train);
-    prob_train_arr_before_time = data->arr_dist->get_prob_smaller(delay_train);
-  }
-
-  /* probabilties of the feeders */
-
-  // probability that there is no need to wait for a feeder train
-  probability prob_no_waiting_for_feeders =
-      departure_independent_from_feeders(data, timestamp);
-
-  // probability that the train has to wait for at least one feeder
-  probability prob_waiting_for_feeders = get_prob_waiting_for_feeders(
-      data, timestamp, arr_dists_only_feasible_part);
-
-  /* probabilities of the interchange-feeder */
-
-  // index of the feeder involved in the interchange
-  int feeder_idx = data->get_i_c_feeder_idx();
-
-  // latest arrival-time of the feeder so that a departure at the given time is
-  // possible
-  time latest_arr_time_i_c_feeder(timestamp);
-  latest_arr_time_i_c_feeder.subtract_minutes(data->transfer_times[feeder_idx]);
-  int delay_i_c_feeder = latest_arr_time_i_c_feeder.get_difference_in_minutes(
-      data->arr_time_feeders[feeder_idx]);
-
-  // probability that the feeder arrives at the timestamp
-  // 'latest_arr_time_i_c_feeder'
-  probability prob_i_c_feeder_a_t_time =
-      data->feeders[feeder_idx]->get_prob_equal(delay_i_c_feeder);
-  // probability that the feeder arrives before the timestamp
-  // 'latest_arr_time_i_c_feeder'
-  probability prob_i_c_feeder_not_later_than_time =
-      data->feeders[feeder_idx]->get_prob_smaller_equal(delay_i_c_feeder);
-
-  /* probability that the train waits */
-
-  // probability that the train waits of a feeder
-  // plus the probability if the train waits for the ic-feeder.
-  // in the second term we have to deduct the probability of waiting for any
-  // feeder
-  // since this case is already considered in the first summand of
-  // 'prob_waiting'
-  probability prob_waiting =
-      prob_waiting_for_feeders * prob_i_c_feeder_not_later_than_time;
-  if (latest_arr_time_i_c_feeder <=
-      data->latest_feasible_arr_feeders[feeder_idx])
-    prob_waiting += (prob_i_c_feeder_a_t_time *
-                     (prob_no_waiting_for_feeders - prob_waiting_for_feeders));
-
-  /* summands of the departure-probability */
-
-  // probability that the departure at the given time is because of the delay of
-  // the train itself
-  probability prob_train_has_delay = prob_train_arr_at_time *
-                                     prob_i_c_feeder_not_later_than_time *
-                                     prob_no_waiting_for_feeders;
-
-  // probability that the train waits
-  probability prob_train_waits = prob_train_arr_before_time * prob_waiting;
-
-  // departure probability
-  prob_res = (prob_train_has_delay + prob_train_waits);
-
-  return prob_res;
-}
-
-#endif
 
 probability departure_independent_from_feeders(
     std::vector<data_departure::feeder_info> const& feeders,
@@ -370,7 +142,86 @@ void cut_minutes_after_latest_feasible_arrival(
   }
 }
 
+/**
+ * calculate the probability for a departure at the scheduled departure time.
+ */
+probability departure_at_scheduled_time(data_departure const& data) {
+  return train_arrived(data) *
+         departure_independent_from_feeders(data.feeders_,
+                                            data.scheduled_departure_time_);
+}
+
+/**
+ * Calculate the probability for a departure within the waiting interval
+ * at the point in time stored in parameter 'timestamp'.
+ * This function can be used to compute train distributions,
+ * and cannot handle interchanges.
+ *
+ * @param modified_feeders_distributions: vector containing for each feeder
+ *        those minutes of the arrival distribution which are not later than the
+ *        latest feasible arrival time of the feeder.
+ *        This modified distributions are determined by
+ *        'cut_minutes_after_latest_feasible_arrival'.
+ */
+probability departure_within_waiting_interval(
+    data_departure const& data,
+    std::vector<probability_distribution> const& modified_feeders_distributions,
+    time const timestamp) {
+  // probability that the departure at the given time is because of the delay of
+  // the train itself
+  probability const prob_train_has_delay =
+      train_arrives_at_time(data, timestamp) *
+      departure_independent_from_feeders(data.feeders_, timestamp);
+
+  // probability that the departure at the given time is because of waiting of
+  // at least one feeder
+  probability const prob_a_feeder_has_delay =
+      train_arrives_before_time(data, timestamp) *
+      had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
+                              timestamp);
+
+  return prob_train_has_delay + prob_a_feeder_has_delay;
+}
+
+/**
+ * Calculate the probability for a departure after the waiting interval
+ * at the point in time stored in 'timestamp'.
+ */
+probability departure_after_waiting_interval(data_departure const& data,
+                                             time const timestamp) {
+  return train_arrives_at_time(data, timestamp);
+}
+
 }  // namespace detail
+
+/** method responsible for calculating a departure distribution */
+void compute_departure_distribution(
+    data_departure const& data,
+    probability_distribution& departure_distribution) {
+  duration const largest_delay = data.largest_delay();
+  std::vector<probability> probabilties(largest_delay + 1);
+
+  std::vector<probability_distribution> modified_feeders_distributions;
+  detail::cut_minutes_after_latest_feasible_arrival(
+      data.feeders_, modified_feeders_distributions);
+
+  for (duration delay = 0; delay <= largest_delay; delay++) {
+    time const departure_time = data.scheduled_departure_time_ + delay;
+    if (delay == 0) {
+      probabilties[delay] = detail::departure_at_scheduled_time(data);
+    } else if (delay > 0 && delay <= data.maximum_waiting_time_) {
+      probabilties[delay] = detail::departure_within_waiting_interval(
+          data, modified_feeders_distributions, departure_time);
+    } else {
+      probabilties[delay] =
+          detail::departure_after_waiting_interval(data, departure_time);
+    }
+  }
+  departure_distribution.init(probabilties, 0);
+
+  assert(equal(departure_distribution.sum(), 1.0));
+}
+
 }  // namespace distributions_calculator
 }  // namespace reliability
 }  // namespace motis

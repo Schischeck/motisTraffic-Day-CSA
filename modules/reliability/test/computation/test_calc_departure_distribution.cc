@@ -84,9 +84,9 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
 
   data_departure data(first_route_node, first_light_conn, true, *schedule,
                       dummy, s_t_distributions);
-  train_early_enough(data);
+  train_arrived(data);
 
-  REQUIRE(equal(train_early_enough(data), 0.6));
+  REQUIRE(equal(train_arrived(data), 0.6));
 }
 
 // preceding arrival
@@ -110,9 +110,9 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
 
   data_departure data(*second_route_node, light_connection, false, *schedule,
                       train_distributions, s_t_distributions);
-  train_early_enough(data);
+  train_arrived(data);
 
-  REQUIRE(equal(train_early_enough(data), 0.8));
+  REQUIRE(equal(train_arrived(data), 0.8));
 }
 
 TEST_CASE("cut_minutes_after_latest_feasible_arrival1",
@@ -378,7 +378,7 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
   data_departure data(*second_route_node, light_connection, false, *schedule,
                       train_distributions, *dummy);
 
-  REQUIRE(equal(train_early_enough(data), 0.8));
+  REQUIRE(equal(train_arrived(data), 0.8));
   REQUIRE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.7));
   REQUIRE(equal(train_arrives_at_time(data, data.scheduled_departure_time_ + 1),
@@ -454,7 +454,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
 
   /******************* minute 0 *******************/
 
-  REQUIRE(equal(train_early_enough(data), 0.043 + 4 * 0.033));
+  REQUIRE(equal(train_arrived(data), 0.043 + 4 * 0.033));
   REQUIRE(equal(departure_independent_from_feeders(
                     data.feeders_, data.scheduled_departure_time_),
                 (1.0 - 3 * (0.033)) * (1.0 - 3 * (0.033))));
@@ -462,7 +462,7 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   // probability 0=0.142065
   REQUIRE(equal(departure_distribution.probability_equal(0), 0.142065));
   REQUIRE(equal(departure_distribution.probability_equal(0),
-                train_early_enough(data) *
+                train_arrived(data) *
                     departure_independent_from_feeders(
                         data.feeders_, data.scheduled_departure_time_)));
 

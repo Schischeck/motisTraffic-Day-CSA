@@ -14,7 +14,7 @@ namespace reliability {
 
 namespace graph_accessor {
 
-inline edge const* const get_departing_route_edge(node const& route_node) {
+inline edge const* get_departing_route_edge(node const& route_node) {
   for (auto& edge : route_node._edges) {
     if (!edge.empty()) {
       return &edge;
@@ -23,7 +23,7 @@ inline edge const* const get_departing_route_edge(node const& route_node) {
   return nullptr;
 }
 
-inline edge const* const get_arriving_route_edge(node const& route_node) {
+inline edge const* get_arriving_route_edge(node const& route_node) {
   for (auto& edge : route_node._incoming_edges) {
     if (!edge->empty()) {
       return edge;
