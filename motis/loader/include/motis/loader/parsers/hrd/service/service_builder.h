@@ -8,6 +8,7 @@
 
 #include "motis/loader/parsers/hrd/bitfield_translator.h"
 #include "motis/loader/parsers/hrd/stations_translator.h"
+#include "motis/loader/parsers/hrd/providers_translator.h"
 #include "motis/loader/parsers/hrd/service/shared_data.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
 #include "motis/schedule-format/Schedule_generated.h"
@@ -58,6 +59,7 @@ struct service_builder {
   shared_data const& stamm_;
   bitfield_translator bitfields_;
   stations_translator stations_;
+  providers_translator providers_;
   flatbuffers::FlatBufferBuilder& builder_;
   std::vector<flatbuffers::Offset<Service>> services_;
   std::map<uint16_t, flatbuffers::Offset<AttributeInfo>> attribute_infos_;

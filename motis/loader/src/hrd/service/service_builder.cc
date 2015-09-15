@@ -17,6 +17,7 @@ service_builder::service_builder(shared_data const& stamm,
     : stamm_(stamm),
       bitfields_(stamm.bitfields, builder),
       stations_(stamm.stations, builder),
+      providers_(stamm.providers, builder),
       builder_(builder) {}
 
 void service_builder::create_services(hrd_service const& s) {
@@ -63,11 +64,12 @@ Offset<Vector<Offset<Section>>> service_builder::create_sections(
     std::vector<hrd_service::section> const& sections) {
   return builder_.CreateVector(transform_to_vec(
       begin(sections), end(sections), [&](hrd_service::section const& s) {
-        return CreateSection(builder_, get_or_create_category(s.category[0]), 0,
-                             s.train_num,
-                             get_or_create_line_info(s.line_information),
-                             create_attributes(s.attributes),
-                             get_or_create_direction(s.directions));
+        return CreateSection(
+            builder_, get_or_create_category(s.category[0]),
+            providers_.get_or_create_provider(raw_to_int<uint64_t>(s.admin)),
+            s.train_num, get_or_create_line_info(s.line_information),
+            create_attributes(s.attributes),
+            get_or_create_direction(s.directions));
       }));
 }
 

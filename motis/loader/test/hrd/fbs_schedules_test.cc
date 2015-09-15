@@ -94,7 +94,7 @@ TEST(loader_hrd_fbs_services, multiple_files) {
   p.parse(hrd_root, b);
 }
 
-TEST(loader_hrd_fbs_services, direction_service) {
+TEST(loader_hrd_fbs_services, directions_and_providers) {
   auto const hrd_root = SCHEDULES / "direction-services";
   hrd_parser p;
   FlatBufferBuilder b;
@@ -111,6 +111,7 @@ TEST(loader_hrd_fbs_services, direction_service) {
       ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki",
                    section->direction()->text()->c_str());
       ASSERT_FALSE(section->direction()->station());
+      ASSERT_FALSE(section->provider());
     }
   }
 
@@ -123,6 +124,10 @@ TEST(loader_hrd_fbs_services, direction_service) {
         ASSERT_FALSE(section->direction()->text());
         ASSERT_STREQ("8003436", section->direction()->station()->id()->c_str());
       }
+      ASSERT_STREQ("DB", section->provider()->short_name()->c_str());
+      ASSERT_STREQ("RB 03", section->provider()->long_name()->c_str());
+      ASSERT_STREQ("DB Netz 03 West",
+                   section->provider()->full_name()->c_str());
       ++section_idx;
     }
   }
@@ -131,6 +136,10 @@ TEST(loader_hrd_fbs_services, direction_service) {
   for (auto const& section : *last_service->sections()) {
     ASSERT_FALSE(section->direction()->text());
     ASSERT_STREQ("8000310", section->direction()->station()->id()->c_str());
+    ASSERT_STREQ("---", section->provider()->short_name()->c_str());
+    ASSERT_STREQ("B2", section->provider()->long_name()->c_str());
+    ASSERT_STREQ("Busse/SEV Region NRW",
+                 section->provider()->full_name()->c_str());
   }
 }
 
