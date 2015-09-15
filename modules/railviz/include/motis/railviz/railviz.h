@@ -3,13 +3,17 @@
 #include <sstream>
 #include <set>
 
+#include "motis/module/handler_functions.h"
 #include "motis/module/module.h"
 #include "motis/railviz/date_converter.h"
 #include "motis/railviz/timetable_retriever.h"
 #include "motis/railviz/webclient.h"
+#include "motis/railviz/realtime_response.h"
 
 namespace motis {
 namespace railviz {
+
+using namespace motis::module;
 
 class train_retriever;
 
@@ -45,6 +49,7 @@ struct railviz : public motis::module::module {
   void route_at_time(motis::module::msg_ptr msg, webclient& client,
                       motis::module::callback cb);
   motis::module::msg_ptr make_route_at_time_msg(const motis::schedule&, const route& ) const;
+  callback make_route_at_time_realtime_callback(const route&, const std::vector<station_ptr>&, callback) const;
 
   typedef std::function<
       void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;

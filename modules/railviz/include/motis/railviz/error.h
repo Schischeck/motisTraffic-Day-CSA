@@ -11,7 +11,9 @@ enum error_code_t {
   ok = 0,
 
   station_index_out_of_bounds = 1,
-  client_not_registered = 2
+  client_not_registered = 2,
+
+  route_not_found = 3
 };
 }  // namespace error
 

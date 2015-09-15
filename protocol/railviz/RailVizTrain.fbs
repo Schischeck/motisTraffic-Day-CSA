@@ -1,9 +1,14 @@
 namespace motis.railviz;
 
-struct RailVizTrain {
+table RailVizTrain {
 	dTime : int;
 	aTime : int;
 	dStation : int;
 	aStation : int;
 	route_id : int;
+	
+	dTimeDelay : int = 0;
+	aTimeDelay : int = 0;
+	departureDelayReason : string;
+	arrivalDelayReason: string;
 }
