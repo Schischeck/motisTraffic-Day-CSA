@@ -52,17 +52,10 @@ provider_info read_provider_names(cstr line, char const* filename,
 
 std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
   std::map<uint64_t, provider_info> providers;
-
-  cstr content = file.content;
-
-  auto default_provider_line = get_line(content);
-  content += default_provider_line.len + 1;
-  providers[0] = read_provider_names(default_provider_line, file.name, 0);
-
   provider_info current_info;
   int previous_provider_number = 0;
 
-  for_each_line_numbered(content, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content, [&](cstr line, int line_number) {
     auto provider_number = parse<int>(line.substr(0, size(5)));
     if (line[6] == 'K') {
       current_info = read_provider_names(line, file.name, line_number);

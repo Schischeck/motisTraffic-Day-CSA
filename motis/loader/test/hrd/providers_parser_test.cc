@@ -8,7 +8,6 @@ namespace loader {
 
 TEST(loader_hrd_providers, simple) {
   char const* file_content =
-      "00000 K 'DPN' L 'DPN' V 'Nahreisezug'\n"
       "00001 K 'DPN' L 'ABR' V 'ABELLIO Rail Mitteldeutschland GmbH'\n"
       "00001 : AM____\n"
       "00002 K 'DPN' L 'ABR' V 'ABELLIO Rail NRW GmbH'\n"
@@ -18,12 +17,7 @@ TEST(loader_hrd_providers, simple) {
 
   auto providers = parse_providers({"betrieb.101", file_content});
 
-  EXPECT_EQ(5u, providers.size());
-
-  auto const& default_provider = providers[0];
-  EXPECT_EQ("DPN", default_provider.short_name);
-  EXPECT_EQ("DPN", default_provider.long_name);
-  EXPECT_EQ("Nahreisezug", default_provider.full_name);
+  EXPECT_EQ(4u, providers.size());
 
   auto const& first = providers[raw_to_int<uint64_t>("AM____")];
   EXPECT_EQ("DPN", first.short_name);
