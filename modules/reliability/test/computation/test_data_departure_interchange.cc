@@ -8,6 +8,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
 
+#include "include/interchange_data_for_tests.h"
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
 
@@ -38,43 +39,22 @@ TEST_CASE("interchange first-route-node no-feeders",
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  // route edge of train RE_K_F from Kassel to Frankfurt
-  auto const arriving_route_edge = graph_accessor::get_departing_route_edge(
-      *schedule->route_index_to_first_route_node[schedule2::RE_K_F]);
-  auto const& arriving_light_conn =
-      arriving_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(arriving_route_edge->_from->_station_node->_id == schedule2::KASSEL);
-  REQUIRE(arriving_route_edge->_to->_station_node->_id == schedule2::FRANKFURT);
-  REQUIRE(arriving_light_conn.d_time == 8 * 60);
-  REQUIRE(arriving_light_conn.a_time == 10 * 60);
-
-  // route node at Frankfurt of train ICE_F_S
-  auto& route_node =
-      *schedule->route_index_to_first_route_node[schedule2::ICE_F_S];
-  // route edge from Frankfurt to Stuttgart
-  auto const departing_route_edge =
-      graph_accessor::get_departing_route_edge(route_node);
-  auto const& departing_light_conn =
-      departing_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(route_node._station_node->_id == schedule2::FRANKFURT);
-  REQUIRE(departing_route_edge->_from->_station_node->_id ==
-          schedule2::FRANKFURT);
-  REQUIRE(departing_route_edge->_to->_station_node->_id ==
-          schedule2::STUTTGART);
-  REQUIRE(departing_light_conn.d_time == 10 * 60 + 10);
-  REQUIRE(departing_light_conn.a_time == 11 * 60 + 10);
+  interchange_data const ic_data(*schedule, schedule2::RE_K_F,
+                                 schedule2::ICE_F_S, schedule2::KASSEL,
+                                 schedule2::FRANKFURT, schedule2::STUTTGART,
+                                 8 * 60, 10 * 60, 10 * 60 + 10, 11 * 60 + 10);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, route_node, departing_light_conn, arriving_light_conn,
-      dummy_arrival_distribution, *schedule, dummy, s_t_distributions);
+      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
+      dummy, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ == departing_light_conn.d_time);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
   REQUIRE(data.largest_delay() == 1);
   REQUIRE(data.maximum_waiting_time_ == 0);
   REQUIRE(data.feeders_.size() == 0);
@@ -82,13 +62,18 @@ TEST_CASE("interchange first-route-node no-feeders",
           &s_t_distributions.start_distribution_);
 
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          arriving_light_conn.a_time);
+          ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
   REQUIRE(
       data.interchange_feeder_info_.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
 }
 
 TEST_CASE("interchange preceding-arrival no-feeders",
@@ -99,56 +84,40 @@ TEST_CASE("interchange preceding-arrival no-feeders",
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  // route edge of train RE_K_F from Kassel to Frankfurt
-  auto const arriving_route_edge = graph_accessor::get_departing_route_edge(
-      *schedule->route_index_to_first_route_node[schedule2::RE_K_F]);
-  auto const& arriving_light_conn =
-      arriving_route_edge->_m._route_edge._conns[0];
+  // route node at Frankfurt of train ICE_K_F_S
+  auto& tail_node_departing_train =
+      *graph_accessor::get_departing_route_edge(
+           *schedule->route_index_to_first_route_node[schedule2::ICE_K_F_S])
+           ->_to;
+  REQUIRE(tail_node_departing_train._station_node->_id == schedule2::FRANKFURT);
 
-  REQUIRE(arriving_route_edge->_from->_station_node->_id == schedule2::KASSEL);
-  REQUIRE(arriving_route_edge->_to->_station_node->_id == schedule2::FRANKFURT);
-  REQUIRE(arriving_light_conn.d_time == 8 * 60);
-  REQUIRE(arriving_light_conn.a_time == 10 * 60);
+  // arriving train RE_K_F from Kassel to Frankfurt
+  // interchange at Frankfurt (second node of ICE_K_F_S)
+  // departing train ICE_K_F_S from Frankfurt to Stuttgart
+  interchange_data const ic_data(*schedule, schedule2::RE_K_F,
+                                 tail_node_departing_train, schedule2::KASSEL,
+                                 schedule2::FRANKFURT, schedule2::STUTTGART,
+                                 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
+
+  probability_distribution dummy_arrival_distribution;
+  dummy_arrival_distribution.init_one_point(0, 1.0);
+
+  data_departure_interchange data(
+      false, tail_node_departing_train, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
+      precomputed, s_t_distributions);
 
   // light conn of route edge from Kassel to Frankfurt of train ICE_K_F_S
   auto const& preceding_arrival_light_conn =
       graph_accessor::get_departing_route_edge(
           *schedule->route_index_to_first_route_node[schedule2::ICE_K_F_S])
           ->_m._route_edge._conns[0];
-
   REQUIRE(preceding_arrival_light_conn.d_time == 9 * 60 + 15);
   REQUIRE(preceding_arrival_light_conn.a_time == 10 * 60 + 15);
 
-  // route node at Frankfurt of train ICE_K_F_S
-  auto& route_node =
-      *graph_accessor::get_departing_route_edge(
-           *schedule->route_index_to_first_route_node[schedule2::ICE_K_F_S])
-           ->_to;
-
-  REQUIRE(route_node._station_node->_id == schedule2::FRANKFURT);
-
-  // route edge from Frankfurt to Stuttgart
-  auto const departing_route_edge =
-      graph_accessor::get_departing_route_edge(route_node);
-  auto const& departing_light_conn =
-      departing_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(departing_route_edge->_from->_station_node->_id ==
-          schedule2::FRANKFURT);
-  REQUIRE(departing_route_edge->_to->_station_node->_id ==
-          schedule2::STUTTGART);
-  REQUIRE(departing_light_conn.d_time == 10 * 60 + 20);
-  REQUIRE(departing_light_conn.a_time == 11 * 60 + 15);
-
-  probability_distribution dummy_arrival_distribution;
-  dummy_arrival_distribution.init_one_point(0, 1.0);
-
-  data_departure_interchange data(
-      false, route_node, departing_light_conn, arriving_light_conn,
-      dummy_arrival_distribution, *schedule, precomputed, s_t_distributions);
-
   REQUIRE_FALSE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ == departing_light_conn.d_time);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
   REQUIRE(data.largest_delay() == 0);
   REQUIRE(data.maximum_waiting_time_ == 0);
   REQUIRE(data.feeders_.size() == 0);
@@ -159,13 +128,18 @@ TEST_CASE("interchange preceding-arrival no-feeders",
           &precomputed.dist);
 
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          arriving_light_conn.a_time);
+          ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
   REQUIRE(
       data.interchange_feeder_info_.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
 }
 
 TEST_CASE("interchange first-route-node feeders incl. ic",
@@ -176,76 +150,54 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  // route edge of train ICE_F_S from Frankfurt to Stuttgart
-  auto const& arriving_route_edge =
-      *graph_accessor::get_departing_route_edge(
-          *schedule->route_index_to_first_route_node[schedule2::ICE_F_S]);
-  auto const& arriving_light_conn =
-      arriving_route_edge._m._route_edge._conns[0];
-
-  REQUIRE(arriving_route_edge._from->_station_node->_id ==
-          schedule2::FRANKFURT);
-  REQUIRE(arriving_route_edge._to->_station_node->_id == schedule2::STUTTGART);
-  REQUIRE(arriving_light_conn.d_time == 10 * 60 + 10);
-  REQUIRE(arriving_light_conn.a_time == 11 * 60 + 10);
-
-  // route node at Stuttgart of train ICE_S_E
-  auto const& route_node =
-      *schedule->route_index_to_first_route_node[schedule2::ICE_S_E];
-
-  REQUIRE(route_node._station_node->_id == schedule2::STUTTGART);
-
-  // route edge from Stuttgart to Erlangen of train ICE_S_E
-  auto const departing_route_edge =
-      graph_accessor::get_departing_route_edge(route_node);
-  auto const& departing_light_conn =
-      departing_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(departing_route_edge->_from->_station_node->_id ==
-          schedule2::STUTTGART);
-  REQUIRE(departing_route_edge->_to->_station_node->_id == schedule2::ERLANGEN);
-  REQUIRE(departing_light_conn.d_time == 11 * 60 + 32);
-  REQUIRE(departing_light_conn.a_time == 12 * 60 + 32);
+  // arriving train ICE_F_S from Frankfurt to Stuttgart
+  // interchange at Stuttgart
+  // departing train ICE_S_E from Stuttgart to Erlangen
+  interchange_data const ic_data(
+      *schedule, schedule2::ICE_F_S, schedule2::ICE_S_E, schedule2::FRANKFURT,
+      schedule2::STUTTGART, schedule2::ERLANGEN, 10 * 60 + 10, 11 * 60 + 10,
+      11 * 60 + 32, 12 * 60 + 32);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, route_node, departing_light_conn, arriving_light_conn,
-      dummy_arrival_distribution, *schedule, precomputed, s_t_distributions);
+      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
+      precomputed, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ == departing_light_conn.d_time);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
   REQUIRE(data.largest_delay() == 3);
   REQUIRE(data.feeders_.size() == 1);
 
   // Feeder ICE_K_F_S
   auto const& feeder = data.feeders_[0];
-  auto const& feeder_light_conn =
-      graph_accessor::get_departing_route_edge(
-          *graph_accessor::get_departing_route_edge(
-               *schedule->route_index_to_first_route_node[schedule2::ICE_K_F_S])
-               ->_to)->_m._route_edge._conns[0];
-  duration const waiting_time = graph_accessor::get_waiting_time(
-      schedule->waiting_time_rules_, feeder_light_conn, departing_light_conn);
 
   REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
   REQUIRE(&feeder.distribution_ == &precomputed.dist);
   REQUIRE(
       feeder.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(feeder.latest_feasible_arrival_ ==
-          (departing_light_conn.d_time - feeder.transfer_time_) + waiting_time);
+          (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          arriving_light_conn.a_time);
+          ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
   REQUIRE(
       data.interchange_feeder_info_.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
 }
 
 TEST_CASE("interchange first-route-node feeders excl. ic",
@@ -256,99 +208,69 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  // route edge of train S_F_S from Frankfurt to Stuttgart
-  auto const& arriving_route_edge =
-      *graph_accessor::get_departing_route_edge(
-          *schedule->route_index_to_first_route_node[schedule2::S_F_S]);
-  auto const& arriving_light_conn =
-      arriving_route_edge._m._route_edge._conns[0];
-
-  REQUIRE(arriving_route_edge._from->_station_node->_id ==
-          schedule2::FRANKFURT);
-  REQUIRE(arriving_route_edge._to->_station_node->_id == schedule2::STUTTGART);
-  REQUIRE(arriving_light_conn.d_time == 7 * 60 + 15);
-  REQUIRE(arriving_light_conn.a_time == 11 * 60 + 15);
-
-  // route node at Stuttgart of train ICE_S_E
-  auto const& route_node =
-      *schedule->route_index_to_first_route_node[schedule2::ICE_S_E];
-
-  REQUIRE(route_node._station_node->_id == schedule2::STUTTGART);
-
-  // route edge from Stuttgart to Erlangen of train ICE_S_E
-  auto const departing_route_edge =
-      graph_accessor::get_departing_route_edge(route_node);
-  auto const& departing_light_conn =
-      departing_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(departing_route_edge->_from->_station_node->_id ==
-          schedule2::STUTTGART);
-  REQUIRE(departing_route_edge->_to->_station_node->_id == schedule2::ERLANGEN);
-  REQUIRE(departing_light_conn.d_time == 11 * 60 + 32);
-  REQUIRE(departing_light_conn.a_time == 12 * 60 + 32);
+  // arriving train S_F_S from Frankfurt to Stuttgart
+  // interchange at Stuttgart
+  // departing train ICE_S_E from Stuttgart to Erlangen
+  interchange_data const ic_data(
+      *schedule, schedule2::S_F_S, schedule2::ICE_S_E, schedule2::FRANKFURT,
+      schedule2::STUTTGART, schedule2::ERLANGEN, 7 * 60 + 15, 11 * 60 + 15,
+      11 * 60 + 32, 12 * 60 + 32);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, route_node, departing_light_conn, arriving_light_conn,
-      dummy_arrival_distribution, *schedule, precomputed, s_t_distributions);
+      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
+      precomputed, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ == departing_light_conn.d_time);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
   REQUIRE(data.largest_delay() == 3);
   REQUIRE(data.feeders_.size() == 2);
 
   // Feeder ICE_F_S
   {
     auto const& feeder = data.feeders_[0];
-    auto const& feeder_light_conn =
-        graph_accessor::get_departing_route_edge(
-            *schedule->route_index_to_first_route_node[schedule2::ICE_F_S])
-            ->_m._route_edge._conns[0];
-    duration const waiting_time = graph_accessor::get_waiting_time(
-        schedule->waiting_time_rules_, feeder_light_conn, departing_light_conn);
-
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 10);
     REQUIRE(&feeder.distribution_ == &precomputed.dist);
     REQUIRE(
         feeder.transfer_time_ ==
-        schedule->stations[route_node._station_node->_id]->get_transfer_time());
+        schedule
+            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
+            ->get_transfer_time());
     REQUIRE(feeder.latest_feasible_arrival_ ==
-            (departing_light_conn.d_time - feeder.transfer_time_) +
-                waiting_time);
+            (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
   }
   // Feeder ICE_K_F_S
   {
     auto const& feeder = data.feeders_[1];
-    auto const& feeder_light_conn =
-        graph_accessor::get_departing_route_edge(
-            *graph_accessor::get_departing_route_edge(
-                 *schedule
-                      ->route_index_to_first_route_node[schedule2::ICE_K_F_S])
-                 ->_to)->_m._route_edge._conns[0];
-    duration const waiting_time = graph_accessor::get_waiting_time(
-        schedule->waiting_time_rules_, feeder_light_conn, departing_light_conn);
-
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
     REQUIRE(&feeder.distribution_ == &precomputed.dist);
     REQUIRE(
         feeder.transfer_time_ ==
-        schedule->stations[route_node._station_node->_id]->get_transfer_time());
+        schedule
+            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
+            ->get_transfer_time());
     REQUIRE(feeder.latest_feasible_arrival_ ==
-            (departing_light_conn.d_time - feeder.transfer_time_) +
-                waiting_time);
+            (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
   }
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          arriving_light_conn.a_time);
+          ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
   REQUIRE(
       data.interchange_feeder_info_.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
 }
 
 TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
@@ -359,56 +281,40 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  // route edge of train ICE_S_E from Stuttgart to Erlangen
-  auto const& arriving_route_edge =
-      *graph_accessor::get_departing_route_edge(
-          *schedule->route_index_to_first_route_node[schedule2::ICE_S_E]);
-  auto const& arriving_light_conn =
-      arriving_route_edge._m._route_edge._conns[0];
-
-  REQUIRE(arriving_route_edge._from->_station_node->_id ==
-          schedule2::STUTTGART);
-  REQUIRE(arriving_route_edge._to->_station_node->_id == schedule2::ERLANGEN);
-  REQUIRE(arriving_light_conn.d_time == 11 * 60 + 32);
-  REQUIRE(arriving_light_conn.a_time == 12 * 60 + 32);
-
-  // route node at Erlangen of train ICE_E_K
-  auto const& route_node =
-      *schedule->route_index_to_first_route_node[schedule2::ICE_E_K];
-
-  REQUIRE(route_node._station_node->_id == schedule2::ERLANGEN);
-
-  // route edge from Erlangen to Kassel of train ICE_E_K
-  auto const departing_route_edge =
-      graph_accessor::get_departing_route_edge(route_node);
-  auto const& departing_light_conn =
-      departing_route_edge->_m._route_edge._conns[0];
-
-  REQUIRE(departing_route_edge->_from->_station_node->_id ==
-          schedule2::ERLANGEN);
-  REQUIRE(departing_route_edge->_to->_station_node->_id == schedule2::KASSEL);
-  REQUIRE(departing_light_conn.d_time == 12 * 60 + 45);
-  REQUIRE(departing_light_conn.a_time == 14 * 60 + 15);
+  // arriving train ICE_S_E from Stuttgart to Erlangen
+  // interchange at Stuttgart
+  // departing train ICE_E_K from Erlangen to Kassel
+  interchange_data const ic_data(
+      *schedule, schedule2::ICE_S_E, schedule2::ICE_E_K, schedule2::STUTTGART,
+      schedule2::ERLANGEN, schedule2::KASSEL, 11 * 60 + 32, 12 * 60 + 32,
+      12 * 60 + 45, 14 * 60 + 15);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, route_node, departing_light_conn, arriving_light_conn,
-      dummy_arrival_distribution, *schedule, precomputed, s_t_distributions);
+      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
+      precomputed, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ == departing_light_conn.d_time);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
   REQUIRE(data.largest_delay() == 3);
   REQUIRE(data.feeders_.size() == 0);
 
   REQUIRE(data.maximum_waiting_time_ == 3);
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          arriving_light_conn.a_time);
+          ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
   REQUIRE(
       data.interchange_feeder_info_.transfer_time_ ==
-      schedule->stations[route_node._station_node->_id]->get_transfer_time());
+      schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
+          ->get_transfer_time());
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
 }
