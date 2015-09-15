@@ -20,6 +20,7 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
+#include "motis/loader/parsers/hrd/providers_parser.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -33,9 +34,9 @@ namespace loader {
 namespace hrd {
 
 std::vector<std::string> const required_files = {
-    ATTRIBUTES_FILE, STATIONS_FILE,   COORDINATES_FILE,
-    BITFIELDS_FILE,  PLATFORMS_FILE,  INFOTEXT_FILE,
-    BASIC_DATA_FILE, CATEGORIES_FILE, DIRECTIONS_FILE};
+    ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
+    PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE,  CATEGORIES_FILE,
+    DIRECTIONS_FILE, PROVIDERS_FILE};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
@@ -90,6 +91,7 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto platforms_buf = load_file(master_data_root / PLATFORMS_FILE);
   auto categories_buf = load_file(master_data_root / CATEGORIES_FILE);
   auto directions_buf = load_file(master_data_root / DIRECTIONS_FILE);
+  auto providers_buf = load_file(master_data_root / PROVIDERS_FILE);
 
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
@@ -100,7 +102,8 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
                  parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
                  parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
                  parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
-                 parse_directions({DIRECTIONS_FILE, directions_buf}));
+                 parse_directions({DIRECTIONS_FILE, directions_buf}),
+                 parse_providers({PROVIDERS_FILE, providers_buf}));
   auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
   return std::make_tuple(std::move(sd),
                          parse_interval({BASIC_DATA_FILE, basic_data_buf}),
