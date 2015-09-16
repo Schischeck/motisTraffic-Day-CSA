@@ -113,14 +113,20 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
 void hrd_parser::parse_services_files(fs::path const& hrd_root,
                                       service_builder& sb) {
   auto services_files_root = hrd_root / "fahrten";
+
+  std::vector<fs::path> service_files;
   for (auto const& entry : boost::make_iterator_range(
            fs::directory_iterator(services_files_root), {})) {
-    auto const& services_file_path = entry.path();
-
-    if (fs::is_regular(services_file_path)) {
-      LOG(info) << "parsing " << services_file_path;
-      parse_services_file(services_file_path, sb);
+    if (fs::is_regular(entry.path())) {
+      service_files.push_back(entry.path());
     }
+  }
+
+  int count = 0;
+  for (auto const& service_file : service_files) {
+    LOG(info) << "parsing " << ++count << "/" << service_files.size() << " "
+              << service_file;
+    parse_services_file(service_file, sb);
   }
 }
 
