@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/schedule/category.h"
 

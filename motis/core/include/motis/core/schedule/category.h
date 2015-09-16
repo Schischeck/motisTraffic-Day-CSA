@@ -15,6 +15,10 @@ struct category {
     PROVIDER
   };
 
+  category(std::string name, uint8_t output_rule)
+	  : name(std::move(name)),
+		output_rule(output_rule) {}
+
   std::string name;
   uint8_t output_rule;
 };
