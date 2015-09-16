@@ -12,12 +12,12 @@ namespace motis {
 namespace loader {
 
 void write_schedule(FlatBufferBuilder& b, boost::filesystem::path const& path) {
-  file f(path.string().c_str(), "rw");
+  file f(path.string().c_str(), "w+");
   f.write(b.GetBufferPointer(), b.GetSize());
 }
 
 buffer load_file(fs::path const& p) {
-  return file(p.string().c_str(), "ro").content();
+  return file(p.string().c_str(), "r").content();
 }
 
 }  // namespace loader

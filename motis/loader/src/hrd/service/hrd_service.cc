@@ -32,7 +32,7 @@ std::vector<hrd_service::section> parse_section(
   auto train_num = stop.substr(43, size(5)).trim();
   auto admin = stop.substr(49, size(6)).trim();
 
-  auto& last_section = sections.back();
+  auto last_section = sections.back();
   sections.emplace_back(
       train_num.empty() ? last_section.train_num : parse<int>(train_num),
       admin.empty() ? last_section.admin : admin);
