@@ -1,3 +1,0 @@
-1%Bordbistro|BT||0
-2%Fahrradmitnahme reservierungspflichtig|FR||0
-3%Fahrradmitnahme begrenzt möglich|G ||0
