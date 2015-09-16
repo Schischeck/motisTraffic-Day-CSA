@@ -38,3 +38,9 @@ table RealtimeTrainInfoRequest {
   /// with first_stop is returned.
   single_event:bool;
 }
+
+/// Request delay information for multiple trains
+/// Returns a RealtimeTrainInfoBatchResponse
+table RealtimeTrainInfoBatchRequest {
+  trains:[RealtimeTrainInfoRequest];
+}

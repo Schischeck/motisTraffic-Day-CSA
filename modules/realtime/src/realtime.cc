@@ -95,6 +95,8 @@ realtime::realtime()
     : db_fetch_size_(15),
       ops_{{MsgContent_RealtimeTrainInfoRequest,
             std::bind(&realtime::get_train_info, this, p::_1, p::_2)},
+           {MsgContent_RealtimeTrainInfoBatchRequest,
+            std::bind(&realtime::get_batch_train_info, this, p::_1, p::_2)},
            {MsgContent_RealtimeForwardTimeRequest,
             std::bind(&realtime::forward_time, this, p::_1, p::_2)},
            {MsgContent_RealtimeCurrentTimeRequest,
@@ -187,9 +189,11 @@ TimestampReason encode_reason(timestamp_reason reason) {
   }
 }
 
-void realtime::get_train_info(motis::module::msg_ptr msg,
-                              motis::module::callback cb) {
-  auto req = msg->content<RealtimeTrainInfoRequest const*>();
+std::pair<boost::system::error_code,
+          flatbuffers::Offset<RealtimeTrainInfoResponse>>
+build_train_info_response(flatbuffers::FlatBufferBuilder& b,
+                          realtime_schedule* rts,
+                          const RealtimeTrainInfoRequest* req) {
   auto first_stop = req->first_stop();
 
   graph_event first_event(first_stop->station_index(), first_stop->train_nr(),
@@ -198,20 +202,18 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
   motis::node* route_node;
   motis::light_connection* lc;
-  std::tie(route_node, lc) = rts_->locate_event(first_event);
+  std::tie(route_node, lc) = rts->locate_event(first_event);
 
   if (route_node == nullptr || lc == nullptr) {
-    cb({}, error::event_not_found);
-    return;
+    return {error::event_not_found, 0};
   }
 
   first_event._route_id = route_node->_route;
 
-  flatbuffers::FlatBufferBuilder b;
   std::vector<flatbuffers::Offset<EventInfo>> event_infos;
 
   if (first_event.arrival()) {
-    delay_info* di_arr = rts_->_delay_info_manager.get_delay_info(first_event);
+    delay_info* di_arr = rts->_delay_info_manager.get_delay_info(first_event);
     motis::time sched_arr = di_arr == nullptr
                                 ? first_event._current_time
                                 : di_arr->_schedule_event._schedule_time;
@@ -225,10 +227,10 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
     if (req->single_event()) {
       lc = nullptr;
     } else {
-      motis::edge* next_edge = rts_->get_next_edge(route_node);
+      motis::edge* next_edge = rts->get_next_edge(route_node);
       if (next_edge != nullptr) {
-        lc = rts_->get_connection_with_service(
-            next_edge, lc->a_time, lc->_full_con->con_info->service);
+        lc = rts->get_connection_with_service(next_edge, lc->a_time,
+                                              lc->_full_con->con_info->service);
       } else {
         lc = nullptr;
       }
@@ -240,7 +242,7 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
     graph_event g_dep(route_node->get_station()->_id, train_nr, true,
                       lc->d_time, route_node->_route);
-    delay_info* di_dep = rts_->_delay_info_manager.get_delay_info(g_dep);
+    delay_info* di_dep = rts->_delay_info_manager.get_delay_info(g_dep);
     motis::time sched_dep = di_dep == nullptr
                                 ? g_dep._current_time
                                 : di_dep->_schedule_event._schedule_time;
@@ -255,10 +257,10 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
       break;
     }
 
-    motis::node* next_node = rts_->get_next_node(route_node);
+    motis::node* next_node = rts->get_next_node(route_node);
     graph_event g_arr(next_node->get_station()->_id, train_nr, false,
                       lc->a_time, route_node->_route);
-    delay_info* di_arr = rts_->_delay_info_manager.get_delay_info(g_arr);
+    delay_info* di_arr = rts->_delay_info_manager.get_delay_info(g_arr);
     motis::time sched_arr = di_arr == nullptr
                                 ? g_arr._current_time
                                 : di_arr->_schedule_event._schedule_time;
@@ -270,19 +272,56 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
     event_infos.push_back(ei_arr);
 
     route_node = next_node;
-    motis::edge* next_edge = rts_->get_next_edge(next_node);
+    motis::edge* next_edge = rts->get_next_edge(next_node);
     if (next_edge != nullptr) {
-      lc = rts_->get_connection_with_service(next_edge, lc->a_time,
-                                             lc->_full_con->con_info->service);
+      lc = rts->get_connection_with_service(next_edge, lc->a_time,
+                                            lc->_full_con->con_info->service);
     } else {
       lc = nullptr;
     }
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RealtimeTrainInfoResponse,
-      CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
-                                      first_event._route_id).Union()));
+  return {error::ok,
+          CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
+                                          first_event._route_id)};
+}
+
+void realtime::get_train_info(motis::module::msg_ptr msg,
+                              motis::module::callback cb) {
+  auto req = msg->content<RealtimeTrainInfoRequest const*>();
+  flatbuffers::FlatBufferBuilder b;
+  boost::system::error_code err;
+  flatbuffers::Offset<RealtimeTrainInfoResponse> response;
+  std::tie(err, response) = build_train_info_response(b, rts_.get(), req);
+  if (err == error::ok) {
+    b.Finish(CreateMessage(b, MsgContent_RealtimeTrainInfoResponse,
+                           response.Union()));
+    cb(make_msg(b), error::ok);
+
+  } else {
+    cb({}, err);
+  }
+}
+
+void realtime::get_batch_train_info(motis::module::msg_ptr msg,
+                                    motis::module::callback cb) {
+  auto requests =
+      msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
+  flatbuffers::FlatBufferBuilder b;
+  std::vector<flatbuffers::Offset<RealtimeTrainInfoResponse>> responses;
+
+  for (auto req : *requests) {
+    boost::system::error_code err;
+    flatbuffers::Offset<RealtimeTrainInfoResponse> response;
+    std::tie(err, response) = build_train_info_response(b, rts_.get(), req);
+    if (err == error::ok) {
+      responses.push_back(response);
+    }
+  }
+
+  b.Finish(CreateMessage(b, MsgContent_RealtimeTrainInfoBatchResponse,
+                         CreateRealtimeTrainInfoBatchResponse(
+                             b, b.CreateVector(responses)).Union()));
   cb(make_msg(b), error::ok);
 }
 

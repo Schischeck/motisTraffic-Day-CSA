@@ -19,3 +19,8 @@ table RealtimeTrainInfoResponse {
   stops:[EventInfo];
   route_id:int;
 }
+
+/// Sent in response to a RealtimeTrainInfoBatchRequest.
+table RealtimeTrainInfoBatchResponse {
+  trains:[RealtimeTrainInfoResponse];
+}
