@@ -23,6 +23,7 @@ struct category {
 
 std::map<uint32_t, category> parse_categories(
     loaded_file const& categories_file);
+
 }  // hrd
 }  // loader
 }  // motis

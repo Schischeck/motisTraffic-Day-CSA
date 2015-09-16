@@ -255,8 +255,8 @@ private:
   int get_or_create_category_index(Category const* c) {
     return get_or_create(categories_, c, [&]() {
       int index = sched_.categories.size();
-      sched_.categories.push_back(
-          make_unique<category>(category(c->name()->str(), c->output_rule())));
+      sched_.categories.push_back(make_unique<category>(
+          category{c->name()->str(), static_cast<uint8_t>(c->output_rule())}));
       return index;
     });
   }

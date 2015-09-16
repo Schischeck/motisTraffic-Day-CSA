@@ -3,9 +3,11 @@
 #include "parser/arg_parser.h"
 #include "parser/util.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 
 using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
 namespace loader {
@@ -51,6 +53,8 @@ provider_info read_provider_names(cstr line, char const* filename,
 }
 
 std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
+  scoped_timer timer("parsing providers");
+
   std::map<uint64_t, provider_info> providers;
   provider_info current_info;
   int previous_provider_number = 0;

@@ -6,8 +6,14 @@
 namespace motis {
 
 struct category {
-  category(std::string name, uint8_t output_rule)
-      : name(name), output_rule(output_rule){};
+  enum output_rule {
+    CATEGORY_AND_TRAIN_NUM,
+    CATEGORY,
+    TRAIN_NUM,
+    NOTHING,
+    PROVIDER_AND_TRAIN_NUM,
+    PROVIDER
+  };
 
   std::string name;
   uint8_t output_rule;

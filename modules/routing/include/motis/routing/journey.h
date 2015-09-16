@@ -25,6 +25,7 @@ struct journey {
     int duration;
     int slot;
     std::string direction;
+    std::string provider;
   };
 
   struct stop {

@@ -37,6 +37,8 @@ table Transport {
   category_name:string;
   train_nr:uint;
   line_id:string;
+  name:string;
+  provider:string;
   direction:string;
 }
 
