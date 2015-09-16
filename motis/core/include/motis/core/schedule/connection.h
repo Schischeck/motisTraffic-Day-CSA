@@ -7,6 +7,7 @@
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
+#include "motis/core/schedule/provider.h"
 
 namespace motis {
 
@@ -48,6 +49,7 @@ public:
   std::vector<attribute const*> attributes;
   std::string line_identifier;
   std::string const* dir_;
+  provider const* provider_;
   uint32_t family;
   uint32_t train_nr;
 };

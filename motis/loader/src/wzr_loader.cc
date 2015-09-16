@@ -1,10 +1,10 @@
-#include "../include/motis/loader/wzr_loader.h"
+#include "motis/loader/wzr_loader.h"
 
 namespace motis {
 namespace loader {
 
 waiting_time_rules load_waiting_time_rules(
-    std::vector<std::string> const& category_names) {
+    std::vector<std::unique_ptr<category>> const& category_ptrs) {
   waiting_time_rules rules;
 
   rules.default_group = 5;
@@ -56,10 +56,10 @@ waiting_time_rules load_waiting_time_rules(
     }
   }
 
-  rules._family_to_wtr_category.resize(category_names.size());
-  for (size_t i = 0; i < category_names.size(); i++) {
+  rules._family_to_wtr_category.resize(category_ptrs.size());
+  for (size_t i = 0; i < category_ptrs.size(); i++) {
     rules._family_to_wtr_category[i] =
-        rules.waiting_time_category(category_names[i]);
+        rules.waiting_time_category(category_ptrs[i]->name);
   }
 
   return rules;

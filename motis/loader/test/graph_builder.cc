@@ -261,8 +261,16 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
             auto fc = std::get<0>(con)->_full_con;
             return fc->con_info->attributes.size() == 1 &&
                    fc->con_info->train_nr == 1000 &&
-                   sched_->category_names[fc->con_info->family] == "ICE";
+                   sched_->categories[fc->con_info->family]->name == "ICE";
           }));
+
+      for (auto const& c : connections) {
+        auto fc = std::get<0>(c)->_full_con;
+        ASSERT_STREQ("---", fc->con_info->provider_->short_name.c_str());
+        ASSERT_STREQ("DB AG", fc->con_info->provider_->long_name.c_str());
+        ASSERT_STREQ("Deutsche Bahn AG",
+                     fc->con_info->provider_->full_name.c_str());
+      }
 
       auto const& tracks = sched_->tracks;
       EXPECT_EQ("6", tracks[get<0>(connections[0])->_full_con->d_platform]);

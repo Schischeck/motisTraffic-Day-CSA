@@ -8,6 +8,8 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/constant_graph.h"
 #include "motis/core/schedule/attribute.h"
+#include "motis/core/schedule/category.h"
+#include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/common/synchronization.h"
 
@@ -22,7 +24,6 @@ struct schedule {
   std::time_t schedule_begin_, schedule_end_;
   std::vector<station_ptr> stations;
   std::map<std::string, station*> eva_to_station;
-  std::vector<std::string> category_names;
   std::map<std::string, int> classes;
   std::vector<std::string> tracks;
   constant_graph lower_bounds;
@@ -35,6 +36,8 @@ struct schedule {
   std::vector<std::unique_ptr<connection>> full_connections;
   std::vector<std::unique_ptr<connection_info>> connection_infos;
   std::vector<std::unique_ptr<attribute>> attributes;
+  std::vector<std::unique_ptr<category>> categories;
+  std::vector<std::unique_ptr<provider>> providers;
   std::vector<std::unique_ptr<std::string>> directions;
 };
 

@@ -182,7 +182,7 @@ journey::transport generate_journey_transport(int from, int to,
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
     cat_id = con_info->family;
-    cat_name = sched.category_names[cat_id];
+    cat_name = sched.categories[cat_id]->name;
     train_nr = con_info->train_nr;
     name = cat_name + " ";
     if (con_info->train_nr != 0) {

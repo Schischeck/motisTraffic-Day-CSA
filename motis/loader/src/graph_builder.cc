@@ -9,6 +9,8 @@
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
+#include "motis/core/schedule/category.h"
+#include "motis/core/schedule/provider.h"
 
 #include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
@@ -169,6 +171,7 @@ private:
       con_info_.train_nr = section->train_nr();
       con_info_.family = get_or_create_category_index(section->category());
       con_info_.dir_ = get_or_create_direction(section->direction());
+      con_info_.provider_ = get_or_create_provider(section->provider());
       read_attributes(dep_day_index, section->attributes(),
                       con_info_.attributes);
 
@@ -236,10 +239,24 @@ private:
     }
   }
 
-  int get_or_create_category_index(Category const* category) {
-    return get_or_create(categories_, category->name(), [&]() {
-      int index = sched_.category_names.size();
-      sched_.category_names.push_back(category->name()->str());
+  provider const* get_or_create_provider(Provider const* p) {
+    if (p == nullptr) {
+      return nullptr;
+    } else {
+      return get_or_create(providers_, p, [&]() {
+        sched_.providers.emplace_back(make_unique<provider>(
+            provider(p->short_name()->str(), p->long_name()->str(),
+                     p->full_name()->str())));
+        return sched_.providers.back().get();
+      });
+    }
+  }
+
+  int get_or_create_category_index(Category const* c) {
+    return get_or_create(categories_, c, [&]() {
+      int index = sched_.categories.size();
+      sched_.categories.push_back(
+          make_unique<category>(category(c->name()->str(), c->output_rule())));
       return index;
     });
   }
@@ -316,11 +333,12 @@ private:
     return route_nodes;
   }
 
-  std::map<String const*, int> categories_;
+  std::map<Category const*, int> categories_;
   std::map<Route const*, std::vector<node*>> routes_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
   std::map<String const*, std::string const*> directions_;
+  std::map<Provider const*, provider const*> providers_;
   hash_map<Station const*, station_node*> stations_;
   hash_map<String const*, bitfield> bitfields_;
   hash_set<connection_info*,
@@ -341,7 +359,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
 
   schedule_ptr sched(new schedule());
   sched->classes = class_mapping();
-  sched->waiting_time_rules_ = load_waiting_time_rules(sched->category_names);
+  sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
