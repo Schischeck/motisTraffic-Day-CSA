@@ -27,8 +27,8 @@ public:
     attributes[attribute] += interval(from_index, to_index + 1);
   }
 
-  std::map<T, std::vector<interval_map::range>> get_attribute_ranges() {
-    std::map<T, std::vector<interval_map::range>> ranges;
+  std::map<T, std::vector<range>> get_attribute_ranges() {
+    std::map<T, std::vector<range>> ranges;
     for (auto const& attr : attributes) {
       ranges[attr.first].reserve(attr.second.size());
       for (auto const& range : attr.second) {
