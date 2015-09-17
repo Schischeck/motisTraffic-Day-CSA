@@ -199,7 +199,7 @@ search_for_route_end:
                             realtime::CreateRealtimeTrainInfoRequest( b, realtime::CreateGraphTrainEvent( b,
                                                              train_nr, station_index, true,
                                                               real_time, route_id ) ).Union()) );
-    dispatch(make_msg(b), client.id, callback_);
+    return dispatch(make_msg(b), client.id, callback_);
   }
 
   return cb({}, error::route_not_found);

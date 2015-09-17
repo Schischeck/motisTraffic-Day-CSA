@@ -193,6 +193,8 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
   auto req = msg->content<RealtimeTrainInfoRequest const*>();
   auto first_stop = req->first_stop();
 
+  std::cout << "REALTIME REQUEST" << std::endl;
+
   graph_event first_event(first_stop->station_index(), first_stop->train_nr(),
                           first_stop->departure(), first_stop->real_time(),
                           first_stop->route_id());
