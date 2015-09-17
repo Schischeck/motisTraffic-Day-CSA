@@ -120,8 +120,9 @@ void compute_departure_distribution(
   }
   departure_distribution.init(probabilties, 0);
 
-  assert(equal(departure_distribution.sum(),
-               data.interchange_feeder_info_.arrival_distribution_->sum()));
+  assert(smaller_equal(
+      departure_distribution.sum(),
+      data.interchange_feeder_info_.arrival_distribution_->sum()));
 }
 
 }  // namespace interchange

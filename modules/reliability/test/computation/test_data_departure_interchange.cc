@@ -39,10 +39,10 @@ TEST_CASE("interchange first-route-node no-feeders",
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
-  interchange_data const ic_data(*schedule, schedule2::RE_K_F,
-                                 schedule2::ICE_F_S, schedule2::KASSEL,
-                                 schedule2::FRANKFURT, schedule2::STUTTGART,
-                                 8 * 60, 10 * 60, 10 * 60 + 10, 11 * 60 + 10);
+  interchange_data_for_tests const ic_data(
+      *schedule, schedule2::RE_K_F, schedule2::ICE_F_S, schedule2::KASSEL,
+      schedule2::FRANKFURT, schedule2::STUTTGART, 8 * 60, 10 * 60, 10 * 60 + 10,
+      11 * 60 + 10);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
@@ -94,10 +94,10 @@ TEST_CASE("interchange preceding-arrival no-feeders",
   // arriving train RE_K_F from Kassel to Frankfurt
   // interchange at Frankfurt (second node of ICE_K_F_S)
   // departing train ICE_K_F_S from Frankfurt to Stuttgart
-  interchange_data const ic_data(*schedule, schedule2::RE_K_F,
-                                 tail_node_departing_train, schedule2::KASSEL,
-                                 schedule2::FRANKFURT, schedule2::STUTTGART,
-                                 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
+  interchange_data_for_tests const ic_data(
+      *schedule, schedule2::RE_K_F, tail_node_departing_train,
+      schedule2::KASSEL, schedule2::FRANKFURT, schedule2::STUTTGART, 8 * 60,
+      10 * 60, 10 * 60 + 20, 11 * 60 + 15);
 
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
@@ -153,7 +153,7 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
   // arriving train ICE_F_S from Frankfurt to Stuttgart
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
-  interchange_data const ic_data(
+  interchange_data_for_tests const ic_data(
       *schedule, schedule2::ICE_F_S, schedule2::ICE_S_E, schedule2::FRANKFURT,
       schedule2::STUTTGART, schedule2::ERLANGEN, 10 * 60 + 10, 11 * 60 + 10,
       11 * 60 + 32, 12 * 60 + 32);
@@ -211,7 +211,7 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
   // arriving train S_F_S from Frankfurt to Stuttgart
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
-  interchange_data const ic_data(
+  interchange_data_for_tests const ic_data(
       *schedule, schedule2::S_F_S, schedule2::ICE_S_E, schedule2::FRANKFURT,
       schedule2::STUTTGART, schedule2::ERLANGEN, 7 * 60 + 15, 11 * 60 + 15,
       11 * 60 + 32, 12 * 60 + 32);
@@ -284,7 +284,7 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
   // arriving train ICE_S_E from Stuttgart to Erlangen
   // interchange at Stuttgart
   // departing train ICE_E_K from Erlangen to Kassel
-  interchange_data const ic_data(
+  interchange_data_for_tests const ic_data(
       *schedule, schedule2::ICE_S_E, schedule2::ICE_E_K, schedule2::STUTTGART,
       schedule2::ERLANGEN, schedule2::KASSEL, 11 * 60 + 32, 12 * 60 + 32,
       12 * 60 + 45, 14 * 60 + 15);

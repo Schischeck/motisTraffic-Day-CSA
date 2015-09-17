@@ -11,21 +11,21 @@
 namespace motis {
 namespace reliability {
 
-struct interchange_data {
-  interchange_data(
+struct interchange_data_for_tests {
+  interchange_data_for_tests(
       schedule const& schedule, unsigned int const arriving_train_route_idx,
       unsigned int const departing_train_route_idx,
       unsigned int const previous_station,
       unsigned int const interchange_station, unsigned int const next_station,
       unsigned int arriving_train_dep, unsigned int arriving_train_arr,
       unsigned int departing_train_dep, unsigned int departing_train_arr)
-      : interchange_data(schedule, arriving_train_route_idx,
+      : interchange_data_for_tests(schedule, arriving_train_route_idx,
                          *schedule.route_index_to_first_route_node.at(
                              departing_train_route_idx),
                          previous_station, interchange_station, next_station,
                          arriving_train_dep, arriving_train_arr,
                          departing_train_dep, departing_train_arr) {}
-  interchange_data(
+  interchange_data_for_tests(
       schedule const& schedule, unsigned int const arriving_train_route_idx,
       node const& tail_node_departing_train,
       unsigned int const previous_station,
