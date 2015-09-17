@@ -170,3 +170,76 @@ Example response:
       }
     }
 
+### RealtimeTrainInfoBatchRequest
+
+This message can be used to request delay information for several trains at
+once. It contains a vector of RealtimeTrainInfoRequest messages and will return
+a RealtimeTrainInfoBatchResponse containing a vector of
+RealtimeTrainInfoResponse messages.
+
+Example request:
+
+`{"content_type": "RealtimeTrainInfoBatchRequest", "content": {"trains":[
+{"first_stop": {"train_nr": 46120, "station_index": 6871, "departure": true,
+"real_time": 2741, "route_id": 6819}, "single_event": false},{"first_stop":
+{"train_nr": 46120, "station_index": 6886, "departure": false, "real_time":
+2744, "route_id": 6819}, "single_event": true}]}}`
+
+Example response:
+
+
+    {
+      "content_type": "RealtimeTrainInfoBatchResponse",
+      "content": {
+        "trains": [
+          {
+            "stops": [
+              {
+                "train_nr": 46120,
+                "station_index": 6871,
+                "departure": 1,
+                "real_time": 2741,
+                "scheduled_time": 2736,
+                "reason": "Forecast"
+              },
+              {
+                "train_nr": 46120,
+                "station_index": 6886,
+                "real_time": 2744,
+                "scheduled_time": 2739,
+                "reason": "Forecast"
+              },
+              {
+                "train_nr": 46120,
+                "station_index": 6886,
+                "departure": 1,
+                "real_time": 2745,
+                "scheduled_time": 2740,
+                "reason": "Forecast"
+              },
+              {
+                "train_nr": 46120,
+                "station_index": 6774,
+                "real_time": 2747,
+                "scheduled_time": 2742,
+                "reason": "Propagation"
+              }
+            ],
+            "route_id": 6819
+          },
+          {
+            "stops": [
+              {
+                "train_nr": 46120,
+                "station_index": 6886,
+                "real_time": 2744,
+                "scheduled_time": 2739,
+                "reason": "Forecast"
+              }
+            ],
+            "route_id": 6819
+          }
+        ]
+      }
+    }
+

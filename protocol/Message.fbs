@@ -47,6 +47,8 @@ union MsgContent {
   motis.routing.RoutingResponse,
   motis.realtime.RealtimeTrainInfoRequest,
   motis.realtime.RealtimeTrainInfoResponse,
+  motis.realtime.RealtimeTrainInfoBatchRequest,
+  motis.realtime.RealtimeTrainInfoBatchResponse,
   motis.realtime.RealtimeForwardTimeRequest,
   motis.realtime.RealtimeCurrentTimeRequest,
   motis.realtime.RealtimeCurrentTimeResponse

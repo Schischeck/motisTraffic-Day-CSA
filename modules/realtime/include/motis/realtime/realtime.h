@@ -27,6 +27,7 @@ struct realtime : public motis::module::module {
   virtual void on_config_loaded() override;
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RealtimeTrainInfoRequest,
+            MsgContent_RealtimeTrainInfoBatchRequest,
             MsgContent_RealtimeForwardTimeRequest,
             MsgContent_RealtimeCurrentTimeRequest};
   }
@@ -51,6 +52,8 @@ struct realtime : public motis::module::module {
 
 private:
   void get_train_info(motis::module::msg_ptr msg, motis::module::callback cb);
+  void get_batch_train_info(motis::module::msg_ptr msg,
+                            motis::module::callback cb);
   void forward_time(motis::module::msg_ptr msg, motis::module::callback cb);
   void current_time(motis::module::msg_ptr msg, motis::module::callback cb);
 
