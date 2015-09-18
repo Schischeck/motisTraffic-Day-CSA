@@ -4,7 +4,6 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "motis/loader/loaded_file.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 #include "motis/schedule-format/Station_generated.h"
