@@ -67,6 +67,8 @@ protected:
 
   void send(msg_ptr msg, sid session) { (*context_->send_)(msg, session); }
 
+  boost::asio::io_service& get_thread_pool() { return *context_->thread_pool_; }
+
 private:
   context* context_;
   std::unique_ptr<boost::asio::strand> strand_;
