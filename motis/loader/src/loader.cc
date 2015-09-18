@@ -2,8 +2,13 @@
 
 #include <memory>
 #include <vector>
+#include <fstream>
+#include <istream>
+#include <ostream>
 
 #include "boost/filesystem.hpp"
+
+#include "websocketpp/common/md5.hpp"
 
 #include "flatbuffers/flatbuffers.h"
 
