@@ -113,7 +113,8 @@ public:
                 std::end(_m._route_edge._conns),
                 [](light_connection const& c1, light_connection const& c2) {
                   return c1.travel_time() < c2.travel_time();
-                })->travel_time(),
+                })
+                ->travel_time(),
             false, std::begin(_m._route_edge._conns)->_full_con->price);
       }
     } else if (_m._type == FOOT_EDGE || _m._type == AFTER_TRAIN_FOOT_EDGE) {

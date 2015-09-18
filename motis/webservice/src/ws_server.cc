@@ -75,7 +75,8 @@ struct ws_server::ws_server_impl {
     b.Finish(CreateMessage(
         b, MsgContent_MotisError,
         CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
-                         b.CreateString(e.message())).Union()));
+                         b.CreateString(e.message()))
+            .Union()));
     send(make_msg(b), session);
   }
 
