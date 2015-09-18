@@ -40,7 +40,7 @@ schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {
-    auto buf = file(binary_schedule_file.string().c_str(), "ro").content();
+    auto buf = file(binary_schedule_file.string().c_str(), "r").content();
     return build_graph(GetSchedule(buf.buf_), from, to);
   } else {
     for (auto const& parser : parsers()) {
