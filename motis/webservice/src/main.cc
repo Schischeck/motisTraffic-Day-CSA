@@ -89,13 +89,6 @@ int main(int argc, char** argv) {
   c.send_ = &send;
   c.dispatch_ = &dispatch;
 
-  for (auto const& module : modules) {
-    dispatcher.modules_.push_back(module.get());
-    dispatcher.add_module(module.get());
-
-    module->init_(&c);
-  }
-
   std::vector<conf::configuration*> module_confs;
   for (auto const& module : dispatcher.modules_) {
     module_confs.push_back(module);
@@ -104,6 +97,13 @@ int main(int argc, char** argv) {
   module_conf_parser.read_command_line_args(argc, argv);
   module_conf_parser.read_configuration_file();
   module_conf_parser.print_used(std::cout);
+
+  for (auto const& module : modules) {
+    dispatcher.modules_.push_back(module.get());
+    dispatcher.add_module(module.get());
+
+    module->init_(&c);
+  }
 
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
