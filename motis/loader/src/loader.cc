@@ -40,29 +40,15 @@ schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {
-    LOG(info) << "loading schedule file " << binary_schedule_file.string().c_str();
-
-	std::size_t size = file(binary_schedule_file.string().c_str(), "r").size();
-	std::ifstream input(binary_schedule_file.string().c_str(), std::ios_base::binary);
-	input.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-	std::vector<unsigned char> bytes(size);
-	input.read(reinterpret_cast<char*>(&bytes[0]), bytes.size());
-	std::cout << "\n\nMD5: " << websocketpp::md5::md5_hash_hex(&bytes[0], bytes.size()) << "\n\n";
-
-	input.close();
-
-    return build_graph(GetSchedule(&bytes[0]), from, to);
+    auto buf = file(binary_schedule_file.string().c_str(), "ro").content();
+    return build_graph(GetSchedule(buf.buf_), from, to);
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
         FlatBufferBuilder builder;
-		parser->parse(path, builder);
-
-		std::cout << "\n\nMD5: " << websocketpp::md5::md5_hash_hex(builder.GetBufferPointer(), builder.GetSize()) << "\n\n";
-		std::ofstream output(binary_schedule_file.string().c_str(), std::ios_base::binary);
-		output.write(reinterpret_cast<char*>(builder.GetBufferPointer()), builder.GetSize());
-		output.close();
-
+        parser->parse(path, builder);
+        parser::file(binary_schedule_file.string().c_str(), "w")
+            .write(builder.GetBufferPointer(), builder.GetSize());
         return build_graph(GetSchedule(builder.GetBufferPointer()), from, to);
       }
     }
