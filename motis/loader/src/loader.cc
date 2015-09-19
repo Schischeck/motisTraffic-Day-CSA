@@ -47,7 +47,7 @@ schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
       if (parser->applicable(path)) {
         FlatBufferBuilder builder;
         parser->parse(path, builder);
-        parser::file(binary_schedule_file.string().c_str(), "w")
+        parser::file(binary_schedule_file.string().c_str(), "w+")
             .write(builder.GetBufferPointer(), builder.GetSize());
         return build_graph(GetSchedule(builder.GetBufferPointer()), from, to);
       }
