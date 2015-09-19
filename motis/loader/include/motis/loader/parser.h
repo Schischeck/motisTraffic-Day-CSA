@@ -7,7 +7,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#define SCHEDULE_FILE ("schedule.bin")
+#define SCHEDULE_FILE ("schedule.raw")
 
 namespace motis {
 namespace loader {

@@ -22,6 +22,7 @@
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/providers_parser.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
+#include "motis/loader/parsers/hrd/through_trains_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
@@ -34,9 +35,9 @@ namespace loader {
 namespace hrd {
 
 std::vector<std::string> const required_files = {
-    ATTRIBUTES_FILE, STATIONS_FILE, COORDINATES_FILE, BITFIELDS_FILE,
-    PLATFORMS_FILE,  INFOTEXT_FILE, BASIC_DATA_FILE,  CATEGORIES_FILE,
-    DIRECTIONS_FILE, PROVIDERS_FILE};
+    ATTRIBUTES_FILE, STATIONS_FILE,  COORDINATES_FILE,   BITFIELDS_FILE,
+    PLATFORMS_FILE,  INFOTEXT_FILE,  BASIC_DATA_FILE,    CATEGORIES_FILE,
+    DIRECTIONS_FILE, PROVIDERS_FILE, THROUGH_TRAINS_FILE};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
@@ -67,8 +68,9 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto const& sd = std::get<0>(data);
   auto const& interval = std::get<1>(data);
   auto const& metas = std::get<2>(data);
+  auto& through_trains_rules = std::get<3>(data);
 
-  service_builder sb(sd, fbb);
+  service_builder sb(sd, through_trains_rules, fbb);
   parse_services_files(hrd_root, sb);
 
   auto footpaths =
@@ -80,7 +82,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
       fbb.CreateVector(values(sb.routes_)), &interval, footpaths));
 }
 
-std::tuple<shared_data, Interval, station_meta_data>
+std::tuple<shared_data, Interval, station_meta_data, through_trains_map>
 hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto master_data_root = hrd_root / "stamm";
   auto stations_names_buf = load_file(master_data_root / STATIONS_FILE);
@@ -92,6 +94,7 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
   auto categories_buf = load_file(master_data_root / CATEGORIES_FILE);
   auto directions_buf = load_file(master_data_root / DIRECTIONS_FILE);
   auto providers_buf = load_file(master_data_root / PROVIDERS_FILE);
+  auto through_trains_buf = load_file(master_data_root / THROUGH_TRAINS_FILE);
 
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
@@ -105,9 +108,10 @@ hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
                  parse_directions({DIRECTIONS_FILE, directions_buf}),
                  parse_providers({PROVIDERS_FILE, providers_buf}));
   auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
-  return std::make_tuple(std::move(sd),
-                         parse_interval({BASIC_DATA_FILE, basic_data_buf}),
-                         std::move(metas));
+  return std::make_tuple(
+      std::move(sd), parse_interval({BASIC_DATA_FILE, basic_data_buf}),
+      std::move(metas),
+      parse_through_train_rules({THROUGH_TRAINS_FILE, through_trains_buf}));
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,

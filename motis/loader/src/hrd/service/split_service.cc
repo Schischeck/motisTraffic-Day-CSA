@@ -96,13 +96,12 @@ hrd_service new_service_from_split(split_info const& s,
                      s.traffic_days);
 }
 
-std::vector<hrd_service> expand_traffic_days(hrd_service const& service,
-                                             bitfield_translator& bitfields) {
-  std::vector<hrd_service> expanded;
+void expand_traffic_days(hrd_service const& service,
+                         bitfield_translator& bitfields,
+                         std::vector<hrd_service>& expanded) {
   for (auto const& s : split(service, bitfields)) {
     expanded.emplace_back(new_service_from_split(s, service));
   }
-  return expanded;
 }
 
 }  // hrd
