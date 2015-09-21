@@ -52,7 +52,6 @@ railviz::~railviz() {}
 void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto req = msg->content<RailViz_alltra_req const*>();
-  FlatBufferBuilder b;
 
   client.bounds = {{req->p1()->lat(), req->p1()->lng()},
                    {req->p2()->lat(), req->p2()->lng()}};
@@ -65,38 +64,89 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
       client.bounds);
 
 
-  //std::vector<RailVizTrain> trains_output;
-  std::vector<flatbuffers::Offset<RailVizTrain>> trains_output;
-  std::vector<flatbuffers::Offset<RailViz_alltra_res_route>> fb_routes;
-  for (auto const& t : trains) {
+  auto request_msg = make_all_trains_realtime_request(trains);
+  callback callback_ = make_all_trains_realtime_callback(trains, req->with_routes(), cb);
+
+  dispatch(request_msg, client.id, callback_);
+}
+
+motis::module::msg_ptr railviz::make_all_trains_realtime_request( std::vector<std::pair<light_connection const*, edge const*>> const& trains ) const {
+  using namespace realtime;
+
+  flatbuffers::FlatBufferBuilder b;
+  std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
+
+  for( auto const& t : trains ) {
     light_connection const* con;
     edge const* e;
     std::tie(con, e) = t;
 
-    trains_output.push_back(
-          CreateRailVizTrain(b, date_converter_.convert(con->d_time),
-                       date_converter_.convert(con->a_time),
-                       e->_from->get_station()->_id,
-                       e->_to->get_station()->_id, e->_from->_route ) );
+    train_requests.push_back( CreateRealtimeTrainInfoRequest( b,
+                                                              CreateGraphTrainEvent(b,
+                                                                                    con->_full_con->con_info->train_nr,
+                                                                                    e->_from->get_station()->_id,
+                                                                                    true,
+                                                                                    con->d_time,
+                                                                                    e->_from->_route) ,
+                                                              true ) );
+    train_requests.push_back( CreateRealtimeTrainInfoRequest( b,
+                                                              CreateGraphTrainEvent(b,
+                                                                                    con->_full_con->con_info->train_nr,
+                                                                                    e->_to->get_station()->_id,
+                                                                                    false,
+                                                                                    con->a_time,
+                                                                                    e->_from->_route),
+                                                              true ) );
 
-    int route_id = e->_from->_route;
-    if( req->with_routes() ) {
-      std::vector<unsigned int> fb_route;
-      std::vector<const motis::station_node*> stations = timetable_retriever_.stations_on_route(route_id);
-      for( const motis::station_node* station_node_ : stations ) {
-        fb_route.push_back(station_node_->_id);
-      }
-      fb_routes.push_back( CreateRailViz_alltra_res_route(b, b.CreateVector(fb_route) ));
-
-    }
   }
 
-  b.Finish(
-      CreateMessage(b, MsgContent_RailViz_alltra_res,
-                    CreateRailViz_alltra_res(
-                        b, b.CreateVector(trains_output),
-                        b.CreateVector(fb_routes)).Union()));
-  cb(make_msg(b), {});
+  b.Finish( CreateMessage( b,
+                           MsgContent_RealtimeTrainInfoBatchRequest,
+                           CreateRealtimeTrainInfoBatchRequest(b,
+                                                               b.CreateVector(train_requests)).Union()) );
+  return make_msg(b);
+}
+
+callback railviz::make_all_trains_realtime_callback( std::vector<std::pair<light_connection const*, edge const*>> const& trains, bool with_routes, callback cb ) {
+  return [this, trains, cb, with_routes] (msg_ptr msg, boost::system::error_code err) mutable {
+    auto lock = synced_sched<schedule_access::RO>();
+    FlatBufferBuilder b;
+    realtime_response realtime_response_(msg);
+    std::vector<flatbuffers::Offset<RailVizTrain>> trains_output;
+    std::vector<flatbuffers::Offset<RailViz_alltra_res_route>> fb_routes;
+    for (auto const& t : trains) {
+      light_connection const* con;
+      edge const* e;
+      std::tie(con, e) = t;
+      auto delays = realtime_response_.delay(*con, *e);
+
+      trains_output.push_back(
+            CreateRailVizTrain(b, date_converter_.convert(con->d_time),
+                         date_converter_.convert(con->a_time),
+                         e->_from->get_station()->_id,
+                         e->_to->get_station()->_id, e->_from->_route,
+                         delays.first,
+                         delays.second ) );
+
+      int route_id = e->_from->_route;
+      if( with_routes ) {
+        std::vector<unsigned int> fb_route;
+        std::vector<const motis::station_node*> stations = timetable_retriever_.stations_on_route(route_id);
+        for( const motis::station_node* station_node_ : stations ) {
+          fb_route.push_back(station_node_->_id);
+        }
+        fb_routes.push_back( CreateRailViz_alltra_res_route(b, b.CreateVector(fb_route) ));
+
+      }
+    }
+
+    b.Finish(
+        CreateMessage(b, MsgContent_RailViz_alltra_res,
+                      CreateRailViz_alltra_res(
+                          b, b.CreateVector(trains_output),
+                          b.CreateVector(fb_routes)).Union()));
+    cb(make_msg(b), {});
+  };
 }
 
 void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
@@ -125,9 +175,6 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
 
     std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
     std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
-
-
-    //std::vector<std::string> clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
 
     std::time_t a_time = date_converter_.convert(lc->a_time);
     std::time_t d_time = date_converter_.convert(lc->d_time);
@@ -173,12 +220,9 @@ void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {
       for( const route_entry& route_entry_ : route_ ) {
         if( std::get<2>(route_entry_) == nullptr )
           break;
-        //if( route_entry_.second->d_time > departure_time )
-        //  break;
 
         if( std::get<0>(route_entry_)->_id == station_id ) {
           if( std::get<2>(route_entry_)->d_time == departure_time ) {
-            std::cout << "identified route" << std::endl;
             found_route = &route_;
             goto search_for_route_end;
           }
@@ -194,7 +238,7 @@ search_for_route_end:
     unsigned int station_index = std::get<0>(first_route_entry)->_id;
     unsigned int real_time = std::get<2>(first_route_entry)->d_time;
     unsigned int route_id = std::get<1>(first_route_entry)->_route;
-    callback callback_ = make_route_at_time_realtime_callback(*found_route, stations, cb);
+    callback callback_ = make_route_at_time_realtime_callback(*found_route, cb);
     b.Finish( CreateMessage(b, MsgContent_RealtimeTrainInfoRequest,
                             realtime::CreateRealtimeTrainInfoRequest( b, realtime::CreateGraphTrainEvent( b,
                                                              train_nr, station_index, true,
@@ -205,10 +249,12 @@ search_for_route_end:
   return cb({}, error::route_not_found);
 }
 
-callback railviz::make_route_at_time_realtime_callback(const route &route_, const std::vector<station_ptr>& stations, callback cb) const
+callback railviz::make_route_at_time_realtime_callback(const route &route_, callback cb)
 {
-  return [this, &stations, route_, cb] (msg_ptr msg, boost::system::error_code err) mutable {
+  return [this, route_, cb] (msg_ptr msg, boost::system::error_code err) mutable {
     flatbuffers::FlatBufferBuilder b;
+    auto lock = synced_sched<schedule_access::RO>();
+    auto const& stations = lock.sched().stations;
 
     realtime_response realtime_response_(msg);
     std::vector<flatbuffers::Offset<RailViz_route_entry>> fb_route_offsets;
@@ -218,7 +264,7 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, cons
       if( it != route_.end()-1 ) {
         auto it_next = it +1;
         std::pair<unsigned int, unsigned int> delays =
-            realtime_response_.delay_of_train(*it);
+            realtime_response_.delay(*it);
         fb_route_offsets.push_back(
               CreateRailViz_route_entry(b, departure_id,
                                         b.CreateString(station_name.to_string()),

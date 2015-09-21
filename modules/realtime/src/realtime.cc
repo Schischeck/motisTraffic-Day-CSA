@@ -284,6 +284,7 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
     }
   }
 
+  std::cout << "build train info response finish" << std::endl;
   return {error::ok,
           CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
                                           first_event._route_id)};
@@ -308,6 +309,7 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
 void realtime::get_batch_train_info(motis::module::msg_ptr msg,
                                     motis::module::callback cb) {
+  std::cout << "get batch train info " << std::endl;
   auto requests =
       msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
   flatbuffers::FlatBufferBuilder b;
@@ -330,13 +332,16 @@ void realtime::get_batch_train_info(motis::module::msg_ptr msg,
 
 void realtime::forward_time(motis::module::msg_ptr msg,
                             motis::module::callback cb) {
+  flatbuffers::FlatBufferBuilder b;
   auto req = msg->content<RealtimeForwardTimeRequest const*>();
 
   std::time_t new_time = static_cast<std::time_t>(req->new_time());
   if (message_fetcher_ != nullptr && message_fetcher_->_msg_stream != nullptr) {
     if (message_fetcher_->_msg_stream->forward_to(new_time)) {
       message_fetcher_->process_stream();
-      cb({}, error::ok);
+      b.Finish( CreateMessage( b, MsgContent_RealtimeForwardTimeResponse,
+                               CreateRealtimeForwardTimeResponse(b).Union()) );
+      cb(make_msg(b), error::ok);
     } else {
       cb({}, error::invalid_time);
     }

@@ -12,6 +12,7 @@ include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
 include "realtime/RealtimeTrainInfoResponse.fbs";
 include "realtime/RealtimeForwardTimeRequest.fbs";
+include "realtime/RealtimeForwardTimeResponse.fbs";
 include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
 
@@ -50,6 +51,7 @@ union MsgContent {
   motis.realtime.RealtimeTrainInfoBatchRequest,
   motis.realtime.RealtimeTrainInfoBatchResponse,
   motis.realtime.RealtimeForwardTimeRequest,
+  motis.realtime.RealtimeForwardTimeResponse,
   motis.realtime.RealtimeCurrentTimeRequest,
   motis.realtime.RealtimeCurrentTimeResponse
 }

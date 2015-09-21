@@ -46,10 +46,13 @@ struct railviz : public motis::module::module {
                     motis::module::callback cb);
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
+  motis::module::msg_ptr make_all_trains_realtime_request( std::vector<std::pair<light_connection const*, edge const*>> const& ) const;
+  callback make_all_trains_realtime_callback( std::vector<std::pair<light_connection const*, edge const*>> const&, bool, callback );
+
   void route_at_time(motis::module::msg_ptr msg, webclient& client,
                       motis::module::callback cb);
   motis::module::msg_ptr make_route_at_time_msg(const motis::schedule&, const route& ) const;
-  callback make_route_at_time_realtime_callback(const route&, const std::vector<station_ptr>&, callback) const;
+  callback make_route_at_time_realtime_callback(const route&, callback);
 
   typedef std::function<
       void(motis::module::msg_ptr, webclient&, motis::module::callback)> op;
