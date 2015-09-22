@@ -19,7 +19,7 @@ std::vector<through_service_rule> parse_through_service_rules(
 
   std::vector<through_service_rule> rules;
   for_each_line(src.content, [&](cstr line) {
-    if (line.len < 41) {
+    if (line.len < 40) {
       return;
     }
     rules.push_back(

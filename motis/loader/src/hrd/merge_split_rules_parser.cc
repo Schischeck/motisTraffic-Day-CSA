@@ -18,17 +18,17 @@ std::vector<merge_split_rule> parse_merge_split_rules(loaded_file const& src) {
 
   std::vector<merge_split_rule> rules;
   for_each_line(src.content, [&](cstr line) {
-    if (line.len < 50) {
+    if (line.len < 53) {
       return;
     }
     rules.push_back(
-        {std::make_pair(parse<int>(line.substr(16, size(5))),
-                        raw_to_int<uint64_t>(line.substr(23, size(6)))),
-         std::make_pair(parse<int>(line.substr(30, size(5))),
-                        raw_to_int<uint64_t>(line.substr(37, size(6)))),
+        {std::make_pair(parse<int>(line.substr(18, size(5))),
+                        raw_to_int<uint64_t>(line.substr(25, size(6)).trim())),
+         std::make_pair(parse<int>(line.substr(33, size(5))),
+                        raw_to_int<uint64_t>(line.substr(40, size(6)).trim())),
          parse<int>(line.substr(0, size(7))),
-         parse<int>(line.substr(8, size(7))),
-         parse<int>(line.substr(44, size(6)))});
+         parse<int>(line.substr(9, size(7))),
+         parse<int>(line.substr(47, size(6)))});
   });
 
   return rules;

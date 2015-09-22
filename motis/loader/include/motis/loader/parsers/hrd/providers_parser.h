@@ -7,6 +7,7 @@
 
 namespace motis {
 namespace loader {
+namespace hrd {
 
 struct provider_info {
   std::string short_name;
@@ -18,3 +19,4 @@ std::map<uint64_t, provider_info> parse_providers(loaded_file const&);
 
 }  // loader
 }  // motis
+}  // hrd
