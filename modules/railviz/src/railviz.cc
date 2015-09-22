@@ -149,7 +149,7 @@ callback railviz::make_all_trains_realtime_callback( std::vector<std::pair<light
   };
 }
 
-void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
+void railviz::station_info(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto const& stations = lock.sched().stations;
   auto const& station_nodes = lock.sched().station_nodes;
@@ -165,40 +165,109 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
   timetable timetable_ = timetable_retriever_.ordered_timetable_for_station(
       *station_nodes[index].get());
 
-  std::vector<flatbuffers::Offset<RailViz_station_detail_res_entry>> timetable_fb;
-  for (const timetable_entry& entry : timetable_) {
-    const light_connection* lc = std::get<0>(entry);
-    const station_node* next_prev_station = std::get<1>(entry);
-    const station_node* end_start_station = std::get<2>(entry);
-    bool outgoing = std::get<3>(entry);
-    unsigned int route = std::get<4>(entry);
+  msg_ptr realtime_msg = make_station_info_realtime_request( timetable_ );
+  callback realtime_cb = make_station_info_realtime_callback( index, timetable_, cb );
 
-    std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
-    std::string end_station_name = lock.sched().stations[end_start_station->_id].get()->name;
+  return dispatch( realtime_msg, client.id, realtime_cb );
+}
 
-    std::time_t a_time = date_converter_.convert(lc->a_time);
-    std::time_t d_time = date_converter_.convert(lc->d_time);
-    int a_station, d_station;
-    if (std::get<3>(entry)) {
-      a_station = next_prev_station->_id;
-      d_station = index;
-    } else {
-      d_station = next_prev_station->_id;
-      a_station = index;
-    }
+motis::module::msg_ptr railviz::make_station_info_realtime_request( const timetable& timetable_ ) const {
+  using namespace realtime;
 
-    const flatbuffers::Offset<RailVizTrain> &t = CreateRailVizTrain( b, d_time, a_time, d_station, a_station, route );
-    timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-        b, b.CreateString(line_name), b.CreateString(railviz::clasz_names[lc->_full_con->clasz]), b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]), t, b.CreateString(end_station_name), end_start_station->_id, outgoing));
+  flatbuffers::FlatBufferBuilder b;
+  std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
+
+  for( auto const& te : timetable_ ) {
+    light_connection const* con = nullptr;
+    station_node const* nextprev_station = nullptr;
+    station_node const* startend_station = nullptr;
+    bool departure = true;
+    int route_id = 0;
+
+    std::tie(con, nextprev_station, startend_station, departure, route_id) = te;
+
+    train_requests.push_back( CreateRealtimeTrainInfoRequest( b,
+                                                              CreateGraphTrainEvent(b,
+                                                                                    con->_full_con->con_info->train_nr,
+                                                                                    nextprev_station->_id,
+                                                                                    departure,
+                                                                                    departure? con->d_time : con->a_time,
+                                                                                    route_id) ,
+                                                              true ) );
+
   }
 
-  b.Finish(
-      CreateMessage(b, MsgContent_RailViz_station_detail_res,
-                    CreateRailViz_station_detail_res(
-                        b, b.CreateString(stations[index]->name.to_string()),
-                        index,
-                        b.CreateVector(timetable_fb)).Union()));
-  return cb(make_msg(b), boost::system::error_code());
+  b.Finish( CreateMessage( b,
+                           MsgContent_RealtimeTrainInfoBatchRequest,
+                           CreateRealtimeTrainInfoBatchRequest(b,
+                                                               b.CreateVector(train_requests)).Union()) );
+  return make_msg(b);
+}
+
+callback railviz::make_station_info_realtime_callback( int station_index, timetable const& timetable_, callback cb ) {
+  return [this, timetable_, station_index, cb] (msg_ptr msg, boost::system::error_code err) mutable {
+    auto lock = synced_sched<schedule_access::RO>();
+    auto const& stations = lock.sched().stations;
+    flatbuffers::FlatBufferBuilder b;
+
+    realtime_response realtime_response_(msg);
+
+    std::vector<flatbuffers::Offset<RailViz_station_detail_res_entry>> timetable_fb;
+    for (const timetable_entry& entry : timetable_) {
+      const light_connection* lc = std::get<0>(entry);
+      const station_node* next_prev_station = std::get<1>(entry);
+      const station_node* end_start_station = std::get<2>(entry);
+      bool outgoing = std::get<3>(entry);
+      unsigned int route = std::get<4>(entry);
+
+      std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
+      std::string end_station_name = stations[end_start_station->_id].get()->name;
+
+      std::time_t a_time = date_converter_.convert(lc->a_time);
+      std::time_t d_time = date_converter_.convert(lc->d_time);
+      int a_station, d_station;
+      if (std::get<3>(entry)) {
+        a_station = next_prev_station->_id;
+        d_station = station_index;
+      } else {
+        d_station = next_prev_station->_id;
+        a_station = station_index;
+      }
+
+      unsigned int d_delay = 0;
+      unsigned int a_delay = 0;
+      unsigned int delay = realtime_response_.delay(entry);
+      if( std::get<3>(entry) )
+        d_delay = delay;
+      else
+        a_delay = delay;
+
+      const flatbuffers::Offset<RailVizTrain> &t = CreateRailVizTrain( b,
+                                                                       d_time,
+                                                                       a_time,
+                                                                       d_station,
+                                                                       a_station,
+                                                                       route,
+                                                                       d_delay,
+                                                                       a_delay);
+      timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
+          b, b.CreateString(line_name),
+             b.CreateString(railviz::clasz_names[lc->_full_con->clasz]),
+             b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]),
+             t,
+             b.CreateString(end_station_name),
+             end_start_station->_id,
+             outgoing));
+    }
+
+    b.Finish(
+        CreateMessage(b, MsgContent_RailViz_station_detail_res,
+                      CreateRailViz_station_detail_res(
+                          b, b.CreateString(stations[station_index]->name.to_string()),
+                          station_index,
+                          b.CreateVector(timetable_fb)).Union()));
+    return cb(make_msg(b), boost::system::error_code());
+  };
 }
 
 void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {

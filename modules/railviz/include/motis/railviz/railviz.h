@@ -44,6 +44,9 @@ struct railviz : public motis::module::module {
                    motis::module::callback cb);
   void station_info(motis::module::msg_ptr msg, webclient& client,
                     motis::module::callback cb);
+  motis::module::msg_ptr make_station_info_realtime_request( const timetable& ) const;
+  callback make_station_info_realtime_callback( int station_index, timetable const&, callback );
+
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
   motis::module::msg_ptr make_all_trains_realtime_request( std::vector<std::pair<light_connection const*, edge const*>> const& ) const;
