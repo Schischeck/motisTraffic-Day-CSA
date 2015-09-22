@@ -13,24 +13,16 @@ namespace loader {
 namespace hrd {
 
 service_builder::service_builder(shared_data const& stamm,
-                                 through_trains_map& through_trains,
                                  FlatBufferBuilder& builder)
     : stamm_(stamm),
-      through_trains_(through_trains),
       bitfields_(stamm.bitfields, builder),
       stations_(stamm.stations, builder),
       providers_(stamm.providers, builder),
       builder_(builder) {}
 
 void service_builder::create_services(hrd_service&& input_service) {
-  std::vector<hrd_service> output_services;
-  through_trains_.try_apply_rule(std::move(input_service), output_services);
-
   std::vector<hrd_service> expanded_services;
-  for (auto const& s : output_services) {
-    expand_traffic_days(s, bitfields_, expanded_services);
-  }
-
+  expand_traffic_days(input_service, bitfields_, expanded_services);
   expand_repetitions(expanded_services);
 
   for (auto const& expanded_service : expanded_services) {
