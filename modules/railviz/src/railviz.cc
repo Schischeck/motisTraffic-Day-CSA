@@ -178,18 +178,14 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request( const timeta
   std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
 
   for( auto const& te : timetable_ ) {
-    light_connection const* con = nullptr;
-    station_node const* nextprev_station = nullptr;
-    station_node const* startend_station = nullptr;
-    bool departure = true;
-    int route_id = 0;
-
-    std::tie(con, nextprev_station, startend_station, departure, route_id) = te;
-
+    light_connection const* con = std::get<0>(te);
+    station_node const* station = std::get<1>(te);
+    bool departure = std::get<3>(te);
+    int route_id = std::get<4>(te);
     train_requests.push_back( CreateRealtimeTrainInfoRequest( b,
                                                               CreateGraphTrainEvent(b,
                                                                                     con->_full_con->con_info->train_nr,
-                                                                                    nextprev_station->_id,
+                                                                                    station->_id,
                                                                                     departure,
                                                                                     departure? con->d_time : con->a_time,
                                                                                     route_id) ,

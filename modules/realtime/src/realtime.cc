@@ -197,8 +197,6 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
                           const RealtimeTrainInfoRequest* req) {
   auto first_stop = req->first_stop();
 
-  std::cout << "REALTIME REQUEST" << std::endl;
-
   graph_event first_event(first_stop->station_index(), first_stop->train_nr(),
                           first_stop->departure(), first_stop->real_time(),
                           first_stop->route_id());
@@ -284,7 +282,6 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
     }
   }
 
-  std::cout << "build train info response finish" << std::endl;
   return {error::ok,
           CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
                                           first_event._route_id)};
@@ -309,7 +306,6 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
 void realtime::get_batch_train_info(motis::module::msg_ptr msg,
                                     motis::module::callback cb) {
-  std::cout << "get batch train info " << std::endl;
   auto requests =
       msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
   flatbuffers::FlatBufferBuilder b;

@@ -8,7 +8,7 @@ realtime_response::realtime_response( motis::module::msg_ptr msg ) :
   const motis::Message* parsed_msg = GetMessage(msg->buf_);
   if( parsed_msg->content_type() == MsgContent_RealtimeTrainInfoResponse ) {
     rsp = reinterpret_cast<motis::realtime::RealtimeTrainInfoResponse const*> (parsed_msg->content());
-  } else
+  } else if( parsed_msg->content_type() == MsgContent_RealtimeTrainInfoBatchResponse )
   {
     batch_rsp = reinterpret_cast<motis::realtime::RealtimeTrainInfoBatchResponse const*> (parsed_msg->content());
   }
@@ -40,7 +40,7 @@ std::pair<unsigned int, unsigned int> realtime_response::delay( const route_entr
 unsigned int realtime_response::delay(const light_connection& lc, const station_node& station_node_, bool departure, unsigned int route_id) const {
   if( rsp != nullptr ) {
     return delay_single( *rsp, lc, station_node_, departure );
-  } else
+  } else if( batch_rsp != nullptr )
   {
     return delay_batch( lc, station_node_, departure, route_id );
   }
