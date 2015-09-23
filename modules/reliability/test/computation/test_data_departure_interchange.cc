@@ -235,11 +235,9 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
     auto const& feeder = data.feeders_[0];
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 10);
     REQUIRE(&feeder.distribution_ == &precomputed.dist);
-    REQUIRE(
-        feeder.transfer_time_ ==
-        schedule
-            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
-            ->get_transfer_time());
+    REQUIRE(feeder.transfer_time_ ==
+            schedule->stations[ic_data.tail_node_departing_train_._station_node
+                                   ->_id]->get_transfer_time());
     REQUIRE(feeder.latest_feasible_arrival_ ==
             (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
   }
@@ -248,11 +246,9 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
     auto const& feeder = data.feeders_[1];
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
     REQUIRE(&feeder.distribution_ == &precomputed.dist);
-    REQUIRE(
-        feeder.transfer_time_ ==
-        schedule
-            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
-            ->get_transfer_time());
+    REQUIRE(feeder.transfer_time_ ==
+            schedule->stations[ic_data.tail_node_departing_train_._station_node
+                                   ->_id]->get_transfer_time());
     REQUIRE(feeder.latest_feasible_arrival_ ==
             (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
   }
@@ -318,3 +314,5 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
            data.interchange_feeder_info_.waiting_time_) -
               data.interchange_feeder_info_.transfer_time_);
 }
+
+TEST_CASE("interchange foot", "[data_departure_interchange]") {}

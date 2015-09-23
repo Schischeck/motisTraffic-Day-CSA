@@ -231,3 +231,6 @@ TEST_CASE("compute_departure_distribution_ic5",
       + (.05 * .9) /* waits only for other feeder */;
   REQUIRE(equal(departure_distribution.probability_equal(2), prob2));  // 11:34
 }
+
+TEST_CASE("compute_departure_distribution_ic_foot",
+          "[calc_departure_distribution_interchange]") {}

@@ -29,8 +29,8 @@ struct db_distributions : start_and_travel_distributions {
       std::string const& family) const override;
 
   /**
-   * Returns vector containing pairs of departure-delay and
-   * probability-distribution.
+   * 'distributions' is a vector containing pairs
+   * of departure-delay and probability-distribution.
    */
   void get_travel_time_distributions(
       std::string const& family, unsigned int const travel_time,

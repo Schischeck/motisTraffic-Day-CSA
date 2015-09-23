@@ -25,12 +25,24 @@ namespace calc_departure_distribution {
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct data_departure_interchange : data_departure {
+  /* arriving and departing train at the same station (no walking) */
   data_departure_interchange(
       bool const is_first_route_node, node const& route_node,
       light_connection const& departing_light_conn,
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
       schedule const& schedule,
+      distributions_container::precomputed_distributions_container const&
+          precomputed_distributions,
+      start_and_travel_distributions const& s_t_distributions);
+
+  /* arriving and departing train at different stations (walking) */
+  data_departure_interchange(
+      bool const is_first_route_node, node const& route_node,
+      light_connection const& departing_light_conn,
+      light_connection const& arriving_light_conn,
+      probability_distribution const& arrival_distribution,
+      duration const walk_duration, schedule const& schedule,
       distributions_container::precomputed_distributions_container const&
           precomputed_distributions,
       start_and_travel_distributions const& s_t_distributions);
@@ -45,9 +57,9 @@ struct data_departure_interchange : data_departure {
 
 private:
   void init_interchange_feeder_info(
-      node const& route_node, light_connection const& arriving_light_conn,
+      node const& route_node, time const scheduled_arrival_time,
       probability_distribution const& arrival_distribution,
-      light_connection const& departing_light_conn, schedule const& schedule);
+      duration const transfer_time, duration const waiting_time);
 };
 
 }  // namespace calc_departure_distribution
