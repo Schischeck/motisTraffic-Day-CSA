@@ -191,26 +191,26 @@ journey::transport generate_journey_transport(int from, int to,
       provider = con_info->provider_->full_name;
     }
     switch (sched.categories[con_info->family]->output_rule) {
-      case category::output_rule::CATEGORY_AND_TRAIN_NUM:
+      case category::CATEGORY_AND_TRAIN_NUM:
         name = cat_name + " " + boost::lexical_cast<std::string>(train_nr);
         break;
 
-      case category::output_rule::CATEGORY: name = cat_name; break;
+      case category::CATEGORY: name = cat_name; break;
 
-      case category::output_rule::TRAIN_NUM:
+      case category::TRAIN_NUM:
         name = boost::lexical_cast<std::string>(train_nr);
         break;
 
-      case category::output_rule::NOTHING: break;
+      case category::NOTHING: break;
 
-      case category::output_rule::PROVIDER_AND_TRAIN_NUM:
+      case category::PROVIDER_AND_TRAIN_NUM:
         if (con_info->provider_ != nullptr) {
           name = con_info->provider_->short_name + " ";
         }
         name += boost::lexical_cast<std::string>(train_nr);
         break;
 
-      case category::output_rule::PROVIDER:
+      case category::PROVIDER:
         if (con_info->provider_ != nullptr) {
           name = con_info->provider_->short_name;
         }
