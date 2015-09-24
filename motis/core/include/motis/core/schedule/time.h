@@ -19,17 +19,28 @@ inline time to_time(int day_index, int minutes) {
   return day_index * MINUTES_A_DAY + minutes;
 }
 
-inline std::string format_time(time time) {
-  if (time == INVALID_TIME) return "INVALID";
+inline std::string format_time(time t) {
+  if (t == INVALID_TIME) return "INVALID";
 
-  int day = time / MINUTES_A_DAY;
-  int minutes = time % MINUTES_A_DAY;
+  int day = t / MINUTES_A_DAY;
+  int minutes = t % MINUTES_A_DAY;
 
   std::ostringstream out;
   out << std::setw(2) << std::setfill('0') << (minutes / 60) << ":"
       << std::setw(2) << std::setfill('0') << (minutes % 60) << "." << day;
 
   return out.str();
+}
+
+inline std::time_t motis_to_unixtime(std::time_t schedule_begin, time t) {
+  return schedule_begin + t * 60;
+}
+
+inline time unix_to_motistime(std::time_t schedule_begin, std::time_t t) {
+  if (t < schedule_begin) {
+    return INVALID_TIME;
+  }
+  return (t - schedule_begin) / 60;
 }
 
 }  // namespace motis

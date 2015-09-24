@@ -1,0 +1,7 @@
+namespace motis.loader;
+
+table Converter {
+	str : string;
+}
+
+root_type Converter;

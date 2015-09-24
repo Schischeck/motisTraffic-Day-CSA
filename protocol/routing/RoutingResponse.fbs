@@ -20,7 +20,7 @@ table EventInfo {
 //     "name": "Darmstadt Hbf"
 // }
 table Stop {
-  eva_nr:int;
+  eva_nr:string;
   name:string;
   arrival:EventInfo;
   departure:EventInfo;
@@ -37,6 +37,9 @@ table Transport {
   category_name:string;
   train_nr:uint;
   line_id:string;
+  name:string;
+  provider:string;
+  direction:string;
 }
 
 table Walk {

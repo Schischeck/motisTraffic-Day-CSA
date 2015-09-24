@@ -1,91 +1,67 @@
 #include "motis/loader/loader.h"
 
-#include "boost/filesystem.hpp"
-#include "boost/lexical_cast.hpp"
+#include <memory>
+#include <vector>
+#include <fstream>
+#include <istream>
+#include <ostream>
 
-#include "motis/loader/bitset_manager.h"
-#include "motis/loader/graph_loader.h"
-#include "motis/loader/deserializer.h"
-#include "motis/loader/files.h"
+#include "boost/filesystem.hpp"
+
+#include "websocketpp/common/md5.hpp"
+
+#include "flatbuffers/flatbuffers.h"
+
+#include "parser/file.h"
+
+#include "motis/core/common/logging.h"
+#include "motis/loader/graph_builder.h"
+#include "motis/loader/parsers/gtfs/gtfs_parser.h"
+#include "motis/loader/parsers/hrd/hrd_parser.h"
+
+namespace fs = boost::filesystem;
+using namespace flatbuffers;
+using namespace parser;
+using namespace motis::logging;
 
 namespace motis {
+namespace loader {
 
-std::map<int, int> build_category_class_map(
-    std::vector<std::string> const& category_names,
-    std::map<std::string, int> classes) {
-  std::map<int, int> category_class_map;
-
-  for (unsigned i = 0; i < category_names.size(); ++i) {
-    auto it = classes.find(category_names[i]);
-    if (it == end(classes)) {
-      category_class_map[i] = 9;
-    } else {
-      category_class_map[i] = it->second;
-    }
-  }
-
-  return category_class_map;
+std::vector<std::unique_ptr<format_parser>> parsers() {
+  std::vector<std::unique_ptr<format_parser>> p;
+  p.emplace_back(new gtfs::gtfs_parser());
+  p.emplace_back(new hrd::hrd_parser());
+  return p;
 }
 
-schedule_ptr load_schedule(std::string const& prefix) {
-  if (boost::filesystem::exists(prefix + SCHEDULE_FILE)) {
-    return load_binary_schedule(prefix);
+schedule_ptr load_schedule(std::string const& path, time_t from, time_t to) {
+  scoped_timer time("loading schedule");
+
+  auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
+
+  if (fs::is_regular_file(binary_schedule_file)) {
+    auto buf = file(binary_schedule_file.string().c_str(), "r").content();
+    return build_graph(GetSchedule(buf.buf_), from, to);
   } else {
-    return load_text_schedule(prefix);
+    for (auto const& parser : parsers()) {
+      if (parser->applicable(path)) {
+        FlatBufferBuilder builder;
+        parser->parse(path, builder);
+        parser::file(binary_schedule_file.string().c_str(), "w+")
+            .write(builder.GetBufferPointer(), builder.GetSize());
+        return build_graph(GetSchedule(builder.GetBufferPointer()), from, to);
+      }
+    }
+
+    for (auto const& parser : parsers()) {
+      std::cout << "missing files:\n";
+      for (auto const& file : parser->missing_files(path)) {
+        std::cout << "  " << file << "\n";
+      }
+    }
+    throw std::runtime_error("no parser was applicable");
   }
 }
 
-schedule_ptr load_text_schedule(std::string const& prefix) {
-  std::unique_ptr<text_schedule> s(new text_schedule());
-
-  graph_loader loader(prefix);
-  loader.load_dates(s->date_mgr);
-  int node_id = loader.load_stations(s->stations, s->station_nodes);
-  loader.load_classes(s->classes);
-  loader.load_category_names(s->category_names);
-  node_id = loader.load_routes(
-      node_id, s->stations, s->station_nodes,
-      build_category_class_map(s->category_names, s->classes), s->full_connections,
-      s->connection_infos, s->route_index_to_first_route_node);
-  node_id = loader.load_foot_paths(node_id, s->station_nodes);
-  loader.load_tracks(s->tracks);
-  loader.load_attributes(s->attributes);
-  loader.assign_predecessors(s->station_nodes);
-  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules_);
-
-  s->node_count = node_id;
-
-  s->lower_bounds = constant_graph(s->station_nodes);
-
-  for (auto const& station : s->stations) {
-    s->eva_to_station[boost::lexical_cast<int>(station->eva_nr)] = station.get();
-  }
-
-  return schedule_ptr(s.release());
-}
-
-schedule_ptr load_binary_schedule(std::string const& prefix) {
-  std::unique_ptr<binary_schedule> s(new binary_schedule());
-
-  graph_loader loader(prefix);
-  loader.load_dates(s->date_mgr);
-  loader.load_classes(s->classes);
-  loader.load_category_names(s->category_names);
-  loader.load_tracks(s->tracks);
-  loader.load_attributes(s->attributes);
-  loader.load_waiting_time_rules(s->category_names, s->waiting_time_rules_);
-
-  deserializer deserializer(prefix);
-  std::tie(s->node_count, s->raw_memory) =
-      deserializer.load_graph(s->stations, s->station_nodes);
-
-  s->lower_bounds = constant_graph(s->station_nodes);
-
-  for (auto const& station : s->stations) {
-    s->eva_to_station[boost::lexical_cast<int>(station->eva_nr)] = station.get();
-  }
-
-  return schedule_ptr(s.release());
-}
-
+}  // namespace loader
 }  // namespace motis

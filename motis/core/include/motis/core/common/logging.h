@@ -3,6 +3,7 @@
 #include <ctime>
 #include <cstring>
 #include <chrono>
+#include <iostream>
 
 #define FILE_NAME \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

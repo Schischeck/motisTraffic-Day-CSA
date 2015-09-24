@@ -9,8 +9,6 @@
 #include <type_traits>
 #include <string>
 
-#include "motis/core/common/pointer.h"
-
 namespace motis {
 
 inline uint64_t next_power_of_two(uint64_t n) {
@@ -120,6 +118,12 @@ struct array final {
   T* begin() { return _el; }
   T* end() { return _el + _used_size; }
 
+  friend T const* begin(array const& a) { return a.begin(); }
+  friend T const* end(array const& a) { return a.end(); }
+
+  friend T* begin(array& a) { return a.begin(); }
+  friend T* end(array& a) { return a.end(); }
+
   inline T const& operator[](int index) const { return _el[index]; }
   inline T& operator[](int index) { return _el[index]; }
 
@@ -142,7 +146,7 @@ struct array final {
     reserve(range_size);
 
     auto copy_source = begin_it;
-    auto copy_target = _el.ptr();
+    auto copy_target = _el;
     for (; copy_source != end_it; ++copy_source, ++copy_target) {
       new (copy_target) T(*copy_source);
     }
@@ -208,7 +212,7 @@ struct array final {
     _self_allocated = true;
     _allocated_size = next_size;
   }
-  
+
   T* erase(T* pos) {
     T* last = end() - 1;
     while (pos < last) {
@@ -220,17 +224,17 @@ struct array final {
     return end();
   }
 
-  std::string to_string() const { return std::string(_el._ptr); }
+  std::string to_string() const { return std::string(_el); }
 
   operator std::string() const { return to_string(); }
 
 #ifdef USE_STANDARD_LAYOUT
-  pointer<T> _el;
+  T* _el;
   TemplateSizeType _used_size;
   TemplateSizeType _allocated_size;
   bool _self_allocated;
 #else
-  pointer<T> _el;
+  T* _el;
   TemplateSizeType _used_size;
   bool _self_allocated : 1;
   TemplateSizeType _allocated_size : 31;
@@ -316,11 +320,11 @@ inline std::ostream& operator<<(std::ostream& out, offset_string const& a) {
 }
 
 inline std::string operator+(std::string& str, string const& a) {
-  return str + a._el._ptr;
+  return str + a._el;
 }
 
 inline std::string& operator+=(std::string& str, string const& a) {
-  return str += a._el._ptr;
+  return str += a._el;
 }
 
 inline void getline(std::istream& in, string& s, char delim) {

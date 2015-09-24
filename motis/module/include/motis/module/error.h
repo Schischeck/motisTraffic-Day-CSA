@@ -21,14 +21,11 @@ public:
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {
-      case error::ok:
-        return "module: no error";
+      case error::ok: return "module: no error";
       case error::no_module_capable_of_handling:
         return "module: there is no module capable of handling the message";
-      case error::unable_to_parse_msg:
-        return "module: unable to parse message";
-      default:
-        return "module: unkown error";
+      case error::unable_to_parse_msg: return "module: unable to parse message";
+      default: return "module: unkown error";
     }
   }
 };

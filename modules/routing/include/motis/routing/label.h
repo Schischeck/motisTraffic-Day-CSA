@@ -12,7 +12,6 @@
 #include "motis/routing/memory_manager.h"
 
 #define MINUTELY_WAGE 8
-#define TRANSFER_WAGE 0
 #define MAX_LABELS 100000000
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
@@ -104,48 +103,47 @@ public:
 
   bool dominates(label const& o, bool lower_bound) const {
     /* --- CHECK MAY DOMINATE --- */
-    if (_start < o._start || _now > o._now) return false;
+    if (_start < o._start || _now > o._now) {
+      return false;
+    }
 
     int index = lower_bound ? 1 : 0;
-    bool could_dominate = false;
 
     /* --- TRANSFERS --- */
-    if (_transfers[index] > o._transfers[index]) return false;
-    could_dominate = could_dominate || _transfers[index] < o._transfers[index];
+    if (_transfers[index] > o._transfers[index]) {
+      return false;
+    }
 
     /* --- TRAVEL TIME --- */
-    if (_travel_time[index] > o._travel_time[index]) return false;
-    could_dominate =
-        could_dominate || _travel_time[index] < o._travel_time[index];
+    if (_travel_time[index] > o._travel_time[index]) {
+      return false;
+    }
 
     /* --- PRICE --- */
     unsigned my_price = _total_price[index];
     unsigned o_price = o._total_price[index];
 
     if (lower_bound) {
-      my_price +=
-          _travel_time[1] * MINUTELY_WAGE + _transfers[1] * TRANSFER_WAGE;
-      o_price +=
-          o._travel_time[1] * MINUTELY_WAGE + o._transfers[1] * TRANSFER_WAGE;
+      my_price += _travel_time[1] * MINUTELY_WAGE + _transfers[1];
+      o_price += o._travel_time[1] * MINUTELY_WAGE + o._transfers[1];
     } else {
-      my_price +=
-          (o._now - _start) * MINUTELY_WAGE + _transfers[0] * TRANSFER_WAGE;
-      o_price +=
-          (o._now - o._start) * MINUTELY_WAGE + o._transfers[0] * TRANSFER_WAGE;
+      my_price += (o._now - _start) * MINUTELY_WAGE + _transfers[0];
+      o_price += (o._now - o._start) * MINUTELY_WAGE + o._transfers[0];
     }
 
 #ifdef PRICE_TOLERANCE
     unsigned tolerance = std::floor(0.01 * std::min(my_price, o_price));
     if (std::labs(my_price - o_price) > tolerance) {
 #endif
-      if (my_price > o_price) return false;
-
-      could_dominate = could_dominate || my_price < o_price;
+      if (my_price > o_price) {
+        return false;
+      }
 #ifdef PRICE_TOLERANCE
     }
 #endif
 
     /* --- ALL CRITERIA --- */
+    // since all criteria are NOT larger at *this
     return true;
   }
 
@@ -187,8 +185,7 @@ public:
 
   int get_price_with_wages(bool lower_bound) const {
     return _total_price[lower_bound ? 1 : 0] +
-           _travel_time[lower_bound ? 1 : 0] * MINUTELY_WAGE +
-           _transfers[lower_bound ? 1 : 0] * TRANSFER_WAGE;
+           _travel_time[lower_bound ? 1 : 0] * MINUTELY_WAGE;
   }
 
   void add_price_of_connection(edge_cost const& ec, bool mumo_edge) {

@@ -41,7 +41,7 @@ struct transport {
 class test_schedule {
 public:
   test_schedule()
-      : _schedule(motis::load_schedule(
+      : _schedule(motis::loader::load_schedule(
             "../modules/realtime/test/test-schedule/motis")),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),
@@ -94,9 +94,9 @@ public:
       // TODO
       if (i == expected_stops.size() - 1) {
         exp_arrival = _rts._schedule.date_mgr.format_ISO(
-            estop.arrival.date_time + estop.station->get_transfer_time());
+            estop.arrival.date_time + estop.station->get_transfer_time);
         exp_departure = _rts._schedule.date_mgr.format_ISO(
-            estop.departure.date_time + estop.station->get_transfer_time());
+            estop.departure.date_time + estop.station->get_transfer_time);
       }
 
       CHECK(jstop.arrival.date_time == exp_arrival);

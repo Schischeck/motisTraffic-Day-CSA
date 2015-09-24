@@ -9,8 +9,6 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 
-#include "motis/module/api.h"
-
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
 #include "motis/routing/label.h"
@@ -37,15 +35,6 @@ po::options_description routing::desc() {
 
 void routing::print(std::ostream& out) const {}
 
-time unix_to_motis_time(schedule const& s, uint64_t unix_timestamp) {
-  auto first_date = s.date_mgr.first_date();
-  boost::posix_time::ptime schedule_begin(boost::gregorian::date(
-      first_date.year, first_date.month, first_date.day));
-  boost::posix_time::ptime query_time =
-      boost::posix_time::from_time_t(unix_timestamp);
-  return ((query_time - schedule_begin).total_milliseconds() / 1000) / 60;
-}
-
 void routing::read_path_element(StationPathElement const* el,
                                 routing::path_el_cb cb) {
   auto eva = el->eva_nr();
@@ -65,7 +54,7 @@ void routing::read_path_element(StationPathElement const* el,
     // Eva number set.
     // Try to get station using the eva_to_station map.
     auto lock = synced_sched<RO>();
-    auto station_it = lock.sched().eva_to_station.find(eva);
+    auto station_it = lock.sched().eva_to_station.find(eva->str());
     if (station_it == end(lock.sched().eva_to_station)) {
       return cb({}, error::given_eva_not_available);
     } else {
@@ -84,7 +73,7 @@ void routing::handle_station_guess(msg_ptr res, error_code e,
       return cb({}, error::no_guess_for_station);
     } else {
       auto lock = synced_sched<RO>();
-      auto eva = guess->guesses()->Get(0)->eva();
+      auto eva = guess->guesses()->Get(0)->eva()->str();
       auto station_it = lock.sched().eva_to_station.find(eva);
       return cb({arrival_part(station_it->second->index)}, error::ok);
     }
@@ -117,9 +106,12 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     }
 
     auto lock = synced_sched<schedule_access::RO>();
+    auto const& sched = lock.sched();
 
-    auto i_begin = unix_to_motis_time(lock.sched(), req->interval()->begin());
-    auto i_end = unix_to_motis_time(lock.sched(), req->interval()->end());
+    auto i_begin =
+        unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
+    auto i_end =
+        unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
     search s(lock.sched(), label_store_);
     auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end);
@@ -138,8 +130,6 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
 
   return;
 }
-
-MOTIS_MODULE_DEF_MODULE(routing)
 
 }  // namespace routing
 }  // namespace motis

@@ -6,8 +6,6 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/module/api.h"
-
 #include "motis/protocol/RailVizInit_generated.h"
 #include "motis/protocol/RailVizStationDetail_generated.h"
 #include "motis/protocol/RailVizStationDetailRequest_generated.h"
@@ -52,10 +50,10 @@ void railviz::station_info(msg_ptr msg, webclient&, callback cb) {
   }
 
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateMessage(
-      b, MsgContent_RailVizStationDetail,
-      CreateRailVizStationDetail(
-          b, b.CreateString(stations[index]->name.to_string())).Union()));
+  b.Finish(
+      CreateMessage(b, MsgContent_RailVizStationDetail,
+                    CreateRailVizStationDetail(
+                        b, b.CreateString(stations[index]->name)).Union()));
   return cb(make_msg(b), boost::system::error_code());
 }
 
@@ -69,19 +67,20 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
 
   // request trains for the next 5 minutes
   auto trains = train_retriever_->trains(
-      date_converter_.convert_to_motis(client.time),
-      date_converter_.convert_to_motis(client.time + (60 * 5)), 1000,
-      client.bounds);
+      unix_to_motistime(lock.sched().schedule_begin_, client.time),
+      unix_to_motistime(lock.sched().schedule_begin_, client.time + (60 * 5)),
+      1000, client.bounds);
 
   std::vector<Train> trains_output;
   for (auto const& t : trains) {
     light_connection const* con;
     edge const* e;
     std::tie(con, e) = t;
-    trains_output.emplace_back(date_converter_.convert(con->d_time),
-                               date_converter_.convert(con->a_time),
-                               e->_from->get_station()->_id,
-                               e->_to->get_station()->_id, e->_from->_route);
+    trains_output.emplace_back(
+        motis_to_unixtime(lock.sched().schedule_begin_, con->d_time),
+        motis_to_unixtime(lock.sched().schedule_begin_, con->a_time),
+        e->_from->get_station()->_id, e->_to->get_station()->_id,
+        e->_from->_route);
   }
 
   FlatBufferBuilder b;
@@ -93,14 +92,14 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
 }
 
 void railviz::init() {
+  scoped_timer timer("train index init");
   auto lock = synced_sched<schedule_access::RO>();
   train_retriever_ =
       std::unique_ptr<train_retriever>(new train_retriever(lock.sched()));
-  date_converter_.set_date_manager(lock.sched().date_mgr);
 }
 
 void railviz::on_open(sid session) {
-  clients_.emplace(session, session);
+  clients_.insert(std::make_pair(session, session));
 
   auto lock = synced_sched<schedule_access::RO>();
 
@@ -110,13 +109,11 @@ void railviz::on_open(sid session) {
   }
 
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateMessage(
-      b, MsgContent_RailVizInit,
-      CreateRailVizInit(
-          b, b.CreateVectorOfStructs(stations),
-          date_converter_.convert(lock.sched().date_mgr.first_date()),
-          date_converter_.convert(lock.sched().date_mgr.last_date()) +
-              MINUTES_A_DAY * 60).Union()));
+  b.Finish(
+      CreateMessage(b, MsgContent_RailVizInit,
+                    CreateRailVizInit(b, b.CreateVectorOfStructs(stations),
+                                      lock.sched().schedule_begin_,
+                                      lock.sched().schedule_end_).Union()));
   send(make_msg(b), session);
 }
 
@@ -131,8 +128,6 @@ void railviz::on_msg(msg_ptr msg, sid session, callback cb) {
   auto it = ops_.find(msg->msg_->content_type());
   return it->second(msg, client_it->second, cb);
 }
-
-MOTIS_MODULE_DEF_MODULE(railviz)
 
 }  // namespace railviz
 }  // namespace motis

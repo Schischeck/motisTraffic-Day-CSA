@@ -1,9 +1,9 @@
 #include <iostream>
-#include <thread>
 
 #include "boost/filesystem.hpp"
 #include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
+#include "boost/thread.hpp"
 
 #include "net/http/server/shutdown_handler.hpp"
 
@@ -14,20 +14,18 @@
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 
-#ifndef MOTIS_STATIC_MODULES
-#include "motis/module/dynamic_module.h"
-#include "motis/module/dynamic_module_loader.h"
-#else
 #include "motis/railviz/railviz.h"
 #include "motis/guesser/guesser.h"
 #include "motis/routing/routing.h"
 #include "motis/reliability/reliability.h"
-#endif
+#include "motis/realtime/realtime.h"
 
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
 #include "motis/webservice/listener_settings.h"
 #include "motis/webservice/modules_settings.h"
+
+#include "motis/loader/parser_error.h"
 
 using namespace motis::webservice;
 using namespace motis::module;
@@ -37,7 +35,7 @@ int main(int argc, char** argv) {
   message::init_parser();
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("data/test");
+  dataset_settings dataset_opt("data/test", "TODAY", 2);
   modules_settings modules_opt("modules");
 
   conf::options_parser parser({&listener_opt, &dataset_opt, &modules_opt});
@@ -53,10 +51,19 @@ int main(int argc, char** argv) {
   }
 
   parser.read_configuration_file();
-
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
-  auto sched = load_schedule(dataset_opt.dataset);
+
+  auto schedule_interval = dataset_opt.interval();
+  schedule_ptr sched;
+  try {
+    sched = loader::load_schedule(dataset_opt.dataset, schedule_interval.first,
+                                  schedule_interval.second);
+  } catch (motis::loader::parser_error const& e) {
+    std::cout << "unable to parse schedule\n";
+    std::cout << e.filename << ":" << e.line_number << "\n";
+    return 1;
+  }
 
   boost::asio::io_service ios, thread_pool;
 
@@ -65,18 +72,17 @@ int main(int argc, char** argv) {
 
   dispatcher dispatcher(server, ios);
 
-#ifndef MOTIS_STATIC_MODULES
-  dynamic_module_loader loader(modules_opt.path, sched.get(), dispatcher, ios,
-                               thread_pool);
-  loader.load_modules();
-#else
   namespace p = std::placeholders;
   send_fun send = std::bind(&dispatcher::send, &dispatcher, p::_1, p::_2);
   msg_handler dispatch =
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
+  modules.emplace_back(new routing::routing());
+  modules.emplace_back(new guesser::guesser());
+  modules.emplace_back(new reliability::reliability());
   modules.emplace_back(new railviz::railviz());
+  modules.emplace_back(new realtime::realtime());
 
   motis::module::context c;
   c.schedule_ = sched.get();
@@ -84,14 +90,6 @@ int main(int argc, char** argv) {
   c.thread_pool_ = &thread_pool;
   c.send_ = &send;
   c.dispatch_ = &dispatch;
-
-  for (auto const& module : modules) {
-    dispatcher.modules_.push_back(module.get());
-    dispatcher.add_module(module.get());
-
-    module->init_(&c);
-  }
-#endif
 
   std::vector<conf::configuration*> module_confs;
   for (auto const& module : dispatcher.modules_) {
@@ -102,20 +100,24 @@ int main(int argc, char** argv) {
   module_conf_parser.read_configuration_file();
   module_conf_parser.print_used(std::cout);
 
-  for (auto const& module: dispatcher.modules_) {
-    module->on_config_loaded();
+  for (auto const& module : modules) {
+    dispatcher.modules_.push_back(module.get());
+    dispatcher.add_module(module.get());
+
+    module->init_(&c);
   }
 
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
 
   boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
-  std::vector<std::thread> threads(8);
+  std::vector<boost::thread> threads(8);
   for (unsigned i = 0; i < threads.size(); ++i) {
-    threads[i] = std::thread([&]() { thread_pool.run(); });
+    threads[i] = boost::thread([&]() { thread_pool.run(); });
   }
 
   ios.run();
   thread_pool.stop();
-  std::for_each(begin(threads), end(threads), [](std::thread& t) { t.join(); });
+  std::for_each(begin(threads), end(threads),
+                [](boost::thread& t) { t.join(); });
 }

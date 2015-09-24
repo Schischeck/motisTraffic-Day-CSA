@@ -6,6 +6,7 @@
 #include <bitset>
 
 #include "motis/core/common/flat_matrix.h"
+#include "motis/core/schedule/time.h"
 
 namespace motis {
 
@@ -18,10 +19,11 @@ public:
 
   int waiting_time_category(const std::string& train_category) const {
     auto it = _category_map.find(train_category);
-    if (it == end(_category_map))
+    if (it == end(_category_map)) {
       return default_group;
-    else
+    } else {
       return it->second;
+    }
   }
 
   inline int waiting_time_category(int family) const {
@@ -42,7 +44,6 @@ public:
 
   int default_group;
 
-private:
   std::unordered_map<std::string, int> _category_map;
   std::vector<int> _family_to_wtr_category;
   flat_matrix<duration> _waiting_time_matrix;

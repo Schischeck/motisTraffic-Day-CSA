@@ -16,3 +16,12 @@
 [submodule "external_lib/guess"]
 	path = external_lib/guess
 	url = https://github.com/felixguendling/guess.git
+[submodule "external_lib/parser"]
+	path = external_lib/parser
+	url = https://github.com/felixguendling/parser.git
+[submodule "external_lib/googletest"]
+	path = external_lib/googletest
+	url = https://github.com/google/googletest.git
+[submodule "external_lib/sparsehash"]
+	path = external_lib/sparsehash
+	url = https://github.com/felixguendling/sparsehash.git

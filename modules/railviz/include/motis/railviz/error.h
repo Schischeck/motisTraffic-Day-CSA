@@ -25,8 +25,7 @@ public:
         return "railviz: station index out of bounds";
       case error::client_not_registered:
         return "railviz: client not registered";
-      default:
-        return "railviz: unkown error";
+      default: return "railviz: unkown error";
     }
   }
 };

@@ -7,7 +7,6 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
-#include "motis/core/common/pointer.h"
 
 namespace motis {
 
@@ -61,7 +60,8 @@ public:
   edge() = default;
 
   /** route edge constructor. */
-  edge(node* to, std::vector<light_connection> const& connections) : _to(to) {
+  edge(node* from, node* to, std::vector<light_connection> const& connections)
+      : _from(from), _to(to) {
     _m._type = ROUTE_EDGE;
     if (!connections.empty()) {
       _m._route_edge.init_empty();
@@ -72,9 +72,9 @@ public:
   }
 
   /** foot edge constructor. */
-  edge(node* to, uint8_t type, uint16_t time_cost, uint16_t price,
+  edge(node* from, node* to, uint8_t type, uint16_t time_cost, uint16_t price,
        bool transfer, uint8_t slot = 0)
-      : _to(to) {
+      : _from(from), _to(to) {
     _m._type = type;
     _m._foot_edge._time_cost = time_cost;
     _m._foot_edge._price = price;
@@ -113,7 +113,8 @@ public:
                 std::end(_m._route_edge._conns),
                 [](light_connection const& c1, light_connection const& c2) {
                   return c1.travel_time() < c2.travel_time();
-                })->travel_time(),
+                })
+                ->travel_time(),
             false, std::begin(_m._route_edge._conns)->_full_con->price);
       }
     } else if (_m._type == FOOT_EDGE || _m._type == AFTER_TRAIN_FOOT_EDGE) {
@@ -134,11 +135,10 @@ public:
 
     return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
   }
-  
+
   light_connection* get_connection(time const start_time) {
     return const_cast<light_connection*>(
-          static_cast<const edge*>(this)->get_connection(start_time)
-    );
+        static_cast<const edge*>(this)->get_connection(start_time));
   }
 
   edge_cost get_route_edge_cost(time const start_time) const {
@@ -167,8 +167,8 @@ public:
     return (type() != ROUTE_EDGE) ? true : _m._route_edge._conns.empty();
   }
 
-  pointer<node> _to;
-  pointer<node> _from;
+  node* _from;
+  node* _to;
 
   union edge_details {
     edge_details() { std::memset(this, 0, sizeof(*this)); }
@@ -259,28 +259,28 @@ public:
 
 /* convenience helper functions to generate the right edge type */
 
-inline edge make_route_edge(node* to,
+inline edge make_route_edge(node* from, node* to,
                             std::vector<light_connection> const& connections) {
-  return edge(to, connections);
+  return edge(from, to, connections);
 }
 
-inline edge make_foot_edge(node* to, uint16_t time_cost = 0,
+inline edge make_foot_edge(node* from, node* to, uint16_t time_cost = 0,
                            bool transfer = false) {
-  return edge(to, edge::FOOT_EDGE, time_cost, 0, transfer);
+  return edge(from, to, edge::FOOT_EDGE, time_cost, 0, transfer);
 }
 
-inline edge make_after_train_edge(node* to, uint16_t time_cost = 0,
+inline edge make_after_train_edge(node* from, node* to, uint16_t time_cost = 0,
                                   bool transfer = false) {
-  return edge(to, edge::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
+  return edge(from, to, edge::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
 }
 
-inline edge make_mumo_edge(node* to, uint16_t time_cost = 0, uint16_t price = 0,
-                           uint8_t slot = 0) {
-  return edge(to, edge::MUMO_EDGE, time_cost, price, false, slot);
+inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
+                           uint16_t price = 0, uint8_t slot = 0) {
+  return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
 }
 
-inline edge make_invalid_edge(node* to) {
-  return edge(to, edge::INVALID_EDGE, 0, 0, false, 0);
+inline edge make_invalid_edge(node* from, node* to) {
+  return edge(from, to, edge::INVALID_EDGE, 0, 0, false, 0);
 }
 
 }  // namespace motis

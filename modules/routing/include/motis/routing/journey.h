@@ -24,17 +24,19 @@ struct journey {
     std::string line_identifier;
     int duration;
     int slot;
+    std::string direction;
+    std::string provider;
   };
 
   struct stop {
     int index;
     bool interchange;
     std::string name;
-    int eva_no;
+    std::string eva_no;
     double lat, lng;
     struct event_info {
       bool valid;
-      std::string date_time;
+      std::time_t timestamp;
       std::string platform;
     } arrival, departure;
   };
@@ -45,7 +47,6 @@ struct journey {
     std::string text;
   };
 
-  std::string date;
   int duration, transfers, price;
   std::vector<stop> stops;
   std::vector<transport> transports;

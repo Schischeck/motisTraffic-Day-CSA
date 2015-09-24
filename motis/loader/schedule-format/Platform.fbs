@@ -1,0 +1,11 @@
+namespace motis.loader;
+
+table Platform {
+  bitfield: string;
+  name : string;
+}
+
+table PlatformRules {
+  arr_platforms: [Platform];
+  dep_platforms: [Platform];
+}

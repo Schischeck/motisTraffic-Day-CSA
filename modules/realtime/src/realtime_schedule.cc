@@ -250,7 +250,7 @@ realtime_schedule::get_train_events(const schedule_event& start_event) const {
     motis::light_connection* last_lc = lc;
     while (route_edge != nullptr) {
       // arrival
-      route_node = route_edge->_to.ptr();
+      route_node = route_edge->_to;
       graph_event graph_event(route_node->get_station()->_id,
                               lc->_full_con->con_info->train_nr, false,
                               lc->a_time, route_node->_route);

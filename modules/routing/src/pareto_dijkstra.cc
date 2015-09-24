@@ -176,11 +176,12 @@ void pareto_dijkstra::filter_results() {
        it = restart ? std::begin(_results) : std::next(it)) {
     restart = false;
     std::size_t size_before = _results.size();
-    _results.erase(std::remove_if(std::begin(_results), std::end(_results),
-                                  [it](label const* l) {
-                     return l == (*it) ? false : (*it)->dominates_hard(*l);
-                   }),
-                   std::end(_results));
+    _results.erase(
+        std::remove_if(std::begin(_results), std::end(_results),
+                       [it](label const* l) {
+                         return l == (*it) ? false : (*it)->dominates_hard(*l);
+                       }),
+        std::end(_results));
     if (_results.size() != size_before) {
       restart = true;
     }

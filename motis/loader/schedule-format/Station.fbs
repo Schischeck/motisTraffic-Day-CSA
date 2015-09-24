@@ -1,0 +1,9 @@
+namespace motis.loader;
+
+table Station {
+  id : string;
+  name : string;
+  lat : double;
+  lng : double;
+  interchange_time : int;
+}

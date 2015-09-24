@@ -4,9 +4,10 @@
 #include <vector>
 #include <tuple>
 
-#include "motis/core/common/array.h"
-#include "motis/core/common/pointer.h"
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/schedule/attribute.h"
+#include "motis/core/schedule/provider.h"
 
 namespace motis {
 
@@ -25,48 +26,65 @@ enum {
 
 class connection_info {
 public:
-  connection_info()
-      : attributes(array<int>::size_type(0)),
-        line_identifier(string::size_type(0)),
-        family(0),
-        train_nr(0),
-        service(0) {}
+  struct hash {
+    std::size_t operator()(connection_info const& c) const {
+      std::size_t seed = 0;
+      for (auto const& attr : c.attributes) {
+        hash_combine(seed, attr);
+      }
+      hash_combine(seed, c.line_identifier);
+      hash_combine(seed, c.family);
+      hash_combine(seed, c.train_nr);
+      return seed;
+    }
+  };
 
-  bool operator<(connection_info const& o) const {
-    return as_tuple() < o.as_tuple();
-  }
+  connection_info() : dir_(nullptr), family(0), train_nr(0) {}
 
   bool operator==(connection_info const& o) const {
-    return attributes == o.attributes && line_identifier == o.line_identifier &&
-           family == o.family && train_nr == o.train_nr && service == o.service;
+    return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
+           line_identifier == o.line_identifier && attributes == o.attributes;
   }
 
-  std::tuple<array<int>, string, uint32_t, uint32_t, uint32_t> as_tuple()
-      const {
-    return std::make_tuple(attributes, line_identifier, family, train_nr,
-                           service);
-  }
-
-  array<int> attributes;
-  string line_identifier;
+  std::vector<attribute const*> attributes;
+  std::string line_identifier;
+  std::string const* dir_;
+  provider const* provider_;
   uint32_t family;
   uint32_t train_nr;
-  uint32_t service;
 };
 
 class connection {
 public:
+  struct hash {
+    std::size_t operator()(connection const& c) const {
+      std::size_t seed = 0;
+      hash_combine(seed, c.con_info);
+      hash_combine(seed, c.price);
+      hash_combine(seed, c.d_platform);
+      hash_combine(seed, c.a_platform);
+      hash_combine(seed, c.clasz);
+      return seed;
+    }
+  };
+
   connection()
-      : con_info_id(0), price(0), d_platform(0), a_platform(0), clasz(0) {}
+      : con_info(nullptr), price(0), d_platform(0), a_platform(0), clasz(0) {}
 
   bool operator==(connection const& o) const {
-    return clasz == o.clasz && price == o.price && con_info_id == o.con_info_id;
+    return clasz == o.clasz && price == o.price && con_info == o.con_info;
   }
 
-  union {
-    pointer<connection_info const> con_info;
-    uint32_t con_info_id;
-  };
+  bool operator<(connection const& o) const {
+    return as_tuple() < o.as_tuple();
+  }
+
+  std::tuple<uint8_t, uint16_t, uint16_t, uint16_t, connection_info const*>
+  as_tuple() const {
+    return std::make_tuple(clasz, d_platform, a_platform, price, con_info);
+  }
+
+  connection_info const* con_info;
   uint16_t price;
   uint16_t d_platform, a_platform;
   uint8_t clasz;
@@ -90,7 +108,7 @@ public:
            *_full_con == *o._full_con;
   }
 
-  pointer<connection const> _full_con;
+  connection const* _full_con;
   time d_time, a_time;
 
   enum : uint32_t { INVALID_CON_ID = 0xffffffff };

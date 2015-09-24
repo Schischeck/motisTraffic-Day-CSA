@@ -3,7 +3,6 @@
 #include <set>
 
 #include "motis/module/module.h"
-#include "motis/railviz/date_converter.h"
 #include "motis/railviz/webclient.h"
 
 namespace motis {
@@ -44,7 +43,6 @@ private:
 
   std::map<MsgContent, op> ops_;
   std::map<motis::module::sid, webclient> clients_;
-  date_converter date_converter_;
   std::unique_ptr<train_retriever> train_retriever_;
 };
 

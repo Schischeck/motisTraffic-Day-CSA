@@ -6,7 +6,7 @@
 #include "motis/railviz/geo.h"
 
 namespace motis {
-struct edge;
+class edge;
 struct schedule;
 }
 

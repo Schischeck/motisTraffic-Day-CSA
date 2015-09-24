@@ -8,5 +8,5 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: true
 #AllowShortFunctionsOnASingleLine: SFS_None
 AlignTrailingComments: false
 KeepEmptyLinesAtTheStartOfBlocks: true
-#AllowShortCaseLabelsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: true
