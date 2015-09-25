@@ -37,8 +37,6 @@ struct timetable_retriever {
   std::vector<motis::station_node const*> stations_on_route( const motis::node& ) const;
   std::vector<route> get_routes_on_time(const motis::node&,
                                         motis::time time) const;
-  const light_connection* get_light_connection_incoming(const node&, int) const;
-  const light_connection* get_light_connection_outgoing(const node&, int) const;
 
   timetable ordered_timetable_for_station(const station_node& station) const;
 
@@ -53,10 +51,8 @@ struct timetable_retriever {
   const motis::node* start_node_for_route(const motis::node&) const;
   const motis::node* end_node_for_route(const motis::node&) const;
 
-  std::set<unsigned int> routes_at_station(const station_node&) const;
   std::vector<motis::time> get_route_departure_times(
       const motis::node&) const;
-  std::vector<motis::time> get_route_arrival_times(const motis::node&) const;
 
   //std::map<unsigned int, motis::node const*> route_start_node;
   //std::map<unsigned int, motis::node const*> route_end_node;
