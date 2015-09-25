@@ -72,7 +72,6 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
 
 motis::module::msg_ptr railviz::make_all_trains_realtime_request( std::vector<std::pair<light_connection const*, edge const*>> const& trains ) const {
   using namespace realtime;
-
   flatbuffers::FlatBufferBuilder b;
   std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
 
@@ -131,7 +130,7 @@ callback railviz::make_all_trains_realtime_callback( std::vector<std::pair<light
       int route_id = e->_from->_route;
       if( with_routes ) {
         std::vector<unsigned int> fb_route;
-        std::vector<const motis::station_node*> stations = timetable_retriever_.stations_on_route(route_id);
+        std::vector<const motis::station_node*> stations = timetable_retriever_.stations_on_route(*e->_from._ptr);
         for( const motis::station_node* station_node_ : stations ) {
           fb_route.push_back(station_node_->_id);
         }
@@ -269,13 +268,19 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
 void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto const& stations = lock.sched().stations;
+  auto const& station_nodes = lock.sched().station_nodes;
   flatbuffers::FlatBufferBuilder b;
 
   RailViz_route_at_time_req const* req = msg->content<RailViz_route_at_time_req const*>();
   unsigned int station_id = req->station_id();
   motis::time departure_time = date_converter_.convert_to_motis(req->departure_time());
   unsigned int route_id = req->route_id();
-  std::vector<route> routes = timetable_retriever_.get_routes_on_time(route_id, departure_time);
+  std::vector<route> routes;
+  for( auto const & route_node : station_nodes[station_id].get()->get_route_nodes() )
+  {
+    if( route_node->_route == route_id )
+      routes = timetable_retriever_.get_routes_on_time(*route_node, departure_time);
+  }
   // search the valid route
   const route* found_route = nullptr;
   if( routes.size() == 1 ) {
