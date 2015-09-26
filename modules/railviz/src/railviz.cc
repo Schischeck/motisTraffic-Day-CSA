@@ -215,7 +215,11 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
       bool outgoing = std::get<3>(entry);
       unsigned int route = std::get<4>(entry);
 
-      std::string line_name = lc->_full_con->con_info->line_identifier.to_string();
+      int classz = lc->_full_con->clasz;
+      std::string category_string = lock.sched().category_names[lc->_full_con->con_info->family];
+      std::string train_num = category_string + std::to_string(lc->_full_con->con_info->train_nr);
+      std::string train_identifier = category_string + lc->_full_con->con_info->line_identifier.to_string();
+
       std::string end_station_name = stations[end_start_station->_id].get()->name;
 
       std::time_t a_time = date_converter_.convert(lc->a_time);
@@ -246,21 +250,22 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
                                                                        d_delay,
                                                                        a_delay);
       timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
-          b, b.CreateString(line_name),
-             b.CreateString(railviz::clasz_names[lc->_full_con->clasz]),
-             b.CreateString(lock.sched().category_names[lc->_full_con->con_info->family]),
+          b, b.CreateString(train_num),
+             b.CreateString(train_identifier),
+             classz,
              t,
              b.CreateString(end_station_name),
              end_start_station->_id,
              outgoing));
     }
-
+    std::cout << "endfor" << std::endl;
     b.Finish(
         CreateMessage(b, MsgContent_RailViz_station_detail_res,
                       CreateRailViz_station_detail_res(
                           b, b.CreateString(stations[station_index]->name.to_string()),
                           station_index,
                           b.CreateVector(timetable_fb)).Union()));
+    std::cout << "finished" << std::endl;
     return cb(make_msg(b), boost::system::error_code());
   };
 }
@@ -356,8 +361,15 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, call
 
     RailViz_route_at_time_resBuilder resBuilder(b);
     const route_entry& first_entry = route_.at(0);
-    resBuilder.add_line_name(b.CreateString(std::get<2>(first_entry)->_full_con->con_info->line_identifier.to_string()));
-    resBuilder.add_line_type(b.CreateString(railviz::clasz_names[std::get<2>(first_entry)->_full_con->clasz]));
+    const motis::light_connection* lc = std::get<2>(first_entry);
+    std::string category_string = lock.sched().category_names[lc->_full_con->con_info->family];
+    std::string train_num = category_string + std::to_string(lc->_full_con->con_info->train_nr);
+    std::string train_identifier = category_string + lc->_full_con->con_info->line_identifier.to_string();
+    int classz = lc->_full_con->clasz;
+
+    resBuilder.add_train_num(b.CreateString(train_num));
+    resBuilder.add_train_identifier(b.CreateString(train_identifier));
+    resBuilder.add_classz(classz);
     resBuilder.add_route(b.CreateVector(fb_route_offsets));
 
     b.Finish(CreateMessage(b, MsgContent_RailViz_route_at_time_res, resBuilder.Finish().Union()));

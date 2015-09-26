@@ -9,7 +9,8 @@ table RailViz_route_entry {
 }
 
 table RailViz_route_at_time_res {
-  line_name : string;
-  line_type : string;
+  train_num : string;
+  train_identifier : string;
+  classz: int = -1;
   route : [RailViz_route_entry];
 }
