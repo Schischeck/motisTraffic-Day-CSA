@@ -2,18 +2,18 @@ include "railviz/RailVizTrain.fbs";
 
 namespace motis.railviz;
 
-table RailViz_station_detail_res_entry {
+table RailVizStationDetailResEntry {
 	train_num : string;
 	train_identifier : string;
 	classz: int = -1;
 	train : RailVizTrain;
-	startEndStation_name : string;
+	startend_station_name : string;
 	startend_station_id : int;
 	outgoing : bool;
 }
 
-table RailViz_station_detail_res {
+table RailVizStationDetailRes {
   name : string;
   station_id : int;
-  timetable : [RailViz_station_detail_res_entry];
+  timetable : [RailVizStationDetailResEntry];
 }

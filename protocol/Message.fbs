@@ -1,12 +1,13 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
-include "railviz/RailViz_init.fbs";
-include "railviz/RailViz_alltra_req.fbs";
-include "railviz/RailViz_alltra_res.fbs";
-include "railviz/RailViz_station_detail_req.fbs";
-include "railviz/RailViz_station_detail_res.fbs";
-include "railviz/RailViz_route_at_time_req.fbs";
-include "railviz/RailViz_route_at_time_res.fbs";
+include "railviz/RailVizInit.fbs";
+include "railviz/RailVizAlltraReq.fbs";
+include "railviz/RailVizAlltraRes.fbs";
+include "railviz/RailVizStationDetailReq.fbs";
+include "railviz/RailVizStationDetailRes.fbs";
+include "railviz/RailVizRouteAtTimeReq.fbs";
+include "railviz/RailVizRouteAtTimeRes.fbs";
+include "railviz/RailVizFindTrain.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
@@ -37,13 +38,14 @@ union MsgContent {
   motis.MotisError,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
-  motis.railviz.RailViz_init,
-  motis.railviz.RailViz_alltra_req,
-  motis.railviz.RailViz_alltra_res,
-  motis.railviz.RailViz_station_detail_req,
-  motis.railviz.RailViz_station_detail_res,
-  motis.railviz.RailViz_route_at_time_req,
-  motis.railviz.RailViz_route_at_time_res,
+  motis.railviz.RailVizInit,
+  motis.railviz.RailVizAlltraReq,
+  motis.railviz.RailVizAlltraRes,
+  motis.railviz.RailVizStationDetailReq,
+  motis.railviz.RailVizStationDetailRes,
+  motis.railviz.RailVizRouteAtTimeReq,
+  motis.railviz.RailVizRouteAtTimeRes,
+  motis.railviz.RailVizFindTrain,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse,
   motis.realtime.RealtimeTrainInfoRequest,

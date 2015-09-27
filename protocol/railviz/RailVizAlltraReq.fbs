@@ -2,7 +2,7 @@ include "railviz/RailVizCoordinate.fbs";
 
 namespace motis.railviz;
 
-table RailViz_alltra_req {
+table RailVizAlltraReq {
   p1 : RailVizCoordinate;
   p2 : RailVizCoordinate;
   time : ulong;

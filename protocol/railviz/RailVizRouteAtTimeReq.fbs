@@ -1,6 +1,6 @@
 namespace motis.railviz;
 
-table RailViz_route_at_time_req {
+table RailVizRouteAtTimeReq {
   station_id: uint;
   departure_time: uint;
   route_id: uint;

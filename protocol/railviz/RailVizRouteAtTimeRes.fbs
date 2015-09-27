@@ -2,15 +2,15 @@ include "railviz/RailVizTrain.fbs";
 
 namespace motis.railviz;
 
-table RailViz_route_entry {
+table RailVizRouteEntry {
   departure_id: uint;
   departure_station_name: string;
   train_departure : RailVizTrain;
 }
 
-table RailViz_route_at_time_res {
+table RailVizRouteAtTimeRes {
   train_num : string;
   train_identifier : string;
   classz: int = -1;
-  route : [RailViz_route_entry];
+  route : [RailVizRouteEntry];
 }

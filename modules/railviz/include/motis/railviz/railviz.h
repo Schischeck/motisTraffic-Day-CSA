@@ -26,9 +26,10 @@ struct railviz : public motis::module::module {
 
   virtual std::string name() const override { return "railviz"; }
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RailViz_alltra_req,
-            MsgContent_RailViz_station_detail_req,
-            MsgContent_RailViz_route_at_time_req};
+    return {MsgContent_RailVizAlltraReq,
+            MsgContent_RailVizStationDetailReq,
+            MsgContent_RailVizRouteAtTimeReq,
+            MsgContent_RailVizFindTrain};
   }
   virtual void init() override;
   virtual void on_open(motis::module::sid) override;
@@ -46,6 +47,9 @@ struct railviz : public motis::module::module {
                     motis::module::callback cb);
   motis::module::msg_ptr make_station_info_realtime_request( const timetable& ) const;
   callback make_station_info_realtime_callback( int station_index, timetable const&, callback );
+
+  void find_train(motis::module::msg_ptr msg, webclient& client,
+                  motis::module::callback cb);
 
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);

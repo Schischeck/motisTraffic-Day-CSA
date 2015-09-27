@@ -8,13 +8,13 @@
 
 #include "motis/module/api.h"
 
-#include "motis/protocol/RailViz_init_generated.h"
-#include "motis/protocol/RailViz_alltra_req_generated.h"
-#include "motis/protocol/RailViz_alltra_res_generated.h"
-#include "motis/protocol/RailViz_station_detail_req_generated.h"
-#include "motis/protocol/RailViz_station_detail_res_generated.h"
-#include "motis/protocol/RailViz_route_at_time_req_generated.h"
-#include "motis/protocol/RailViz_route_at_time_res_generated.h"
+#include "motis/protocol/RailVizInit_generated.h"
+#include "motis/protocol/RailVizAlltraReq_generated.h"
+#include "motis/protocol/RailVizAlltraRes_generated.h"
+#include "motis/protocol/RailVizStationDetailReq_generated.h"
+#include "motis/protocol/RailVizStationDetailRes_generated.h"
+#include "motis/protocol/RailVizRouteAtTimeReq_generated.h"
+#include "motis/protocol/RailVizRouteAtTimeRes_generated.h"
 #include "motis/protocol/RailVizTrain_generated.h"
 #include "motis/protocol/RealtimeTrainInfoRequest_generated.h"
 
@@ -40,18 +40,53 @@ void railviz::print(std::ostream& out) const {}
 std::vector<std::string> railviz::clasz_names = {"ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
 
 railviz::railviz()
-    : ops_{{MsgContent_RailViz_alltra_req,
+    : ops_{{MsgContent_RailVizAlltraReq,
             std::bind(&railviz::all_trains, this, p::_1, p::_2, p::_3)},
-           {MsgContent_RailViz_station_detail_req,
+           {MsgContent_RailVizStationDetailReq,
             std::bind(&railviz::station_info, this, p::_1, p::_2, p::_3)},
-           {MsgContent_RailViz_route_at_time_req,
-            std::bind(&railviz::route_at_time, this, p::_1, p::_2, p::_3)}} {}
+           {MsgContent_RailVizRouteAtTimeReq,
+            std::bind(&railviz::route_at_time, this, p::_1, p::_2, p::_3)},
+           {MsgContent_RailVizFindTrain,
+            std::bind(&railviz::find_train, this, p::_1, p::_2, p::_3)}} {}
 
 railviz::~railviz() {}
 
+void railviz::find_train(msg_ptr msg, webclient& client, callback cb) {
+  auto req = msg->content<RailVizFindTrain const*>();
+
+  flatbuffers::FlatBufferBuilder b;
+  std::string search_string;
+  search_string.assign(req->train_number()->c_str());
+
+  if( search_string == "" )
+      return cb({}, error::train_not_found);
+
+  for( int i = 0; i <= 4; ++i ) {
+    std::pair<light_connection const*, edge const*> train;
+    {
+      auto lock = synced_sched<schedule_access::RO>();
+      train = train_retriever_->search_train(
+                  search_string,
+                  date_converter_.convert_to_motis(client.time),
+                  date_converter_.convert_to_motis(client.time + (60 * 5)),
+                  i );
+    }
+    if( train.first != nullptr ) {
+        b.Finish( CreateMessage(b, MsgContent_RailVizRouteAtTimeReq, CreateRailVizRouteAtTimeReq(
+                                    b,
+                                    train.second->_from->get_station()->_id,
+                                    date_converter_.convert(train.first->d_time),
+                                    train.second->_from->_route).Union() ) );
+        return route_at_time( make_msg(b), client, cb );
+    }
+  }
+
+  return cb({}, error::train_not_found);
+}
+
 void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
-  auto req = msg->content<RailViz_alltra_req const*>();
+  auto req = msg->content<RailVizAlltraReq const*>();
 
   client.bounds = {{req->p1()->lat(), req->p1()->lng()},
                    {req->p2()->lat(), req->p2()->lng()}};
@@ -62,7 +97,6 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
       date_converter_.convert_to_motis(client.time),
       date_converter_.convert_to_motis(client.time + (60 * 5)), 1000,
       client.bounds);
-
 
   auto request_msg = make_all_trains_realtime_request(trains);
   callback callback_ = make_all_trains_realtime_callback(trains, req->with_routes(), cb);
@@ -112,7 +146,7 @@ callback railviz::make_all_trains_realtime_callback( std::vector<std::pair<light
     FlatBufferBuilder b;
     realtime_response realtime_response_(msg);
     std::vector<flatbuffers::Offset<RailVizTrain>> trains_output;
-    std::vector<flatbuffers::Offset<RailViz_alltra_res_route>> fb_routes;
+    std::vector<flatbuffers::Offset<RailVizAlltraResRoute>> fb_routes;
     for (auto const& t : trains) {
       light_connection const* con;
       edge const* e;
@@ -127,21 +161,20 @@ callback railviz::make_all_trains_realtime_callback( std::vector<std::pair<light
                          delays.first,
                          delays.second ) );
 
-      int route_id = e->_from->_route;
       if( with_routes ) {
         std::vector<unsigned int> fb_route;
         std::vector<const motis::station_node*> stations = timetable_retriever_.stations_on_route(*e->_from._ptr);
         for( const motis::station_node* station_node_ : stations ) {
           fb_route.push_back(station_node_->_id);
         }
-        fb_routes.push_back( CreateRailViz_alltra_res_route(b, b.CreateVector(fb_route) ));
+        fb_routes.push_back( CreateRailVizAlltraResRoute(b, b.CreateVector(fb_route) ));
 
       }
     }
 
     b.Finish(
-        CreateMessage(b, MsgContent_RailViz_alltra_res,
-                      CreateRailViz_alltra_res(
+        CreateMessage(b, MsgContent_RailVizAlltraRes,
+                      CreateRailVizAlltraRes(
                           b, b.CreateVector(trains_output),
                           b.CreateVector(fb_routes)).Union()));
     cb(make_msg(b), {});
@@ -154,7 +187,7 @@ void railviz::station_info(msg_ptr msg, webclient& client, callback cb) {
   auto const& station_nodes = lock.sched().station_nodes;
   flatbuffers::FlatBufferBuilder b;
 
-  auto req = msg->content<RailViz_station_detail_req const*>();
+  auto req = msg->content<RailVizStationDetailReq const*>();
   int index = req->station_index();
 
   if (index < 0 || index >= stations.size()) {
@@ -207,7 +240,7 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
 
     realtime_response realtime_response_(msg);
 
-    std::vector<flatbuffers::Offset<RailViz_station_detail_res_entry>> timetable_fb;
+    std::vector<flatbuffers::Offset<RailVizStationDetailResEntry>> timetable_fb;
     for (const timetable_entry& entry : timetable_) {
       const light_connection* lc = std::get<0>(entry);
       const station_node* next_prev_station = std::get<1>(entry);
@@ -249,7 +282,7 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
                                                                        route,
                                                                        d_delay,
                                                                        a_delay);
-      timetable_fb.push_back(CreateRailViz_station_detail_res_entry(
+      timetable_fb.push_back(CreateRailVizStationDetailResEntry(
           b, b.CreateString(train_num),
              b.CreateString(train_identifier),
              classz,
@@ -258,14 +291,12 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
              end_start_station->_id,
              outgoing));
     }
-    std::cout << "endfor" << std::endl;
     b.Finish(
-        CreateMessage(b, MsgContent_RailViz_station_detail_res,
-                      CreateRailViz_station_detail_res(
+        CreateMessage(b, MsgContent_RailVizStationDetailRes,
+                      CreateRailVizStationDetailRes(
                           b, b.CreateString(stations[station_index]->name.to_string()),
                           station_index,
                           b.CreateVector(timetable_fb)).Union()));
-    std::cout << "finished" << std::endl;
     return cb(make_msg(b), boost::system::error_code());
   };
 }
@@ -276,7 +307,7 @@ void railviz::route_at_time(msg_ptr msg, webclient &client, callback cb) {
   auto const& station_nodes = lock.sched().station_nodes;
   flatbuffers::FlatBufferBuilder b;
 
-  RailViz_route_at_time_req const* req = msg->content<RailViz_route_at_time_req const*>();
+  RailVizRouteAtTimeReq const* req = msg->content<RailVizRouteAtTimeReq const*>();
   unsigned int station_id = req->station_id();
   motis::time departure_time = date_converter_.convert_to_motis(req->departure_time());
   unsigned int route_id = req->route_id();
@@ -332,7 +363,7 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, call
     auto const& stations = lock.sched().stations;
 
     realtime_response realtime_response_(msg);
-    std::vector<flatbuffers::Offset<RailViz_route_entry>> fb_route_offsets;
+    std::vector<flatbuffers::Offset<RailVizRouteEntry>> fb_route_offsets;
     for( auto it = route_.begin(); it != route_.end(); ++it ) {
       unsigned int departure_id = std::get<0>(*it)->_id;
       motis::string station_name = stations[departure_id].get()->name;
@@ -341,7 +372,7 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, call
         std::pair<unsigned int, unsigned int> delays =
             realtime_response_.delay(*it);
         fb_route_offsets.push_back(
-              CreateRailViz_route_entry(b, departure_id,
+              CreateRailVizRouteEntry(b, departure_id,
                                         b.CreateString(station_name.to_string()),
                                         CreateRailVizTrain( b,
                                                             date_converter_.convert(std::get<2>(*it)->d_time),
@@ -354,12 +385,12 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, call
       } else
       {
         fb_route_offsets.push_back(
-              CreateRailViz_route_entry(b, departure_id,
+              CreateRailVizRouteEntry(b, departure_id,
                                         b.CreateString(station_name.to_string()) ) );
       }
     }
 
-    RailViz_route_at_time_resBuilder resBuilder(b);
+    RailVizRouteAtTimeResBuilder resBuilder(b);
     const route_entry& first_entry = route_.at(0);
     const motis::light_connection* lc = std::get<2>(first_entry);
     std::string category_string = lock.sched().category_names[lc->_full_con->con_info->family];
@@ -372,7 +403,7 @@ callback railviz::make_route_at_time_realtime_callback(const route &route_, call
     resBuilder.add_classz(classz);
     resBuilder.add_route(b.CreateVector(fb_route_offsets));
 
-    b.Finish(CreateMessage(b, MsgContent_RailViz_route_at_time_res, resBuilder.Finish().Union()));
+    b.Finish(CreateMessage(b, MsgContent_RailVizRouteAtTimeRes, resBuilder.Finish().Union()));
 
     return cb( make_msg(b), err );
   };
@@ -393,18 +424,18 @@ void railviz::on_open(sid session) {
   auto const& stations = lock.sched().stations;
   flatbuffers::FlatBufferBuilder b;
 
-  std::vector<flatbuffers::Offset<RailViz_init_entry>> station_entries;
+  std::vector<flatbuffers::Offset<RailVizInitEntry>> station_entries;
   for (auto const& station : stations) {
     RailVizCoordinate sc (station->width, station->length);
-    station_entries.push_back(CreateRailViz_init_entry(
+    station_entries.push_back(CreateRailVizInitEntry(
                       b, b.CreateString(stations[station->index]->name.to_string()),
                       &sc));
   }
 
 
   b.Finish(CreateMessage(
-      b, MsgContent_RailViz_init,
-      CreateRailViz_init(
+      b, MsgContent_RailVizInit,
+      CreateRailVizInit(
           b, b.CreateVector(station_entries),
           date_converter_.convert(lock.sched().date_mgr.first_date()),
           date_converter_.convert(lock.sched().date_mgr.last_date()) +

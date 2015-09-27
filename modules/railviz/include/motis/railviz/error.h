@@ -13,7 +13,8 @@ enum error_code_t {
   station_index_out_of_bounds = 1,
   client_not_registered = 2,
 
-  route_not_found = 3
+  route_not_found = 3,
+  train_not_found = 4,
 };
 }  // namespace error
 
