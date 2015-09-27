@@ -198,7 +198,6 @@ std::vector<motis::time> timetable_retriever::get_route_departure_times(
     }
   }
   if( edge_ == nullptr ) {
-    std::cout << "railviz: WARNING: timetable_retreiver::get_route_departure_times: no incoming route-edges." << std::endl;
     return {};
   }
 
