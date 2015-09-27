@@ -56,6 +56,10 @@ TEST_CASE("01:normal case with an incoming edge", "[railviz::timetable_retriever
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever timetable_retriever_instanz;
     timetable_retriever_instanz.init(*(schedule.get()));
+    motis::station* st_01 = schedule->eva_to_station.find(5001307)->second;
+    motis::station_node st_01_stnode = schedule->station_nodes[st_01->index].get();
+    //motis::station* st_02 = schedule->eva_to_station.find(0302053)->sacond;
+    //motis::station* st_03 = (schedule->eva_to_station).find(7190994)->second;
 }
 
 /**
