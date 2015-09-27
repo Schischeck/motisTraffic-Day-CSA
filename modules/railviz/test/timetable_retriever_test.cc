@@ -56,22 +56,53 @@ TEST_CASE("01:normal case without loop", "[railviz::timetable_retriever]") {
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
     ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
 
-    motis::station* st_01 = schedule->eva_to_station.find(5001307)->second;
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the First station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
     motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
-    motis::node* st_01_routenode = st_01_stnode->get_route_nodes()[0];
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
-    motis::station* st_02 = schedule->eva_to_station.find(0302053)->second;
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the Second station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::station* st_02 = it->second;
     motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
-    motis::node* st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
 
-    motis::station* st_03 = (schedule->eva_to_station).find(7190994)->second;
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the Last station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
     motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
-    motis::node* st_03_routenode = st_03_stnode->get_route_nodes()[0];
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-    //REQUIRE(ttr.parent_node(*st_01_routenode) == NULL);
-    REQUIRE(ttr.parent_node(*st_02_routenode) == st_01_routenode);
-    //REQUIRE(ttr.parent_node(*st_03_routenode) == st_02_routenode);
+    SECTION("First route node should not have a parent") {
+        REQUIRE(ttr.parent_node(*st_01_routenode) == NULL);
+    }
+
+    SECTION("Middle route node should have a parent equals first route node") {
+        REQUIRE(ttr.parent_node(*st_02_routenode) == st_01_routenode);
+    }
+
+    SECTION("Last route node should have a parent equals middle route node") {
+        REQUIRE(ttr.parent_node(*st_03_routenode) == st_02_routenode);
+    }
+
+    //TODO
+    /*
+    SECTION("Invalid route nod should case an abort() call") {
+
+    }
+    */
 }
 
 /**
