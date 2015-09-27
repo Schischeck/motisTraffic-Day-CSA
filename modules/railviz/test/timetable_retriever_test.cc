@@ -51,15 +51,27 @@ using namespace motis::railviz;
  */
 
 //TODO
-TEST_CASE("01:normal case with an incoming edge", "[railviz::timetable_retriever]") {
+TEST_CASE("01:normal case without loop", "[railviz::timetable_retriever]") {
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
-    timetable_retriever timetable_retriever_instanz;
-    timetable_retriever_instanz.init(*(schedule.get()));
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+
     motis::station* st_01 = schedule->eva_to_station.find(5001307)->second;
-    motis::station_node st_01_stnode = schedule->station_nodes[st_01->index].get();
-    //motis::station* st_02 = schedule->eva_to_station.find(0302053)->sacond;
-    //motis::station* st_03 = (schedule->eva_to_station).find(7190994)->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    motis::node* st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    motis::station* st_02 = schedule->eva_to_station.find(0302053)->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    motis::node* st_02_routenode = st_02_stnode->get_route_nodes()[0];
+
+    motis::station* st_03 = (schedule->eva_to_station).find(7190994)->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    motis::node* st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    //REQUIRE(ttr.parent_node(*st_01_routenode) == NULL);
+    REQUIRE(ttr.parent_node(*st_02_routenode) == st_01_routenode);
+    //REQUIRE(ttr.parent_node(*st_03_routenode) == st_02_routenode);
 }
 
 /**
