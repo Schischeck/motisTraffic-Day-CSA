@@ -127,7 +127,6 @@ const motis::node* timetable_retriever::parent_node(const node &node) const {
   assert(node.is_route_node());
   auto const& incoming = node._incoming_edges;
   if( incoming.size() == 0 ) {
-    std::cout << "railviz: WARNING: timetable_retreiver::parent_node: no incoming edges." << std::endl;
     return nullptr;
   }
   for( auto const& edge_ : incoming ) {
@@ -142,7 +141,6 @@ const motis::node* timetable_retriever::child_node(const node &node) const {
   assert(node.is_route_node());
   auto const& outgoing = node._edges;
   if( outgoing.size() == 0 ) {
-    std::cout << "railviz: WARNING: timetable_retreiver::child_node: no outgoing edges." << std::endl;
     return nullptr;
   }
   for( auto const& edge_ : outgoing ) {
