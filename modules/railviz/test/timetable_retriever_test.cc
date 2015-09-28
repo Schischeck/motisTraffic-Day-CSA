@@ -33,10 +33,101 @@ using namespace motis::railviz;
 
 /**
  * Statement Coverage Tests of
- * void timetable_for_station_outgoing
+ * void timetable_for_station_outgoing(const station_node& station, timetable& timetable_) const
  */
 
-//TODO
+bool timetable_comparator (const motis::railviz::timetable& left, const motis::railviz::timetable& right) {
+    if (left.size() != right.size()) return false;
+    for (int i = 0; i < left.size(); i++) {
+        if (left.at(i) != right.at(i)) {
+
+            std::cout << "left equals left? : " << (left.at(i) == left.at(i)) << std::endl;
+            std::cout << "left equals right? : " << (left.at(i) == right.at(i)) << std::endl;
+
+            return false;
+        }
+    }
+    return true;
+}
+
+TEST_CASE("11:test case with a loop", "[railviz::timetable_retriever::timetable_for_station_outgoing]") {
+    auto schedule =
+            motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
+    motis::railviz::timetable ref_vector;
+
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the 01 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the 02 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::node* st_02_loop_routenode;
+    motis::station* st_02 = it->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
+
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the 03 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(5386096);
+    SECTION("eva_to_station conversion of the 04 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_04_routenode;
+    motis::station* st_04 = it->second;
+    motis::station_node* st_04_stnode = schedule->station_nodes[st_04->index].get();
+    st_04_routenode = st_04_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7514434);
+    SECTION("eva_to_station conversion of the 05 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_05_routenode;
+    motis::station* st_05 = it->second;
+    motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
+    st_05_routenode = st_05_stnode->get_route_nodes()[0];
+
+    motis::railviz::timetable res_tt_02;
+    motis::railviz::timetable ref_tt_02;
+    for (int i = 0; i < 2; i++) { //go through route_nodes
+        for (int j = 0; j < 2; j++) { //go through edges
+            for (const motis::light_connection& l : st_02_stnode->get_route_nodes().at(i)->_edges[j]._m._route_edge._conns) {
+                ref_tt_02.push_back(motis::railviz::timetable_entry(
+                                        &l,
+                                        st_02_stnode->get_route_nodes().at(i)->get_station(),
+                                        ttr.child_node(*(st_02_stnode->get_route_nodes().at(i)))->get_station(),
+                                        st_05_routenode->get_station(),
+                                        true,
+                                        st_02_stnode->get_route_nodes().at(i)->_route
+                                        ));
+            }
+        }
+    }
+
+    SECTION("Time table for station node 02 should be eqal to ref_tt_02") {
+        ttr.timetable_for_station_outgoing(*st_02_stnode, res_tt_02);
+        REQUIRE(timetable_comparator(res_tt_02, ref_tt_02));
+    }
+}
+
 
 /**
  * Statement Coverage Tests of
