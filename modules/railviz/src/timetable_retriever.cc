@@ -90,12 +90,13 @@ void timetable_retriever::timetable_for_station_outgoing(
     for (const edge& e : n._edges) {
       if (e.type() == edge::ROUTE_EDGE) {
         const station_node* current_station = n.get_station();
+        const station_node* next_station = child_node(n)->get_station();
         const station_node* end_station_of_route =
             end_node_for_route( n )->get_station();
         for (const light_connection& l : e._m._route_edge._conns) {
           if (n._route >= 0) {
             timetable_.push_back(timetable_entry(
-                &l, current_station, end_station_of_route, true, n._route));
+                &l, current_station, next_station, end_station_of_route, true, n._route));
           }
         }
       }
@@ -110,12 +111,13 @@ void timetable_retriever::timetable_for_station_incoming(
     for (const edge* e : n._incoming_edges) {
       if (e->type() == edge::ROUTE_EDGE) {
         const station_node* current_station = n.get_station();
+        const station_node* prev_station = parent_node(n)->get_station();
         const station_node* start_station_of_route =
             start_node_for_route( n )->get_station();
         for (const light_connection& l : e->_m._route_edge._conns) {
           if (n._route >= 0) {
             timetable_.push_back(timetable_entry(
-                &l, current_station, start_station_of_route, false, n._route));
+                &l, current_station, prev_station, start_station_of_route, false, n._route));
           }
         }
       }

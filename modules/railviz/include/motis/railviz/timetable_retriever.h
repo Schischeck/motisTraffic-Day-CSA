@@ -15,7 +15,7 @@ namespace motis {
 namespace railviz {
 
 typedef std::tuple<light_connection const*, station_node const*,
-                   station_node const*, bool, unsigned int> timetable_entry;
+                   station_node const*, station_node const*, bool, unsigned int> timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
 typedef std::tuple<station_node const*, motis::node const*, light_connection const*> route_entry;

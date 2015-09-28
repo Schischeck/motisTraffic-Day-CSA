@@ -22,7 +22,7 @@ std::pair<unsigned int, unsigned int> realtime_response::delay( const light_conn
 }
 
 unsigned int realtime_response::delay( const timetable_entry& te ) const {
-  return delay( *std::get<0>(te), *std::get<1>(te), std::get<3>(te), std::get<4>(te) );
+  return delay( *std::get<0>(te), *std::get<1>(te), std::get<4>(te), std::get<5>(te) );
 }
 
 std::pair<unsigned int, unsigned int> realtime_response::delay( const route_entry& route_entry_ ) const {

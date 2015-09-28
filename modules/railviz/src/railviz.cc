@@ -212,8 +212,8 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request( const timeta
   for( auto const& te : timetable_ ) {
     light_connection const* con = std::get<0>(te);
     station_node const* station = std::get<1>(te);
-    bool departure = std::get<3>(te);
-    int route_id = std::get<4>(te);
+    bool departure = std::get<4>(te);
+    int route_id = std::get<5>(te);
     train_requests.push_back( CreateRealtimeTrainInfoRequest( b,
                                                               CreateGraphTrainEvent(b,
                                                                                     con->_full_con->con_info->train_nr,
@@ -243,10 +243,11 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
     std::vector<flatbuffers::Offset<RailVizStationDetailResEntry>> timetable_fb;
     for (const timetable_entry& entry : timetable_) {
       const light_connection* lc = std::get<0>(entry);
-      const station_node* next_prev_station = std::get<1>(entry);
-      const station_node* end_start_station = std::get<2>(entry);
-      bool outgoing = std::get<3>(entry);
-      unsigned int route = std::get<4>(entry);
+      const station_node* current_station = std::get<1>(entry);
+      const station_node* end_start_station = std::get<3>(entry);
+      const station_node* prev_next_station = std::get<2>(entry);
+      bool outgoing = std::get<4>(entry);
+      unsigned int route = std::get<5>(entry);
 
       int classz = lc->_full_con->clasz;
       std::string category_string = lock.sched().category_names[lc->_full_con->con_info->family];
@@ -257,22 +258,20 @@ callback railviz::make_station_info_realtime_callback( int station_index, timeta
 
       std::time_t a_time = date_converter_.convert(lc->a_time);
       std::time_t d_time = date_converter_.convert(lc->d_time);
-      int a_station, d_station;
-      if (std::get<3>(entry)) {
-        a_station = next_prev_station->_id;
-        d_station = station_index;
-      } else {
-        d_station = next_prev_station->_id;
-        a_station = station_index;
-      }
-
+      unsigned int a_station = 0;
+      unsigned int d_station = 0;
       unsigned int d_delay = 0;
       unsigned int a_delay = 0;
       unsigned int delay = realtime_response_.delay(entry);
-      if( std::get<3>(entry) )
+      if( std::get<4>(entry) ) {
         d_delay = delay;
-      else
+        d_station = current_station->_id;
+        a_station = prev_next_station->_id;
+      } else {
         a_delay = delay;
+        d_station = prev_next_station->_id;
+        a_station = current_station->_id;
+      }
 
       const flatbuffers::Offset<RailVizTrain> &t = CreateRailVizTrain( b,
                                                                        d_time,
