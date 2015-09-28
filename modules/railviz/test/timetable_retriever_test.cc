@@ -110,20 +110,36 @@ TEST_CASE("11:test case with a loop", "[railviz::timetable_retriever::timetable_
     for (int i = 0; i < 2; i++) { //go through route_nodes
         for (int j = 0; j < 2; j++) { //go through edges
             for (const motis::light_connection& l : st_02_stnode->get_route_nodes().at(i)->_edges[j]._m._route_edge._conns) {
-                ref_tt_02.push_back(motis::railviz::timetable_entry(
-                                        &l,
-                                        st_02_stnode->get_route_nodes().at(i)->get_station(),
-                                        ttr.child_node(*(st_02_stnode->get_route_nodes().at(i)))->get_station(),
-                                        st_05_routenode->get_station(),
-                                        true,
-                                        st_02_stnode->get_route_nodes().at(i)->_route
-                                        ));
+                if (st_02_stnode->get_route_nodes().at(i)->_route >= 0) {
+                    ref_tt_02.push_back(motis::railviz::timetable_entry(
+                                            &l,
+                                            st_02_stnode->get_route_nodes().at(i)->get_station(),
+                                            ttr.child_node(*(st_02_stnode->get_route_nodes().at(i)))->get_station(),
+                                            st_05_routenode->get_station(),
+                                            true,
+                                            st_02_stnode->get_route_nodes().at(i)->_route
+                                            ));
+                }
             }
         }
     }
 
     SECTION("Time table for station node 02 should be eqal to ref_tt_02") {
         ttr.timetable_for_station_outgoing(*st_02_stnode, res_tt_02);
+
+        std::cout << "res[0][0]" << std::get<0>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][0]" << std::get<0>(ref_tt_02[0]) << std::endl;
+        std::cout << "res[0][1]" << std::get<1>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][1]" << std::get<1>(ref_tt_02[0]) << std::endl;
+        std::cout << "res[0][2]" << std::get<2>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][2]" << std::get<2>(ref_tt_02[0]) << std::endl;
+        std::cout << "res[0][3]" << std::get<3>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][3]" << std::get<3>(ref_tt_02[0]) << std::endl;
+        std::cout << "res[0][4]" << std::get<4>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][4]" << std::get<4>(ref_tt_02[0]) << std::endl;
+        std::cout << "res[0][5]" << std::get<5>(res_tt_02[0]) << std::endl;
+        std::cout << "ref[0][5]" << std::get<5>(ref_tt_02[0]) << std::endl;
+
         REQUIRE(timetable_comparator(res_tt_02, ref_tt_02));
     }
 }
