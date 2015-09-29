@@ -35,6 +35,7 @@ private:
   std::pair<uint32_t, uint8_t> get_or_create_category(std::string category);
   bool is_valid_train(const std::vector<schedule_event>& events) const;
   bool train_exists(const std::vector<schedule_event>& events) const;
+  bool event_exists(const schedule_event& se) const;
 
   realtime_schedule& _rts;
   message_reader _msg_reader;

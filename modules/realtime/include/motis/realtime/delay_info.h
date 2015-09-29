@@ -116,7 +116,7 @@ public:
 
   delay_info* get_delay_info(const schedule_event& event_id) const;
   delay_info* create_delay_info(const schedule_event& event_id,
-                                uint32_t route_id);
+                                int32_t route_id);
   void update_delay_info(const delay_info_update* update);
   motis::time reset_to_schedule(const schedule_event& event_id);
   void update_route(delay_info* di, int32_t new_route);

@@ -126,8 +126,8 @@ void delay_propagator::process_queue() {
                           << motis::format_time(this_time) << " " << this_reason
                           << " => " << motis::format_time(next_time);
               }
-              handle_delay_message(entry._delay_info->sched_ev(),
-                                   next_time, timestamp_reason::REPAIR);
+              handle_delay_message(entry._delay_info->sched_ev(), next_time,
+                                   timestamp_reason::REPAIR);
             }
           }
         }
@@ -186,8 +186,7 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
     reason = timestamp_reason::FORECAST;
   }
 
-  schedule_event prev_event =
-      _rts.get_previous_schedule_event(di->graph_ev());
+  schedule_event prev_event = _rts.get_previous_schedule_event(di->graph_ev());
   if (di->sched_ev().departure()) {  // departure event
     // standing edge
     if (prev_event.found()) {
@@ -204,8 +203,8 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
     }
 
     // waiting edges
-    for (const single_waiting_edge& we : _rts._waiting_edges.get_edges_to(
-             di->sched_ev(), di->_route_id)) {
+    for (const single_waiting_edge& we :
+         _rts._waiting_edges.get_edges_to(di->sched_ev(), di->_route_id)) {
       delay_info* feeder_di =
           _rts._delay_info_manager.get_delay_info(we._feeder_arrival);
       if (feeder_di == nullptr || feeder_di->canceled()) {
@@ -265,8 +264,8 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 
   // waiting edges
   if (di->_schedule_event.departure()) return;
-  for (const single_waiting_edge& we : _rts._waiting_edges.get_edges_from(
-           di->sched_ev(), di->_route_id)) {
+  for (const single_waiting_edge& we :
+       _rts._waiting_edges.get_edges_from(di->sched_ev(), di->_route_id)) {
     delay_info* connector_di =
         _rts._delay_info_manager.get_delay_info(we._connector_departure);
 
@@ -306,7 +305,6 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 
 void delay_propagator::add_update(delay_info* di, motis::time new_time,
                                   timestamp_reason new_reason) {
-  if (_rts.is_debug_mode())
   if (_rts.is_debug_mode()) {
     LOG(debug) << "==> add_update: " << *di
                << ", new_time = " << format_time(new_time)
