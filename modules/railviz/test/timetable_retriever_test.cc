@@ -6,49 +6,240 @@
 using namespace motis::railviz;
 
 /**
- * The Tests operate on ../test_timetables/timetable_retriever_test/PLACEHOLDER/motis (relative to
- *build path)
+ * The Tests operate on ../test_timetables/timetable_retriever_test/PLACEHOLDER/motis (relative to build path)
  */
 
 /**
  * Statement Coverage Tests of
- * std::vector<motis::station_node const*> timetable_retriever::stations_on_route( const motis::node& node ) const
+ * std::vector<motis::station_node const*> stations_on_route(const motis::node& node) const
  */
 
-//TODO
+TEST_CASE("14:test case with a loop", "[railviz::timetable_retriever::stations_on_route]") {
+    auto schedule =
+            motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
+    motis::railviz::timetable ref_vector;
+
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the 01 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the 02 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::node* st_02_loop_routenode;
+    motis::station* st_02 = it->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
+
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the 03 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(5386096);
+    SECTION("eva_to_station conversion of the 04 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_04_routenode;
+    motis::station* st_04 = it->second;
+    motis::station_node* st_04_stnode = schedule->station_nodes[st_04->index].get();
+    st_04_routenode = st_04_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7514434);
+    SECTION("eva_to_station conversion of the 05 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_05_routenode;
+    motis::station* st_05 = it->second;
+    motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
+    st_05_routenode = st_05_stnode->get_route_nodes()[0];
+
+    std::vector<motis::station_node const*> ref_st_nodes_02 = { st_01_stnode,
+                                                                st_02_stnode,
+                                                                st_03_stnode,
+                                                                st_04_stnode,
+                                                                st_02_stnode,
+                                                                st_05_stnode};
+    std::vector<motis::station_node const*> res_st_nodes_02 = ttr.stations_on_route(*st_02_loop_routenode);
+
+    SECTION("Station chain should be correct") {
+        REQUIRE(ref_st_nodes_02 == res_st_nodes_02);
+    }
+}
 
 /**
  * Statement Coverage Tests of
- * std::vector<route> timetable_retriever::get_routes_on_time
+ * std::vector<route> get_routes_on_time(const motis::node& node, time time) const
  */
 
-//TODO
+TEST_CASE("15:test case with a loop", "[railviz::timetable_retriever::get_routes_on_time]") {
+    auto schedule =
+            motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
+    motis::railviz::timetable ref_vector;
+
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the 01 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the 02 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::node* st_02_loop_routenode;
+    motis::station* st_02 = it->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
+
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the 03 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(5386096);
+    SECTION("eva_to_station conversion of the 04 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_04_routenode;
+    motis::station* st_04 = it->second;
+    motis::station_node* st_04_stnode = schedule->station_nodes[st_04->index].get();
+    st_04_routenode = st_04_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7514434);
+    SECTION("eva_to_station conversion of the 05 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_05_routenode;
+    motis::station* st_05 = it->second;
+    motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
+    st_05_routenode = st_05_stnode->get_route_nodes()[0];
+
+    std::vector<motis::railviz::route> res_st_node_02;
+
+    for (int i = 0; i < 1440; i+=5) {
+        res_st_node_02 = ttr.get_routes_on_time(*st_02_loop_routenode, i);
+        std::cout << "i=" << i <<" Route size=" << res_st_node_02.size() << std::endl;
+    }
+
+    /*
+    SECTION("Route should be correct") {
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(0)) == st_01_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(0)) == st_01_routenode);
+    }
+    */
+}
 
 /**
  * Statement Coverage Tests of
- * timetable timetable_retriever::ordered_timetable_for_station
+ * timetable ordered_timetable_for_station(const station_node& station) const
  */
 
-//TODO
+TEST_CASE("13:test case with a loop", "[railviz::timetable_retriever::ordered_timetable_for_station]") {
+    auto schedule =
+            motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
+    motis::railviz::timetable ref_vector;
+
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the 01 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the 02 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::node* st_02_loop_routenode;
+    motis::station* st_02 = it->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
+
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the 03 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(5386096);
+    SECTION("eva_to_station conversion of the 04 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_04_routenode;
+    motis::station* st_04 = it->second;
+    motis::station_node* st_04_stnode = schedule->station_nodes[st_04->index].get();
+    st_04_routenode = st_04_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7514434);
+    SECTION("eva_to_station conversion of the 05 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_05_routenode;
+    motis::station* st_05 = it->second;
+    motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
+    st_05_routenode = st_05_stnode->get_route_nodes()[0];
+
+    motis::railviz::timetable res_tt_02 = ttr.ordered_timetable_for_station(*st_02_stnode);
+    SECTION("Sorted Time table for station node 02 should be correct") {
+        REQUIRE(std::get<0>(res_tt_02[0])->d_time == 36);
+        REQUIRE(std::get<0>(res_tt_02[0])->a_time == 101);
+        REQUIRE(std::get<1>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[0]) == ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[0]) == true);
+        REQUIRE(std::get<5>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->_route);
+        REQUIRE(std::get<0>(res_tt_02[28])->d_time == 10116);
+        REQUIRE(std::get<0>(res_tt_02[28])->a_time == 10181);
+        REQUIRE(std::get<1>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[28]) == ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[28]) == true);
+        REQUIRE(std::get<5>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->_route);
+    }
+}
 
 /**
  * Statement Coverage Tests of
  * void timetable_for_station_outgoing(const station_node& station, timetable& timetable_) const
  */
-
-bool timetable_comparator (const motis::railviz::timetable& left, const motis::railviz::timetable& right) {
-    if (left.size() != right.size()) return false;
-    for (int i = 0; i < left.size(); i++) {
-        if (left.at(i) != right.at(i)) {
-
-            std::cout << "left equals left? : " << (left.at(i) == left.at(i)) << std::endl;
-            std::cout << "left equals right? : " << (left.at(i) == right.at(i)) << std::endl;
-
-            return false;
-        }
-    }
-    return true;
-}
 
 TEST_CASE("11:test case with a loop", "[railviz::timetable_retriever::timetable_for_station_outgoing]") {
     auto schedule =
@@ -106,51 +297,104 @@ TEST_CASE("11:test case with a loop", "[railviz::timetable_retriever::timetable_
     st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
     motis::railviz::timetable res_tt_02;
-    motis::railviz::timetable ref_tt_02;
-    for (int i = 0; i < 2; i++) { //go through route_nodes
-        for (int j = 0; j < 2; j++) { //go through edges
-            for (const motis::light_connection& l : st_02_stnode->get_route_nodes().at(i)->_edges[j]._m._route_edge._conns) {
-                if (st_02_stnode->get_route_nodes().at(i)->_route >= 0) {
-                    ref_tt_02.push_back(motis::railviz::timetable_entry(
-                                            &l,
-                                            st_02_stnode->get_route_nodes().at(i)->get_station(),
-                                            ttr.child_node(*(st_02_stnode->get_route_nodes().at(i)))->get_station(),
-                                            st_05_routenode->get_station(),
-                                            true,
-                                            st_02_stnode->get_route_nodes().at(i)->_route
-                                            ));
-                }
-            }
-        }
-    }
-
-    SECTION("Time table for station node 02 should be eqal to ref_tt_02") {
+    SECTION("Time table for station node 02 should be correct") {
         ttr.timetable_for_station_outgoing(*st_02_stnode, res_tt_02);
-
-        std::cout << "res[0][0]" << std::get<0>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][0]" << std::get<0>(ref_tt_02[0]) << std::endl;
-        std::cout << "res[0][1]" << std::get<1>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][1]" << std::get<1>(ref_tt_02[0]) << std::endl;
-        std::cout << "res[0][2]" << std::get<2>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][2]" << std::get<2>(ref_tt_02[0]) << std::endl;
-        std::cout << "res[0][3]" << std::get<3>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][3]" << std::get<3>(ref_tt_02[0]) << std::endl;
-        std::cout << "res[0][4]" << std::get<4>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][4]" << std::get<4>(ref_tt_02[0]) << std::endl;
-        std::cout << "res[0][5]" << std::get<5>(res_tt_02[0]) << std::endl;
-        std::cout << "ref[0][5]" << std::get<5>(ref_tt_02[0]) << std::endl;
-
-        REQUIRE(timetable_comparator(res_tt_02, ref_tt_02));
+        REQUIRE(std::get<0>(res_tt_02[0])->d_time == 36);
+        REQUIRE(std::get<0>(res_tt_02[0])->a_time == 101);
+        REQUIRE(std::get<1>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[0]) == ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[0]) == true);
+        REQUIRE(std::get<5>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->_route);
+        REQUIRE(std::get<0>(res_tt_02[28])->d_time == 206);
+        REQUIRE(std::get<0>(res_tt_02[28])->a_time == 292);
+        REQUIRE(std::get<1>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[28]) == ttr.child_node(*(st_02_stnode->get_route_nodes().at(1)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[28]) == true);
+        REQUIRE(std::get<5>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->_route);
     }
 }
 
-
 /**
  * Statement Coverage Tests of
- * void timetable_for_station_incoming
+ * void timetable_for_station_incoming(const station_node& station, timetable& timetable_) const
  */
 
-//TODO
+TEST_CASE("12:test case with a loop", "[railviz::timetable_retriever::timetable_for_station_incoming]") {
+    auto schedule =
+            motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
+    timetable_retriever ttr;
+    ttr.init(*(schedule.get()));
+    std::map<int, motis::station*>::iterator it;
+    motis::railviz::timetable ref_vector;
+
+    it = schedule->eva_to_station.find(5001307);
+    SECTION("eva_to_station conversion of the 01 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_01_routenode;
+    motis::station* st_01 = it->second;
+    motis::station_node* st_01_stnode = schedule->station_nodes[st_01->index].get();
+    st_01_routenode = st_01_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7347220);
+    SECTION("eva_to_station conversion of the 02 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_02_routenode;
+    motis::node* st_02_loop_routenode;
+    motis::station* st_02 = it->second;
+    motis::station_node* st_02_stnode = schedule->station_nodes[st_02->index].get();
+    st_02_routenode = st_02_stnode->get_route_nodes()[0];
+    st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
+
+    it = schedule->eva_to_station.find(7190994);
+    SECTION("eva_to_station conversion of the 03 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_03_routenode;
+    motis::station* st_03 = it->second;
+    motis::station_node* st_03_stnode = schedule->station_nodes[st_03->index].get();
+    st_03_routenode = st_03_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(5386096);
+    SECTION("eva_to_station conversion of the 04 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_04_routenode;
+    motis::station* st_04 = it->second;
+    motis::station_node* st_04_stnode = schedule->station_nodes[st_04->index].get();
+    st_04_routenode = st_04_stnode->get_route_nodes()[0];
+
+    it = schedule->eva_to_station.find(7514434);
+    SECTION("eva_to_station conversion of the 05 station should be successful") {
+        REQUIRE(it != schedule->eva_to_station.end());
+    }
+    motis::node* st_05_routenode;
+    motis::station* st_05 = it->second;
+    motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
+    st_05_routenode = st_05_stnode->get_route_nodes()[0];
+
+    motis::railviz::timetable res_tt_02;
+    SECTION("Time table for station node 02 should be correct") {
+        ttr.timetable_for_station_incoming(*st_02_stnode, res_tt_02);
+        REQUIRE(std::get<0>(res_tt_02[0])->d_time == 1439);
+        REQUIRE(std::get<0>(res_tt_02[0])->a_time == 1474);
+        REQUIRE(std::get<1>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[0]) == ttr.parent_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[0]) == st_01_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[0]) == false);
+        REQUIRE(std::get<5>(res_tt_02[0]) == st_02_stnode->get_route_nodes().at(0)->_route);
+        REQUIRE(std::get<0>(res_tt_02[28])->d_time == 124);
+        REQUIRE(std::get<0>(res_tt_02[28])->a_time == 204);
+        REQUIRE(std::get<1>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->get_station());
+        REQUIRE(std::get<2>(res_tt_02[28]) == ttr.parent_node(*(st_02_stnode->get_route_nodes().at(1)))->get_station());
+        REQUIRE(std::get<3>(res_tt_02[28]) == st_01_routenode->get_station());
+        REQUIRE(std::get<4>(res_tt_02[28]) == false);
+        REQUIRE(std::get<5>(res_tt_02[28]) == st_02_stnode->get_route_nodes().at(1)->_route);
+    }
+}
 
 /**
  * Statement Coverage Tests of
