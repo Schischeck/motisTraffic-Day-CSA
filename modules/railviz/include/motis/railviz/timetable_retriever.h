@@ -32,8 +32,6 @@ struct timetable_retriever {
     }
   } timetable_sort;
 
-  void init(schedule const& sched);
-
   std::vector<motis::station_node const*> stations_on_route( const motis::node& ) const;
   std::vector<route> get_routes_on_time(const motis::node&,
                                         motis::time time) const;

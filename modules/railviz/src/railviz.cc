@@ -413,7 +413,6 @@ void railviz::init() {
   train_retriever_ =
       std::unique_ptr<train_retriever>(new train_retriever(lock.sched()));
   date_converter_.set_date_manager(lock.sched().date_mgr);
-  timetable_retriever_.init(lock.sched());
 }
 
 void railviz::on_open(sid session) {

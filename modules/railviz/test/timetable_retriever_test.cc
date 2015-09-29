@@ -18,7 +18,6 @@ TEST_CASE("14:test case with a loop", "[railviz::timetable_retriever::stations_o
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     motis::railviz::timetable ref_vector;
 
@@ -91,7 +90,6 @@ TEST_CASE("15:test case with a loop", "[railviz::timetable_retriever::get_routes
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     motis::railviz::timetable ref_vector;
 
@@ -142,19 +140,39 @@ TEST_CASE("15:test case with a loop", "[railviz::timetable_retriever::get_routes
     motis::station_node* st_05_stnode = schedule->station_nodes[st_05->index].get();
     st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-    std::vector<motis::railviz::route> res_st_node_02;
+    std::vector<motis::railviz::route> res_st_node_02 =
+            ttr.get_routes_on_time(*st_02_loop_routenode, 1439);
 
-    for (int i = 0; i < 1440; i+=5) {
-        res_st_node_02 = ttr.get_routes_on_time(*st_02_loop_routenode, i);
-        std::cout << "i=" << i <<" Route size=" << res_st_node_02.size() << std::endl;
-    }
-
-    /*
     SECTION("Route should be correct") {
         REQUIRE(std::get<0>(res_st_node_02.at(0).at(0)) == st_01_stnode);
         REQUIRE(std::get<1>(res_st_node_02.at(0).at(0)) == st_01_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(0))->d_time == 1439);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(0))->a_time == 1474);
+
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(1)) == st_02_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(1)) == st_02_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(1))->d_time == 1476);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(1))->a_time == 1541);
+
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(2)) == st_03_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(2)) == st_03_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(2))->d_time == 1543);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(2))->a_time == 1562);
+
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(3)) == st_04_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(3)) == st_04_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(3))->d_time == 1564);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(3))->a_time == 1644);
+
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(4)) == st_02_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(4)) == st_02_loop_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(4))->d_time == 1646);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(4))->a_time == 1732);
+
+        REQUIRE(std::get<0>(res_st_node_02.at(0).at(5)) == st_05_stnode);
+        REQUIRE(std::get<1>(res_st_node_02.at(0).at(5)) == st_05_routenode);
+        REQUIRE(std::get<2>(res_st_node_02.at(0).at(5)) == NULL);
     }
-    */
 }
 
 /**
@@ -166,7 +184,6 @@ TEST_CASE("13:test case with a loop", "[railviz::timetable_retriever::ordered_ti
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     motis::railviz::timetable ref_vector;
 
@@ -245,7 +262,6 @@ TEST_CASE("11:test case with a loop", "[railviz::timetable_retriever::timetable_
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     motis::railviz::timetable ref_vector;
 
@@ -325,7 +341,6 @@ TEST_CASE("12:test case with a loop", "[railviz::timetable_retriever::timetable_
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     motis::railviz::timetable ref_vector;
 
@@ -405,7 +420,6 @@ TEST_CASE("01:test case without loop", "[railviz::timetable_retriever::parent_no
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -452,7 +466,6 @@ TEST_CASE("02:test case with a loop", "[railviz::timetable_retriever::parent_nod
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -536,7 +549,6 @@ TEST_CASE("03:test case without loop", "[railviz::timetable_retriever::child_nod
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -583,7 +595,6 @@ TEST_CASE("04:test case with a loop", "[railviz::timetable_retriever::child_node
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -667,7 +678,6 @@ TEST_CASE("05:test case without loop", "[railviz::timetable_retriever::start_nod
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -714,7 +724,6 @@ TEST_CASE("06:test case with a loop", "[railviz::timetable_retriever::start_node
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -798,7 +807,6 @@ TEST_CASE("07:test case without loop", "[railviz::timetable_retriever::end_node_
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -845,7 +853,6 @@ TEST_CASE("08:test case with a loop", "[railviz::timetable_retriever::end_node_f
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
 
     it = schedule->eva_to_station.find(5001307);
@@ -929,7 +936,6 @@ TEST_CASE("09:test case without loop", "[railviz::timetable_retriever::get_route
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/01_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     std::vector<motis::time> ref_vector = { 1439,  2879,
                                             4319,  5759,
@@ -990,7 +996,6 @@ TEST_CASE("10:test case with a loop", "[railviz::timetable_retriever::get_route_
     auto schedule =
             motis::load_schedule("../test_timetables/timetable_retriever_test/02_test_set/motis");
     timetable_retriever ttr;
-    ttr.init(*(schedule.get()));
     std::map<int, motis::station*>::iterator it;
     std::vector<motis::time> ref_vector = { 1439,  2879,
                                             4319,  5759,
