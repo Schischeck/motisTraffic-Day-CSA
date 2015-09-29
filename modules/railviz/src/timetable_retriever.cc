@@ -3,9 +3,6 @@
 namespace motis {
 namespace railviz {
 
-void timetable_retriever::init(const schedule& sched) {
-}
-
 std::vector<motis::station_node const*> timetable_retriever::stations_on_route( const motis::node& node ) const {
   assert(node.is_route_node());
   const motis::node* node_ = start_node_for_route(node);
