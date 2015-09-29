@@ -24,7 +24,7 @@ delay_info* delay_info_manager::get_delay_info(
 }
 
 delay_info* delay_info_manager::create_delay_info(
-    const schedule_event& event_id, uint32_t route_id) {
+    const schedule_event& event_id, int32_t route_id) {
   assert(event_id.found());
   delay_info* di = new delay_info(event_id);
   di->_route_id = route_id;

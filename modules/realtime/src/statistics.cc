@@ -17,6 +17,7 @@ void statistics::print(std::ostream& out) const {
   print_message_counter(_counters.additional, out);
   print_message_counter(_counters.canceled, out);
   print_message_counter(_counters.reroutings, out);
+  print_message_counter(_counters.csd, out);
   print_message_counter(_counters.unknown, out);
 
   out << "delay propagator: " << _ops.propagator.runs << " runs, "

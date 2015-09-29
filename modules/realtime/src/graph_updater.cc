@@ -148,7 +148,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
     for (auto& u : updates) LOG(debug) << "-- " << u;
   }
 
-  assert(check_route(original_route, false));
+  assert(check_route(route_node, false));
 
   motis::node* start_node;
   motis::light_connection* start_lc;
@@ -203,7 +203,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
       dump_route(new_route, "extracted and updated route");
   }
 
-  assert(check_route(original_route, true));
+  assert(check_route(route_node, true));
   if (new_route != nullptr) assert(check_route(new_route, true));
 }
 

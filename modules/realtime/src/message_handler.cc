@@ -456,6 +456,25 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
   }
 }
 
+bool message_handler::event_exists(const schedule_event& se) const {
+  delay_info* di = _rts._delay_info_manager.get_delay_info(se);
+  if (di != nullptr) {
+    return true;
+  }
+  node* route_node;
+  std::tie(route_node, std::ignore) = _rts.locate_event(graph_event(se));
+  if (route_node != nullptr) {
+    graph_event ge(se._station_index, se._train_nr, se._departure,
+                   se._schedule_time, route_node->_route);
+    di = _rts._delay_info_manager.get_delay_info(ge);
+    return di == nullptr ||
+           di->_schedule_event._schedule_time == se._schedule_time;
+  } else {
+    return false;
+  }
+  return route_node != nullptr;
+}
+
 void message_handler::handle_connection_status_decision(
     const connection_status_decision_message& msg) {
   _rts._stats._counters.csd.increment();
@@ -464,6 +483,14 @@ void message_handler::handle_connection_status_decision(
     _rts._tracking.in_message(msg);
   }
   if (!msg.arrival_.valid() || !msg.departure_.valid()) {
+    _rts._stats._counters.csd.ignore();
+    return;
+  }
+  if (!event_exists(msg.arrival_) || !event_exists(msg.departure_)) {
+    if (_rts.is_debug_mode()) {
+      LOG(warn) << "Ignoring csd message with invalid event(s): "
+                << msg.arrival_ << " -> " << msg.departure_;
+    }
     _rts._stats._counters.csd.ignore();
     return;
   }
