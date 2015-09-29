@@ -5,6 +5,7 @@
 
 namespace motis {
 namespace loader {
+namespace hrd {
 
 TEST(loader_hrd_providers, simple) {
   char const* file_content =
@@ -42,3 +43,4 @@ TEST(loader_hrd_providers, simple) {
 
 }  // loader
 }  // motis
+}  // hrd

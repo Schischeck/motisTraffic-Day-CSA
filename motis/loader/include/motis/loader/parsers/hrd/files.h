@@ -16,7 +16,8 @@ constexpr char const* BASIC_DATA_FILE = "eckdaten.101";
 constexpr char const* CATEGORIES_FILE = "zugart_int.101";
 constexpr char const* DIRECTIONS_FILE = "richtung.101";
 constexpr char const* PROVIDERS_FILE = "unternehmen_ris.101";
-constexpr char const* THROUGH_TRAINS_FILE = "durchbi.101";
+constexpr char const* THROUGH_SERVICES_FILE = "durchbi.101";
+constexpr char const* MERGE_SPLIT_RULES_FILE = "vereinig_vt.101";
 
 }  // namespace hrd
 }  // namespace loader

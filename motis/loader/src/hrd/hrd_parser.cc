@@ -10,6 +10,7 @@
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/directions_parser.h"
 #include "motis/loader/parsers/hrd/footpath_builder.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
@@ -18,11 +19,11 @@
 #include "motis/loader/parsers/hrd/categories_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/providers_parser.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
-#include "motis/loader/parsers/hrd/through_trains_parser.h"
+#include "motis/loader/parsers/hrd/through_services_parser.h"
+#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
@@ -35,9 +36,10 @@ namespace loader {
 namespace hrd {
 
 std::vector<std::string> const required_files = {
-    ATTRIBUTES_FILE, STATIONS_FILE,  COORDINATES_FILE,   BITFIELDS_FILE,
-    PLATFORMS_FILE,  INFOTEXT_FILE,  BASIC_DATA_FILE,    CATEGORIES_FILE,
-    DIRECTIONS_FILE, PROVIDERS_FILE, THROUGH_TRAINS_FILE};
+    ATTRIBUTES_FILE, STATIONS_FILE,         COORDINATES_FILE,
+    BITFIELDS_FILE,  PLATFORMS_FILE,        INFOTEXT_FILE,
+    BASIC_DATA_FILE, CATEGORIES_FILE,       DIRECTIONS_FILE,
+    PROVIDERS_FILE,  THROUGH_SERVICES_FILE, MERGE_SPLIT_RULES_FILE};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
@@ -64,54 +66,51 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  auto data = parse_shared_data(hrd_root, fbb);
-  auto const& sd = std::get<0>(data);
-  auto const& interval = std::get<1>(data);
-  auto const& metas = std::get<2>(data);
-  auto& through_trains_rules = std::get<3>(data);
+  auto sd = parse_shared_data(hrd_root, fbb);
 
-  service_builder sb(sd, through_trains_rules, fbb);
+  service_builder sb(sd, fbb);
   parse_services_files(hrd_root, sb);
 
   auto footpaths =
-      build_footpaths(metas.footpaths_, sb.stations_.fbs_stations_, fbb);
+      build_footpaths(sd.metas.footpaths_, sb.stations_.fbs_stations_, fbb);
 
   fbb.Finish(CreateSchedule(
       fbb, fbb.CreateVector(sb.services_),
       fbb.CreateVector(values(sb.stations_.fbs_stations_)),
-      fbb.CreateVector(values(sb.routes_)), &interval, footpaths));
+      fbb.CreateVector(values(sb.routes_)), &sd.interval, footpaths));
 }
 
-std::tuple<shared_data, Interval, station_meta_data, through_trains_map>
-hrd_parser::parse_shared_data(fs::path const& hrd_root, FlatBufferBuilder& b) {
-  auto master_data_root = hrd_root / "stamm";
-  auto stations_names_buf = load_file(master_data_root / STATIONS_FILE);
-  auto stations_coords_buf = load_file(master_data_root / COORDINATES_FILE);
-  auto infotext_buf = load_file(master_data_root / INFOTEXT_FILE);
-  auto attributes_buf = load_file(master_data_root / ATTRIBUTES_FILE);
-  auto bitfields_buf = load_file(master_data_root / BITFIELDS_FILE);
-  auto platforms_buf = load_file(master_data_root / PLATFORMS_FILE);
-  auto categories_buf = load_file(master_data_root / CATEGORIES_FILE);
-  auto directions_buf = load_file(master_data_root / DIRECTIONS_FILE);
-  auto providers_buf = load_file(master_data_root / PROVIDERS_FILE);
-  auto through_trains_buf = load_file(master_data_root / THROUGH_TRAINS_FILE);
+shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
+                                          FlatBufferBuilder& b) {
+  auto root = hrd_root / "stamm";
+  auto basic_data_buf = load_file(root / BASIC_DATA_FILE);
+  auto stations_names_buf = load_file(root / STATIONS_FILE);
+  auto stations_coords_buf = load_file(root / COORDINATES_FILE);
+  auto infotext_buf = load_file(root / INFOTEXT_FILE);
+  auto attributes_buf = load_file(root / ATTRIBUTES_FILE);
+  auto bitfields_buf = load_file(root / BITFIELDS_FILE);
+  auto platforms_buf = load_file(root / PLATFORMS_FILE);
+  auto categories_buf = load_file(root / CATEGORIES_FILE);
+  auto directions_buf = load_file(root / DIRECTIONS_FILE);
+  auto providers_buf = load_file(root / PROVIDERS_FILE);
+  auto through_services_buf = load_file(root / THROUGH_SERVICES_FILE);
+  auto merge_split_rules_buf = load_file(root / MERGE_SPLIT_RULES_FILE);
 
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
-
-  shared_data sd(parse_stations({STATIONS_FILE, stations_names_buf},
-                                {COORDINATES_FILE, stations_coords_buf}, metas),
-                 parse_categories({CATEGORIES_FILE, categories_buf}),
-                 parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-                 parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-                 parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
-                 parse_directions({DIRECTIONS_FILE, directions_buf}),
-                 parse_providers({PROVIDERS_FILE, providers_buf}));
-  auto basic_data_buf = load_file(master_data_root / BASIC_DATA_FILE);
-  return std::make_tuple(
-      std::move(sd), parse_interval({BASIC_DATA_FILE, basic_data_buf}),
-      std::move(metas),
-      parse_through_train_rules({THROUGH_TRAINS_FILE, through_trains_buf}));
+  return shared_data(
+      parse_interval({BASIC_DATA_FILE, basic_data_buf}), metas,
+      parse_stations({STATIONS_FILE, stations_names_buf},
+                     {COORDINATES_FILE, stations_coords_buf}, metas),
+      parse_categories({CATEGORIES_FILE, categories_buf}),
+      parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
+      parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
+      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
+      parse_directions({DIRECTIONS_FILE, directions_buf}),
+      parse_providers({PROVIDERS_FILE, providers_buf}),
+      parse_through_service_rules(
+          {THROUGH_SERVICES_FILE, through_services_buf}),
+      parse_merge_split_rules({MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}));
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,
