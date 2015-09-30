@@ -32,7 +32,7 @@ struct shared_data {
               std::map<uint64_t, std::string> directions,
               std::map<uint64_t, provider_info> providers,
               std::vector<through_service_rule> through_service_rules,
-              std::vector<merge_split_rule> merge_split_rules)
+              std::vector<merge_split_service_rule> merge_split_rules)
       : interval(std::move(interval)),
         metas(std::move(metas)),
         stations(std::move(stations)),
@@ -55,7 +55,7 @@ struct shared_data {
   std::map<uint64_t, std::string> directions;
   std::map<uint64_t, provider_info> providers;
   std::vector<through_service_rule> through_service_rules;
-  std::vector<merge_split_rule> merge_split_rules;
+  std::vector<merge_split_service_rule> merge_split_rules;
 };
 
 }  // namespace hrd

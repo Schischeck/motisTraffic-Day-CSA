@@ -10,55 +10,45 @@ namespace hrd {
 
 using namespace motis::logging;
 
-std::map<rules_graph::node_id, rules_graph::node> build_graph(
-    std::vector<through_service_rule> const& ts_rules,
-    std::vector<merge_split_rule> const& ms_rules) {
-  scoped_timer timer("build service rules graph");
+rules_graph::rules_graph(std::vector<through_service_rule> ts_rules,
+                         std::vector<merge_split_service_rule> mss_rules,
+                         bitfield_translator& bt)
+    : ts_rules_(std::move(ts_rules)),
+      mss_rules_(std::move(mss_rules)),
+      bt_(bt) {}
 
-  std::map<rules_graph::node_id, rules_graph::node> nodes;
-  for (auto const& rule : ts_rules) {
-    auto& node_from = get_or_create(nodes, rule.service_key_from,
-                                    []() { return rules_graph::node(); });
-    auto& node_to = get_or_create(nodes, rule.service_key_to,
-                                  []() { return rules_graph::node(); });
-    node_from.ts_rules_out.push_back(
-        rules_graph::edge(node_to, rule.eva_num, rules_graph::EVA_NUM_NOT_SET,
-                          rule.bitfield_num));
-    node_to.ts_rules_in.push_back(
-        rules_graph::edge(node_from, rule.eva_num, rules_graph::EVA_NUM_NOT_SET,
-                          rule.bitfield_num));
+bool rules_graph::add(hrd_service const& s) {
+
+  auto keys = collect_keys(s);
+  for (auto const& key : keys) {
+    auto ts_rules_it = std::lower_bound(
+        std::begin(ts_rules_), std::end(ts_rules_),
+        key);  // nur die service_1 keys sind aufeinanderfolgend :(((
   }
-  for (auto const& rule : ms_rules) {
-    auto& node_from = get_or_create(nodes, rule.service_key_1,
-                                    []() { return rules_graph::node(); });
-    auto& node_to = get_or_create(nodes, rule.service_key_2,
-                                  []() { return rules_graph::node(); });
-    node_from.ms_rules.push_back(rules_graph::edge(
-        node_to, rule.eva_num_begin, rule.eva_num_end, rule.bitfield_num));
-    node_to.ms_rules.push_back(rules_graph::edge(
-        node_from, rule.eva_num_begin, rule.eva_num_end, rule.bitfield_num));
-  }
-  return nodes;
+  auto mss_rules_it =
+      std::lower_bound(std::begin(mss_rules_), std::end(mss_rules_), keys);
+
+  return false;
 }
 
-rules_graph::rules_graph(std::vector<through_service_rule> const& ts_rules,
-                         std::vector<merge_split_rule> const& ms_rules)
-    : nodes_(std::move(build_graph(ts_rules, ms_rules))) {}
+ts_rule_resolvent::ts_rule_resolvent(through_service_rule const& rule,
+                                     hrd_service const& participant)
+    : rule_(rule), participant_(participant) {}
+
+bool ts_rule_resolvent::is_ending_service() const {
+  auto const& last_section = participant_.sections_.back();
+  return std::make_pair(last_section.train_num,
+                        raw_to_int<uint64_t>(last_section.admin)) ==
+         rule_.service_key_1;
+}
+
+ms_rule_resolvent::ms_rule_resolvent(merge_split_service_rule const& rule,
+                                     hrd_service const& participant)
+    : rule_(rule), participant_(participant) {}
 
 /*TODO (Tobias Raffel) remove after analysis */
 std::string int_to_raw(uint64_t key) {
   return std::string(reinterpret_cast<char const*>(&key), sizeof(uint64_t));
-}
-
-/*TODO (Tobias Raffel) remove after analysis */
-void rules_graph::print_graph() {
-  for (auto const& entry : nodes_) {
-    printf("[%d %s]: deg(THR_in)=%lu, deg(THR_out)=%lu, deg(MSR)=%lu\n",
-           entry.first.first, int_to_raw(entry.first.second).c_str(),
-           entry.second.ts_rules_in.size(), entry.second.ts_rules_out.size(),
-           entry.second.ms_rules.size());
-  }
-  printf("num_nodes=%lu\n", nodes_.size());
 }
 
 }  // hrd

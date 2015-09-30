@@ -20,18 +20,18 @@ TEST(loader_hrd_merge_through_services, basic) {
   ASSERT_EQ(2, merge_split_rules.size());
 
   auto const& first = merge_split_rules[0];
-  ASSERT_EQ(1, first.service_key_from.first);
-  ASSERT_EQ(raw_to_int<uint64_t>("nasTHU"), first.service_key_from.second);
-  ASSERT_EQ(2, first.service_key_to.first);
-  ASSERT_EQ(raw_to_int<uint64_t>("nasTHU"), first.service_key_to.second);
+  ASSERT_EQ(1, first.service_key_1.first);
+  ASSERT_EQ(raw_to_int<uint64_t>("nasTHU"), first.service_key_1.second);
+  ASSERT_EQ(2, first.service_key_2.first);
+  ASSERT_EQ(raw_to_int<uint64_t>("nasTHU"), first.service_key_2.second);
   ASSERT_EQ(200351, first.eva_num);
   ASSERT_EQ(22664, first.bitfield_num);
 
   auto const& second = merge_split_rules[1];
-  ASSERT_EQ(1, second.service_key_from.first);
-  ASSERT_EQ(raw_to_int<uint64_t>("ovfBAY"), second.service_key_from.second);
-  ASSERT_EQ(2, second.service_key_to.first);
-  ASSERT_EQ(raw_to_int<uint64_t>("ovfBAY"), second.service_key_to.second);
+  ASSERT_EQ(1, second.service_key_1.first);
+  ASSERT_EQ(raw_to_int<uint64_t>("ovfBAY"), second.service_key_1.second);
+  ASSERT_EQ(2, second.service_key_2.first);
+  ASSERT_EQ(raw_to_int<uint64_t>("ovfBAY"), second.service_key_2.second);
   ASSERT_EQ(462835, second.eva_num);
   ASSERT_EQ(0, second.bitfield_num);
 }

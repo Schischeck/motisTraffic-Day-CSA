@@ -15,7 +15,7 @@ TEST(loader_hrd_merge_split_rules, basic) {
       "5500003  8100002  00462  55____  60466  55____ 000000\n";
 
   auto merge_split_rules =
-      parse_merge_split_rules({"vereinig_vt.101", file_content});
+      parse_merge_split_service_rules({"vereinig_vt.101", file_content});
 
   ASSERT_EQ(2, merge_split_rules.size());
 

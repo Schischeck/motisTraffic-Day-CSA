@@ -15,31 +15,34 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+struct ts_rule_resolvent {
+  ts_rule_resolvent(through_service_rule const&, hrd_service const&);
+  bool is_ending_service() const;
+
+  through_service_rule const& rule_;
+  hrd_service const& participant_;
+};
+
+struct ms_rule_resolvent {
+  ms_rule_resolvent(merge_split_service_rule const&, hrd_service const&);
+
+  merge_split_service_rule& rule_;
+  hrd_service& participant_;
+};
+
 struct rules_graph {
-  static constexpr int EVA_NUM_NOT_SET = -1;
-  struct edge;
-  struct node {
-    std::vector<hrd_service> involved_services;
-    std::vector<edge> ts_rules_in, ts_rules_out, ms_rules;
-  };
-  struct edge {
-    edge(node& target, int eva_num_1, int eva_num_2, int bitfield_num)
-        : target(target),
-          eva_num_1(eva_num_1),
-          eva_num_2(eva_num_2),
-          bitfield_num(bitfield_num){};
-    node& target;
-    int const eva_num_1, eva_num_2, bitfield_num;
-  };
+  rules_graph(std::vector<through_service_rule>,
+              std::vector<merge_split_service_rule>, bitfield_translator&);
+  bool add(hrd_service const&);
 
-  rules_graph(std::vector<through_service_rule> const&,
-              std::vector<merge_split_rule> const&);
-
-  void print_graph();
-
-  // node_id := (service number, administration)
-  typedef std::pair<int, uint64_t> node_id;
-  std::map<node_id, node> nodes_;
+  std::map<std::pair<int, uint64_t>, std::vector<ts_rule_resolvent>>
+      ts_resolvents_;
+  std::map<std::pair<int, uint64_t>, std::vector<ms_rule_resolvent>>
+      mss_resolvents_;
+  std::vector<through_service_rule> ts_rules_;
+  std::vector<merge_split_service_rule> mss_rules_;
+  std::vector<hrd_service> services_;
+  bitfield_translator& bt_;
 };
 
 }  // hrd

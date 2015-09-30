@@ -110,7 +110,7 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
       parse_providers({PROVIDERS_FILE, providers_buf}),
       parse_through_service_rules(
           {THROUGH_SERVICES_FILE, through_services_buf}),
-      parse_merge_split_rules({MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}));
+      parse_merge_split_service_rules({MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}));
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,
