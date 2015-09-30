@@ -2,6 +2,7 @@
 
 #include "boost/lexical_cast.hpp"
 #include "boost/date_time/gregorian/gregorian_types.hpp"
+#include "boost/date_time/posix_time/posix_time_types.hpp"
 
 #include "motis/realtime/message_reader.h"
 #include "motis/realtime/realtime_schedule.h"
@@ -18,20 +19,14 @@ std::unique_ptr<message> message_reader::read_message(std::istream& in) {
     c = in.peek();
   }
   switch (c) {
-    case 'D':
-      return read_delay_message(in);
-    case 'A':
-      return read_additional_train_message(in);
-    case 'C':
-      return read_cancel_train_message(in);
-    case 'R':
-      return read_reroute_train_message(in);
+    case 'D': return read_delay_message(in);
+    case 'A': return read_additional_train_message(in);
+    case 'C': return read_cancel_train_message(in);
+    case 'R': return read_reroute_train_message(in);
     case 'S':
-    case 's':
-      return read_connection_status_decision_message(in);
+    case 's': return read_connection_status_decision_message(in);
     case 'B':
-    case 'b':
-      return read_connection_status_assessment_message(in);
+    case 'b': return read_connection_status_assessment_message(in);
     default: {
       std::string line;
       std::getline(in, line);
@@ -206,14 +201,10 @@ message_reader::read_reroute_train_message(std::istream& in) {
 
 status_decision to_status_decision(char c) {
   switch (c) {
-    case 'k':
-      return status_decision::kept;
-    case 'u':
-      return status_decision::unkept;
-    case 'n':
-      return status_decision::new_connection;
-    default:
-      return status_decision::unknown;
+    case 'k': return status_decision::kept;
+    case 'u': return status_decision::unkept;
+    case 'n': return status_decision::new_connection;
+    default: return status_decision::unknown;
   }
 }
 
@@ -275,7 +266,8 @@ message_reader::read_connection_status_assessment_message(std::istream& in) {
 }
 
 int message_reader::eva_to_station_index(unsigned eva) const {
-  auto it = rts_._schedule.eva_to_station.find(eva);
+  auto it =
+      rts_._schedule.eva_to_station.find(boost::lexical_cast<std::string>(eva));
   if (it == std::end(rts_._schedule.eva_to_station)) {
     return 0;
   } else {
@@ -284,12 +276,12 @@ int message_reader::eva_to_station_index(unsigned eva) const {
 }
 
 motis::time message_reader::to_time(std::time_t unix_ts) const {
+  // timestamps in messages are in the local timezone, not utc
   std::tm* t = std::localtime(&unix_ts);
   if (t == nullptr) return INVALID_TIME;
 
-  auto first_date = rts_._schedule.date_mgr.first_date();
-  boost::gregorian::date schedule_begin(first_date.year, first_date.month,
-                                        first_date.day);
+  auto schedule_begin =
+      boost::posix_time::from_time_t(rts_._schedule.schedule_begin_).date();
   boost::gregorian::date msg_date(t->tm_year + 1900, t->tm_mon + 1, t->tm_mday);
   if (msg_date < schedule_begin) {
     return INVALID_TIME;

@@ -1,4 +1,4 @@
- #include "motis/realtime/message_output.h"
+#include "motis/realtime/message_output.h"
 
 #include <fstream>
 #include <string>
@@ -12,17 +12,7 @@ namespace realtime {
 using namespace motis::logging;
 
 message_output::message_output(realtime_schedule& rts) : _rts(rts) {
-  std::time(&_base_time);
-  std::tm t = *std::localtime(&_base_time);
-  date_manager::date first_day = _rts._schedule.date_mgr.first_date();
-  t.tm_mday = first_day.day;
-  t.tm_mon = first_day.month - 1;
-  t.tm_year = first_day.year - 1900;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-  // t.tm_isdst = -1;
-  _base_time = std::mktime(&t);
+  _base_time = _rts._schedule.schedule_begin_;
 }
 
 void message_output::add_delay(const delay_info* di) { _delays.push_back(di); }

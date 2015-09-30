@@ -18,6 +18,7 @@ namespace realtime {
 
 struct realtime : public motis::module::module {
   realtime();
+  virtual ~realtime();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;

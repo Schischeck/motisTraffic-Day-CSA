@@ -23,7 +23,7 @@ file(GLOB_RECURSE motis-realtime-files src/*.cc)
 add_library(motis-realtime STATIC ${motis-realtime-files})
 target_link_libraries(motis-realtime ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(motis-realtime ${DB_LIBRARIES})
-target_link_libraries(motis-realtime conf motis-module motis-loader)
+target_link_libraries(motis-realtime conf motis-module)
 set_target_properties(motis-realtime PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
 
 file(GLOB_RECURSE motis-realtime-test-files test/*.cc)

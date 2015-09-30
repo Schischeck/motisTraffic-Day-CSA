@@ -42,8 +42,7 @@ struct graph_train_edge {
       os << " [new: " << motis::format_time(e._arr_update._new_time) << " "
          << e._arr_update._new_reason << "]";
     }
-    os << ", train_nr=" << e._lc->_full_con->con_info->train_nr
-       << ", service=" << e._lc->_full_con->con_info->service << ">";
+    os << ", train_nr=" << e._lc->_full_con->con_info->train_nr << ">";
     return os;
   }
 
@@ -112,8 +111,8 @@ private:
 
   inline bool is_same_train(const motis::light_connection* lc1,
                             const motis::light_connection* lc2) const {
-    return lc1->_full_con->con_info->service ==
-           lc2->_full_con->con_info->service;
+    return lc1->_full_con->con_info->train_nr ==
+           lc2->_full_con->con_info->train_nr;
   }
 
   bool has_entering_edge(const motis::node* route_node) const;

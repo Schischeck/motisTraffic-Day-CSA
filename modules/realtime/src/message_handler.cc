@@ -162,7 +162,6 @@ void message_handler::handle_additional_train(
   ci->family = category_index;
   ci->line_identifier = "";
 
-  // family = category -> _schedule.category_names[ci->family]
   _rts._new_connection_infos.emplace_back(ci);
 
   int32_t route_id = ++_rts._max_route_id;
@@ -424,12 +423,13 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
 
   bool update_all_edges = false;
   if (msg.category_ !=
-      _rts._schedule.category_names[mt->_connection_info->family]) {
+      _rts._schedule.categories[mt->_connection_info->family]->name) {
     // category change
     if (_rts.is_debug_mode())
-      LOG(debug) << "reroute: category change: "
-                 << _rts._schedule.category_names[mt->_connection_info->family]
-                 << " -> " << msg.category_;
+      LOG(debug)
+          << "reroute: category change: "
+          << _rts._schedule.categories[mt->_connection_info->family]->name
+          << " -> " << msg.category_;
     uint32_t category_index;
     uint8_t clasz;
     std::tie(category_index, clasz) = get_or_create_category(msg.category_);
@@ -508,18 +508,22 @@ std::pair<uint32_t, uint8_t> message_handler::get_or_create_category(
     std::string category) {
   uint32_t category_index;
   uint8_t clasz = 9;  // default class
-  auto it = std::find(std::begin(_rts._schedule.category_names),
-                      std::end(_rts._schedule.category_names), category);
-  if (it != std::end(_rts._schedule.category_names)) {
-    category_index =
-        std::distance(std::begin(_rts._schedule.category_names), it);
+  auto it =
+      std::find_if(std::begin(_rts._schedule.categories),
+                   std::end(_rts._schedule.categories),
+                   [&category](const std::unique_ptr<motis::category>& cat) {
+                     return cat->name == category;
+                   });
+  if (it != std::end(_rts._schedule.categories)) {
+    category_index = std::distance(std::begin(_rts._schedule.categories), it);
     auto it2 = _rts._schedule.classes.find(category);
     if (it2 != std::end(_rts._schedule.classes)) clasz = it2->second;
   } else {
     // category not found - create new category
-    _rts._schedule.category_names.push_back(category);
+    _rts._schedule.categories.emplace_back(new motis::category(
+        category, motis::category::output_rule::CATEGORY_AND_TRAIN_NUM));
     _rts._schedule.classes[category] = clasz;
-    category_index = _rts._schedule.category_names.size() - 1;
+    category_index = _rts._schedule.categories.size() - 1;
   }
   return {category_index, clasz};
 }

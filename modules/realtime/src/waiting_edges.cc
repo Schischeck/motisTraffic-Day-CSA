@@ -40,10 +40,9 @@ void waiting_edges::log_light_connection(const motis::light_connection* lc) {
              << " a=" << lc->a_time << " (" << motis::format_time(lc->a_time)
              << ")"
              << " family=" << ci->family << " ("
-             << _rts._schedule.category_names[ci->family] << ")"
+             << _rts._schedule.categories[ci->family]->name << ")"
              << " train_nr=" << ci->train_nr
-             << " wtr_category=" << _wtr.waiting_time_category(ci->family)
-             << " service=" << ci->service;
+             << " wtr_category=" << _wtr.waiting_time_category(ci->family);
 }
 
 void waiting_edges::create_waiting_edges() {
@@ -54,7 +53,7 @@ void waiting_edges::create_waiting_edges() {
     const auto& station_node = _rts._schedule.station_nodes[station_index];
     const motis::station* station =
         _rts._schedule.stations[station_index].get();
-    const int transfer_time = station->get_transfer_time;
+    const int transfer_time = station->transfer_time;
     //    LOG(debug) << "station node:"
     //               << " index=" << station.index
     //               << " eva_nr=" << station.eva_nr

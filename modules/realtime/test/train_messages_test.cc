@@ -34,7 +34,7 @@ TEST_CASE("additional train with existing category", "[msgs],[additional]") {
 
   const motis::journey& j = journeys[0];
   // TODO
-  CHECK(j.duration == 30 + da_hbf->get_transfer_time());
+  CHECK(j.duration == 30 + da_hbf->transfer_time);
 
   ts.check_stops(j, {{ffm_hbf, t(9, 0), t(9, 0)},
                      {Langen, t(9, 15), t(9, 17)},
@@ -72,7 +72,7 @@ TEST_CASE("additional train with new category", "[msgs],[additional]") {
 
   const motis::journey& j = journeys[0];
   // TODO
-  CHECK(j.duration == 30 + da_hbf->get_transfer_time());
+  CHECK(j.duration == 30 + da_hbf->transfer_time);
 
   ts.check_stops(j, {{ffm_hbf, t(h, 0), t(h, 0)},
                      {Langen, t(h, 15), t(h, 17)},
@@ -168,7 +168,7 @@ TEST_CASE("cancel end of train", "[msgs],[cancel]") {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
     // TODO
-    CHECK(j.duration == 91 + ffm_hbf->get_transfer_time());
+    CHECK(j.duration == 91 + ffm_hbf->transfer_time);
 
     ts.check_stops(j, {{da_hbf, t(13, 34), t(13, 34)},
                        {Langen, t(13, 49), t(14, 51)},

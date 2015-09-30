@@ -22,6 +22,7 @@ target_link_libraries(motis-webservice
   motis-railviz
   motis-reliability
   motis-routing
+  motis-realtime
 )
 
 set_target_properties(motis-webservice PROPERTIES COMPILE_DEFINITIONS _WEBSOCKETPP_CPP11_STL_)

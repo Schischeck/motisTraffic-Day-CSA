@@ -70,9 +70,6 @@ public:
   motis::node* get_next_node(motis::node* route_node);
   motis::node* get_start_node(motis::node* route_node);
 
-  motis::light_connection* get_connection_with_service(motis::edge* route_edge,
-                                                       motis::time start_time,
-                                                       uint32_t service) const;
   motis::light_connection* get_connection_with_departure_time(
       motis::edge* route_edge, motis::time departure_time,
       uint32_t train_nr) const;
@@ -80,7 +77,7 @@ public:
       motis::edge* route_edge, motis::time arrival_time,
       uint32_t train_nr) const;
   motis::light_connection* get_last_connection_with_arrival_before(
-      motis::edge* route_edge, motis::time max_time, uint32_t service) const;
+      motis::edge* route_edge, motis::time max_time) const;
 
   motis::schedule& _schedule;
   waiting_edges _waiting_edges;

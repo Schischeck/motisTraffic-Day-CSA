@@ -7,7 +7,6 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/module/api.h"
 #include "motis/core/common/logging.h"
 
 #include "motis/realtime/error.h"
@@ -102,6 +101,8 @@ realtime::realtime()
            {MsgContent_RealtimeCurrentTimeRequest,
             std::bind(&realtime::current_time, this, p::_1, p::_2)}} {}
 
+realtime::~realtime() {}
+
 void realtime::init() {
   //
 }
@@ -177,15 +178,11 @@ void realtime::on_config_loaded() {
 
 TimestampReason encode_reason(timestamp_reason reason) {
   switch (reason) {
-    case timestamp_reason::SCHEDULE:
-      return TimestampReason_Schedule;
+    case timestamp_reason::SCHEDULE: return TimestampReason_Schedule;
     case timestamp_reason::IS:
-    case timestamp_reason::REPAIR:
-      return TimestampReason_Is;
-    case timestamp_reason::FORECAST:
-      return TimestampReason_Forecast;
-    case timestamp_reason::PROPAGATION:
-      return TimestampReason_Propagation;
+    case timestamp_reason::REPAIR: return TimestampReason_Is;
+    case timestamp_reason::FORECAST: return TimestampReason_Forecast;
+    case timestamp_reason::PROPAGATION: return TimestampReason_Propagation;
   }
   return TimestampReason_Propagation;
 }
@@ -230,8 +227,7 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
     } else {
       motis::edge* next_edge = rts->get_next_edge(route_node);
       if (next_edge != nullptr) {
-        lc = rts->get_connection_with_service(next_edge, lc->a_time,
-                                              lc->_full_con->con_info->service);
+        lc = next_edge->get_connection(lc->a_time);
       } else {
         lc = nullptr;
       }
@@ -275,8 +271,7 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
     route_node = next_node;
     motis::edge* next_edge = rts->get_next_edge(next_node);
     if (next_edge != nullptr) {
-      lc = rts->get_connection_with_service(next_edge, lc->a_time,
-                                            lc->_full_con->con_info->service);
+      lc = next_edge->get_connection(lc->a_time);
     } else {
       lc = nullptr;
     }
@@ -363,8 +358,6 @@ void realtime::on_msg(msg_ptr msg, sid, callback cb) {
   auto it = ops_.find(msg->msg_->content_type());
   it->second(msg, cb);
 }
-
-MOTIS_MODULE_DEF_MODULE(realtime)
 
 }  // namespace realtime
 }  // namespace motis

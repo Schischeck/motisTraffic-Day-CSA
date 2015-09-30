@@ -215,8 +215,8 @@ bool delay_propagator::calculate_max(const delay_queue_entry& entry) {
       if (feeder_arrival_time == we._feeder_arrival._schedule_time) {
         continue;
       }
-      int ic = _rts._schedule.stations[di->sched_ev()._station_index]
-                   ->get_transfer_time();
+      int ic =
+          _rts._schedule.stations[di->sched_ev()._station_index]->transfer_time;
       if (we._waiting_time == std::numeric_limits<int>::max() ||
           feeder_arrival_time + ic <=
               di->sched_ev()._schedule_time + we._waiting_time) {
@@ -278,8 +278,8 @@ void delay_propagator::queue_dependent_events(const delay_queue_entry& entry) {
 
     // calc if connector would wait
     if (is_delayed && !entry._delay_info->canceled()) {
-      int ic = _rts._schedule.stations[di->sched_ev()._station_index]
-                   ->get_transfer_time();
+      int ic =
+          _rts._schedule.stations[di->sched_ev()._station_index]->transfer_time;
       motis::time wait_time = new_time(di) + ic;
       bool would_wait = (we._connector_departure._schedule_time < wait_time) &&
                         (wait_time <= we._connector_departure._schedule_time +

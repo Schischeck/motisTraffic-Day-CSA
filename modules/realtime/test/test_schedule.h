@@ -13,6 +13,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/common/date_util.h"
 #include "motis/loader/loader.h"
 #include "motis/routing/label.h"
 #include "motis/routing/search.h"
@@ -28,7 +29,7 @@ namespace test {
 struct stop {
   const motis::station* station;
   struct event {
-    time date_time;
+    motis::time date_time;
   } arrival, departure;
 };
 
@@ -42,7 +43,8 @@ class test_schedule {
 public:
   test_schedule()
       : _schedule(motis::loader::load_schedule(
-            "../modules/realtime/test/test-schedule/motis")),
+            "../modules/realtime/test/test-schedule",
+            motis::to_unix_time(2015, 1, 26), motis::to_unix_time(2015, 2, 9))),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),
         _search(*_schedule, _label_store) {
@@ -83,24 +85,15 @@ public:
     for (std::size_t i = 0; i < expected_stops.size(); i++) {
       const motis::journey::stop& jstop = journey.stops[i + 1];
       const stop& estop = expected_stops[i];
-      CHECK(jstop.name == estop.station->name.to_string());
+      CHECK(jstop.name == estop.station->name);
       CHECK(jstop.eva_no == estop.station->eva_nr);
 
-      std::string exp_arrival =
-          _rts._schedule.date_mgr.format_ISO(estop.arrival.date_time);
-      std::string exp_departure =
-          _rts._schedule.date_mgr.format_ISO(estop.departure.date_time);
-
-      // TODO
-      if (i == expected_stops.size() - 1) {
-        exp_arrival = _rts._schedule.date_mgr.format_ISO(
-            estop.arrival.date_time + estop.station->get_transfer_time);
-        exp_departure = _rts._schedule.date_mgr.format_ISO(
-            estop.departure.date_time + estop.station->get_transfer_time);
-      }
-
-      CHECK(jstop.arrival.date_time == exp_arrival);
-      CHECK(jstop.departure.date_time == exp_departure);
+      CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
+                                     jstop.arrival.timestamp) ==
+            estop.arrival.date_time);
+      CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
+                                     jstop.departure.timestamp) ==
+            estop.departure.date_time);
     }
   }
 
@@ -145,7 +138,7 @@ public:
     REQUIRE(start_event.found());
     CHECK(start_event == first_event);
 
-    std::vector<std::tuple<node*, schedule_event, schedule_event>> events =
+    std::vector<std::tuple<node*, schedule_event, schedule_event> > events =
         _rts.get_train_events(start_event);
 
     auto cts = stops.begin();
@@ -182,13 +175,13 @@ public:
         std::tie(std::ignore, lc) = _rts.locate_event(garr);
         REQUIRE(lc != nullptr);
         CHECK(cts->a_category ==
-              _rts._schedule.category_names[lc->_full_con->con_info->family]);
+              _rts._schedule.categories[lc->_full_con->con_info->family]->name);
       }
       if (gdep.found()) {
         std::tie(std::ignore, lc) = _rts.locate_event(gdep);
         REQUIRE(lc != nullptr);
         CHECK(cts->d_category ==
-              _rts._schedule.category_names[lc->_full_con->con_info->family]);
+              _rts._schedule.categories[lc->_full_con->con_info->family]->name);
       }
 
       ++cts;
