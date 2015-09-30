@@ -25,8 +25,10 @@ struct train_retriever {
   train_retriever(schedule const& s);
   ~train_retriever();
 
-  std::vector<std::pair<light_connection const*, edge const*>> trains(const time from, const time to, int max_count, geo::box area);
-  std::pair<light_connection const*, edge const*> search_train(std::string train_number, const time from, const time to, int classz );
+  std::vector<std::pair<light_connection const*, edge const*>> trains(
+      const time from, const time to, int max_count, geo::box area);
+  std::pair<light_connection const*, edge const*> search_train(
+      std::string train_number, const time from, const time to, int classz);
 
   std::vector<std::unique_ptr<edge_geo_index>> edge_index_;
   schedule const& schedule_;

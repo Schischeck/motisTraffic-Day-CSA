@@ -36,23 +36,24 @@ end:
   return connections;
 }
 
-std::pair<light_connection const*, edge const*>
-train_retriever::search_train(std::string train_number, const time from, const time to, int clasz ) {
-  if( clasz >= edge_index_.size() || clasz < 0 ) {
-      return {nullptr, nullptr};
+std::pair<light_connection const*, edge const*> train_retriever::search_train(
+    std::string train_number, const time from, const time to, int clasz) {
+  if (clasz >= edge_index_.size() || clasz < 0) {
+    return {nullptr, nullptr};
   }
   geo::box area = edge_index_[clasz]->get_bounds();
   for (auto const& e : edge_index_[clasz]->edges(area)) {
     for (auto const& con : e->_m._route_edge._conns) {
       if (con.a_time >= from && con.d_time <= to) {
-        std::string fam_string = schedule_.category_names[con._full_con->con_info->family];
-        std::string current_train_number = fam_string + std::to_string(con._full_con->con_info->train_nr);
-        if( current_train_number == train_number )
-          return {&con, e};
+        std::string fam_string =
+            schedule_.category_names[con._full_con->con_info->family];
+        std::string current_train_number =
+            fam_string + std::to_string(con._full_con->con_info->train_nr);
+        if (current_train_number == train_number) return {&con, e};
       }
     }
   }
-return {nullptr,nullptr};
+  return {nullptr, nullptr};
 }
 
 }  // namespace railviz

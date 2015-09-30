@@ -15,10 +15,12 @@ namespace motis {
 namespace railviz {
 
 typedef std::tuple<light_connection const*, station_node const*,
-                   station_node const*, station_node const*, bool, unsigned int> timetable_entry;
+                   station_node const*, station_node const*, bool,
+                   unsigned int> timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
-typedef std::tuple<station_node const*, motis::node const*, light_connection const*> route_entry;
+typedef std::tuple<station_node const*, motis::node const*,
+                   light_connection const*> route_entry;
 typedef std::vector<route_entry> route;
 
 struct timetable_retriever {
@@ -32,7 +34,8 @@ struct timetable_retriever {
     }
   } timetable_sort;
 
-  std::vector<motis::station_node const*> stations_on_route( const motis::node& ) const;
+  std::vector<motis::station_node const*> stations_on_route(
+      const motis::node&) const;
   std::vector<route> get_routes_on_time(const motis::node&,
                                         motis::time time) const;
 
@@ -43,17 +46,16 @@ struct timetable_retriever {
   void timetable_for_station_incoming(const station_node& station,
                                       timetable& timetable_) const;
 
-  const motis::node* parent_node( const motis::node& node ) const;
-  const motis::node* child_node( const motis::node& node ) const;
+  const motis::node* parent_node(const motis::node& node) const;
+  const motis::node* child_node(const motis::node& node) const;
 
   const motis::node* start_node_for_route(const motis::node&) const;
   const motis::node* end_node_for_route(const motis::node&) const;
 
-  std::vector<motis::time> get_route_departure_times(
-      const motis::node&) const;
+  std::vector<motis::time> get_route_departure_times(const motis::node&) const;
 
-  //std::map<unsigned int, motis::node const*> route_start_node;
-  //std::map<unsigned int, motis::node const*> route_end_node;
+  // std::map<unsigned int, motis::node const*> route_start_node;
+  // std::map<unsigned int, motis::node const*> route_end_node;
 };
 }
 }

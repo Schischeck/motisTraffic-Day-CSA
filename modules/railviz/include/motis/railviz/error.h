@@ -28,6 +28,10 @@ class error_category_impl : public boost::system::error_category {
         return "railviz: station index out of bounds";
       case error::client_not_registered:
         return "railviz: client not registered";
+      case error::client_not_registered:
+        return "railviz: route not found";
+      case error::train_not_found:
+        return "railviz: train not found";
       default:
         return "railviz: unkown error";
     }

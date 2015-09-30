@@ -26,10 +26,8 @@ struct railviz : public motis::module::module {
 
   virtual std::string name() const override { return "railviz"; }
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RailVizAlltraReq,
-            MsgContent_RailVizStationDetailReq,
-            MsgContent_RailVizRouteAtTimeReq,
-            MsgContent_RailVizFindTrain};
+    return {MsgContent_RailVizAlltraReq, MsgContent_RailVizStationDetailReq,
+            MsgContent_RailVizRouteAtTimeReq, MsgContent_RailVizFindTrain};
   }
   virtual void init() override;
   virtual void on_open(motis::module::sid) override;
@@ -38,6 +36,7 @@ struct railviz : public motis::module::module {
                       motis::module::callback) override;
 
   static std::vector<std::string> clasz_names;
+
  private:
   void init(motis::module::msg_ptr msg, webclient& client,
             motis::module::callback cb);
@@ -45,20 +44,26 @@ struct railviz : public motis::module::module {
                    motis::module::callback cb);
   void station_info(motis::module::msg_ptr msg, webclient& client,
                     motis::module::callback cb);
-  motis::module::msg_ptr make_station_info_realtime_request( const timetable& ) const;
-  callback make_station_info_realtime_callback( int station_index, timetable const&, callback );
+  motis::module::msg_ptr make_station_info_realtime_request(
+      const timetable&) const;
+  callback make_station_info_realtime_callback(int station_index,
+                                               timetable const&, callback);
 
   void find_train(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
 
   void all_trains(motis::module::msg_ptr msg, webclient& client,
                   motis::module::callback cb);
-  motis::module::msg_ptr make_all_trains_realtime_request( std::vector<std::pair<light_connection const*, edge const*>> const& ) const;
-  callback make_all_trains_realtime_callback( std::vector<std::pair<light_connection const*, edge const*>> const&, bool, callback );
+  motis::module::msg_ptr make_all_trains_realtime_request(std::vector<
+      std::pair<light_connection const*, edge const*>> const&) const;
+  callback make_all_trains_realtime_callback(
+      std::vector<std::pair<light_connection const*, edge const*>> const&, bool,
+      callback);
 
   void route_at_time(motis::module::msg_ptr msg, webclient& client,
-                      motis::module::callback cb);
-  motis::module::msg_ptr make_route_at_time_msg(const motis::schedule&, const route& ) const;
+                     motis::module::callback cb);
+  motis::module::msg_ptr make_route_at_time_msg(const motis::schedule&,
+                                                const route&) const;
   callback make_route_at_time_realtime_callback(const route&, callback);
 
   typedef std::function<

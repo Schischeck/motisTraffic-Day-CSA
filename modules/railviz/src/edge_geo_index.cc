@@ -31,7 +31,7 @@ box bounding_box(spherical_point c1, spherical_point c2) {
 }
 
 class edge_geo_index::impl {
-public:
+ public:
   impl(int clasz, schedule const& s) : clasz_(clasz), sched_(s) {
     init_rtree();
   }
@@ -60,7 +60,7 @@ public:
     return box_;
   }
 
-private:
+ private:
   void init_rtree() {
     std::vector<value> entries;
     std::set<std::pair<int, int>> indexed_station_pairs;
