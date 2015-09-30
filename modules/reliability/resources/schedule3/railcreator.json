@@ -1,0 +1,149 @@
+{
+  "stations": [
+    {
+      "name": "Frankfurt Hbf",
+      "tracks": 2,
+      "latitude": 50.10699999999997,
+      "longitude": 8.664999999999964,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "1111111",
+      "ds100Code": "1111111",
+      "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt Messe",
+      "tracks": 2,
+      "latitude": 50.111999999999966,
+      "longitude": 8.643000000000029,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "2222222",
+      "ds100Code": "2222222",
+      "KMInfo": 0
+    },
+    {
+      "name": "Langen",
+      "tracks": 2,
+      "latitude": 49.992999999999995,
+      "longitude": 8.657000000000039,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "3333333",
+      "ds100Code": "3333333",
+      "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt West",
+      "tracks": 2,
+      "latitude": 50.13599999999997,
+      "longitude": 8.615999999999985,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "4444444",
+      "ds100Code": "4444444",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "ICE_L_H",
+      "category": "ICE",
+      "evaNumber": "7637132",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1111111",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_M_W",
+      "category": "S",
+      "evaNumber": "3240683",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "2222222",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4444444",
+          "arrival": 5,
+          "departure": 7,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:20:00.000",
+          "untilTime": "10:20:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [
+    {
+      "fromStation": "1111111",
+      "toStation": "2222222",
+      "duration": 10
+    },
+    {
+      "fromStation": "2222222",
+      "toStation": "1111111",
+      "duration": 10
+    }
+  ],
+  "specialTransferTimes": [],
+  "startDate": "2015-09-27",
+  "endDate": "2015-09-29"
+}
