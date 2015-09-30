@@ -34,6 +34,16 @@ short const S_H_S = 6;  // 07:15 --> 11:15
 short const ICE_E_K = 7;  // 12:45 --> 14:15
 }
 
+namespace schedule3 {
+std::string const FRANKFURT = "1111111";
+std::string const MESSE = "2222222";
+std::string const LANGEN = "3333333";
+std::string const WEST = "4444444";
+
+short const ICE_L_H = 1;  // 10:00 --> 10:10
+short const S_M_W = 2;  // 10:20 --> 10:25
+}
+
 TEST_CASE("interchange first-route-node no-feeders",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
@@ -324,4 +334,46 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
               data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange foot", "[data_departure_interchange]") {}
+TEST_CASE("interchange foot", "[data_departure_interchange]") {
+  auto schedule = loader::load_schedule(
+      "../modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
+      to_unix_time(2015, 9, 29));
+  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
+
+  duration const walk_duration = 10;
+
+  // arriving train ICE_L_H from Langen to Frankfurt
+  // interchange at Frankfurt and walking to Messe
+  // departing train S_M_W from Messe to West
+  interchange_data_for_tests const ic_data(
+      *schedule, schedule3::ICE_L_H, schedule3::S_M_W, schedule3::LANGEN,
+      schedule3::FRANKFURT, schedule3::MESSE, schedule3::WEST, 10 * 60,
+      10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
+
+  probability_distribution dummy_arrival_distribution;
+  dummy_arrival_distribution.init_one_point(0, 1.0);
+
+  data_departure_interchange data(
+      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, walk_duration,
+      *schedule, precomputed, s_t_distributions);
+
+  REQUIRE(data.is_first_route_node_);
+  REQUIRE(data.scheduled_departure_time_ ==
+          ic_data.departing_light_conn_.d_time);
+  REQUIRE(data.largest_delay() == 2);
+  REQUIRE(data.feeders_.size() == 0);
+
+  REQUIRE(data.maximum_waiting_time_ == 0);
+  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+          ic_data.arriving_light_conn_.a_time);
+  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
+          &dummy_arrival_distribution);
+  REQUIRE(data.interchange_feeder_info_.transfer_time_ == walk_duration);
+  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+          (data.scheduled_departure_time_ +
+           data.interchange_feeder_info_.waiting_time_) -
+              data.interchange_feeder_info_.transfer_time_);
+}

@@ -87,14 +87,14 @@ struct data_departure {
 protected:
   void init_train_info(
       node const& route_node, light_connection const& light_conn,
-			std::vector<std::unique_ptr<category>> const& categories,
+      std::vector<std::unique_ptr<category>> const& categories,
       start_and_travel_distributions const& s_t_distributions,
       distributions_container::precomputed_distributions_container const&
           distributions_container);
 
   void init_feeder_info(
       light_connection const& light_conn,
-      std::vector<std::unique_ptr<graph_accessor::feeder_info> > const&
+      std::vector<std::unique_ptr<graph_accessor::feeder_info>> const&
           all_feeders_data,
       schedule const& schedule,
       distributions_container::precomputed_distributions_container const&
