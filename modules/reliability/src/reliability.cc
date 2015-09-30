@@ -13,6 +13,7 @@
 
 using namespace motis::module;
 namespace po = boost::program_options;
+namespace p = std::placeholders;
 
 namespace motis {
 namespace reliability {
@@ -27,7 +28,62 @@ void reliability::print(std::ostream&) const {}
 reliability::reliability() {}
 
 void reliability::on_msg(msg_ptr msg, sid, callback cb) {
-  return cb({}, error::not_implemented);
+  if (msg->content_type() == MsgContent_ReliableRoutingRequest) {
+    auto req = msg->content<ReliableRoutingRequest const*>();
+
+    auto reliability_cb =
+        [=](routing::RoutingResponse const* routing_response,
+            std::vector<float> ratings, boost::system::error_code e) {
+          if (e) {
+            return cb({}, e);
+          }
+          return cb({/* todo: write response */}, error::ok);
+        };
+
+    find_connections(req->request(), reliability_cb);
+  } else {
+    return cb({}, error::not_implemented);
+  }
+}
+
+void reliability::find_connections(routing::RoutingRequest const* request,
+                                   rating_response_cb cb) {
+  flatbuffers::FlatBufferBuilder b;
+  std::vector<flatbuffers::Offset<routing::StationPathElement> >
+      station_elements;
+  for (auto it = request->path()->begin(); it != request->path()->end(); ++it) {
+    station_elements.push_back(routing::CreateStationPathElement(
+        b, b.CreateString(it->name()->c_str()),
+        b.CreateString(it->eva_nr()->c_str())));
+  }
+  routing::Interval interval(request->interval()->begin(),
+                             request->interval()->end());
+  b.Finish(CreateMessage(
+      b, MsgContent_RoutingRequest,
+      routing::CreateRoutingRequest(b, &interval, request->type(),
+                                    request->direction(),
+                                    b.CreateVector(station_elements)).Union()));
+  return dispatch(
+      make_msg(b), 0,
+      std::bind(&reliability::handle_routing_response, this, p::_1, p::_2, cb));
+}
+
+void reliability::handle_routing_response(motis::module::msg_ptr msg,
+                                          boost::system::error_code e,
+                                          rating_response_cb cb) {
+  if (e) {
+    return cb(nullptr, {}, e);
+  }
+
+  auto res = msg->content<routing::RoutingResponse const*>();
+  std::vector<float> ratings;
+  for (auto it = res->connections()->begin(); it != res->connections()->end();
+       ++it) {
+    /* todo: rate connection */
+    ratings.push_back(0.0);
+  }
+
+  return cb(res, ratings, error::ok);
 }
 
 edge const* route_edge(node const* route_node) {
@@ -46,8 +102,7 @@ bool reliability::initialize() {
   distributions_container::precomputed_distributions_container
       distributions_container(schedule.node_count);
   db_distributions db_distributions(
-      "", 120,
-      120);  // TODO: read max travel time from graph
+      "", 120, 120);  // TODO: read max travel time from graph
   distributions_calculator::precomputation::perform_precomputation(
       schedule, db_distributions, distributions_container);
 

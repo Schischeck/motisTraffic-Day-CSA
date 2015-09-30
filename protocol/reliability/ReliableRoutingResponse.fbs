@@ -1,0 +1,8 @@
+include "routing/RoutingResponse.fbs";
+
+namespace motis.reliability;
+
+table ReliableRoutingResponse {
+  response:motis.routing.RoutingResponse;
+  rating:[float];
+}
