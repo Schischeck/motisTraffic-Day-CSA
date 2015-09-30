@@ -161,6 +161,8 @@ void message_handler::handle_additional_train(
   ci->train_nr = msg.events_[0]._train_nr;
   ci->family = category_index;
   ci->line_identifier = "";
+  ci->dir_ = nullptr;
+  ci->provider_ = nullptr;
 
   _rts._new_connection_infos.emplace_back(ci);
 

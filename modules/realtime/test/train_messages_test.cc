@@ -174,7 +174,7 @@ TEST_CASE("cancel end of train", "[msgs],[cancel]") {
                        {Langen, t(13, 49), t(14, 51)},
                        {ffm_hbf, t(15, 5), t(15, 5)}});
 
-    ts.check_transports(j, {{"RB", 20, 1, 2}, {"RB", 20, 2, 3}});
+    ts.check_transports(j, {{"RB", 20, 1, 3}});
   }
 
   journeys = ts.find_connections(da_hbf, Langen, t(13, 30));

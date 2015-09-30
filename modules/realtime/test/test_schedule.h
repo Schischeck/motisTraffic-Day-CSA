@@ -88,12 +88,19 @@ public:
       CHECK(jstop.name == estop.station->name);
       CHECK(jstop.eva_no == estop.station->eva_nr);
 
+      auto exp_arrival = estop.arrival.date_time;
+      auto exp_departure = estop.departure.date_time;
+
+      if (i == expected_stops.size() - 1) {
+        exp_arrival += estop.station->transfer_time;
+        exp_departure += estop.station->transfer_time;
+      }
+
       CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
-                                     jstop.arrival.timestamp) ==
-            estop.arrival.date_time);
+                                     jstop.arrival.timestamp) == exp_arrival);
       CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
                                      jstop.departure.timestamp) ==
-            estop.departure.date_time);
+            exp_departure);
     }
   }
 
