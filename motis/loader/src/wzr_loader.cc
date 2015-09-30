@@ -7,7 +7,7 @@ waiting_time_rules load_waiting_time_rules(
     std::vector<std::unique_ptr<category>> const& category_ptrs) {
   waiting_time_rules rules;
 
-  rules.default_group = 5;
+  rules.default_group = 6;
 
   // clang-format off
   std::vector<std::vector<std::string>> categories{
@@ -15,17 +15,19 @@ waiting_time_rules load_waiting_time_rules(
   { "EN", "NZ", "D", "CNL", "TLG", "DNZ" },
   { "IRE", "RE", "RB" },
   { "S", "s" },
-  { "DPE", "DPN", "R", "IRX", "X", "E", "SCH", "BSV", "RT", "FB", "LX", "REX" }
+  { "DPE", "DPN", "R", "IRX", "X", "E", "SCH", "BSV", "RT", "FB", "LX", "REX" },
+  { } /* default group */
   };
   // clang-format on
 
   // clang-format off
   std::vector<int> waiting_times{
-  3, 0, 0, 0, 0,
-  10, 10, 0, 0, 5,
-  0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0,
-  5, 5, 0, 5, 5
+  3, 0, 0, 0, 0, 0,
+  10, 10, 0, 0, 5, 0,
+  0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0,
+  5, 5, 0, 5, 5, 0,
+  0, 0, 0, 0, 0, 0 /* default group */
   };
   // clang-format on
 

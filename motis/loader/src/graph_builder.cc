@@ -359,7 +359,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
 
   schedule_ptr sched(new schedule());
   sched->classes = class_mapping();
-  sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
@@ -374,6 +373,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
 
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
+  sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
 
   return sched;
 }
