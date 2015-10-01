@@ -58,10 +58,10 @@ struct service_builder {
       std::vector<hrd_service::stop> const&);
 
   shared_data const& stamm_;
+  service_rules sr_;
   bitfield_translator bitfields_;
   stations_translator stations_;
   providers_translator providers_;
-  service_rules sr_;
   flatbuffers::FlatBufferBuilder& builder_;
   std::vector<flatbuffers::Offset<Service>> services_;
   std::map<uint16_t, flatbuffers::Offset<AttributeInfo>> attribute_infos_;

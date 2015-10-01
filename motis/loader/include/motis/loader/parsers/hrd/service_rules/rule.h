@@ -12,6 +12,7 @@ namespace loader {
 namespace hrd {
 
 typedef std::pair<int, uint64_t> service_id;  // (train_num, admin)
+struct rule;
 typedef std::map<service_id, std::vector<std::shared_ptr<rule>>> rules;
 
 struct rule {

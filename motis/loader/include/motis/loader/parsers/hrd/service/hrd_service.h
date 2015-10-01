@@ -4,6 +4,8 @@
 
 #include "parser/cstr.h"
 
+#include "motis/loader/util.h"
+
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/service/specification.h"
 
@@ -73,7 +75,7 @@ struct hrd_service {
                                  raw_to_int<uint64_t>(first_section.admin)));
 
     // Add new service id if it changed.
-    for (int i = 1; i < sections_.size(); ++i) {
+    for (size_t i = 1; i < sections_.size(); ++i) {
       auto id = std::make_pair(sections_[i].train_num,
                                raw_to_int<uint64_t>(sections_[i].admin));
       if (id != ids.back()) {

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cinttypes>
-#include <vector>
+#include <map>
 
 #include "motis/loader/loaded_file.h"
+#include "motis/loader/bitfield.h"
+
+#include "motis/loader/parsers/hrd/service_rules/rule.h"
 
 namespace motis {
 namespace loader {

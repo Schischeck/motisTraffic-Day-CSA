@@ -2,7 +2,10 @@
 
 #include <memory>
 
+#include "motis/loader/util.h"
+
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/parsers/hrd/service_rules/rule.h"
 
 namespace motis {
 namespace loader {
@@ -28,7 +31,7 @@ struct service_rules {
     for (auto& r : rules) {
       int info = r->applies(s);
       if (info) {
-        services_.emplace_back(make_unique<hrd_service>(s));
+        services_.emplace_back(std::make_shared<hrd_service>(s));
         r->add(*services_.back(), info);
         applied = true;
       }
@@ -37,7 +40,7 @@ struct service_rules {
   }
 
   rules rules_;
-  std::vector<std::unique_ptr<hrd_service>> services_;
+  std::vector<std::shared_ptr<hrd_service>> services_;
 };
 
 }  // hrd
