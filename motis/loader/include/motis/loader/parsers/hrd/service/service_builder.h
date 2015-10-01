@@ -11,6 +11,7 @@
 #include "motis/loader/parsers/hrd/providers_translator.h"
 #include "motis/loader/parsers/hrd/service/shared_data.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/parsers/hrd/service_rules/service_rules.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
@@ -20,7 +21,7 @@ namespace hrd {
 struct service_builder {
   typedef std::tuple<int, bool, bool> station_events;
 
-  service_builder(shared_data const& stamm,
+  service_builder(shared_data const& stamm, service_rules sr,
                   flatbuffers::FlatBufferBuilder& builder);
 
   void create_services(hrd_service&&);
@@ -60,6 +61,7 @@ struct service_builder {
   bitfield_translator bitfields_;
   stations_translator stations_;
   providers_translator providers_;
+  service_rules sr_;
   flatbuffers::FlatBufferBuilder& builder_;
   std::vector<flatbuffers::Offset<Service>> services_;
   std::map<uint16_t, flatbuffers::Offset<AttributeInfo>> attribute_infos_;

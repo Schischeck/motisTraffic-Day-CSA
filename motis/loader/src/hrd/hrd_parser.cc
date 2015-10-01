@@ -22,8 +22,8 @@
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/providers_parser.h"
 #include "motis/loader/parsers/hrd/service/service_parser.h"
-#include "motis/loader/parsers/hrd/through_services_parser.h"
-#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
+#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
+#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
@@ -67,8 +67,19 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto sd = parse_shared_data(hrd_root, fbb);
+  auto through_services_buf =
+      load_file(hrd_root / "stamm" / THROUGH_SERVICES_FILE);
+  auto merge_split_rules_buf =
+      load_file(hrd_root / "stamm" / MERGE_SPLIT_RULES_FILE);
 
-  service_builder sb(sd, fbb);
+  rules r;
+  parse_through_service_rules({THROUGH_SERVICES_FILE, through_services_buf},
+                              sd.bitfields, r);
+  parse_merge_split_service_rules(
+      {MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}, sd.bitfields, r);
+  service_rules sr(r);
+
+  service_builder sb(sd, sr, fbb);
   parse_services_files(hrd_root, sb);
 
   auto footpaths =
@@ -93,11 +104,12 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
   auto categories_buf = load_file(root / CATEGORIES_FILE);
   auto directions_buf = load_file(root / DIRECTIONS_FILE);
   auto providers_buf = load_file(root / PROVIDERS_FILE);
-  auto through_services_buf = load_file(root / THROUGH_SERVICES_FILE);
-  auto merge_split_rules_buf = load_file(root / MERGE_SPLIT_RULES_FILE);
 
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
+
+  rules r;
+
   return shared_data(
       parse_interval({BASIC_DATA_FILE, basic_data_buf}), metas,
       parse_stations({STATIONS_FILE, stations_names_buf},
@@ -107,10 +119,7 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
       parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
       parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
       parse_directions({DIRECTIONS_FILE, directions_buf}),
-      parse_providers({PROVIDERS_FILE, providers_buf}),
-      parse_through_service_rules(
-          {THROUGH_SERVICES_FILE, through_services_buf}),
-      parse_merge_split_service_rules({MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}));
+      parse_providers({PROVIDERS_FILE, providers_buf}));
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,
