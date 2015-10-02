@@ -5,6 +5,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
+#include "motis/schedule-format/ServiceRules_generated.h"
 
 using namespace parser;
 using namespace motis::logging;
@@ -19,7 +20,7 @@ struct ts_rule : public rule {
 
   virtual ~ts_rule() {}
 
-  virtual int applies(hrd_service& s) const override {
+  int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
       return false;
@@ -35,7 +36,8 @@ struct ts_rule : public rule {
     }
 
     // Assuming s is service (2).
-    for (int section_idx = 0; section_idx < s.sections_.size(); ++section_idx) {
+    for (unsigned section_idx = 0; section_idx < s.sections_.size();
+         ++section_idx) {
       auto from_stop = s.stops_[section_idx];
       auto section = s.sections_[section_idx];
 
@@ -49,25 +51,27 @@ struct ts_rule : public rule {
     return 0;
   }
 
-  virtual void add(hrd_service& s, int info) override {
+  void add(hrd_service* s, int info) override {
     if (info == 1) {
-      participants_1_.push_back(&s);
+      participants_1_.push_back(s);
     } else {
-      participants_2_.push_back(&s);
+      participants_2_.push_back(s);
     }
   }
 
-  virtual std::vector<std::pair<hrd_service*, hrd_service*>>
-  service_combinations() const override {
-    std::vector<std::pair<hrd_service*, hrd_service*>> combinations;
+  std::vector<service_combination> service_combinations() const override {
+    std::vector<service_combination> comb;
     for (auto const& s1 : participants_1_) {
       for (auto const& s2 : participants_2_) {
-        if ((s1->traffic_days_ & s2->traffic_days_ & mask_).any()) {
-          combinations.emplace_back(s1, s2);
+        auto intersection = s1->traffic_days_ & s2->traffic_days_ & mask_;
+        if (intersection.any()) {
+          comb.emplace_back(s1, s2,
+                            resolved_rule_info{intersection, eva_num_, eva_num_,
+                                               RuleType_MERGE_SPLIT});
         }
       }
     }
-    return combinations;
+    return comb;
   }
 
   service_id id_1_, id_2_;
