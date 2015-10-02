@@ -15,8 +15,6 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/providers_parser.h"
-#include "motis/loader/parsers/hrd/through_services_parser.h"
-#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
 
 namespace motis {
 namespace loader {
@@ -30,9 +28,7 @@ struct shared_data {
               std::map<uint16_t, std::string> attributes,
               std::map<int, bitfield> bitfields, platform_rules pf_rules,
               std::map<uint64_t, std::string> directions,
-              std::map<uint64_t, provider_info> providers,
-              std::vector<through_service_rule> through_service_rules,
-              std::vector<merge_split_rule> merge_split_rules)
+              std::map<uint64_t, provider_info> providers)
       : interval(std::move(interval)),
         metas(std::move(metas)),
         stations(std::move(stations)),
@@ -41,9 +37,7 @@ struct shared_data {
         bitfields(std::move(bitfields)),
         pf_rules(std::move(pf_rules)),
         directions(std::move(directions)),
-        providers(std::move(providers)),
-        through_service_rules(std::move(through_service_rules)),
-        merge_split_rules(std::move(merge_split_rules)) {}
+        providers(std::move(providers)) {}
 
   Interval interval;
   station_meta_data metas;
@@ -54,8 +48,6 @@ struct shared_data {
   platform_rules pf_rules;
   std::map<uint64_t, std::string> directions;
   std::map<uint64_t, provider_info> providers;
-  std::vector<through_service_rule> through_service_rules;
-  std::vector<merge_split_rule> merge_split_rules;
 };
 
 }  // namespace hrd
