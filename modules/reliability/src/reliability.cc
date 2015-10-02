@@ -46,8 +46,8 @@ void reliability::on_msg(msg_ptr msg, sid, callback cb) {
   }
 }
 
-void reliability::find_connections(routing::RoutingRequest const* request,
-                                   rating_response_cb cb) {
+msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
+  /* convert routing::RoutingRequest to flatbuffers::Offset<RoutingRequest> */
   flatbuffers::FlatBufferBuilder b;
   std::vector<flatbuffers::Offset<routing::StationPathElement> >
       station_elements;
@@ -63,8 +63,13 @@ void reliability::find_connections(routing::RoutingRequest const* request,
       routing::CreateRoutingRequest(b, &interval, request->type(),
                                     request->direction(),
                                     b.CreateVector(station_elements)).Union()));
+  return make_msg(b);
+}
+
+void reliability::find_connections(routing::RoutingRequest const* request,
+                                   rating_response_cb cb) {
   return dispatch(
-      make_msg(b), 0,
+      to_flatbuffers_message(request), 0,
       std::bind(&reliability::handle_routing_response, this, p::_1, p::_2, cb));
 }
 
