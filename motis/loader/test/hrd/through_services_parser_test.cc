@@ -6,6 +6,10 @@
 
 namespace motis {
 namespace loader {
-namespace hrd {}  // loader
+namespace hrd {
+
+// TODO(felix,tobias) write tests
+
+}  // loader
 }  // motis
 }  // hrd

@@ -13,8 +13,14 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-std::map<int, flatbuffers::String> route_names(
-    loaded_file, flatbuffers::FlatBufferBuilder& b);
+struct route {
+  std::string agency_id;
+  std::string short_name, long_name;
+  int type;
+};
+
+std::map<std::string, route> read_routes(loaded_file);
+
 }  // namespace gtfs
 }  // namespace loader
 }  // namespace motis
