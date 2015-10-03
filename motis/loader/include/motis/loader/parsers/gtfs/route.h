@@ -1,9 +1,8 @@
 #pragma once
 
+#include <string>
 #include <tuple>
 #include <map>
-
-#include "flatbuffers/flatbuffers.h"
 
 #include "parser/cstr.h"
 
@@ -14,8 +13,7 @@ namespace loader {
 namespace gtfs {
 
 struct route {
-  std::string agency_id;
-  std::string short_name, long_name;
+  std::string agency_id, short_name, long_name;
   int type;
 };
 

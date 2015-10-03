@@ -3,8 +3,6 @@
 #include "motis/loader/parsers/gtfs/route.h"
 #include "motis/loader/parsers/gtfs/files.h"
 
-#include "motis/schedule-format/Schedule_generated.h"
-
 using namespace parser;
 
 namespace motis {

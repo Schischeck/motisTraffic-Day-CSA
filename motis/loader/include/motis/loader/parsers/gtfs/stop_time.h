@@ -1,42 +1,38 @@
 #pragma once
 
+#include <map>
 #include <tuple>
+#include <string>
 
 #include "parser/cstr.h"
+
+#include "motis/loader/loaded_file.h"
+#include "motis/loader/parsers/gtfs/flat_map.h"
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
-using stop_time = std::tuple<int,  // trip_id
-                             parser::cstr,  // arrival_time
-                             parser::cstr,  // departure_time
-                             int,  // stop_id
-                             int,  // stop_sequence
-                             parser::cstr,  // stop_headsign
-                             int,  // pickup_type
-                             int,  // drop_off_type
-                             int  // shape_dist_traveled
-                             >;
+struct stop_time {
+  stop_time() = default;
+  stop_time(std::string stop, std::string headsign, int arr_time,
+            bool out_allowed, int dep_time, bool in_allowed)
+      : stop(stop),
+        headsign(headsign),
+        arr({arr_time, out_allowed}),
+        dep({dep_time, in_allowed}) {}
 
-static const std::array<parser::cstr,
-                        std::tuple_size<stop_time>::value> stop_time_columns = {
-    {"trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence",
-     "stop_headsign", "pickup_type", "drop_off_type", "shape_dist_travele"}};
+  struct ev {
+    int time;
+    bool in_out_allowed;
+  };
 
-namespace stop_time_accessors {
-enum {
-  trip_id,
-  arrival_time,
-  departure_time,
-  stop_id,
-  stop_sequence,
-  stop_headsign,
-  pickup_type,
-  drop_off_type,
-  shape_dist_traveled
+  std::string stop;
+  std::string headsign;
+  ev arr, dep;
 };
-}  // namespace stop_time_accessors
+
+std::map<std::string, flat_map<stop_time>> read_stop_times(loaded_file);
 
 }  // namespace gtfs
 }  // namespace loader
