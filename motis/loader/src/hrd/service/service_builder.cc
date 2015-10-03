@@ -12,9 +12,10 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(shared_data const& stamm,
+service_builder::service_builder(shared_data const& stamm, rules sr,
                                  FlatBufferBuilder& builder)
     : stamm_(stamm),
+      sr_(sr),
       bitfields_(stamm.bitfields, builder),
       stations_(stamm.stations, builder),
       providers_(stamm.providers, builder),
@@ -25,7 +26,11 @@ void service_builder::create_services(hrd_service&& input_service) {
   expand_traffic_days(input_service, bitfields_, expanded_services);
   expand_repetitions(expanded_services);
 
-  for (auto const& expanded_service : expanded_services) {
+  for (auto& expanded_service : expanded_services) {
+    if (sr_.add_service(expanded_service)) {
+      continue;
+    }
+
     auto const route = create_route(expanded_service.stops_);
     services_.push_back(CreateService(
         builder_, route,

@@ -4,6 +4,8 @@
 
 #include "parser/cstr.h"
 
+#include "motis/loader/util.h"
+
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/service/specification.h"
 
@@ -63,6 +65,26 @@ struct hrd_service {
   explicit hrd_service(specification const& spec);
 
   void verify_service() const;
+
+  std::vector<std::pair<int, uint64_t>> get_ids() const {
+    std::vector<std::pair<int, uint64_t>> ids;
+
+    // Add first service id.
+    auto const& first_section = sections_.front();
+    ids.push_back(std::make_pair(first_section.train_num,
+                                 raw_to_int<uint64_t>(first_section.admin)));
+
+    // Add new service id if it changed.
+    for (size_t i = 1; i < sections_.size(); ++i) {
+      auto id = std::make_pair(sections_[i].train_num,
+                               raw_to_int<uint64_t>(sections_[i].admin));
+      if (id != ids.back()) {
+        ids.push_back(id);
+      }
+    }
+
+    return ids;
+  }
 
   int num_repetitions_, interval_;
   std::vector<stop> stops_;
