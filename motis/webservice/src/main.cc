@@ -92,8 +92,8 @@ int main(int argc, char** argv) {
   c.dispatch_ = &dispatch;
 
   std::vector<conf::configuration*> module_confs;
-  for (auto const& module : dispatcher.modules_) {
-    module_confs.push_back(module);
+  for (auto const& module : modules) {
+    module_confs.push_back(module.get());
   }
   conf::options_parser module_conf_parser(module_confs);
   module_conf_parser.read_command_line_args(argc, argv);

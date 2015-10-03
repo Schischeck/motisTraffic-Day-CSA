@@ -56,15 +56,15 @@ po::options_description realtime::desc() {
                      "Train number to track (debug)")(
       MSG_FILE, po::value<std::vector<std::string>>(&msg_files_),
       "Load realtime messages from a file")(
-      DEBUG_MODE, po::bool_switch(&debug_)->default_value(false),
+      DEBUG_MODE, po::bool_switch(&debug_)->default_value(debug_),
       "Enable lots of debug output")(
       FROM_TIME, po::value<opt_time>(&from_time_),
       "Load messages from " FROM_TIME
       " to " TO_TIME)(TO_TIME, po::value<opt_time>(&to_time_),
                       "Load messages from " FROM_TIME " to " TO_TIME)(
-      LIVE, po::bool_switch(&live_)->default_value(false),
+      LIVE, po::bool_switch(&live_)->default_value(live_),
       "Automatically load new messages every minute")(
-      MANUAL, po::bool_switch(&manual_)->default_value(false),
+      MANUAL, po::bool_switch(&manual_)->default_value(manual_),
       "Don't load any messages automatically");
   return desc;
 }
@@ -91,7 +91,10 @@ void realtime::print(std::ostream& out) const {
 }
 
 realtime::realtime()
-    : db_fetch_size_(15),
+    : debug_(false),
+      live_(false),
+      manual_(false),
+      db_fetch_size_(15),
       ops_{{MsgContent_RealtimeTrainInfoRequest,
             std::bind(&realtime::get_train_info, this, p::_1, p::_2)},
            {MsgContent_RealtimeTrainInfoBatchRequest,
@@ -104,10 +107,6 @@ realtime::realtime()
 realtime::~realtime() {}
 
 void realtime::init() {
-  //
-}
-
-void realtime::on_config_loaded() {
   rts_ = std::unique_ptr<realtime_schedule>(
       new realtime_schedule(synced_sched<schedule_access::RW>().sched()));
   rts_->_debug_mode = debug_;

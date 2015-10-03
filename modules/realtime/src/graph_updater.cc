@@ -911,10 +911,7 @@ void graph_updater::delete_route_node(motis::node* route_node) {
       break;
     }
   }
-  // TODO: this leaks. nodes should only be deleted if the schedule
-  // was loaded from text files (not serialized) or if they were created
-  // by the graph updater.
-  // delete route_node;
+  delete route_node;
   add_incoming_edges(station);
 }
 
