@@ -41,9 +41,13 @@ std::pair<motis::node*, motis::light_connection*>
 realtime_schedule::locate_event(const graph_event& event_id) const {
   const int32_t route_id = event_id._route_id;
 
-  for (node* route_node :
-       _schedule.station_nodes[event_id._station_index]->get_route_nodes()) {
-    if (route_id != -1 && route_node->_route != route_id) continue;
+  for (motis::edge& edge :
+       _schedule.station_nodes[event_id._station_index]->_edges) {
+    motis::node* route_node = edge._to;
+    if (!route_node->is_route_node() ||
+        (route_id != -1 && route_node->_route != route_id))
+      continue;
+    assert(edge.type() == motis::edge::ROUTE_EDGE);
 
     motis::edge* route_edge = event_id.departure() ? get_next_edge(route_node)
                                                    : get_prev_edge(route_node);
@@ -286,10 +290,13 @@ schedule_event realtime_schedule::find_departure_event(uint32_t train_nr,
               << " on day " << day_index << " ("
               << _schedule.station_nodes.size() << " stations)";
   for (const auto& station : _schedule.station_nodes) {
-    for (const motis::node* route_node : station->get_route_nodes()) {
-      const motis::edge* edge = get_next_edge(route_node);
-      if (edge == nullptr) continue;
-      for (const motis::light_connection& lc : edge->_m._route_edge._conns) {
+    for (const motis::edge& edge : station->_edges) {
+      motis::node* route_node = edge._to;
+      if (!route_node->is_route_node()) continue;
+      const motis::edge* route_edge = get_next_edge(route_node);
+      if (route_edge == nullptr) continue;
+      for (const motis::light_connection& lc :
+           route_edge->_m._route_edge._conns) {
         if (lc._full_con->con_info->train_nr == train_nr &&
             lc.d_time / MINUTES_A_DAY == day_index) {
           return get_schedule_event(graph_event(station->_id, train_nr, true,
