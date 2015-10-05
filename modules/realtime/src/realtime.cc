@@ -146,7 +146,7 @@ void realtime::init() {
       msg_stream->start_at(t1);
       msg_stream->forward_to(t2);
       message_fetcher_.reset(
-          new message_fetcher(*rts_, std::move(msg_stream), ios_));
+          new message_fetcher(*rts_, std::move(msg_stream), get_thread_pool()));
     }
 #endif
   } else {
@@ -161,7 +161,7 @@ void realtime::init() {
       msg_stream->forward_to(std::time(nullptr));
     }
     message_fetcher_.reset(
-        new message_fetcher(*rts_, std::move(msg_stream), ios_));
+        new message_fetcher(*rts_, std::move(msg_stream), get_thread_pool()));
   }
 
   if (message_fetcher_ != nullptr) {
@@ -169,7 +169,6 @@ void realtime::init() {
       message_fetcher_->process_stream();
     }
     message_fetcher_->set_live(live_);
-    // TODO: live loop does not work (ios)
   }
 
   std::cout << "\nRealtime module initialized" << std::endl;

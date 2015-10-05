@@ -34,7 +34,6 @@ struct realtime : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-  boost::asio::io_service ios_;
   std::unique_ptr<realtime_schedule> rts_;
   std::unique_ptr<message_fetcher> message_fetcher_;
 
