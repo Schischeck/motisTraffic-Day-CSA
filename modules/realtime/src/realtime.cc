@@ -282,6 +282,7 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
 
 void realtime::get_train_info(motis::module::msg_ptr msg,
                               motis::module::callback cb) {
+  auto sched = synced_sched<schedule_access::RO>();
   auto req = msg->content<RealtimeTrainInfoRequest const*>();
   flatbuffers::FlatBufferBuilder b;
   boost::system::error_code err;
@@ -299,6 +300,7 @@ void realtime::get_train_info(motis::module::msg_ptr msg,
 
 void realtime::get_batch_train_info(motis::module::msg_ptr msg,
                                     motis::module::callback cb) {
+  auto sched = synced_sched<schedule_access::RO>();
   auto requests =
       msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
   flatbuffers::FlatBufferBuilder b;
