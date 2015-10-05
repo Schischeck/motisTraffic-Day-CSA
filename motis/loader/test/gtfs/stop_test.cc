@@ -2,7 +2,7 @@
 
 #include "motis/loader/parsers/gtfs/stop.h"
 #include "motis/loader/parsers/gtfs/files.h"
-
+#include "motis/loader/util.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace parser;
@@ -30,64 +30,59 @@ cstr berlin_stops_file_content =
 
 TEST(loader_gtfs_stop, read_stations_example_data) {
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateSchedule(b, {},
-                          b.CreateVector(read_stations(
-                              {STOPS_FILE, example_stops_file_content}, b)),
-                          {}));
+  auto station_map = read_stations({STOPS_FILE, example_stops_file_content}, b);
+
+  b.Finish(CreateSchedule(b, {}, b.CreateVector(values(station_map))));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
 
   ASSERT_TRUE(stations->size() == 8);
 
-  auto station_1 = stations->Get(0);
-  ASSERT_TRUE(station_1->id()->str() == "S1");
-  ASSERT_TRUE(station_1->name()->str() == "Mission St. & Silver Ave.");
-  ASSERT_FLOAT_EQ(37.728631, station_1->lat());
-  ASSERT_FLOAT_EQ(-122.431282, station_1->lng());
-
-  auto station_6 = stations->Get(5);
-  ASSERT_TRUE(station_6->id()->str() == "S6");
-  ASSERT_TRUE(station_6->name()->str() == "Mission St. & 15th St.");
-  ASSERT_FLOAT_EQ(37.766629, station_6->lat());
-  ASSERT_FLOAT_EQ(-122.419782, station_6->lng());
-
-  auto station_8 = stations->Get(7);
-  ASSERT_TRUE(station_8->id()->str() == "S8");
-  ASSERT_TRUE(station_8->name()->str() == "24th St. Mission Station");
-  ASSERT_FLOAT_EQ(37.752240, station_8->lat());
-  ASSERT_FLOAT_EQ(-122.418450, station_8->lng());
+  for (auto const& s : *stations) {
+    if (s->id()->str() == "S1") {
+      ASSERT_STREQ("Mission St. & Silver Ave.", s->name()->c_str());
+      ASSERT_FLOAT_EQ(37.728631, s->lat());
+      ASSERT_FLOAT_EQ(-122.431282, s->lng());
+    } else if (s->id()->str() == "S6") {
+      ASSERT_TRUE(s->name()->str() == "Mission St. & 15th St.");
+      ASSERT_FLOAT_EQ(37.766629, s->lat());
+      ASSERT_FLOAT_EQ(-122.419782, s->lng());
+    } else if (s->id()->str() == "S8") {
+      ASSERT_TRUE(s->name()->str() == "24th St. Mission Station");
+      ASSERT_FLOAT_EQ(37.752240, s->lat());
+      ASSERT_FLOAT_EQ(-122.418450, s->lng());
+    }
+  }
 }
 
 TEST(loader_gtfs_stop, read_stations_berlin_data) {
   flatbuffers::FlatBufferBuilder b;
-  b.Finish(CreateSchedule(
-      b, {},
-      b.CreateVector(read_stations({STOPS_FILE, berlin_stops_file_content}, b)),
-      {}));
+  b.Finish(CreateSchedule(b, {},
+                          b.CreateVector(values(read_stations(
+                              {STOPS_FILE, berlin_stops_file_content}, b))),
+                          {}));
 
   auto schedule = GetSchedule(b.GetBufferPointer());
   auto stations = schedule->stations();
 
   ASSERT_TRUE(stations->size() == 3);
 
-  auto station_1 = stations->Get(0);
-  ASSERT_TRUE(station_1->id()->str() == "5100071");
-  ASSERT_TRUE(station_1->name()->str() == "Zbaszynek");
-  ASSERT_FLOAT_EQ(52.2425040, station_1->lat());
-  ASSERT_FLOAT_EQ(15.8180870, station_1->lng());
-
-  auto station_6 = stations->Get(1);
-  ASSERT_TRUE(station_6->id()->str() == "9230005");
-  ASSERT_TRUE(station_6->name()->str() == "S Potsdam Hauptbahnhof Nord");
-  ASSERT_FLOAT_EQ(52.3927320, station_6->lat());
-  ASSERT_FLOAT_EQ(13.0668480, station_6->lng());
-
-  auto station_8 = stations->Get(2);
-  ASSERT_TRUE(station_8->id()->str() == "9230006");
-  ASSERT_TRUE(station_8->name()->str() == "Potsdam, Charlottenhof Bhf");
-  ASSERT_FLOAT_EQ(52.3930040, station_8->lat());
-  ASSERT_FLOAT_EQ(13.0362980, station_8->lng());
+  for (auto const& s : *stations) {
+    if (s->id()->str() == "5100071") {
+      ASSERT_TRUE(s->name()->str() == "Zbaszynek");
+      ASSERT_FLOAT_EQ(52.2425040, s->lat());
+      ASSERT_FLOAT_EQ(15.8180870, s->lng());
+    } else if (s->id()->str() == "9230005") {
+      ASSERT_TRUE(s->name()->str() == "S Potsdam Hauptbahnhof Nord");
+      ASSERT_FLOAT_EQ(52.3927320, s->lat());
+      ASSERT_FLOAT_EQ(13.0668480, s->lng());
+    } else if (s->id()->str() == "9230006") {
+      ASSERT_TRUE(s->name()->str() == "Potsdam, Charlottenhof Bhf");
+      ASSERT_FLOAT_EQ(52.3930040, s->lat());
+      ASSERT_FLOAT_EQ(13.0362980, s->lng());
+    }
+  }
 }
 
 }  // gtfs

@@ -7,24 +7,28 @@
 
 #include "motis/loader/util.h"
 
-using namespace flatbuffers;
+using namespace parser;
 using std::get;
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
-using route = std::tuple<int, parser::cstr, parser::cstr, int>;
-enum { route_id, route_short_name, route_long_name, route_type };
-static const parser::column_mapping<route> route_columns = {
-    {"route_id", "route_short_name", "route_long_name", "route_type"}};
+using gtfs_route = std::tuple<cstr, cstr, cstr, cstr, int>;
+enum { route_id, agency_id, route_short_name, route_long_name, route_type };
+static const column_mapping<gtfs_route> route_columns = {
+    {"route_id", "agency_id", "route_short_name", "route_long_name",
+     "route_type"}};
 
-std::vector<Offset<String>> read_route(loaded_file file, FlatBufferBuilder& b) {
-  std::vector<Offset<String>> categories;
-  for (auto const& r : parser::read<route>(file.content, route_columns)) {
-    categories.push_back(to_fbs_string(b, get<route_short_name>(r)));
+std::map<std::string, route> read_routes(loaded_file file) {
+  std::map<std::string, route> routes;
+  for (auto const& r : read<gtfs_route>(file.content, route_columns)) {
+    routes.insert(std::make_pair(
+        get<route_id>(r).to_str(),
+        route{get<agency_id>(r).to_str(), get<route_short_name>(r).to_str(),
+              get<route_long_name>(r).to_str(), get<route_type>(r)}));
   }
-  return categories;
+  return routes;
 }
 
 }  // namespace gtfs
