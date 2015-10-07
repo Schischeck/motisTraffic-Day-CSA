@@ -75,7 +75,8 @@ TEST_CASE("request", "[reliability]") {
 
   boost::asio::io_service ios;
 
-  motis::module::dispatcher dispatcher(test_server, ios);
+  test_server t;
+  motis::module::dispatcher dispatcher(t, ios);
   namespace p = std::placeholders;
   msg_handler dispatch =
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
