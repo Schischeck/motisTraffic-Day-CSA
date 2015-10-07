@@ -3,7 +3,10 @@
 #include <iostream>
 #include <vector>
 
+#include "boost/filesystem.hpp"
 #include "boost/asio/io_service.hpp"
+#include "boost/asio/signal_set.hpp"
+#include "boost/thread.hpp"
 
 #include "motis/core/common/date_util.h"
 
@@ -13,6 +16,7 @@
 #include "motis/module/server.h"
 
 #include "motis/reliability/reliability.h"
+#include "motis/routing/routing.h"
 
 using namespace motis;
 using namespace motis::module;
@@ -59,7 +63,8 @@ msg_ptr to_flatbuffers_message(std::string const& from_name,
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, routing::Type::Type_PreTrip,
                                     routing::Direction::Direction_Forward,
-                                    b.CreateVector(station_elements)).Union()));
+                                    b.CreateVector(station_elements))
+          .Union()));
   return make_msg(b);
 }
 
@@ -68,7 +73,7 @@ TEST_CASE("request", "[reliability]") {
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  boost::asio::io_service ios, thread_pool;
+  boost::asio::io_service ios;
 
   motis::module::dispatcher dispatcher(test_server, ios);
   namespace p = std::placeholders;
@@ -78,7 +83,6 @@ TEST_CASE("request", "[reliability]") {
   motis::module::context c;
   c.schedule_ = schedule.get();
   c.ios_ = &ios;
-  c.thread_pool_ = &thread_pool;
   c.dispatch_ = &dispatch;
 
   std::vector<std::unique_ptr<motis::module::module> > modules;
