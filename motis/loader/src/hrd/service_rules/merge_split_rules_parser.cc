@@ -5,6 +5,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
+#include "motis/schedule-format/ServiceRules_generated.h"
 
 using namespace parser;
 using namespace motis::logging;
@@ -24,7 +25,7 @@ struct mss_rule : public rule {
 
   virtual ~mss_rule() {}
 
-  virtual int applies(hrd_service& s) const {
+  int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
       return false;
@@ -33,7 +34,8 @@ struct mss_rule : public rule {
     // Check if first and last stop of the common part are contained with the
     // correct service id.
     bool begin_found = false, end_found = false;
-    for (int section_idx = 0; section_idx < s.sections_.size(); ++section_idx) {
+    for (unsigned section_idx = 0; section_idx < s.sections_.size();
+         ++section_idx) {
       auto const& section = s.sections_[section_idx];
       auto const& from_stop = s.stops_[section_idx];
       auto const& to_stop = s.stops_[section_idx + 1];
@@ -53,25 +55,27 @@ struct mss_rule : public rule {
     return begin_found && end_found;
   }
 
-  virtual void add(hrd_service& s, int info) override {
-    participants_.push_back(&s);
+  void add(hrd_service* s, int /* info */) override {
+    participants_.push_back(s);
   }
 
-  virtual std::vector<std::pair<hrd_service*, hrd_service*>>
-  service_combinations() const override {
-    std::vector<std::pair<hrd_service*, hrd_service*>> combinations;
+  std::vector<service_combination> service_combinations() const override {
+    std::vector<service_combination> comb;
     for (auto const& s1 : participants_) {
       for (auto const& s2 : participants_) {
         if (s1 == s2) {
           continue;
         }
 
-        if ((s1->traffic_days_ & s2->traffic_days_ & mask_).any()) {
-          combinations.emplace_back(s1, s2);
+        auto intersection = s1->traffic_days_ & s2->traffic_days_ & mask_;
+        if (intersection.any()) {
+          comb.emplace_back(
+              s1, s2, resolved_rule_info{intersection, eva_num_begin_,
+                                         eva_num_end_, RuleType_MERGE_SPLIT});
         }
       }
     }
-    return combinations;
+    return comb;
   }
 
   service_id id_1_, id_2_;

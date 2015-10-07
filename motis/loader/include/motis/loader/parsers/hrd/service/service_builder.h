@@ -21,7 +21,7 @@ namespace hrd {
 struct service_builder {
   typedef std::tuple<int, bool, bool> station_events;
 
-  service_builder(shared_data const& stamm, service_rules sr,
+  service_builder(shared_data const& stamm, rules sr,
                   flatbuffers::FlatBufferBuilder& builder);
 
   void create_services(hrd_service&&);

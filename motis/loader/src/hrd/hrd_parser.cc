@@ -77,9 +77,8 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
                               sd.bitfields, r);
   parse_merge_split_service_rules(
       {MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}, sd.bitfields, r);
-  service_rules sr(r);
 
-  service_builder sb(sd, sr, fbb);
+  service_builder sb(sd, r, fbb);
   parse_services_files(hrd_root, sb);
 
   auto footpaths =
