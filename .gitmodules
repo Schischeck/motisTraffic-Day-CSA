@@ -25,3 +25,6 @@
 [submodule "external_lib/sparsehash"]
 	path = external_lib/sparsehash
 	url = https://github.com/felixguendling/sparsehash.git
+[submodule "external_lib/libzip"]
+	path = external_lib/libzip
+	url = https://github.com/felixguendling/libzip.git
