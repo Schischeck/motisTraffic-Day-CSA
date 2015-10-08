@@ -159,6 +159,30 @@ inline node const* get_first_route_node(schedule const& schedule,
   return nullptr;
 }
 
+inline std::pair<light_connection const*, unsigned int> find_light_connection(
+    edge const& route_edge, motis::time const departure_time,
+    unsigned int const family, unsigned int const train_nr) {
+  if (route_edge.empty()) {
+    return std::make_pair(nullptr, 0);
+  }
+
+  auto it = std::lower_bound(std::begin(route_edge._m._route_edge._conns),
+                             std::end(route_edge._m._route_edge._conns),
+                             light_connection(departure_time));
+  while (it != std::end(route_edge._m._route_edge._conns) &&
+         it->d_time == departure_time &&
+         (it->_full_con->con_info->train_nr != train_nr ||
+          it->_full_con->con_info->family != family)) {
+    it++;
+  }
+
+  return (it == std::end(route_edge._m._route_edge._conns) ||
+          it->d_time != departure_time)
+             ? std::make_pair(nullptr, 0)
+             : std::make_pair(
+                   it, it - std::begin(route_edge._m._route_edge._conns));
+}
+
 inline void print_route(node const* const first_route_node,
                         schedule const& schedule, std::ostream& os) {
   node const* node = first_route_node;

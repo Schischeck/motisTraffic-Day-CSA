@@ -22,18 +22,14 @@ using namespace motis;
 using namespace motis::module;
 
 namespace schedule2 {
-std::string const KASSEL_EVA = "6380201";
-std::string const STUTTGART_EVA = "7309882";
-std::string const KASSEL_NAME = "Kassel";
-std::string const STUTTGART_NAME = "Stuttgart";
-
-/* train numbers */
-short const RE_K_F = 1;  // 08:00 --> 10:00
-short const ICE_F_S = 2;  // 10:10 --> 11:10
-short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
-short const S_N_E = 4;  // 11:30 --> 15:30
+struct station {
+  std::string name;
+  std::string eva;
+};
+station const ERLANGEN = {"Erlangen", "0953067"};
+station const KASSEL = {"Kassel", "6380201"};
+station const STUTTGART = {"Stuttgart", "7309882"};
 short const ICE_S_E = 5;  // 11:32 --> 12:32
-short const S_H_S = 6;  // 07:15 --> 11:15
 short const ICE_E_K = 7;  // 12:45 --> 14:15
 }
 
@@ -58,7 +54,9 @@ msg_ptr to_flatbuffers_message(std::string const& from_name,
       b, b.CreateString(from_name), b.CreateString(from_eva)));
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
-  routing::Interval interval(interval_begin, interval_end);
+  routing::Interval interval(
+      motis_to_unixtime(to_unix_time(2015, 9, 28), interval_begin),
+      motis_to_unixtime(to_unix_time(2015, 9, 28), interval_end));
   b.Finish(CreateMessage(
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, routing::Type::Type_PreTrip,
@@ -68,11 +66,17 @@ msg_ptr to_flatbuffers_message(std::string const& from_name,
   return make_msg(b);
 }
 
+void foo(routing::Connection const* c) {
+  std::cout << std::endl << std::endl;
+  for (auto it = c->stops()->begin(); it != c->stops()->end(); ++it) {
+    std::cout << "Stop " << it->name()->str() << std::endl;
+  }
+}
+
 TEST_CASE("request", "[reliability]") {
   auto schedule = loader::load_schedule(
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
-
   boost::asio::io_service ios;
 
   test_server t;
@@ -83,6 +87,7 @@ TEST_CASE("request", "[reliability]") {
 
   motis::module::context c;
   c.schedule_ = schedule.get();
+  c.thread_pool_ = &ios;
   c.ios_ = &ios;
   c.dispatch_ = &dispatch;
 
@@ -96,10 +101,19 @@ TEST_CASE("request", "[reliability]") {
   }
 
   auto msg = to_flatbuffers_message(
-      schedule2::STUTTGART_NAME, schedule2::STUTTGART_EVA,
-      schedule2::KASSEL_NAME, schedule2::KASSEL_EVA,
+      schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
+      schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35));
 
-  dispatcher.send(msg, 0);
+  auto test_cb = [=](motis::module::msg_ptr msg, boost::system::error_code e) {
+    // std::cout << "--------------ok\n" << msg->to_json() << std::endl;
+    auto response = msg->content<routing::RoutingResponse const*>();
+    for (auto it = response->connections()->begin();
+         it != response->connections()->end(); ++it) {
+      foo(*it);
+    }
+  };
+
+  dispatcher.on_msg(msg, 0, test_cb);
   ios.run();
 }

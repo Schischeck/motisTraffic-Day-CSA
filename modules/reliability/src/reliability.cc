@@ -27,7 +27,7 @@ void reliability::print(std::ostream&) const {}
 
 reliability::reliability() {}
 
-void reliability::on_msg(msg_ptr msg, sid, callback cb) {
+void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   if (msg->content_type() == MsgContent_ReliableRoutingRequest) {
     auto req = msg->content<ReliableRoutingRequest const*>();
 
@@ -40,7 +40,7 @@ void reliability::on_msg(msg_ptr msg, sid, callback cb) {
           return cb({/* todo: write response */}, error::ok);
         };
 
-    find_connections(req->request(), reliability_cb);
+    find_connections(req->request(), session_id, reliability_cb);
   } else {
     return cb({}, error::not_implemented);
   }
@@ -62,14 +62,15 @@ msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, request->type(),
                                     request->direction(),
-                                    b.CreateVector(station_elements)).Union()));
+                                    b.CreateVector(station_elements))
+          .Union()));
   return make_msg(b);
 }
 
 void reliability::find_connections(routing::RoutingRequest const* request,
-                                   rating_response_cb cb) {
+                                   sid session_id, rating_response_cb cb) {
   return dispatch(
-      to_flatbuffers_message(request), 0,
+      to_flatbuffers_message(request), session_id,
       std::bind(&reliability::handle_routing_response, this, p::_1, p::_2, cb));
 }
 

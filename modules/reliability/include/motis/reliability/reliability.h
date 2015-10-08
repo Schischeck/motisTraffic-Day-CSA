@@ -28,7 +28,8 @@ private:
                              std::vector<float>, boost::system::error_code)>
       rating_response_cb;
 
-  void find_connections(routing::RoutingRequest const*, rating_response_cb);
+  void find_connections(routing::RoutingRequest const*,
+                        motis::module::sid session_id, rating_response_cb);
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,
                                rating_response_cb cb);
