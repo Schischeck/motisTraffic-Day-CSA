@@ -24,35 +24,36 @@ queue_element const to_element(schedule const& sched,
                                unsigned int const train_nr) {
   auto const& tail_station = *sched.station_nodes.at(
       sched.eva_to_station.find(tail_eva)->second->index);
-  auto const& head_station = *sched.station_nodes.at(
-      sched.eva_to_station.find(head_eva)->second->index);
   unsigned int const family =
       std::find_if(sched.categories.begin(), sched.categories.end(),
                    [category_str](std::unique_ptr<category> const& cat) {
                      return cat->name == category_str;
                    }) -
       sched.categories.begin();
-  bool is_first_route_node = false;  // TODO
 
   for (auto it = tail_station._edges.begin(); it != tail_station._edges.end();
        it++) {
     auto const& route_edge =
         *graph_accessor::get_departing_route_edge(*it->_to);
-    if (route_edge._to->_station_node->_id == head_station._id) {
+    if (sched.stations[route_edge._to->_station_node->_id]->eva_nr ==
+        head_eva) {
       auto light_conn = graph_accessor::find_light_connection(
           route_edge, dep_time, family, train_nr);
+      bool const is_first_route_node =
+          graph_accessor::get_arriving_route_edge(*it->_to) == nullptr;
       return queue_element(route_edge._from, route_edge._to, light_conn.first,
                            light_conn.second, is_first_route_node);
     }
   }
 
+  assert(false);
+  // empty element (unexpected case)
   return queue_element(nullptr, nullptr, nullptr, 0, false);
 }
 
 std::vector<queue_element> const get_elements(
     schedule const& sched, routing::Connection const* connection) {
   std::vector<queue_element> elements;
-
   for (auto it_t = connection->transports()->begin();
        it_t != connection->transports()->end(); ++it_t) {
     if (it_t->move_type() == routing::Move_Transport) {
@@ -69,10 +70,8 @@ std::vector<queue_element> const get_elements(
                               head_stop->arrival()->time()),
             transport->category_name()->str(), transport->train_nr()));
       }
-    } else if (it_t->move_type() == routing::Move_Walk) {
     }
   }
-
   return elements;
 }
 
