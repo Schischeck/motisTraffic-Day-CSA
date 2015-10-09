@@ -1,15 +1,17 @@
 #include "catch/catch.hpp"
 
 #include "motis/core/common/date_util.h"
-
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
 #include "motis/loader/loader.h"
 
+#include "motis/routing/routing.h"
+
 #include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
+#include "motis/reliability/tools/system.h"
 
 using namespace motis;
 using namespace motis::reliability;
@@ -71,4 +73,11 @@ TEST_CASE("to_element2", "[conn_to_graph_data]") {
   REQUIRE_FALSE(element_ice_k_f_s.is_first_route_node_);
   REQUIRE(element_ice_k_f_s.light_connection_ == &first_light_conn);
   REQUIRE(element_ice_k_f_s.light_connection_idx_ == 0);
+}
+
+TEST_CASE("get_elements", "[conn_to_graph_data]") {
+  auto schedule = loader::load_schedule(
+      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      to_unix_time(2015, 9, 29));
+  system_tools::setup setup(schedule.get());
 }
