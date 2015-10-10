@@ -9,3 +9,5 @@ Differenzstatistik.stat
 *.bin
 *.*~
 *.zip
+*.sublime-project
+*.sublime-workspace
