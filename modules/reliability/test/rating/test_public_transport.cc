@@ -51,6 +51,9 @@ start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                       {0.1, 0.8, 0.1}, -1);
 }
 
+/* deliver distributions for connection
+ * Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
+ * Erlangen to Kassel with ICE_E_K */
 std::vector<probability_distribution> compute_test_distributions() {
   using namespace test_public_transport;
   distributions_calculator::precomputation::perform_precomputation(
