@@ -84,9 +84,7 @@ TEST_CASE("to_element2", "[conn_to_graph_data]") {
 }
 
 TEST_CASE("get_elements", "[conn_to_graph_data]") {
-  auto& schedule = *test_connection_to_graph_data::schedule;
-  system_tools::setup setup(&schedule);
-
+  system_tools::setup setup(test_connection_to_graph_data::schedule.get());
   auto msg = flatbuffers_tools::to_flatbuffers_message(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
