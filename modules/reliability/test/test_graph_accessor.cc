@@ -337,3 +337,18 @@ TEST_CASE("get_light_connection", "[graph_accessor]") {
   REQUIRE(lc.first == &route_edge._m._route_edge._conns[3]);
   REQUIRE(lc.second == 3);
 }
+
+TEST_CASE("walking_duration", "[graph_accessor]") {
+  short const ICE_L_H = 1;  // 10:00 --> 10:10
+  short const S_M_W = 2;  // 10:20 --> 10:25
+
+  auto schedule = loader::load_schedule(
+      "../modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
+      to_unix_time(2015, 9, 29));
+  auto const& tail_station =
+      *get_departing_route_edge(*get_first_route_node(*schedule, ICE_L_H))
+           ->_to->_station_node;
+  auto const& head_station =
+      *get_first_route_node(*schedule, S_M_W)->_station_node;
+  REQUIRE(walking_duration(tail_station, head_station) == (duration)10);
+}

@@ -183,6 +183,25 @@ inline std::pair<light_connection const*, unsigned int> find_light_connection(
                    it, it - std::begin(route_edge._m._route_edge._conns));
 }
 
+inline duration walking_duration(node const& tail_station,
+                                 node const& head_station) {
+  node const* foot_node = nullptr;
+  for (auto e : tail_station._edges) {
+    if (e._to->is_foot_node()) {
+      foot_node = e._to;
+      break;
+    }
+  }
+  assert(foot_node);
+  for (auto e : foot_node->_edges) {
+    if (e._to->_id == head_station._id) {
+      return e._m._foot_edge._time_cost;
+    }
+  }
+  assert(false);
+  return 0;
+}
+
 inline void print_route(node const* const first_route_node,
                         schedule const& schedule, std::ostream& os) {
   node const* node = first_route_node;
