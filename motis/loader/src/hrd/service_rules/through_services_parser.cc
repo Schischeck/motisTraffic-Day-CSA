@@ -67,11 +67,15 @@ struct ts_rule : public rule {
         if (intersection.any()) {
           comb.emplace_back(s1, s2,
                             resolved_rule_info{intersection, eva_num_, eva_num_,
-                                               RuleType_MERGE_SPLIT});
+                                               RuleType_THROUGH});
         }
       }
     }
     return comb;
+  }
+
+  resolved_rule_info rule_info() const override {
+    return resolved_rule_info{mask_, eva_num_, eva_num_, RuleType_THROUGH};
   }
 
   service_id id_1_, id_2_;

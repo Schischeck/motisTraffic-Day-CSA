@@ -78,6 +78,11 @@ struct mss_rule : public rule {
     return comb;
   }
 
+  resolved_rule_info rule_info() const override {
+    return resolved_rule_info{mask_, eva_num_begin_, eva_num_end_,
+                              RuleType_MERGE_SPLIT};
+  }
+
   service_id id_1_, id_2_;
   int eva_num_begin_, eva_num_end_;
   bitfield const& mask_;
