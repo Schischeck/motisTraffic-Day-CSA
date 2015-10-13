@@ -28,3 +28,6 @@
 [submodule "external_lib/libzip"]
 	path = external_lib/libzip
 	url = https://github.com/felixguendling/libzip.git
+[submodule "external_lib/pugixml"]
+	path = external_lib/pugixml
+	url = https://github.com/zeux/pugixml.git
