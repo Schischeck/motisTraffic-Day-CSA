@@ -75,11 +75,11 @@ void foreach_event(xml_node const& msg, FlatBufferBuilder& fbb, F func) {
 
 Offset<Message> parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
                                 DelayType delay_type) {
-  std::vector<Offset<UpdatedTrainEvent>> events;
+  std::vector<Offset<UpdatedEvent>> events;
   auto parse = [&](xml_node const& node, Offset<Event> const& event) {
     auto attr_name = (delay_type == DelayType_Is) ? "Ist" : "Prog";
     auto updated = parse_time(node.child("Zeit").attribute(attr_name).value());
-    events.push_back(CreateUpdatedTrainEvent(fbb, event, updated));
+    events.push_back(CreateUpdatedEvent(fbb, event, updated));
   };
 
   foreach_event(msg, fbb, parse);

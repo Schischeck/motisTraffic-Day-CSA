@@ -14,37 +14,38 @@ table Event {
   scheduledTime: ulong;
 }
 
-table UpdatedTrainEvent {
+table UpdatedEvent {
   base: Event;
   updatedTime: ulong;
 }
 
-table ReroutedTrainEvent {
+table AdditionalEvent {
   base: Event;
+  trainCategory: string;
+}
+
+table ReroutedEvent {
+  base: AdditionalEvent;
   revert: bool; // RegSta = Normal
 }
 
 enum DelayType : bool {Is, Forecast} // Ist and IstProg
 table DelayMessage { 
   type: DelayType;
-  events: [UpdatedTrainEvent];
+  events: [UpdatedEvent];
 }
 
 table CancelMessage {
   events: [Event];
 }
 
-table AdditionalMessage {
-  trainIndex: string;
-  trainCategory: string;
-  events: [Event];
+table AdditionMessage {
+  events: [AdditionalEvent];
 }
 
 table RerouteMessage {
-  trainIndex: string;
-  trainCategory: string;
   canceledEvents: [Event];
-  newEvents: [ReroutedTrainEvent];
+  newEvents: [ReroutedEvent];
 }
 
 // ----------------------------------------------------------------------------
@@ -100,6 +101,5 @@ table Packet {
 table RISBatch {
   packets: [Packet];
 }
-
 
 root_type RISBatch;
