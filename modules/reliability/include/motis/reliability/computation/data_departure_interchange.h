@@ -12,7 +12,7 @@ struct probability_distribution;
 struct start_and_travel_distributions;
 
 namespace distributions_container {
-struct precomputed_distributions_container;
+struct abstract_distributions_container;
 }
 
 namespace graph_accessor {
@@ -29,8 +29,10 @@ struct data_departure_interchange : data_departure {
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
       schedule const& schedule,
-      distributions_container::precomputed_distributions_container const&
-          precomputed_distributions,
+      distributions_container::abstract_distributions_container const&
+          train_distributions_container,
+      distributions_container::abstract_distributions_container const&
+          feeder_distributions_container,
       start_and_travel_distributions const& s_t_distributions);
 
   struct interchange_feeder_info {
@@ -46,8 +48,10 @@ protected:
   data_departure_interchange(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
-      distributions_container::precomputed_distributions_container const&
-          distributions_container,
+      distributions_container::abstract_distributions_container const&
+          train_distributions_container,
+      distributions_container::abstract_distributions_container const&
+          feeder_distributions_container,
       start_and_travel_distributions const& s_t_distributions);
 
   void init_interchange_feeder_info(
@@ -66,8 +70,10 @@ struct data_departure_interchange_walk : data_departure_interchange {
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
       schedule const& schedule,
-      distributions_container::precomputed_distributions_container const&
-          precomputed_distributions,
+      distributions_container::abstract_distributions_container const&
+          train_distributions_container,
+      distributions_container::abstract_distributions_container const&
+          feeder_distributions_container,
       start_and_travel_distributions const& s_t_distributions);
 };
 

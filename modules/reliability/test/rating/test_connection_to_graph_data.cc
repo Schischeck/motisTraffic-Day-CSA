@@ -67,11 +67,10 @@ TEST_CASE("to_element2", "[conn_to_graph_data]") {
       schedule2::ICE_K_F_S);
 
   // route node at Frankfurt of train ICE_K_F_S
-  auto& route_node =
-      *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(
-               *test_connection_to_graph_data::schedule, schedule2::ICE_K_F_S))
-           ->_to;
+  auto& route_node = *graph_accessor::get_departing_route_edge(
+                          *graph_accessor::get_first_route_node(
+                              *test_connection_to_graph_data::schedule,
+                              schedule2::ICE_K_F_S))->_to;
   // route edge from Frankfurt to Stuttgart
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
@@ -90,7 +89,7 @@ TEST_CASE("get_elements", "[conn_to_graph_data]") {
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35));
 
-  auto test_cb = [=](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
     REQUIRE(response->connections()->size() == 1);
 

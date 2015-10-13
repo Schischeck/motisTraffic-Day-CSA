@@ -38,12 +38,15 @@ data_departure_interchange::data_departure_interchange(
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
     schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
     start_and_travel_distributions const& s_t_distributions)
     : data_departure(is_first_route_node, departing_light_conn.d_time) {
-  init_train_info(route_node, departing_light_conn, schedule.categories,
-                  s_t_distributions, precomputed_distributions);
+  init_train_info(route_node, departing_light_conn,
+                  train_distributions_container, s_t_distributions,
+                  schedule.categories);
 
   duration const transfer_time =
       schedule.stations[route_node._station_node->_id]
@@ -57,7 +60,7 @@ data_departure_interchange::data_departure_interchange(
       route_node, departing_light_conn, arriving_light_conn,
       schedule.stations[route_node._station_node->_id]->transfer_time);
   init_feeder_info(departing_light_conn, all_feeders_data, schedule,
-                   precomputed_distributions);
+                   feeder_distributions_container);
   maximum_waiting_time_ =
       std::max(maximum_waiting_time_, interchange_feeder_info_.waiting_time_);
 }
@@ -82,11 +85,14 @@ void data_departure_interchange::init_interchange_feeder_info(
 data_departure_interchange::data_departure_interchange(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        distributions_container,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
     start_and_travel_distributions const& s_t_distributions)
     : data_departure(route_node, light_connection, is_first_route_node,
-                     schedule, distributions_container, s_t_distributions) {
+                     schedule, train_distributions_container,
+                     feeder_distributions_container, s_t_distributions) {
   // nothing to do
 }
 
@@ -96,16 +102,19 @@ data_departure_interchange_walk::data_departure_interchange_walk(
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
     schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
     start_and_travel_distributions const& s_t_distributions)
-    : data_departure_interchange(departing_route_node, departing_light_conn,
-                                 is_first_route_node, schedule,
-                                 precomputed_distributions, s_t_distributions) {
+    : data_departure_interchange(
+          departing_route_node, departing_light_conn, is_first_route_node,
+          schedule, train_distributions_container,
+          feeder_distributions_container, s_t_distributions) {
   init_interchange_feeder_info(
       arriving_light_conn.a_time, arrival_distribution,
       graph_accessor::walking_duration(arrival_station,
-                                    *departing_route_node._station_node),
+                                       *departing_route_node._station_node),
       0);
 }
 

@@ -45,20 +45,15 @@ namespace test_public_transport {
 auto schedule =
     loader::load_schedule("../modules/reliability/resources/schedule2/",
                           to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29));
-distributions_container::precomputed_distributions_container
-    precomputed_distributions(schedule->node_count);
-start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
-                                                      {0.1, 0.8, 0.1}, -1);
-}
+}  // namespace test_public_transport
 
 /* deliver distributions for connection
  * Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
-std::vector<probability_distribution> compute_test_distributions() {
+std::vector<probability_distribution> compute_test_distributions(
+    distributions_container::precomputed_distributions_container const&
+        precomputed_distributions) {
   using namespace test_public_transport;
-  distributions_calculator::precomputation::perform_precomputation(
-      *test_public_transport::schedule, s_t_distributions,
-      precomputed_distributions);
   start_and_travel_test_distributions s_t_distributions({.6, .4});
   std::vector<probability_distribution> distributions;
   interchange_data_for_tests const ic_data(
@@ -81,7 +76,7 @@ std::vector<probability_distribution> compute_test_distributions() {
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, distributions[1],
       *test_public_transport::schedule, precomputed_distributions,
-      s_t_distributions);
+      precomputed_distributions, s_t_distributions);
   calc_departure_distribution::interchange::compute_departure_distribution(
       dep_data, distributions[2]);
 
@@ -102,15 +97,25 @@ TEST_CASE("rate", "[rate_public_transport]") {
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35));
 
-  auto test_cb = [=](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
     REQUIRE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
         *test_public_transport::schedule, *response->connections()->begin());
     REQUIRE(elements.size() == 2);
 
-    auto distributions = rate(elements);
-    auto test_distributions = compute_test_distributions();
+    distributions_container::precomputed_distributions_container
+        precomputed_distributions(test_public_transport::schedule->node_count);
+    start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
+                                                          {0.1, 0.8, 0.1}, -1);
+    distributions_calculator::precomputation::perform_precomputation(
+        *test_public_transport::schedule, s_t_distributions,
+        precomputed_distributions);
+
+    auto test_distributions =
+        compute_test_distributions(precomputed_distributions);
+    auto distributions = rate(elements, *test_public_transport::schedule,
+                              precomputed_distributions);
     REQUIRE(distributions.size() == 4);
     REQUIRE(test_distributions.size() == 4);
     for (unsigned int i = 0; i < distributions.size(); i++) {

@@ -32,7 +32,7 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
     auto req = msg->content<ReliableRoutingRequest const*>();
 
     auto reliability_cb =
-        [=](routing::RoutingResponse const* routing_response,
+        [&](routing::RoutingResponse const* routing_response,
             std::vector<float> ratings, boost::system::error_code e) {
           if (e) {
             return cb({}, e);
@@ -62,8 +62,7 @@ msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, request->type(),
                                     request->direction(),
-                                    b.CreateVector(station_elements))
-          .Union()));
+                                    b.CreateVector(station_elements)).Union()));
   return make_msg(b);
 }
 

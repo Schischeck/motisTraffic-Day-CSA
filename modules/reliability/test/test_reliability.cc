@@ -31,7 +31,8 @@ short const ICE_E_K = 7;  // 12:45 --> 14:15
 }
 
 void foo(routing::Connection const* c) {
-  std::cout << std::endl << std::endl;
+  std::cout << std::endl
+            << std::endl;
   for (auto it = c->stops()->begin(); it != c->stops()->end(); ++it) {
     std::cout << "Stop " << it->name()->str() << std::endl;
   }
@@ -48,7 +49,7 @@ TEST_CASE("request", "[reliability]") {
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35));
 
-  auto test_cb = [=](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     // std::cout << "--------------ok\n" << msg->to_json() << std::endl;
     auto response = msg->content<routing::RoutingResponse const*>();
     for (auto it = response->connections()->begin();

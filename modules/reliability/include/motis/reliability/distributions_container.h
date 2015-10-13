@@ -13,7 +13,14 @@ namespace reliability {
 namespace distributions_container {
 enum event_type { arrival, departure };
 
-struct precomputed_distributions_container {
+struct abstract_distributions_container {
+  virtual ~abstract_distributions_container() {}
+  virtual probability_distribution const& get_distribution(
+      unsigned int const route_node_idx, unsigned int const light_conn_idx,
+      event_type const t) const = 0;
+};
+
+struct precomputed_distributions_container : abstract_distributions_container {
   precomputed_distributions_container(unsigned num_nodes)
       : node_to_departure_distributions_(num_nodes),
         node_to_arrival_distributions_(num_nodes) {}
@@ -29,7 +36,8 @@ struct precomputed_distributions_container {
 
   virtual probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      event_type const t) const {
+      event_type const t) const override {
+    assert(contains_distributions(route_node_idx, t));
     auto const& distribution =
         (t == departure
              ? node_to_departure_distributions_.at(route_node_idx)
@@ -43,6 +51,7 @@ struct precomputed_distributions_container {
   probability_distribution& get_distribution_non_const(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
       event_type const t) {
+    assert(contains_distributions(route_node_idx, t));
     auto& distribution =
         (t == departure
              ? node_to_departure_distributions_.at(route_node_idx)
@@ -72,10 +81,10 @@ private:
       node_to_arrival_distributions_;
 };  // struct precomputed_distributions_container
 
-struct ride_distributions_container {
+struct ride_distributions_container : abstract_distributions_container {
   probability_distribution const& get_distribution(
       unsigned int const route_node_idx, unsigned int const light_conn_idx,
-      event_type const t) const {
+      event_type const t) const override {
     auto const it =
         distributions_.find(std::make_tuple(route_node_idx, light_conn_idx, t));
     assert(it != distributions_.end());

@@ -99,7 +99,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   data_departure data(first_route_node, first_light_conn, true, *schedule,
-                      dummy, s_t_distributions);
+                      dummy, dummy, s_t_distributions);
   train_arrived(data);
 
   REQUIRE(equal(train_arrived(data), 0.6));
@@ -127,7 +127,8 @@ TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
   data_departure data(*second_route_node, light_connection, false, *schedule,
-                      train_distributions, s_t_distributions);
+                      train_distributions, train_distributions,
+                      s_t_distributions);
   train_arrived(data);
 
   REQUIRE(equal(train_arrived(data), 0.8));
@@ -301,7 +302,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   data_departure data(first_route_node, first_light_conn, true, *schedule,
-                      dummy, s_t_distributions);
+                      dummy, dummy, s_t_distributions);
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 
@@ -339,7 +340,8 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
    * The second feeder has no influence on this departure
    */
   data_departure data(first_route_node, light_connection, true, *schedule,
-                      train_distributions, s_t_distributions);
+                      train_distributions, train_distributions,
+                      s_t_distributions);
 
   REQUIRE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.6));
@@ -400,7 +402,7 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
   data_departure data(*second_route_node, light_connection, false, *schedule,
-                      train_distributions, *dummy);
+                      train_distributions, train_distributions, *dummy);
 
   REQUIRE(equal(train_arrived(data), 0.8));
   REQUIRE(
@@ -463,7 +465,8 @@ TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
   data_departure data(route_node, light_connection, false, *schedule,
-                      train_distributions, s_t_distributions);
+                      train_distributions, train_distributions,
+                      s_t_distributions);
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(

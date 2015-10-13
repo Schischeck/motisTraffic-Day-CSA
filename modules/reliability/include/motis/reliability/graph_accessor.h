@@ -150,6 +150,9 @@ inline node const& get_first_route_node(node const& route_node) {
 inline node const* get_first_route_node(schedule const& schedule,
                                         int const train_nr) {
   for (auto node : schedule.route_index_to_first_route_node) {
+    assert(graph_accessor::get_departing_route_edge(*node));
+    assert(graph_accessor::get_departing_route_edge(*node)
+               ->_m._route_edge._conns.size() > 0);
     if (graph_accessor::get_departing_route_edge(*node)
             ->_m._route_edge._conns[0]
             ._full_con->con_info->train_nr == train_nr) {
