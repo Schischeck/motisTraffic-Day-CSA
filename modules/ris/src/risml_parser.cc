@@ -109,7 +109,7 @@ Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
   for (auto const& msg : doc.select_nodes("/Paket/ListNachricht/Nachricht")) {
     using parser_t =
         std::function<Offset<Message>(FlatBufferBuilder&, xml_node const&)>;
-    std::map<cstr, parser_t> map(
+    static std::map<cstr, parser_t> map(
         {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
          {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
          {"Ausfall", std::bind(parse_cancel_msg, _1, _2)}});
