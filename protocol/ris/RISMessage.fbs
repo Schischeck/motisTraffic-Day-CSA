@@ -1,0 +1,105 @@
+namespace motis.ris;
+
+// ----------------------------------------------------------------------------
+// Train centered Messages
+// ----------------------------------------------------------------------------
+enum EventType : byte {Arrival, Departure, Pass}
+enum StationIdType : bool {EVA, DS100}
+table Event {
+  stationIdType: StationIdType;
+  stationId: string;
+  
+  trainIndex: int;
+  type: EventType;
+  scheduledTime: ulong;
+}
+
+table UpdatedTrainEvent {
+  base: Event;
+  updatedTime: ulong;
+}
+
+table ReroutedTrainEvent {
+  base: Event;
+  revert: bool; // RegSta = Normal
+}
+
+enum DelayType : bool {Is, Forecast} // Ist and IstProg
+table DelayMessage { 
+  type: DelayType;
+  events: [UpdatedTrainEvent];
+}
+
+table AusfallMessage {
+  trainIndex: string;
+  events: [Event];
+}
+
+table ZusatzzugMessage {
+  trainIndex: string;
+  trainCategory: string;
+  events: [Event];
+}
+
+table UmleitungMessage {
+  trainIndex: string;
+  trainCategory: string;
+  canceledEvents: [Event];
+  newEvents: [ReroutedTrainEvent];
+}
+
+// ----------------------------------------------------------------------------
+// Connection Messages
+// ----------------------------------------------------------------------------
+table FeedingTrain {
+  eva: string;
+  trainIndex: string;
+  scheduledTime: ulong;
+}
+
+table ConnectionDecision {
+  eva: string;
+  trainIndex: string;
+  scheduledTime: ulong;
+  hold: bool;
+}
+
+table ConnectionDecisionMessage { // Anschluss
+  from: FeedingTrain;
+  to: [ConnectionDecision];
+}
+
+table ConnectionAssessment {
+  eva: string;
+  trainIndex: string;
+  scheduledTime: ulong;
+  assessment: int;
+}
+
+table ConnectionAssessmentMessage { // Anschlussbewertung
+  from: FeedingTrain;
+  to: [ConnectionAssessment];
+}
+
+// ----------------------------------------------------------------------------
+// envelope
+// ----------------------------------------------------------------------------
+union MessageUnion {
+  DelayMessage
+}
+
+table Message {
+  content: MessageUnion;
+}
+
+table Packet {
+  timestamp: ulong;
+  messages: [Message];
+}
+
+table RISBatch {
+  packets: [Packet];
+}
+
+
+root_type RISBatch;
