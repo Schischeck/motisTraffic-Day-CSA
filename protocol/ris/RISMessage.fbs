@@ -30,18 +30,17 @@ table DelayMessage {
   events: [UpdatedTrainEvent];
 }
 
-table AusfallMessage {
-  trainIndex: string;
+table CancelMessage {
   events: [Event];
 }
 
-table ZusatzzugMessage {
+table AdditionalMessage {
   trainIndex: string;
   trainCategory: string;
   events: [Event];
 }
 
-table UmleitungMessage {
+table RerouteMessage {
   trainIndex: string;
   trainCategory: string;
   canceledEvents: [Event];
@@ -85,7 +84,8 @@ table ConnectionAssessmentMessage { // Anschlussbewertung
 // envelope
 // ----------------------------------------------------------------------------
 union MessageUnion {
-  DelayMessage
+  DelayMessage,
+  CancelMessage
 }
 
 table Message {

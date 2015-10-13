@@ -1,9 +1,5 @@
 #include "gtest/gtest.h"
 
-#include <iostream>
-
-#include "flatbuffers/flatbuffers.h"
-
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
