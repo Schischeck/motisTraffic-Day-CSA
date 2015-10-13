@@ -38,13 +38,15 @@ struct node {
       std::vector<std::tuple<resolved_rule_info, hrd_service*, hrd_service*>>&
       /* rules */){};
 
-  virtual std::array<node*, 2> neighbors() const = 0;
+  virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
+
+  std::vector<node*> parents_;
 };
 
 struct service_node : public node {
   service_node(hrd_service* service) : service(service) {}
-  virtual std::array<node*, 2> neighbors() const override {
+  virtual std::array<node*, 2> children() const override {
     return {{nullptr, nullptr}};
   }
   virtual bitfield const& traffic_days() const override {
@@ -86,7 +88,7 @@ struct rule_node : public node {
     return resolved_it->service.get();
   }
 
-  std::array<node*, 2> neighbors() const override { return {{s1_, s2_}}; }
+  std::array<node*, 2> children() const override { return {{s1_, s2_}}; }
 
   virtual bitfield const& traffic_days() const override {
     return traffic_days_;
@@ -117,7 +119,7 @@ struct layer_node : public node {
     right_->resolve_services(active_traffic_days, resolved_services, rules);
   }
 
-  std::array<node*, 2> neighbors() const override { return {{left_, right_}}; }
+  std::array<node*, 2> children() const override { return {{left_, right_}}; }
 
   virtual bitfield const& traffic_days() const override {
     return traffic_days_;

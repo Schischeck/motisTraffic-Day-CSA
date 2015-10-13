@@ -20,16 +20,30 @@ struct service_rules {
   service_rules(rules rules) : rules_(std::move(rules)) {}
 
   bool add_service(hrd_service const& s) {
+    std::set<rule*> rules;
+    for (auto const& entry : rules_) {
+      for (auto const& rule : entry.second) {
+        rules.insert(rule.get());
+      }
+    }
+    // printf("number of rules: %d\n", (int)rules.size());
+
     std::pair<hrd_service const*, hrd_service*> copied_service;
     copied_service.first = &s;  // the original service
     copied_service.second = nullptr;  // pointer to the copy if we need it
 
     for (auto const& id : s.get_ids()) {
+      printf("\n%d %s\n", id.first, reinterpret_cast<char const*>(&id.second));
+
       auto it = rules_.find(id);
       if (it != end(rules_)) {
         try_apply_rules(copied_service, it->second);
       }
     }
+
+    //    printf("ADD: %p -> %p\n", copied_service.first,
+    //    copied_service.second);
+
     return copied_service.second != nullptr;
   }
 
@@ -51,82 +65,93 @@ struct service_rules {
     return s.second;
   }
 
-  void create_graph() {
-    std::vector<std::unique_ptr<node>> nodes;
+  std::vector<std::vector<node*>> create_graph() {
+    std::vector<std::vector<node*>> layers(1);
     std::map<hrd_service*, node*> service_to_node;
-
-    int layer = 0;
-    std::vector<std::map<node*, std::set<node*>>> referenced_by(1);
-    std::vector<std::vector<node*>> layer_nodes(1);
+    std::set<rule*> considered_rules;
     for (auto const& rule_entry : rules_) {
       for (auto const& rule : rule_entry.second) {
+        if (considered_rules.find(rule.get()) != end(considered_rules)) {
+          continue;
+        }
+        considered_rules.insert(rule.get());
+
+        printf("service combinations: %d\n",
+               (int)rule->service_combinations().size());
+
         for (auto const& comb : rule->service_combinations()) {
           auto const& s1 = std::get<0>(comb);
           auto const& s2 = std::get<1>(comb);
 
+          printf("%p %p\n", s1, s2);
+
           auto s1_node =
               motis::loader::get_or_create(service_to_node, s1, [&]() {
-                nodes.emplace_back(new service_node(s1));
-                return nodes.back().get();
+                nodes_.emplace_back(new service_node(s1));
+                return nodes_.back().get();
               });
           auto s2_node =
               motis::loader::get_or_create(service_to_node, s2, [&]() {
-                nodes.emplace_back(new service_node(s2));
-                return nodes.back().get();
+                nodes_.emplace_back(new service_node(s2));
+                return nodes_.back().get();
               });
 
-          nodes.emplace_back(new rule_node(
+          nodes_.emplace_back(new rule_node(
               reinterpret_cast<service_node*>(s1_node),
               reinterpret_cast<service_node*>(s2_node), std::get<2>(comb)));
-          auto rule_node = nodes.back().get();
-          referenced_by[layer][s1_node].insert(rule_node);
-          referenced_by[layer][s2_node].insert(rule_node);
-          layer_nodes[layer].push_back(rule_node);
+          auto rule_node = nodes_.back().get();
+          s1_node->parents_.push_back(rule_node);
+          s2_node->parents_.push_back(rule_node);
+          layers[0].push_back(rule_node);
         }
       }
     }
 
-    while (!referenced_by[layer].empty()) {
-      auto next_layer = layer + 1;
+    int prev_layer_idx = 0;
+    int next_layer_idx = 1;
+    while (!layers[prev_layer_idx].empty()) {
+      layers.resize(next_layer_idx + 1);
 
-      referenced_by.resize(next_layer);
-      layer_nodes.resize(next_layer);
+      printf("nodes on layer %d: %d\n", prev_layer_idx,
+             (int)layers[prev_layer_idx].size());
 
-      std::set<std::pair<node*, node*>> node_combinations;
-
-      for (auto const& node : layer_nodes[layer]) {
-        for (auto const& neighbor : node->neighbors()) {
-          for (auto const& ext_neighbor : referenced_by[layer][neighbor]) {
-            if (ext_neighbor == node) {
+      std::set<std::pair<node*, node*>> considered_combinations;
+      for (auto const& node : layers[prev_layer_idx]) {
+        for (auto const& child : node->children()) {
+          for (auto const& related_node : child->parents_) {
+            if (related_node == node) {
               continue;
             }
-
-            if (node_combinations.find(std::make_pair(ext_neighbor, node)) !=
-                end(node_combinations)) {
+            if (considered_combinations.find(std::make_pair(
+                    related_node, node)) != end(considered_combinations)) {
               continue;
             }
-            node_combinations.emplace(node, ext_neighbor);
+            considered_combinations.emplace(node, related_node);
 
-            layer_node new_node(ext_neighbor, node);
-            if (new_node.traffic_days().none()) {
+            layer_node candidate(node, related_node);
+            if (candidate.traffic_days().none()) {
               continue;
             }
+            // printf("%s\n", candidate.traffic_days().to_string().c_str());
+            nodes_.emplace_back(new layer_node(candidate));
 
-            nodes.emplace_back(new layer_node(new_node));
-            auto persistent = nodes.back().get();
-
-            referenced_by[next_layer][node].insert(persistent);
-            referenced_by[next_layer][ext_neighbor].insert(persistent);
-            layer_nodes[next_layer].push_back(persistent);
+            auto parent = nodes_.back().get();
+            related_node->parents_.push_back(parent);
+            node->parents_.push_back(parent);
+            layers[next_layer_idx].push_back(parent);
           }
         }
       }
-      ++layer;
+      ++prev_layer_idx;
+      ++next_layer_idx;
     }
+    printf("phase: return: %d\n", (int)nodes_.size());
+    return layers;
   }
 
   rules rules_;
   std::vector<std::unique_ptr<hrd_service>> services_;
+  std::vector<std::unique_ptr<node>> nodes_;
 };
 
 }  // hrd
