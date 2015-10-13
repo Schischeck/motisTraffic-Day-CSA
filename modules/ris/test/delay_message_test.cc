@@ -144,5 +144,123 @@ TEST(delay_message, train_event_type) {
   ASSERT_EQ(EventType_Arrival, get_type(ziel));
 }
 
+// clang-format off
+char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
+<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151006235943156\" KNr=\"123863771\">\
+<ListNachricht><Nachricht><IstProg >\
+<Service Id=\"85825746\" IdZNr=\"21839\" IdZGattung=\"RE\" IdBf=\"AL\"\
+ IdBfEvaNr=\"8000237\" IdZeit=\"20151006232300\"  ZielBfCode=\"ABCH\"\
+ ZielBfEvaNr=\"8000058\" Zielzeit=\"20151007000500\" IdVerwaltung=\"02\"\
+ IdZGattungInt=\"RE\" IdLinie=\"\" SourceZNr=\"EFZ\">\
+<ListZug><Zug Nr=\"21839\" Gattung=\"RE\"  GattungInt=\"RE\" Verwaltung=\"02\" >\
+<ListZE><ZE Typ=\"Ziel\" >\
+<Bf Code=\"ABCH\" EvaNr=\"8000058\" Name=\"B�chen\"/>\
+<Zeit Soll=\"20151007000500\" Prog=\"20151007000600\" Dispo=\"NEIN\" />\
+</ZE>    </ListZE></Zug></ListZug></Service></IstProg>\
+<ListQuelle><Quelle Sender=\"ZENTRAL\"  Typ=\"IstProg\" KNr=\"18767\"\
+ TIn=\"20151006235939097\" TOutSnd=\"20151006235943107\"/>\
+<Quelle Sender=\"10.35.204.12:7213/13\" Typ=\"UIC 102\" TIn=\"20151006235942\"\
+ Esc=\"bln810jye7\" /></ListQuelle></Nachricht></ListNachricht></Paket>";
+// clang-format on
+
+TEST(delay_message, ist_prog_message_1) {
+  auto const msg = parse_xmls({ist_prog_fixture_1});
+  auto const batch = msg->content<RISBatch const*>();
+
+  EXPECT_EQ(1444168783, batch->packets()->Get(0)->timestamp());
+
+  ASSERT_EQ(1, batch->packets()->size());
+  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
+
+  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
+  auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
+
+  EXPECT_EQ(DelayType_Forecast, inner_msg->type());
+
+  auto events = inner_msg->events();
+  ASSERT_EQ(1, events->size());
+
+  EXPECT_EQ(21839, events->Get(0)->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, events->Get(0)->base()->stationIdType());
+  EXPECT_EQ(std::string("8000058"),
+            events->Get(0)->base()->stationId()->c_str());
+  EXPECT_EQ(1444169100, events->Get(0)->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, events->Get(0)->base()->type());
+
+  EXPECT_EQ(1444169160, events->Get(0)->updatedTime());
+}
+
+// clang-format off
+char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
+<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007000000657\" KNr=\"123863949\">\
+<ListNachricht><Nachricht><IstProg >\
+<Service Id=\"85712577\" IdZNr=\"37616\" IdZGattung=\"S\" IdBf=\"APB\"\
+ IdBfEvaNr=\"8004862\" IdZeit=\"20151006231000\"  ZielBfCode=\"AWL\"\
+ ZielBfEvaNr=\"8006236\" Zielzeit=\"20151007001900\" IdVerwaltung=\"0S\"\
+ IdZGattungInt=\"s\" IdLinie=\"1\" SourceZNr=\"EFZ\">\
+<ListZug><Zug Nr=\"37616\" Gattung=\"S\" Linie=\"1\"  GattungInt=\"s\" Verwaltung=\"0S\" >\
+<ListZE>\
+<ZE Typ=\"An\" ><Bf Code=\"ARI\" EvaNr=\"8005106\" Name=\"Hamburg-Rissen\"/>\
+<Zeit Soll=\"20151007001400\" Prog=\"20151007001800\" Dispo=\"NEIN\" /></ZE>\
+<ZE Typ=\"Ab\" ><Bf Code=\"ARI\" EvaNr=\"8005106\" Name=\"Hamburg-Rissen\"/>\
+<Zeit Soll=\"20151007001400\" Prog=\"20151007001800\" Dispo=\"NEIN\" /></ZE>\
+<ZE Typ=\"Ziel\" ><Bf Code=\"AWL\" EvaNr=\"8006236\" Name=\"Wedel(Holst)\"/>\
+<Zeit Soll=\"20151007001900\" Prog=\"20151007002200\" Dispo=\"NEIN\" /></ZE>\
+    </ListZE></Zug></ListZug></Service></IstProg>\
+<ListQuelle><Quelle Sender=\"SBahnHamburg\"  Typ=\"IstProg\" KNr=\"8909333\"\
+ TIn=\"20151006235950236\" TOutSnd=\"20151007000000064\"/></ListQuelle>\
+ </Nachricht></ListNachricht></Paket>";
+// clang-format on
+
+TEST(delay_message, ist_prog_message_2) {
+  auto const msg = parse_xmls({ist_prog_fixture_2});
+  auto const batch = msg->content<RISBatch const*>();
+
+  EXPECT_EQ(1444168800, batch->packets()->Get(0)->timestamp());
+
+  ASSERT_EQ(1, batch->packets()->size());
+  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
+
+  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
+  auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
+
+  EXPECT_EQ(DelayType_Forecast, inner_msg->type());
+
+  auto events = inner_msg->events();
+  ASSERT_EQ(3, events->size());
+
+  // evt 0
+  EXPECT_EQ(37616, events->Get(0)->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, events->Get(0)->base()->stationIdType());
+  EXPECT_EQ(std::string("8005106"),
+            events->Get(0)->base()->stationId()->c_str());
+  EXPECT_EQ(1444169640, events->Get(0)->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, events->Get(0)->base()->type());
+
+  EXPECT_EQ(1444169880, events->Get(0)->updatedTime());
+
+  // evt 1
+  EXPECT_EQ(37616, events->Get(1)->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, events->Get(1)->base()->stationIdType());
+  EXPECT_EQ(std::string("8005106"),
+            events->Get(1)->base()->stationId()->c_str());
+  EXPECT_EQ(1444169640, events->Get(1)->base()->scheduledTime());
+  EXPECT_EQ(EventType_Departure, events->Get(1)->base()->type());
+
+  EXPECT_EQ(1444169880, events->Get(1)->updatedTime());
+
+  // evt 2
+  EXPECT_EQ(37616, events->Get(2)->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, events->Get(2)->base()->stationIdType());
+  EXPECT_EQ(std::string("8006236"),
+            events->Get(2)->base()->stationId()->c_str());
+  EXPECT_EQ(1444169940, events->Get(2)->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, events->Get(2)->base()->type());
+
+  EXPECT_EQ(1444170120, events->Get(2)->updatedTime());
+}
+
 }  // namespace ris
 }  // namespace motis

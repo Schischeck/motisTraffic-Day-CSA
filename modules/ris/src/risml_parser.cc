@@ -12,7 +12,8 @@
 
 #include "motis/protocol/RISMessage_generated.h"
 
-namespace fb = flatbuffers;
+using namespace std::placeholders;
+using namespace flatbuffers;
 using namespace parser;
 using namespace motis::module;
 using namespace motis::ris;
@@ -43,54 +44,62 @@ EventType parse_event_type(cstr const& raw) {
   return map[raw];
 }
 
-fb::Offset<Packet> parse_xml(char const* xml_string,
-                             fb::FlatBufferBuilder& fbb) {
+Offset<Message> parse_delay_msg(pugi::xml_node const& msg,
+                                FlatBufferBuilder& fbb, DelayType delay_type) {
+  std::vector<Offset<UpdatedTrainEvent>> events;
+  for (auto const& train : msg.select_nodes("./Service/ListZug/Zug")) {
+    auto train_index = train.node().attribute("Nr").as_int();
+
+    for (auto const& train_event : train.node().select_nodes("./ListZE/ZE")) {
+      auto const& node = train_event.node();
+
+      StationIdType station_id_type;
+      char const* station_id;
+      auto const& eva_node = node.child("Bf").attribute("EvaNr");
+      if (!eva_node.empty()) {
+        station_id_type = StationIdType_EVA;
+        station_id = eva_node.value();
+      } else {
+        station_id_type = StationIdType_DS100;
+        station_id = node.child("Bf").attribute("Code").value();
+      }
+
+      auto event_type = parse_event_type(node.attribute("Typ").value());
+      auto const& time = node.child("Zeit");
+      auto scheduled = parse_time(time.attribute("Soll").value());
+
+      auto updated_key = (delay_type == DelayType_Is) ? "Ist" : "Prog";
+      auto updated = parse_time(time.attribute(updated_key).value());
+
+      events.push_back(CreateUpdatedTrainEvent(
+          fbb, CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
+                           train_index, event_type, scheduled),
+          updated));
+    }
+  }
+
+  return CreateMessage(
+      fbb, MessageUnion_DelayMessage,
+      CreateDelayMessage(fbb, delay_type, fbb.CreateVector(events)).Union());
+}
+
+Offset<Packet> parse_xml(char const* xml_string, FlatBufferBuilder& fbb) {
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_string(xml_string);
   if (!result) {
     throw std::runtime_error("bad xml: " + std::string(result.description()));
   }
 
-  std::vector<fb::Offset<Message>> messages;
+  std::vector<Offset<Message>> messages;
   for (auto const& msg : doc.select_nodes("/Paket/ListNachricht/Nachricht")) {
+    using parser_t = std::function<Offset<Message>(pugi::xml_node const&,
+                                                   FlatBufferBuilder&)>;
+    std::map<cstr, parser_t> map(
+        {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
+         {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)}});
 
-    std::vector<fb::Offset<UpdatedTrainEvent>> events;
-    for (auto const& train :
-         msg.node().select_nodes("./Ist/Service/ListZug/Zug")) {
-      auto train_index = train.node().attribute("Nr").as_int();
-
-      for (auto const& train_event : train.node().select_nodes("./ListZE/ZE")) {
-        auto const& node = train_event.node();
-
-        StationIdType station_id_type;
-        char const* station_id;
-        auto const& eva_node = node.child("Bf").attribute("EvaNr");
-        if (!eva_node.empty()) {
-          station_id_type = StationIdType_EVA;
-          station_id = eva_node.value();
-        } else {
-          station_id_type = StationIdType_DS100;
-          station_id = node.child("Bf").attribute("Code").value();
-        }
-
-        auto event_type = parse_event_type(node.attribute("Typ").value());
-
-        auto const& time = node.child("Zeit");
-        auto scheduled = parse_time(time.attribute("Soll").value());
-        auto updated = parse_time(time.attribute("Ist").value());
-
-        auto base =
-            CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
-                        train_index, event_type, scheduled);
-        events.push_back(CreateUpdatedTrainEvent(fbb, base, updated));
-      }
-    }
-
-    auto delayMessage = CreateDelayMessage(
-        fbb, DelayType_Is,
-        fbb.CreateVector<fb::Offset<UpdatedTrainEvent>>({events}));
-    messages.push_back(
-        CreateMessage(fbb, MessageUnion_DelayMessage, delayMessage.Union()));
+    auto const& payload = msg.node().first_child();
+    messages.push_back(map[payload.name()](payload, fbb));
   }
 
   auto tout = parse_time(doc.child("Paket").attribute("TOut").value());
@@ -98,9 +107,9 @@ fb::Offset<Packet> parse_xml(char const* xml_string,
 }
 
 msg_ptr motis::ris::parse_xmls(std::vector<char const*> const& xml_strings) {
-  fb::FlatBufferBuilder fbb;
+  FlatBufferBuilder fbb;
 
-  std::vector<fb::Offset<Packet>> packets;
+  std::vector<Offset<Packet>> packets;
   for (auto const& xml_string : xml_strings) {
     packets.push_back(parse_xml(xml_string, fbb));
   }
