@@ -21,9 +21,42 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
+TEST(loader_hrd_rules_graph, ts_mss_full) {
 
   boost::filesystem::path const root = SCHEDULES / "ts-mss-full";
+
+  test_spec s_spec(root / "fahrten", "services.101");
+  test_spec b_spec(root / "stamm", "bitfield.101");
+  test_spec ts_spec(root / "stamm", "durchbi.101");
+  test_spec ms_spec(root / "stamm", "vereinig_vt.101");
+
+  auto hrd_bitfields = parse_bitfields(b_spec.lf_);
+
+  flatbuffers::FlatBufferBuilder fbb;
+  bitfield_translator bt(hrd_bitfields, fbb);
+
+  auto non_expanded_services = s_spec.get_hrd_services();
+
+  std::vector<hrd_service> expanded_services;
+  for (auto const& s : non_expanded_services) {
+    expand_traffic_days(s, bt, expanded_services);
+  }
+
+  rules rs;
+  parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs);
+  parse_merge_split_service_rules(ms_spec.lf_, hrd_bitfields, rs);
+  service_rules service_rs(rs);
+
+  for (auto const& s : expanded_services) {
+    service_rs.add_service(s);
+  }
+
+  auto const& layers = service_rs.create_graph();
+}
+
+TEST(loader_hrd_rules_graph, ts_twice) {
+
+  boost::filesystem::path const root = SCHEDULES / "ts-twice";
 
   test_spec s_spec(root / "fahrten", "services.101");
   test_spec b_spec(root / "stamm", "bitfield.101");
