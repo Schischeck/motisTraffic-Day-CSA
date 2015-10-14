@@ -25,9 +25,10 @@ table AdditionalEvent {
   track: string;  // optional
 }
 
+enum RerouteStatus : bool {Normal, UmlNeu}
 table ReroutedEvent {
   base: AdditionalEvent;
-  revert: bool; // RegSta = Normal
+  status: RerouteStatus;
 }
 
 enum DelayType : bool {Is, Forecast} // Ist and IstProg
@@ -45,7 +46,7 @@ table AdditionMessage {
 }
 
 table RerouteMessage {
-  canceledEvents: [Event];
+  cancelledEvents: [Event];
   newEvents: [ReroutedEvent];
 }
 
@@ -88,7 +89,8 @@ table ConnectionAssessmentMessage { // Anschlussbewertung
 union MessageUnion {
   DelayMessage,
   CancelMessage,
-  AdditionMessage
+  AdditionMessage,
+  RerouteMessage
 }
 
 table Message {
