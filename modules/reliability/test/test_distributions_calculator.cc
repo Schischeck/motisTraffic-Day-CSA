@@ -195,7 +195,7 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
 
   distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
-      first_route_node, 0, last_route_node, *schedule, s_t_distributions,
+      0, last_route_node, *schedule, s_t_distributions,
       precomputed_distributions, container);
 
   {
@@ -246,8 +246,8 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
   unsigned int const light_conn_idx = 1;
 
   distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
-      first_route_node, light_conn_idx, last_route_node, *schedule,
-      s_t_distributions, precomputed_distributions, container);
+      light_conn_idx, last_route_node, *schedule, s_t_distributions,
+      precomputed_distributions, container);
 
   {
     auto const& distribution =

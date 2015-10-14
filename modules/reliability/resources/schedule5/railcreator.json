@@ -1,0 +1,218 @@
+{
+  "stations": [
+    {
+      "name": "Darmstadt",
+      "tracks": 2,
+      "latitude": 49.872000000000014,
+      "longitude": 8.653999999999996,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "1111111",
+      "ds100Code": "1111111",
+      "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt",
+      "tracks": 2,
+      "latitude": 50.110000000000014,
+      "longitude": 8.66599999999994,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2222222",
+      "ds100Code": "2222222",
+      "KMInfo": 0
+    },
+    {
+      "name": "Giessen",
+      "tracks": 2,
+      "latitude": 50.593999999999994,
+      "longitude": 8.663999999999987,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "3333333",
+      "ds100Code": "3333333",
+      "KMInfo": 0
+    },
+    {
+      "name": "Marburg",
+      "tracks": 2,
+      "latitude": 50.80799999999999,
+      "longitude": 8.757000000000062,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4444444",
+      "ds100Code": "4444444",
+      "KMInfo": 0
+    },
+    {
+      "name": "Bensheim",
+      "tracks": 2,
+      "latitude": 49.68700000000001,
+      "longitude": 8.616999999999962,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "5555555",
+      "ds100Code": "5555555",
+      "KMInfo": 0
+    },
+    {
+      "name": "Mannheim",
+      "tracks": 2,
+      "latitude": 49.486999999999966,
+      "longitude": 8.456999999999994,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "6666666",
+      "ds100Code": "6666666",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "RE_D_F_G",
+      "category": "RE",
+      "evaNumber": "3716920",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "1111111",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2222222",
+          "arrival": 20,
+          "departure": 22,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3333333",
+          "arrival": 60,
+          "departure": 62,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "08:00:00.000",
+          "untilTime": "08:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "RE_G_M",
+      "category": "RE",
+      "evaNumber": "5994985",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4444444",
+          "arrival": 30,
+          "departure": 32,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "09:10:00.000",
+          "untilTime": "09:10:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "RE_M_B_D",
+      "category": "RE",
+      "evaNumber": "9209664",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "6666666",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5555555",
+          "arrival": 30,
+          "departure": 31,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1111111",
+          "arrival": 55,
+          "departure": 57,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "07:00:00.000",
+          "untilTime": "07:00:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": [],
+  "startDate": "2015-10-18",
+  "endDate": "2015-10-20"
+}

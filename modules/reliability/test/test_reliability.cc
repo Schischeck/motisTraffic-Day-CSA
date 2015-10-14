@@ -47,7 +47,8 @@ TEST_CASE("request", "[reliability]") {
   auto msg = reliability::flatbuffers_tools::to_flatbuffers_message(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35));
+      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
+      std::make_tuple(28, 9, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     // std::cout << "--------------ok\n" << msg->to_json() << std::endl;

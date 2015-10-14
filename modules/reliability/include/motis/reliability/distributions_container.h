@@ -106,6 +106,18 @@ private:
            probability_distribution> distributions_;
 };  // struct ride_distributions_container
 
+struct single_distribution_container : abstract_distributions_container {
+  single_distribution_container(probability_distribution const& distribution)
+      : distribution_(distribution) {}
+  probability_distribution const& get_distribution(
+      unsigned int const, unsigned int const, event_type const) const override {
+    return distribution_;
+  };
+
+private:
+  probability_distribution const& distribution_;
+};
+
 }  // namespace distributions_container
 }  // namespace reliability
 }  // namespace motis

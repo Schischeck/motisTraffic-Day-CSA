@@ -24,8 +24,8 @@ struct queue_element;
 
 namespace rating {
 namespace connection_to_graph_data {
-std::vector<distributions_calculator::common::queue_element> const get_elements(
-    schedule const&, routing::Connection const*);
+std::vector<std::vector<distributions_calculator::common::queue_element>> const
+get_elements(schedule const&, routing::Connection const*);
 
 namespace detail {
 distributions_calculator::common::queue_element const to_element(

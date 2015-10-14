@@ -18,9 +18,9 @@ using distributions_calculator::common::queue_element;
 namespace rating {
 namespace connection_to_graph_data {
 
-std::vector<queue_element> const get_elements(
+std::vector<std::vector<queue_element>> const get_elements(
     schedule const& sched, routing::Connection const* connection) {
-  std::vector<queue_element> elements;
+  std::vector<std::vector<queue_element>> elements;
   for (auto it_t = connection->transports()->begin();
        it_t != connection->transports()->end(); ++it_t) {
     if (it_t->move_type() == routing::Move_Transport) {
@@ -29,13 +29,21 @@ std::vector<queue_element> const get_elements(
            stop_idx < transport->range()->to(); stop_idx++) {
         auto const tail_stop = (*connection->stops())[stop_idx];
         auto const head_stop = (*connection->stops())[stop_idx + 1];
-        elements.push_back(detail::to_element(
+        auto const element = detail::to_element(
             sched, tail_stop->eva_nr()->str(), head_stop->eva_nr()->str(),
             unix_to_motistime(sched.schedule_begin_,
                               tail_stop->departure()->time()),
             unix_to_motistime(sched.schedule_begin_,
                               head_stop->arrival()->time()),
-            transport->category_name()->str(), transport->train_nr()));
+            transport->category_name()->str(), transport->train_nr());
+
+        // begin new train if elements empty or if there is an interchange
+        if (elements.size() == 0 ||
+            elements.back().back().to_->_id != element.from_->_id) {
+          elements.emplace_back();
+        }
+
+        elements.back().push_back(element);
       }
     }
   }

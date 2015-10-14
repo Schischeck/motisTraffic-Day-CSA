@@ -215,15 +215,15 @@ void process_element(
 }  // namespace detail
 
 void compute_distributions_for_a_ride(
-    node const& first_route_node, unsigned int const light_connection_idx,
-    node const& last_route_node, schedule const& schedule,
+    unsigned int const light_connection_idx, node const& last_route_node,
+    schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::precomputed_distributions_container const&
         precomputed_distributions_container,
     distributions_container::ride_distributions_container&
         ride_distributions_container) {
   node const& very_first_route_node =
-      graph_accessor::get_first_route_node(first_route_node);
+      graph_accessor::get_first_route_node(last_route_node);
   common::queue_type queue;
   detail::insert_all_elements_into_queue(
       very_first_route_node, light_connection_idx, last_route_node, queue);

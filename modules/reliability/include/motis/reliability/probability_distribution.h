@@ -80,7 +80,7 @@ inline bool greater_equal(probability const& a, probability const& b) {
 inline bool operator==(probability_distribution const& lhs,
                        probability_distribution const& rhs) {
   if (lhs.first_minute() != rhs.first_minute() ||
-      lhs.last_minute() != rhs.last_minute() || lhs.sum() != rhs.sum()) {
+      lhs.last_minute() != rhs.last_minute() || !equal(lhs.sum(), rhs.sum())) {
     return false;
   }
   for (int d = lhs.first_minute(); d <= lhs.last_minute(); d++) {
