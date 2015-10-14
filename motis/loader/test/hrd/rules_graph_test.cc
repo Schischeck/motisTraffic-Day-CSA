@@ -22,18 +22,14 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
-  test_spec s_spec(
-      SCHEDULES / "through-and-merge-split-services-heavy" / "fahrten",
-      "services.101");
-  test_spec b_spec(
-      SCHEDULES / "through-and-merge-split-services-heavy" / "stamm",
-      "bitfield.101");
-  test_spec ts_spec(
-      SCHEDULES / "through-and-merge-split-services-heavy" / "stamm",
-      "durchbi.101");
-  test_spec ms_spec(
-      SCHEDULES / "through-and-merge-split-services-heavy" / "stamm",
-      "vereinig_vt.101");
+  test_spec s_spec(SCHEDULES / "through-and-merge-split-services" / "fahrten",
+                   "services.101");
+  test_spec b_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
+                   "bitfield.101");
+  test_spec ts_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
+                    "durchbi.101");
+  test_spec ms_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
+                    "vereinig_vt.101");
 
   auto hrd_bitfields = parse_bitfields(b_spec.lf_);
 
@@ -56,11 +52,6 @@ TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
   }
 
   auto const& layers = service_rs.create_graph();
-  int layer_idx = 0;
-  for (auto const& layer : layers) {
-    printf("nodes on layer %d: %d\n", layer_idx, (int)layers[layer_idx].size());
-    ++layer_idx;
-  }
 }
 
 }  // loader

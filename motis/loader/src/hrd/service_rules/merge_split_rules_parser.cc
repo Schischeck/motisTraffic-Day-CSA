@@ -1,5 +1,8 @@
 #include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
 
+#include <set>
+#include <vector>
+
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
 
@@ -60,22 +63,25 @@ struct mss_rule : public rule {
   }
 
   std::vector<service_combination> service_combinations() const override {
-    std::vector<service_combination> comb;
+    std::vector<service_combination> unordered_pairs;
+    std::set<std::pair<hrd_service*, hrd_service*>> combinations;
     for (auto const& s1 : participants_) {
       for (auto const& s2 : participants_) {
-        if (s1 == s2) {
+        if (s1 == s2 ||
+            combinations.find(std::make_pair(s2, s1)) != end(combinations)) {
           continue;
         }
+        combinations.emplace(s1, s2);
 
         auto intersection = s1->traffic_days_ & s2->traffic_days_ & mask_;
         if (intersection.any()) {
-          comb.emplace_back(
+          unordered_pairs.emplace_back(
               s1, s2, resolved_rule_info{intersection, eva_num_begin_,
                                          eva_num_end_, RuleType_MERGE_SPLIT});
         }
       }
     }
-    return comb;
+    return unordered_pairs;
   }
 
   resolved_rule_info rule_info() const override {

@@ -26,23 +26,17 @@ struct service_rules {
         rules.insert(rule.get());
       }
     }
-    // printf("number of rules: %d\n", (int)rules.size());
 
     std::pair<hrd_service const*, hrd_service*> copied_service;
     copied_service.first = &s;  // the original service
     copied_service.second = nullptr;  // pointer to the copy if we need it
 
     for (auto const& id : s.get_ids()) {
-      printf("\n%d %s\n", id.first, reinterpret_cast<char const*>(&id.second));
-
       auto it = rules_.find(id);
       if (it != end(rules_)) {
         try_apply_rules(copied_service, it->second);
       }
     }
-
-    //    printf("ADD: %p -> %p\n", copied_service.first,
-    //    copied_service.second);
 
     return copied_service.second != nullptr;
   }
@@ -76,14 +70,9 @@ struct service_rules {
         }
         considered_rules.insert(rule.get());
 
-        printf("service combinations: %d\n",
-               (int)rule->service_combinations().size());
-
         for (auto const& comb : rule->service_combinations()) {
           auto const& s1 = std::get<0>(comb);
           auto const& s2 = std::get<1>(comb);
-
-          printf("%p %p\n", s1, s2);
 
           auto s1_node =
               motis::loader::get_or_create(service_to_node, s1, [&]() {
@@ -103,6 +92,18 @@ struct service_rules {
           s1_node->parents_.push_back(rule_node);
           s2_node->parents_.push_back(rule_node);
           layers[0].push_back(rule_node);
+          printf("create s1_node from   [%p]\n", s1);
+          printf("create s2_node from   [%p]\n", s2);
+          printf("create rule_node from [%p]\n", rule.get());
+
+          printf("[%p]-(%p)-[%p]\n", s1_node, rule_node, s2_node);
+
+          printf("s1_node:    traffic_days: [%s]\n",
+                 s1_node->traffic_days().to_string().c_str());
+          printf("s2_node:    traffic_days: [%s]\n",
+                 s2_node->traffic_days().to_string().c_str());
+          printf("rule_node:  traffic_days: [%s]\n",
+                 rule_node->traffic_days().to_string().c_str());
         }
       }
     }
@@ -112,8 +113,8 @@ struct service_rules {
     while (!layers[prev_layer_idx].empty()) {
       layers.resize(next_layer_idx + 1);
 
-      printf("nodes on layer %d: %d\n", prev_layer_idx,
-             (int)layers[prev_layer_idx].size());
+      printf("(prev_layer_idx, next_layer_idx) = (%d, %d)\n", prev_layer_idx,
+             next_layer_idx);
 
       std::set<std::pair<node*, node*>> considered_combinations;
       for (auto const& node : layers[prev_layer_idx]) {
@@ -132,13 +133,15 @@ struct service_rules {
             if (candidate.traffic_days().none()) {
               continue;
             }
-            // printf("%s\n", candidate.traffic_days().to_string().c_str());
             nodes_.emplace_back(new layer_node(candidate));
 
             auto parent = nodes_.back().get();
             related_node->parents_.push_back(parent);
             node->parents_.push_back(parent);
             layers[next_layer_idx].push_back(parent);
+            printf("[%p]-(%p)-[%p]\n", node, parent, related_node);
+            printf("layer_node traffic_days: [%s]\n",
+                   parent->traffic_days().to_string().c_str());
           }
         }
       }

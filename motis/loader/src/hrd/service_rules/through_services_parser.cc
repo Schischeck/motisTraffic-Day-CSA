@@ -52,7 +52,6 @@ struct ts_rule : public rule {
   }
 
   void add(hrd_service* s, int info) override {
-    printf("adding %p to ts rule[%d]\n", s, info);
     if (info == 1) {
       participants_1_.push_back(s);
     } else {
