@@ -4,14 +4,19 @@ namespace motis.ris;
 // Train centered Messages
 // ----------------------------------------------------------------------------
 enum EventType : byte {Arrival, Departure, Pass}
-enum StationIdType : bool {EVA, DS100}
+enum StationIdType : byte {Context, EVA, DS100}
 table Event {
+  // if stationIdType is Context, station Id is not set
   stationIdType: StationIdType;
-  stationId: string;
+  stationId: string; // optional
   
   trainIndex: int;
   type: EventType;
   scheduledTime: ulong;
+}
+
+table CancelMessage {
+  events: [Event] (required);
 }
 
 table UpdatedEvent {
@@ -19,68 +24,54 @@ table UpdatedEvent {
   updatedTime: ulong;
 }
 
-table AdditionalEvent {
-  base: Event;
-  trainCategory: string;
-  track: string;  // optional
-}
-
-enum RerouteStatus : bool {Normal, UmlNeu}
-table ReroutedEvent {
-  base: AdditionalEvent;
-  status: RerouteStatus;
-}
-
 enum DelayType : bool {Is, Forecast} // Ist and IstProg
 table DelayMessage { 
   type: DelayType;
-  events: [UpdatedEvent];
+  events: [UpdatedEvent] (required);
 }
 
-table CancelMessage {
-  events: [Event];
+table AdditionalEvent {
+  base: Event;
+  trainCategory: string (required);
+  track: string;  // optional
 }
 
 table AdditionMessage {
   events: [AdditionalEvent];
 }
 
+enum RerouteStatus : bool {Normal, UmlNeu}
+table ReroutedEvent {
+  base: AdditionalEvent (required);
+  status: RerouteStatus;
+}
+
 table RerouteMessage {
-  cancelledEvents: [Event];
-  newEvents: [ReroutedEvent];
+  cancelledEvents: [Event] (required);
+  newEvents: [ReroutedEvent] (required);
 }
 
 // ----------------------------------------------------------------------------
-// Connection Messages
+// Connection Event Messages
 // ----------------------------------------------------------------------------
-table FeedingTrain {
-  eva: string;
-  trainIndex: string;
-  scheduledTime: ulong;
-}
-
 table ConnectionDecision {
-  eva: string;
-  trainIndex: string;
-  scheduledTime: ulong;
+  base: Event (required);
   hold: bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
-  from: FeedingTrain;
-  to: [ConnectionDecision];
+  from: Event (required);
+  to: [ConnectionDecision] (required);
 }
 
 table ConnectionAssessment {
-  eva: string;
-  trainIndex: string;
-  scheduledTime: ulong;
+  base: Event (required);
   assessment: int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
-  from: FeedingTrain;
-  to: [ConnectionAssessment];
+  from: Event (required);
+  to: [ConnectionAssessment] (required);
 }
 
 // ----------------------------------------------------------------------------
@@ -94,16 +85,16 @@ union MessageUnion {
 }
 
 table Message {
-  content: MessageUnion;
+  content: MessageUnion (required);
 }
 
 table Packet {
   timestamp: ulong;
-  messages: [Message];
+  messages: [Message] (required);
 }
 
 table RISBatch {
-  packets: [Packet];
+  packets: [Packet] (required);
 }
 
 root_type RISBatch;

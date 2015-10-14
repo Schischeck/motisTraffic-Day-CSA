@@ -49,6 +49,26 @@ xml_attribute child_attr(xml_node const& n, char const* e, char const* a) {
   return n.child(e).attribute(a);
 }
 
+Offset<Event> parse_event(FlatBufferBuilder& fbb, xml_node const& e_node,
+                          int train_index) {
+  StationIdType station_id_type;
+  char const* station_id;
+  auto const& eva_attribute = child_attr(e_node, "Bf", "EvaNr");
+  if (!eva_attribute.empty()) {
+    station_id_type = StationIdType_EVA;
+    station_id = eva_attribute.value();
+  } else {
+    station_id_type = StationIdType_DS100;
+    station_id = child_attr(e_node, "Bf", "Code").value();
+  }
+
+  auto event_type = parse_event_type(e_node.attribute("Typ").value());
+  auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
+  
+  return CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
+                     train_index, event_type, scheduled);
+}
+
 template <typename F>
 void foreach_event(FlatBufferBuilder& fbb, xml_node const& msg, F func,
                    char const* train_selector = "./Service/ListZug/Zug") {
@@ -58,25 +78,7 @@ void foreach_event(FlatBufferBuilder& fbb, xml_node const& msg, F func,
 
     for (auto&& train_event : train.node().select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
-
-      StationIdType station_id_type;
-      char const* station_id;
-      auto const& eva_attribute = child_attr(e_node, "Bf", "EvaNr");
-      if (!eva_attribute.empty()) {
-        station_id_type = StationIdType_EVA;
-        station_id = eva_attribute.value();
-      } else {
-        station_id_type = StationIdType_DS100;
-        station_id = child_attr(e_node, "Bf", "Code").value();
-      }
-
-      auto event_type = parse_event_type(e_node.attribute("Typ").value());
-      auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
-
-      // Event, xml_node ZE, xml_node Zug
-      func(CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
-                       train_index, event_type, scheduled),
-           e_node, t_node);
+      func(parse_event(fbb, e_node, train_index), e_node, t_node);
     }
   }
 }
