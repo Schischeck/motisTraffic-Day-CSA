@@ -22,14 +22,13 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
-  test_spec s_spec(SCHEDULES / "through-and-merge-split-services" / "fahrten",
-                   "services.101");
-  test_spec b_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
-                   "bitfield.101");
-  test_spec ts_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
-                    "durchbi.101");
-  test_spec ms_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
-                    "vereinig_vt.101");
+
+  boost::filesystem::path const root = SCHEDULES / "ts-mss-full";
+
+  test_spec s_spec(root / "fahrten", "services.101");
+  test_spec b_spec(root / "stamm", "bitfield.101");
+  test_spec ts_spec(root / "stamm", "durchbi.101");
+  test_spec ms_spec(root / "stamm", "vereinig_vt.101");
 
   auto hrd_bitfields = parse_bitfields(b_spec.lf_);
 
