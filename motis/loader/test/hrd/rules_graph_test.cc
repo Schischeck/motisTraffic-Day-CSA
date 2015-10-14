@@ -32,11 +32,6 @@ TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
 
   auto hrd_bitfields = parse_bitfields(b_spec.lf_);
 
-  rules rs;
-  parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs);
-  parse_merge_split_service_rules(ms_spec.lf_, hrd_bitfields, rs);
-  service_rules service_rs(rs);
-
   flatbuffers::FlatBufferBuilder fbb;
   bitfield_translator bt(hrd_bitfields, fbb);
 
@@ -46,6 +41,12 @@ TEST(loader_hrd_rules_graph, through_and_merge_split_services) {
   for (auto const& s : non_expanded_services) {
     expand_traffic_days(s, bt, expanded_services);
   }
+
+  rules rs;
+  parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs);
+  parse_merge_split_service_rules(ms_spec.lf_, hrd_bitfields, rs);
+  service_rules service_rs(rs);
+
   for (auto const& s : expanded_services) {
     service_rs.add_service(s);
   }
