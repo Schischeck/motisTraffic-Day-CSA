@@ -22,6 +22,7 @@ table UpdatedEvent {
 table AdditionalEvent {
   base: Event;
   trainCategory: string;
+  track: string;  // optional
 }
 
 table ReroutedEvent {
@@ -86,7 +87,8 @@ table ConnectionAssessmentMessage { // Anschlussbewertung
 // ----------------------------------------------------------------------------
 union MessageUnion {
   DelayMessage,
-  CancelMessage
+  CancelMessage,
+  AdditionMessage
 }
 
 table Message {

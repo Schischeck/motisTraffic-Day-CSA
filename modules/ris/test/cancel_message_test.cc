@@ -7,7 +7,7 @@ namespace motis {
 namespace ris {
 
 // clang-format off
-char const* fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
+char const* cancel_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007070635992\" KNr=\"124264761\">\
  <ListNachricht>\
   <Nachricht>\
@@ -46,8 +46,8 @@ TIn=\"20151007070635948\" TOutSnd=\"20151007070050\"/>\
 </Paket>";
 // clang-format on
 
-TEST(ausfall_message, message_1) {
-  auto const msg = parse_xmls({fixture_1});
+TEST(cancel_message, message_1) {
+  auto const msg = parse_xmls({cancel_fixture_1});
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444194395, batch->packets()->Get(0)->timestamp());
@@ -78,7 +78,7 @@ TEST(ausfall_message, message_1) {
 }
 
 // clang-format off
-char const* fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
+char const* cancel_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007161500382\" KNr=\"125683842\">\
  <ListNachricht>\
   <Nachricht>\
@@ -121,7 +121,7 @@ TIn=\"20151007161500043\" TOutSnd=\"20151007161409\"/>\
 
 // TODO!
 TEST(ausfall_message, message_2) {
-  auto const msg = parse_xmls({fixture_2});
+  auto const msg = parse_xmls({cancel_fixture_2});
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444227300, batch->packets()->Get(0)->timestamp());

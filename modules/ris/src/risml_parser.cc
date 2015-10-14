@@ -45,30 +45,36 @@ EventType parse_event_type(cstr const& raw) {
   return map[raw];
 }
 
+xml_attribute child_attr(xml_node const& n, char const* e, char const* a) {
+  return n.child(e).attribute(a);
+}
+
 template <typename F>
 void foreach_event(xml_node const& msg, FlatBufferBuilder& fbb, F func) {
   for (auto&& train : msg.select_nodes("./Service/ListZug/Zug")) {
-    auto train_index = train.node().attribute("Nr").as_int();
+    auto const& t_node = train.node();
+    auto train_index = t_node.attribute("Nr").as_int();
 
     for (auto&& train_event : train.node().select_nodes("./ListZE/ZE")) {
-      auto const& node = train_event.node();
+      auto const& e_node = train_event.node();
 
       StationIdType station_id_type;
       char const* station_id;
-      auto const& eva_node = node.child("Bf").attribute("EvaNr");
+      auto const& eva_node = child_attr(e_node, "Bf", "EvaNr");
       if (!eva_node.empty()) {
         station_id_type = StationIdType_EVA;
         station_id = eva_node.value();
       } else {
         station_id_type = StationIdType_DS100;
-        station_id = node.child("Bf").attribute("Code").value();
+        station_id = child_attr(e_node, "Bf", "Code").value();
       }
 
-      auto event_type = parse_event_type(node.attribute("Typ").value());
-      auto scheduled = parse_time(node.child("Zeit").attribute("Soll").value());
+      auto event_type = parse_event_type(e_node.attribute("Typ").value());
+      auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
 
-      func(node, CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
-                             train_index, event_type, scheduled));
+      func(CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
+                       train_index, event_type, scheduled),
+           e_node, t_node);
     }
   }
 }
@@ -76,13 +82,12 @@ void foreach_event(xml_node const& msg, FlatBufferBuilder& fbb, F func) {
 Offset<Message> parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
                                 DelayType delay_type) {
   std::vector<Offset<UpdatedEvent>> events;
-  auto parse = [&](xml_node const& node, Offset<Event> const& event) {
+  foreach_event(msg, fbb, [&](Offset<Event> const& event,
+                              xml_node const& e_node, xml_node const&) {
     auto attr_name = (delay_type == DelayType_Is) ? "Ist" : "Prog";
-    auto updated = parse_time(node.child("Zeit").attribute(attr_name).value());
+    auto updated = parse_time(child_attr(e_node, "Zeit", attr_name).value());
     events.push_back(CreateUpdatedEvent(fbb, event, updated));
-  };
-
-  foreach_event(msg, fbb, parse);
+  });
   return CreateMessage(
       fbb, MessageUnion_DelayMessage,
       CreateDelayMessage(fbb, delay_type, fbb.CreateVector(events)).Union());
@@ -90,12 +95,26 @@ Offset<Message> parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
 
 Offset<Message> parse_cancel_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   std::vector<Offset<Event>> events;
-  foreach_event(msg, fbb, [&](xml_node const&, Offset<Event> const& event) {
-    events.push_back(event);
-  });
+  foreach_event(msg, fbb, [&](Offset<Event> const& event, xml_node const&,
+                              xml_node const&) { events.push_back(event); });
   return CreateMessage(
       fbb, MessageUnion_CancelMessage,
       CreateCancelMessage(fbb, fbb.CreateVector(events)).Union());
+}
+
+Offset<Message> parse_addition_msg(FlatBufferBuilder& fbb,
+                                   xml_node const& msg) {
+  std::vector<Offset<AdditionalEvent>> events;
+  foreach_event(msg, fbb, [&](Offset<Event> const& event,
+                              xml_node const& e_node, xml_node const& t_node) {
+    auto track_attr = child_attr(e_node, "Gleis", "Soll");
+    auto track = (track_attr) ? fbb.CreateString(track_attr.value()) : 0;
+    auto category = fbb.CreateString(t_node.attribute("Gattung").value());
+    events.push_back(CreateAdditionalEvent(fbb, event, category, track));
+  });
+  return CreateMessage(
+      fbb, MessageUnion_AdditionMessage,
+      CreateAdditionMessage(fbb, fbb.CreateVector(events)).Union());
 }
 
 Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
@@ -112,7 +131,8 @@ Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
     static std::map<cstr, parser_t> map(
         {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
          {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
-         {"Ausfall", std::bind(parse_cancel_msg, _1, _2)}});
+         {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
+         {"Zusatzzug", std::bind(parse_addition_msg, _1, _2)}});
     // TODO handle unknown message!?
 
     auto const& payload = msg.node().first_child();
