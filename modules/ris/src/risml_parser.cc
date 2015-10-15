@@ -49,24 +49,23 @@ xml_attribute child_attr(xml_node const& n, char const* e, char const* a) {
   return n.child(e).attribute(a);
 }
 
-Offset<Event> parse_event(FlatBufferBuilder& fbb, xml_node const& e_node,
-                          int train_index) {
-  StationIdType station_id_type;
-  char const* station_id;
-  auto const& eva_attribute = child_attr(e_node, "Bf", "EvaNr");
-  if (!eva_attribute.empty()) {
-    station_id_type = StationIdType_EVA;
-    station_id = eva_attribute.value();
+std::pair<StationIdType, Offset<String>> parse_station(FlatBufferBuilder& fbb,
+                                                       xml_node const& e_node) {
+  std::pair<StationIdType, Offset<String>> station;
+  auto const& station_node = e_node.child("Bf");
+  if (!station_node) {
+    station = {StationIdType_Context, 0};
   } else {
-    station_id_type = StationIdType_DS100;
-    station_id = child_attr(e_node, "Bf", "Code").value();
+    auto const& eva_attribute = station_node.attribute("EvaNr");
+    if (!eva_attribute.empty()) {
+      station.first = StationIdType_EVA;
+      station.second = fbb.CreateString(eva_attribute.value());
+    } else {
+      station.first = StationIdType_DS100;
+      station.second = fbb.CreateString(station_node.attribute("Code").value());
+    }
   }
-
-  auto event_type = parse_event_type(e_node.attribute("Typ").value());
-  auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
-  
-  return CreateEvent(fbb, station_id_type, fbb.CreateString(station_id),
-                     train_index, event_type, scheduled);
+  return station;
 }
 
 template <typename F>
@@ -76,9 +75,15 @@ void foreach_event(FlatBufferBuilder& fbb, xml_node const& msg, F func,
     auto const& t_node = train.node();
     auto train_index = t_node.attribute("Nr").as_int();
 
-    for (auto&& train_event : train.node().select_nodes("./ListZE/ZE")) {
+    for (auto&& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
-      func(parse_event(fbb, e_node, train_index), e_node, t_node);
+      auto station = parse_station(fbb, e_node);
+      auto event_type = parse_event_type(e_node.attribute("Typ").value());
+      auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
+
+      auto event = CreateEvent(fbb, station.first, station.second, train_index,
+                               event_type, scheduled);
+      func(event, e_node, t_node);
     }
   }
 }
@@ -154,6 +159,55 @@ Offset<Message> parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
           .Union());
 }
 
+Offset<Event> parse_standalone_event(FlatBufferBuilder& fbb,
+                                     xml_node const& e_node) {
+  auto station = parse_station(fbb, e_node);
+  auto train_index = child_attr(e_node, "Zug", "Nr").as_int();
+  auto event_type = parse_event_type(e_node.attribute("Typ").value());
+  auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
+
+  return CreateEvent(fbb, station.first, station.second, train_index,
+                     event_type, scheduled);
+}
+
+Offset<Message> parse_conn_decision_msg(FlatBufferBuilder& fbb,
+                                        xml_node const& msg) {
+  auto const& from_e_node = msg.child("ZE");
+  auto from = parse_standalone_event(fbb, from_e_node);
+
+  std::vector<Offset<ConnectionDecision>> decisions;
+  for (auto&& connection : from_e_node.select_nodes("./ListAnschl/Anschl")) {
+    auto const& connection_node = connection.node();
+    auto to = parse_standalone_event(fbb, connection_node.child("ZE"));
+    auto hold = cstr(connection_node.attribute("Status").value()) == "Gehalten";
+    decisions.push_back(CreateConnectionDecision(fbb, to, hold));
+  }
+
+  return CreateMessage(
+      fbb, MessageUnion_ConnectionDecisionMessage,
+      CreateConnectionDecisionMessage(fbb, from, fbb.CreateVector(decisions))
+          .Union());
+}
+
+Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
+                                          xml_node const& msg) {
+  auto const& from_e_node = msg.child("ZE");
+  auto from = parse_standalone_event(fbb, from_e_node);
+
+  std::vector<Offset<ConnectionAssessment>> assessments;
+  for (auto&& connection : from_e_node.select_nodes("./ListAnschl/Anschl")) {
+    auto const& connection_node = connection.node();
+    auto to = parse_standalone_event(fbb, connection_node.child("ZE"));
+    auto assessment = connection_node.attribute("Bewertung").as_int();
+    assessments.push_back(CreateConnectionAssessment(fbb, to, assessment));
+  }
+
+  return CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
+                       CreateConnectionAssessmentMessage(
+                           fbb, from, fbb.CreateVector(assessments))
+                           .Union());
+}
+
 Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
   xml_document doc;
   xml_parse_result result = doc.load_string(xml_string);
@@ -170,7 +224,9 @@ Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
          {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
          {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
          {"Zusatzzug", std::bind(parse_addition_msg, _1, _2)},
-         {"Umleitung", std::bind(parse_reroute_msg, _1, _2)}});
+         {"Umleitung", std::bind(parse_reroute_msg, _1, _2)},
+         {"Anschluss", std::bind(parse_conn_decision_msg, _1, _2)},
+         {"Anschlussbewertung", std::bind(parse_conn_assessment_msg, _1, _2)}});
 
     auto const& payload = msg.node().first_child();
     auto it = map.find(payload.name());

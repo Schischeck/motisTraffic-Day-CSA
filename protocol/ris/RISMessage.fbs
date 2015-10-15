@@ -81,7 +81,9 @@ union MessageUnion {
   DelayMessage,
   CancelMessage,
   AdditionMessage,
-  RerouteMessage
+  RerouteMessage,
+  ConnectionDecisionMessage,
+  ConnectionAssessmentMessage
 }
 
 table Message {
