@@ -10,17 +10,16 @@
 #include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/rating/connection_rating.h"
 
 namespace motis {
 namespace reliability {
-using distributions_calculator::common::queue_element;
-
 namespace rating {
 namespace connection_to_graph_data {
 
-std::vector<std::vector<queue_element>> const get_elements(
+std::vector<std::vector<connection_element>> const get_elements(
     schedule const& sched, routing::Connection const* connection) {
-  std::vector<std::vector<queue_element>> elements;
+  std::vector<std::vector<connection_element>> elements;
   for (auto it_t = connection->transports()->begin();
        it_t != connection->transports()->end(); ++it_t) {
     if (it_t->move_type() == routing::Move_Transport) {
@@ -30,7 +29,8 @@ std::vector<std::vector<queue_element>> const get_elements(
         auto const tail_stop = (*connection->stops())[stop_idx];
         auto const head_stop = (*connection->stops())[stop_idx + 1];
         auto const element = detail::to_element(
-            sched, tail_stop->eva_nr()->str(), head_stop->eva_nr()->str(),
+            stop_idx, sched, tail_stop->eva_nr()->str(),
+            head_stop->eva_nr()->str(),
             unix_to_motistime(sched.schedule_begin_,
                               tail_stop->departure()->time()),
             unix_to_motistime(sched.schedule_begin_,
@@ -52,13 +52,11 @@ std::vector<std::vector<queue_element>> const get_elements(
 
 namespace detail {
 
-queue_element const to_element(schedule const& sched,
-                               std::string const& tail_eva,
-                               std::string const& head_eva,
-                               motis::time const dep_time,
-                               motis::time const arr_time,
-                               std::string const& category_str,
-                               unsigned int const train_nr) {
+connection_element const to_element(
+    unsigned int const departure_stop_idx, schedule const& sched,
+    std::string const& tail_eva, std::string const& head_eva,
+    motis::time const dep_time, motis::time const arr_time,
+    std::string const& category_str, unsigned int const train_nr) {
   auto const& tail_station = *sched.station_nodes.at(
       sched.eva_to_station.find(tail_eva)->second->index);
   auto const head_station_id =
@@ -79,16 +77,17 @@ queue_element const to_element(schedule const& sched,
       if (light_conn.first) {
         bool const is_first_route_node =
             graph_accessor::get_arriving_route_edge(*it->_to) == nullptr;
-        return queue_element(route_edge->_from, route_edge->_to,
-                             light_conn.first, light_conn.second,
-                             is_first_route_node);
+        return connection_element(departure_stop_idx, route_edge->_from,
+                                  route_edge->_to, light_conn.first,
+                                  light_conn.second, is_first_route_node);
       }
     }
   }
 
   assert(false);
   // empty element (unexpected case)
-  return queue_element(nullptr, nullptr, nullptr, 0, false);
+  return connection_element(departure_stop_idx, nullptr, nullptr, nullptr, 0,
+                            false);
 }
 
 }  // namespace detail
