@@ -24,7 +24,7 @@ IdVerwaltung=\"80\" IdZGattungInt=\"IRX\" SourceZNr=\"EFZ\">\
           <Zeit Soll=\"20151007102000\"/>\
          </ZE>\
          <ZE Typ=\"Ziel\">\
-          <Bf Code=\"KFKB\" EvaNr=\"8003330\" Name=\"K�ln/Bonn Flughafen\"/>\
+          <Bf Code=\"KFKB\" EvaNr=\"8003330\" Name=\"Koln/Bonn Flughafen\"/>\
           <Zeit Soll=\"20151007182500\"/>\
          </ZE>\
         </ListZE>\
@@ -53,7 +53,8 @@ TEST(addition_message, message_1) {
 
   auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<AdditionMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<AdditionMessage const*>(outer_msg->content());
 
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
@@ -79,7 +80,6 @@ TEST(addition_message, message_1) {
   EXPECT_EQ(nullptr, e1->track());
 }
 
-
 // clang-format off
 char const* addition_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
  <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007043812499\" KNr=\"123928646\">\
@@ -94,16 +94,16 @@ IdZGattungInt=\"ECW\" SourceZNr=\"EFZ\">\
        <Zug Nr=\"2570\" Gattung=\"EC\" GattungInt=\"ECW\" Verwaltung=\"80\">\
         <ListZE>\
          <ZE Typ=\"Start\">\
-          <Bf Code=\"MH\" EvaNr=\"8000261\" Name=\"M�nchen Hbf\"/>\
+          <Bf Code=\"MH\" EvaNr=\"8000261\" Name=\"Munchen Hbf\"/>\
           <Zeit Soll=\"20151008144800\"/>\
           <Gleis Soll=\"19\"/>\
          </ZE>\
          <ZE Typ=\"An\">\
-          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"M�nchen-Pasing\"/>\
+          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"Munchen-Pasing\"/>\
           <Zeit Soll=\"20151008145400\"/>\
          </ZE>\
          <ZE Typ=\"Ab\">\
-          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"M�nchen-Pasing\"/>\
+          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"Munchen-Pasing\"/>\
           <Zeit Soll=\"20151008145600\"/>\
          </ZE>\
          <ZE Typ=\"Ziel\">\
@@ -147,7 +147,8 @@ TEST(addition_message, message_2) {
 
   auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<AdditionMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<AdditionMessage const*>(outer_msg->content());
 
   auto events = inner_msg->events();
   ASSERT_EQ(4, events->size());

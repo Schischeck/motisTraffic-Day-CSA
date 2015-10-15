@@ -41,12 +41,16 @@ std::time_t parse_time(cstr const& raw) {
 }
 
 EventType parse_event_type(cstr const& raw) {
-  static std::map<cstr, EventType> map({{"Start", EventType_Departure},
-                                        {"Ab", EventType_Departure},
-                                        {"Durch", EventType_Pass},
-                                        {"An", EventType_Arrival},
-                                        {"Ziel", EventType_Arrival}});
-  return map[raw];
+  static const std::map<cstr, EventType> map({{"Start", EventType_Departure},
+                                              {"Ab", EventType_Departure},
+                                              {"Durch", EventType_Pass},
+                                              {"An", EventType_Arrival},
+                                              {"Ziel", EventType_Arrival}});
+  auto it = map.find(raw);
+  if (it == end(map)) {
+    throw std::runtime_error("currupt RIS message");
+  }
+  return it->second;
 }
 
 xml_attribute child_attr(xml_node const& n, char const* e, char const* a) {
@@ -75,11 +79,11 @@ std::pair<StationIdType, Offset<String>> parse_station(FlatBufferBuilder& fbb,
 template <typename F>
 void foreach_event(FlatBufferBuilder& fbb, xml_node const& msg, F func,
                    char const* train_selector = "./Service/ListZug/Zug") {
-  for (auto&& train : msg.select_nodes(train_selector)) {
+  for (auto const& train : msg.select_nodes(train_selector)) {
     auto const& t_node = train.node();
     auto train_index = t_node.attribute("Nr").as_int();
 
-    for (auto&& train_event : t_node.select_nodes("./ListZE/ZE")) {
+    for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
       auto station = parse_station(fbb, e_node);
       auto event_type = parse_event_type(e_node.attribute("Typ").value());
@@ -159,8 +163,7 @@ Offset<Message> parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   return CreateMessage(
       fbb, MessageUnion_RerouteMessage,
       CreateRerouteMessage(fbb, fbb.CreateVector(cancelled_events),
-                           fbb.CreateVector(new_events))
-          .Union());
+                           fbb.CreateVector(new_events)).Union());
 }
 
 Offset<Event> parse_standalone_event(FlatBufferBuilder& fbb,
@@ -187,10 +190,9 @@ Offset<Message> parse_conn_decision_msg(FlatBufferBuilder& fbb,
     decisions.push_back(CreateConnectionDecision(fbb, to, hold));
   }
 
-  return CreateMessage(
-      fbb, MessageUnion_ConnectionDecisionMessage,
-      CreateConnectionDecisionMessage(fbb, from, fbb.CreateVector(decisions))
-          .Union());
+  return CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
+                       CreateConnectionDecisionMessage(
+                           fbb, from, fbb.CreateVector(decisions)).Union());
 }
 
 Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
@@ -208,8 +210,7 @@ Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
 
   return CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
                        CreateConnectionAssessmentMessage(
-                           fbb, from, fbb.CreateVector(assessments))
-                           .Union());
+                           fbb, from, fbb.CreateVector(assessments)).Union());
 }
 
 Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
@@ -234,10 +235,9 @@ Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
 
     auto const& payload = msg.node().first_child();
     auto it = map.find(payload.name());
-    if (it != map.end()) {
+    if (it != end(map)) {
       messages.push_back(it->second(fbb, payload));
     }
-    // TODO else: handle unknown message correctly
   }
 
   auto tout = parse_time(doc.child("Paket").attribute("TOut").value());
