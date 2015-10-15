@@ -20,7 +20,7 @@ cstr berlin_trips_file_content =
 1,000856,2,S Potsdam Hauptbahnhof,,,2,
 2,000861,3,"Golzow (PM), Schule",,,3,)";
 
-TEST(loader_gtfs_route, read_trips_example_data) {
+TEST(loader_gtfs_trip, read_trips_example_data) {
   auto trips = read_trips({TRIPS_FILE, example_trips_file_content});
 
   EXPECT_EQ(2, trips.size());
@@ -30,7 +30,7 @@ TEST(loader_gtfs_route, read_trips_example_data) {
   EXPECT_EQ("Downtown", trips["AWE1"].headsign);
 }
 
-TEST(loader_gtfs_route, read_trips_berlin_data) {
+TEST(loader_gtfs_trip, read_trips_berlin_data) {
   auto trips = read_trips({TRIPS_FILE, berlin_trips_file_content});
 
   EXPECT_EQ(3, trips.size());
