@@ -107,18 +107,21 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
   station_meta_data metas;
   parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
 
-  rules r;
-
-  return shared_data(
-      parse_interval({BASIC_DATA_FILE, basic_data_buf}), metas,
+  auto stations =
       parse_stations({STATIONS_FILE, stations_names_buf},
-                     {COORDINATES_FILE, stations_coords_buf}, metas),
-      parse_categories({CATEGORIES_FILE, categories_buf}),
-      parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-      parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
-      parse_directions({DIRECTIONS_FILE, directions_buf}),
-      parse_providers({PROVIDERS_FILE, providers_buf}));
+                     {COORDINATES_FILE, stations_coords_buf}, metas);
+  for (auto const& ds100 : metas.ds100_to_eva_num_) {
+    stations[ds100.second].ds100.push_back(ds100.first.to_str());
+  }
+
+  return shared_data(parse_interval({BASIC_DATA_FILE, basic_data_buf}),
+                     std::move(metas), std::move(stations),
+                     parse_categories({CATEGORIES_FILE, categories_buf}),
+                     parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
+                     parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
+                     parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
+                     parse_directions({DIRECTIONS_FILE, directions_buf}),
+                     parse_providers({PROVIDERS_FILE, providers_buf}));
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,

@@ -20,14 +20,14 @@ struct Interval {
 //   "content_type": "RoutingRequest",
 //   "content": {
 //     "interval": {
-//       "begin": 1413475200,
-//       "end": 1413478800
+//       "begin": 1444301760,
+//       "end": 1444304760
 //     },
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": 8000096, "name": "" },
-//       { "eva_nr": 8000105, "name": "" }
+//       { "eva_nr": "8000096", "name": "" },
+//       { "eva_nr": "8000105", "name": "" }
 //     ]
 //   }
 // }

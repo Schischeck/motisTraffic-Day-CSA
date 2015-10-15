@@ -22,7 +22,10 @@ Offset<Station> stations_translator::get_or_create_station(int eva_num) {
     return CreateStation(
         builder_, to_fbs_string(builder_, std::to_string(eva_num)),
         to_fbs_string(builder_, it->second.name, ENCODING), it->second.lat,
-        it->second.lng, it->second.change_time);
+        it->second.lng, it->second.change_time,
+        builder_.CreateVector(transform_to_vec(
+            begin(it->second.ds100), end(it->second.ds100),
+            [&](std::string const& s) { return builder_.CreateString(s); })));
   });
 }
 
