@@ -23,7 +23,7 @@ namespace hrd {
 
 TEST(loader_hrd_rules_graph, ts_mss_full) {
 
-  boost::filesystem::path const root = SCHEDULES / "ts-mss-full";
+  boost::filesystem::path const root = SCHEDULES / "mss-multiple-once";
 
   test_spec s_spec(root / "fahrten", "services.101");
   test_spec b_spec(root / "stamm", "bitfield.101");
@@ -51,7 +51,24 @@ TEST(loader_hrd_rules_graph, ts_mss_full) {
     service_rs.add_service(s);
   }
 
-  auto const& layers = service_rs.create_graph();
+  service_rs.create_graph();
+  for (auto const& s : service_rs.origin_services_) {
+    printf("/%p/  traffic_days: [%s]\n", s.get(),
+           s.get()->traffic_days_.to_string().c_str());
+  }
+  for (auto const& seq : service_rs.rule_services_) {
+    printf("_new_service_\n");
+    for (auto const& rs : seq) {
+      printf("/%p/-(%d)->/%p/\n", rs.s1, (int)rs.rule_info.type, rs.s2);
+      printf("/%d/ traffic_days: [%s]\n", rs.s1->sections_[0].train_num,
+             rs.s1->traffic_days_.to_string().c_str());
+      printf("/%d/ traffic_days: [%s]\n", rs.s2->sections_[0].train_num,
+             rs.s2->traffic_days_.to_string().c_str());
+    }
+  }
+
+  ASSERT_EQ(11, service_rs.origin_services_.size());
+  ASSERT_EQ(9, service_rs.rule_services_.size());
 }
 
 TEST(loader_hrd_rules_graph, ts_twice) {
@@ -84,7 +101,11 @@ TEST(loader_hrd_rules_graph, ts_twice) {
     service_rs.add_service(s);
   }
 
-  auto const& layers = service_rs.create_graph();
+  service_rs.create_graph();
+
+  ASSERT_EQ(0, service_rs.origin_services_.size());
+  ASSERT_EQ(1, service_rs.rule_services_.size());
+  ASSERT_EQ(2, service_rs.rule_services_[0].size());
 }
 
 }  // loader

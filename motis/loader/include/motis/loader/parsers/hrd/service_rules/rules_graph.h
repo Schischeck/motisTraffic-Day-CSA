@@ -29,14 +29,18 @@ struct resolved_service {
   hrd_service* origin;
 };
 
+struct rule_service {
+  resolved_rule_info rule_info;
+  hrd_service* s1;
+  hrd_service* s2;
+};
+
 struct node {
   virtual ~node() {}
 
   virtual void resolve_services(
-      bitfield const& /* upper_traffic_days */,
-      std::set<resolved_service>& /* resolved_services */,
-      std::vector<std::tuple<resolved_rule_info, hrd_service*, hrd_service*>>&
-      /* rules */){};
+      bitfield const& /* upper_traffic_days */, std::set<resolved_service>&,
+      std::vector<rule_service>& /* rule_service sequence */){};
 
   virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
@@ -65,14 +69,14 @@ struct rule_node : public node {
 
   virtual ~rule_node() {}
 
-  void resolve_services(
-      bitfield const& upper_traffic_days,
-      std::set<resolved_service>& resolved_services,
-      std::vector<std::tuple<resolved_rule_info, hrd_service*, hrd_service*>>&
-          rules) override {
-    rules.emplace_back(std::make_tuple(
-        rule_, resolve(upper_traffic_days, s1_->service, resolved_services),
-        resolve(upper_traffic_days, s2_->service, resolved_services)));
+  void resolve_services(bitfield const& upper_traffic_days,
+                        std::set<resolved_service>& resolved_services,
+                        std::vector<rule_service>& rule_service_seq) override {
+    auto active_traffic_days = traffic_days_ & upper_traffic_days;
+    traffic_days_ &= ~active_traffic_days;
+    rule_service_seq.push_back(rule_service{
+        rule_, resolve(active_traffic_days, s1_->service, resolved_services),
+        resolve(active_traffic_days, s2_->service, resolved_services)});
   }
 
   hrd_service* resolve(bitfield const& upper_traffic_days, hrd_service* origin,
@@ -94,7 +98,8 @@ struct rule_node : public node {
     return traffic_days_;
   }
 
-  service_node* s1_, *s2_;
+  service_node* s1_;
+  service_node* s2_;
   resolved_rule_info rule_;
   bitfield traffic_days_;
 };
@@ -107,16 +112,15 @@ struct layer_node : public node {
 
   virtual ~layer_node() {}
 
-  void resolve_services(
-      bitfield const& upper_traffic_days,
-      std::set<resolved_service>& resolved_services,
-      std::vector<std::tuple<resolved_rule_info, hrd_service*, hrd_service*>>&
-          rules) override {
+  void resolve_services(bitfield const& upper_traffic_days,
+                        std::set<resolved_service>& resolved_services,
+                        std::vector<rule_service>& rule_service_seq) override {
     auto active_traffic_days = traffic_days_ & upper_traffic_days;
     traffic_days_ &= ~active_traffic_days;
-
-    left_->resolve_services(active_traffic_days, resolved_services, rules);
-    right_->resolve_services(active_traffic_days, resolved_services, rules);
+    left_->resolve_services(active_traffic_days, resolved_services,
+                            rule_service_seq);
+    right_->resolve_services(active_traffic_days, resolved_services,
+                             rule_service_seq);
   }
 
   std::array<node*, 2> children() const override { return {{left_, right_}}; }
@@ -125,7 +129,8 @@ struct layer_node : public node {
     return traffic_days_;
   }
 
-  node* left_, *right_;
+  node* left_;
+  node* right_;
   bitfield traffic_days_;
 };
 

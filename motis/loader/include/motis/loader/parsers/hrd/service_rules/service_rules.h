@@ -53,13 +53,13 @@ struct service_rules {
 
   hrd_service* get_or_create(std::pair<hrd_service const*, hrd_service*>& s) {
     if (s.second == nullptr) {
-      services_.emplace_back(new hrd_service(*s.first));
-      s.second = services_.back().get();
+      origin_services_.emplace_back(new hrd_service(*s.first));
+      s.second = origin_services_.back().get();
     }
     return s.second;
   }
 
-  std::vector<std::vector<node*>> create_graph() {
+  void create_graph() {
     std::vector<std::vector<node*>> layers(1);
     std::map<hrd_service*, node*> service_to_node;
     std::set<rule*> considered_rules;
@@ -148,13 +148,36 @@ struct service_rules {
       ++prev_layer_idx;
       ++next_layer_idx;
     }
-    printf("phase: return: %d\n", (int)nodes_.size());
-    return layers;
+
+    std::for_each(
+        layers.rbegin(), layers.rend(), [&](std::vector<node*>& layer) {
+          layer.erase(
+              std::remove_if(begin(layer), end(layer), [](node const* n) {
+                return n->traffic_days().none();
+              }), end(layer));
+          std::for_each(begin(layer), end(layer), [&](node* n) {
+            std::vector<rule_service> rule_service_seq;
+            n->resolve_services(n->traffic_days(), resolved_services_,
+                                rule_service_seq);
+            if (!rule_service_seq.empty()) {
+              rule_services_.push_back(rule_service_seq);
+            }
+          });
+        });
+
+    origin_services_.erase(
+        std::remove_if(begin(origin_services_), end(origin_services_),
+                       [](std::unique_ptr<hrd_service> const& service_ptr) {
+                         return service_ptr.get()->traffic_days_.none();
+                       }),
+        end(origin_services_));
   }
 
   rules rules_;
-  std::vector<std::unique_ptr<hrd_service>> services_;
+  std::vector<std::unique_ptr<hrd_service>> origin_services_;
+  std::set<resolved_service> resolved_services_;
   std::vector<std::unique_ptr<node>> nodes_;
+  std::vector<std::vector<rule_service>> rule_services_;
 };
 
 }  // hrd
