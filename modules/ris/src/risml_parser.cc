@@ -21,6 +21,10 @@ using namespace motis::ris;
 
 std::time_t parse_time(cstr const& raw) {
   // format YYYYMMDDhhmmssfff (fff = millis)
+  if (raw.length() < 14) {
+    return 0;
+  }
+
   std::tm time_struct;
   time_struct.tm_year = parse<int>(raw.substr(0, size(4))) - 1900;
   time_struct.tm_mon = parse<int>(raw.substr(4, size(2))) - 1;
