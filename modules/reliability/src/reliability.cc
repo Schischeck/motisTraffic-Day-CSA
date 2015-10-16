@@ -6,6 +6,8 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/journey_builder.h"
+
 #include "motis/reliability/db_distributions.h"
 #include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/error.h"
@@ -68,6 +70,8 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
   if (e) {
     return cb(nullptr, e);
   }
+
+  std::cout << "\n\n------------" << std::endl;
   auto const lock = synced_sched<RO>();
   schedule const& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
@@ -77,6 +81,26 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
        ++it, ++rating_index) {
     rating::rate(ratings[rating_index], *it, schedule,
                  *precomputed_distributions_, *s_t_distributions_);
+    {
+      std::cout << "\nconnection: " << std::flush;
+      for (auto it2 = it->transports()->begin(); it2 != it->transports()->end();
+           ++it2) {
+        if (it2->move_type() == routing::Move_Transport) {
+          auto transport = (routing::Transport const*)it2->move();
+          std::cout << transport->train_nr() << " " << std::flush;
+          auto const& r = std::find_if(
+              ratings[rating_index].public_transport_ratings.begin(),
+              ratings[rating_index].public_transport_ratings.end(),
+              [&](rating::rating_element const& r) {
+                return transport->range()->to() == r.arrival_stop_idx();
+              });
+          std::cout << r->arrival_distribution_ << std::endl;
+        }
+      }
+      std::cout << ratings[rating_index]
+                       .public_transport_ratings.back()
+                       .arrival_distribution_ << std::endl;
+    }
   }
 
   return cb(

@@ -325,18 +325,20 @@ std::vector<journey::attribute> generate_journey_attributes(
   return journey_attributes;
 }
 
-journey::journey(label const* label, schedule const& sched) {
+journey to_journey(label const* label, schedule const& sched) {
+  journey j;
   auto parsed = intermediate::parse_label_chain(label);
   std::vector<intermediate::stop> const& s = parsed.first;
   std::vector<intermediate::transport> const& t = parsed.second;
 
-  stops = generate_journey_stops(s, sched);
-  transports = generate_journey_transports(t, sched);
-  attributes = generate_journey_attributes(t, sched);
+  j.stops = generate_journey_stops(s, sched);
+  j.transports = generate_journey_transports(t, sched);
+  j.attributes = generate_journey_attributes(t, sched);
 
-  duration = label->_travel_time[0];
-  transfers = label->_transfers[0] - 1;
-  price = label->_total_price[0];
+  j.duration = label->_travel_time[0];
+  j.transfers = label->_transfers[0] - 1;
+  j.price = label->_total_price[0];
+  return j;
 }
 
 }  // namespace motis
