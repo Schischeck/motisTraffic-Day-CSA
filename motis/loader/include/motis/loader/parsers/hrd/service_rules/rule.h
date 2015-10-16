@@ -22,11 +22,14 @@ typedef std::tuple<hrd_service*, hrd_service*, resolved_rule_info>
     service_combination;
 
 struct rule {
+  rule(bitfield const& mask) : mask_(mask) {}
   virtual ~rule() {}
   virtual int applies(hrd_service const& s) const = 0;
   virtual void add(hrd_service* s, int info) = 0;
   virtual std::vector<service_combination> service_combinations() const = 0;
   virtual resolved_rule_info rule_info() const = 0;
+
+  bitfield const& mask_;
 
 protected:
   std::vector<std::pair<int, uint64_t>> get_ids(hrd_service const&);

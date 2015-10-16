@@ -20,11 +20,11 @@ namespace hrd {
 struct mss_rule : public rule {
   mss_rule(service_id id_1, service_id id_2, int eva_num_begin, int eva_num_end,
            bitfield const& mask)
-      : id_1_(id_1),
+      : rule(mask),
+        id_1_(id_1),
         id_2_(id_2),
         eva_num_begin_(eva_num_begin),
-        eva_num_end_(eva_num_end),
-        mask_(mask) {}
+        eva_num_end_(eva_num_end) {}
 
   virtual ~mss_rule() {}
 
@@ -91,7 +91,6 @@ struct mss_rule : public rule {
 
   service_id id_1_, id_2_;
   int eva_num_begin_, eva_num_end_;
-  bitfield const& mask_;
   std::vector<hrd_service*> participants_;
 };
 

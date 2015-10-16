@@ -16,6 +16,14 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+struct rule_service {
+  rule_service(std::vector<service_rule> service,
+               std::set<service_resolvent> services)
+      : service(std::move(service)), services(std::move(services)) {}
+  std::vector<service_rule> service;
+  std::set<service_resolvent> services;
+};
+
 struct service_rules {
   service_rules(rules rules) : rules_(std::move(rules)) {}
 
@@ -64,13 +72,13 @@ struct service_rules {
     std::map<hrd_service*, node*> service_to_node;
     std::set<rule*> considered_rules;
     for (auto const& rule_entry : rules_) {
-      for (auto const& rule : rule_entry.second) {
-        if (considered_rules.find(rule.get()) != end(considered_rules)) {
+      for (auto const& r : rule_entry.second) {
+        if (considered_rules.find(r.get()) != end(considered_rules)) {
           continue;
         }
-        considered_rules.insert(rule.get());
+        considered_rules.insert(r.get());
 
-        for (auto const& comb : rule->service_combinations()) {
+        for (auto const& comb : r->service_combinations()) {
           auto const& s1 = std::get<0>(comb);
           auto const& s2 = std::get<1>(comb);
 
@@ -88,22 +96,23 @@ struct service_rules {
           nodes_.emplace_back(new rule_node(
               reinterpret_cast<service_node*>(s1_node),
               reinterpret_cast<service_node*>(s2_node), std::get<2>(comb)));
-          auto rule_node = nodes_.back().get();
-          s1_node->parents_.push_back(rule_node);
-          s2_node->parents_.push_back(rule_node);
-          layers[0].push_back(rule_node);
+          auto rn = nodes_.back().get();
+          s1_node->parents_.push_back(rn);
+          s2_node->parents_.push_back(rn);
+          layers[0].push_back(rn);
           printf("create s1_node from   [%p]\n", s1);
           printf("create s2_node from   [%p]\n", s2);
-          printf("create rule_node from [%p]\n", rule.get());
+          printf("create rule_node from [%p]\n", r.get());
 
-          printf("[%p]-(%p)-[%p]\n", s1_node, rule_node, s2_node);
-
+          printf("[%p]-(%p)-[%p]\n", s1_node, rn, s2_node);
+          printf("mask:       traffic_days: [%s]\n",
+                 r.get()->mask_.to_string().c_str());
+          printf("rule_node:  traffic_days: [%s]\n",
+                 rn->traffic_days().to_string().c_str());
           printf("s1_node:    traffic_days: [%s]\n",
                  s1_node->traffic_days().to_string().c_str());
           printf("s2_node:    traffic_days: [%s]\n",
                  s2_node->traffic_days().to_string().c_str());
-          printf("rule_node:  traffic_days: [%s]\n",
-                 rule_node->traffic_days().to_string().c_str());
         }
       }
     }
@@ -140,7 +149,7 @@ struct service_rules {
             node->parents_.push_back(parent);
             layers[next_layer_idx].push_back(parent);
             printf("[%p]-(%p)-[%p]\n", node, parent, related_node);
-            printf("layer_node traffic_days: [%s]\n",
+            printf("ln_node traffic_days: [%s]\n",
                    parent->traffic_days().to_string().c_str());
           }
         }
@@ -156,11 +165,12 @@ struct service_rules {
                 return n->traffic_days().none();
               }), end(layer));
           std::for_each(begin(layer), end(layer), [&](node* n) {
-            std::vector<rule_service> rule_service_seq;
-            n->resolve_services(n->traffic_days(), resolved_services_,
-                                rule_service_seq);
-            if (!rule_service_seq.empty()) {
-              rule_services_.push_back(rule_service_seq);
+            std::set<service_resolvent> resolvents;
+            std::vector<service_rule> service;
+            n->resolve_services(n->traffic_days(), resolvents, service);
+            if (!service.empty()) {
+              rule_services_.emplace_back(std::move(service),
+                                          std::move(resolvents));
             }
           });
         });
@@ -175,9 +185,8 @@ struct service_rules {
 
   rules rules_;
   std::vector<std::unique_ptr<hrd_service>> origin_services_;
-  std::set<resolved_service> resolved_services_;
   std::vector<std::unique_ptr<node>> nodes_;
-  std::vector<std::vector<rule_service>> rule_services_;
+  std::vector<rule_service> rule_services_;
 };
 
 }  // hrd

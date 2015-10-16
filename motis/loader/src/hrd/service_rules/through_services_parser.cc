@@ -16,7 +16,7 @@ namespace hrd {
 
 struct ts_rule : public rule {
   ts_rule(service_id id_1, service_id id_2, int eva_num, bitfield const& mask)
-      : id_1_(id_1), id_2_(id_2), eva_num_(eva_num), mask_(mask) {}
+      : rule(mask), id_1_(id_1), id_2_(id_2), eva_num_(eva_num) {}
 
   virtual ~ts_rule() {}
 
@@ -80,7 +80,6 @@ struct ts_rule : public rule {
 
   service_id id_1_, id_2_;
   int eva_num_;
-  bitfield const& mask_;
   std::vector<hrd_service*> participants_1_;
   std::vector<hrd_service*> participants_2_;
 };
