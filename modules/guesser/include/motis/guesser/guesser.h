@@ -12,6 +12,7 @@ struct guesser : public motis::module::module {
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
+  virtual bool empty_config() const override { return true; }
 
   virtual std::string name() const override { return "guesser"; }
   virtual void init() override;

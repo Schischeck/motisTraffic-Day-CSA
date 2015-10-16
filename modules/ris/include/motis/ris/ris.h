@@ -13,16 +13,19 @@ namespace motis {
 namespace ris {
 
 struct ris : public motis::module::module {
+  ris();
+
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 
   void init() override;
-  std::string name() override { return "ris"; }
-  std::vector<MsgContent> subscriptions() override { return {}; }
-  void on_msg(motis::module::msg_ptr msg, motis::module::sid session,
-              motis::module::callback cb) override {}
+  std::string name() const override { return "ris"; }
+  std::vector<MsgContent> subscriptions() const override { return {}; }
+  void on_msg(motis::module::msg_ptr, motis::module::sid,
+              motis::module::callback) override {}
 
 private:
+  void parse_zips();
   void schedule_update(boost::system::error_code e);
 
   int update_interval_;

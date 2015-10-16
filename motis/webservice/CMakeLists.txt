@@ -6,6 +6,7 @@ include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/ris/include)
 
 file(GLOB_RECURSE motis-webservice-files src/*.cc)
 add_executable(motis-webservice ${motis-webservice-files})
@@ -22,6 +23,7 @@ target_link_libraries(motis-webservice
   motis-railviz
   motis-reliability
   motis-routing
+  motis-ris
 )
 
 set_target_properties(motis-webservice PROPERTIES COMPILE_DEFINITIONS _WEBSOCKETPP_CPP11_STL_)

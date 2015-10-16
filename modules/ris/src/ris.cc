@@ -1,5 +1,7 @@
 #include "motis/ris/ris.h"
 
+#include "boost/program_options.hpp"
+
 #define UPDATE_INTERVAL "ris.update_interval"
 #define ZIP_FOLDER "ris.zip_folder"
 
@@ -8,8 +10,10 @@ using boost::system::error_code;
 namespace motis {
 namespace ris {
 
+ris::ris() : update_interval_(10), zip_folder_("ris") {}
+
 po::options_description ris::desc() {
-  po::options_description desc("Realtime Module");
+  po::options_description desc("RIS Module");
   // clang-format off
   desc.add_options()
       (UPDATE_INTERVAL,
@@ -28,18 +32,19 @@ void ris::print(std::ostream& out) const {
 }
 
 void ris::init() {
-  timer_ = boost::asio::deadline_timer(get_thread_pool());
+  timer_ = std::unique_ptr<boost::asio::deadline_timer>(
+      new boost::asio::deadline_timer(get_thread_pool()));
   schedule_update(error_code());
 }
 
-void ris::parse_and_inject_zips() {}
+void ris::parse_zips() {}
 
 void ris::schedule_update(error_code e) {
   if (e == boost::asio::error::operation_aborted) {
     return;
   }
 
-  parse_and_inject_zips();
+  parse_zips();
 
   timer_->expires_from_now(boost::posix_time::seconds(10));
   timer_->async_wait(
