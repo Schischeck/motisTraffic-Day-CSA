@@ -1,7 +1,11 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
+
+using namespace parser;
 
 namespace motis {
 namespace ris {
@@ -38,7 +42,7 @@ char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?
 // clang-format on
 
 TEST(reroute_message, message_1) {
-  auto const msg = parse_xmls({reroute_fixture_1});
+  auto const msg = parse_xmls(pack(reroute_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168874, batch->packets()->Get(0)->timestamp());
@@ -130,7 +134,7 @@ char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-885
 // clang-format on
 
 TEST(reroute_message, message_only_new) {
-  auto const msg = parse_xmls({reroute_fixture_only_new});
+  auto const msg = parse_xmls(pack(reroute_fixture_only_new));
   auto const batch = msg->content<RISBatch const*>();
 
   ASSERT_EQ(1, batch->packets()->size());
@@ -189,7 +193,7 @@ char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-
 // clang-format on
 
 TEST(reroute_message, message_only_cancel) {
-  auto const msg = parse_xmls({reroute_fixture_only_cancel});
+  auto const msg = parse_xmls(pack(reroute_fixture_only_cancel));
   auto const batch = msg->content<RISBatch const*>();
 
   ASSERT_EQ(1, batch->packets()->size());

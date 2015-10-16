@@ -213,9 +213,9 @@ Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
                            fbb, from, fbb.CreateVector(assessments)).Union());
 }
 
-Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
+Offset<Packet> parse_xml(FlatBufferBuilder& fbb, parser::buffer& xml_string) {
   xml_document doc;
-  xml_parse_result result = doc.load_string(xml_string);
+  xml_parse_result result = doc.load_buffer_inplace(reinterpret_cast<void*>(xml_string.data()), xml_string.size());
   if (!result) {
     throw std::runtime_error("bad xml: " + std::string(result.description()));
   }
@@ -244,11 +244,11 @@ Offset<Packet> parse_xml(FlatBufferBuilder& fbb, char const* xml_string) {
   return CreatePacket(fbb, tout, fbb.CreateVector(messages));
 }
 
-msg_ptr motis::ris::parse_xmls(std::vector<char const*> const& xml_strings) {
+msg_ptr motis::ris::parse_xmls(std::vector<parser::buffer>&& xml_strings) {
   FlatBufferBuilder fbb;
 
   std::vector<Offset<Packet>> packets;
-  for (auto const& xml_string : xml_strings) {
+  for (auto& xml_string : xml_strings) {
     packets.push_back(parse_xml(fbb, xml_string));
   }
 
