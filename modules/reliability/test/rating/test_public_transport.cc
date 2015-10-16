@@ -130,7 +130,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
 
 TEST_CASE("rate", "[rate_public_transport]") {
   system_tools::setup setup(test_public_transport::schedule2.get());
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
@@ -143,20 +143,17 @@ TEST_CASE("rate", "[rate_public_transport]") {
         *test_public_transport::schedule2, *response->connections()->begin());
     REQUIRE(elements.size() == 2);
 
-    distributions_container::precomputed_distributions_container
-        precomputed_distributions(test_public_transport::schedule2->node_count);
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
-    distributions_calculator::precomputation::perform_precomputation(
-        *test_public_transport::schedule2, s_t_distributions,
-        precomputed_distributions);
-    auto test_ratings =
-        compute_test_ratings1(precomputed_distributions, s_t_distributions);
+    auto test_ratings = compute_test_ratings1(
+        setup.reliability_module().precomputed_distributions(),
+        s_t_distributions);
     REQUIRE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule2,
-         precomputed_distributions, s_t_distributions);
+         setup.reliability_module().precomputed_distributions(),
+         s_t_distributions);
     REQUIRE(ratings.size() == 2);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
       REQUIRE(ratings[i].departure_stop_idx_ ==
@@ -284,7 +281,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
 TEST_CASE("rate2", "[rate_public_transport]") {
   system_tools::setup setup(test_public_transport::schedule5.get());
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
       schedule5::MARBURG.name, schedule5::MARBURG.eva, (motis::time)(7 * 60),
       (motis::time)(7 * 60 + 1), std::make_tuple(19, 10, 2015));
@@ -296,20 +293,17 @@ TEST_CASE("rate2", "[rate_public_transport]") {
         *test_public_transport::schedule5, *response->connections()->begin());
     REQUIRE(elements.size() == 3);
 
-    distributions_container::precomputed_distributions_container
-        precomputed_distributions(test_public_transport::schedule5->node_count);
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
-    distributions_calculator::precomputation::perform_precomputation(
-        *test_public_transport::schedule5, s_t_distributions,
-        precomputed_distributions);
-    auto test_ratings =
-        compute_test_ratings2(precomputed_distributions, s_t_distributions);
+    auto test_ratings = compute_test_ratings2(
+        setup.reliability_module().precomputed_distributions(),
+        s_t_distributions);
     REQUIRE(test_ratings.size() == 5);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule5,
-         precomputed_distributions, s_t_distributions);
+         setup.reliability_module().precomputed_distributions(),
+         s_t_distributions);
     REQUIRE(ratings.size() == 5);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
       REQUIRE(ratings[i].departure_stop_idx_ ==
@@ -381,7 +375,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 
 TEST_CASE("rate_foot", "[rate_public_transport]") {
   system_tools::setup setup(test_public_transport::schedule3.get());
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule3::LANGEN.name, schedule3::LANGEN.eva, schedule3::WEST.name,
       schedule3::WEST.eva, (motis::time)(10 * 60), (motis::time)(10 * 60 + 1),
       std::make_tuple(28, 9, 2015));
@@ -393,20 +387,17 @@ TEST_CASE("rate_foot", "[rate_public_transport]") {
         *test_public_transport::schedule3, *response->connections()->begin());
     REQUIRE(elements.size() == 2);
 
-    distributions_container::precomputed_distributions_container
-        precomputed_distributions(test_public_transport::schedule3->node_count);
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
-    distributions_calculator::precomputation::perform_precomputation(
-        *test_public_transport::schedule3, s_t_distributions,
-        precomputed_distributions);
-    auto test_ratings =
-        compute_test_ratings_foot(precomputed_distributions, s_t_distributions);
+    auto test_ratings = compute_test_ratings_foot(
+        setup.reliability_module().precomputed_distributions(),
+        s_t_distributions);
     REQUIRE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule3,
-         precomputed_distributions, s_t_distributions);
+         setup.reliability_module().precomputed_distributions(),
+         s_t_distributions);
     REQUIRE(ratings.size() == 2);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
       REQUIRE(ratings[i].departure_stop_idx_ ==

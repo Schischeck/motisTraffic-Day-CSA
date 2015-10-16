@@ -8,8 +8,10 @@
 
 #include "motis/reliability/db_distributions.h"
 #include "motis/reliability/distributions_calculator.h"
-#include "motis/reliability/distributions_container.h"
 #include "motis/reliability/error.h"
+#include "motis/reliability/rating/connection_rating.h"
+#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "../test/include/start_and_travel_test_distributions.h"
 
 using namespace motis::module;
 namespace po = boost::program_options;
@@ -25,116 +27,61 @@ po::options_description reliability::desc() {
 
 void reliability::print(std::ostream&) const {}
 
-reliability::reliability() {}
+void reliability::init() {
+  auto const lock = synced_sched<RO>();
+  schedule const& schedule = lock.sched();
+  precomputed_distributions_ = std::unique_ptr<
+      distributions_container::precomputed_distributions_container>(
+      new distributions_container::precomputed_distributions_container(
+          schedule.node_count));
+  /*s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
+      new db_distributions("", 120,
+                           120));  // TODO: read max travel time from graph*/
+  s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
+      new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
+  distributions_calculator::precomputation::perform_precomputation(
+      schedule, *s_t_distributions_, *precomputed_distributions_);
+}
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   if (msg->content_type() == MsgContent_ReliableRoutingRequest) {
     auto req = msg->content<ReliableRoutingRequest const*>();
-
-    auto reliability_cb =
-        [&](routing::RoutingResponse const* routing_response,
-            std::vector<float> ratings, boost::system::error_code e) {
-          if (e) {
-            return cb({}, e);
-          }
-          return cb({/* todo: write response */}, error::ok);
-        };
-
-    find_connections(req->request(), session_id, reliability_cb);
+    find_and_rate_connections(req->request(), session_id, cb);
+    return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
+                    session_id, std::bind(&reliability::handle_routing_response,
+                                          this, p::_1, p::_2, cb));
   } else {
     return cb({}, error::not_implemented);
   }
 }
 
-msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
-  /* convert routing::RoutingRequest to flatbuffers::Offset<RoutingRequest> */
-  flatbuffers::FlatBufferBuilder b;
-  std::vector<flatbuffers::Offset<routing::StationPathElement> >
-      station_elements;
-  for (auto it = request->path()->begin(); it != request->path()->end(); ++it) {
-    station_elements.push_back(routing::CreateStationPathElement(
-        b, b.CreateString(it->name()->c_str()),
-        b.CreateString(it->eva_nr()->c_str())));
-  }
-  routing::Interval interval(request->interval()->begin(),
-                             request->interval()->end());
-  b.Finish(CreateMessage(
-      b, MsgContent_RoutingRequest,
-      routing::CreateRoutingRequest(b, &interval, request->type(),
-                                    request->direction(),
-                                    b.CreateVector(station_elements)).Union()));
-  return make_msg(b);
-}
-
-void reliability::find_connections(routing::RoutingRequest const* request,
-                                   sid session_id, rating_response_cb cb) {
+void reliability::find_and_rate_connections(
+    routing::RoutingRequest const* request, sid session_id, callback cb) {
   return dispatch(
-      to_flatbuffers_message(request), session_id,
+      flatbuffers_tools::to_flatbuffers_message(request), session_id,
       std::bind(&reliability::handle_routing_response, this, p::_1, p::_2, cb));
 }
 
 void reliability::handle_routing_response(motis::module::msg_ptr msg,
                                           boost::system::error_code e,
-                                          rating_response_cb cb) {
+                                          callback cb) {
   if (e) {
-    return cb(nullptr, {}, e);
+    return cb(nullptr, e);
   }
-
-  auto res = msg->content<routing::RoutingResponse const*>();
-  std::vector<float> ratings;
-  for (auto it = res->connections()->begin(); it != res->connections()->end();
-       ++it) {
-    /* todo: rate connection */
-    ratings.push_back(0.0);
-  }
-
-  return cb(res, ratings, error::ok);
-}
-
-edge const* route_edge(node const* route_node) {
-  for (auto const& edge : route_node->_edges) {
-    if (!edge.empty()) {
-      return &edge;
-    }
-  }
-  return nullptr;
-}
-
-bool reliability::initialize() {
   auto const lock = synced_sched<RO>();
   schedule const& schedule = lock.sched();
-
-  distributions_container::precomputed_distributions_container
-      distributions_container(schedule.node_count);
-  db_distributions db_distributions(
-      "", 120, 120);  // TODO: read max travel time from graph
-  distributions_calculator::precomputation::perform_precomputation(
-      schedule, db_distributions, distributions_container);
-
-  for (auto const& firstRouteNode : schedule.route_index_to_first_route_node) {
-    node const* node = firstRouteNode;
-    edge const* edge = nullptr;
-
-    while ((edge = route_edge(node)) != nullptr) {
-      auto conInfo = edge->_m._route_edge._conns[0]._full_con->con_info;
-      std::cout << "route from "
-                << schedule.stations[node->get_station()->_id]->name << " to "
-                << schedule.stations[edge->_to->get_station()->_id]->name
-                << ": " << schedule.categories[conInfo->family]->name << " "
-                << conInfo->train_nr << "\n";
-
-      for (auto const& lightCon : edge->_m._route_edge._conns) {
-        std::cout << "  dep=" << lightCon.d_time << " ("
-                  << schedule.tracks.at(lightCon._full_con->d_platform) << ")"
-                  << ", arr=" << lightCon.d_time << " ("
-                  << schedule.tracks.at(lightCon._full_con->a_platform)
-                  << ")\n";
-      }
-
-      node = edge->_to;
-    }
+  auto res = msg->content<routing::RoutingResponse const*>();
+  std::vector<rating::connection_rating> ratings(res->connections()->size());
+  unsigned int rating_index = 0;
+  for (auto it = res->connections()->begin(); it != res->connections()->end();
+       ++it, ++rating_index) {
+    rating::rate(ratings[rating_index], *it, schedule,
+                 *precomputed_distributions_, *s_t_distributions_);
   }
-  return true;
+
+  return cb(
+      msg /*flatbuffers_tools::to_reliable_routing_response(msg, ratings)*/,
+      error::ok);
 }
 
 }  // namespace reliability

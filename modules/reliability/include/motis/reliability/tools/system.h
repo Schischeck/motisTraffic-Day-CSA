@@ -50,6 +50,10 @@ struct setup {
       module->init_(&c);
     }
   }
+
+  reliability const& reliability_module() const {
+    return dynamic_cast<reliability const&>(*modules[1]);
+  }
 };  // struct setup
 }  // namespace system
 }  // namespace reliability

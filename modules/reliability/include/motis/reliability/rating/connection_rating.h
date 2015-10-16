@@ -45,10 +45,14 @@ struct rating_element {
   }
 };
 
-std::vector<rating_element> rate(
-    routing::Connection const*, schedule const&,
-    distributions_container::precomputed_distributions_container const&,
-    start_and_travel_distributions const&);
+struct connection_rating {
+  std::vector<rating_element> public_transport_ratings;
+};
+
+void rate(connection_rating& rating, routing::Connection const*,
+          schedule const&,
+          distributions_container::precomputed_distributions_container const&,
+          start_and_travel_distributions const&);
 
 }  // namespace rating
 }  // namespace reliability

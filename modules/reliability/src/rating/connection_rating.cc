@@ -13,19 +13,15 @@ namespace motis {
 namespace reliability {
 namespace rating {
 
-std::vector<rating_element> rate(
-    routing::Connection const* connection, schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
-    start_and_travel_distributions const& s_t_distributions) {
-  auto const elements =
-      rating::connection_to_graph_data::get_elements(schedule, connection);
-
-  std::vector<rating_element> ratings;
-  public_transport::rate(ratings, elements, schedule, precomputed_distributions,
-                         s_t_distributions);
-
-  return ratings;
+void rate(connection_rating& rating, routing::Connection const* connection,
+          schedule const& schedule,
+          distributions_container::precomputed_distributions_container const&
+              precomputed_distributions,
+          start_and_travel_distributions const& s_t_distributions) {
+  public_transport::rate(
+      rating.public_transport_ratings,
+      rating::connection_to_graph_data::get_elements(schedule, connection),
+      schedule, precomputed_distributions, s_t_distributions);
 }
 
 }  // namespace rating

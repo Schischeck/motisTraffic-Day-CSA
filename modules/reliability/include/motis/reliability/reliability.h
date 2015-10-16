@@ -4,14 +4,13 @@
 
 #include "motis/module/module.h"
 
+#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions_container.h"
+
 namespace motis {
 namespace reliability {
-
 struct reliability : public motis::module::module {
-  reliability();
-  virtual ~reliability() {}
-
-  bool initialize();
+  void init() override;
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
@@ -23,17 +22,22 @@ struct reliability : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-private:
-  typedef std::function<void(routing::RoutingResponse const*,
-                             std::vector<float>, boost::system::error_code)>
-      rating_response_cb;
+  distributions_container::precomputed_distributions_container const&
+  precomputed_distributions() const {
+    return *precomputed_distributions_;
+  }
 
-  void find_connections(routing::RoutingRequest const*,
-                        motis::module::sid session_id, rating_response_cb);
+private:
+  std::unique_ptr<distributions_container::precomputed_distributions_container>
+      precomputed_distributions_;
+  std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
+
+  void find_and_rate_connections(routing::RoutingRequest const*,
+                                 motis::module::sid session_id,
+                                 motis::module::callback);
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,
-                               rating_response_cb cb);
+                               motis::module::callback);
 };
-
 }  // namespace reliability
 }  // namespace motis

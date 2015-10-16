@@ -114,7 +114,7 @@ TEST_CASE("to_element2", "[conn_to_graph_data]") {
 TEST_CASE("get_elements", "[conn_to_graph_data]") {
   system_tools::setup setup(test_connection_to_graph_data::schedule2.get());
 
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
       schedule2::KASSEL.name, schedule2::KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
@@ -168,7 +168,7 @@ TEST_CASE("get_elements", "[conn_to_graph_data]") {
 
 TEST_CASE("get_elements2", "[conn_to_graph_data]") {
   system_tools::setup setup(test_connection_to_graph_data::schedule5.get());
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule5::DARMSTADT.name, schedule5::DARMSTADT.eva,
       schedule5::MARBURG.name, schedule5::MARBURG.eva,
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
@@ -248,7 +248,7 @@ TEST_CASE("get_elements2", "[conn_to_graph_data]") {
  */
 TEST_CASE("get_elements_foot", "[conn_to_graph_data]") {
   system_tools::setup setup(test_connection_to_graph_data::schedule6.get());
-  auto msg = flatbuffers_tools::to_flatbuffers_message(
+  auto msg = flatbuffers_tools::to_routing_request(
       schedule6::MANNHEIM.name, schedule6::MANNHEIM.eva,
       schedule6::HAUPTWACHE.name, schedule6::HAUPTWACHE.eva,
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
