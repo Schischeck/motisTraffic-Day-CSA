@@ -42,6 +42,7 @@ union MsgContent {
 
 table Message {
   content:MsgContent;
+  id:int = 0;
 }
 
 root_type Message;

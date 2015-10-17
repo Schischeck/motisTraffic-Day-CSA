@@ -54,7 +54,9 @@ struct ws_server::ws_server_impl {
     server_.start_accept();
   }
 
-  void send(msg_ptr const& msg, sid session) {
+  void send(msg_ptr const& msg, sid session, int request_id) {
+    msg->msg_->mutate_id(request_id);
+
     if (!msg) {
       return;
     }
@@ -70,14 +72,13 @@ struct ws_server::ws_server_impl {
     });
   }
 
-  void send_error(boost::system::error_code e, sid session) {
+  void send_error(boost::system::error_code e, sid session, int request_id) {
     flatbuffers::FlatBufferBuilder b;
     b.Finish(CreateMessage(
         b, MsgContent_MotisError,
         CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
-                         b.CreateString(e.message()))
-            .Union()));
-    send(make_msg(b), session);
+                         b.CreateString(e.message())).Union()));
+    send(make_msg(b), session, request_id);
   }
 
   void stop() { server_.stop(); }
@@ -124,19 +125,26 @@ struct ws_server::ws_server_impl {
       return;
     }
 
+    msg_ptr req_msg;
+    try {
+      req_msg = make_msg(msg->get_payload());
+    } catch (...) {
+      return;
+    }
+
     auto session = con_it->second;
     try {
-      auto req = make_msg(msg->get_payload());
-      msg_handler_(req, session,
-                   [this, session](msg_ptr res, boost::system::error_code ec) {
-                     if (ec) {
-                       send_error(ec, session);
-                     } else {
-                       send(res, session);
-                     }
-                   });
+      msg_handler_(
+          req_msg, session,
+          [this, session, req_msg](msg_ptr res, boost::system::error_code ec) {
+            if (ec) {
+              send_error(ec, session, req_msg->msg_->id());
+            } else {
+              send(res, session, req_msg->msg_->id());
+            }
+          });
     } catch (boost::system::system_error const& e) {
-      send_error(e.code(), session);
+      send_error(e.code(), session, req_msg->msg_->id());
     } catch (...) {
       std::cout << "unknown error occured\n";
     }
@@ -176,7 +184,7 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s); }
+void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s, 0); }
 
 }  // namespace webservice
 }  // namespace motis
