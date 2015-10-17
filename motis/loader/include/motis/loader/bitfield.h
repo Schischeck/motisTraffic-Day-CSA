@@ -4,6 +4,8 @@
 #include <bitset>
 #include <algorithm>
 
+#include "parser/cstr.h"
+
 namespace motis {
 namespace loader {
 
