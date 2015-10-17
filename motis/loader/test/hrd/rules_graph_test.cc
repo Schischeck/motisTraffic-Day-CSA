@@ -53,18 +53,20 @@ TEST(loader_hrd_rules_graph, ts_mss_full) {
 
   service_rs.create_graph();
   for (auto const& s : service_rs.origin_services_) {
-    printf("remaining service:\n");
-    printf("/%d/ traffic_days: [%s]\n", s.get()->sections_[0].train_num,
-           s.get()->traffic_days_.to_string().c_str());
+    printf("remaining services:\n");
+    printf("(%s, %d)\n", s.get()->origin_.filename,
+           s.get()->origin_.line_number);
+    printf("traffic_days: [%s]\n", s.get()->traffic_days_.to_string().c_str());
   }
   for (auto const& rs : service_rs.rule_services_) {
     printf("new service:\n");
     for (auto const& s : rs.service) {
-      printf("/%p/-(%d)->/%p/\n", s.s1, (int)s.rule_info.type, s.s2);
-      printf("/%d/ traffic_days: [%s]\n", s.s1->sections_[0].train_num,
-             s.s1->traffic_days_.to_string().c_str());
-      printf("/%d/ traffic_days: [%s]\n", s.s2->sections_[0].train_num,
-             s.s2->traffic_days_.to_string().c_str());
+      printf("(%s, %d)-[%s]-(%s, %d)\n", s.s1->origin_.filename,
+             s.s1->origin_.line_number,
+             (int)s.rule_info.type == 1 ? "MSSR" : "TSR",
+             s.s2->origin_.filename, s.s2->origin_.line_number);
+      printf("traffic_days: [%s]\n", s.s1->traffic_days_.to_string().c_str());
+      printf("traffic_days: [%s]\n", s.s2->traffic_days_.to_string().c_str());
     }
   }
 }

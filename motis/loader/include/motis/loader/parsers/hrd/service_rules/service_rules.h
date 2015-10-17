@@ -71,6 +71,8 @@ struct service_rules {
     std::vector<std::vector<node*>> layers(1);
     std::map<hrd_service*, node*> service_to_node;
     std::set<rule*> considered_rules;
+
+    printf("\nbuild rule and service nodes ...\n");
     for (auto const& rule_entry : rules_) {
       for (auto const& r : rule_entry.second) {
         if (considered_rules.find(r.get()) != end(considered_rules)) {
@@ -117,16 +119,17 @@ struct service_rules {
       }
     }
 
-    int prev_layer_idx = 0;
+    printf("\nbuild layer nodes ...\n");
+    int current_layer_idx = 0;
     int next_layer_idx = 1;
-    while (!layers[prev_layer_idx].empty()) {
+    while (!layers[current_layer_idx].empty()) {
       layers.resize(next_layer_idx + 1);
 
-      printf("(prev_layer_idx, next_layer_idx) = (%d, %d)\n", prev_layer_idx,
-             next_layer_idx);
+      printf("(current_layer_idx, next_layer_idx) = (%d, %d)\n",
+             current_layer_idx, next_layer_idx);
 
       std::set<std::pair<node*, node*>> considered_combinations;
-      for (auto const& node : layers[prev_layer_idx]) {
+      for (auto const& node : layers[current_layer_idx]) {
         for (auto const& child : node->children()) {
           for (auto const& related_node : child->parents_) {
             if (related_node == node) {
@@ -154,10 +157,12 @@ struct service_rules {
           }
         }
       }
-      ++prev_layer_idx;
+      ++current_layer_idx;
       ++next_layer_idx;
     }
+    layers.pop_back();
 
+    printf("\nbuild rule services ...\n");
     std::for_each(
         layers.rbegin(), layers.rend(), [&](std::vector<node*>& layer) {
           layer.erase(
@@ -181,6 +186,7 @@ struct service_rules {
                          return service_ptr.get()->traffic_days_.none();
                        }),
         end(origin_services_));
+    printf("done!\n");
   }
 
   rules rules_;

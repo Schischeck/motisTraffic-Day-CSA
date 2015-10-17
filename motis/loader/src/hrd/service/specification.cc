@@ -59,6 +59,8 @@ bool specification::read_line(cstr line, char const* filename,
       if (potential_kurswagen && line.len > 3 && line[3] == 'Z') {
         // ignore KWZ line
       } else if (is_empty()) {
+        filename_ = filename;
+        line_number_ = line_number;
         internal_service = line;
       } else {
         return true;
