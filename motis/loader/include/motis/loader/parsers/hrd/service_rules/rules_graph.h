@@ -30,6 +30,22 @@ struct service_resolvent {
 };
 
 struct service_rule {
+  friend bool operator<(service_rule const& rhs, service_rule const& lhs) {
+    if (rhs.s1 < lhs.s1) {
+      return true;
+    }
+    if (rhs.s1 > lhs.s1) {
+      return false;
+    }
+    if (rhs.s2 < lhs.s2) {
+      return true;
+    }
+    if (rhs.s2 > lhs.s2) {
+      return false;
+    }
+    return rhs.rule_info < lhs.rule_info;
+  }
+
   resolved_rule_info rule_info;
   hrd_service* s1;
   hrd_service* s2;
@@ -39,7 +55,7 @@ struct node {
   virtual ~node() {}
 
   virtual void resolve_services(bitfield const&, std::set<service_resolvent>&,
-                                std::vector<service_rule>&){};
+                                std::set<service_rule>&){};
 
   virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
@@ -70,10 +86,10 @@ struct rule_node : public node {
 
   void resolve_services(bitfield const& upper_traffic_days,
                         std::set<service_resolvent>& resolvents,
-                        std::vector<service_rule>& service) override {
+                        std::set<service_rule>& rules) override {
     auto active_traffic_days = traffic_days_ & upper_traffic_days;
     traffic_days_ &= ~active_traffic_days;
-    service.push_back(service_rule{
+    rules.insert(service_rule{
         rule_, resolve(active_traffic_days, s1_->service, resolvents),
         resolve(active_traffic_days, s2_->service, resolvents)});
   }
@@ -113,11 +129,11 @@ struct layer_node : public node {
 
   void resolve_services(bitfield const& upper_traffic_days,
                         std::set<service_resolvent>& resolvents,
-                        std::vector<service_rule>& service) override {
+                        std::set<service_rule>& rules) override {
     auto active_traffic_days = traffic_days_ & upper_traffic_days;
     traffic_days_ &= ~active_traffic_days;
-    left_->resolve_services(active_traffic_days, resolvents, service);
-    right_->resolve_services(active_traffic_days, resolvents, service);
+    left_->resolve_services(active_traffic_days, resolvents, rules);
+    right_->resolve_services(active_traffic_days, resolvents, rules);
   }
 
   std::array<node*, 2> children() const override { return {{left_, right_}}; }

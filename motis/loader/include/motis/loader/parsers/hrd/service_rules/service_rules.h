@@ -17,10 +17,10 @@ namespace loader {
 namespace hrd {
 
 struct rule_service {
-  rule_service(std::vector<service_rule> service,
+  rule_service(std::set<service_rule> rules,
                std::set<service_resolvent> services)
-      : service(std::move(service)), services(std::move(services)) {}
-  std::vector<service_rule> service;
+      : rules(std::move(rules)), services(std::move(services)) {}
+  std::set<service_rule> rules;
   std::set<service_resolvent> services;
 };
 
@@ -169,12 +169,13 @@ struct service_rules {
               std::remove_if(begin(layer), end(layer), [](node const* n) {
                 return n->traffic_days().none();
               }), end(layer));
+
           std::for_each(begin(layer), end(layer), [&](node* n) {
             std::set<service_resolvent> resolvents;
-            std::vector<service_rule> service;
-            n->resolve_services(n->traffic_days(), resolvents, service);
-            if (!service.empty()) {
-              rule_services_.emplace_back(std::move(service),
+            std::set<service_rule> rules;
+            n->resolve_services(n->traffic_days(), resolvents, rules);
+            if (!rules.empty()) {
+              rule_services_.emplace_back(std::move(rules),
                                           std::move(resolvents));
             }
           });

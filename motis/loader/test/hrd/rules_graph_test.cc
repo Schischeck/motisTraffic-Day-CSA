@@ -23,9 +23,12 @@ namespace hrd {
 
 TEST(loader_hrd_rules_graph, ts_mss_full) {
 
-  boost::filesystem::path const root = SCHEDULES / "ts-mss-full";
+  boost::filesystem::path const root = SCHEDULES / "ts_mss_full";
 
-  test_spec s_spec(root / "fahrten", "services.101");
+  test_spec s1_spec(root / "fahrten", "services_03040.101");
+  test_spec s2_spec(root / "fahrten", "services_03056.101");
+  test_spec s3_spec(root / "fahrten", "services_03080.101");
+  test_spec s4_spec(root / "fahrten", "services_03775.101");
   test_spec b_spec(root / "stamm", "bitfield.101");
   test_spec ts_spec(root / "stamm", "durchbi.101");
   test_spec ms_spec(root / "stamm", "vereinig_vt.101");
@@ -35,11 +38,15 @@ TEST(loader_hrd_rules_graph, ts_mss_full) {
   flatbuffers::FlatBufferBuilder fbb;
   bitfield_translator bt(hrd_bitfields, fbb);
 
-  auto non_expanded_services = s_spec.get_hrd_services();
+  auto non_expanded_services = {
+      s1_spec.get_hrd_services(), s2_spec.get_hrd_services(),
+      s3_spec.get_hrd_services(), s4_spec.get_hrd_services()};
 
   std::vector<hrd_service> expanded_services;
-  for (auto const& s : non_expanded_services) {
-    expand_traffic_days(s, bt, expanded_services);
+  for (auto const& ss : non_expanded_services) {
+    for (auto const& s : ss) {
+      expand_traffic_days(s, bt, expanded_services);
+    }
   }
 
   rules rs;
@@ -60,7 +67,7 @@ TEST(loader_hrd_rules_graph, ts_mss_full) {
   }
   for (auto const& rs : service_rs.rule_services_) {
     printf("new service:\n");
-    for (auto const& s : rs.service) {
+    for (auto const& s : rs.rules) {
       printf("(%s, %d)-[%s]-(%s, %d)\n", s.s1->origin_.filename,
              s.s1->origin_.line_number,
              (int)s.rule_info.type == 1 ? "MSSR" : "TSR",
