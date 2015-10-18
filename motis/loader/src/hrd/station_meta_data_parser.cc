@@ -63,7 +63,7 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
 typedef std::tuple<cstr, cstr, int, int> minct;
 void load_minct(std::vector<minct>& records) {
-  loaded_file minct_file{"minct.csv", {station_meta_data::MINCT}};
+  loaded_file minct_file{"minct.csv", station_meta_data::MINCT};
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;

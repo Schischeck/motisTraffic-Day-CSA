@@ -74,7 +74,7 @@ motis::module::msg_ptr journeys_to_message(
 
   b.Finish(CreateMessage(
       b, MsgContent_RoutingResponse,
-      CreateRoutingResponse(b, b.CreateVector(connections)).Union()));
+      CreateRoutingResponse(b, b.CreateVector(connections)).Union(), 0x80000000));
 
   return make_msg(b);
 }

@@ -47,7 +47,8 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
 
   b.Finish(motis::CreateMessage(
       b, MsgContent_StationGuesserResponse,
-      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union()));
+      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union(),
+      0x80000000));
 
   return cb(make_msg(b), boost::system::error_code());
 }
