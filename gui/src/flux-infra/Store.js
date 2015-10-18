@@ -14,7 +14,10 @@ class CounterStore extends ReduceStore {
         return state.set('value', state.get('value') + 1);
       case 'down':
         return state.set('value', state.get('value') - 1);
+      case 'guesserResponse':
+        return state.set(action.componentId, action.data);
       default:
+        console.error('unknown action occured');
         return state;
     }
   }
