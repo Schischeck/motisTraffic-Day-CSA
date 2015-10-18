@@ -14,7 +14,7 @@ namespace module {
 struct message {
   message() : msg_(nullptr), buf_(nullptr) {}
   message(std::string const& json);
-  message(flatbuffers::unique_ptr_t mem, Message const* msg, void* buf)
+  message(flatbuffers::unique_ptr_t mem, Message* msg, void* buf)
       : mem_(std::move(mem)), msg_(msg), buf_(buf) {}
 
   template <typename T>
@@ -32,7 +32,7 @@ struct message {
 
   static std::unique_ptr<flatbuffers::Parser> parser;
   flatbuffers::unique_ptr_t mem_;
-  Message const* msg_;
+  Message* msg_;
   void* buf_;
 };
 
@@ -44,7 +44,7 @@ inline msg_ptr make_msg(std::string const& json) {
 
 inline msg_ptr make_msg(flatbuffers::FlatBufferBuilder& builder) {
   auto buf = builder.GetBufferPointer();
-  auto msg = GetMessage(buf);
+  auto msg = GetMutableMessage(buf);
   auto mem = builder.ReleaseBufferPointer();
   builder.Clear();
   return std::make_shared<message>(std::move(mem), msg, buf);

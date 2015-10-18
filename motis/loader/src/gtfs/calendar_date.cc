@@ -2,6 +2,8 @@
 
 #include "parser/csv.h"
 
+#include "motis/loader/util.h"
+
 using namespace parser;
 using std::get;
 
@@ -17,9 +19,9 @@ static const column_mapping<gtfs_calendar_date> calendar_columns = {
 
 date read_date(gtfs_calendar_date const& gtfs_date) {
   date d;
-  d.year = get<date_column>(gtfs_date) / 10000;
-  d.month = (get<date_column>(gtfs_date) % 10000) / 100;
-  d.day = get<date_column>(gtfs_date) % 100;
+  d.day = {yyyymmdd_year(get<date_column>(gtfs_date)),
+           yyyymmdd_month(get<date_column>(gtfs_date)),
+           yyyymmdd_day(get<date_column>(gtfs_date))};
   d.type = get<exception_type>(gtfs_date) == 1 ? date::ADD : date::REMOVE;
   return d;
 }

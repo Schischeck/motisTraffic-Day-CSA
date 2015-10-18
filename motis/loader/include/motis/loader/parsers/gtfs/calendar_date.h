@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 
+#include "boost/date_time/gregorian/gregorian_types.hpp"
+
 #include "motis/loader/loaded_file.h"
 
 namespace motis {
@@ -12,7 +14,7 @@ namespace gtfs {
 
 struct date {
   enum { ADD, REMOVE } type;
-  int day, month, year;
+  boost::gregorian::date day;
 };
 
 std::map<std::string, std::vector<date>> read_calendar_date(loaded_file);

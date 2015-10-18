@@ -5,6 +5,7 @@ include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
 include "railviz/RailVizAllTrainsRequest.fbs";
 include "railviz/RailVizAllTrainsResponse.fbs";
+include "ris/RISMessage.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 
@@ -34,12 +35,14 @@ union MsgContent {
   motis.railviz.RailVizAllTrainsResponse,
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
+  motis.ris.RISBatch,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse
 }
 
 table Message {
   content:MsgContent;
+  id:int = 0;
 }
 
 root_type Message;

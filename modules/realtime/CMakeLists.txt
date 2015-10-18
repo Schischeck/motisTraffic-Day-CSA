@@ -10,7 +10,7 @@ find_package(MySQLpp REQUIRED)
 include_directories(${MYSQL_INCLUDE_DIR} ${MYSQLPP_INCLUDE_DIR})
 
 file(GLOB_RECURSE motis-realtime-files src/*.cc)
-add_library(motis-realtime SHARED ${motis-realtime-files})
+add_library(motis-realtime STATIC ${motis-realtime-files})
 target_link_libraries(motis-realtime ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(motis-realtime ${MYSQL_LIBRARIES} ${MYSQLPP_LIBRARIES})
 target_link_libraries(motis-realtime motis-loader)

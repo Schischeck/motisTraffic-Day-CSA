@@ -6,4 +6,5 @@ table Station {
   lat : double;
   lng : double;
   interchange_time : int;
+  external_ids: [string];
 }
