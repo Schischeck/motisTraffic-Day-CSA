@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -47,7 +49,7 @@ TIn=\"20151007070635948\" TOutSnd=\"20151007070050\"/>\
 // clang-format on
 
 TEST(cancel_message, message_1) {
-  auto const msg = parse_xmls({cancel_fixture_1});
+  auto const msg = parse_xmls(pack(cancel_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444194395, batch->packets()->Get(0)->timestamp());
@@ -121,7 +123,7 @@ TIn=\"20151007161500043\" TOutSnd=\"20151007161409\"/>\
 
 // TODO!
 TEST(ausfall_message, message_2) {
-  auto const msg = parse_xmls({cancel_fixture_2});
+  auto const msg = parse_xmls(pack(cancel_fixture_2));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444227300, batch->packets()->Get(0)->timestamp());

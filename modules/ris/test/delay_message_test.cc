@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -29,7 +31,7 @@ Esc=\"mue810jyct\" />\
 // clang-format on
 
 TEST(delay_message, ist_message_1) {
-  auto const msg = parse_xmls({ist_fixture_1});
+  auto const msg = parse_xmls(pack(ist_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168774, batch->packets()->Get(0)->timestamp());
@@ -75,7 +77,7 @@ char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 // clang-format on
 
 TEST(delay_message, ist_message_2) {
-  auto const msg = parse_xmls({ist_fixture_2});
+  auto const msg = parse_xmls(pack(ist_fixture_2));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168802, batch->packets()->Get(0)->timestamp());
@@ -120,23 +122,23 @@ EventType get_type(motis::module::msg_ptr const& msg) {
 
 TEST(delay_message, train_event_type) {
   auto start_msg = type_fixture("Start");
-  auto start = parse_xmls({start_msg.c_str()});
+  auto start = parse_xmls(pack(start_msg.c_str()));
   ASSERT_EQ(EventType_Departure, get_type(start));
 
   auto ab_msg = type_fixture("Ab");
-  auto ab = parse_xmls({ab_msg.c_str()});
+  auto ab = parse_xmls(pack(ab_msg.c_str()));
   ASSERT_EQ(EventType_Departure, get_type(ab));
 
   auto pass_msg = type_fixture("Durch");
-  auto pass = parse_xmls({pass_msg.c_str()});
+  auto pass = parse_xmls(pack(pass_msg.c_str()));
   ASSERT_EQ(EventType_Pass, get_type(pass));
 
   auto an_msg = type_fixture("An");
-  auto an = parse_xmls({an_msg.c_str()});
+  auto an = parse_xmls(pack(an_msg.c_str()));
   ASSERT_EQ(EventType_Arrival, get_type(an));
 
   auto ziel_msg = type_fixture("Ziel");
-  auto ziel = parse_xmls({ziel_msg.c_str()});
+  auto ziel = parse_xmls(pack(ziel_msg.c_str()));
   ASSERT_EQ(EventType_Arrival, get_type(ziel));
 }
 
@@ -160,7 +162,7 @@ char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(delay_message, ist_prog_message_1) {
-  auto const msg = parse_xmls({ist_prog_fixture_1});
+  auto const msg = parse_xmls(pack(ist_prog_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168783, batch->packets()->Get(0)->timestamp());
@@ -210,7 +212,7 @@ char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(delay_message, ist_prog_message_2) {
-  auto const msg = parse_xmls({ist_prog_fixture_2});
+  auto const msg = parse_xmls(pack(ist_prog_fixture_2));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168800, batch->packets()->Get(0)->timestamp());

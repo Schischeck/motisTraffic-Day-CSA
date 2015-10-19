@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -46,7 +48,7 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
 // clang-format on
 
 TEST(connection_assessment_message, message_1) {
-  auto const msg = parse_xmls({connection_assessment_fixture_1});
+  auto const msg = parse_xmls(pack(connection_assessment_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444187918, batch->packets()->Get(0)->timestamp());
@@ -138,7 +140,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 // clang-format on
 
 TEST(connection_assessment_message, message_2) {
-  auto const msg = parse_xmls({connection_assessment_fixture_2});
+  auto const msg = parse_xmls(pack(connection_assessment_fixture_2));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444168788, batch->packets()->Get(0)->timestamp());

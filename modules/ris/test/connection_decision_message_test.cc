@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -44,7 +46,7 @@ IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
 // clang-format on
 
 TEST(connection_decision_message, message_1) {
-  auto const msg = parse_xmls({connection_decision_fixture_1});
+  auto const msg = parse_xmls(pack(connection_decision_fixture_1));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444227298, batch->packets()->Get(0)->timestamp());
@@ -116,7 +118,7 @@ TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
 // clang-format on
 
 TEST(connection_decision_message, message_2) {
-  auto const msg = parse_xmls({connection_decision_fixture_2});
+  auto const msg = parse_xmls(pack(connection_decision_fixture_2));
   auto const batch = msg->content<RISBatch const*>();
 
   EXPECT_EQ(1444227293, batch->packets()->Get(0)->timestamp());

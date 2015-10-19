@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <string>
 
 #include "boost/system/error_code.hpp"
@@ -25,12 +26,15 @@ struct ris : public motis::module::module {
               motis::module::callback) override {}
 
 private:
-  void parse_zips();
   void schedule_update(boost::system::error_code e);
+  void parse_zips();
+  std::vector<std::string> get_new_files();
 
   int update_interval_;
   std::string zip_folder_;
   std::unique_ptr<boost::asio::deadline_timer> timer_;
+
+  std::set<std::string> read_files_;
 };
 
 }  // namespace ris
