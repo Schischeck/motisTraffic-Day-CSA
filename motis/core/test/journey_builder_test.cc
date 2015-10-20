@@ -8,6 +8,7 @@
 #include "motis/routing/response_builder.h"
 
 using namespace motis;
+using namespace motis::journey_builder;
 
 journey create_journey1() {
   journey j;

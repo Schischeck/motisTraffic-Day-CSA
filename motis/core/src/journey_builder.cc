@@ -8,6 +8,7 @@
 #include "motis/protocol/RoutingResponse_generated.h"
 
 namespace motis {
+namespace journey_builder {
 
 journey::stop::event_info to_event_info(routing::EventInfo const& event,
                                         bool const valid) {
@@ -147,4 +148,5 @@ std::vector<journey> to_journeys(
   return journeys;
 }
 
+}  // namespace journey_builder
 }  // namespace motis

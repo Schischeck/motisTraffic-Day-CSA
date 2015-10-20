@@ -10,7 +10,8 @@ namespace routing {
 struct RoutingResponse;
 }
 
+namespace journey_builder {
 std::vector<journey> to_journeys(routing::RoutingResponse const*,
                                  std::vector<std::unique_ptr<category>> const&);
-
+}  // namespace journey_builder
 }  // namespace motis
