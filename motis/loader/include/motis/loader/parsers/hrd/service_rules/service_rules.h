@@ -25,6 +25,7 @@ struct rule_service {
 };
 
 struct service_rules {
+  service_rules() = default;
   service_rules(rules rules) : rules_(std::move(rules)) {}
 
   bool add_service(hrd_service const& s) {

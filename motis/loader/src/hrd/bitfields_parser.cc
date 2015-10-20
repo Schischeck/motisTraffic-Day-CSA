@@ -53,7 +53,7 @@ std::map<int, bitfield> parse_bitfields(loaded_file f) {
 
   std::map<int, bitfield> bitfields;
   for_each_line_numbered(f.content, [&](cstr line, int line_number) {
-    if (line.len == 0) {
+    if (line.len == 0 || line.str[0] == '%') {
       return;
     } else if (line.len < 9) {
       throw parser_error(f.name, line_number);
