@@ -87,17 +87,47 @@ private:
   std::vector<std::string> filenames_;
 };
 
-class ts_length_1 : public rule_services_test {
+class ts_once : public rule_services_test {
 public:
-  ts_length_1() : rule_services_test("ts-length-1") {}
+  ts_once() : rule_services_test("ts-once") {}
 };
 
-class ts_length_2 : public rule_services_test {
+class ts_twice : public rule_services_test {
 public:
-  ts_length_2() : rule_services_test("ts-length-2") {}
+  ts_twice() : rule_services_test("ts-twice") {}
 };
 
-TEST_F(ts_length_1, rule_services) {
+class ts_2_to_1 : public rule_services_test {
+public:
+  ts_2_to_1() : rule_services_test("ts-2-to-1") {}
+};
+
+class ts_passing_service : public rule_services_test {
+public:
+  ts_passing_service() : rule_services_test("ts-passing-service") {}
+};
+
+class mss_once : public rule_services_test {
+public:
+  mss_once() : rule_services_test("mss-once") {}
+};
+
+class mss_twice : public rule_services_test {
+public:
+  mss_twice() : rule_services_test("mss-twice") {}
+};
+
+class mss_many : public rule_services_test {
+public:
+  mss_many() : rule_services_test("mss-many") {}
+};
+
+class ts_mss_complex : public rule_services_test {
+public:
+  ts_mss_complex() : rule_services_test("ts-mss-complex") {}
+};
+
+TEST_F(ts_once, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -110,12 +140,13 @@ TEST_F(ts_length_1, rule_services) {
   auto const& rule_service = service_rules_.rule_services_[0];
   std::for_each(begin(rule_service.rules), end(rule_service.rules),
                 [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
                   ASSERT_EQ(bitfield{"0010001"}, sr.s1->traffic_days_);
                   ASSERT_EQ(bitfield{"0010001"}, sr.s2->traffic_days_);
                 });
 }
 
-TEST_F(ts_length_2, rule_services) {
+TEST_F(ts_twice, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -123,19 +154,131 @@ TEST_F(ts_length_2, rule_services) {
   ASSERT_EQ(2, service_rules_.rule_services_.size());
 
   auto const& rule_service1 = service_rules_.rule_services_[0];
+  ASSERT_EQ(3, rule_service1.services.size());
+  ASSERT_EQ(2, rule_service1.rules.size());
   std::for_each(begin(rule_service1.rules), end(rule_service1.rules),
                 [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
                   ASSERT_EQ(bitfield{"0011111"}, sr.s1->traffic_days_);
                   ASSERT_EQ(bitfield{"0011111"}, sr.s2->traffic_days_);
                 });
 
   auto const& rule_service2 = service_rules_.rule_services_[1];
+  ASSERT_EQ(2, rule_service2.services.size());
+  ASSERT_EQ(1, rule_service2.rules.size());
   std::for_each(begin(rule_service2.rules), end(rule_service2.rules),
                 [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
                   ASSERT_EQ(bitfield{"1100000"}, sr.s1->traffic_days_);
                   ASSERT_EQ(bitfield{"1100000"}, sr.s2->traffic_days_);
                 });
 }
+
+TEST_F(ts_2_to_1, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, service_rules_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(2, service_rules_.rule_services_.size());
+
+  auto const& rule_service1 = service_rules_.rule_services_[0];
+  ASSERT_EQ(2, rule_service1.services.size());
+  ASSERT_EQ(1, rule_service1.rules.size());
+  std::for_each(begin(rule_service1.rules), end(rule_service1.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"0011111"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"0011111"}, sr.s2->traffic_days_);
+                });
+
+  auto const& rule_service2 = service_rules_.rule_services_[1];
+  ASSERT_EQ(2, rule_service2.services.size());
+  ASSERT_EQ(1, rule_service2.rules.size());
+  std::for_each(begin(rule_service2.rules), end(rule_service2.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"1100000"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"1100000"}, sr.s2->traffic_days_);
+                });
+}
+
+TEST_F(ts_passing_service, rule_services) {
+  // check remaining services
+  ASSERT_EQ(1, service_rules_.origin_services_.size());
+
+  auto const& remaining_service = service_rules_.origin_services_[0];
+  ASSERT_EQ(bitfield{"1100000"}, remaining_service->traffic_days_);
+
+  // check rule services
+  ASSERT_EQ(1, service_rules_.rule_services_.size());
+
+  auto const& rule_service = service_rules_.rule_services_[0];
+  ASSERT_EQ(2, rule_service.services.size());
+  ASSERT_EQ(1, rule_service.rules.size());
+  std::for_each(begin(rule_service.rules), end(rule_service.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"0011111"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"0011111"}, sr.s2->traffic_days_);
+                });
+}
+
+TEST_F(mss_once, rule_services) {
+  // check remaining services
+  ASSERT_EQ(1, service_rules_.origin_services_.size());
+
+  auto const& remaining_service = service_rules_.origin_services_[0].get();
+  ASSERT_EQ(bitfield{"1111011"}, remaining_service->traffic_days_);
+
+  // check rule services
+  ASSERT_EQ(1, service_rules_.rule_services_.size());
+
+  auto const& rule_service = service_rules_.rule_services_[0];
+  std::for_each(begin(rule_service.rules), end(rule_service.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_MERGE_SPLIT, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"0000100"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"0000100"}, sr.s2->traffic_days_);
+                });
+}
+
+TEST_F(mss_twice, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, service_rules_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(1, service_rules_.rule_services_.size());
+
+  auto const& rule_service = service_rules_.rule_services_[0];
+  ASSERT_EQ(3, rule_service.services.size());
+  ASSERT_EQ(2, rule_service.rules.size());
+  std::for_each(begin(rule_service.rules), end(rule_service.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_MERGE_SPLIT, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
+                });
+}
+
+TEST_F(mss_many, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, service_rules_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(1, service_rules_.rule_services_.size());
+
+  auto const& rule_service = service_rules_.rule_services_[0];
+  ASSERT_EQ(3, rule_service.services.size());
+  ASSERT_EQ(2, rule_service.rules.size());
+  std::for_each(begin(rule_service.rules), end(rule_service.rules),
+                [](service_rule const& sr) {
+                  ASSERT_EQ(RuleType_MERGE_SPLIT, sr.rule_info.type);
+                  ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+                  ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
+                });
+}
+
+TEST_F(ts_mss_complex, rule_services) {}
 
 }  // loader
 }  // motis
