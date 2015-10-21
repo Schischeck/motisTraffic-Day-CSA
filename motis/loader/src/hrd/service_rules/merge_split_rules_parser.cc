@@ -37,7 +37,8 @@ struct mss_rule : public rule {
     // Check if first and last stop of the common part are contained with the
     // correct service id.
     bool begin_found = false, end_found = false;
-    for (unsigned section_idx = 0; section_idx < s.sections_.size();
+    for (unsigned section_idx = 0;
+         section_idx < s.sections_.size() && !(begin_found && end_found);
          ++section_idx) {
       auto const& section = s.sections_[section_idx];
       auto const& from_stop = s.stops_[section_idx];
@@ -48,10 +49,10 @@ struct mss_rule : public rule {
       if (service_id != id_1_ && service_id != id_2_) {
         continue;
       }
-
       if (!end_found && from_stop.eva_num == eva_num_begin_) {
         begin_found = true;
-      } else if (begin_found && to_stop.eva_num == eva_num_end_) {
+      }
+      if (begin_found && to_stop.eva_num == eva_num_end_) {
         end_found = true;
       }
     }
