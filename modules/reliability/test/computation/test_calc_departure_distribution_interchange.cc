@@ -94,7 +94,7 @@ TEST_CASE("compute_departure_distribution_ic1",
   calc_departure_distribution::data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule, dummy,
-      s_t_distributions);
+      dummy, s_t_distributions);
   REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
 
@@ -126,7 +126,7 @@ TEST_CASE("compute_departure_distribution_ic2",
   calc_departure_distribution::data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule, dummy,
-      s_t_distributions);
+      dummy, s_t_distributions);
   REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
 
@@ -170,7 +170,7 @@ TEST_CASE("compute_departure_distribution_ic3",
   calc_departure_distribution::data_departure_interchange data(
       false, tail_node_departing_train, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      precomputed, precomputed, s_t_distributions);
   REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
@@ -212,7 +212,7 @@ TEST_CASE("compute_departure_distribution_ic5",
   calc_departure_distribution::data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      precomputed, precomputed, s_t_distributions);
 
   REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
@@ -240,6 +240,3 @@ TEST_CASE("compute_departure_distribution_ic5",
       + (.05 * .9) /* waits only for other feeder */;
   REQUIRE(equal(departure_distribution.probability_equal(2), prob2));  // 11:34
 }
-
-TEST_CASE("compute_departure_distribution_ic_foot",
-          "[calc_departure_distribution_interchange]") {}

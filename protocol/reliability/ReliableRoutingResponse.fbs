@@ -1,0 +1,26 @@
+include "routing/RoutingResponse.fbs";
+
+namespace motis.reliability;
+
+table ProbabilityDistribution {
+  begin_time:ulong;
+  distribution:[float];
+  sum:float;
+}
+
+table RatingElement {
+  dep_stop_idx:ushort;
+  arr_stop_idx:ushort;
+  dep_distribution:ProbabilityDistribution;
+  arr_distribution:ProbabilityDistribution;
+}
+
+table Rating {
+rating_elements:[RatingElement];
+connection_rating:float;
+}
+
+table ReliableRoutingResponse {
+  response:motis.routing.RoutingResponse;
+  ratings:[Rating];
+}

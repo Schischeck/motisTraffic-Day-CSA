@@ -14,23 +14,24 @@
 namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
-
 data_departure::data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node, schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        distributions_container,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
     start_and_travel_distributions const& s_t_distributions)
     : is_first_route_node_(is_first_route_node),
       scheduled_departure_time_(light_connection.d_time),
       maximum_waiting_time_(0) {
-  init_train_info(route_node, light_connection, schedule.categories,
-                  s_t_distributions, distributions_container);
+  init_train_info(route_node, light_connection, train_distributions_container,
+                  s_t_distributions, schedule.categories);
   auto const all_feeders_data = graph_accessor::get_all_potential_feeders(
       route_node, light_connection,
       schedule.stations[route_node._station_node->_id]->transfer_time);
   init_feeder_info(light_connection, all_feeders_data, schedule,
-                   distributions_container);
+                   feeder_distributions_container);
 }
 
 data_departure::data_departure(bool const is_first_route_node,
@@ -41,10 +42,10 @@ data_departure::data_departure(bool const is_first_route_node,
 
 void data_departure::init_train_info(
     node const& route_node, light_connection const& light_conn,
-    std::vector<std::unique_ptr<category>> const& categories,
+    distributions_container::abstract_distributions_container const&
+        distributions_container,
     start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container const&
-        distributions_container) {
+    std::vector<std::unique_ptr<category>> const& categories) {
   if (is_first_route_node_) {
     auto const& train_category =
         categories[light_conn._full_con->con_info->family]->name;
@@ -77,7 +78,7 @@ void data_departure::init_feeder_info(
     std::vector<std::unique_ptr<graph_accessor::feeder_info>> const&
         all_feeders_data,
     schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
+    distributions_container::abstract_distributions_container const&
         distributions_container) {
   for (auto const& feeder_data : all_feeders_data) {
     auto waiting_time = graph_accessor::get_waiting_time(
@@ -88,9 +89,6 @@ void data_departure::init_feeder_info(
               ->transfer_time;  // TODO: use track change time if possible
       time const latest_feasible_arrival =
           (scheduled_departure_time_ + waiting_time) - transfer_time;
-
-      assert(distributions_container.contains_distributions(
-          feeder_data->head_route_node_._id, distributions_container::arrival));
       auto const& feeder_distribution =
           distributions_container.get_distribution(
               feeder_data->head_route_node_._id, feeder_data->light_conn_idx_,

@@ -66,8 +66,8 @@ bool is_pre_computed_route(schedule const& schedule,
 
 namespace ride_distribution {
 void compute_distributions_for_a_ride(
-    node const& first_route_node, unsigned int const light_connection_idx,
-    node const& last_route_node, schedule const& schedule,
+    unsigned int const light_connection_idx, node const& last_route_node,
+    schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::precomputed_distributions_container const&
         precomputed_distributions_container,

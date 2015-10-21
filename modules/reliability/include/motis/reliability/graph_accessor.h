@@ -150,6 +150,9 @@ inline node const& get_first_route_node(node const& route_node) {
 inline node const* get_first_route_node(schedule const& schedule,
                                         int const train_nr) {
   for (auto node : schedule.route_index_to_first_route_node) {
+    assert(graph_accessor::get_departing_route_edge(*node));
+    assert(graph_accessor::get_departing_route_edge(*node)
+               ->_m._route_edge._conns.size() > 0);
     if (graph_accessor::get_departing_route_edge(*node)
             ->_m._route_edge._conns[0]
             ._full_con->con_info->train_nr == train_nr) {
@@ -157,6 +160,47 @@ inline node const* get_first_route_node(schedule const& schedule,
     }
   }
   return nullptr;
+}
+
+inline std::pair<light_connection const*, unsigned int> find_light_connection(
+    edge const& route_edge, motis::time const departure_time,
+    unsigned int const family, unsigned int const train_nr) {
+  if (route_edge.empty()) {
+    return std::make_pair(nullptr, 0);
+  }
+  auto it = std::lower_bound(std::begin(route_edge._m._route_edge._conns),
+                             std::end(route_edge._m._route_edge._conns),
+                             light_connection(departure_time));
+  while (it != std::end(route_edge._m._route_edge._conns) &&
+         it->d_time == departure_time &&
+         (it->_full_con->con_info->train_nr != train_nr ||
+          it->_full_con->con_info->family != family)) {
+    it++;
+  }
+  return (it == std::end(route_edge._m._route_edge._conns) ||
+          it->d_time != departure_time)
+             ? std::make_pair(nullptr, 0)
+             : std::make_pair(
+                   it, it - std::begin(route_edge._m._route_edge._conns));
+}
+
+inline duration walking_duration(node const& tail_station,
+                                 node const& head_station) {
+  node const* foot_node = nullptr;
+  for (auto e : tail_station._edges) {
+    if (e._to->is_foot_node()) {
+      foot_node = e._to;
+      break;
+    }
+  }
+  assert(foot_node);
+  for (auto e : foot_node->_edges) {
+    if (e._to->_id == head_station._id) {
+      return e._m._foot_edge._time_cost;
+    }
+  }
+  assert(false);
+  return 0;
 }
 
 inline void print_route(node const* const first_route_node,
@@ -169,14 +213,16 @@ inline void print_route(node const* const first_route_node,
        << schedule.stations[edge->_to->get_station()->_id]->name << ":\n";
     unsigned int light_connection_idx = 0;
     for (auto const& light_connection : edge->_m._route_edge._conns) {
-      os << schedule.stations[edge->_from->_station_node->_id]->name << "("
+      os << schedule.stations[edge->_from->_station_node->_id]->name << "/"
+         << schedule.stations[edge->_from->_station_node->_id]->eva_nr << "("
          << edge->_from->_id << ")"
          << " " << format_time(light_connection.d_time) << "--"
          << schedule.categories[light_connection._full_con->con_info->family]
                 ->name << light_connection._full_con->con_info->train_nr << "("
          << light_connection_idx++ << ")->"
          << format_time(light_connection.a_time) << " "
-         << schedule.stations[edge->_to->_station_node->_id]->name << "("
+         << schedule.stations[edge->_to->_station_node->_id]->name << "/"
+         << schedule.stations[edge->_to->_station_node->_id]->eva_nr << "("
          << edge->_to->_id << ")"
          << " " << &light_connection << "\n";
     }

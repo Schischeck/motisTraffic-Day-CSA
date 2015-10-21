@@ -21,9 +21,9 @@ void output_element(std::ostream& os, schedule const& schedule,
                     light_connection const& light_connection,
                     unsigned short const light_connection_idx,
                     bool const is_first_route_node) {
-  os << schedule.stations[from._station_node->_id]->name << "(" << from._id
-     << ")"
-     << " " << format_time(light_connection.d_time) << "--"
+  os << schedule.stations[from._station_node->_id]->name << "("
+     << schedule.stations[from._station_node->_id]->index << "," << from._id
+     << ") " << format_time(light_connection.d_time) << "--"
      << schedule.categories[light_connection._full_con->con_info->family]->name
      << light_connection._full_con->con_info->train_nr << "("
      << light_connection_idx << ")->" << format_time(light_connection.a_time)
@@ -32,18 +32,27 @@ void output_element(std::ostream& os, schedule const& schedule,
      << " first=" << is_first_route_node << " " << &light_connection
      << std::endl;
 }
+void output_element(std::ostream& os, schedule const& schedule,
+                    queue_element const& element) {
+  output_element(os, schedule, *element.from_, *element.to_,
+                 *element.light_connection_, element.light_connection_idx_,
+                 element.is_first_route_node_);
+}
 
 void compute_dep_and_arr_distribution(
     queue_element const& element,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
     start_and_travel_distributions const& s_t_distributions,
     schedule const& schedule, probability_distribution& departure_distribution,
     probability_distribution& arrival_distribution) {
   assert(departure_distribution.empty());
   calc_departure_distribution::data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
-      schedule, precomputed_distributions_container, s_t_distributions);
+      schedule, train_distributions_container, feeder_distributions_container,
+      s_t_distributions);
   calc_departure_distribution::compute_departure_distribution(
       d_data, departure_distribution);
 
@@ -127,9 +136,17 @@ void process_element(
           element.to_->_id, element.light_connection_idx_,
           distributions_container::arrival);
 
+  if (!departure_distribution.empty() || !arrival_distribution.empty()) {
+    std::cout << "\nWarning(distributions_calculator): departure or arrival "
+                 "distribution already computed: ";
+    common::output_element(std::cout, schedule, element);
+    return;
+  }
+
   common::compute_dep_and_arr_distribution(
-      element, distributions_container, s_t_distributions, schedule,
-      departure_distribution, arrival_distribution);
+      element, distributions_container, distributions_container,
+      s_t_distributions, schedule, departure_distribution,
+      arrival_distribution);
   // insert all light connections out-going from the head-node
   // into the queue. Note that, process element is called
   // for all light-connections of the route-edge.
@@ -163,7 +180,7 @@ void perform_precomputation(
       std::cout << "." << std::flush;
     }
   }
-  std::cout << num_processed << " processed elements" << std::endl;
+  std::cout << num_processed << " pre-computed distribution pairs" << std::endl;
 }
 }  // namespace precomputation
 
@@ -179,7 +196,7 @@ void insert_all_elements_into_queue(node const& first_route_node,
          nullptr) {
     auto& light_conn = route_edge->_m._route_edge._conns[light_connection_idx];
     queue.emplace(node, route_edge->_to, &light_conn, light_connection_idx,
-                  true);
+                  node->_id == first_route_node._id);
     if (node == &last_route_node) {
       break;
     }
@@ -204,40 +221,33 @@ void process_element(
           element.to_->_id, element.light_connection_idx_,
           distributions_container::arrival);
   common::compute_dep_and_arr_distribution(
-      element, precomputed_distributions_container, s_t_distributions, schedule,
+      element, ride_distributions_container,
+      precomputed_distributions_container, s_t_distributions, schedule,
       departure_distribution, arrival_distribution);
 }
 }  // namespace detail
 
 void compute_distributions_for_a_ride(
-    node const& first_route_node, unsigned int const light_connection_idx,
-    node const& last_route_node, schedule const& schedule,
+    unsigned int const light_connection_idx, node const& last_route_node,
+    schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::precomputed_distributions_container const&
         precomputed_distributions_container,
     distributions_container::ride_distributions_container&
         ride_distributions_container) {
+  node const& very_first_route_node =
+      graph_accessor::get_first_route_node(last_route_node);
   common::queue_type queue;
-
-  detail::insert_all_elements_into_queue(first_route_node, light_connection_idx,
-                                         last_route_node, queue);
-
-  unsigned int num_processed = 0;
-
+  detail::insert_all_elements_into_queue(
+      very_first_route_node, light_connection_idx, last_route_node, queue);
   while (!queue.empty()) {
     detail::process_element(queue.top(), schedule, s_t_distributions,
                             precomputed_distributions_container,
                             ride_distributions_container);
     queue.pop();
-    if (++num_processed % 10000 == 0) {
-      std::cout << "." << std::flush;
-    }
   }
-
-  std::cout << num_processed << " processed elements" << std::endl;
 }
 }  // namespace ride_distribution
-
 }  // namespace distributions_calculator
 }  // namespace reliability
 }  // namespace motis

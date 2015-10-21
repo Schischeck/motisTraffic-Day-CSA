@@ -5,6 +5,8 @@ include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
 include "railviz/RailVizAllTrainsRequest.fbs";
 include "railviz/RailVizAllTrainsResponse.fbs";
+include "reliability/ReliableRoutingRequest.fbs";
+include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISMessage.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
@@ -35,6 +37,8 @@ union MsgContent {
   motis.railviz.RailVizAllTrainsResponse,
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
+  motis.reliability.ReliableRoutingRequest,
+  motis.reliability.ReliableRoutingResponse,
   motis.ris.RISBatch,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse

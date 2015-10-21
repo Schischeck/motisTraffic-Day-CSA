@@ -64,7 +64,7 @@ TEST_CASE("interchange first-route-node no-feeders",
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
-      dummy, s_t_distributions);
+      dummy, dummy, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
   REQUIRE(data.scheduled_departure_time_ ==
@@ -96,7 +96,8 @@ TEST_CASE("interchange preceding-arrival no-feeders",
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  precomputed_distributions_test_container train_distributions({0.9, 0.1}, 0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_K_F_S
@@ -121,7 +122,7 @@ TEST_CASE("interchange preceding-arrival no-feeders",
   data_departure_interchange data(
       false, tail_node_departing_train, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      train_distributions, dummy, s_t_distributions);
 
   // light conn of route edge from Kassel to Frankfurt of train ICE_K_F_S
   auto const& preceding_arrival_light_conn =
@@ -141,7 +142,7 @@ TEST_CASE("interchange preceding-arrival no-feeders",
           preceding_arrival_light_conn.a_time);
   REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
-          &precomputed.dist);
+          &train_distributions.dist);
 
   REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
           ic_data.arriving_light_conn_.a_time);
@@ -164,7 +165,8 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  distributions_container::precomputed_distributions_container dummy(0);
+  precomputed_distributions_test_container feeder_distributions({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // arriving train ICE_F_S from Frankfurt to Stuttgart
@@ -181,7 +183,7 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      dummy, feeder_distributions, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
   REQUIRE(data.scheduled_departure_time_ ==
@@ -193,7 +195,7 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
   auto const& feeder = data.feeders_[0];
 
   REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
-  REQUIRE(&feeder.distribution_ == &precomputed.dist);
+  REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
   REQUIRE(
       feeder.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
@@ -223,7 +225,8 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  distributions_container::precomputed_distributions_container dummy(0);
+  precomputed_distributions_test_container feeder_distributions({0.9, 0.1}, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // arriving train S_H_S from Heilbronn to Stuttgart
@@ -240,7 +243,7 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      dummy, feeder_distributions, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
   REQUIRE(data.scheduled_departure_time_ ==
@@ -252,7 +255,7 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
   {
     auto const& feeder = data.feeders_[0];
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 10);
-    REQUIRE(&feeder.distribution_ == &precomputed.dist);
+    REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
     REQUIRE(feeder.transfer_time_ ==
             schedule->stations[ic_data.tail_node_departing_train_._station_node
                                    ->_id]->transfer_time);
@@ -263,7 +266,7 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
   {
     auto const& feeder = data.feeders_[1];
     REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
-    REQUIRE(&feeder.distribution_ == &precomputed.dist);
+    REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
     REQUIRE(feeder.transfer_time_ ==
             schedule->stations[ic_data.tail_node_departing_train_._station_node
                                    ->_id]->transfer_time);
@@ -293,7 +296,7 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
       "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // arriving train ICE_S_E from Stuttgart to Erlangen
@@ -310,7 +313,7 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
-      precomputed, s_t_distributions);
+      dummy, dummy, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
   REQUIRE(data.scheduled_departure_time_ ==
@@ -334,14 +337,12 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
               data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange foot", "[data_departure_interchange]") {
+TEST_CASE("interchange walk", "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
       "../modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 0);
+  distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
-
-  duration const walk_duration = 10;
 
   // arriving train ICE_L_H from Langen to Frankfurt
   // interchange at Frankfurt and walking to Messe
@@ -354,10 +355,11 @@ TEST_CASE("interchange foot", "[data_departure_interchange]") {
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
-  data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, dummy_arrival_distribution, walk_duration,
-      *schedule, precomputed, s_t_distributions);
+  data_departure_interchange_walk data(
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to->_station_node,
+      ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
+      dummy_arrival_distribution, *schedule, dummy, dummy, s_t_distributions);
 
   REQUIRE(data.is_first_route_node_);
   REQUIRE(data.scheduled_departure_time_ ==
@@ -370,7 +372,7 @@ TEST_CASE("interchange foot", "[data_departure_interchange]") {
           ic_data.arriving_light_conn_.a_time);
   REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
           &dummy_arrival_distribution);
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == walk_duration);
+  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 10);
   REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
   REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
           (data.scheduled_departure_time_ +

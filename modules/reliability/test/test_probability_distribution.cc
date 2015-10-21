@@ -206,3 +206,34 @@ TEST_CASE("zero", "[probability_distribution]") {
   REQUIRE(pd.last_minute() == 2);
   REQUIRE(equal(pd.sum(), 0.0));
 }
+
+TEST_CASE("equal-operator", "[probability_distribution]") {
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.4, 0.1}, -1);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    REQUIRE(pd1 == pd2);
+    REQUIRE_FALSE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.4, 0.1}, 0);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    REQUIRE_FALSE(pd1 == pd2);
+    REQUIRE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.3, 0.1}, -1);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    REQUIRE_FALSE(pd1 == pd2);
+    REQUIRE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.3, 0.1, 0.1}, -1);
+    pd2.init({0.5, 0.3, 0.1}, -1);
+    REQUIRE_FALSE(pd1 == pd2);
+    REQUIRE(pd1 != pd2);
+  }
+}
