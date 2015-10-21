@@ -21,9 +21,9 @@ void output_element(std::ostream& os, schedule const& schedule,
                     light_connection const& light_connection,
                     unsigned short const light_connection_idx,
                     bool const is_first_route_node) {
-  os << schedule.stations[from._station_node->_id]->name << "(" << from._id
-     << ")"
-     << " " << format_time(light_connection.d_time) << "--"
+  os << schedule.stations[from._station_node->_id]->name << "("
+     << schedule.stations[from._station_node->_id]->index << "," << from._id
+     << ") " << format_time(light_connection.d_time) << "--"
      << schedule.categories[light_connection._full_con->con_info->family]->name
      << light_connection._full_con->con_info->train_nr << "("
      << light_connection_idx << ")->" << format_time(light_connection.a_time)
@@ -31,6 +31,12 @@ void output_element(std::ostream& os, schedule const& schedule,
      << ")"
      << " first=" << is_first_route_node << " " << &light_connection
      << std::endl;
+}
+void output_element(std::ostream& os, schedule const& schedule,
+                    queue_element const& element) {
+  output_element(os, schedule, *element.from_, *element.to_,
+                 *element.light_connection_, element.light_connection_idx_,
+                 element.is_first_route_node_);
 }
 
 void compute_dep_and_arr_distribution(
@@ -130,6 +136,13 @@ void process_element(
           element.to_->_id, element.light_connection_idx_,
           distributions_container::arrival);
 
+  if (!departure_distribution.empty() || !arrival_distribution.empty()) {
+    std::cout << "\nWarning(distributions_calculator): departure or arrival "
+                 "distribution already computed: ";
+    common::output_element(std::cout, schedule, element);
+    return;
+  }
+
   common::compute_dep_and_arr_distribution(
       element, distributions_container, distributions_container,
       s_t_distributions, schedule, departure_distribution,
@@ -167,7 +180,7 @@ void perform_precomputation(
       std::cout << "." << std::flush;
     }
   }
-  std::cout << num_processed << " processed elements" << std::endl;
+  std::cout << num_processed << " pre-computed distribution pairs" << std::endl;
 }
 }  // namespace precomputation
 

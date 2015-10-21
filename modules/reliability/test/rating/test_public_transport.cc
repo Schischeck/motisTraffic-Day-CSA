@@ -140,7 +140,8 @@ TEST_CASE("rate", "[rate_public_transport]") {
     auto response = msg->content<routing::RoutingResponse const*>();
     REQUIRE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-        *test_public_transport::schedule2, *response->connections()->begin());
+                              *test_public_transport::schedule2,
+                              *response->connections()->begin()).second;
     REQUIRE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -290,7 +291,8 @@ TEST_CASE("rate2", "[rate_public_transport]") {
     auto response = msg->content<routing::RoutingResponse const*>();
     REQUIRE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-        *test_public_transport::schedule5, *response->connections()->begin());
+                              *test_public_transport::schedule5,
+                              *response->connections()->begin()).second;
     REQUIRE(elements.size() == 3);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -384,7 +386,8 @@ TEST_CASE("rate_foot", "[rate_public_transport]") {
     auto response = msg->content<routing::RoutingResponse const*>();
     REQUIRE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-        *test_public_transport::schedule3, *response->connections()->begin());
+                              *test_public_transport::schedule3,
+                              *response->connections()->begin()).second;
     REQUIRE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},

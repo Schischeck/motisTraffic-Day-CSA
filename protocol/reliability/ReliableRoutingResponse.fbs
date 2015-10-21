@@ -5,7 +5,7 @@ namespace motis.reliability;
 table ProbabilityDistribution {
   begin_time:ulong;
   distribution:[float];
-  sum:[float];
+  sum:float;
 }
 
 table RatingElement {
@@ -15,6 +15,12 @@ table RatingElement {
   arr_distribution:ProbabilityDistribution;
 }
 
+table Rating {
+rating_elements:[RatingElement];
+connection_rating:float;
+}
+
 table ReliableRoutingResponse {
   response:motis.routing.RoutingResponse;
+  ratings:[Rating];
 }

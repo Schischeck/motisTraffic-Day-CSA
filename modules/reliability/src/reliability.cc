@@ -6,8 +6,6 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/core/common/journey_builder.h"
-
 #include "motis/reliability/db_distributions.h"
 #include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/error.h"
@@ -48,7 +46,6 @@ void reliability::init() {
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   if (msg->content_type() == MsgContent_ReliableRoutingRequest) {
     auto req = msg->content<ReliableRoutingRequest const*>();
-    find_and_rate_connections(req->request(), session_id, cb);
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
                                           this, p::_1, p::_2, cb));
@@ -57,21 +54,12 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   }
 }
 
-void reliability::find_and_rate_connections(
-    routing::RoutingRequest const* request, sid session_id, callback cb) {
-  return dispatch(
-      flatbuffers_tools::to_flatbuffers_message(request), session_id,
-      std::bind(&reliability::handle_routing_response, this, p::_1, p::_2, cb));
-}
-
 void reliability::handle_routing_response(motis::module::msg_ptr msg,
                                           boost::system::error_code e,
                                           callback cb) {
   if (e) {
     return cb(nullptr, e);
   }
-
-  std::cout << "\n\n------------" << std::endl;
   auto const lock = synced_sched<RO>();
   schedule const& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
@@ -79,33 +67,19 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
   unsigned int rating_index = 0;
   for (auto it = res->connections()->begin(); it != res->connections()->end();
        ++it, ++rating_index) {
-    rating::rate(ratings[rating_index], *it, schedule,
-                 *precomputed_distributions_, *s_t_distributions_);
-    {
-      std::cout << "\nconnection: " << std::flush;
-      for (auto it2 = it->transports()->begin(); it2 != it->transports()->end();
-           ++it2) {
-        if (it2->move_type() == routing::Move_Transport) {
-          auto transport = (routing::Transport const*)it2->move();
-          std::cout << transport->train_nr() << " " << std::flush;
-          auto const& r = std::find_if(
-              ratings[rating_index].public_transport_ratings.begin(),
-              ratings[rating_index].public_transport_ratings.end(),
-              [&](rating::rating_element const& r) {
-                return transport->range()->to() == r.arrival_stop_idx();
-              });
-          std::cout << r->arrival_distribution_ << std::endl;
-        }
-      }
-      std::cout << ratings[rating_index]
-                       .public_transport_ratings.back()
-                       .arrival_distribution_ << std::endl;
+    bool success =
+        rating::rate(ratings[rating_index], *it, schedule,
+                     *precomputed_distributions_, *s_t_distributions_);
+    if (!success) {
+      std::cout << "\nError(reliability) could not rate the connections"
+                << std::endl;
+      return cb(nullptr, error::failure);
     }
   }
 
-  return cb(
-      msg /*flatbuffers_tools::to_reliable_routing_response(msg, ratings)*/,
-      error::ok);
+  return cb(flatbuffers_tools::to_reliable_routing_response(
+                res, schedule.categories, ratings, true /* short output */),
+            error::ok);
 }
 
 }  // namespace reliability

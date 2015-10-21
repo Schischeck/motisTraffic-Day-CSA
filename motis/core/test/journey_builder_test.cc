@@ -193,8 +193,6 @@ journey create_journey2() {
   return j;
 }
 
-#include <iostream>
-
 TEST_CASE("convert journey", "[journey_builder]") {
   std::vector<journey> original_journeys;
   original_journeys.push_back(create_journey1());

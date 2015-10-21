@@ -11,6 +11,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
+namespace detail {
 std::vector<Offset<Stop>> convert_stops(
     FlatBufferBuilder& b, std::vector<journey::stop> const& stops) {
   std::vector<Offset<Stop>> buf_stops;
@@ -59,6 +60,7 @@ std::vector<Offset<Attribute>> convert_attributes(
   }
   return buf_attributes;
 }
+}  // namespace detail
 
 motis::module::msg_ptr journeys_to_message(
     std::vector<journey> const& journeys) {
@@ -66,10 +68,10 @@ motis::module::msg_ptr journeys_to_message(
 
   std::vector<Offset<Connection>> connections;
   for (auto const& j : journeys) {
-    connections.push_back(
-        CreateConnection(b, b.CreateVector(convert_stops(b, j.stops)),
-                         b.CreateVector(convert_moves(b, j.transports)),
-                         b.CreateVector(convert_attributes(b, j.attributes))));
+    connections.push_back(CreateConnection(
+        b, b.CreateVector(detail::convert_stops(b, j.stops)),
+        b.CreateVector(detail::convert_moves(b, j.transports)),
+        b.CreateVector(detail::convert_attributes(b, j.attributes))));
   }
 
   b.Finish(CreateMessage(

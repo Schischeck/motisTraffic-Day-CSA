@@ -13,15 +13,23 @@ namespace motis {
 namespace reliability {
 namespace rating {
 
-void rate(connection_rating& rating, routing::Connection const* connection,
+bool rate(connection_rating& rating, routing::Connection const* connection,
           schedule const& schedule,
           distributions_container::precomputed_distributions_container const&
               precomputed_distributions,
           start_and_travel_distributions const& s_t_distributions) {
-  public_transport::rate(
-      rating.public_transport_ratings,
-      rating::connection_to_graph_data::get_elements(schedule, connection),
-      schedule, precomputed_distributions, s_t_distributions);
+  auto const connection_elements =
+      rating::connection_to_graph_data::get_elements(schedule, connection);
+  if (!connection_elements.first) {
+    return false;
+  }
+  public_transport::rate(rating.public_transport_ratings_,
+                         connection_elements.second, schedule,
+                         precomputed_distributions, s_t_distributions);
+  rating.connection_rating_ =
+      rating.public_transport_ratings_.back().arrival_distribution_.sum();
+
+  return true;
 }
 
 }  // namespace rating

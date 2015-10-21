@@ -126,7 +126,7 @@ TEST_CASE("get_elements", "[conn_to_graph_data]") {
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule2,
-                     *response->connections()->begin());
+                     *response->connections()->begin()).second;
     REQUIRE(elements.size() == 2);
     {
       REQUIRE(elements[0].size() == 1);
@@ -181,7 +181,7 @@ TEST_CASE("get_elements2", "[conn_to_graph_data]") {
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule5,
-                     *response->connections()->begin());
+                     *response->connections()->begin()).second;
     REQUIRE(elements.size() == 2);
     {
       REQUIRE(elements.at(0).size() == 2);
@@ -261,7 +261,7 @@ TEST_CASE("get_elements_foot", "[conn_to_graph_data]") {
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule6,
-                     *response->connections()->begin());
+                     *response->connections()->begin()).second;
     REQUIRE(elements.size() == 2);
     {
       REQUIRE(elements[0].size() == 1);

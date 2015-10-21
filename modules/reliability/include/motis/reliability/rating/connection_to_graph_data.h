@@ -17,8 +17,9 @@ namespace rating {
 struct connection_element;
 
 namespace connection_to_graph_data {
-std::vector<std::vector<connection_element>> const get_elements(
-    schedule const&, routing::Connection const*);
+/* @return for each transport, a vector of all connection-elements */
+std::pair<bool, std::vector<std::vector<connection_element>>> const
+get_elements(schedule const&, routing::Connection const*);
 
 namespace detail {
 connection_element const to_element(

@@ -1,11 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <tuple>
 
 #include "motis/module/module.h"
 
 namespace motis {
+struct category;
 namespace reliability {
 namespace rating {
 struct connection_rating;
@@ -23,8 +25,9 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    std::tuple<int, int, int> ddmmyyyy);
 
 module::msg_ptr to_reliable_routing_response(
-    module::msg_ptr routing_response,
-    std::vector<rating::connection_rating> const&);
+    routing::RoutingResponse const*,
+    std::vector<std::unique_ptr<category>> const&,
+    std::vector<rating::connection_rating> const&, bool const short_output);
 
 }  // namespace flatbuffers_tools
 }  // namespace reliability

@@ -32,9 +32,6 @@ private:
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
 
-  void find_and_rate_connections(routing::RoutingRequest const*,
-                                 motis::module::sid session_id,
-                                 motis::module::callback);
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,
                                motis::module::callback);
