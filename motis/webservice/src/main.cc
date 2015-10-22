@@ -37,9 +37,9 @@ int main(int argc, char** argv) {
   std::vector<std::unique_ptr<motis::module::module> > modules;
   modules.emplace_back(new routing::routing());
   modules.emplace_back(new guesser::guesser());
-  modules.emplace_back(new reliability::reliability());
+  // modules.emplace_back(new reliability::reliability());
   modules.emplace_back(new railviz::railviz());
-  modules.emplace_back(new ris::ris());
+  // modules.emplace_back(new ris::ris());
 
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("data/test", "TODAY", 2);
