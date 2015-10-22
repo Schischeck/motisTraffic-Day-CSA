@@ -2,24 +2,36 @@ import React from 'react';
 import Component from './BaseComponent';
 import {Container} from 'flux/utils';
 
+import {TextField, List, ListItem, Paper} from 'material-ui/lib';
+
+import Menu from 'material-ui/lib/menus/menu';
+import MenuItem from 'material-ui/lib/menus/menu-item';
+
 import Store from '../flux-infra/Store';
 import Actions from '../flux-infra/Actions';
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
 
+import './StationInput.scss';
+
 export class StationInputUI extends Component {
   render() {
     return (
-      <div>
-        <label htmlFor={ this.props.name }>{ this.props.label }</label>
-        <input type="text" name={ this.props.name } onKeyUp={ this.props.onKeyUp } ></input>
-        <ul className="suggestionbox">
-          {
-            this.props.suggestions.map((val, index) => {
-              return <li key={ index }>{ val.name }</li>
-            })
-          }
-        </ul>
+      <div style={{'width': 256, 'position': 'relative'}}>
+        <TextField
+          hintText={ this.props.name }
+          onKeyUp={ this.props.onKeyUp }
+          onBlur={ this.onInputBlur }>
+        </TextField>
+        <Paper ref={'suggestionbox'} zDepth={1} className={['suggestions']}>
+          <List desktop={true}>
+            {
+              this.props.suggestions.map((val, index) => {
+                return <ListItem key={ index } primaryText={ val.name } />
+              })
+            }
+          </List>
+        </Paper>
       </div>
     );
   }
