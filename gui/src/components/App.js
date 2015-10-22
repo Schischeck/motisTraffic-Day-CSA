@@ -1,16 +1,12 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 
-import Counter from './Counter';
-import DecreaseButton from './DecreaseButton';
 import StationInput from './StationInput';
-import { NICE, SUPER_NICE } from '../Constants';
 
 export class App extends Component {
   render() {
     return (
       <div>
-        <Counter color={SUPER_NICE} />
-        <DecreaseButton />
         <StationInput name="station1" />
       </div>
     );

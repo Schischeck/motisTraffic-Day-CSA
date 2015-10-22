@@ -2,10 +2,10 @@ import React from 'react';
 import Component from './BaseComponent';
 import {Container} from 'flux/utils';
 
-import AppDispatcher from '../flux-infra/Dispatcher';
-import AppStore from '../flux-infra/Store';
+import Store from '../flux-infra/Store';
 import Actions from '../flux-infra/Actions';
 import Server from '../Server';
+import StationGuesserRequest from '../Messages/StationGuesserRequest';
 
 export class StationInputUI extends Component {
   render() {
@@ -31,16 +31,16 @@ export class StationInput extends Component {
   }
 
   static getStores() {
-    return [AppStore];
+    return [Store];
   }
 
   static calculateState(prevState) {
-    return AppStore.getState().toJS();
+    return Store.getState().toJS();
   }
 
   fetchSuggestions(evt) {
     let data = evt.target.value;
-    Actions.getStationSuggestions(data, this.componentId);
+    Actions.sendMessage(new StationGuesserRequest(data, 5), this.componentId);
   }
 
   render() {

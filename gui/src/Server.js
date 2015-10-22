@@ -23,7 +23,7 @@ class Server {
 
     switch (res.content_type) {
       case 'StationGuesserResponse':
-        this._resolvePending(res.id, res.content);
+        this._resolvePending(res.id, res);
         break;
       default:
         this._rejectPending(res.id, 'unknown message type');
@@ -58,16 +58,13 @@ class Server {
     delete this.pendingRequests[id];
   }
 
-  getStationSuggestions(inputValue, inputName) {
+  sendMessage(message) {
     return new Promise((resolve, reject) => {
       let localRequestId = ++this.requestId;
       let request = {
         'id': localRequestId,
-        'content_type': 'StationGuesserRequest',
-        'content': {
-          'input': inputValue,
-          'guess_count': 5
-        }
+        'content_type': message.contentType,
+        'content': message.content
       };
 
       this.socket.send(JSON.stringify(request));
