@@ -17,9 +17,9 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/bitfield_translator.h"
 #include "motis/loader/parsers/hrd/service/split_service.h"
-#include "motis/loader/parsers/hrd/service_rules/service_rules.h"
 #include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
 #include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
+#include "motis/loader/parsers/hrd/service_rules/rule_service_builder.h"
 
 namespace motis {
 namespace loader {
@@ -72,11 +72,11 @@ protected:
     specs_.emplace_back(stamm, filenames_.back().c_str());
     parse_merge_split_service_rules(specs_.back().lf_, hrd_bitfields, rs);
 
-    service_rules_ = service_rules(rs);
+    service_rules_ = rule_service_builder(rs);
     for (auto const& s : expanded_services) {
       service_rules_.add_service(s);
     }
-    service_rules_.create_graph();
+    service_rules_.build();
   }
 
   void print_services() const {
@@ -104,7 +104,7 @@ protected:
   }
 
   std::string schedule_name_;
-  service_rules service_rules_;
+  rule_service_builder service_rules_;
 
 private:
   std::vector<test_spec> specs_;

@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include "../service_rules/rule_service_builder.h"
 #include "parser/cstr.h"
 
 #include "motis/loader/parsers/hrd/bitfield_translator.h"
@@ -11,7 +12,6 @@
 #include "motis/loader/parsers/hrd/providers_translator.h"
 #include "motis/loader/parsers/hrd/service/shared_data.h"
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
-#include "motis/loader/parsers/hrd/service_rules/service_rules.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
@@ -58,7 +58,7 @@ struct service_builder {
       std::vector<hrd_service::stop> const&);
 
   shared_data const& stamm_;
-  service_rules sr_;
+  rule_service_builder sr_;
   bitfield_translator bitfields_;
   stations_translator stations_;
   providers_translator providers_;
