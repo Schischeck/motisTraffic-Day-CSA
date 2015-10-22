@@ -15,9 +15,9 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_ts, multiple_rules) {
-  test_spec b_spec(SCHEDULES / "ts-mss-full" / "stamm", "bitfield.101");
+  test_spec b_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "bitfield.101");
   auto hrd_bitfields = parse_bitfields(b_spec.lf_);
-  test_spec ts_spec(SCHEDULES / "ts-mss-full" / "stamm", "durchbi.101");
+  test_spec ts_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "durchbi.101");
   rules rs;
   parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs);
 
