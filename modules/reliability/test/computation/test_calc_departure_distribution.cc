@@ -17,25 +17,31 @@
 
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
+#include "include/test_schedule_setup.h"
 
-using namespace motis;
-using namespace motis::reliability;
-using namespace motis::reliability::calc_departure_distribution;
-using namespace motis::reliability::calc_departure_distribution::detail;
+namespace motis {
+namespace reliability {
+namespace calc_departure_distribution {
+using namespace detail;
 
-namespace schedule1 {
-/* train numbers */
-short const IC_DA_H = 1;
-short const IC_FR_DA = 2;
-short const IC_FH_DA = 3;
-short const RE_MA_DA = 4;
-short const ICE_FR_DA_H = 5;
-short const ICE_HA_W_HE = 6;
-short const ICE_K_K = 7;
-short const RE_K_S = 8;
-}
+class test_calc_departure_distribution : public test_schedule_setup {
+public:
+  test_calc_departure_distribution()
+      : test_schedule_setup("modules/reliability/resources/schedule/",
+                            to_unix_time(2015, 9, 28),
+                            to_unix_time(2015, 9, 29)) {}
+  /* train numbers */
+  short const IC_DA_H = 1;
+  short const IC_FR_DA = 2;
+  short const IC_FH_DA = 3;
+  short const RE_MA_DA = 4;
+  short const ICE_FR_DA_H = 5;
+  short const ICE_HA_W_HE = 6;
+  short const ICE_K_K = 7;
+  short const RE_K_S = 8;
+};
 
-TEST(departure_independent_from_feeders, calc_departure_distribution) {
+TEST_F(test_calc_departure_distribution, departure_independent_from_feeders) {
   std::vector<data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -86,23 +92,19 @@ TEST(departure_independent_from_feeders, calc_departure_distribution) {
 }
 
 // first route node
-TEST(train_early_enough1, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, train_early_enough1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  data_departure data(first_route_node, first_light_conn, true, *schedule,
+  data_departure data(first_route_node, first_light_conn, true, *schedule_,
                       dummy, dummy, s_t_distributions);
   train_arrived(data);
 
@@ -110,18 +112,14 @@ TEST(train_early_enough1, calc_departure_distribution) {
 }
 
 // preceding arrival
-TEST(train_early_enough2, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, train_early_enough2) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Hanau of train ICE_HA_W_HE
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::ICE_HA_W_HE);
+      *graph_accessor::get_first_route_node(*schedule_, ICE_HA_W_HE);
   // route node at Wuerzburg
   auto second_route_node =
       graph_accessor::get_departing_route_edge(first_route_node)->_to;
@@ -130,7 +128,7 @@ TEST(train_early_enough2, calc_departure_distribution) {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  data_departure data(*second_route_node, light_connection, false, *schedule,
+  data_departure data(*second_route_node, light_connection, false, *schedule_,
                       train_distributions, train_distributions,
                       s_t_distributions);
   train_arrived(data);
@@ -138,7 +136,8 @@ TEST(train_early_enough2, calc_departure_distribution) {
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
 }
 
-TEST(cut_minutes_after_latest_feasible_arrival1, calc_departure_distribution) {
+TEST_F(test_calc_departure_distribution,
+       cut_minutes_after_latest_feasible_arrival1) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -159,7 +158,8 @@ TEST(cut_minutes_after_latest_feasible_arrival1, calc_departure_distribution) {
       equal(modified_distributions[0].probability_greater_equal(3), 0.0));
 }
 
-TEST(cut_minutes_after_latest_feasible_arrival2, calc_departure_distribution) {
+TEST_F(test_calc_departure_distribution,
+       cut_minutes_after_latest_feasible_arrival2) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -193,7 +193,7 @@ TEST(cut_minutes_after_latest_feasible_arrival2, calc_departure_distribution) {
       equal(modified_distributions[1].probability_greater_equal(1), 0.0));
 }
 
-TEST(had_to_wait_for_feeders1, departure_data) {
+TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders1) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -241,7 +241,7 @@ TEST(had_to_wait_for_feeders1, departure_data) {
 }
 
 /* different transfer times */
-TEST(had_to_wait_for_feeders2, departure_data) {
+TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders2) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -293,23 +293,19 @@ TEST(had_to_wait_for_feeders2, departure_data) {
 }
 
 // first route node without feeders
-TEST(compute_departure_distribution1, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, compute_departure_distribution1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  data_departure data(first_route_node, first_light_conn, true, *schedule,
+  data_departure data(first_route_node, first_light_conn, true, *schedule_,
                       dummy, dummy, s_t_distributions);
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
@@ -322,18 +318,14 @@ TEST(compute_departure_distribution1, calc_departure_distribution) {
 }
 
 // first route node with feeders
-TEST(compute_departure_distribution2, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, compute_departure_distribution2) {
   precomputed_distributions_test_container train_distributions(
       {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::IC_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, IC_DA_H);
   // route edge from Darmstadt to Heidelberg
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
@@ -347,7 +339,7 @@ TEST(compute_departure_distribution2, calc_departure_distribution) {
    *   06:57=0.1, 06:58=0.1, 06:59=0.1
    * The second feeder has no influence on this departure
    */
-  data_departure data(first_route_node, light_connection, true, *schedule,
+  data_departure data(first_route_node, light_connection, true, *schedule_,
                       train_distributions, train_distributions,
                       s_t_distributions);
 
@@ -385,18 +377,14 @@ TEST(compute_departure_distribution2, calc_departure_distribution) {
 }
 
 // route node with preceding arrival and without feeders
-TEST(compute_departure_distribution3, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, compute_departure_distribution3) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   start_and_travel_test_distributions const* dummy = nullptr;
 
   // route node at Hanau of train ICE_HA_W_HE
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::ICE_HA_W_HE);
+      *graph_accessor::get_first_route_node(*schedule_, ICE_HA_W_HE);
   // route node at Wuerzburg
   auto second_route_node =
       graph_accessor::get_departing_route_edge(first_route_node)->_to;
@@ -409,7 +397,7 @@ TEST(compute_departure_distribution3, calc_departure_distribution) {
    * preceding-arrival-time: 10:32 min-standing: 2
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
-  data_departure data(*second_route_node, light_connection, false, *schedule,
+  data_departure data(*second_route_node, light_connection, false, *schedule_,
                       train_distributions, train_distributions, *dummy);
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
@@ -441,11 +429,7 @@ TEST(compute_departure_distribution3, calc_departure_distribution) {
 }
 
 // route node with preceding arrival and feeders
-TEST(compute_departure_distribution4, calc_departure_distribution) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
-
+TEST_F(test_calc_departure_distribution, compute_departure_distribution4) {
   std::vector<probability> values;
   values.push_back(0.043);
   for (unsigned int i = 0; i < 29; i++) {
@@ -456,9 +440,9 @@ TEST(compute_departure_distribution4, calc_departure_distribution) {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train ICE_FR_DA_H
-  auto& route_node = *graph_accessor::get_departing_route_edge(
-                          *graph_accessor::get_first_route_node(
-                              *schedule, schedule1::ICE_FR_DA_H))->_to;
+  auto& route_node =
+      *graph_accessor::get_departing_route_edge(
+           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))->_to;
   auto const& light_connection = graph_accessor::get_departing_route_edge(
                                      route_node)->_m._route_edge._conns[0];
 
@@ -472,7 +456,7 @@ TEST(compute_departure_distribution4, calc_departure_distribution) {
    * feeder-arrival-time: 05:56 lfa: 06:09 transfer-time: 5
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
-  data_departure data(route_node, light_connection, false, *schedule,
+  data_departure data(route_node, light_connection, false, *schedule_,
                       train_distributions, train_distributions,
                       s_t_distributions);
 
@@ -667,3 +651,7 @@ TEST(compute_departure_distribution4, calc_departure_distribution) {
     ASSERT_TRUE(equal(departure_distribution.probability_equal(d), 0.033));
   }
 }
+
+}  // namespace calc_departure_distribution
+}  // namespace reliability
+}  // namespace motis

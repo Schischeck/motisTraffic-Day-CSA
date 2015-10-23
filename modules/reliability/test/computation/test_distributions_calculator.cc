@@ -15,39 +15,46 @@
 #include "motis/reliability/graph_accessor.h"
 
 #include "include/start_and_travel_test_distributions.h"
+#include "include/test_schedule_setup.h"
 
-using namespace motis;
-using namespace motis::reliability;
+namespace motis {
+namespace reliability {
+namespace distributions_calculator {
 
-namespace schedule1 {
-/* train numbers */
-short const IC_DA_H = 1;
-short const IC_FR_DA = 2;
-short const IC_FH_DA = 3;
-short const RE_MA_DA = 4;
-short const ICE_FR_DA_H = 5;
-short const ICE_HA_W_HE = 6;
-short const ICE_K_K = 7;
-short const RE_K_S = 8;
-}
+class test_distributions_calculator : public test_schedule_setup {
+public:
+  test_distributions_calculator()
+      : test_schedule_setup("modules/reliability/resources/schedule/",
+                            to_unix_time(2015, 9, 28),
+                            to_unix_time(2015, 9, 29)) {}
+  /* train numbers */
+  short const IC_DA_H = 1;
+  short const IC_FR_DA = 2;
+  short const IC_FH_DA = 3;
+  short const RE_MA_DA = 4;
+  short const ICE_FR_DA_H = 5;
+  short const ICE_HA_W_HE = 6;
+  short const ICE_K_K = 7;
+  short const RE_K_S = 8;
+};
 
-TEST(is_pre_computed_train, distributions_calculator) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
+class test_distributions_calculator4 : public test_schedule_setup {
+public:
+  test_distributions_calculator4()
+      : test_schedule_setup("modules/reliability/resources/schedule4/",
+                            to_unix_time(2015, 10, 19),
+                            to_unix_time(2015, 10, 20)) {}
+  short const RE_F_L_D = 1;
+};
 
-  ASSERT_TRUE(
-      distributions_calculator::precomputation::detail::is_pre_computed_route(
-          *schedule, *graph_accessor::get_first_route_node(
-                         *schedule, schedule1::IC_DA_H)));
-  ASSERT_TRUE(
-      distributions_calculator::precomputation::detail::is_pre_computed_route(
-          *schedule, *graph_accessor::get_first_route_node(
-                         *schedule, schedule1::ICE_FR_DA_H)));
-  ASSERT_FALSE(
-      distributions_calculator::precomputation::detail::is_pre_computed_route(
-          *schedule,
-          *graph_accessor::get_first_route_node(*schedule, schedule1::RE_K_S)));
+TEST_F(test_distributions_calculator, is_pre_computed_train) {
+  ASSERT_TRUE(precomputation::detail::is_pre_computed_route(
+      *schedule_, *graph_accessor::get_first_route_node(*schedule_, IC_DA_H)));
+  ASSERT_TRUE(precomputation::detail::is_pre_computed_route(
+      *schedule_,
+      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H)));
+  ASSERT_FALSE(precomputation::detail::is_pre_computed_route(
+      *schedule_, *graph_accessor::get_first_route_node(*schedule_, RE_K_S)));
 }
 
 void test_distributions(
@@ -99,54 +106,44 @@ void test_distributions(
                      pre_computed_distributions);
 }
 
-TEST(Initial_distributions_simple, distributions_calculator) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
+TEST_F(test_distributions_calculator, Initial_distributions_simple) {
   distributions_container::precomputed_distributions_container
-      precomputed_distributions(schedule->node_count);
+      precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
 
-  distributions_calculator::precomputation::perform_precomputation(
-      *schedule, s_t_distributions, precomputed_distributions);
+  precomputation::perform_precomputation(*schedule_, s_t_distributions,
+                                         precomputed_distributions);
 
   for (auto const first_route_node :
-       schedule->route_index_to_first_route_node) {
-    test_distributions(
-        *first_route_node, precomputed_distributions,
-        distributions_calculator::precomputation::detail::is_pre_computed_route(
-            *schedule, *first_route_node));
+       schedule_->route_index_to_first_route_node) {
+    test_distributions(*first_route_node, precomputed_distributions,
+                       precomputation::detail::is_pre_computed_route(
+                           *schedule_, *first_route_node));
   }
 }
 
 #if 0
 #include "motis/reliability/db_distributions.h"
-TEST(Initial_distributions_db_distributions,
-          distributions_calculator) {
-  std::cout << "Initial_distributions_db_distributions" << std::endl;
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
+TEST_F(test_distributions_calculator, Initial_distributions_db_distributions) {
   distributions_container::precomputed_distributions_container
-      precomputed_distributions(schedule->node_count);
+      precomputed_distributions(schedule_->node_count);
   db_distributions db_dists(
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
-  distributions_calculator::precomputation::perform_precomputation(
-      *schedule, db_dists, precomputed_distributions);
+  precomputation::perform_precomputation(
+      *schedule_, db_dists, precomputed_distributions);
 
   for (auto const first_route_node :
-       schedule->route_index_to_first_route_node) {
+       schedule_->route_index_to_first_route_node) {
     test_distributions(
         *first_route_node, precomputed_distributions,
-        distributions_calculator::precomputation::detail::is_pre_computed_route(
-            *schedule, *first_route_node));
+        precomputation::detail::is_pre_computed_route(
+            *schedule_, *first_route_node));
   }
 }
-TEST(Initial_distributions_db_distributions2,
-          distributions_calculator) {
+TEST_F(test_distributions_calculator, Initial_distributions_db_distributions2) {
   std::cout << "Initial_distributions_db_distributions2" << std::endl;
   auto schedule = loader::load_schedule("/tmp/rohdaten/rohdaten/",
                                         to_unix_time(2015, 9, 28),
@@ -158,44 +155,39 @@ TEST(Initial_distributions_db_distributions2,
       "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
-  distributions_calculator::precomputation::perform_precomputation(
+  precomputation::perform_precomputation(
       *schedule, db_dists, precomputed_distributions);
 
   for (auto const first_route_node :
        schedule->route_index_to_first_route_node) {
     test_distributions(
         *first_route_node, precomputed_distributions,
-        distributions_calculator::precomputation::detail::is_pre_computed_route(
+        precomputation::detail::is_pre_computed_route(
             *schedule, *first_route_node));
   }
 }
 #endif
 
-TEST(distributions_for_a_ride_RE, distributions_calculator) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule4/", to_unix_time(2015, 10, 18),
-      to_unix_time(2015, 10, 20));
+TEST_F(test_distributions_calculator4, distributions_for_a_ride_RE) {
   distributions_container::precomputed_distributions_container
-      precomputed_distributions(schedule->node_count);
+      precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
-  distributions_calculator::precomputation::perform_precomputation(
-      *schedule, s_t_distributions, precomputed_distributions);
+  precomputation::perform_precomputation(*schedule_, s_t_distributions,
+                                         precomputed_distributions);
   distributions_container::ride_distributions_container container;
 
   // route node at Frankfurt of train RE_F_L_D
-  short const RE_F_L_D = 1;
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, RE_F_L_D);
+      *graph_accessor::get_first_route_node(*schedule_, RE_F_L_D);
   node const& second_route_node =
       *graph_accessor::get_departing_route_edge(first_route_node)->_to;
   node const& last_route_node =
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
 
-  distributions_calculator::ride_distribution::detail::
-      compute_distributions_for_a_ride(0, last_route_node, *schedule,
-                                       s_t_distributions,
-                                       precomputed_distributions, container);
+  ride_distribution::detail::compute_distributions_for_a_ride(
+      0, last_route_node, *schedule_, s_t_distributions,
+      precomputed_distributions, container);
 
   {
     auto const& distribution = container.get_distribution(
@@ -223,31 +215,27 @@ TEST(distributions_for_a_ride_RE, distributions_calculator) {
   }
 }
 
-TEST(distributions_for_a_ride_ICE, distributions_calculator) {
-  auto schedule = loader::load_schedule(
-      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
-      to_unix_time(2015, 9, 29));
+TEST_F(test_distributions_calculator, distributions_for_a_ride_ICE) {
   distributions_container::precomputed_distributions_container
-      precomputed_distributions(schedule->node_count);
+      precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
-  distributions_calculator::precomputation::perform_precomputation(
-      *schedule, s_t_distributions, precomputed_distributions);
+  precomputation::perform_precomputation(*schedule_, s_t_distributions,
+                                         precomputed_distributions);
   distributions_container::ride_distributions_container container;
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule, schedule1::ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
   node const& second_route_node =
       *graph_accessor::get_departing_route_edge(first_route_node)->_to;
   node const& last_route_node =
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
   unsigned int const light_conn_idx = 1;
 
-  distributions_calculator::ride_distribution::detail::
-      compute_distributions_for_a_ride(light_conn_idx, last_route_node,
-                                       *schedule, s_t_distributions,
-                                       precomputed_distributions, container);
+  ride_distribution::detail::compute_distributions_for_a_ride(
+      light_conn_idx, last_route_node, *schedule_, s_t_distributions,
+      precomputed_distributions, container);
 
   {
     auto const& distribution =
@@ -278,8 +266,8 @@ TEST(distributions_for_a_ride_ICE, distributions_calculator) {
   }
 }
 
-TEST(Test_queue_element, distributions_calculator) {
-  distributions_calculator::common::queue_type queue;
+TEST_F(test_distributions_calculator, Test_queue_element) {
+  common::queue_type queue;
 
   node dummy_node(nullptr, 0);
   light_connection lc1(1);
@@ -306,3 +294,7 @@ TEST(Test_queue_element, distributions_calculator) {
   queue.pop();
   ASSERT_TRUE(queue.empty());
 }
+
+}  // namespace distributions_calculator
+}  // namespace reliability
+}  // namespace motis
