@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/core/common/journey.h"
 #include "motis/core/common/journey_builder.h"
@@ -193,7 +193,7 @@ journey create_journey2() {
   return j;
 }
 
-TEST_CASE("convert journey", "[journey_builder]") {
+TEST(convert_journey, journey_builder) {
   std::vector<journey> original_journeys;
   original_journeys.push_back(create_journey1());
   original_journeys.push_back(create_journey2());
@@ -205,60 +205,60 @@ TEST_CASE("convert journey", "[journey_builder]") {
   auto journeys =
       to_journeys(msg->content<routing::RoutingResponse const*>(), categories);
 
-  REQUIRE(journeys.size() == 2);
+  ASSERT_TRUE(journeys.size() == 2);
 
   for (unsigned int i = 0; i < 2; ++i) {
     auto const& j = journeys[i];
     auto const& o = original_journeys[i];
 
-    REQUIRE(o.duration == j.duration);
-    // REQUIRE(o.price == j.price);
-    REQUIRE(o.transfers == j.transfers);
-    REQUIRE(o.stops.size() == j.stops.size());
-    REQUIRE(o.transports.size() == j.transports.size());
-    REQUIRE(o.attributes.size() == j.attributes.size());
+    ASSERT_TRUE(o.duration == j.duration);
+    // ASSERT_TRUE(o.price == j.price);
+    ASSERT_TRUE(o.transfers == j.transfers);
+    ASSERT_TRUE(o.stops.size() == j.stops.size());
+    ASSERT_TRUE(o.transports.size() == j.transports.size());
+    ASSERT_TRUE(o.attributes.size() == j.attributes.size());
 
     for (unsigned int s = 0; s < o.stops.size(); ++s) {
       auto const& os = o.stops[s];
       auto const& js = j.stops[s];
-      REQUIRE(os.eva_no == js.eva_no);
-      REQUIRE(os.index == js.index);
-      REQUIRE(os.interchange == js.interchange);
-      REQUIRE(os.lat == js.lat);
-      REQUIRE(os.lng == js.lng);
-      REQUIRE(os.name == js.name);
-      REQUIRE(os.arrival.platform == js.arrival.platform);
-      REQUIRE(os.arrival.timestamp == js.arrival.timestamp);
-      REQUIRE(os.arrival.valid == js.arrival.valid);
-      REQUIRE(os.departure.platform == js.departure.platform);
-      REQUIRE(os.departure.timestamp == js.departure.timestamp);
-      REQUIRE(os.departure.valid == js.departure.valid);
+      ASSERT_TRUE(os.eva_no == js.eva_no);
+      ASSERT_TRUE(os.index == js.index);
+      ASSERT_TRUE(os.interchange == js.interchange);
+      ASSERT_TRUE(os.lat == js.lat);
+      ASSERT_TRUE(os.lng == js.lng);
+      ASSERT_TRUE(os.name == js.name);
+      ASSERT_TRUE(os.arrival.platform == js.arrival.platform);
+      ASSERT_TRUE(os.arrival.timestamp == js.arrival.timestamp);
+      ASSERT_TRUE(os.arrival.valid == js.arrival.valid);
+      ASSERT_TRUE(os.departure.platform == js.departure.platform);
+      ASSERT_TRUE(os.departure.timestamp == js.departure.timestamp);
+      ASSERT_TRUE(os.departure.valid == js.departure.valid);
     }
 
     for (unsigned int t = 0; t < o.transports.size(); ++t) {
       auto const& ot = o.transports[t];
       auto const& jt = j.transports[t];
-      REQUIRE(ot.category_id == jt.category_id);
-      REQUIRE(ot.category_name == jt.category_name);
-      REQUIRE(ot.direction == jt.direction);
-      REQUIRE(ot.duration == jt.duration);
-      REQUIRE(ot.from == jt.from);
-      REQUIRE(ot.line_identifier == jt.line_identifier);
-      REQUIRE(ot.name == jt.name);
-      REQUIRE(ot.provider == jt.provider);
-      REQUIRE(ot.slot == jt.slot);
-      REQUIRE(ot.to == jt.to);
-      REQUIRE(ot.train_nr == jt.train_nr);
-      REQUIRE(ot.walk == jt.walk);
+      ASSERT_TRUE(ot.category_id == jt.category_id);
+      ASSERT_TRUE(ot.category_name == jt.category_name);
+      ASSERT_TRUE(ot.direction == jt.direction);
+      ASSERT_TRUE(ot.duration == jt.duration);
+      ASSERT_TRUE(ot.from == jt.from);
+      ASSERT_TRUE(ot.line_identifier == jt.line_identifier);
+      ASSERT_TRUE(ot.name == jt.name);
+      ASSERT_TRUE(ot.provider == jt.provider);
+      ASSERT_TRUE(ot.slot == jt.slot);
+      ASSERT_TRUE(ot.to == jt.to);
+      ASSERT_TRUE(ot.train_nr == jt.train_nr);
+      ASSERT_TRUE(ot.walk == jt.walk);
     }
 
     for (unsigned int a = 0; a < o.attributes.size(); ++a) {
       auto const& oa = o.attributes[a];
       auto const& ja = j.attributes[a];
-      REQUIRE(oa.code == ja.code);
-      REQUIRE(oa.from == ja.from);
-      REQUIRE(oa.to == ja.to);
-      REQUIRE(oa.text == ja.text);
+      ASSERT_TRUE(oa.code == ja.code);
+      ASSERT_TRUE(oa.from == ja.from);
+      ASSERT_TRUE(oa.to == ja.to);
+      ASSERT_TRUE(oa.text == ja.text);
     }
   }
 }

@@ -14,9 +14,9 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct ts_rule : public rule {
+struct ts_rule : public service_rule {
   ts_rule(service_id id_1, service_id id_2, int eva_num, bitfield const& mask)
-      : id_1_(id_1), id_2_(id_2), eva_num_(eva_num), mask_(mask) {}
+      : service_rule(mask), id_1_(id_1), id_2_(id_2), eva_num_(eva_num) {}
 
   virtual ~ts_rule() {}
 
@@ -80,14 +80,13 @@ struct ts_rule : public rule {
 
   service_id id_1_, id_2_;
   int eva_num_;
-  bitfield const& mask_;
   std::vector<hrd_service*> participants_1_;
   std::vector<hrd_service*> participants_2_;
 };
 
 void parse_through_service_rules(loaded_file const& src,
                                  std::map<int, bitfield> const& hrd_bitfields,
-                                 rules& rules) {
+                                 service_rules& rules) {
   scoped_timer timer("parsing through trains");
   for_each_line_numbered(src.content, [&](cstr line, int line_number) {
     if (line.len < 40) {
@@ -102,7 +101,7 @@ void parse_through_service_rules(loaded_file const& src,
                                 raw_to_int<uint64_t>(line.substr(6, size(6))));
     auto key_2 = std::make_pair(parse<int>(line.substr(21, size(5))),
                                 raw_to_int<uint64_t>(line.substr(27, size(6))));
-    std::shared_ptr<rule> rule(new ts_rule(
+    std::shared_ptr<service_rule> rule(new ts_rule(
         key_1, key_2, parse<int>(line.substr(13, size(7))), it->second));
 
     rules[key_1].push_back(rule);

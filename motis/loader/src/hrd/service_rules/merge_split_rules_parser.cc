@@ -1,5 +1,8 @@
 #include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
 
+#include <set>
+#include <vector>
+
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
 
@@ -14,14 +17,14 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct mss_rule : public rule {
+struct mss_rule : public service_rule {
   mss_rule(service_id id_1, service_id id_2, int eva_num_begin, int eva_num_end,
            bitfield const& mask)
-      : id_1_(id_1),
+      : service_rule(mask),
+        id_1_(id_1),
         id_2_(id_2),
         eva_num_begin_(eva_num_begin),
-        eva_num_end_(eva_num_end),
-        mask_(mask) {}
+        eva_num_end_(eva_num_end) {}
 
   virtual ~mss_rule() {}
 
@@ -34,7 +37,8 @@ struct mss_rule : public rule {
     // Check if first and last stop of the common part are contained with the
     // correct service id.
     bool begin_found = false, end_found = false;
-    for (unsigned section_idx = 0; section_idx < s.sections_.size();
+    for (unsigned section_idx = 0;
+         section_idx < s.sections_.size() && !(begin_found && end_found);
          ++section_idx) {
       auto const& section = s.sections_[section_idx];
       auto const& from_stop = s.stops_[section_idx];
@@ -45,10 +49,10 @@ struct mss_rule : public rule {
       if (service_id != id_1_ && service_id != id_2_) {
         continue;
       }
-
       if (!end_found && from_stop.eva_num == eva_num_begin_) {
         begin_found = true;
-      } else if (begin_found && to_stop.eva_num == eva_num_end_) {
+      }
+      if (begin_found && to_stop.eva_num == eva_num_end_) {
         end_found = true;
       }
     }
@@ -60,22 +64,25 @@ struct mss_rule : public rule {
   }
 
   std::vector<service_combination> service_combinations() const override {
-    std::vector<service_combination> comb;
+    std::vector<service_combination> unordered_pairs;
+    std::set<std::pair<hrd_service*, hrd_service*>> combinations;
     for (auto const& s1 : participants_) {
       for (auto const& s2 : participants_) {
-        if (s1 == s2) {
+        if (s1 == s2 ||
+            combinations.find(std::make_pair(s2, s1)) != end(combinations)) {
           continue;
         }
+        combinations.emplace(s1, s2);
 
         auto intersection = s1->traffic_days_ & s2->traffic_days_ & mask_;
         if (intersection.any()) {
-          comb.emplace_back(
+          unordered_pairs.emplace_back(
               s1, s2, resolved_rule_info{intersection, eva_num_begin_,
                                          eva_num_end_, RuleType_MERGE_SPLIT});
         }
       }
     }
-    return comb;
+    return unordered_pairs;
   }
 
   resolved_rule_info rule_info() const override {
@@ -85,13 +92,12 @@ struct mss_rule : public rule {
 
   service_id id_1_, id_2_;
   int eva_num_begin_, eva_num_end_;
-  bitfield const& mask_;
   std::vector<hrd_service*> participants_;
 };
 
 void parse_merge_split_service_rules(
     loaded_file const& src, std::map<int, bitfield> const& hrd_bitfields,
-    rules& rules) {
+    service_rules& rules) {
   scoped_timer timer("parsing merge split rules");
 
   for_each_line_numbered(src.content, [&](cstr line, int line_number) {
@@ -112,7 +118,7 @@ void parse_merge_split_service_rules(
 
     auto eva_num_begin = parse<int>(line.substr(0, size(7)));
     auto eva_num_end = parse<int>(line.substr(9, size(7)));
-    std::shared_ptr<rule> rule(
+    std::shared_ptr<service_rule> rule(
         new mss_rule(key_1, key_2, eva_num_begin, eva_num_end, it->second));
 
     rules[key_1].push_back(rule);

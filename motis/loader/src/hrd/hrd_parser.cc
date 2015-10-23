@@ -72,7 +72,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto merge_split_rules_buf =
       load_file(hrd_root / "stamm" / MERGE_SPLIT_RULES_FILE);
 
-  rules r;
+  service_rules r;
   parse_through_service_rules({THROUGH_SERVICES_FILE, through_services_buf},
                               sd.bitfields, r);
   parse_merge_split_service_rules(
