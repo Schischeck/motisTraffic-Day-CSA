@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include <iostream>
 
@@ -35,26 +35,26 @@ short const ICE_K_K = 7;
 short const RE_K_S = 8;
 }
 
-TEST_CASE("correct_rounding_errors", "[calc_arrival_distribution]") {
+TEST(correct_rounding_errors, calc_arrival_distribution) {
   std::vector<probability> probabilities = {0.1, 0.5, 0.25, 0.15};
 
   correct_rounding_errors(1.0, probabilities);
 
-  REQUIRE(equal(probabilities[0], 0.1));
-  REQUIRE(equal(probabilities[1], 0.5));
-  REQUIRE(equal(probabilities[2], 0.25));
-  REQUIRE(equal(probabilities[3], 0.15));
+  ASSERT_TRUE(equal(probabilities[0], 0.1));
+  ASSERT_TRUE(equal(probabilities[1], 0.5));
+  ASSERT_TRUE(equal(probabilities[2], 0.25));
+  ASSERT_TRUE(equal(probabilities[3], 0.15));
 
   probabilities[0] = 0.09999;
   correct_rounding_errors(1.0, probabilities);
 
-  REQUIRE(equal(probabilities[0], 0.09999));
-  REQUIRE(equal(probabilities[1], 0.50001));
-  REQUIRE(equal(probabilities[2], 0.25));
-  REQUIRE(equal(probabilities[3], 0.15));
+  ASSERT_TRUE(equal(probabilities[0], 0.09999));
+  ASSERT_TRUE(equal(probabilities[1], 0.50001));
+  ASSERT_TRUE(equal(probabilities[2], 0.25));
+  ASSERT_TRUE(equal(probabilities[3], 0.15));
 }
 
-TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
+TEST(compute_arrival_distribution, calc_arrival_distribution) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -78,19 +78,19 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
 
   compute_arrival_distribution(data, arrival_distribution);
 
-  REQUIRE(arrival_distribution.first_minute() == -1);
-  REQUIRE(arrival_distribution.last_minute() == 2);
-  REQUIRE(equal(arrival_distribution.sum(), 1.0));
-  REQUIRE(equal(arrival_distribution.probability_equal(-1), 0.8 * 0.1));
-  REQUIRE(
+  ASSERT_TRUE(arrival_distribution.first_minute() == -1);
+  ASSERT_TRUE(arrival_distribution.last_minute() == 2);
+  ASSERT_TRUE(equal(arrival_distribution.sum(), 1.0));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(-1), 0.8 * 0.1));
+  ASSERT_TRUE(
       equal(arrival_distribution.probability_equal(0), 0.8 * 0.7 + 0.2 * 0.1));
-  REQUIRE(
+  ASSERT_TRUE(
       equal(arrival_distribution.probability_equal(1), 0.8 * 0.2 + 0.2 * 0.7));
-  REQUIRE(equal(arrival_distribution.probability_equal(2), 0.2 * 0.2));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(2), 0.2 * 0.2));
 }
 
 /* sum lower than 1.0 */
-TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
+TEST(compute_arrival_distribution2, calc_arrival_distribution) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -114,19 +114,19 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
 
   compute_arrival_distribution(data, arrival_distribution);
 
-  REQUIRE(arrival_distribution.first_minute() == -1);
-  REQUIRE(arrival_distribution.last_minute() == 2);
-  REQUIRE(equal(arrival_distribution.sum(), 0.85));
-  REQUIRE(equal(arrival_distribution.probability_equal(-1), 0.7 * 0.1));
-  REQUIRE(
+  ASSERT_TRUE(arrival_distribution.first_minute() == -1);
+  ASSERT_TRUE(arrival_distribution.last_minute() == 2);
+  ASSERT_TRUE(equal(arrival_distribution.sum(), 0.85));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(-1), 0.7 * 0.1));
+  ASSERT_TRUE(
       equal(arrival_distribution.probability_equal(0), 0.7 * 0.7 + 0.15 * 0.1));
-  REQUIRE(
+  ASSERT_TRUE(
       equal(arrival_distribution.probability_equal(1), 0.7 * 0.2 + 0.15 * 0.7));
-  REQUIRE(equal(arrival_distribution.probability_equal(2), 0.15 * 0.2));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(2), 0.15 * 0.2));
 }
 
 /* arrival distribution with a gap */
-TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
+TEST(compute_arrival_distribution3, calc_arrival_distribution) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -150,10 +150,10 @@ TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
 
   compute_arrival_distribution(data, arrival_distribution);
 
-  REQUIRE(arrival_distribution.first_minute() == 0);
-  REQUIRE(arrival_distribution.last_minute() == 2);
-  REQUIRE(equal(arrival_distribution.sum(), 1.0));
-  REQUIRE(equal(arrival_distribution.probability_equal(0), 0.5));
-  REQUIRE(equal(arrival_distribution.probability_equal(1), 0.0));
-  REQUIRE(equal(arrival_distribution.probability_equal(2), 0.5));
+  ASSERT_TRUE(arrival_distribution.first_minute() == 0);
+  ASSERT_TRUE(arrival_distribution.last_minute() == 2);
+  ASSERT_TRUE(equal(arrival_distribution.sum(), 1.0));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(0), 0.5));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(1), 0.0));
+  ASSERT_TRUE(equal(arrival_distribution.probability_equal(2), 0.5));
 }

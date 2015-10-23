@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/schedule/connection.h"
@@ -122,7 +122,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
   return ratings;
 }
 
-TEST_CASE("rate", "[rate_public_transport]") {
+TEST(rate, rate_public_transport) {
   system_tools::setup setup(test_public_transport::schedule2.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
@@ -132,31 +132,31 @@ TEST_CASE("rate", "[rate_public_transport]") {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
                               *test_public_transport::schedule2,
                               *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 2);
+    ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     auto test_ratings = compute_test_ratings1(
         setup.reliability_module().precomputed_distributions(),
         s_t_distributions);
-    REQUIRE(test_ratings.size() == 2);
+    ASSERT_TRUE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule2,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
-    REQUIRE(ratings.size() == 2);
+    ASSERT_TRUE(ratings.size() == 2);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
-      REQUIRE(ratings[i].departure_stop_idx_ ==
-              test_ratings[i].departure_stop_idx_);
-      REQUIRE(ratings[i].departure_distribution_ ==
-              test_ratings[i].departure_distribution_);
-      REQUIRE(ratings[i].arrival_distribution_ ==
-              test_ratings[i].arrival_distribution_);
+      ASSERT_TRUE(ratings[i].departure_stop_idx_ ==
+                  test_ratings[i].departure_stop_idx_);
+      ASSERT_TRUE(ratings[i].departure_distribution_ ==
+                  test_ratings[i].departure_distribution_);
+      ASSERT_TRUE(ratings[i].arrival_distribution_ ==
+                  test_ratings[i].arrival_distribution_);
     }
   };
 
@@ -274,7 +274,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
   return ratings;
 }
 
-TEST_CASE("rate2", "[rate_public_transport]") {
+TEST(rate2, rate_public_transport) {
   system_tools::setup setup(test_public_transport::schedule5.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
@@ -283,36 +283,36 @@ TEST_CASE("rate2", "[rate_public_transport]") {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
                               *test_public_transport::schedule5,
                               *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 3);
+    ASSERT_TRUE(elements.size() == 3);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     auto test_ratings = compute_test_ratings2(
         setup.reliability_module().precomputed_distributions(),
         s_t_distributions);
-    REQUIRE(test_ratings.size() == 5);
+    ASSERT_TRUE(test_ratings.size() == 5);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule5,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
-    REQUIRE(ratings.size() == 5);
+    ASSERT_TRUE(ratings.size() == 5);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
-      REQUIRE(ratings[i].departure_stop_idx_ ==
-              test_ratings[i].departure_stop_idx_);
-      REQUIRE(ratings[i].departure_distribution_ ==
-              test_ratings[i].departure_distribution_);
-      REQUIRE(ratings[i].arrival_distribution_ ==
-              test_ratings[i].arrival_distribution_);
+      ASSERT_TRUE(ratings[i].departure_stop_idx_ ==
+                  test_ratings[i].departure_stop_idx_);
+      ASSERT_TRUE(ratings[i].departure_distribution_ ==
+                  test_ratings[i].departure_distribution_);
+      ASSERT_TRUE(ratings[i].arrival_distribution_ ==
+                  test_ratings[i].arrival_distribution_);
     }
 
     probability_distribution test_distribution;
     test_distribution.init({0.059488, 0.490776, 0.178464, 0.014872}, -1);
-    REQUIRE(ratings.back().arrival_distribution_ == test_distribution);
+    ASSERT_TRUE(ratings.back().arrival_distribution_ == test_distribution);
   };
 
   setup.dispatcher.on_msg(msg, 0, test_cb);
@@ -369,7 +369,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   return ratings;
 }
 
-TEST_CASE("rate_foot", "[rate_public_transport]") {
+TEST(rate_foot, rate_public_transport) {
   system_tools::setup setup(test_public_transport::schedule3.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule3::LANGEN.name, schedule3::LANGEN.eva, schedule3::WEST.name,
@@ -378,36 +378,36 @@ TEST_CASE("rate_foot", "[rate_public_transport]") {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
                               *test_public_transport::schedule3,
                               *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 2);
+    ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     auto test_ratings = compute_test_ratings_foot(
         setup.reliability_module().precomputed_distributions(),
         s_t_distributions);
-    REQUIRE(test_ratings.size() == 2);
+    ASSERT_TRUE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
     rate(ratings, elements, *test_public_transport::schedule3,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
-    REQUIRE(ratings.size() == 2);
+    ASSERT_TRUE(ratings.size() == 2);
     for (unsigned int i = 0; i < ratings.size(); ++i) {
-      REQUIRE(ratings[i].departure_stop_idx_ ==
-              test_ratings[i].departure_stop_idx_);
-      REQUIRE(ratings[i].departure_distribution_ ==
-              test_ratings[i].departure_distribution_);
-      REQUIRE(ratings[i].arrival_distribution_ ==
-              test_ratings[i].arrival_distribution_);
+      ASSERT_TRUE(ratings[i].departure_stop_idx_ ==
+                  test_ratings[i].departure_stop_idx_);
+      ASSERT_TRUE(ratings[i].departure_distribution_ ==
+                  test_ratings[i].departure_distribution_);
+      ASSERT_TRUE(ratings[i].arrival_distribution_ ==
+                  test_ratings[i].arrival_distribution_);
     }
 
     probability_distribution test_distribution;
     test_distribution.init({0.0592, 0.4932, 0.216, 0.0196}, -1);
-    REQUIRE(ratings.back().arrival_distribution_ == test_distribution);
+    ASSERT_TRUE(ratings.back().arrival_distribution_ == test_distribution);
   };
 
   setup.dispatcher.on_msg(msg, 0, test_cb);

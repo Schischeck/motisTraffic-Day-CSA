@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include <iostream>
 #include <map>
@@ -10,233 +10,233 @@
 using namespace motis::reliability;
 using namespace motis::reliability::db_distributions_loader;
 
-TEST_CASE("load_distributions_classes", "[distributions_loader]") {
+TEST(load_distributions_classes, distributions_loader) {
   std::map<std::string, std::string> family_to_distribution_class;
   detail::load_distributions_classes(
       "modules/reliability/resources/distributions/Classes.csv",
       family_to_distribution_class);
 
-  REQUIRE(family_to_distribution_class.size() == 7);
-  REQUIRE(family_to_distribution_class.find("CNL")->second == "Nachtzug");
-  REQUIRE(family_to_distribution_class.find("EN")->second == "Nachtzug");
-  REQUIRE(family_to_distribution_class.find("HLB") ==
-          family_to_distribution_class.end());
-  REQUIRE(family_to_distribution_class.find("IC")->second == "FV");
-  REQUIRE(family_to_distribution_class.find("ICE")->second == "FV");
-  REQUIRE(family_to_distribution_class.find("RB")->second == "RV");
-  REQUIRE(family_to_distribution_class.find("RE")->second == "RV");
-  REQUIRE(family_to_distribution_class.find("S")->second == "S");
+  ASSERT_TRUE(family_to_distribution_class.size() == 7);
+  ASSERT_TRUE(family_to_distribution_class.find("CNL")->second == "Nachtzug");
+  ASSERT_TRUE(family_to_distribution_class.find("EN")->second == "Nachtzug");
+  ASSERT_TRUE(family_to_distribution_class.find("HLB") ==
+              family_to_distribution_class.end());
+  ASSERT_TRUE(family_to_distribution_class.find("IC")->second == "FV");
+  ASSERT_TRUE(family_to_distribution_class.find("ICE")->second == "FV");
+  ASSERT_TRUE(family_to_distribution_class.find("RB")->second == "RV");
+  ASSERT_TRUE(family_to_distribution_class.find("RE")->second == "RV");
+  ASSERT_TRUE(family_to_distribution_class.find("S")->second == "S");
 }
 
-TEST_CASE("load_distributions", "[distributions_loader]") {
+TEST(load_distributions, distributions_loader) {
   std::vector<std::pair<unsigned int, probability_distribution> > distributions;
   detail::load_distributions(
       "modules/reliability/resources/distributions/Distributions.csv",
       distributions);
 
-  REQUIRE(distributions.size() == 6);
+  ASSERT_TRUE(distributions.size() == 6);
 
   for (unsigned int id = 0; id < distributions.size(); id++) {
-    REQUIRE(distributions[id].first == id);
+    ASSERT_TRUE(distributions[id].first == id);
   }
   {
     probability_distribution const& pd = distributions[0].second;
-    REQUIRE(pd.first_minute() == -5);
-    REQUIRE(pd.last_minute() == 10);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-5), 0.1));
-    REQUIRE(equal(pd.probability_equal(-3), 0.1));
-    REQUIRE(equal(pd.probability_equal(0), 0.5));
-    REQUIRE(equal(pd.probability_equal(2), 0.1));
-    REQUIRE(equal(pd.probability_equal(3), 0.1));
-    REQUIRE(equal(pd.probability_equal(10), 0.1));
+    ASSERT_TRUE(pd.first_minute() == -5);
+    ASSERT_TRUE(pd.last_minute() == 10);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(-5), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(-3), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 0.5));
+    ASSERT_TRUE(equal(pd.probability_equal(2), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(3), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(10), 0.1));
   }
   {
     probability_distribution const& pd = distributions[1].second;
-    REQUIRE(pd.first_minute() == -4);
-    REQUIRE(pd.last_minute() == 8);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-4), 0.1));
-    REQUIRE(equal(pd.probability_equal(0), 0.8));
-    REQUIRE(equal(pd.probability_equal(8), 0.1));
+    ASSERT_TRUE(pd.first_minute() == -4);
+    ASSERT_TRUE(pd.last_minute() == 8);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(-4), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 0.8));
+    ASSERT_TRUE(equal(pd.probability_equal(8), 0.1));
   }
   {
     probability_distribution const& pd = distributions[2].second;
-    REQUIRE(pd.first_minute() == 0);
-    REQUIRE(pd.last_minute() == 0);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(0), 1.0));
+    ASSERT_TRUE(pd.first_minute() == 0);
+    ASSERT_TRUE(pd.last_minute() == 0);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 1.0));
   }
   {
     probability_distribution const& pd = distributions[3].second;
-    REQUIRE(pd.first_minute() == -3);
-    REQUIRE(pd.last_minute() == -3);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-3), 1.0));
+    ASSERT_TRUE(pd.first_minute() == -3);
+    ASSERT_TRUE(pd.last_minute() == -3);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(-3), 1.0));
   }
   {
     probability_distribution const& pd = distributions[4].second;
-    REQUIRE(pd.first_minute() == -2);
-    REQUIRE(pd.last_minute() == 2);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-2), 0.2));
-    REQUIRE(equal(pd.probability_equal(-1), 0.2));
-    REQUIRE(equal(pd.probability_equal(0), 0.2));
-    REQUIRE(equal(pd.probability_equal(1), 0.2));
-    REQUIRE(equal(pd.probability_equal(2), 0.2));
+    ASSERT_TRUE(pd.first_minute() == -2);
+    ASSERT_TRUE(pd.last_minute() == 2);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(-2), 0.2));
+    ASSERT_TRUE(equal(pd.probability_equal(-1), 0.2));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 0.2));
+    ASSERT_TRUE(equal(pd.probability_equal(1), 0.2));
+    ASSERT_TRUE(equal(pd.probability_equal(2), 0.2));
   }
   {
     probability_distribution const& pd = distributions[5].second;
-    REQUIRE(pd.first_minute() == -6);
-    REQUIRE(pd.last_minute() == 6);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(-6), 0.1));
-    REQUIRE(equal(pd.probability_equal(-3), 0.1));
-    REQUIRE(equal(pd.probability_equal(-1), 0.1));
-    REQUIRE(equal(pd.probability_equal(1), 0.1));
-    REQUIRE(equal(pd.probability_equal(3), 0.1));
-    REQUIRE(equal(pd.probability_equal(6), 0.5));
+    ASSERT_TRUE(pd.first_minute() == -6);
+    ASSERT_TRUE(pd.last_minute() == 6);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(-6), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(-3), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(-1), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(1), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(3), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(6), 0.5));
   }
 }
 
-TEST_CASE("parse_travel_time_interval", "[distributions_loader]") {
+TEST(parse_travel_time_interval, distributions_loader) {
 
   unsigned int from_travel_time, to_travel_time;
   bool success;
 
   success = detail::parse_travel_time_interval("0", "2", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 1);
-  REQUIRE(to_travel_time == 2);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 1);
+  ASSERT_TRUE(to_travel_time == 2);
 
   success = detail::parse_travel_time_interval("-1", "2", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 0);
-  REQUIRE(to_travel_time == 2);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 0);
+  ASSERT_TRUE(to_travel_time == 2);
 
   success = detail::parse_travel_time_interval("-2", "2", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 0);
-  REQUIRE(to_travel_time == 2);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 0);
+  ASSERT_TRUE(to_travel_time == 2);
 
   success = detail::parse_travel_time_interval("-2", "-1", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 
   success = detail::parse_travel_time_interval("-2", "0", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 0);
-  REQUIRE(to_travel_time == 0);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 0);
+  ASSERT_TRUE(to_travel_time == 0);
 
   success = detail::parse_travel_time_interval("0", "10", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 1);
-  REQUIRE(to_travel_time == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 1);
+  ASSERT_TRUE(to_travel_time == 10);
 
   success = detail::parse_travel_time_interval("0", "11", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 1);
-  REQUIRE(to_travel_time == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 1);
+  ASSERT_TRUE(to_travel_time == 10);
 
   success = detail::parse_travel_time_interval("9", "10", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 10);
-  REQUIRE(to_travel_time == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 10);
+  ASSERT_TRUE(to_travel_time == 10);
 
   success = detail::parse_travel_time_interval("10", "11", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 
   success = detail::parse_travel_time_interval("0", "", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 1);
-  REQUIRE(to_travel_time == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 1);
+  ASSERT_TRUE(to_travel_time == 10);
 
   success = detail::parse_travel_time_interval("0", "-", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE(success);
-  REQUIRE(from_travel_time == 1);
-  REQUIRE(to_travel_time == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_travel_time == 1);
+  ASSERT_TRUE(to_travel_time == 10);
 
   success = detail::parse_travel_time_interval("10", "", 10, from_travel_time,
                                                to_travel_time);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 }
 
-TEST_CASE("parse_departure_delay_interval", "[distributions_loader]") {
+TEST(parse_departure_delay_interval, distributions_loader) {
   unsigned int from_delay, to_delay;
   bool success;
 
   success = detail::parse_departure_delay_interval("0", "2", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 0);
-  REQUIRE(to_delay == 1);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 0);
+  ASSERT_TRUE(to_delay == 1);
 
   success = detail::parse_departure_delay_interval("-1", "2", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 0);
-  REQUIRE(to_delay == 1);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 0);
+  ASSERT_TRUE(to_delay == 1);
 
   success = detail::parse_departure_delay_interval("-1", "0", 10, from_delay,
                                                    to_delay);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 
   success = detail::parse_departure_delay_interval("0", "10", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 0);
-  REQUIRE(to_delay == 9);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 0);
+  ASSERT_TRUE(to_delay == 9);
 
   success = detail::parse_departure_delay_interval("0", "11", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 0);
-  REQUIRE(to_delay == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 0);
+  ASSERT_TRUE(to_delay == 10);
 
   success = detail::parse_departure_delay_interval("0", "12", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 0);
-  REQUIRE(to_delay == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 0);
+  ASSERT_TRUE(to_delay == 10);
 
   success = detail::parse_departure_delay_interval("10", "11", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 10);
-  REQUIRE(to_delay == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 10);
+  ASSERT_TRUE(to_delay == 10);
 
   success = detail::parse_departure_delay_interval("11", "12", 10, from_delay,
                                                    to_delay);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 
   success = detail::parse_departure_delay_interval("10", "", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 10);
-  REQUIRE(to_delay == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 10);
+  ASSERT_TRUE(to_delay == 10);
 
   success = detail::parse_departure_delay_interval("10", "-", 10, from_delay,
                                                    to_delay);
-  REQUIRE(success);
-  REQUIRE(from_delay == 10);
-  REQUIRE(to_delay == 10);
+  ASSERT_TRUE(success);
+  ASSERT_TRUE(from_delay == 10);
+  ASSERT_TRUE(to_delay == 10);
 
   success = detail::parse_departure_delay_interval("11", "", 10, from_delay,
                                                    to_delay);
-  REQUIRE_FALSE(success);
+  ASSERT_FALSE(success);
 }
 
-TEST_CASE("to_resolved_mappings", "[distributions_loader]") {
+TEST(to_resolved_mappings, distributions_loader) {
   std::vector<detail::mapping_int> integer_mappings;
 
   integer_mappings.emplace_back(1, "RV", 0, 2, 0, 1);
@@ -248,44 +248,48 @@ TEST_CASE("to_resolved_mappings", "[distributions_loader]") {
   detail::resolve_mappings(integer_mappings, resolved_mappings);
 
   for (auto const& mapping : resolved_mappings) {
-    REQUIRE(std::get<resolved_mapping_pos::rm_class>(mapping) == "RV");
+    ASSERT_TRUE(std::get<resolved_mapping_pos::rm_class>(mapping) == "RV");
   }
 
   unsigned int mapping_index = 0;
   for (unsigned int t = 0; t <= 2; t++) {
     for (unsigned int d = 0; d <= 1; d++) {
       auto const& mapping = resolved_mappings[mapping_index++];
-      REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) == 1);
-      REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
-      REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
+                  1);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
   for (unsigned int t = 0; t <= 2; t++) {
     for (unsigned int d = 2; d <= 3; d++) {
       auto const& mapping = resolved_mappings[mapping_index++];
-      REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) == 2);
-      REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
-      REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
+                  2);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
   for (unsigned int t = 3; t <= 5; t++) {
     for (unsigned int d = 0; d <= 2; d++) {
       auto const& mapping = resolved_mappings[mapping_index++];
-      REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) == 3);
-      REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
-      REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
+                  3);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
   for (unsigned int t = 0; t <= 10; t++) {
     for (unsigned int d = 4; d <= 10; d++) {
       auto const& mapping = resolved_mappings[mapping_index++];
-      REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) == 4);
-      REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
-      REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
+                  4);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
 
-  REQUIRE(resolved_mappings.size() == mapping_index);
+  ASSERT_TRUE(resolved_mappings.size() == mapping_index);
 }
 #include <cassert>
 void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
@@ -298,17 +302,17 @@ void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
   for (unsigned int t = travel_time_from; t <= travel_time_to; t++) {
     for (unsigned int d = delay_from; d <= delay_to; d++) {
       auto const& mapping = distribution_mappings[distribution_mappings_idx++];
-      REQUIRE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
-              distribution_id);
-      REQUIRE(std::get<resolved_mapping_pos::rm_class>(mapping) ==
-              distribution_class);
-      REQUIRE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
-      REQUIRE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_distribution_id>(mapping) ==
+                  distribution_id);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_class>(mapping) ==
+                  distribution_class);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_travel_time>(mapping) == t);
+      ASSERT_TRUE(std::get<resolved_mapping_pos::rm_delay>(mapping) == d);
     }
   }
 }
 
-TEST_CASE("load_mappings", "[distributions_loader]") {
+TEST(load_mappings, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping.csv", 10, 10,
@@ -346,12 +350,12 @@ TEST_CASE("load_mappings", "[distributions_loader]") {
                  t, 0, 2);
   }
 
-  REQUIRE(distribution_mappings.size() == distribution_mappings_idx);
+  ASSERT_TRUE(distribution_mappings.size() == distribution_mappings_idx);
 }
 
 /* negative values and unlimited intervals */
 #include <climits>
-TEST_CASE("load_mappings2", "[distributions_loader]") {
+TEST(load_mappings2, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping2.csv", 10, 10,
@@ -388,11 +392,11 @@ TEST_CASE("load_mappings2", "[distributions_loader]") {
   test_mapping(distribution_mappings, distribution_mappings_idx, 9, "RV", 6, 10,
                0, 10);
 
-  REQUIRE(distribution_mappings.size() == distribution_mappings_idx);
+  ASSERT_TRUE(distribution_mappings.size() == distribution_mappings_idx);
 }
 
 /* overlapping intervals */
-TEST_CASE("load_mappings3", "[distributions_loader]") {
+TEST(load_mappings3, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping3.csv", 10, 10,
@@ -410,59 +414,59 @@ TEST_CASE("load_mappings3", "[distributions_loader]") {
                  t, 5, 10);
   }
 
-  REQUIRE(distribution_mappings.size() == distribution_mappings_idx);
+  ASSERT_TRUE(distribution_mappings.size() == distribution_mappings_idx);
 }
 
-TEST_CASE("load_start_distributions", "[distributions_loader]") {
+TEST(load_start_distributions, distributions_loader) {
   std::map<std::string, probability_distribution>
       class_to_probability_distributions;
   detail::load_start_distributions(
       "modules/reliability/resources/distributions/StartDistributions.csv",
       class_to_probability_distributions);
 
-  REQUIRE(class_to_probability_distributions.size() == 2);
+  ASSERT_TRUE(class_to_probability_distributions.size() == 2);
   {
     auto const it = class_to_probability_distributions.find("FV");
-    REQUIRE(it != class_to_probability_distributions.end());
+    ASSERT_TRUE(it != class_to_probability_distributions.end());
     probability_distribution const& pd = it->second;
-    REQUIRE(pd.first_minute() == 0);
-    REQUIRE(pd.last_minute() == 3);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(0), 0.8));
-    REQUIRE(equal(pd.probability_equal(1), 0.1));
-    REQUIRE(equal(pd.probability_equal(2), 0.0));
-    REQUIRE(equal(pd.probability_equal(3), 0.1));
+    ASSERT_TRUE(pd.first_minute() == 0);
+    ASSERT_TRUE(pd.last_minute() == 3);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 0.8));
+    ASSERT_TRUE(equal(pd.probability_equal(1), 0.1));
+    ASSERT_TRUE(equal(pd.probability_equal(2), 0.0));
+    ASSERT_TRUE(equal(pd.probability_equal(3), 0.1));
   }
   {
     auto const it = class_to_probability_distributions.find("RV");
-    REQUIRE(it != class_to_probability_distributions.end());
+    ASSERT_TRUE(it != class_to_probability_distributions.end());
     probability_distribution const& pd = it->second;
-    REQUIRE(pd.first_minute() == 0);
-    REQUIRE(pd.last_minute() == 1);
-    REQUIRE(equal(pd.sum(), 1.0));
-    REQUIRE(equal(pd.probability_equal(0), 0.9));
-    REQUIRE(equal(pd.probability_equal(1), 0.1));
+    ASSERT_TRUE(pd.first_minute() == 0);
+    ASSERT_TRUE(pd.last_minute() == 1);
+    ASSERT_TRUE(equal(pd.sum(), 1.0));
+    ASSERT_TRUE(equal(pd.probability_equal(0), 0.9));
+    ASSERT_TRUE(equal(pd.probability_equal(1), 0.1));
   }
 }
 
-TEST_CASE("mapping_is_smaller", "[distributions_loader]") {
-  REQUIRE(detail::mapping_is_smaller(std::make_tuple("FV", 1, 1, 1),
-                                     std::make_tuple("RV", 0, 0, 0)));
-  REQUIRE_FALSE(detail::mapping_is_smaller(std::make_tuple("RV", 0, 0, 0),
-                                           std::make_tuple("FV", 1, 1, 1)));
+TEST(mapping_is_smaller, distributions_loader) {
+  ASSERT_TRUE(detail::mapping_is_smaller(std::make_tuple("FV", 1, 1, 1),
+                                         std::make_tuple("RV", 0, 0, 0)));
+  ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("RV", 0, 0, 0),
+                                          std::make_tuple("FV", 1, 1, 1)));
 
-  REQUIRE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 1, 1),
-                                     std::make_tuple("FV", 1, 0, 0)));
-  REQUIRE_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 1, 0, 0),
-                                           std::make_tuple("FV", 0, 1, 1)));
+  ASSERT_TRUE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 1, 1),
+                                         std::make_tuple("FV", 1, 0, 0)));
+  ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 1, 0, 0),
+                                          std::make_tuple("FV", 0, 1, 1)));
 
-  REQUIRE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 1),
-                                     std::make_tuple("FV", 0, 1, 0)));
-  REQUIRE_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 1, 0),
-                                           std::make_tuple("FV", 0, 0, 1)));
+  ASSERT_TRUE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 1),
+                                         std::make_tuple("FV", 0, 1, 0)));
+  ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 1, 0),
+                                          std::make_tuple("FV", 0, 0, 1)));
 
-  REQUIRE_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 0),
-                                           std::make_tuple("FV", 0, 0, 1)));
-  REQUIRE_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 1),
-                                           std::make_tuple("FV", 0, 0, 0)));
+  ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 0),
+                                          std::make_tuple("FV", 0, 0, 1)));
+  ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("FV", 0, 0, 1),
+                                          std::make_tuple("FV", 0, 0, 0)));
 }

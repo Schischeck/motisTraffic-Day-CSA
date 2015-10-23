@@ -1,7 +1,4 @@
-
-#define CATCH_CONFIG_MAIN
-
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/loader/loader.h"
 
@@ -34,20 +31,20 @@ short const ICE_K_K = 7;
 short const RE_K_S = 8;
 }
 
-TEST_CASE("is_pre_computed_train", "[distributions_calculator]") {
+TEST(is_pre_computed_train, distributions_calculator) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
-  REQUIRE(
+  ASSERT_TRUE(
       distributions_calculator::precomputation::detail::is_pre_computed_route(
           *schedule, *graph_accessor::get_first_route_node(
                          *schedule, schedule1::IC_DA_H)));
-  REQUIRE(
+  ASSERT_TRUE(
       distributions_calculator::precomputation::detail::is_pre_computed_route(
           *schedule, *graph_accessor::get_first_route_node(
                          *schedule, schedule1::ICE_FR_DA_H)));
-  REQUIRE_FALSE(
+  ASSERT_FALSE(
       distributions_calculator::precomputation::detail::is_pre_computed_route(
           *schedule,
           *graph_accessor::get_first_route_node(*schedule, schedule1::RE_K_S)));
@@ -61,20 +58,20 @@ void test_distributions(
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   // last route node
   if (route_edge == nullptr) {
-    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+    ASSERT_FALSE(precomputed_distributions.contains_distributions(
         route_node._id, distributions_container::departure));
     return;
   }
   auto const& head_route_node = *route_edge->_to;
   if (pre_computed_distributions) {
-    REQUIRE(precomputed_distributions.contains_distributions(
+    ASSERT_TRUE(precomputed_distributions.contains_distributions(
         route_node._id, distributions_container::departure));
     // first route node
     if (graph_accessor::get_arriving_route_edge(route_node) == nullptr) {
-      REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+      ASSERT_FALSE(precomputed_distributions.contains_distributions(
           route_node._id, distributions_container::arrival));
     } else {
-      REQUIRE(precomputed_distributions.contains_distributions(
+      ASSERT_TRUE(precomputed_distributions.contains_distributions(
           route_node._id, distributions_container::arrival));
     }
 
@@ -86,15 +83,15 @@ void test_distributions(
       auto const& arrival_distribution =
           precomputed_distributions.get_distribution(
               head_route_node._id, l, distributions_container::arrival);
-      REQUIRE_FALSE(departure_distribution.empty());
-      REQUIRE(equal(departure_distribution.sum(), 1.0));
-      REQUIRE_FALSE(arrival_distribution.empty());
-      REQUIRE(equal(arrival_distribution.sum(), 1.0));
+      ASSERT_FALSE(departure_distribution.empty());
+      ASSERT_TRUE(equal(departure_distribution.sum(), 1.0));
+      ASSERT_FALSE(arrival_distribution.empty());
+      ASSERT_TRUE(equal(arrival_distribution.sum(), 1.0));
     }
   } else {
-    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+    ASSERT_FALSE(precomputed_distributions.contains_distributions(
         route_node._id, distributions_container::departure));
-    REQUIRE_FALSE(precomputed_distributions.contains_distributions(
+    ASSERT_FALSE(precomputed_distributions.contains_distributions(
         head_route_node._id, distributions_container::arrival));
   }
 
@@ -102,7 +99,7 @@ void test_distributions(
                      pre_computed_distributions);
 }
 
-TEST_CASE("Initial_distributions_simple", "[distributions_calculator]") {
+TEST(Initial_distributions_simple, distributions_calculator) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -125,8 +122,8 @@ TEST_CASE("Initial_distributions_simple", "[distributions_calculator]") {
 
 #if 0
 #include "motis/reliability/db_distributions.h"
-TEST_CASE("Initial_distributions_db_distributions",
-          "[distributions_calculator]") {
+TEST(Initial_distributions_db_distributions,
+          distributions_calculator) {
   std::cout << "Initial_distributions_db_distributions" << std::endl;
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
@@ -148,8 +145,8 @@ TEST_CASE("Initial_distributions_db_distributions",
             *schedule, *first_route_node));
   }
 }
-TEST_CASE("Initial_distributions_db_distributions2",
-          "[distributions_calculator]") {
+TEST(Initial_distributions_db_distributions2,
+          distributions_calculator) {
   std::cout << "Initial_distributions_db_distributions2" << std::endl;
   auto schedule = loader::load_schedule("/tmp/rohdaten/rohdaten/",
                                         to_unix_time(2015, 9, 28),
@@ -174,7 +171,7 @@ TEST_CASE("Initial_distributions_db_distributions2",
 }
 #endif
 
-TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
+TEST(distributions_for_a_ride_RE, distributions_calculator) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule4/", to_unix_time(2015, 10, 18),
       to_unix_time(2015, 10, 20));
@@ -203,30 +200,30 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
   {
     auto const& distribution = container.get_distribution(
         first_route_node._id, 0, distributions_container::departure);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution = container.get_distribution(
         second_route_node._id, 0, distributions_container::arrival);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution = container.get_distribution(
         second_route_node._id, 0, distributions_container::departure);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution = container.get_distribution(
         last_route_node._id, 0, distributions_container::arrival);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
 }
 
-TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
+TEST(distributions_for_a_ride_ICE, distributions_calculator) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -256,32 +253,32 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
     auto const& distribution =
         container.get_distribution(first_route_node._id, light_conn_idx,
                                    distributions_container::departure);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution =
         container.get_distribution(second_route_node._id, light_conn_idx,
                                    distributions_container::arrival);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution =
         container.get_distribution(second_route_node._id, light_conn_idx,
                                    distributions_container::departure);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
   {
     auto const& distribution = container.get_distribution(
         last_route_node._id, light_conn_idx, distributions_container::arrival);
-    REQUIRE_FALSE(distribution.empty());
-    REQUIRE(equal(distribution.sum(), 1.0));
+    ASSERT_FALSE(distribution.empty());
+    ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
 }
 
-TEST_CASE("Test queue element", "[distributions_calculator]") {
+TEST(Test_queue_element, distributions_calculator) {
   distributions_calculator::common::queue_type queue;
 
   node dummy_node(nullptr, 0);
@@ -294,18 +291,18 @@ TEST_CASE("Test queue element", "[distributions_calculator]") {
   queue.emplace(&dummy_node, &dummy_node, &lc1, 0, false);
   queue.emplace(&dummy_node, &dummy_node, &lc3, 0, false);
 
-  REQUIRE(queue.top().light_connection_->d_time == 1);
+  ASSERT_TRUE(queue.top().light_connection_->d_time == 1);
   queue.pop();
-  REQUIRE(queue.top().light_connection_->d_time == 2);
+  ASSERT_TRUE(queue.top().light_connection_->d_time == 2);
   queue.pop();
-  REQUIRE(queue.top().light_connection_->d_time == 3);
+  ASSERT_TRUE(queue.top().light_connection_->d_time == 3);
   queue.pop();
 
   queue.emplace(&dummy_node, &dummy_node, &lc2, 0, false);
 
-  REQUIRE(queue.top().light_connection_->d_time == 2);
+  ASSERT_TRUE(queue.top().light_connection_->d_time == 2);
   queue.pop();
-  REQUIRE(queue.top().light_connection_->d_time == 3);
+  ASSERT_TRUE(queue.top().light_connection_->d_time == 3);
   queue.pop();
-  REQUIRE(queue.empty());
+  ASSERT_TRUE(queue.empty());
 }

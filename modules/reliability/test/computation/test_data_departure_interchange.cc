@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/loader/loader.h"
 
@@ -44,8 +44,7 @@ short const ICE_L_H = 1;  // 10:00 --> 10:10
 short const S_M_W = 2;  // 10:20 --> 10:25
 }
 
-TEST_CASE("interchange first-route-node no-feeders",
-          "[data_departure_interchange]") {
+TEST(interchange_first_route_node_no_feeders, data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -66,32 +65,31 @@ TEST_CASE("interchange first-route-node no-feeders",
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
       dummy, dummy, s_t_distributions);
 
-  REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 1);
-  REQUIRE(data.maximum_waiting_time_ == 0);
-  REQUIRE(data.feeders_.size() == 0);
-  REQUIRE(data.train_info_.first_departure_distribution_ ==
-          &s_t_distributions.start_distribution_);
+  ASSERT_TRUE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 1);
+  ASSERT_TRUE(data.maximum_waiting_time_ == 0);
+  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.train_info_.first_departure_distribution_ ==
+              &s_t_distributions.start_distribution_);
 
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(
       data.interchange_feeder_info_.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange preceding-arrival no-feeders",
-          "[data_departure_interchange]") {
+TEST(interchange_preceding_arrival_no_feeders, data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -105,8 +103,8 @@ TEST_CASE("interchange preceding-arrival no-feeders",
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule,
                                                  schedule2::ICE_K_F_S))->_to;
-  REQUIRE(schedule->stations[tail_node_departing_train._station_node->_id]
-              ->eva_nr == schedule2::FRANKFURT);
+  ASSERT_TRUE(schedule->stations[tail_node_departing_train._station_node->_id]
+                  ->eva_nr == schedule2::FRANKFURT);
 
   // arriving train RE_K_F from Kassel to Frankfurt
   // interchange at Frankfurt (second node of ICE_K_F_S)
@@ -129,38 +127,37 @@ TEST_CASE("interchange preceding-arrival no-feeders",
       graph_accessor::get_departing_route_edge(
           *graph_accessor::get_first_route_node(
               *schedule, schedule2::ICE_K_F_S))->_m._route_edge._conns[0];
-  REQUIRE(preceding_arrival_light_conn.d_time == 9 * 60 + 15);
-  REQUIRE(preceding_arrival_light_conn.a_time == 10 * 60 + 15);
+  ASSERT_TRUE(preceding_arrival_light_conn.d_time == 9 * 60 + 15);
+  ASSERT_TRUE(preceding_arrival_light_conn.a_time == 10 * 60 + 15);
 
-  REQUIRE_FALSE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 0);
-  REQUIRE(data.maximum_waiting_time_ == 0);
-  REQUIRE(data.feeders_.size() == 0);
-  REQUIRE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
-          preceding_arrival_light_conn.a_time);
-  REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
-  REQUIRE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
-          &train_distributions.dist);
+  ASSERT_FALSE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 0);
+  ASSERT_TRUE(data.maximum_waiting_time_ == 0);
+  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
+              preceding_arrival_light_conn.a_time);
+  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
+  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
+              &train_distributions.dist);
 
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(
       data.interchange_feeder_info_.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange first-route-node feeders incl. ic",
-          "[data_departure_interchange]") {
+TEST(interchange_first_route_node_feeders_incl_ic, data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -185,42 +182,42 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
       dummy, feeder_distributions, s_t_distributions);
 
-  REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 3);
-  REQUIRE(data.feeders_.size() == 1);
+  ASSERT_TRUE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 3);
+  ASSERT_TRUE(data.feeders_.size() == 1);
 
   // Feeder ICE_K_F_S
   auto const& feeder = data.feeders_[0];
 
-  REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
-  REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
-  REQUIRE(
+  ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 15);
+  ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+  ASSERT_TRUE(
       feeder.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(feeder.latest_feasible_arrival_ ==
-          (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
+  ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
+              (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) +
+                  3);
 
-  REQUIRE(data.maximum_waiting_time_ == 3);
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(
+  ASSERT_TRUE(data.maximum_waiting_time_ == 3);
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(
       data.interchange_feeder_info_.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 3);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange first-route-node feeders excl. ic",
-          "[data_departure_interchange]") {
+TEST(interchange_first_route_node_feeders_excl_ic, data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -245,53 +242,55 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
       dummy, feeder_distributions, s_t_distributions);
 
-  REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 3);
-  REQUIRE(data.feeders_.size() == 2);
+  ASSERT_TRUE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 3);
+  ASSERT_TRUE(data.feeders_.size() == 2);
 
   // Feeder ICE_F_S
   {
     auto const& feeder = data.feeders_[0];
-    REQUIRE(feeder.arrival_time_ == 11 * 60 + 10);
-    REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
-    REQUIRE(feeder.transfer_time_ ==
-            schedule->stations[ic_data.tail_node_departing_train_._station_node
-                                   ->_id]->transfer_time);
-    REQUIRE(feeder.latest_feasible_arrival_ ==
-            (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
+    ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 10);
+    ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+    ASSERT_TRUE(feeder.transfer_time_ ==
+                schedule->stations[ic_data.tail_node_departing_train_
+                                       ._station_node->_id]->transfer_time);
+    ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
+                (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) +
+                    3);
   }
   // Feeder ICE_K_F_S
   {
     auto const& feeder = data.feeders_[1];
-    REQUIRE(feeder.arrival_time_ == 11 * 60 + 15);
-    REQUIRE(&feeder.distribution_ == &feeder_distributions.dist);
-    REQUIRE(feeder.transfer_time_ ==
-            schedule->stations[ic_data.tail_node_departing_train_._station_node
-                                   ->_id]->transfer_time);
-    REQUIRE(feeder.latest_feasible_arrival_ ==
-            (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) + 3);
+    ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 15);
+    ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+    ASSERT_TRUE(feeder.transfer_time_ ==
+                schedule->stations[ic_data.tail_node_departing_train_
+                                       ._station_node->_id]->transfer_time);
+    ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
+                (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) +
+                    3);
   }
 
-  REQUIRE(data.maximum_waiting_time_ == 3);
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(
+  ASSERT_TRUE(data.maximum_waiting_time_ == 3);
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(
       data.interchange_feeder_info_.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
-          "[data_departure_interchange]") {
+TEST(interchange_first_route_node_no_other_feeder_but_icfeeder,
+     data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -315,29 +314,29 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
       ic_data.arriving_light_conn_, dummy_arrival_distribution, *schedule,
       dummy, dummy, s_t_distributions);
 
-  REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 3);
-  REQUIRE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 3);
+  ASSERT_TRUE(data.feeders_.size() == 0);
 
-  REQUIRE(data.maximum_waiting_time_ == 3);
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(
+  ASSERT_TRUE(data.maximum_waiting_time_ == 3);
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(
       data.interchange_feeder_info_.transfer_time_ ==
       schedule->stations[ic_data.tail_node_departing_train_._station_node->_id]
           ->transfer_time);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 3);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_CASE("interchange walk", "[data_departure_interchange]") {
+TEST(interchange_walk, data_departure_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -361,21 +360,21 @@ TEST_CASE("interchange walk", "[data_departure_interchange]") {
       ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
       dummy_arrival_distribution, *schedule, dummy, dummy, s_t_distributions);
 
-  REQUIRE(data.is_first_route_node_);
-  REQUIRE(data.scheduled_departure_time_ ==
-          ic_data.departing_light_conn_.d_time);
-  REQUIRE(data.largest_delay() == 2);
-  REQUIRE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.is_first_route_node_);
+  ASSERT_TRUE(data.scheduled_departure_time_ ==
+              ic_data.departing_light_conn_.d_time);
+  ASSERT_TRUE(data.largest_delay() == 2);
+  ASSERT_TRUE(data.feeders_.size() == 0);
 
-  REQUIRE(data.maximum_waiting_time_ == 0);
-  REQUIRE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
-          ic_data.arriving_light_conn_.a_time);
-  REQUIRE(data.interchange_feeder_info_.arrival_distribution_ ==
-          &dummy_arrival_distribution);
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 10);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
-  REQUIRE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
-          (data.scheduled_departure_time_ +
-           data.interchange_feeder_info_.waiting_time_) -
-              data.interchange_feeder_info_.transfer_time_);
+  ASSERT_TRUE(data.maximum_waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
+              ic_data.arriving_light_conn_.a_time);
+  ASSERT_TRUE(data.interchange_feeder_info_.arrival_distribution_ ==
+              &dummy_arrival_distribution);
+  ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 10);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.latest_feasible_arrival_ ==
+              (data.scheduled_departure_time_ +
+               data.interchange_feeder_info_.waiting_time_) -
+                  data.interchange_feeder_info_.transfer_time_);
 }

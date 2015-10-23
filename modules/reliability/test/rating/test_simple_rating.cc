@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
 
@@ -52,7 +52,7 @@ auto schedule5 = loader::load_schedule(
 
 /* Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
-TEST_CASE("simple_rate", "[simple_rating]") {
+TEST(simple_rate, simple_rating) {
   system_tools::setup setup(test_simple_rating::schedule2.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule2::STUTTGART.name, schedule2::STUTTGART.eva,
@@ -68,25 +68,25 @@ TEST_CASE("simple_rate", "[simple_rating]") {
     simple_connection_rating rating;
     bool success = rate(rating, *response->connections()->begin(),
                         *test_simple_rating::schedule2, s_t_distributions);
-    REQUIRE(success);
-    REQUIRE(rating.ratings_elements_.size() == 2);
-    REQUIRE(rating.ratings_elements_[0].from_ == 1);
-    REQUIRE(rating.ratings_elements_[0].to_ == 2);
-    REQUIRE(rating.ratings_elements_[1].from_ == 2);
-    REQUIRE(rating.ratings_elements_[1].to_ == 3);
-    REQUIRE(rating.ratings_elements_[0].ratings_.size() == 1);
-    REQUIRE(rating.ratings_elements_[0].ratings_[0].first ==
-            rating_type::Cancellation);
-    REQUIRE(equal(rating.ratings_elements_[0].ratings_[0].second, 0.995));
-    REQUIRE(rating.ratings_elements_[1].ratings_.size() == 2);
-    REQUIRE(rating.ratings_elements_[1].ratings_[0].first ==
-            rating_type::Cancellation);
-    REQUIRE(equal(rating.ratings_elements_[1].ratings_[0].second, 0.995));
-    REQUIRE(rating.ratings_elements_[1].ratings_[1].first ==
-            rating_type::Interchange);
-    REQUIRE(equal(rating.ratings_elements_[1].ratings_[1].second, 1.0));
+    ASSERT_TRUE(success);
+    ASSERT_TRUE(rating.ratings_elements_.size() == 2);
+    ASSERT_TRUE(rating.ratings_elements_[0].from_ == 1);
+    ASSERT_TRUE(rating.ratings_elements_[0].to_ == 2);
+    ASSERT_TRUE(rating.ratings_elements_[1].from_ == 2);
+    ASSERT_TRUE(rating.ratings_elements_[1].to_ == 3);
+    ASSERT_TRUE(rating.ratings_elements_[0].ratings_.size() == 1);
+    ASSERT_TRUE(rating.ratings_elements_[0].ratings_[0].first ==
+                rating_type::Cancellation);
+    ASSERT_TRUE(equal(rating.ratings_elements_[0].ratings_[0].second, 0.995));
+    ASSERT_TRUE(rating.ratings_elements_[1].ratings_.size() == 2);
+    ASSERT_TRUE(rating.ratings_elements_[1].ratings_[0].first ==
+                rating_type::Cancellation);
+    ASSERT_TRUE(equal(rating.ratings_elements_[1].ratings_[0].second, 0.995));
+    ASSERT_TRUE(rating.ratings_elements_[1].ratings_[1].first ==
+                rating_type::Interchange);
+    ASSERT_TRUE(equal(rating.ratings_elements_[1].ratings_[1].second, 1.0));
 
-    REQUIRE(equal(rating.connection_rating_, 0.995 * 0.995));
+    ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995));
   };
 
   setup.dispatcher.on_msg(msg, 0, test_cb);
@@ -96,7 +96,7 @@ TEST_CASE("simple_rate", "[simple_rating]") {
 /* Mannheim to Darmstadt with RE_M_B_D (interchange in Darmstadt),
  * Darmstadt to Giessen with RE_D_F_G (interchange in Giessen), and
  * Giessen to Marburg with RE_G_M */
-TEST_CASE("simple_rate2", "[rate_public_transport]") {
+TEST(simple_rate2, rate_public_transport) {
   system_tools::setup setup(test_simple_rating::schedule5.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
@@ -105,45 +105,48 @@ TEST_CASE("simple_rate2", "[rate_public_transport]") {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     simple_connection_rating rating;
     bool success = rate(rating, *response->connections()->begin(),
                         *test_simple_rating::schedule5, s_t_distributions);
 
-    REQUIRE(success);
-    REQUIRE(rating.ratings_elements_.size() == 3);
+    ASSERT_TRUE(success);
+    ASSERT_TRUE(rating.ratings_elements_.size() == 3);
     {
       auto const& rating_element = rating.ratings_elements_[0];
-      REQUIRE(rating_element.from_ == 1);
-      REQUIRE(rating_element.to_ == 3);
-      REQUIRE(rating_element.ratings_.size() == 1);
-      REQUIRE(rating_element.ratings_[0].first == rating_type::Cancellation);
-      REQUIRE(equal(rating_element.ratings_[0].second, 0.995));
+      ASSERT_TRUE(rating_element.from_ == 1);
+      ASSERT_TRUE(rating_element.to_ == 3);
+      ASSERT_TRUE(rating_element.ratings_.size() == 1);
+      ASSERT_TRUE(rating_element.ratings_[0].first ==
+                  rating_type::Cancellation);
+      ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));
     }
     {
       auto const& rating_element = rating.ratings_elements_[1];
-      REQUIRE(rating_element.from_ == 3);
-      REQUIRE(rating_element.to_ == 5);
-      REQUIRE(rating_element.ratings_.size() == 2);
-      REQUIRE(rating_element.ratings_[0].first == rating_type::Cancellation);
-      REQUIRE(equal(rating_element.ratings_[0].second, 0.995));
-      REQUIRE(rating_element.ratings_[1].first == rating_type::Interchange);
-      REQUIRE(equal(rating_element.ratings_[1].second, 0.9));
+      ASSERT_TRUE(rating_element.from_ == 3);
+      ASSERT_TRUE(rating_element.to_ == 5);
+      ASSERT_TRUE(rating_element.ratings_.size() == 2);
+      ASSERT_TRUE(rating_element.ratings_[0].first ==
+                  rating_type::Cancellation);
+      ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));
+      ASSERT_TRUE(rating_element.ratings_[1].first == rating_type::Interchange);
+      ASSERT_TRUE(equal(rating_element.ratings_[1].second, 0.9));
     }
     {
       auto const& rating_element = rating.ratings_elements_[2];
-      REQUIRE(rating_element.from_ == 5);
-      REQUIRE(rating_element.to_ == 6);
-      REQUIRE(rating_element.ratings_.size() == 2);
-      REQUIRE(rating_element.ratings_[0].first == rating_type::Cancellation);
-      REQUIRE(equal(rating_element.ratings_[0].second, 0.995));
-      REQUIRE(rating_element.ratings_[1].first == rating_type::Interchange);
-      REQUIRE(equal(rating_element.ratings_[1].second, 1.0));
+      ASSERT_TRUE(rating_element.from_ == 5);
+      ASSERT_TRUE(rating_element.to_ == 6);
+      ASSERT_TRUE(rating_element.ratings_.size() == 2);
+      ASSERT_TRUE(rating_element.ratings_[0].first ==
+                  rating_type::Cancellation);
+      ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));
+      ASSERT_TRUE(rating_element.ratings_[1].first == rating_type::Interchange);
+      ASSERT_TRUE(equal(rating_element.ratings_[1].second, 1.0));
     }
 
-    REQUIRE(equal(rating.connection_rating_, 0.995 * 0.995 * 0.995 * 0.9));
+    ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995 * 0.995 * 0.9));
   };
 
   setup.dispatcher.on_msg(msg, 0, test_cb);

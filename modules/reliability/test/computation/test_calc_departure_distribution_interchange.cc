@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include <iostream>
 
@@ -37,7 +37,7 @@ short const S_H_S = 6;  // 07:15 --> 11:15
 short const ICE_E_K = 7;  // 12:45 --> 14:15
 }
 
-TEST_CASE("ic_feeder_arrived", "[calc_departure_distribution_interchange]") {
+TEST(ic_feeder_arrived, calc_departure_distribution_interchange) {
   probability_distribution pd;
   pd.init({.1, .1, .1, .1, .1, .1, .1, .1}, 0);  // sum = 0.8
 
@@ -53,12 +53,11 @@ TEST_CASE("ic_feeder_arrived", "[calc_departure_distribution_interchange]") {
     probability const prob =
         calc_departure_distribution::interchange::detail::ic_feeder_arrived(
             info, (motis::time)(4 + i));
-    REQUIRE(equal(prob, (i + 1) * 0.1));
+    ASSERT_TRUE(equal(prob, (i + 1) * 0.1));
   }
 }
 
-TEST_CASE("ic_feeder_arrives_at_time",
-          "[calc_departure_distribution_interchange]") {
+TEST(ic_feeder_arrives_at_time, calc_departure_distribution_interchange) {
   probability_distribution pd;
   pd.init({.1, .1, .1, .1, .1, .1, .1, .1}, 0);  // sum = 0.8
 
@@ -73,13 +72,13 @@ TEST_CASE("ic_feeder_arrives_at_time",
   for (unsigned int i = 0; i < 8; i++) {
     probability const prob = calc_departure_distribution::interchange::detail::
         ic_feeder_arrives_at_time(info, (motis::time)(4 + i));
-    REQUIRE(equal(prob, 0.1));
+    ASSERT_TRUE(equal(prob, 0.1));
   }
 }
 
 // first route node without feeders, no waiting, interchange highly reliable
-TEST_CASE("compute_departure_distribution_ic1",
-          "[calc_departure_distribution_interchange]") {
+TEST(compute_departure_distribution_ic1,
+     calc_departure_distribution_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -95,23 +94,23 @@ TEST_CASE("compute_departure_distribution_ic1",
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule, dummy,
       dummy, s_t_distributions);
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
 
   probability_distribution departure_distribution;
   calc_departure_distribution::interchange::compute_departure_distribution(
       data, departure_distribution);
 
-  REQUIRE(departure_distribution.first_minute() == 0);
-  REQUIRE(departure_distribution.last_minute() == 1);
-  REQUIRE(equal(departure_distribution.sum(), 1.0));
-  REQUIRE(equal(departure_distribution.probability_equal(0), .6));
-  REQUIRE(equal(departure_distribution.probability_equal(1), .4));
+  ASSERT_TRUE(departure_distribution.first_minute() == 0);
+  ASSERT_TRUE(departure_distribution.last_minute() == 1);
+  ASSERT_TRUE(equal(departure_distribution.sum(), 1.0));
+  ASSERT_TRUE(equal(departure_distribution.probability_equal(0), .6));
+  ASSERT_TRUE(equal(departure_distribution.probability_equal(1), .4));
 }
 
 // first route node without feeders, no waiting, interchange unreliable
-TEST_CASE("compute_departure_distribution_ic2",
-          "[calc_departure_distribution_interchange]") {
+TEST(compute_departure_distribution_ic2,
+     calc_departure_distribution_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -127,24 +126,24 @@ TEST_CASE("compute_departure_distribution_ic2",
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule, dummy,
       dummy, s_t_distributions);
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
 
   probability_distribution departure_distribution;
   calc_departure_distribution::interchange::compute_departure_distribution(
       data, departure_distribution);
 
-  REQUIRE(departure_distribution.first_minute() == 0);
-  REQUIRE(departure_distribution.last_minute() == 1);
-  REQUIRE(
+  ASSERT_TRUE(departure_distribution.first_minute() == 0);
+  ASSERT_TRUE(departure_distribution.last_minute() == 1);
+  ASSERT_TRUE(
       equal(departure_distribution.probability_equal(0), .6 * .6));  // 10:10
-  REQUIRE(
+  ASSERT_TRUE(
       equal(departure_distribution.probability_equal(1), .4 * .7));  // 10:11
 }
 
 // preceding arrival, no other feeders, no waiting for ic feeder
-TEST_CASE("compute_departure_distribution_ic3",
-          "[calc_departure_distribution_interchange]") {
+TEST(compute_departure_distribution_ic3,
+     calc_departure_distribution_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -156,8 +155,8 @@ TEST_CASE("compute_departure_distribution_ic3",
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule,
                                                  schedule2::ICE_K_F_S))->_to;
-  REQUIRE(schedule->stations[tail_node_departing_train._station_node->_id]
-              ->eva_nr == schedule2::FRANKFURT);
+  ASSERT_TRUE(schedule->stations[tail_node_departing_train._station_node->_id]
+                  ->eva_nr == schedule2::FRANKFURT);
   // arriving train RE_K_F from Kassel to Frankfurt
   // interchange at Frankfurt (second node of ICE_K_F_S)
   // departing train ICE_K_F_S from Frankfurt to Stuttgart
@@ -171,27 +170,27 @@ TEST_CASE("compute_departure_distribution_ic3",
       false, tail_node_departing_train, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, *schedule,
       precomputed, precomputed, s_t_distributions);
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 0);
-  REQUIRE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
-          10 * 60 + 15);
-  REQUIRE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
+  ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
+  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
+              10 * 60 + 15);
+  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
 
   probability_distribution departure_distribution;
   calc_departure_distribution::interchange::compute_departure_distribution(
       data, departure_distribution);
 
-  REQUIRE(departure_distribution.first_minute() == 0);
-  REQUIRE(departure_distribution.last_minute() == 1);
-  REQUIRE(
+  ASSERT_TRUE(departure_distribution.first_minute() == 0);
+  ASSERT_TRUE(departure_distribution.last_minute() == 1);
+  ASSERT_TRUE(
       equal(departure_distribution.probability_equal(0), .9 * .7));  // 10:20
-  REQUIRE(
+  ASSERT_TRUE(
       equal(departure_distribution.probability_equal(1), .1 * .9));  // 10:21
 }
 
 // first route node, waiting for ic-feeder and other feeder
-TEST_CASE("compute_departure_distribution_ic5",
-          "[calc_departure_distribution_interchange]") {
+TEST(compute_departure_distribution_ic5,
+     calc_departure_distribution_interchange) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -214,29 +213,31 @@ TEST_CASE("compute_departure_distribution_ic5",
       ic_data.arriving_light_conn_, arrival_distribution, *schedule,
       precomputed, precomputed, s_t_distributions);
 
-  REQUIRE(data.interchange_feeder_info_.transfer_time_ == 5);
-  REQUIRE(data.interchange_feeder_info_.waiting_time_ == 3);
-  REQUIRE(data.feeders_.at(0).arrival_time_ == 11 * 60 + 15);
-  REQUIRE(data.feeders_.at(0).transfer_time_ == 5);
-  REQUIRE(data.feeders_.at(0).latest_feasible_arrival_ == 11 * 60 + 30);
+  ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
+  ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 3);
+  ASSERT_TRUE(data.feeders_.at(0).arrival_time_ == 11 * 60 + 15);
+  ASSERT_TRUE(data.feeders_.at(0).transfer_time_ == 5);
+  ASSERT_TRUE(data.feeders_.at(0).latest_feasible_arrival_ == 11 * 60 + 30);
 
   probability_distribution departure_distribution;
   calc_departure_distribution::interchange::compute_departure_distribution(
       data, departure_distribution);
 
-  REQUIRE(departure_distribution.first_minute() == 0);
-  REQUIRE(departure_distribution.last_minute() == 2);
-  REQUIRE(equal(departure_distribution.probability_equal(0),
-                .6 * .9 * .7));  // 11:32
+  ASSERT_TRUE(departure_distribution.first_minute() == 0);
+  ASSERT_TRUE(departure_distribution.last_minute() == 2);
+  ASSERT_TRUE(equal(departure_distribution.probability_equal(0),
+                    .6 * .9 * .7));  // 11:32
   probability const prob1 =
       (.4 * .95 * .9) /* train departs with delay at start */
       + (.6 * .05 * .2) /* waits for ic feeder and other feeder */
       + (.6 * .9 * .2) /* waits only for ic feeder */
       + (.6 * .05 * .7) /* waits only for other feeder */;
-  REQUIRE(equal(departure_distribution.probability_equal(1), prob1));  // 11:33
+  ASSERT_TRUE(
+      equal(departure_distribution.probability_equal(1), prob1));  // 11:33
   probability const prob2 =
       (.05 * .1) /* waits for ic feeder and other feeder */
       + (.95 * .1) /* waits only for ic feeder */
       + (.05 * .9) /* waits only for other feeder */;
-  REQUIRE(equal(departure_distribution.probability_equal(2), prob2));  // 11:34
+  ASSERT_TRUE(
+      equal(departure_distribution.probability_equal(2), prob2));  // 11:34
 }

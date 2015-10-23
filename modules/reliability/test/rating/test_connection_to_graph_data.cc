@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/schedule/schedule.h"
@@ -63,7 +63,7 @@ auto schedule6 = loader::load_schedule(
     to_unix_time(2015, 10, 19), to_unix_time(2015, 10, 20));
 }
 
-TEST_CASE("to_element", "[conn_to_graph_data]") {
+TEST(to_element, conn_to_graph_data) {
   auto const element_ice_s_e =
       detail::to_element(2, *test_connection_to_graph_data::schedule2,
                          schedule2::STUTTGART.eva, schedule2::ERLANGEN.eva,
@@ -78,16 +78,16 @@ TEST_CASE("to_element", "[conn_to_graph_data]") {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  REQUIRE(element_ice_s_e.departure_stop_idx_ == 2);
-  REQUIRE(element_ice_s_e.arrival_stop_idx() == 3);
-  REQUIRE(element_ice_s_e.from_ == first_route_edge->_from);
-  REQUIRE(element_ice_s_e.to_ == first_route_edge->_to);
-  REQUIRE(element_ice_s_e.is_first_route_node_);
-  REQUIRE(element_ice_s_e.light_connection_ == &first_light_conn);
-  REQUIRE(element_ice_s_e.light_connection_idx_ == 0);
+  ASSERT_TRUE(element_ice_s_e.departure_stop_idx_ == 2);
+  ASSERT_TRUE(element_ice_s_e.arrival_stop_idx() == 3);
+  ASSERT_TRUE(element_ice_s_e.from_ == first_route_edge->_from);
+  ASSERT_TRUE(element_ice_s_e.to_ == first_route_edge->_to);
+  ASSERT_TRUE(element_ice_s_e.is_first_route_node_);
+  ASSERT_TRUE(element_ice_s_e.light_connection_ == &first_light_conn);
+  ASSERT_TRUE(element_ice_s_e.light_connection_idx_ == 0);
 }
 
-TEST_CASE("to_element2", "[conn_to_graph_data]") {
+TEST(to_element2, conn_to_graph_data) {
   auto const element_ice_k_f_s = detail::to_element(
       3, *test_connection_to_graph_data::schedule2, schedule2::FRANKFURT.eva,
       schedule2::STUTTGART.eva, 10 * 60 + 20, 11 * 60 + 15, "ICE",
@@ -102,16 +102,16 @@ TEST_CASE("to_element2", "[conn_to_graph_data]") {
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
 
-  REQUIRE(element_ice_k_f_s.departure_stop_idx_ == 3);
-  REQUIRE(element_ice_k_f_s.arrival_stop_idx() == 4);
-  REQUIRE(element_ice_k_f_s.from_ == route_edge->_from);
-  REQUIRE(element_ice_k_f_s.to_ == route_edge->_to);
-  REQUIRE_FALSE(element_ice_k_f_s.is_first_route_node_);
-  REQUIRE(element_ice_k_f_s.light_connection_ == &first_light_conn);
-  REQUIRE(element_ice_k_f_s.light_connection_idx_ == 0);
+  ASSERT_TRUE(element_ice_k_f_s.departure_stop_idx_ == 3);
+  ASSERT_TRUE(element_ice_k_f_s.arrival_stop_idx() == 4);
+  ASSERT_TRUE(element_ice_k_f_s.from_ == route_edge->_from);
+  ASSERT_TRUE(element_ice_k_f_s.to_ == route_edge->_to);
+  ASSERT_FALSE(element_ice_k_f_s.is_first_route_node_);
+  ASSERT_TRUE(element_ice_k_f_s.light_connection_ == &first_light_conn);
+  ASSERT_TRUE(element_ice_k_f_s.light_connection_idx_ == 0);
 }
 
-TEST_CASE("get_elements", "[conn_to_graph_data]") {
+TEST(get_elements, conn_to_graph_data) {
   system_tools::setup setup(test_connection_to_graph_data::schedule2.get());
 
   auto msg = flatbuffers_tools::to_routing_request(
@@ -120,53 +120,53 @@ TEST_CASE("get_elements", "[conn_to_graph_data]") {
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
       std::make_tuple(28, 9, 2015));
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    REQUIRE(msg);
+    ASSERT_TRUE(msg);
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule2,
                      *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 2);
+    ASSERT_TRUE(elements.size() == 2);
     {
-      REQUIRE(elements[0].size() == 1);
+      ASSERT_TRUE(elements[0].size() == 1);
       auto const element = elements[0][0];
-      REQUIRE(element.departure_stop_idx_ ==
-              1);  // note: connections begin with a dummy walk
-      REQUIRE(element.arrival_stop_idx() == 2);
-      REQUIRE(test_connection_to_graph_data::schedule2
-                  ->stations[element.from_->_station_node->_id]
-                  ->eva_nr == schedule2::STUTTGART.eva);
-      REQUIRE(test_connection_to_graph_data::schedule2
-                  ->stations[element.to_->_station_node->_id]
-                  ->eva_nr == schedule2::ERLANGEN.eva);
-      REQUIRE(element.light_connection_->d_time == 11 * 60 + 32);
-      REQUIRE(element.light_connection_->a_time == 12 * 60 + 32);
-      REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-              schedule2::ICE_S_E);
+      ASSERT_TRUE(element.departure_stop_idx_ ==
+                  1);  // note: connections begin with a dummy walk
+      ASSERT_TRUE(element.arrival_stop_idx() == 2);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule2
+                      ->stations[element.from_->_station_node->_id]
+                      ->eva_nr == schedule2::STUTTGART.eva);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule2
+                      ->stations[element.to_->_station_node->_id]
+                      ->eva_nr == schedule2::ERLANGEN.eva);
+      ASSERT_TRUE(element.light_connection_->d_time == 11 * 60 + 32);
+      ASSERT_TRUE(element.light_connection_->a_time == 12 * 60 + 32);
+      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                  schedule2::ICE_S_E);
     }
     {
-      REQUIRE(elements[1].size() == 1);
+      ASSERT_TRUE(elements[1].size() == 1);
       auto const element = elements[1][0];
-      REQUIRE(element.departure_stop_idx_ == 2);
-      REQUIRE(element.arrival_stop_idx() == 3);
-      REQUIRE(test_connection_to_graph_data::schedule2
-                  ->stations[element.from_->_station_node->_id]
-                  ->eva_nr == schedule2::ERLANGEN.eva);
-      REQUIRE(test_connection_to_graph_data::schedule2
-                  ->stations[element.to_->_station_node->_id]
-                  ->eva_nr == schedule2::KASSEL.eva);
-      REQUIRE(element.light_connection_->d_time == 12 * 60 + 45);
-      REQUIRE(element.light_connection_->a_time == 14 * 60 + 15);
-      REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-              schedule2::ICE_E_K);
+      ASSERT_TRUE(element.departure_stop_idx_ == 2);
+      ASSERT_TRUE(element.arrival_stop_idx() == 3);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule2
+                      ->stations[element.from_->_station_node->_id]
+                      ->eva_nr == schedule2::ERLANGEN.eva);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule2
+                      ->stations[element.to_->_station_node->_id]
+                      ->eva_nr == schedule2::KASSEL.eva);
+      ASSERT_TRUE(element.light_connection_->d_time == 12 * 60 + 45);
+      ASSERT_TRUE(element.light_connection_->a_time == 14 * 60 + 15);
+      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                  schedule2::ICE_E_K);
     }
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
 }
 
-TEST_CASE("get_elements2", "[conn_to_graph_data]") {
+TEST(get_elements2, conn_to_graph_data) {
   system_tools::setup setup(test_connection_to_graph_data::schedule5.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule5::DARMSTADT.name, schedule5::DARMSTADT.eva,
@@ -175,63 +175,63 @@ TEST_CASE("get_elements2", "[conn_to_graph_data]") {
       std::make_tuple(19, 10, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    REQUIRE(msg);
+    ASSERT_TRUE(msg);
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule5,
                      *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 2);
+    ASSERT_TRUE(elements.size() == 2);
     {
-      REQUIRE(elements.at(0).size() == 2);
+      ASSERT_TRUE(elements.at(0).size() == 2);
       {
         auto const element = elements[0][0];
-        REQUIRE(element.departure_stop_idx_ ==
-                1);  // note: connections begin with a dummy walk
-        REQUIRE(element.arrival_stop_idx() == 2);
-        REQUIRE(test_connection_to_graph_data::schedule5
-                    ->stations[element.from_->_station_node->_id]
-                    ->eva_nr == schedule5::DARMSTADT.eva);
-        REQUIRE(test_connection_to_graph_data::schedule5
-                    ->stations[element.to_->_station_node->_id]
-                    ->eva_nr == schedule5::FRANKFURT.eva);
-        REQUIRE(element.light_connection_->d_time == 8 * 60);
-        REQUIRE(element.light_connection_->a_time == 8 * 60 + 20);
-        REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-                schedule5::RE_D_F_G);
+        ASSERT_TRUE(element.departure_stop_idx_ ==
+                    1);  // note: connections begin with a dummy walk
+        ASSERT_TRUE(element.arrival_stop_idx() == 2);
+        ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                        ->stations[element.from_->_station_node->_id]
+                        ->eva_nr == schedule5::DARMSTADT.eva);
+        ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                        ->stations[element.to_->_station_node->_id]
+                        ->eva_nr == schedule5::FRANKFURT.eva);
+        ASSERT_TRUE(element.light_connection_->d_time == 8 * 60);
+        ASSERT_TRUE(element.light_connection_->a_time == 8 * 60 + 20);
+        ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                    schedule5::RE_D_F_G);
       }
       {
         auto const element = elements[0][1];
-        REQUIRE(element.departure_stop_idx_ == 2);
-        REQUIRE(element.arrival_stop_idx() == 3);
-        REQUIRE(test_connection_to_graph_data::schedule5
-                    ->stations[element.from_->_station_node->_id]
-                    ->eva_nr == schedule5::FRANKFURT.eva);
-        REQUIRE(test_connection_to_graph_data::schedule5
-                    ->stations[element.to_->_station_node->_id]
-                    ->eva_nr == schedule5::GIESSEN.eva);
-        REQUIRE(element.light_connection_->d_time == 8 * 60 + 22);
-        REQUIRE(element.light_connection_->a_time == 9 * 60);
-        REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-                schedule5::RE_D_F_G);
+        ASSERT_TRUE(element.departure_stop_idx_ == 2);
+        ASSERT_TRUE(element.arrival_stop_idx() == 3);
+        ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                        ->stations[element.from_->_station_node->_id]
+                        ->eva_nr == schedule5::FRANKFURT.eva);
+        ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                        ->stations[element.to_->_station_node->_id]
+                        ->eva_nr == schedule5::GIESSEN.eva);
+        ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 22);
+        ASSERT_TRUE(element.light_connection_->a_time == 9 * 60);
+        ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                    schedule5::RE_D_F_G);
       }
     }
     {
-      REQUIRE(elements.at(1).size() == 1);
+      ASSERT_TRUE(elements.at(1).size() == 1);
       auto const element = elements[1][0];
-      REQUIRE(element.departure_stop_idx_ == 3);
-      REQUIRE(element.arrival_stop_idx() == 4);
-      REQUIRE(test_connection_to_graph_data::schedule5
-                  ->stations[element.from_->_station_node->_id]
-                  ->eva_nr == schedule5::GIESSEN.eva);
-      REQUIRE(test_connection_to_graph_data::schedule5
-                  ->stations[element.to_->_station_node->_id]
-                  ->eva_nr == schedule5::MARBURG.eva);
-      REQUIRE(element.light_connection_->d_time == 9 * 60 + 10);
-      REQUIRE(element.light_connection_->a_time == 9 * 60 + 40);
-      REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-              schedule5::RE_G_M);
+      ASSERT_TRUE(element.departure_stop_idx_ == 3);
+      ASSERT_TRUE(element.arrival_stop_idx() == 4);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                      ->stations[element.from_->_station_node->_id]
+                      ->eva_nr == schedule5::GIESSEN.eva);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule5
+                      ->stations[element.to_->_station_node->_id]
+                      ->eva_nr == schedule5::MARBURG.eva);
+      ASSERT_TRUE(element.light_connection_->d_time == 9 * 60 + 10);
+      ASSERT_TRUE(element.light_connection_->a_time == 9 * 60 + 40);
+      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                  schedule5::RE_G_M);
     }
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);
@@ -246,7 +246,7 @@ TEST_CASE("get_elements2", "[conn_to_graph_data]") {
  * (Note: the routing-module does not deliver connections
  * with a station-to-station walking at the beginning).
  */
-TEST_CASE("get_elements_foot", "[conn_to_graph_data]") {
+TEST(get_elements_foot, conn_to_graph_data) {
   system_tools::setup setup(test_connection_to_graph_data::schedule6.get());
   auto msg = flatbuffers_tools::to_routing_request(
       schedule6::MANNHEIM.name, schedule6::MANNHEIM.eva,
@@ -255,45 +255,45 @@ TEST_CASE("get_elements_foot", "[conn_to_graph_data]") {
       std::make_tuple(19, 10, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    REQUIRE(msg);
+    ASSERT_TRUE(msg);
     auto response = msg->content<routing::RoutingResponse const*>();
-    REQUIRE(response->connections()->size() == 1);
+    ASSERT_TRUE(response->connections()->size() == 1);
 
     auto const elements =
         get_elements(*test_connection_to_graph_data::schedule6,
                      *response->connections()->begin()).second;
-    REQUIRE(elements.size() == 2);
+    ASSERT_TRUE(elements.size() == 2);
     {
-      REQUIRE(elements[0].size() == 1);
+      ASSERT_TRUE(elements[0].size() == 1);
       auto const element = elements[0][0];
-      REQUIRE(element.departure_stop_idx_ == 1);
-      REQUIRE(element.arrival_stop_idx() == 2);
-      REQUIRE(test_connection_to_graph_data::schedule6
-                  ->stations[element.from_->_station_node->_id]
-                  ->eva_nr == schedule6::MANNHEIM.eva);
-      REQUIRE(test_connection_to_graph_data::schedule6
-                  ->stations[element.to_->_station_node->_id]
-                  ->eva_nr == schedule6::DARMSTADT.eva);
-      REQUIRE(element.light_connection_->d_time == 8 * 60 + 10);
-      REQUIRE(element.light_connection_->a_time == 8 * 60 + 40);
-      REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-              schedule6::IC_M_D);
+      ASSERT_TRUE(element.departure_stop_idx_ == 1);
+      ASSERT_TRUE(element.arrival_stop_idx() == 2);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule6
+                      ->stations[element.from_->_station_node->_id]
+                      ->eva_nr == schedule6::MANNHEIM.eva);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule6
+                      ->stations[element.to_->_station_node->_id]
+                      ->eva_nr == schedule6::DARMSTADT.eva);
+      ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 10);
+      ASSERT_TRUE(element.light_connection_->a_time == 8 * 60 + 40);
+      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                  schedule6::IC_M_D);
     }
     {
-      REQUIRE(elements[1].size() == 1);
+      ASSERT_TRUE(elements[1].size() == 1);
       auto const element = elements[1][0];
-      REQUIRE(element.departure_stop_idx_ == 3);
-      REQUIRE(element.arrival_stop_idx() == 4);
-      REQUIRE(test_connection_to_graph_data::schedule6
-                  ->stations[element.from_->_station_node->_id]
-                  ->eva_nr == schedule6::TUD.eva);
-      REQUIRE(test_connection_to_graph_data::schedule6
-                  ->stations[element.to_->_station_node->_id]
-                  ->eva_nr == schedule6::FRANKFURT.eva);
-      REQUIRE(element.light_connection_->d_time == 8 * 60 + 45);
-      REQUIRE(element.light_connection_->a_time == 9 * 60 + 15);
-      REQUIRE(element.light_connection_->_full_con->con_info->train_nr ==
-              schedule6::RE_T_F);
+      ASSERT_TRUE(element.departure_stop_idx_ == 3);
+      ASSERT_TRUE(element.arrival_stop_idx() == 4);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule6
+                      ->stations[element.from_->_station_node->_id]
+                      ->eva_nr == schedule6::TUD.eva);
+      ASSERT_TRUE(test_connection_to_graph_data::schedule6
+                      ->stations[element.to_->_station_node->_id]
+                      ->eva_nr == schedule6::FRANKFURT.eva);
+      ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 45);
+      ASSERT_TRUE(element.light_connection_->a_time == 9 * 60 + 15);
+      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+                  schedule6::RE_T_F);
     }
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);

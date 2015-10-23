@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/loader/loader.h"
 
@@ -31,7 +31,7 @@ short const ICE_K_K = 7;
 short const RE_K_S = 8;
 }
 
-TEST_CASE("initialize", "[pd_calc_data_arrival]") {
+TEST(initialize, pd_calc_data_arrival) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -52,28 +52,29 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   data_arrival data(second_route_node, light_connection, dep_dist, *schedule,
                     s_t_distributions);
 
-  REQUIRE(schedule->stations[second_route_node._station_node->_id]->eva_nr ==
-          schedule1::DARMSTADT);
-  REQUIRE(light_connection.d_time == 5 * 60 + 55);
-  REQUIRE(light_connection.a_time == 6 * 60 + 5);
+  ASSERT_TRUE(
+      schedule->stations[second_route_node._station_node->_id]->eva_nr ==
+      schedule1::DARMSTADT);
+  ASSERT_TRUE(light_connection.d_time == 5 * 60 + 55);
+  ASSERT_TRUE(light_connection.a_time == 6 * 60 + 5);
 
-  REQUIRE(data.departure_info_.scheduled_departure_time_ ==
-          light_connection.d_time);
-  REQUIRE(&data.departure_info_.distribution_ == &dep_dist);
+  ASSERT_TRUE(data.departure_info_.scheduled_departure_time_ ==
+              light_connection.d_time);
+  ASSERT_TRUE(&data.departure_info_.distribution_ == &dep_dist);
 
-  REQUIRE(data.scheduled_arrival_time_ == light_connection.a_time);
+  ASSERT_TRUE(data.scheduled_arrival_time_ == light_connection.a_time);
 
-  REQUIRE(data.travel_distributions_.size() == 2);
-  REQUIRE(&data.travel_distributions_[0].get() ==
-          &s_t_distributions.travel_distribution_);
-  REQUIRE(&data.travel_distributions_[1].get() ==
-          &s_t_distributions.travel_distribution_);
+  ASSERT_TRUE(data.travel_distributions_.size() == 2);
+  ASSERT_TRUE(&data.travel_distributions_[0].get() ==
+              &s_t_distributions.travel_distribution_);
+  ASSERT_TRUE(&data.travel_distributions_[1].get() ==
+              &s_t_distributions.travel_distribution_);
 
-  REQUIRE(data.left_bound_ == -1);
-  REQUIRE(data.right_bound_ == 2);
+  ASSERT_TRUE(data.left_bound_ == -1);
+  ASSERT_TRUE(data.right_bound_ == 2);
 }
 
-TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
+TEST(test_s_t_distributions, pd_calc_data_arrival) {
   auto schedule = loader::load_schedule(
       "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
@@ -117,9 +118,9 @@ TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   data_arrival data(arrival_route_node, light_connection, dep_dist, *schedule,
                     s_t_distributions);
 
-  REQUIRE(data.travel_distributions_.size() == 2);
-  REQUIRE(&data.travel_distributions_[0].get() ==
-          &s_t_distributions.distribution_);
-  REQUIRE(&data.travel_distributions_[1].get() ==
-          &s_t_distributions.distribution_);
+  ASSERT_TRUE(data.travel_distributions_.size() == 2);
+  ASSERT_TRUE(&data.travel_distributions_[0].get() ==
+              &s_t_distributions.distribution_);
+  ASSERT_TRUE(&data.travel_distributions_[1].get() ==
+              &s_t_distributions.distribution_);
 }

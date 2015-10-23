@@ -1,4 +1,4 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include <iostream>
 #include <vector>
@@ -20,4 +20,4 @@ using namespace motis;
 using namespace motis::reliability;
 using namespace motis::module;
 
-TEST_CASE("request", "[reliability]") {}
+TEST(request, reliability) {}
