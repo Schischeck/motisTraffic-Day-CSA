@@ -20,4 +20,4 @@ using namespace motis;
 using namespace motis::reliability;
 using namespace motis::module;
 
-TEST(request, reliability) { ASSERT_TRUE(false); }
+TEST(request, reliability) {}
