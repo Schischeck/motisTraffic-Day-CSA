@@ -7,11 +7,7 @@ namespace motis {
 namespace reliability {
 
 namespace error {
-enum error_code_t {
-  ok = 0,
-
-  not_implemented = 1,
-};
+enum error_code_t { ok = 0, not_implemented = 1, failure = 2 };
 }  // namespace error
 
 class error_category_impl : public boost::system::error_category {

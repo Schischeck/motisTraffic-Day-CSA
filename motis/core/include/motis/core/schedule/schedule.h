@@ -24,6 +24,7 @@ struct schedule {
   std::time_t schedule_begin_, schedule_end_;
   std::vector<station_ptr> stations;
   std::map<std::string, station*> eva_to_station;
+  std::map<std::string, station*> ds100_to_station;
   std::map<std::string, int> classes;
   std::vector<std::string> tracks;
   constant_graph lower_bounds;

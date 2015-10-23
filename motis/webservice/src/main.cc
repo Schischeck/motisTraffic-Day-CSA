@@ -18,6 +18,7 @@
 #include "motis/guesser/guesser.h"
 #include "motis/routing/routing.h"
 #include "motis/reliability/reliability.h"
+#include "motis/ris/ris.h"
 
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
@@ -33,11 +34,24 @@ using namespace motis;
 int main(int argc, char** argv) {
   message::init_parser();
 
+  std::vector<std::unique_ptr<motis::module::module> > modules;
+  modules.emplace_back(new routing::routing());
+  modules.emplace_back(new guesser::guesser());
+  // modules.emplace_back(new reliability::reliability());
+  modules.emplace_back(new railviz::railviz());
+  // modules.emplace_back(new ris::ris());
+
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("data/test", "TODAY", 2);
   modules_settings modules_opt("modules");
 
-  conf::options_parser parser({&listener_opt, &dataset_opt, &modules_opt});
+  std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
+                                             &modules_opt};
+  for (auto const& module : modules) {
+    confs.push_back(module.get());
+  }
+
+  conf::options_parser parser(confs);
   parser.read_command_line_args(argc, argv);
 
   if (parser.help()) {
@@ -76,27 +90,12 @@ int main(int argc, char** argv) {
   msg_handler dispatch =
       std::bind(&dispatcher::on_msg, &dispatcher, p::_1, p::_2, p::_3);
 
-  std::vector<std::unique_ptr<motis::module::module> > modules;
-  modules.emplace_back(new routing::routing());
-  modules.emplace_back(new guesser::guesser());
-  modules.emplace_back(new reliability::reliability());
-  modules.emplace_back(new railviz::railviz());
-
   motis::module::context c;
   c.schedule_ = sched.get();
   c.ios_ = &ios;
   c.thread_pool_ = &thread_pool;
   c.send_ = &send;
   c.dispatch_ = &dispatch;
-
-  std::vector<conf::configuration*> module_confs;
-  for (auto const& module : modules) {
-    module_confs.push_back(module.get());
-  }
-  conf::options_parser module_conf_parser(module_confs);
-  module_conf_parser.read_command_line_args(argc, argv);
-  module_conf_parser.read_configuration_file();
-  module_conf_parser.print_used(std::cout);
 
   for (auto const& module : modules) {
     dispatcher.modules_.push_back(module.get());

@@ -1,0 +1,102 @@
+namespace motis.ris;
+
+// ----------------------------------------------------------------------------
+// Train centered Messages
+// ----------------------------------------------------------------------------
+enum EventType : byte {Arrival, Departure, Pass}
+enum StationIdType : byte {Context, EVA, DS100}
+table Event {
+  // if stationIdType is Context, station Id is not set
+  stationIdType: StationIdType;
+  stationId: string; // optional
+  
+  trainIndex: int;
+  type: EventType;
+  scheduledTime: ulong;
+}
+
+table CancelMessage {
+  events: [Event] (required);
+}
+
+table UpdatedEvent {
+  base: Event;
+  updatedTime: ulong;
+}
+
+enum DelayType : bool {Is, Forecast} // Ist and IstProg
+table DelayMessage { 
+  type: DelayType;
+  events: [UpdatedEvent] (required);
+}
+
+table AdditionalEvent {
+  base: Event;
+  trainCategory: string (required);
+  track: string;  // optional
+}
+
+table AdditionMessage {
+  events: [AdditionalEvent];
+}
+
+enum RerouteStatus : bool {Normal, UmlNeu}
+table ReroutedEvent {
+  base: AdditionalEvent (required);
+  status: RerouteStatus;
+}
+
+table RerouteMessage {
+  cancelledEvents: [Event] (required);
+  newEvents: [ReroutedEvent] (required);
+}
+
+// ----------------------------------------------------------------------------
+// Connection Event Messages
+// ----------------------------------------------------------------------------
+table ConnectionDecision {
+  base: Event (required);
+  hold: bool;
+}
+
+table ConnectionDecisionMessage { // Anschluss
+  from: Event (required);
+  to: [ConnectionDecision] (required);
+}
+
+table ConnectionAssessment {
+  base: Event (required);
+  assessment: int;
+}
+
+table ConnectionAssessmentMessage { // Anschlussbewertung
+  from: Event (required);
+  to: [ConnectionAssessment] (required);
+}
+
+// ----------------------------------------------------------------------------
+// envelope
+// ----------------------------------------------------------------------------
+union MessageUnion {
+  DelayMessage,
+  CancelMessage,
+  AdditionMessage,
+  RerouteMessage,
+  ConnectionDecisionMessage,
+  ConnectionAssessmentMessage
+}
+
+table Message {
+  content: MessageUnion (required);
+}
+
+table Packet {
+  timestamp: ulong;
+  messages: [Message] (required);
+}
+
+table RISBatch {
+  packets: [Packet] (required);
+}
+
+root_type RISBatch;

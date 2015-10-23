@@ -129,7 +129,7 @@ std::vector<journey> search::get_connections(
   std::vector<journey> journeys;
   journeys.resize(results.size());
   std::transform(std::begin(results), std::end(results), std::begin(journeys),
-                 [this](label* label) { return journey(label, _sched); });
+                 [this](label* label) { return to_journey(label, _sched); });
 
   return journeys;
 }
