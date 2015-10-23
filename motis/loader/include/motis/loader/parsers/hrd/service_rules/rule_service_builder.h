@@ -1,16 +1,14 @@
 #pragma once
 
+#include <set>
 #include <memory>
 #include <map>
-#include <set>
 #include <vector>
 
 #include "motis/loader/util.h"
-
 #include "motis/loader/parsers/hrd/service/hrd_service.h"
 #include "motis/loader/parsers/hrd/service_rules/service_rule.h"
-#include "motis/loader/parsers/hrd/service_rules/rules_graph.h"
-#include "motis/loader/util.h"
+#include "motis/loader/parsers/hrd/service_rules/rule_service.h"
 
 namespace motis {
 namespace loader {

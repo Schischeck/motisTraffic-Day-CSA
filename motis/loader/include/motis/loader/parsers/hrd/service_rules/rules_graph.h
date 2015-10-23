@@ -70,6 +70,7 @@ struct rules_graph {
   void print_nodes();
 
   std::vector<std::unique_ptr<node>> nodes_;
+  std::vector<std::vector<node*>> layers_;
 };
 
 }  // hrd

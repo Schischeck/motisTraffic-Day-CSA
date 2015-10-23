@@ -1,15 +1,14 @@
 #include "motis/loader/parsers/hrd/service_rules/rules_graph.h"
 
-#include "motis/loader/parsers/hrd/service_rules/service_rule.h"
-
 namespace motis {
 namespace loader {
 namespace hrd {
 
 service_node::service_node(hrd_service* s) : service_(s) {}
 
-void resolve_services(bitfield const&, std::set<service_resolvent>&,
-                      std::set<service_rule_resolvent>&){};
+void service_node::resolve_services(bitfield const&,
+                                    std::set<service_resolvent>&,
+                                    std::set<service_rule_resolvent>&) {}
 
 std::array<node*, 2> service_node::children() const {
   return {{nullptr, nullptr}};
