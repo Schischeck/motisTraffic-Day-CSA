@@ -47,7 +47,7 @@ short const S_M_W = 2;  // 10:20 --> 10:25
 TEST_CASE("interchange first-route-node no-feeders",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -93,7 +93,7 @@ TEST_CASE("interchange first-route-node no-feeders",
 TEST_CASE("interchange preceding-arrival no-feeders",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions({0.9, 0.1}, 0);
@@ -162,7 +162,7 @@ TEST_CASE("interchange preceding-arrival no-feeders",
 TEST_CASE("interchange first-route-node feeders incl. ic",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -222,7 +222,7 @@ TEST_CASE("interchange first-route-node feeders incl. ic",
 TEST_CASE("interchange first-route-node feeders excl. ic",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -293,7 +293,7 @@ TEST_CASE("interchange first-route-node feeders excl. ic",
 TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
           "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -339,7 +339,7 @@ TEST_CASE("interchange first-route-node no other feeder but ic-feeder",
 
 TEST_CASE("interchange walk", "[data_departure_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});

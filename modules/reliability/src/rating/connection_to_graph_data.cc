@@ -7,7 +7,7 @@
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"

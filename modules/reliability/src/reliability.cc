@@ -6,10 +6,11 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/db_distributions.h"
-#include "motis/reliability/distributions_calculator.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
+#include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "../test/include/start_and_travel_test_distributions.h"
 
@@ -64,12 +65,16 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
   schedule const& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
   std::vector<rating::connection_rating> ratings(res->connections()->size());
+  std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
+      res->connections()->size());
   unsigned int rating_index = 0;
   for (auto it = res->connections()->begin(); it != res->connections()->end();
        ++it, ++rating_index) {
     bool success =
         rating::rate(ratings[rating_index], *it, schedule,
                      *precomputed_distributions_, *s_t_distributions_);
+    success &= rating::simple_rating::rate(simple_ratings[rating_index], *it,
+                                           schedule, *s_t_distributions_);
     if (!success) {
       std::cout << "\nError(reliability) could not rate the connections"
                 << std::endl;
@@ -78,7 +83,8 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
   }
 
   return cb(flatbuffers_tools::to_reliable_routing_response(
-                res, schedule.categories, ratings, true /* short output */),
+                res, schedule.categories, ratings, simple_ratings,
+                true /* short output */),
             error::ok);
 }
 

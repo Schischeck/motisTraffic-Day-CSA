@@ -32,7 +32,7 @@ short const RE_K_S = 8;
 
 TEST_CASE("get_first_route_node_by_train_nr", "[graph_accessor]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   auto node = get_first_route_node(*schedule, schedule1::ICE_FR_DA_H);
   REQUIRE(schedule->stations[node->_station_node->_id]->eva_nr ==
@@ -44,7 +44,7 @@ TEST_CASE("get_first_route_node_by_train_nr", "[graph_accessor]") {
 
 TEST_CASE("get_previous_light_connection", "[graph_accessor]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   auto const first_route_node =
@@ -147,7 +147,7 @@ TEST_CASE("get_feeder_time_interval", "[graph_accessor]") {
 
 TEST_CASE("get_feeders", "[graph_accessor]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -216,7 +216,7 @@ TEST_CASE("get_feeders", "[graph_accessor]") {
 
 TEST_CASE("get_feeders_first_departure", "[graph_accessor]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   // route node at Darmstadt of train IC_DA_H
@@ -273,13 +273,12 @@ TEST_CASE("get_feeders_first_departure", "[graph_accessor]") {
 
 TEST_CASE("get_first_route_node", "[graph_accessor]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   auto const first_node =
       get_first_route_node(*schedule, schedule1::ICE_FR_DA_H);
-  auto const node =
-      get_departing_route_edge(*get_departing_route_edge(*first_node)->_to)
-          ->_to;
+  auto const node = get_departing_route_edge(
+                        *get_departing_route_edge(*first_node)->_to)->_to;
   REQUIRE(&get_first_route_node(*node) == first_node);
 }
 
@@ -343,7 +342,7 @@ TEST_CASE("walking_duration", "[graph_accessor]") {
   short const S_M_W = 2;  // 10:20 --> 10:25
 
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   auto const& tail_station =
       *get_departing_route_edge(*get_first_route_node(*schedule, ICE_L_H))
@@ -351,4 +350,35 @@ TEST_CASE("walking_duration", "[graph_accessor]") {
   auto const& head_station =
       *get_first_route_node(*schedule, S_M_W)->_station_node;
   REQUIRE(walking_duration(tail_station, head_station) == (duration)10);
+}
+
+TEST_CASE("get_interchange_time_walk", "[graph_accessor]") {
+  short const ICE_L_H = 1;  // 10:00 --> 10:10
+  short const S_M_W = 2;  // 10:20 --> 10:25
+
+  auto schedule = loader::load_schedule(
+      "modules/reliability/resources/schedule3/", to_unix_time(2015, 9, 28),
+      to_unix_time(2015, 9, 29));
+  auto const& feeder_arrival =
+      *get_departing_route_edge(*get_first_route_node(*schedule, ICE_L_H))->_to;
+  auto const& departing_train_departure =
+      *get_first_route_node(*schedule, S_M_W);
+  REQUIRE(get_interchange_time(feeder_arrival, departing_train_departure,
+                               *schedule) == (duration)10);
+}
+
+TEST_CASE("get_interchange_time", "[graph_accessor]") {
+  auto schedule = loader::load_schedule(
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      to_unix_time(2015, 9, 29));
+
+  auto const& feeder_arrival =
+      *get_departing_route_edge(
+           *get_first_route_node(*schedule, schedule1::RE_MA_DA))->_to;
+  auto const& departing_train_departure =
+      *get_departing_route_edge(
+           *get_first_route_node(*schedule, schedule1::ICE_FR_DA_H))->_to;
+
+  REQUIRE(get_interchange_time(feeder_arrival, departing_train_departure,
+                               *schedule) == (duration)5);
 }

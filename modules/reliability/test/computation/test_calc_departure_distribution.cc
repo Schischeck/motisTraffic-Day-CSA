@@ -84,7 +84,7 @@ TEST_CASE("departure_independent_from_feeders",
 // first route node
 TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -108,7 +108,7 @@ TEST_CASE("train_early_enough1", "[calc_departure_distribution]") {
 // preceding arrival
 TEST_CASE("train_early_enough2", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
@@ -287,7 +287,7 @@ TEST_CASE("had_to_wait_for_feeders2", "[departure_data]") {
 // first route node without feeders
 TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -316,7 +316,7 @@ TEST_CASE("compute_departure_distribution1", "[calc_departure_distribution]") {
 // first route node with feeders
 TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions(
@@ -379,7 +379,7 @@ TEST_CASE("compute_departure_distribution2", "[calc_departure_distribution]") {
 // route node with preceding arrival and without feeders
 TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
@@ -435,7 +435,7 @@ TEST_CASE("compute_departure_distribution3", "[calc_departure_distribution]") {
 // route node with preceding arrival and feeders
 TEST_CASE("compute_departure_distribution4", "[calc_departure_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   std::vector<probability> values;

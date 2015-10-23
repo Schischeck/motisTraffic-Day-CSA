@@ -10,11 +10,12 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/distributions_calculator.h"
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/computation/distributions_calculator.h"
+#include "motis/reliability/computation/ride_distributions_calculator.h"
+#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 
 #include "include/start_and_travel_test_distributions.h"
 
@@ -35,7 +36,7 @@ short const RE_K_S = 8;
 
 TEST_CASE("is_pre_computed_train", "[distributions_calculator]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   REQUIRE(
@@ -103,7 +104,7 @@ void test_distributions(
 
 TEST_CASE("Initial_distributions_simple", "[distributions_calculator]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule->node_count);
@@ -128,7 +129,7 @@ TEST_CASE("Initial_distributions_db_distributions",
           "[distributions_calculator]") {
   std::cout << "Initial_distributions_db_distributions" << std::endl;
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule->node_count);
@@ -175,7 +176,7 @@ TEST_CASE("Initial_distributions_db_distributions2",
 
 TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule4/", to_unix_time(2015, 10, 18),
+      "modules/reliability/resources/schedule4/", to_unix_time(2015, 10, 18),
       to_unix_time(2015, 10, 20));
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule->node_count);
@@ -194,9 +195,10 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
   node const& last_route_node =
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
 
-  distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
-      0, last_route_node, *schedule, s_t_distributions,
-      precomputed_distributions, container);
+  distributions_calculator::ride_distribution::detail::
+      compute_distributions_for_a_ride(0, last_route_node, *schedule,
+                                       s_t_distributions,
+                                       precomputed_distributions, container);
 
   {
     auto const& distribution = container.get_distribution(
@@ -226,7 +228,7 @@ TEST_CASE("distributions for a ride RE", "[distributions_calculator]") {
 
 TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule->node_count);
@@ -245,9 +247,10 @@ TEST_CASE("distributions for a ride ICE", "[distributions_calculator]") {
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
   unsigned int const light_conn_idx = 1;
 
-  distributions_calculator::ride_distribution::compute_distributions_for_a_ride(
-      light_conn_idx, last_route_node, *schedule, s_t_distributions,
-      precomputed_distributions, container);
+  distributions_calculator::ride_distribution::detail::
+      compute_distributions_for_a_ride(light_conn_idx, last_route_node,
+                                       *schedule, s_t_distributions,
+                                       precomputed_distributions, container);
 
   {
     auto const& distribution =

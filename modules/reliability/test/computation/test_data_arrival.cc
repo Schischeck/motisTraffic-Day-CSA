@@ -33,7 +33,7 @@ short const RE_K_S = 8;
 
 TEST_CASE("initialize", "[pd_calc_data_arrival]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   probability_distribution dep_dist;
@@ -75,7 +75,7 @@ TEST_CASE("initialize", "[pd_calc_data_arrival]") {
 
 TEST_CASE("test s_t_distributions", "[pd_calc_data_arrival]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   struct start_and_travel_test2_distributions : start_and_travel_distributions {

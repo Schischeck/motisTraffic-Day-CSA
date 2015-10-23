@@ -12,6 +12,7 @@
 
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
+#include "motis/reliability/rating/simple_rating.h"
 
 namespace motis {
 namespace reliability {
@@ -72,6 +73,24 @@ module::msg_ptr to_routing_request(std::string const& from_name,
   return module::make_msg(b);
 }
 
+Offset<routing::RoutingResponse> convert_routing_response(
+    FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
+    std::vector<std::unique_ptr<category>> const& categories) {
+  using namespace routing;
+  std::vector<Offset<routing::Connection>> connections;
+  auto journeys =
+      journey_builder::to_journeys(orig_routing_response, categories);
+  for (auto const& j : journeys) {
+    connections.push_back(CreateConnection(
+        b, b.CreateVector(detail::convert_stops(b, j.stops)),
+        b.CreateVector(detail::convert_moves(b, j.transports)),
+        b.CreateVector(detail::convert_attributes(b, j.attributes))));
+  }
+  return CreateRoutingResponse(b, b.CreateVector(connections));
+}
+
+namespace rating_converter {
+
 Offset<reliability::ProbabilityDistribution> convert(
     FlatBufferBuilder& b, probability_distribution const& pd,
     time_t event_time) {
@@ -88,8 +107,9 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
     routing::Connection const* orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto e : conn_rating.public_transport_ratings_) {
+    Range r(e.departure_stop_idx_, e.arrival_stop_idx());
     rating_elements.push_back(CreateRatingElement(
-        b, e.departure_stop_idx_, e.arrival_stop_idx(),
+        b, &r,
         convert(
             b, e.departure_distribution_,
             (*orig_conn->stops())[e.departure_stop_idx_]->departure()->time()),
@@ -128,12 +148,12 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
                   << std::endl;
         break;
       }
+      Range r(rating_from->departure_stop_idx_, rating_to->arrival_stop_idx());
       rating_elements.push_back(CreateRatingElement(
-          b, rating_from->departure_stop_idx_, rating_to->arrival_stop_idx(),
-          convert(b, rating_from->departure_distribution_,
-                  (*orig_conn->stops())[rating_from->departure_stop_idx_]
-                      ->departure()
-                      ->time()),
+          b, &r, convert(b, rating_from->departure_distribution_,
+                         (*orig_conn->stops())[rating_from->departure_stop_idx_]
+                             ->departure()
+                             ->time()),
           convert(b, rating_to->arrival_distribution_,
                   (*orig_conn->stops())[rating_to->arrival_stop_idx()]
                       ->arrival()
@@ -150,8 +170,8 @@ Offset<Vector<Offset<Rating>>> convert_ratings(
     bool const short_output) {
   std::vector<Offset<Rating>> v_conn_ratings;
   for (unsigned int c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
-    auto conn_rating = orig_ratings[c_idx];
-    auto orig_conn = orig_connections[c_idx];
+    auto const& conn_rating = orig_ratings[c_idx];
+    auto const orig_conn = orig_connections[c_idx];
     v_conn_ratings.push_back(CreateRating(
         b, b.CreateVector(
                short_output
@@ -161,37 +181,63 @@ Offset<Vector<Offset<Rating>>> convert_ratings(
   }
   return b.CreateVector(v_conn_ratings);
 }
+}  // namespace rating_converter
 
-Offset<routing::RoutingResponse> convert_routing_response(
-    FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
-    std::vector<std::unique_ptr<category>> const& categories) {
-  using namespace routing;
-  std::vector<Offset<routing::Connection>> connections;
-  auto journeys =
-      journey_builder::to_journeys(orig_routing_response, categories);
-  for (auto const& j : journeys) {
-    connections.push_back(CreateConnection(
-        b, b.CreateVector(detail::convert_stops(b, j.stops)),
-        b.CreateVector(detail::convert_moves(b, j.transports)),
-        b.CreateVector(detail::convert_attributes(b, j.attributes))));
+namespace simple_rating_converter {
+std::vector<Offset<SimpleRatingElement>> convert_simple_rating_elements(
+    FlatBufferBuilder& b,
+    rating::simple_rating::simple_connection_rating const& conn_rating,
+    routing::Connection const* orig_conn) {
+  std::vector<Offset<SimpleRatingElement>> rating_elements;
+  for (auto e : conn_rating.ratings_elements_) {
+    Range r(e.from_, e.to_);
+    std::vector<Offset<SimpleRatingInfo>> rating_infos;
+    for (auto const& info : e.ratings_) {
+      rating_infos.push_back(CreateSimpleRatingInfo(b, info.second));
+    }
+    rating_elements.push_back(
+        CreateSimpleRatingElement(b, &r, b.CreateVector(rating_infos)));
   }
-  return CreateRoutingResponse(b, b.CreateVector(connections));
+  return rating_elements;
 }
+
+Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
+    FlatBufferBuilder& b,
+    std::vector<rating::simple_rating::simple_connection_rating> const&
+        orig_ratings,
+    Vector<Offset<routing::Connection>> const& orig_connections) {
+  std::vector<Offset<SimpleRating>> v_conn_ratings;
+  for (unsigned int c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
+    auto const& conn_rating = orig_ratings[c_idx];
+    auto const orig_conn = orig_connections[c_idx];
+    v_conn_ratings.push_back(
+        CreateSimpleRating(b, b.CreateVector(convert_simple_rating_elements(
+                                  b, conn_rating, orig_conn)),
+                           (float)conn_rating.connection_rating_));
+  }
+  return b.CreateVector(v_conn_ratings);
+}
+}  // namespace simple_rating_converter
 
 module::msg_ptr to_reliable_routing_response(
     routing::RoutingResponse const* orig_routing_response,
     std::vector<std::unique_ptr<category>> const& categories,
     std::vector<rating::connection_rating> const& orig_ratings,
+    std::vector<rating::simple_rating::simple_connection_rating> const&
+        orig_simple_ratings,
     bool const short_output) {
   assert(orig_routing_response->connections()->size() == orig_ratings.size());
   FlatBufferBuilder b;
-  auto routing_response =
+  auto const routing_response =
       convert_routing_response(b, orig_routing_response, categories);
-  auto conn_ratings = convert_ratings(
+  auto const conn_ratings = rating_converter::convert_ratings(
       b, orig_ratings, *orig_routing_response->connections(), short_output);
-  b.Finish(CreateMessage(b, MsgContent_ReliableRoutingResponse,
-                         CreateReliableRoutingResponse(b, routing_response,
-                                                       conn_ratings).Union()));
+  auto const simple_ratings = simple_rating_converter::convert_simple_ratings(
+      b, orig_simple_ratings, *orig_routing_response->connections());
+  b.Finish(CreateMessage(
+      b, MsgContent_ReliableRoutingResponse,
+      CreateReliableRoutingResponse(b, routing_response, conn_ratings,
+                                    simple_ratings).Union()));
   return module::make_msg(b);
 }
 

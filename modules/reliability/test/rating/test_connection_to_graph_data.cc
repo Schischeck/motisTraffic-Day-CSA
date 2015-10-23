@@ -8,7 +8,7 @@
 
 #include "motis/routing/routing.h"
 
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
@@ -53,13 +53,13 @@ short const RE_T_F = 2;  // 08:45 --> 09:15
 
 namespace test_connection_to_graph_data {
 auto schedule2 =
-    loader::load_schedule("../modules/reliability/resources/schedule2/",
+    loader::load_schedule("modules/reliability/resources/schedule2/",
                           to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29));
 auto schedule5 = loader::load_schedule(
-    "../modules/reliability/resources/schedule5/", to_unix_time(2015, 10, 19),
+    "modules/reliability/resources/schedule5/", to_unix_time(2015, 10, 19),
     to_unix_time(2015, 10, 20));
 auto schedule6 = loader::load_schedule(
-    "../modules/reliability/resources/schedule6_footconnection/",
+    "modules/reliability/resources/schedule6_footconnection/",
     to_unix_time(2015, 10, 19), to_unix_time(2015, 10, 20));
 }
 

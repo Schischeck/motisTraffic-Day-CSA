@@ -13,7 +13,7 @@ using namespace motis::reliability::db_distributions_loader;
 TEST_CASE("load_distributions_classes", "[distributions_loader]") {
   std::map<std::string, std::string> family_to_distribution_class;
   detail::load_distributions_classes(
-      "../modules/reliability/resources/distributions/Classes.csv",
+      "modules/reliability/resources/distributions/Classes.csv",
       family_to_distribution_class);
 
   REQUIRE(family_to_distribution_class.size() == 7);
@@ -31,7 +31,7 @@ TEST_CASE("load_distributions_classes", "[distributions_loader]") {
 TEST_CASE("load_distributions", "[distributions_loader]") {
   std::vector<std::pair<unsigned int, probability_distribution> > distributions;
   detail::load_distributions(
-      "../modules/reliability/resources/distributions/Distributions.csv",
+      "modules/reliability/resources/distributions/Distributions.csv",
       distributions);
 
   REQUIRE(distributions.size() == 6);
@@ -311,7 +311,7 @@ void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
 TEST_CASE("load_mappings", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping.csv", 10, 10,
+      "modules/reliability/resources/distributions/Mapping.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;
@@ -354,7 +354,7 @@ TEST_CASE("load_mappings", "[distributions_loader]") {
 TEST_CASE("load_mappings2", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping2.csv", 10, 10,
+      "modules/reliability/resources/distributions/Mapping2.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;
@@ -395,7 +395,7 @@ TEST_CASE("load_mappings2", "[distributions_loader]") {
 TEST_CASE("load_mappings3", "[distributions_loader]") {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
-      "../modules/reliability/resources/distributions/Mapping3.csv", 10, 10,
+      "modules/reliability/resources/distributions/Mapping3.csv", 10, 10,
       distribution_mappings);
 
   unsigned int distribution_mappings_idx = 0;
@@ -417,7 +417,7 @@ TEST_CASE("load_start_distributions", "[distributions_loader]") {
   std::map<std::string, probability_distribution>
       class_to_probability_distributions;
   detail::load_start_distributions(
-      "../modules/reliability/resources/distributions/StartDistributions.csv",
+      "modules/reliability/resources/distributions/StartDistributions.csv",
       class_to_probability_distributions);
 
   REQUIRE(class_to_probability_distributions.size() == 2);

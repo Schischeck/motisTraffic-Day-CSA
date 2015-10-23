@@ -37,7 +37,7 @@ short const RE_K_S = 8;
 
 TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -78,7 +78,7 @@ TEST_CASE("first-route-node no-feeders", "[pd_calc_data_departure]") {
 
 TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
@@ -121,7 +121,7 @@ TEST_CASE("preceding-arrival no-feeders", "[pd_calc_data_departure]") {
 
 TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -175,7 +175,7 @@ TEST_CASE("first-route-node feeders", "[pd_calc_data_departure]") {
 
 TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
@@ -230,7 +230,7 @@ TEST_CASE("preceding-arrival feeders", "[pd_calc_data_departure]") {
 
 TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   distributions_container::precomputed_distributions_container dummy(0);
@@ -271,7 +271,7 @@ TEST_CASE("first-route-node no-waiting-category", "[pd_calc_data_departure]") {
 
 TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   // route node at Darmstadt of train ICE_FR_DA_H
@@ -350,7 +350,7 @@ TEST_CASE("check train_distributions", "[pd_calc_data_departure]") {
 
 TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container distributions_container({0.1}, 0);
@@ -393,7 +393,7 @@ TEST_CASE("check start distribution", "[pd_calc_data_departure]") {
  * in the other test cases */
 TEST_CASE("check largest delay", "[pd_calc_data_departure]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   precomputed_distributions_test_container train_distributions(

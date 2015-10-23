@@ -15,7 +15,8 @@
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
+#include "motis/reliability/computation/ride_distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -31,41 +32,34 @@ using namespace motis;
 using namespace motis::reliability;
 using namespace motis::reliability::rating::public_transport;
 
-namespace schedule2 {
-struct station {
+struct schedule_station {
   std::string name;
   std::string eva;
 };
-station const ERLANGEN = {"Erlangen", "0953067"};
-station const FRANKFURT = {"Frankfurt", "5744986"};
-station const KASSEL = {"Kassel", "6380201"};
-station const STUTTGART = {"Stuttgart", "7309882"};
+
+namespace schedule2 {
+schedule_station const ERLANGEN = {"Erlangen", "0953067"};
+schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
+schedule_station const KASSEL = {"Kassel", "6380201"};
+schedule_station const STUTTGART = {"Stuttgart", "7309882"};
 short const ICE_S_E = 5;  // 11:32 --> 12:32
 short const ICE_E_K = 7;  // 12:45 --> 14:15
 }
 namespace schedule3 {
-struct station {
-  std::string name;
-  std::string eva;
-};
-station const FRANKFURT = {"Frankfurt", "1111111"};
-station const MESSE = {"Frankfurt Messe", "2222222"};
-station const LANGEN = {"Langen", "3333333"};
-station const WEST = {"Frankfurt West", "4444444"};
+schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
+schedule_station const MESSE = {"Frankfurt Messe", "2222222"};
+schedule_station const LANGEN = {"Langen", "3333333"};
+schedule_station const WEST = {"Frankfurt West", "4444444"};
 short const ICE_L_H = 1;  // 10:00 --> 10:10
 short const S_M_W = 2;  // 10:20 --> 10:25
 }
 namespace schedule5 {
-struct station {
-  std::string name;
-  std::string eva;
-};
-station const DARMSTADT = {"Darmstadt", "1111111"};
-station const FRANKFURT = {"Frankfurt", "2222222"};
-station const GIESSEN = {"Giessen", "3333333"};
-station const MARBURG = {"Marburg", "4444444"};
-station const BENSHEIM = {"Bensheim", "5555555"};
-station const MANNHEIM = {"Mannheim", "6666666"};
+schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
+schedule_station const FRANKFURT = {"Frankfurt", "2222222"};
+schedule_station const GIESSEN = {"Giessen", "3333333"};
+schedule_station const MARBURG = {"Marburg", "4444444"};
+schedule_station const BENSHEIM = {"Bensheim", "5555555"};
+schedule_station const MANNHEIM = {"Mannheim", "6666666"};
 short const RE_M_B_D = 3;  // 07:00 --> 07:30, 07:31 --> 07:55
 short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
 short const RE_G_M = 2;  // 09:10 --> 09:40
@@ -73,13 +67,13 @@ short const RE_G_M = 2;  // 09:10 --> 09:40
 
 namespace test_public_transport {
 auto schedule2 =
-    loader::load_schedule("../modules/reliability/resources/schedule2/",
+    loader::load_schedule("modules/reliability/resources/schedule2/",
                           to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29));
 auto schedule3 =
-    loader::load_schedule("../modules/reliability/resources/schedule3/",
+    loader::load_schedule("modules/reliability/resources/schedule3/",
                           to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29));
 auto schedule5 = loader::load_schedule(
-    "../modules/reliability/resources/schedule5/", to_unix_time(2015, 10, 19),
+    "modules/reliability/resources/schedule5/", to_unix_time(2015, 10, 19),
     to_unix_time(2015, 10, 20));
 }  // namespace test_public_transport
 
@@ -188,7 +182,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
   node const& node_d1 = *graph_accessor::get_departing_route_edge(node_b)->_to;
   {
     distributions_container::ride_distributions_container ride_distributions;
-    distributions_calculator::ride_distribution::
+    distributions_calculator::ride_distribution::detail::
         compute_distributions_for_a_ride(
             0, node_d1, *test_public_transport::schedule5, s_t_distributions,
             precomputed_distributions, ride_distributions);

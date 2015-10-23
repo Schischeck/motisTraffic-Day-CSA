@@ -203,6 +203,18 @@ inline duration walking_duration(node const& tail_station,
   return 0;
 }
 
+inline duration get_interchange_time(node const& arrival_node_feeder,
+                                     node const& departure_node_departing_train,
+                                     schedule const& schedule) {
+  if (arrival_node_feeder._station_node->_id !=
+      departure_node_departing_train._station_node->_id) {
+    return walking_duration(*arrival_node_feeder._station_node,
+                            *departure_node_departing_train._station_node);
+  }
+  return schedule.stations[departure_node_departing_train._station_node->_id]
+      ->transfer_time;
+}
+
 inline void print_route(node const* const first_route_node,
                         schedule const& schedule, std::ostream& os) {
   node const* node = first_route_node;

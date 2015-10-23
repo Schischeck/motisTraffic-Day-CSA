@@ -58,7 +58,7 @@ struct precomputed_distributions_container : abstract_distributions_container {
                    .at(light_conn_idx)
              : node_to_arrival_distributions_.at(route_node_idx)
                    .at(light_conn_idx));
-    assert(distribution.empty());
+    // assert(distribution.empty());
     return distribution;
   }
 

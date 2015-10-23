@@ -1,4 +1,4 @@
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
 
 #include <fstream>
 
@@ -180,74 +180,10 @@ void perform_precomputation(
       std::cout << "." << std::flush;
     }
   }
-  std::cout << num_processed << " pre-computed distribution pairs" << std::endl;
+  std::cout << "\n" << num_processed << " pre-computed distribution pairs"
+            << std::endl;
 }
 }  // namespace precomputation
-
-namespace ride_distribution {
-namespace detail {
-void insert_all_elements_into_queue(node const& first_route_node,
-                                    unsigned int const light_connection_idx,
-                                    node const& last_route_node,
-                                    common::queue_type& queue) {
-  node const* node = &first_route_node;
-  edge const* route_edge = nullptr;
-  while ((route_edge = graph_accessor::get_departing_route_edge(*node)) !=
-         nullptr) {
-    auto& light_conn = route_edge->_m._route_edge._conns[light_connection_idx];
-    queue.emplace(node, route_edge->_to, &light_conn, light_connection_idx,
-                  node->_id == first_route_node._id);
-    if (node == &last_route_node) {
-      break;
-    }
-    node = route_edge->_to;
-  }
-}
-void process_element(
-    common::queue_element const& element, schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions_container,
-    distributions_container::ride_distributions_container&
-        ride_distributions_container) {
-  /* departure distribution */
-  auto& departure_distribution =
-      ride_distributions_container.create_and_get_distribution_non_const(
-          element.from_->_id, element.light_connection_idx_,
-          distributions_container::departure);
-  /* arrival distribution */
-  auto& arrival_distribution =
-      ride_distributions_container.create_and_get_distribution_non_const(
-          element.to_->_id, element.light_connection_idx_,
-          distributions_container::arrival);
-  common::compute_dep_and_arr_distribution(
-      element, ride_distributions_container,
-      precomputed_distributions_container, s_t_distributions, schedule,
-      departure_distribution, arrival_distribution);
-}
-}  // namespace detail
-
-void compute_distributions_for_a_ride(
-    unsigned int const light_connection_idx, node const& last_route_node,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions_container,
-    distributions_container::ride_distributions_container&
-        ride_distributions_container) {
-  node const& very_first_route_node =
-      graph_accessor::get_first_route_node(last_route_node);
-  common::queue_type queue;
-  detail::insert_all_elements_into_queue(
-      very_first_route_node, light_connection_idx, last_route_node, queue);
-  while (!queue.empty()) {
-    detail::process_element(queue.top(), schedule, s_t_distributions,
-                            precomputed_distributions_container,
-                            ride_distributions_container);
-    queue.pop();
-  }
-}
-}  // namespace ride_distribution
 }  // namespace distributions_calculator
 }  // namespace reliability
 }  // namespace motis

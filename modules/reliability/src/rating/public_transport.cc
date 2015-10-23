@@ -9,7 +9,8 @@
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
+#include "motis/reliability/computation/ride_distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
@@ -19,52 +20,6 @@ namespace motis {
 namespace reliability {
 namespace rating {
 namespace public_transport {
-
-/* fills ride_distributions with distributions for events in the connection
- * that have not been pre-computed
- * @return for each train, return if the distributions were pre-computed */
-std::vector<bool> compute_missing_train_distributions(
-    distributions_container::ride_distributions_container& ride_distributions,
-    std::vector<std::vector<connection_element>> const& elements,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions) {
-  std::vector<bool> precomputed_flags;
-
-  // first train
-  precomputed_flags.push_back(precomputed_distributions.contains_distributions(
-      elements.front().front().from_->_id, distributions_container::departure));
-
-  /* For the first train, we have to compute the distributions of all events
-   * of that train in the connection. */
-  if (!precomputed_flags.front()) {
-    // last element of the first train
-    auto const& last_element = elements.front().back();
-    distributions_calculator::ride_distribution::
-        compute_distributions_for_a_ride(
-            last_element.light_connection_idx_, *last_element.to_, schedule,
-            s_t_distributions, precomputed_distributions, ride_distributions);
-  }
-
-  /* For the next trains, we only need the arrival distribution of the arrival
-   * event before the first departure event of that train in the connection */
-  for (auto train_elements : std::vector<std::vector<connection_element>>(
-           elements.begin() + 1, elements.end())) {
-    auto const& element = train_elements.front();
-    precomputed_flags.push_back(
-        precomputed_distributions.contains_distributions(
-            element.from_->_id, distributions_container::departure));
-    if (!precomputed_flags.back()) {
-      distributions_calculator::ride_distribution::
-          compute_distributions_for_a_ride(
-              element.light_connection_idx_, *element.from_, schedule,
-              s_t_distributions, precomputed_distributions, ride_distributions);
-    }
-  }
-  assert(precomputed_flags.size() == elements.size());
-  return precomputed_flags;
-}
 
 void distributions_for_first_train(
     std::vector<rating_element>& ratings,
@@ -171,9 +126,10 @@ void rate(std::vector<rating_element>& ratings,
   assert(elements.size() > 0);
 
   distributions_container::ride_distributions_container ride_distributions;
-  auto const& precomputed_flags = compute_missing_train_distributions(
-      ride_distributions, elements, precomputed_distributions, schedule,
-      s_t_distributions);
+  auto const& precomputed_flags = distributions_calculator::ride_distribution::
+      compute_missing_train_distributions(ride_distributions, elements,
+                                          precomputed_distributions, schedule,
+                                          s_t_distributions);
 
   for (unsigned int train_idx = 0; train_idx < elements.size(); ++train_idx) {
     auto const& train_distributions =

@@ -2,7 +2,7 @@
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/start_and_travel_distributions.h"
 

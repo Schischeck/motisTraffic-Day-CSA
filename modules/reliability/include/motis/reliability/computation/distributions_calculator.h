@@ -9,12 +9,12 @@
 namespace motis {
 struct schedule;
 class node;
-class edge;
 
 namespace reliability {
+struct probability_distribution;
 struct start_and_travel_distributions;
-
 namespace distributions_container {
+struct abstract_distributions_container;
 struct precomputed_distributions_container;
 struct ride_distributions_container;
 }
@@ -49,6 +49,16 @@ struct queue_element {
 using queue_type =
     std::priority_queue<queue_element, std::vector<queue_element>,
                         queue_element::queue_element_cmp>;
+
+void compute_dep_and_arr_distribution(
+    queue_element const& element,
+    distributions_container::abstract_distributions_container const&
+        train_distributions_container,
+    distributions_container::abstract_distributions_container const&
+        feeder_distributions_container,
+    start_and_travel_distributions const& s_t_distributions,
+    schedule const& schedule, probability_distribution& departure_distribution,
+    probability_distribution& arrival_distribution);
 }  // namespace common
 
 namespace precomputation {
@@ -63,20 +73,6 @@ bool is_pre_computed_route(schedule const& schedule,
                            node const& first_route_node);
 }  // namespace detail
 }  // namespace precomputation
-
-namespace ride_distribution {
-void compute_distributions_for_a_ride(
-    unsigned int const light_connection_idx, node const& last_route_node,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions_container,
-    distributions_container::ride_distributions_container&
-        ride_distributions_container);
-
-}  // namespace ride_distribution
-
 }  // namespace distributions_calculator
-
 }  // namespace reliability
 }  // namespace motis

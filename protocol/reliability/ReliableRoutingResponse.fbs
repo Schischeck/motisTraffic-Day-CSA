@@ -8,9 +8,28 @@ table ProbabilityDistribution {
   sum:float;
 }
 
+struct Range {
+  from:short;
+  to:short;
+}
+
+table SimpleRatingInfo {
+  type:string;
+  rating:float;
+}
+
+table SimpleRatingElement {
+  range:Range;
+  ratings:[SimpleRatingInfo];
+}
+
+table SimpleRating {
+rating_elements:[SimpleRatingElement];
+connection_rating:float;
+}
+
 table RatingElement {
-  dep_stop_idx:ushort;
-  arr_stop_idx:ushort;
+  range:Range;
   dep_distribution:ProbabilityDistribution;
   arr_distribution:ProbabilityDistribution;
 }
@@ -23,4 +42,5 @@ connection_rating:float;
 table ReliableRoutingResponse {
   response:motis.routing.RoutingResponse;
   ratings:[Rating];
+  simple_ratings:[SimpleRating];
 }

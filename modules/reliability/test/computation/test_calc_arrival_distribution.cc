@@ -56,7 +56,7 @@ TEST_CASE("correct_rounding_errors", "[calc_arrival_distribution]") {
 
 TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   probability_distribution dep_dist;
@@ -92,7 +92,7 @@ TEST_CASE("compute_arrival_distribution", "[calc_arrival_distribution]") {
 /* sum lower than 1.0 */
 TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   probability_distribution dep_dist;
@@ -128,7 +128,7 @@ TEST_CASE("compute_arrival_distribution2", "[calc_arrival_distribution]") {
 /* arrival distribution with a gap */
 TEST_CASE("compute_arrival_distribution3", "[calc_arrival_distribution]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
 
   probability_distribution dep_dist;

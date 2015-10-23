@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "motis/reliability/distributions_calculator.h"
+#include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/probability_distribution.h"
 
 namespace motis {

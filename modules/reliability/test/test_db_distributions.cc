@@ -6,8 +6,8 @@
 using namespace motis::reliability;
 
 TEST_CASE("start_distributions", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/",
-                            10, 10);
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
   {
     auto const& pd = db_dists.get_start_distribution("RB");
     REQUIRE(pd.first_minute() == 0);
@@ -41,8 +41,8 @@ TEST_CASE("start_distributions", "[db_distributions]") {
 }
 
 TEST_CASE("travel_time_distributions_Unknown", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/",
-                            10, 10);
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       distributions;
   db_dists.get_travel_time_distributions("UNKNOWN", 0, 0, distributions);
@@ -51,8 +51,8 @@ TEST_CASE("travel_time_distributions_Unknown", "[db_distributions]") {
 
 /* RV and to_departure_delay not covered by the original mapping */
 TEST_CASE("travel_time_distributions_RV", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/",
-                            10, 10);
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
 
   std::vector<std::string> const categories = {"RB", "RE"};
   for (auto const& category : categories) {
@@ -79,8 +79,8 @@ TEST_CASE("travel_time_distributions_RV", "[db_distributions]") {
 
 /* FV and to_departure_delay covered by the original mapping */
 TEST_CASE("travel_time_distributions_FV", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/",
-                            10, 10);
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
 
   std::vector<std::string> const categories = {"IC", "ICE"};
   for (auto const& category : categories) {
@@ -143,8 +143,8 @@ TEST_CASE("travel_time_distributions_FV", "[db_distributions]") {
 
 /* travel time longer than the existing mappings */
 TEST_CASE("long_travel_time", "[db_distributions]") {
-  db_distributions db_dists("../modules/reliability/resources/distributions/",
-                            10, 10);
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
 
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       distributions10;

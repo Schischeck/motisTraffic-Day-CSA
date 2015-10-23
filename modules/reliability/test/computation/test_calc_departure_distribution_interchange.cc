@@ -81,7 +81,7 @@ TEST_CASE("ic_feeder_arrives_at_time",
 TEST_CASE("compute_departure_distribution_ic1",
           "[calc_departure_distribution_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -113,7 +113,7 @@ TEST_CASE("compute_departure_distribution_ic1",
 TEST_CASE("compute_departure_distribution_ic2",
           "[calc_departure_distribution_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -146,7 +146,7 @@ TEST_CASE("compute_departure_distribution_ic2",
 TEST_CASE("compute_departure_distribution_ic3",
           "[calc_departure_distribution_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   // preceding-arrival: 10:18 - 10:19
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 3);
@@ -193,7 +193,7 @@ TEST_CASE("compute_departure_distribution_ic3",
 TEST_CASE("compute_departure_distribution_ic5",
           "[calc_departure_distribution_interchange]") {
   auto schedule = loader::load_schedule(
-      "../modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
+      "modules/reliability/resources/schedule2/", to_unix_time(2015, 9, 28),
       to_unix_time(2015, 9, 29));
   precomputed_distributions_test_container precomputed(
       {.9, .05, .05}, 12);  // feeder arrival 11:27 - 11:29
