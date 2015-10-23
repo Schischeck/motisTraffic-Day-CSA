@@ -73,24 +73,35 @@ std::array<node*, 2> layer_node::children() const { return {{left_, right_}}; }
 
 bitfield const& layer_node::traffic_days() const { return traffic_days_; }
 
-void rules_graph::print_nodes() {
-  //  printf("create s1_node from   [%p]\n", s1);
-  //  printf("create s2_node from   [%p]\n", s2);
-  //  printf("create rule_node from [%p]\n", r.get());
-
-  //  printf("[%p]-(%p)-[%p]\n", s1_node, rn, s2_node);
-  //  printf("mask:       traffic_days: [%s]\n",
-  //         r.get()->mask_.to_string().c_str());
-  //  printf("rule_node:  traffic_days: [%s]\n",
-  //         rn->traffic_days().to_string().c_str());
-  //  printf("s1_node:    traffic_days: [%s]\n",
-  //         s1_node->traffic_days().to_string().c_str());
-  //  printf("s2_node:    traffic_days: [%s]\n",
-  //         s2_node->traffic_days().to_string().c_str());
-  //
-  //  printf("[%p]-(%p)-[%p]\n", node, parent, related_node);
-  //  printf("ln_node traffic_days: [%s]\n",
-  //         parent->traffic_days().to_string().c_str());
+void rules_graph::print_nodes() const {
+  // print layer nodes
+  for (int layer_idx = layers_.size() - 1; layer_idx > 0; --layer_idx) {
+    printf("layer %d:\n", layer_idx);
+    for (auto const* parent : layers_[layer_idx]) {
+      auto const* child_1 = parent->children().at(0);
+      auto const* child_2 = parent->children().at(1);
+      printf("(%p) layer_node     [%s]\n", parent,
+             parent->traffic_days().to_string().c_str());
+      printf("(%p) child_1        [%s]\n", child_1,
+             child_1->traffic_days().to_string().c_str());
+      printf("(%p) child_2        [%s]\n", child_2,
+             child_2->traffic_days().to_string().c_str());
+    }
+  }
+  // print rule and service nodes
+  if (layers_.size() > 0) {
+    printf("layer %d:\n", 0);
+    for (auto const* rule_node : layers_[0]) {
+      auto const* service_node_1 = rule_node->children().at(0);
+      auto const* service_node_2 = rule_node->children().at(1);
+      printf("(%p) rule_node      [%s]\n", rule_node,
+             rule_node->traffic_days().to_string().c_str());
+      printf("(%p) service_node_1 [%s]\n", service_node_1,
+             service_node_1->traffic_days().to_string().c_str());
+      printf("(%p) service_node_2 [%s]\n", service_node_2,
+             service_node_2->traffic_days().to_string().c_str());
+    }
+  }
 }
 
 }  // hrd

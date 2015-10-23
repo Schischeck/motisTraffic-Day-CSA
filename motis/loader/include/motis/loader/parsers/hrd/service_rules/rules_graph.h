@@ -67,7 +67,7 @@ struct layer_node : public node {
 };
 
 struct rules_graph {
-  void print_nodes();
+  void print_nodes() const;
 
   std::vector<std::unique_ptr<node>> nodes_;
   std::vector<std::vector<node*>> layers_;
