@@ -1,5 +1,7 @@
 #pragma once
 
+#include "motis/loader/parsers/hrd/service/hrd_service.h"
+
 namespace motis {
 namespace loader {
 namespace hrd {

@@ -16,7 +16,7 @@ hrd_service* get_or_create(
 
 void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
                      std::pair<hrd_service const*, hrd_service*>& s,
-                     std::vector<std::shared_ptr<rule>>& rules) {
+                     std::vector<std::shared_ptr<service_rule>>& rules) {
   for (auto& r : rules) {
     int info = r->applies(*s.first);
     if (info) {
@@ -26,7 +26,7 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
 }
 
 bool rule_service_builder::add_service(hrd_service const& s) {
-  std::set<rule*> rules;
+  std::set<service_rule*> rules;
   for (auto const& entry : rules_) {
     for (auto const& rule : entry.second) {
       rules.insert(rule.get());
@@ -47,12 +47,12 @@ bool rule_service_builder::add_service(hrd_service const& s) {
   return copied_service.second != nullptr;
 }
 
-void rule_service_builder::build() {
+void rule_service_builder::build_services() {
 
   rules_graph rg;
   std::vector<std::vector<node*>> layers(1);
   std::map<hrd_service*, node*> service_to_node;
-  std::set<rule*> considered_rules;
+  std::set<service_rule*> considered_rules;
 
   printf("\nbuild rule and service nodes ...\n");
   for (auto const& rule_entry : rules_) {

@@ -64,7 +64,7 @@ protected:
       }
     }
 
-    rules rs;
+    service_rules rs;
     filenames_.emplace_back("durchbi.101");
     specs_.emplace_back(stamm, filenames_.back().c_str());
     parse_through_service_rules(specs_.back().lf_, hrd_bitfields, rs);
@@ -76,7 +76,7 @@ protected:
     for (auto const& s : expanded_services) {
       service_rules_.add_service(s);
     }
-    service_rules_.build();
+    service_rules_.build_services();
   }
 
   void print_services() const {

@@ -17,10 +17,10 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-struct mss_rule : public rule {
+struct mss_rule : public service_rule {
   mss_rule(service_id id_1, service_id id_2, int eva_num_begin, int eva_num_end,
            bitfield const& mask)
-      : rule(mask),
+      : service_rule(mask),
         id_1_(id_1),
         id_2_(id_2),
         eva_num_begin_(eva_num_begin),
@@ -97,7 +97,7 @@ struct mss_rule : public rule {
 
 void parse_merge_split_service_rules(
     loaded_file const& src, std::map<int, bitfield> const& hrd_bitfields,
-    rules& rules) {
+    service_rules& rules) {
   scoped_timer timer("parsing merge split rules");
 
   for_each_line_numbered(src.content, [&](cstr line, int line_number) {
@@ -118,7 +118,7 @@ void parse_merge_split_service_rules(
 
     auto eva_num_begin = parse<int>(line.substr(0, size(7)));
     auto eva_num_end = parse<int>(line.substr(9, size(7)));
-    std::shared_ptr<rule> rule(
+    std::shared_ptr<service_rule> rule(
         new mss_rule(key_1, key_2, eva_num_begin, eva_num_end, it->second));
 
     rules[key_1].push_back(rule);
