@@ -3,7 +3,6 @@
 #include <string>
 
 #include "boost/range/iterator_range.hpp"
-
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
@@ -15,7 +14,6 @@
 #include "motis/loader/parsers/hrd/footpath_builder.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
-#include "motis/loader/parsers/hrd/stations_translator.h"
 #include "motis/loader/parsers/hrd/categories_parser.h"
 #include "motis/loader/parsers/hrd/attributes_parser.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
@@ -25,6 +23,8 @@
 #include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
 #include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
+
+#include "motis/loader/parsers/hrd/station_builder.h"
 
 using namespace flatbuffers;
 using namespace parser;
@@ -39,7 +39,7 @@ std::vector<std::string> const required_files = {
     ATTRIBUTES_FILE, STATIONS_FILE,         COORDINATES_FILE,
     BITFIELDS_FILE,  PLATFORMS_FILE,        INFOTEXT_FILE,
     BASIC_DATA_FILE, CATEGORIES_FILE,       DIRECTIONS_FILE,
-    PROVIDERS_FILE,  THROUGH_SERVICES_FILE, MERGE_SPLIT_RULES_FILE};
+    PROVIDERS_FILE,  THROUGH_SERVICES_FILE, MERGE_SPLIT_SERVICES_FILE};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const master_data_root = path / "stamm";
@@ -66,28 +66,33 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  auto sd = parse_shared_data(hrd_root, fbb);
+  auto shared_data = parse_shared_data(hrd_root, fbb);
   auto through_services_buf =
       load_file(hrd_root / "stamm" / THROUGH_SERVICES_FILE);
   auto merge_split_rules_buf =
-      load_file(hrd_root / "stamm" / MERGE_SPLIT_RULES_FILE);
+      load_file(hrd_root / "stamm" / MERGE_SPLIT_SERVICES_FILE);
 
-  service_rules r;
+  service_rules rules;
   parse_through_service_rules({THROUGH_SERVICES_FILE, through_services_buf},
-                              sd.bitfields, r);
+                              shared_data.bitfields, rules);
   parse_merge_split_service_rules(
-      {MERGE_SPLIT_RULES_FILE, merge_split_rules_buf}, sd.bitfields, r);
+      {MERGE_SPLIT_SERVICES_FILE, merge_split_rules_buf}, shared_data.bitfields,
+      rules);
 
-  service_builder sb(sd, r, fbb);
-  parse_services_files(hrd_root, sb);
+  rule_service_builder rsb(rules);
+  service_builder sb(shared_data, fbb);
+  parse_services_files(hrd_root, sb, rsb);
+  rsb.resolve();
+  rsb.build(sb);
 
   auto footpaths =
-      build_footpaths(sd.metas.footpaths_, sb.stations_.fbs_stations_, fbb);
+      build_footpaths(shared_data.metas.footpaths_, sb.sb_.fbs_stations_, fbb);
 
-  fbb.Finish(CreateSchedule(
-      fbb, fbb.CreateVector(sb.services_),
-      fbb.CreateVector(values(sb.stations_.fbs_stations_)),
-      fbb.CreateVector(values(sb.routes_)), &sd.interval, footpaths));
+  fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(sb.services_),
+                            fbb.CreateVector(values(sb.sb_.fbs_stations_)),
+                            fbb.CreateVector(values(sb.routes_)),
+                            &shared_data.interval, footpaths,
+                            fbb.CreateVector(rsb.fbs_rule_services)));
 }
 
 shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
@@ -125,7 +130,8 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
 }
 
 void hrd_parser::parse_services_files(fs::path const& hrd_root,
-                                      service_builder& sb) {
+                                      service_builder& sb,
+                                      rule_service_builder& rsb) {
   auto services_files_root = hrd_root / "fahrten";
 
   std::vector<fs::path> service_files;
@@ -140,22 +146,20 @@ void hrd_parser::parse_services_files(fs::path const& hrd_root,
   for (auto const& service_file : service_files) {
     LOG(info) << "parsing " << ++count << "/" << service_files.size() << " "
               << service_file;
-    parse_services_file(service_file, sb);
+    parse_services_file(service_file, sb, rsb);
   }
 }
 
 void hrd_parser::parse_services_file(fs::path const& services_file_path,
-                                     service_builder& sb) {
-  auto services_buf = load_file(services_file_path);
-  parse_services({services_file_path.string().c_str(), services_buf},
-                 [&](specification const& spec) {
-                   try {
-                     sb.create_services(hrd_service(spec));
-                   } catch (parser_error const& e) {
-                     LOG(error) << "skipping bad service at " << e.filename
-                                << ":" << e.line_number;
-                   }
-                 });
+                                     service_builder& sb,
+                                     rule_service_builder& rsb) {
+  auto buf = load_file(services_file_path);
+  for_each_service({services_file_path.string().c_str(), buf},
+                   sb.bb_.hrd_bitfields_, [](hrd_service const& s) {
+                     if (!rsb.add_service(s)) {
+                       sb.build_service(s);
+                     }
+                   });
 }
 
 }  // hrd

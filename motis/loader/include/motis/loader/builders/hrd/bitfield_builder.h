@@ -1,37 +1,34 @@
 #pragma once
 
-#include <functional>
 #include <map>
-
-#include "google/dense_hash_map"
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
+#include "google/dense_hash_map"
+
+#include "motis/loader/bitfield.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
-struct bitfield_translator {
-  static constexpr int NO_INDEX = -1;
+struct bitfield_builder {
+  static constexpr int NO_BITFIELD_NUM = -1;
 
-  bitfield_translator(std::map<int, bitfield> const& hrd_bitfields,
-                      flatbuffers::FlatBufferBuilder& builder);
-
-  flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      int bitfield_num);
+  bitfield_builder(std::map<int, bitfield>);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      bitfield const&, int index = NO_INDEX);
+      int bitfield_num, flatbuffers::FlatBufferBuilder&);
 
-  std::map<int, bitfield> const& hrd_bitfields_;
+  flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
+      bitfield const&, int bitfield_num = NO_BITFIELD_NUM,
+      flatbuffers::FlatBufferBuilder&);
+
+  std::map<int, bitfield> const hrd_bitfields_;
   google::dense_hash_map<bitfield, flatbuffers::Offset<flatbuffers::String>,
                          std::hash<bitfield>,
                          std::equal_to<bitfield>> fbs_bitfields_;
   std::map<int, flatbuffers::Offset<flatbuffers::String>> fbs_bf_lookup_;
-  flatbuffers::FlatBufferBuilder& builder_;
 };
 
 }  // hrd

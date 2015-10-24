@@ -19,7 +19,6 @@ struct parser_info {
 };
 
 struct hrd_service {
-
   static const int NOT_SET;
 
   struct event {

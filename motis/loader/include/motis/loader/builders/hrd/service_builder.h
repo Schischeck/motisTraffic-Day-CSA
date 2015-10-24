@@ -4,15 +4,16 @@
 #include <map>
 #include <vector>
 
-#include "../service_rules/rule_service_builder.h"
 #include "parser/cstr.h"
 
-#include "motis/loader/parsers/hrd/bitfield_translator.h"
-#include "motis/loader/parsers/hrd/stations_translator.h"
-#include "motis/loader/parsers/hrd/providers_translator.h"
-#include "motis/loader/parsers/hrd/service/shared_data.h"
-#include "motis/loader/parsers/hrd/service/hrd_service.h"
 #include "motis/schedule-format/Schedule_generated.h"
+
+#include "motis/loader/model/hrd/shared_data.h"
+#include "motis/loader/model/hrd/hrd_service.h"
+#include "motis/loader/builders/hrd/bitfield_builder.h"
+#include "motis/loader/builders/hrd/provider_builder.h"
+#include "motis/loader/builders/hrd/station_builder.h"
+#include "motis/loader/builders/hrd/rule_service_builder.h"
 
 namespace motis {
 namespace loader {
@@ -21,10 +22,9 @@ namespace hrd {
 struct service_builder {
   typedef std::tuple<int, bool, bool> station_events;
 
-  service_builder(shared_data const& stamm, service_rules sr,
-                  flatbuffers::FlatBufferBuilder& builder);
+  service_builder(shared_data const&, flatbuffers::FlatBufferBuilder&);
 
-  void create_services(hrd_service&&);
+  void build_service(hrd_service const&);
 
   flatbuffers::Offset<Route> create_route(
       std::vector<hrd_service::stop> const&);
@@ -57,12 +57,11 @@ struct service_builder {
   flatbuffers::Offset<flatbuffers::Vector<int32_t>> create_times(
       std::vector<hrd_service::stop> const&);
 
-  shared_data const& stamm_;
-  rule_service_builder sr_;
-  bitfield_translator bitfields_;
-  stations_translator stations_;
-  providers_translator providers_;
-  flatbuffers::FlatBufferBuilder& builder_;
+  shared_data const& shared_data_;
+  bitfield_builder bb_;
+  line_builder sb_;
+  provider_builder pb_;
+  flatbuffers::FlatBufferBuilder& fbb_;
   std::vector<flatbuffers::Offset<Service>> services_;
   std::map<uint16_t, flatbuffers::Offset<AttributeInfo>> attribute_infos_;
   std::map<std::pair<uint16_t, int>, flatbuffers::Offset<Attribute>>

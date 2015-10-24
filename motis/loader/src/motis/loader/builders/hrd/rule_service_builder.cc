@@ -1,6 +1,13 @@
-#include "motis/loader/parsers/hrd/service_rules/rule_service_builder.h"
+#include "motis/loader/builders/hrd/rule_service_builder.h"
 
-#include "motis/loader/parsers/hrd/service_rules/rules_graph.h"
+#include <bits/shared_ptr_base.h>
+#include <algorithm>
+#include <bitset>
+#include <iterator>
+#include <tuple>
+#include <utility>
+
+#include "motis/loader/model/hrd/rules_graph.h"
 
 namespace motis {
 namespace loader {
@@ -134,7 +141,7 @@ void build_graph(service_rules const& rules, rules_graph& rg) {
   build_remaining_layers(rg);
 }
 
-void rule_service_builder::build_services() {
+void rule_service_builder::resolve() {
   rules_graph rg;
   build_graph(rules_, rg);
 
@@ -165,6 +172,37 @@ void rule_service_builder::build_services() {
                        return service_ptr.get()->traffic_days_.none();
                      }),
       end(origin_services_));
+}
+
+void build_rule_service(
+    rule_service const& rs, service_builder& sb,
+    std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services) {
+  auto fbb = sb.fbb_;
+
+  std::map<hrd_service*, flatbuffers::Offset<Service>> services;
+  for (auto const& s : rs.services) {
+    auto const* service = s.service.get();
+    sb.build_service(*service);
+    services[service] = sb.services_.back();
+  }
+
+  std::vector<flatbuffers::Offset<Rule>> fbb_rules;
+  for (auto const& r : rs.rules) {
+    fbb_rules.emplace_back(fbb, reinterpret_cast<RuleType>(r.rule_info.type),
+                           services.find(r.s1)->second,
+                           services.find(r.s2)->second, r.rule_info.eva_num_1,
+                           r.rule_info.eva_num_2);
+  }
+  fbs_rule_services.emplace_back(fbb, fbb.CreateVector(fbb_rules));
+}
+
+void rule_service_builder::build(service_builder& sb) {
+  std::for_each(begin(origin_services_), end(origin_services_),
+                [&sb](hrd_service const& s) { sb.build_service(s); });
+  std::for_each(begin(rule_services_), end(rule_services_),
+                [&sb](rule_service const& rs) {
+                  build_rule_service(rs, sb, fbs_rule_services);
+                });
 }
 
 }  // hrd

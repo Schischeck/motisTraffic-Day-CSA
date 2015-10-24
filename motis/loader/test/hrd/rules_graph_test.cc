@@ -4,6 +4,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/range/iterator_range.hpp"
 
+#include "../../include/motis/loader/parsers/hrd/bitfield_builder.h"
 #include "gtest/gtest.h"
 
 #include "test_spec.h"
@@ -15,7 +16,6 @@
 #include "motis/schedule-format/ServiceRules_generated.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/bitfield_translator.h"
 #include "motis/loader/parsers/hrd/service/split_service.h"
 #include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
 #include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
@@ -52,7 +52,7 @@ protected:
     }
 
     flatbuffers::FlatBufferBuilder fbb;
-    bitfield_translator bt(hrd_bitfields, fbb);
+    bitfield_builder bt(hrd_bitfields, fbb);
     std::vector<hrd_service> expanded_services;
     for (auto const& services_filename : services_filenames) {
       filenames_.emplace_back(services_filename);
@@ -76,7 +76,7 @@ protected:
     for (auto const& s : expanded_services) {
       service_rules_.add_service(s);
     }
-    service_rules_.build_services();
+    service_rules_.resolve();
   }
 
   void print_services() const {
