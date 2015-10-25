@@ -4,19 +4,19 @@
 #include <map>
 
 #include "boost/date_time.hpp"
+#include "boost/optional.hpp"
 
 #include "pugixml.hpp"
 
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
-#include "motis/protocol/RISMessage_generated.h"
+#include "motis/protocol/RISBatch_generated.h"
 
 using namespace std::placeholders;
 using namespace flatbuffers;
 using namespace pugi;
 using namespace parser;
-using namespace motis::module;
 using namespace motis::ris;
 
 std::time_t parse_time(cstr const& raw) {
@@ -163,7 +163,8 @@ Offset<Message> parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   return CreateMessage(
       fbb, MessageUnion_RerouteMessage,
       CreateRerouteMessage(fbb, fbb.CreateVector(cancelled_events),
-                           fbb.CreateVector(new_events)).Union());
+                           fbb.CreateVector(new_events))
+          .Union());
 }
 
 Offset<Event> parse_standalone_event(FlatBufferBuilder& fbb,
@@ -190,9 +191,10 @@ Offset<Message> parse_conn_decision_msg(FlatBufferBuilder& fbb,
     decisions.push_back(CreateConnectionDecision(fbb, to, hold));
   }
 
-  return CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
-                       CreateConnectionDecisionMessage(
-                           fbb, from, fbb.CreateVector(decisions)).Union());
+  return CreateMessage(
+      fbb, MessageUnion_ConnectionDecisionMessage,
+      CreateConnectionDecisionMessage(fbb, from, fbb.CreateVector(decisions))
+          .Union());
 }
 
 Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
@@ -210,51 +212,49 @@ Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
 
   return CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
                        CreateConnectionAssessmentMessage(
-                           fbb, from, fbb.CreateVector(assessments)).Union());
+                           fbb, from, fbb.CreateVector(assessments))
+                           .Union());
 }
 
-Offset<Packet> parse_xml(FlatBufferBuilder& fbb, parser::buffer& xml_string) {
-  xml_document doc;
-  xml_parse_result result = doc.load_buffer_inplace(reinterpret_cast<void*>(xml_string.data()), xml_string.size());
-  if (!result) {
-    throw std::runtime_error("bad xml: " + std::string(result.description()));
+boost::optional<ris_message> parse_message(xml_node const& msg,
+                                           std::time_t t_out) {
+  using parser_t =
+      std::function<Offset<Message>(FlatBufferBuilder&, xml_node const&)>;
+  static std::map<cstr, parser_t> map(
+      {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
+       {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
+       {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
+       {"Zusatzzug", std::bind(parse_addition_msg, _1, _2)},
+       {"Umleitung", std::bind(parse_reroute_msg, _1, _2)},
+       {"Anschluss", std::bind(parse_conn_decision_msg, _1, _2)},
+       {"Anschlussbewertung", std::bind(parse_conn_assessment_msg, _1, _2)}});
+
+  auto const& payload = msg.first_child();
+  auto it = map.find(payload.name());
+  if(it == end(map)) {
+    return {};
   }
 
-  std::vector<Offset<Message>> messages;
-  for (auto const& msg : doc.select_nodes("/Paket/ListNachricht/Nachricht")) {
-    using parser_t =
-        std::function<Offset<Message>(FlatBufferBuilder&, xml_node const&)>;
-    static std::map<cstr, parser_t> map(
-        {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
-         {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
-         {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
-         {"Zusatzzug", std::bind(parse_addition_msg, _1, _2)},
-         {"Umleitung", std::bind(parse_reroute_msg, _1, _2)},
-         {"Anschluss", std::bind(parse_conn_decision_msg, _1, _2)},
-         {"Anschlussbewertung", std::bind(parse_conn_assessment_msg, _1, _2)}});
+  FlatBufferBuilder fbb;
+  fbb.Finish(it->second(fbb, payload));
+  return {{0ul, t_out, std::move(fbb)}};
+}
 
-    auto const& payload = msg.node().first_child();
-    auto it = map.find(payload.name());
-    if (it != end(map)) {
-      messages.push_back(it->second(fbb, payload));
+std::vector<ris_message> motis::ris::parse_xmls(std::vector<buffer>&& strings) {
+  std::vector<ris_message> parsed_messages;
+  for (auto& s : strings) {
+    xml_document d;
+    auto r = d.load_buffer_inplace(reinterpret_cast<void*>(s.data()), s.size());
+    if (!r) {
+      throw std::runtime_error("bad xml: " + std::string(r.description()));
+    }
+
+    auto t_out = parse_time(d.child("Paket").attribute("TOut").value());
+    for (auto const& msg : d.select_nodes("/Paket/ListNachricht/Nachricht")) {
+      if (auto parsed_message = parse_message(msg.node(), t_out)) {
+        parsed_messages.emplace_back(std::move(*parsed_message));
+      }
     }
   }
-
-  auto tout = parse_time(doc.child("Paket").attribute("TOut").value());
-  return CreatePacket(fbb, tout, fbb.CreateVector(messages));
-}
-
-msg_ptr motis::ris::parse_xmls(std::vector<parser::buffer>&& xml_strings) {
-  FlatBufferBuilder fbb;
-
-  std::vector<Offset<Packet>> packets;
-  for (auto& xml_string : xml_strings) {
-    packets.push_back(parse_xml(fbb, xml_string));
-  }
-
-  fbb.Finish(motis::CreateMessage(
-      fbb, MsgContent_RISBatch,
-      CreateRISBatch(fbb, fbb.CreateVector(packets)).Union()));
-
-  return make_msg(fbb);
+  return parsed_messages;
 }

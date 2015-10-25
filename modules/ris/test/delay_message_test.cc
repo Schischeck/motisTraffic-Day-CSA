@@ -31,15 +31,14 @@ Esc=\"mue810jyct\" />\
 // clang-format on
 
 TEST(delay_message, ist_message_1) {
-  auto const msg = parse_xmls(pack(ist_fixture_1));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(ist_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168774, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168774, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 
@@ -77,15 +76,14 @@ char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 // clang-format on
 
 TEST(delay_message, ist_message_2) {
-  auto const msg = parse_xmls(pack(ist_fixture_2));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(ist_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168802, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168802, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 
@@ -113,11 +111,11 @@ std::string type_fixture(std::string type_string) {
 }
 // clang-format on
 
-EventType get_type(motis::module::msg_ptr const& msg) {
-  auto batch = msg->content<RISBatch const*>();
-  auto content = batch->packets()->Get(0)->messages()->Get(0)->content();
+EventType get_type(std::vector<ris_message> const& messages) {
+  auto content = GetMessage(messages[0].data())->content();
   auto delay_message = reinterpret_cast<DelayMessage const*>(content);
   return delay_message->events()->Get(0)->base()->type();
+
 }
 
 TEST(delay_message, train_event_type) {
@@ -162,15 +160,14 @@ char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(delay_message, ist_prog_message_1) {
-  auto const msg = parse_xmls(pack(ist_prog_fixture_1));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(ist_prog_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168783, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168783, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 
@@ -212,15 +209,14 @@ char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(delay_message, ist_prog_message_2) {
-  auto const msg = parse_xmls(pack(ist_prog_fixture_2));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(ist_prog_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168800, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168800, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 

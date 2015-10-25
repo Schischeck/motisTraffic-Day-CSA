@@ -5,7 +5,7 @@ include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
 include "railviz/RailVizAllTrainsRequest.fbs";
 include "railviz/RailVizAllTrainsResponse.fbs";
-include "ris/RISMessage.fbs";
+include "ris/RISBatch.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 

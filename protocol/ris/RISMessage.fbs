@@ -75,8 +75,9 @@ table ConnectionAssessmentMessage { // Anschlussbewertung
 }
 
 // ----------------------------------------------------------------------------
-// envelope
+// Connection Envelope
 // ----------------------------------------------------------------------------
+
 union MessageUnion {
   DelayMessage,
   CancelMessage,
@@ -90,13 +91,4 @@ table Message {
   content: MessageUnion (required);
 }
 
-table Packet {
-  timestamp: ulong;
-  messages: [Message] (required);
-}
-
-table RISBatch {
-  packets: [Packet] (required);
-}
-
-root_type RISBatch;
+root_type Message;

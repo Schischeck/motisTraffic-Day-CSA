@@ -45,15 +45,14 @@ TIn=\"20151007001015680\" TOutSnd=\"20151007001023691\"/>\
 // clang-format on
 
 TEST(addition_message, message_1) {
-  auto const msg = parse_xmls(pack(addition_fixture_1));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(addition_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444169425, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444169425, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
   auto inner_msg =
       reinterpret_cast<AdditionMessage const*>(outer_msg->content());
@@ -139,15 +138,14 @@ TIn=\"20151007043809952\" TOutSnd=\"20151007043811898\"/>\
 // clang-format on
 
 TEST(addition_message, message_2) {
-  auto const msg = parse_xmls(pack(addition_fixture_2));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(addition_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444185492, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444185492, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
   auto inner_msg =
       reinterpret_cast<AdditionMessage const*>(outer_msg->content());

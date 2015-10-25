@@ -48,15 +48,14 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
 // clang-format on
 
 TEST(connection_assessment_message, message_1) {
-  auto const msg = parse_xmls(pack(connection_assessment_fixture_1));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(connection_assessment_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444187918, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444187918, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 
@@ -140,15 +139,14 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 // clang-format on
 
 TEST(connection_assessment_message, message_2) {
-  auto const msg = parse_xmls(pack(connection_assessment_fixture_2));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(connection_assessment_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168788, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168788, message.timestamp);
+  // TODO verify scheduled
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 
