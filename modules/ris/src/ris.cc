@@ -1,11 +1,15 @@
 #include "motis/ris/ris.h"
 
-#include <boost/algorithm/string/predicate.hpp>
+#include <iostream>
+
+#include "boost/algorithm/string/predicate.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
-#include "motis/ris/zip_reader.h"
+#include "motis/ris/database.h"
 #include "motis/ris/risml_parser.h"
+#include "motis/ris/ris_message.h"
+#include "motis/ris/zip_reader.h"
 #include "motis/core/common/logging.h"
 
 #define UPDATE_INTERVAL "ris.update_interval"
@@ -14,6 +18,10 @@
 using boost::system::error_code;
 namespace fs = boost::filesystem;
 using fs::directory_iterator;
+
+using namespace flatbuffers;
+
+using namespace motis::module;
 
 namespace motis {
 namespace ris {
@@ -39,14 +47,30 @@ void ris::print(std::ostream& out) const {
       << "  " << ZIP_FOLDER << ": " << zip_folder_;
 }
 
+template <typename T>
+msg_ptr pack(std::vector<T> const& messages) {
+  FlatBufferBuilder fbb;
+  std::vector<Offset<MessageHolder>> message_offsets;
+  for (auto& message : messages) {
+    message_offsets.push_back(CreateMessageHolder(
+        fbb, fbb.CreateVector(message.data(), message.size())));
+  }
+
+  fbb.Finish(CreateMessage(
+      fbb, MsgContent_RISBatch,
+      CreateRISBatch(fbb, fbb.CreateVector(message_offsets)).Union()));
+  return make_msg(fbb);
+}
+
 void ris::init() {
-  timer_ = std::unique_ptr<boost::asio::deadline_timer>(
-      new boost::asio::deadline_timer(get_thread_pool()));
+  timer_.reset(new boost::asio::deadline_timer(get_thread_pool()));
+
+  db_init();
+  read_files_ = db_get_stored_files();
+  send(pack(db_get_messages(0, 0)), 0); // TODO
 
   schedule_update(error_code());
 }
-
-#include <iostream>
 
 void ris::parse_zips() {
   logging::scoped_timer t("ris :: parse_zips");
@@ -54,18 +78,17 @@ void ris::parse_zips() {
   auto new_files = get_new_files();
   std::cout << "parsing " << new_files.size() << " new files." << std::endl;
 
-  int i = 0;
-  for(auto const& new_file : new_files) {
-    auto msg = parse_xmls(read_zip_file(new_file));
-
-    std::cout << i++ << std::endl;
+  for (auto const& new_file : new_files) {
+    auto parsed_messages = parse_xmls(read_zip_file(new_file));
+    db_put_messages(new_file, parsed_messages);
+    send(pack(parsed_messages), 0);
   }
 }
 
 std::vector<std::string> ris::get_new_files() {
   fs::path path(zip_folder_);
 
-  if(!(fs::exists(path) && fs::is_directory(path))) {
+  if (!(fs::exists(path) && fs::is_directory(path))) {
     throw std::runtime_error(ZIP_FOLDER " is not a directory");
   }
 
@@ -74,13 +97,13 @@ std::vector<std::string> ris::get_new_files() {
     if (!fs::is_regular_file(it->status())) {
       continue;
     }
-    
+
     auto filename = it->path().string();
-    if(!boost::algorithm::iends_with(filename, ".zip")) {
+    if (!boost::algorithm::iends_with(filename, ".zip")) {
       continue;
     }
 
-    if(read_files_.insert(filename).second) {
+    if (read_files_.insert(filename).second) {
       new_files.push_back(filename);
     }
   }
