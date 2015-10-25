@@ -12,3 +12,5 @@ Differenzstatistik.stat
 *.sublime-project
 *.sublime-workspace
 *.raw
+*.db
+*.sqlite
