@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "motis/reliability/probability_distribution.h"
@@ -33,6 +34,7 @@ struct simple_connection_rating {
 bool rate(simple_connection_rating&, routing::Connection const*,
           schedule const&, start_and_travel_distributions const&);
 
+std::string to_string(rating_type const);
 }  // namespace simple_rating
 }  // namespace rating
 }  // namespace reliability

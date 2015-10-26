@@ -91,6 +91,14 @@ bool rate(simple_connection_rating& rating,
   return true;
 }
 
+std::string to_string(rating_type const t) {
+  switch (t) {
+    case Cancellation: return "Cancellation";
+    case Interchange: return "Interchange-Reliability";
+  }
+  return "unknown";
+}
+
 }  // namespace simple_rating
 }  // namespace rating
 }  // namespace reliability

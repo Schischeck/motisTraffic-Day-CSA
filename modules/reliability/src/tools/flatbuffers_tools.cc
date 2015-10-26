@@ -14,11 +14,18 @@
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
 
+using namespace flatbuffers;
+
 namespace motis {
 namespace reliability {
 namespace flatbuffers_tools {
 
-using namespace flatbuffers;
+time_t to_unix_time(std::tuple<int, int, int> ddmmyyyy, motis::time time) {
+  return motis_to_unixtime(
+      motis::to_unix_time(std::get<2>(ddmmyyyy), std::get<1>(ddmmyyyy),
+                          std::get<0>(ddmmyyyy)),
+      time);
+}
 
 module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
   /* convert routing::RoutingRequest to Offset<RoutingRequest> */
@@ -56,15 +63,8 @@ module::msg_ptr to_routing_request(std::string const& from_name,
       b, b.CreateString(from_name), b.CreateString(from_eva)));
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
-  routing::Interval interval(
-      motis_to_unixtime(
-          to_unix_time(std::get<2>(ddmmyyyy), std::get<1>(ddmmyyyy),
-                       std::get<0>(ddmmyyyy)),
-          interval_begin),
-      motis_to_unixtime(
-          to_unix_time(std::get<2>(ddmmyyyy), std::get<1>(ddmmyyyy),
-                       std::get<0>(ddmmyyyy)),
-          interval_end));
+  routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
+                             to_unix_time(ddmmyyyy, interval_end));
   b.Finish(CreateMessage(
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, routing::Type::Type_PreTrip,
@@ -193,7 +193,9 @@ std::vector<Offset<SimpleRatingElement>> convert_simple_rating_elements(
     Range r(e.from_, e.to_);
     std::vector<Offset<SimpleRatingInfo>> rating_infos;
     for (auto const& info : e.ratings_) {
-      rating_infos.push_back(CreateSimpleRatingInfo(b, info.second));
+      rating_infos.push_back(CreateSimpleRatingInfo(
+          b, b.CreateString(rating::simple_rating::to_string(info.first)),
+          info.second));
     }
     rating_elements.push_back(
         CreateSimpleRatingElement(b, &r, b.CreateVector(rating_infos)));
@@ -238,6 +240,29 @@ module::msg_ptr to_reliable_routing_response(
       b, MsgContent_ReliableRoutingResponse,
       CreateReliableRoutingResponse(b, routing_response, conn_ratings,
                                     simple_ratings).Union()));
+  return module::make_msg(b);
+}
+
+module::msg_ptr to_reliable_routing_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy) {
+  FlatBufferBuilder b;
+  std::vector<Offset<routing::StationPathElement>> station_elements;
+  station_elements.push_back(routing::CreateStationPathElement(
+      b, b.CreateString(from_name), b.CreateString(from_eva)));
+  station_elements.push_back(routing::CreateStationPathElement(
+      b, b.CreateString(to_name), b.CreateString(to_eva)));
+  routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
+                             to_unix_time(ddmmyyyy, interval_end));
+  b.Finish(
+      CreateMessage(b, MsgContent_ReliableRoutingRequest,
+                    reliability::CreateReliableRoutingRequest(
+                        b, routing::CreateRoutingRequest(
+                               b, &interval, routing::Type::Type_PreTrip,
+                               routing::Direction::Direction_Forward,
+                               b.CreateVector(station_elements))).Union()));
   return module::make_msg(b);
 }
 

@@ -27,6 +27,14 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    motis::time interval_end,
                                    std::tuple<int, int, int> ddmmyyyy);
 
+module::msg_ptr to_reliable_routing_request(std::string const& from_name,
+                                            std::string const& from_eva,
+                                            std::string const& to_name,
+                                            std::string const& to_eva,
+                                            motis::time interval_begin,
+                                            motis::time interval_end,
+                                            std::tuple<int, int, int> ddmmyyyy);
+
 module::msg_ptr to_reliable_routing_response(
     routing::RoutingResponse const*,
     std::vector<std::unique_ptr<category>> const&,
