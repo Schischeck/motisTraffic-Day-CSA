@@ -26,6 +26,7 @@ void delay_propagator::handle_delay_message(const schedule_event& event_id,
                << ", new_time = " << format_time(new_time)
                << ", reason = " << reason;
   }
+  assert(new_time != motis::INVALID_TIME);
 
   delay_info* di = _rts._delay_info_manager.get_delay_info(event_id);
   bool delay_info_exists = di != nullptr;
@@ -68,7 +69,8 @@ void delay_propagator::process_queue() {
   if (_rts.is_debug_mode()) LOG(debug) << "processing queue...";
   while (!_queue.empty()) {
     auto it = _queue.begin();
-    const delay_queue_entry& entry = *it;
+    const delay_queue_entry entry = *it;
+    _queue.erase(it);
 
     bool old_debug = _rts._debug_mode;
     if (_rts.is_tracked(entry._delay_info->_schedule_event._train_nr)) {
@@ -85,9 +87,9 @@ void delay_propagator::process_queue() {
 
     bool event_updated;
 
-    if (entry._queue_reason != queue_reason::IS &&
-        entry._queue_reason != queue_reason::REPAIR &&
-        entry._queue_reason != queue_reason::CANCELED) {
+    timestamp_reason tsr = new_reason(entry._delay_info);
+    if (tsr != timestamp_reason::IS && tsr != timestamp_reason::REPAIR &&
+        !entry._delay_info->canceled()) {
       // recalculate maximum
       event_updated = calculate_max(entry);
     } else {
@@ -152,7 +154,6 @@ void delay_propagator::process_queue() {
       }
     }
 
-    _queue.erase(it);
     _rts._debug_mode = old_debug;
   }
   if (_rts.is_debug_mode()) LOG(debug) << "all delays processed";
@@ -356,11 +357,20 @@ void delay_propagator::enqueue(const schedule_event& event_id,
   enqueue(di, queue_reason);
 }
 
-void delay_propagator::enqueue(delay_info* di, queue_reason queue_reason) {
+void delay_propagator::enqueue(delay_info* di, queue_reason reason) {
   assert(di != nullptr);
-  if (_rts.is_debug_mode())
-    LOG(debug) << "enqueue: " << *di << ", queue_reason = " << queue_reason;
-  _queue.emplace(di, queue_reason);
+  if (_rts.is_debug_mode()) {
+    LOG(debug) << "enqueue: " << *di << ", queue_reason = " << reason;
+  }
+  auto p = _queue.emplace(di, reason);
+  if (!p.second) {
+    if ((reason == queue_reason::IS || reason == queue_reason::REPAIR ||
+         reason == queue_reason::CANCELED) &&
+        p.first->_queue_reason != reason) {
+      _queue.erase(p.first);
+      _queue.emplace(di, reason);
+    }
+  }
 }
 
 void delay_propagator::update_route(delay_info* di, int32_t new_route) {
