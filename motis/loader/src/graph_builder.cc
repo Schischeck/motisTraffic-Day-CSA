@@ -80,6 +80,71 @@ public:
     next_node_id_ = sched_.stations.size();
   }
 
+  bool is_unique_service(Service const* service, bitfield const& traffic_days,
+                         std::vector<node*> const& route_nodes) const {
+    auto const& sections = service->sections();
+    for (unsigned section_idx = 0; section_idx < sections->size();
+         ++section_idx) {
+      unsigned train_nr = sections->Get(section_idx)->train_nr();
+      auto base_d_time = service->times()->Get(section_idx * 2 + 1);
+      auto base_a_time = service->times()->Get(section_idx * 2 + 2);
+      auto route_node = route_nodes[section_idx];
+      auto const& route_edge = route_node->_edges[1];
+      auto from_station = route_edge._from->get_station();
+      auto to_station = route_edge._to->get_station();
+      for (int day = first_day_; day <= last_day_; ++day) {
+        if (!traffic_days.test(day)) {
+          continue;
+        }
+        int time_offset = (day - first_day_) * MINUTES_A_DAY;
+        auto d_time = time_offset + base_d_time;
+        auto a_time = time_offset + base_a_time;
+        // check for other connections in the same route edge
+        // that have the same departure or arrival time
+        for (auto const& lc : route_edge._m._route_edge._conns) {
+          if (lc.d_time == d_time || lc.a_time == a_time) {
+            // LOG(info) << "skipping service because of duplicate times: "
+            //             "train_nr = " << train_nr;
+            return false;
+          }
+        }
+        // check if other routes contain an event with the same time and
+        // train number
+        for (auto const& e : from_station->_edges) {
+          if (e._to->is_route_node() && e._to->_edges.size() > 1) {
+            auto const& other_route_edge = e._to->_edges[1];
+            for (auto const& lc : other_route_edge._m._route_edge._conns) {
+              if (lc._full_con->con_info->train_nr == train_nr &&
+                  lc.d_time == d_time) {
+                // LOG(info) << "skipping service because of duplicate events: "
+                //             "train_nr = " << train_nr;
+                return false;
+              }
+            }
+          }
+        }
+        for (auto const& e : to_station->_edges) {
+          if (e._to->is_route_node()) {
+            if (e._to->_incoming_edges.size() == 1) {
+              auto const& other_route_edge = e._to->_incoming_edges[0];
+              for (auto const& lc : other_route_edge->_m._route_edge._conns) {
+                // lc._full_con = 0!?
+                if (lc._full_con->con_info->train_nr == train_nr &&
+                    lc.a_time == a_time) {
+                  // LOG(info) << "skipping service because of duplicate events:
+                  // "
+                  //             "train_nr = " << train_nr;
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   void add_service(Service const* service) {
     auto const& sections = service->sections();
 
@@ -87,6 +152,10 @@ public:
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
+
+    if (!is_unique_service(service, traffic_days, route_nodes)) {
+      return;
+    }
 
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
@@ -114,7 +183,9 @@ public:
       for (auto& station_edge : station_node->_edges) {
         station_edge._to->_incoming_edges.push_back(&station_edge);
         for (auto& edge : station_edge._to->_edges) {
-          edge._to->_incoming_edges.push_back(&edge);
+          if (edge.type() != edge::ROUTE_EDGE) {
+            edge._to->_incoming_edges.push_back(&edge);
+          }
         }
       }
     }
@@ -323,6 +394,7 @@ private:
       }
       if (last_route_edge != nullptr) {
         last_route_edge->_to = route_node;
+        route_node->_incoming_edges.push_back(last_route_edge);
       } else {
         sched_.route_index_to_first_route_node.push_back(route_node);
       }
