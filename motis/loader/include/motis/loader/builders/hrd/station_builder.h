@@ -2,7 +2,8 @@
 
 #include <map>
 
-#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
+#include "motis/loader/parsers/hrd/stations_parser.h"
+
 #include "motis/schedule-format/Station_generated.h"
 
 namespace motis {

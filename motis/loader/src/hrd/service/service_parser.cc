@@ -8,6 +8,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/model/hrd/split_service.h"
+#include "motis/loader/model/hrd/repeat_service.h"
 
 using namespace parser;
 using namespace flatbuffers;

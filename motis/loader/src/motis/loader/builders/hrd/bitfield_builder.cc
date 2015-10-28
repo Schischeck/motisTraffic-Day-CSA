@@ -30,11 +30,11 @@ Offset<String> bitfield_builder::get_or_create_bitfield(
   auto hrd_bitfields_it = hrd_bitfields_.find(bitfield_num);
   verify(hrd_bitfields_it != end(hrd_bitfields_),
          "bitfield with bitfield number %d not found\n", bitfield_num);
-  return get_or_create_bitfield(hrd_bitfields_it->second, bitfield_num, fbb);
+  return get_or_create_bitfield(hrd_bitfields_it->second, fbb, bitfield_num);
 }
 
 Offset<String> bitfield_builder::get_or_create_bitfield(
-    bitfield const& b, int bitfield_num, flatbuffers::FlatBufferBuilder& fbb) {
+    bitfield const& b, flatbuffers::FlatBufferBuilder& fbb, int bitfield_num) {
   auto fbs_bitfields_it = fbs_bitfields_.find(b);
   if (fbs_bitfields_it == end(fbs_bitfields_)) {
     auto serialized = fbb.CreateString(serialize_bitset<BIT_COUNT>(b));

@@ -12,9 +12,9 @@ namespace loader {
 namespace hrd {
 
 flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Footpath>>>
-build_footpaths(std::vector<station_meta_data::footpath> const&,
-                std::map<int, flatbuffers::Offset<Station>> const&,
-                flatbuffers::FlatBufferBuilder&);
+create_footpaths(std::vector<station_meta_data::footpath> const&,
+                 std::map<int, flatbuffers::Offset<Station>> const&,
+                 flatbuffers::FlatBufferBuilder&);
 
 }  // hrd
 }  // loader

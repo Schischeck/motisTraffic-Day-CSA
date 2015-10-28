@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service/split_service.h"
+#include "motis/loader/model/hrd/split_service.h"
 
 #include <cassert>
 #include <algorithm>
@@ -7,6 +7,7 @@
 #include "parser/util.h"
 
 #include "motis/loader/util.h"
+#include "motis/loader/builders/hrd/bitfield_builder.h"
 
 namespace motis {
 namespace loader {

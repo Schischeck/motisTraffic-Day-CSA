@@ -6,9 +6,8 @@
 #include <functional>
 
 #include "motis/loader/loaded_file.h"
-#include "motis/loader/model/hrd/shared_data.h"
 #include "motis/loader/model/hrd/specification.h"
-#include "motis/schedule-format/Service_generated.h"
+#include "motis/loader/model/hrd/hrd_service.h"
 
 namespace motis {
 namespace loader {

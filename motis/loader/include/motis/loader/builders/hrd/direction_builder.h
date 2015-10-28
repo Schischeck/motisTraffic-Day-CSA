@@ -6,6 +6,8 @@
 
 #include "motis/schedule-format/Direction_generated.h"
 
+#include "motis/loader/builders/hrd/station_builder.h"
+
 namespace motis {
 namespace loader {
 namespace hrd {

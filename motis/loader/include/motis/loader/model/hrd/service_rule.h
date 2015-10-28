@@ -5,7 +5,7 @@
 #include <vector>
 #include <utility>
 
-#include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/model/hrd/hrd_service.h"
 #include "motis/loader/bitfield.h"
 
 namespace motis {

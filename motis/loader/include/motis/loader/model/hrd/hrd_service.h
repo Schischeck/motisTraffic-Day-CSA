@@ -7,7 +7,6 @@
 #include "motis/loader/util.h"
 
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/service/specification.h"
 
 namespace motis {
 namespace loader {

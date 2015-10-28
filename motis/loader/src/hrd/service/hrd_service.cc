@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/model/hrd/hrd_service.h"
 
 #include <tuple>
 #include <algorithm>
@@ -8,7 +8,7 @@
 #include "parser/arg_parser.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/service/range.h"
+#include "motis/loader/model/hrd/range.h"
 
 using namespace parser;
 

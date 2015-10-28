@@ -4,14 +4,14 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <functional>
 
-#include "motis/schedule-format/Schedule_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 
 #include "motis/loader/util.h"
 #include "motis/loader/model/hrd/hrd_service.h"
 #include "motis/loader/model/hrd/service_rule.h"
 #include "motis/loader/model/hrd/rule_service.h"
-#include "motis/loader/builders/hrd/service_builder.h"
 
 namespace motis {
 namespace loader {
@@ -22,8 +22,11 @@ struct rule_service_builder {
   rule_service_builder(service_rules rs) : rules_(std::move(rs)) {}
 
   bool add_service(hrd_service const&);
-  void resolve();
-  void build(service_builder&);
+  void resolve_rule_services();
+  void create_rule_services(
+      std::binary_function<hrd_service const&, flatbuffers::FlatBufferBuilder&,
+                           flatbuffers::Offset<Service>>,
+      flatbuffers::FlatBufferBuilder&);
 
   std::vector<std::unique_ptr<hrd_service>> origin_services_;
   std::vector<rule_service> rule_services_;

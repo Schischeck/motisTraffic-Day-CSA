@@ -10,62 +10,48 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(attribute_builder& ab, bitfield_builder& bb,
-                                 category_builder& cb, direction_builder& db,
-                                 line_builder& lb, provider_builder& pb,
-                                 station_builder& sb)
-    : ab_(ab), bb_(bb), cb_(cb), db_(db), lb_(lb), pb_(pb), sb_(sb) {}
+service_builder::service_builder(platform_rules plf_rules)
+    : plf_rules_(std::move(plf_rules)) {}
 
-void service_builder::build_service(builders b, hrd_service const& s) {
-  auto const route = create_route(s.stops_);
-  services_.push_back(CreateService(
-      fbb_, route, bb_.get_or_create_bitfield(s.traffic_days_),
-      create_sections(s.sections_), create_platforms(s.sections_, s.stops_),
-      create_times(s.stops_)));
-}
-
-Offset<Route> create_route(std::vector<hrd_service::stop> const& stops,
-                           station_builder& sb, FlatBufferBuilder fbb) {
-  auto events =
-      transform_to_vec(begin(stops), end(stops),
-                       [&](hrd_service::stop const& s) -> station_events {
-                         return std::make_tuple(s.eva_num, s.dep.in_out_allowed,
-                                                s.arr.in_out_allowed);
-                       });
-  return get_or_create(routes_, events, [&]() {
-    return CreateRoute(
-        fbb_, fbb_.CreateVector(transform_to_vec(
-                  begin(events), end(events),
-                  [&](station_events ev) {
-                    return sb_.get_or_create_station(std::get<0>(ev), fbb_);
-                  })),
-        fbb_.CreateVector(transform_to_vec(begin(events), end(events),
-                                           [](station_events e) -> uint8_t {
-                                             return std::get<1>(e) ? 1 : 0;
-                                           })),
-        fbb_.CreateVector(transform_to_vec(begin(events), end(events),
-                                           [](station_events e) -> uint8_t {
-                                             return std::get<2>(e) ? 1 : 0;
-                                           })));
-  });
-}
-
-Offset<Vector<Offset<Section>>> service_builder::create_sections(
-    std::vector<hrd_service::section> const& sections) {
-  return fbb_.CreateVector(transform_to_vec(
+Offset<Vector<Offset<Section>>> create_sections(
+    std::vector<hrd_service::section> const& sections, category_builder& cb,
+    provider_builder& pb, line_builder& lb, attribute_builder& ab,
+    bitfield_builder& bb, direction_builder& db, station_builder& sb,
+    FlatBufferBuilder& fbb) {
+  return fbb.CreateVector(transform_to_vec(
       begin(sections), end(sections), [&](hrd_service::section const& s) {
         return CreateSection(
-            fbb_, get_or_create_category(s.category[0]),
-            pb_.get_or_create_provider(raw_to_int<uint64_t>(s.admin)),
-            s.train_num, get_or_create_line_info(s.line_information),
-            create_attributes(s.attributes),
-            get_or_create_direction(s.directions));
+            fbb, cb.get_or_create_category(s.category[0], fbb),
+            pb.get_or_create_provider(raw_to_int<uint64_t>(s.admin), fbb),
+            s.train_num, lb.get_or_create_line(s.line_information, fbb),
+            ab.create_attributes(s.attributes, bb, fbb),
+            db.get_or_create_direction(s.directions, sb, fbb));
       }));
 }
 
-Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
+void create_platforms(platform_rule_key const& key, int time,
+                      platform_rules const& plf_rules, bitfield_builder& bb,
+                      std::vector<Offset<Platform>>& platforms,
+                      FlatBufferBuilder& fbb) {
+  auto dep_plr_it = plf_rules.find(key);
+  if (dep_plr_it == end(plf_rules)) {
+    return;
+  }
+
+  for (auto const& rule : dep_plr_it->second) {
+    if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
+      platforms.push_back(
+          CreatePlatform(fbb, bb.get_or_create_bitfield(rule.bitfield_num, fbb),
+                         rule.platform_name));
+    }
+  }
+}
+
+Offset<Vector<Offset<PlatformRules>>> create_platforms(
     std::vector<hrd_service::section> const& sections,
-    std::vector<hrd_service::stop> const& stops) {
+    std::vector<hrd_service::stop> const& stops,
+    platform_rules const& plf_rules, bitfield_builder& bb,
+    FlatBufferBuilder& fbb) {
   struct stop_platforms {
     std::vector<Offset<Platform>> dep_platforms;
     std::vector<Offset<Platform>> arr_platforms;
@@ -86,45 +72,43 @@ Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
     auto arr_event_key = std::make_tuple(to_stop.eva_num, section.train_num,
                                          raw_to_int<uint64_t>(section.admin));
 
-    resolve_platform_rule(dep_event_key, from_stop.dep.time,
-                          stops_platforms[from_stop_index].dep_platforms);
-    resolve_platform_rule(arr_event_key, from_stop.arr.time,
-                          stops_platforms[to_stop_index].arr_platforms);
+    create_platforms(dep_event_key, from_stop.dep.time, plf_rules, bb,
+                     stops_platforms[from_stop_index].dep_platforms, fbb);
+    create_platforms(arr_event_key, from_stop.arr.time, plf_rules, bb,
+                     stops_platforms[to_stop_index].arr_platforms, fbb);
   }
 
-  return fbb_.CreateVector(transform_to_vec(
+  return fbb.CreateVector(transform_to_vec(
       begin(stops_platforms), end(stops_platforms),
       [&](stop_platforms const& sp) {
-        return CreatePlatformRules(fbb_, fbb_.CreateVector(sp.arr_platforms),
-                                   fbb_.CreateVector(sp.dep_platforms));
+        return CreatePlatformRules(fbb, fbb.CreateVector(sp.arr_platforms),
+                                   fbb.CreateVector(sp.dep_platforms));
       }));
 }
 
-void service_builder::resolve_platform_rule(
-    platform_rule_key const& key, int time,
-    std::vector<Offset<Platform>>& platforms) {
-  auto dep_plr_it = shared_data_.pf_rules.find(key);
-  if (dep_plr_it == end(shared_data_.pf_rules)) {
-    return;
-  }
-
-  for (auto const& rule : dep_plr_it->second) {
-    if (rule.time == TIME_NOT_SET || time % 1440 == rule.time) {
-      platforms.push_back(
-          CreatePlatform(fbb_, bb_.get_or_create_bitfield(rule.bitfield_num),
-                         rule.platform_name));
-    }
-  }
-}
-
-Offset<Vector<int32_t>> service_builder::create_times(
-    std::vector<hrd_service::stop> const& stops) {
+Offset<Vector<int32_t>> create_times(
+    std::vector<hrd_service::stop> const& stops, FlatBufferBuilder& fbb) {
   std::vector<int32_t> times;
   for (auto const& stop : stops) {
     times.push_back(stop.arr.time);
     times.push_back(stop.dep.time);
   }
-  return fbb_.CreateVector(times);
+  return fbb.CreateVector(times);
+}
+
+void service_builder::create_service(hrd_service const& s, route_builder& rb,
+                                     station_builder& sb, category_builder& cb,
+                                     provider_builder& pb, line_builder& lb,
+                                     attribute_builder& ab,
+                                     bitfield_builder& bb,
+                                     direction_builder& db,
+                                     FlatBufferBuilder& fbb) {
+  fbs_services_.emplace_back(
+      fbb, rb.get_or_create_route(s.stops_, sb, fbb),
+      bb.get_or_create_bitfield(s.traffic_days_, fbb),
+      create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
+      create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
+      create_times(s.stops_, fbb));
 }
 
 }  // hrd

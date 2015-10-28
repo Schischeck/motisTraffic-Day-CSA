@@ -1,4 +1,4 @@
-#include "motis/loader/builders/hrd/station_builder.h"
+#include "motis/loader/builders/hrd/line_builder.h"
 
 #include "motis/loader/util.h"
 

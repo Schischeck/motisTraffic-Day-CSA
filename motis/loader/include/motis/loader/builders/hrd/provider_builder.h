@@ -11,13 +11,12 @@ namespace loader {
 namespace hrd {
 
 struct provider_builder {
-  provider_builder(std::map<uint64_t, provider_info>,
-                   flatbuffers::FlatBufferBuilder&);
+  provider_builder(std::map<uint64_t, provider_info>);
 
-  flatbuffers::Offset<Provider> get_or_create_provider(uint64_t);
+  flatbuffers::Offset<Provider> get_or_create_provider(
+      uint64_t, flatbuffers::FlatBufferBuilder&);
 
   std::map<uint64_t, provider_info> hrd_providers_;
-  flatbuffers::FlatBufferBuilder& fbb_;
   std::map<uint64_t, flatbuffers::Offset<Provider>> fbs_providers_;
 };
 

@@ -1,6 +1,7 @@
 #include "motis/loader/builders/hrd/station_builder.h"
 
 #include "motis/loader/util.h"
+#include "motis/loader/parsers/hrd/files.h"
 
 namespace motis {
 namespace loader {

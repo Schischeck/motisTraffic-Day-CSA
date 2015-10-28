@@ -4,7 +4,7 @@
 #include <array>
 
 #include "motis/loader/bitfield.h"
-#include "motis/loader/parsers/hrd/service_rules/rule_service.h"
+#include "motis/loader/model/hrd/rule_service.h"
 
 namespace motis {
 namespace loader {

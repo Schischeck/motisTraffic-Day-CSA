@@ -1,4 +1,5 @@
-#include "motis/loader/parsers/hrd/service/repeat_service.h"
+#include "motis/loader/model/hrd/repeat_service.h"
+
 #include "motis/loader/util.h"
 
 namespace motis {

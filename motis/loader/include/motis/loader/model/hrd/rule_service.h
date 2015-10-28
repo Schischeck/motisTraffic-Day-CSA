@@ -1,7 +1,7 @@
 #pragma once
 
-#include "motis/loader/parsers/hrd/service/hrd_service.h"
-#include "motis/loader/parsers/hrd/service_rules/service_rule.h"
+#include "motis/loader/model/hrd/hrd_service.h"
+#include "motis/loader/model/hrd//service_rule.h"
 
 namespace motis {
 namespace loader {

@@ -41,7 +41,7 @@ struct stop_restrictions {
 
 struct route_builder {
   flatbuffers::Offset<Route> get_or_create_route(
-      std::vector<hrd_service::stop> const&, station_builder& sb_,
+      std::vector<hrd_service::stop> const&, station_builder&,
       flatbuffers::FlatBufferBuilder&);
 
   std::map<std::vector<stop_restrictions>, flatbuffers::Offset<Route>> routes_;

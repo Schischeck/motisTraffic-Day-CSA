@@ -3,6 +3,8 @@
 #include "parser/util.h"
 
 #include "motis/loader/util.h"
+#include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/model/hrd/hrd_service.h"
 
 namespace motis {
 namespace loader {
