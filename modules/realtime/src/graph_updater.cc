@@ -168,6 +168,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
   if (gti._extract_required) {
     if (_rts.is_debug_mode()) LOG(debug) << "extract route required";
     gti = extract_route(gti);
+    new_route = gti._edges[0]._from_route_node;
   }
 
   for (const graph_train_edge& e : gti._edges) {
@@ -489,6 +490,9 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
   assert(new_route_start != nullptr);
   add_incoming_edges(new_route_start);
 
+  _rts._schedule.route_index_to_first_route_node[new_route_id] =
+      new_route_start;
+
   if (_rts.is_debug_mode()) {
     dump_route(old_route_start, "updated old route", day_index);
     dump_route(new_route_start, "new route", day_index);
@@ -782,6 +786,8 @@ void graph_updater::adjust_train(modified_train* mt,
   }
 
   mt->_current_start_event = current_start_event;
+  _rts._schedule.route_index_to_first_route_node[mt->_new_route_id] =
+      start_node;
   if (start_node != nullptr) {
     add_incoming_edges(start_node);
     if (_rts.is_debug_mode()) {

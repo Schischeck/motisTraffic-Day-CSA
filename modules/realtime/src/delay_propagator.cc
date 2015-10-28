@@ -313,8 +313,9 @@ void delay_propagator::add_update(delay_info* di, motis::time new_time,
 
   _rts._stats._ops.propagator.updates++;
 
-  std::vector<delay_info_update>& updates =
-      _delay_info_updates[di->_schedule_event._train_nr];
+  assert(di->_route_id > 0);
+
+  std::vector<delay_info_update>& updates = _delay_info_updates[di->_route_id];
   auto e = std::find_if(
       updates.begin(), updates.end(),
       [di](const delay_info_update& u) { return u._delay_info == di; });
@@ -351,6 +352,7 @@ void delay_propagator::enqueue(const schedule_event& event_id,
   } else if (route_id != -1) {
     di->_route_id = route_id;
   }
+  assert(di->_route_id > 0);
   enqueue(di, queue_reason);
 }
 
@@ -361,8 +363,24 @@ void delay_propagator::enqueue(delay_info* di, queue_reason queue_reason) {
   _queue.emplace(di, queue_reason);
 }
 
+void delay_propagator::update_route(delay_info* di, int32_t new_route) {
+  assert(di->_route_id > 0);
+  assert(di->_route_id != new_route);
+
+  std::vector<delay_info_update>& old_route_updates =
+      _delay_info_updates[di->_route_id];
+  auto e = std::find_if(
+      old_route_updates.begin(), old_route_updates.end(),
+      [di](const delay_info_update& u) { return u._delay_info == di; });
+  if (e != old_route_updates.end()) {
+    _delay_info_updates[new_route].emplace_back(*e);
+    old_route_updates.erase(e);
+  }
+}
+
 motis::time delay_propagator::new_time(delay_info* di) const {
-  auto it = _delay_info_updates.find(di->_schedule_event._train_nr);
+  assert(di->_route_id > 0);
+  auto it = _delay_info_updates.find(di->_route_id);
   if (it != _delay_info_updates.end()) {
     auto& updates = it->second;
     auto u = std::find_if(
@@ -382,7 +400,8 @@ motis::time delay_propagator::new_time(const schedule_event& event_id) const {
 }
 
 timestamp_reason delay_propagator::new_reason(delay_info* di) const {
-  auto it = _delay_info_updates.find(di->_schedule_event._train_nr);
+  assert(di->_route_id > 0);
+  auto it = _delay_info_updates.find(di->_route_id);
   if (it != _delay_info_updates.end()) {
     auto& updates = it->second;
     auto u = std::find_if(

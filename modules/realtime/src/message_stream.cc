@@ -68,7 +68,7 @@ std::unique_ptr<message> message_stream::next_message(std::istream& stream) {
     if (msg != nullptr && msg->release_time_ >= start_time_) {
       if (msg->release_time_ <= end_time_) {
         last_msg_time_ = msg->release_time_;
-        return std::move(msg);
+        return msg;
       } else {
         cached_msg_ = std::move(msg);
       }

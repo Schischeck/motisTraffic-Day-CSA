@@ -85,6 +85,9 @@ motis::time delay_info_manager::reset_to_schedule(
 }
 
 void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
+  if (di->_route_id == new_route) {
+    return;
+  }
   // remove old entry from mapping
   auto it = _current_map.find(di->graph_ev());
   if (it != _current_map.end()) {
@@ -95,6 +98,9 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
   }
 
   assert(new_route != -1);
+
+  _rts._delay_propagator.update_route(di, new_route);
+
   di->_route_id = new_route;
 
   // add new entry to mapping
@@ -145,21 +151,11 @@ motis::time delay_info_manager::current_time(
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
   switch (r) {
-    case timestamp_reason::SCHEDULE:
-      os << "s";
-      break;
-    case timestamp_reason::IS:
-      os << "i";
-      break;
-    case timestamp_reason::FORECAST:
-      os << "f";
-      break;
-    case timestamp_reason::PROPAGATION:
-      os << "p";
-      break;
-    case timestamp_reason::REPAIR:
-      os << "r";
-      break;
+    case timestamp_reason::SCHEDULE: os << "s"; break;
+    case timestamp_reason::IS: os << "i"; break;
+    case timestamp_reason::FORECAST: os << "f"; break;
+    case timestamp_reason::PROPAGATION: os << "p"; break;
+    case timestamp_reason::REPAIR: os << "r"; break;
   }
   return os;
 }

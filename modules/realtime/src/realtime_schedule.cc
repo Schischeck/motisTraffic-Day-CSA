@@ -47,12 +47,11 @@ realtime_schedule::locate_event(const graph_event& event_id) const {
     if (!route_node->is_route_node() ||
         (route_id != -1 && route_node->_route != route_id))
       continue;
-    assert(edge.type() == motis::edge::ROUTE_EDGE);
-
     motis::edge* route_edge = event_id.departure() ? get_next_edge(route_node)
                                                    : get_prev_edge(route_node);
 
     if (route_edge == nullptr) continue;
+    assert(route_edge->type() == motis::edge::ROUTE_EDGE);
 
     motis::light_connection* lc =
         event_id.departure()
