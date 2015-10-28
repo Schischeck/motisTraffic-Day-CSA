@@ -14,8 +14,7 @@ struct direction_builder {
   direction_builder(std::map<uint64_t, std::string>);
 
   flatbuffers::Offset<Direction> get_or_create_direction(
-      std::vector<std::pair<uint64_t, int>> const&,
-      std::map<int, flatbuffers::Offset<Station>> const&,
+      std::vector<std::pair<uint64_t, int>> const&, station_builder&,
       flatbuffers::FlatBufferBuilder&);
 
   std::map<uint64_t, std::string> hrd_directions_;

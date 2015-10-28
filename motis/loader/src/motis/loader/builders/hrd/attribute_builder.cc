@@ -17,7 +17,7 @@ attribute_builder::attribute_builder(
 
 Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
     std::vector<hrd_service::attribute> const& attributes, bitfield_builder& bb,
-    FlatBufferBuilder& fbb) {
+    flatbuffers::FlatBufferBuilder& fbb) {
   return fbb.CreateVector(
       transform_to_vec(begin(attributes), end(attributes),
                        [&](hrd_service::attribute const& attr) {
@@ -27,7 +27,7 @@ Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
 
 Offset<Attribute> attribute_builder::get_or_create_attribute(
     hrd_service::attribute const& attr, bitfield_builder& bb,
-    FlatBufferBuilder& fbb) {
+    flatbuffers::FlatBufferBuilder& fbb) {
   auto const attr_info_key = raw_to_int<uint16_t>(attr.code);
   auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num);
 

@@ -119,6 +119,8 @@ shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
     stations[ds100.second].ds100.push_back(ds100.first.to_str());
   }
 
+  bitfield_builder bb(parse_bitfields({BITFIELDS_FILE, bitfields_buf}));
+
   return shared_data(parse_interval({BASIC_DATA_FILE, basic_data_buf}),
                      std::move(metas), std::move(stations),
                      parse_categories({CATEGORIES_FILE, categories_buf}),

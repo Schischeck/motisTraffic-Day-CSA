@@ -1,9 +1,7 @@
-#include "motis/loader/parsers/hrd/service/service_builder.h"
+#include "motis/loader/builders/hrd/service_builder.h"
 
 #include "motis/loader/util.h"
 #include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/service/split_service.h"
-#include "motis/loader/parsers/hrd/service/repeat_service.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -12,15 +10,13 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(shared_data const& stamm,
-                                 FlatBufferBuilder& builder)
-    : shared_data_(stamm),
-      bb_(stamm.bitfields, builder),
-      sb_(stamm.stations, builder),
-      pb_(stamm.providers, builder),
-      fbb_(builder) {}
+service_builder::service_builder(attribute_builder& ab, bitfield_builder& bb,
+                                 category_builder& cb, direction_builder& db,
+                                 line_builder& lb, provider_builder& pb,
+                                 station_builder& sb)
+    : ab_(ab), bb_(bb), cb_(cb), db_(db), lb_(lb), pb_(pb), sb_(sb) {}
 
-void service_builder::build_service(hrd_service const& s) {
+void service_builder::build_service(builders b, hrd_service const& s) {
   auto const route = create_route(s.stops_);
   services_.push_back(CreateService(
       fbb_, route, bb_.get_or_create_bitfield(s.traffic_days_),
@@ -28,8 +24,8 @@ void service_builder::build_service(hrd_service const& s) {
       create_times(s.stops_)));
 }
 
-Offset<Route> service_builder::create_route(
-    std::vector<hrd_service::stop> const& stops) {
+Offset<Route> create_route(std::vector<hrd_service::stop> const& stops,
+                           station_builder& sb, FlatBufferBuilder fbb) {
   auto events =
       transform_to_vec(begin(stops), end(stops),
                        [&](hrd_service::stop const& s) -> station_events {
@@ -41,7 +37,7 @@ Offset<Route> service_builder::create_route(
         fbb_, fbb_.CreateVector(transform_to_vec(
                   begin(events), end(events),
                   [&](station_events ev) {
-                    return sb_.get_or_create_station(std::get<0>(ev));
+                    return sb_.get_or_create_station(std::get<0>(ev), fbb_);
                   })),
         fbb_.CreateVector(transform_to_vec(begin(events), end(events),
                                            [](station_events e) -> uint8_t {
@@ -66,91 +62,6 @@ Offset<Vector<Offset<Section>>> service_builder::create_sections(
             get_or_create_direction(s.directions));
       }));
 }
-
-// Offset<Category> service_builder::get_or_create_category(cstr category) {
-//  auto const category_key = raw_to_int<uint32_t>(category);
-//
-//  auto it = shared_data_.categories.find(category_key);
-//  verify(it != end(shared_data_.categories), "missing category: %.*s",
-//         static_cast<int>(category.length()), category.c_str());
-//
-//  return get_or_create(categories_, category_key, [&]() {
-//    return CreateCategory(fbb_, to_fbs_string(fbb_, it->second.name),
-//                          it->second.output_rule);
-//  });
-//}
-
-// Offset<Vector<Offset<Attribute>>> service_builder::create_attributes(
-//    std::vector<hrd_service::attribute> const& attributes) {
-//  return fbb_.CreateVector(transform_to_vec(
-//      begin(attributes), end(attributes), [&](hrd_service::attribute const& a)
-//      {
-//        return get_or_create_attribute(a);
-//      }));
-//}
-
-// Offset<Attribute> service_builder::get_or_create_attribute(
-//    hrd_service::attribute attr) {
-//  auto const attr_info_key = raw_to_int<uint16_t>(attr.code);
-//  auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num);
-//
-//  return get_or_create(attributes_, attr_key, [&]() {
-//    auto const attr_info =
-//        get_or_create(attribute_infos_, attr_info_key, [&]() {
-//          auto const stamm_attributes_it =
-//              shared_data_.attributes.find(attr_info_key);
-//          verify(stamm_attributes_it != end(shared_data_.attributes),
-//                 "attribute with code %.*s not found\n",
-//                 static_cast<int>(attr.code.length()), attr.code.c_str());
-//
-//          auto const fbs_attribute_info = CreateAttributeInfo(
-//              fbb_, to_fbs_string(fbb_, attr.code),
-//              to_fbs_string(fbb_, stamm_attributes_it->second, ENCODING));
-//
-//          attribute_infos_[attr_info_key] = fbs_attribute_info;
-//          return fbs_attribute_info;
-//        });
-//
-//    auto const fbs_attribute = CreateAttribute(
-//        fbb_, attr_info, bb_.get_or_create_bitfield(attr.bitfield_num));
-//    attributes_[attr_key] = fbs_attribute;
-//    return fbs_attribute;
-//  });
-//}
-
-// Offset<String> service_builder::get_or_create_line_info(
-//    std::vector<cstr> const& line_info) {
-//  if (line_info.empty()) {
-//    return 0;
-//  } else {
-//    return get_or_create(line_infos_, raw_to_int<uint64_t>(line_info[0]),
-//                         [&]() { return to_fbs_string(fbb_, line_info[0]); });
-//  }
-//}
-
-// Offset<Direction> service_builder::get_or_create_direction(
-//    std::vector<std::pair<uint64_t, int>> const& directions) {
-//  if (directions.empty()) {
-//    return 0;
-//  } else {
-//    auto const direction_key = directions[0];
-//    return get_or_create(directions_, direction_key.first, [&]() {
-//      switch (direction_key.second) {
-//        case hrd_service::EVA_NUMBER:
-//          return CreateDirection(
-//              fbb_, sb_.get_or_create_station(direction_key.first));
-//        case hrd_service::DIRECTION_CODE: {
-//          auto it = shared_data_.directions.find(direction_key.first);
-//          verify(it != end(shared_data_.directions),
-//                 "missing direction info: %lu", direction_key.first);
-//          return CreateDirection(fbb_, 0,
-//                                 to_fbs_string(fbb_, it->second, ENCODING));
-//        }
-//        default: assert(false); return Offset<Direction>(0);
-//      }
-//    });
-//  }
-//}
 
 Offset<Vector<Offset<PlatformRules>>> service_builder::create_platforms(
     std::vector<hrd_service::section> const& sections,

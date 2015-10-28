@@ -10,8 +10,7 @@ using namespace flatbuffers;
 using namespace parser;
 
 Offset<String> line_builder::get_or_create_line(
-    std::vector<parser::cstr> const& lines,
-    flatbuffers::FlatBufferBuilder& fbb) {
+    std::vector<parser::cstr> const& lines, FlatBufferBuilder& fbb) {
   if (lines.empty()) {
     return 0;
   } else {
