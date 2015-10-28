@@ -102,7 +102,9 @@ realtime::realtime()
            {MsgContent_RealtimeForwardTimeRequest,
             std::bind(&realtime::forward_time, this, p::_1, p::_2)},
            {MsgContent_RealtimeCurrentTimeRequest,
-            std::bind(&realtime::current_time, this, p::_1, p::_2)}} {}
+            std::bind(&realtime::current_time, this, p::_1, p::_2)},
+           {MsgContent_RealtimeDelayInfoRequest,
+            std::bind(&realtime::get_delay_infos, this, p::_1, p::_2)}} {}
 
 realtime::~realtime() {}
 
@@ -352,6 +354,56 @@ void realtime::current_time(motis::module::msg_ptr,
   } else {
     cb({}, error::no_message_stream);
   }
+}
+
+InternalTimestampReason encode_internal_reason(timestamp_reason reason) {
+  switch (reason) {
+    case timestamp_reason::SCHEDULE: return InternalTimestampReason_Schedule;
+    case timestamp_reason::IS: return InternalTimestampReason_Is;
+    case timestamp_reason::REPAIR: return InternalTimestampReason_Repair;
+    case timestamp_reason::FORECAST: return InternalTimestampReason_Forecast;
+    case timestamp_reason::PROPAGATION:
+      return InternalTimestampReason_Propagation;
+  }
+  return InternalTimestampReason_Propagation;
+}
+
+void realtime::get_delay_infos(motis::module::msg_ptr,
+                               motis::module::callback cb) {
+  flatbuffers::FlatBufferBuilder b;
+  std::vector<flatbuffers::Offset<DelayInfo>> delay_infos;
+
+  std::vector<delay_info*> sorted_dis = rts_->_delay_info_manager._delay_infos;
+  std::sort(std::begin(sorted_dis), std::end(sorted_dis),
+            [](delay_info* a, delay_info* b) {
+              const auto& ae = a->_schedule_event;
+              const auto& be = b->_schedule_event;
+              return std::tie(ae._schedule_time, ae._station_index,
+                              ae._train_nr, ae._departure) <
+                     std::tie(be._schedule_time, be._station_index,
+                              be._train_nr, be._departure);
+            });
+
+  delay_infos.reserve(sorted_dis.size());
+  for (const delay_info* di : sorted_dis) {
+    DelayInfoBuilder dib(b);
+    dib.add_train_nr(di->_schedule_event._train_nr);
+    dib.add_station_index(di->_schedule_event._station_index);
+    dib.add_departure(di->_schedule_event.departure());
+    dib.add_scheduled_time(di->_schedule_event._schedule_time);
+    dib.add_current_time(di->_current_time);
+    dib.add_forecast_time(di->_forecast_time);
+    dib.add_canceled(di->_canceled);
+    dib.add_reason(encode_internal_reason(di->_reason));
+    dib.add_route_id(di->_route_id);
+    delay_infos.push_back(dib.Finish());
+  }
+
+  b.Finish(CreateMessage(
+      b, MsgContent_RealtimeDelayInfoResponse,
+      CreateRealtimeDelayInfoResponse(b, b.CreateVector(delay_infos)).Union()));
+
+  cb(make_msg(b), error::ok);
 }
 
 void realtime::on_msg(msg_ptr msg, sid, callback cb) {

@@ -29,7 +29,8 @@ struct realtime : public motis::module::module {
     return {MsgContent_RealtimeTrainInfoRequest,
             MsgContent_RealtimeTrainInfoBatchRequest,
             MsgContent_RealtimeForwardTimeRequest,
-            MsgContent_RealtimeCurrentTimeRequest};
+            MsgContent_RealtimeCurrentTimeRequest,
+            MsgContent_RealtimeDelayInfoRequest};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
@@ -55,6 +56,7 @@ private:
                             motis::module::callback cb);
   void forward_time(motis::module::msg_ptr msg, motis::module::callback cb);
   void current_time(motis::module::msg_ptr msg, motis::module::callback cb);
+  void get_delay_infos(motis::module::msg_ptr msg, motis::module::callback cb);
 
   typedef std::function<void(motis::module::msg_ptr, motis::module::callback)>
       op;
