@@ -67,13 +67,13 @@ void ris::init() {
 
   db_init();
   read_files_ = db_get_stored_files();
-  send(pack(db_get_messages(0, 0)), 0); // TODO
+  dispatch(pack(db_get_messages(0, 0)), 0, NOOP_CALLBACK); // TODO
 
   schedule_update(error_code());
 }
 
 void ris::parse_zips() {
-  logging::scoped_timer t("ris :: parse_zips");
+  // logging::scoped_timer t("ris :: parse_zips");
 
   auto new_files = get_new_files();
   std::cout << "parsing " << new_files.size() << " new files." << std::endl;
@@ -81,7 +81,7 @@ void ris::parse_zips() {
   for (auto const& new_file : new_files) {
     auto parsed_messages = parse_xmls(read_zip_file(new_file));
     db_put_messages(new_file, parsed_messages);
-    send(pack(parsed_messages), 0);
+    dispatch(pack(parsed_messages), 0, NOOP_CALLBACK);
   }
 }
 

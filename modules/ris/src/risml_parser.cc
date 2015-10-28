@@ -11,7 +11,7 @@
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
-#include "motis/protocol/RISBatch_generated.h"
+#include "motis/protocol/RISMessage_generated.h"
 
 using namespace std::placeholders;
 using namespace flatbuffers;

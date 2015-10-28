@@ -50,7 +50,7 @@ sql::connection_config config() {
   sql::connection_config conf;
   conf.path_to_database = "ris.sqlite3";
   conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-  conf.debug = true;
+  conf.debug = false;
   return conf;
 }
 

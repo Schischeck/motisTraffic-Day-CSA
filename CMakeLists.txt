@@ -66,6 +66,6 @@ function(add_modules)
     add_subdirectory(modules/${module})
   endforeach(module)
 endfunction()
-add_modules(railviz routing reliability ris guesser)
+add_modules(guesser railviz realtime reliability ris routing)
 
 add_subdirectory(motis/webservice)

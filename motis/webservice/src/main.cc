@@ -14,11 +14,12 @@
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 
-#include "motis/railviz/railviz.h"
 #include "motis/guesser/guesser.h"
-#include "motis/routing/routing.h"
+#include "motis/railviz/railviz.h"
 #include "motis/reliability/reliability.h"
+#include "motis/realtime/realtime.h"
 #include "motis/ris/ris.h"
+#include "motis/routing/routing.h"
 
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
@@ -39,6 +40,7 @@ int main(int argc, char** argv) {
   modules.emplace_back(new guesser::guesser());
   modules.emplace_back(new reliability::reliability());
   modules.emplace_back(new railviz::railviz());
+  modules.emplace_back(new realtime::realtime());
   modules.emplace_back(new ris::ris());
 
   listener_settings listener_opt("0.0.0.0", "8080");

@@ -12,11 +12,13 @@ namespace ris {
 
 void db_init();
 
-void db_put_messages(std::string const& filename, std::vector<ris_message> const& msgs);
+void db_put_messages(std::string const& filename,
+                     std::vector<ris_message> const& msgs);
 
 std::set<std::string> db_get_stored_files();
-std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from, std::time_t to);
+
+std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from,
+                                                        std::time_t to);
 
 }  // namespace ris
 }  // namespace motis
-
