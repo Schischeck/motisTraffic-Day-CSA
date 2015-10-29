@@ -27,7 +27,7 @@ struct service_builder {
                       attribute_builder&, bitfield_builder&, direction_builder&,
                       flatbuffers::FlatBufferBuilder&);
 
-  platform_rules plf_rules_;
+  platform_rules const plf_rules_;
   std::vector<flatbuffers::Offset<Service>> fbs_services_;
 };
 

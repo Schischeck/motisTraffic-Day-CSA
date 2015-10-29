@@ -5,8 +5,8 @@
 #include "parser/cstr.h"
 
 #include "motis/loader/util.h"
-
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
+#include "motis/loader/bitfield.h"
+#include "motis/loader/model/hrd/specification.h"
 
 namespace motis {
 namespace loader {

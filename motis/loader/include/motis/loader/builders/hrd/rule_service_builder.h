@@ -23,10 +23,10 @@ struct rule_service_builder {
 
   bool add_service(hrd_service const&);
   void resolve_rule_services();
-  void create_rule_services(
-      std::binary_function<hrd_service const&, flatbuffers::FlatBufferBuilder&,
-                           flatbuffers::Offset<Service>>,
-      flatbuffers::FlatBufferBuilder&);
+  typedef std::function<flatbuffers::Offset<Service>(
+      hrd_service const&, flatbuffers::FlatBufferBuilder&)> service_builder_fun;
+  void create_rule_services(service_builder_fun,
+                            flatbuffers::FlatBufferBuilder&);
 
   std::vector<std::unique_ptr<hrd_service>> origin_services_;
   std::vector<rule_service> rule_services_;

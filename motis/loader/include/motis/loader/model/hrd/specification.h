@@ -8,8 +8,14 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+constexpr char const* UNKNOWN_FILE = "unknown_file";
+constexpr int BEFORE_FIRST_LINE = -1;
+
 struct specification {
-  specification() : internal_service(nullptr, 0) {}
+  specification()
+      : filename_(UNKNOWN_FILE),
+        line_number_(BEFORE_FIRST_LINE),
+        internal_service(nullptr, 0) {}
 
   bool is_empty() const;
 

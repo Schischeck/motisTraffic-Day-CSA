@@ -44,7 +44,7 @@ TEST(loader_hrd_stations, parse_stations) {
       parse_stations({STATIONS_FILE, stations_file_content},
                      {COORDINATES_FILE, coordinates_file_content}, metas);
 
-  ASSERT_TRUE(stations.size() == 2);
+  ASSERT_EQ(2, stations.size());
 
   auto it = stations.find(100001);
   ASSERT_TRUE(it != end(stations));

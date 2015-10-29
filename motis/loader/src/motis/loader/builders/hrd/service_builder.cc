@@ -103,12 +103,12 @@ void service_builder::create_service(hrd_service const& s, route_builder& rb,
                                      bitfield_builder& bb,
                                      direction_builder& db,
                                      FlatBufferBuilder& fbb) {
-  fbs_services_.emplace_back(
+  fbs_services_.push_back(CreateService(
       fbb, rb.get_or_create_route(s.stops_, sb, fbb),
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
-      create_times(s.stops_, fbb));
+      create_times(s.stops_, fbb)));
 }
 
 }  // hrd

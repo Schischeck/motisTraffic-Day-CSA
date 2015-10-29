@@ -1,7 +1,7 @@
 #include "test_spec.h"
 
 #include "motis/loader/parsers/hrd/hrd_parser.h"
-#include "motis/loader/parsers/hrd/service/service_parser.h"
+#include "motis/loader/parsers/hrd/service_parser.h"
 
 namespace motis {
 namespace loader {
@@ -12,7 +12,8 @@ namespace fs = boost::filesystem;
 
 std::vector<specification> test_spec::get_specs() {
   std::vector<specification> specs;
-  parse_specification(lf_, [&specs](specification spec) { specs.push_back(spec); });
+  parse_specification(lf_,
+                      [&specs](specification spec) { specs.push_back(spec); });
   return specs;
 }
 

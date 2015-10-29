@@ -69,7 +69,7 @@ struct splitter {
 };
 
 std::vector<split_info> split(hrd_service const& s,
-                              std::map<int, bitfield>& bitfields) {
+                              std::map<int, bitfield> const& bitfields) {
   auto section_bitfields = transform_to_vec(
       begin(s.sections_), end(s.sections_), [&](hrd_service::section const& s) {
         auto it = bitfields.find(s.traffic_days[0]);
@@ -98,7 +98,7 @@ hrd_service new_service_from_split(split_info const& s,
 }
 
 void expand_traffic_days(hrd_service const& service,
-                         std::map<int, bitfield>& bitfields,
+                         std::map<int, bitfield> const& bitfields,
                          std::vector<hrd_service>& expanded) {
   for (auto const& s : split(service, bitfields)) {
     expanded.emplace_back(new_service_from_split(s, service));

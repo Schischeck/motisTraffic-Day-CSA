@@ -66,6 +66,16 @@ void set_change_times(station_meta_data const& metas,
   }
 }
 
+void set_ds100(station_meta_data const& metas,
+               std::map<int, intermediate_station>& stations) {
+  for (auto const& ds100 : metas.ds100_to_eva_num_) {
+    auto it = stations.find(ds100.second);
+    if (it != end(stations)) {
+      it->second.ds100.push_back(ds100.first.to_str());
+    }
+  }
+}
+
 std::map<int, intermediate_station> parse_stations(
     loaded_file station_names_file, loaded_file station_coordinates_file,
     station_meta_data const& metas) {
@@ -74,6 +84,7 @@ std::map<int, intermediate_station> parse_stations(
   parse_station_names(station_names_file, stations);
   parse_station_coordinates(station_coordinates_file, stations);
   set_change_times(metas, stations);
+  set_ds100(metas, stations);
   return stations;
 }
 

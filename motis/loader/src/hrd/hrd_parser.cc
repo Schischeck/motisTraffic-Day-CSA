@@ -3,15 +3,18 @@
 #include <string>
 
 #include "boost/range/iterator_range.hpp"
+
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
+
+#include "motis/schedule-format/Schedule_generated.h"
+
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/directions_parser.h"
-#include "motis/loader/parsers/hrd/footpath_builder.h"
 #include "motis/loader/parsers/hrd/schedule_interval_parser.h"
 #include "motis/loader/parsers/hrd/stations_parser.h"
 #include "motis/loader/parsers/hrd/categories_parser.h"
@@ -19,12 +22,11 @@
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
 #include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/parsers/hrd/providers_parser.h"
-#include "motis/loader/parsers/hrd/service/service_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
-#include "motis/schedule-format/Schedule_generated.h"
-
-#include "motis/loader/parsers/hrd/station_builder.h"
+#include "motis/loader/parsers/hrd/service_parser.h"
+#include "motis/loader/builders/hrd/footpath_builder.h"
+#include "motis/loader/parsers/hrd/through_services_parser.h"
+#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
+#include "motis/loader/builders/hrd/station_builder.h"
 
 using namespace flatbuffers;
 using namespace parser;
@@ -66,76 +68,55 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& path) const {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  auto shared_data = parse_shared_data(hrd_root, fbb);
-  auto through_services_buf =
-      load_file(hrd_root / "stamm" / THROUGH_SERVICES_FILE);
-  auto merge_split_rules_buf =
-      load_file(hrd_root / "stamm" / MERGE_SPLIT_SERVICES_FILE);
+  // auto shared_data = parse_shared_data(hrd_root, fbb);
 
-  service_rules rules;
-  parse_through_service_rules({THROUGH_SERVICES_FILE, through_services_buf},
-                              shared_data.bitfields, rules);
-  parse_merge_split_service_rules(
-      {MERGE_SPLIT_SERVICES_FILE, merge_split_rules_buf}, shared_data.bitfields,
-      rules);
+  auto stamm_root = hrd_root / "stamm";
 
-  rule_service_builder rsb(rules);
-  service_builder sb(shared_data, fbb);
-  parse_services_files(hrd_root, sb, rsb);
-  rsb.resolve();
-  rsb.build(sb);
-
-  auto footpaths =
-      build_footpaths(shared_data.metas.footpaths_, sb.sb_.fbs_stations_, fbb);
-
-  fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(sb.services_),
-                            fbb.CreateVector(values(sb.sb_.fbs_stations_)),
-                            fbb.CreateVector(values(sb.routes_)),
-                            &shared_data.interval, footpaths,
-                            fbb.CreateVector(rsb.fbs_rule_services)));
-}
-
-shared_data hrd_parser::parse_shared_data(fs::path const& hrd_root,
-                                          FlatBufferBuilder& b) {
-  auto root = hrd_root / "stamm";
-  auto basic_data_buf = load_file(root / BASIC_DATA_FILE);
-  auto stations_names_buf = load_file(root / STATIONS_FILE);
-  auto stations_coords_buf = load_file(root / COORDINATES_FILE);
-  auto infotext_buf = load_file(root / INFOTEXT_FILE);
-  auto attributes_buf = load_file(root / ATTRIBUTES_FILE);
-  auto bitfields_buf = load_file(root / BITFIELDS_FILE);
-  auto platforms_buf = load_file(root / PLATFORMS_FILE);
-  auto categories_buf = load_file(root / CATEGORIES_FILE);
-  auto directions_buf = load_file(root / DIRECTIONS_FILE);
-  auto providers_buf = load_file(root / PROVIDERS_FILE);
-
-  station_meta_data metas;
-  parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
-
-  auto stations =
-      parse_stations({STATIONS_FILE, stations_names_buf},
-                     {COORDINATES_FILE, stations_coords_buf}, metas);
-  for (auto const& ds100 : metas.ds100_to_eva_num_) {
-    stations[ds100.second].ds100.push_back(ds100.first.to_str());
-  }
-
+  auto bitfields_buf = load_file(stamm_root / BITFIELDS_FILE);
   bitfield_builder bb(parse_bitfields({BITFIELDS_FILE, bitfields_buf}));
 
-  return shared_data(parse_interval({BASIC_DATA_FILE, basic_data_buf}),
-                     std::move(metas), std::move(stations),
-                     parse_categories({CATEGORIES_FILE, categories_buf}),
-                     parse_attributes({ATTRIBUTES_FILE, attributes_buf}),
-                     parse_bitfields({BITFIELDS_FILE, bitfields_buf}),
-                     parse_platform_rules({PLATFORMS_FILE, platforms_buf}, b),
-                     parse_directions({DIRECTIONS_FILE, directions_buf}),
-                     parse_providers({PROVIDERS_FILE, providers_buf}));
-}
+  route_builder rb;
 
-void hrd_parser::parse_services_files(fs::path const& hrd_root,
-                                      service_builder& sb,
-                                      rule_service_builder& rsb) {
+  auto stations_names_buf = load_file(stamm_root / STATIONS_FILE);
+  auto stations_coords_buf = load_file(stamm_root / COORDINATES_FILE);
+  auto infotext_buf = load_file(stamm_root / INFOTEXT_FILE);
+  station_meta_data metas;
+  parse_station_meta_data({INFOTEXT_FILE, infotext_buf}, metas);
+  station_builder stb(parse_stations({STATIONS_FILE, stations_names_buf},
+                                     {COORDINATES_FILE, stations_coords_buf},
+                                     metas));
+
+  auto categories_buf = load_file(stamm_root / CATEGORIES_FILE);
+  category_builder cb(parse_categories({CATEGORIES_FILE, categories_buf}));
+
+  auto providers_buf = load_file(stamm_root / PROVIDERS_FILE);
+  provider_builder pb(parse_providers({PROVIDERS_FILE, providers_buf}));
+
+  line_builder lb;
+
+  auto attributes_buf = load_file(stamm_root / ATTRIBUTES_FILE);
+  attribute_builder ab(parse_attributes({ATTRIBUTES_FILE, attributes_buf}));
+
+  auto directions_buf = load_file(stamm_root / DIRECTIONS_FILE);
+  direction_builder db(parse_directions({DIRECTIONS_FILE, directions_buf}));
+
+  auto platforms_buf = load_file(stamm_root / PLATFORMS_FILE);
+  service_builder sb(
+      parse_platform_rules({PLATFORMS_FILE, platforms_buf}, fbb));
+
+  service_rules rules;
+  auto through_services_buf = load_file(stamm_root / THROUGH_SERVICES_FILE);
+  parse_through_service_rules({THROUGH_SERVICES_FILE, through_services_buf},
+                              bb.hrd_bitfields_, rules);
+  auto merge_split_rules_buf =
+      load_file(stamm_root / MERGE_SPLIT_SERVICES_FILE);
+  parse_merge_split_service_rules(
+      {MERGE_SPLIT_SERVICES_FILE, merge_split_rules_buf}, bb.hrd_bitfields_,
+      rules);
+  rule_service_builder rsb(rules);
+
+  // collect services files
   auto services_files_root = hrd_root / "fahrten";
-
   std::vector<fs::path> service_files;
   for (auto const& entry : boost::make_iterator_range(
            fs::directory_iterator(services_files_root), {})) {
@@ -144,24 +125,34 @@ void hrd_parser::parse_services_files(fs::path const& hrd_root,
     }
   }
 
+  // parse and export services
   int count = 0;
   for (auto const& service_file : service_files) {
     LOG(info) << "parsing " << ++count << "/" << service_files.size() << " "
               << service_file;
-    parse_services_file(service_file, sb, rsb);
+    auto buf = load_file(service_file);
+    for_each_service({service_file.string().c_str(), buf}, bb.hrd_bitfields_,
+                     [&](hrd_service const& s) {
+                       if (!rsb.add_service(s)) {
+                         sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db,
+                                           fbb);
+                       }
+                     });
   }
-}
+  rsb.resolve_rule_services();
+  rsb.create_rule_services([&](hrd_service const& s, FlatBufferBuilder& fbb) {
+    sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
+    return sb.fbs_services_.back();
+  }, fbb);
 
-void hrd_parser::parse_services_file(fs::path const& services_file_path,
-                                     service_builder& sb,
-                                     rule_service_builder& rsb) {
-  auto buf = load_file(services_file_path);
-  for_each_service({services_file_path.string().c_str(), buf},
-                   sb.bb_.hrd_bitfields_, [](hrd_service const& s) {
-                     if (!rsb.add_service(s)) {
-                       sb.build_service(s);
-                     }
-                   });
+  auto basic_data_buf = load_file(stamm_root / BASIC_DATA_FILE);
+  auto footpaths = create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb);
+  auto interval = parse_interval({BASIC_DATA_FILE, basic_data_buf});
+  fbb.Finish(CreateSchedule(fbb, fbb.CreateVector(sb.fbs_services_),
+                            fbb.CreateVector(values(stb.fbs_stations_)),
+                            fbb.CreateVector(values(rb.routes_)), &interval,
+                            footpaths,
+                            fbb.CreateVector(rsb.fbs_rule_services)));
 }
 
 }  // hrd

@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service/range.h"
+#include "motis/loader/model/hrd/range.h"
 
 #include <cassert>
 

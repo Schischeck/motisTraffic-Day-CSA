@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
+#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
 
 #include <set>
 #include <vector>
@@ -8,7 +8,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 
 using namespace parser;
 using namespace motis::logging;

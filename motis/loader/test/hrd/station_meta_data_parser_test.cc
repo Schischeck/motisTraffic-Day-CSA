@@ -11,12 +11,12 @@
 #include "motis/loader/parsers/hrd/files.h"
 #include "motis/loader/parsers/hrd/station_meta_data_parser.h"
 
-using namespace parser;
-namespace fs = boost::filesystem;
-
 namespace motis {
 namespace loader {
 namespace hrd {
+
+using namespace parser;
+namespace fs = boost::filesystem;
 
 TEST(station_meta_data_parser, normal_change_times_minimal_file) {
   auto const info_text_file_buf =

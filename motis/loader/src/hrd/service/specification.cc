@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service/specification.h"
+#include "motis/loader/model/hrd/specification.h"
 
 #include <cctype>
 

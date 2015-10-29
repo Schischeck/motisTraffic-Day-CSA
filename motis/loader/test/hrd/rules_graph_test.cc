@@ -4,7 +4,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/range/iterator_range.hpp"
 
-#include "../../include/motis/loader/parsers/hrd/bitfield_builder.h"
+#include "motis/loader/builders/hrd/bitfield_builder.h"
 #include "gtest/gtest.h"
 
 #include "test_spec.h"
@@ -13,13 +13,13 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 #include "motis/loader/util.h"
+#include "motis/loader/model/hrd/split_service.h"
 #include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/service/split_service.h"
-#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/rule_service_builder.h"
+#include "motis/loader/parsers/hrd/through_services_parser.h"
+#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
+#include "motis/loader/builders/hrd/rule_service_builder.h"
 
 namespace motis {
 namespace loader {
@@ -52,7 +52,7 @@ protected:
     }
 
     flatbuffers::FlatBufferBuilder fbb;
-    bitfield_builder bt(hrd_bitfields, fbb);
+    bitfield_builder bt(hrd_bitfields);
     std::vector<hrd_service> expanded_services;
     for (auto const& services_filename : services_filenames) {
       filenames_.emplace_back(services_filename);
@@ -60,7 +60,7 @@ protected:
 
       LOG(info) << "load hrd services file: " << specs_.back().lf_.name;
       for (auto const& s : specs_.back().get_hrd_services()) {
-        expand_traffic_days(s, bt, expanded_services);
+        expand_traffic_days(s, bt.hrd_bitfields_, expanded_services);
       }
     }
 
@@ -76,7 +76,7 @@ protected:
     for (auto const& s : expanded_services) {
       service_rules_.add_service(s);
     }
-    service_rules_.resolve();
+    service_rules_.resolve_rule_services();
   }
 
   void print_services() const {

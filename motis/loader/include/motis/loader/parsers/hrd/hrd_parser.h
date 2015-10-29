@@ -20,15 +20,6 @@ struct hrd_parser : public format_parser {
 
   void parse(boost::filesystem::path const& path,
              flatbuffers::FlatBufferBuilder&) override;
-
-  shared_data parse_shared_data(boost::filesystem::path const& hrd_root,
-                                flatbuffers::FlatBufferBuilder&);
-
-  void parse_services_files(boost::filesystem::path const& hrd_root,
-                            service_builder&, rule_service_builder&);
-
-  void parse_services_file(boost::filesystem::path const& services_file_path,
-                           service_builder&, rule_service_builder&);
 };
 
 }  // namespace hrd

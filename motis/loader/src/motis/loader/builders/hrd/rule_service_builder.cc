@@ -152,8 +152,8 @@ void rule_service_builder::resolve_rule_services() {
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
         // remove all layer nodes that does not have any traffic day left
         layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
-                      return n->traffic_days().none();
-                    }), end(layer));
+          return n->traffic_days().none();
+        }), end(layer));
 
         // explore each node recursively and create/collect rule services
         std::for_each(begin(layer), end(layer), [&](node* n) {
@@ -177,37 +177,35 @@ void rule_service_builder::resolve_rule_services() {
 }
 
 void create_rule_service(
-    rule_service const& rs,
-    std::binary_function<hrd_service const&, FlatBufferBuilder&,
-                         Offset<Service>> sb_fun,
+    rule_service const& rs, rule_service_builder::service_builder_fun sbf,
     std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
 
-  std::map<hrd_service*, flatbuffers::Offset<Service>> services;
+  std::map<hrd_service const*, Offset<Service>> services;
   for (auto const& s : rs.services) {
     auto const* service = s.service.get();
-    services[service] = sb_fun(*service, fbb);
+    services[service] = sbf(std::cref(*service), std::ref(fbb));
   }
 
-  std::vector<flatbuffers::Offset<Rule>> fbb_rules;
+  std::vector<Offset<Rule>> fbb_rules;
   for (auto const& r : rs.rules) {
-    fbb_rules.emplace_back(fbb, reinterpret_cast<RuleType>(r.rule_info.type),
-                           services.find(r.s1)->second,
-                           services.find(r.s2)->second, r.rule_info.eva_num_1,
-                           r.rule_info.eva_num_2);
+
+    fbb_rules.push_back(CreateRule(
+        fbb, r.rule_info.type == 0 ? RuleType_THROUGH : RuleType_MERGE_SPLIT,
+        services.find(r.s1)->second, services.find(r.s2)->second,
+        r.rule_info.eva_num_1, r.rule_info.eva_num_2));
   }
-  fbs_rule_services.emplace_back(fbb, fbb.CreateVector(fbb_rules));
+  fbs_rule_services.push_back(
+      CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
 }
 
-void rule_service_builder::create_rule_services(
-    std::binary_function<hrd_service const&, FlatBufferBuilder&,
-                         Offset<Service>> sb_fun,
-    FlatBufferBuilder& fbb) {
+void rule_service_builder::create_rule_services(service_builder_fun sbf,
+                                                FlatBufferBuilder& fbb) {
   for (auto const& s : origin_services_) {
-    sb_fun(s, fbb);
+    sbf(std::cref(*s.get()), std::ref(fbb));
   }
   for (auto const& rs : rule_services_) {
-    create_rule_service(rs, sb_fun, fbs_rule_services, fbb);
+    create_rule_service(rs, sbf, fbs_rule_services, fbb);
   }
 }
 

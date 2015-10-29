@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/hrd/service_rules/rules_graph.h"
+#include "motis/loader/model/hrd/rules_graph.h"
 
 namespace motis {
 namespace loader {

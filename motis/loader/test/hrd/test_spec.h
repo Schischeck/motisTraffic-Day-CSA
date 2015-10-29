@@ -7,9 +7,9 @@
 #include "boost/filesystem/path.hpp"
 
 #include "motis/loader/util.h"
-
-#include "motis/loader/parsers/hrd/service/specification.h"
-#include "motis/loader/parsers/hrd/service/hrd_service.h"
+#include "motis/loader/loaded_file.h"
+#include "motis/loader/model/hrd/specification.h"
+#include "motis/loader/model/hrd/hrd_service.h"
 
 namespace motis {
 namespace loader {

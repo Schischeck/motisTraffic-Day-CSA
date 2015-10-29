@@ -1,11 +1,11 @@
-#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
+#include "motis/loader/parsers/hrd/through_services_parser.h"
 
 #include "parser/cstr.h"
 #include "parser/arg_parser.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 
 using namespace parser;
 using namespace motis::logging;
