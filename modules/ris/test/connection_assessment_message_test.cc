@@ -53,7 +53,7 @@ TEST(connection_assessment_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444187918, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444193880, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
@@ -94,7 +94,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 <Bf EvaNr=\"8098263\"/>\
 <Service Id=\"85777037\" IdBfEvaNr=\"8002980\" IdTyp=\"Ab\" IdVerwaltung=\"07\"\
  IdZGattung=\"S\" IdZGattungInt=\"s\" IdZNr=\"8326\" IdZeit=\"20151006233600\"\
- SourceZNR=\"EFZ\" ZielBfEvaNr=\"8004204\" Zielzeit=\"20151007005600\">\
+ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8004204\" Zielzeit=\"20151007010500\">\
 <ListZug/>\
 </Service>\
 <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007001900\"/>\
@@ -108,7 +108,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 <Bf EvaNr=\"8098263\"/>\
 <Service Id=\"85967814\" IdBfEvaNr=\"8002347\" IdTyp=\"Ab\" IdVerwaltung=\"07\"\
  IdZGattung=\"S\" IdZGattungInt=\"s\" IdZNr=\"8426\" IdZeit=\"20151006234100\"\
- SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000119\" Zielzeit=\"20151007010500\">\
+ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000119\" Zielzeit=\"20151007005600\">\
 <ListZug/>\
 </Service>\
 <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007002100\"/>\
@@ -144,7 +144,7 @@ TEST(connection_assessment_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168788, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444172700, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());

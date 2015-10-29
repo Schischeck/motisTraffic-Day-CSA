@@ -19,6 +19,10 @@ using namespace pugi;
 using namespace parser;
 using namespace motis::ris;
 
+using parsed_msg_t = std::pair<std::time_t, Offset<Message>>;
+using parser_func_t =
+    std::function<parsed_msg_t(FlatBufferBuilder&, xml_node const&)>;
+
 std::time_t parse_time(cstr const& raw) {
   // format YYYYMMDDhhmmssfff (fff = millis)
   if (raw.length() < 14) {
@@ -48,7 +52,7 @@ EventType parse_event_type(cstr const& raw) {
                                               {"Ziel", EventType_Arrival}});
   auto it = map.find(raw);
   if (it == end(map)) {
-    throw std::runtime_error("currupt RIS message");
+    throw std::runtime_error("corrupt RIS message (bad event type)");
   }
   return it->second;
 }
@@ -96,27 +100,37 @@ void foreach_event(FlatBufferBuilder& fbb, xml_node const& msg, F func,
   }
 }
 
-Offset<Message> parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
-                                DelayType delay_type) {
+std::time_t parse_target_time(xml_node const& node) {
+  auto const& scheduled_attr = child_attr(node, "Service", "Zielzeit");
+  if (scheduled_attr.empty()) {
+    throw std::runtime_error("corrupt RIS message (missing target time)");
+  }
+  return parse_time(scheduled_attr.value());
+}
+
+parsed_msg_t parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
+                             DelayType type) {
   std::vector<Offset<UpdatedEvent>> events;
   foreach_event(fbb, msg, [&](Offset<Event> const& event,
                               xml_node const& e_node, xml_node const&) {
-    auto attr_name = (delay_type == DelayType_Is) ? "Ist" : "Prog";
+    auto attr_name = (type == DelayType_Is) ? "Ist" : "Prog";
     auto updated = parse_time(child_attr(e_node, "Zeit", attr_name).value());
     events.push_back(CreateUpdatedEvent(fbb, event, updated));
   });
-  return CreateMessage(
-      fbb, MessageUnion_DelayMessage,
-      CreateDelayMessage(fbb, delay_type, fbb.CreateVector(events)).Union());
+  return {parse_target_time(msg),
+          CreateMessage(
+              fbb, MessageUnion_DelayMessage,
+              CreateDelayMessage(fbb, type, fbb.CreateVector(events)).Union())};
 }
 
-Offset<Message> parse_cancel_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
+parsed_msg_t parse_cancel_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   std::vector<Offset<Event>> events;
   foreach_event(fbb, msg, [&](Offset<Event> const& event, xml_node const&,
                               xml_node const&) { events.push_back(event); });
-  return CreateMessage(
-      fbb, MessageUnion_CancelMessage,
-      CreateCancelMessage(fbb, fbb.CreateVector(events)).Union());
+  return {parse_target_time(msg),
+          CreateMessage(
+              fbb, MessageUnion_CancelMessage,
+              CreateCancelMessage(fbb, fbb.CreateVector(events)).Union())};
 }
 
 Offset<AdditionalEvent> parse_additional_event(FlatBufferBuilder& fbb,
@@ -129,19 +143,19 @@ Offset<AdditionalEvent> parse_additional_event(FlatBufferBuilder& fbb,
   return CreateAdditionalEvent(fbb, event, category, track);
 }
 
-Offset<Message> parse_addition_msg(FlatBufferBuilder& fbb,
-                                   xml_node const& msg) {
+parsed_msg_t parse_addition_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   std::vector<Offset<AdditionalEvent>> events;
   foreach_event(fbb, msg, [&](Offset<Event> const& event,
                               xml_node const& e_node, xml_node const& t_node) {
     events.push_back(parse_additional_event(fbb, event, e_node, t_node));
   });
-  return CreateMessage(
-      fbb, MessageUnion_AdditionMessage,
-      CreateAdditionMessage(fbb, fbb.CreateVector(events)).Union());
+  return {parse_target_time(msg),
+          CreateMessage(
+              fbb, MessageUnion_AdditionMessage,
+              CreateAdditionMessage(fbb, fbb.CreateVector(events)).Union())};
 }
 
-Offset<Message> parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
+parsed_msg_t parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   std::vector<Offset<Event>> cancelled_events;
   foreach_event(fbb, msg,
                 [&](Offset<Event> const& event, xml_node const&,
@@ -160,11 +174,12 @@ Offset<Message> parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
       },
       "./Service/ListUml/Uml/ListZug/Zug");
 
-  return CreateMessage(
-      fbb, MessageUnion_RerouteMessage,
-      CreateRerouteMessage(fbb, fbb.CreateVector(cancelled_events),
-                           fbb.CreateVector(new_events))
-          .Union());
+  return {parse_target_time(msg),
+          CreateMessage(
+              fbb, MessageUnion_RerouteMessage,
+              CreateRerouteMessage(fbb, fbb.CreateVector(cancelled_events),
+                                   fbb.CreateVector(new_events))
+                  .Union())};
 }
 
 Offset<Event> parse_standalone_event(FlatBufferBuilder& fbb,
@@ -178,49 +193,63 @@ Offset<Event> parse_standalone_event(FlatBufferBuilder& fbb,
                      event_type, scheduled);
 }
 
-Offset<Message> parse_conn_decision_msg(FlatBufferBuilder& fbb,
-                                        xml_node const& msg) {
+parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
+                                     xml_node const& msg) {
   auto const& from_e_node = msg.child("ZE");
   auto from = parse_standalone_event(fbb, from_e_node);
+  auto target_time = parse_target_time(from_e_node);
 
   std::vector<Offset<ConnectionDecision>> decisions;
   for (auto&& connection : from_e_node.select_nodes("./ListAnschl/Anschl")) {
     auto const& connection_node = connection.node();
-    auto to = parse_standalone_event(fbb, connection_node.child("ZE"));
+    auto const& to_e_node = connection_node.child("ZE");
+    auto to = parse_standalone_event(fbb, to_e_node);
     auto hold = cstr(connection_node.attribute("Status").value()) == "Gehalten";
     decisions.push_back(CreateConnectionDecision(fbb, to, hold));
+
+    auto to_target_time = parse_target_time(to_e_node);
+    if (to_target_time > target_time) {
+      target_time = to_target_time;
+    }
   }
 
-  return CreateMessage(
-      fbb, MessageUnion_ConnectionDecisionMessage,
-      CreateConnectionDecisionMessage(fbb, from, fbb.CreateVector(decisions))
-          .Union());
+  return {target_time,
+          CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
+                        CreateConnectionDecisionMessage(
+                            fbb, from, fbb.CreateVector(decisions))
+                            .Union())};
 }
 
-Offset<Message> parse_conn_assessment_msg(FlatBufferBuilder& fbb,
-                                          xml_node const& msg) {
+parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
+                                       xml_node const& msg) {
   auto const& from_e_node = msg.child("ZE");
   auto from = parse_standalone_event(fbb, from_e_node);
+  auto target_time = parse_target_time(from_e_node);
 
   std::vector<Offset<ConnectionAssessment>> assessments;
   for (auto&& connection : from_e_node.select_nodes("./ListAnschl/Anschl")) {
     auto const& connection_node = connection.node();
-    auto to = parse_standalone_event(fbb, connection_node.child("ZE"));
+    auto const& to_e_node = connection_node.child("ZE");
+    auto to = parse_standalone_event(fbb, to_e_node);
     auto assessment = connection_node.attribute("Bewertung").as_int();
     assessments.push_back(CreateConnectionAssessment(fbb, to, assessment));
+
+    auto to_target_time = parse_target_time(to_e_node);
+    if (to_target_time > target_time) {
+      target_time = to_target_time;
+    }
   }
 
-  return CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
-                       CreateConnectionAssessmentMessage(
-                           fbb, from, fbb.CreateVector(assessments))
-                           .Union());
+  return {target_time,
+          CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
+                        CreateConnectionAssessmentMessage(
+                            fbb, from, fbb.CreateVector(assessments))
+                            .Union())};
 }
 
 boost::optional<ris_message> parse_message(xml_node const& msg,
                                            std::time_t t_out) {
-  using parser_t =
-      std::function<Offset<Message>(FlatBufferBuilder&, xml_node const&)>;
-  static std::map<cstr, parser_t> map(
+  static std::map<cstr, parser_func_t> map(
       {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
        {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
        {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
@@ -231,13 +260,14 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
 
   auto const& payload = msg.first_child();
   auto it = map.find(payload.name());
-  if(it == end(map)) {
+  if (it == end(map)) {
     return {};
   }
 
   FlatBufferBuilder fbb;
-  fbb.Finish(it->second(fbb, payload));
-  return {{0ul, t_out, std::move(fbb)}};
+  auto const parsed = it->second(fbb, payload);
+  fbb.Finish(parsed.second);
+  return {{parsed.first, t_out, std::move(fbb)}};
 }
 
 std::vector<ris_message> motis::ris::parse_xmls(std::vector<buffer>&& strings) {

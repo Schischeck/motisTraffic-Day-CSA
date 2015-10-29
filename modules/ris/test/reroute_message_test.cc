@@ -47,7 +47,7 @@ TEST(reroute_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168874, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444335660, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());

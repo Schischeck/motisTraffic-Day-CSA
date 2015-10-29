@@ -50,7 +50,7 @@ TEST(addition_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444169425, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444235100, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
@@ -143,7 +143,7 @@ TEST(addition_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444185492, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444316640, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());

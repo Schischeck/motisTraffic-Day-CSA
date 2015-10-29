@@ -51,7 +51,7 @@ TEST(connection_decision_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444227298, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444233600, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
@@ -122,7 +122,7 @@ TEST(connection_decision_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444227293, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444246920, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());

@@ -54,7 +54,7 @@ TEST(cancel_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444194395, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444197420, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
@@ -127,7 +127,7 @@ TEST(ausfall_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444227300, message.timestamp);
-  // TODO verify scheduled
+  EXPECT_EQ(1444228560, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
