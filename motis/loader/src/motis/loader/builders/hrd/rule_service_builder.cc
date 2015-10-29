@@ -37,12 +37,13 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
 }
 
 bool rule_service_builder::add_service(hrd_service const& s) {
-  std::set<service_rule*> rules;
-  for (auto const& entry : rules_) {
-    for (auto const& rule : entry.second) {
-      rules.insert(rule.get());
-    }
-  }
+  // TODO (Felix Guendling, Tobias Raffel) check
+  //  std::set<service_rule*> rules;
+  //  for (auto const& entry : rules_) {
+  //    for (auto const& rule : entry.second) {
+  //      rules.insert(rule.get());
+  //    }
+  //  }
 
   std::pair<hrd_service const*, hrd_service*> copied_service;
   copied_service.first = &s;  // the original service
