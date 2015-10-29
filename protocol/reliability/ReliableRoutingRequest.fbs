@@ -2,6 +2,9 @@ include "routing/RoutingRequest.fbs";
 
 namespace motis.reliability;
 
+enum RequestType : byte { Rating = 1, ReliableSearch = 2, LateConnection = 3 }
+
 table ReliableRoutingRequest {
   request:motis.routing.RoutingRequest;
+  request_type:RequestType = Rating;
 }

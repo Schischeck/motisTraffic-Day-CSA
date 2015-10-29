@@ -54,23 +54,32 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    std::string const& from_eva,
                                    std::string const& to_name,
                                    std::string const& to_eva,
-                                   motis::time interval_begin,
-                                   motis::time interval_end,
-                                   std::tuple<int, int, int> ddmmyyyy) {
+                                   time_t interval_begin, time_t interval_end) {
   FlatBufferBuilder b;
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
-  routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
-                             to_unix_time(ddmmyyyy, interval_end));
+  routing::Interval interval(interval_begin, interval_end);
   b.Finish(CreateMessage(
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, routing::Type::Type_PreTrip,
                                     routing::Direction::Direction_Forward,
                                     b.CreateVector(station_elements)).Union()));
   return module::make_msg(b);
+}
+
+module::msg_ptr to_routing_request(std::string const& from_name,
+                                   std::string const& from_eva,
+                                   std::string const& to_name,
+                                   std::string const& to_eva,
+                                   motis::time interval_begin,
+                                   motis::time interval_end,
+                                   std::tuple<int, int, int> ddmmyyyy) {
+  return to_routing_request(from_name, from_eva, to_name, to_eva,
+                            to_unix_time(ddmmyyyy, interval_begin),
+                            to_unix_time(ddmmyyyy, interval_end));
 }
 
 Offset<routing::RoutingResponse> convert_routing_response(
@@ -247,7 +256,7 @@ module::msg_ptr to_reliable_routing_request(
     std::string const& from_name, std::string const& from_eva,
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy) {
+    std::tuple<int, int, int> ddmmyyyy, RequestType type) {
   FlatBufferBuilder b;
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
@@ -256,13 +265,13 @@ module::msg_ptr to_reliable_routing_request(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
                              to_unix_time(ddmmyyyy, interval_end));
-  b.Finish(
-      CreateMessage(b, MsgContent_ReliableRoutingRequest,
-                    reliability::CreateReliableRoutingRequest(
-                        b, routing::CreateRoutingRequest(
-                               b, &interval, routing::Type::Type_PreTrip,
-                               routing::Direction::Direction_Forward,
-                               b.CreateVector(station_elements))).Union()));
+  b.Finish(CreateMessage(b, MsgContent_ReliableRoutingRequest,
+                         reliability::CreateReliableRoutingRequest(
+                             b, routing::CreateRoutingRequest(
+                                    b, &interval, routing::Type::Type_PreTrip,
+                                    routing::Direction::Direction_Forward,
+                                    b.CreateVector(station_elements)),
+                             type).Union()));
   return module::make_msg(b);
 }
 

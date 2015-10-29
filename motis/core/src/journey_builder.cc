@@ -10,6 +10,8 @@
 namespace motis {
 namespace journey_builder {
 
+namespace detail {
+
 journey::stop::event_info to_event_info(routing::EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
@@ -103,9 +105,12 @@ uint16_t get_transfers(journey const& journey) {
                        [](journey::stop const& s) { return s.interchange; });
 }
 
+}  // namespace detail
+
 std::vector<journey> to_journeys(
     routing::RoutingResponse const* response,
     std::vector<std::unique_ptr<category>> const& categories) {
+  using namespace detail;
   std::vector<journey> journeys;
   for (auto conn = response->connections()->begin();
        conn != response->connections()->end(); ++conn) {

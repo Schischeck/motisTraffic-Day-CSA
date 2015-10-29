@@ -28,6 +28,9 @@ struct reliability : public motis::module::module {
     return *precomputed_distributions_;
   }
 
+  void send_message(motis::module::msg_ptr msg, motis::module::sid session,
+                    motis::module::callback cb);
+
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>
       precomputed_distributions_;

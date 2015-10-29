@@ -45,17 +45,20 @@ void reliability::init() {
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
-  if (msg->content_type() == MsgContent_ReliableRoutingRequest) {
-    auto req = msg->content<ReliableRoutingRequest const*>();
+  auto req = msg->content<ReliableRoutingRequest const*>();
+  if (req->request_type() == RequestType_Rating) {
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
                                           this, p::_1, p::_2, cb));
+  }
+  if (req->request_type() == RequestType_ReliableSearch) {
+    return cb({}, error::ok);
   } else {
     return cb({}, error::not_implemented);
   }
 }
 
-void reliability::handle_routing_response(motis::module::msg_ptr msg,
+void reliability::handle_routing_response(msg_ptr msg,
                                           boost::system::error_code e,
                                           callback cb) {
   if (e) {
@@ -86,6 +89,10 @@ void reliability::handle_routing_response(motis::module::msg_ptr msg,
                 res, schedule.categories, ratings, simple_ratings,
                 true /* short output */),
             error::ok);
+}
+
+void reliability::send_message(msg_ptr msg, sid session, callback cb) {
+  return dispatch(msg, session, cb);
 }
 
 }  // namespace reliability
