@@ -20,7 +20,6 @@ struct connection_graph {
     };
     struct interchange_info {
       unsigned short departing_journey_index;
-      duration interchange_time;
     };
 
     unsigned short index;

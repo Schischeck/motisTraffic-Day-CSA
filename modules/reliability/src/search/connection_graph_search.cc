@@ -87,7 +87,7 @@ module::msg_ptr to_routing_request(connection_graph& conn_graph,
                                    connection_graph::stop const& stop) {
   auto const& last_alternative = latest_departing_alternative(conn_graph, stop);
   time const time_begin = last_alternative.stops.back().arrival.timestamp;
-  time const time_end = time_begin + (15 * 3600);
+  time const time_end = time_begin + (15 * 60);
   auto const& arrival_stop =
       conn_graph.stops.at(connection_graph::stop::Index_arrival_stop);
   return flatbuffers_tools::to_routing_request(
@@ -123,7 +123,7 @@ void handle_base_response(motis::module::msg_ptr msg,
   auto journeys = journey_builder::to_journeys(
       msg->content<routing::RoutingResponse const*>(),
       context->schedule_.categories);
-  if (journeys.size()) {
+  if (journeys.size() == 0) {
     return build_result(Base_failed, context);
   }
 
