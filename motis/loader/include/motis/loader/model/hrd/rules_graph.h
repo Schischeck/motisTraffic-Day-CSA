@@ -18,6 +18,7 @@ struct node {
 
   virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
+  virtual void print() const = 0;
 
   std::vector<node*> parents_;
 };
@@ -31,6 +32,7 @@ struct service_node : node {
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
+  void print() const override;
 
   hrd_service* service_;
 };
@@ -44,6 +46,7 @@ struct rule_node : node {
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
+  void print() const override;
 
   service_node* s1_;
   service_node* s2_;
@@ -60,6 +63,7 @@ struct layer_node : public node {
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
+  void print() const override;
 
   node* left_;
   node* right_;

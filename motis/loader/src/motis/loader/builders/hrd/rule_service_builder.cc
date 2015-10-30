@@ -7,12 +7,15 @@
 #include <tuple>
 #include <utility>
 
+#include "motis/core/common/logging.h"
+
 #include "motis/loader/model/hrd/rules_graph.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
+using namespace logging;
 using namespace flatbuffers;
 
 hrd_service* get_or_create(
@@ -62,6 +65,7 @@ bool rule_service_builder::add_service(hrd_service const& s) {
 void create_rule_and_service_nodes(
     service_rule* r, rules_graph& rg,
     std::map<hrd_service*, node*>& service_to_node) {
+
   for (auto const& comb : r->service_combinations()) {
     auto const& s1 = std::get<0>(comb);
     auto const& s2 = std::get<1>(comb);
@@ -105,8 +109,10 @@ void build_remaining_layers(rules_graph& rg) {
   int next_layer_idx = 1;
 
   while (!rg.layers_[current_layer_idx].empty()) {
+    if (current_layer_idx == 4) {
+      break;
+    }
     rg.layers_.resize(next_layer_idx + 1);
-
     std::set<std::pair<node*, node*>> considered_combinations;
     for (auto const& node : rg.layers_[current_layer_idx]) {
       for (auto const& child : node->children()) {
@@ -133,6 +139,11 @@ void build_remaining_layers(rules_graph& rg) {
         }
       }
     }
+
+    LOG(debug) << "#layer_nodes n on layer x: "
+               << rg.layers_[current_layer_idx].size() << ","
+               << current_layer_idx;
+
     ++current_layer_idx;
     ++next_layer_idx;
   }
@@ -142,15 +153,20 @@ void build_remaining_layers(rules_graph& rg) {
 void build_graph(service_rules const& rules, rules_graph& rg) {
   build_first_layer(rules, rg);
   build_remaining_layers(rg);
+  rg.print_nodes();
 }
 
 void rule_service_builder::resolve_rule_services() {
+  scoped_timer("resolve service rules");
+
   rules_graph rg;
   build_graph(rules_, rg);
+  LOG(info) << "#layers: " << rg.layers_.size();
 
   // iterate all layers beginning with the top level layer
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
+        LOG(info) << "#current layer_nodes: " << layer.size();
         // remove all layer nodes that does not have any traffic day left
         layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
           return n->traffic_days().none();
@@ -181,7 +197,6 @@ void create_rule_service(
     rule_service const& rs, rule_service_builder::service_builder_fun sbf,
     std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
-
   std::map<hrd_service const*, Offset<Service>> services;
   for (auto const& s : rs.services) {
     auto const* service = s.service.get();
@@ -202,9 +217,12 @@ void create_rule_service(
 
 void rule_service_builder::create_rule_services(service_builder_fun sbf,
                                                 FlatBufferBuilder& fbb) {
+  scoped_timer("create rule and remaining services");
+  LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     sbf(std::cref(*s.get()), std::ref(fbb));
   }
+  LOG(info) << "#rule services: " << rule_services_.size();
   for (auto const& rs : rule_services_) {
     create_rule_service(rs, sbf, fbs_rule_services, fbb);
   }
