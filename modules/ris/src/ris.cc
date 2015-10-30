@@ -66,7 +66,7 @@ void ris::init() {
   timer_.reset(new boost::asio::deadline_timer(get_thread_pool()));
 
   db_init();
-  read_files_ = db_get_stored_files();
+  read_files_ = db_get_files();
   dispatch(pack(db_get_messages(0, 0)), 0, NOOP_CALLBACK); // TODO
 
   schedule_update(error_code());

@@ -1,11 +1,11 @@
 #include "motis/ris/database.h"
 
-#include <iostream>
-
 #include "sqlite3.h"
 #include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
+
+#include "motis/ris/ris_message.h"
 
 namespace sql = sqlpp::sqlite3;
 
@@ -46,26 +46,24 @@ SQLPP_DECLARE_TABLE(
 // clang-format on
 }  // namespace db
 
-sql::connection_config config() {
+db_ptr default_db() {
   sql::connection_config conf;
   conf.path_to_database = "ris.sqlite3";
   conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
   conf.debug = false;
-  return conf;
+  return db_ptr(new sql::connection(conf));
 }
 
-void db_init() {
-  sql::connection db(config());
-  db.execute(db::kCreateTabFile);
-  db.execute(db::kCreateTabMessage);
+void db_init(db_ptr const& db) {
+  db->execute(db::kCreateTabFile);
+  db->execute(db::kCreateTabMessage);
 }
 
-std::set<std::string> db_get_stored_files() {
+std::set<std::string> db_get_files(db_ptr const& db) {
   std::set<std::string> result;
 
-  sql::connection db(config());
   db::ris_file::ris_file f;
-  for (auto const& row : db(select(f.name).from(f).where(true))) {
+  for (auto const& row : (*db)(select(f.name).from(f).where(true))) {
     result.insert(row.name);
   }
 
@@ -73,32 +71,41 @@ std::set<std::string> db_get_stored_files() {
 }
 
 void db_put_messages(std::string const& filename,
-                     std::vector<ris_message> const& msgs) {
-  sql::connection db(config());
-  db.start_transaction();
+                     std::vector<ris_message> const& msgs,
+                     db_ptr const& db) {
+  db->start_transaction();
 
   db::ris_file::ris_file f;
-  db(insert_into(f).set(f.name = filename));
+  (*db)(insert_into(f).set(f.name = filename));
 
   db::ris_message::ris_message m;
-  auto insert = db.prepare(insert_into(m).set(
+  auto insert = db->prepare(insert_into(m).set(
       m.scheduled = parameter(m.scheduled),
       m.timestamp = parameter(m.timestamp), m.msg = parameter(m.msg)));
   for (auto const& msg : msgs) {
     insert.params.scheduled = msg.scheduled;
     insert.params.timestamp = msg.timestamp;
     insert.params.msg = {msg.data(), msg.size()};
-    db(insert);
+    (*db)(insert);
   }
 
-  db.commit_transaction();
+  db->commit_transaction();
 }
 
-std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t /*from*/,
-                                                        std::time_t /*to*/) {
-  // TODO
-  
-  return {};
+std::vector<std::basic_string<uint8_t>> db_get_messages(
+    std::time_t from, std::time_t to, db_ptr const& db) {
+  std::vector<std::basic_string<uint8_t>> result;
+
+  db::ris_message::ris_message m;
+  for (auto const& row :
+       (*db)(select(m.msg)
+                 .from(m)
+                 .where(m.scheduled > from and m.scheduled <= to)
+                 .order_by(m.timestamp.asc()))) {
+    result.push_back(row.msg);
+  }
+
+  return result;
 }
 
 }  // namespace ris
