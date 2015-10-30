@@ -5,8 +5,10 @@
 
 #include "motis/core/common/date_util.h"
 
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_search.h"
+#include "motis/reliability/search/simple_connection_graph_optimizer.h"
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
@@ -40,11 +42,9 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    ASSERT_EQ(e, nullptr);
-    std::vector<connection_graph> cgs;  // TODO
+  auto test_cb = [&](std::vector<std::shared_ptr<connection_graph> > cgs) {
     ASSERT_EQ(cgs.size(), 1);
-    auto const cg = cgs.front();
+    auto const cg = *cgs.front();
 
     ASSERT_EQ(cg.stops.size(), 3);
     {
@@ -127,8 +127,9 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     }
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), *schedule_.get(), 0,
+             simple_optimizer::complete, test_cb);
 }
 
 }  // namespace connection_graph_search

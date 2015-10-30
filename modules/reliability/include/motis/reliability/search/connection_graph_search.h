@@ -1,24 +1,26 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "motis/module/module.h"
+
+#include "motis/reliability/search/connection_graph.h"
 
 namespace motis {
 namespace reliability {
 struct reliability;
 struct ReliableRoutingRequest;
 namespace search {
-struct connection_graph;
 namespace connection_graph_search {
+typedef std::function<bool(connection_graph::stop const&,
+                           connection_graph const&)> complete_func;
+typedef std::function<void(std::vector<std::shared_ptr<connection_graph> >)>
+    callback;
 
 void search_cgs(ReliableRoutingRequest const*, reliability&, schedule const&,
-                motis::module::sid, motis::module::callback);
+                motis::module::sid, complete_func, callback);
 
-namespace detail {
-struct context;
-void handle_base_response(motis::module::msg_ptr, boost::system::error_code,
-                          connection_graph&, context&, motis::module::sid,
-                          motis::module::callback);
-}  // namespace detail
 }  // namespace connection_graph_search
 }  // namespace search
 }  // namespace reliability

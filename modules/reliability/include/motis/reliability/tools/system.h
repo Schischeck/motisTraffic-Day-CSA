@@ -51,8 +51,8 @@ struct setup {
     }
   }
 
-  reliability const& reliability_module() const {
-    return dynamic_cast<reliability const&>(*modules[1]);
+  reliability& reliability_module() {
+    return dynamic_cast<reliability&>(*modules[1]);
   }
 };  // struct setup
 }  // namespace system
