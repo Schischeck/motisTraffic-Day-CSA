@@ -1,6 +1,7 @@
 #include "motis/loader/graph_builder.h"
 
 #include <functional>
+#include <unordered_set>
 
 #include "parser/cstr.h"
 
@@ -157,6 +158,7 @@ public:
       return;
     }
 
+    std::unordered_set<uint32_t> train_nrs;
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
       add_service_section(
@@ -166,6 +168,15 @@ public:
           service->platforms()->Get(section_idx)->dep_platforms(),
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days);
+      train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
+    }
+    int32_t route_id = route_nodes[0]->_route;
+    for (uint32_t train_nr : train_nrs) {
+      auto& routes = sched_.train_nr_to_routes[train_nr];
+      if (std::find(std::begin(routes), std::end(routes), route_id) ==
+          std::end(routes)) {
+        routes.push_back(route_id);
+      }
     }
   }
 

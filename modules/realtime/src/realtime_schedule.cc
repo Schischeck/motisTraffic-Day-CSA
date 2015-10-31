@@ -284,24 +284,35 @@ realtime_schedule::get_train_events(const schedule_event& start_event) const {
 
 schedule_event realtime_schedule::find_departure_event(uint32_t train_nr,
                                                        int day_index) const {
-  if (is_debug_mode())
+  if (is_debug_mode()) {
     LOG(info) << "searching departure event for train " << train_nr
               << " on day " << day_index << " ("
               << _schedule.station_nodes.size() << " stations)";
-  for (const auto& station : _schedule.station_nodes) {
-    for (const motis::edge& edge : station->_edges) {
-      motis::node* route_node = edge._to;
-      if (!route_node->is_route_node()) continue;
-      const motis::edge* route_edge = get_next_edge(route_node);
-      if (route_edge == nullptr) continue;
-      for (const motis::light_connection& lc :
-           route_edge->_m._route_edge._conns) {
-        if (lc._full_con->con_info->train_nr == train_nr &&
-            lc.d_time / MINUTES_A_DAY == day_index) {
-          return get_schedule_event(graph_event(station->_id, train_nr, true,
-                                                lc.d_time, route_node->_route));
-        }
+  }
+  const auto& routes = _schedule.train_nr_to_routes[train_nr];
+  motis::time min_time = day_index * MINUTES_A_DAY;
+  motis::time max_time = min_time + MINUTES_A_DAY;
+  for (auto route_id : routes) {
+    motis::node* route_node =
+        _schedule.route_index_to_first_route_node[route_id];
+    while (route_node != nullptr) {
+      motis::edge* route_edge = get_next_edge(route_node);
+      if (route_edge == nullptr) {
+        break;
       }
+      auto lc =
+          std::find_if(std::begin(route_edge->_m._route_edge._conns),
+                       std::end(route_edge->_m._route_edge._conns),
+                       [&](const motis::light_connection& c) {
+                         return c._full_con->con_info->train_nr == train_nr &&
+                                c.d_time >= min_time && c.d_time <= max_time;
+                       });
+      if (lc != std::end(route_edge->_m._route_edge._conns)) {
+        return get_schedule_event(graph_event(route_node->get_station()->_id,
+                                              train_nr, true, lc->d_time,
+                                              route_node->_route));
+      }
+      route_node = route_edge->_to;
     }
   }
   return schedule_event();

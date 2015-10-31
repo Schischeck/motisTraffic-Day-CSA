@@ -168,6 +168,7 @@ void message_handler::handle_additional_train(
 
   int32_t route_id = ++_rts._max_route_id;
   modified_train* mt = new modified_train(route_id, route_id, ci, clasz);
+  _rts._schedule.train_nr_to_routes[ci->train_nr].push_back(route_id);
 
   _rts._modified_train_manager.add(mt);
   _rts._graph_updater.adjust_train(mt, msg.events_);
