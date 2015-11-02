@@ -104,9 +104,11 @@ TEST(delay_message, ist_message_2) {
 // clang-format off
 std::string type_fixture(std::string type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket><ListNachricht><Nachricht><Ist><Service Zielzeit=\"12345678901234\">\
+<Paket TOut=\"12345678901234\"><ListNachricht><Nachricht>\
+<Ist><Service Zielzeit=\"12345678901234\">\
 <ListZug><Zug><ListZE><ZE Typ=\"") + type_string + "\" >\
-<Bf/><Zeit/></ZE></ListZE></Zug></ListZug></Service></Ist><ListQuelle>\
+<Bf/><Zeit Soll=\"12345678901234\" Ist=\"12345678901234\"/></ZE></ListZE>\
+</Zug></ListZug></Service></Ist><ListQuelle>\
 </ListQuelle></Nachricht></ListNachricht></Paket>";
 }
 // clang-format on
