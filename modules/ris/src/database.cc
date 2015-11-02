@@ -13,7 +13,6 @@ namespace motis {
 namespace ris {
 
 namespace db {
-// clang-format off
 constexpr char const* kCreateTabFile = R"sql(
 CREATE TABLE IF NOT EXISTS ris_file (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,11 +20,13 @@ CREATE TABLE IF NOT EXISTS ris_file (
 );
 )sql";
 
+// clang-format off
 SQLPP_DECLARE_TABLE(
   (ris_file),
   (id, int, SQLPP_AUTO_INCREMENT)
   (name, varchar(255),SQLPP_NOT_NULL)
 )
+// clang-format on
 
 constexpr char const* kCreateTabMessage = R"sql(
 CREATE TABLE IF NOT EXISTS ris_message (
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS ris_message (
 );
 )sql";
 
+// clang-format off
 SQLPP_DECLARE_TABLE(
   (ris_message),
   (id, int, SQLPP_AUTO_INCREMENT)
@@ -44,6 +46,7 @@ SQLPP_DECLARE_TABLE(
   (msg, blob, SQLPP_NOT_NULL)
 )
 // clang-format on
+
 }  // namespace db
 
 db_ptr default_db() {
@@ -71,17 +74,19 @@ std::set<std::string> db_get_files(db_ptr const& db) {
 }
 
 void db_put_messages(std::string const& filename,
-                     std::vector<ris_message> const& msgs,
-                     db_ptr const& db) {
+                     std::vector<ris_message> const& msgs, db_ptr const& db) {
   db->start_transaction();
 
   db::ris_file::ris_file f;
   (*db)(insert_into(f).set(f.name = filename));
 
   db::ris_message::ris_message m;
-  auto insert = db->prepare(insert_into(m).set(
-      m.scheduled = parameter(m.scheduled),
-      m.timestamp = parameter(m.timestamp), m.msg = parameter(m.msg)));
+  // clang-format off
+  auto insert = db->prepare(
+      insert_into(m).set(m.scheduled = parameter(m.scheduled),
+                         m.timestamp = parameter(m.timestamp),
+                         m.msg = parameter(m.msg)));
+  // clang-format on
   for (auto const& msg : msgs) {
     insert.params.scheduled = msg.scheduled;
     insert.params.timestamp = msg.timestamp;
@@ -92,8 +97,9 @@ void db_put_messages(std::string const& filename,
   db->commit_transaction();
 }
 
-std::vector<std::basic_string<uint8_t>> db_get_messages(
-    std::time_t from, std::time_t to, db_ptr const& db) {
+std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from,
+                                                        std::time_t to,
+                                                        db_ptr const& db) {
   std::vector<std::basic_string<uint8_t>> result;
 
   db::ris_message::ris_message m;

@@ -15,7 +15,5 @@ typedef std::function<void(msg_ptr, sid, callback)> msg_handler;
 typedef std::function<void(sid)> sid_handler;
 typedef std::function<void(msg_ptr, sid)> send_fun;
 
-#define NOOP_CALLBACK [](msg_ptr, boost::system::error_code){}
-
 }  // namespace module
 }  // namespace motis

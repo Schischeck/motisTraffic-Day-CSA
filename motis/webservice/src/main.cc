@@ -9,6 +9,8 @@
 
 #include "conf/options_parser.h"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/loader/loader.h"
 
 #include "motis/module/module.h"
@@ -30,6 +32,7 @@
 
 using namespace motis::webservice;
 using namespace motis::module;
+using namespace motis::logging;
 using namespace motis;
 
 int main(int argc, char** argv) {
@@ -103,7 +106,17 @@ int main(int argc, char** argv) {
     dispatcher.modules_.push_back(module.get());
     dispatcher.add_module(module.get());
 
-    module->init_(&c);
+    try {
+      module->init_(&c);
+    } catch (std::exception const& e) {
+      LOG(emrg) << "module " << module->name()
+                << ": unhandled init error: " << e.what();
+      return 1;
+    } catch (...) {
+      LOG(emrg) << "module " << module->name()
+                << "unhandled unknown init error";
+      return 1;
+    }
   }
 
   using net::http::server::shutdown_handler;
@@ -111,8 +124,21 @@ int main(int argc, char** argv) {
 
   boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
   std::vector<boost::thread> threads(8);
+
+  std::function<void()> run = [&]() {
+    try {
+      thread_pool.run();
+    } catch (std::exception const& e) {
+      LOG(emrg) << "unhandled error: " << e.what();
+      run();
+    } catch (...) {
+      LOG(emrg) << "unhandled unknown error";
+      run();
+    }
+  };
+
   for (unsigned i = 0; i < threads.size(); ++i) {
-    threads[i] = boost::thread([&]() { thread_pool.run(); });
+    threads[i] = boost::thread(run);
   }
 
   ios.run();

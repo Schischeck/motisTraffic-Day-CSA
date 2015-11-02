@@ -11,13 +11,17 @@
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/protocol/RISMessage_generated.h"
 
 using namespace std::placeholders;
 using namespace flatbuffers;
 using namespace pugi;
 using namespace parser;
-using namespace motis::ris;
+using namespace motis::logging;
+
+namespace motis {
+namespace ris {
 
 using parsed_msg_t = std::pair<std::time_t, Offset<Message>>;
 using parser_func_t =
@@ -26,7 +30,7 @@ using parser_func_t =
 std::time_t parse_time(cstr const& raw) {
   // format YYYYMMDDhhmmssfff (fff = millis)
   if (raw.length() < 14) {
-    return 0;
+    throw std::runtime_error("bad time format (length < 14)");
   }
 
   std::tm time_struct;
@@ -52,7 +56,7 @@ EventType parse_event_type(cstr const& raw) {
                                               {"Ziel", EventType_Arrival}});
   auto it = map.find(raw);
   if (it == end(map)) {
-    throw std::runtime_error("corrupt RIS message (bad event type)");
+    throw std::runtime_error("bad RIS message (unknown event type)");
   }
   return it->second;
 }
@@ -270,21 +274,32 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
   return {{parsed.first, t_out, std::move(fbb)}};
 }
 
-std::vector<ris_message> motis::ris::parse_xmls(std::vector<buffer>&& strings) {
+std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
   std::vector<ris_message> parsed_messages;
   for (auto& s : strings) {
-    xml_document d;
-    auto r = d.load_buffer_inplace(reinterpret_cast<void*>(s.data()), s.size());
-    if (!r) {
-      throw std::runtime_error("bad xml: " + std::string(r.description()));
-    }
-
-    auto t_out = parse_time(d.child("Paket").attribute("TOut").value());
-    for (auto const& msg : d.select_nodes("/Paket/ListNachricht/Nachricht")) {
-      if (auto parsed_message = parse_message(msg.node(), t_out)) {
-        parsed_messages.emplace_back(std::move(*parsed_message));
+    try {
+      xml_document d;
+      auto r =
+          d.load_buffer_inplace(reinterpret_cast<void*>(s.data()), s.size());
+      if (!r) {
+        LOG(error) << "bad XML: " << r.description();
+        continue;
       }
+
+      auto t_out = parse_time(d.child("Paket").attribute("TOut").value());
+      for (auto const& msg : d.select_nodes("/Paket/ListNachricht/Nachricht")) {
+        if (auto parsed_message = parse_message(msg.node(), t_out)) {
+          parsed_messages.emplace_back(std::move(*parsed_message));
+        }
+      }
+    } catch (std::exception const& e) {
+      LOG(error) << "unable to parse RIS message: " << e.what();
+    } catch (...) {
+      LOG(error) << "unable to parse RIS message";
     }
   }
   return parsed_messages;
 }
+
+}  // ris
+}  // motis

@@ -14,6 +14,7 @@ namespace ris {
 struct ris_message;
 
 using db_ptr = std::unique_ptr<sqlpp::sqlite3::connection>;
+
 db_ptr default_db();
 
 void db_init(db_ptr const& db = default_db());
