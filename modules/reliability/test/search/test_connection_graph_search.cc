@@ -58,37 +58,42 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     ASSERT_EQ(cg.stops.size(), 3);
     {
       auto const& stop = cg.stops[connection_graph::stop::Index_departure_stop];
-      ASSERT_EQ(stop.index, 0);
-      ASSERT_EQ(stop.eva_no, "3333333");
-      ASSERT_EQ(stop.name, "Darmstadt");
-      ASSERT_TRUE(stop.interchange_infos.empty());
+      ASSERT_EQ(stop.index, connection_graph::stop::Index_departure_stop);
+      ASSERT_EQ(stop.departure_infos.size(), 1);
+      ASSERT_EQ(stop.departure_infos.front().departing_journey_index, 0);
+      ASSERT_EQ(stop.departure_infos.front().head_stop_index,
+                connection_graph::stop::Index_first_intermediate_stop);
     }
     {
       auto const& stop = cg.stops[connection_graph::stop::Index_arrival_stop];
-      ASSERT_EQ(stop.index, 1);
-      ASSERT_EQ(stop.eva_no, "1111111");
-      ASSERT_EQ(stop.name, "Frankfurt");
-      ASSERT_TRUE(stop.interchange_infos.empty());
+      ASSERT_EQ(stop.index, connection_graph::stop::Index_arrival_stop);
+      ASSERT_TRUE(stop.departure_infos.empty());
     }
     {
-      auto const& stop = cg.stops[2];
-      ASSERT_EQ(stop.index, 2);
-      ASSERT_EQ(stop.eva_no, "2222222");
-      ASSERT_EQ(stop.name, "Langen");
-      ASSERT_EQ(stop.interchange_infos.size(), 3);
+      auto const& stop =
+          cg.stops[connection_graph::stop::Index_first_intermediate_stop];
+      ASSERT_EQ(stop.index,
+                connection_graph::stop::Index_first_intermediate_stop);
+      ASSERT_EQ(stop.departure_infos.size(), 3);
       {
-        auto const& ic = stop.interchange_infos[0];
+        auto const& ic = stop.departure_infos[0];
+        ASSERT_EQ(ic.departing_journey_index, 1);
+        ASSERT_EQ(ic.head_stop_index,
+                  connection_graph::stop::Index_arrival_stop);
+        // ASSERT_EQ(ic.interchange_time, 5);
+      }
+      {
+        auto const& ic = stop.departure_infos[1];
         ASSERT_EQ(ic.departing_journey_index, 2);
+        ASSERT_EQ(ic.head_stop_index,
+                  connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
-        auto const& ic = stop.interchange_infos[1];
+        auto const& ic = stop.departure_infos[2];
         ASSERT_EQ(ic.departing_journey_index, 3);
-        // ASSERT_EQ(ic.interchange_time, 5);
-      }
-      {
-        auto const& ic = stop.interchange_infos[2];
-        ASSERT_EQ(ic.departing_journey_index, 4);
+        ASSERT_EQ(ic.head_stop_index,
+                  connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
     }
@@ -96,8 +101,6 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     ASSERT_EQ(cg.journeys.size(), 4);
     {
       auto const& j = cg.journeys[0];
-      ASSERT_EQ(j.from_index, 0);
-      ASSERT_EQ(j.to_index, 2);
       ASSERT_EQ(j.j.stops.front().eva_no, "3333333");
       ASSERT_EQ(j.j.stops.back().eva_no, "2222222");
       ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238000);  // 07:00
@@ -106,8 +109,6 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     }
     {
       auto const& j = cg.journeys[1];
-      ASSERT_EQ(j.from_index, 2);
-      ASSERT_EQ(j.to_index, 1);
       ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
       ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
       ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238900);  // 07:15
@@ -116,8 +117,6 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     }
     {
       auto const& j = cg.journeys[2];
-      ASSERT_EQ(j.from_index, 2);
-      ASSERT_EQ(j.to_index, 1);
       ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
       ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
       ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238960);  // 07:16
@@ -126,8 +125,6 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     }
     {
       auto const& j = cg.journeys[3];
-      ASSERT_EQ(j.from_index, 2);
-      ASSERT_EQ(j.to_index, 1);
       ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
       ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
       ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445239020);  // 07:17

@@ -77,10 +77,8 @@ bool complete(context const& c) {
 
 inline journey const& latest_departing_alternative(
     connection_graph const& conn_graph, connection_graph::stop const& stop) {
-  return std::find_if(conn_graph.journeys.rbegin(), conn_graph.journeys.rend(),
-                      [stop](connection_graph::journey_info const& j) {
-                        return stop.index == j.from_index;
-                      })->j;
+  return conn_graph.journeys.at(stop.departure_infos.back()
+                                    .departing_journey_index).j;
 }
 
 module::msg_ptr to_routing_request(connection_graph& conn_graph,
@@ -88,11 +86,14 @@ module::msg_ptr to_routing_request(connection_graph& conn_graph,
   auto const& last_alternative = latest_departing_alternative(conn_graph, stop);
   time const time_begin = last_alternative.stops.back().arrival.timestamp;
   time const time_end = time_begin + (15 * 60);
-  auto const& arrival_stop =
-      conn_graph.stops.at(connection_graph::stop::Index_arrival_stop);
+
+  auto const stop_station = conn_graph.station_info(stop.index);
+  auto const arrival_station =
+      conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
+
   return flatbuffers_tools::to_routing_request(
-      stop.name, stop.eva_no, arrival_stop.name, arrival_stop.eva_no,
-      time_begin, time_end);
+      stop_station.first, stop_station.second, arrival_station.first,
+      arrival_station.second, time_begin, time_end);
 }
 
 void build_cg(std::shared_ptr<context> c,

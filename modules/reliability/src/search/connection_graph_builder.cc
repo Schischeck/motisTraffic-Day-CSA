@@ -1,5 +1,7 @@
 #include "motis/reliability/search/connection_graph_builder.h"
 
+#include <cassert>
+
 #include "motis/core/common/journey.h"
 #include "motis/core/common/journey_builder.h"
 
@@ -82,44 +84,69 @@ void split_journey(std::vector<journey>& journeys) {
 void add_base_journey(connection_graph& cg, journey const& base_journey) {
   auto journeys = split_journey(base_journey);
 
-  unsigned int stop_idx = 0;
+  unsigned int stop_idx = connection_graph::stop::Index_departure_stop;
   for (auto const& j : journeys) {
-    cg.journeys.emplace_back();
-    cg.journeys.back().j = j;
-    cg.journeys.back().from_index = stop_idx;
-    if (stop_idx == connection_graph::stop::Index_departure_stop &&
-        journeys.size() > 1) {
-      stop_idx = 1;
-    }
-    cg.journeys.back().to_index = ++stop_idx;
-  }
-  cg.journeys.back().to_index = connection_graph::stop::Index_arrival_stop;
-
-  /* departure stop of cg */
-  cg.stops.emplace_back();
-  cg.stops.back().index = 0;
-  cg.stops.back().eva_no = base_journey.stops.front().eva_no;
-  cg.stops.back().name = base_journey.stops.front().name;
-  /* arrival stop of cg */
-  cg.stops.emplace_back();
-  cg.stops.back().index = 1;
-  cg.stops.back().eva_no = base_journey.stops.back().eva_no;
-  cg.stops.back().name = base_journey.stops.back().name;
-
-  for (unsigned int i = 0; i + 1 < cg.journeys.size(); ++i) {
-    auto& j = cg.journeys[i];
     cg.stops.emplace_back();
     auto& stop = cg.stops.back();
-    stop.index = j.to_index;
-    stop.eva_no = j.j.stops.back().eva_no;
-    stop.name = j.j.stops.back().name;
-    stop.interchange_infos.emplace_back();
-    stop.interchange_infos.back().departing_journey_index = i + 1;
+    stop.index = stop_idx;
+    stop.departure_infos.emplace_back();
+    auto& departure_info = stop.departure_infos.front();
+    departure_info.departing_journey_index = cg.journeys.size();
+    if (stop_idx == connection_graph::stop::Index_departure_stop &&
+        journeys.size() > 1) {
+      stop_idx = connection_graph::stop::Index_first_intermediate_stop;
+    } else if (departure_info.departing_journey_index + 1 == journeys.size()) {
+      stop_idx = connection_graph::stop::Index_arrival_stop;
+    } else {
+      ++stop_idx;
+    }
+    departure_info.head_stop_index = stop_idx;
+
+    if (cg.stops.size() == 1) {
+      cg.stops.emplace_back();
+      cg.stops.back().index = connection_graph::stop::Index_arrival_stop;
+    }
+
+    cg.journeys.emplace_back();
+    cg.journeys.back().j = j;
   }
 }
 
-void add_alternative_journey(connection_graph&, unsigned int const stop_idx,
-                             journey const&) {}
+connection_graph::stop& get_stop(connection_graph& cg,
+                                 unsigned int const first_stop_idx,
+                                 unsigned int const stop_idx) {
+  if (stop_idx == first_stop_idx) {
+    return cg.stops.at(first_stop_idx);
+  }
+  cg.stops.emplace_back();
+  cg.stops.back().index = stop_idx;
+  return cg.stops.back();
+}
+void add_alternative_journey(connection_graph& cg,
+                             unsigned int const first_stop_idx,
+                             journey const& j) {
+  auto journeys = split_journey(j);
+
+  unsigned int stop_idx = first_stop_idx, journey_count = 0;
+  for (auto const& j : journeys) {
+    auto& stop = get_stop(cg, first_stop_idx, stop_idx);
+    stop.departure_infos.emplace_back();
+    auto& departure_info = stop.departure_infos.back();
+    departure_info.departing_journey_index = cg.journeys.size();
+    if (journey_count + 1 == journeys.size()) {
+      stop_idx = connection_graph::stop::Index_arrival_stop;
+    } else if (stop_idx == first_stop_idx) {
+      stop_idx = cg.stops.size();
+    } else {
+      ++stop_idx;
+    }
+    departure_info.head_stop_index = stop_idx;
+
+    cg.journeys.emplace_back();
+    cg.journeys.back().j = j;
+    ++journey_count;
+  }
+}
 
 std::vector<journey> split_journey(journey const& j) {
   std::vector<journey> journeys;

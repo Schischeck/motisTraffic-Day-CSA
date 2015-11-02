@@ -5,12 +5,8 @@ namespace reliability {
 namespace search {
 namespace connection_graph_search {
 namespace simple_optimizer {
-bool complete(connection_graph::stop const& stop,
-              connection_graph const& conn_graph) {
-  return std::count_if(conn_graph.journeys.begin(), conn_graph.journeys.end(),
-                       [&](connection_graph::journey_info const& j) {
-                         return j.from_index == stop.index;
-                       }) == 3;
+bool complete(connection_graph::stop const& stop) {
+  return stop.departure_infos.size() >= 3;
 }
 
 }  // namespace simple_optimizer
