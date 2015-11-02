@@ -48,97 +48,99 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
 
   auto test_cb = [&](std::vector<std::shared_ptr<connection_graph> > cgs) {
-    std::cout << "\n\n---------OK" << std::endl;
     reliable_routing_request_completed_ = true;
     setup.ios.stop();
 
     ASSERT_EQ(cgs.size(), 1);
     auto const cg = *cgs.front();
 
-    ASSERT_EQ(cg.stops.size(), 3);
+    ASSERT_EQ(cg.stops_.size(), 3);
     {
-      auto const& stop = cg.stops[connection_graph::stop::Index_departure_stop];
-      ASSERT_EQ(stop.index, connection_graph::stop::Index_departure_stop);
-      ASSERT_EQ(stop.departure_infos.size(), 1);
-      ASSERT_EQ(stop.departure_infos.front().departing_journey_index, 0);
-      ASSERT_EQ(stop.departure_infos.front().head_stop_index,
+      auto const& stop =
+          cg.stops_[connection_graph::stop::Index_departure_stop];
+      ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
+      ASSERT_EQ(stop.departure_infos_.size(), 1);
+      ASSERT_EQ(stop.departure_infos_.front().departing_journey_index_, 0);
+      ASSERT_EQ(stop.departure_infos_.front().head_stop_index_,
                 connection_graph::stop::Index_first_intermediate_stop);
     }
     {
-      auto const& stop = cg.stops[connection_graph::stop::Index_arrival_stop];
-      ASSERT_EQ(stop.index, connection_graph::stop::Index_arrival_stop);
-      ASSERT_TRUE(stop.departure_infos.empty());
+      auto const& stop = cg.stops_[connection_graph::stop::Index_arrival_stop];
+      ASSERT_EQ(stop.index_, connection_graph::stop::Index_arrival_stop);
+      ASSERT_TRUE(stop.departure_infos_.empty());
     }
     {
       auto const& stop =
-          cg.stops[connection_graph::stop::Index_first_intermediate_stop];
-      ASSERT_EQ(stop.index,
+          cg.stops_[connection_graph::stop::Index_first_intermediate_stop];
+      ASSERT_EQ(stop.index_,
                 connection_graph::stop::Index_first_intermediate_stop);
-      ASSERT_EQ(stop.departure_infos.size(), 3);
+      ASSERT_EQ(stop.departure_infos_.size(), 3);
       {
-        auto const& ic = stop.departure_infos[0];
-        ASSERT_EQ(ic.departing_journey_index, 1);
-        ASSERT_EQ(ic.head_stop_index,
+        auto const& ic = stop.departure_infos_[0];
+        ASSERT_EQ(ic.departing_journey_index_, 1);
+        ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
-        auto const& ic = stop.departure_infos[1];
-        ASSERT_EQ(ic.departing_journey_index, 2);
-        ASSERT_EQ(ic.head_stop_index,
+        auto const& ic = stop.departure_infos_[1];
+        ASSERT_EQ(ic.departing_journey_index_, 2);
+        ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
-        auto const& ic = stop.departure_infos[2];
-        ASSERT_EQ(ic.departing_journey_index, 3);
-        ASSERT_EQ(ic.head_stop_index,
+        auto const& ic = stop.departure_infos_[2];
+        ASSERT_EQ(ic.departing_journey_index_, 3);
+        ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
     }
 
-    ASSERT_EQ(cg.journeys.size(), 4);
+    ASSERT_EQ(cg.journeys_.size(), 4);
     {
-      auto const& j = cg.journeys[0];
-      ASSERT_EQ(j.j.stops.front().eva_no, "3333333");
-      ASSERT_EQ(j.j.stops.back().eva_no, "2222222");
-      ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238000);  // 07:00
-      ASSERT_EQ(j.j.stops.back().arrival.timestamp, 1445238600);  // 07:10
-      ASSERT_EQ(j.j.transports.front().train_nr, RE_D_L);
+      auto const& j = cg.journeys_[0];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "3333333");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445238000);  // 07:00
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445238600);  // 07:10
+      ASSERT_EQ(j.j_.transports.front().train_nr, RE_D_L);
     }
     {
-      auto const& j = cg.journeys[1];
-      ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-      ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-      ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238900);  // 07:15
-      ASSERT_EQ(j.j.stops.back().arrival.timestamp, 1445239500);  // 07:10
-      ASSERT_EQ(j.j.transports.front().train_nr, RE_L_F);
+      auto const& j = cg.journeys_[1];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445238900);  // 07:15
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445239500);  // 07:10
+      ASSERT_EQ(j.j_.transports.front().train_nr, RE_L_F);
     }
     {
-      auto const& j = cg.journeys[2];
-      ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-      ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-      ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445238960);  // 07:16
-      ASSERT_EQ(j.j.stops.back().arrival.timestamp, 1445240040);  // 07:34
-      ASSERT_EQ(j.j.transports.front().train_nr, S_L_F);
+      auto const& j = cg.journeys_[2];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445238960);  // 07:16
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445240040);  // 07:34
+      ASSERT_EQ(j.j_.transports.front().train_nr, S_L_F);
     }
     {
-      auto const& j = cg.journeys[3];
-      ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-      ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-      ASSERT_EQ(j.j.stops.front().departure.timestamp, 1445239020);  // 07:17
-      ASSERT_EQ(j.j.stops.back().arrival.timestamp, 1445240400);  // 07:40
-      ASSERT_EQ(j.j.transports.front().train_nr, IC_L_F);
+      auto const& j = cg.journeys_[3];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445239020);  // 07:17
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445240400);  // 07:40
+      ASSERT_EQ(j.j_.transports.front().train_nr, IC_L_F);
     }
+
   };
 
-  /*search_cgs(msg->content<ReliableRoutingRequest const*>(),
+  boost::asio::io_service::work ios_work(setup.ios);
+
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup.reliability_module(), *schedule_.get(), 0,
              simple_optimizer::complete, test_cb);
 
-  boost::asio::io_service::work ios_work(setup.ios);
-  setup.ios.run();*/
+  setup.ios.run();
 }
 
 }  // namespace connection_graph_search

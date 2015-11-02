@@ -184,7 +184,7 @@ journey create_journey1() {
 }
 
 TEST(test_connection_graph_builder, split_journey) {
-  auto const journeys = split_journey(create_journey1());
+  auto const journeys = detail::split_journey(create_journey1());
   ASSERT_EQ(journeys.size(), 3);
   {
     auto const& journey = journeys[0];
@@ -506,60 +506,60 @@ TEST(test_connection_graph_builder, add_base_journey1) {
   connection_graph cg;
   add_base_journey(cg, create_journey1());
 
-  ASSERT_EQ(4, cg.stops.size());
+  ASSERT_EQ(4, cg.stops_.size());
   {
-    auto const& stop = cg.stops[0];
-    ASSERT_EQ(stop.index, 0);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 0);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 2);
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
   {
-    auto const& stop = cg.stops[1];
-    ASSERT_EQ(stop.index, 1);
-    ASSERT_EQ(stop.departure_infos.size(), 0);
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.departure_infos_.size(), 0);
     ASSERT_EQ(cg.station_info(1).first, "Station4");
     ASSERT_EQ(cg.station_info(1).second, "4444444");
   }
   {
-    auto const& stop = cg.stops[2];
-    ASSERT_EQ(stop.index, 2);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 1);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 3);
+    auto const& stop = cg.stops_[2];
+    ASSERT_EQ(stop.index_, 2);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 3);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
   {
-    auto const& stop = cg.stops[3];
-    ASSERT_EQ(stop.index, 3);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 2);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 1);
+    auto const& stop = cg.stops_[3];
+    ASSERT_EQ(stop.index_, 3);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
 
-  ASSERT_EQ(cg.journeys.size(), 3);
+  ASSERT_EQ(cg.journeys_.size(), 3);
   {
-    auto const& j = cg.journeys[0];
-    ASSERT_EQ(j.j.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j.transports.front().train_nr, 111);
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
   }
   {
-    auto const& j = cg.journeys[1];
-    ASSERT_EQ(j.j.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j.transports.front().train_nr, 222);
+    auto const& j = cg.journeys_[1];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
   }
   {
-    auto const& j = cg.journeys[2];
-    ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 333);
+    auto const& j = cg.journeys_[2];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
   }
 }
 
@@ -567,30 +567,30 @@ TEST(test_connection_graph_builder, add_base_journey2) {
   connection_graph cg;
   add_base_journey(cg, create_journey2());
 
-  ASSERT_EQ(cg.stops.size(), 2);
+  ASSERT_EQ(cg.stops_.size(), 2);
   {
-    auto const& stop = cg.stops[0];
-    ASSERT_EQ(stop.index, 0);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 0);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 1);
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
   {
-    auto const& stop = cg.stops[1];
-    ASSERT_EQ(stop.index, 1);
-    ASSERT_EQ(stop.departure_infos.size(), 0);
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.departure_infos_.size(), 0);
     ASSERT_EQ(cg.station_info(1).first, "Station1");
     ASSERT_EQ(cg.station_info(1).second, "1111111");
   }
 
-  ASSERT_EQ(cg.journeys.size(), 1);
+  ASSERT_EQ(cg.journeys_.size(), 1);
   {
-    auto const& j = cg.journeys[0];
-    ASSERT_EQ(j.j.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j.transports.front().train_nr, 111);
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
   }
 }
 
@@ -640,68 +640,68 @@ TEST(test_connection_graph_builder, add_alternative_journey) {
   add_base_journey(cg, create_journey1());
   add_alternative_journey(cg, 2, create_journey3());
 
-  ASSERT_EQ(4, cg.stops.size());
+  ASSERT_EQ(4, cg.stops_.size());
   {
-    auto const& stop = cg.stops[0];
-    ASSERT_EQ(stop.index, 0);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 0);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 2);
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
   {
-    auto const& stop = cg.stops[1];
-    ASSERT_EQ(stop.index, 1);
-    ASSERT_EQ(stop.departure_infos.size(), 0);
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.departure_infos_.size(), 0);
     ASSERT_EQ("Station4", cg.station_info(1).first);
     ASSERT_EQ("4444444", cg.station_info(1).second);
   }
   {
-    auto const& stop = cg.stops[2];
-    ASSERT_EQ(stop.index, 2);
-    ASSERT_EQ(stop.departure_infos.size(), 2);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 1);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 3);
-    ASSERT_EQ(stop.departure_infos[1].departing_journey_index, 3);
-    ASSERT_EQ(stop.departure_infos[1].head_stop_index, 1);
+    auto const& stop = cg.stops_[2];
+    ASSERT_EQ(stop.index_, 2);
+    ASSERT_EQ(stop.departure_infos_.size(), 2);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 3);
+    ASSERT_EQ(stop.departure_infos_[1].departing_journey_index_, 3);
+    ASSERT_EQ(stop.departure_infos_[1].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
   {
-    auto const& stop = cg.stops[3];
-    ASSERT_EQ(stop.index, 3);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 2);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 1);
+    auto const& stop = cg.stops_[3];
+    ASSERT_EQ(stop.index_, 3);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
 
-  ASSERT_EQ(cg.journeys.size(), 4);
+  ASSERT_EQ(cg.journeys_.size(), 4);
   {
-    auto const& j = cg.journeys[0];
-    ASSERT_EQ(j.j.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j.transports.front().train_nr, 111);
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
   }
   {
-    auto const& j = cg.journeys[1];
-    ASSERT_EQ(j.j.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j.transports.front().train_nr, 222);
+    auto const& j = cg.journeys_[1];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
   }
   {
-    auto const& j = cg.journeys[2];
-    ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 333);
+    auto const& j = cg.journeys_[2];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
   }
   {
-    auto const& j = cg.journeys[3];
-    ASSERT_EQ(j.j.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 555);
+    auto const& j = cg.journeys_[3];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 555);
   }
 }
 
@@ -772,91 +772,282 @@ TEST(test_connection_graph_builder, add_alternative_journey2) {
   add_alternative_journey(cg, 2, create_journey3());
   add_alternative_journey(cg, 2, create_journey4());
 
-  ASSERT_EQ(5, cg.stops.size());
+  ASSERT_EQ(5, cg.stops_.size());
   {
-    auto const& stop = cg.stops[0];
-    ASSERT_EQ(stop.index, 0);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 0);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 2);
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
   {
-    auto const& stop = cg.stops[1];
-    ASSERT_EQ(stop.index, 1);
-    ASSERT_EQ(stop.departure_infos.size(), 0);
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.departure_infos_.size(), 0);
     ASSERT_EQ("Station4", cg.station_info(1).first);
     ASSERT_EQ("4444444", cg.station_info(1).second);
   }
   {
-    auto const& stop = cg.stops[2];
-    ASSERT_EQ(stop.index, 2);
-    ASSERT_EQ(stop.departure_infos.size(), 3);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 1);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 3);
-    ASSERT_EQ(stop.departure_infos[1].departing_journey_index, 3);
-    ASSERT_EQ(stop.departure_infos[1].head_stop_index, 1);
-    ASSERT_EQ(stop.departure_infos[2].departing_journey_index, 4);
-    ASSERT_EQ(stop.departure_infos[2].head_stop_index, 4);
+    auto const& stop = cg.stops_[2];
+    ASSERT_EQ(stop.index_, 2);
+    ASSERT_EQ(stop.departure_infos_.size(), 3);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 3);
+    ASSERT_EQ(stop.departure_infos_[1].departing_journey_index_, 3);
+    ASSERT_EQ(stop.departure_infos_[1].head_stop_index_, 1);
+    ASSERT_EQ(stop.departure_infos_[2].departing_journey_index_, 4);
+    ASSERT_EQ(stop.departure_infos_[2].head_stop_index_, 4);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
   {
-    auto const& stop = cg.stops[3];
-    ASSERT_EQ(stop.index, 3);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 2);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 1);
+    auto const& stop = cg.stops_[3];
+    ASSERT_EQ(stop.index_, 3);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
   {
-    auto const& stop = cg.stops[4];
-    ASSERT_EQ(stop.index, 4);
-    ASSERT_EQ(stop.departure_infos.size(), 1);
-    ASSERT_EQ(stop.departure_infos[0].departing_journey_index, 5);
-    ASSERT_EQ(stop.departure_infos[0].head_stop_index, 1);
+    auto const& stop = cg.stops_[4];
+    ASSERT_EQ(stop.index_, 4);
+    ASSERT_EQ(stop.departure_infos_.size(), 1);
+    ASSERT_EQ(stop.departure_infos_[0].departing_journey_index_, 5);
+    ASSERT_EQ(stop.departure_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(4).first, "Station5");
     ASSERT_EQ(cg.station_info(4).second, "5555555");
   }
 
-  ASSERT_EQ(cg.journeys.size(), 6);
+  ASSERT_EQ(cg.journeys_.size(), 6);
   {
-    auto const& j = cg.journeys[0];
-    ASSERT_EQ(j.j.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j.transports.front().train_nr, 111);
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
   }
   {
-    auto const& j = cg.journeys[1];
-    ASSERT_EQ(j.j.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j.transports.front().train_nr, 222);
+    auto const& j = cg.journeys_[1];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
   }
   {
-    auto const& j = cg.journeys[2];
-    ASSERT_EQ(j.j.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 333);
+    auto const& j = cg.journeys_[2];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
   }
   {
-    auto const& j = cg.journeys[3];
-    ASSERT_EQ(j.j.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 555);
+    auto const& j = cg.journeys_[3];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 555);
   }
   {
-    auto const& j = cg.journeys[4];
-    ASSERT_EQ("1111111", j.j.stops.front().eva_no);
-    ASSERT_EQ("5555555", j.j.stops.back().eva_no);
-    ASSERT_EQ(666, j.j.transports.back().train_nr);
+    auto const& j = cg.journeys_[4];
+    ASSERT_EQ("1111111", j.j_.stops.front().eva_no);
+    ASSERT_EQ("5555555", j.j_.stops.back().eva_no);
+    ASSERT_EQ(666, j.j_.transports.back().train_nr);
   }
   {
-    auto const& j = cg.journeys[5];
-    ASSERT_EQ(j.j.stops.front().eva_no, "5555555");
-    ASSERT_EQ(j.j.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j.transports.back().train_nr, 777);
+    auto const& j = cg.journeys_[5];
+    ASSERT_EQ(j.j_.stops.front().eva_no, "5555555");
+    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.j_.transports.back().train_nr, 777);
+  }
+}
+
+journey create_journey5() {
+  journey j;
+  j.transfers = 1;
+
+  j.stops.resize(5);
+  {
+    auto& stop = j.stops[0];
+    stop.name = "DUMMY";
+    stop.arrival.valid = false;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445262900;
+  }
+  {
+    auto& stop = j.stops[1];
+    stop.eva_no = "1111111";
+    stop.index = 1;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station1";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445262900;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445262900;
+  }
+  {
+    auto& stop = j.stops[2];
+    stop.eva_no = "2222222";
+    stop.index = 2;
+    stop.interchange = true;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station2";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263200;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445263500;
+  }
+  {
+    auto& stop = j.stops[3];
+    stop.eva_no = "3333333";
+    stop.index = 3;
+    stop.interchange = true;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station3";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263800;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445263800;
+  }
+  {
+    auto& stop = j.stops[4];
+    stop.index = 4;
+    stop.interchange = false;
+    stop.name = "DUMMY";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263800;
+    stop.departure.valid = false;
+  }
+
+  j.transports.resize(4);
+  {
+    auto& transport = j.transports[0];
+    transport.from = 0;
+    transport.to = 1;
+    transport.walk = true;
+  }
+  {
+    auto& transport = j.transports[1];
+    transport.from = 1;
+    transport.to = 2;
+    transport.train_nr = 666;
+    transport.walk = false;
+  }
+  {
+    auto& transport = j.transports[2];
+    transport.from = 2;
+    transport.to = 3;
+    transport.train_nr = 777;
+    transport.walk = false;
+  }
+  {
+    auto& transport = j.transports[3];
+    transport.from = 3;
+    transport.to = 4;
+    transport.walk = true;
+  }
+
+  j.attributes.resize(3);
+  {
+    auto& attribute = j.attributes[0];
+    attribute.code = "A";
+    attribute.from = 1;
+    attribute.to = 3;
+  }
+  {
+    auto& attribute = j.attributes[1];
+    attribute.code = "B";
+    attribute.from = 1;
+    attribute.to = 2;
+  }
+  {
+    auto& attribute = j.attributes[2];
+    attribute.code = "C";
+    attribute.from = 2;
+    attribute.to = 3;
+  }
+  return j;
+}
+
+TEST(test_connection_graph_builder, remove_dummy_stops) {
+  journey const j = detail::remove_dummy_stops(create_journey5());
+  ASSERT_EQ(j.transfers, 1);
+
+  ASSERT_EQ(3, j.stops.size());
+  {
+    auto& stop = j.stops[0];
+    ASSERT_EQ(stop.eva_no, "1111111");
+    ASSERT_EQ(stop.index, 0);
+    ASSERT_EQ(stop.interchange, false);
+    ASSERT_EQ(stop.lat, 0.0);
+    ASSERT_EQ(stop.lng, 0.0);
+    ASSERT_EQ(stop.name, "Station1");
+    ASSERT_EQ(stop.arrival.valid, false);
+    ASSERT_EQ(stop.departure.valid, true);
+    ASSERT_EQ(stop.departure.timestamp, 1445262900);
+  }
+  {
+    auto& stop = j.stops[1];
+    ASSERT_EQ(stop.eva_no, "2222222");
+    ASSERT_EQ(stop.index, 1);
+    ASSERT_EQ(stop.interchange, true);
+    ASSERT_EQ(stop.lat, 0.0);
+    ASSERT_EQ(stop.lng, 0.0);
+    ASSERT_EQ(stop.name, "Station2");
+    ASSERT_EQ(stop.arrival.valid, true);
+    ASSERT_EQ(stop.arrival.timestamp, 1445263200);
+    ASSERT_EQ(stop.departure.valid, true);
+    ASSERT_EQ(stop.departure.timestamp, 1445263500);
+  }
+  {
+    auto& stop = j.stops[2];
+    ASSERT_EQ(stop.eva_no, "3333333");
+    ASSERT_EQ(stop.index, 2);
+    ASSERT_EQ(stop.interchange, false);
+    ASSERT_EQ(stop.lat, 0.0);
+    ASSERT_EQ(stop.lng, 0.0);
+    ASSERT_EQ(stop.name, "Station3");
+    ASSERT_EQ(stop.arrival.valid, true);
+    ASSERT_EQ(stop.arrival.timestamp, 1445263800);
+    ASSERT_EQ(stop.departure.valid, false);
+  }
+
+  ASSERT_EQ(2, j.transports.size());
+  {
+    auto& transport = j.transports[0];
+    ASSERT_EQ(transport.from, 0);
+    ASSERT_EQ(transport.to, 1);
+    ASSERT_EQ(transport.train_nr, 666);
+    ASSERT_EQ(transport.walk, false);
+  }
+  {
+    auto& transport = j.transports[1];
+    ASSERT_EQ(transport.from, 1);
+    ASSERT_EQ(transport.to, 2);
+    ASSERT_EQ(transport.train_nr, 777);
+    ASSERT_EQ(transport.walk, false);
+  }
+
+  ASSERT_EQ(3, j.attributes.size());
+  {
+    auto& attribute = j.attributes[0];
+    ASSERT_EQ(attribute.code, "A");
+    ASSERT_EQ(attribute.from, 0);
+    ASSERT_EQ(attribute.to, 2);
+  }
+  {
+    auto& attribute = j.attributes[1];
+    ASSERT_EQ(attribute.code, "B");
+    ASSERT_EQ(attribute.from, 0);
+    ASSERT_EQ(attribute.to, 1);
+  }
+  {
+    auto& attribute = j.attributes[2];
+    ASSERT_EQ(attribute.code, "C");
+    ASSERT_EQ(attribute.from, 1);
+    ASSERT_EQ(attribute.to, 2);
   }
 }
 

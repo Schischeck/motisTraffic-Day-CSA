@@ -22,44 +22,44 @@ struct connection_graph {
                                            with index >= 2 are intermediate
                                            stops */
     };
-    unsigned short index;
+    unsigned short index_;
 
     struct departure_info {
-      unsigned short departing_journey_index;
-      unsigned short head_stop_index;
+      unsigned short departing_journey_index_;
+      unsigned short head_stop_index_;
     };
-    std::vector<departure_info> departure_infos;
+    std::vector<departure_info> departure_infos_;
   };
 
   struct journey_info {
-    journey j;
-    rating::connection_rating rating;
+    journey j_;
+    rating::connection_rating rating_;
   };
 
-  std::vector<stop> stops;
-  std::vector<journey_info> journeys;
+  std::vector<stop> stops_;
+  std::vector<journey_info> journeys_;
 
   std::pair<std::string, std::string> station_info(
       unsigned int const stop_idx) const {
     if (stop_idx == stop::Index_arrival_stop) {
       return arrival_station_info();
     }
-    auto const& stop = journeys[stops.at(stop_idx)
-                                    .departure_infos.front()
-                                    .departing_journey_index].j.stops.front();
+    auto const& stop = journeys_[stops_.at(stop_idx)
+                                    .departure_infos_.front()
+                                    .departing_journey_index_].j_.stops.front();
     return std::make_pair(stop.name, stop.eva_no);
   }
 
 private:
   std::pair<std::string, std::string> arrival_station_info() const {
-    auto it = std::find_if(stops.begin(), stops.end(), [](stop const& s) {
-      return !s.departure_infos.empty() &&
-             s.departure_infos.front().head_stop_index ==
+    auto it = std::find_if(stops_.begin(), stops_.end(), [](stop const& s) {
+      return !s.departure_infos_.empty() &&
+             s.departure_infos_.front().head_stop_index_ ==
                  stop::Index_arrival_stop;
     });
     auto const& stop =
-        journeys.at(it->departure_infos.front().departing_journey_index)
-            .j.stops.back();
+        journeys_.at(it->departure_infos_.front().departing_journey_index_)
+            .j_.stops.back();
     return std::make_pair(stop.name, stop.eva_no);
   }
 };
