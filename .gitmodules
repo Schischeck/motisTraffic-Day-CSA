@@ -31,3 +31,12 @@
 [submodule "external_lib/pugixml"]
 	path = external_lib/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "external_lib/sqlpp11-connector-sqlite3"]
+	path = external_lib/sqlpp11-connector-sqlite3
+	url = https://github.com/algotud/sqlpp11-connector-sqlite3.git
+[submodule "external_lib/sqlpp11"]
+	path = external_lib/sqlpp11
+	url = https://github.com/algotud/sqlpp11.git
+[submodule "external_lib/sqlite"]
+	path = external_lib/sqlite
+	url = https://github.com/algotud/sqlite.git
