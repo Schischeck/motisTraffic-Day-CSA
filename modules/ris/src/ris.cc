@@ -1,6 +1,6 @@
 #include "motis/ris/ris.h"
 
-#include <iostream>
+#include <ctime>
 
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/filesystem.hpp"
@@ -67,14 +67,26 @@ void ris::init() {
 
   db_init();
   read_files_ = db_get_files();
-  dispatch(pack(db_get_messages(0, 0)));  // TODO
+
+  std::time_t from, to;
+  {
+    auto sync = synced_sched<schedule_access::RO>();
+
+    std::time_t now = std::time(nullptr);
+    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+
+    from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
+    to = sync.sched().schedule_end_;
+  }
+
+  dispatch(pack(db_get_messages(from, to)));
 
   schedule_update(error_code());
 }
 
 void ris::parse_zips() {
   auto new_files = get_new_files();
-  if(new_files.size() == 0) {
+  if (new_files.size() == 0) {
     return;
   }
 
