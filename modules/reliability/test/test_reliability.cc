@@ -32,10 +32,7 @@ public:
   test_reliability2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)),
-        rating_request_called_(false) {}
-  void TearDown() override { ASSERT_TRUE(rating_request_called_); }
-  bool rating_request_called_;
+                            to_unix_time(2015, 9, 29)) {}
 
   schedule_station const ERLANGEN = {"Erlangen", "0953067"};
   schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
@@ -50,10 +47,7 @@ public:
   test_reliability7()
       : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
                             to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 20)),
-        reliable_search_called_(false) {}
-  void TearDown() override { ASSERT_TRUE(reliable_search_called_); }
-  bool reliable_search_called_;
+                            to_unix_time(2015, 10, 20)) {}
 
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const LANGEN = {"Langen", "2222222"};
@@ -70,9 +64,10 @@ TEST_F(test_reliability2, rating_request) {
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
       std::make_tuple(28, 9, 2015), RequestType_Rating);
+  bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    rating_request_called_ = true;
+    test_cb_called = true;
     ASSERT_EQ(e, nullptr);
     auto response = msg->content<ReliabilityRatingResponse const*>();
     ASSERT_EQ(response->response()->connections()->size(), 1);
@@ -106,6 +101,8 @@ TEST_F(test_reliability2, rating_request) {
 
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
+
+  ASSERT_TRUE(test_cb_called);
 }
 
 TEST_F(test_reliability7, reliable_search) {
@@ -114,9 +111,10 @@ TEST_F(test_reliability7, reliable_search) {
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
+  bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    reliable_search_called_ = true;
+    test_cb_called = true;
     ASSERT_EQ(nullptr, e);
     ASSERT_NE(nullptr, msg);
     std::ifstream f("modules/reliability/resources/json/reliable_search.json");
@@ -127,6 +125,8 @@ TEST_F(test_reliability7, reliable_search) {
 
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
+
+  ASSERT_TRUE(test_cb_called);
 }
 
 }  // namespace reliability

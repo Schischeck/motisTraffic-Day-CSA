@@ -9,6 +9,7 @@
 
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/distributions_container.h"
+#include "motis/reliability/search/simple_connection_graph_optimizer.h"
 
 namespace motis {
 namespace reliability {
@@ -44,6 +45,7 @@ private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
+  std::unique_ptr<search::connection_graph_search::simple_optimizer> optimizer_;
 
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,

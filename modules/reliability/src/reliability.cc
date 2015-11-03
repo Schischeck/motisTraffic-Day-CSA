@@ -45,6 +45,9 @@ void reliability::init() {
       new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
   distributions_calculator::precomputation::perform_precomputation(
       schedule, *s_t_distributions_, *precomputed_distributions_);
+  optimizer_ =
+      std::unique_ptr<search::connection_graph_search::simple_optimizer>(
+          new search::connection_graph_search::simple_optimizer(3));
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
@@ -56,8 +59,7 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   }
   if (req->request_type() == RequestType_ReliableSearch) {
     return search::connection_graph_search::search_cgs(
-        req, *this, session_id,
-        search::connection_graph_search::simple_optimizer::complete,
+        req, *this, session_id, *optimizer_,
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
   } else {

@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/common/logging.h"
 
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
@@ -164,6 +165,7 @@ void perform_precomputation(
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::precomputed_distributions_container&
         distributions_container) {
+  logging::scoped_timer time("computing distributions");
   common::queue_type queue;
 
   for (auto const first_route_node : schedule.route_index_to_first_route_node) {

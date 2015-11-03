@@ -25,9 +25,7 @@ public:
   test_connection_graph_search()
       : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
                             to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 20)),
-        reliable_routing_request_completed_(false) {}
-  void TearDown() override { ASSERT_TRUE(reliable_routing_request_completed_); }
+                            to_unix_time(2015, 10, 20)) {}
 
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const LANGEN = {"Langen", "2222222"};
@@ -36,8 +34,6 @@ public:
   short const RE_L_F = 2;  // 07:15 --> 07:25
   short const S_L_F = 3;  // 07:16 --> 07:34
   short const IC_L_F = 4;  // 07:17 --> 07:40
-
-  bool reliable_routing_request_completed_;
 };
 
 TEST_F(test_connection_graph_search, reliable_routing_request) {
@@ -47,9 +43,11 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
 
+  bool test_cb_called = false;
+
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
-    reliable_routing_request_completed_ = true;
+    test_cb_called = true;
     setup.ios.stop();
 
     ASSERT_EQ(cgs.size(), 1);
@@ -137,11 +135,92 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
 
   boost::asio::io_service::work ios_work(setup.ios);
 
+  simple_optimizer optimizer(3);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0, simple_optimizer::complete,
-             test_cb);
+             setup.reliability_module(), 0, optimizer, test_cb);
 
   setup.ios.run();
+
+  ASSERT_TRUE(test_cb_called);
+}
+
+/* search for alternatives at stops not necessary
+ * (base connection is optimal) */
+TEST_F(test_connection_graph_search, reliable_routing_request2) {
+  system_tools::setup setup(schedule_.get());
+  auto msg = flatbuffers_tools::to_reliable_routing_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+      std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
+
+  bool test_cb_called = false;
+
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
+    test_cb_called = true;
+    setup.ios.stop();
+
+    ASSERT_EQ(cgs.size(), 1);
+    auto const cg = *cgs.front();
+
+    ASSERT_EQ(cg.stops_.size(), 3);
+    {
+      auto const& stop =
+          cg.stops_[connection_graph::stop::Index_departure_stop];
+      ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
+      ASSERT_EQ(stop.departure_infos_.size(), 1);
+      ASSERT_EQ(stop.departure_infos_.front().departing_journey_index_, 0);
+      ASSERT_EQ(stop.departure_infos_.front().head_stop_index_,
+                connection_graph::stop::Index_first_intermediate_stop);
+    }
+    {
+      auto const& stop = cg.stops_[connection_graph::stop::Index_arrival_stop];
+      ASSERT_EQ(stop.index_, connection_graph::stop::Index_arrival_stop);
+      ASSERT_TRUE(stop.departure_infos_.empty());
+    }
+    {
+      auto const& stop =
+          cg.stops_[connection_graph::stop::Index_first_intermediate_stop];
+      ASSERT_EQ(stop.index_,
+                connection_graph::stop::Index_first_intermediate_stop);
+      ASSERT_EQ(stop.departure_infos_.size(), 1);
+      {
+        auto const& ic = stop.departure_infos_[0];
+        ASSERT_EQ(ic.departing_journey_index_, 1);
+        ASSERT_EQ(ic.head_stop_index_,
+                  connection_graph::stop::Index_arrival_stop);
+        // ASSERT_EQ(ic.interchange_time, 5);
+      }
+    }
+
+    ASSERT_EQ(cg.journeys_.size(), 2);
+    {
+      auto const& j = cg.journeys_[0];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "3333333");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445238000);  // 07:00
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445238600);  // 07:10
+      ASSERT_EQ(j.j_.transports.front().train_nr, RE_D_L);
+    }
+    {
+      auto const& j = cg.journeys_[1];
+      ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
+      ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
+      ASSERT_EQ(j.j_.stops.front().departure.timestamp, 1445238900);  // 07:15
+      ASSERT_EQ(j.j_.stops.back().arrival.timestamp, 1445239500);  // 07:10
+      ASSERT_EQ(j.j_.transports.front().train_nr, RE_L_F);
+    }
+  };
+
+  boost::asio::io_service::work ios_work(setup.ios);
+
+  simple_optimizer optimizer(1);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0, optimizer, test_cb);
+
+  setup.ios.run();
+
+  ASSERT_TRUE(test_cb_called);
 }
 
 }  // namespace connection_graph_search
