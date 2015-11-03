@@ -70,6 +70,7 @@ void ris::init() {
   dispatch(pack(db_get_messages(0, 0)));  // TODO
 
   schedule_update(error_code());
+  // TODO tell realtime start processing
 }
 
 void ris::parse_zips() {
@@ -78,12 +79,15 @@ void ris::parse_zips() {
     return;
   }
 
+  // TODO sort new_files;
+
   scoped_timer timer("RISML parsing");
   LOG(info) << "parsing " << new_files.size() << " RISML ZIP files";
   for (auto const& new_file : new_files) {
     std::vector<ris_message> parsed_messages;
     try {
       parsed_messages = parse_xmls(read_zip_file(new_file));
+      // TODO sort parsed_messages
     } catch (std::exception const& e) {
       LOG(error) << "bad zip file: " << e.what();
     }

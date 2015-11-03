@@ -27,8 +27,7 @@ struct realtime : public motis::module::module {
 
   boost::asio::io_service ios_;
   // std::unique_ptr<realtime_schedule> rts_;
-  // std::unique_ptr<delay_database> db_;
-  // std::unique_ptr<message_fetcher> message_fetcher_;
+
 
   // settings
   std::vector<uint32_t> track_trains_;
