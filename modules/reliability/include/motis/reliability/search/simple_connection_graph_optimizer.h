@@ -5,7 +5,8 @@ namespace reliability {
 namespace search {
 namespace connection_graph_search {
 namespace simple_optimizer {
-bool complete(connection_graph::stop const& stop, connection_graph const&) {
+inline bool complete(connection_graph::stop const& stop,
+                     connection_graph const&) {
   return stop.departure_infos_.size() >= 3;
 }
 

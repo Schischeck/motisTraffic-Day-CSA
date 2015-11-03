@@ -47,7 +47,8 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
 
-  auto test_cb = [&](std::vector<std::shared_ptr<connection_graph> > cgs) {
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
     reliable_routing_request_completed_ = true;
     setup.ios.stop();
 
@@ -137,8 +138,8 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
   boost::asio::io_service::work ios_work(setup.ios);
 
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), *schedule_.get(), 0,
-             simple_optimizer::complete, test_cb);
+             setup.reliability_module(), 0, simple_optimizer::complete,
+             test_cb);
 
   setup.ios.run();
 }

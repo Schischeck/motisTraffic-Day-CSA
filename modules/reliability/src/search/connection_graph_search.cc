@@ -37,10 +37,9 @@ struct context {
     };
     std::map<unsigned int, stop_state> stop_states_;
   };
-  context(motis::reliability::reliability& rel, schedule const& sched,
-          motis::module::sid session, callback cb, complete_func f)
+  context(motis::reliability::reliability& rel, motis::module::sid session,
+          callback cb, complete_func f)
       : reliability_(rel),
-        schedule_(sched),
         session_(session),
         result_callback_(cb),
         f_(f),
@@ -48,7 +47,6 @@ struct context {
 
   std::vector<conn_graph_context> connection_graphs_;
   motis::reliability::reliability& reliability_;
-  schedule const& schedule_;
   motis::module::sid session_;
   callback result_callback_;
   complete_func f_;
@@ -138,9 +136,11 @@ void handle_base_response(motis::module::msg_ptr msg,
     return build_result(Base_failed, context);
   }
   // std::cout << "\n\nBase Response:\n" << msg->to_json() << std::endl;
+
+  auto const lock = context->reliability_.synced_sched();
+  schedule const& schedule = lock.sched();
   auto journeys = journey_builder::to_journeys(
-      msg->content<routing::RoutingResponse const*>(),
-      context->schedule_.categories);
+      msg->content<routing::RoutingResponse const*>(), schedule.categories);
   if (journeys.empty()) {
     return build_result(Base_failed, context);
   }
@@ -197,8 +197,10 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   auto& conn_graph = c->connection_graphs_.at(conn_graph_idx);
   auto& stop_state = conn_graph.stop_states_.at(stop_idx);
 
+  auto const lock = c->reliability_.synced_sched();
+  schedule const& schedule = lock.sched();
   auto journeys = journey_builder::to_journeys(
-      msg->content<routing::RoutingResponse const*>(), c->schedule_.categories);
+      msg->content<routing::RoutingResponse const*>(), schedule.categories);
   if (journeys.empty()) {
     ++stop_state.num_failed_requests;
     if (stop_state.num_failed_requests > 5) { /* todo */
@@ -245,12 +247,12 @@ void build_result(build_state state, std::shared_ptr<context> c) {
 }  // namespace detail
 
 void search_cgs(ReliableRoutingRequest const* request,
-                motis::reliability::reliability& rel, schedule const& sched,
+                motis::reliability::reliability& rel,
                 motis::module::sid session, complete_func f, callback cb) {
   rel.send_message(
       flatbuffers_tools::to_flatbuffers_message(request->request()), session,
       std::bind(&detail::handle_base_response, p::_1, p::_2,
-                std::make_shared<detail::context>(rel, sched, session, cb, f)));
+                std::make_shared<detail::context>(rel, session, cb, f)));
 }
 
 }  // namespace connection_graph_search

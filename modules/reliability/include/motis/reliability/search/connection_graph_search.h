@@ -15,11 +15,11 @@ namespace search {
 namespace connection_graph_search {
 typedef std::function<bool(connection_graph::stop const&,
                            connection_graph const&)> complete_func;
-typedef std::function<void(std::vector<std::shared_ptr<connection_graph> >)>
-    callback;
+typedef std::function<void(
+    std::vector<std::shared_ptr<connection_graph> > const)> callback;
 
-void search_cgs(ReliableRoutingRequest const*, reliability&, schedule const&,
-                motis::module::sid, complete_func, callback);
+void search_cgs(ReliableRoutingRequest const*, reliability&, motis::module::sid,
+                complete_func, callback);
 
 }  // namespace connection_graph_search
 }  // namespace search

@@ -29,7 +29,11 @@ public:
   test_reliability2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            to_unix_time(2015, 9, 29)),
+        rating_request_called_(false) {}
+  void TearDown() override { ASSERT_TRUE(rating_request_called_); }
+  bool rating_request_called_;
+
   schedule_station const ERLANGEN = {"Erlangen", "0953067"};
   schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
   schedule_station const KASSEL = {"Kassel", "6380201"};
@@ -43,7 +47,11 @@ public:
   test_reliability7()
       : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
                             to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 20)) {}
+                            to_unix_time(2015, 10, 20)),
+        reliable_search_called_(false) {}
+  void TearDown() override { ASSERT_TRUE(reliable_search_called_); }
+  bool reliable_search_called_;
+
   schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
   schedule_station const LANGEN = {"Langen", "2222222"};
   schedule_station const FRANKFURT = {"Frankfurt", "3333333"};
@@ -61,6 +69,7 @@ TEST_F(test_reliability2, rating_request) {
       std::make_tuple(28, 9, 2015), RequestType_Rating);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    rating_request_called_ = true;
     ASSERT_EQ(e, nullptr);
     auto response = msg->content<ReliableRoutingResponse const*>();
     ASSERT_EQ(response->response()->connections()->size(), 1);
@@ -104,6 +113,7 @@ TEST_F(test_reliability7, reliable_search) {
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    reliable_search_called_ = true;
     ASSERT_EQ(e, nullptr);
     ASSERT_NE(msg, nullptr);
   };
