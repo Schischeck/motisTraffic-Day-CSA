@@ -176,12 +176,7 @@ void perform_precomputation(
     detail::process_element(queue.top(), schedule, s_t_distributions, queue,
                             distributions_container);
     queue.pop();
-    if (++num_processed % 10000 == 0) {
-      std::cout << "." << std::flush;
-    }
   }
-  std::cout << "\n" << num_processed << " pre-computed distribution pairs"
-            << std::endl;
 }
 }  // namespace precomputation
 }  // namespace distributions_calculator

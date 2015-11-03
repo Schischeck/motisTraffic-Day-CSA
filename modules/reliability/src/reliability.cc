@@ -100,7 +100,9 @@ void reliability::handle_routing_response(msg_ptr msg,
 
 void reliability::handle_connection_graph_result(
     std::vector<std::shared_ptr<search::connection_graph>> const cgs,
-    callback cb) {}
+    callback cb) {
+  return cb({}, error::not_implemented);
+}
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {
   return dispatch(msg, session, cb);

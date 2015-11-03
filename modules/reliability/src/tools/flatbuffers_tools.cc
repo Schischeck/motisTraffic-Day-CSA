@@ -246,9 +246,9 @@ module::msg_ptr to_reliable_routing_response(
   auto const simple_ratings = simple_rating_converter::convert_simple_ratings(
       b, orig_simple_ratings, *orig_routing_response->connections());
   b.Finish(CreateMessage(
-      b, MsgContent_ReliableRoutingResponse,
-      CreateReliableRoutingResponse(b, routing_response, conn_ratings,
-                                    simple_ratings).Union()));
+      b, MsgContent_ReliabilityRatingResponse,
+      CreateReliabilityRatingResponse(b, routing_response, conn_ratings,
+                                      simple_ratings).Union()));
   return module::make_msg(b);
 }
 

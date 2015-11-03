@@ -39,7 +39,7 @@ rating_elements:[RatingElement];
 connection_rating:float;
 }
 
-table ReliableRoutingResponse {
+table ReliabilityRatingResponse {
   response:motis.routing.RoutingResponse;
   ratings:[Rating];
   simple_ratings:[SimpleRating];
