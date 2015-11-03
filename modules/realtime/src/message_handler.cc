@@ -168,6 +168,7 @@ void message_handler::handle_additional_train(
 
   int32_t route_id = ++_rts._max_route_id;
   modified_train* mt = new modified_train(route_id, route_id, ci, clasz);
+  _rts._schedule.train_nr_to_routes[ci->train_nr].push_back(route_id);
 
   _rts._modified_train_manager.add(mt);
   _rts._graph_updater.adjust_train(mt, msg.events_);
@@ -522,8 +523,8 @@ std::pair<uint32_t, uint8_t> message_handler::get_or_create_category(
     if (it2 != std::end(_rts._schedule.classes)) clasz = it2->second;
   } else {
     // category not found - create new category
-    _rts._schedule.categories.emplace_back(new motis::category(
-        category, motis::category::output_rule::CATEGORY_AND_TRAIN_NUM));
+    _rts._schedule.categories.emplace_back(
+        new motis::category(category, motis::category::CATEGORY_AND_TRAIN_NUM));
     _rts._schedule.classes[category] = clasz;
     category_index = _rts._schedule.categories.size() - 1;
   }

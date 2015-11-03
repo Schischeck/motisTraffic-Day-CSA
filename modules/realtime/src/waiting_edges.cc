@@ -86,6 +86,8 @@ void waiting_edges::create_waiting_edges() {
       const motis::edge* previous_route_edge = _rts.get_prev_edge(route_node);
       if (previous_route_edge != nullptr && !previous_route_edge->empty()) {
         // check first lightconnection
+        const int conns = previous_route_edge->_m._route_edge._conns.size();
+        if (conns == 0) continue;
         const motis::light_connection& first_feeder =
             previous_route_edge->_m._route_edge._conns[0];
         const int feeder_category = _wtr.waiting_time_category(

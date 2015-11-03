@@ -42,10 +42,7 @@ public:
     if (se._schedule_time == ose._schedule_time) {
       // in this case, we don't care about the order, but an order
       // must be defined, otherwise set thinks the entries are equal
-      if (_delay_info == rhs._delay_info)
-        return _queue_reason < rhs._queue_reason;
-      else
-        return _delay_info < rhs._delay_info;
+      return _delay_info < rhs._delay_info;
     } else {
       return se._schedule_time < ose._schedule_time;
     }
@@ -76,7 +73,9 @@ public:
 
   void enqueue(const schedule_event& event_id, queue_reason queue_reason,
                int32_t route_id = -1);
-  void enqueue(delay_info* di, queue_reason queue_reason);
+  void enqueue(delay_info* di, queue_reason reason);
+
+  void update_route(delay_info* di, int32_t new_route);
 
 private:
   bool calculate_max(const delay_queue_entry& entry);
@@ -95,7 +94,7 @@ private:
   // std::unordered_map<delay_info*, delay_info_update> _delay_info_updates;
   // std::map<delay_info*, delay_info_update, delay_info_ptr_compare>
   // _delay_info_updates;
-  std::unordered_map<uint32_t, std::vector<delay_info_update>>
+  std::unordered_map<int32_t, std::vector<delay_info_update>>
       _delay_info_updates;
 };
 

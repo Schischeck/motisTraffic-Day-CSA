@@ -168,6 +168,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
   if (gti._extract_required) {
     if (_rts.is_debug_mode()) LOG(debug) << "extract route required";
     gti = extract_route(gti);
+    new_route = gti._edges[0]._from_route_node;
   }
 
   for (const graph_train_edge& e : gti._edges) {
@@ -390,6 +391,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
   motis::light_connection* start_lc = gti._edges[0]._lc;
   motis::node* old_route_start = gti._edges[0]._from_route_node;
   const int day_index = start_lc->d_time / MINUTES_A_DAY;
+  std::unordered_set<uint32_t> train_nrs;
 
   if (_rts.is_debug_mode()) {
     LOG(debug) << "moving connection into new route: "
@@ -430,6 +432,7 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
     new_from_route_node->_edges.emplace_back(
         make_route_edge(new_from_route_node, new_to_route_node, {lc}));
     // update_incoming_edge(new_from_route_node);
+    train_nrs.insert(con->con_info->train_nr);
 
     // update delay_infos
     motis::station_node* departure_station = e._from_route_node->get_station();
@@ -488,6 +491,13 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
 
   assert(new_route_start != nullptr);
   add_incoming_edges(new_route_start);
+
+  _rts._schedule.route_index_to_first_route_node[new_route_id] =
+      new_route_start;
+
+  for (auto train_nr : train_nrs) {
+    _rts._schedule.train_nr_to_routes[train_nr].push_back(new_route_id);
+  }
 
   if (_rts.is_debug_mode()) {
     dump_route(old_route_start, "updated old route", day_index);
@@ -588,6 +598,11 @@ modified_train* graph_updater::make_modified_train(
   }
 
   assert(check_route(start_route_node, true));
+
+  if (new_route) {
+    _rts._schedule.train_nr_to_routes[mt->_connection_info->train_nr].push_back(
+        new_route_id);
+  }
 
   _rts._modified_train_manager.add(mt);
   return mt;
@@ -782,6 +797,8 @@ void graph_updater::adjust_train(modified_train* mt,
   }
 
   mt->_current_start_event = current_start_event;
+  _rts._schedule.route_index_to_first_route_node[mt->_new_route_id] =
+      start_node;
   if (start_node != nullptr) {
     add_incoming_edges(start_node);
     if (_rts.is_debug_mode()) {

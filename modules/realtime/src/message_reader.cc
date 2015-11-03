@@ -275,7 +275,11 @@ int message_reader::eva_to_station_index(unsigned eva) const {
   }
 }
 
-motis::time message_reader::to_time(std::time_t unix_ts) const {
+motis::time message_reader::to_time(std::time_t unix_ts) {
+  auto it = time_cache_.find(unix_ts);
+  if (it != time_cache_.end()) {
+    return it->second;
+  }
   // timestamps in messages are in the local timezone, not utc
   std::tm* t = std::localtime(&unix_ts);
   if (t == nullptr) return INVALID_TIME;
@@ -283,12 +287,16 @@ motis::time message_reader::to_time(std::time_t unix_ts) const {
   auto schedule_begin =
       boost::posix_time::from_time_t(rts_._schedule.schedule_begin_).date();
   boost::gregorian::date msg_date(t->tm_year + 1900, t->tm_mon + 1, t->tm_mday);
-  if (msg_date < schedule_begin) {
-    return INVALID_TIME;
-  } else {
-    return motis::to_time((msg_date - schedule_begin).days(),
-                          t->tm_hour * 60 + t->tm_min);
+  motis::time mt = INVALID_TIME;
+  if (msg_date >= schedule_begin) {
+    mt = motis::to_time((msg_date - schedule_begin).days(),
+                        t->tm_hour * 60 + t->tm_min);
   }
+  if (time_cache_.size() > 10000) {
+    time_cache_.clear();
+  }
+  time_cache_[unix_ts] = mt;
+  return mt;
 }
 
 }  // namespace realtime

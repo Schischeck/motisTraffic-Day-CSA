@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <iostream>
+#include <unordered_map>
 
 #include "motis/realtime/messages.h"
 
@@ -29,9 +30,10 @@ private:
   read_connection_status_assessment_message(std::istream& in);
 
   int eva_to_station_index(unsigned eva) const;
-  motis::time to_time(std::time_t unix_ts) const;
+  motis::time to_time(std::time_t unix_ts);
 
   realtime_schedule& rts_;
+  std::unordered_map<std::time_t, motis::time> time_cache_;
 };
 
 }  // namespace realtime

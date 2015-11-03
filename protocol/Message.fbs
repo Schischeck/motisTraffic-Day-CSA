@@ -15,6 +15,8 @@ include "realtime/RealtimeTrainInfoResponse.fbs";
 include "realtime/RealtimeForwardTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
+include "realtime/RealtimeDelayInfoRequest.fbs";
+include "realtime/RealtimeDelayInfoResponse.fbs";
 
 namespace motis;
 
@@ -53,7 +55,9 @@ union MsgContent {
   motis.realtime.RealtimeTrainInfoBatchResponse,
   motis.realtime.RealtimeForwardTimeRequest,
   motis.realtime.RealtimeCurrentTimeRequest,
-  motis.realtime.RealtimeCurrentTimeResponse
+  motis.realtime.RealtimeCurrentTimeResponse,
+  motis.realtime.RealtimeDelayInfoRequest,
+  motis.realtime.RealtimeDelayInfoResponse
 }
 
 table Message {
