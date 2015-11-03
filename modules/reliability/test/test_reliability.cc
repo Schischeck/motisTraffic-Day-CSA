@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <streambuf>
 #include <vector>
 
 #include "motis/core/common/date_util.h"
@@ -52,9 +55,9 @@ public:
   void TearDown() override { ASSERT_TRUE(reliable_search_called_); }
   bool reliable_search_called_;
 
-  schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
+  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const FRANKFURT = {"Frankfurt", "3333333"};
+  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
   short const RE_D_L = 1;  // 07:00 --> 07:10
   short const RE_L_F = 2;  // 07:15 --> 07:25
   short const S_L_F = 3;  // 07:16 --> 07:34
@@ -71,7 +74,7 @@ TEST_F(test_reliability2, rating_request) {
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     rating_request_called_ = true;
     ASSERT_EQ(e, nullptr);
-    auto response = msg->content<ReliableRoutingResponse const*>();
+    auto response = msg->content<ReliabilityRatingResponse const*>();
     ASSERT_EQ(response->response()->connections()->size(), 1);
 
     ASSERT_NE(response->ratings(), nullptr);
@@ -114,8 +117,12 @@ TEST_F(test_reliability7, reliable_search) {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     reliable_search_called_ = true;
-    ASSERT_EQ(e, nullptr);
-    ASSERT_NE(msg, nullptr);
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    std::ifstream f("modules/reliability/resources/json/reliable_search.json");
+    std::string expected_str((std::istreambuf_iterator<char>(f)),
+                             std::istreambuf_iterator<char>());
+    ASSERT_EQ(expected_str, msg->to_json());
   };
 
   setup.dispatcher.on_msg(msg, 0, test_cb);

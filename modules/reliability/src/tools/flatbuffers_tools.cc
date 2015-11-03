@@ -13,6 +13,7 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/search/connection_graph.h"
 
 using namespace flatbuffers;
 
@@ -82,18 +83,23 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                             to_unix_time(ddmmyyyy, interval_end));
 }
 
+Offset<routing::Connection> to_connection(FlatBufferBuilder& b,
+                                          journey const& j) {
+  using namespace routing;
+  return CreateConnection(
+      b, b.CreateVector(detail::convert_stops(b, j.stops)),
+      b.CreateVector(detail::convert_moves(b, j.transports)),
+      b.CreateVector(detail::convert_attributes(b, j.attributes)));
+}
+
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
     std::vector<std::unique_ptr<category>> const& categories) {
-  using namespace routing;
   std::vector<Offset<routing::Connection>> connections;
-  auto journeys =
+  auto const journeys =
       journey_builder::to_journeys(orig_routing_response, categories);
   for (auto const& j : journeys) {
-    connections.push_back(CreateConnection(
-        b, b.CreateVector(detail::convert_stops(b, j.stops)),
-        b.CreateVector(detail::convert_moves(b, j.transports)),
-        b.CreateVector(detail::convert_attributes(b, j.attributes))));
+    connections.push_back(to_connection(b, j));
   }
   return CreateRoutingResponse(b, b.CreateVector(connections));
 }
@@ -230,7 +236,7 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
 }
 }  // namespace simple_rating_converter
 
-module::msg_ptr to_reliable_routing_response(
+module::msg_ptr to_reliability_rating_response(
     routing::RoutingResponse const* orig_routing_response,
     std::vector<std::unique_ptr<category>> const& categories,
     std::vector<rating::connection_rating> const& orig_ratings,
@@ -272,6 +278,46 @@ module::msg_ptr to_reliable_routing_request(
                                     routing::Direction::Direction_Forward,
                                     b.CreateVector(station_elements)),
                              type).Union()));
+  return module::make_msg(b);
+}
+
+Offset<ConnectionGraph> to_connection_graph(
+    FlatBufferBuilder& b, search::connection_graph const& cg) {
+  std::vector<Offset<Stop>> stops;
+  b.ForceDefaults(true); /* necessary to write stop-index 0 */
+  for (auto const& stop : cg.stops_) {
+    std::vector<DepartureInfo> departure_infos;
+    for (auto const& dep_info : stop.departure_infos_) {
+      departure_infos.emplace_back(dep_info.departing_journey_index_,
+                                   dep_info.head_stop_index_);
+    }
+    stops.push_back(
+        CreateStop(b, stop.index_, b.CreateVectorOfStructs(departure_infos)));
+  }
+  b.ForceDefaults(false);
+
+  std::vector<Offset<JourneyInfo>> journey_infos;
+  for (auto const& j_info : cg.journeys_) {
+    journey_infos.push_back(
+        CreateJourneyInfo(b, to_connection(b, j_info.j_) /*,
+        CreateRating(b, b.CreateVector(convert_rating_elements_short(
+                            b, conn_rating, orig_conn)),
+                     (float)conn_rating.connection_rating_)*/));
+  }
+  return CreateConnectionGraph(b, b.CreateVector(stops),
+                               b.CreateVector(journey_infos));
+}
+
+module::msg_ptr to_reliable_routing_response(
+    std::vector<std::shared_ptr<search::connection_graph>> const& cgs) {
+  FlatBufferBuilder b;
+  std::vector<Offset<ConnectionGraph>> connection_graphs;
+  for (auto const cg : cgs) {
+    connection_graphs.push_back(to_connection_graph(b, *cg));
+  }
+  b.Finish(CreateMessage(b, MsgContent_ReliableRoutingResponse,
+                         reliability::CreateReliableRoutingResponse(
+                             b, b.CreateVector(connection_graphs)).Union()));
   return module::make_msg(b);
 }
 

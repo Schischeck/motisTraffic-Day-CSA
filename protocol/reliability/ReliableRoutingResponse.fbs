@@ -1,0 +1,29 @@
+include "routing/RoutingResponse.fbs";
+include "reliability/ReliabilityRatingResponse.fbs";
+
+namespace motis.reliability;
+
+struct DepartureInfo {
+  departing_journey_index:short;
+  head_stop_index:short;
+}
+
+table Stop {
+  index:short;
+  departure_infos:[DepartureInfo];
+}
+
+table JourneyInfo {
+  journey:motis.routing.Connection;
+  rating:Rating;
+  simple_rating:SimpleRating;
+}
+
+table ConnectionGraph {
+  stops:[Stop];
+  journey_infos:[JourneyInfo];
+}
+
+table ReliableRoutingResponse {
+  connection_graphs:[ConnectionGraph];
+}

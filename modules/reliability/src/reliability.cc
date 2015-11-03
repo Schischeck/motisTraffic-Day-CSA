@@ -92,7 +92,7 @@ void reliability::handle_routing_response(msg_ptr msg,
     }
   }
 
-  return cb(flatbuffers_tools::to_reliable_routing_response(
+  return cb(flatbuffers_tools::to_reliability_rating_response(
                 res, schedule.categories, ratings, simple_ratings,
                 true /* short output */),
             error::ok);
@@ -101,7 +101,7 @@ void reliability::handle_routing_response(msg_ptr msg,
 void reliability::handle_connection_graph_result(
     std::vector<std::shared_ptr<search::connection_graph>> const cgs,
     callback cb) {
-  return cb({}, error::not_implemented);
+  return cb(flatbuffers_tools::to_reliable_routing_response(cgs), error::ok);
 }
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {

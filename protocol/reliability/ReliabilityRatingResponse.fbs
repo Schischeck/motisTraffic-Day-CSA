@@ -24,8 +24,8 @@ table SimpleRatingElement {
 }
 
 table SimpleRating {
-rating_elements:[SimpleRatingElement];
-connection_rating:float;
+  rating_elements:[SimpleRatingElement];
+  connection_rating:float;
 }
 
 table RatingElement {
@@ -35,8 +35,8 @@ table RatingElement {
 }
 
 table Rating {
-rating_elements:[RatingElement];
-connection_rating:float;
+  rating_elements:[RatingElement];
+  connection_rating:float;
 }
 
 table ReliabilityRatingResponse {

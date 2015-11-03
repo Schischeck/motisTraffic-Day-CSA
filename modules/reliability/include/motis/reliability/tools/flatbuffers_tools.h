@@ -15,6 +15,9 @@ namespace simple_rating {
 struct simple_connection_rating;
 }
 }
+namespace search {
+struct connection_graph;
+}
 namespace flatbuffers_tools {
 
 module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request);
@@ -38,12 +41,15 @@ module::msg_ptr to_reliable_routing_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, RequestType type);
 
-module::msg_ptr to_reliable_routing_response(
+module::msg_ptr to_reliability_rating_response(
     routing::RoutingResponse const*,
     std::vector<std::unique_ptr<category>> const&,
     std::vector<rating::connection_rating> const&,
     std::vector<rating::simple_rating::simple_connection_rating> const&,
     bool const short_output);
+
+module::msg_ptr to_reliable_routing_response(
+    std::vector<std::shared_ptr<search::connection_graph>> const&);
 
 }  // namespace flatbuffers_tools
 }  // namespace reliability
