@@ -15,7 +15,6 @@ namespace ris {
 namespace db {
 constexpr char const* kCreateTabFile = R"sql(
 CREATE TABLE IF NOT EXISTS ris_file (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(255)
 );
 )sql";
@@ -30,10 +29,16 @@ SQLPP_DECLARE_TABLE(
 
 constexpr char const* kCreateTabMessage = R"sql(
 CREATE TABLE IF NOT EXISTS ris_message (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
   scheduled BIGINT NOT NULL,
   timestamp BIGINT NOT NULL,
   msg BLOB NOT NULL
+);
+)sql";
+
+constexpr char const* kCreateIdxMessage = R"sql(
+CREATE INDEX IF NOT EXISTS ris_message_idx ON ris_message (
+  scheduled ASC,
+  timestamp ASC
 );
 )sql";
 
@@ -60,6 +65,7 @@ db_ptr default_db() {
 void db_init(db_ptr const& db) {
   db->execute(db::kCreateTabFile);
   db->execute(db::kCreateTabMessage);
+  db->execute(db::kCreateIdxMessage);
 }
 
 std::set<std::string> db_get_files(db_ptr const& db) {
