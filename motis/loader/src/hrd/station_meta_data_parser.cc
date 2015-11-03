@@ -63,7 +63,7 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
 typedef std::tuple<cstr, cstr, int, int> minct;
 void load_minct(std::vector<minct>& records) {
-  loaded_file minct_file{"minct.csv", {station_meta_data::MINCT}};
+  loaded_file minct_file{"minct.csv", cstr{station_meta_data::MINCT}};
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;
@@ -85,8 +85,7 @@ int station_meta_data::get_station_change_time(int eva_num) const {
 
 void parse_station_meta_data(loaded_file const& infotext_file,
                              station_meta_data& metas) {
-  std::map<cstr, int> ds100_to_eva_num;
-  parse_ds100_mappings(infotext_file, ds100_to_eva_num);
+  parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
   std::vector<minct> records;
   load_minct(records);
@@ -97,15 +96,15 @@ void parse_station_meta_data(loaded_file const& infotext_file,
     int const duration = std::get<duration_key>(record);
 
     if (to_ds100.len == 0) {
-      auto eva_number_it = ds100_to_eva_num.find(from_ds100);
-      if (eva_number_it != end(ds100_to_eva_num)) {
+      auto eva_number_it = metas.ds100_to_eva_num_.find(from_ds100);
+      if (eva_number_it != end(metas.ds100_to_eva_num_)) {
         metas.station_change_times_[eva_number_it->second] = duration;
       }
     } else {
-      auto from_eva_num_it = ds100_to_eva_num.find(from_ds100);
-      auto to_eva_num_it = ds100_to_eva_num.find(to_ds100);
-      if (from_eva_num_it != end(ds100_to_eva_num) &&
-          to_eva_num_it != end(ds100_to_eva_num)) {
+      auto from_eva_num_it = metas.ds100_to_eva_num_.find(from_ds100);
+      auto to_eva_num_it = metas.ds100_to_eva_num_.find(to_ds100);
+      if (from_eva_num_it != end(metas.ds100_to_eva_num_) &&
+          to_eva_num_it != end(metas.ds100_to_eva_num_)) {
         metas.footpaths_.push_back(
             {from_eva_num_it->second, to_eva_num_it->second, duration});
       }

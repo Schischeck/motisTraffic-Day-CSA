@@ -43,7 +43,7 @@ bitfield hex_str_to_bitset(cstr hex, char const* filename, int line_number) {
     throw parser_error(filename, line_number);
   }
   std::string bitstring(std::next(begin(bit_str), period_begin + 2),
-                        std::next(begin(bit_str), period_end));
+                        std::next(begin(bit_str), period_end - 1));
   std::reverse(begin(bitstring), end(bitstring));
   return bitfield{bitstring};
 }
@@ -53,7 +53,7 @@ std::map<int, bitfield> parse_bitfields(loaded_file f) {
 
   std::map<int, bitfield> bitfields;
   for_each_line_numbered(f.content, [&](cstr line, int line_number) {
-    if (line.len == 0) {
+    if (line.len == 0 || line.str[0] == '%') {
       return;
     } else if (line.len < 9) {
       throw parser_error(f.name, line_number);

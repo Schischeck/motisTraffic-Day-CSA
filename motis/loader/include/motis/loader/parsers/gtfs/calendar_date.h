@@ -1,22 +1,23 @@
 #pragma once
 
-#include <tuple>
+#include <string>
+#include <map>
+#include <vector>
+
+#include "boost/date_time/gregorian/gregorian_types.hpp"
+
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
-using calendar_date = std::tuple<int,  // service_id,
-                                 int,  // date,
-                                 int  // exception_type
-                                 >;
+struct date {
+  enum { ADD, REMOVE } type;
+  boost::gregorian::date day;
+};
 
-static const std::array<parser::cstr, std::tuple_size<calendar_date>::value>
-    calendar_date_columns = {{"service_id", "date", "exception_type"}};
-
-namespace calendar_date_accessors {
-enum { service_id, date, exception_type };
-}  // namespace calendar_date_accessor
+std::map<std::string, std::vector<date>> read_calendar_date(loaded_file);
 
 }  // namespace gtfs
 }  // namespace loader

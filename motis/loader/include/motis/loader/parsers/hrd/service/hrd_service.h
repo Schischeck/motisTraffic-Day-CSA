@@ -13,6 +13,11 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+struct parser_info {
+  char const* filename;
+  int line_number;
+};
+
 struct hrd_service {
 
   static const int NOT_SET;
@@ -54,9 +59,11 @@ struct hrd_service {
     std::vector<int> traffic_days;
   };
 
-  hrd_service(int num_repetitions, int interval, std::vector<stop> stops,
-              std::vector<section> sections, bitfield traffic_days)
-      : num_repetitions_(num_repetitions),
+  hrd_service(parser_info origin, int num_repetitions, int interval,
+              std::vector<stop> stops, std::vector<section> sections,
+              bitfield traffic_days)
+      : origin_(std::move(origin)),
+        num_repetitions_(num_repetitions),
         interval_(interval),
         stops_(std::move(stops)),
         sections_(std::move(sections)),
@@ -86,7 +93,9 @@ struct hrd_service {
     return ids;
   }
 
-  int num_repetitions_, interval_;
+  parser_info origin_;
+  int num_repetitions_;
+  int interval_;
   std::vector<stop> stops_;
   std::vector<section> sections_;
   bitfield traffic_days_;

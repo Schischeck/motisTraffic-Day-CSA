@@ -12,7 +12,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(shared_data const& stamm, rules sr,
+service_builder::service_builder(shared_data const& stamm, service_rules sr,
                                  FlatBufferBuilder& builder)
     : stamm_(stamm),
       sr_(sr),
@@ -150,13 +150,9 @@ Offset<Direction> service_builder::get_or_create_direction(
     auto const direction_key = directions[0];
     return get_or_create(directions_, direction_key.first, [&]() {
       switch (direction_key.second) {
-        case hrd_service::EVA_NUMBER: {
-          auto stations_it = stations_.fbs_stations_.find(direction_key.first);
-          verify(stations_it != end(stations_.fbs_stations_),
-                 "missing station name for eva number: %lu",
-                 direction_key.first);
-          return CreateDirection(builder_, stations_it->second, 0);
-        }
+        case hrd_service::EVA_NUMBER:
+          return CreateDirection(
+              builder_, stations_.get_or_create_station(direction_key.first));
         case hrd_service::DIRECTION_CODE: {
           auto it = stamm_.directions.find(direction_key.first);
           verify(it != end(stamm_.directions), "missing direction info: %lu",

@@ -1,103 +1,103 @@
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/reliability/probability_distribution.h"
 
 using namespace motis;
 using namespace motis::reliability;
 
-TEST_CASE("empty-distribution", "[probability_distribution]") {
+TEST(empty_distribution, probability_distribution) {
   probability_distribution pd;
 
-  REQUIRE(pd.empty());
+  ASSERT_TRUE(pd.empty());
 
-  REQUIRE(pd.first_minute() == 0);
-  REQUIRE(pd.last_minute() == -1);
+  ASSERT_TRUE(pd.first_minute() == 0);
+  ASSERT_TRUE(pd.last_minute() == -1);
 
-  REQUIRE(equal(pd.probability_smaller(0), 0.0));
-  REQUIRE(equal(pd.probability_smaller_equal(0), 0.0));
-  REQUIRE(equal(pd.probability_equal(0), 0.0));
-  REQUIRE(equal(pd.probability_greater_equal(0), 0.0));
-  REQUIRE(equal(pd.probability_greater(0), 0.0));
-  REQUIRE(equal(pd.sum(), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(0), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(0), 0.0));
+  ASSERT_TRUE(equal(pd.probability_equal(0), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(0), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(0), 0.0));
+  ASSERT_TRUE(equal(pd.sum(), 0.0));
 
   std::vector<probability> probabilities;
   pd.get_probabilities(probabilities);
-  REQUIRE(probabilities.size() == 0);
+  ASSERT_TRUE(probabilities.size() == 0);
 }
 
-TEST_CASE("empty-distribution2", "[probability_distribution]") {
+TEST(empty_distribution2, probability_distribution) {
   probability_distribution pd;
   pd.init({}, 0);
-  REQUIRE(pd.empty());
+  ASSERT_TRUE(pd.empty());
 }
 
-TEST_CASE("one-point-distribution", "[probability_distribution]") {
+TEST(one_point_distribution, probability_distribution) {
   probability_distribution pd;
   pd.init_one_point(0, 1.0);
 
-  REQUIRE(pd.first_minute() == 0);
-  REQUIRE(pd.last_minute() == 0);
-  REQUIRE(equal(pd.sum(), 1.0));
-  REQUIRE(equal(pd.probability_equal(0), 1.0));
-  REQUIRE(equal(pd.probability_smaller(0), 0.0));
-  REQUIRE(equal(pd.probability_greater(0), 0.0));
+  ASSERT_TRUE(pd.first_minute() == 0);
+  ASSERT_TRUE(pd.last_minute() == 0);
+  ASSERT_TRUE(equal(pd.sum(), 1.0));
+  ASSERT_TRUE(equal(pd.probability_equal(0), 1.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(0), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(0), 0.0));
 
   pd.init_one_point(-1, 0.5);
 
-  REQUIRE(pd.first_minute() == -1);
-  REQUIRE(pd.last_minute() == -1);
-  REQUIRE(equal(pd.sum(), 0.5));
-  REQUIRE(equal(pd.probability_equal(-1), 0.5));
-  REQUIRE(equal(pd.probability_smaller(-1), 0.0));
-  REQUIRE(equal(pd.probability_greater(-1), 0.0));
+  ASSERT_TRUE(pd.first_minute() == -1);
+  ASSERT_TRUE(pd.last_minute() == -1);
+  ASSERT_TRUE(equal(pd.sum(), 0.5));
+  ASSERT_TRUE(equal(pd.probability_equal(-1), 0.5));
+  ASSERT_TRUE(equal(pd.probability_smaller(-1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(-1), 0.0));
 
   pd.init_one_point(5, 0.1);
 
-  REQUIRE(equal(pd.first_minute(), 5));
-  REQUIRE(equal(pd.last_minute(), 5));
-  REQUIRE(equal(pd.sum(), 0.1));
-  REQUIRE(equal(pd.probability_equal(5), 0.1));
-  REQUIRE(equal(pd.probability_smaller(5), 0.0));
-  REQUIRE(equal(pd.probability_greater(5), 0.0));
+  ASSERT_TRUE(equal(pd.first_minute(), 5));
+  ASSERT_TRUE(equal(pd.last_minute(), 5));
+  ASSERT_TRUE(equal(pd.sum(), 0.1));
+  ASSERT_TRUE(equal(pd.probability_equal(5), 0.1));
+  ASSERT_TRUE(equal(pd.probability_smaller(5), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(5), 0.0));
 }
 
 void init_test(probability_distribution const& pd, int const first_minute) {
-  REQUIRE(pd.first_minute() == first_minute);
-  REQUIRE(pd.last_minute() == first_minute + 2);
-  REQUIRE(equal(pd.sum(), 1.0));
+  ASSERT_TRUE(pd.first_minute() == first_minute);
+  ASSERT_TRUE(pd.last_minute() == first_minute + 2);
+  ASSERT_TRUE(equal(pd.sum(), 1.0));
 
-  REQUIRE(equal(pd.probability_smaller(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_smaller(first_minute), 0.0));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 1), 0.5));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 2), 0.8));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 3), 1.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 1), 0.5));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 2), 0.8));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 3), 1.0));
 
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute), 0.5));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 1), 0.8));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 2), 1.0));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 3), 1.0));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute), 0.5));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 1), 0.8));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 2), 1.0));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 3), 1.0));
 
-  REQUIRE(equal(pd.probability_equal(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_equal(first_minute), 0.5));
-  REQUIRE(equal(pd.probability_equal(first_minute + 1), 0.3));
-  REQUIRE(equal(pd.probability_equal(first_minute + 2), 0.2));
-  REQUIRE(equal(pd.probability_equal(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute), 0.5));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 1), 0.3));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 2), 0.2));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 3), 0.0));
 
-  REQUIRE(equal(pd.probability_greater_equal(first_minute - 1), 1.0));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute), 1.0));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 1), 0.5));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 2), 0.2));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute - 1), 1.0));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute), 1.0));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 1), 0.5));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 2), 0.2));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 3), 0.0));
 
-  REQUIRE(equal(pd.probability_greater(first_minute - 1), 1.0));
-  REQUIRE(equal(pd.probability_greater(first_minute), 0.5));
-  REQUIRE(equal(pd.probability_greater(first_minute + 1), 0.2));
-  REQUIRE(equal(pd.probability_greater(first_minute + 2), 0.0));
-  REQUIRE(equal(pd.probability_greater(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute - 1), 1.0));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute), 0.5));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 1), 0.2));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 2), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 3), 0.0));
 }
 
-TEST_CASE("init", "[probability_distribution]") {
+TEST(init, probability_distribution) {
   std::vector<probability> const values = {0.5, 0.3, 0.2};
   for (int i = -3; i <= 1; i++) {
     probability_distribution pd;
@@ -106,7 +106,7 @@ TEST_CASE("init", "[probability_distribution]") {
   }
 }
 
-TEST_CASE("ignore small values", "[probability_distribution]") {
+TEST(ignore_small_values, probability_distribution) {
   probability small_value = 0.0000001;
   std::vector<probability> const values = {small_value, small_value,
                                            0.5 - (4 * small_value), 0.3, 0.2,
@@ -119,60 +119,60 @@ TEST_CASE("ignore small values", "[probability_distribution]") {
   }
 }
 
-TEST_CASE("only small values", "[probability_distribution]") {
+TEST(only_small_values, probability_distribution) {
   probability small_value = 0.0000001;
   std::vector<probability> const values = {small_value, small_value,
                                            small_value};
   probability_distribution pd;
   pd.init(values, 0);
-  REQUIRE(pd.first_minute() == 2);
-  REQUIRE(pd.last_minute() == 2);
-  REQUIRE(equal(pd.sum(), 3 * small_value));
+  ASSERT_TRUE(pd.first_minute() == 2);
+  ASSERT_TRUE(pd.last_minute() == 2);
+  ASSERT_TRUE(equal(pd.sum(), 3 * small_value));
 }
 
-TEST_CASE("sum smaller than 1", "[probability_distribution]") {
+TEST(sum_smaller_than_1, probability_distribution) {
   std::vector<probability> const values = {0.4, 0.3, 0.2};
   int const first_minute = 0;
 
   probability_distribution pd;
   pd.init(values, first_minute);
 
-  REQUIRE(pd.first_minute() == first_minute);
-  REQUIRE(pd.last_minute() == first_minute + 2);
-  REQUIRE(equal(pd.sum(), 0.9));
+  ASSERT_TRUE(pd.first_minute() == first_minute);
+  ASSERT_TRUE(pd.last_minute() == first_minute + 2);
+  ASSERT_TRUE(equal(pd.sum(), 0.9));
 
-  REQUIRE(equal(pd.probability_smaller(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_smaller(first_minute), 0.0));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 1), 0.4));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 2), 0.7));
-  REQUIRE(equal(pd.probability_smaller(first_minute + 3), 0.9));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 1), 0.4));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 2), 0.7));
+  ASSERT_TRUE(equal(pd.probability_smaller(first_minute + 3), 0.9));
 
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute), 0.4));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 1), 0.7));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 2), 0.9));
-  REQUIRE(equal(pd.probability_smaller_equal(first_minute + 3), 0.9));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute), 0.4));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 1), 0.7));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 2), 0.9));
+  ASSERT_TRUE(equal(pd.probability_smaller_equal(first_minute + 3), 0.9));
 
-  REQUIRE(equal(pd.probability_equal(first_minute - 1), 0.0));
-  REQUIRE(equal(pd.probability_equal(first_minute), 0.4));
-  REQUIRE(equal(pd.probability_equal(first_minute + 1), 0.3));
-  REQUIRE(equal(pd.probability_equal(first_minute + 2), 0.2));
-  REQUIRE(equal(pd.probability_equal(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute - 1), 0.0));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute), 0.4));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 1), 0.3));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 2), 0.2));
+  ASSERT_TRUE(equal(pd.probability_equal(first_minute + 3), 0.0));
 
-  REQUIRE(equal(pd.probability_greater_equal(first_minute - 1), 0.9));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute), 0.9));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 1), 0.5));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 2), 0.2));
-  REQUIRE(equal(pd.probability_greater_equal(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute - 1), 0.9));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute), 0.9));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 1), 0.5));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 2), 0.2));
+  ASSERT_TRUE(equal(pd.probability_greater_equal(first_minute + 3), 0.0));
 
-  REQUIRE(equal(pd.probability_greater(first_minute - 1), 0.9));
-  REQUIRE(equal(pd.probability_greater(first_minute), 0.5));
-  REQUIRE(equal(pd.probability_greater(first_minute + 1), 0.2));
-  REQUIRE(equal(pd.probability_greater(first_minute + 2), 0.0));
-  REQUIRE(equal(pd.probability_greater(first_minute + 3), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute - 1), 0.9));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute), 0.5));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 1), 0.2));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 2), 0.0));
+  ASSERT_TRUE(equal(pd.probability_greater(first_minute + 3), 0.0));
 }
 
-TEST_CASE("get_probabilities", "[probability_distribution]") {
+TEST(get_probabilities, probability_distribution) {
   std::vector<probability> probabilies_in = {0.5, 0.4, 0.1};
   probability_distribution pd;
   pd.init(probabilies_in, 2);
@@ -180,29 +180,60 @@ TEST_CASE("get_probabilities", "[probability_distribution]") {
   std::vector<probability> probabilies_out;
   pd.get_probabilities(probabilies_out);
 
-  REQUIRE(probabilies_in.size() == probabilies_out.size());
+  ASSERT_TRUE(probabilies_in.size() == probabilies_out.size());
   for (unsigned int i = 0; i < probabilies_in.size(); i++)
-    REQUIRE(equal(probabilies_in[i], probabilies_out[i]));
+    ASSERT_TRUE(equal(probabilies_in[i], probabilies_out[i]));
 }
 
-TEST_CASE("copy", "[probability_distribution]") {
+TEST(copy, probability_distribution) {
   probability_distribution a, b;
   a.init({0.1, 0.2, 0.5, 0.2}, -1);
   b.init(a);
-  REQUIRE(b.first_minute() == a.first_minute());
-  REQUIRE(b.last_minute() == a.last_minute());
-  REQUIRE(equal(b.sum(), 1.0));
-  REQUIRE(equal(b.probability_equal(-1), 0.1));
-  REQUIRE(equal(b.probability_equal(0), 0.2));
-  REQUIRE(equal(b.probability_equal(1), 0.5));
-  REQUIRE(equal(b.probability_equal(2), 0.2));
+  ASSERT_TRUE(b.first_minute() == a.first_minute());
+  ASSERT_TRUE(b.last_minute() == a.last_minute());
+  ASSERT_TRUE(equal(b.sum(), 1.0));
+  ASSERT_TRUE(equal(b.probability_equal(-1), 0.1));
+  ASSERT_TRUE(equal(b.probability_equal(0), 0.2));
+  ASSERT_TRUE(equal(b.probability_equal(1), 0.5));
+  ASSERT_TRUE(equal(b.probability_equal(2), 0.2));
 }
 
-TEST_CASE("zero", "[probability_distribution]") {
+TEST(zero, probability_distribution) {
   probability_distribution pd;
   pd.init({0.0, 0.0, 0.0}, 0);
-  REQUIRE_FALSE(pd.empty());
-  REQUIRE(pd.first_minute() == 2);
-  REQUIRE(pd.last_minute() == 2);
-  REQUIRE(equal(pd.sum(), 0.0));
+  ASSERT_FALSE(pd.empty());
+  ASSERT_TRUE(pd.first_minute() == 2);
+  ASSERT_TRUE(pd.last_minute() == 2);
+  ASSERT_TRUE(equal(pd.sum(), 0.0));
+}
+
+TEST(equal_operator, probability_distribution) {
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.4, 0.1}, -1);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    ASSERT_TRUE(pd1 == pd2);
+    ASSERT_FALSE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.4, 0.1}, 0);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    ASSERT_FALSE(pd1 == pd2);
+    ASSERT_TRUE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.3, 0.1}, -1);
+    pd2.init({0.5, 0.4, 0.1}, -1);
+    ASSERT_FALSE(pd1 == pd2);
+    ASSERT_TRUE(pd1 != pd2);
+  }
+  {
+    probability_distribution pd1, pd2;
+    pd1.init({0.5, 0.3, 0.1, 0.1}, -1);
+    pd2.init({0.5, 0.3, 0.1}, -1);
+    ASSERT_FALSE(pd1 == pd2);
+    ASSERT_TRUE(pd1 != pd2);
+  }
 }

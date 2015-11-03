@@ -1,0 +1,7 @@
+include "routing/RoutingRequest.fbs";
+
+namespace motis.reliability;
+
+table ReliableRoutingRequest {
+  request:motis.routing.RoutingRequest;
+}

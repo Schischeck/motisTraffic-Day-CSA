@@ -73,6 +73,13 @@ public:
       sched_.eva_to_station.insert(
           std::make_pair(input_station->id()->str(), s.get()));
       sched_.stations.emplace_back(std::move(s));
+
+      // Store DS100.
+      if(input_station->external_ids()) {
+				for (auto const& ds100 : *input_station->external_ids()) {
+					sched_.ds100_to_station.insert(std::make_pair(ds100->str(), s.get()));
+				}
+      }
     }
 
     // First regular node id:

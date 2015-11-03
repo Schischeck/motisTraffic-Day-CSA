@@ -19,6 +19,7 @@ struct station_meta_data {
   static const char* MINCT;
   std::map<int, int> station_change_times_;
   std::vector<footpath> footpaths_;
+  std::map<parser::cstr, int> ds100_to_eva_num_;
 };
 
 void parse_station_meta_data(loaded_file const& infotext_file,

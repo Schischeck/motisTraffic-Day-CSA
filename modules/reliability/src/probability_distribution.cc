@@ -115,12 +115,6 @@ probability probability_distribution::sum() const {
   return probabilities_[probabilities_.size() - 1];
 }
 
-void probability_distribution::get_probabilities(
-    std::vector<probability>& probabilities) const {
-  for (int i = first_minute_; i <= last_minute(); i++)
-    probabilities.push_back(probability_equal(i));
-}
-
 std::ostream& operator<<(std::ostream& os,
                          probability_distribution const& distribution) {
   if (distribution.empty()) {

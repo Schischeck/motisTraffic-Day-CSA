@@ -2,8 +2,9 @@
 
 #include <map>
 
-#include "motis/module/module.h"
+#include "boost/asio/io_service.hpp"
 
+#include "motis/module/module.h"
 #include "motis/module/server.h"
 
 namespace motis {

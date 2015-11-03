@@ -14,6 +14,7 @@ struct intermediate_station {
   std::string name;
   int change_time;
   double lng, lat;
+  std::vector<std::string> ds100;
 };
 
 std::map<int, intermediate_station> parse_stations(

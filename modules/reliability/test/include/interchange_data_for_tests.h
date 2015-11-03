@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "catch/catch.hpp"
+#include "gtest/gtest.h"
 
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/edges.h"
@@ -48,21 +48,25 @@ struct interchange_data_for_tests {
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
                                   tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
-    REQUIRE(schedule.stations[tail_node_departing_train_._station_node->_id]
-                ->eva_nr == interchange_station_eva);
-    REQUIRE(schedule.stations[arriving_route_edge_._from->_station_node->_id]
-                ->eva_nr == previous_station_eva);
-    REQUIRE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                ->eva_nr == interchange_station_eva);
-    REQUIRE(schedule.stations[departing_route_edge_._from->_station_node->_id]
-                ->eva_nr == interchange_station_eva);
-    REQUIRE(schedule.stations[departing_route_edge_._to->_station_node->_id]
-                ->eva_nr == next_station_eva);
+    EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
+                    ->eva_nr == interchange_station_eva);
+    EXPECT_TRUE(
+        schedule.stations[arriving_route_edge_._from->_station_node->_id]
+            ->eva_nr == previous_station_eva);
+    EXPECT_TRUE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
+                    ->eva_nr == interchange_station_eva);
+    EXPECT_TRUE(
+        schedule.stations[departing_route_edge_._from->_station_node->_id]
+            ->eva_nr == interchange_station_eva);
+    EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
+                    ->eva_nr == next_station_eva);
 
-    REQUIRE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
-    REQUIRE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
-    REQUIRE(departing_light_conn_.d_time == (motis::time)departing_train_dep);
-    REQUIRE(departing_light_conn_.a_time == (motis::time)departing_train_arr);
+    EXPECT_TRUE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
+    EXPECT_TRUE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
+    EXPECT_TRUE(departing_light_conn_.d_time ==
+                (motis::time)departing_train_dep);
+    EXPECT_TRUE(departing_light_conn_.a_time ==
+                (motis::time)departing_train_arr);
   }
 
   /* interchange with walking */
@@ -83,21 +87,25 @@ struct interchange_data_for_tests {
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
                                   tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
-    REQUIRE(schedule.stations[tail_node_departing_train_._station_node->_id]
-                ->eva_nr == end_walking_eva);
-    REQUIRE(schedule.stations[arriving_route_edge_._from->_station_node->_id]
-                ->eva_nr == previous_station_eva);
-    REQUIRE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                ->eva_nr == begin_walking_eva);
-    REQUIRE(schedule.stations[departing_route_edge_._from->_station_node->_id]
-                ->eva_nr == end_walking_eva);
-    REQUIRE(schedule.stations[departing_route_edge_._to->_station_node->_id]
-                ->eva_nr == next_station_eva);
+    EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
+                    ->eva_nr == end_walking_eva);
+    EXPECT_TRUE(
+        schedule.stations[arriving_route_edge_._from->_station_node->_id]
+            ->eva_nr == previous_station_eva);
+    EXPECT_TRUE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
+                    ->eva_nr == begin_walking_eva);
+    EXPECT_TRUE(
+        schedule.stations[departing_route_edge_._from->_station_node->_id]
+            ->eva_nr == end_walking_eva);
+    EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
+                    ->eva_nr == next_station_eva);
 
-    REQUIRE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
-    REQUIRE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
-    REQUIRE(departing_light_conn_.d_time == (motis::time)departing_train_dep);
-    REQUIRE(departing_light_conn_.a_time == (motis::time)departing_train_arr);
+    EXPECT_TRUE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
+    EXPECT_TRUE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
+    EXPECT_TRUE(departing_light_conn_.d_time ==
+                (motis::time)departing_train_dep);
+    EXPECT_TRUE(departing_light_conn_.a_time ==
+                (motis::time)departing_train_arr);
   }
 
   node const& tail_node_departing_train_;

@@ -92,8 +92,8 @@ hrd_service new_service_from_split(split_info const& s,
             std::next(begin(origin.sections_), s.to_section_idx + 1),
             begin(sections));
 
-  return hrd_service(origin.num_repetitions_, origin.interval_, stops, sections,
-                     s.traffic_days);
+  return hrd_service(origin.origin_, origin.num_repetitions_, origin.interval_,
+                     stops, sections, s.traffic_days);
 }
 
 void expand_traffic_days(hrd_service const& service,
