@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+option(WITH_MYSQL "MySQL support" OFF)
+
 include_directories(include)
 include_directories(../routing/include)
 
@@ -20,3 +22,15 @@ file(GLOB_RECURSE motis-realtime-test-files test/*.cc)
 add_executable(motis-realtime-test EXCLUDE_FROM_ALL ${motis-realtime-test-files})
 set_target_properties(motis-realtime-test PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
 target_link_libraries(motis-realtime-test motis-realtime motis-loader motis-routing)
+
+if(WITH_MYSQL)
+  file(GLOB_RECURSE motis-realtime-dump-files tools/dump/*.cc)
+  add_executable(motis-realtime-dump
+    ${motis-realtime-dump-files}
+    src/database.cc
+    src/opt_time.cc
+  )
+  target_link_libraries(motis-realtime-dump ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+  target_link_libraries(motis-realtime-dump ${DB_LIBRARIES} conf)
+  set_target_properties(motis-realtime-dump PROPERTIES COMPILE_FLAGS -std=c++11 -Wall -Wextra)
+endif()

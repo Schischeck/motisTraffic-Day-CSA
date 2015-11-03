@@ -24,6 +24,7 @@ target_link_libraries(motis-webservice
   motis-realtime
   motis-reliability
   motis-routing
+  motis-realtime
   motis-ris
 )
 

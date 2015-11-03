@@ -5,9 +5,16 @@ include "railviz/RailVizStationDetail.fbs";
 include "railviz/RailVizStationDetailRequest.fbs";
 include "railviz/RailVizAllTrainsRequest.fbs";
 include "railviz/RailVizAllTrainsResponse.fbs";
+include "reliability/ReliableRoutingRequest.fbs";
+include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISBatch.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
+include "realtime/RealtimeTrainInfoRequest.fbs";
+include "realtime/RealtimeTrainInfoResponse.fbs";
+include "realtime/RealtimeForwardTimeRequest.fbs";
+include "realtime/RealtimeCurrentTimeRequest.fbs";
+include "realtime/RealtimeCurrentTimeResponse.fbs";
 
 namespace motis;
 
@@ -35,13 +42,23 @@ union MsgContent {
   motis.railviz.RailVizAllTrainsResponse,
   motis.railviz.RailVizStationDetail,
   motis.railviz.RailVizStationDetailRequest,
+  motis.reliability.ReliableRoutingRequest,
+  motis.reliability.ReliableRoutingResponse,
   motis.ris.RISBatch,
   motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse
+  motis.routing.RoutingResponse,
+  motis.realtime.RealtimeTrainInfoRequest,
+  motis.realtime.RealtimeTrainInfoResponse,
+  motis.realtime.RealtimeTrainInfoBatchRequest,
+  motis.realtime.RealtimeTrainInfoBatchResponse,
+  motis.realtime.RealtimeForwardTimeRequest,
+  motis.realtime.RealtimeCurrentTimeRequest,
+  motis.realtime.RealtimeCurrentTimeResponse
 }
 
 table Message {
   content:MsgContent;
+  id:int = 0;
 }
 
 root_type Message;

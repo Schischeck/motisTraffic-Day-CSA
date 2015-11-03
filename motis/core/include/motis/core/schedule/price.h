@@ -11,7 +11,7 @@
 
 namespace motis {
 
-int get_price_per_km(int clasz) {
+inline int get_price_per_km(int clasz) {
   switch (clasz) {
     case MOTIS_ICE: return 22;
 
@@ -30,7 +30,7 @@ int get_price_per_km(int clasz) {
   }
 }
 
-double get_distance(const station& s1, const station& s2) {
+inline double get_distance(const station& s1, const station& s2) {
   double lat1 = s1.width, long1 = s1.length;
   double lat2 = s2.width, long2 = s2.length;
   double dlong = (long2 - long1) * d2r;

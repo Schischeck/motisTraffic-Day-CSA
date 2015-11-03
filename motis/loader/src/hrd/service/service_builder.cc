@@ -12,7 +12,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(shared_data const& stamm, rules sr,
+service_builder::service_builder(shared_data const& stamm, service_rules sr,
                                  FlatBufferBuilder& builder)
     : stamm_(stamm),
       sr_(sr),

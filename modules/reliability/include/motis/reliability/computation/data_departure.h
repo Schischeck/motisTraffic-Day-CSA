@@ -8,7 +8,7 @@
 
 namespace motis {
 struct category;
-class light_connection;
+struct light_connection;
 class node;
 struct schedule;
 
@@ -17,7 +17,7 @@ struct probability_distribution;
 struct start_and_travel_distributions;
 
 namespace distributions_container {
-struct precomputed_distributions_container;
+struct abstract_distributions_container;
 }
 
 namespace calc_departure_distribution {
@@ -29,9 +29,12 @@ struct data_departure {
   data_departure(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,
-      distributions_container::precomputed_distributions_container const&
-          distributions_container,
+      distributions_container::abstract_distributions_container const&
+          train_distributions_container,
+      distributions_container::abstract_distributions_container const&
+          feeder_distributions_container,
       start_and_travel_distributions const& s_t_distributions);
+
   /* constructor necessary for the derived struct data_departure_connection */
   data_departure(bool const is_first_route_node, time const scheduled_dep_time);
 
@@ -87,17 +90,17 @@ struct data_departure {
 protected:
   void init_train_info(
       node const& route_node, light_connection const& light_conn,
-      std::vector<std::unique_ptr<category>> const& categories,
+      distributions_container::abstract_distributions_container const&
+          distributions_container,
       start_and_travel_distributions const& s_t_distributions,
-      distributions_container::precomputed_distributions_container const&
-          distributions_container);
+      std::vector<std::unique_ptr<category>> const& categories);
 
   void init_feeder_info(
       light_connection const& light_conn,
       std::vector<std::unique_ptr<graph_accessor::feeder_info>> const&
           all_feeders_data,
       schedule const& schedule,
-      distributions_container::precomputed_distributions_container const&
+      distributions_container::abstract_distributions_container const&
           distributions_container);
 };
 

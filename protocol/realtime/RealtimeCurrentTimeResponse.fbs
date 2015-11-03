@@ -1,0 +1,14 @@
+namespace motis.realtime;
+
+/// Sent in response to a RealtimeCurrentTimeRequest.
+table RealtimeCurrentTimeResponse {
+  /// Unix timestamp of the last realtime message (release time) that was
+  /// processed. 0 if no messages have been processed so far.
+  last_message_time:long;
+  /// Unix timestamp of the message stream start time (i.e. no messages with
+  /// release time below this value were processed)
+  stream_start_time:long;
+  /// Unix timestamp of the message stream end time (i.e. no messages with
+  /// release time above this value were processed)
+  stream_end_time:long;
+}

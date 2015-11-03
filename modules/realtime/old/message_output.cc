@@ -12,22 +12,12 @@ namespace realtime {
 using namespace motis::logging;
 
 message_output::message_output(realtime_schedule& rts) : _rts(rts) {
-  std::time(&_base_time);
-  std::tm t = *std::localtime(&_base_time);
-  date_manager::date first_day = _rts._schedule.date_mgr.first_date();
-  t.tm_mday = first_day.day;
-  t.tm_mon = first_day.month - 1;
-  t.tm_year = first_day.year - 1900;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-  // t.tm_isdst = -1;
-  _base_time = std::mktime(&t);
+  _base_time = _rts._schedule.schedule_begin_;
 }
 
 void message_output::add_delay(const delay_info* di) { _delays.push_back(di); }
 
-void message_output::add_message(message_class const* msg) {
+void message_output::add_message(message const* msg) {
   _messages.push_back(msg);
 }
 
@@ -51,9 +41,10 @@ void message_output::write_stream(std::ostream& out) {
       << "\" messages=\"true\">\n";
   out << _messages.size() << " " << _delays.size() << " 0 \n";
 
-  for (message_class const* msg : _messages) {
-    msg->write_to_stream(out);
-  }
+  // TODO
+  // for (message const* msg : _messages) {
+  //   msg->write_to_stream(out);
+  // }
 
   for (delay_info const* di : _delays) {
     out << di->_schedule_event._train_nr << " "

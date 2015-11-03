@@ -45,7 +45,7 @@ message::message(std::string const& json) {
   }
 
   buf_ = parser->builder_.GetBufferPointer();
-  msg_ = motis::GetMessage(buf_);
+  msg_ = motis::GetMutableMessage(buf_);
   mem_ = parser->builder_.ReleaseBufferPointer();
 
   parser->builder_.Clear();

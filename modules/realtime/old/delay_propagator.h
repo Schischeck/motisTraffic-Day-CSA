@@ -22,8 +22,10 @@ enum class queue_reason : uint8_t {
   TRAIN,  // traveling train edge
   WAITING,  // waiting edge
   CANCELED,  // event canceled
-  RECALC  // recalculate (event added, cancelation revoked, other train
+  RECALC,  // recalculate (event added, cancelation revoked, other train
   // event canceled)
+  REPAIR  // fake message to repair an otherwise broken train because of
+  // conflicting is messages
 };
 
 std::ostream& operator<<(std::ostream& os, const queue_reason& r);
@@ -35,8 +37,8 @@ public:
       : _delay_info(di), _queue_reason(queue_reason) {}
 
   bool operator<(const delay_queue_entry& rhs) const {
-    const schedule_event& se = _delay_info->schedule_event();
-    const schedule_event& ose = rhs._delay_info->schedule_event();
+    const schedule_event& se = _delay_info->sched_ev();
+    const schedule_event& ose = rhs._delay_info->sched_ev();
     if (se._schedule_time == ose._schedule_time) {
       // in this case, we don't care about the order, but an order
       // must be defined, otherwise set thinks the entries are equal

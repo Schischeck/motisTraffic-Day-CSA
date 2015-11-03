@@ -9,6 +9,8 @@ foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 if(MINGW)
   add_definitions(-DWINVER=0x0501)
   add_definitions(-D_WIN32_WINNT=0x0501)

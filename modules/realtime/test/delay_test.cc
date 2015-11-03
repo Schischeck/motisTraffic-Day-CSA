@@ -18,7 +18,6 @@ TEST_CASE("original events don't have delay", "[delay]") {
   const motis::station* wuerzburg = ts.get_station("Würzburg Hbf");
 
   for (int offset = 0; offset <= 10; offset++) {
-    //    std::cout << "arrival at " << (9+offset) << ":43\n";
     motis::node* route_node;
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, false, t(9 + offset, 43), -1);
@@ -26,12 +25,12 @@ TEST_CASE("original events don't have delay", "[delay]") {
     CHECK(route_node != nullptr);
     CHECK(lc != nullptr);
     if (lc) CHECK(lc->a_time == t(9 + offset, 43));
+
     CHECK(rt::graph_event(ts._rts.get_schedule_event(event)) == event);
     CHECK(ts._rts._delay_info_manager.get_delay_info(event) == nullptr);
   }
 
   for (int offset = 0; offset <= 10; offset++) {
-    //    std::cout << "departure at " << (9+offset) << ":46\n";
     motis::node* route_node;
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, true, t(9 + offset, 46), -1);
