@@ -73,8 +73,12 @@ void ris::init() {
 }
 
 void ris::parse_zips() {
-  scoped_timer timer("RISML parsing");
   auto new_files = get_new_files();
+  if(new_files.size() == 0) {
+    return;
+  }
+
+  scoped_timer timer("RISML parsing");
   LOG(info) << "parsing " << new_files.size() << " RISML ZIP files";
   for (auto const& new_file : new_files) {
     std::vector<ris_message> parsed_messages;
