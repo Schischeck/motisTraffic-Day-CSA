@@ -25,8 +25,7 @@ namespace hrd {
 TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
   flatbuffers::FlatBufferBuilder b;
 
-  auto bitfield_file_content = "000001 EF";
-  auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfield_file_content});
+  auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 EF"});
 
   auto platform_file_content =
       "8509404 30467 85____ 3             000000\n"
@@ -62,8 +61,7 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
 TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
   flatbuffers::FlatBufferBuilder b;
 
-  auto bitfield_file_content = "000001 FF";
-  auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfield_file_content});
+  auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 FF"});
 
   auto platform_file_content = "8000000 00001 80____ 1A       0130 000001";
 
@@ -92,8 +90,7 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
   try {
     flatbuffers::FlatBufferBuilder b;
 
-    auto bitfield_file_content = "000001 EF";
-    auto bitfields = parse_bitfields({BITFIELDS_FILE, bitfield_file_content});
+    auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 EF"});
 
     auto platform_file_content =
         "8509404 30467 85____ 3             000000\n"

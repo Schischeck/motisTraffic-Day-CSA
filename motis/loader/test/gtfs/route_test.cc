@@ -9,11 +9,11 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_routes_file_content =
+const char* example_routes_file_content =
     R"(route_id,route_short_name,route_long_name,route_desc,route_type
 A,17,Mission,"The ""A"" route travels from lower Mission to Downtown.",3)";
 
-cstr berlin_routes_file_content =
+const char* berlin_routes_file_content =
     R"(route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
 1,ANG---,SXF2,,,700,http://www.vbb.de,,
 10,BMO---,927,,,700,http://www.vbb.de,,
@@ -33,7 +33,6 @@ TEST(loader_gtfs_route, read_routes_example_data) {
   EXPECT_EQ("Mission", routes["A"].long_name);
   EXPECT_EQ(3, routes["A"].type);
 }
-
 
 TEST(loader_gtfs_route, read_routes_berlin_data) {
   auto routes = read_routes({ROUTES_FILE, berlin_routes_file_content});

@@ -31,7 +31,7 @@ time_t str_to_unixtime(cstr s) {
 Interval parse_interval(loaded_file const& basic_info_file) {
   scoped_timer timer("parsing schedule interval");
 
-  auto content = basic_info_file.content;
+  auto content = basic_info_file.content_;
 
   auto from_line = parser::get_line(content);
   content += from_line.len + 1;

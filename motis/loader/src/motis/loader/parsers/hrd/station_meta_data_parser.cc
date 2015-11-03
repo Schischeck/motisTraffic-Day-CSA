@@ -43,7 +43,7 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
   column_map[4] = 1;
 
   std::vector<entry> entries;
-  auto next = infotext_file.content;
+  auto next = infotext_file.content_;
   while (next) {
     next = skip_lines(next, [](cstr const& line) { return line.len < 38; });
     if (!next) {
@@ -63,14 +63,14 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
 typedef std::tuple<cstr, cstr, int, int> minct;
 void load_minct(std::vector<minct>& records) {
-  loaded_file minct_file{"minct.csv", cstr{station_meta_data::MINCT}};
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;
   column_map[1] = 1;
   column_map[2] = 2;
   column_map[3] = 3;
-  auto rows = detail::read_rows<minct, ';'>(minct_file.content, column_map);
+  cstr minct_content(station_meta_data::MINCT);
+  auto rows = detail::read_rows<minct, ';'>(minct_content, column_map);
   read(records, rows);
 }
 

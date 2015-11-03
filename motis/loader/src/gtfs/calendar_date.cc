@@ -28,7 +28,7 @@ date read_date(gtfs_calendar_date const& gtfs_date) {
 
 std::map<std::string, std::vector<date>> read_calendar_date(loaded_file f) {
   std::map<std::string, std::vector<date>> services;
-  for (auto const& d : read<gtfs_calendar_date>(f.content, calendar_columns)) {
+  for (auto const& d : read<gtfs_calendar_date>(f.content_, calendar_columns)) {
     services[get<service_id>(d).to_str()].push_back(read_date(d));
   }
   return services;

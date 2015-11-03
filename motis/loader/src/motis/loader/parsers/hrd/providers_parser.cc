@@ -60,14 +60,14 @@ std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
   provider_info current_info;
   int previous_provider_number = 0;
 
-  for_each_line_numbered(file.content, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
     auto provider_number = parse<int>(line.substr(0, size(5)));
     if (line[6] == 'K') {
-      current_info = read_provider_names(line, file.name, line_number);
+      current_info = read_provider_names(line, file.name_, line_number);
       previous_provider_number = provider_number;
     } else {
       verify(previous_provider_number == provider_number,
-             "provider line format mismatch in %s:%d", file.name, line_number);
+             "provider line format mismatch in %s:%d", file.name_, line_number);
       for_each_token(line.substr(8), ' ', [&](cstr token) {
         providers[raw_to_int<uint64_t>(token)] = current_info;
       });

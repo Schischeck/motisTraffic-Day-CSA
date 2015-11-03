@@ -22,11 +22,11 @@ platform_rules parse_platform_rules(loaded_file file,
   platform_rules prs;
   std::map<uint64_t, Offset<String>> platform_names;
 
-  for_each_line_numbered(file.content, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
     } else if (line.len != 41) {
-      throw parser_error(file.name, line_number);
+      throw parser_error(file.name_, line_number);
     }
 
     auto eva_num = parse<int>(line.substr(0, size(7)));

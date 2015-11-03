@@ -4,10 +4,6 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "motis/loader/model/hrd/shared_data.h"
-#include "motis/loader/builders/hrd/service_builder.h"
-#include "motis/loader/builders/hrd/rule_service_builder.h"
-
 namespace motis {
 namespace loader {
 namespace hrd {

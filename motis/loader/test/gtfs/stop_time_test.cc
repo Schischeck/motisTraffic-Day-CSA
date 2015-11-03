@@ -9,7 +9,7 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_stop_times_file_content =
+const char* example_stop_times_file_content =
     R"(trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
 AWE1,0:06:10,0:06:10,S1,1,0,0,0
 AWE1,,,S2,2,0,1,3
@@ -23,7 +23,7 @@ AWD1,,,S4,4,0,0,0
 AWD1,,,S5,5,0,0,0
 AWD1,0:06:45,0:06:45,S6,6,0,0,0)";
 
-cstr berlin_stop_times_file_content =
+const char* berlin_stop_times_file_content =
     R"(trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled
 1,04:45:00,04:46:00,9230999,1,,0,1,
 1,04:51:00,04:51:00,9230400,2,,0,1,

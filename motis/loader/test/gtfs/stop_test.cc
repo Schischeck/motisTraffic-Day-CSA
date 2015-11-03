@@ -11,7 +11,7 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_stops_file_content =
+const char* example_stops_file_content =
     R"(stop_id,stop_name,stop_desc,stop_lat,stop_lon,stop_url,location_type,parent_station
 S1,Mission St. & Silver Ave.,The stop is located at the southwest corner of the intersection.,37.728631,-122.431282,,,
 S2,Mission St. & Cortland Ave.,The stop is located 20 feet south of Mission St.,37.74103,-122.422482,,,
@@ -22,7 +22,7 @@ S6,Mission St. & 15th St.,The stop is located 10 feet north of Mission St.,37.76
 S7,24th St. Mission Station,,37.752240,-122.418450,,,S8
 S8,24th St. Mission Station,,37.752240,-122.418450,http://www.bart.gov/stations/stationguide/stationoverview_24st.asp,1, )";
 
-cstr berlin_stops_file_content =
+const char* berlin_stops_file_content =
     R"(stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station
 5100071,,Zbaszynek,,52.2425040,15.8180870,,,0,
 9230005,,S Potsdam Hauptbahnhof Nord,,52.3927320,13.0668480,,,0,

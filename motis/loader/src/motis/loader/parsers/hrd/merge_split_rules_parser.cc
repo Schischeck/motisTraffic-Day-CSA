@@ -100,13 +100,13 @@ void parse_merge_split_service_rules(
     service_rules& rules) {
   scoped_timer timer("parsing merge split rules");
 
-  for_each_line_numbered(src.content, [&](cstr line, int line_number) {
+  for_each_line_numbered(src.content_, [&](cstr line, int line_number) {
     if (line.len < 53) {
       return;
     }
 
     auto it = hrd_bitfields.find(parse<int>(line.substr(47, size(6))));
-    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", src.name,
+    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", src.name_,
            line_number);
 
     auto key_1 =

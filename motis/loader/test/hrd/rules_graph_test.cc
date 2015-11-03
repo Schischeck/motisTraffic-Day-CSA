@@ -58,7 +58,7 @@ protected:
       filenames_.emplace_back(services_filename);
       specs_.emplace_back(services_root, filenames_.back().c_str());
 
-      LOG(info) << "load hrd services file: " << specs_.back().lf_.name;
+      LOG(info) << "load hrd services file: " << specs_.back().lf_.name_;
       for (auto const& s : specs_.back().get_hrd_services()) {
         expand_traffic_days(s, bt.hrd_bitfields_, expanded_services);
       }
@@ -77,30 +77,6 @@ protected:
       service_rules_.add_service(s);
     }
     service_rules_.resolve_rule_services();
-  }
-
-  void print_services() const {
-    printf("origin services:\n");
-    for (auto const& s : service_rules_.origin_services_) {
-      printf("(%s, %d)\n", s.get()->origin_.filename,
-             s.get()->origin_.line_number);
-      printf("traffic_days: [%s]\n",
-             s.get()->traffic_days_.to_string().c_str());
-    }
-
-    printf("rule services:\n");
-    int id = 0;
-    for (auto const& rs : service_rules_.rule_services_) {
-      printf("rule_service_%d:\n", ++id);
-      for (auto const& s : rs.rules) {
-        printf("(%s, %d)-[%s]-(%s, %d)\n", s.s1->origin_.filename,
-               s.s1->origin_.line_number,
-               (int)s.rule_info.type == 1 ? "MSSR" : "TSR",
-               s.s2->origin_.filename, s.s2->origin_.line_number);
-        printf("traffic_days: [%s]\n", s.s1->traffic_days_.to_string().c_str());
-        printf("traffic_days: [%s]\n", s.s2->traffic_days_.to_string().c_str());
-      }
-    }
   }
 
   std::string schedule_name_;

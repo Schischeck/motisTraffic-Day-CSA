@@ -52,7 +52,7 @@ int hhmm_to_min(cstr s) {
 
 std::map<std::string, flat_map<stop_time>> read_stop_times(loaded_file file) {
   std::map<std::string, flat_map<stop_time>> stop_times;
-  for (auto const& s : read<gtfs_stop_time>(file.content, stop_time_columns)) {
+  for (auto const& s : read<gtfs_stop_time>(file.content_, stop_time_columns)) {
     stop_times[get<trip_id>(s).to_str()].emplace(
         get<stop_sequence>(s),  // index
         get<stop_id>(s).to_str(),  // constructor arguments

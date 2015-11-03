@@ -6,6 +6,7 @@
 #include "motis/schedule-format/Service_generated.h"
 
 #include "motis/loader/model/hrd/hrd_service.h"
+#include "motis/loader/parsers/hrd/platform_rules_parser.h"
 #include "motis/loader/builders/hrd/route_builder.h"
 #include "motis/loader/builders/hrd/station_builder.h"
 #include "motis/loader/builders/hrd/category_builder.h"

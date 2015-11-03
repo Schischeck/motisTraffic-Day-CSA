@@ -9,13 +9,13 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_transfers_file_content =
+const char* example_transfers_file_content =
     R"(from_stop_id,to_stop_id,transfer_type,min_transfer_time
 S6,S7,2,300
 S7,S6,3,
 S23,S7,1,)";
 
-cstr berlin_transfers_file_content =
+const char* berlin_transfers_file_content =
     R"(from_stop_id,to_stop_id,transfer_type,min_transfer_time,from_transfer_id,to_transfer_id
 9003104,9003174,2,180,,
 9003104,9003175,2,240,,

@@ -23,26 +23,12 @@ namespace hrd {
 
 TEST(loader_hrd_stations, parse_stations) {
 
-  auto stations_file_buf = load_file(TEST_RESOURCES / STATIONS_FILE);
-  cstr stations_file_content(
-      {stations_file_buf.data(), stations_file_buf.size()});
-
-  auto coordinates_file_buf =
-      file((TEST_RESOURCES / COORDINATES_FILE).c_str(), "ro").content();
-  cstr coordinates_file_content(
-      static_cast<char const*>(coordinates_file_buf.buf_),
-      coordinates_file_buf.size_);
-
-  auto infotext_file_buf = load_file(TEST_RESOURCES / "infotext_minimal.101");
-  cstr infotext_file_content(static_cast<char const*>(infotext_file_buf.buf_),
-                             infotext_file_buf.size_);
-
   station_meta_data metas;
-  parse_station_meta_data({INFOTEXT_FILE, infotext_file_content}, metas);
-
+  parse_station_meta_data(loaded_file(TEST_RESOURCES / "infotext_minimal.101"),
+                          metas);
   auto stations =
-      parse_stations({STATIONS_FILE, stations_file_content},
-                     {COORDINATES_FILE, coordinates_file_content}, metas);
+      parse_stations(loaded_file(TEST_RESOURCES / STATIONS_FILE),
+                     loaded_file(TEST_RESOURCES / COORDINATES_FILE), metas);
 
   ASSERT_EQ(2, stations.size());
 

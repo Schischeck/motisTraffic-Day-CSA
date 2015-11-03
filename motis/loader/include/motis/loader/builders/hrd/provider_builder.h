@@ -16,7 +16,7 @@ struct provider_builder {
   flatbuffers::Offset<Provider> get_or_create_provider(
       uint64_t, flatbuffers::FlatBufferBuilder&);
 
-  std::map<uint64_t, provider_info> hrd_providers_;
+  std::map<uint64_t, provider_info> const hrd_providers_;
   std::map<uint64_t, flatbuffers::Offset<Provider>> fbs_providers_;
 };
 

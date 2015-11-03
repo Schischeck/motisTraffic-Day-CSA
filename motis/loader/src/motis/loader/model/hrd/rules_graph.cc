@@ -62,7 +62,8 @@ std::array<node*, 2> rule_node::children() const { return {{s1_, s2_}}; }
 bitfield const& rule_node::traffic_days() const { return traffic_days_; }
 
 void rule_node::print() const {
-  printf("(%p) rule_node    [%s]\n", this, traffic_days().to_string().c_str());
+  printf("(%p) rule_node    [%s] - %s\n", this,
+         traffic_days().to_string().c_str(), rule_.type == 0 ? "TS" : "MSS");
 }
 
 layer_node::layer_node(node* left, node* right)

@@ -1,6 +1,5 @@
 #include "motis/loader/builders/hrd/rule_service_builder.h"
 
-#include <bits/shared_ptr_base.h>
 #include <algorithm>
 #include <bitset>
 #include <iterator>
@@ -40,14 +39,6 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
 }
 
 bool rule_service_builder::add_service(hrd_service const& s) {
-  // TODO (Felix Guendling, Tobias Raffel) check
-  //  std::set<service_rule*> rules;
-  //  for (auto const& entry : rules_) {
-  //    for (auto const& rule : entry.second) {
-  //      rules.insert(rule.get());
-  //    }
-  //  }
-
   std::pair<hrd_service const*, hrd_service*> copied_service;
   copied_service.first = &s;  // the original service
   copied_service.second = nullptr;  // pointer to the copy if we need it
@@ -109,7 +100,7 @@ void build_remaining_layers(rules_graph& rg) {
   int next_layer_idx = 1;
 
   while (!rg.layers_[current_layer_idx].empty()) {
-    if (current_layer_idx == 4) {
+    if (current_layer_idx == 5) {
       break;
     }
     rg.layers_.resize(next_layer_idx + 1);
@@ -161,12 +152,12 @@ void rule_service_builder::resolve_rule_services() {
 
   rules_graph rg;
   build_graph(rules_, rg);
-  LOG(info) << "#layers: " << rg.layers_.size();
+  LOG(debug) << "#layers: " << rg.layers_.size();
 
   // iterate all layers beginning with the top level layer
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
-        LOG(info) << "#current layer_nodes: " << layer.size();
+        LOG(debug) << "#current layer_nodes: " << layer.size();
         // remove all layer nodes that does not have any traffic day left
         layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
           return n->traffic_days().none();
@@ -205,11 +196,10 @@ void create_rule_service(
 
   std::vector<Offset<Rule>> fbb_rules;
   for (auto const& r : rs.rules) {
-
     fbb_rules.push_back(CreateRule(
         fbb, r.rule_info.type == 0 ? RuleType_THROUGH : RuleType_MERGE_SPLIT,
-        services.find(r.s1)->second, services.find(r.s2)->second,
-        r.rule_info.eva_num_1, r.rule_info.eva_num_2));
+        services.at(r.s1), services.at(r.s2), r.rule_info.eva_num_1,
+        r.rule_info.eva_num_2));
   }
   fbs_rule_services.push_back(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));

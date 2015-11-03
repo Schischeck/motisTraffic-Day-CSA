@@ -6,7 +6,11 @@ namespace hrd {
 
 constexpr char const* ENCODING = "ISO8859-1";
 
-constexpr char const* ATTRIBUTES_FILE = "attributd_int_int.101";
+constexpr char const* SCHEDULE_DATA = "fahrten";
+constexpr char const* CORE_DATA = "stamm";
+
+constexpr char const* ATTRIBUTES_FILE_OLD = "attributd_int_int.101";
+constexpr char const* ATTRIBUTES_FILE_NEW = "attributd_int.101";
 constexpr char const* STATIONS_FILE = "bahnhof.101";
 constexpr char const* COORDINATES_FILE = "dbkoord_geo.101";
 constexpr char const* BITFIELDS_FILE = "bitfield.101";

@@ -8,7 +8,6 @@
 
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/model/hrd/shared_data.h"
 #include "motis/loader/model/hrd/hrd_service.h"
 #include "motis/loader/builders/hrd/bitfield_builder.h"
 #include "motis/loader/builders/hrd/provider_builder.h"
