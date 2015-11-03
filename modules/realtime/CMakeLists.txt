@@ -20,4 +20,6 @@ target_link_libraries(motis-realtime-test
     motis-realtime
     motis-loader
     motis-routing
+    gtest
+    gtest_main
 )
