@@ -41,11 +41,12 @@ struct reliability : public motis::module::module {
 
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
+  std::unique_ptr<search::connection_graph_search::simple_optimizer> optimizer_;
+
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
-  std::unique_ptr<search::connection_graph_search::simple_optimizer> optimizer_;
 
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,

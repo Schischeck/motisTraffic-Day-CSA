@@ -123,6 +123,9 @@ TEST_F(test_reliability7, reliable_search) {
     ASSERT_EQ(expected_str, msg->to_json());
   };
 
+  setup.reliability_module().optimizer_ =
+      std::unique_ptr<search::connection_graph_search::simple_optimizer>(
+          new search::connection_graph_search::simple_optimizer(3, 1, 1));
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
 

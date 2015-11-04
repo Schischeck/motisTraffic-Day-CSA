@@ -8,6 +8,7 @@
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_search.h"
+#include "motis/reliability/search/cg_search_context.h"
 #include "motis/reliability/search/simple_connection_graph_optimizer.h"
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
@@ -135,7 +136,7 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
 
   boost::asio::io_service::work ios_work(setup.ios);
 
-  simple_optimizer optimizer(3);
+  simple_optimizer optimizer(3, 1, 15);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup.reliability_module(), 0, optimizer, test_cb);
 
@@ -214,13 +215,63 @@ TEST_F(test_connection_graph_search, reliable_routing_request2) {
 
   boost::asio::io_service::work ios_work(setup.ios);
 
-  simple_optimizer optimizer(1);
+  simple_optimizer optimizer(1, 1, 15);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup.reliability_module(), 0, optimizer, test_cb);
 
   setup.ios.run();
 
   ASSERT_TRUE(test_cb_called);
+}
+
+TEST_F(test_connection_graph_search, cache_journey) {
+  simple_optimizer optimizer(1, 1, 1);
+  motis::reliability::reliability rel;
+  callback cb;
+  detail::context c(rel, 0, cb, optimizer);
+  using key = detail::context::journey_cache_key;
+  {
+    journey j;
+    j.duration = 10;
+    c.journey_cache[key("A", 0, 3)] = j;
+  }
+  {
+    journey j;
+    j.duration = 20;
+    c.journey_cache[key("B", 2, 5)] = j;
+    ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("B", 2, 6)));
+  }
+  {
+    journey j;
+    j.duration = 30;
+    c.journey_cache[key("B", 2, 6)] = j;
+  }
+  {
+    journey j;
+    j.duration = 40;
+    c.journey_cache[key("B", 3, 5)] = j;
+  }
+  {
+    journey j;
+    j.duration = 50;
+    c.journey_cache[key("B", 1, 4)] = j;
+  }
+
+  ASSERT_EQ(10, c.journey_cache.at(key("A", 0, 3)).duration);
+  ASSERT_EQ(20, c.journey_cache.at(key("B", 2, 5)).duration);
+  ASSERT_EQ(30, c.journey_cache.at(key("B", 2, 6)).duration);
+  ASSERT_EQ(40, c.journey_cache.at(key("B", 3, 5)).duration);
+  ASSERT_EQ(50, c.journey_cache.at(key("B", 1, 4)).duration);
+
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("A", 0, 0)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("A", 3, 3)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("A", 0, 2)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("A", 1, 3)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("B", 0, 0)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("B", 2, 3)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("B", 6, 6)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("B", 3, 4)));
+  ASSERT_EQ(c.journey_cache.end(), c.journey_cache.find(key("C", 0, 3)));
 }
 
 }  // namespace connection_graph_search
