@@ -124,16 +124,17 @@ int main(int argc, char** argv) {
   boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
   std::vector<boost::thread> threads(8);
 
-  std::function<void()> run = [&]() {
-    try {
-      thread_pool.run();
-    } catch (std::exception const& e) {
-      LOG(emrg) << "unhandled error: " << e.what();
-      run();
-    } catch (...) {
-      LOG(emrg) << "unhandled unknown error";
-      run();
-    }
+  auto run = [&]() {
+    start:
+      try {
+        thread_pool.run();
+      } catch (std::exception const& e) {
+        LOG(emrg) << "unhandled error: " << e.what();
+        goto start;
+      } catch (...) {
+        LOG(emrg) << "unhandled unknown error";
+        goto start;
+      }
   };
 
   for (unsigned i = 0; i < threads.size(); ++i) {
