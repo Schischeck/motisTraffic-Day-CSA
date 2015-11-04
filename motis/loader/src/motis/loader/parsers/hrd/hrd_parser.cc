@@ -148,30 +148,41 @@ void parse_and_build_services(
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  // parse service dependencies and create builders
-  auto core_data_root = hrd_root / CORE_DATA;
-  bitfield_builder bb(parse_bitfields(load(core_data_root, BITFIELDS)));
+  auto const core_data_root = hrd_root / CORE_DATA;
 
+  auto const bitfields_file = load(core_data_root, BITFIELDS);
+  bitfield_builder bb(parse_bitfields(bitfields_file));
+
+  auto const infotext_file = load(core_data_root, INFOTEXT);
+  auto const stations_file = load(core_data_root, STATIONS);
+  auto const coordinates_file = load(core_data_root, COORDINATES);
   station_meta_data metas;
-  auto const infotext_data = load(core_data_root, INFOTEXT);
-  parse_station_meta_data(infotext_data, metas);
-  station_builder stb(parse_stations(load(core_data_root, STATIONS),
-                                     load(core_data_root, COORDINATES), metas));
+  parse_station_meta_data(infotext_file, metas);
+  station_builder stb(parse_stations(stations_file, coordinates_file, metas));
 
-  category_builder cb(parse_categories(load(core_data_root, CATEGORIES)));
-  provider_builder pb(parse_providers(load(core_data_root, PROVIDERS)));
-  attribute_builder ab(parse_attributes(load(core_data_root, ATTRIBUTES)));
-  direction_builder db(parse_directions(load(core_data_root, DIRECTIONS)));
-  service_builder sb(
-      parse_platform_rules(load(core_data_root, PLATFORMS), fbb));
+  auto const categories_file = load(core_data_root, CATEGORIES);
+  category_builder cb(parse_categories(categories_file));
+
+  auto const providers_file = load(core_data_root, PROVIDERS);
+  provider_builder pb(parse_providers(providers_file));
+
+  auto const attributes_file = load(core_data_root, ATTRIBUTES);
+  attribute_builder ab(parse_attributes(attributes_file));
+
+  auto const directions_file = load(core_data_root, DIRECTIONS);
+  direction_builder db(parse_directions(directions_file));
+
+  auto const platforms_file = load(core_data_root, PLATFORMS);
+  service_builder sb(parse_platform_rules(platforms_file, fbb));
+
   line_builder lb;
   route_builder rb;
 
+  auto const ts_file = load(core_data_root, THROUGH_SERVICES);
+  auto const mss_file = load(core_data_root, MERGE_SPLIT_SERVICES);
   service_rules rules;
-  parse_through_service_rules(load(core_data_root, THROUGH_SERVICES),
-                              bb.hrd_bitfields_, rules);
-  parse_merge_split_service_rules(load(core_data_root, MERGE_SPLIT_SERVICES),
-                                  bb.hrd_bitfields_, rules);
+  parse_through_service_rules(ts_file, bb.hrd_bitfields_, rules);
+  parse_merge_split_service_rules(mss_file, bb.hrd_bitfields_, rules);
   rule_service_builder rsb(rules);
 
   // parse and build services
