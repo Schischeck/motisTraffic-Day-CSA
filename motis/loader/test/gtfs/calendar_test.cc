@@ -8,7 +8,7 @@ using namespace parser;
 
 using namespace motis::loader::gtfs;
 
-cstr example_calendar_file_content =
+char const* example_calendar_file_content =
     R"(service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
 WE,0,0,0,0,0,1,1,20060701,20060731
 WD,1,1,1,1,1,0,0,20060701,20060731)";

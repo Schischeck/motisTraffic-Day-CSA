@@ -22,7 +22,7 @@ static const column_mapping<gtfs_route> route_columns = {
 
 std::map<std::string, route> read_routes(loaded_file file) {
   std::map<std::string, route> routes;
-  for (auto const& r : read<gtfs_route>(file.content, route_columns)) {
+  for (auto const& r : read<gtfs_route>(file.content(), route_columns)) {
     routes.insert(std::make_pair(
         get<route_id>(r).to_str(),
         route{get<agency_id>(r).to_str(), get<route_short_name>(r).to_str(),
