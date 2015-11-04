@@ -76,10 +76,10 @@ public:
       sched_.stations.emplace_back(std::move(s));
 
       // Store DS100.
-      if(input_station->external_ids()) {
-				for (auto const& ds100 : *input_station->external_ids()) {
-					sched_.ds100_to_station.insert(std::make_pair(ds100->str(), s.get()));
-				}
+      if (input_station->external_ids()) {
+        for (auto const& ds100 : *input_station->external_ids()) {
+          sched_.ds100_to_station.insert(std::make_pair(ds100->str(), s.get()));
+        }
       }
     }
 
@@ -111,8 +111,9 @@ public:
         // that have the same departure or arrival time
         for (auto const& lc : route_edge._m._route_edge._conns) {
           if (lc.d_time == d_time || lc.a_time == a_time) {
-            // LOG(info) << "skipping service because of duplicate times: "
-            //             "train_nr = " << train_nr;
+            //            LOG(debug) << "skipping service because of duplicate
+            //            times: "
+            //                          "train_nr = " << train_nr;
             return false;
           }
         }
@@ -124,8 +125,9 @@ public:
             for (auto const& lc : other_route_edge._m._route_edge._conns) {
               if (lc._full_con->con_info->train_nr == train_nr &&
                   lc.d_time == d_time) {
-                // LOG(info) << "skipping service because of duplicate events: "
-                //             "train_nr = " << train_nr;
+                //                LOG(debug) << "skipping service because of
+                //                duplicate events: "
+                //                              "train_nr = " << train_nr;
                 return false;
               }
             }
@@ -139,9 +141,9 @@ public:
                 // lc._full_con = 0!?
                 if (lc._full_con->con_info->train_nr == train_nr &&
                     lc.a_time == a_time) {
-                  // LOG(info) << "skipping service because of duplicate events:
-                  // "
-                  //             "train_nr = " << train_nr;
+                  //                  LOG(debug) << "skipping service because of
+                  //                  duplicate events:"
+                  //                                "train_nr = " << train_nr;
                   return false;
                 }
               }
