@@ -18,14 +18,14 @@ std::map<uint32_t, category> parse_categories(loaded_file const& file) {
   scoped_timer timer("parsing categories");
   bool ignore = false;
   std::map<uint32_t, category> categories;
-  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (ignore || line.len <= 1 || line.str[0] == '#' || line.str[0] == '%') {
       return;
     } else if (line.starts_with("<Produktwahltexte>")) {
       ignore = true;
       return;
     } else if (line.len < 20) {
-      throw parser_error(file.name_, line_number);
+      throw parser_error(file.name(), line_number);
     }
 
     auto const code = raw_to_int<uint32_t>(line.substr(0, size(3)));

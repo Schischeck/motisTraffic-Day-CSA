@@ -52,15 +52,15 @@ std::map<int, bitfield> parse_bitfields(loaded_file const& f) {
   scoped_timer timer("parsing bitfields");
 
   std::map<int, bitfield> bitfields;
-  for_each_line_numbered(f.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(f.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line.str[0] == '%') {
       return;
     } else if (line.len < 9) {
-      throw parser_error(f.name_, line_number);
+      throw parser_error(f.name(), line_number);
     }
 
     bitfields[parse<int>(line.substr(0, size(6)))] =
-        hex_str_to_bitset(line.substr(7), f.name_, line_number);
+        hex_str_to_bitset(line.substr(7), f.name(), line_number);
   });
 
   bitfields[ALL_DAYS_KEY] = create_uniform_bitfield<BIT_COUNT>('1');

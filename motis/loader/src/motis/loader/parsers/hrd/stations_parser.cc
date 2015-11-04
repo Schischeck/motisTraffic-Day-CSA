@@ -17,14 +17,14 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-void parse_station_names(loaded_file& file,
+void parse_station_names(loaded_file const& file,
                          std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station names");
-  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
     } else if (line.len < 14) {
-      throw parser_error(file.name_, line_number);
+      throw parser_error(file.name(), line_number);
     }
 
     auto eva_num = parse<int>(line.substr(0, size(7)));
@@ -39,14 +39,14 @@ void parse_station_names(loaded_file& file,
   });
 }
 
-void parse_station_coordinates(loaded_file& file,
+void parse_station_coordinates(loaded_file const& file,
                                std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station coordinates");
-  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0) {
       return;
     } else if (line.len < 30) {
-      throw parser_error(file.name_, line_number);
+      throw parser_error(file.name(), line_number);
     }
 
     auto eva_num = parse<int>(line.substr(0, size(7)));
@@ -77,7 +77,8 @@ void set_ds100(station_meta_data const& metas,
 }
 
 std::map<int, intermediate_station> parse_stations(
-    loaded_file station_names_file, loaded_file station_coordinates_file,
+    loaded_file const& station_names_file,
+    loaded_file const& station_coordinates_file,
     station_meta_data const& metas) {
   scoped_timer timer("parsing stations");
   std::map<int, intermediate_station> stations;

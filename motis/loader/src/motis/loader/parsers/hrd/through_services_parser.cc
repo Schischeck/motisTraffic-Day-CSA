@@ -84,17 +84,17 @@ struct ts_rule : public service_rule {
   std::vector<hrd_service*> participants_2_;
 };
 
-void parse_through_service_rules(loaded_file const& src,
+void parse_through_service_rules(loaded_file const& file,
                                  std::map<int, bitfield> const& hrd_bitfields,
                                  service_rules& rules) {
   scoped_timer timer("parsing through trains");
-  for_each_line_numbered(src.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len < 40) {
       return;
     }
 
     auto it = hrd_bitfields.find(parse<int>(line.substr(34, size(6))));
-    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", src.name_,
+    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", file.name(),
            line_number);
 
     auto key_1 = std::make_pair(parse<int>(line.substr(0, size(5))),

@@ -25,13 +25,14 @@ namespace hrd {
 TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
   flatbuffers::FlatBufferBuilder b;
 
-  auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 EF"});
-
+  loaded_file bitfields_file = {BITFIELDS_FILE, "000001 EF"};
   auto platform_file_content =
       "8509404 30467 85____ 3             000000\n"
       "8509404 30467 85____ 5             000001";
-  auto plf_rules =
-      parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
+  loaded_file platform_file = {PLATFORMS_FILE, platform_file_content};
+
+  auto bitfields = parse_bitfields(bitfields_file);
+  auto plf_rules = parse_platform_rules(platform_file, b);
 
   ASSERT_TRUE(plf_rules.size() == 1);
 
@@ -61,12 +62,12 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
 TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
   flatbuffers::FlatBufferBuilder b;
 
-  auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 FF"});
-
+  loaded_file bitfields_file = {BITFIELDS_FILE, "000001 FF"};
   auto platform_file_content = "8000000 00001 80____ 1A       0130 000001";
+  loaded_file platform_file = {PLATFORMS_FILE, platform_file_content};
 
-  auto plf_rules =
-      parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
+  auto bitfields = parse_bitfields(bitfields_file);
+  auto plf_rules = parse_platform_rules(platform_file, b);
 
   ASSERT_TRUE(plf_rules.size() == 1);
 
@@ -87,19 +88,21 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
 
 TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
   bool catched = false;
+
+  loaded_file f = {BITFIELDS_FILE, "000001 EF"};
+  auto platform_file_content =
+      "8509404 30467 85____ 3             000000\n"
+      "8509404 30467 85____ 5             00000";
+  loaded_file platform_rules_file = {PLATFORMS_FILE, platform_file_content};
+
   try {
     flatbuffers::FlatBufferBuilder b;
 
-    auto bitfields = parse_bitfields({BITFIELDS_FILE, "000001 EF"});
-
-    auto platform_file_content =
-        "8509404 30467 85____ 3             000000\n"
-        "8509404 30467 85____ 5             00000";
-    auto plf_rules =
-        parse_platform_rules({PLATFORMS_FILE, platform_file_content}, b);
+    auto bitfields = parse_bitfields(f);
+    auto plf_rules = parse_platform_rules(platform_rules_file, b);
   } catch (parser_error const& e) {
     ASSERT_TRUE(e.line_number == 2);
-    ASSERT_TRUE(e.filename == PLATFORMS_FILE);
+    ASSERT_STREQ(PLATFORMS_FILE, e.filename);
     catched = true;
   }
   ASSERT_TRUE(catched);

@@ -96,17 +96,17 @@ struct mss_rule : public service_rule {
 };
 
 void parse_merge_split_service_rules(
-    loaded_file const& src, std::map<int, bitfield> const& hrd_bitfields,
+    loaded_file const& file, std::map<int, bitfield> const& hrd_bitfields,
     service_rules& rules) {
   scoped_timer timer("parsing merge split rules");
 
-  for_each_line_numbered(src.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len < 53) {
       return;
     }
 
     auto it = hrd_bitfields.find(parse<int>(line.substr(47, size(6))));
-    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", src.name_,
+    verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d", file.name(),
            line_number);
 
     auto key_1 =

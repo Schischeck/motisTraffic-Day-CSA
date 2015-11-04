@@ -13,14 +13,14 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-std::map<uint16_t, std::string> parse_attributes(loaded_file file) {
+std::map<uint16_t, std::string> parse_attributes(loaded_file const& file) {
   scoped_timer timer("parsing attributes");
   std::map<uint16_t, std::string> attributes;
-  for_each_line_numbered(file.content_, [&](cstr line, int line_number) {
+  for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line.str[0] == '#') {
       return;
     } else if (line.len < 13) {
-      throw parser_error(file.name_, line_number);
+      throw parser_error(file.name(), line_number);
     }
     auto code = line.substr(0, size(2));
     auto text = line.substr(12, line.len - 1);

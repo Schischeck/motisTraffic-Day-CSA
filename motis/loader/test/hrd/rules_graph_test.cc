@@ -58,7 +58,7 @@ protected:
       filenames_.emplace_back(services_filename);
       specs_.emplace_back(services_root, filenames_.back().c_str());
 
-      LOG(info) << "load hrd services file: " << specs_.back().lf_.name_;
+      LOG(info) << "load hrd services file: " << specs_.back().lf_.name();
       for (auto const& s : specs_.back().get_hrd_services()) {
         expand_traffic_days(s, bt.hrd_bitfields_, expanded_services);
       }

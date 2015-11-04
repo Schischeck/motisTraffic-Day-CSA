@@ -22,7 +22,7 @@ static const column_mapping<stop> stop_columns = {
 
 std::map<std::string, Offset<Station>> read_stations(loaded_file file,
                                                      FlatBufferBuilder& b) {
-  std::vector<stop> stops = read<stop>(file.content_, stop_columns);
+  std::vector<stop> stops = read<stop>(file.content(), stop_columns);
   std::map<std::string, Offset<Station>> stations;
   for (auto const& s : stops) {
     stations.insert(

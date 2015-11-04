@@ -131,7 +131,7 @@ void collect_services_filenames(fs::path const& root,
 
 void parse_and_build_services(
     fs::path const& hrd_root, std::map<int, bitfield> const& bitfields,
-    std::vector<loaded_file>& services_data,
+    std::vector<loaded_file>& schedule_data,
     std::function<void(hrd_service const&)> service_builder_fun) {
   auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
   std::vector<fs::path> services_filenames;
@@ -140,11 +140,10 @@ void parse_and_build_services(
   int count = 0;
   for (auto const& filename : services_filenames) {
     auto const services_file = schedule_data_root / filename;
-    services_data.emplace_back(services_file);
-
+    schedule_data.emplace_back(services_file);
     LOG(info) << "parsing " << ++count << "/" << services_filenames.size()
               << " " << services_file;
-    for_each_service(services_data.back(), bitfields, service_builder_fun);
+    for_each_service(schedule_data.back(), bitfields, service_builder_fun);
   }
 }
 
