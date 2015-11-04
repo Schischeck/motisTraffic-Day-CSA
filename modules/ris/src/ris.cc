@@ -97,23 +97,21 @@ void ris::parse_zips() {
 std::vector<std::string> ris::get_new_files() {
   fs::path path(zip_folder_);
 
-  if (!(fs::exists(path) && fs::is_directory(path))) {
-    throw std::runtime_error(ZIP_FOLDER " is not a directory");
-  }
-
   std::vector<std::string> new_files;
-  for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
-    if (!fs::is_regular_file(it->status())) {
-      continue;
-    }
+  if (fs::exists(path) && fs::is_directory(path)) {
+    for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
+      if (!fs::is_regular_file(it->status())) {
+        continue;
+      }
 
-    auto filename = it->path().string();
-    if (!boost::algorithm::iends_with(filename, ".zip")) {
-      continue;
-    }
+      auto filename = it->path().string();
+      if (!boost::algorithm::iends_with(filename, ".zip")) {
+        continue;
+      }
 
-    if (read_files_.insert(filename).second) {
-      new_files.push_back(filename);
+      if (read_files_.insert(filename).second) {
+        new_files.push_back(filename);
+      }
     }
   }
 

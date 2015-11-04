@@ -38,6 +38,7 @@ using namespace motis;
 int main(int argc, char** argv) {
   message::init_parser();
 
+  boost::asio::io_service ios, thread_pool;
   std::vector<std::unique_ptr<motis::module::module> > modules;
   modules.emplace_back(new routing::routing());
   modules.emplace_back(new guesser::guesser());
@@ -82,8 +83,6 @@ int main(int argc, char** argv) {
     std::cout << e.filename << ":" << e.line_number << "\n";
     return 1;
   }
-
-  boost::asio::io_service ios, thread_pool;
 
   ws_server server(ios);
   server.listen(listener_opt.host, listener_opt.port);
