@@ -8,6 +8,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
+#include "motis/loader/util.h"
 #include "motis/ris/database.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
@@ -22,6 +23,7 @@ using fs::directory_iterator;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
+using namespace motis::loader;
 
 namespace motis {
 namespace ris {
@@ -63,7 +65,7 @@ msg_ptr pack(std::vector<T> const& messages) {
 }
 
 void ris::init() {
-  timer_.reset(new boost::asio::deadline_timer(get_thread_pool()));
+  timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
 
   db_init();
   read_files_ = db_get_files();
@@ -74,7 +76,7 @@ void ris::init() {
 
 void ris::parse_zips() {
   auto new_files = get_new_files();
-  if(new_files.size() == 0) {
+  if (new_files.size() == 0) {
     return;
   }
 

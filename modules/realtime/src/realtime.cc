@@ -137,6 +137,7 @@ void realtime::on_msg(msg_ptr msg, sid, callback cb) {
         handle_connection_assessment(
             reinterpret_cast<ConnectionAssessmentMessage const*>(msg), ctx);
         break;
+      default:;
     };
   }
   return cb({}, error::ok);
