@@ -122,6 +122,7 @@ public:
             for (auto const& lc : other_route_edge._m._route_edge._conns) {
               if (lc._full_con->con_info->train_nr == train_nr &&
                   lc.d_time == d_time) {
+
                 return false;
               }
             }

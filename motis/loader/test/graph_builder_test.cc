@@ -52,10 +52,14 @@ protected:
     edge const* route_edge = nullptr;
     node const* route_node = first_route_node;
     while ((route_edge = get_route_edge(route_node)) != nullptr) {
-      cons.emplace_back(route_edge->get_connection(departure_time), route_node,
-                        route_edge->_to);
-      route_node = route_edge->_to;
-      departure_time = std::get<0>(cons.back())->a_time;
+      auto const* con = route_edge->get_connection(departure_time);
+      if (con) {
+        cons.emplace_back(con, route_node, route_edge->_to);
+        route_node = route_edge->_to;
+        departure_time = std::get<0>(cons.back())->a_time;
+      } else {
+        break;
+      }
     }
     return cons;
   }
@@ -325,12 +329,7 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
           [](edge const* e) { return e->type() == edge::INVALID_EDGE; }));
     } else {
       auto connections = get_connections(first_route_node, 17 * 60 + 39);
-      ASSERT_EQ(15, connections.size());
-
-      auto route_node = std::get<2>(connections[0]);
-      EXPECT_TRUE(std::any_of(
-          begin(route_node->_edges), end(route_node->_edges),
-          [](edge const& e) { return e.type() == edge::INVALID_EDGE; }));
+      ASSERT_EQ(0, connections.size());
     }
   }
 }
