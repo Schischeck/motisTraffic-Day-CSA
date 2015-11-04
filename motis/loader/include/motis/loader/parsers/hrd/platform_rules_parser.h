@@ -22,7 +22,7 @@ struct platform_rule {
 typedef std::tuple<int, int, uint64_t> platform_rule_key;
 typedef std::map<platform_rule_key, std::vector<platform_rule>> platform_rules;
 
-platform_rules parse_platform_rules(loaded_file,
+platform_rules parse_platform_rules(loaded_file const&,
                                     flatbuffers::FlatBufferBuilder& b);
 
 }  // hrd

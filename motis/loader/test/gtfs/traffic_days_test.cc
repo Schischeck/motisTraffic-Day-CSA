@@ -11,14 +11,14 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_calendar_date_file_content =
+const char* example_calendar_date_file_content =
     R"(service_id,date,exception_type
 WD,20060703,2
 WE,20060703,1
 WD,20060704,2
 WE,20060704,1)";
 
-cstr example_calendar_file_content =
+const char* example_calendar_file_content =
     R"(service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
 WE,0,0,0,0,0,1,1,20060701,20060731
 WD,1,1,1,1,1,0,0,20060701,20060731)";
