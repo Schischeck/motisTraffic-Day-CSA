@@ -19,18 +19,31 @@ namespace loader {
 namespace hrd {
 
 struct stop_restrictions {
-  friend bool operator<(stop_restrictions const& rhs,
-                        stop_restrictions const& lhs) {
+  friend bool operator<(stop_restrictions const& lhs,
+                        stop_restrictions const& rhs) {
     if (rhs.eva_num < lhs.eva_num) {
       return true;
+    } else if (rhs.eva_num > lhs.eva_num) {
+      return false;
     }
-    if (!rhs.entering_allowed && lhs.entering_allowed) {
+    if (rhs.entering_allowed < lhs.entering_allowed) {
       return true;
+    } else if (rhs.entering_allowed > lhs.entering_allowed) {
+      return false;
     }
-    if (!rhs.leaving_allowed && lhs.leaving_allowed) {
+    if (rhs.leaving_allowed < lhs.leaving_allowed) {
       return true;
+    } else if (rhs.entering_allowed > lhs.entering_allowed) {
+      return false;
     }
     return false;
+  }
+
+  friend bool operator==(stop_restrictions const& lhs,
+                         stop_restrictions const& rhs) {
+    return lhs.eva_num == rhs.eva_num &&
+           lhs.entering_allowed == rhs.entering_allowed &&
+           lhs.leaving_allowed == rhs.leaving_allowed;
   }
 
   int eva_num;

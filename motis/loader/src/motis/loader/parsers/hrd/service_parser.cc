@@ -58,7 +58,9 @@ void expand_and_consume(hrd_service&& non_expanded_service,
   std::vector<hrd_service> expanded_services;
   expand_traffic_days(non_expanded_service, bitfields, expanded_services);
   expand_repetitions(expanded_services);
-  std::for_each(begin(expanded_services), end(expanded_services), consumer);
+  for (auto const& s : expanded_services) {
+    consumer(std::cref(s));
+  }
 }
 
 void for_each_service(loaded_file const& file,
