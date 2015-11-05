@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/transfers.h"
+#include "motis/loader/gtfs/transfers.h"
 
 #include <tuple>
 #include <algorithm>

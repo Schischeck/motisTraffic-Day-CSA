@@ -1,21 +1,21 @@
-#include "motis/loader/parsers/gtfs/gtfs_parser.h"
+#include "motis/loader/gtfs/gtfs_parser.h"
 
 #include "boost/filesystem.hpp"
 
 #include "parser/csv.h"
 
-#include "motis/loader/parsers/gtfs/files.h"
+#include "motis/loader/gtfs/files.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/gtfs/stop.h"
-#include "motis/loader/parsers/gtfs/route.h"
-#include "motis/loader/parsers/gtfs/calendar.h"
-#include "motis/loader/parsers/gtfs/calendar_date.h"
-#include "motis/loader/parsers/gtfs/trip.h"
-#include "motis/loader/parsers/gtfs/transfers.h"
-#include "motis/loader/parsers/gtfs/stop_time.h"
-#include "motis/loader/parsers/gtfs/traffic_days.h"
+#include "motis/loader/gtfs/stop.h"
+#include "motis/loader/gtfs/route.h"
+#include "motis/loader/gtfs/calendar.h"
+#include "motis/loader/gtfs/calendar_date.h"
+#include "motis/loader/gtfs/trip.h"
+#include "motis/loader/gtfs/transfers.h"
+#include "motis/loader/gtfs/stop_time.h"
+#include "motis/loader/gtfs/traffic_days.h"
 
 using namespace flatbuffers;
 using namespace parser;

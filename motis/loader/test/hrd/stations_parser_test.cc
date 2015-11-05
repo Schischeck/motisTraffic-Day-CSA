@@ -9,10 +9,10 @@
 #include "test_spec.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
-#include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/stations_parser.h"
+#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parser/stations_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
-#include "motis/loader/parsers/hrd/station_meta_data_parser.h"
+#include "motis/loader/hrd/parser/station_meta_data_parser.h"
 
 using namespace parser;
 namespace fs = boost::filesystem;

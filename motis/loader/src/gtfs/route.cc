@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/route.h"
+#include "motis/loader/gtfs/route.h"
 
 #include <tuple>
 #include <algorithm>

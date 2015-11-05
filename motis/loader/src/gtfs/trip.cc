@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/trip.h"
+#include "motis/loader/gtfs/trip.h"
 
 #include <tuple>
 #include <algorithm>

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/parsers/gtfs/trip.h"
-#include "motis/loader/parsers/gtfs/files.h"
+#include "motis/loader/gtfs/trip.h"
+#include "motis/loader/gtfs/files.h"
 
 using namespace parser;
 

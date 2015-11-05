@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/calendar.h"
+#include "motis/loader/gtfs/calendar.h"
 
 #include "parser/csv.h"
 

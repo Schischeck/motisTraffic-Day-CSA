@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
-#include "motis/loader/parsers/hrd/hrd_parser.h"
+#include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
 #include "motis/schedule-format/Schedule_generated.h"
 

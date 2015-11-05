@@ -8,7 +8,7 @@
 
 #include "parser/cstr.h"
 
-#include "motis/loader/model/hrd/hrd_service.h"
+#include "motis/loader/hrd/model/hrd_service.h"
 
 using namespace parser;
 namespace fs = boost::filesystem;

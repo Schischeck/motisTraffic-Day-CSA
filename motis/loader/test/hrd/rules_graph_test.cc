@@ -4,7 +4,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/range/iterator_range.hpp"
 
-#include "motis/loader/builders/hrd/bitfield_builder.h"
+#include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "gtest/gtest.h"
 
 #include "test_spec.h"
@@ -15,11 +15,11 @@
 
 #include "motis/schedule-format/RuleService_generated.h"
 #include "motis/loader/util.h"
-#include "motis/loader/model/hrd/split_service.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/through_services_parser.h"
-#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
-#include "motis/loader/builders/hrd/rule_service_builder.h"
+#include "motis/loader/hrd/model/split_service.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/through_services_parser.h"
+#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+#include "motis/loader/hrd/builder/rule_service_builder.h"
 
 namespace motis {
 namespace loader {

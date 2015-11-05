@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/stop_time.h"
+#include "motis/loader/gtfs/stop_time.h"
 
 #include <tuple>
 #include <algorithm>

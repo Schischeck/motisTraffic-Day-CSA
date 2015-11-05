@@ -7,8 +7,8 @@
 #include "motis/schedule-format/RuleService_generated.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/merge_split_rules_parser.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
 
 namespace motis {
 namespace loader {

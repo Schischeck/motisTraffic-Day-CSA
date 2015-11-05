@@ -4,8 +4,8 @@
 #include "gtest/gtest.h"
 
 #include "motis/loader/parser_error.h"
-#include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/attributes_parser.h"
+#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parser/attributes_parser.h"
 #include "motis/loader/util.h"
 
 using namespace parser;

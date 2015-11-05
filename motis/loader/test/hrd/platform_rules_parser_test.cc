@@ -9,9 +9,9 @@
 
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
-#include "motis/loader/parsers/hrd/files.h"
-#include "motis/loader/parsers/hrd/platform_rules_parser.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
+#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parser/platform_rules_parser.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 #include "../convert.h"

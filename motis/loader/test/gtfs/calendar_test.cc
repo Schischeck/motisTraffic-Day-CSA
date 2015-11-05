@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/parsers/gtfs/calendar.h"
-#include "motis/loader/parsers/gtfs/calendar_date.h"
-#include "motis/loader/parsers/gtfs/files.h"
+#include "motis/loader/gtfs/calendar.h"
+#include "motis/loader/gtfs/calendar_date.h"
+#include "motis/loader/gtfs/files.h"
 
 using namespace parser;
 

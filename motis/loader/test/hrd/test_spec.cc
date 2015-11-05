@@ -1,7 +1,7 @@
 #include "test_spec.h"
 
-#include "motis/loader/parsers/hrd/hrd_parser.h"
-#include "motis/loader/parsers/hrd/service_parser.h"
+#include "motis/loader/hrd/hrd_parser.h"
+#include "motis/loader/hrd/parser/service_parser.h"
 
 namespace motis {
 namespace loader {

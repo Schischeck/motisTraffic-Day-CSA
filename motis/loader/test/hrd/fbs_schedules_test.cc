@@ -8,7 +8,7 @@
 
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/parsers/hrd/hrd_parser.h"
+#include "motis/loader/hrd/hrd_parser.h"
 
 using namespace parser;
 using namespace flatbuffers;
