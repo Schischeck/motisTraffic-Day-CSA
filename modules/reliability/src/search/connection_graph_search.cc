@@ -12,6 +12,7 @@
 #include "motis/protocol/RoutingResponse_generated.h"
 
 #include "motis/reliability/reliability.h"
+#include "motis/reliability/rating/connection_graph_rating.h"
 #include "motis/reliability/search/cg_search_context.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_builder.h"
@@ -44,11 +45,13 @@ void search_for_alternative(
     std::shared_ptr<context> c, context::conn_graph_context& conn_graph,
     connection_graph::stop& stop,
     context::conn_graph_context::stop_state& stop_state) {
-  auto request = to_routing_request(
+  auto request = tools::to_routing_request(
       *conn_graph.cg_, stop, c->optimizer_.min_departure_diff_,
       c->optimizer_.interval_width_, stop_state.num_failed_requests);
   auto cache_it = c->journey_cache.find(request.second);
   if (cache_it != c->journey_cache.end()) {
+    /* todo: do not copy cached journeys!
+     * store and output (json) each journey once */
     return add_alternative(cache_it->second, c, conn_graph, stop_state,
                            stop.index_);
   }
@@ -129,11 +132,14 @@ void handle_base_response(motis::module::msg_ptr msg,
     cg_context.index_ = context->connection_graphs_.size() - 1;
     auto& conn_graph = *cg_context.cg_;
     connection_graph_builder::add_base_journey(conn_graph, j);
-    /* todo: rate cg */
+    rating::cg::rate(conn_graph, 0,
+                     context->reliability_.synced_sched().sched(),
+                     context->reliability_.precomputed_distributions(),
+                     context->reliability_.s_t_distributions());
 
     insert_stop_states(*context, cg_context);
 
-    if (conn_graph.journeys_.size() == 1 || complete(cg_context)) {
+    if (conn_graph.journeys_.size() == 1 || tools::complete(cg_context)) {
       cg_context.cg_state_ = context::conn_graph_context::CG_completed;
     } else {
       cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
@@ -155,7 +161,7 @@ void check_stop_state(context::conn_graph_context::stop_state& stop_state,
   }
   if (c->optimizer_.complete(stop, *conn_graph.cg_)) {
     stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
-    if (complete(conn_graph)) {
+    if (tools::complete(conn_graph)) {
       conn_graph.cg_state_ =
           context::conn_graph_context::cg_state::CG_completed;
     }
@@ -168,9 +174,11 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
                      context::conn_graph_context& conn_graph,
                      context::conn_graph_context::stop_state& stop_state,
                      unsigned int const stop_idx) {
-  connection_graph_builder::add_alternative_journey(
-      std::ref(*conn_graph.cg_.get()), stop_idx, j);
-  /* todo: rate cg */
+  auto& cg = *conn_graph.cg_;
+  connection_graph_builder::add_alternative_journey(std::ref(cg), stop_idx, j);
+  rating::cg::rate(cg, stop_idx, c->reliability_.synced_sched().sched(),
+                   c->reliability_.precomputed_distributions(),
+                   c->reliability_.s_t_distributions());
   check_stop_state(stop_state, c, conn_graph.cg_->stops_.at(stop_idx),
                    conn_graph);
   build_cg(c, conn_graph);
@@ -206,11 +214,11 @@ void handle_alternative_response(motis::module::msg_ptr msg,
     return build_cg(c, conn_graph);
   }
 
-  auto const& j = select_alternative(*conn_graph.cg_.get(), journeys);
+  auto const& j = tools::select_alternative(*conn_graph.cg_.get(), journeys);
   assert(c->journey_cache.find(cache_key) == c->journey_cache.end());
   c->journey_cache[cache_key] = j;
 
-  output(j, c->reliability_.synced_sched().sched(), os_j);
+  tools::output(j, c->reliability_.synced_sched().sched(), os_j);
   os_j << std::endl;
   add_alternative(j, c, conn_graph, stop_state, stop_idx);
 }
@@ -223,7 +231,7 @@ void build_result(context::conn_graph_context::cg_state state,
              state == context::conn_graph_context::CG_failed) {
     c->result_returned_ = true;
     return c->result_callback_({});
-  } else if (complete(*c)) {
+  } else if (tools::complete(*c)) {
     c->result_returned_ = true;
     std::vector<std::shared_ptr<connection_graph> > cgs;
     for (auto const& cg_c : c->connection_graphs_) {

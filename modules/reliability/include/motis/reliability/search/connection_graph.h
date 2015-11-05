@@ -27,6 +27,11 @@ struct connection_graph {
     struct alternative_info {
       unsigned short departing_journey_index_;
       unsigned short head_stop_index_;
+
+      struct rating {
+        probability_distribution departure_distribution_;
+        probability_distribution arrival_distribution_;
+      } rating_;
     };
     std::vector<alternative_info> alternative_infos_;
   };

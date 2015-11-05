@@ -111,6 +111,16 @@ TEST_F(test_connection_to_graph_data2, to_element2) {
   ASSERT_TRUE(element_ice_k_f_s.light_connection_idx_ == 0);
 }
 
+void test_element(connection_element const& expected,
+                  connection_element const& element) {
+  ASSERT_EQ(expected.departure_stop_idx_, element.departure_stop_idx_);
+  ASSERT_EQ(expected.from_, element.from_);
+  ASSERT_EQ(expected.is_first_route_node_, element.is_first_route_node_);
+  ASSERT_EQ(expected.light_connection_, element.light_connection_);
+  ASSERT_EQ(expected.light_connection_idx_, element.light_connection_idx_);
+  ASSERT_EQ(expected.to_, element.to_);
+}
+
 TEST_F(test_connection_to_graph_data2, get_elements) {
   system_tools::setup setup(schedule_.get());
 
@@ -159,6 +169,9 @@ TEST_F(test_connection_to_graph_data2, get_elements) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   ICE_E_K);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
@@ -229,6 +242,9 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_G_M);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();
@@ -289,6 +305,9 @@ TEST_F(test_connection_to_graph_data6, get_elements_foot) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_T_F);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
   setup.dispatcher.on_msg(msg, 0, test_cb);
   setup.ios.run();

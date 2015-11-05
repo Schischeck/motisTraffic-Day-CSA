@@ -18,8 +18,12 @@ namespace connection_to_graph_data {
  * transport element for a train (because of a change of
  * train-id or category), their connection elements
  * are inserted into the same vector. */
-std::pair<bool, std::vector<std::vector<connection_element>>> const
-get_elements(schedule const&, journey const&);
+std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
+    schedule const&, journey const&);
+
+/* get only the last connection element of a journey */
+connection_element get_last_element(schedule const& sched,
+                                    journey const& journey);
 
 namespace detail {
 connection_element const to_element(

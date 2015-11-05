@@ -36,6 +36,10 @@ struct reliability : public motis::module::module {
     return *precomputed_distributions_;
   }
 
+  start_and_travel_distributions const& s_t_distributions() const {
+    return *s_t_distributions_;
+  }
+
   void send_message(motis::module::msg_ptr msg, motis::module::sid session,
                     motis::module::callback cb);
 

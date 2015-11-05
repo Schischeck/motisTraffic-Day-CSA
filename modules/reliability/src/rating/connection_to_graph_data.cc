@@ -14,11 +14,13 @@ namespace reliability {
 namespace rating {
 namespace connection_to_graph_data {
 
-std::pair<bool, std::vector<std::vector<connection_element>>> const
-get_elements(schedule const& sched, journey const& journey) {
+std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
+    schedule const& sched, journey const& journey) {
   std::vector<std::vector<connection_element>> elements;
   for (auto const& transport : journey.transports) {
     if (!transport.walk) {
+      /* todo: it would be more efficient to find the first route edge
+       * and follow the route to get the succeeding elements */
       for (auto stop_idx = transport.from; stop_idx < transport.to;
            ++stop_idx) {
         auto const& tail_stop = journey.stops[stop_idx];
@@ -45,6 +47,27 @@ get_elements(schedule const& sched, journey const& journey) {
     }  // if !walk
   }  // for transports
   return std::make_pair(true, elements);
+}
+
+connection_element get_last_element(schedule const& sched,
+                                    journey const& journey) {
+  for (auto it = journey.transports.rbegin(); it != journey.transports.rend();
+       ++it) {
+    auto const& transport = *it;
+    if (!transport.walk) {
+      unsigned int const tail_stop_idx = transport.to - 1;
+      auto const& tail_stop = journey.stops[tail_stop_idx];
+      auto const& head_stop = journey.stops[tail_stop_idx + 1];
+      return detail::to_element(
+          tail_stop_idx, sched, tail_stop.eva_no, head_stop.eva_no,
+          unix_to_motistime(sched.schedule_begin_,
+                            tail_stop.departure.timestamp),
+          unix_to_motistime(sched.schedule_begin_, head_stop.arrival.timestamp),
+          transport.category_name, transport.train_nr);
+    }
+  }
+  assert(false);
+  return connection_element();
 }
 
 namespace detail {
