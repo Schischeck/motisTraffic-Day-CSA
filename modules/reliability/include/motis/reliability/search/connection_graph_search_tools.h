@@ -43,8 +43,8 @@ inline bool complete(context const& c) {
 
 inline journey const& latest_departing_alternative(
     connection_graph const& conn_graph, connection_graph::stop const& stop) {
-  return conn_graph.journeys_.at(stop.departure_infos_.back()
-                                     .departing_journey_index_).j_;
+  return conn_graph.journeys_.at(
+      stop.departure_infos_.back().departing_journey_index_);
 }
 
 std::pair<module::msg_ptr, context::journey_cache_key> to_routing_request(

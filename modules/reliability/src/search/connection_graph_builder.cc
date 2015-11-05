@@ -175,8 +175,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
       cg.stops_.back().index_ = connection_graph::stop::Index_arrival_stop;
     }
 
-    cg.journeys_.emplace_back();
-    cg.journeys_.back().j_ = j;
+    cg.journeys_.push_back(j);
   }
 }
 
@@ -200,8 +199,7 @@ void add_alternative_journey(connection_graph& cg,
     }
     departure_info.head_stop_index_ = stop_idx;
 
-    cg.journeys_.emplace_back();
-    cg.journeys_.back().j_ = j;
+    cg.journeys_.push_back(j);
     ++journey_count;
   }
 }

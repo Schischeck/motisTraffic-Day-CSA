@@ -297,9 +297,8 @@ Offset<ConnectionGraph> to_connection_graph(
   b.ForceDefaults(false);
 
   std::vector<Offset<JourneyInfo>> journey_infos;
-  for (auto const& j_info : cg.journeys_) {
-    journey_infos.push_back(
-        CreateJourneyInfo(b, to_connection(b, j_info.j_) /*,
+  for (auto const& j : cg.journeys_) {
+    journey_infos.push_back(CreateJourneyInfo(b, to_connection(b, j) /*,
         CreateRating(b, b.CreateVector(convert_rating_elements_short(
                             b, conn_rating, orig_conn)),
                      (float)conn_rating.connection_rating_)*/));

@@ -545,21 +545,21 @@ TEST(test_connection_graph_builder, add_base_journey1) {
   ASSERT_EQ(cg.journeys_.size(), 3);
   {
     auto const& j = cg.journeys_[0];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
+    ASSERT_EQ(j.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.transports.front().train_nr, 111);
   }
   {
     auto const& j = cg.journeys_[1];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.transports.front().train_nr, 222);
   }
   {
     auto const& j = cg.journeys_[2];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
+    ASSERT_EQ(j.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 333);
   }
 }
 
@@ -588,9 +588,9 @@ TEST(test_connection_graph_builder, add_base_journey2) {
   ASSERT_EQ(cg.journeys_.size(), 1);
   {
     auto const& j = cg.journeys_[0];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
+    ASSERT_EQ(j.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.transports.front().train_nr, 111);
   }
 }
 
@@ -681,27 +681,27 @@ TEST(test_connection_graph_builder, add_alternative_journey) {
   ASSERT_EQ(cg.journeys_.size(), 4);
   {
     auto const& j = cg.journeys_[0];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
+    ASSERT_EQ(j.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.transports.front().train_nr, 111);
   }
   {
     auto const& j = cg.journeys_[1];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.transports.front().train_nr, 222);
   }
   {
     auto const& j = cg.journeys_[2];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
+    ASSERT_EQ(j.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 333);
   }
   {
     auto const& j = cg.journeys_[3];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 555);
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 555);
   }
 }
 
@@ -824,39 +824,39 @@ TEST(test_connection_graph_builder, add_alternative_journey2) {
   ASSERT_EQ(cg.journeys_.size(), 6);
   {
     auto const& j = cg.journeys_[0];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "0000000");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "1111111");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 111);
+    ASSERT_EQ(j.stops.front().eva_no, "0000000");
+    ASSERT_EQ(j.stops.back().eva_no, "1111111");
+    ASSERT_EQ(j.transports.front().train_nr, 111);
   }
   {
     auto const& j = cg.journeys_[1];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "2222222");
-    ASSERT_EQ(j.j_.transports.front().train_nr, 222);
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "2222222");
+    ASSERT_EQ(j.transports.front().train_nr, 222);
   }
   {
     auto const& j = cg.journeys_[2];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "2222222");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 333);
+    ASSERT_EQ(j.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 333);
   }
   {
     auto const& j = cg.journeys_[3];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "1111111");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 555);
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 555);
   }
   {
     auto const& j = cg.journeys_[4];
-    ASSERT_EQ("1111111", j.j_.stops.front().eva_no);
-    ASSERT_EQ("5555555", j.j_.stops.back().eva_no);
-    ASSERT_EQ(666, j.j_.transports.back().train_nr);
+    ASSERT_EQ("1111111", j.stops.front().eva_no);
+    ASSERT_EQ("5555555", j.stops.back().eva_no);
+    ASSERT_EQ(666, j.transports.back().train_nr);
   }
   {
     auto const& j = cg.journeys_[5];
-    ASSERT_EQ(j.j_.stops.front().eva_no, "5555555");
-    ASSERT_EQ(j.j_.stops.back().eva_no, "4444444");
-    ASSERT_EQ(j.j_.transports.back().train_nr, 777);
+    ASSERT_EQ(j.stops.front().eva_no, "5555555");
+    ASSERT_EQ(j.stops.back().eva_no, "4444444");
+    ASSERT_EQ(j.transports.back().train_nr, 777);
   }
 }
 

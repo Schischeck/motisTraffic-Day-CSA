@@ -31,13 +31,8 @@ struct connection_graph {
     std::vector<departure_info> departure_infos_;
   };
 
-  struct journey_info {
-    journey j_;
-    rating::connection_rating rating_;
-  };
-
   std::vector<stop> stops_;
-  std::vector<journey_info> journeys_;
+  std::vector<journey> journeys_;
 
   std::pair<std::string, std::string> station_info(
       unsigned int const stop_idx) const {
@@ -45,8 +40,8 @@ struct connection_graph {
       return arrival_station_info();
     }
     auto const& stop = journeys_[stops_.at(stop_idx)
-                                    .departure_infos_.front()
-                                    .departing_journey_index_].j_.stops.front();
+                                     .departure_infos_.front()
+                                     .departing_journey_index_].stops.front();
     return std::make_pair(stop.name, stop.eva_no);
   }
 
@@ -59,7 +54,7 @@ private:
     });
     auto const& stop =
         journeys_.at(it->departure_infos_.front().departing_journey_index_)
-            .j_.stops.back();
+            .stops.back();
     return std::make_pair(stop.name, stop.eva_no);
   }
 };
