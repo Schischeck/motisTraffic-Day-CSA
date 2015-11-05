@@ -47,7 +47,7 @@ void reliability::init() {
       schedule, *s_t_distributions_, *precomputed_distributions_);
   optimizer_ =
       std::unique_ptr<search::connection_graph_search::simple_optimizer>(
-          new search::connection_graph_search::simple_optimizer(3, 15, 30));
+          new search::connection_graph_search::simple_optimizer(3, 15, 45));
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
