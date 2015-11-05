@@ -29,7 +29,7 @@ struct simple_optimizer : connection_graph_optimizer {
 
   bool complete(connection_graph::stop const& stop,
                 connection_graph const&) const override {
-    return stop.departure_infos_.size() >= num_alternatives_at_each_stop_;
+    return stop.alternative_infos_.size() >= num_alternatives_at_each_stop_;
   }
 
 private:

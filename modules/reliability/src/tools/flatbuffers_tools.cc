@@ -287,7 +287,7 @@ Offset<ConnectionGraph> to_connection_graph(
   b.ForceDefaults(true); /* necessary to write stop-index 0 */
   for (auto const& stop : cg.stops_) {
     std::vector<DepartureInfo> departure_infos;
-    for (auto const& dep_info : stop.departure_infos_) {
+    for (auto const& dep_info : stop.alternative_infos_) {
       departure_infos.emplace_back(dep_info.departing_journey_index_,
                                    dep_info.head_stop_index_);
     }

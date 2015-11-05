@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
+
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
@@ -131,11 +134,12 @@ TEST_F(test_public_transport2, rate) {
       std::make_tuple(28, 9, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
-    auto const elements =
-        rating::connection_to_graph_data::get_elements(
-            *schedule_, *response->connections()->begin()).second;
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+
+    ASSERT_TRUE(journeys.size() == 1);
+    auto const elements = rating::connection_to_graph_data::get_elements(
+                              *schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -280,11 +284,11 @@ TEST_F(test_public_transport5, rate2) {
       std::make_tuple(19, 10, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
-    auto const elements =
-        rating::connection_to_graph_data::get_elements(
-            *schedule_, *response->connections()->begin()).second;
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_TRUE(journeys.size() == 1);
+    auto const elements = rating::connection_to_graph_data::get_elements(
+                              *schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 3);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -375,11 +379,11 @@ TEST_F(test_public_transport3, rate_foot) {
       (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
-    auto const elements =
-        rating::connection_to_graph_data::get_elements(
-            *schedule_, *response->connections()->begin()).second;
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_TRUE(journeys.size() == 1);
+    auto const elements = rating::connection_to_graph_data::get_elements(
+                              *schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},

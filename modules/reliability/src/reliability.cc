@@ -6,6 +6,9 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
+
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/db_distributions.h"
 #include "motis/reliability/error.h"
@@ -80,18 +83,20 @@ void reliability::handle_routing_response(msg_ptr msg,
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
       res->connections()->size());
   unsigned int rating_index = 0;
-  for (auto it = res->connections()->begin(); it != res->connections()->end();
-       ++it, ++rating_index) {
+  auto const journeys = journey_builder::to_journeys(res, schedule.categories);
+
+  for (auto const& j : journeys) {
     bool success =
-        rating::rate(ratings[rating_index], *it, schedule,
+        rating::rate(ratings[rating_index], j, schedule,
                      *precomputed_distributions_, *s_t_distributions_);
-    success &= rating::simple_rating::rate(simple_ratings[rating_index], *it,
+    success &= rating::simple_rating::rate(simple_ratings[rating_index], j,
                                            schedule, *s_t_distributions_);
     if (!success) {
       std::cout << "\nError(reliability) could not rate the connections"
                 << std::endl;
       return cb(nullptr, error::failure);
     }
+    ++rating_index;
   }
 
   return cb(flatbuffers_tools::to_reliability_rating_response(

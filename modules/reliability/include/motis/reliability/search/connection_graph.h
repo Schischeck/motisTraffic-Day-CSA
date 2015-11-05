@@ -24,11 +24,11 @@ struct connection_graph {
     };
     unsigned short index_;
 
-    struct departure_info {
+    struct alternative_info {
       unsigned short departing_journey_index_;
       unsigned short head_stop_index_;
     };
-    std::vector<departure_info> departure_infos_;
+    std::vector<alternative_info> alternative_infos_;
   };
 
   std::vector<stop> stops_;
@@ -40,7 +40,7 @@ struct connection_graph {
       return arrival_station_info();
     }
     auto const& stop = journeys_[stops_.at(stop_idx)
-                                     .departure_infos_.front()
+                                     .alternative_infos_.front()
                                      .departing_journey_index_].stops.front();
     return std::make_pair(stop.name, stop.eva_no);
   }
@@ -48,12 +48,12 @@ struct connection_graph {
 private:
   std::pair<std::string, std::string> arrival_station_info() const {
     auto it = std::find_if(stops_.begin(), stops_.end(), [](stop const& s) {
-      return !s.departure_infos_.empty() &&
-             s.departure_infos_.front().head_stop_index_ ==
+      return !s.alternative_infos_.empty() &&
+             s.alternative_infos_.front().head_stop_index_ ==
                  stop::Index_arrival_stop;
     });
     auto const& stop =
-        journeys_.at(it->departure_infos_.front().departing_journey_index_)
+        journeys_.at(it->alternative_infos_.front().departing_journey_index_)
             .stops.back();
     return std::make_pair(stop.name, stop.eva_no);
   }

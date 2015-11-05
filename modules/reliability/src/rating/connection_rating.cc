@@ -1,6 +1,6 @@
 #include "motis/reliability/rating/connection_rating.h"
 
-#include "motis/protocol/RoutingResponse_generated.h"
+#include "motis/core/common/journey.h"
 
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/distributions_container.h"
@@ -13,13 +13,13 @@ namespace motis {
 namespace reliability {
 namespace rating {
 
-bool rate(connection_rating& rating, routing::Connection const* connection,
+bool rate(connection_rating& rating, journey const& journey,
           schedule const& schedule,
           distributions_container::precomputed_distributions_container const&
               precomputed_distributions,
           start_and_travel_distributions const& s_t_distributions) {
   auto const connection_elements =
-      rating::connection_to_graph_data::get_elements(schedule, connection);
+      rating::connection_to_graph_data::get_elements(schedule, journey);
   if (!connection_elements.first) {
     return false;
   }

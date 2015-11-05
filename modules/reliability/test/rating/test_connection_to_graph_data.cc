@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
@@ -117,11 +120,11 @@ TEST_F(test_connection_to_graph_data2, get_elements) {
       std::make_tuple(28, 9, 2015));
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);
@@ -170,11 +173,11 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements.at(0).size() == 2);
@@ -248,11 +251,11 @@ TEST_F(test_connection_to_graph_data6, get_elements_foot) {
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);

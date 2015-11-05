@@ -67,7 +67,7 @@ void build_cg(std::shared_ptr<context> c,
     for (auto it = cg.stop_states_.begin(); it != cg.stop_states_.end(); ++it) {
       os << "Stop " << it->first << " state s" << it->second.state_ << " f"
          << it->second.num_failed_requests << " #"
-         << cg.cg_->stops_[it->first].departure_infos_.size() << " "
+         << cg.cg_->stops_[it->first].alternative_infos_.size() << " "
          << cg.cg_->station_info(it->first).first << std::endl;
     }
   }

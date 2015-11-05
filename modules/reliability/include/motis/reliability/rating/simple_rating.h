@@ -6,10 +6,8 @@
 #include "motis/reliability/probability_distribution.h"
 
 namespace motis {
+struct journey;
 struct schedule;
-namespace routing {
-struct Connection;
-}
 
 namespace reliability {
 struct start_and_travel_distributions;
@@ -31,8 +29,8 @@ struct simple_connection_rating {
   probability connection_rating_;
 };
 
-bool rate(simple_connection_rating&, routing::Connection const*,
-          schedule const&, start_and_travel_distributions const&);
+bool rate(simple_connection_rating&, journey const&, schedule const&,
+          start_and_travel_distributions const&);
 
 std::string to_string(rating_type const);
 }  // namespace simple_rating

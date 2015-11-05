@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
 
 #include "motis/loader/loader.h"
 
@@ -58,13 +60,15 @@ TEST_F(test_simple_rating2, simple_rate) {
       std::make_tuple(28, 9, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
 
     simple_connection_rating rating;
-    bool success = rate(rating, *response->connections()->begin(), *schedule_,
-                        s_t_distributions);
+    bool success =
+        rate(rating, journeys.front(), *schedule_, s_t_distributions);
     ASSERT_TRUE(success);
     ASSERT_TRUE(rating.ratings_elements_.size() == 2);
     ASSERT_TRUE(rating.ratings_elements_[0].from_ == 1);
@@ -101,13 +105,14 @@ TEST_F(test_simple_rating5, simple_rate2) {
       std::make_tuple(19, 10, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     simple_connection_rating rating;
-    bool success = rate(rating, *response->connections()->begin(), *schedule_,
-                        s_t_distributions);
+    bool success =
+        rate(rating, journeys.front(), *schedule_, s_t_distributions);
 
     ASSERT_TRUE(success);
     ASSERT_TRUE(rating.ratings_elements_.size() == 3);
