@@ -1,20 +1,20 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/parsers/gtfs/calendar_date.h"
-#include "motis/loader/parsers/gtfs/files.h"
+#include "motis/loader/gtfs/calendar_date.h"
+#include "motis/loader/gtfs/files.h"
 
 using namespace parser;
 
 using namespace motis::loader::gtfs;
 
-cstr example_calendar_date_file_content =
+const char* example_calendar_date_file_content =
     R"(service_id,date,exception_type
 WD,20060703,2
 WE,20060703,1
 WD,20060704,2
 WE,20060704,1)";
 
-cstr berlin_calendar_date_file_content =
+const char* berlin_calendar_date_file_content =
     R"(service_id,date,exception_type
 000001,20150409,1
 000001,20150410,1

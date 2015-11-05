@@ -65,6 +65,14 @@ protected:
     });
   }
 
+  void dispatch(msg_ptr msg, sid session = 0) {
+    using boost::system::error_code;
+    // Make sure, the dispatch function gets called in the I/O thread.
+    context_->ios_->post([=]() {
+      (*context_->dispatch_)(msg, session, [](msg_ptr, error_code) {});
+    });
+  }
+
   void send(msg_ptr msg, sid session) { (*context_->send_)(msg, session); }
 
   boost::asio::io_service& get_thread_pool() { return *context_->thread_pool_; }

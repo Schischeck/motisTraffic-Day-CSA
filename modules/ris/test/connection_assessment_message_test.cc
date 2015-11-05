@@ -48,15 +48,14 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
 // clang-format on
 
 TEST(connection_assessment_message, message_1) {
-  auto const msg = parse_xmls(pack(connection_assessment_fixture_1));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(connection_assessment_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444187918, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444187918, message.timestamp);
+  EXPECT_EQ(1444193880, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 
@@ -95,7 +94,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 <Bf EvaNr=\"8098263\"/>\
 <Service Id=\"85777037\" IdBfEvaNr=\"8002980\" IdTyp=\"Ab\" IdVerwaltung=\"07\"\
  IdZGattung=\"S\" IdZGattungInt=\"s\" IdZNr=\"8326\" IdZeit=\"20151006233600\"\
- SourceZNR=\"EFZ\" ZielBfEvaNr=\"8004204\" Zielzeit=\"20151007005600\">\
+ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8004204\" Zielzeit=\"20151007010500\">\
 <ListZug/>\
 </Service>\
 <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007001900\"/>\
@@ -109,7 +108,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 <Bf EvaNr=\"8098263\"/>\
 <Service Id=\"85967814\" IdBfEvaNr=\"8002347\" IdTyp=\"Ab\" IdVerwaltung=\"07\"\
  IdZGattung=\"S\" IdZGattungInt=\"s\" IdZNr=\"8426\" IdZeit=\"20151006234100\"\
- SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000119\" Zielzeit=\"20151007010500\">\
+ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000119\" Zielzeit=\"20151007005600\">\
 <ListZug/>\
 </Service>\
 <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007002100\"/>\
@@ -140,15 +139,14 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 // clang-format on
 
 TEST(connection_assessment_message, message_2) {
-  auto const msg = parse_xmls(pack(connection_assessment_fixture_2));
-  auto const batch = msg->content<RISBatch const*>();
+  auto const messages = parse_xmls(pack(connection_assessment_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168788, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168788, message.timestamp);
+  EXPECT_EQ(1444172700, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 

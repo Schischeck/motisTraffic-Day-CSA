@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/trip.h"
+#include "motis/loader/gtfs/trip.h"
 
 #include <tuple>
 #include <algorithm>
@@ -21,7 +21,7 @@ static const column_mapping<gtfs_trip> trip_columns = {
 
 std::map<std::string, trip> read_trips(loaded_file file) {
   std::map<std::string, trip> trips;
-  for (auto const& t : read<gtfs_trip>(file.content, trip_columns)) {
+  for (auto const& t : read<gtfs_trip>(file.content(), trip_columns)) {
     trips.insert(std::make_pair(
         get<trip_id>(t).to_str(),
         trip{get<route_id>(t).to_str(), get<service_id>(t).to_str(),

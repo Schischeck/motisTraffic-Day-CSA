@@ -1,0 +1,46 @@
+namespace motis.realtime;
+
+/// Identifies a train event as present in the schedule graph.
+table GraphTrainEvent {
+  train_nr:uint;
+  station_index:uint;
+  departure:bool;
+  /// The current time of the event, as in the graph.
+  real_time:ushort;
+  route_id:int;
+}
+
+/// Request delay information for the train that contains the given event.
+/// If single_event is true, only returns delay information for the given event.
+/// Otherwise, returns delay informations for all events of the train starting
+/// with the given event - i.e. to retrieve delay information for all events
+/// of the train, use the first departure event of the train.
+/// Returns a RealtimeTrainInfoResponse.
+// JSON example:
+// --
+// {
+//   "content_type": "RealtimeTrainInfoRequest",
+//   "content": {
+//     "first_stop": {
+//       "train_nr": 46120,
+//       "station_index": 6871,
+//       "departure": true,
+//       "real_time": 2741,
+//       "route_id": 6819
+//     }
+//   }
+// }
+table RealtimeTrainInfoRequest {
+  /// First stop of the train for which delay information is desired.
+  first_stop:GraphTrainEvent;
+  /// If true, only delay information for first_stop is returned,
+  /// otherwise, delay information for all events of the train starting
+  /// with first_stop is returned.
+  single_event:bool;
+}
+
+/// Request delay information for multiple trains
+/// Returns a RealtimeTrainInfoBatchResponse
+table RealtimeTrainInfoBatchRequest {
+  trains:[RealtimeTrainInfoRequest];
+}

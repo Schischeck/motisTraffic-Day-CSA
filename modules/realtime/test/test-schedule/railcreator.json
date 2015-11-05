@@ -1,0 +1,1382 @@
+{
+  "stations": [
+    {
+      "name": "Frankfurt Hbf",
+      "tracks": 25,
+      "latitude": 50.10500000000002,
+      "longitude": 8.658999999999992,
+      "interchangeTime": 8,
+      "minInterchangeTime": 8,
+      "platformInterchangeTime": 4,
+      "evaNumber": "5323414",
+      "ds100Code": "5323414",
+      "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt Hbf Tief",
+      "tracks": 4,
+      "latitude": 50.10500000000002,
+      "longitude": 8.663999999999987,
+      "interchangeTime": 4,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 4,
+      "evaNumber": "6883092",
+      "ds100Code": "6883092",
+      "KMInfo": 0
+    },
+    {
+      "name": "Dreieich Buchschlag",
+      "tracks": 1,
+      "latitude": 50.023000000000025,
+      "longitude": 8.661000000000058,
+      "interchangeTime": 3,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 3,
+      "evaNumber": "2011086",
+      "ds100Code": "2011086",
+      "KMInfo": 0
+    },
+    {
+      "name": "Langen",
+      "tracks": 2,
+      "latitude": 49.99400000000003,
+      "longitude": 8.657000000000039,
+      "interchangeTime": 5,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 5,
+      "evaNumber": "6616264",
+      "ds100Code": "6616264",
+      "KMInfo": 0
+    },
+    {
+      "name": "Darmstadt Hbf",
+      "tracks": 11,
+      "latitude": 49.877999999999986,
+      "longitude": 8.629000000000019,
+      "interchangeTime": 7,
+      "minInterchangeTime": 7,
+      "platformInterchangeTime": 3,
+      "evaNumber": "2116022",
+      "ds100Code": "2116022",
+      "KMInfo": 0
+    },
+    {
+      "name": "Darmstadt Süd",
+      "tracks": 2,
+      "latitude": 49.85500000000002,
+      "longitude": 8.636999999999944,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2556672",
+      "ds100Code": "2556672",
+      "KMInfo": 0
+    },
+    {
+      "name": "Mannheim Hbf",
+      "tracks": 9,
+      "latitude": 49.478999999999985,
+      "longitude": 8.470000000000027,
+      "interchangeTime": 5,
+      "minInterchangeTime": 6,
+      "platformInterchangeTime": 5,
+      "evaNumber": "5505419",
+      "ds100Code": "5505419",
+      "KMInfo": 0
+    },
+    {
+      "name": "Mannheim Busbahnhof",
+      "tracks": 3,
+      "latitude": 49.48000000000002,
+      "longitude": 8.469000000000051,
+      "interchangeTime": 5,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 5,
+      "evaNumber": "6441861",
+      "ds100Code": "6441861",
+      "KMInfo": 0
+    },
+    {
+      "name": "Ludwigshafen Hbf",
+      "tracks": 10,
+      "latitude": 49.476999999999975,
+      "longitude": 8.432999999999993,
+      "interchangeTime": 6,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 6,
+      "evaNumber": "4946963",
+      "ds100Code": "4946963",
+      "KMInfo": 0
+    },
+    {
+      "name": "Ludwigshafen Busbahnhof",
+      "tracks": 3,
+      "latitude": 49.47800000000001,
+      "longitude": 8.436000000000035,
+      "interchangeTime": 5,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 5,
+      "evaNumber": "1246196",
+      "ds100Code": "1246196",
+      "KMInfo": 0
+    },
+    {
+      "name": "Wiesbaden Hbf",
+      "tracks": 10,
+      "latitude": 50.06999999999999,
+      "longitude": 8.244000000000028,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "0711660",
+      "ds100Code": "0711660",
+      "KMInfo": 0
+    },
+    {
+      "name": "Wiesbaden Ost",
+      "tracks": 4,
+      "latitude": 50.041,
+      "longitude": 8.257000000000062,
+      "interchangeTime": 4,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 4,
+      "evaNumber": "8363080",
+      "ds100Code": "8363080",
+      "KMInfo": 0
+    },
+    {
+      "name": "Mainz Hbf",
+      "tracks": 9,
+      "latitude": 50.000999999999976,
+      "longitude": 8.259000000000015,
+      "interchangeTime": 5,
+      "minInterchangeTime": 7,
+      "platformInterchangeTime": 5,
+      "evaNumber": "9314316",
+      "ds100Code": "9314316",
+      "KMInfo": 0
+    },
+    {
+      "name": "Berlin Hbf",
+      "tracks": 6,
+      "latitude": 52.52499999999998,
+      "longitude": 13.369000000000028,
+      "interchangeTime": 8,
+      "minInterchangeTime": 8,
+      "platformInterchangeTime": 8,
+      "evaNumber": "6741560",
+      "ds100Code": "6741560",
+      "KMInfo": 0
+    },
+    {
+      "name": "München Hbf",
+      "tracks": 32,
+      "latitude": 48.14099999999996,
+      "longitude": 11.557999999999993,
+      "interchangeTime": 8,
+      "minInterchangeTime": 6,
+      "platformInterchangeTime": 8,
+      "evaNumber": "0010414",
+      "ds100Code": "0010414",
+      "KMInfo": 0
+    },
+    {
+      "name": "Augsburg Hbf",
+      "tracks": 12,
+      "latitude": 48.36500000000001,
+      "longitude": 10.884999999999991,
+      "interchangeTime": 5,
+      "minInterchangeTime": 8,
+      "platformInterchangeTime": 5,
+      "evaNumber": "4001395",
+      "ds100Code": "4001395",
+      "KMInfo": 0
+    },
+    {
+      "name": "Stuttgart Hbf",
+      "tracks": 16,
+      "latitude": 48.786,
+      "longitude": 9.182999999999993,
+      "interchangeTime": 7,
+      "minInterchangeTime": 8,
+      "platformInterchangeTime": 7,
+      "evaNumber": "4702230",
+      "ds100Code": "4702230",
+      "KMInfo": 0
+    },
+    {
+      "name": "Kassel Hbf",
+      "tracks": 8,
+      "latitude": 51.31900000000002,
+      "longitude": 9.488000000000056,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "9903233",
+      "ds100Code": "9903233",
+      "KMInfo": 0
+    },
+    {
+      "name": "Braunschweig Hbf",
+      "tracks": 8,
+      "latitude": 52.25200000000001,
+      "longitude": 10.539999999999964,
+      "interchangeTime": 6,
+      "minInterchangeTime": 6,
+      "platformInterchangeTime": 6,
+      "evaNumber": "2836859",
+      "ds100Code": "2836859",
+      "KMInfo": 0
+    },
+    {
+      "name": "Offenbach Hbf",
+      "tracks": 6,
+      "latitude": 50.10000000000002,
+      "longitude": 8.763000000000034,
+      "interchangeTime": 7,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "3386173",
+      "ds100Code": "3386173",
+      "KMInfo": 0
+    },
+    {
+      "name": "Wolfsburg Hbf",
+      "tracks": 5,
+      "latitude": 52.428999999999974,
+      "longitude": 10.787000000000035,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "7181869",
+      "ds100Code": "7181869",
+      "KMInfo": 0
+    },
+    {
+      "name": "Starnberg",
+      "tracks": 4,
+      "latitude": 47.99599999999998,
+      "longitude": 11.344000000000051,
+      "interchangeTime": 5,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4342914",
+      "ds100Code": "4342914",
+      "KMInfo": 0
+    },
+    {
+      "name": "Ober-Ramstadt",
+      "tracks": 5,
+      "latitude": 49.83100000000002,
+      "longitude": 8.744000000000028,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "9996794",
+      "ds100Code": "9996794",
+      "KMInfo": 0
+    },
+    {
+      "name": "Dieburg",
+      "tracks": 5,
+      "latitude": 49.903999999999996,
+      "longitude": 8.841000000000008,
+      "interchangeTime": 8,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 2,
+      "evaNumber": "2892384",
+      "ds100Code": "2892384",
+      "KMInfo": 0
+    },
+    {
+      "name": "Würzburg Hbf",
+      "tracks": 11,
+      "latitude": 49.80200000000002,
+      "longitude": 9.936000000000035,
+      "interchangeTime": 8,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 3,
+      "evaNumber": "6014463",
+      "ds100Code": "6014463",
+      "KMInfo": 0
+    },
+    {
+      "name": "Nürnberg Hbf",
+      "tracks": 20,
+      "latitude": 49.44499999999999,
+      "longitude": 11.081999999999994,
+      "interchangeTime": 10,
+      "minInterchangeTime": 6,
+      "platformInterchangeTime": 3,
+      "evaNumber": "8155061",
+      "ds100Code": "8155061",
+      "KMInfo": 0
+    },
+    {
+      "name": "Koblenz Hbf",
+      "tracks": 8,
+      "latitude": 50.35000000000002,
+      "longitude": 7.587999999999965,
+      "interchangeTime": 7,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 2,
+      "evaNumber": "5976836",
+      "ds100Code": "5976836",
+      "KMInfo": 0
+    },
+    {
+      "name": "Bonn Hbf",
+      "tracks": 5,
+      "latitude": 50.73199999999997,
+      "longitude": 7.09699999999998,
+      "interchangeTime": 6,
+      "minInterchangeTime": 4,
+      "platformInterchangeTime": 3,
+      "evaNumber": "1303538",
+      "ds100Code": "1303538",
+      "KMInfo": 0
+    },
+    {
+      "name": "Köln Hbf",
+      "tracks": 11,
+      "latitude": 50.942999999999984,
+      "longitude": 6.95900000000006,
+      "interchangeTime": 7,
+      "minInterchangeTime": 7,
+      "platformInterchangeTime": 4,
+      "evaNumber": "6837940",
+      "ds100Code": "6837940",
+      "KMInfo": 0
+    },
+    {
+      "name": "Fulda",
+      "tracks": 6,
+      "latitude": 50.55500000000001,
+      "longitude": 9.683999999999969,
+      "interchangeTime": 7,
+      "minInterchangeTime": 7,
+      "platformInterchangeTime": 4,
+      "evaNumber": "3216166",
+      "ds100Code": "3216166",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "1",
+      "category": "RE",
+      "evaNumber": "4002212",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "6883092",
+          "arrival": 0,
+          "departure": 0,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2011086",
+          "arrival": 6,
+          "departure": 8,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6616264",
+          "arrival": 10,
+          "departure": 17,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2116022",
+          "arrival": 26,
+          "departure": 28,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "123",
+      "category": "IC",
+      "evaNumber": "5275940",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "2116022",
+          "arrival": 0,
+          "departure": 0,
+          "track": 8,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2556672",
+          "arrival": 1,
+          "departure": 3,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5505419",
+          "arrival": 26,
+          "departure": 28,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:45:00.000",
+          "untilTime": "10:45:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "456",
+      "category": "S",
+      "evaNumber": "9749786",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "6441861",
+          "arrival": 0,
+          "departure": 0,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1246196",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "11:30:00.000",
+          "untilTime": "11:30:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Wiesbaden Hbf-Mainz Hbf",
+      "category": "RB",
+      "evaNumber": "3610648",
+      "trainNumber": 10,
+      "stations": [
+        {
+          "station": "0711660",
+          "arrival": 0,
+          "departure": 0,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8363080",
+          "arrival": 10,
+          "departure": 18,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": false
+        },
+        {
+          "station": "9314316",
+          "arrival": 30,
+          "departure": 32,
+          "track": 7,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "17:00:00.000",
+          "untilTime": "17:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Wiesbaden Hbf-Frankfurt Hbf Tief",
+      "category": "S",
+      "evaNumber": "1253968",
+      "trainNumber": 11,
+      "stations": [
+        {
+          "station": "0711660",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6883092",
+          "arrival": 45,
+          "departure": 47,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "09:11:00.000",
+          "untilTime": "09:11:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Berlin Hbf-München Hbf",
+      "category": "ICE",
+      "evaNumber": "1646945",
+      "trainNumber": 12,
+      "stations": [
+        {
+          "station": "6741560",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2836859",
+          "arrival": 77,
+          "departure": 79,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9903233",
+          "arrival": 129,
+          "departure": 131,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5323414",
+          "arrival": 189,
+          "departure": 191,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5505419",
+          "arrival": 219,
+          "departure": 221,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4702230",
+          "arrival": 258,
+          "departure": 260,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4001395",
+          "arrival": 313,
+          "departure": 315,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0010414",
+          "arrival": 337,
+          "departure": 339,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "22:00:00.000",
+          "untilTime": "22:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Darmstadt Hbf-Frankfurt Hbf",
+      "category": "RB",
+      "evaNumber": "4681054",
+      "trainNumber": 20,
+      "stations": [
+        {
+          "station": "2116022",
+          "arrival": 0,
+          "departure": 0,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6616264",
+          "arrival": 15,
+          "departure": 17,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5323414",
+          "arrival": 31,
+          "departure": 33,
+          "track": 10,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "12:34:00.000",
+          "untilTime": "14:34:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "Frankfurt Hbf-Mainz Hbf",
+      "category": "RB",
+      "evaNumber": "3960618",
+      "trainNumber": 21,
+      "stations": [
+        {
+          "station": "5323414",
+          "arrival": 0,
+          "departure": 0,
+          "track": 12,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0711660",
+          "arrival": 35,
+          "departure": 40,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9314316",
+          "arrival": 55,
+          "departure": 57,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "13:10:00.000",
+          "untilTime": "13:10:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Frankfurt Hbf-Mainz Hbf",
+      "category": "IC",
+      "evaNumber": "0537506",
+      "trainNumber": 22,
+      "stations": [
+        {
+          "station": "5323414",
+          "arrival": 0,
+          "departure": 0,
+          "track": 9,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9314316",
+          "arrival": 33,
+          "departure": 35,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "13:12:00.000",
+          "untilTime": "13:12:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Frankfurt Hbf-Offenbach Hbf",
+      "category": "RE",
+      "evaNumber": "7780990",
+      "trainNumber": 23,
+      "stations": [
+        {
+          "station": "5323414",
+          "arrival": 0,
+          "departure": 0,
+          "track": 21,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3386173",
+          "arrival": 10,
+          "departure": 12,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "13:15:00.000",
+          "untilTime": "15:15:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "Wolfsburg Hbf-Braunschweig Hbf",
+      "category": "RB",
+      "evaNumber": "6235012",
+      "trainNumber": 30,
+      "stations": [
+        {
+          "station": "7181869",
+          "arrival": 0,
+          "departure": 0,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2836859",
+          "arrival": 30,
+          "departure": 32,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "22:40:00.000",
+          "untilTime": "22:40:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "München Hbf-Starnberg",
+      "category": "S",
+      "evaNumber": "6031617",
+      "trainNumber": 33,
+      "stations": [
+        {
+          "station": "0010414",
+          "arrival": 0,
+          "departure": 0,
+          "track": 20,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4342914",
+          "arrival": 33,
+          "departure": 35,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "03:55:00.000",
+          "untilTime": "03:55:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Darmstadt Hbf-Ober-Ramstadt",
+      "category": "ICE",
+      "evaNumber": "4787123",
+      "trainNumber": 40,
+      "stations": [
+        {
+          "station": "2116022",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9996794",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "14:00:00.000",
+          "untilTime": "14:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Ober-Ramstadt-Darmstadt Süd",
+      "category": "ICE",
+      "evaNumber": "1041824",
+      "trainNumber": 41,
+      "stations": [
+        {
+          "station": "9996794",
+          "arrival": 0,
+          "departure": 0,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2556672",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "14:20:00.000",
+          "untilTime": "14:20:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "Langen-Dieburg",
+      "category": "RB",
+      "evaNumber": "7740951",
+      "trainNumber": 42,
+      "stations": [
+        {
+          "station": "6616264",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2892384",
+          "arrival": 20,
+          "departure": 22,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "15:00:00.000",
+          "untilTime": "18:00:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "Dieburg-Ober-Ramstadt",
+      "category": "RB",
+      "evaNumber": "5706770",
+      "trainNumber": 43,
+      "stations": [
+        {
+          "station": "2892384",
+          "arrival": 0,
+          "departure": 0,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9996794",
+          "arrival": 15,
+          "departure": 17,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "15:30:00.000",
+          "untilTime": "18:30:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "Köln Hbf-München Hbf",
+      "category": "ICE",
+      "evaNumber": "9820267",
+      "trainNumber": 50,
+      "stations": [
+        {
+          "station": "6837940",
+          "arrival": 0,
+          "departure": 0,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5323414",
+          "arrival": 60,
+          "departure": 65,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6014463",
+          "arrival": 103,
+          "departure": 106,
+          "track": 2,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8155061",
+          "arrival": 142,
+          "departure": 145,
+          "track": 7,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0010414",
+          "arrival": 204,
+          "departure": 206,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "08:00:00.000",
+          "untilTime": "18:00:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "München Hbf-Köln Hbf",
+      "category": "ICE",
+      "evaNumber": "8623728",
+      "trainNumber": 51,
+      "stations": [
+        {
+          "station": "0010414",
+          "arrival": 0,
+          "departure": 0,
+          "track": 12,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8155061",
+          "arrival": 59,
+          "departure": 61,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6014463",
+          "arrival": 97,
+          "departure": 99,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5323414",
+          "arrival": 137,
+          "departure": 140,
+          "track": 9,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6837940",
+          "arrival": 200,
+          "departure": 202,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "intervals": [
+        {
+          "fromTime": "08:00:00.000",
+          "untilTime": "18:00:00.000",
+          "interval": 60
+        }
+      ]
+    },
+    {
+      "name": "Augsburg Hbf-Kassel Hbf",
+      "category": "IC",
+      "evaNumber": "4991207",
+      "trainNumber": 55,
+      "stations": [
+        {
+          "station": "4001395",
+          "arrival": 0,
+          "departure": 0,
+          "track": 4,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "6014463",
+          "arrival": 94,
+          "departure": 96,
+          "track": 9,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3216166",
+          "arrival": 142,
+          "departure": 144,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9903233",
+          "arrival": 190,
+          "departure": 192,
+          "track": 5,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "intervals": [
+        {
+          "fromTime": "09:13:00.000",
+          "untilTime": "18:13:00.000",
+          "interval": 120
+        }
+      ]
+    },
+    {
+      "name": "Mannheim Hbf-Darmstadt Hbf",
+      "category": "RE",
+      "evaNumber": "9791839",
+      "trainNumber": 60,
+      "stations": [
+        {
+          "station": "5505419",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2116022",
+          "arrival": 34,
+          "departure": 0,
+          "track": 3,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "11:56:00.000",
+          "untilTime": "11:56:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [
+    {
+      "fromStation": "5323414",
+      "toStation": "6883092",
+      "duration": 10
+    },
+    {
+      "fromStation": "6883092",
+      "toStation": "5323414",
+      "duration": 10
+    },
+    {
+      "fromStation": "2116022",
+      "toStation": "2556672",
+      "duration": 20
+    },
+    {
+      "fromStation": "2556672",
+      "toStation": "2116022",
+      "duration": 20
+    },
+    {
+      "fromStation": "5505419",
+      "toStation": "6441861",
+      "duration": 5
+    },
+    {
+      "fromStation": "6441861",
+      "toStation": "5505419",
+      "duration": 5
+    },
+    {
+      "fromStation": "4946963",
+      "toStation": "1246196",
+      "duration": 7
+    },
+    {
+      "fromStation": "1246196",
+      "toStation": "4946963",
+      "duration": 7
+    }
+  ],
+  "specialTransferTimes": [
+    {
+      "station": "5323414",
+      "transferTime": 3,
+      "fromTrain": "4681054",
+      "fromTrainInterval": 0,
+      "fromTrainTime": 0,
+      "toTrain": "3960618",
+      "toTrainInterval": 0,
+      "toTrainTime": 0
+    }
+  ],
+  "startDate": "2015-01-26",
+  "endDate": "2015-02-22"
+}

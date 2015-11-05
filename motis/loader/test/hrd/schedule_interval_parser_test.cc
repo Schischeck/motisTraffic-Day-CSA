@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/parsers/hrd/schedule_interval_parser.h"
-#include "motis/loader/parsers/hrd/files.h"
+#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/files.h"
 
 namespace motis {
 namespace loader {

@@ -15,6 +15,7 @@ namespace ris {
 
 struct ris : public motis::module::module {
   ris();
+  virtual ~ris() {}
 
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
