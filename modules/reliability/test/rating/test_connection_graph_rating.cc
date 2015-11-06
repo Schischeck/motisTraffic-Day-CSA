@@ -48,12 +48,9 @@ public:
   short const IC_L_F = 4;  // 07:17 --> 07:40
 
   std::pair<probability_distribution, probability_distribution>
-  calc_distributions(probability_distribution const& arrival_distribution,
+  calc_distributions(interchange_data_for_tests const& ic_data,
+                     probability_distribution const& arrival_distribution,
                      system_tools::setup& setup) {
-    interchange_data_for_tests ic_data(
-        *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
-        7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
-
     probability_distribution dep_dist, arr_dist;
     using namespace calc_departure_distribution;
     using namespace calc_arrival_distribution;
@@ -80,20 +77,27 @@ TEST_F(test_connection_graph_rating, scheduled_transfer_filter) {
   probability_distribution arr_dist;
   arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
 
-  ASSERT_EQ(arr_dist, scheduled_transfer_filter(arr_dist, 10, 13, 1, 0));
-  ASSERT_EQ(arr_dist, scheduled_transfer_filter(arr_dist, 10, 13, 2, 1));
+  ASSERT_EQ(arr_dist, scheduled_transfer_filter(
+                          arr_dist, interchange_info(10, 13, 1, 0)));
+  ASSERT_EQ(arr_dist, scheduled_transfer_filter(
+                          arr_dist, interchange_info(10, 13, 2, 1)));
 
   {
     probability_distribution expected;
     expected.init({0.1, 0.2, 0.3}, -1);
-    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 13, 3, 1));
-    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 12, 2, 1));
-    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 13, 2, 0));
-    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 9, 13, 3, 0));
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 13, 3, 1)));
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 12, 2, 1)));
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 13, 2, 0)));
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(9, 13, 3, 0)));
   }
   {
     ASSERT_TRUE(
-        equal(0.0, scheduled_transfer_filter(arr_dist, 10, 10, 2, 0).sum()));
+        equal(0.0, scheduled_transfer_filter(
+                       arr_dist, interchange_info(10, 10, 2, 0)).sum()));
   }
 }
 
@@ -102,29 +106,29 @@ TEST_F(test_connection_graph_rating, compute_uncovered_arrival_distribution) {
   probability_distribution arr_dist;
   arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
 
-  ASSERT_EQ(arr_dist,
-            compute_uncovered_arrival_distribution(arr_dist, 10, 10, 2, 0));
-  ASSERT_EQ(arr_dist,
-            compute_uncovered_arrival_distribution(arr_dist, 10, 11, 3, 0));
-  ASSERT_EQ(arr_dist,
-            compute_uncovered_arrival_distribution(arr_dist, 10, 10, 3, 1));
+  ASSERT_EQ(arr_dist, compute_uncovered_arrival_distribution(
+                          arr_dist, interchange_info(10, 10, 2, 0)));
+  ASSERT_EQ(arr_dist, compute_uncovered_arrival_distribution(
+                          arr_dist, interchange_info(10, 11, 3, 0)));
+  ASSERT_EQ(arr_dist, compute_uncovered_arrival_distribution(
+                          arr_dist, interchange_info(10, 10, 3, 1)));
 
   ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
-                             arr_dist, 10, 13, 1, 0).sum()));
+                             arr_dist, interchange_info(10, 13, 1, 0)).sum()));
   ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
-                             arr_dist, 11, 13, 1, 1).sum()));
+                             arr_dist, interchange_info(11, 13, 1, 1)).sum()));
 
   {
     probability_distribution expected;
     expected.init({0.3, 0.1}, 1);
-    ASSERT_EQ(expected,
-              compute_uncovered_arrival_distribution(arr_dist, 10, 12, 3, 1));
-    ASSERT_EQ(expected,
-              compute_uncovered_arrival_distribution(arr_dist, 10, 12, 2, 0));
-    ASSERT_EQ(expected,
-              compute_uncovered_arrival_distribution(arr_dist, 10, 13, 3, 0));
-    ASSERT_EQ(expected,
-              compute_uncovered_arrival_distribution(arr_dist, 9, 12, 3, 0));
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 12, 3, 1)));
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 12, 2, 0)));
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 13, 3, 0)));
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(9, 12, 3, 0)));
   }
 }
 
@@ -136,35 +140,43 @@ TEST_F(test_connection_graph_rating, reliable_routing_request) {
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
   bool test_cb_called = false;
 
-  auto test_cb = [&](
-      std::vector<std::shared_ptr<connection_graph> > const cgs) {
-    test_cb_called = true;
-    setup.ios_.stop();
-    ASSERT_EQ(cgs.size(), 1);
-    auto const cg = *cgs.front();
-    ASSERT_EQ(3, cg.stops_.size());
-    ASSERT_EQ(2, cg.journeys_.size());
-    {
-      connection_rating expected_rating_journey0;
-      rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *setup.reliability_context_);
-      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                    .departure_distribution_,
-                rating.departure_distribution_);
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                    .arrival_distribution_,
-                rating.arrival_distribution_);
-    }
-    {
-      auto const dists = calc_distributions(
-          cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,
-          setup);
-      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-      ASSERT_EQ(dists.first, rating.departure_distribution_);
-      ASSERT_EQ(dists.second, rating.arrival_distribution_);
-    }
-  };
+  auto test_cb =
+      [&](std::vector<std::shared_ptr<connection_graph> > const cgs) {
+        test_cb_called = true;
+        setup.ios_.stop();
+        ASSERT_EQ(cgs.size(), 1);
+        auto const cg = *cgs.front();
+        ASSERT_EQ(3, cg.stops_.size());
+        ASSERT_EQ(2, cg.journeys_.size());
+        {
+          connection_rating expected_rating_journey0;
+          rating::rate(expected_rating_journey0, cg.journeys_[0],
+                       *setup.reliability_context_);
+          auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                        .departure_distribution_,
+                    rating.departure_distribution_);
+          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                        .arrival_distribution_,
+                    rating.arrival_distribution_);
+        }
+        {
+          interchange_data_for_tests ic_data(
+              *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
+              FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+          auto const dists = calc_distributions(
+              ic_data,
+              detail::scheduled_transfer_filter(
+                  cg.stops_[0]
+                      .alternative_infos_.front()
+                      .rating_.arrival_distribution_,
+                  detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)),
+              setup);
+          auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
+          ASSERT_EQ(dists.first, rating.departure_distribution_);
+          ASSERT_EQ(dists.second, rating.arrival_distribution_);
+        }
+      };
 
   boost::asio::io_service::work ios_work(setup.ios_);
   connection_graph_search::simple_optimizer optimizer(1, 1, 15);

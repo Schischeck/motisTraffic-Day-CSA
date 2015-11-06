@@ -64,18 +64,6 @@ void search_for_alternative(
 
 void build_cg(std::shared_ptr<context> c,
               context::conn_graph_context& conn_graph) {
-  /* todo remove debug output */
-  std::ofstream os("CGs.txt");
-  for (auto const& cg : c->connection_graphs_) {
-    os << "\n\nCG " << cg.index_ << " state " << cg.cg_state_ << std::endl;
-    for (auto it = cg.stop_states_.begin(); it != cg.stop_states_.end(); ++it) {
-      os << "Stop " << it->first << " state s" << it->second.state_ << " f"
-         << it->second.num_failed_requests_ << " #"
-         << cg.cg_->stops_[it->first].alternative_infos_.size() << " "
-         << cg.cg_->station_info(it->first).first << std::endl;
-    }
-  }
-
   if (conn_graph.cg_state_ == context::conn_graph_context::CG_in_progress) {
     for (auto& stop : conn_graph.cg_->stops_) {
       auto it = conn_graph.stop_states_.find(stop.index_);
@@ -93,23 +81,65 @@ void build_cg(std::shared_ptr<context> c,
   return build_result(context::conn_graph_context::CG_failed, c);
 }
 
-void insert_stop_states(context const& c,
-                        context::conn_graph_context& cg_context) {
+std::vector<unsigned int> insert_stop_states(
+    context const& c, context::conn_graph_context& cg_context) {
+  std::vector<unsigned int> new_stops;
   for (auto const& stop : cg_context.cg_->stops_) {
     if (cg_context.stop_states_.find(stop.index_) ==
         cg_context.stop_states_.end()) {
       auto& state = cg_context.stop_states_[stop.index_];
       state.num_failed_requests_ = 0;
       if (stop.index_ == connection_graph::stop::Index_departure_stop ||
-          stop.index_ == connection_graph::stop::Index_arrival_stop ||
-          c.optimizer_.complete(stop, *cg_context.cg_)) {
+          stop.index_ == connection_graph::stop::Index_arrival_stop) {
         state.state_ = context::conn_graph_context::stop_state::Stop_completed;
       } else {
+        new_stops.push_back(stop.index_);
         state.state_ = context::conn_graph_context::stop_state::Stop_idle;
       }
     }
   }
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
+  return new_stops;
+}
+
+void check_stop_states(connection_graph_optimizer const& optimizer,
+                       context::conn_graph_context& cg_context,
+                       std::vector<unsigned int> const& stop_indices) {
+  for (auto const idx : stop_indices) {
+    if (idx != connection_graph::stop::Index_departure_stop &&
+        idx != connection_graph::stop::Index_arrival_stop) {
+      auto& stop_state = cg_context.stop_states_.at(idx);
+      stop_state.num_failed_requests_ = 0;
+      if (optimizer.complete(cg_context.cg_->stops_.at(idx), *cg_context.cg_)) {
+        stop_state.state_ =
+            context::conn_graph_context::stop_state::Stop_completed;
+        if (tools::complete(cg_context)) {
+          cg_context.cg_state_ =
+              context::conn_graph_context::cg_state::CG_completed;
+        }
+      } else {
+        stop_state.state_ = context::conn_graph_context::stop_state::Stop_idle;
+      }
+    }
+  }
+}
+
+void init_connection_graph_from_base_journey(context& context,
+                                             journey const& base_journey) {
+  context.connection_graphs_.emplace_back();
+  auto& cg_context = context.connection_graphs_.back();
+  cg_context.index_ = context.connection_graphs_.size() - 1;
+  cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
+
+  connection_graph_builder::add_base_journey(*cg_context.cg_, base_journey);
+  auto const stop_indices = insert_stop_states(context, cg_context);
+  rating::cg::rate_inserted_alternative(cg_context, 0,
+                                        context.reliability_context_);
+  check_stop_states(context.optimizer_, cg_context, stop_indices);
+
+  if (cg_context.cg_->journeys_.size() == 1) {
+    cg_context.cg_state_ = context::conn_graph_context::CG_completed;
+  }
 }
 
 void handle_base_response(motis::module::msg_ptr msg,
@@ -118,7 +148,6 @@ void handle_base_response(motis::module::msg_ptr msg,
   if (e) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
-
   auto journeys = journey_builder::to_journeys(
       msg->content<routing::RoutingResponse const*>(),
       context->reliability_context_.schedule_.categories);
@@ -127,20 +156,7 @@ void handle_base_response(motis::module::msg_ptr msg,
   }
 
   for (auto const& j : journeys) {
-    context->connection_graphs_.emplace_back();
-    auto& cg_context = context->connection_graphs_.back();
-    cg_context.index_ = context->connection_graphs_.size() - 1;
-    connection_graph_builder::add_base_journey(*cg_context.cg_, j);
-    rating::cg::rate_inserted_alternative(cg_context, 0,
-                                          context->reliability_context_);
-
-    insert_stop_states(*context, cg_context);
-
-    if (cg_context.cg_->journeys_.size() == 1 || tools::complete(cg_context)) {
-      cg_context.cg_state_ = context::conn_graph_context::CG_completed;
-    } else {
-      cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
-    }
+    init_connection_graph_from_base_journey(*context, j);
   }
 
   for (auto conn_graph : context->connection_graphs_) {
@@ -148,35 +164,21 @@ void handle_base_response(motis::module::msg_ptr msg,
   }
 }
 
-void check_stop_state(context::conn_graph_context::stop_state& stop_state,
-                      std::shared_ptr<context> c,
-                      connection_graph::stop const& stop,
-                      context::conn_graph_context& conn_graph) {
-  stop_state.num_failed_requests_ = 0;
+void add_alternative(
+    journey const& j, std::shared_ptr<context> c,
+    context::conn_graph_context& conn_graph,
+    context::conn_graph_context::stop_state& stop_state, /* todo unused*/
+    unsigned int const stop_idx) {
+  connection_graph_builder::add_alternative_journey(*conn_graph.cg_, stop_idx,
+                                                    j);
+  std::vector<unsigned int> stop_indices({stop_idx});
   if (conn_graph.stop_states_.size() < conn_graph.cg_->stops_.size()) {
     insert_stop_states(*c, conn_graph);
   }
-  if (c->optimizer_.complete(stop, *conn_graph.cg_)) {
-    stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
-    if (tools::complete(conn_graph)) {
-      conn_graph.cg_state_ =
-          context::conn_graph_context::cg_state::CG_completed;
-    }
-  } else {
-    stop_state.state_ = context::conn_graph_context::stop_state::Stop_idle;
-  }
-}
-
-void add_alternative(journey const& j, std::shared_ptr<context> c,
-                     context::conn_graph_context& conn_graph,
-                     context::conn_graph_context::stop_state& stop_state,
-                     unsigned int const stop_idx) {
-  connection_graph_builder::add_alternative_journey(*conn_graph.cg_, stop_idx,
-                                                    j);
   rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
                                         c->reliability_context_);
-  check_stop_state(stop_state, c, conn_graph.cg_->stops_.at(stop_idx),
-                   conn_graph);
+  check_stop_states(c->optimizer_, conn_graph, stop_indices);
+
   build_cg(c, conn_graph);
 }
 

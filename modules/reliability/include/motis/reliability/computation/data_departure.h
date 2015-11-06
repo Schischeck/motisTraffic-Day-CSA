@@ -26,6 +26,7 @@ namespace calc_departure_distribution {
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct data_departure {
+  /* todo: use reliability::context */
   data_departure(
       node const& route_node, light_connection const& light_connection,
       bool const is_first_route_node, schedule const& schedule,

@@ -20,14 +20,28 @@ void rate_inserted_alternative(
     unsigned int const stop_idx, context const&);
 
 namespace detail {
+struct interchange_info {
+  interchange_info(connection_element const& arriving_element,
+                   connection_element const& departing_element,
+                   schedule const& sched);
+  /* for tests */
+  interchange_info(time const scheduled_arrival_time,
+                   time const scheduled_departure_time,
+                   duration const transfer_time, duration const waiting_time)
+      : scheduled_arrival_time_(scheduled_arrival_time),
+        scheduled_departure_time_(scheduled_departure_time),
+        transfer_time_(transfer_time),
+        waiting_time_(waiting_time) {}
+  time scheduled_arrival_time_;
+  time scheduled_departure_time_;
+  duration transfer_time_;
+  duration waiting_time_;
+};
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
-    time const scheduled_arrival_time, time const scheduled_departure_time,
-    duration const transfer_time, duration const waiting_time);
+    interchange_info const&);
 probability_distribution compute_uncovered_arrival_distribution(
-    probability_distribution const& arr_distribution,
-    time const scheduled_arrival_time, time const scheduled_departure_time,
-    duration const transfer_time, duration const waiting_time);
+    probability_distribution const& arr_distribution, interchange_info const&);
 }
 }  // namespace cg
 }  // namespace rating

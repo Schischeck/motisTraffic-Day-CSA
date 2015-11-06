@@ -1,9 +1,11 @@
 #include "motis/reliability/rating/connection_graph_rating.h"
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/time.h"
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -16,14 +18,25 @@ namespace reliability {
 namespace rating {
 namespace cg {
 namespace detail {
+interchange_info::interchange_info(connection_element const& arriving_element,
+                                   connection_element const& departing_element,
+                                   schedule const& sched) {
+  scheduled_arrival_time_ = arriving_element.light_connection_->a_time;
+  scheduled_departure_time_ = departing_element.light_connection_->d_time;
+  transfer_time_ = graph_accessor::get_interchange_time(
+      *arriving_element.to_, *departing_element.from_, sched);
+  waiting_time_ = graph_accessor::get_waiting_time(
+      sched.waiting_time_rules_, *arriving_element.light_connection_,
+      *departing_element.light_connection_);
+}
 
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
-    time const scheduled_arrival_time, time const scheduled_departure_time,
-    duration const transfer_time, duration const waiting_time) {
+    interchange_info const& ic_info) {
   int const latest_arrival_delay =
-      ((scheduled_departure_time + waiting_time) - transfer_time) -
-      scheduled_arrival_time;
+      ((ic_info.scheduled_departure_time_ + ic_info.waiting_time_) -
+       ic_info.transfer_time_) -
+      ic_info.scheduled_arrival_time_;
   std::vector<probability> values;
   if (latest_arrival_delay >= arrival_distribution.first_minute()) {
     for (int d = arrival_distribution.first_minute(); d <= latest_arrival_delay;
@@ -38,16 +51,30 @@ probability_distribution scheduled_transfer_filter(
   return pd;
 }
 
+probability_distribution scheduled_transfer_filter(
+    search::connection_graph_search::detail::context::conn_graph_context&
+        cg_context,
+    search::connection_graph::stop const& stop,
+    probability_distribution const& train_arrival_distribution,
+    interchange_info const& ic_info) {
+  auto const& arrival_distribution =
+      stop.alternative_infos_.size() == 1
+          ? train_arrival_distribution
+          : cg_context.stop_states_.at(stop.index_)
+                .uncovered_arrival_distribution_;
+
+  return scheduled_transfer_filter(arrival_distribution, ic_info);
+}
+
 probability_distribution compute_uncovered_arrival_distribution(
     probability_distribution const& arr_distribution,
-    time const scheduled_arrival_time, time const scheduled_departure_time,
-    duration const transfer_time, duration const waiting_time) {
+    interchange_info const& ic_info) {
   std::vector<probability> values;
   for (int d = arr_distribution.first_minute();
        d <= arr_distribution.last_minute(); ++d) {
     /* interchange is possible */
-    if (scheduled_arrival_time + d + transfer_time <=
-        scheduled_departure_time + waiting_time) {
+    if (ic_info.scheduled_arrival_time_ + d + ic_info.transfer_time_ <=
+        ic_info.scheduled_departure_time_ + ic_info.waiting_time_) {
       values.push_back(0.0);
     }
     /* interchange not possible */
@@ -58,6 +85,21 @@ probability_distribution compute_uncovered_arrival_distribution(
   probability_distribution pd;
   pd.init(values, arr_distribution.first_minute());
   return pd;
+}
+
+void update_uncovered_arrival_distribution(
+    search::connection_graph_search::detail::context::conn_graph_context&
+        cg_context,
+    search::connection_graph::stop const& stop,
+    probability_distribution const& distribution_arriving_alternative,
+    interchange_info const& ic_info) {
+  auto& uncovered_arr_dist =
+      cg_context.stop_states_.at(stop.index_).uncovered_arrival_distribution_;
+  if (stop.alternative_infos_.size() == 1) {
+    uncovered_arr_dist = distribution_arriving_alternative;
+  }
+  uncovered_arr_dist =
+      compute_uncovered_arrival_distribution(uncovered_arr_dist, ic_info);
 }
 
 std::pair<connection_element, probability_distribution>
@@ -83,11 +125,10 @@ find_arriving_connection_element(search::connection_graph const& cg,
 }
 
 std::pair<probability_distribution, probability_distribution> rate(
-    journey const& journey, connection_element const& arriving_element,
+    std::vector<std::vector<connection_element>>& connection_elements,
+    connection_element const& arriving_element,
     probability_distribution const& arrival_distribution,
     context const& context) {
-  auto connection_elements = rating::connection_to_graph_data::get_elements(
-                                 context.schedule_, journey).second;
   connection_elements.insert(connection_elements.begin(), {arriving_element});
 
   std::vector<rating_element> ratings;
@@ -101,11 +142,13 @@ std::pair<probability_distribution, probability_distribution> rate(
 }
 
 void rate_first_journey_in_cg(
-    search::connection_graph const& cg,
+    search::connection_graph_search::detail::context::conn_graph_context&
+        cg_context,
     search::connection_graph::stop::alternative_info& alternative,
     context const& context) {
   connection_rating c_rating;
-  rating::rate(c_rating, cg.journeys_.at(alternative.departing_journey_index_),
+  rating::rate(c_rating, cg_context.cg_->journeys_.at(
+                             alternative.departing_journey_index_),
                context);
   alternative.rating_.departure_distribution_ =
       c_rating.public_transport_ratings_.front().departure_distribution_;
@@ -118,18 +161,27 @@ void rate_alternative_in_cg(
     search::connection_graph::stop const& stop,
     search::connection_graph::stop::alternative_info& alternative,
     context const& context) {
-  auto& cg = *cg_context.cg_;
+  auto connection_elements =
+      rating::connection_to_graph_data::get_elements(
+          context.schedule_, cg_context.cg_->journeys_.at(
+                                 alternative.departing_journey_index_)).second;
   auto const last_element = detail::find_arriving_connection_element(
-      cg, stop.index_, context.schedule_);
-  auto const& arrival_distribution =
-      stop.alternative_infos_.size() <= 2
-          ? last_element.second
-          : cg_context.stop_states_.at(stop.index_)
-                .uncovered_arrival_distribution_;
+      *cg_context.cg_, stop.index_, context.schedule_);
+  interchange_info ic_info(last_element.first,
+                           connection_elements.front().front(),
+                           context.schedule_);
+
+  auto const filtered_arrival_distribution =
+      scheduled_transfer_filter(cg_context, stop, last_element.second, ic_info);
+
+  /* rate departing alternative */
   std::tie(alternative.rating_.departure_distribution_,
            alternative.rating_.arrival_distribution_) =
-      detail::rate(cg.journeys_.at(alternative.departing_journey_index_),
-                   last_element.first, last_element.second, context);
+      rate(connection_elements, last_element.first,
+           filtered_arrival_distribution, context);
+
+  update_uncovered_arrival_distribution(cg_context, stop, last_element.second,
+                                        ic_info);
 }
 }  // namespace detail
 
@@ -137,13 +189,12 @@ void rate_inserted_alternative(
     search::connection_graph_search::detail::context::conn_graph_context&
         cg_context,
     unsigned int const stop_idx, context const& context) {
-  auto& cg = *cg_context.cg_;
-  auto& stop = cg.stops_.at(stop_idx);
+  auto& stop = cg_context.cg_->stops_.at(stop_idx);
   auto& alternative = stop.alternative_infos_.back();
 
   /* first journey in the connection graph */
   if (stop_idx == search::connection_graph::stop::Index_departure_stop) {
-    detail::rate_first_journey_in_cg(cg, alternative, context);
+    detail::rate_first_journey_in_cg(cg_context, alternative, context);
   }
   /* an alternative in the connection graph
    * (requires arrival distribution at stop) */

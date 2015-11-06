@@ -51,10 +51,10 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
     test_cb_called = true;
     setup.ios_.stop();
 
-    ASSERT_EQ(cgs.size(), 1);
+    ASSERT_EQ(1, cgs.size());
     auto const cg = *cgs.front();
 
-    ASSERT_EQ(cg.stops_.size(), 3);
+    ASSERT_EQ(3, cg.stops_.size());
     {
       auto const& stop =
           cg.stops_[connection_graph::stop::Index_departure_stop];
