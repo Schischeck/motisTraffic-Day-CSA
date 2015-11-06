@@ -2,23 +2,22 @@
 
 #include "motis/core/schedule/time.h"
 
+#include "motis/reliability/search/cg_search_context.h"
+
 namespace motis {
 struct schedule;
 namespace reliability {
+struct context;
 struct probability_distribution;
 struct start_and_travel_distributions;
 namespace distributions_container {
 struct precomputed_distributions_container;
 }
-namespace search {
-struct connection_graph;
-}
 namespace rating {
 namespace cg {
 void rate_inserted_alternative(
-    search::connection_graph&, unsigned int const stop_idx, schedule const&,
-    distributions_container::precomputed_distributions_container const&,
-    start_and_travel_distributions const&);
+    search::connection_graph_search::detail::context::conn_graph_context&,
+    unsigned int const stop_idx, context const&);
 
 namespace detail {
 probability_distribution scheduled_transfer_filter(

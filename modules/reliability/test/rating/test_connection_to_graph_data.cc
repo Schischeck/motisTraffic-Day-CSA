@@ -173,8 +173,8 @@ TEST_F(test_connection_to_graph_data2, get_elements) {
     auto const element = get_last_element(*schedule_, journeys.front());
     test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 TEST_F(test_connection_to_graph_data5, get_elements2) {
@@ -246,8 +246,8 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
     auto const element = get_last_element(*schedule_, journeys.front());
     test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 /* Connection with two walking sections:
@@ -309,8 +309,8 @@ TEST_F(test_connection_to_graph_data6, get_elements_foot) {
     auto const element = get_last_element(*schedule_, journeys.front());
     test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 }  // namespace connection_to_graph_data

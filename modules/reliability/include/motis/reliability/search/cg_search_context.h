@@ -1,10 +1,17 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "motis/core/schedule/synced_schedule.h"
+
+#include "motis/reliability/context.h"
+#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/search/connection_graph.h"
+#include "motis/reliability/search/connection_graph_search.h"
 
 namespace motis {
 namespace reliability {
@@ -36,7 +43,8 @@ struct context {
         Stop_completed,
         Stop_Aborted
       } state_ = Stop_idle;
-      unsigned short num_failed_requests = 0;
+      unsigned short num_failed_requests_ = 0;
+      probability_distribution uncovered_arrival_distribution_;
     };
     std::map<unsigned int, stop_state> stop_states_;
   };
@@ -47,7 +55,11 @@ struct context {
         session_(session),
         result_callback_(cb),
         optimizer_(optimizer),
-        result_returned_(false) {}
+        result_returned_(false),
+        synced_sched_(reliability_.synced_sched()),
+        reliability_context_(synced_sched_.sched(),
+                             reliability_.precomputed_distributions(),
+                             reliability_.s_t_distributions()) {}
 
   std::vector<conn_graph_context> connection_graphs_;
   motis::reliability::reliability& reliability_;
@@ -71,6 +83,9 @@ struct context {
     time_t const end_time_;
   };
   std::map<journey_cache_key, journey> journey_cache;
+
+  synced_schedule<RO> synced_sched_;
+  motis::reliability::context reliability_context_;
 };
 
 }  // namespace detail

@@ -10,6 +10,7 @@
 #include "motis/core/common/journey_builder.h"
 
 #include "motis/reliability/computation/distributions_calculator.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/db_distributions.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -86,9 +87,9 @@ void reliability::handle_routing_response(msg_ptr msg,
   auto const journeys = journey_builder::to_journeys(res, schedule.categories);
 
   for (auto const& j : journeys) {
-    bool success =
-        rating::rate(ratings[rating_index], j, schedule,
-                     *precomputed_distributions_, *s_t_distributions_);
+    bool success = rating::rate(
+        ratings[rating_index], j,
+        context(schedule, *precomputed_distributions_, *s_t_distributions_));
     success &= rating::simple_rating::rate(simple_ratings[rating_index], j,
                                            schedule, *s_t_distributions_);
     if (!success) {

@@ -139,16 +139,15 @@ TEST_F(test_connection_graph_rating, reliable_routing_request) {
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
     test_cb_called = true;
-    setup.ios.stop();
+    setup.ios_.stop();
     ASSERT_EQ(cgs.size(), 1);
     auto const cg = *cgs.front();
     ASSERT_EQ(3, cg.stops_.size());
     ASSERT_EQ(2, cg.journeys_.size());
     {
       connection_rating expected_rating_journey0;
-      rating::rate(expected_rating_journey0, cg.journeys_[0], *schedule_,
-                   setup.reliability_module().precomputed_distributions(),
-                   setup.reliability_module().s_t_distributions());
+      rating::rate(expected_rating_journey0, cg.journeys_[0],
+                   *setup.reliability_context_);
       auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
       ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
                     .departure_distribution_,
@@ -167,11 +166,11 @@ TEST_F(test_connection_graph_rating, reliable_routing_request) {
     }
   };
 
-  boost::asio::io_service::work ios_work(setup.ios);
+  boost::asio::io_service::work ios_work(setup.ios_);
   connection_graph_search::simple_optimizer optimizer(1, 1, 15);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup.reliability_module(), 0, optimizer, test_cb);
-  setup.ios.run();
+  setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }
 

@@ -2,6 +2,7 @@
 
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/start_and_travel_distributions.h"
@@ -14,8 +15,8 @@ namespace motis {
 namespace reliability {
 namespace rating {
 namespace cg {
-
 namespace detail {
+
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
     time const scheduled_arrival_time, time const scheduled_departure_time,
@@ -84,63 +85,76 @@ find_arriving_connection_element(search::connection_graph const& cg,
 std::pair<probability_distribution, probability_distribution> rate(
     journey const& journey, connection_element const& arriving_element,
     probability_distribution const& arrival_distribution,
-    schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
-    start_and_travel_distributions const& s_t_distributions) {
-  auto connection_elements =
-      rating::connection_to_graph_data::get_elements(schedule, journey).second;
+    context const& context) {
+  auto connection_elements = rating::connection_to_graph_data::get_elements(
+                                 context.schedule_, journey).second;
   connection_elements.insert(connection_elements.begin(), {arriving_element});
 
   std::vector<rating_element> ratings;
   ratings.emplace_back(arriving_element.departure_stop_idx_);
   ratings.back().arrival_distribution_ = arrival_distribution;
 
-  public_transport::rate(ratings, connection_elements, true, schedule,
-                         precomputed_distributions, s_t_distributions);
+  public_transport::rate(ratings, connection_elements, true, context);
 
   return std::make_pair(ratings[1].departure_distribution_,
                         ratings.back().arrival_distribution_);
 }
+
+void rate_first_journey_in_cg(
+    search::connection_graph const& cg,
+    search::connection_graph::stop::alternative_info& alternative,
+    context const& context) {
+  connection_rating c_rating;
+  rating::rate(c_rating, cg.journeys_.at(alternative.departing_journey_index_),
+               context);
+  alternative.rating_.departure_distribution_ =
+      c_rating.public_transport_ratings_.front().departure_distribution_;
+  alternative.rating_.arrival_distribution_ =
+      c_rating.public_transport_ratings_.back().arrival_distribution_;
+}
+void rate_alternative_in_cg(
+    search::connection_graph_search::detail::context::conn_graph_context&
+        cg_context,
+    search::connection_graph::stop const& stop,
+    search::connection_graph::stop::alternative_info& alternative,
+    context const& context) {
+  auto& cg = *cg_context.cg_;
+  auto const last_element = detail::find_arriving_connection_element(
+      cg, stop.index_, context.schedule_);
+  auto const& arrival_distribution =
+      stop.alternative_infos_.size() <= 2
+          ? last_element.second
+          : cg_context.stop_states_.at(stop.index_)
+                .uncovered_arrival_distribution_;
+  std::tie(alternative.rating_.departure_distribution_,
+           alternative.rating_.arrival_distribution_) =
+      detail::rate(cg.journeys_.at(alternative.departing_journey_index_),
+                   last_element.first, last_element.second, context);
+}
 }  // namespace detail
 
 void rate_inserted_alternative(
-    search::connection_graph& cg, unsigned int const stop_idx,
-    schedule const& schedule,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
-    start_and_travel_distributions const& s_t_distributions) {
-  auto& alternative = cg.stops_.at(stop_idx).alternative_infos_.back();
+    search::connection_graph_search::detail::context::conn_graph_context&
+        cg_context,
+    unsigned int const stop_idx, context const& context) {
+  auto& cg = *cg_context.cg_;
+  auto& stop = cg.stops_.at(stop_idx);
+  auto& alternative = stop.alternative_infos_.back();
 
   /* first journey in the connection graph */
   if (stop_idx == search::connection_graph::stop::Index_departure_stop) {
-    connection_rating c_rating;
-    rating::rate(c_rating,
-                 cg.journeys_.at(alternative.departing_journey_index_),
-                 schedule, precomputed_distributions, s_t_distributions);
-    alternative.rating_.departure_distribution_ =
-        c_rating.public_transport_ratings_.front().departure_distribution_;
-    alternative.rating_.arrival_distribution_ =
-        c_rating.public_transport_ratings_.back().arrival_distribution_;
-
+    detail::rate_first_journey_in_cg(cg, alternative, context);
   }
   /* an alternative in the connection graph
    * (requires arrival distribution at stop) */
   else {
-    auto const last_element =
-        detail::find_arriving_connection_element(cg, stop_idx, schedule);
-    std::tie(alternative.rating_.departure_distribution_,
-             alternative.rating_.arrival_distribution_) =
-        detail::rate(cg.journeys_.at(alternative.departing_journey_index_),
-                     last_element.first, last_element.second, schedule,
-                     precomputed_distributions, s_t_distributions);
+    detail::rate_alternative_in_cg(cg_context, stop, alternative, context);
   }
 
   if (alternative.head_stop_index_ !=
       search::connection_graph::stop::Index_arrival_stop) {
-    return rate_inserted_alternative(cg, alternative.head_stop_index_, schedule,
-                                     precomputed_distributions,
-                                     s_t_distributions);
+    return rate_inserted_alternative(cg_context, alternative.head_stop_index_,
+                                     context);
   }
 }
 

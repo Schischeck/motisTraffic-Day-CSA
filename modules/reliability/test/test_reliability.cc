@@ -99,8 +99,8 @@ TEST_F(test_reliability2, rating_request) {
     ASSERT_EQ((*simple_rating->rating_elements())[1]->ratings()->size(), 2);
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 
   ASSERT_TRUE(test_cb_called);
 }
@@ -126,8 +126,8 @@ TEST_F(test_reliability7, reliable_search) {
   setup.reliability_module().optimizer_ =
       std::unique_ptr<search::connection_graph_search::simple_optimizer>(
           new search::connection_graph_search::simple_optimizer(3, 1, 1));
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 
   ASSERT_TRUE(test_cb_called);
 }

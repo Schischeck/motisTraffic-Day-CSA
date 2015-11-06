@@ -90,8 +90,8 @@ TEST_F(test_simple_rating2, simple_rate) {
     ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995));
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 /* Mannheim to Darmstadt with RE_M_B_D (interchange in Darmstadt),
@@ -151,8 +151,8 @@ TEST_F(test_simple_rating5, simple_rate2) {
     ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995 * 0.995 * 0.9));
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 }  // namespace simple_rating
