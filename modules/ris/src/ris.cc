@@ -8,6 +8,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
+#include "motis/loader/util.h"
 #include "motis/ris/database.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
@@ -22,6 +23,7 @@ using fs::directory_iterator;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
+using namespace motis::loader;
 
 namespace motis {
 namespace ris {
@@ -63,7 +65,7 @@ msg_ptr pack(std::vector<T> const& messages) {
 }
 
 void ris::init() {
-  timer_.reset(new boost::asio::deadline_timer(get_thread_pool()));
+  timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
 
   db_init();
   read_files_ = db_get_files();
@@ -75,7 +77,7 @@ void ris::init() {
 
 void ris::parse_zips() {
   auto new_files = get_new_files();
-  if(new_files.size() == 0) {
+  if (new_files.size() == 0) {
     return;
   }
 
@@ -99,23 +101,21 @@ void ris::parse_zips() {
 std::vector<std::string> ris::get_new_files() {
   fs::path path(zip_folder_);
 
-  if (!(fs::exists(path) && fs::is_directory(path))) {
-    throw std::runtime_error(ZIP_FOLDER " is not a directory");
-  }
-
   std::vector<std::string> new_files;
-  for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
-    if (!fs::is_regular_file(it->status())) {
-      continue;
-    }
+  if (fs::exists(path) && fs::is_directory(path)) {
+    for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
+      if (!fs::is_regular_file(it->status())) {
+        continue;
+      }
 
-    auto filename = it->path().string();
-    if (!boost::algorithm::iends_with(filename, ".zip")) {
-      continue;
-    }
+      auto filename = it->path().string();
+      if (!boost::algorithm::iends_with(filename, ".zip")) {
+        continue;
+      }
 
-    if (read_files_.insert(filename).second) {
-      new_files.push_back(filename);
+      if (read_files_.insert(filename).second) {
+        new_files.push_back(filename);
+      }
     }
   }
 

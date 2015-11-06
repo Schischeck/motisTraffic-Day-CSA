@@ -38,6 +38,7 @@ using namespace motis;
 int main(int argc, char** argv) {
   message::init_parser();
 
+  boost::asio::io_service ios, thread_pool;
   std::vector<std::unique_ptr<motis::module::module> > modules;
   modules.emplace_back(new routing::routing());
   modules.emplace_back(new guesser::guesser());
@@ -83,8 +84,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  boost::asio::io_service ios, thread_pool;
-
   ws_server server(ios);
   server.listen(listener_opt.host, listener_opt.port);
 
@@ -125,16 +124,17 @@ int main(int argc, char** argv) {
   boost::asio::io_service::work tp_work(thread_pool), ios_work(ios);
   std::vector<boost::thread> threads(8);
 
-  std::function<void()> run = [&]() {
-    try {
-      thread_pool.run();
-    } catch (std::exception const& e) {
-      LOG(emrg) << "unhandled error: " << e.what();
-      run();
-    } catch (...) {
-      LOG(emrg) << "unhandled unknown error";
-      run();
-    }
+  auto run = [&]() {
+    start:
+      try {
+        thread_pool.run();
+      } catch (std::exception const& e) {
+        LOG(emrg) << "unhandled error: " << e.what();
+        goto start;
+      } catch (...) {
+        LOG(emrg) << "unhandled unknown error";
+        goto start;
+      }
   };
 
   for (unsigned i = 0; i < threads.size(); ++i) {

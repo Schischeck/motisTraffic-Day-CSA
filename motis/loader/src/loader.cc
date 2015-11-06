@@ -16,8 +16,8 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/graph_builder.h"
-#include "motis/loader/parsers/gtfs/gtfs_parser.h"
-#include "motis/loader/parsers/hrd/hrd_parser.h"
+#include "motis/loader/gtfs/gtfs_parser.h"
+#include "motis/loader/hrd/hrd_parser.h"
 
 namespace fs = boost::filesystem;
 using namespace flatbuffers;
