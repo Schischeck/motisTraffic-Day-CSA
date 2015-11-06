@@ -186,6 +186,21 @@ TEST_F(test_connection_graph_rating, reliable_routing_request) {
   ASSERT_TRUE(test_cb_called);
 }
 
+/* todo: test rating of cgs with multiple alternatives */
+TEST_F(test_connection_graph_rating, reliable_routing_request2) {
+  ASSERT_TRUE(false);
+}
+
+/* todo: test rating of cgs with foot-paths */
+TEST_F(test_connection_graph_rating, reliable_routing_request_foot) {
+  ASSERT_TRUE(false);
+}
+
+/* todo: optimize connection graph alternatives depending on distributions! */
+TEST_F(test_connection_graph_rating, reliable_routing_request_optimization) {
+  ASSERT_TRUE(false);
+}
+
 }  // namespace test
 }  // namespace cg
 }  // namespace rating
