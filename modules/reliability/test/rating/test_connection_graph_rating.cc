@@ -75,6 +75,59 @@ public:
   }
 };
 
+TEST_F(test_connection_graph_rating, scheduled_transfer_filter) {
+  using namespace detail;
+  probability_distribution arr_dist;
+  arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+
+  ASSERT_EQ(arr_dist, scheduled_transfer_filter(arr_dist, 10, 13, 1, 0));
+  ASSERT_EQ(arr_dist, scheduled_transfer_filter(arr_dist, 10, 13, 2, 1));
+
+  {
+    probability_distribution expected;
+    expected.init({0.1, 0.2, 0.3}, -1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 13, 3, 1));
+    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 12, 2, 1));
+    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 10, 13, 2, 0));
+    ASSERT_EQ(expected, scheduled_transfer_filter(arr_dist, 9, 13, 3, 0));
+  }
+  {
+    ASSERT_TRUE(
+        equal(0.0, scheduled_transfer_filter(arr_dist, 10, 10, 2, 0).sum()));
+  }
+}
+
+TEST_F(test_connection_graph_rating, compute_uncovered_arrival_distribution) {
+  using namespace detail;
+  probability_distribution arr_dist;
+  arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+
+  ASSERT_EQ(arr_dist,
+            compute_uncovered_arrival_distribution(arr_dist, 10, 10, 2, 0));
+  ASSERT_EQ(arr_dist,
+            compute_uncovered_arrival_distribution(arr_dist, 10, 11, 3, 0));
+  ASSERT_EQ(arr_dist,
+            compute_uncovered_arrival_distribution(arr_dist, 10, 10, 3, 1));
+
+  ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
+                             arr_dist, 10, 13, 1, 0).sum()));
+  ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
+                             arr_dist, 11, 13, 1, 1).sum()));
+
+  {
+    probability_distribution expected;
+    expected.init({0.3, 0.1}, 1);
+    ASSERT_EQ(expected,
+              compute_uncovered_arrival_distribution(arr_dist, 10, 12, 3, 1));
+    ASSERT_EQ(expected,
+              compute_uncovered_arrival_distribution(arr_dist, 10, 12, 2, 0));
+    ASSERT_EQ(expected,
+              compute_uncovered_arrival_distribution(arr_dist, 10, 13, 3, 0));
+    ASSERT_EQ(expected,
+              compute_uncovered_arrival_distribution(arr_dist, 9, 12, 3, 0));
+  }
+}
+
 TEST_F(test_connection_graph_rating, reliable_routing_request) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_reliable_routing_request(

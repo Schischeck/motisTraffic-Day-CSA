@@ -3,6 +3,7 @@
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/distributions_container.h"
+#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
@@ -13,7 +14,50 @@ namespace motis {
 namespace reliability {
 namespace rating {
 namespace cg {
+
 namespace detail {
+probability_distribution scheduled_transfer_filter(
+    probability_distribution const& arrival_distribution,
+    time const scheduled_arrival_time, time const scheduled_departure_time,
+    duration const transfer_time, duration const waiting_time) {
+  int const latest_arrival_delay =
+      ((scheduled_departure_time + waiting_time) - transfer_time) -
+      scheduled_arrival_time;
+  std::vector<probability> values;
+  if (latest_arrival_delay >= arrival_distribution.first_minute()) {
+    for (int d = arrival_distribution.first_minute(); d <= latest_arrival_delay;
+         ++d) {
+      values.push_back(arrival_distribution.probability_equal(d));
+    }
+  } else {
+    values.push_back(0.0);
+  }
+  probability_distribution pd;
+  pd.init(values, arrival_distribution.first_minute());
+  return pd;
+}
+
+probability_distribution compute_uncovered_arrival_distribution(
+    probability_distribution const& arr_distribution,
+    time const scheduled_arrival_time, time const scheduled_departure_time,
+    duration const transfer_time, duration const waiting_time) {
+  std::vector<probability> values;
+  for (int d = arr_distribution.first_minute();
+       d <= arr_distribution.last_minute(); ++d) {
+    /* interchange is possible */
+    if (scheduled_arrival_time + d + transfer_time <=
+        scheduled_departure_time + waiting_time) {
+      values.push_back(0.0);
+    }
+    /* interchange not possible */
+    else {
+      values.push_back(arr_distribution.probability_equal(d));
+    }
+  }
+  probability_distribution pd;
+  pd.init(values, arr_distribution.first_minute());
+  return pd;
+}
 
 std::pair<connection_element, probability_distribution>
 find_arriving_connection_element(search::connection_graph const& cg,
