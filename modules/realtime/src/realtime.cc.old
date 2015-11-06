@@ -38,19 +38,6 @@ namespace realtime {
 
 po::options_description realtime::desc() {
   po::options_description desc("Realtime Module");
-#ifdef WITH_MYSQL
-  desc.add_options()(
-      DB_SERVER, po::value<std::string>(&db_server_)->default_value(db_server_),
-      "MySQL host (e.g. localhost or 127.0.0.1)")(
-      DB_NAME, po::value<std::string>(&db_name_)->default_value(db_name_),
-      "MySQL database name (e.g. risr)")(
-      DB_USER, po::value<std::string>(&db_user_)->default_value(db_user_),
-      "MySQL user")(
-      DB_PASSWORD,
-      po::value<std::string>(&db_password_)->default_value(db_password_),
-      "MySQL password")(DB_FETCH_SIZE, po::value<unsigned>(&db_fetch_size_),
-                        "How many minutes should be loaded per db query");
-#endif
   desc.add_options()(TRACK_TRAIN ",t",
                      po::value<std::vector<uint32_t>>(&track_trains_),
                      "Train number to track (debug)")(
