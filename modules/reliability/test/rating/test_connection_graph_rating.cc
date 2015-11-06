@@ -20,6 +20,7 @@
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
+#include "include/interchange_data_for_tests.h"
 #include "include/precomputed_distributions_test_container.h"
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
@@ -45,6 +46,33 @@ public:
   short const RE_L_F = 2;  // 07:15 --> 07:25
   short const S_L_F = 3;  // 07:16 --> 07:34
   short const IC_L_F = 4;  // 07:17 --> 07:40
+
+  std::pair<probability_distribution, probability_distribution>
+  calc_distributions(probability_distribution const& arrival_distribution,
+                     system_tools::setup& setup) {
+    interchange_data_for_tests ic_data(
+        *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
+        7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+
+    probability_distribution dep_dist, arr_dist;
+    using namespace calc_departure_distribution;
+    using namespace calc_arrival_distribution;
+    interchange::compute_departure_distribution(
+        data_departure_interchange(
+            true, ic_data.tail_node_departing_train_,
+            ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
+            arrival_distribution, *schedule_,
+            setup.reliability_module().precomputed_distributions(),
+            setup.reliability_module().precomputed_distributions(),
+            setup.reliability_module().s_t_distributions()),
+        dep_dist);
+    compute_arrival_distribution(
+        data_arrival(*ic_data.departing_route_edge_._to,
+                     ic_data.departing_light_conn_, dep_dist, *schedule_,
+                     setup.reliability_module().s_t_distributions()),
+        arr_dist);
+    return std::make_pair(dep_dist, arr_dist);
+  }
 };
 
 TEST_F(test_connection_graph_rating, reliable_routing_request) {
@@ -55,65 +83,36 @@ TEST_F(test_connection_graph_rating, reliable_routing_request) {
       std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
   bool test_cb_called = false;
 
-  auto test_cb =
-      [&](std::vector<std::shared_ptr<connection_graph> > const cgs) {
-        test_cb_called = true;
-        setup.ios.stop();
-        ASSERT_EQ(cgs.size(), 1);
-        auto const cg = *cgs.front();
-        ASSERT_EQ(3, cg.stops_.size());
-        ASSERT_EQ(2, cg.journeys_.size());
-        {
-          connection_rating expected_rating_journey0;
-          rating::rate(expected_rating_journey0, cg.journeys_[0], *schedule_,
-                       setup.reliability_module().precomputed_distributions(),
-                       setup.reliability_module().s_t_distributions());
-          auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                        .departure_distribution_,
-                    rating.departure_distribution_);
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                        .arrival_distribution_,
-                    rating.arrival_distribution_);
-        }
-        {
-          auto const arriving_connection_element =
-              rating::connection_to_graph_data::get_last_element(
-                  *schedule_, cg.journeys_[0]);
-          auto const departing_connection_element =
-              rating::connection_to_graph_data::get_elements(*schedule_,
-                                                             cg.journeys_[1])
-                  .second.front()
-                  .front();
-
-          probability_distribution dep_dist, arr_dist;
-          using namespace calc_departure_distribution;
-          using namespace calc_arrival_distribution;
-          interchange::compute_departure_distribution(
-              data_departure_interchange(
-                  true, *departing_connection_element.from_,
-                  *departing_connection_element.light_connection_,
-                  *arriving_connection_element.light_connection_,
-                  cg.stops_[0]
-                      .alternative_infos_.front()
-                      .rating_.arrival_distribution_,
-                  *schedule_,
-                  setup.reliability_module().precomputed_distributions(),
-                  setup.reliability_module().precomputed_distributions(),
-                  setup.reliability_module().s_t_distributions()),
-              dep_dist);
-          compute_arrival_distribution(
-              data_arrival(*departing_connection_element.to_,
-                           *departing_connection_element.light_connection_,
-                           dep_dist, *schedule_,
-                           setup.reliability_module().s_t_distributions()),
-              arr_dist);
-
-          auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-          ASSERT_EQ(dep_dist, rating.departure_distribution_);
-          ASSERT_EQ(arr_dist, rating.arrival_distribution_);
-        }
-      };
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
+    test_cb_called = true;
+    setup.ios.stop();
+    ASSERT_EQ(cgs.size(), 1);
+    auto const cg = *cgs.front();
+    ASSERT_EQ(3, cg.stops_.size());
+    ASSERT_EQ(2, cg.journeys_.size());
+    {
+      connection_rating expected_rating_journey0;
+      rating::rate(expected_rating_journey0, cg.journeys_[0], *schedule_,
+                   setup.reliability_module().precomputed_distributions(),
+                   setup.reliability_module().s_t_distributions());
+      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                    .departure_distribution_,
+                rating.departure_distribution_);
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                    .arrival_distribution_,
+                rating.arrival_distribution_);
+    }
+    {
+      auto const dists = calc_distributions(
+          cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,
+          setup);
+      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
+      ASSERT_EQ(dists.first, rating.departure_distribution_);
+      ASSERT_EQ(dists.second, rating.arrival_distribution_);
+    }
+  };
 
   boost::asio::io_service::work ios_work(setup.ios);
   connection_graph_search::simple_optimizer optimizer(1, 1, 15);

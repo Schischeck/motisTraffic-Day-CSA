@@ -132,10 +132,10 @@ void handle_base_response(motis::module::msg_ptr msg,
     cg_context.index_ = context->connection_graphs_.size() - 1;
     auto& conn_graph = *cg_context.cg_;
     connection_graph_builder::add_base_journey(conn_graph, j);
-    rating::cg::rate(conn_graph, 0,
-                     context->reliability_.synced_sched().sched(),
-                     context->reliability_.precomputed_distributions(),
-                     context->reliability_.s_t_distributions());
+    rating::cg::rate_inserted_alternative(
+        conn_graph, 0, context->reliability_.synced_sched().sched(),
+        context->reliability_.precomputed_distributions(),
+        context->reliability_.s_t_distributions());
 
     insert_stop_states(*context, cg_context);
 
@@ -176,9 +176,10 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
                      unsigned int const stop_idx) {
   auto& cg = *conn_graph.cg_;
   connection_graph_builder::add_alternative_journey(std::ref(cg), stop_idx, j);
-  rating::cg::rate(cg, stop_idx, c->reliability_.synced_sched().sched(),
-                   c->reliability_.precomputed_distributions(),
-                   c->reliability_.s_t_distributions());
+  rating::cg::rate_inserted_alternative(
+      cg, stop_idx, c->reliability_.synced_sched().sched(),
+      c->reliability_.precomputed_distributions(),
+      c->reliability_.s_t_distributions());
   check_stop_state(stop_state, c, conn_graph.cg_->stops_.at(stop_idx),
                    conn_graph);
   build_cg(c, conn_graph);

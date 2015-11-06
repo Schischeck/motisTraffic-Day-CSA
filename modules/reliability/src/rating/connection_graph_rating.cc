@@ -52,7 +52,7 @@ std::pair<probability_distribution, probability_distribution> rate(
   ratings.emplace_back(arriving_element.departure_stop_idx_);
   ratings.back().arrival_distribution_ = arrival_distribution;
 
-  public_transport::rate(ratings, connection_elements, schedule,
+  public_transport::rate(ratings, connection_elements, true, schedule,
                          precomputed_distributions, s_t_distributions);
 
   return std::make_pair(ratings[1].departure_distribution_,
@@ -60,11 +60,12 @@ std::pair<probability_distribution, probability_distribution> rate(
 }
 }  // namespace detail
 
-void rate(search::connection_graph& cg, unsigned int const stop_idx,
-          schedule const& schedule,
-          distributions_container::precomputed_distributions_container const&
-              precomputed_distributions,
-          start_and_travel_distributions const& s_t_distributions) {
+void rate_inserted_alternative(
+    search::connection_graph& cg, unsigned int const stop_idx,
+    schedule const& schedule,
+    distributions_container::precomputed_distributions_container const&
+        precomputed_distributions,
+    start_and_travel_distributions const& s_t_distributions) {
   auto& alternative = cg.stops_.at(stop_idx).alternative_infos_.back();
 
   /* first journey in the connection graph */
@@ -93,8 +94,9 @@ void rate(search::connection_graph& cg, unsigned int const stop_idx,
 
   if (alternative.head_stop_index_ !=
       search::connection_graph::stop::Index_arrival_stop) {
-    return rate(cg, alternative.head_stop_index_, schedule,
-                precomputed_distributions, s_t_distributions);
+    return rate_inserted_alternative(cg, alternative.head_stop_index_, schedule,
+                                     precomputed_distributions,
+                                     s_t_distributions);
   }
 }
 

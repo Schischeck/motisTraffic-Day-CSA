@@ -24,7 +24,7 @@ bool rate(connection_rating& rating, journey const& journey,
     return false;
   }
   public_transport::rate(rating.public_transport_ratings_,
-                         connection_elements.second, schedule,
+                         connection_elements.second, false, schedule,
                          precomputed_distributions, s_t_distributions);
   rating.connection_rating_ =
       rating.public_transport_ratings_.back().arrival_distribution_.sum();

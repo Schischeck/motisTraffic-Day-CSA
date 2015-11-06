@@ -150,7 +150,7 @@ TEST_F(test_public_transport2, rate) {
     ASSERT_TRUE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
-    rate(ratings, elements, *schedule_,
+    rate(ratings, elements, false, *schedule_,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
     ASSERT_TRUE(ratings.size() == 2);
@@ -299,7 +299,7 @@ TEST_F(test_public_transport5, rate2) {
     ASSERT_TRUE(test_ratings.size() == 5);
 
     std::vector<rating::rating_element> ratings;
-    rate(ratings, elements, *schedule_,
+    rate(ratings, elements, false, *schedule_,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
     ASSERT_TRUE(ratings.size() == 5);
@@ -394,7 +394,7 @@ TEST_F(test_public_transport3, rate_foot) {
     ASSERT_TRUE(test_ratings.size() == 2);
 
     std::vector<rating::rating_element> ratings;
-    rate(ratings, elements, *schedule_,
+    rate(ratings, elements, false, *schedule_,
          setup.reliability_module().precomputed_distributions(),
          s_t_distributions);
     ASSERT_TRUE(ratings.size() == 2);

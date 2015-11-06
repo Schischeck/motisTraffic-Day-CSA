@@ -119,7 +119,7 @@ void distributions_for_train_after_interchange(
 
 void rate(std::vector<rating_element>& ratings,
           std::vector<std::vector<connection_element>> const& elements,
-          schedule const& schedule,
+          bool const first_element_already_processed, schedule const& schedule,
           distributions_container::precomputed_distributions_container const&
               precomputed_distributions,
           start_and_travel_distributions const& s_t_distributions) {
@@ -131,7 +131,8 @@ void rate(std::vector<rating_element>& ratings,
                                           precomputed_distributions, schedule,
                                           s_t_distributions);
 
-  for (unsigned int train_idx = 0; train_idx < elements.size(); ++train_idx) {
+  for (unsigned int train_idx = (first_element_already_processed ? 1 : 0);
+       train_idx < elements.size(); ++train_idx) {
     auto const& train_distributions =
         precomputed_flags.at(train_idx)
             ? dynamic_cast<distributions_container::
