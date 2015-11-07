@@ -37,7 +37,7 @@ export class Typeahead extends React.Component {
 
   _selectGuess(value) { this.setState({ value: value, completions: [] }); }
 
-  _clearCompletions() { setTimeout(e => { this.setState({ completions: [] }); }, 80); }
+  _clearCompletions() { setTimeout(e => { this.setState({ completions: [] }); }, 280); }
 
   _onKeyUp(e) {
     switch(e.keyCode) {
