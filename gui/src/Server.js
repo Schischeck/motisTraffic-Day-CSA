@@ -13,39 +13,25 @@ class Server {
   }
 
   _onmessage(evt) {
-    let res = JSON.parse(evt.data);
-
-    let hasId = true;
-    if (res.id === undefined) {
-      console.error('received message without id');
-      hasId = false;
-    }
-
-    switch (res.content_type) {
-      case 'StationGuesserResponse':
-        this._resolvePending(res.id, res);
-        break;
-      default:
-        this._rejectPending(res.id, 'unknown message type');
-    }
+    this._resolvePending(JSON.parse(evt.data));
   };
 
   _isPendingRequest(id) {
-     return this.pendingRequests[id] != undefined;
+     return this.pendingRequests[id] !== undefined;
   }
 
   _cancelTimeout(id) {
     clearTimeout(this.pendingRequests[id].timer);
   }
 
-  _resolvePending(id, data) {
-    if (!this._isPendingRequest(id)) {
+  _resolvePending(data) {
+    if (!this._isPendingRequest(data.id)) {
       return;
     }
 
-    this._cancelTimeout(id);
-    this.pendingRequests[id].resolve(data);
-    delete this.pendingRequests[id];
+    this._cancelTimeout(data.id);
+    this.pendingRequests[data.id].resolve(data);
+    delete this.pendingRequests[data.id];
   }
 
   _rejectPending(id, reason) {
@@ -70,8 +56,7 @@ class Server {
       this.socket.send(JSON.stringify(request));
 
       let timer = setTimeout(() => {
-        reject('timeout');
-        delete this.pendingRequests[localRequestId];
+        this._rejectPending(localRequestId, 'timeout');
       }, 1000);
 
       this.pendingRequests[localRequestId] = {
