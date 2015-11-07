@@ -64,8 +64,8 @@ export class Typeahead extends React.Component {
 
       // ESCAPE
       case 27:
-      // BACK_SPACE
-      case 8: this._clearCompletions();
+        this._clearCompletions();
+        break;
     }
   }
 
@@ -93,7 +93,7 @@ export class Typeahead extends React.Component {
                           key={ index }
                           primaryText={ val.name }
                           onMouseEnter={ () => { this.setState({ selectedItemIndex: index }); } }
-                          onClick={ e => { this._selectGuess.bind(this)(val.name); } } />
+                          onClick={ this._selectGuess.bind(this, val.name) } />
               })
             }
           </List>
