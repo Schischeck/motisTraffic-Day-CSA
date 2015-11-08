@@ -17,10 +17,14 @@ export class App extends Component {
 
   render() {
     return (
-      <div>
-        <Typeahead name="From" complete={ this.guessStation.bind(this) } />
-        <Typeahead name="To" complete={ this.guessStation.bind(this) } />
-      </div>
+    <div>
+      <Typeahead
+                 name="From"
+                 complete={ this.guessStation.bind(this) } />
+      <Typeahead
+                 name="To"
+                 complete={ this.guessStation.bind(this) } />
+    </div>
     );
   }
 }

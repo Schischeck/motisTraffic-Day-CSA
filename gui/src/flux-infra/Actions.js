@@ -1,8 +1,8 @@
 import Dispatcher from './Dispatcher';
 import Server from '../Server';
 
-const Actions = {
-  sendMessage: function(message, componentId) {
+class Actions {
+  sendMessage(message, componentId) {
     Server.sendMessage(message).then((res) => {
       Dispatcher.dispatch({
         type: res.content_type,
@@ -14,4 +14,3 @@ const Actions = {
 }
 
 export default Actions;
-

@@ -122,7 +122,7 @@
       "CatchClosingBrace": ">=0",
       "CatchKeyword": 0,
       "ConditionalExpression": ">=1",
-      "DeleteOperator": ">=1",
+      "DeleteOperator": "0",
       "DoWhileStatement": ">=1",
       "DoWhileStatementOpeningBrace": ">=1",
       "DoWhileStatementClosingBrace": 0,

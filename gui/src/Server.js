@@ -5,9 +5,15 @@ class Server {
     this.requestId = 0;
     this.socket = new WebSocket(server);
     this.socket.onmessage = this._onmessage.bind(this);
-    this.socket.onclose = () => {console.log('close', arguments)};
-    this.socket.onerror = () => {console.log('error', arguments)};
-    this.socket.onopen = () => {console.log('open', arguments)};
+    this.socket.onclose = () => {
+      console.log('close', arguments)
+    };
+    this.socket.onerror = () => {
+      console.log('error', arguments)
+    };
+    this.socket.onopen = () => {
+      console.log('open', arguments)
+    };
 
     this.pendingRequests = {};
   }
@@ -17,7 +23,7 @@ class Server {
   };
 
   _isPendingRequest(id) {
-     return this.pendingRequests[id] !== undefined;
+    return this.pendingRequests[id] !== undefined;
   }
 
   _cancelTimeout(id) {
@@ -66,7 +72,7 @@ class Server {
       };
     });
   }
-};
+}
 
 const instance = new Server('ws://localhost:8080');
 export default instance;
