@@ -6,13 +6,13 @@ class Server {
     this.socket = new WebSocket(server);
     this.socket.onmessage = this._onmessage.bind(this);
     this.socket.onclose = () => {
-      console.log('close', arguments)
+      console.log('close', arguments);
     };
     this.socket.onerror = () => {
-      console.log('error', arguments)
+      console.log('error', arguments);
     };
     this.socket.onopen = () => {
-      console.log('open', arguments)
+      console.log('open', arguments);
     };
 
     this.pendingRequests = {};
@@ -20,7 +20,7 @@ class Server {
 
   _onmessage(evt) {
     this._resolvePending(JSON.parse(evt.data));
-  };
+  }
 
   _isPendingRequest(id) {
     return this.pendingRequests[id] !== undefined;

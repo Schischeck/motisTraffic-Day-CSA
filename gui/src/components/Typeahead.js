@@ -10,7 +10,7 @@ function mod(a, n) {
   return ((a % n) + n) % n;
 }
 
-export class Typeahead extends React.Component {
+export default class Typeahead extends React.Component {
   propTypes: {
     complete: React.PropTypes.func.isRequired
   }
@@ -92,7 +92,7 @@ export class Typeahead extends React.Component {
 
   render() {
     return (
-    <div style={ {  'width': 256,  'position': 'relative'} }>
+    <div>
       <TextField
                  hintText={ this.props.name }
                  value={ this.state.value }
