@@ -28,7 +28,6 @@ struct realtime : public motis::module::module {
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RealtimeTrainInfoRequest,
             MsgContent_RealtimeTrainInfoBatchRequest,
-            MsgContent_RealtimeForwardTimeRequest,
             MsgContent_RealtimeCurrentTimeRequest,
             MsgContent_RealtimeDelayInfoRequest};
   }

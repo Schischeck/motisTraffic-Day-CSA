@@ -9,6 +9,7 @@
 
 #include "motis/protocol/RISMessage_generated.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/realtime/error.h"
 #include "motis/realtime/realtime_context.h"
 
@@ -18,6 +19,7 @@
 
 using namespace motis::module;
 using namespace motis::ris;
+using namespace motis::logging;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
@@ -285,6 +287,9 @@ void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
 
   auto& ctx = *rts_;
+
+  LOG(info) << "Realtime received " << req->messages()->size() << " messages.";
+
 
   for (auto const& holder : *req->messages()) {
     auto const& nested = holder->message_nested_root();
