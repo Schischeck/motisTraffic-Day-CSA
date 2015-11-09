@@ -5,9 +5,9 @@
 #include <utility>
 #include <unordered_map>
 
-#include "motis/realtime/message_stream.h"
 #include "motis/realtime/event.h"
 #include "motis/realtime/delay_info.h"
+#include "motis/realtime/messages.h"
 
 namespace motis {
 namespace realtime {
@@ -17,10 +17,6 @@ class realtime_schedule;
 class message_handler {
 public:
   message_handler(realtime_schedule& rts);
-
-  void process_message_stream(message_stream& stream);
-
-  void handle_message(const message& msg);
 
   void handle_delay(const schedule_event& schedule_event, motis::time new_time,
                     timestamp_reason reason);
@@ -38,7 +34,6 @@ private:
   bool event_exists(const schedule_event& se) const;
 
   realtime_schedule& _rts;
-  message_reader _msg_reader;
 };
 
 }  // namespace realtime

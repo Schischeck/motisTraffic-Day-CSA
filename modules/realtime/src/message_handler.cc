@@ -17,61 +17,7 @@ namespace realtime {
 
 using namespace motis::logging;
 
-message_handler::message_handler(realtime_schedule& rts)
-    : _rts(rts), _msg_reader(rts) {}
-
-void message_handler::process_message_stream(message_stream& stream) {
-  unsigned messages = 0;
-  std::vector<std::unique_ptr<message>> msg_objects;
-  std::time_t max_release_time = 0;
-
-  while (true) {
-    std::unique_ptr<message> msg = stream.next_message();
-    if (msg == nullptr) break;
-    handle_message(*msg);
-    messages++;
-    max_release_time = std::max(max_release_time, msg->release_time_);
-    msg_objects.push_back(std::move(msg));
-  }
-  if (messages != 0) {
-    _rts._delay_propagator.process_queue();
-    _rts._graph_updater.finish_graph_update();
-    _rts._message_output.set_current_time(max_release_time);
-    _rts._message_output.finish();
-  }
-}
-
-void message_handler::handle_message(const message& msg) {
-  _rts._stats._counters.messages.increment();
-  switch (msg.type_) {
-    case message_type::delay:
-      handle_delay(static_cast<const delay_message&>(msg));
-      break;
-    case message_type::additional:
-      handle_additional_train(
-          static_cast<const additional_train_message&>(msg));
-      _rts._message_output.add_message(&msg);
-      break;
-    case message_type::cancel:
-      handle_canceled_train(static_cast<const cancel_train_message&>(msg));
-      _rts._message_output.add_message(&msg);
-      break;
-    case message_type::reroute:
-      handle_rerouted_train(static_cast<const reroute_train_message&>(msg));
-      //_rts._message_output.add_message(&msg); // TODO:
-      // reroute_train_message_s_g
-      break;
-    case message_type::status_decision:
-      handle_connection_status_decision(
-          static_cast<const connection_status_decision_message&>(msg));
-      _rts._message_output.add_message(&msg);
-      break;
-    default:
-      _rts._stats._counters.unknown.increment();
-      _rts._stats._counters.unknown.ignore();
-      break;
-  }
-}
+message_handler::message_handler(realtime_schedule& rts) : _rts(rts) {}
 
 void message_handler::handle_delay(const schedule_event& schedule_event,
                                    motis::time new_time,
@@ -107,15 +53,21 @@ void message_handler::handle_delay(const delay_message& msg) {
     _rts._debug_mode = true;
   }
   _rts._stats._counters.delay_msgs.increment();
+  bool ignored = true;
   if (msg.is_.valid() && msg.is_.delayed_time_ != motis::INVALID_TIME) {
     handle_delay(msg.is_, msg.is_.delayed_time_, timestamp_reason::IS);
+    ignored = false;
   }
   for (const delayed_event& delayed_stop : msg.forecasts_) {
     if (delayed_stop.valid() &&
         delayed_stop.delayed_time_ != motis::INVALID_TIME) {
       handle_delay(delayed_stop, delayed_stop.delayed_time_,
                    timestamp_reason::FORECAST);
+      ignored = false;
     }
+  }
+  if (ignored) {
+    _rts._stats._counters.delay_msgs.ignore();
   }
   _rts._debug_mode = old_debug;
 }

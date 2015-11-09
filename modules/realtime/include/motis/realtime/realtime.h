@@ -9,8 +9,6 @@
 
 #include "motis/module/module.h"
 #include "motis/realtime/realtime_schedule.h"
-#include "motis/realtime/message_fetcher.h"
-#include "motis/realtime/opt_time.h"
 #include "motis/protocol/Message_generated.h"
 
 namespace motis {
@@ -28,17 +26,15 @@ struct realtime : public motis::module::module {
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RealtimeTrainInfoRequest,
             MsgContent_RealtimeTrainInfoBatchRequest,
-            MsgContent_RealtimeForwardTimeRequest,
             MsgContent_RealtimeCurrentTimeRequest,
-            MsgContent_RealtimeDelayInfoRequest};
+            MsgContent_RealtimeDelayInfoRequest, MsgContent_RISBatch};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
   std::unique_ptr<realtime_schedule> rts_;
-  std::unique_ptr<message_fetcher> message_fetcher_;
 
-// settings
+  // settings
   std::vector<uint32_t> track_trains_;
   bool debug_;
 

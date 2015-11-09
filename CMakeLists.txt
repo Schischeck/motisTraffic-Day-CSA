@@ -13,6 +13,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_GENERATOR STREQUAL "Ninja")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
+endif ()
+
 if(MINGW)
   add_definitions(-DWINVER=0x0501)
   add_definitions(-D_WIN32_WINNT=0x0501)
