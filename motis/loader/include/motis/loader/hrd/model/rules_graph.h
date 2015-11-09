@@ -14,6 +14,7 @@ enum direction_type { IN, OUT, BOTH, INVALID };
 struct node {
   virtual ~node() {}
 
+  virtual void services(std::set<hrd_service*>&) const = 0;
   virtual void resolve_services(bitfield const&, std::set<service_resolvent>&,
                                 std::set<service_rule_resolvent>&) = 0;
 
@@ -21,7 +22,7 @@ struct node {
   virtual bitfield const& traffic_days() const = 0;
   virtual void print() const = 0;
 
-  std::vector<std::pair<node*, direction_type>> parents_;
+  std::vector<node*> parents_;
 };
 
 struct service_node : node {
@@ -29,6 +30,7 @@ struct service_node : node {
 
   ~service_node() {}
 
+  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
@@ -43,6 +45,7 @@ struct rule_node : node {
 
   ~rule_node() {}
 
+  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
@@ -60,6 +63,7 @@ struct layer_node : public node {
 
   ~layer_node() {}
 
+  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;

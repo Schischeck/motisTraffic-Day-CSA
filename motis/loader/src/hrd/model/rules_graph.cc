@@ -6,6 +6,10 @@ namespace hrd {
 
 service_node::service_node(hrd_service* s) : service_(s) {}
 
+void service_node::services(std::set<hrd_service*>& acc) const {
+  acc.insert(service_);
+};
+
 void service_node::resolve_services(bitfield const&,
                                     std::set<service_resolvent>&,
                                     std::set<service_rule_resolvent>&) {}
@@ -32,6 +36,11 @@ rule_node::rule_node(service_node* s1, service_node* s2,
       traffic_days_(s1->traffic_days() & s2->traffic_days() &
                     rule_info.traffic_days) {}
 
+void rule_node::services(std::set<hrd_service*>& acc) const {
+  s1_->services(acc);
+  s2_->services(acc);
+}
+
 hrd_service* resolve(bitfield const& upper_traffic_days, hrd_service* origin,
                      std::set<service_resolvent>& resolved_services) {
   auto resolved_it = resolved_services.find(service_resolvent(origin));
@@ -49,12 +58,13 @@ void rule_node::resolve_services(
     bitfield const& upper_traffic_days,
     std::set<service_resolvent>& s_resolvents,
     std::set<service_rule_resolvent>& sr_resolvents) {
-  auto active_traffic_days = traffic_days_ & upper_traffic_days;
-  traffic_days_ &= ~active_traffic_days;
-
-  sr_resolvents.insert(service_rule_resolvent{
-      rule_, resolve(active_traffic_days, s1_->service_, s_resolvents),
-      resolve(active_traffic_days, s2_->service_, s_resolvents)});
+  if (traffic_days_.any()) {
+    auto active_traffic_days = traffic_days_ & upper_traffic_days;
+    traffic_days_ &= ~active_traffic_days;
+    sr_resolvents.insert(service_rule_resolvent{
+        rule_, resolve(active_traffic_days, s1_->service_, s_resolvents),
+        resolve(active_traffic_days, s2_->service_, s_resolvents)});
+  }
 }
 
 std::array<node*, 2> rule_node::children() const { return {{s1_, s2_}}; }
@@ -71,13 +81,20 @@ layer_node::layer_node(node* left, node* right)
       right_(right),
       traffic_days_(left->traffic_days() & right->traffic_days()) {}
 
+void layer_node::services(std::set<hrd_service*>& acc) const {
+  left_->services(acc);
+  right_->services(acc);
+}
+
 void layer_node::resolve_services(bitfield const& upper_traffic_days,
                                   std::set<service_resolvent>& resolvents,
                                   std::set<service_rule_resolvent>& rules) {
-  auto active_traffic_days = traffic_days_ & upper_traffic_days;
-  traffic_days_ &= ~active_traffic_days;
-  left_->resolve_services(active_traffic_days, resolvents, rules);
-  right_->resolve_services(active_traffic_days, resolvents, rules);
+  if (traffic_days_.any()) {
+    auto active_traffic_days = traffic_days_ & upper_traffic_days;
+    traffic_days_ &= ~active_traffic_days;
+    left_->resolve_services(active_traffic_days, resolvents, rules);
+    right_->resolve_services(active_traffic_days, resolvents, rules);
+  }
 }
 
 std::array<node*, 2> layer_node::children() const { return {{left_, right_}}; }

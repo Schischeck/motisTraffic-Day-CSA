@@ -223,21 +223,12 @@ TEST_F(ts_2_to_1_cycle_prevention, rule_services) {
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
   // check rule services
-  ASSERT_EQ(2, service_rules_.rule_services_.size());
+  ASSERT_EQ(1, service_rules_.rule_services_.size());
 
   auto const& rule_service1 = service_rules_.rule_services_[0];
-  ASSERT_EQ(3, rule_service1.services.size());
-  ASSERT_EQ(2, rule_service1.rules.size());
+  ASSERT_EQ(4, rule_service1.services.size());
+  ASSERT_EQ(3, rule_service1.rules.size());
   for (auto const& sr : rule_service1.rules) {
-    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
-    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
-    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
-  }
-
-  auto const& rule_service2 = service_rules_.rule_services_[1];
-  ASSERT_EQ(3, rule_service2.services.size());
-  ASSERT_EQ(2, rule_service2.rules.size());
-  for (auto const& sr : rule_service2.rules) {
     ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
     ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
     ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);

@@ -78,19 +78,8 @@ void create_rule_and_service_nodes(
                       reinterpret_cast<service_node*>(s2_node), rule));
 
     auto rn = rg.nodes_.back().get();
-    switch (rule.type) {
-      case RuleType_MERGE_SPLIT: {
-        s1_node->parents_.push_back(std::make_pair(rn, BOTH));
-        s2_node->parents_.push_back(std::make_pair(rn, BOTH));
-        break;
-      }
-      case RuleType_THROUGH: {
-        s1_node->parents_.push_back(std::make_pair(rn, OUT));
-        s2_node->parents_.push_back(std::make_pair(rn, IN));
-        break;
-      }
-      default: { assert(false); };
-    }
+    s1_node->parents_.push_back(rn);
+    s2_node->parents_.push_back(rn);
     rg.layers_[0].push_back(rn);
   }
 }
@@ -110,71 +99,55 @@ void build_first_layer(service_rules const& rules, rules_graph& rg) {
   }
 }
 
+bool add_layer_node(node* n1, node* n2,
+                    std::set<std::pair<node*, node*>>& combinations,
+                    rules_graph& rg) {
+  if (n1 == n2 ||
+      combinations.find(std::make_pair(n2, n1)) != end(combinations)) {
+    return false;
+  }
+  combinations.emplace(n1, n2);
+
+  layer_node candidate(n1, n2);
+  if (candidate.traffic_days().none()) {
+    return false;
+  }
+
+  std::set<hrd_service*> acc;
+  n1->services(acc);
+  auto const size_before = acc.size();
+  n2->services(acc);
+  auto const size_after = acc.size();
+  if (size_after == size_before) {
+    return false;
+  }
+
+  rg.nodes_.emplace_back(new layer_node(candidate));
+  return true;
+}
+
 void build_remaining_layers(rules_graph& rg) {
   int current_layer_idx = 0;
   int next_layer_idx = 1;
 
   while (!rg.layers_[current_layer_idx].empty()) {
     rg.layers_.resize(next_layer_idx + 1);
-    std::set<std::pair<node*, node*>> considered_combinations;
 
-    for (auto const& current_node : rg.layers_[current_layer_idx]) {
-      for (auto const& child : current_node->children()) {
-        auto const entering_direction =
-            std::find_if(begin(child->parents_), end(child->parents_),
-                         [&](std::pair<node*, direction_type> const& parent) {
-                           return parent.first == current_node;
-                         })
-                ->second;
-
-        if (entering_direction == OUT) {
-          LOG(debug) << "ignore OUT";
-          continue;
-        }
-
+    std::set<std::pair<node*, node*>> combinations;
+    auto count = 0;
+    for (auto const& current_parent : rg.layers_[current_layer_idx]) {
+      for (auto const& child : current_parent->children()) {
         for (auto const related_parent : child->parents_) {
-          auto const leaving_node = related_parent.first;
-          auto const leaving_direction = related_parent.second;
-
-          if (leaving_node == current_node) {
-            LOG(debug) << "ignore identity";
-            continue;
-          } else if (leaving_direction == IN) {
-            LOG(debug) << "ignore IN";
-            continue;
-          } else if (considered_combinations.find(
-                         std::make_pair(related_parent.first, current_node)) !=
-                     end(considered_combinations)) {
-            LOG(debug) << "ignore inverse identity pairs";
-            continue;
-          } else {
-            considered_combinations.emplace(current_node, related_parent.first);
-            layer_node candidate(current_node, related_parent.first);
-            if (candidate.traffic_days().none()) {
-              continue;
-            } else {
-              rg.nodes_.emplace_back(new layer_node(candidate));
-            }
+          LOG(debug) << "start";
+          if (add_layer_node(current_parent, related_parent, combinations,
+                             rg)) {
+            auto ln = rg.nodes_.back().get();
+            current_parent->parents_.push_back(ln);
+            related_parent->parents_.push_back(ln);
+            rg.layers_[next_layer_idx].push_back(ln);
           }
-
-          auto parent = rg.nodes_.back().get();
-          if (entering_direction == IN && leaving_direction == OUT) {
-            current_node->parents_.push_back(std::make_pair(parent, OUT));
-            leaving_node->parents_.push_back(std::make_pair(parent, IN));
-          } else if (entering_direction == BOTH && leaving_direction == OUT) {
-            current_node->parents_.push_back(std::make_pair(parent, BOTH));
-            leaving_node->parents_.push_back(std::make_pair(parent, IN));
-          } else if (entering_direction == IN && leaving_direction == BOTH) {
-            current_node->parents_.push_back(std::make_pair(parent, OUT));
-            leaving_node->parents_.push_back(std::make_pair(parent, BOTH));
-          } else if (entering_direction == BOTH && leaving_direction == BOTH) {
-            current_node->parents_.push_back(std::make_pair(parent, BOTH));
-            leaving_node->parents_.push_back(std::make_pair(parent, BOTH));
-          } else {
-            verify(false, "invalid edge: (%d,%d)", (int)entering_direction,
-                   (int)leaving_direction);
-          }
-          rg.layers_[next_layer_idx].push_back(parent);
+          LOG(debug) << "stop";
+          ++count;
         }
       }
     }
@@ -185,17 +158,19 @@ void build_remaining_layers(rules_graph& rg) {
       LOG(warn) << "found potential cycle at layer " << next_layer_idx << ": "
                 << "current_node_count=" << current_node_count << ", "
                 << "next_node_count=" << next_node_count;
-      break;  // TODO add handle method (Tobias Raffel)
     } else if (current_node_count < next_node_count) {
       LOG(warn) << "suspicious node count increase at layer " << next_layer_idx
                 << ": "
                 << "current_node_count=" << current_node_count << ", "
                 << "next_node_count=" << next_node_count;
-      break;  // TODO add handle method (Tobias Raffel)
     } else {
-      ++current_layer_idx;
-      ++next_layer_idx;
+      LOG(debug) << "#iter=" << count << ": "
+                 << "layer_idx=" << next_layer_idx << ": "
+                 << "current_node_count=" << current_node_count << ", "
+                 << "next_node_count=" << next_node_count;
     }
+    ++current_layer_idx;
+    ++next_layer_idx;
   }
   rg.layers_.pop_back();
 }
@@ -207,14 +182,18 @@ void build_graph(service_rules const& rules, rules_graph& rg) {
 }
 
 void rule_service_builder::resolve_rule_services() {
+  LOG(debug) "start";
   scoped_timer("resolve service rules");
 
   rules_graph rg;
   build_graph(rules_, rg);
 
   // iterate all layers beginning with the top level layer
+  auto layer_num = rg.layers_.size();
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
+        LOG(debug) << "layer: " << layer_num--;
+
         // remove all layer nodes that does not have any traffic day left
         layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
                       return n->traffic_days().none();
@@ -239,6 +218,8 @@ void rule_service_builder::resolve_rule_services() {
                        return service_ptr.get()->traffic_days_.none();
                      }),
       end(origin_services_));
+
+  LOG(debug) "stop";
 }
 
 void create_rule_service(
