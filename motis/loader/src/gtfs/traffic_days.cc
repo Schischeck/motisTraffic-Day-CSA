@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/traffic_days.h"
+#include "motis/loader/gtfs/traffic_days.h"
 
 #include "boost/date_time/gregorian/gregorian.hpp"
 

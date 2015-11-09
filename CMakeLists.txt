@@ -11,6 +11,8 @@ endforeach()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
+
 if(MINGW)
   add_definitions(-DWINVER=0x0501)
   add_definitions(-D_WIN32_WINNT=0x0501)
@@ -29,24 +31,24 @@ find_package(Threads)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib)  # catch library
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libzip/lib)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
+include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
+
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)

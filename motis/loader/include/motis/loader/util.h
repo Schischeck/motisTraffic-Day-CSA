@@ -18,9 +18,6 @@
 namespace motis {
 namespace loader {
 
-void write_schedule(flatbuffers::FlatBufferBuilder& b,
-                    boost::filesystem::path const& path);
-
 template <typename T>
 inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
     flatbuffers::FlatBufferBuilder& b, T const& s) {
@@ -63,14 +60,6 @@ inline IntType raw_to_int(parser::cstr s) {
   IntType key = 0;
   std::memcpy(&key, s.str, std::min(s.len, sizeof(IntType)));
   return key;
-}
-
-inline int hhmm_to_min(int hhmm) {
-  if (hhmm < 0) {
-    return hhmm;
-  } else {
-    return (hhmm / 100) * 60 + (hhmm % 100);
-  }
 }
 
 template <typename It, typename Predicate>
@@ -132,6 +121,11 @@ using std::make_unique;
 #endif
 
 parser::buffer load_file(boost::filesystem::path const&);
+
+int hhmm_to_min(int hhmm);
+
+void write_schedule(flatbuffers::FlatBufferBuilder& b,
+                    boost::filesystem::path const& path);
 
 }  // namespace loader
 }  // namespace motis

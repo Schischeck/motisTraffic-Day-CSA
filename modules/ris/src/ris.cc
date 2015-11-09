@@ -8,6 +8,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
+#include "motis/loader/util.h"
 #include "motis/ris/database.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
@@ -22,6 +23,7 @@ using fs::directory_iterator;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
+using namespace motis::loader;
 
 namespace motis {
 namespace ris {
@@ -63,7 +65,7 @@ msg_ptr pack(std::vector<T> const& messages) {
 }
 
 void ris::init() {
-  timer_.reset(new boost::asio::deadline_timer(get_thread_pool()));
+  timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
 
   db_init();
   read_files_ = db_get_files();
@@ -82,6 +84,7 @@ void ris::init() {
   dispatch(pack(db_get_messages(from, to)));
 
   schedule_update(error_code());
+  // TODO tell realtime start processing
 }
 
 void ris::parse_zips() {
@@ -90,12 +93,15 @@ void ris::parse_zips() {
     return;
   }
 
+  // TODO sort new_files;
+
   scoped_timer timer("RISML parsing");
   LOG(info) << "parsing " << new_files.size() << " RISML ZIP files";
   for (auto const& new_file : new_files) {
     std::vector<ris_message> parsed_messages;
     try {
       parsed_messages = parse_xmls(read_zip_file(new_file));
+      // TODO sort parsed_messages
     } catch (std::exception const& e) {
       LOG(error) << "bad zip file: " << e.what();
     }
@@ -107,23 +113,21 @@ void ris::parse_zips() {
 std::vector<std::string> ris::get_new_files() {
   fs::path path(zip_folder_);
 
-  if (!(fs::exists(path) && fs::is_directory(path))) {
-    throw std::runtime_error(ZIP_FOLDER " is not a directory");
-  }
-
   std::vector<std::string> new_files;
-  for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
-    if (!fs::is_regular_file(it->status())) {
-      continue;
-    }
+  if (fs::exists(path) && fs::is_directory(path)) {
+    for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
+      if (!fs::is_regular_file(it->status())) {
+        continue;
+      }
 
-    auto filename = it->path().string();
-    if (!boost::algorithm::iends_with(filename, ".zip")) {
-      continue;
-    }
+      auto filename = it->path().string();
+      if (!boost::algorithm::iends_with(filename, ".zip")) {
+        continue;
+      }
 
-    if (read_files_.insert(filename).second) {
-      new_files.push_back(filename);
+      if (read_files_.insert(filename).second) {
+        new_files.push_back(filename);
+      }
     }
   }
 
