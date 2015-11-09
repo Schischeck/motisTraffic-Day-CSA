@@ -11,7 +11,7 @@
 #include "motis/protocol/RISMessage_generated.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/ris/detail/util.h"
+#include "motis/ris/detail/ris_parser_util.h"
 
 using namespace std::placeholders;
 using namespace flatbuffers;

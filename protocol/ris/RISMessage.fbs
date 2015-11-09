@@ -10,7 +10,7 @@ table Event {
   stationIdType: StationIdType;
   stationId: string; // optional
   
-  trainIndex: int;
+  trainIndex: uint;
   type: EventType;
   scheduledTime: ulong;
 }

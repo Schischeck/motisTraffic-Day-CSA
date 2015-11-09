@@ -87,7 +87,7 @@ void inline foreach_event(
     char const* train_selector = "./Service/ListZug/Zug") {
   for (auto const& train : msg.select_nodes(train_selector)) {
     auto const& t_node = train.node();
-    auto train_index = t_node.attribute("Nr").as_int();
+    auto train_index = t_node.attribute("Nr").as_uint();
 
     for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
@@ -124,7 +124,7 @@ boost::optional<Offset<Event>> inline parse_standalone_event(
   }
 
   auto station = parse_station(fbb, e_node);
-  auto train_index = child_attr(e_node, "Zug", "Nr").as_int();
+  auto train_index = child_attr(e_node, "Zug", "Nr").as_uint();
   auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
 
   return CreateEvent(fbb, station.first, station.second, train_index,
