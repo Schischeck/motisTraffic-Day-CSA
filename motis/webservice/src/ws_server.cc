@@ -77,7 +77,15 @@ struct ws_server::ws_server_impl {
     b.Finish(CreateMessage(
         b, MsgContent_MotisError,
         CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
-                         b.CreateString(e.message())).Union()));
+                         b.CreateString(e.message()))
+            .Union()));
+    send(make_msg(b), session, request_id);
+  }
+
+  void send_success(sid session, int request_id) {
+    flatbuffers::FlatBufferBuilder b;
+    b.Finish(CreateMessage(b, MsgContent_MotisSuccess,
+                           CreateMotisSuccess(b).Union()));
     send(make_msg(b), session, request_id);
   }
 
@@ -139,8 +147,10 @@ struct ws_server::ws_server_impl {
           [this, session, req_msg](msg_ptr res, boost::system::error_code ec) {
             if (ec) {
               send_error(ec, session, req_msg->msg_->id());
-            } else {
+            } else if (res) {
               send(res, session, req_msg->msg_->id());
+            } else {
+              send_success(session, req_msg->msg_->id());
             }
           });
     } catch (boost::system::system_error const& e) {
