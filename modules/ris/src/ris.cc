@@ -93,7 +93,8 @@ void ris::parse_zips() {
     return;
   }
 
-  // TODO sort new_files;
+  // the filenames start with a lexicographically compareable timestamp
+  std::sort(begin(new_files), end(new_files));
 
   scoped_timer timer("RISML parsing");
   LOG(info) << "parsing " << new_files.size() << " RISML ZIP files";
@@ -101,7 +102,11 @@ void ris::parse_zips() {
     std::vector<ris_message> parsed_messages;
     try {
       parsed_messages = parse_xmls(read_zip_file(new_file));
-      // TODO sort parsed_messages
+      std::sort(begin(parsed_messages), end(parsed_messages),
+                [](ris_message const& lhs, ris_message const& rhs) {
+                  return std::tie(lhs.timestamp, lhs.scheduled, *lhs.buffer) <
+                         std::tie(rhs.timestamp, rhs.scheduled, *rhs.buffer);
+                });
     } catch (std::exception const& e) {
       LOG(error) << "bad zip file: " << e.what();
     }
