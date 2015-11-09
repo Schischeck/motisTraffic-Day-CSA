@@ -9,7 +9,7 @@
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/cg_search_context.h"
-#include "motis/reliability/search/simple_connection_graph_optimizer.h"
+#include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
@@ -35,21 +35,12 @@ public:
   short const RE_L_F = 2;  // 07:15 --> 07:25
   short const S_L_F = 3;  // 07:16 --> 07:34
   short const IC_L_F = 4;  // 07:17 --> 07:40
-};
 
-TEST_F(test_connection_graph_search, reliable_routing_request) {
-  system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
-
-  bool test_cb_called = false;
-
-  auto test_cb = [&](
-      std::vector<std::shared_ptr<connection_graph> > const cgs) {
-    test_cb_called = true;
-    setup.ios_.stop();
+  void test_cg(std::vector<std::shared_ptr<connection_graph> > const cgs,
+               std::shared_ptr<bool> test_cb_called,
+               std::shared_ptr<system_tools::setup> setup) {
+    *test_cb_called = true;
+    setup->ios_.stop();
 
     ASSERT_EQ(1, cgs.size());
     auto const cg = *cgs.front();
@@ -131,18 +122,42 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
       ASSERT_EQ(j.stops.back().arrival.timestamp, 1445240400);  // 07:40
       ASSERT_EQ(j.transports.front().train_nr, IC_L_F);
     }
+  }
+};
 
-  };
-
-  boost::asio::io_service::work ios_work(setup.ios_);
-
+TEST_F(test_connection_graph_search, reliable_routing_request) {
+  auto setup = std::make_shared<system_tools::setup>(schedule_.get());
+  auto msg = flatbuffers_tools::to_reliable_routing_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+      std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
+  auto test_cb_called = std::make_shared<bool>(false);
+  boost::asio::io_service::work ios_work(setup->ios_);
   simple_optimizer optimizer(3, 1, 15);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0, optimizer, test_cb);
+             setup->reliability_module(), 0, optimizer,
+             std::bind(&test_connection_graph_search::test_cg, this,
+                       std::placeholders::_1, test_cb_called, setup));
+  setup->ios_.run();
+  ASSERT_TRUE(*test_cb_called);
+}
 
-  setup.ios_.run();
-
-  ASSERT_TRUE(test_cb_called);
+/* optimize connection graph alternatives depending on distributions! */
+TEST_F(test_connection_graph_search, reliable_routing_request_optimization) {
+  auto setup = std::make_shared<system_tools::setup>(schedule_.get());
+  auto msg = flatbuffers_tools::to_reliable_routing_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+      std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
+  auto test_cb_called = std::make_shared<bool>(false);
+  boost::asio::io_service::work ios_work(setup->ios_);
+  reliable_cg_optimizer optimizer(1, 15);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup->reliability_module(), 0, optimizer,
+             std::bind(&test_connection_graph_search::test_cg, this,
+                       std::placeholders::_1, test_cb_called, setup));
+  setup->ios_.run();
+  ASSERT_TRUE(*test_cb_called);
 }
 
 /* search for alternatives at stops not necessary

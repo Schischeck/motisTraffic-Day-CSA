@@ -2,31 +2,28 @@
 
 #include <map>
 #include <memory>
-#include <string>
-#include <vector>
 
 #include "motis/core/schedule/synced_schedule.h"
 
+#include "motis/module/sid.h"
+
 #include "motis/reliability/context.h"
 #include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/reliability.h"
-#include "motis/reliability/search/connection_graph.h"
-#include "motis/reliability/search/connection_graph_search.h"
+#include "motis/reliability/search/cg_search_callback.h"
 
 namespace motis {
+struct journey;
 namespace reliability {
 struct reliability;
 namespace search {
+struct connection_graph;
 namespace connection_graph_search {
 struct connection_graph_optimizer;
 namespace detail {
 
 struct context {
   struct conn_graph_context {
-    conn_graph_context()
-        : index_(0),
-          cg_(std::make_shared<connection_graph>()),
-          cg_state_(CG_in_progress) {}
+    conn_graph_context();
     unsigned int index_;
     std::shared_ptr<connection_graph> cg_;
     enum cg_state {
@@ -50,16 +47,8 @@ struct context {
   };
 
   context(motis::reliability::reliability& rel, motis::module::sid session,
-          callback cb, connection_graph_optimizer const& optimizer)
-      : reliability_(rel),
-        session_(session),
-        result_callback_(cb),
-        optimizer_(optimizer),
-        result_returned_(false),
-        synced_sched_(reliability_.synced_sched()),
-        reliability_context_(synced_sched_.sched(),
-                             reliability_.precomputed_distributions(),
-                             reliability_.s_t_distributions()) {}
+          /*motis::reliability::search::connection_graph_search::*/ callback cb,
+          connection_graph_optimizer const& optimizer);
 
   std::vector<conn_graph_context> connection_graphs_;
   motis::reliability::reliability& reliability_;
@@ -72,12 +61,7 @@ struct context {
     journey_cache_key(std::string const& from_eva, time_t const& begin_time,
                       time_t const& end_time)
         : from_eva_(from_eva), begin_time_(begin_time), end_time_(end_time) {}
-    bool operator<(journey_cache_key const& right) const {
-      return from_eva_ < right.from_eva_ || (from_eva_ == right.from_eva_ &&
-                                             begin_time_ < right.begin_time_) ||
-             (from_eva_ == right.from_eva_ &&
-              begin_time_ == right.begin_time_ && end_time_ < right.end_time_);
-    }
+    bool operator<(journey_cache_key const& right) const;
     std::string const from_eva_;
     time_t const begin_time_;
     time_t const end_time_;

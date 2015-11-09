@@ -18,7 +18,7 @@
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_builder.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
-#include "motis/reliability/search/simple_connection_graph_optimizer.h"
+#include "motis/reliability/search/cg_optimizer.h"
 
 namespace p = std::placeholders;
 
@@ -110,7 +110,7 @@ void check_stop_states(connection_graph_optimizer const& optimizer,
         idx != connection_graph::stop::Index_arrival_stop) {
       auto& stop_state = cg_context.stop_states_.at(idx);
       stop_state.num_failed_requests_ = 0;
-      if (optimizer.complete(cg_context.cg_->stops_.at(idx), *cg_context.cg_)) {
+      if (optimizer.complete(cg_context.cg_->stops_.at(idx), stop_state)) {
         stop_state.state_ =
             context::conn_graph_context::stop_state::Stop_completed;
         if (tools::complete(cg_context)) {

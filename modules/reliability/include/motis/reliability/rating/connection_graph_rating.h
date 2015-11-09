@@ -14,6 +14,7 @@ namespace distributions_container {
 struct precomputed_distributions_container;
 }
 namespace rating {
+struct connection_element;
 namespace cg {
 void rate_inserted_alternative(
     search::connection_graph_search::detail::context::conn_graph_context&,

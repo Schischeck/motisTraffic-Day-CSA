@@ -15,8 +15,8 @@
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
-#include "motis/reliability/search/simple_connection_graph_optimizer.h"
 #include "motis/reliability/tools/flatbuffers_tools.h"
 
 #include "../test/include/start_and_travel_test_distributions.h"

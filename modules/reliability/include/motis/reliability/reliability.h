@@ -9,7 +9,7 @@
 
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/distributions_container.h"
-#include "motis/reliability/search/simple_connection_graph_optimizer.h"
+#include "motis/reliability/search/cg_optimizer.h"
 
 namespace motis {
 namespace reliability {
