@@ -35,8 +35,19 @@ table MotisError {
   reason:string;
 }
 
+// JSON example:
+// --
+// {
+//   "content_type": "MotisSuccess",
+//   "content": {
+//   }
+// }
+table MotisSuccess { 
+}
+
 union MsgContent {
   motis.MotisError,
+  motis.MotisSuccess,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizInit,
