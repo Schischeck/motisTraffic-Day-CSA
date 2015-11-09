@@ -1,6 +1,6 @@
 #include "motis/ris/ris.h"
 
-#include <iostream>
+#include <ctime>
 
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/filesystem.hpp"
@@ -69,7 +69,19 @@ void ris::init() {
 
   db_init();
   read_files_ = db_get_files();
-  dispatch(pack(db_get_messages(0, 0)));  // TODO
+
+  std::time_t from, to;
+  {
+    auto sync = synced_sched<schedule_access::RO>();
+
+    std::time_t now = std::time(nullptr);
+    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+
+    from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
+    to = sync.sched().schedule_end_;
+  }
+
+  dispatch(pack(db_get_messages(from, to)));
 
   schedule_update(error_code());
   // TODO tell realtime start processing
@@ -81,7 +93,8 @@ void ris::parse_zips() {
     return;
   }
 
-  // TODO sort new_files;
+  // the filenames start with a lexicographically compareable timestamp
+  std::sort(begin(new_files), end(new_files));
 
   scoped_timer timer("RISML parsing");
   LOG(info) << "parsing " << new_files.size() << " RISML ZIP files";
@@ -89,7 +102,11 @@ void ris::parse_zips() {
     std::vector<ris_message> parsed_messages;
     try {
       parsed_messages = parse_xmls(read_zip_file(new_file));
-      // TODO sort parsed_messages
+      std::sort(begin(parsed_messages), end(parsed_messages),
+                [](ris_message const& lhs, ris_message const& rhs) {
+                  return std::tie(lhs.timestamp, lhs.scheduled, *lhs.buffer) <
+                         std::tie(rhs.timestamp, rhs.scheduled, *rhs.buffer);
+                });
     } catch (std::exception const& e) {
       LOG(error) << "bad zip file: " << e.what();
     }
