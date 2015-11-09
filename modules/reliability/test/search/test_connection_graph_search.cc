@@ -225,8 +225,8 @@ TEST_F(test_connection_graph_search, reliable_routing_request2) {
 }
 
 TEST_F(test_connection_graph_search, cache_journey) {
-  simple_optimizer optimizer(1, 1, 1);
   system_tools::setup setup(schedule_.get());
+  simple_optimizer optimizer(1, 1, 1);
   detail::context c(setup.reliability_module(), 0, callback(), optimizer);
   using key = detail::context::journey_cache_key;
   {

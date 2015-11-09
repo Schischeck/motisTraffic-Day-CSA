@@ -72,12 +72,12 @@ probability_distribution compute_uncovered_arrival_distribution(
   std::vector<probability> values;
   for (int d = arr_distribution.first_minute();
        d <= arr_distribution.last_minute(); ++d) {
-    /* interchange is possible */
+    /* interchange was possible */
     if (ic_info.scheduled_arrival_time_ + d + ic_info.transfer_time_ <=
         ic_info.scheduled_departure_time_ + ic_info.waiting_time_) {
       values.push_back(0.0);
     }
-    /* interchange not possible */
+    /* interchange was not possible */
     else {
       values.push_back(arr_distribution.probability_equal(d));
     }

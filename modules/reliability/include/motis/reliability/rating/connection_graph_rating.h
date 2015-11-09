@@ -40,6 +40,12 @@ struct interchange_info {
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
     interchange_info const&);
+/* This method computes which part of the arrival distribution
+ * remains uncovered, in other words, leads to an invalid interchange.
+ * @param probability_distribution const& arr_distribution used to
+ * compute the departure distribution after the interchange.
+ * @param interchange_info storing departure and arrival time
+ * of the both involved trains. */
 probability_distribution compute_uncovered_arrival_distribution(
     probability_distribution const& arr_distribution, interchange_info const&);
 }
