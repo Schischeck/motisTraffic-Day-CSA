@@ -102,6 +102,12 @@ public:
   ts_2_to_1() : rule_services_test("ts-2-to-1") {}
 };
 
+class ts_2_to_1_cycle_prevention : public rule_services_test {
+public:
+  ts_2_to_1_cycle_prevention()
+      : rule_services_test("ts-2-to-1-cycle-prevention") {}
+};
+
 class ts_passing_service : public rule_services_test {
 public:
   ts_passing_service() : rule_services_test("ts-passing-service") {}
@@ -122,19 +128,13 @@ public:
   mss_many() : rule_services_test("mss-many") {}
 };
 
-class ts_mss_complex : public rule_services_test {
-public:
-  ts_mss_complex() : rule_services_test("ts-mss-complex") {}
-};
-
 class ts_mss_hrd : public rule_services_test {
 public:
   ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
-  void assert_rule_count(uint8_t num_expected_ts_rules,
-                         uint8_t num_expected_mss_rules,
+  void assert_rule_count(int num_expected_ts_rules, int num_expected_mss_rules,
                          rule_service const& rs) {
-    uint8_t num_actual_ts_rules = 0;
-    uint8_t num_actual_mss_rules = 0;
+    int num_actual_ts_rules = 0;
+    int num_actual_mss_rules = 0;
     for (auto const& sr : rs.rules) {
       if (sr.rule_info.type == RuleType_THROUGH) {
         ++num_actual_ts_rules;
@@ -218,6 +218,32 @@ TEST_F(ts_2_to_1, rule_services) {
   }
 }
 
+TEST_F(ts_2_to_1_cycle_prevention, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, service_rules_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(2, service_rules_.rule_services_.size());
+
+  auto const& rule_service1 = service_rules_.rule_services_[0];
+  ASSERT_EQ(3, rule_service1.services.size());
+  ASSERT_EQ(2, rule_service1.rules.size());
+  for (auto const& sr : rule_service1.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
+  }
+
+  auto const& rule_service2 = service_rules_.rule_services_[1];
+  ASSERT_EQ(3, rule_service2.services.size());
+  ASSERT_EQ(2, rule_service2.rules.size());
+  for (auto const& sr : rule_service2.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
+  }
+}
+
 TEST_F(ts_passing_service, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
@@ -289,8 +315,6 @@ TEST_F(mss_many, rule_services) {
     ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
   }
 }
-
-TEST_F(ts_mss_complex, rule_services) {}
 
 TEST_F(ts_mss_hrd, traffic_days) {
   for (auto const& rs : service_rules_.rule_services_) {

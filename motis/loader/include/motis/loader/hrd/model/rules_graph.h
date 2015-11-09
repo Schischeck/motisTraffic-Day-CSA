@@ -10,6 +10,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+enum direction_type { IN, OUT, BOTH, INVALID };
 struct node {
   virtual ~node() {}
 
@@ -20,7 +21,7 @@ struct node {
   virtual bitfield const& traffic_days() const = 0;
   virtual void print() const = 0;
 
-  std::vector<node*> parents_;
+  std::vector<std::pair<node*, direction_type>> parents_;
 };
 
 struct service_node : node {
