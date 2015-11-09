@@ -48,13 +48,13 @@ struct context {
 
   context(motis::reliability::reliability& rel, motis::module::sid session,
           /*motis::reliability::search::connection_graph_search::*/ callback cb,
-          connection_graph_optimizer const& optimizer);
+          std::shared_ptr<connection_graph_optimizer const> optimizer);
 
   std::vector<conn_graph_context> connection_graphs_;
   motis::reliability::reliability& reliability_;
   motis::module::sid session_;
   callback result_callback_;
-  connection_graph_optimizer const& optimizer_;
+  std::shared_ptr<connection_graph_optimizer const> optimizer_;
   bool result_returned_;
 
   struct journey_cache_key {

@@ -49,21 +49,36 @@ void reliability::init() {
       new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
   distributions_calculator::precomputation::perform_precomputation(
       schedule, *s_t_distributions_, *precomputed_distributions_);
-  optimizer_ =
-      std::unique_ptr<search::connection_graph_search::simple_optimizer>(
-          new search::connection_graph_search::simple_optimizer(3, 15, 45));
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   auto req = msg->content<ReliableRoutingRequest const*>();
-  if (req->request_type() == RequestType_Rating) {
+  if (req->request_type()->request_type_type() == RequestType_RatingReq) {
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
                                           this, p::_1, p::_2, cb));
   }
-  if (req->request_type() == RequestType_ReliableSearch) {
+  if (req->request_type()->request_type_type() ==
+      RequestType_ReliableSearchReq) {
+    auto req_info =
+        (ReliableSearchReq const*)req->request_type()->request_type();
     return search::connection_graph_search::search_cgs(
-        req, *this, session_id, *optimizer_,
+        req, *this, session_id,
+        std::make_shared<
+            search::connection_graph_search::reliable_cg_optimizer>(
+            req_info->min_departure_diff(), req_info->interval_width()),
+        std::bind(&reliability::handle_connection_graph_result, this, p::_1,
+                  cb));
+  }
+  if (req->request_type()->request_type_type() ==
+      RequestType_ConnectionTreeReq) {
+    auto req_info =
+        (ConnectionTreeReq const*)req->request_type()->request_type();
+    return search::connection_graph_search::search_cgs(
+        req, *this, session_id,
+        std::make_shared<search::connection_graph_search::simple_optimizer>(
+            req_info->num_alternatives_at_each_stop(),
+            req_info->min_departure_diff(), req_info->interval_width()),
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
   } else {

@@ -47,8 +47,8 @@ void search_for_alternative(
     connection_graph::stop& stop,
     context::conn_graph_context::stop_state& stop_state) {
   auto request = tools::to_routing_request(
-      *conn_graph.cg_, stop, c->optimizer_.min_departure_diff_,
-      c->optimizer_.interval_width_, stop_state.num_failed_requests_);
+      *conn_graph.cg_, stop, c->optimizer_->min_departure_diff_,
+      c->optimizer_->interval_width_, stop_state.num_failed_requests_);
   auto cache_it = c->journey_cache.find(request.second);
   if (cache_it != c->journey_cache.end()) {
     /* todo: do not copy cached journeys!
@@ -135,7 +135,7 @@ void init_connection_graph_from_base_journey(context& context,
   auto const stop_indices = insert_stop_states(context, cg_context);
   rating::cg::rate_inserted_alternative(cg_context, 0,
                                         context.reliability_context_);
-  check_stop_states(context.optimizer_, cg_context, stop_indices);
+  check_stop_states(*context.optimizer_, cg_context, stop_indices);
 
   if (cg_context.cg_->journeys_.size() == 1) {
     cg_context.cg_state_ = context::conn_graph_context::CG_completed;
@@ -177,7 +177,7 @@ void add_alternative(
   }
   rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
                                         c->reliability_context_);
-  check_stop_states(c->optimizer_, conn_graph, stop_indices);
+  check_stop_states(*c->optimizer_, conn_graph, stop_indices);
 
   build_cg(c, conn_graph);
 }
@@ -245,7 +245,10 @@ void build_result(context::conn_graph_context::cg_state state,
 void search_cgs(ReliableRoutingRequest const* request,
                 motis::reliability::reliability& rel,
                 motis::module::sid session,
-                connection_graph_optimizer const& optimizer, callback cb) {
+                std::shared_ptr<connection_graph_optimizer const> optimizer,
+                callback cb) {
+  std::cout << "\nSEARCH CG GRAPH " << optimizer->min_departure_diff_ << " "
+            << optimizer->interval_width_ << std::endl;
   rel.send_message(
       flatbuffers_tools::to_flatbuffers_message(request->request()), session,
       std::bind(

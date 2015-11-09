@@ -27,7 +27,7 @@ struct reliable_cg_optimizer : connection_graph_optimizer {
                         duration const interval_width)
       : connection_graph_optimizer(min_departure_diff, interval_width) {}
 
-  bool complete(connection_graph::stop const& stop,
+  bool complete(connection_graph::stop const&,
                 detail::context::conn_graph_context::stop_state const&
                     stop_state) const override {
     return smaller_equal(stop_state.uncovered_arrival_distribution_.sum(),

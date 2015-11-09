@@ -45,8 +45,6 @@ struct reliability : public motis::module::module {
 
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
-  std::unique_ptr<search::connection_graph_search::simple_optimizer> optimizer_;
-
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>
       precomputed_distributions_;

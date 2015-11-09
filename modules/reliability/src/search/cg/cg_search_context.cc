@@ -22,7 +22,7 @@ namespace detail {
 context::context(
     motis::reliability::reliability& rel, motis::module::sid session,
     motis::reliability::search::connection_graph_search::callback cb,
-    connection_graph_optimizer const& optimizer)
+    std::shared_ptr<connection_graph_optimizer const> optimizer)
     : reliability_(rel),
       session_(session),
       result_callback_(cb),

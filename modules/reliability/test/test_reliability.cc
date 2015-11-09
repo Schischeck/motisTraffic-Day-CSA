@@ -60,10 +60,10 @@ public:
 
 TEST_F(test_reliability2, rating_request) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
+  auto msg = flatbuffers_tools::to_rating_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
-      std::make_tuple(28, 9, 2015), RequestType_Rating);
+      std::make_tuple(28, 9, 2015));
   bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
@@ -105,12 +105,12 @@ TEST_F(test_reliability2, rating_request) {
   ASSERT_TRUE(test_cb_called);
 }
 
-TEST_F(test_reliability7, reliable_search) {
+TEST_F(test_reliability7, connection_tree) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
+  auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), RequestType_ReliableSearch);
+      std::make_tuple(19, 10, 2015), 3, 1, 15);
   bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
@@ -123,9 +123,6 @@ TEST_F(test_reliability7, reliable_search) {
     ASSERT_EQ(expected_str, msg->to_json());
   };
 
-  setup.reliability_module().optimizer_ =
-      std::unique_ptr<search::connection_graph_search::simple_optimizer>(
-          new search::connection_graph_search::simple_optimizer(3, 1, 1));
   setup.dispatcher_.on_msg(msg, 0, test_cb);
   setup.ios_.run();
 

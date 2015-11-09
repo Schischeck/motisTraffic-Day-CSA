@@ -3,25 +3,26 @@ include "reliability/ReliabilityRatingResponse.fbs";
 
 namespace motis.reliability;
 
-struct DepartureInfo {
+table AlternativeRating {
+  departure_distribution:ProbabilityDistribution;
+  arrival_distribution:ProbabilityDistribution;
+}
+
+table AlternativeInfo {
   departing_journey_index:short;
   head_stop_index:short;
+  rating:AlternativeRating;
 }
 
 table Stop {
   index:short;
-  departure_infos:[DepartureInfo];
-}
-
-table JourneyInfo {
-  journey:motis.routing.Connection;
-  rating:Rating;
-  simple_rating:SimpleRating;
+  alternative_infos:[AlternativeInfo];
 }
 
 table ConnectionGraph {
   stops:[Stop];
-  journey_infos:[JourneyInfo];
+  journeys:[motis.routing.Connection];
+  arrival_distribution:ProbabilityDistribution;
 }
 
 table ReliableRoutingResponse {

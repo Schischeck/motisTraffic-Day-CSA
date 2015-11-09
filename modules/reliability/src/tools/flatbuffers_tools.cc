@@ -259,11 +259,11 @@ module::msg_ptr to_reliability_rating_response(
 }
 
 module::msg_ptr to_reliable_routing_request(
-    std::string const& from_name, std::string const& from_eva,
-    std::string const& to_name, std::string const& to_eva,
-    motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy, RequestType type) {
-  FlatBufferBuilder b;
+    FlatBufferBuilder& b, std::string const& from_name,
+    std::string const& from_eva, std::string const& to_name,
+    std::string const& to_eva, motis::time interval_begin,
+    motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
+    Offset<RequestTypeWrapper>& request_type_wrapper) {
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
@@ -277,34 +277,89 @@ module::msg_ptr to_reliable_routing_request(
                                     b, &interval, routing::Type::Type_PreTrip,
                                     routing::Direction::Direction_Forward,
                                     b.CreateVector(station_elements)),
-                             type).Union()));
+                             request_type_wrapper).Union()));
   return module::make_msg(b);
+}
+
+module::msg_ptr to_rating_request(std::string const& from_name,
+                                  std::string const& from_eva,
+                                  std::string const& to_name,
+                                  std::string const& to_eva,
+                                  motis::time interval_begin,
+                                  motis::time interval_end,
+                                  std::tuple<int, int, int> ddmmyyyy) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_RatingReq,
+      reliability::CreateRatingReq(b).Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
+}
+
+module::msg_ptr to_reliable_routing_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff,
+    short const interval_width) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_ReliableSearchReq,
+      reliability::CreateReliableSearchReq(b, min_dep_diff, interval_width)
+          .Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
+}
+
+module::msg_ptr to_connection_tree_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
+    short const min_dep_diff, short const interval_width) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_ConnectionTreeReq,
+      reliability::CreateConnectionTreeReq(
+          b, num_alternatives_at_stop, min_dep_diff, interval_width).Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
 }
 
 Offset<ConnectionGraph> to_connection_graph(
     FlatBufferBuilder& b, search::connection_graph const& cg) {
   std::vector<Offset<Stop>> stops;
-  b.ForceDefaults(true); /* necessary to write stop-index 0 */
+  b.ForceDefaults(true); /* necessary to write indices 0 */
   for (auto const& stop : cg.stops_) {
-    std::vector<DepartureInfo> departure_infos;
-    for (auto const& dep_info : stop.alternative_infos_) {
-      departure_infos.emplace_back(dep_info.departing_journey_index_,
-                                   dep_info.head_stop_index_);
+    std::vector<Offset<AlternativeInfo>> alternative_infos;
+    for (auto const& alternative_info : stop.alternative_infos_) {
+      auto const& journey =
+          cg.journeys_.at(alternative_info.departing_journey_index_);
+      auto dep_dist = rating_converter::convert(
+          b, alternative_info.rating_.departure_distribution_,
+          journey.stops.front().departure.timestamp);
+      auto arr_dist = rating_converter::convert(
+          b, alternative_info.rating_.arrival_distribution_,
+          journey.stops.back().arrival.timestamp);
+      auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
+      alternative_infos.push_back(
+          CreateAlternativeInfo(b, alternative_info.departing_journey_index_,
+                                alternative_info.head_stop_index_, rating));
     }
     stops.push_back(
-        CreateStop(b, stop.index_, b.CreateVectorOfStructs(departure_infos)));
+        CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
   }
   b.ForceDefaults(false);
 
-  std::vector<Offset<JourneyInfo>> journey_infos;
+  std::vector<Offset<routing::Connection>> journeys;
   for (auto const& j : cg.journeys_) {
-    journey_infos.push_back(CreateJourneyInfo(b, to_connection(b, j) /*,
-        CreateRating(b, b.CreateVector(convert_rating_elements_short(
-                            b, conn_rating, orig_conn)),
-                     (float)conn_rating.connection_rating_)*/));
+    journeys.push_back(to_connection(b, j));
   }
   return CreateConnectionGraph(b, b.CreateVector(stops),
-                               b.CreateVector(journey_infos));
+                               b.CreateVector(journeys));
 }
 
 module::msg_ptr to_reliable_routing_response(
