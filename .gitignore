@@ -15,3 +15,5 @@ Differenzstatistik.stat
 *.db
 *.sqlite
 *.sqlite3
+stats.csv
+tracking-in-messages.txt
