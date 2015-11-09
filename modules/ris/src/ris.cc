@@ -16,9 +16,7 @@
 #define UPDATE_INTERVAL "ris.update_interval"
 #define ZIP_FOLDER "ris.zip_folder"
 
-#define MODE_DEFAULT "default"
-#define MODE_FILESYSTEM "fileystem"
-#define MODE_STATIC_DB "static-db"
+#define MODE_LIVE "default"
 #define MODE_SIMULATION "simulation"
 
 using boost::system::error_code;
@@ -36,25 +34,20 @@ std::istream& operator>>(std::istream& in, motis::ris::mode& mode) {
   std::string token;
   in >> token;
 
-  static const std::map<std::string, motis::ris::mode> map{
-      {MODE_DEFAULT, motis::ris::mode::DEFAULT},
-      {MODE_FILESYSTEM, motis::ris::mode::FILEYSTEM},
-      {MODE_STATIC_DB, motis::ris::mode::STATIC_DB},
-      {MODE_SIMULATION, motis::ris::mode::SIMULATION}};
-  auto it = map.find(token);
-  if (it == end(map)) {
+  if (token == MODE_LIVE) {
+    mode = motis::ris::mode::LIVE;
+  } else if (token == MODE_SIMULATION) {
+    mode = motis::ris::mode::SIMULATION;
+  } else {
     throw std::runtime_error("unknown mode of operation in ris module.");
   }
 
-  mode = it->second;
   return in;
 }
 
 std::ostream& operator<<(std::ostream& out, motis::ris::mode const& mode) {
   switch (mode) {
-    case motis::ris::mode::DEFAULT: out << MODE_DEFAULT; break;
-    case motis::ris::mode::FILEYSTEM: out << MODE_FILESYSTEM; break;
-    case motis::ris::mode::STATIC_DB: out << MODE_STATIC_DB; break;
+    case motis::ris::mode::LIVE: out << MODE_LIVE; break;
     case motis::ris::mode::SIMULATION: out << MODE_SIMULATION; break;
     default: out << "unknown"; break;
   }
@@ -77,7 +70,7 @@ msg_ptr pack(std::vector<T> const& messages) {
 }
 
 ris::ris()
-    : mode_(mode::DEFAULT),
+    : mode_(mode::LIVE),
       update_interval_(10),
       zip_folder_("ris"),
       simulation_time_(0) {}
@@ -89,9 +82,7 @@ po::options_description ris::desc() {
       (MODE,
        po::value<mode>(&mode_)->default_value(mode_),
        "Mode of operation. Valid choices:\n"
-       MODE_DEFAULT "= production style operation\n"
-       MODE_FILESYSTEM "= no database\n"
-       MODE_STATIC_DB "= no fileystem, no housekeeping\n"
+       MODE_LIVE "= production style operation\n"
        MODE_SIMULATION "= init db with fs, fwd via msg")
       (UPDATE_INTERVAL,
        po::value<int>(&update_interval_)->default_value(update_interval_),
@@ -110,27 +101,29 @@ void ris::print(std::ostream& out) const {
 }
 
 void ris::init() {
-  if (mode_ != mode::FILEYSTEM) {
-    db_init();
-    read_files_ = db_get_files();
-  }
+  db_init();
+  read_files_ = db_get_files();
 
-  if (mode_ == mode::SIMULATION) {
-    init_simulation_db();
-  } else {
-    if (mode_ != mode::FILEYSTEM) {
-      init_live_from_db();
-    }
+  fill_database();
 
-    if (mode_ != mode::STATIC_DB) {
-      timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
-      schedule_update(error_code());
-    }
+  if (mode_ == mode::LIVE) {
+    auto sync = synced_sched<schedule_access::RO>();
+
+    std::time_t now = std::time(nullptr);
+    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+
+    auto from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
+    auto to = sync.sched().schedule_end_;
+
+    dispatch(pack(db_get_messages(from, to)));
+
+    timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
+    schedule_update(error_code());
   }
 }
 
-void ris::init_simulation_db() {
-  scoped_timer timer("RISML load simulation db");
+void ris::fill_database() {
+  scoped_timer timer("RISML load database");
   auto new_files = get_new_files();
   for (auto const& new_file : new_files) {
     db_put_messages(new_file, parse_xmls(read_zip_file(new_file)));
@@ -144,26 +137,12 @@ void ris::on_msg(msg_ptr msg, sid, callback cb) {
   }
 
   auto req = msg->content<RISForwardTimeRequest const*>();
-
-  // TODO exception handling
   auto new_time = req->new_time();
   dispatch(pack(db_get_messages(simulation_time_, new_time)));
   simulation_time_ = new_time;
   LOG(info) << "RIS forwarded time to " << new_time;
 
   return cb({}, boost::system::error_code());
-}
-
-void ris::init_live_from_db() {
-  auto sync = synced_sched<schedule_access::RO>();
-
-  std::time_t now = std::time(nullptr);
-  constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
-
-  auto from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
-  auto to = sync.sched().schedule_end_;
-
-  dispatch(pack(db_get_messages(from, to)));
 }
 
 void ris::schedule_update(error_code e) {
@@ -200,9 +179,7 @@ void ris::parse_zips() {
       LOG(error) << "bad zip file: " << e.what();
     }
 
-    if (mode_ != mode::FILEYSTEM) {
-      db_put_messages(new_file, parsed_messages);
-    }
+    db_put_messages(new_file, parsed_messages);
     dispatch(pack(parsed_messages));
   }
 }

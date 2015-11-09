@@ -14,7 +14,7 @@ namespace po = boost::program_options;
 namespace motis {
 namespace ris {
 
-enum class mode { DEFAULT, FILEYSTEM, STATIC_DB, SIMULATION };
+enum class mode : bool { LIVE, SIMULATION };
 
 struct ris : public motis::module::module {
   ris();
@@ -32,8 +32,7 @@ struct ris : public motis::module::module {
               motis::module::callback) override;
 
 private:
-  void init_simulation_db();
-  void init_live_from_db();
+  void fill_database();
 
   void schedule_update(boost::system::error_code e);
   void parse_zips();
