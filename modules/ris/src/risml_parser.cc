@@ -95,7 +95,7 @@ parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
                                      xml_node const& msg) {
   auto const& from_e_node = msg.child("ZE");
   auto from = parse_standalone_event(fbb, from_e_node);
-  if(from == boost::none) {
+  if (from == boost::none) {
     throw std::runtime_error("bad from event in RIS conn decision");
   }
   auto target_time = parse_target_time(from_e_node);
@@ -105,10 +105,10 @@ parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
     auto const& connection_node = connection.node();
     auto const& to_e_node = connection_node.child("ZE");
     auto to = parse_standalone_event(fbb, to_e_node);
-    if(to == boost::none) {
+    if (to == boost::none) {
       continue;
     }
-    
+
     auto hold = cstr(connection_node.attribute("Status").value()) == "Gehalten";
     decisions.push_back(CreateConnectionDecision(fbb, *to, hold));
 
@@ -118,10 +118,9 @@ parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
     }
   }
 
-  if(decisions.empty()) {
+  if (decisions.empty()) {
     throw std::runtime_error("zero valid to events in RIS conn decision");
   }
-
 
   return {target_time,
           CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
@@ -134,7 +133,7 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
                                        xml_node const& msg) {
   auto const& from_e_node = msg.child("ZE");
   auto from = parse_standalone_event(fbb, from_e_node);
-  if(from == boost::none) {
+  if (from == boost::none) {
     throw std::runtime_error("bad from event in RIS conn assessment");
   }
   auto target_time = parse_target_time(from_e_node);
@@ -144,7 +143,7 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
     auto const& connection_node = connection.node();
     auto const& to_e_node = connection_node.child("ZE");
     auto to = parse_standalone_event(fbb, to_e_node);
-    if(to == boost::none) {
+    if (to == boost::none) {
       continue;
     }
 
@@ -157,7 +156,7 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
     }
   }
 
-  if(assessments.empty()) {
+  if (assessments.empty()) {
     throw std::runtime_error("zero valid to events in RIS conn assessment");
   }
 
@@ -215,6 +214,13 @@ std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
       LOG(error) << "unable to parse RIS message";
     }
   }
+
+  std::sort(begin(parsed_messages), end(parsed_messages),
+            [](ris_message const& lhs, ris_message const& rhs) {
+              return std::tie(lhs.timestamp, lhs.scheduled, *lhs.buffer) <
+                     std::tie(rhs.timestamp, rhs.scheduled, *rhs.buffer);
+            });
+
   return parsed_messages;
 }
 

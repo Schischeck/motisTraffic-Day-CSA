@@ -9,6 +9,7 @@
 
 #include "motis/protocol/RISMessage_generated.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/realtime/error.h"
 #include "motis/realtime/handler/addition_handler.h"
 #include "motis/realtime/handler/cancel_handler.h"
@@ -26,6 +27,7 @@
 using namespace motis::module;
 using namespace motis::realtime::handler;
 using namespace motis::ris;
+using namespace motis::logging;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
