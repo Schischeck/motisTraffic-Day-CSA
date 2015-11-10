@@ -27,6 +27,8 @@ void parse_specification(loaded_file const& file,
 
     if (!finished) {
       return;
+    } else {
+      spec.line_number_to_ = line_number - 1;
     }
 
     if (!spec.valid()) {

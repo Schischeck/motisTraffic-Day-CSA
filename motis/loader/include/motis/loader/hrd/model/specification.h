@@ -14,7 +14,8 @@ constexpr int BEFORE_FIRST_LINE = -1;
 struct specification {
   specification()
       : filename_(UNKNOWN_FILE),
-        line_number_(BEFORE_FIRST_LINE),
+        line_number_from_(BEFORE_FIRST_LINE),
+        line_number_to_(BEFORE_FIRST_LINE),
         internal_service(nullptr, 0) {}
 
   bool is_empty() const;
@@ -28,7 +29,8 @@ struct specification {
   bool read_line(parser::cstr line, char const* filename, int line_number);
 
   char const* filename_;
-  int line_number_;
+  int line_number_from_;
+  int line_number_to_;
   parser::cstr internal_service;
   std::vector<parser::cstr> traffic_days;
   std::vector<parser::cstr> categories;

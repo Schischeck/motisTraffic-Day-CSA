@@ -60,7 +60,7 @@ bool specification::read_line(cstr line, char const* filename,
         // ignore KWZ line
       } else if (is_empty()) {
         filename_ = filename;
-        line_number_ = line_number;
+        line_number_from_ = line_number;
         internal_service = line;
       } else {
         return true;

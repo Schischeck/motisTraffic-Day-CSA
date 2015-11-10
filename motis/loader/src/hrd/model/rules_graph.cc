@@ -23,9 +23,11 @@ bitfield const& service_node::traffic_days() const {
 }
 
 void service_node::print() const {
-  printf("(%p) service_node [%s] - %s:%d\n", this,
-         traffic_days().to_string().c_str(), service_->origin_.filename,
-         service_->origin_.line_number);
+  printf("(%p) service_node [%s] - [%d,%.*s] - %s:%d\n", this,
+         traffic_days().to_string().c_str(), service_->sections_[0].train_num,
+         (int)service_->sections_[0].admin.length(),
+         service_->sections_[0].admin.c_str(), service_->origin_.filename,
+         service_->origin_.line_number_from);
 }
 
 rule_node::rule_node(service_node* s1, service_node* s2,

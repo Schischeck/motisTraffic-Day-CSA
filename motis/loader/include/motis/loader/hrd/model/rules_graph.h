@@ -10,7 +10,6 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-enum direction_type { IN, OUT, BOTH, INVALID };
 struct node {
   virtual ~node() {}
 

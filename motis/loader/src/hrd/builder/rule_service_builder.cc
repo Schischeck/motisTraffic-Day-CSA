@@ -11,10 +11,20 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/loader/hrd/model/rules_graph.h"
+#include "motis/loader/hrd/graph_visualization.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
+
+void print_tree(node const* root) {
+  root->print();
+  for (auto const* child : root->children()) {
+    if (child) {
+      print_tree(child);
+    }
+  }
+}
 
 using namespace logging;
 using namespace flatbuffers;
@@ -133,12 +143,16 @@ void build_remaining_layers(rules_graph& rg) {
   while (!rg.layers_[current_layer_idx].empty()) {
     rg.layers_.resize(next_layer_idx + 1);
 
+    if (current_layer_idx == 15) {
+      graph_visualization(rg.layers_[current_layer_idx][0])
+          .serialize("/tmp", 0);
+    }
+
     std::set<std::pair<node*, node*>> combinations;
     auto count = 0;
     for (auto const& current_parent : rg.layers_[current_layer_idx]) {
       for (auto const& child : current_parent->children()) {
         for (auto const related_parent : child->parents_) {
-          LOG(debug) << "start";
           if (add_layer_node(current_parent, related_parent, combinations,
                              rg)) {
             auto ln = rg.nodes_.back().get();
@@ -146,7 +160,6 @@ void build_remaining_layers(rules_graph& rg) {
             related_parent->parents_.push_back(ln);
             rg.layers_[next_layer_idx].push_back(ln);
           }
-          LOG(debug) << "stop";
           ++count;
         }
       }
