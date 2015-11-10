@@ -40,7 +40,7 @@ search::search(schedule const& schedule, memory_manager<label>& label_store)
 
 std::vector<journey> search::get_connections(
     arrival from, arrival to, time interval_start, time interval_end,
-    pareto_dijkstra::statistics* stats) {
+    bool ontrip, pareto_dijkstra::statistics* stats) {
   _label_store.reset();
   remove_intersection(from, to);
 
@@ -87,16 +87,25 @@ std::vector<journey> search::get_connections(
   }
 
   std::vector<label*> start_labels;
-  station_node* dummy_source_station =
-      _sched.station_nodes[DUMMY_SOURCE_IDX].get();
-  for (const auto& s : from) {
-    station_node const* station = _sched.station_nodes[s.station].get();
 
-    // generate labels at all route nodes
-    // for all trains departing in the specified interval
-    generate_start_labels(interval_start, interval_end, station, start_labels,
-                          dummy_source_station, s.time_cost, s.price, s.slot,
-                          lower_bounds);
+  if (ontrip) {
+    if (from.size() != 1) {
+      throw std::runtime_error("ontrip accepts exactly one station");
+    }
+    generate_ontrip_start_labels(_sched.station_nodes[from[0].station].get(),
+                                 interval_start, start_labels, lower_bounds);
+  } else {
+    station_node* dummy_source_station =
+        _sched.station_nodes[DUMMY_SOURCE_IDX].get();
+    for (const auto& s : from) {
+      station_node const* station = _sched.station_nodes[s.station].get();
+
+      // generate labels at all route nodes
+      // for all trains departing in the specified interval
+      generate_start_labels(interval_start, interval_end, station, start_labels,
+                            dummy_source_station, s.time_cost, s.price, s.slot,
+                            lower_bounds);
+    }
   }
 
   std::unordered_map<node const*, std::vector<edge>> additional_edges;
@@ -132,6 +141,13 @@ std::vector<journey> search::get_connections(
                  [this](label* label) { return to_journey(label, _sched); });
 
   return journeys;
+}
+
+void search::generate_ontrip_start_labels(
+    station_node const* start_station_node, time const start_time,
+    std::vector<label*>& start_labels, lower_bounds& lower_bounds) {
+  start_labels.push_back(new (_label_store.create()) label(
+      start_station_node, nullptr, start_time, lower_bounds));
 }
 
 void search::generate_start_labels(time const from, time const to,

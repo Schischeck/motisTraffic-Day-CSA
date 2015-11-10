@@ -139,7 +139,6 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
                                        motis::node* route_node,
                                        motis::light_connection* lc) {
   motis::node* new_route = nullptr;
-  motis::node* original_route = route_node;
 
   _rts._stats._ops.updater.time_updates++;
 
@@ -704,7 +703,8 @@ void graph_updater::adjust_train(modified_train* mt,
         LOG(debug)
             << "  creating/updating route edge from "
             << _rts._schedule.stations[last_route_node->get_station()->_id]
-                   ->name << " [" << format_time(departure_time) << "]"
+                   ->name
+            << " [" << format_time(departure_time) << "]"
             << " to "
             << _rts._schedule.stations[route_node->get_station()->_id]->name
             << " [" << format_time(arrival_time) << "]";

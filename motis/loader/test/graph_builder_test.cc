@@ -363,7 +363,7 @@ TEST_F(direction_services_graph_builder_test, direction_text) {
   auto node_it = std::find_if(
       begin(sched_->route_index_to_first_route_node),
       end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "114965";
+        return sched_->stations[n->get_station()->_id]->eva_nr == "0114965";
       });
   ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
 
