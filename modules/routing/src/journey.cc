@@ -121,7 +121,10 @@ parse_label_chain(label const* terminal_label) {
             ++station_index, current->_node->get_station()->_id,
             last_con == nullptr ? UNKNOWN_TRACK
                                 : last_con->_full_con->a_platform,
-            UNKNOWN_TRACK, stops.empty() ? INVALID_TIME : current->_now,
+            UNKNOWN_TRACK,
+            stops.empty() ? INVALID_TIME : (last_con == nullptr)
+                                               ? current->_now
+                                               : last_con->a_time,
             current->_now, last_con != nullptr);
 
         transports.emplace_back(station_index, station_index + 1,
