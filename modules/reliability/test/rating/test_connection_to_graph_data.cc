@@ -123,10 +123,9 @@ void test_element(connection_element const& expected,
 
 TEST_F(test_connection_to_graph_data2, get_elements) {
   system_tools::setup setup(schedule_.get());
-
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
+      (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
       std::make_tuple(28, 9, 2015));
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);

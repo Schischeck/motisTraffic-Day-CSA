@@ -211,6 +211,13 @@ TEST_F(test_connection_graph_rating, single_connection) {
           ASSERT_EQ(dists.first, rating.departure_distribution_);
           ASSERT_EQ(dists.second, rating.arrival_distribution_);
         }
+
+        /* arrival distribution of the connection graph */
+        probability_distribution exp_arr_dist;
+        exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
+        auto const cg_arr_dist = calc_arrival_distribution(cg);
+        ASSERT_EQ(1445239440, cg_arr_dist.first);
+        ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
       };
 
   boost::asio::io_service::work ios_work(setup.ios_);
@@ -321,6 +328,16 @@ TEST_F(test_connection_graph_rating, multiple_alternatives) {
               detail::interchange_info(7 * 60 + 10, 7 * 60 + 17, 5, 0));
       ASSERT_TRUE(equal(0.0, uncovered_arr_dist.sum()));
     }
+
+    /* arrival distribution of the connection graph */
+    probability_distribution exp_arr_dist;
+    exp_arr_dist.init(
+        {0.0592, 0.4884, 0.1776, 0.0148, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0192,
+         0.1584, 0.0576, 0.0048, 0.0, 0.0, 0.0016, 0.0132, 0.0048, 0.0004},
+        0);
+    auto const cg_arr_dist = calc_arrival_distribution(cg);
+    ASSERT_EQ(1445239440, cg_arr_dist.first);
+    ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
@@ -337,49 +354,58 @@ TEST_F(test_connection_graph_rating_foot, reliable_routing_request_foot) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015), 1, 1, 15);
+      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1, 15);
   bool test_cb_called = false;
 
-  auto test_cb =
-      [&](std::vector<std::shared_ptr<connection_graph> > const cgs) {
-        test_cb_called = true;
-        setup.ios_.stop();
-        ASSERT_EQ(cgs.size(), 1);
-        auto const cg = *cgs.front();
-        ASSERT_EQ(3, cg.stops_.size());
-        ASSERT_EQ(2, cg.journeys_.size());
-        {
-          connection_rating expected_rating_journey0;
-          rating::rate(expected_rating_journey0, cg.journeys_[0],
-                       *setup.reliability_context_);
-          auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                        .departure_distribution_,
-                    rating.departure_distribution_);
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                        .arrival_distribution_,
-                    rating.arrival_distribution_);
-        }
-        {
-          // arriving train ICE_L_H from Langen to Frankfurt
-          // interchange at Frankfurt and walking to Messe
-          // departing train S_M_W from Messe to West
-          interchange_data_for_tests const ic_data(
-              *schedule_, ICE_L_H, S_M_W, LANGEN.eva, FRANKFURT.eva, MESSE.eva,
-              WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
-          auto const dists = calc_distributions(
-              ic_data,
-              detail::scheduled_transfer_filter(
-                  cg.stops_[0]
-                      .alternative_infos_.front()
-                      .rating_.arrival_distribution_,
-                  detail::interchange_info(10 * 60 + 10, 10 * 60 + 20, 10, 0)),
-              setup);
-          auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-          ASSERT_EQ(dists.first, rating.departure_distribution_);
-          ASSERT_EQ(dists.second, rating.arrival_distribution_);
-        }
-      };
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
+    test_cb_called = true;
+    setup.ios_.stop();
+    ASSERT_EQ(cgs.size(), 1);
+    auto const cg = *cgs.front();
+    ASSERT_EQ(3, cg.stops_.size());
+    ASSERT_EQ(2, cg.journeys_.size());
+    {
+      connection_rating expected_rating_journey0;
+      rating::rate(expected_rating_journey0, cg.journeys_[0],
+                   *setup.reliability_context_);
+      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                    .departure_distribution_,
+                rating.departure_distribution_);
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                    .arrival_distribution_,
+                rating.arrival_distribution_);
+    }
+    {
+      // arriving train ICE_L_H from Langen to Frankfurt
+      // interchange at Frankfurt and walking to Messe
+      // departing train S_M_W from Messe to West
+      interchange_data_for_tests const ic_data(
+          *schedule_, ICE_L_H, S_M_W, LANGEN.eva, FRANKFURT.eva, MESSE.eva,
+          WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
+
+      auto const dists = calc_distributions(
+          ic_data,
+          detail::scheduled_transfer_filter(
+              cg.stops_[0]
+                  .alternative_infos_.front()
+                  .rating_.arrival_distribution_,
+              detail::interchange_info(10 * 60 + 10, 10 * 60 + 20, 10, 0)),
+          setup);
+      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
+      ASSERT_EQ(dists.first, rating.departure_distribution_);
+      ASSERT_EQ(dists.second, rating.arrival_distribution_);
+    }
+    ASSERT_EQ(1443435900, cg.journeys_.back().stops.back().arrival.timestamp);
+
+    /* arrival distribution of the connection graph */
+    probability_distribution exp_arr_dist;
+    exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
+    auto const cg_arr_dist = calc_arrival_distribution(cg);
+    ASSERT_EQ(1443435840, cg_arr_dist.first);
+    ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
+  };
 
   boost::asio::io_service::work ios_work(setup.ios_);
   search_cgs(

@@ -130,7 +130,10 @@ TEST_F(test_public_transport2, rate) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
+      (motis::time)(11 * 60 + 27),
+      (motis::time)(
+          11 * 60 +
+          27), /* regard interchange time at the beginning of the journey*/
       std::make_tuple(28, 9, 2015));
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {

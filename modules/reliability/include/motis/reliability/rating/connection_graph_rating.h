@@ -13,12 +13,18 @@ struct start_and_travel_distributions;
 namespace distributions_container {
 struct precomputed_distributions_container;
 }
+namespace search {
+struct connection_graph;
+}
 namespace rating {
 struct connection_element;
 namespace cg {
 void rate_inserted_alternative(
     search::connection_graph_search::detail::context::conn_graph_context&,
     unsigned int const stop_idx, context const&);
+
+std::pair<time_t, probability_distribution> calc_arrival_distribution(
+    search::connection_graph const&);
 
 namespace detail {
 struct interchange_info {

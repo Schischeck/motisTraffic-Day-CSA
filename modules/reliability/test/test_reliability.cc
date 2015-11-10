@@ -62,7 +62,10 @@ TEST_F(test_reliability2, rating_request) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_rating_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
+      (motis::time)(11 * 60 + 27),
+      (motis::time)(
+          11 * 60 +
+          27) /* regard interchange time at the beginning of the journey */,
       std::make_tuple(28, 9, 2015));
   bool test_cb_called = false;
 
@@ -70,7 +73,7 @@ TEST_F(test_reliability2, rating_request) {
     test_cb_called = true;
     ASSERT_EQ(e, nullptr);
     auto response = msg->content<ReliabilityRatingResponse const*>();
-    ASSERT_EQ(response->response()->connections()->size(), 1);
+    ASSERT_EQ(1, response->response()->connections()->size());
 
     ASSERT_NE(response->ratings(), nullptr);
     ASSERT_EQ(response->ratings()->size(), 1);
@@ -120,6 +123,8 @@ TEST_F(test_reliability7, connection_tree) {
     std::ifstream f("modules/reliability/resources/json/reliable_search.json");
     std::string expected_str((std::istreambuf_iterator<char>(f)),
                              std::istreambuf_iterator<char>());
+    std::ofstream os("json.txt");
+    os << msg->to_json() << std::endl;
     ASSERT_EQ(expected_str, msg->to_json());
   };
 

@@ -247,8 +247,6 @@ void search_cgs(ReliableRoutingRequest const* request,
                 motis::module::sid session,
                 std::shared_ptr<connection_graph_optimizer const> optimizer,
                 callback cb) {
-  std::cout << "\nSEARCH CG GRAPH " << optimizer->min_departure_diff_ << " "
-            << optimizer->interval_width_ << std::endl;
   rel.send_message(
       flatbuffers_tools::to_flatbuffers_message(request->request()), session,
       std::bind(
