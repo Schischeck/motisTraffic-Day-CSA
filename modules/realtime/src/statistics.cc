@@ -55,18 +55,13 @@ void statistics::print_message_counter(message_counter const& c,
 
 void statistics::write_csv(std::ostream& out, std::time_t from,
                            std::time_t to) const {
-  const char* time_format = "%Y-%m-%d %H:%M";
-
-  out << from << "," << to << ","
-      << std::put_time(std::localtime(&from), time_format) << ","
-      << std::put_time(std::localtime(&to), time_format) << ","
-      << (to - from) / 60 << "," << std::fixed << std::setprecision(2)
-      << _total_processing.ms() << "," << std::fixed << std::setprecision(2)
-      << _message_fetcher.ms() << "," << std::fixed << std::setprecision(2)
-      << _delay_propagator.ms() << "," << std::fixed << std::setprecision(2)
-      << _graph_updater.ms() << "," << std::fixed << std::setprecision(2)
-      << _calc_max.ms() << "," << std::fixed << std::setprecision(2)
-      << _queue_dep.ms() << ","
+  out << from << "," << to << "," << (to - from) / 60 << "," << std::fixed
+      << std::setprecision(2) << _total_processing.ms() << "," << std::fixed
+      << std::setprecision(2) << _message_fetcher.ms() << "," << std::fixed
+      << std::setprecision(2) << _delay_propagator.ms() << "," << std::fixed
+      << std::setprecision(2) << _graph_updater.ms() << "," << std::fixed
+      << std::setprecision(2) << _calc_max.ms() << "," << std::fixed
+      << std::setprecision(2) << _queue_dep.ms() << ","
       << "0,"
       << "0,"
       << "0," << _ops.propagator.runs << "," << _ops.propagator.events << ","

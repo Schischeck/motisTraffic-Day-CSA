@@ -1,18 +1,22 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "railviz/RailVizInit.fbs";
-include "railviz/RailVizStationDetail.fbs";
-include "railviz/RailVizStationDetailRequest.fbs";
-include "railviz/RailVizAllTrainsRequest.fbs";
-include "railviz/RailVizAllTrainsResponse.fbs";
 include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
+include "railviz/RailVizAlltraReq.fbs";
+include "railviz/RailVizAlltraRes.fbs";
+include "railviz/RailVizStationDetailReq.fbs";
+include "railviz/RailVizStationDetailRes.fbs";
+include "railviz/RailVizRouteAtTimeReq.fbs";
+include "railviz/RailVizRouteAtTimeRes.fbs";
+include "railviz/RailVizFindTrain.fbs";
 include "ris/RISBatch.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
 include "realtime/RealtimeTrainInfoResponse.fbs";
 include "realtime/RealtimeForwardTimeRequest.fbs";
+include "realtime/RealtimeForwardTimeResponse.fbs";
 include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
 include "realtime/RealtimeDelayInfoRequest.fbs";
@@ -51,10 +55,13 @@ union MsgContent {
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizInit,
-  motis.railviz.RailVizAllTrainsRequest,
-  motis.railviz.RailVizAllTrainsResponse,
-  motis.railviz.RailVizStationDetail,
-  motis.railviz.RailVizStationDetailRequest,
+  motis.railviz.RailVizAlltraReq,
+  motis.railviz.RailVizAlltraRes,
+  motis.railviz.RailVizStationDetailReq,
+  motis.railviz.RailVizStationDetailRes,
+  motis.railviz.RailVizRouteAtTimeReq,
+  motis.railviz.RailVizRouteAtTimeRes,
+  motis.railviz.RailVizFindTrain,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
   motis.ris.RISBatch,
@@ -65,6 +72,7 @@ union MsgContent {
   motis.realtime.RealtimeTrainInfoBatchRequest,
   motis.realtime.RealtimeTrainInfoBatchResponse,
   motis.realtime.RealtimeForwardTimeRequest,
+  motis.realtime.RealtimeForwardTimeResponse,
   motis.realtime.RealtimeCurrentTimeRequest,
   motis.realtime.RealtimeCurrentTimeResponse,
   motis.realtime.RealtimeDelayInfoRequest,

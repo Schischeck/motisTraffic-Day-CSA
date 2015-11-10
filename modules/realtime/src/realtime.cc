@@ -230,9 +230,7 @@ void realtime::get_current_time(msg_ptr, callback) {
   throw std::runtime_error("realtime::get_current_time is not implemented.");
 }
 
-InternalTimestampReason encode_internal_reason(timestamp_reason
-
-                                                   reason) {
+InternalTimestampReason encode_internal_reason(timestamp_reason reason) {
   switch (reason) {
     case timestamp_reason::SCHEDULE: return InternalTimestampReason_Schedule;
     case timestamp_reason::IS: return InternalTimestampReason_Is;

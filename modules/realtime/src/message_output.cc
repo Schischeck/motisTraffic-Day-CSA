@@ -1,4 +1,4 @@
-#include "motis/realtime/message_output.h"
+ #include "motis/realtime/message_output.h"
 
 #include <fstream>
 #include <string>

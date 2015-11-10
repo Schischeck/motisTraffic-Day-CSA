@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+file(GLOB_RECURSE global_headers *.h *.hpp)
+
 foreach(flags CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()
@@ -48,7 +50,6 @@ include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
-
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)

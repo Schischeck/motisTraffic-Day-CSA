@@ -103,7 +103,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
         LOG(info) << " ** " << *di;
       }
     }
-    assert(route_node != nullptr && lc != nullptr);
+    if (route_node == nullptr || lc == nullptr) return;
     if (ge.arrival()) {
       route_node = _rts.get_prev_node(route_node);
       assert(route_node != nullptr);
@@ -139,6 +139,7 @@ void graph_updater::update_train_times(std::vector<delay_info_update>& updates,
                                        motis::node* route_node,
                                        motis::light_connection* lc) {
   motis::node* new_route = nullptr;
+  motis::node* original_route = route_node;
 
   _rts._stats._ops.updater.time_updates++;
 

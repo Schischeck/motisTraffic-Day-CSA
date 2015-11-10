@@ -11,12 +11,15 @@ enum error_code_t {
   ok = 0,
 
   station_index_out_of_bounds = 1,
-  client_not_registered = 2
+  client_not_registered = 2,
+
+  route_not_found = 3,
+  train_not_found = 4,
 };
 }  // namespace error
 
 class error_category_impl : public boost::system::error_category {
-public:
+ public:
   virtual const char* name() const noexcept { return "motis::railviz"; }
 
   virtual std::string message(int ev) const noexcept {
@@ -25,7 +28,12 @@ public:
         return "railviz: station index out of bounds";
       case error::client_not_registered:
         return "railviz: client not registered";
-      default: return "railviz: unkown error";
+      case error::route_not_found:
+        return "railviz: route not found";
+      case error::train_not_found:
+        return "railviz: train not found";
+      default:
+        return "railviz: unkown error";
     }
   }
 };

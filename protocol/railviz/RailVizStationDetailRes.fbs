@@ -1,0 +1,19 @@
+include "railviz/RailVizTrain.fbs";
+
+namespace motis.railviz;
+
+table RailVizStationDetailResEntry {
+	train_num : string;
+	train_identifier : string;
+	classz: int = -1;
+	train : RailVizTrain;
+	startend_station_name : string;
+	startend_station_id : int;
+	outgoing : bool;
+}
+
+table RailVizStationDetailRes {
+  name : string;
+  station_id : int;
+  timetable : [RailVizStationDetailResEntry];
+}

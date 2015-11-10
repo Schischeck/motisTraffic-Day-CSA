@@ -1,0 +1,13 @@
+include "Route.fbs";
+include "Section.fbs";
+include "Platform.fbs";
+
+namespace motis.loader;
+
+table Train {
+  route : Route;
+  sections : [Section];
+  platforms : [Platform];
+  times : [ulong];
+  traffic_days : string;
+}
