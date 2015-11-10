@@ -1,7 +1,7 @@
 #pragma once
 
-#include <set>
 #include <array>
+#include <set>
 
 #include "motis/loader/bitfield.h"
 #include "motis/loader/hrd/model/rule_service.h"
@@ -11,16 +11,16 @@ namespace loader {
 namespace hrd {
 
 struct node {
+  node(std::set<hrd_service*> services) : services_(std::move(services)) {}
   virtual ~node() {}
 
-  virtual void services(std::set<hrd_service*>&) const = 0;
   virtual void resolve_services(bitfield const&, std::set<service_resolvent>&,
                                 std::set<service_rule_resolvent>&) = 0;
-
   virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
   virtual void print() const = 0;
 
+  std::set<hrd_service*> services_;
   std::vector<node*> parents_;
 };
 
@@ -29,7 +29,6 @@ struct service_node : node {
 
   ~service_node() {}
 
-  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
@@ -44,7 +43,6 @@ struct rule_node : node {
 
   ~rule_node() {}
 
-  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;
@@ -62,7 +60,6 @@ struct layer_node : public node {
 
   ~layer_node() {}
 
-  void services(std::set<hrd_service*>&) const override;
   void resolve_services(bitfield const&, std::set<service_resolvent>&,
                         std::set<service_rule_resolvent>&) override;
   std::array<node*, 2> children() const override;

@@ -123,12 +123,7 @@ bool add_layer_node(node* n1, node* n2,
     return false;
   }
 
-  std::set<hrd_service*> acc;
-  n1->services(acc);
-  auto const size_before = acc.size();
-  n2->services(acc);
-  auto const size_after = acc.size();
-  if (size_after == size_before) {
+  if (n1->services_ == n2->services_) {
     return false;
   }
 
@@ -191,11 +186,9 @@ void build_remaining_layers(rules_graph& rg) {
 void build_graph(service_rules const& rules, rules_graph& rg) {
   build_first_layer(rules, rg);
   build_remaining_layers(rg);
-  rg.print_nodes();
 }
 
 void rule_service_builder::resolve_rule_services() {
-  LOG(debug) "start";
   scoped_timer("resolve service rules");
 
   rules_graph rg;
@@ -231,8 +224,6 @@ void rule_service_builder::resolve_rule_services() {
                        return service_ptr.get()->traffic_days_.none();
                      }),
       end(origin_services_));
-
-  LOG(debug) "stop";
 }
 
 void create_rule_service(

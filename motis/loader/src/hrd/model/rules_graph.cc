@@ -4,11 +4,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_node::service_node(hrd_service* s) : service_(s) {}
-
-void service_node::services(std::set<hrd_service*>& acc) const {
-  acc.insert(service_);
-};
+service_node::service_node(hrd_service* s) : node({s}), service_(s) {}
 
 void service_node::resolve_services(bitfield const&,
                                     std::set<service_resolvent>&,
@@ -32,16 +28,12 @@ void service_node::print() const {
 
 rule_node::rule_node(service_node* s1, service_node* s2,
                      resolved_rule_info rule_info)
-    : s1_(s1),
+    : node({s1->service_, s2->service_}),
+      s1_(s1),
       s2_(s2),
       rule_(rule_info),
       traffic_days_(s1->traffic_days() & s2->traffic_days() &
                     rule_info.traffic_days) {}
-
-void rule_node::services(std::set<hrd_service*>& acc) const {
-  s1_->services(acc);
-  s2_->services(acc);
-}
 
 hrd_service* resolve(bitfield const& upper_traffic_days, hrd_service* origin,
                      std::set<service_resolvent>& resolved_services) {
@@ -78,15 +70,18 @@ void rule_node::print() const {
          traffic_days().to_string().c_str(), rule_.type == 0 ? "TS" : "MSS");
 }
 
+static std::set<hrd_service*> joined_services(node* left, node* right) {
+  std::set<hrd_service*> services;
+  services.insert(begin(left->services_), end(left->services_));
+  services.insert(begin(right->services_), end(right->services_));
+  return services;
+}
+
 layer_node::layer_node(node* left, node* right)
-    : left_(left),
+    : node(joined_services(left, right)),
+      left_(left),
       right_(right),
       traffic_days_(left->traffic_days() & right->traffic_days()) {}
-
-void layer_node::services(std::set<hrd_service*>& acc) const {
-  left_->services(acc);
-  right_->services(acc);
-}
 
 void layer_node::resolve_services(bitfield const& upper_traffic_days,
                                   std::set<service_resolvent>& resolvents,
