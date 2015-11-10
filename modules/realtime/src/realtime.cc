@@ -9,15 +9,25 @@
 
 #include "motis/protocol/RISMessage_generated.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/realtime/error.h"
+#include "motis/realtime/handler/addition_handler.h"
+#include "motis/realtime/handler/cancel_handler.h"
+#include "motis/realtime/handler/connection_assessment_handler.h"
+#include "motis/realtime/handler/connection_decision_handler.h"
+#include "motis/realtime/handler/delay_handler.h"
+#include "motis/realtime/handler/reroute_handler.h"
 #include "motis/realtime/realtime_context.h"
+#include "motis/realtime/statistics.h"
 
 // options
 #define TRACK_TRAIN "realtime.track_train"
 #define DEBUG_MODE "realtime.debug"
 
 using namespace motis::module;
+using namespace motis::realtime::handler;
 using namespace motis::ris;
+using namespace motis::logging;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
@@ -40,11 +50,10 @@ realtime::realtime()
 po::options_description realtime::desc() {
   po::options_description desc("Realtime Module");
   // clang-format off
-   desc.add_options()(
-       TRACK_TRAIN ",t",
-po::value<std::vector<uint32_t>>(&track_trains_),
-       "Train number to track (debug)")(
-       DEBUG_MODE, po::bool_switch(&debug_)->default_value(false),
+   desc.add_options()
+       (TRACK_TRAIN ",t", po::value<std::vector<uint32_t>>(&track_trains_),
+       "Train number to track (debug)")
+       (DEBUG_MODE, po::bool_switch(&debug_)->default_value(false),
        "Enable lots of debug output");
   // clang-format on
   return desc;
@@ -219,10 +228,9 @@ void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
     }
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RealtimeTrainInfoBatchResponse,
-      CreateRealtimeTrainInfoBatchResponse(b, b.CreateVector(responses))
-          .Union()));
+  b.Finish(CreateMessage(b, MsgContent_RealtimeTrainInfoBatchResponse,
+                         CreateRealtimeTrainInfoBatchResponse(
+                             b, b.CreateVector(responses)).Union()));
   cb(make_msg(b), error::ok);
 }
 
@@ -281,18 +289,58 @@ void realtime::get_delay_infos(msg_ptr, callback cb) {
 
 void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
-
+  auto sched = synced_sched<schedule_access::RW>();
   auto& ctx = *rts_;
+
+  operation_timer timer(rts_->_stats._total_processing);
+  statistics before_stats = rts_->_stats;
 
   for (auto const& holder : *req->messages()) {
     auto const& nested = holder->message_nested_root();
     auto const& msg = nested->content();
 
-    // TODO convert into messages.h format and instrument message handler
+    rts_->_stats._counters.messages.increment();
+    switch (nested->content_type()) {
+      case MessageUnion_DelayMessage:
+        handle_delay(reinterpret_cast<DelayMessage const*>(msg), ctx);
+        break;
+      case MessageUnion_CancelMessage:
+        handle_cancel(reinterpret_cast<CancelMessage const*>(msg), ctx);
+        break;
+      case MessageUnion_AdditionMessage:
+        handle_addition(reinterpret_cast<AdditionMessage const*>(msg), ctx);
+        break;
+      case MessageUnion_RerouteMessage:
+        handle_reroute(reinterpret_cast<RerouteMessage const*>(msg), ctx);
+        break;
+      case MessageUnion_ConnectionDecisionMessage:
+        handle_connection_decision(
+            reinterpret_cast<ConnectionDecisionMessage const*>(msg), ctx);
+        break;
+      case MessageUnion_ConnectionAssessmentMessage:
+        handle_connection_assessment(
+            reinterpret_cast<ConnectionAssessmentMessage const*>(msg), ctx);
+        break;
+      default:
+        rts_->_stats._counters.unknown.increment();
+        rts_->_stats._counters.unknown.ignore();
+        break;
+    };
   }
 
   rts_->_delay_propagator.process_queue();
   rts_->_graph_updater.finish_graph_update();
+
+  statistics run_stats = rts_->_stats - before_stats;
+  std::cout << "this run:\n";
+  run_stats.print(std::cout);
+  std::cout << "total so far:\n";
+  rts_->_stats.print(std::cout);
+
+  {
+    std::ofstream f("stats.csv", std::ofstream::app);
+    run_stats.write_csv(f, /*start_time*/ 0, /*end_time*/ 0);
+  }
 
   return cb({}, error::ok);
 }

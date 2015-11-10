@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ctime>
 #include <set>
 #include <string>
 
@@ -13,6 +14,8 @@ namespace po = boost::program_options;
 namespace motis {
 namespace ris {
 
+enum class mode : bool { LIVE, SIMULATION };
+
 struct ris : public motis::module::module {
   ris();
   virtual ~ris() {}
@@ -22,19 +25,25 @@ struct ris : public motis::module::module {
 
   void init() override;
   std::string name() const override { return "ris"; }
-  std::vector<MsgContent> subscriptions() const override { return {}; }
+  std::vector<MsgContent> subscriptions() const override {
+    return {MsgContent_RISForwardTimeRequest};
+  }
   void on_msg(motis::module::msg_ptr, motis::module::sid,
-              motis::module::callback) override {}
+              motis::module::callback) override;
 
 private:
+  void fill_database();
+
   void schedule_update(boost::system::error_code e);
   void parse_zips();
   std::vector<std::string> get_new_files();
 
+  mode mode_;
   int update_interval_;
   std::string zip_folder_;
-  std::unique_ptr<boost::asio::deadline_timer> timer_;
 
+  std::time_t simulation_time_;
+  std::unique_ptr<boost::asio::deadline_timer> timer_;
   std::set<std::string> read_files_;
 };
 

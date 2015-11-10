@@ -12,6 +12,7 @@
 #include "motis/realtime/delay_propagator.h"
 #include "motis/realtime/graph_updater.h"
 #include "motis/realtime/modified_train.h"
+#include "motis/realtime/messages.h"
 #include "motis/realtime/message_handler.h"
 #include "motis/realtime/message_output.h"
 #include "motis/realtime/tracking.h"
