@@ -7,8 +7,6 @@
 #include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
 #include "flatbuffers/flatbuffers.h"
 
 #include "motis/core/common/logging.h"
@@ -20,6 +18,8 @@
 #include "motis/loader/hrd/parser/through_services_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
 #include "motis/loader/hrd/builder/rule_service_builder.h"
+
+#include "./test_spec_test.h"
 
 namespace motis {
 namespace loader {

@@ -3,9 +3,10 @@
 #include "motis/core/common/date_util.h"
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
+
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "./hrd/test_spec.h"
+#include "./hrd/test_spec_test.h"
 
 using std::get;
 
@@ -352,7 +353,7 @@ TEST_F(direction_services_graph_builder_test, direction_station) {
     ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());
   }
 
-  for (int i = 12; i < connections.size(); ++i) {
+  for (unsigned i = 12; i < connections.size(); ++i) {
     auto con_info = std::get<0>(connections[i])->_full_con->con_info;
     ASSERT_TRUE(con_info->dir_ == nullptr);
   }
