@@ -37,9 +37,9 @@ namespace reliability {
 namespace rating {
 namespace public_transport {
 
-class test_public_transport2 : public test_schedule_setup {
+class reliability_public_transport2 : public test_schedule_setup {
 public:
-  test_public_transport2()
+  reliability_public_transport2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -50,9 +50,9 @@ public:
   short const ICE_S_E = 5;  // 11:32 --> 12:32
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
-class test_public_transport3 : public test_schedule_setup {
+class reliability_public_transport3 : public test_schedule_setup {
 public:
-  test_public_transport3()
+  reliability_public_transport3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -63,9 +63,9 @@ public:
   short const ICE_L_H = 1;  // 10:00 --> 10:10
   short const S_M_W = 2;  // 10:20 --> 10:25
 };
-class test_public_transport5 : public test_schedule_setup {
+class reliability_public_transport5 : public test_schedule_setup {
 public:
-  test_public_transport5()
+  reliability_public_transport5()
       : test_schedule_setup("modules/reliability/resources/schedule5/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
@@ -87,7 +87,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
     distributions_container::precomputed_distributions_container const&
         precomputed_distributions,
     start_and_travel_distributions const& s_t_distributions,
-    test_public_transport2 const& test_info) {
+    reliability_public_transport2 const& test_info) {
   std::vector<rating::rating_element> ratings;
   interchange_data_for_tests const ic_data(
       *test_info.schedule_, test_info.ICE_S_E, test_info.ICE_E_K,
@@ -126,7 +126,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
   return ratings;
 }
 
-TEST_F(test_public_transport2, rate) {
+TEST_F(reliability_public_transport2, rate) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
@@ -176,7 +176,7 @@ TEST_F(test_public_transport2, rate) {
  * Darmstadt to Giessen with RE_D_F_G (interchange in Giessen), and
  * Giessen to Marburg with RE_G_M */
 std::vector<rating::rating_element> compute_test_ratings2(
-    context const& c, test_public_transport5 const& test_info) {
+    context const& c, reliability_public_transport5 const& test_info) {
   std::vector<rating::rating_element> ratings;
 
   /* distributions for the first train (RE_M_B_D) */
@@ -274,7 +274,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
   return ratings;
 }
 
-TEST_F(test_public_transport5, rate2) {
+TEST_F(reliability_public_transport5, rate2) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
@@ -325,7 +325,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
     distributions_container::precomputed_distributions_container const&
         precomputed_distributions,
     start_and_travel_distributions const& s_t_distributions,
-    test_public_transport3 const& test_info) {
+    reliability_public_transport3 const& test_info) {
   std::vector<rating::rating_element> ratings;
   // arriving train ICE_L_H from Langen to Frankfurt
   // interchange at Frankfurt and walking to Messe
@@ -368,7 +368,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   return ratings;
 }
 
-TEST_F(test_public_transport3, rate_foot) {
+TEST_F(reliability_public_transport3, rate_foot) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),

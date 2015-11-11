@@ -21,9 +21,9 @@ namespace reliability {
 namespace search {
 namespace connection_graph_search {
 
-class test_connection_graph_search : public test_schedule_setup {
+class reliability_connection_graph_search : public test_schedule_setup {
 public:
-  test_connection_graph_search()
+  reliability_connection_graph_search()
       : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
@@ -125,7 +125,7 @@ public:
   }
 };
 
-TEST_F(test_connection_graph_search, reliable_routing_request) {
+TEST_F(reliability_connection_graph_search, reliable_routing_request) {
   auto setup = std::make_shared<system_tools::setup>(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
@@ -136,14 +136,14 @@ TEST_F(test_connection_graph_search, reliable_routing_request) {
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup->reliability_module(), 0,
              std::make_shared<simple_optimizer>(3, 1, 15),
-             std::bind(&test_connection_graph_search::test_cg, this,
+             std::bind(&reliability_connection_graph_search::test_cg, this,
                        std::placeholders::_1, test_cb_called, setup));
   setup->ios_.run();
   ASSERT_TRUE(*test_cb_called);
 }
 
 /* optimize connection graph alternatives depending on distributions! */
-TEST_F(test_connection_graph_search, reliable_routing_request_optimization) {
+TEST_F(reliability_connection_graph_search, reliable_routing_request_optimization) {
   auto setup = std::make_shared<system_tools::setup>(schedule_.get());
   auto msg = flatbuffers_tools::to_reliable_routing_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
@@ -154,7 +154,7 @@ TEST_F(test_connection_graph_search, reliable_routing_request_optimization) {
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              setup->reliability_module(), 0,
              std::make_shared<reliable_cg_optimizer>(1, 15),
-             std::bind(&test_connection_graph_search::test_cg, this,
+             std::bind(&reliability_connection_graph_search::test_cg, this,
                        std::placeholders::_1, test_cb_called, setup));
   setup->ios_.run();
   ASSERT_TRUE(*test_cb_called);
@@ -162,7 +162,7 @@ TEST_F(test_connection_graph_search, reliable_routing_request_optimization) {
 
 /* search for alternatives at stops not necessary
  * (base connection is optimal) */
-TEST_F(test_connection_graph_search, reliable_routing_request2) {
+TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
@@ -236,7 +236,7 @@ TEST_F(test_connection_graph_search, reliable_routing_request2) {
   ASSERT_TRUE(test_cb_called);
 }
 
-TEST_F(test_connection_graph_search, cache_journey) {
+TEST_F(reliability_connection_graph_search, cache_journey) {
   system_tools::setup setup(schedule_.get());
   detail::context c(setup.reliability_module(), 0, callback(),
                     std::make_shared<simple_optimizer>(1, 1, 1));

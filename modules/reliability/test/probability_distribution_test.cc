@@ -5,7 +5,7 @@
 using namespace motis;
 using namespace motis::reliability;
 
-TEST(empty_distribution, probability_distribution) {
+TEST(reliability_empty_distribution, probability_distribution) {
   probability_distribution pd;
 
   ASSERT_TRUE(pd.empty());
@@ -25,13 +25,13 @@ TEST(empty_distribution, probability_distribution) {
   ASSERT_TRUE(probabilities.size() == 0);
 }
 
-TEST(empty_distribution2, probability_distribution) {
+TEST(reliability_empty_distribution2, probability_distribution) {
   probability_distribution pd;
   pd.init({}, 0);
   ASSERT_TRUE(pd.empty());
 }
 
-TEST(one_point_distribution, probability_distribution) {
+TEST(reliability_one_point_distribution, probability_distribution) {
   probability_distribution pd;
   pd.init_one_point(0, 1.0);
 
@@ -97,7 +97,7 @@ void init_test(probability_distribution const& pd, int const first_minute) {
   ASSERT_TRUE(equal(pd.probability_greater(first_minute + 3), 0.0));
 }
 
-TEST(init, probability_distribution) {
+TEST(reliability_init, probability_distribution) {
   std::vector<probability> const values = {0.5, 0.3, 0.2};
   for (int i = -3; i <= 1; i++) {
     probability_distribution pd;
@@ -106,7 +106,7 @@ TEST(init, probability_distribution) {
   }
 }
 
-TEST(ignore_small_values, probability_distribution) {
+TEST(reliability_ignore_small_values, probability_distribution) {
   probability small_value = 0.0000001;
   std::vector<probability> const values = {small_value, small_value,
                                            0.5 - (4 * small_value), 0.3, 0.2,
@@ -119,7 +119,7 @@ TEST(ignore_small_values, probability_distribution) {
   }
 }
 
-TEST(only_small_values, probability_distribution) {
+TEST(reliability_only_small_values, probability_distribution) {
   probability small_value = 0.0000001;
   std::vector<probability> const values = {small_value, small_value,
                                            small_value};
@@ -130,7 +130,7 @@ TEST(only_small_values, probability_distribution) {
   ASSERT_TRUE(equal(pd.sum(), 3 * small_value));
 }
 
-TEST(sum_smaller_than_1, probability_distribution) {
+TEST(reliability_sum_smaller_than_1, probability_distribution) {
   std::vector<probability> const values = {0.4, 0.3, 0.2};
   int const first_minute = 0;
 
@@ -172,7 +172,7 @@ TEST(sum_smaller_than_1, probability_distribution) {
   ASSERT_TRUE(equal(pd.probability_greater(first_minute + 3), 0.0));
 }
 
-TEST(get_probabilities, probability_distribution) {
+TEST(reliability_get_probabilities, probability_distribution) {
   std::vector<probability> probabilies_in = {0.5, 0.4, 0.1};
   probability_distribution pd;
   pd.init(probabilies_in, 2);
@@ -185,7 +185,7 @@ TEST(get_probabilities, probability_distribution) {
     ASSERT_TRUE(equal(probabilies_in[i], probabilies_out[i]));
 }
 
-TEST(copy, probability_distribution) {
+TEST(reliability_copy, probability_distribution) {
   probability_distribution a, b;
   a.init({0.1, 0.2, 0.5, 0.2}, -1);
   b.init(a);
@@ -198,7 +198,7 @@ TEST(copy, probability_distribution) {
   ASSERT_TRUE(equal(b.probability_equal(2), 0.2));
 }
 
-TEST(zero, probability_distribution) {
+TEST(reliability_zero, probability_distribution) {
   probability_distribution pd;
   pd.init({0.0, 0.0, 0.0}, 0);
   ASSERT_FALSE(pd.empty());
@@ -207,7 +207,7 @@ TEST(zero, probability_distribution) {
   ASSERT_TRUE(equal(pd.sum(), 0.0));
 }
 
-TEST(equal_operator, probability_distribution) {
+TEST(reliability_equal_operator, probability_distribution) {
   {
     probability_distribution pd1, pd2;
     pd1.init({0.5, 0.4, 0.1}, -1);

@@ -17,9 +17,9 @@ namespace motis {
 namespace reliability {
 namespace graph_accessor {
 
-class test_graph_accessor : public test_schedule_setup {
+class reliability_graph_accessor : public test_schedule_setup {
 public:
-  test_graph_accessor()
+  reliability_graph_accessor()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -38,9 +38,9 @@ public:
   short const RE_K_S = 8;
 };
 
-class test_graph_accessor3 : public test_schedule_setup {
+class reliability_graph_accessor3 : public test_schedule_setup {
 public:
-  test_graph_accessor3()
+  reliability_graph_accessor3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -48,7 +48,7 @@ public:
   short const S_M_W = 2;  // 10:20 --> 10:25
 };
 
-TEST_F(test_graph_accessor, get_first_route_node_by_train_nr) {
+TEST_F(reliability_graph_accessor, get_first_route_node_by_train_nr) {
   auto node = get_first_route_node(*schedule_, ICE_FR_DA_H);
   ASSERT_EQ(schedule_->stations[node->_station_node->_id]->eva_nr, FRANKFURT);
   ASSERT_EQ(get_departing_route_edge(*node)
@@ -57,7 +57,7 @@ TEST_F(test_graph_accessor, get_first_route_node_by_train_nr) {
             ICE_FR_DA_H);
 }
 
-TEST_F(test_graph_accessor, get_previous_light_connection) {
+TEST_F(reliability_graph_accessor, get_previous_light_connection) {
   auto const first_route_node = get_first_route_node(*schedule_, ICE_FR_DA_H);
   ASSERT_EQ(schedule_->stations[first_route_node->_station_node->_id]->eva_nr,
             FRANKFURT);
@@ -104,7 +104,7 @@ TEST_F(test_graph_accessor, get_previous_light_connection) {
   }
 }
 
-TEST_F(test_graph_accessor, get_feeder_time_interval) {
+TEST_F(reliability_graph_accessor, get_feeder_time_interval) {
   bool success;
   motis::time time_begin, time_end;
 
@@ -157,7 +157,7 @@ TEST_F(test_graph_accessor, get_feeder_time_interval) {
   ASSERT_FALSE(success);
 }
 
-TEST_F(test_graph_accessor, get_feeders) {
+TEST_F(reliability_graph_accessor, get_feeders) {
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node = *get_first_route_node(*schedule_, ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
@@ -218,7 +218,7 @@ TEST_F(test_graph_accessor, get_feeders) {
   }
 }
 
-TEST_F(test_graph_accessor, get_feeders_first_departure) {
+TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
   // route node at Darmstadt of train IC_DA_H
   auto& first_route_node = *get_first_route_node(*schedule_, IC_DA_H);
   // route edge from Darmstadt to Heidelberg
@@ -268,14 +268,14 @@ TEST_F(test_graph_accessor, get_feeders_first_departure) {
   }
 }
 
-TEST_F(test_graph_accessor, get_first_route_node) {
+TEST_F(reliability_graph_accessor, get_first_route_node) {
   auto const first_node = get_first_route_node(*schedule_, ICE_FR_DA_H);
   auto const node = get_departing_route_edge(
                         *get_departing_route_edge(*first_node)->_to)->_to;
   ASSERT_EQ(&get_first_route_node(*node), first_node);
 }
 
-TEST_F(test_graph_accessor, get_light_connection) {
+TEST_F(reliability_graph_accessor, get_light_connection) {
   edge route_edge;
   route_edge._m._type = edge::ROUTE_EDGE;
 
@@ -330,7 +330,7 @@ TEST_F(test_graph_accessor, get_light_connection) {
   ASSERT_EQ(lc.second, 3);
 }
 
-TEST_F(test_graph_accessor3, walking_duration) {
+TEST_F(reliability_graph_accessor3, walking_duration) {
   auto const& tail_station =
       *get_departing_route_edge(*get_first_route_node(*schedule_, ICE_L_H))
            ->_to->_station_node;
@@ -339,7 +339,7 @@ TEST_F(test_graph_accessor3, walking_duration) {
   ASSERT_EQ(walking_duration(tail_station, head_station), (duration)10);
 }
 
-TEST_F(test_graph_accessor3, get_interchange_time_walk) {
+TEST_F(reliability_graph_accessor3, get_interchange_time_walk) {
   auto const& feeder_arrival =
       *get_departing_route_edge(*get_first_route_node(*schedule_, ICE_L_H))
            ->_to;
@@ -350,7 +350,7 @@ TEST_F(test_graph_accessor3, get_interchange_time_walk) {
             (duration)10);
 }
 
-TEST_F(test_graph_accessor, get_interchange_time) {
+TEST_F(reliability_graph_accessor, get_interchange_time) {
   auto const& feeder_arrival =
       *get_departing_route_edge(*get_first_route_node(*schedule_, RE_MA_DA))
            ->_to;

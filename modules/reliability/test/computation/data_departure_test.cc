@@ -19,9 +19,9 @@ namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
 
-class test_data_departure : public test_schedule_setup {
+class reliability_data_departure : public test_schedule_setup {
 public:
-  test_data_departure()
+  reliability_data_departure()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -41,7 +41,7 @@ public:
   short const RE_K_S = 8;
 };
 
-TEST_F(test_data_departure, first_route_node_no_feeders) {
+TEST_F(reliability_data_departure, first_route_node_no_feeders) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -79,7 +79,7 @@ TEST_F(test_data_departure, first_route_node_no_feeders) {
   ASSERT_TRUE(data.feeders_.size() == 0);
 }
 
-TEST_F(test_data_departure, preceding_arrival_no_feeders) {
+TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   distributions_container::precomputed_distributions_container dummy(0);
@@ -119,7 +119,7 @@ TEST_F(test_data_departure, preceding_arrival_no_feeders) {
                   0, 0, distributions_container::arrival));
 }
 
-TEST_F(test_data_departure, first_route_node_feeders) {
+TEST_F(reliability_data_departure, first_route_node_feeders) {
   distributions_container::precomputed_distributions_container dummy(0);
   precomputed_distributions_test_container feeder_distributions({0.1, 0.7, 0.2},
                                                                 -1);
@@ -174,7 +174,7 @@ TEST_F(test_data_departure, first_route_node_feeders) {
   }
 }
 
-TEST_F(test_data_departure, preceding_arrival_feeders) {
+TEST_F(reliability_data_departure, preceding_arrival_feeders) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   precomputed_distributions_test_container feeder_distributions({0.1, 0.7, 0.2},
@@ -228,7 +228,7 @@ TEST_F(test_data_departure, preceding_arrival_feeders) {
                   0, 0, distributions_container::arrival));
 }
 
-TEST_F(test_data_departure, first_route_node_no_waiting_category) {
+TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -266,7 +266,7 @@ TEST_F(test_data_departure, first_route_node_no_waiting_category) {
   ASSERT_TRUE(data.feeders_.size() == 0);
 }
 
-TEST_F(test_data_departure, check_train_distributions) {
+TEST_F(reliability_data_departure, check_train_distributions) {
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
@@ -341,7 +341,7 @@ TEST_F(test_data_departure, check_train_distributions) {
   ASSERT_TRUE(&data.feeders_[1].distribution_ == &feeder_distributions.feeder2);
 }
 
-TEST_F(test_data_departure, check_start_distribution) {
+TEST_F(reliability_data_departure, check_start_distribution) {
   precomputed_distributions_test_container distributions_container({0.1}, 0);
   struct start_and_travel_test2_distributions : start_and_travel_distributions {
     start_and_travel_test2_distributions() {
@@ -380,7 +380,7 @@ TEST_F(test_data_departure, check_start_distribution) {
 /* In this test case, largest delay depends on the preceding arrival.
  * All other cases in largest_delay() have been tested
  * in the other test cases */
-TEST_F(test_data_departure, check_largest_delay) {
+TEST_F(reliability_data_departure, check_largest_delay) {
   precomputed_distributions_test_container train_distributions(
       {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});

@@ -22,9 +22,9 @@ namespace motis {
 namespace reliability {
 namespace distributions_calculator {
 
-class test_distributions_calculator : public test_schedule_setup {
+class reliability_distributions_calculator : public test_schedule_setup {
 public:
-  test_distributions_calculator()
+  reliability_distributions_calculator()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -39,16 +39,16 @@ public:
   short const RE_K_S = 8;
 };
 
-class test_distributions_calculator4 : public test_schedule_setup {
+class reliability_distributions_calculator4 : public test_schedule_setup {
 public:
-  test_distributions_calculator4()
+  reliability_distributions_calculator4()
       : test_schedule_setup("modules/reliability/resources/schedule4/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
   short const RE_F_L_D = 1;
 };
 
-TEST_F(test_distributions_calculator, is_pre_computed_train) {
+TEST_F(reliability_distributions_calculator, is_pre_computed_train) {
   ASSERT_TRUE(precomputation::detail::is_pre_computed_route(
       *schedule_, *graph_accessor::get_first_route_node(*schedule_, IC_DA_H)));
   ASSERT_TRUE(precomputation::detail::is_pre_computed_route(
@@ -107,7 +107,7 @@ void test_distributions(
                      pre_computed_distributions);
 }
 
-TEST_F(test_distributions_calculator, Initial_distributions_simple) {
+TEST_F(reliability_distributions_calculator, Initial_distributions_simple) {
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -126,7 +126,7 @@ TEST_F(test_distributions_calculator, Initial_distributions_simple) {
 
 #if 0
 #include "motis/reliability/db_distributions.h"
-TEST_F(test_distributions_calculator, Initial_distributions_db_distributions) {
+TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributions) {
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule_->node_count);
   db_distributions db_dists(
@@ -144,7 +144,7 @@ TEST_F(test_distributions_calculator, Initial_distributions_db_distributions) {
             *schedule_, *first_route_node));
   }
 }
-TEST_F(test_distributions_calculator, Initial_distributions_db_distributions2) {
+TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributions2) {
   std::cout << "Initial_distributions_db_distributions2" << std::endl;
   auto schedule = loader::load_schedule("/tmp/rohdaten/rohdaten/",
                                         to_unix_time(2015, 9, 28),
@@ -169,7 +169,7 @@ TEST_F(test_distributions_calculator, Initial_distributions_db_distributions2) {
 }
 #endif
 
-TEST_F(test_distributions_calculator4, distributions_for_a_ride_RE) {
+TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -217,7 +217,7 @@ TEST_F(test_distributions_calculator4, distributions_for_a_ride_RE) {
   }
 }
 
-TEST_F(test_distributions_calculator, distributions_for_a_ride_ICE) {
+TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule_->node_count);
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -269,7 +269,7 @@ TEST_F(test_distributions_calculator, distributions_for_a_ride_ICE) {
   }
 }
 
-TEST_F(test_distributions_calculator, Test_queue_element) {
+TEST_F(reliability_distributions_calculator, Test_queue_element) {
   common::queue_type queue;
 
   node dummy_node(nullptr, 0);

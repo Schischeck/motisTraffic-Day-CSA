@@ -25,9 +25,9 @@ namespace reliability {
 namespace rating {
 namespace connection_to_graph_data {
 
-class test_connection_to_graph_data2 : public test_schedule_setup {
+class reliability_connection_to_graph_data2 : public test_schedule_setup {
 public:
-  test_connection_to_graph_data2()
+  reliability_connection_to_graph_data2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -39,9 +39,9 @@ public:
   short const ICE_S_E = 5;  // 11:32 --> 12:32
   short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
 };
-class test_connection_to_graph_data5 : public test_schedule_setup {
+class reliability_connection_to_graph_data5 : public test_schedule_setup {
 public:
-  test_connection_to_graph_data5()
+  reliability_connection_to_graph_data5()
       : test_schedule_setup("modules/reliability/resources/schedule5/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
@@ -52,9 +52,9 @@ public:
   short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
   short const RE_G_M = 2;  // 09:10 --> 09:40
 };
-class test_connection_to_graph_data6 : public test_schedule_setup {
+class reliability_connection_to_graph_data6 : public test_schedule_setup {
 public:
-  test_connection_to_graph_data6()
+  reliability_connection_to_graph_data6()
       : test_schedule_setup(
             "modules/reliability/resources/schedule6_footconnection/",
             to_unix_time(2015, 10, 19), to_unix_time(2015, 10, 20)) {}
@@ -67,7 +67,7 @@ public:
   short const RE_T_F = 2;  // 08:45 --> 09:15
 };
 
-TEST_F(test_connection_to_graph_data2, to_element) {
+TEST_F(reliability_connection_to_graph_data2, to_element) {
   auto const element_ice_s_e =
       detail::to_element(2, *schedule_, STUTTGART.eva, ERLANGEN.eva,
                          11 * 60 + 32, 12 * 60 + 32, "ICE", ICE_S_E);
@@ -89,7 +89,7 @@ TEST_F(test_connection_to_graph_data2, to_element) {
   ASSERT_TRUE(element_ice_s_e.light_connection_idx_ == 0);
 }
 
-TEST_F(test_connection_to_graph_data2, to_element2) {
+TEST_F(reliability_connection_to_graph_data2, to_element2) {
   auto const element_ice_k_f_s =
       detail::to_element(3, *schedule_, FRANKFURT.eva, STUTTGART.eva,
                          10 * 60 + 20, 11 * 60 + 15, "ICE", ICE_K_F_S);
@@ -122,7 +122,7 @@ void test_element(connection_element const& expected,
   ASSERT_EQ(expected.to_, element.to_);
 }
 
-TEST_F(test_connection_to_graph_data2, get_elements) {
+TEST_F(reliability_connection_to_graph_data2, get_elements) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
@@ -177,7 +177,7 @@ TEST_F(test_connection_to_graph_data2, get_elements) {
   setup.ios_.run();
 }
 
-TEST_F(test_connection_to_graph_data5, get_elements2) {
+TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       DARMSTADT.name, DARMSTADT.eva, MARBURG.name, MARBURG.eva,
@@ -258,7 +258,7 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
  * (Note: the routing-module does not deliver connections
  * with a station-to-station walking at the beginning).
  */
-TEST_F(test_connection_to_graph_data6, get_elements_foot) {
+TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,

@@ -19,9 +19,9 @@ namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
 
-class test_data_departure_interchange2 : public test_schedule_setup {
+class reliability_data_departure_interchange2 : public test_schedule_setup {
 public:
-  test_data_departure_interchange2()
+  reliability_data_departure_interchange2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -40,9 +40,9 @@ public:
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
-class test_data_departure_interchange3 : public test_schedule_setup {
+class reliability_data_departure_interchange3 : public test_schedule_setup {
 public:
-  test_data_departure_interchange3()
+  reliability_data_departure_interchange3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -55,7 +55,7 @@ public:
   short const S_M_W = 2;  // 10:20 --> 10:25
 };
 
-TEST_F(test_data_departure_interchange2,
+TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_no_feeders) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -96,7 +96,7 @@ TEST_F(test_data_departure_interchange2,
                   data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_F(test_data_departure_interchange2,
+TEST_F(reliability_data_departure_interchange2,
        interchange_preceding_arrival_no_feeders) {
   precomputed_distributions_test_container train_distributions({0.9, 0.1}, 0);
   distributions_container::precomputed_distributions_container dummy(0);
@@ -159,7 +159,7 @@ TEST_F(test_data_departure_interchange2,
                   data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_F(test_data_departure_interchange2,
+TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_feeders_incl_ic) {
   distributions_container::precomputed_distributions_container dummy(0);
   precomputed_distributions_test_container feeder_distributions({0.9, 0.1}, 0);
@@ -215,7 +215,7 @@ TEST_F(test_data_departure_interchange2,
                   data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_F(test_data_departure_interchange2,
+TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_feeders_excl_ic) {
   distributions_container::precomputed_distributions_container dummy(0);
   precomputed_distributions_test_container feeder_distributions({0.9, 0.1}, 0);
@@ -283,7 +283,7 @@ TEST_F(test_data_departure_interchange2,
                   data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_F(test_data_departure_interchange2,
+TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_no_other_feeder_but_icfeeder) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -325,7 +325,7 @@ TEST_F(test_data_departure_interchange2,
                   data.interchange_feeder_info_.transfer_time_);
 }
 
-TEST_F(test_data_departure_interchange3, interchange_walk) {
+TEST_F(reliability_data_departure_interchange3, interchange_walk) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
 

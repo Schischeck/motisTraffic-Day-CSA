@@ -27,9 +27,9 @@ using namespace motis::module;
 namespace motis {
 namespace reliability {
 
-class test_reliability2 : public test_schedule_setup {
+class reliability_reliability2 : public test_schedule_setup {
 public:
-  test_reliability2()
+  reliability_reliability2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -42,9 +42,9 @@ public:
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
-class test_reliability7 : public test_schedule_setup {
+class reliability_reliability7 : public test_schedule_setup {
 public:
-  test_reliability7()
+  reliability_reliability7()
       : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
@@ -58,7 +58,7 @@ public:
   short const IC_L_F = 4;  // 07:17 --> 07:40
 };
 
-TEST_F(test_reliability2, rating_request) {
+TEST_F(reliability_reliability2, rating_request) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_rating_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
@@ -108,7 +108,7 @@ TEST_F(test_reliability2, rating_request) {
   ASSERT_TRUE(test_cb_called);
 }
 
-TEST_F(test_reliability7, connection_tree) {
+TEST_F(reliability_reliability7, connection_tree) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
