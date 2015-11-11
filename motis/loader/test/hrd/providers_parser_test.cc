@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/providers_parser.h"
+#include "motis/loader/hrd/parser/providers_parser.h"
 
 namespace motis {
 namespace loader {

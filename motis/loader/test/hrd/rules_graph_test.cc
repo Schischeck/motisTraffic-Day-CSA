@@ -4,6 +4,7 @@
 #include "boost/filesystem.hpp"
 #include "boost/range/iterator_range.hpp"
 
+#include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "gtest/gtest.h"
 
 #include "test_spec.h"
@@ -12,14 +13,13 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/bitfield_translator.h"
-#include "motis/loader/parsers/hrd/service/split_service.h"
-#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/rule_service_builder.h"
+#include "motis/loader/hrd/model/split_service.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/through_services_parser.h"
+#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+#include "motis/loader/hrd/builder/rule_service_builder.h"
 
 namespace motis {
 namespace loader {
@@ -52,15 +52,15 @@ protected:
     }
 
     flatbuffers::FlatBufferBuilder fbb;
-    bitfield_translator bt(hrd_bitfields, fbb);
+    bitfield_builder bt(hrd_bitfields);
     std::vector<hrd_service> expanded_services;
     for (auto const& services_filename : services_filenames) {
       filenames_.emplace_back(services_filename);
       specs_.emplace_back(services_root, filenames_.back().c_str());
 
-      LOG(info) << "load hrd services file: " << specs_.back().lf_.name;
+      LOG(info) << "load hrd services file: " << specs_.back().lf_.name();
       for (auto const& s : specs_.back().get_hrd_services()) {
-        expand_traffic_days(s, bt, expanded_services);
+        expand_traffic_days(s, bt.hrd_bitfields_, expanded_services);
       }
     }
 
@@ -76,31 +76,7 @@ protected:
     for (auto const& s : expanded_services) {
       service_rules_.add_service(s);
     }
-    service_rules_.build_services();
-  }
-
-  void print_services() const {
-    printf("origin services:\n");
-    for (auto const& s : service_rules_.origin_services_) {
-      printf("(%s, %d)\n", s.get()->origin_.filename,
-             s.get()->origin_.line_number);
-      printf("traffic_days: [%s]\n",
-             s.get()->traffic_days_.to_string().c_str());
-    }
-
-    printf("rule services:\n");
-    int id = 0;
-    for (auto const& rs : service_rules_.rule_services_) {
-      printf("rule_service_%d:\n", ++id);
-      for (auto const& s : rs.rules) {
-        printf("(%s, %d)-[%s]-(%s, %d)\n", s.s1->origin_.filename,
-               s.s1->origin_.line_number,
-               (int)s.rule_info.type == 1 ? "MSSR" : "TSR",
-               s.s2->origin_.filename, s.s2->origin_.line_number);
-        printf("traffic_days: [%s]\n", s.s1->traffic_days_.to_string().c_str());
-        printf("traffic_days: [%s]\n", s.s2->traffic_days_.to_string().c_str());
-      }
-    }
+    service_rules_.resolve_rule_services();
   }
 
   std::string schedule_name_;

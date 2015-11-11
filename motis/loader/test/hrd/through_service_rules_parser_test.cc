@@ -4,11 +4,11 @@
 
 #include "test_spec.h"
 
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/through_services_parser.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/through_services_parser.h"
 
 namespace motis {
 namespace loader {

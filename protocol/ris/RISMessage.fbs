@@ -3,14 +3,14 @@ namespace motis.ris;
 // ----------------------------------------------------------------------------
 // Train centered Messages
 // ----------------------------------------------------------------------------
-enum EventType : byte {Arrival, Departure, Pass}
+enum EventType : bool {Arrival, Departure}
 enum StationIdType : byte {Context, EVA, DS100}
 table Event {
   // if stationIdType is Context, station Id is not set
   stationIdType: StationIdType;
   stationId: string; // optional
   
-  trainIndex: int;
+  trainIndex: uint;
   type: EventType;
   scheduledTime: ulong;
 }
@@ -75,8 +75,9 @@ table ConnectionAssessmentMessage { // Anschlussbewertung
 }
 
 // ----------------------------------------------------------------------------
-// envelope
+// Connection Envelope
 // ----------------------------------------------------------------------------
+
 union MessageUnion {
   DelayMessage,
   CancelMessage,
@@ -90,13 +91,4 @@ table Message {
   content: MessageUnion (required);
 }
 
-table Packet {
-  timestamp: ulong;
-  messages: [Message] (required);
-}
-
-table RISBatch {
-  packets: [Packet] (required);
-}
-
-root_type RISBatch;
+root_type Message;

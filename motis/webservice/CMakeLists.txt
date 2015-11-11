@@ -21,8 +21,10 @@ target_link_libraries(motis-webservice
   motis-module
   motis-guesser
   motis-railviz
+  motis-realtime
   motis-reliability
   motis-routing
+  motis-realtime
   motis-ris
 )
 

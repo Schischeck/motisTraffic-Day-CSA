@@ -12,3 +12,8 @@ Differenzstatistik.stat
 *.sublime-project
 *.sublime-workspace
 *.raw
+*.db
+*.sqlite
+*.sqlite3
+stats.csv
+tracking-in-messages.txt

@@ -1,0 +1,14 @@
+namespace motis.railviz;
+
+table RailVizTrain {
+	d_time : int;
+	a_time : int;
+	d_station : int;
+	a_station : int;
+	route_id : int;
+	
+	d_time_delay : int = 0;
+	a_time_delay : int = 0;
+	departure_delay_reason : string;
+	arrival_delay_reason: string;
+}

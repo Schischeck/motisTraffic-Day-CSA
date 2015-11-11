@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/calendar.h"
+#include "motis/loader/gtfs/calendar.h"
 
 #include "parser/csv.h"
 
@@ -44,15 +44,16 @@ std::bitset<7> traffic_week_days(gtfs_calendar const& c) {
 
 std::map<std::string, calendar> read_calendar(loaded_file file) {
   std::map<std::string, calendar> services;
-  for (auto const& c : read<gtfs_calendar>(file.content, calendar_columns)) {
-    services.insert(std::make_pair(get<service_id>(c).to_str(),
-                                   calendar{traffic_week_days(c),
-                                            {yyyymmdd_year(get<start_date>(c)),
-                                             yyyymmdd_month(get<start_date>(c)),
-                                             yyyymmdd_day(get<start_date>(c))},
-                                            {yyyymmdd_year(get<end_date>(c)),
-                                             yyyymmdd_month(get<end_date>(c)),
-                                             yyyymmdd_day(get<end_date>(c))}}));
+  for (auto const& c : read<gtfs_calendar>(file.content(), calendar_columns)) {
+    services.insert(std::make_pair(
+        get<service_id>(c).to_str(),
+        calendar{traffic_week_days(c),
+                 {static_cast<uint16_t>(yyyymmdd_year(get<start_date>(c))),
+                  static_cast<uint16_t>(yyyymmdd_month(get<start_date>(c))),
+                  static_cast<uint16_t>(yyyymmdd_day(get<start_date>(c)))},
+                 {static_cast<uint16_t>(yyyymmdd_year(get<end_date>(c))),
+                  static_cast<uint16_t>(yyyymmdd_month(get<end_date>(c))),
+                  static_cast<uint16_t>(yyyymmdd_day(get<end_date>(c)))}}));
   }
   return services;
 }

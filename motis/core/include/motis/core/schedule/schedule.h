@@ -2,6 +2,7 @@
 
 #include <ctime>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "motis/core/schedule/station.h"
@@ -31,6 +32,7 @@ struct schedule {
   unsigned node_count;
   std::vector<station_node_ptr> station_nodes;
   std::vector<node*> route_index_to_first_route_node;
+  std::unordered_map<uint32_t, std::vector<int32_t>> train_nr_to_routes;
   waiting_time_rules waiting_time_rules_;
   synchronization sync;
 

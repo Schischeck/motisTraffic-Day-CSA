@@ -4,12 +4,12 @@
 
 #include "parser/buffer.h"
 
-#include "motis/module/message.h"
+#include "motis/ris/ris_message.h"
 
 namespace motis {
 namespace ris {
 
-module::msg_ptr parse_xmls(std::vector<parser::buffer>&& xml_strings);
+std::vector<ris_message> parse_xmls(std::vector<parser::buffer>&& xml_strings);
 
 } // namespace ris
 } // namespace motis

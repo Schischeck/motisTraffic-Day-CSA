@@ -1,3 +1,5 @@
+#if 0
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -16,7 +18,6 @@ TEST_CASE("original events don't have delay", "[delay]") {
   const motis::station* wuerzburg = ts.get_station("Würzburg Hbf");
 
   for (int offset = 0; offset <= 10; offset++) {
-    //    std::cout << "arrival at " << (9+offset) << ":43\n";
     motis::node* route_node;
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, false, t(9 + offset, 43), -1);
@@ -24,12 +25,12 @@ TEST_CASE("original events don't have delay", "[delay]") {
     CHECK(route_node != nullptr);
     CHECK(lc != nullptr);
     if (lc) CHECK(lc->a_time == t(9 + offset, 43));
+
     CHECK(rt::graph_event(ts._rts.get_schedule_event(event)) == event);
     CHECK(ts._rts._delay_info_manager.get_delay_info(event) == nullptr);
   }
 
   for (int offset = 0; offset <= 10; offset++) {
-    //    std::cout << "departure at " << (9+offset) << ":46\n";
     motis::node* route_node;
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, true, t(9 + offset, 46), -1);
@@ -173,3 +174,6 @@ TEST_CASE("is message back propagation", "[delay]") {
        {langen, "RB", 20, t(12, 49), t(12, 50), "RB", 20, t(12, 51), t(12, 50)},
        {ffm_hbf, "RB", 20, t(13, 5), t(13, 5), "", 0, INV, INV}});
 }
+
+
+# endif

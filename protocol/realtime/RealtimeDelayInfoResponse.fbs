@@ -1,0 +1,26 @@
+namespace motis.realtime;
+
+enum InternalTimestampReason : byte {
+  Schedule,
+  Is,
+  Forecast,
+  Propagation,
+  Repair
+}
+
+table DelayInfo {
+  train_nr:uint;
+  station_index:uint;
+  departure:bool;
+  scheduled_time:ushort;
+  current_time:ushort;
+  forecast_time:ushort;
+  canceled:bool;
+  reason:InternalTimestampReason = Schedule;
+  route_id:int;
+}
+
+/// Sent in response to a RealtimeDelayInfoRequest.
+table RealtimeDelayInfoResponse {
+  delay_infos:[DelayInfo];
+}
