@@ -9,13 +9,13 @@ struct ConnectionAssessmentMessage;
 
 namespace realtime {
 
-struct realtime_context;
+class realtime_schedule;
 
 namespace handler {
 
 void handle_connection_assessment(
     motis::ris::ConnectionAssessmentMessage const* msg,
-    motis::realtime::realtime_context& ctx);
+    motis::realtime::realtime_schedule& ctx);
 
 }  // namespace handler
 }  // namespace realtime

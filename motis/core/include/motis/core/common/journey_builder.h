@@ -13,5 +13,10 @@ struct RoutingResponse;
 namespace journey_builder {
 std::vector<journey> to_journeys(routing::RoutingResponse const*,
                                  std::vector<std::unique_ptr<category>> const&);
+
+namespace detail {
+uint16_t get_duration(journey const& journey);
+uint16_t get_transfers(journey const& journey);
+}  // namespace detail
 }  // namespace journey_builder
 }  // namespace motis

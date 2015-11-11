@@ -3,7 +3,9 @@
 #include <fstream>
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/common/logging.h"
 
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
@@ -43,23 +45,20 @@ void compute_dep_and_arr_distribution(
     queue_element const& element,
     distributions_container::abstract_distributions_container const&
         train_distributions_container,
-    distributions_container::abstract_distributions_container const&
-        feeder_distributions_container,
-    start_and_travel_distributions const& s_t_distributions,
-    schedule const& schedule, probability_distribution& departure_distribution,
+    context const& context, probability_distribution& departure_distribution,
     probability_distribution& arrival_distribution) {
   assert(departure_distribution.empty());
   calc_departure_distribution::data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
-      schedule, train_distributions_container, feeder_distributions_container,
-      s_t_distributions);
+      context.schedule_, train_distributions_container,
+      context.precomputed_distributions_, context.s_t_distributions_);
   calc_departure_distribution::compute_departure_distribution(
       d_data, departure_distribution);
 
   assert(arrival_distribution.empty());
   calc_arrival_distribution::data_arrival a_data(
       *element.to_, *element.light_connection_, departure_distribution,
-      schedule, s_t_distributions);
+      context.schedule_, context.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 }
@@ -144,9 +143,9 @@ void process_element(
   }
 
   common::compute_dep_and_arr_distribution(
-      element, distributions_container, distributions_container,
-      s_t_distributions, schedule, departure_distribution,
-      arrival_distribution);
+      element, distributions_container,
+      context(schedule, distributions_container, s_t_distributions),
+      departure_distribution, arrival_distribution);
   // insert all light connections out-going from the head-node
   // into the queue. Note that, process element is called
   // for all light-connections of the route-edge.
@@ -164,6 +163,7 @@ void perform_precomputation(
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::precomputed_distributions_container&
         distributions_container) {
+  logging::scoped_timer time("computing distributions");
   common::queue_type queue;
 
   for (auto const first_route_node : schedule.route_index_to_first_route_node) {
@@ -176,12 +176,7 @@ void perform_precomputation(
     detail::process_element(queue.top(), schedule, s_t_distributions, queue,
                             distributions_container);
     queue.pop();
-    if (++num_processed % 10000 == 0) {
-      std::cout << "." << std::flush;
-    }
   }
-  std::cout << "\n" << num_processed << " pre-computed distribution pairs"
-            << std::endl;
 }
 }  // namespace precomputation
 }  // namespace distributions_calculator

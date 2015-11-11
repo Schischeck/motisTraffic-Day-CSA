@@ -1,46 +1,30 @@
 include "routing/RoutingResponse.fbs";
+include "reliability/ReliabilityRatingResponse.fbs";
 
 namespace motis.reliability;
 
-table ProbabilityDistribution {
-  begin_time:ulong;
-  distribution:[float];
-  sum:float;
+table AlternativeRating {
+  departure_distribution:ProbabilityDistribution;
+  arrival_distribution:ProbabilityDistribution;
 }
 
-struct Range {
-  from:short;
-  to:short;
+table AlternativeInfo {
+  departing_journey_index:short;
+  head_stop_index:short;
+  rating:AlternativeRating;
 }
 
-table SimpleRatingInfo {
-  type:string;
-  rating:float;
+table Stop {
+  index:short;
+  alternative_infos:[AlternativeInfo];
 }
 
-table SimpleRatingElement {
-  range:Range;
-  ratings:[SimpleRatingInfo];
-}
-
-table SimpleRating {
-rating_elements:[SimpleRatingElement];
-connection_rating:float;
-}
-
-table RatingElement {
-  range:Range;
-  dep_distribution:ProbabilityDistribution;
-  arr_distribution:ProbabilityDistribution;
-}
-
-table Rating {
-rating_elements:[RatingElement];
-connection_rating:float;
+table ConnectionGraph {
+  stops:[Stop];
+  journeys:[motis.routing.Connection];
+  arrival_distribution:ProbabilityDistribution;
 }
 
 table ReliableRoutingResponse {
-  response:motis.routing.RoutingResponse;
-  ratings:[Rating];
-  simple_ratings:[SimpleRating];
+  connection_graphs:[ConnectionGraph];
 }

@@ -7,6 +7,7 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
 #include "motis/reliability/computation/distributions_calculator.h"
@@ -186,8 +187,9 @@ TEST_F(test_distributions_calculator4, distributions_for_a_ride_RE) {
       *graph_accessor::get_departing_route_edge(second_route_node)->_to;
 
   ride_distribution::detail::compute_distributions_for_a_ride(
-      0, last_route_node, *schedule_, s_t_distributions,
-      precomputed_distributions, container);
+      0, last_route_node,
+      context(*schedule_, precomputed_distributions, s_t_distributions),
+      container);
 
   {
     auto const& distribution = container.get_distribution(
@@ -234,8 +236,9 @@ TEST_F(test_distributions_calculator, distributions_for_a_ride_ICE) {
   unsigned int const light_conn_idx = 1;
 
   ride_distribution::detail::compute_distributions_for_a_ride(
-      light_conn_idx, last_route_node, *schedule_, s_t_distributions,
-      precomputed_distributions, container);
+      light_conn_idx, last_route_node,
+      context(*schedule_, precomputed_distributions, s_t_distributions),
+      container);
 
   {
     auto const& distribution =

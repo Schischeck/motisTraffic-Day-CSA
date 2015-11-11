@@ -7,6 +7,7 @@ struct schedule;
 class node;
 
 namespace reliability {
+struct context;
 struct start_and_travel_distributions;
 namespace distributions_container {
 struct precomputed_distributions_container;
@@ -14,7 +15,7 @@ struct ride_distributions_container;
 }
 namespace rating {
 struct connection_element;
-}
+};
 
 namespace distributions_calculator {
 namespace ride_distribution {
@@ -27,20 +28,13 @@ namespace ride_distribution {
 std::vector<bool> compute_missing_train_distributions(
     distributions_container::ride_distributions_container& ride_distributions,
     std::vector<std::vector<rating::connection_element>> const& trains,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions);
+    context const&);
 
 namespace detail {
 void compute_distributions_for_a_ride(
     unsigned int const light_connection_idx, node const& last_route_node,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions_container,
-    distributions_container::ride_distributions_container&
-        ride_distributions_container);
+    context const&, distributions_container::ride_distributions_container&
+                        ride_distributions_container);
 
 }  // namespace detail
 }  // namespace ride_distribution

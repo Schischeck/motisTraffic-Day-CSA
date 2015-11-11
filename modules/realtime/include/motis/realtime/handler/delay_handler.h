@@ -9,12 +9,12 @@ struct DelayMessage;
 
 namespace realtime {
 
-struct realtime_context;
+class realtime_schedule;
 
 namespace handler {
 
 void handle_delay(motis::ris::DelayMessage const* msg,
-                  motis::realtime::realtime_context& ctx);
+                  motis::realtime::realtime_schedule& ctx);
 
 }  // namespace handler
 }  // namespace realtime

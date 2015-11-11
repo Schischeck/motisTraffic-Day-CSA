@@ -66,7 +66,7 @@ char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
  ZielBfEvaNr=\"8000096\" Zielzeit=\"20151007011600\" IdVerwaltung=\"80\"\
  IdZGattungInt=\"IC\" IdLinie=\"\" SourceZNr=\"EFZ\">\
 <ListZug><Zug Nr=\"60418\" Gattung=\"IC\"  GattungInt=\"IC\" Verwaltung=\"80\" >\
-<ListZE><ZE Typ=\"Durch\" ><Bf Code=\"MNFG\" />\
+<ListZE><ZE Typ=\"Ab\" ><Bf Code=\"MNFG\" />\
 <Zeit Soll=\"20151006234800\" Ist=\"20151006235900\" />\
 </ZE>    </ListZE></Zug></ListZug></Service></Ist><ListQuelle>\
 <Quelle Sender=\"ZENTRAL\"  Typ=\"IstProg\" KNr=\"18777\" TIn=\"20151007000000336\"\
@@ -96,7 +96,7 @@ TEST(delay_message, ist_message_2) {
   EXPECT_EQ(StationIdType_DS100, events->Get(0)->base()->stationIdType());
   EXPECT_EQ(std::string("MNFG"), events->Get(0)->base()->stationId()->c_str());
   EXPECT_EQ(1444168080, events->Get(0)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Pass, events->Get(0)->base()->type());
+  EXPECT_EQ(EventType_Departure, events->Get(0)->base()->type());
 
   EXPECT_EQ(1444168740, events->Get(0)->updatedTime());
 }
@@ -129,10 +129,6 @@ TEST(delay_message, train_event_type) {
   auto ab = parse_xmls(pack(ab_msg.c_str()));
   ASSERT_EQ(EventType_Departure, get_type(ab));
 
-  auto pass_msg = type_fixture("Durch");
-  auto pass = parse_xmls(pack(pass_msg.c_str()));
-  ASSERT_EQ(EventType_Pass, get_type(pass));
-
   auto an_msg = type_fixture("An");
   auto an = parse_xmls(pack(an_msg.c_str()));
   ASSERT_EQ(EventType_Arrival, get_type(an));
@@ -140,6 +136,13 @@ TEST(delay_message, train_event_type) {
   auto ziel_msg = type_fixture("Ziel");
   auto ziel = parse_xmls(pack(ziel_msg.c_str()));
   ASSERT_EQ(EventType_Arrival, get_type(ziel));
+
+  // "Durch" events are ignored
+  auto pass_msg = type_fixture("Durch");
+  auto pass = parse_xmls(pack(pass_msg.c_str()));
+  auto content = GetMessage(pass[0].data())->content();
+  auto delay_message = reinterpret_cast<DelayMessage const*>(content);
+  EXPECT_EQ(0, delay_message->events()->size());
 }
 
 // clang-format off

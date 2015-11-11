@@ -2,4 +2,4 @@
 
 void motis::realtime::handler::handle_connection_assessment(
     motis::ris::ConnectionAssessmentMessage const*,
-    motis::realtime::realtime_context&) {}
+    motis::realtime::realtime_schedule&) {}

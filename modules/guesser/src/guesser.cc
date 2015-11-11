@@ -40,9 +40,9 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
   for (auto const& guess :
        guesser_->guess(req->input()->str(), req->guess_count())) {
     auto const& station = *sync.sched().stations[guess];
-    guesses.emplace_back(CreateStation(b, b.CreateString(station.name),
-                                       b.CreateString(station.eva_nr),
-                                       station.width, station.length));
+    guesses.emplace_back(CreateStation(
+        b, b.CreateString(station.name), b.CreateString(station.eva_nr),
+        station.index, station.width, station.length));
   }
 
   b.Finish(motis::CreateMessage(

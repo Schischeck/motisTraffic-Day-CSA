@@ -1,12 +1,14 @@
+include "railviz/RailVizCoordinate.fbs";
+
 namespace motis.railviz;
 
-struct StationCoordinate {
-  lat: double;
-  lng: double;
+table RailVizInitEntry {
+  station_name : string;
+  station_coord : RailVizCoordinate;
 }
 
 table RailVizInit {
-  stations : [StationCoordinate];
+  stations : [RailVizInitEntry];
   schedule_start: int;
   schedule_end: int;
 }

@@ -9,13 +9,12 @@ struct RerouteMessage;
 
 namespace realtime {
 
-struct realtime_context;
+class realtime_schedule;
 
 namespace handler {
 
-void handle_reroute(
-    motis::ris::RerouteMessage const* msg,
-    motis::realtime::realtime_context& ctx);
+void handle_reroute(motis::ris::RerouteMessage const* msg,
+                    motis::realtime::realtime_schedule& ctx);
 
 }  // namespace handler
 }  // namespace realtime

@@ -13,6 +13,7 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/search/connection_graph.h"
 
 using namespace flatbuffers;
 
@@ -46,7 +47,8 @@ module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
       b, MsgContent_RoutingRequest,
       routing::CreateRoutingRequest(b, &interval, request->type(),
                                     request->direction(),
-                                    b.CreateVector(station_elements)).Union()));
+                                    b.CreateVector(station_elements))
+          .Union()));
   return module::make_msg(b);
 }
 
@@ -54,37 +56,53 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    std::string const& from_eva,
                                    std::string const& to_name,
                                    std::string const& to_eva,
-                                   motis::time interval_begin,
-                                   motis::time interval_end,
-                                   std::tuple<int, int, int> ddmmyyyy) {
+                                   time_t interval_begin, time_t interval_end,
+                                   bool const ontrip) {
   FlatBufferBuilder b;
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
-  routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
-                             to_unix_time(ddmmyyyy, interval_end));
+  routing::Interval interval(interval_begin, interval_end);
   b.Finish(CreateMessage(
       b, MsgContent_RoutingRequest,
-      routing::CreateRoutingRequest(b, &interval, routing::Type::Type_PreTrip,
-                                    routing::Direction::Direction_Forward,
-                                    b.CreateVector(station_elements)).Union()));
+      routing::CreateRoutingRequest(
+          b, &interval,
+          (ontrip ? routing::Type::Type_OnTrip : routing::Type::Type_PreTrip),
+          routing::Direction::Direction_Forward,
+          b.CreateVector(station_elements))
+          .Union()));
   return module::make_msg(b);
+}
+
+module::msg_ptr to_routing_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, bool const ontrip) {
+  return to_routing_request(from_name, from_eva, to_name, to_eva,
+                            to_unix_time(ddmmyyyy, interval_begin),
+                            to_unix_time(ddmmyyyy, interval_end), ontrip);
+}
+
+Offset<routing::Connection> to_connection(FlatBufferBuilder& b,
+                                          journey const& j) {
+  using namespace routing;
+  return CreateConnection(
+      b, b.CreateVector(detail::convert_stops(b, j.stops)),
+      b.CreateVector(detail::convert_moves(b, j.transports)),
+      b.CreateVector(detail::convert_attributes(b, j.attributes)));
 }
 
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
     std::vector<std::unique_ptr<category>> const& categories) {
-  using namespace routing;
   std::vector<Offset<routing::Connection>> connections;
-  auto journeys =
+  auto const journeys =
       journey_builder::to_journeys(orig_routing_response, categories);
   for (auto const& j : journeys) {
-    connections.push_back(CreateConnection(
-        b, b.CreateVector(detail::convert_stops(b, j.stops)),
-        b.CreateVector(detail::convert_moves(b, j.transports)),
-        b.CreateVector(detail::convert_attributes(b, j.attributes))));
+    connections.push_back(to_connection(b, j));
   }
   return CreateRoutingResponse(b, b.CreateVector(connections));
 }
@@ -221,7 +239,7 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
 }
 }  // namespace simple_rating_converter
 
-module::msg_ptr to_reliable_routing_response(
+module::msg_ptr to_reliability_rating_response(
     routing::RoutingResponse const* orig_routing_response,
     std::vector<std::unique_ptr<category>> const& categories,
     std::vector<rating::connection_rating> const& orig_ratings,
@@ -236,19 +254,19 @@ module::msg_ptr to_reliable_routing_response(
       b, orig_ratings, *orig_routing_response->connections(), short_output);
   auto const simple_ratings = simple_rating_converter::convert_simple_ratings(
       b, orig_simple_ratings, *orig_routing_response->connections());
-  b.Finish(CreateMessage(
-      b, MsgContent_ReliableRoutingResponse,
-      CreateReliableRoutingResponse(b, routing_response, conn_ratings,
-                                    simple_ratings).Union()));
+  b.Finish(CreateMessage(b, MsgContent_ReliabilityRatingResponse,
+                         CreateReliabilityRatingResponse(
+                             b, routing_response, conn_ratings, simple_ratings)
+                             .Union()));
   return module::make_msg(b);
 }
 
 module::msg_ptr to_reliable_routing_request(
-    std::string const& from_name, std::string const& from_eva,
-    std::string const& to_name, std::string const& to_eva,
-    motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy) {
-  FlatBufferBuilder b;
+    FlatBufferBuilder& b, std::string const& from_name,
+    std::string const& from_eva, std::string const& to_name,
+    std::string const& to_eva, motis::time interval_begin,
+    motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
+    Offset<RequestTypeWrapper>& request_type_wrapper) {
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
@@ -256,13 +274,110 @@ module::msg_ptr to_reliable_routing_request(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
                              to_unix_time(ddmmyyyy, interval_end));
-  b.Finish(
-      CreateMessage(b, MsgContent_ReliableRoutingRequest,
-                    reliability::CreateReliableRoutingRequest(
-                        b, routing::CreateRoutingRequest(
-                               b, &interval, routing::Type::Type_PreTrip,
-                               routing::Direction::Direction_Forward,
-                               b.CreateVector(station_elements))).Union()));
+  b.Finish(CreateMessage(b, MsgContent_ReliableRoutingRequest,
+                         reliability::CreateReliableRoutingRequest(
+                             b, routing::CreateRoutingRequest(
+                                    b, &interval, routing::Type::Type_PreTrip,
+                                    routing::Direction::Direction_Forward,
+                                    b.CreateVector(station_elements)),
+                             request_type_wrapper)
+                             .Union()));
+  return module::make_msg(b);
+}
+
+module::msg_ptr to_rating_request(std::string const& from_name,
+                                  std::string const& from_eva,
+                                  std::string const& to_name,
+                                  std::string const& to_eva,
+                                  motis::time interval_begin,
+                                  motis::time interval_end,
+                                  std::tuple<int, int, int> ddmmyyyy) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_RatingReq,
+      reliability::CreateRatingReq(b).Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
+}
+
+module::msg_ptr to_reliable_routing_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff,
+    short const interval_width) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_ReliableSearchReq,
+      reliability::CreateReliableSearchReq(b, min_dep_diff, interval_width)
+          .Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
+}
+
+module::msg_ptr to_connection_tree_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
+    short const min_dep_diff, short const interval_width) {
+  FlatBufferBuilder b;
+  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
+      b, reliability::RequestType_ConnectionTreeReq,
+      reliability::CreateConnectionTreeReq(b, num_alternatives_at_stop,
+                                           min_dep_diff, interval_width)
+          .Union());
+  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                     interval_begin, interval_end, ddmmyyyy,
+                                     request_type_wrapper);
+}
+
+Offset<ConnectionGraph> to_connection_graph(
+    FlatBufferBuilder& b, search::connection_graph const& cg) {
+  std::vector<Offset<Stop>> stops;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
+  for (auto const& stop : cg.stops_) {
+    std::vector<Offset<AlternativeInfo>> alternative_infos;
+    for (auto const& alternative_info : stop.alternative_infos_) {
+      auto const& journey =
+          cg.journeys_.at(alternative_info.departing_journey_index_);
+      auto dep_dist = rating_converter::convert(
+          b, alternative_info.rating_.departure_distribution_,
+          journey.stops.front().departure.timestamp);
+      auto arr_dist = rating_converter::convert(
+          b, alternative_info.rating_.arrival_distribution_,
+          journey.stops.back().arrival.timestamp);
+      auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
+      alternative_infos.push_back(
+          CreateAlternativeInfo(b, alternative_info.departing_journey_index_,
+                                alternative_info.head_stop_index_, rating));
+    }
+    stops.push_back(
+        CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
+  }
+  b.ForceDefaults(false);
+
+  std::vector<Offset<routing::Connection>> journeys;
+  for (auto const& j : cg.journeys_) {
+    journeys.push_back(to_connection(b, j));
+  }
+  return CreateConnectionGraph(b, b.CreateVector(stops),
+                               b.CreateVector(journeys));
+}
+
+module::msg_ptr to_reliable_routing_response(
+    std::vector<std::shared_ptr<search::connection_graph>> const& cgs) {
+  FlatBufferBuilder b;
+  std::vector<Offset<ConnectionGraph>> connection_graphs;
+  for (auto const cg : cgs) {
+    connection_graphs.push_back(to_connection_graph(b, *cg));
+  }
+  b.Finish(CreateMessage(b, MsgContent_ReliableRoutingResponse,
+                         reliability::CreateReliableRoutingResponse(
+                             b, b.CreateVector(connection_graphs))
+                             .Union()));
   return module::make_msg(b);
 }
 
