@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
 
 #include "motis/loader/loader.h"
 
@@ -54,20 +56,25 @@ TEST_F(test_simple_rating2, simple_rate) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
-      std::make_tuple(28, 9, 2015));
+      (motis::time)(11 * 60 + 27),
+      (motis::time)(
+          11 * 60 +
+          27) /* regard interchange time at the beginning of the journey */,
+      std::make_tuple(28, 9, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
 
     simple_connection_rating rating;
-    bool success = rate(rating, *response->connections()->begin(), *schedule_,
-                        s_t_distributions);
+    bool success =
+        rate(rating, journeys.front(), *schedule_, s_t_distributions);
     ASSERT_TRUE(success);
     ASSERT_TRUE(rating.ratings_elements_.size() == 2);
-    ASSERT_TRUE(rating.ratings_elements_[0].from_ == 1);
+    ASSERT_EQ(1, rating.ratings_elements_[0].from_);
     ASSERT_TRUE(rating.ratings_elements_[0].to_ == 2);
     ASSERT_TRUE(rating.ratings_elements_[1].from_ == 2);
     ASSERT_TRUE(rating.ratings_elements_[1].to_ == 3);
@@ -86,8 +93,8 @@ TEST_F(test_simple_rating2, simple_rate) {
     ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995));
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 /* Mannheim to Darmstadt with RE_M_B_D (interchange in Darmstadt),
@@ -98,16 +105,17 @@ TEST_F(test_simple_rating5, simple_rate2) {
   auto msg = flatbuffers_tools::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015));
+      std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     simple_connection_rating rating;
-    bool success = rate(rating, *response->connections()->begin(), *schedule_,
-                        s_t_distributions);
+    bool success =
+        rate(rating, journeys.front(), *schedule_, s_t_distributions);
 
     ASSERT_TRUE(success);
     ASSERT_TRUE(rating.ratings_elements_.size() == 3);
@@ -146,8 +154,8 @@ TEST_F(test_simple_rating5, simple_rate2) {
     ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995 * 0.995 * 0.9));
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 }  // namespace simple_rating

@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/journey.h"
+#include "motis/core/common/journey_builder.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
@@ -94,7 +97,8 @@ TEST_F(test_connection_to_graph_data2, to_element2) {
   // route node at Frankfurt of train ICE_K_F_S
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))->_to;
+           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
+           ->_to;
   // route edge from Frankfurt to Stuttgart
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
@@ -108,20 +112,29 @@ TEST_F(test_connection_to_graph_data2, to_element2) {
   ASSERT_TRUE(element_ice_k_f_s.light_connection_idx_ == 0);
 }
 
+void test_element(connection_element const& expected,
+                  connection_element const& element) {
+  ASSERT_EQ(expected.departure_stop_idx_, element.departure_stop_idx_);
+  ASSERT_EQ(expected.from_, element.from_);
+  ASSERT_EQ(expected.is_first_route_node_, element.is_first_route_node_);
+  ASSERT_EQ(expected.light_connection_, element.light_connection_);
+  ASSERT_EQ(expected.light_connection_idx_, element.light_connection_idx_);
+  ASSERT_EQ(expected.to_, element.to_);
+}
+
 TEST_F(test_connection_to_graph_data2, get_elements) {
   system_tools::setup setup(schedule_.get());
-
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
-      std::make_tuple(28, 9, 2015));
+      (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
+      std::make_tuple(28, 9, 2015), false);
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);
@@ -156,9 +169,12 @@ TEST_F(test_connection_to_graph_data2, get_elements) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   ICE_E_K);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 TEST_F(test_connection_to_graph_data5, get_elements2) {
@@ -166,15 +182,15 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
   auto msg = flatbuffers_tools::to_routing_request(
       DARMSTADT.name, DARMSTADT.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
-      std::make_tuple(19, 10, 2015));
+      std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements.at(0).size() == 2);
@@ -226,9 +242,12 @@ TEST_F(test_connection_to_graph_data5, get_elements2) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_G_M);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 /* Connection with two walking sections:
@@ -244,15 +263,15 @@ TEST_F(test_connection_to_graph_data6, get_elements_foot) {
   auto msg = flatbuffers_tools::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
-      std::make_tuple(19, 10, 2015));
+      std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     ASSERT_TRUE(msg);
-    auto response = msg->content<routing::RoutingResponse const*>();
-    ASSERT_TRUE(response->connections()->size() == 1);
+    auto const journeys = journey_builder::to_journeys(
+        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+    ASSERT_EQ(1, journeys.size());
 
-    auto const elements =
-        get_elements(*schedule_, *response->connections()->begin()).second;
+    auto const elements = get_elements(*schedule_, journeys.front()).second;
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);
@@ -286,9 +305,12 @@ TEST_F(test_connection_to_graph_data6, get_elements_foot) {
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_T_F);
     }
+
+    auto const element = get_last_element(*schedule_, journeys.front());
+    test_element(elements[1][0], element);
   };
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
 }
 
 }  // namespace connection_to_graph_data

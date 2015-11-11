@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
 
 #include <iostream>
+#include <string>
 #include <fstream>
+#include <streambuf>
 #include <vector>
 
 #include "motis/core/common/date_util.h"
@@ -20,16 +22,18 @@
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
 
-using namespace motis;
-using namespace motis::reliability;
 using namespace motis::module;
 
-class test_reliability : public test_schedule_setup {
+namespace motis {
+namespace reliability {
+
+class test_reliability2 : public test_schedule_setup {
 public:
-  test_reliability()
+  test_reliability2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
+
   schedule_station const ERLANGEN = {"Erlangen", "0953067"};
   schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
   schedule_station const KASSEL = {"Kassel", "6380201"};
@@ -38,18 +42,38 @@ public:
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
-TEST_F(test_reliability, reliable_routing_request) {
+class test_reliability7 : public test_schedule_setup {
+public:
+  test_reliability7()
+      : test_schedule_setup("modules/reliability/resources/schedule7_cg/",
+                            to_unix_time(2015, 10, 19),
+                            to_unix_time(2015, 10, 20)) {}
+
+  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
+  schedule_station const LANGEN = {"Langen", "2222222"};
+  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
+  short const RE_D_L = 1;  // 07:00 --> 07:10
+  short const RE_L_F = 2;  // 07:15 --> 07:25
+  short const S_L_F = 3;  // 07:16 --> 07:34
+  short const IC_L_F = 4;  // 07:17 --> 07:40
+};
+
+TEST_F(test_reliability2, rating_request) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
+  auto msg = flatbuffers_tools::to_rating_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 30), (motis::time)(11 * 60 + 35),
+      (motis::time)(11 * 60 + 27),
+      (motis::time)(
+          11 * 60 +
+          27) /* regard interchange time at the beginning of the journey */,
       std::make_tuple(28, 9, 2015));
+  bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    std::ofstream os("json.txt");
-    os << msg->to_json() << std::endl;
-    auto response = msg->content<ReliableRoutingResponse const*>();
-    ASSERT_EQ(response->response()->connections()->size(), 1);
+    test_cb_called = true;
+    ASSERT_EQ(e, nullptr);
+    auto response = msg->content<ReliabilityRatingResponse const*>();
+    ASSERT_EQ(1, response->response()->connections()->size());
 
     ASSERT_NE(response->ratings(), nullptr);
     ASSERT_EQ(response->ratings()->size(), 1);
@@ -78,6 +102,37 @@ TEST_F(test_reliability, reliable_routing_request) {
     ASSERT_EQ((*simple_rating->rating_elements())[1]->ratings()->size(), 2);
   };
 
-  setup.dispatcher.on_msg(msg, 0, test_cb);
-  setup.ios.run();
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
 }
+
+TEST_F(test_reliability7, connection_tree) {
+  system_tools::setup setup(schedule_.get());
+  auto msg = flatbuffers_tools::to_connection_tree_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+      std::make_tuple(19, 10, 2015), 3, 1, 15);
+  bool test_cb_called = false;
+
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    test_cb_called = true;
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    std::ifstream f("modules/reliability/resources/json/reliable_search.json");
+    std::string expected_str((std::istreambuf_iterator<char>(f)),
+                             std::istreambuf_iterator<char>());
+    std::ofstream os("json.txt");
+    os << msg->to_json() << std::endl;
+    ASSERT_EQ(expected_str, msg->to_json());
+  };
+
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
+}
+
+}  // namespace reliability
+}  // namespace motis
