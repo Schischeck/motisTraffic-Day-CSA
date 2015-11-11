@@ -68,7 +68,6 @@ bool rule_service_builder::add_service(hrd_service const& s) {
 void create_rule_and_service_nodes(
     service_rule* r, rules_graph& rg,
     std::map<hrd_service*, node*>& service_to_node) {
-
   for (auto const& comb : r->service_combinations()) {
     auto const& s1 = std::get<0>(comb);
     auto const& s2 = std::get<1>(comb);
@@ -138,11 +137,6 @@ void build_remaining_layers(rules_graph& rg) {
   while (!rg.layers_[current_layer_idx].empty()) {
     rg.layers_.resize(next_layer_idx + 1);
 
-    if (current_layer_idx == 15) {
-      graph_visualization(rg.layers_[current_layer_idx][0])
-          .serialize("/tmp", 0);
-    }
-
     std::set<std::pair<node*, node*>> combinations;
     auto count = 0;
     for (auto const& current_parent : rg.layers_[current_layer_idx]) {
@@ -194,36 +188,26 @@ void rule_service_builder::resolve_rule_services() {
   rules_graph rg;
   build_graph(rules_, rg);
 
-  // iterate all layers beginning with the top level layer
-  auto layer_num = rg.layers_.size();
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
-        LOG(debug) << "layer: " << layer_num--;
+        for (auto const& l : layer) {
+          assert(l->parents_.size() <= 1);
+          if (l->parents_.size() == 1 &&
+              l->parents_[0]->traffic_days() == l->traffic_days()) {
+            continue;
+          }
 
-        // remove all layer nodes that does not have any traffic day left
-        layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
-                      return n->traffic_days().none();
-                    }), end(layer));
-
-        // explore each node recursively and create/collect rule services
-        std::for_each(begin(layer), end(layer), [&](node* n) {
           std::set<service_resolvent> s_resolvents;
-          std::set<service_rule_resolvent> r_resolvents;
-          n->resolve_services(n->traffic_days(), s_resolvents, r_resolvents);
-          if (!r_resolvents.empty()) {
-            rule_services_.emplace_back(std::move(r_resolvents),
+          std::vector<service_rule_resolvent> sr_resolvents;
+          for (auto const& r : l->rules_) {
+            r->resolve_services(l->traffic_days(), s_resolvents, sr_resolvents);
+          }
+          if (!sr_resolvents.empty()) {
+            rule_services_.emplace_back(std::move(sr_resolvents),
                                         std::move(s_resolvents));
           }
-        });
+        }
       });
-
-  // remove all remaining services that does not have any traffic day left
-  origin_services_.erase(
-      std::remove_if(begin(origin_services_), end(origin_services_),
-                     [](std::unique_ptr<hrd_service> const& service_ptr) {
-                       return service_ptr.get()->traffic_days_.none();
-                     }),
-      end(origin_services_));
 }
 
 void create_rule_service(
@@ -252,7 +236,9 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   scoped_timer("create rule and remaining services");
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
-    sbf(std::cref(*s.get()), std::ref(fbb));
+    if (s->traffic_days_.any()) {
+      sbf(std::cref(*s.get()), std::ref(fbb));
+    }
   }
   LOG(info) << "#rule services: " << rule_services_.size();
   for (auto const& rs : rule_services_) {
