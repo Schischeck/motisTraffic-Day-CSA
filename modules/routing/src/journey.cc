@@ -221,23 +221,24 @@ journey::transport generate_journey_transport(int from, int to,
     }
   }
 
-  return {from, to, walk, name, cat_name, cat_id, train_nr, line_identifier,
-          duration, slot, direction, provider};
+  return {from,     to,     walk,      name,
+          cat_name, cat_id, train_nr,  line_identifier,
+          duration, slot,   direction, provider};
 }
 
 std::vector<journey::transport> generate_journey_transports(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
-  auto con_info_eq =
-      [](connection_info const* a, connection_info const* b) -> bool {
-        if (a == nullptr || b == nullptr) {
-          return false;
-        } else {
-          // equals comparison ignoring attributes:
-          return a->line_identifier == b->line_identifier &&
-                 a->family == b->family && a->train_nr == b->train_nr;
-        }
-      };
+  auto con_info_eq = [](connection_info const* a,
+                        connection_info const* b) -> bool {
+    if (a == nullptr || b == nullptr) {
+      return false;
+    } else {
+      // equals comparison ignoring attributes:
+      return a->line_identifier == b->line_identifier &&
+             a->family == b->family && a->train_nr == b->train_nr;
+    }
+  };
 
   std::vector<journey::transport> journey_transports;
 
@@ -299,8 +300,7 @@ std::vector<journey::stop> generate_journey_stops(
 }
 
 std::vector<journey::attribute> generate_journey_attributes(
-    std::vector<intermediate::transport> const& transports,
-    schedule const& sched) {
+    std::vector<intermediate::transport> const& transports) {
   interval_map<attribute const*> attributes;
   for (auto const& transport : transports) {
     if (transport.con == nullptr) {
@@ -336,7 +336,7 @@ journey to_journey(label const* label, schedule const& sched) {
 
   j.stops = generate_journey_stops(s, sched);
   j.transports = generate_journey_transports(t, sched);
-  j.attributes = generate_journey_attributes(t, sched);
+  j.attributes = generate_journey_attributes(t);
 
   j.duration = label->_travel_time[0];
   j.transfers = label->_transfers[0] - 1;

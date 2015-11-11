@@ -13,12 +13,3 @@ target_link_libraries(motis-ris
   sqlpp11-connector-sqlite3
   sqlite
 )
-
-file(GLOB_RECURSE motis-ris-test-files test/*.cc)
-add_executable(motis-ris-test EXCLUDE_FROM_ALL ${motis-ris-test-files})
-set_target_properties(motis-ris-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-target_link_libraries(motis-ris-test
-  motis-ris
-  gtest
-  gtest_main
-)
