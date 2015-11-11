@@ -2,13 +2,13 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
 #include "motis/schedule-format/RuleService_generated.h"
 
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+
+#include "./test_spec_test.h"
 
 namespace motis {
 namespace loader {

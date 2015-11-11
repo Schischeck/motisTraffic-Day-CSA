@@ -4,11 +4,10 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
+#include "motis/loader/hrd/hrd_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/hrd/hrd_parser.h"
+#include "./test_spec_test.h"
 
 using namespace parser;
 using namespace flatbuffers;

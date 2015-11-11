@@ -74,3 +74,20 @@ endfunction()
 add_modules(guesser railviz realtime reliability ris routing)
 
 add_subdirectory(motis/webservice)
+
+file(GLOB_RECURSE motis-modules-test-files modules/*_test.cc)
+file(GLOB_RECURSE motis-central-test-files motis/*_test.cc)
+add_executable(motis-test EXCLUDE_FROM_ALL ${motis-test-files} ${motis-central-test-files})
+set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+target_link_libraries(motis-test
+  motis-guesser
+  motis-railviz
+  motis-realtime
+  motis-reliability
+  motis-ris
+  motis-routing
+  motis-module
+  motis-loader
+  ${Boost_LIBRARIES}
+)
+target_link_libraries(motis-test gtest gtest_main)

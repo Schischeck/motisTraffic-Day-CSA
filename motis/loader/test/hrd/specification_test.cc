@@ -3,12 +3,12 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
 #include "parser/cstr.h"
 #include "parser/util.h"
 
 #include "motis/loader/parser_error.h"
+
+#include "./test_spec_test.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -34,8 +34,6 @@ TEST(loader_hrd_specification, parse_specification) {
   ASSERT_TRUE(spec.attributes.size() == 3);
   ASSERT_TRUE(spec.stops.size() == 6);
 }
-
-void require_parser_err(char const* schedule_name, char const* filename) {}
 
 TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
   bool catched = false;

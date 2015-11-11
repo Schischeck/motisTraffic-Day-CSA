@@ -5,11 +5,12 @@
 
 #include "parser/file.h"
 
-#include "test_spec.h"
 #include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
+
+#include "./test_spec_test.h"
 
 namespace motis {
 namespace loader {
