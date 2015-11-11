@@ -45,7 +45,7 @@ IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_1) {
+TEST(ris_connection_decision_message, message_1) {
   auto const messages = parse_xmls(pack(connection_decision_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -116,7 +116,7 @@ TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_2) {
+TEST(ris_connection_decision_message, message_2) {
   auto const messages = parse_xmls(pack(connection_decision_fixture_2));
   ASSERT_EQ(1, messages.size());
 

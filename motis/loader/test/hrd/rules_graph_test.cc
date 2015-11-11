@@ -77,6 +77,15 @@ protected:
       service_rules_.add_service(s);
     }
     service_rules_.resolve_rule_services();
+
+    // remove all remaining services that does not have any traffic day left
+    service_rules_.origin_services_.erase(
+        std::remove_if(begin(service_rules_.origin_services_),
+                       end(service_rules_.origin_services_),
+                       [](std::unique_ptr<hrd_service> const& service_ptr) {
+                         return service_ptr.get()->traffic_days_.none();
+                       }),
+        end(service_rules_.origin_services_));
   }
 
   std::string schedule_name_;
@@ -87,51 +96,46 @@ private:
   std::vector<std::string> filenames_;
 };
 
-class ts_once : public rule_services_test {
+class loader_ts_once : public rule_services_test {
 public:
-  ts_once() : rule_services_test("ts-once") {}
+  loader_ts_once() : rule_services_test("ts-once") {}
 };
 
-class ts_twice : public rule_services_test {
+class loader_ts_twice : public rule_services_test {
 public:
-  ts_twice() : rule_services_test("ts-twice") {}
+  loader_ts_twice() : rule_services_test("ts-twice") {}
 };
 
-class ts_2_to_1 : public rule_services_test {
+class loader_ts_2_to_1 : public rule_services_test {
 public:
-  ts_2_to_1() : rule_services_test("ts-2-to-1") {}
+  loader_ts_2_to_1() : rule_services_test("ts-2-to-1") {}
 };
 
-class ts_2_to_1_cycle_prevention : public rule_services_test {
+class loader_ts_passing_service : public rule_services_test {
 public:
-  ts_2_to_1_cycle_prevention()
-      : rule_services_test("ts-2-to-1-cycle-prevention") {}
+  loader_ts_passing_service() : rule_services_test("ts-passing-service") {}
 };
 
-class ts_passing_service : public rule_services_test {
+class loader_mss_once : public rule_services_test {
 public:
-  ts_passing_service() : rule_services_test("ts-passing-service") {}
+  loader_mss_once() : rule_services_test("mss-once") {}
 };
 
-class mss_once : public rule_services_test {
+class loader_mss_twice : public rule_services_test {
 public:
-  mss_once() : rule_services_test("mss-once") {}
+  loader_mss_twice() : rule_services_test("mss-twice") {}
 };
 
-class mss_twice : public rule_services_test {
+class loader_mss_many : public rule_services_test {
 public:
-  mss_twice() : rule_services_test("mss-twice") {}
+  loader_mss_many() : rule_services_test("mss-many") {}
 };
 
-class mss_many : public rule_services_test {
+class loader_ts_mss_hrd : public rule_services_test {
 public:
-  mss_many() : rule_services_test("mss-many") {}
-};
-
-class ts_mss_hrd : public rule_services_test {
-public:
-  ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
-  void assert_rule_count(int num_expected_ts_rules, int num_expected_mss_rules,
+  loader_ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
+  void assert_rule_count(uint8_t num_expected_ts_rules,
+                         uint8_t num_expected_mss_rules,
                          rule_service const& rs) {
     int num_actual_ts_rules = 0;
     int num_actual_mss_rules = 0;
@@ -148,7 +152,7 @@ public:
   }
 };
 
-TEST_F(ts_once, rule_services) {
+TEST_F(loader_ts_once, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -166,7 +170,7 @@ TEST_F(ts_once, rule_services) {
   }
 }
 
-TEST_F(ts_twice, rule_services) {
+TEST_F(loader_ts_twice, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -192,7 +196,7 @@ TEST_F(ts_twice, rule_services) {
   }
 }
 
-TEST_F(ts_2_to_1, rule_services) {
+TEST_F(loader_ts_2_to_1, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -218,24 +222,7 @@ TEST_F(ts_2_to_1, rule_services) {
   }
 }
 
-TEST_F(ts_2_to_1_cycle_prevention, rule_services) {
-  // check remaining services
-  ASSERT_EQ(0, service_rules_.origin_services_.size());
-
-  // check rule services
-  ASSERT_EQ(1, service_rules_.rule_services_.size());
-
-  auto const& rule_service1 = service_rules_.rule_services_[0];
-  ASSERT_EQ(4, rule_service1.services.size());
-  ASSERT_EQ(3, rule_service1.rules.size());
-  for (auto const& sr : rule_service1.rules) {
-    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
-    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
-    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
-  }
-}
-
-TEST_F(ts_passing_service, rule_services) {
+TEST_F(loader_ts_passing_service, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -255,7 +242,7 @@ TEST_F(ts_passing_service, rule_services) {
   }
 }
 
-TEST_F(mss_once, rule_services) {
+TEST_F(loader_mss_once, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -273,7 +260,7 @@ TEST_F(mss_once, rule_services) {
   }
 }
 
-TEST_F(mss_twice, rule_services) {
+TEST_F(loader_mss_twice, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -290,7 +277,7 @@ TEST_F(mss_twice, rule_services) {
   }
 }
 
-TEST_F(mss_many, rule_services) {
+TEST_F(loader_mss_many, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -307,7 +294,7 @@ TEST_F(mss_many, rule_services) {
   }
 }
 
-TEST_F(ts_mss_hrd, traffic_days) {
+TEST_F(loader_ts_mss_hrd, traffic_days) {
   for (auto const& rs : service_rules_.rule_services_) {
     auto const& first_srp = begin(rs.rules);
     ASSERT_FALSE(first_srp == end(rs.rules));
@@ -352,12 +339,12 @@ TEST_F(ts_mss_hrd, traffic_days) {
   }
 }
 
-TEST_F(ts_mss_hrd, num_services) {
+TEST_F(loader_ts_mss_hrd, num_services) {
   ASSERT_EQ(4, service_rules_.origin_services_.size());
   ASSERT_EQ(9, service_rules_.rule_services_.size());
 }
 
-TEST_F(ts_mss_hrd, service_rule_chains) {
+TEST_F(loader_ts_mss_hrd, service_rule_chains) {
   if (service_rules_.rule_services_.size() == 9) {
     assert_rule_count(1, 2, service_rules_.rule_services_[0]);
     assert_rule_count(1, 2, service_rules_.rule_services_[1]);

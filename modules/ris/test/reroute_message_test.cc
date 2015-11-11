@@ -41,7 +41,7 @@ char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?
  TOutSnd=\"20151007000113597\"/></ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(reroute_message, message_1) {
+TEST(ris_reroute_message, message_1) {
   auto const messages = parse_xmls(pack(reroute_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -132,7 +132,7 @@ char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-885
 </Paket>";
 // clang-format on
 
-TEST(reroute_message, message_only_new) {
+TEST(ris_reroute_message, message_only_new) {
   auto const messages = parse_xmls(pack(reroute_fixture_only_new));
   ASSERT_EQ(1, messages.size());
 
@@ -188,7 +188,7 @@ char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-
 </Paket>";
 // clang-format on
 
-TEST(reroute_message, message_only_cancel) {
+TEST(ris_reroute_message, message_only_cancel) {
   auto const messages = parse_xmls(pack(reroute_fixture_only_cancel));
   ASSERT_EQ(1, messages.size());
 
