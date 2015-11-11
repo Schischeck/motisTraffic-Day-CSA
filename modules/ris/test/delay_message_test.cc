@@ -30,7 +30,7 @@ Esc=\"mue810jyct\" />\
 </ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(delay_message, ist_message_1) {
+TEST(ris_delay_message, ist_message_1) {
   auto const messages = parse_xmls(pack(ist_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -75,7 +75,7 @@ char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 </ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(delay_message, ist_message_2) {
+TEST(ris_delay_message, ist_message_2) {
   auto const messages = parse_xmls(pack(ist_fixture_2));
   ASSERT_EQ(1, messages.size());
 
@@ -120,7 +120,7 @@ EventType get_type(std::vector<ris_message> const& messages) {
 
 }
 
-TEST(delay_message, train_event_type) {
+TEST(ris_delay_message, train_event_type) {
   auto start_msg = type_fixture("Start");
   auto start = parse_xmls(pack(start_msg.c_str()));
   ASSERT_EQ(EventType_Departure, get_type(start));
@@ -164,7 +164,7 @@ char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
  Esc=\"bln810jye7\" /></ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(delay_message, ist_prog_message_1) {
+TEST(ris_delay_message, ist_prog_message_1) {
   auto const messages = parse_xmls(pack(ist_prog_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -213,7 +213,7 @@ char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
  </Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(delay_message, ist_prog_message_2) {
+TEST(ris_delay_message, ist_prog_message_2) {
   auto const messages = parse_xmls(pack(ist_prog_fixture_2));
   ASSERT_EQ(1, messages.size());
 
