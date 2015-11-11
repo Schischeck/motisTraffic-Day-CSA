@@ -13,9 +13,9 @@ using std::get;
 namespace motis {
 namespace loader {
 
-class multiple_ice_graph_builder_test : public ::testing::Test {
+class loader_multiple_ice_graph_builder_test : public ::testing::Test {
 protected:
-  multiple_ice_graph_builder_test(std::string schedule_name,
+  loader_multiple_ice_graph_builder_test(std::string schedule_name,
                                   std::time_t schedule_begin,
                                   std::time_t schedule_end)
       : schedule_name_(std::move(schedule_name)),
@@ -70,20 +70,20 @@ protected:
   std::time_t schedule_begin_, schedule_end_;
 };
 
-class multiple_ice_multiple_ice_graph_builder_test
-    : public multiple_ice_graph_builder_test {
+class loader_multiple_ice_multiple_ice_graph_builder_test
+    : public loader_multiple_ice_graph_builder_test {
 public:
-  multiple_ice_multiple_ice_graph_builder_test()
-      : multiple_ice_graph_builder_test(
+  loader_multiple_ice_multiple_ice_graph_builder_test()
+      : loader_multiple_ice_graph_builder_test(
             "multiple-ice-files", to_unix_time(2015, 10, 25),
             to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
 };
 
-class direction_services_graph_builder_test
-    : public multiple_ice_graph_builder_test {
+class loader_direction_services_graph_builder_test
+    : public loader_multiple_ice_graph_builder_test {
 public:
-  direction_services_graph_builder_test()
-      : multiple_ice_graph_builder_test("direction-services",
+  loader_direction_services_graph_builder_test()
+      : loader_multiple_ice_graph_builder_test("direction-services",
                                         to_unix_time(2015, 9, 11),
                                         to_unix_time(2015, 9, 12)) {}
 };

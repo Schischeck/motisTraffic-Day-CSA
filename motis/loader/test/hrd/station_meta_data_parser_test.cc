@@ -19,7 +19,7 @@ namespace hrd {
 using namespace parser;
 namespace fs = boost::filesystem;
 
-TEST(station_meta_data_parser, normal_change_times_minimal_file) {
+TEST(loader_station_meta_data_parser, normal_change_times_minimal_file) {
   station_meta_data metas;
   loaded_file lf(TEST_RESOURCES / "infotext_minimal.101");
   parse_station_meta_data(lf, metas);
@@ -29,7 +29,7 @@ TEST(station_meta_data_parser, normal_change_times_minimal_file) {
   ASSERT_EQ(8, metas.get_station_change_time(8000105));
 }
 
-TEST(station_meta_data_parser, normal_change_times_mixed_file) {
+TEST(loader_station_meta_data_parser, normal_change_times_mixed_file) {
   station_meta_data metas;
   loaded_file lf(TEST_RESOURCES / "infotext_mixed.101");
   parse_station_meta_data(lf, metas);

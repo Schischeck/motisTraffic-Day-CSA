@@ -87,24 +87,24 @@ private:
   std::vector<std::string> filenames_;
 };
 
-class ts_once : public rule_services_test {
+class loader_through_service_once : public rule_services_test {
 public:
-  ts_once() : rule_services_test("ts-once") {}
+  loader_through_service_once() : rule_services_test("ts-once") {}
 };
 
-class ts_twice : public rule_services_test {
+class loader_through_service_twice : public rule_services_test {
 public:
-  ts_twice() : rule_services_test("ts-twice") {}
+  loader_through_service_twice() : rule_services_test("ts-twice") {}
 };
 
-class ts_2_to_1 : public rule_services_test {
+class loader_through_service_2_to_1 : public rule_services_test {
 public:
-  ts_2_to_1() : rule_services_test("ts-2-to-1") {}
+  loader_through_service_2_to_1() : rule_services_test("ts-2-to-1") {}
 };
 
-class ts_passing_service : public rule_services_test {
+class loader_through_service_passing_service : public rule_services_test {
 public:
-  ts_passing_service() : rule_services_test("ts-passing-service") {}
+  loader_through_service_passing_service() : rule_services_test("ts-passing-service") {}
 };
 
 class mss_once : public rule_services_test {
@@ -122,14 +122,14 @@ public:
   mss_many() : rule_services_test("mss-many") {}
 };
 
-class ts_mss_complex : public rule_services_test {
+class loader_through_service_mss_complex : public rule_services_test {
 public:
-  ts_mss_complex() : rule_services_test("ts-mss-complex") {}
+  loader_through_service_mss_complex() : rule_services_test("ts-mss-complex") {}
 };
 
-class ts_mss_hrd : public rule_services_test {
+class loader_through_service_mss_hrd : public rule_services_test {
 public:
-  ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
+  loader_through_service_mss_hrd() : rule_services_test("ts-mss-hrd") {}
   void assert_rule_count(uint8_t num_expected_ts_rules,
                          uint8_t num_expected_mss_rules,
                          rule_service const& rs) {
@@ -148,7 +148,7 @@ public:
   }
 };
 
-TEST_F(ts_once, rule_services) {
+TEST_F(loader_through_service_once, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -166,7 +166,7 @@ TEST_F(ts_once, rule_services) {
   }
 }
 
-TEST_F(ts_twice, rule_services) {
+TEST_F(loader_through_service_twice, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -192,7 +192,7 @@ TEST_F(ts_twice, rule_services) {
   }
 }
 
-TEST_F(ts_2_to_1, rule_services) {
+TEST_F(loader_through_service_2_to_1, rule_services) {
   // check remaining services
   ASSERT_EQ(0, service_rules_.origin_services_.size());
 
@@ -218,7 +218,7 @@ TEST_F(ts_2_to_1, rule_services) {
   }
 }
 
-TEST_F(ts_passing_service, rule_services) {
+TEST_F(loader_through_service_passing_service, rule_services) {
   // check remaining services
   ASSERT_EQ(1, service_rules_.origin_services_.size());
 
@@ -290,9 +290,9 @@ TEST_F(mss_many, rule_services) {
   }
 }
 
-TEST_F(ts_mss_complex, rule_services) {}
+TEST_F(loader_through_service_mss_complex, rule_services) {}
 
-TEST_F(ts_mss_hrd, traffic_days) {
+TEST_F(loader_through_service_mss_hrd, traffic_days) {
   for (auto const& rs : service_rules_.rule_services_) {
     auto const& first_srp = begin(rs.rules);
     ASSERT_FALSE(first_srp == end(rs.rules));
@@ -337,12 +337,12 @@ TEST_F(ts_mss_hrd, traffic_days) {
   }
 }
 
-TEST_F(ts_mss_hrd, num_services) {
+TEST_F(loader_through_service_mss_hrd, num_services) {
   ASSERT_EQ(4, service_rules_.origin_services_.size());
   ASSERT_EQ(9, service_rules_.rule_services_.size());
 }
 
-TEST_F(ts_mss_hrd, service_rule_chains) {
+TEST_F(loader_through_service_mss_hrd, service_rule_chains) {
   if (service_rules_.rule_services_.size() == 9) {
     assert_rule_count(1, 2, service_rules_.rule_services_[0]);
     assert_rule_count(1, 2, service_rules_.rule_services_[1]);
