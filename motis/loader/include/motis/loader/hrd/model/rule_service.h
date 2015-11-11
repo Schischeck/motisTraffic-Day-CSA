@@ -28,22 +28,9 @@ struct service_resolvent {
 };
 
 struct service_rule_resolvent {
-  friend bool operator<(service_rule_resolvent const& rhs,
-                        service_rule_resolvent const& lhs) {
-    if (rhs.s1 < lhs.s1) {
-      return true;
-    }
-    if (rhs.s1 > lhs.s1) {
-      return false;
-    }
-    if (rhs.s2 < lhs.s2) {
-      return true;
-    }
-    if (rhs.s2 > lhs.s2) {
-      return false;
-    }
-    return rhs.rule_info < lhs.rule_info;
-  }
+  service_rule_resolvent(resolved_rule_info rule_info, hrd_service* s1,
+                         hrd_service* s2)
+      : rule_info(std::move(rule_info)), s1(s1), s2(s2) {}
 
   resolved_rule_info rule_info;
   hrd_service* s1;
@@ -51,10 +38,10 @@ struct service_rule_resolvent {
 };
 
 struct rule_service {
-  rule_service(std::set<service_rule_resolvent> rules,
+  rule_service(std::vector<service_rule_resolvent> rules,
                std::set<service_resolvent> services)
       : rules(std::move(rules)), services(std::move(services)) {}
-  std::set<service_rule_resolvent> rules;
+  std::vector<service_rule_resolvent> rules;
   std::set<service_resolvent> services;
 };
 

@@ -189,22 +189,17 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   std::vector<loaded_file> schedule_data;
   parse_and_build_services(
       hrd_root, bb.hrd_bitfields_, schedule_data, [&](hrd_service const& s) {
-        /* TODO fix unbounded layers problem (Tobias Raffel)
-         if (!rsb.add_service(s)) {
-           sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
-         }
-         */
-        sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
+        if (!rsb.add_service(s)) {
+          sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
+        }
       });
 
-  /* TODO fix unbounded layers problem (Tobias Raffel)
-  //compute and build ruleservices
+  // compute and build ruleservices
   rsb.resolve_rule_services();
   rsb.create_rule_services([&](hrd_service const& s, FlatBufferBuilder& fbb) {
     sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
     return sb.fbs_services_.back();
   }, fbb);
-  */
 
   auto interval = parse_interval(load(core_data_root, BASIC_DATA));
   fbb.Finish(
@@ -212,7 +207,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
                      fbb.CreateVector(values(stb.fbs_stations_)),
                      fbb.CreateVector(values(rb.routes_)), &interval,
                      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
-                     /* fbb.CreateVector(rsb.fbs_rule_services) */ {}));
+                     fbb.CreateVector(rsb.fbs_rule_services)));
 }
 
 }  // hrd

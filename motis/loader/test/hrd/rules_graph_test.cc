@@ -77,6 +77,15 @@ protected:
       service_rules_.add_service(s);
     }
     service_rules_.resolve_rule_services();
+
+    // remove all remaining services that does not have any traffic day left
+    service_rules_.origin_services_.erase(
+        std::remove_if(begin(service_rules_.origin_services_),
+                       end(service_rules_.origin_services_),
+                       [](std::unique_ptr<hrd_service> const& service_ptr) {
+                         return service_ptr.get()->traffic_days_.none();
+                       }),
+        end(service_rules_.origin_services_));
   }
 
   std::string schedule_name_;
@@ -122,19 +131,14 @@ public:
   loader_mss_many() : rule_services_test("mss-many") {}
 };
 
-class loader_ts_mss_complex : public rule_services_test {
-public:
-  loader_ts_mss_complex() : rule_services_test("ts-mss-complex") {}
-};
-
 class loader_ts_mss_hrd : public rule_services_test {
 public:
   loader_ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
   void assert_rule_count(uint8_t num_expected_ts_rules,
                          uint8_t num_expected_mss_rules,
                          rule_service const& rs) {
-    uint8_t num_actual_ts_rules = 0;
-    uint8_t num_actual_mss_rules = 0;
+    int num_actual_ts_rules = 0;
+    int num_actual_mss_rules = 0;
     for (auto const& sr : rs.rules) {
       if (sr.rule_info.type == RuleType_THROUGH) {
         ++num_actual_ts_rules;
@@ -289,8 +293,6 @@ TEST_F(loader_mss_many, rule_services) {
     ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
   }
 }
-
-TEST_F(loader_ts_mss_complex, rule_services) {}
 
 TEST_F(loader_ts_mss_hrd, traffic_days) {
   for (auto const& rs : service_rules_.rule_services_) {
