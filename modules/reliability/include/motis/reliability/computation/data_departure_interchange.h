@@ -23,6 +23,7 @@ namespace calc_departure_distribution {
 
 /** arrival and departure at the same station (no walking) */
 struct data_departure_interchange : data_departure {
+  /* todo: use reliability::context */
   data_departure_interchange(
       bool const is_first_route_node, node const& route_node,
       light_connection const& departing_light_conn,

@@ -5,9 +5,9 @@
       "tracks": 2,
       "latitude": 49.486999999999966,
       "longitude": 8.456999999999994,
-      "interchangeTime": 5,
-      "minInterchangeTime": 5,
-      "platformInterchangeTime": 5,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
       "evaNumber": "2222222",
       "ds100Code": "2222222",
       "KMInfo": 0

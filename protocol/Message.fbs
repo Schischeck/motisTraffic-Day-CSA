@@ -1,8 +1,6 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "railviz/RailVizInit.fbs";
-include "reliability/ReliableRoutingRequest.fbs";
-include "reliability/ReliableRoutingResponse.fbs";
 include "railviz/RailVizAlltraReq.fbs";
 include "railviz/RailVizAlltraRes.fbs";
 include "railviz/RailVizStationDetailReq.fbs";
@@ -10,6 +8,15 @@ include "railviz/RailVizStationDetailRes.fbs";
 include "railviz/RailVizRouteAtTimeReq.fbs";
 include "railviz/RailVizRouteAtTimeRes.fbs";
 include "railviz/RailVizFindTrain.fbs";
+include "realtime/RealtimeTrainInfoRequest.fbs";
+include "realtime/RealtimeTrainInfoResponse.fbs";
+include "realtime/RealtimeCurrentTimeRequest.fbs";
+include "realtime/RealtimeCurrentTimeResponse.fbs";
+include "realtime/RealtimeDelayInfoRequest.fbs";
+include "realtime/RealtimeDelayInfoResponse.fbs";
+include "reliability/ReliabilityRatingResponse.fbs";
+include "reliability/ReliableRoutingRequest.fbs";
+include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISBatch.fbs";
 include "ris/RISForwardTimeRequest.fbs";
 include "routing/RoutingRequest.fbs";
@@ -63,6 +70,7 @@ union MsgContent {
   motis.railviz.RailVizFindTrain,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
+  motis.reliability.ReliabilityRatingResponse,
   motis.ris.RISBatch,
   motis.ris.RISForwardTimeRequest,
   motis.routing.RoutingRequest,
