@@ -13,10 +13,10 @@
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
 
-#include "include/interchange_data_for_tests.h"
-#include "include/precomputed_distributions_test_container.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/interchange_data_for_tests.h"
+#include "../include/precomputed_distributions_test_container.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {

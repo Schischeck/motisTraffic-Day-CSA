@@ -28,9 +28,9 @@
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
-#include "include/interchange_data_for_tests.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/interchange_data_for_tests.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
