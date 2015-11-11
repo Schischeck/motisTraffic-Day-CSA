@@ -30,7 +30,7 @@ std::vector<route> timetable_retriever::get_routes_on_time(
   std::vector<motis::time> departure_times = get_route_departure_times(node);
 
   std::vector<motis::time> requested_departure_times;
-  for (int i = 0; i < departure_times.size(); ++i) {
+  for (unsigned i = 0; i < departure_times.size(); ++i) {
     if (departure_times[i] <= time) {
       requested_departure_times.push_back(departure_times[i]);
     }
