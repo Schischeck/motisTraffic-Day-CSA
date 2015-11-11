@@ -80,3 +80,14 @@ endfunction()
 add_modules(guesser railviz realtime reliability ris routing)
 
 add_subdirectory(motis/webservice)
+
+configure_file (
+  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
+  ${CMAKE_BINARY_DIR}/generated/test_dir.h
+)
+
+add_executable(motis-test EXCLUDE_FROM_ALL ${CMAKE_SOURCE_DIR}/test/test_main.cc)
+target_link_libraries(motis-test
+  gtest
+  gtest_main
+)
