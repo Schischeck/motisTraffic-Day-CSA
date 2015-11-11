@@ -191,7 +191,6 @@ void rule_service_builder::resolve_rule_services() {
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
         for (auto const& l : layer) {
-          assert(l->parents_.size() <= 1);
           if (l->parents_.size() == 1 &&
               l->parents_[0]->traffic_days() == l->traffic_days()) {
             continue;
