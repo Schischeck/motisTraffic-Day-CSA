@@ -81,7 +81,7 @@ unsigned int realtime_response::delay_single(
     const light_connection& lc, const station_node& station_node_,
     bool departure) const {
   int num_stops = response.stops()->Length();
-  for (unsigned int i = 0; i < num_stops; i++) {
+  for (int i = 0; i < num_stops; i++) {
     const realtime::EventInfo* event_info = response.stops()->Get(i);
     unsigned int real_time = departure ? lc.d_time : lc.a_time;
     if (event_info->departure() == departure &&

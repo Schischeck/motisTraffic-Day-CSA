@@ -82,7 +82,7 @@ void build_cg(std::shared_ptr<context> c,
 }
 
 std::vector<unsigned int> insert_stop_states(
-    context const& c, context::conn_graph_context& cg_context) {
+    context const& /*c*/, context::conn_graph_context& cg_context) {
   std::vector<unsigned int> new_stops;
   for (auto const& stop : cg_context.cg_->stops_) {
     if (cg_context.stop_states_.find(stop.index_) ==
@@ -167,7 +167,7 @@ void handle_base_response(motis::module::msg_ptr msg,
 void add_alternative(
     journey const& j, std::shared_ptr<context> c,
     context::conn_graph_context& conn_graph,
-    context::conn_graph_context::stop_state& stop_state, /* todo unused*/
+    context::conn_graph_context::stop_state& /*TODO stop_state*/,
     unsigned int const stop_idx) {
   connection_graph_builder::add_alternative_journey(*conn_graph.cg_, stop_idx,
                                                     j);

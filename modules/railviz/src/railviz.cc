@@ -34,7 +34,7 @@ po::options_description railviz::desc() {
   return desc;
 }
 
-void railviz::print(std::ostream& out) const {}
+void railviz::print(std::ostream&) const {}
 
 std::vector<std::string> railviz::clasz_names = {
     "ICE", "IC", "N", "RE", "RB", "S", "U", "STR", "BUS", "X"};
@@ -141,7 +141,7 @@ callback railviz::make_all_trains_realtime_callback(
     std::vector<std::pair<light_connection const*, edge const*>> const& trains,
     bool with_routes, callback cb) {
   return [this, trains, cb, with_routes](
-      msg_ptr msg, boost::system::error_code err) mutable {
+      msg_ptr msg, boost::system::error_code) mutable {
     auto lock = synced_sched<schedule_access::RO>();
     FlatBufferBuilder b;
     realtime_response realtime_response_(msg);
@@ -187,9 +187,9 @@ void railviz::station_info(msg_ptr msg, webclient& client, callback cb) {
   flatbuffers::FlatBufferBuilder b;
 
   auto req = msg->content<RailVizStationDetailReq const*>();
-  int index = req->station_index();
+  unsigned index = req->station_index();
 
-  if (index < 0 || index >= stations.size()) {
+  if (index >= stations.size()) {
     return cb({}, error::station_index_out_of_bounds);
   }
 
@@ -232,7 +232,7 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request(
 callback railviz::make_station_info_realtime_callback(
     int station_index, timetable const& timetable_, callback cb) {
   return [this, timetable_, station_index, cb](
-      msg_ptr msg, boost::system::error_code err) mutable {
+      msg_ptr msg, boost::system::error_code) {
     auto lock = synced_sched<schedule_access::RO>();
     auto const& stations = lock.sched().stations;
     flatbuffers::FlatBufferBuilder b;

@@ -73,7 +73,7 @@ to_routing_request(connection_graph& conn_graph,
                                  stop_station.second, time_begin, time_end));
 }
 
-inline journey const& select_alternative(connection_graph const& conn_graph,
+inline journey const& select_alternative(connection_graph const& /*conn_graph*/,
                                          std::vector<journey> const& journeys) {
   assert(!journeys.empty());
   /* earliest arrival */
