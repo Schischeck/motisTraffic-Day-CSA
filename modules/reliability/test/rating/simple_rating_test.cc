@@ -62,9 +62,9 @@ TEST_F(reliability_simple_rating2, simple_rate) {
           27) /* regard interchange time at the beginning of the journey */,
       std::make_tuple(28, 9, 2015), false);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     auto const journeys = journey_builder::to_journeys(
-        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+        msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
@@ -107,9 +107,9 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), false);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     auto const journeys = journey_builder::to_journeys(
-        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+        msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);

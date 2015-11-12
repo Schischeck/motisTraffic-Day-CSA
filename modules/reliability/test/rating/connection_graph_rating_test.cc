@@ -66,8 +66,7 @@ public:
             setup.reliability_module().s_t_distributions()),
         dep_dist);
     compute_arrival_distribution(
-        data_arrival(*departing_route_edge._to, departing_light_conn, dep_dist,
-                     *schedule_,
+        data_arrival(departing_light_conn, dep_dist, *schedule_,
                      setup.reliability_module().s_t_distributions()),
         arr_dist);
     return std::make_pair(dep_dist, arr_dist);

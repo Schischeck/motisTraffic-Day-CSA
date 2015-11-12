@@ -158,17 +158,18 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
     auto& stop = cg.stops_.back();
     stop.index_ = stop_idx;
     stop.alternative_infos_.emplace_back();
-    auto& departure_info = stop.alternative_infos_.front();
-    departure_info.departing_journey_index_ = cg.journeys_.size();
+    auto& alternative_info = stop.alternative_infos_.front();
+    alternative_info.departing_journey_index_ = cg.journeys_.size();
     if (stop_idx == connection_graph::stop::Index_departure_stop &&
         journeys.size() > 1) {
       stop_idx = connection_graph::stop::Index_first_intermediate_stop;
-    } else if (departure_info.departing_journey_index_ + 1 == journeys.size()) {
+    } else if (alternative_info.departing_journey_index_ + 1 ==
+               (unsigned short)journeys.size()) {
       stop_idx = connection_graph::stop::Index_arrival_stop;
     } else {
       ++stop_idx;
     }
-    departure_info.head_stop_index_ = stop_idx;
+    alternative_info.head_stop_index_ = stop_idx;
 
     if (cg.stops_.size() == 1) {
       cg.stops_.emplace_back();

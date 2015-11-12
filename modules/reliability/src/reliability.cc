@@ -98,7 +98,7 @@ void reliability::handle_routing_response(msg_ptr msg,
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
       res->connections()->size());
   unsigned int rating_index = 0;
-  auto const journeys = journey_builder::to_journeys(res, schedule.categories);
+  auto const journeys = journey_builder::to_journeys(res);
 
   for (auto const& j : journeys) {
     bool success = rating::rate(
@@ -114,10 +114,9 @@ void reliability::handle_routing_response(msg_ptr msg,
     ++rating_index;
   }
 
-  return cb(flatbuffers_tools::to_reliability_rating_response(
-                res, schedule.categories, ratings, simple_ratings,
-                true /* short output */),
-            error::ok);
+  cb(flatbuffers_tools::to_reliability_rating_response(
+         res, ratings, simple_ratings, true /* short output */),
+     error::ok);
 }
 
 void reliability::handle_connection_graph_result(

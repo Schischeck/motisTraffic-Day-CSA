@@ -108,10 +108,9 @@ TEST(reliability_init, probability_distribution) {
 
 TEST(reliability_ignore_small_values, probability_distribution) {
   probability small_value = 0.0000001;
-  std::vector<probability> const values = {small_value, small_value,
-                                           0.5 - (4 * small_value), 0.3, 0.2,
-                                           small_value, small_value};
-  int const first_minute = 0;
+  std::vector<probability> const values = {
+      small_value, small_value, 0.5 - (4 * small_value), 0.3, 0.2,
+      small_value, small_value};
   for (int i = -5; i <= 1; i++) {
     probability_distribution pd;
     pd.init(values, i);

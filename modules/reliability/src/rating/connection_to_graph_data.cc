@@ -82,7 +82,7 @@ connection_element const to_element(
   auto const& tail_station = *sched.station_nodes.at(
       sched.eva_to_station.find(tail_eva)->second->index);
   auto const head_station_id =
-      sched.eva_to_station.find(head_eva)->second->index;
+      (unsigned int)sched.eva_to_station.find(head_eva)->second->index;
 
   for (auto it = tail_station._edges.begin(); it != tail_station._edges.end();
        ++it) {

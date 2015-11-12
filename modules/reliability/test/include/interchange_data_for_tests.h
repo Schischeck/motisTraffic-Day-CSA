@@ -41,12 +41,12 @@ struct interchange_data_for_tests {
                              unsigned int departing_train_dep,
                              unsigned int departing_train_arr)
       : arriving_route_edge_(*graph_accessor::get_departing_route_edge(
-                                 *graph_accessor::get_first_route_node(
-                                     schedule, arriving_train_id))),
+            *graph_accessor::get_first_route_node(schedule,
+                                                  arriving_train_id))),
         arriving_light_conn_(arriving_route_edge_._m._route_edge._conns[0]),
         tail_node_departing_train_(tail_node_departing_train),
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
-                                  tail_node_departing_train_)),
+            tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
     EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
                     ->eva_nr == interchange_station_eva);
@@ -79,13 +79,13 @@ struct interchange_data_for_tests {
       unsigned int arriving_train_arr, unsigned int departing_train_dep,
       unsigned int departing_train_arr)
       : arriving_route_edge_(*graph_accessor::get_departing_route_edge(
-                                 *graph_accessor::get_first_route_node(
-                                     schedule, arriving_train_id))),
+            *graph_accessor::get_first_route_node(schedule,
+                                                  arriving_train_id))),
         arriving_light_conn_(arriving_route_edge_._m._route_edge._conns[0]),
         tail_node_departing_train_(*graph_accessor::get_first_route_node(
-                                       schedule, departing_train_id)),
+            schedule, departing_train_id)),
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
-                                  tail_node_departing_train_)),
+            tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
     EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
                     ->eva_nr == end_walking_eva);
@@ -108,9 +108,9 @@ struct interchange_data_for_tests {
                 (motis::time)departing_train_arr);
   }
 
-  node const& tail_node_departing_train_;
   edge const& arriving_route_edge_;
   light_connection const& arriving_light_conn_;
+  node const& tail_node_departing_train_;
   edge const& departing_route_edge_;
   light_connection const& departing_light_conn_;
 };

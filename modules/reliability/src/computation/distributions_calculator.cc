@@ -57,8 +57,8 @@ void compute_dep_and_arr_distribution(
 
   assert(arrival_distribution.empty());
   calc_arrival_distribution::data_arrival a_data(
-      *element.to_, *element.light_connection_, departure_distribution,
-      context.schedule_, context.s_t_distributions_);
+      *element.light_connection_, departure_distribution, context.schedule_,
+      context.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 }
@@ -171,7 +171,6 @@ void perform_precomputation(
         *first_route_node, queue, distributions_container, schedule);
   }
 
-  unsigned int num_processed = 0;
   while (!queue.empty()) {
     detail::process_element(queue.top(), schedule, s_t_distributions, queue,
                             distributions_container);

@@ -52,8 +52,7 @@ TEST_F(reliability_data_arrival, initialize) {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  data_arrival data(second_route_node, light_connection, dep_dist, *schedule_,
-                    s_t_distributions);
+  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(
       schedule_->stations[second_route_node._station_node->_id]->eva_nr ==
@@ -83,7 +82,7 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
       distribution_.init_one_point(0, 1.0);
     }
     probability_distribution const& get_start_distribution(
-        std::string const& family) const override {
+        std::string const&) const override {
       return distribution_;
     }
     void get_travel_time_distributions(
@@ -111,11 +110,8 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
       graph_accessor::get_departing_route_edge(departure_route_node);
   // get the second light connection
   auto const& light_connection = route_edge->_m._route_edge._conns[1];
-  // route node at Darmstadt
-  auto const& arrival_route_node = *route_edge->_to;
 
-  data_arrival data(arrival_route_node, light_connection, dep_dist, *schedule_,
-                    s_t_distributions);
+  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);
   ASSERT_TRUE(&data.travel_distributions_[0].get() ==

@@ -13,7 +13,7 @@ namespace reliability {
 namespace calc_arrival_distribution {
 
 data_arrival::data_arrival(
-    node const& route_node, light_connection const& light_connection,
+    light_connection const& light_connection,
     probability_distribution const& departure_distribution,
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions)
@@ -37,10 +37,10 @@ void data_arrival::init_travel_info(
   right_bound_ = INT_MIN;
 
   if (travel_distributions_.size() > 0) {
-    assert(travel_distributions_.size() ==
-           departure_info_.distribution_.last_minute() + 1);
-    for (unsigned int d = 0; d <= departure_info_.distribution_.last_minute();
-         d++) {
+    auto const last_minute =
+        (unsigned int)departure_info_.distribution_.last_minute();
+    assert(travel_distributions_.size() == last_minute + 1);
+    for (unsigned int d = 0; d <= last_minute; d++) {
       assert(!travel_distributions_[d].get().empty());
       int const left = departure_info_.distribution_.first_minute() +
                        travel_distributions_[d].get().first_minute();

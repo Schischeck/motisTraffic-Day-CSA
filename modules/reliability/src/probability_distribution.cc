@@ -15,7 +15,7 @@ void probability_distribution::init(
   /* determine the left bound (ignore all values smaller than
    * THRESHOLD_SMALL_VALUES) */
   probability error = 0.0;  // sum of all ignored values
-  int idx_first_value = 0;
+  unsigned int idx_first_value = 0;
   while (idx_first_value + 1 < probabilities.size() &&
          probabilities[idx_first_value] < THRESHOLD_SMALL_VALUES) {
     error += probabilities[idx_first_value];

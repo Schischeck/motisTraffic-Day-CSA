@@ -105,8 +105,8 @@ void distributions_for_train_after_interchange(
     }
 
     calc_arrival_distribution::data_arrival arr_data(
-        *element.to_, *element.light_connection_, departure_distribution,
-        context.schedule_, context.s_t_distributions_);
+        *element.light_connection_, departure_distribution, context.schedule_,
+        context.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(
         arr_data, arrival_distribution);
   }

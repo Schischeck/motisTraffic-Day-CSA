@@ -148,7 +148,7 @@ inline node const& get_first_route_node(node const& route_node) {
 
 /* only for test-schedules: requires unique train numbers */
 inline node const* get_first_route_node(schedule const& schedule,
-                                        int const train_nr) {
+                                        unsigned int const train_nr) {
   for (auto node : schedule.route_index_to_first_route_node) {
     assert(graph_accessor::get_departing_route_edge(*node));
     assert(graph_accessor::get_departing_route_edge(*node)
