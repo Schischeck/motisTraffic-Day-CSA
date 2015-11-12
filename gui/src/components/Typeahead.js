@@ -4,7 +4,7 @@ import { Container } from 'flux/utils';
 
 import { TextField, List, ListItem, Paper } from 'material-ui/lib';
 
-import './Typeahead.scss';
+import style from './Typeahead.scss';
 
 function mod(a, n) {
   return ((a % n) + n) % n;
@@ -103,7 +103,7 @@ export default class Typeahead extends React.Component {
       <Paper
              ref={ 'suggestionbox' }
              zDepth={ 1 }
-             className={ [  'suggestions'] }>
+             className={ style.suggestions }>
         <List desktop={ true }>
           { this.state.completions.map((val, index) => {
               let style = {};

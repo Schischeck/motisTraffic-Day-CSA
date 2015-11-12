@@ -9,9 +9,11 @@ export default class Map extends React.Component {
   constructor(props) {
     super(props);
   }
-
+  
   componentDidMount() {
-    this.map = L.map('map');
+    this.map = L.map('map', {
+      'zoomControl': false
+    });
     this.map.setView([
       51.505,
       -0.09
@@ -23,7 +25,7 @@ export default class Map extends React.Component {
 
   render() {
     return (
-    <div id="map"></div>
+      <div id="map"></div>
     );
   }
 }
