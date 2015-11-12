@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   modules.emplace_back(new ris::ris());
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("rohdaten", "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);
   modules_settings modules_opt("modules");
   mode_settings mode_opt(mode_settings::SERVER);
 
@@ -82,8 +82,9 @@ int main(int argc, char** argv) {
   auto schedule_interval = dataset_opt.interval();
   schedule_ptr sched;
   try {
-    sched = loader::load_schedule(dataset_opt.dataset, schedule_interval.first,
-                                  schedule_interval.second);
+    sched = loader::load_schedule(
+        dataset_opt.dataset, dataset_opt.use_serialized,
+        schedule_interval.first, schedule_interval.second);
   } catch (motis::loader::parser_error const& e) {
     std::cout << "unable to parse schedule\n";
     std::cout << e.filename << ":" << e.line_number << "\n";
