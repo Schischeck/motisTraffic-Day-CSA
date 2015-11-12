@@ -187,13 +187,15 @@ void rule_service_builder::resolve_rule_services() {
 
   rules_graph rg;
   build_graph(rules_, rg);
+  //  rg.print_nodes();
 
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
         for (auto const& l : layer) {
-          if (std::all_of(begin(l->parents_), end(l->parents_),
-                          [&l](node const* n) -> bool {
-                            return n->traffic_days() == l->traffic_days();
+          if (!l->parents_.empty() &&
+              std::all_of(begin(l->parents_), end(l->parents_),
+                          [&l](node const* p) {
+                            return p->traffic_days() == l->traffic_days();
                           })) {
             continue;
           }

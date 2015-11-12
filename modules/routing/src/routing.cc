@@ -33,7 +33,7 @@ po::options_description routing::desc() {
   return desc;
 }
 
-void routing::print(std::ostream& out) const {}
+void routing::print(std::ostream&) const {}
 
 void routing::read_path_element(StationPathElement const* el,
                                 routing::path_el_cb cb) {
