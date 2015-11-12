@@ -18,10 +18,20 @@ export default class Typeahead extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: "",
+      value: '',
       completions: [],
       selectedItemIndex: 0
     };
+  }
+
+  getValue() {
+    return this.state.value;
+  }
+
+  setValue(newValue) {
+    this.setState({
+      value: newValue
+    });
   }
 
   _fetchCompletions(evt) {
@@ -94,14 +104,13 @@ export default class Typeahead extends React.Component {
     return (
     <div>
       <TextField
-                 hintText={ this.props.name }
+                 floatingLabelText={ this.props.hintText }
                  value={ this.state.value }
                  onChange={ this._onChange.bind(this) }
                  onKeyUp={ this._onKeyUp.bind(this) }
                  onBlur={ this._clearCompletions.bind(this) }>
       </TextField>
       <Paper
-             ref={ 'suggestionbox' }
              zDepth={ 1 }
              className={ style.suggestions }>
         <List desktop={ true }>
@@ -126,5 +135,3 @@ export default class Typeahead extends React.Component {
     );
   }
 }
-
-export default Typeahead;
