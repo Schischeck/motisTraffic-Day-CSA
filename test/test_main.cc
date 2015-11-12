@@ -18,7 +18,5 @@ int main(int argc, char** argv) {
     printf("listening for requests");
   }
 
-  std::cout << "crash!\n" << *(static_cast<char*>(nullptr)) << "\n";
-
   return RUN_ALL_TESTS();
 }
