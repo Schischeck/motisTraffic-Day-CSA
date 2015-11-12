@@ -2,7 +2,6 @@
 
 #include <limits>
 #include <memory>
-#include <fstream>
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
@@ -38,23 +37,18 @@ void handle_alternative_response(motis::module::msg_ptr,
                                  unsigned int const stop_idx,
                                  context::journey_cache_key const);
 void add_alternative(journey const&, std::shared_ptr<context>,
-                     context::conn_graph_context&,
-                     context::conn_graph_context::stop_state&,
-                     unsigned int const stop_idx);
+                     context::conn_graph_context&, unsigned int const stop_idx);
 
-void search_for_alternative(
-    std::shared_ptr<context> c, context::conn_graph_context& conn_graph,
-    connection_graph::stop& stop,
-    context::conn_graph_context::stop_state& stop_state) {
-  auto request = tools::to_routing_request(
-      *conn_graph.cg_, stop, c->optimizer_->min_departure_diff_,
-      c->optimizer_->interval_width_, stop_state.num_failed_requests_);
+void search_for_alternative(std::shared_ptr<context> c,
+                            context::conn_graph_context& conn_graph,
+                            connection_graph::stop& stop) {
+  auto request = tools::to_routing_request(*conn_graph.cg_, stop,
+                                           c->optimizer_->min_departure_diff_);
   auto cache_it = c->journey_cache.find(request.second);
   if (cache_it != c->journey_cache.end()) {
     /* todo: do not copy cached journeys!
      * store and output (json) each journey once */
-    return add_alternative(cache_it->second, c, conn_graph, stop_state,
-                           stop.index_);
+    return add_alternative(cache_it->second, c, conn_graph, stop.index_);
   }
   return c->reliability_.send_message(
       request.first, c->session_,
@@ -71,7 +65,7 @@ void build_cg(std::shared_ptr<context> c,
           it->second.state_ ==
               context::conn_graph_context::stop_state::Stop_idle) {
         it->second.state_ = context::conn_graph_context::stop_state::Stop_busy;
-        return search_for_alternative(c, conn_graph, stop, it->second);
+        return search_for_alternative(c, conn_graph, stop);
       }
     }
   } else {
@@ -82,7 +76,7 @@ void build_cg(std::shared_ptr<context> c,
 }
 
 std::vector<unsigned int> insert_stop_states(
-    context const& c, context::conn_graph_context& cg_context) {
+    context::conn_graph_context& cg_context) {
   std::vector<unsigned int> new_stops;
   for (auto const& stop : cg_context.cg_->stops_) {
     if (cg_context.stop_states_.find(stop.index_) ==
@@ -132,7 +126,7 @@ void init_connection_graph_from_base_journey(context& context,
   cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
 
   connection_graph_builder::add_base_journey(*cg_context.cg_, base_journey);
-  auto const stop_indices = insert_stop_states(context, cg_context);
+  auto const stop_indices = insert_stop_states(cg_context);
   rating::cg::rate_inserted_alternative(cg_context, 0,
                                         context.reliability_context_);
   check_stop_states(*context.optimizer_, cg_context, stop_indices);
@@ -149,8 +143,7 @@ void handle_base_response(motis::module::msg_ptr msg,
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
   auto journeys = journey_builder::to_journeys(
-      msg->content<routing::RoutingResponse const*>(),
-      context->reliability_context_.schedule_.categories);
+      msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
@@ -164,16 +157,14 @@ void handle_base_response(motis::module::msg_ptr msg,
   }
 }
 
-void add_alternative(
-    journey const& j, std::shared_ptr<context> c,
-    context::conn_graph_context& conn_graph,
-    context::conn_graph_context::stop_state& stop_state, /* todo unused*/
-    unsigned int const stop_idx) {
+void add_alternative(journey const& j, std::shared_ptr<context> c,
+                     context::conn_graph_context& conn_graph,
+                     unsigned int const stop_idx) {
   connection_graph_builder::add_alternative_journey(*conn_graph.cg_, stop_idx,
                                                     j);
   std::vector<unsigned int> stop_indices({stop_idx});
   if (conn_graph.stop_states_.size() < conn_graph.cg_->stops_.size()) {
-    insert_stop_states(*c, conn_graph);
+    insert_stop_states(conn_graph);
   }
   rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
                                         c->reliability_context_);
@@ -181,8 +172,6 @@ void add_alternative(
 
   build_cg(c, conn_graph);
 }
-
-std::ofstream os_j("journeys.txt");
 
 void handle_alternative_response(motis::module::msg_ptr msg,
                                  boost::system::error_code e,
@@ -199,8 +188,7 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   auto& stop_state = conn_graph.stop_states_.at(stop_idx);
 
   auto journeys = journey_builder::to_journeys(
-      msg->content<routing::RoutingResponse const*>(),
-      c->reliability_context_.schedule_.categories);
+      msg->content<routing::RoutingResponse const*>());
 
   if (journeys.empty()) {
     ++stop_state.num_failed_requests_;
@@ -211,13 +199,10 @@ void handle_alternative_response(motis::module::msg_ptr msg,
     return build_cg(c, conn_graph);
   }
 
-  auto const& j = tools::select_alternative(*conn_graph.cg_.get(), journeys);
+  auto const& j = tools::select_alternative(journeys);
   assert(c->journey_cache.find(cache_key) == c->journey_cache.end());
   c->journey_cache[cache_key] = j;
-
-  tools::output(j, c->reliability_.synced_sched().sched(), os_j);
-  os_j << std::endl;
-  add_alternative(j, c, conn_graph, stop_state, stop_idx);
+  add_alternative(j, c, conn_graph, stop_idx);
 }
 
 void build_result(context::conn_graph_context::cg_state state,

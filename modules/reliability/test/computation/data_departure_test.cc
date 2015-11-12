@@ -184,9 +184,11 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))->_to;
-  auto const& light_connection = graph_accessor::get_departing_route_edge(
-                                     route_node)->_m._route_edge._conns[0];
+           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
+           ->_to;
+  auto const& light_connection =
+      graph_accessor::get_departing_route_edge(route_node)
+          ->_m._route_edge._conns[0];
 
   data_departure data(route_node, light_connection, false, *schedule_,
                       train_distributions, feeder_distributions,
@@ -270,9 +272,11 @@ TEST_F(reliability_data_departure, check_train_distributions) {
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))->_to;
-  auto const& light_connection = graph_accessor::get_departing_route_edge(
-                                     route_node)->_m._route_edge._conns[0];
+           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
+           ->_to;
+  auto const& light_connection =
+      graph_accessor::get_departing_route_edge(route_node)
+          ->_m._route_edge._conns[0];
 
   struct train_distributions_test2_container
       : distributions_container::abstract_distributions_container {
@@ -322,12 +326,14 @@ TEST_F(reliability_data_departure, check_train_distributions) {
     unsigned int const route_node_feeder2_;
   } feeder_distributions(/* route node at Darmstadt of train IC_FH_DA */
                          graph_accessor::get_departing_route_edge(
-                             *graph_accessor::get_first_route_node(
-                                 *schedule_, IC_FH_DA))->_to->_id,
+                             *graph_accessor::get_first_route_node(*schedule_,
+                                                                   IC_FH_DA))
+                             ->_to->_id,
                          /* route node at Darmstadt of train IC_FH_DA */
                          graph_accessor::get_departing_route_edge(
-                             *graph_accessor::get_first_route_node(
-                                 *schedule_, IC_FH_DA))->_to->_id);
+                             *graph_accessor::get_first_route_node(*schedule_,
+                                                                   IC_FH_DA))
+                             ->_to->_id);
 
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -353,10 +359,8 @@ TEST_F(reliability_data_departure, check_start_distribution) {
       return fail;
     }
     void get_travel_time_distributions(
-        std::string const& family, unsigned int const travel_time,
-        unsigned int const to_departure_delay,
-        std::vector<probability_distribution_cref>& distributions)
-        const override {}
+        std::string const&, unsigned int const, unsigned int const,
+        std::vector<probability_distribution_cref>&) const override {}
     probability_distribution distribution;
     probability_distribution fail;
   } s_t_distributions;
@@ -388,9 +392,11 @@ TEST_F(reliability_data_departure, check_largest_delay) {
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))->_to;
-  auto const& light_connection = graph_accessor::get_departing_route_edge(
-                                     route_node)->_m._route_edge._conns[0];
+           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
+           ->_to;
+  auto const& light_connection =
+      graph_accessor::get_departing_route_edge(route_node)
+          ->_m._route_edge._conns[0];
 
   data_departure data(route_node, light_connection, false, *schedule_,
                       train_distributions, train_distributions,

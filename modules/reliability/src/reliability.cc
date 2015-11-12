@@ -66,7 +66,7 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
         req, *this, session_id,
         std::make_shared<
             search::connection_graph_search::reliable_cg_optimizer>(
-            req_info->min_departure_diff(), req_info->interval_width()),
+            req_info->min_departure_diff()),
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
   }
@@ -78,12 +78,11 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
         req, *this, session_id,
         std::make_shared<search::connection_graph_search::simple_optimizer>(
             req_info->num_alternatives_at_each_stop(),
-            req_info->min_departure_diff(), req_info->interval_width()),
+            req_info->min_departure_diff()),
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
-  } else {
-    return cb({}, error::not_implemented);
   }
+  return cb({}, error::not_implemented);
 }
 
 void reliability::handle_routing_response(msg_ptr msg,
@@ -99,7 +98,7 @@ void reliability::handle_routing_response(msg_ptr msg,
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
       res->connections()->size());
   unsigned int rating_index = 0;
-  auto const journeys = journey_builder::to_journeys(res, schedule.categories);
+  auto const journeys = journey_builder::to_journeys(res);
 
   for (auto const& j : journeys) {
     bool success = rating::rate(
@@ -115,10 +114,9 @@ void reliability::handle_routing_response(msg_ptr msg,
     ++rating_index;
   }
 
-  return cb(flatbuffers_tools::to_reliability_rating_response(
-                res, schedule.categories, ratings, simple_ratings,
-                true /* short output */),
-            error::ok);
+  cb(flatbuffers_tools::to_reliability_rating_response(
+         res, ratings, simple_ratings, true /* short output */),
+     error::ok);
 }
 
 void reliability::handle_connection_graph_result(

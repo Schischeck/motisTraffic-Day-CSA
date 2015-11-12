@@ -32,24 +32,22 @@ std::vector<distribution_info> distributions_arriving_alternatives(
 
 time_t earliest_arrival_time(
     std::vector<distribution_info> const& distributions) {
-  auto const& min_element =
-      *std::min_element(
-          distributions.begin(), distributions.end(),
-          [](distribution_info const& a, distribution_info const& b) {
-            return a.first + (a.second.first_minute() * 60) <
-                   b.first + (b.second.first_minute() * 60);
-          });
+  auto const& min_element = *std::min_element(
+      distributions.begin(), distributions.end(),
+      [](distribution_info const& a, distribution_info const& b) {
+        return a.first + (a.second.first_minute() * 60) <
+               b.first + (b.second.first_minute() * 60);
+      });
   return min_element.first + (min_element.second.first_minute() * 60);
 }
 time_t latest_arrival_time(
     std::vector<distribution_info> const& distributions) {
-  auto const& max_element =
-      *std::max_element(
-          distributions.begin(), distributions.end(),
-          [](distribution_info const& a, distribution_info const& b) {
-            return a.first + (a.second.last_minute() * 60) <
-                   b.first + (b.second.last_minute() * 60);
-          });
+  auto const& max_element = *std::max_element(
+      distributions.begin(), distributions.end(),
+      [](distribution_info const& a, distribution_info const& b) {
+        return a.first + (a.second.last_minute() * 60) <
+               b.first + (b.second.last_minute() * 60);
+      });
   return max_element.first + (max_element.second.last_minute() * 60);
 }
 }  // namespace detail
@@ -70,7 +68,7 @@ std::pair<time_t, probability_distribution> calc_arrival_distribution(
     unsigned int const offset = (dist_info.first - begin_time) / 60;
     auto const& pd = dist_info.second;
     for (int delay = pd.first_minute(); delay <= pd.last_minute(); ++delay) {
-      assert(offset + delay >= 0);
+      assert((int)offset + delay >= 0);
       assert(offset + delay < values.size());
       values[offset + delay] += pd.probability_equal(delay);
     }

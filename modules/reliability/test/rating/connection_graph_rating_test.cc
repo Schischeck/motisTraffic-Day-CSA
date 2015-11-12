@@ -66,8 +66,7 @@ public:
             setup.reliability_module().s_t_distributions()),
         dep_dist);
     compute_arrival_distribution(
-        data_arrival(*departing_route_edge._to, departing_light_conn, dep_dist,
-                     *schedule_,
+        data_arrival(departing_light_conn, dep_dist, *schedule_,
                      setup.reliability_module().s_t_distributions()),
         arr_dist);
     return std::make_pair(dep_dist, arr_dist);
@@ -176,7 +175,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1, 1, 15);
+      std::make_tuple(19, 10, 2015), 1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -225,10 +224,10 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(1, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }
@@ -239,7 +238,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1, 15);
+      std::make_tuple(19, 10, 2015), 3, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -345,10 +344,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(3, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }
@@ -359,7 +358,7 @@ TEST_F(reliability_connection_graph_rating_foot,
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1, 15);
+      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -413,10 +412,10 @@ TEST_F(reliability_connection_graph_rating_foot,
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(1, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }

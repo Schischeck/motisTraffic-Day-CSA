@@ -30,7 +30,8 @@ connection_element const to_element(
     unsigned int const departure_stop_idx, schedule const&,
     std::string const& from_eva, std::string const& to_eva,
     motis::time const dep_time, motis::time const arr_time,
-    std::string const& category, unsigned int const train_nr);
+    unsigned int const category_id, unsigned int const train_nr,
+    std::string const& line_identifier);
 }  // namespace detail
 }  // namespace connection_to_graph_data
 }  // namespace rating

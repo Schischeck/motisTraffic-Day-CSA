@@ -15,8 +15,8 @@ namespace intermediate {
 
 struct stop {
   stop() = default;
-  stop(int index, int station_id, int a_platform, int d_platform, time a_time,
-       time d_time, bool interchange)
+  stop(unsigned int index, unsigned int station_id, unsigned int a_platform,
+       unsigned int d_platform, time a_time, time d_time, bool interchange)
       : index(index),
         station_id(station_id),
         a_platform(a_platform),
@@ -25,28 +25,28 @@ struct stop {
         d_time(d_time),
         interchange(interchange) {}
 
-  int index;
-  int station_id;
-  int a_platform, d_platform;
+  unsigned int index;
+  unsigned int station_id;
+  unsigned int a_platform, d_platform;
   time a_time, d_time;
   bool interchange;
 };
 
 struct transport {
   transport() = default;
-  transport(int from, int to, light_connection const* con)
+  transport(unsigned int from, unsigned int to, light_connection const* con)
       : from(from),
         to(to),
         con(con),
         duration(con->a_time - con->d_time),
         slot(-1) {}
 
-  transport(int from, int to, int duration, int slot)
+  transport(unsigned int from, unsigned int to, unsigned int duration, int slot)
       : from(from), to(to), con(nullptr), duration(duration), slot(slot) {}
 
-  int from, to;
+  unsigned int from, to;
   light_connection const* con;
-  int duration;
+  unsigned int duration;
   int slot;
 };
 
@@ -103,8 +103,9 @@ parse_label_chain(label const* terminal_label) {
           d_time = (*s2)->_connection->d_time;
         }
 
-        stops.emplace_back(++station_index, current->_node->get_station()->_id,
-                           a_platform, d_platform, a_time, d_time,
+        stops.emplace_back((unsigned int)++station_index,
+                           current->_node->get_station()->_id, a_platform,
+                           d_platform, a_time, d_time,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
 
@@ -118,7 +119,7 @@ parse_label_chain(label const* terminal_label) {
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            ++station_index, current->_node->get_station()->_id,
+            (unsigned int)++station_index, current->_node->get_station()->_id,
             last_con == nullptr ? UNKNOWN_TRACK
                                 : last_con->_full_con->a_platform,
             UNKNOWN_TRACK,
@@ -127,7 +128,7 @@ parse_label_chain(label const* terminal_label) {
                                                : last_con->a_time,
             current->_now, last_con != nullptr);
 
-        transports.emplace_back(station_index, station_index + 1,
+        transports.emplace_back(station_index, (unsigned int)station_index + 1,
                                 (*std::next(it))->_now - current->_now, -1);
 
         walk_arrival = (*std::next(it))->_now;
@@ -138,7 +139,8 @@ parse_label_chain(label const* terminal_label) {
         break;
 
       case IN_CONNECTION:
-        transports.emplace_back(station_index, station_index + 1,
+        transports.emplace_back((unsigned int)station_index,
+                                (unsigned int)station_index + 1,
                                 current->_connection);
 
         // do not collect the last connection route node.
@@ -146,7 +148,7 @@ parse_label_chain(label const* terminal_label) {
         auto succ = *std::next(it);
         if (succ->_node->is_route_node()) {
           stops.emplace_back(
-              ++station_index, current->_node->get_station()->_id,
+              (unsigned int)++station_index, current->_node->get_station()->_id,
               current->_connection->_full_con->a_platform,
               succ->_connection->_full_con->d_platform,
               current->_connection->a_time, succ->_connection->d_time, false);
@@ -165,16 +167,17 @@ parse_label_chain(label const* terminal_label) {
 
 }  // namespace intermediate
 
-journey::transport generate_journey_transport(int from, int to,
+journey::transport generate_journey_transport(unsigned int from,
+                                              unsigned int to,
                                               intermediate::transport const& t,
                                               schedule const& sched) {
   bool walk = false;
   std::string name;
   std::string cat_name;
-  int cat_id = 0;
-  int train_nr = 0;
+  unsigned int cat_id = 0;
+  unsigned int train_nr = 0;
   std::string line_identifier;
-  int duration = t.duration;
+  unsigned int duration = t.duration;
   int slot = -1;
   std::string direction;
   std::string provider;
@@ -185,6 +188,7 @@ journey::transport generate_journey_transport(int from, int to,
   } else {
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
+    cat_id = con_info->family;
     cat_name = sched.categories[con_info->family]->name;
     train_nr = con_info->train_nr;
     if (con_info->dir_ != nullptr) {
@@ -245,7 +249,7 @@ std::vector<journey::transport> generate_journey_transports(
   bool isset_last = false;
   intermediate::transport const* last = nullptr;
   connection_info const* last_con_info = nullptr;
-  int from = 1;
+  unsigned int from = 1;
 
   for (auto const& transport : transports) {
     connection_info const* con_info = nullptr;
@@ -321,7 +325,8 @@ std::vector<journey::attribute> generate_journey_attributes(
     auto const& text = attribute->_str;
 
     for (auto const& range : attribute_ranges) {
-      journey_attributes.push_back({range.from, range.to, code, text});
+      journey_attributes.push_back(
+          {(unsigned int)range.from, (unsigned int)range.to, code, text});
     }
   }
 

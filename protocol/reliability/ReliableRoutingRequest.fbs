@@ -6,7 +6,6 @@ table RatingReq { }
 
 table ReliableSearchReq {
   min_departure_diff:short;
-  interval_width:short;
 }
 
 table LateConnectionReq {}
@@ -14,7 +13,6 @@ table LateConnectionReq {}
 table ConnectionTreeReq {
   num_alternatives_at_each_stop:short;
   min_departure_diff:short;
-  interval_width:short;
 }
 
 union RequestType {

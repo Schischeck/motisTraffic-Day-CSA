@@ -18,7 +18,7 @@ po::options_description guesser::desc() {
   return desc;
 }
 
-void guesser::print(std::ostream& out) const {}
+void guesser::print(std::ostream&) const {}
 
 void guesser::init() {
   auto sync = synced_sched<schedule_access::RO>();

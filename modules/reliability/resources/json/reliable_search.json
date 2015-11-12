@@ -154,6 +154,7 @@
                     "to": 1
                   },
                   "category_name": "RE",
+                  "category_id": 2,
                   "train_nr": 1,
                   "line_id": "",
                   "name": "RE 1",
@@ -202,6 +203,7 @@
                     "to": 1
                   },
                   "category_name": "RE",
+                  "category_id": 2,
                   "train_nr": 2,
                   "line_id": "",
                   "name": "RE 2",
@@ -296,6 +298,7 @@
                     "to": 1
                   },
                   "category_name": "IC",
+                  "category_id": 1,
                   "train_nr": 4,
                   "line_id": "",
                   "name": "IC 4",

@@ -35,9 +35,9 @@ public:
   schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
   schedule_station const KASSEL = {"Kassel", "6380201"};
   schedule_station const STUTTGART = {"Stuttgart", "7309882"};
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
+  unsigned short const ICE_E_K = 7;  // 12:45 --> 14:15
+  unsigned short const ICE_S_E = 5;  // 11:32 --> 12:32
+  unsigned short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
 };
 class reliability_connection_to_graph_data5 : public test_schedule_setup {
 public:
@@ -49,8 +49,8 @@ public:
   schedule_station const FRANKFURT = {"Frankfurt", "2222222"};
   schedule_station const GIESSEN = {"Giessen", "3333333"};
   schedule_station const MARBURG = {"Marburg", "4444444"};
-  short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
-  short const RE_G_M = 2;  // 09:10 --> 09:40
+  unsigned short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
+  unsigned short const RE_G_M = 2;  // 09:10 --> 09:40
 };
 class reliability_connection_to_graph_data6 : public test_schedule_setup {
 public:
@@ -63,14 +63,15 @@ public:
   schedule_station const TUD = {"TUD", "4444444"};
   schedule_station const FRANKFURT = {"Frankfurt", "5555555"};
   schedule_station const HAUPTWACHE = {"Hauptwache", "6666666"};
-  short const IC_M_D = 1;  // 08:10 --> 08:40
-  short const RE_T_F = 2;  // 08:45 --> 09:15
+  unsigned short const IC_M_D = 1;  // 08:10 --> 08:40
+  unsigned short const RE_T_F = 2;  // 08:45 --> 09:15
 };
 
 TEST_F(reliability_connection_to_graph_data2, to_element) {
-  auto const element_ice_s_e =
-      detail::to_element(2, *schedule_, STUTTGART.eva, ERLANGEN.eva,
-                         11 * 60 + 32, 12 * 60 + 32, "ICE", ICE_S_E);
+  auto const element_ice_s_e = detail::to_element(
+      2, *schedule_, STUTTGART.eva, ERLANGEN.eva, 11 * 60 + 32, 12 * 60 + 32,
+      graph_accessor::find_family(schedule_->categories, "ICE").second, ICE_S_E,
+      "");
 
   // route node at Frankfurt of train ICE_S_E
   auto& first_route_node =
@@ -90,9 +91,10 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
 }
 
 TEST_F(reliability_connection_to_graph_data2, to_element2) {
-  auto const element_ice_k_f_s =
-      detail::to_element(3, *schedule_, FRANKFURT.eva, STUTTGART.eva,
-                         10 * 60 + 20, 11 * 60 + 15, "ICE", ICE_K_F_S);
+  auto const element_ice_k_f_s = detail::to_element(
+      3, *schedule_, FRANKFURT.eva, STUTTGART.eva, 10 * 60 + 20, 11 * 60 + 15,
+      graph_accessor::find_family(schedule_->categories, "ICE").second,
+      ICE_K_F_S, "");
 
   // route node at Frankfurt of train ICE_K_F_S
   auto& route_node =
@@ -128,10 +130,10 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
       std::make_tuple(28, 9, 2015), false);
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
     auto const journeys = journey_builder::to_journeys(
-        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+        msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front()).second;
@@ -184,10 +186,10 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
       std::make_tuple(19, 10, 2015), false);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
     auto const journeys = journey_builder::to_journeys(
-        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+        msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front()).second;
@@ -265,10 +267,10 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
       std::make_tuple(19, 10, 2015), false);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
     auto const journeys = journey_builder::to_journeys(
-        msg->content<routing::RoutingResponse const*>(), schedule_->categories);
+        msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front()).second;

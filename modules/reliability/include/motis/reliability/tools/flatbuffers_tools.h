@@ -46,17 +46,15 @@ module::msg_ptr to_connection_tree_request(
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
-    short const min_dep_diff, short const interval_width);
+    short const min_dep_diff);
 module::msg_ptr to_reliable_routing_request(
     std::string const& from_name, std::string const& from_eva,
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff,
-    short const interval_width);
+    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff);
 
 module::msg_ptr to_reliability_rating_response(
     routing::RoutingResponse const*,
-    std::vector<std::unique_ptr<category>> const&,
     std::vector<rating::connection_rating> const&,
     std::vector<rating::simple_rating::simple_connection_rating> const&,
     bool const short_output);

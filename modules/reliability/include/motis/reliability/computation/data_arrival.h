@@ -23,7 +23,7 @@ namespace calc_arrival_distribution {
  * struct storing all data necessary for calculating an arrival distribution.
  */
 struct data_arrival {
-  data_arrival(node const& route_node, light_connection const& light_connection,
+  data_arrival(light_connection const& light_connection,
                probability_distribution const& departure_distribution,
                schedule const& schedule,
                start_and_travel_distributions const& s_t_distributions);
