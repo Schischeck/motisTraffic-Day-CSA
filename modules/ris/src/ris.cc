@@ -82,8 +82,8 @@ po::options_description ris::desc() {
       (MODE,
        po::value<mode>(&mode_)->default_value(mode_),
        "Mode of operation. Valid choices:\n"
-       MODE_LIVE "= production style operation\n"
-       MODE_SIMULATION "= init db with fs, fwd via msg")
+       MODE_LIVE " = production style operation\n"
+       MODE_SIMULATION " = init db with fs, fwd via msg")
       (UPDATE_INTERVAL,
        po::value<int>(&update_interval_)->default_value(update_interval_),
        "update interval in seconds")
