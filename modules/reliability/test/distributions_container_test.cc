@@ -11,7 +11,7 @@ using namespace motis;
 using namespace motis::reliability;
 using namespace motis::reliability::distributions_container;
 
-TEST(precomputed_distributions_container, distributions_container) {
+TEST(reliability_precomputed_distributions_container, distributions_container) {
   precomputed_distributions_container container(2);
 
   ASSERT_FALSE(container.contains_distributions(0, arrival));
@@ -77,7 +77,7 @@ TEST(precomputed_distributions_container, distributions_container) {
       &container.get_distribution(1, 0, distributions_container::departure));
 }
 
-TEST(ride_distributions_container, distributions_container) {
+TEST(reliability_ride_distributions_container, distributions_container) {
   ride_distributions_container container;
 
   auto& dist1 = container.create_and_get_distribution_non_const(

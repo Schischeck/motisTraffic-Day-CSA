@@ -6,13 +6,25 @@
 #include <tuple>
 #include <utility>
 
+#include "parser/util.h"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/loader/hrd/model/rules_graph.h"
+#include "motis/loader/hrd/graph_visualization.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
+
+void print_tree(node const* root) {
+  root->print();
+  for (auto const* child : root->children()) {
+    if (child) {
+      print_tree(child);
+    }
+  }
+}
 
 using namespace logging;
 using namespace flatbuffers;
@@ -56,7 +68,6 @@ bool rule_service_builder::add_service(hrd_service const& s) {
 void create_rule_and_service_nodes(
     service_rule* r, rules_graph& rg,
     std::map<hrd_service*, node*>& service_to_node) {
-
   for (auto const& comb : r->service_combinations()) {
     auto const& s1 = std::get<0>(comb);
     auto const& s2 = std::get<1>(comb);
@@ -70,9 +81,11 @@ void create_rule_and_service_nodes(
       return rg.nodes_.back().get();
     });
 
-    rg.nodes_.emplace_back(new rule_node(
-        reinterpret_cast<service_node*>(s1_node),
-        reinterpret_cast<service_node*>(s2_node), std::get<2>(comb)));
+    auto const& rule = std::get<2>(comb);
+    rg.nodes_.emplace_back(
+        new rule_node(reinterpret_cast<service_node*>(s1_node),
+                      reinterpret_cast<service_node*>(s2_node), rule));
+
     auto rn = rg.nodes_.back().get();
     s1_node->parents_.push_back(rn);
     s2_node->parents_.push_back(rn);
@@ -95,46 +108,69 @@ void build_first_layer(service_rules const& rules, rules_graph& rg) {
   }
 }
 
+bool add_layer_node(node* n1, node* n2,
+                    std::set<std::pair<node*, node*>>& combinations,
+                    rules_graph& rg) {
+  if (n1 == n2 ||
+      combinations.find(std::make_pair(n2, n1)) != end(combinations)) {
+    return false;
+  }
+  combinations.emplace(n1, n2);
+
+  layer_node candidate(n1, n2);
+  if (candidate.traffic_days().none()) {
+    return false;
+  }
+
+  if (n1->services_ == n2->services_) {
+    return false;
+  }
+
+  rg.nodes_.emplace_back(new layer_node(candidate));
+  return true;
+}
+
 void build_remaining_layers(rules_graph& rg) {
   int current_layer_idx = 0;
   int next_layer_idx = 1;
 
   while (!rg.layers_[current_layer_idx].empty()) {
-    if (current_layer_idx == 5) {
-      break;
-    }
     rg.layers_.resize(next_layer_idx + 1);
-    std::set<std::pair<node*, node*>> considered_combinations;
-    for (auto const& node : rg.layers_[current_layer_idx]) {
-      for (auto const& child : node->children()) {
-        for (auto const& related_node : child->parents_) {
-          if (related_node == node) {
-            continue;
-          }
-          if (considered_combinations.find(std::make_pair(
-                  related_node, node)) != end(considered_combinations)) {
-            continue;
-          }
-          considered_combinations.emplace(node, related_node);
 
-          layer_node candidate(node, related_node);
-          if (candidate.traffic_days().none()) {
-            continue;
+    std::set<std::pair<node*, node*>> combinations;
+    auto count = 0;
+    for (auto const& current_parent : rg.layers_[current_layer_idx]) {
+      for (auto const& child : current_parent->children()) {
+        for (auto const related_parent : child->parents_) {
+          if (add_layer_node(current_parent, related_parent, combinations,
+                             rg)) {
+            auto ln = rg.nodes_.back().get();
+            current_parent->parents_.push_back(ln);
+            related_parent->parents_.push_back(ln);
+            rg.layers_[next_layer_idx].push_back(ln);
           }
-          rg.nodes_.emplace_back(new layer_node(candidate));
-
-          auto parent = rg.nodes_.back().get();
-          related_node->parents_.push_back(parent);
-          node->parents_.push_back(parent);
-          rg.layers_[next_layer_idx].push_back(parent);
+          ++count;
         }
       }
     }
 
-    LOG(debug) << "#layer_nodes n on layer x: "
-               << rg.layers_[current_layer_idx].size() << ","
-               << current_layer_idx;
-
+    auto const current_node_count = rg.layers_[current_layer_idx].size();
+    auto const next_node_count = rg.layers_[next_layer_idx].size();
+    if (current_node_count == next_node_count) {
+      LOG(warn) << "found potential cycle at layer " << next_layer_idx << ": "
+                << "current_node_count=" << current_node_count << ", "
+                << "next_node_count=" << next_node_count;
+    } else if (current_node_count < next_node_count) {
+      LOG(warn) << "suspicious node count increase at layer " << next_layer_idx
+                << ": "
+                << "current_node_count=" << current_node_count << ", "
+                << "next_node_count=" << next_node_count;
+    } else {
+      LOG(debug) << "#iter=" << count << ": "
+                 << "layer_idx=" << next_layer_idx << ": "
+                 << "current_node_count=" << current_node_count << ", "
+                 << "next_node_count=" << next_node_count;
+    }
     ++current_layer_idx;
     ++next_layer_idx;
   }
@@ -144,7 +180,6 @@ void build_remaining_layers(rules_graph& rg) {
 void build_graph(service_rules const& rules, rules_graph& rg) {
   build_first_layer(rules, rg);
   build_remaining_layers(rg);
-  rg.print_nodes();
 }
 
 void rule_service_builder::resolve_rule_services() {
@@ -152,36 +187,28 @@ void rule_service_builder::resolve_rule_services() {
 
   rules_graph rg;
   build_graph(rules_, rg);
-  LOG(debug) << "#layers: " << rg.layers_.size();
 
-  // iterate all layers beginning with the top level layer
   std::for_each(
       rg.layers_.rbegin(), rg.layers_.rend(), [&](std::vector<node*>& layer) {
-        LOG(debug) << "#current layer_nodes: " << layer.size();
-        // remove all layer nodes that does not have any traffic day left
-        layer.erase(std::remove_if(begin(layer), end(layer), [](node const* n) {
-          return n->traffic_days().none();
-        }), end(layer));
+        for (auto const& l : layer) {
+          if (std::all_of(begin(l->parents_), end(l->parents_),
+                          [&l](node const* n) -> bool {
+                            return n->traffic_days() == l->traffic_days();
+                          })) {
+            continue;
+          }
 
-        // explore each node recursively and create/collect rule services
-        std::for_each(begin(layer), end(layer), [&](node* n) {
           std::set<service_resolvent> s_resolvents;
-          std::set<service_rule_resolvent> r_resolvents;
-          n->resolve_services(n->traffic_days(), s_resolvents, r_resolvents);
-          if (!r_resolvents.empty()) {
-            rule_services_.emplace_back(std::move(r_resolvents),
+          std::vector<service_rule_resolvent> sr_resolvents;
+          for (auto const& r : l->rules_) {
+            r->resolve_services(l->traffic_days(), s_resolvents, sr_resolvents);
+          }
+          if (!sr_resolvents.empty()) {
+            rule_services_.emplace_back(std::move(sr_resolvents),
                                         std::move(s_resolvents));
           }
-        });
+        }
       });
-
-  // remove all remaining services that does not have any traffic day left
-  origin_services_.erase(
-      std::remove_if(begin(origin_services_), end(origin_services_),
-                     [](std::unique_ptr<hrd_service> const& service_ptr) {
-                       return service_ptr.get()->traffic_days_.none();
-                     }),
-      end(origin_services_));
 }
 
 void create_rule_service(
@@ -210,7 +237,9 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   scoped_timer("create rule and remaining services");
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
-    sbf(std::cref(*s.get()), std::ref(fbb));
+    if (s->traffic_days_.any()) {
+      sbf(std::cref(*s.get()), std::ref(fbb));
+    }
   }
   LOG(info) << "#rule services: " << rule_services_.size();
   for (auto const& rs : rule_services_) {

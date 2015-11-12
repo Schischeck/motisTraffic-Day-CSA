@@ -29,6 +29,4 @@ target_link_libraries(motis-webservice
 )
 
 set_target_properties(motis-webservice PROPERTIES COMPILE_DEFINITIONS _WEBSOCKETPP_CPP11_STL_)
-if (NOT MSVC)
-  set_target_properties(motis-webservice PROPERTIES COMPILE_FLAGS "-std=c++11 -Wall -Wextra")
-endif()
+set_target_properties(motis-webservice PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

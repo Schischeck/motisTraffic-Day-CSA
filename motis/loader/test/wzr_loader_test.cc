@@ -7,7 +7,7 @@
 namespace motis {
 namespace loader {
 
-TEST(wzr, matrix) {
+TEST(loader_wzr, matrix) {
   auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.waiting_time(1, 1) == 3);
@@ -41,7 +41,7 @@ TEST(wzr, matrix) {
   ASSERT_TRUE(waiting_time_rules.waiting_time(5, 5) == 5);
 }
 
-TEST(wzr, family_to_category_assignment) {
+TEST(loader_wzr, family_to_category_assignment) {
   auto c = make_unique<category>(category{"IC", 0});
   std::vector<std::unique_ptr<category>> category_ptrs;
   category_ptrs.emplace_back(std::move(c));
@@ -50,14 +50,14 @@ TEST(wzr, family_to_category_assignment) {
   ASSERT_TRUE(waiting_time_rules.waiting_time_category(0) == 1);
 }
 
-TEST(wzr, train_class_waits_for_other_trains) {
+TEST(loader_wzr, train_class_waits_for_other_trains) {
   auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.waits_for_other_trains(1));
   ASSERT_TRUE(!waiting_time_rules.waits_for_other_trains(3));
 }
 
-TEST(wzr, other_trains_wait_for_train_class) {
+TEST(loader_wzr, other_trains_wait_for_train_class) {
   auto waiting_time_rules = load_waiting_time_rules({});
 
   ASSERT_TRUE(waiting_time_rules.other_trains_wait_for(1));

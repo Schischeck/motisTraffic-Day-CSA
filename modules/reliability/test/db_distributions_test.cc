@@ -5,7 +5,7 @@
 
 using namespace motis::reliability;
 
-TEST(start_distributions, db_distributions) {
+TEST(reliability_start_distributions, db_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
   {
@@ -40,7 +40,7 @@ TEST(start_distributions, db_distributions) {
   }
 }
 
-TEST(travel_time_distributions_Unknown, db_distributions) {
+TEST(reliability_travel_time_distributions_Unknown, db_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
   std::vector<start_and_travel_distributions::probability_distribution_cref>
@@ -50,7 +50,7 @@ TEST(travel_time_distributions_Unknown, db_distributions) {
 }
 
 /* RV and to_departure_delay not covered by the original mapping */
-TEST(travel_time_distributions_RV, db_distributions) {
+TEST(reliability_travel_time_distributions_RV, db_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 
@@ -78,7 +78,7 @@ TEST(travel_time_distributions_RV, db_distributions) {
 }
 
 /* FV and to_departure_delay covered by the original mapping */
-TEST(travel_time_distributions_FV, db_distributions) {
+TEST(reliability_travel_time_distributions_FV, db_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 
@@ -142,7 +142,7 @@ TEST(travel_time_distributions_FV, db_distributions) {
 }
 
 /* travel time longer than the existing mappings */
-TEST(long_travel_time, db_distributions) {
+TEST(reliability_long_travel_time, db_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 

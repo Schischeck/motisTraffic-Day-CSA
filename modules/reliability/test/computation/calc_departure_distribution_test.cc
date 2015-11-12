@@ -15,18 +15,18 @@
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
 
-#include "include/precomputed_distributions_test_container.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/precomputed_distributions_test_container.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
 using namespace detail;
 
-class test_calc_departure_distribution : public test_schedule_setup {
+class reliability_calc_departure_distribution : public test_schedule_setup {
 public:
-  test_calc_departure_distribution()
+  reliability_calc_departure_distribution()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -41,7 +41,7 @@ public:
   short const RE_K_S = 8;
 };
 
-TEST_F(test_calc_departure_distribution, departure_independent_from_feeders) {
+TEST_F(reliability_calc_departure_distribution, departure_independent_from_feeders) {
   std::vector<data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -92,7 +92,7 @@ TEST_F(test_calc_departure_distribution, departure_independent_from_feeders) {
 }
 
 // first route node
-TEST_F(test_calc_departure_distribution, train_early_enough1) {
+TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -112,7 +112,7 @@ TEST_F(test_calc_departure_distribution, train_early_enough1) {
 }
 
 // preceding arrival
-TEST_F(test_calc_departure_distribution, train_early_enough2) {
+TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -136,7 +136,7 @@ TEST_F(test_calc_departure_distribution, train_early_enough2) {
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
 }
 
-TEST_F(test_calc_departure_distribution,
+TEST_F(reliability_calc_departure_distribution,
        cut_minutes_after_latest_feasible_arrival1) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
@@ -158,7 +158,7 @@ TEST_F(test_calc_departure_distribution,
       equal(modified_distributions[0].probability_greater_equal(3), 0.0));
 }
 
-TEST_F(test_calc_departure_distribution,
+TEST_F(reliability_calc_departure_distribution,
        cut_minutes_after_latest_feasible_arrival2) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
@@ -193,7 +193,7 @@ TEST_F(test_calc_departure_distribution,
       equal(modified_distributions[1].probability_greater_equal(1), 0.0));
 }
 
-TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders1) {
+TEST_F(reliability_calc_departure_distribution, had_to_wait_for_feeders1) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -241,7 +241,7 @@ TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders1) {
 }
 
 /* different transfer times */
-TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders2) {
+TEST_F(reliability_calc_departure_distribution, had_to_wait_for_feeders2) {
   probability_distribution feeder1_dist;
   std::vector<data_departure::feeder_info> feeders;
   std::vector<probability_distribution> modified_distributions;
@@ -293,7 +293,7 @@ TEST_F(test_calc_departure_distribution, had_to_wait_for_feeders2) {
 }
 
 // first route node without feeders
-TEST_F(test_calc_departure_distribution, compute_departure_distribution1) {
+TEST_F(reliability_calc_departure_distribution, compute_departure_distribution1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -318,7 +318,7 @@ TEST_F(test_calc_departure_distribution, compute_departure_distribution1) {
 }
 
 // first route node with feeders
-TEST_F(test_calc_departure_distribution, compute_departure_distribution2) {
+TEST_F(reliability_calc_departure_distribution, compute_departure_distribution2) {
   precomputed_distributions_test_container train_distributions(
       {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -377,7 +377,7 @@ TEST_F(test_calc_departure_distribution, compute_departure_distribution2) {
 }
 
 // route node with preceding arrival and without feeders
-TEST_F(test_calc_departure_distribution, compute_departure_distribution3) {
+TEST_F(reliability_calc_departure_distribution, compute_departure_distribution3) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
   start_and_travel_test_distributions const* dummy = nullptr;
@@ -429,7 +429,7 @@ TEST_F(test_calc_departure_distribution, compute_departure_distribution3) {
 }
 
 // route node with preceding arrival and feeders
-TEST_F(test_calc_departure_distribution, compute_departure_distribution4) {
+TEST_F(reliability_calc_departure_distribution, compute_departure_distribution4) {
   std::vector<probability> values;
   values.push_back(0.043);
   for (unsigned int i = 0; i < 29; i++) {

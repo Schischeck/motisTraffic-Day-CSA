@@ -11,17 +11,17 @@
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
 
-#include "include/precomputed_distributions_test_container.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/precomputed_distributions_test_container.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
 namespace calc_arrival_distribution {
 
-class test_data_arrival : public test_schedule_setup {
+class reliability_data_arrival : public test_schedule_setup {
 public:
-  test_data_arrival()
+  reliability_data_arrival()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -38,7 +38,7 @@ public:
   short const RE_K_S = 8;
 };
 
-TEST_F(test_data_arrival, initialize) {
+TEST_F(reliability_data_arrival, initialize) {
   probability_distribution dep_dist;
   dep_dist.init({0.8, 0.2}, 0);
   start_and_travel_test_distributions s_t_distributions({0.1, 0.7, 0.2}, -1);
@@ -77,7 +77,7 @@ TEST_F(test_data_arrival, initialize) {
   ASSERT_TRUE(data.right_bound_ == 2);
 }
 
-TEST_F(test_data_arrival, test_s_t_distributions) {
+TEST_F(reliability_data_arrival, test_s_t_distributions) {
   struct start_and_travel_test2_distributions : start_and_travel_distributions {
     start_and_travel_test2_distributions() {
       distribution_.init_one_point(0, 1.0);

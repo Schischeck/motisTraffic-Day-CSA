@@ -10,7 +10,7 @@
 using namespace motis::reliability;
 using namespace motis::reliability::db_distributions_loader;
 
-TEST(load_distributions_classes, distributions_loader) {
+TEST(reliability_load_distributions_classes, distributions_loader) {
   std::map<std::string, std::string> family_to_distribution_class;
   detail::load_distributions_classes(
       "modules/reliability/resources/distributions/Classes.csv",
@@ -28,7 +28,7 @@ TEST(load_distributions_classes, distributions_loader) {
   ASSERT_TRUE(family_to_distribution_class.find("S")->second == "S");
 }
 
-TEST(load_distributions, distributions_loader) {
+TEST(reliability_load_distributions, distributions_loader) {
   std::vector<std::pair<unsigned int, probability_distribution> > distributions;
   detail::load_distributions(
       "modules/reliability/resources/distributions/Distributions.csv",
@@ -99,7 +99,7 @@ TEST(load_distributions, distributions_loader) {
   }
 }
 
-TEST(parse_travel_time_interval, distributions_loader) {
+TEST(reliability_parse_travel_time_interval, distributions_loader) {
 
   unsigned int from_travel_time, to_travel_time;
   bool success;
@@ -171,7 +171,7 @@ TEST(parse_travel_time_interval, distributions_loader) {
   ASSERT_FALSE(success);
 }
 
-TEST(parse_departure_delay_interval, distributions_loader) {
+TEST(reliability_parse_departure_delay_interval, distributions_loader) {
   unsigned int from_delay, to_delay;
   bool success;
 
@@ -236,7 +236,7 @@ TEST(parse_departure_delay_interval, distributions_loader) {
   ASSERT_FALSE(success);
 }
 
-TEST(to_resolved_mappings, distributions_loader) {
+TEST(reliability_to_resolved_mappings, distributions_loader) {
   std::vector<detail::mapping_int> integer_mappings;
 
   integer_mappings.emplace_back(1, "RV", 0, 2, 0, 1);
@@ -312,7 +312,7 @@ void test_mapping(std::vector<resolved_mapping> const& distribution_mappings,
   }
 }
 
-TEST(load_mappings, distributions_loader) {
+TEST(reliability_load_mappings, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping.csv", 10, 10,
@@ -355,7 +355,7 @@ TEST(load_mappings, distributions_loader) {
 
 /* negative values and unlimited intervals */
 #include <climits>
-TEST(load_mappings2, distributions_loader) {
+TEST(reliability_load_mappings2, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping2.csv", 10, 10,
@@ -396,7 +396,7 @@ TEST(load_mappings2, distributions_loader) {
 }
 
 /* overlapping intervals */
-TEST(load_mappings3, distributions_loader) {
+TEST(reliability_load_mappings3, distributions_loader) {
   std::vector<resolved_mapping> distribution_mappings;
   detail::load_distribution_mappings(
       "modules/reliability/resources/distributions/Mapping3.csv", 10, 10,
@@ -417,7 +417,7 @@ TEST(load_mappings3, distributions_loader) {
   ASSERT_TRUE(distribution_mappings.size() == distribution_mappings_idx);
 }
 
-TEST(load_start_distributions, distributions_loader) {
+TEST(reliability_load_start_distributions, distributions_loader) {
   std::map<std::string, probability_distribution>
       class_to_probability_distributions;
   detail::load_start_distributions(
@@ -449,7 +449,7 @@ TEST(load_start_distributions, distributions_loader) {
   }
 }
 
-TEST(mapping_is_smaller, distributions_loader) {
+TEST(reliability_mapping_is_smaller, distributions_loader) {
   ASSERT_TRUE(detail::mapping_is_smaller(std::make_tuple("FV", 1, 1, 1),
                                          std::make_tuple("RV", 0, 0, 0)));
   ASSERT_FALSE(detail::mapping_is_smaller(std::make_tuple("RV", 0, 0, 0),

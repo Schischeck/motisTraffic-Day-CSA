@@ -301,8 +301,7 @@ std::vector<journey::stop> generate_journey_stops(
 }
 
 std::vector<journey::attribute> generate_journey_attributes(
-    std::vector<intermediate::transport> const& transports,
-    schedule const& sched) {
+    std::vector<intermediate::transport> const& transports) {
   interval_map<attribute const*> attributes;
   for (auto const& transport : transports) {
     if (transport.con == nullptr) {
@@ -338,7 +337,7 @@ journey to_journey(label const* label, schedule const& sched) {
 
   j.stops = generate_journey_stops(s, sched);
   j.transports = generate_journey_transports(t, sched);
-  j.attributes = generate_journey_attributes(t, sched);
+  j.attributes = generate_journey_attributes(t);
 
   j.duration = label->_travel_time[0];
   j.transfers = label->_transfers[0] - 1;

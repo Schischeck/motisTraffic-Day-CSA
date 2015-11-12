@@ -13,18 +13,18 @@
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
 
-#include "include/interchange_data_for_tests.h"
-#include "include/precomputed_distributions_test_container.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/interchange_data_for_tests.h"
+#include "../include/precomputed_distributions_test_container.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
 namespace calc_departure_distribution {
 
-class test_calc_departure_distribution2 : public test_schedule_setup {
+class reliability_calc_departure_distribution2 : public test_schedule_setup {
 public:
-  test_calc_departure_distribution2()
+  reliability_calc_departure_distribution2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -44,7 +44,7 @@ public:
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
-TEST_F(test_calc_departure_distribution2, ic_feeder_arrived) {
+TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {
   probability_distribution pd;
   pd.init({.1, .1, .1, .1, .1, .1, .1, .1}, 0);  // sum = 0.8
 
@@ -62,7 +62,7 @@ TEST_F(test_calc_departure_distribution2, ic_feeder_arrived) {
   }
 }
 
-TEST_F(test_calc_departure_distribution2, ic_feeder_arrives_at_time) {
+TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
   probability_distribution pd;
   pd.init({.1, .1, .1, .1, .1, .1, .1, .1}, 0);  // sum = 0.8
 
@@ -81,7 +81,7 @@ TEST_F(test_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 }
 
 // first route node without feeders, no waiting, interchange highly reliable
-TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic1) {
+TEST_F(reliability_calc_departure_distribution2, compute_departure_distribution_ic1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({.6, .4});
   interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
@@ -107,7 +107,7 @@ TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic1) {
 }
 
 // first route node without feeders, no waiting, interchange unreliable
-TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic2) {
+TEST_F(reliability_calc_departure_distribution2, compute_departure_distribution_ic2) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({.6, .4});
   interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
@@ -134,7 +134,7 @@ TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic2) {
 }
 
 // preceding arrival, no other feeders, no waiting for ic feeder
-TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic3) {
+TEST_F(reliability_calc_departure_distribution2, compute_departure_distribution_ic3) {
   // preceding-arrival: 10:18 - 10:19
   precomputed_distributions_test_container precomputed({0.9, 0.1}, 3);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -174,7 +174,7 @@ TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic3) {
 }
 
 // first route node, waiting for ic-feeder and other feeder
-TEST_F(test_calc_departure_distribution2, compute_departure_distribution_ic5) {
+TEST_F(reliability_calc_departure_distribution2, compute_departure_distribution_ic5) {
   precomputed_distributions_test_container precomputed(
       {.9, .05, .05}, 12);  // feeder arrival 11:27 - 11:29
   start_and_travel_test_distributions s_t_distributions(

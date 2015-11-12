@@ -12,17 +12,17 @@
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
 namespace rating {
 namespace simple_rating {
 
-class test_simple_rating2 : public test_schedule_setup {
+class reliability_simple_rating2 : public test_schedule_setup {
 public:
-  test_simple_rating2()
+  reliability_simple_rating2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             to_unix_time(2015, 9, 28),
                             to_unix_time(2015, 9, 29)) {}
@@ -33,9 +33,9 @@ public:
   short const ICE_S_E = 5;  // 11:32 --> 12:32
   short const ICE_E_K = 7;  // 12:45 --> 14:15
 };
-class test_simple_rating5 : public test_schedule_setup {
+class reliability_simple_rating5 : public test_schedule_setup {
 public:
-  test_simple_rating5()
+  reliability_simple_rating5()
       : test_schedule_setup("modules/reliability/resources/schedule5/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 20)) {}
@@ -52,7 +52,7 @@ public:
 
 /* Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
-TEST_F(test_simple_rating2, simple_rate) {
+TEST_F(reliability_simple_rating2, simple_rate) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
@@ -100,7 +100,7 @@ TEST_F(test_simple_rating2, simple_rate) {
 /* Mannheim to Darmstadt with RE_M_B_D (interchange in Darmstadt),
  * Darmstadt to Giessen with RE_D_F_G (interchange in Giessen), and
  * Giessen to Marburg with RE_G_M */
-TEST_F(test_simple_rating5, simple_rate2) {
+TEST_F(reliability_simple_rating5, simple_rate2) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,

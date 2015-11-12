@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   modules.emplace_back(new ris::ris());
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("data/test", "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", "TODAY", 2);
   modules_settings modules_opt("modules");
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,

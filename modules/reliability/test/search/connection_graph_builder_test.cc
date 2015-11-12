@@ -183,7 +183,7 @@ journey create_journey1() {
   return j;
 }
 
-TEST(test_connection_graph_builder, split_journey) {
+TEST(reliability_connection_graph_builder, split_journey) {
   auto const journeys = detail::split_journey(create_journey1());
   ASSERT_EQ(journeys.size(), 3);
   {
@@ -502,7 +502,7 @@ journey create_journey2() {
   return j;
 }*/
 
-TEST(test_connection_graph_builder, add_base_journey1) {
+TEST(reliability_connection_graph_builder, add_base_journey1) {
   connection_graph cg;
   add_base_journey(cg, create_journey1());
 
@@ -563,7 +563,7 @@ TEST(test_connection_graph_builder, add_base_journey1) {
   }
 }
 
-TEST(test_connection_graph_builder, add_base_journey2) {
+TEST(reliability_connection_graph_builder, add_base_journey2) {
   connection_graph cg;
   add_base_journey(cg, create_journey2());
 
@@ -635,7 +635,7 @@ journey create_journey3() {
   return j;
 }
 
-TEST(test_connection_graph_builder, add_alternative_journey) {
+TEST(reliability_connection_graph_builder, add_alternative_journey) {
   connection_graph cg;
   add_base_journey(cg, create_journey1());
   add_alternative_journey(cg, 2, create_journey3());
@@ -766,7 +766,7 @@ journey create_journey4() {
   return j;
 }
 
-TEST(test_connection_graph_builder, add_alternative_journey2) {
+TEST(reliability_connection_graph_builder, add_alternative_journey2) {
   connection_graph cg;
   add_base_journey(cg, create_journey1());
   add_alternative_journey(cg, 2, create_journey3());
@@ -971,7 +971,7 @@ journey create_journey5() {
   return j;
 }
 
-TEST(test_connection_graph_builder, remove_dummy_stops) {
+TEST(reliability_connection_graph_builder, remove_dummy_stops) {
   journey const j = detail::remove_dummy_stops(create_journey5());
   ASSERT_EQ(j.transfers, 1);
 

@@ -4,11 +4,10 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
+#include "motis/loader/hrd/hrd_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/hrd/hrd_parser.h"
+#include "./test_spec_test.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -28,7 +27,7 @@ TEST(loader_hrd_fbs_services, repeated_service) {
   p.parse(hrd_root, b);
   auto schedule = GetSchedule(b.GetBufferPointer());
 
-  ASSERT_TRUE(schedule->services()->size() == 3);
+  ASSERT_EQ(3, schedule->services()->size());
 
   auto service1 = schedule->services()->Get(0);
   ASSERT_TRUE(service1->times()->size() == 4);

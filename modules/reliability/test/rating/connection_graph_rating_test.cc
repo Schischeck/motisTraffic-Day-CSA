@@ -20,10 +20,10 @@
 #include "motis/reliability/tools/flatbuffers_tools.h"
 #include "motis/reliability/tools/system.h"
 
-#include "include/interchange_data_for_tests.h"
-#include "include/precomputed_distributions_test_container.h"
-#include "include/start_and_travel_test_distributions.h"
-#include "include/test_schedule_setup.h"
+#include "../include/interchange_data_for_tests.h"
+#include "../include/precomputed_distributions_test_container.h"
+#include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_schedule_setup.h"
 
 namespace motis {
 namespace reliability {
@@ -32,11 +32,11 @@ namespace rating {
 namespace cg {
 namespace test {
 
-class test_connection_graph_rating_base : public test_schedule_setup {
+class reliability_connection_graph_rating_base : public test_schedule_setup {
 public:
-  test_connection_graph_rating_base(std::string schedule_name,
-                                    std::time_t schedule_begin,
-                                    std::time_t schedule_end)
+  reliability_connection_graph_rating_base(std::string schedule_name,
+                                           std::time_t schedule_begin,
+                                           std::time_t schedule_end)
       : test_schedule_setup(schedule_name, schedule_begin, schedule_end) {}
 
   std::pair<probability_distribution, probability_distribution>
@@ -74,10 +74,11 @@ public:
   }
 };
 
-class test_connection_graph_rating : public test_connection_graph_rating_base {
+class reliability_connection_graph_rating
+    : public reliability_connection_graph_rating_base {
 public:
-  test_connection_graph_rating()
-      : test_connection_graph_rating_base(
+  reliability_connection_graph_rating()
+      : reliability_connection_graph_rating_base(
             "modules/reliability/resources/schedule7_cg/",
             to_unix_time(2015, 10, 19), to_unix_time(2015, 10, 20)) {}
 
@@ -90,11 +91,11 @@ public:
   short const IC_L_F = 4;  // 07:17 --> 07:40
 };
 
-class test_connection_graph_rating_foot
-    : public test_connection_graph_rating_base {
+class reliability_connection_graph_rating_foot
+    : public reliability_connection_graph_rating_base {
 public:
-  test_connection_graph_rating_foot()
-      : test_connection_graph_rating_base(
+  reliability_connection_graph_rating_foot()
+      : reliability_connection_graph_rating_base(
             "modules/reliability/resources/schedule3/",
             to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29)) {}
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
@@ -106,7 +107,7 @@ public:
   short const S_M_W = 2;  // 10:20 --> 10:25
 };
 
-TEST_F(test_connection_graph_rating, scheduled_transfer_filter) {
+TEST_F(reliability_connection_graph_rating, scheduled_transfer_filter) {
   using namespace detail;
   probability_distribution arr_dist;
   arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
@@ -135,7 +136,8 @@ TEST_F(test_connection_graph_rating, scheduled_transfer_filter) {
   }
 }
 
-TEST_F(test_connection_graph_rating, compute_uncovered_arrival_distribution) {
+TEST_F(reliability_connection_graph_rating,
+       compute_uncovered_arrival_distribution) {
   using namespace detail;
   probability_distribution arr_dist;
   arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
@@ -169,7 +171,7 @@ TEST_F(test_connection_graph_rating, compute_uncovered_arrival_distribution) {
 }
 
 /* rating of a cg consisting of a single journey with one interchange */
-TEST_F(test_connection_graph_rating, single_connection) {
+TEST_F(reliability_connection_graph_rating, single_connection) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
@@ -232,7 +234,7 @@ TEST_F(test_connection_graph_rating, single_connection) {
 }
 
 /* rating a cg with multiple alternatives */
-TEST_F(test_connection_graph_rating, multiple_alternatives) {
+TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
@@ -352,7 +354,8 @@ TEST_F(test_connection_graph_rating, multiple_alternatives) {
 }
 
 /* rating of a cg with a foot-path */
-TEST_F(test_connection_graph_rating_foot, reliable_routing_request_foot) {
+TEST_F(reliability_connection_graph_rating_foot,
+       reliable_routing_request_foot) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
