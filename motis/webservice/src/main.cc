@@ -141,6 +141,7 @@ int main(int argc, char** argv) {
     threads[i] = boost::thread(run);
   }
 
+  LOG(info) << "listening for requests";
   ios.run();
   thread_pool.stop();
   std::for_each(begin(threads), end(threads),
