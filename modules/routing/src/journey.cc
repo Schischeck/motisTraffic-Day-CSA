@@ -185,6 +185,7 @@ journey::transport generate_journey_transport(int from, int to,
   } else {
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
+    cat_id = con_info->family;
     cat_name = sched.categories[con_info->family]->name;
     train_nr = con_info->train_nr;
     if (con_info->dir_ != nullptr) {
@@ -221,23 +222,24 @@ journey::transport generate_journey_transport(int from, int to,
     }
   }
 
-  return {from, to, walk, name, cat_name, cat_id, train_nr, line_identifier,
-          duration, slot, direction, provider};
+  return {from,     to,     walk,      name,
+          cat_name, cat_id, train_nr,  line_identifier,
+          duration, slot,   direction, provider};
 }
 
 std::vector<journey::transport> generate_journey_transports(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
-  auto con_info_eq =
-      [](connection_info const* a, connection_info const* b) -> bool {
-        if (a == nullptr || b == nullptr) {
-          return false;
-        } else {
-          // equals comparison ignoring attributes:
-          return a->line_identifier == b->line_identifier &&
-                 a->family == b->family && a->train_nr == b->train_nr;
-        }
-      };
+  auto con_info_eq = [](connection_info const* a,
+                        connection_info const* b) -> bool {
+    if (a == nullptr || b == nullptr) {
+      return false;
+    } else {
+      // equals comparison ignoring attributes:
+      return a->line_identifier == b->line_identifier &&
+             a->family == b->family && a->train_nr == b->train_nr;
+    }
+  };
 
   std::vector<journey::transport> journey_transports;
 

@@ -66,7 +66,7 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
         req, *this, session_id,
         std::make_shared<
             search::connection_graph_search::reliable_cg_optimizer>(
-            req_info->min_departure_diff(), req_info->interval_width()),
+            req_info->min_departure_diff()),
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
   }
@@ -78,12 +78,11 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
         req, *this, session_id,
         std::make_shared<search::connection_graph_search::simple_optimizer>(
             req_info->num_alternatives_at_each_stop(),
-            req_info->min_departure_diff(), req_info->interval_width()),
+            req_info->min_departure_diff()),
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
-  } else {
-    return cb({}, error::not_implemented);
   }
+  return cb({}, error::not_implemented);
 }
 
 void reliability::handle_routing_response(msg_ptr msg,

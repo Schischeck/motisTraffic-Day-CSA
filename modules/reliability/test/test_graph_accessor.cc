@@ -270,8 +270,9 @@ TEST_F(test_graph_accessor, get_feeders_first_departure) {
 
 TEST_F(test_graph_accessor, get_first_route_node) {
   auto const first_node = get_first_route_node(*schedule_, ICE_FR_DA_H);
-  auto const node = get_departing_route_edge(
-                        *get_departing_route_edge(*first_node)->_to)->_to;
+  auto const node =
+      get_departing_route_edge(*get_departing_route_edge(*first_node)->_to)
+          ->_to;
   ASSERT_EQ(&get_first_route_node(*node), first_node);
 }
 
@@ -324,7 +325,7 @@ TEST_F(test_graph_accessor, get_light_connection) {
   lc5._full_con = &fc5;
   route_edge._m._route_edge._conns.push_back(lc5);
 
-  auto lc = find_light_connection(route_edge, 20, 2, 2);
+  auto lc = find_light_connection(route_edge, 20, 2, 2, "");
   // index 3 is lc4
   ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[3]);
   ASSERT_EQ(lc.second, 3);

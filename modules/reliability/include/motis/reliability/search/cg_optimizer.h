@@ -9,23 +9,19 @@ namespace search {
 namespace connection_graph_search {
 
 struct connection_graph_optimizer {
-  connection_graph_optimizer(duration const min_departure_diff,
-                             duration const interval_width)
-      : min_departure_diff_(min_departure_diff),
-        interval_width_(interval_width) {}
+  connection_graph_optimizer(duration const min_departure_diff)
+      : min_departure_diff_(min_departure_diff) {}
   virtual ~connection_graph_optimizer() {}
   virtual bool complete(
       connection_graph::stop const&,
       detail::context::conn_graph_context::stop_state const&) const = 0;
 
   duration const min_departure_diff_;
-  duration const interval_width_;
 };
 
 struct reliable_cg_optimizer : connection_graph_optimizer {
-  reliable_cg_optimizer(duration const min_departure_diff,
-                        duration const interval_width)
-      : connection_graph_optimizer(min_departure_diff, interval_width) {}
+  reliable_cg_optimizer(duration const min_departure_diff)
+      : connection_graph_optimizer(min_departure_diff) {}
 
   bool complete(connection_graph::stop const&,
                 detail::context::conn_graph_context::stop_state const&
@@ -37,9 +33,8 @@ struct reliable_cg_optimizer : connection_graph_optimizer {
 
 struct simple_optimizer : connection_graph_optimizer {
   simple_optimizer(unsigned int const num_alternatives_at_each_stop,
-                   duration const min_departure_diff,
-                   duration const interval_width)
-      : connection_graph_optimizer(min_departure_diff, interval_width),
+                   duration const min_departure_diff)
+      : connection_graph_optimizer(min_departure_diff),
         num_alternatives_at_each_stop_(num_alternatives_at_each_stop) {}
 
   bool complete(

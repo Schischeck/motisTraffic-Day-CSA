@@ -68,9 +68,10 @@ public:
 };
 
 TEST_F(test_connection_to_graph_data2, to_element) {
-  auto const element_ice_s_e =
-      detail::to_element(2, *schedule_, STUTTGART.eva, ERLANGEN.eva,
-                         11 * 60 + 32, 12 * 60 + 32, "ICE", ICE_S_E);
+  auto const element_ice_s_e = detail::to_element(
+      2, *schedule_, STUTTGART.eva, ERLANGEN.eva, 11 * 60 + 32, 12 * 60 + 32,
+      graph_accessor::find_family(schedule_->categories, "ICE").second, ICE_S_E,
+      "");
 
   // route node at Frankfurt of train ICE_S_E
   auto& first_route_node =
@@ -90,9 +91,10 @@ TEST_F(test_connection_to_graph_data2, to_element) {
 }
 
 TEST_F(test_connection_to_graph_data2, to_element2) {
-  auto const element_ice_k_f_s =
-      detail::to_element(3, *schedule_, FRANKFURT.eva, STUTTGART.eva,
-                         10 * 60 + 20, 11 * 60 + 15, "ICE", ICE_K_F_S);
+  auto const element_ice_k_f_s = detail::to_element(
+      3, *schedule_, FRANKFURT.eva, STUTTGART.eva, 10 * 60 + 20, 11 * 60 + 15,
+      graph_accessor::find_family(schedule_->categories, "ICE").second,
+      ICE_K_F_S, "");
 
   // route node at Frankfurt of train ICE_K_F_S
   auto& route_node =

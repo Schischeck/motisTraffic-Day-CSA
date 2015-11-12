@@ -113,7 +113,7 @@ TEST_F(test_reliability7, connection_tree) {
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1, 15);
+      std::make_tuple(19, 10, 2015), 3, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
@@ -123,8 +123,30 @@ TEST_F(test_reliability7, connection_tree) {
     std::ifstream f("modules/reliability/resources/json/reliable_search.json");
     std::string expected_str((std::istreambuf_iterator<char>(f)),
                              std::istreambuf_iterator<char>());
-    std::ofstream os("json.txt");
-    os << msg->to_json() << std::endl;
+    ASSERT_EQ(expected_str, msg->to_json());
+  };
+
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
+}
+
+TEST_F(test_reliability7, reliable_connection_graph) {
+  system_tools::setup setup(schedule_.get());
+  auto msg = flatbuffers_tools::to_reliable_routing_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+      std::make_tuple(19, 10, 2015), 1);
+  bool test_cb_called = false;
+
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    test_cb_called = true;
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    std::ifstream f("modules/reliability/resources/json/reliable_search.json");
+    std::string expected_str((std::istreambuf_iterator<char>(f)),
+                             std::istreambuf_iterator<char>());
     ASSERT_EQ(expected_str, msg->to_json());
   };
 

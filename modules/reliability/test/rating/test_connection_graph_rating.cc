@@ -129,9 +129,9 @@ TEST_F(test_connection_graph_rating, scheduled_transfer_filter) {
                             arr_dist, interchange_info(9, 13, 3, 0)));
   }
   {
-    ASSERT_TRUE(
-        equal(0.0, scheduled_transfer_filter(
-                       arr_dist, interchange_info(10, 10, 2, 0)).sum()));
+    ASSERT_TRUE(equal(
+        0.0, scheduled_transfer_filter(arr_dist, interchange_info(10, 10, 2, 0))
+                 .sum()));
   }
 }
 
@@ -148,9 +148,11 @@ TEST_F(test_connection_graph_rating, compute_uncovered_arrival_distribution) {
                           arr_dist, interchange_info(10, 10, 3, 1)));
 
   ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
-                             arr_dist, interchange_info(10, 13, 1, 0)).sum()));
+                             arr_dist, interchange_info(10, 13, 1, 0))
+                             .sum()));
   ASSERT_TRUE(equal(0.0, compute_uncovered_arrival_distribution(
-                             arr_dist, interchange_info(11, 13, 1, 1)).sum()));
+                             arr_dist, interchange_info(11, 13, 1, 1))
+                             .sum()));
 
   {
     probability_distribution expected;
@@ -172,59 +174,59 @@ TEST_F(test_connection_graph_rating, single_connection) {
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1, 1, 15);
+      std::make_tuple(19, 10, 2015), 1, 1);
   bool test_cb_called = false;
 
-  auto test_cb =
-      [&](std::vector<std::shared_ptr<connection_graph> > const cgs) {
-        test_cb_called = true;
-        setup.ios_.stop();
-        ASSERT_EQ(cgs.size(), 1);
-        auto const cg = *cgs.front();
-        ASSERT_EQ(3, cg.stops_.size());
-        ASSERT_EQ(2, cg.journeys_.size());
-        {
-          connection_rating expected_rating_journey0;
-          rating::rate(expected_rating_journey0, cg.journeys_[0],
-                       *setup.reliability_context_);
-          auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                        .departure_distribution_,
-                    rating.departure_distribution_);
-          ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                        .arrival_distribution_,
-                    rating.arrival_distribution_);
-        }
-        {
-          interchange_data_for_tests ic_data(
-              *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
-              FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
-          auto const dists = calc_distributions(
-              ic_data,
-              detail::scheduled_transfer_filter(
-                  cg.stops_[0]
-                      .alternative_infos_.front()
-                      .rating_.arrival_distribution_,
-                  detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)),
-              setup);
-          auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-          ASSERT_EQ(dists.first, rating.departure_distribution_);
-          ASSERT_EQ(dists.second, rating.arrival_distribution_);
-        }
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
+    test_cb_called = true;
+    setup.ios_.stop();
+    ASSERT_EQ(cgs.size(), 1);
+    auto const cg = *cgs.front();
+    ASSERT_EQ(3, cg.stops_.size());
+    ASSERT_EQ(2, cg.journeys_.size());
+    {
+      connection_rating expected_rating_journey0;
+      rating::rate(expected_rating_journey0, cg.journeys_[0],
+                   *setup.reliability_context_);
+      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                    .departure_distribution_,
+                rating.departure_distribution_);
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                    .arrival_distribution_,
+                rating.arrival_distribution_);
+    }
+    {
+      interchange_data_for_tests ic_data(
+          *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
+          7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+      auto const dists = calc_distributions(
+          ic_data,
+          detail::scheduled_transfer_filter(
+              cg.stops_[0]
+                  .alternative_infos_.front()
+                  .rating_.arrival_distribution_,
+              detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)),
+          setup);
+      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
+      ASSERT_EQ(dists.first, rating.departure_distribution_);
+      ASSERT_EQ(dists.second, rating.arrival_distribution_);
+    }
 
-        /* arrival distribution of the connection graph */
-        probability_distribution exp_arr_dist;
-        exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
-        auto const cg_arr_dist = calc_arrival_distribution(cg);
-        ASSERT_EQ(1445239440, cg_arr_dist.first);
-        ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
-      };
+    /* arrival distribution of the connection graph */
+    probability_distribution exp_arr_dist;
+    exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
+    auto const cg_arr_dist = calc_arrival_distribution(cg);
+    ASSERT_EQ(1445239440, cg_arr_dist.first);
+    ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
+  };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(1, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }
@@ -235,7 +237,7 @@ TEST_F(test_connection_graph_rating, multiple_alternatives) {
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1, 15);
+      std::make_tuple(19, 10, 2015), 3, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -341,10 +343,10 @@ TEST_F(test_connection_graph_rating, multiple_alternatives) {
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(3, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }
@@ -354,7 +356,7 @@ TEST_F(test_connection_graph_rating_foot, reliable_routing_request_foot) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1, 15);
+      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -408,10 +410,10 @@ TEST_F(test_connection_graph_rating_foot, reliable_routing_request_foot) {
   };
 
   boost::asio::io_service::work ios_work(setup.ios_);
-  search_cgs(
-      msg->content<ReliableRoutingRequest const*>(), setup.reliability_module(),
-      0, std::make_shared<connection_graph_search::simple_optimizer>(1, 1, 15),
-      test_cb);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+             test_cb);
   setup.ios_.run();
   ASSERT_TRUE(test_cb_called);
 }

@@ -164,7 +164,8 @@ inline node const* get_first_route_node(schedule const& schedule,
 
 inline std::pair<light_connection const*, unsigned int> find_light_connection(
     edge const& route_edge, motis::time const departure_time,
-    unsigned int const family, unsigned int const train_nr) {
+    unsigned int const family, unsigned int const train_nr,
+    std::string const& line_identifier) {
   if (route_edge.empty()) {
     return std::make_pair(nullptr, 0);
   }
@@ -174,8 +175,9 @@ inline std::pair<light_connection const*, unsigned int> find_light_connection(
   while (it != std::end(route_edge._m._route_edge._conns) &&
          it->d_time == departure_time &&
          (it->_full_con->con_info->train_nr != train_nr ||
-          it->_full_con->con_info->family != family)) {
-    it++;
+          it->_full_con->con_info->family != family ||
+          it->_full_con->con_info->line_identifier != line_identifier)) {
+    ++it;
   }
   return (it == std::end(route_edge._m._route_edge._conns) ||
           it->d_time != departure_time)
@@ -215,29 +217,54 @@ inline duration get_interchange_time(node const& arrival_node_feeder,
       ->transfer_time;
 }
 
+/* note: category-names are not unique */
+inline std::pair<bool, int> find_family(
+    std::vector<std::unique_ptr<category>> const& categories,
+    std::string const& category_name) {
+  auto const cat_it =
+      std::find_if(categories.begin(), categories.end(),
+                   [category_name](std::unique_ptr<category> const& cat) {
+                     return cat->name == category_name;
+                   });
+
+  if (cat_it == categories.end()) {
+    return std::make_pair(false, 0);
+  }
+  return std::make_pair(true, cat_it - categories.begin());
+}
+
+inline void print_route_edge(edge const& route_edge, schedule const& schedule,
+                             std::ostream& os) {
+  os << "route-edge from "
+     << schedule.stations[route_edge._from->get_station()->_id]->name
+     << "(route-node-id: " << route_edge._from->_id << ") to "
+     << schedule.stations[route_edge._to->get_station()->_id]->name
+     << "(route-node-id: " << route_edge._to->_id << "):\n";
+  unsigned int light_connection_idx = 0;
+  for (auto const& light_connection : route_edge._m._route_edge._conns) {
+    os << schedule.stations[route_edge._from->_station_node->_id]->name << "/"
+       << schedule.stations[route_edge._from->_station_node->_id]->eva_nr << "("
+       << route_edge._from->_id << ")"
+       << " " << format_time(light_connection.d_time) << "--"
+       << schedule.categories[light_connection._full_con->con_info->family]
+              ->name
+       << light_connection._full_con->con_info->train_nr << ","
+       << light_connection._full_con->con_info->line_identifier << "("
+       << light_connection_idx++ << ")->"
+       << format_time(light_connection.a_time) << " "
+       << schedule.stations[route_edge._to->_station_node->_id]->name << "/"
+       << schedule.stations[route_edge._to->_station_node->_id]->eva_nr << "("
+       << route_edge._to->_id << ")"
+       << " " << &light_connection << std::endl;
+  }
+}
+
 inline void print_route(node const* const first_route_node,
                         schedule const& schedule, std::ostream& os) {
   node const* node = first_route_node;
   edge const* edge = nullptr;
   while ((edge = get_departing_route_edge(*node)) != nullptr) {
-    os << "route-edge from "
-       << schedule.stations[node->get_station()->_id]->name << " to "
-       << schedule.stations[edge->_to->get_station()->_id]->name << ":\n";
-    unsigned int light_connection_idx = 0;
-    for (auto const& light_connection : edge->_m._route_edge._conns) {
-      os << schedule.stations[edge->_from->_station_node->_id]->name << "/"
-         << schedule.stations[edge->_from->_station_node->_id]->eva_nr << "("
-         << edge->_from->_id << ")"
-         << " " << format_time(light_connection.d_time) << "--"
-         << schedule.categories[light_connection._full_con->con_info->family]
-                ->name << light_connection._full_con->con_info->train_nr << "("
-         << light_connection_idx++ << ")->"
-         << format_time(light_connection.a_time) << " "
-         << schedule.stations[edge->_to->_station_node->_id]->name << "/"
-         << schedule.stations[edge->_to->_station_node->_id]->eva_nr << "("
-         << edge->_to->_id << ")"
-         << " " << &light_connection << "\n";
-    }
+    print_route_edge(*edge, schedule, os);
     node = edge->_to;
   }
   os << std::endl;

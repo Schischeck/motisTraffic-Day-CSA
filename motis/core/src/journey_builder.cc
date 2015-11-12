@@ -54,14 +54,7 @@ journey::transport to_transport(
     std::vector<std::unique_ptr<category>> const& categories) {
   journey::transport t;
   t.category_name = transport.category_name()->c_str();
-  t.category_id = 0;
-  auto const it = std::find_if(categories.begin(), categories.end(),
-                               [t](std::unique_ptr<category> const& c) {
-                                 return c->name == t.category_name;
-                               });
-  if (it != categories.end()) {
-    t.category_id = it - categories.begin();
-  }
+  t.category_id = transport.category_id();
   t.direction = transport.direction()->c_str();
   t.duration = duration;
   t.from = transport.range()->from();

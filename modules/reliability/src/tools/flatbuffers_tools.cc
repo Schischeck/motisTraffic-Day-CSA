@@ -305,13 +305,11 @@ module::msg_ptr to_reliable_routing_request(
     std::string const& from_name, std::string const& from_eva,
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff,
-    short const interval_width) {
+    std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff) {
   FlatBufferBuilder b;
   auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
       b, reliability::RequestType_ReliableSearchReq,
-      reliability::CreateReliableSearchReq(b, min_dep_diff, interval_width)
-          .Union());
+      reliability::CreateReliableSearchReq(b, min_dep_diff).Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,
                                      request_type_wrapper);
@@ -322,12 +320,12 @@ module::msg_ptr to_connection_tree_request(
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
-    short const min_dep_diff, short const interval_width) {
+    short const min_dep_diff) {
   FlatBufferBuilder b;
   auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
       b, reliability::RequestType_ConnectionTreeReq,
       reliability::CreateConnectionTreeReq(b, num_alternatives_at_stop,
-                                           min_dep_diff, interval_width)
+                                           min_dep_diff)
           .Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,

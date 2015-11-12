@@ -2,7 +2,6 @@
 
 #include <limits>
 #include <memory>
-#include <fstream>
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
@@ -46,9 +45,8 @@ void search_for_alternative(
     std::shared_ptr<context> c, context::conn_graph_context& conn_graph,
     connection_graph::stop& stop,
     context::conn_graph_context::stop_state& stop_state) {
-  auto request = tools::to_routing_request(
-      *conn_graph.cg_, stop, c->optimizer_->min_departure_diff_,
-      c->optimizer_->interval_width_, stop_state.num_failed_requests_);
+  auto request = tools::to_routing_request(*conn_graph.cg_, stop,
+                                           c->optimizer_->min_departure_diff_);
   auto cache_it = c->journey_cache.find(request.second);
   if (cache_it != c->journey_cache.end()) {
     /* todo: do not copy cached journeys!
@@ -182,8 +180,6 @@ void add_alternative(
   build_cg(c, conn_graph);
 }
 
-std::ofstream os_j("journeys.txt");
-
 void handle_alternative_response(motis::module::msg_ptr msg,
                                  boost::system::error_code e,
                                  std::shared_ptr<context> c,
@@ -214,9 +210,6 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   auto const& j = tools::select_alternative(*conn_graph.cg_.get(), journeys);
   assert(c->journey_cache.find(cache_key) == c->journey_cache.end());
   c->journey_cache[cache_key] = j;
-
-  tools::output(j, c->reliability_.synced_sched().sched(), os_j);
-  os_j << std::endl;
   add_alternative(j, c, conn_graph, stop_state, stop_idx);
 }
 

@@ -52,15 +52,12 @@ inline journey const& latest_departing_alternative(
 inline std::pair<module::msg_ptr, detail::context::journey_cache_key>
 to_routing_request(connection_graph& conn_graph,
                    connection_graph::stop const& stop,
-                   duration const min_departure_diff,
-                   duration const interval_width,
-                   unsigned int const num_failed_requests_before) {
+                   duration const min_departure_diff) {
   auto const time_begin = latest_departing_alternative(conn_graph, stop)
                               .stops.front()
                               .departure.timestamp +
-                          min_departure_diff * 60 +
-                          num_failed_requests_before * interval_width * 60;
-  auto const time_end = time_begin + interval_width * 60;
+                          min_departure_diff * 60;
+  auto const time_end = time_begin;
 
   auto const stop_station = conn_graph.station_info(stop.index_);
   auto const arrival_station =
