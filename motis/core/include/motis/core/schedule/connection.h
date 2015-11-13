@@ -24,8 +24,7 @@ enum {
   MOTIS_X = 9
 };
 
-class connection_info {
-public:
+struct connection_info {
   struct hash {
     std::size_t operator()(connection_info const& c) const {
       std::size_t seed = 0;
@@ -39,7 +38,8 @@ public:
     }
   };
 
-  connection_info() : dir_(nullptr), family(0), train_nr(0) {}
+  connection_info()
+      : dir_(nullptr), provider_(nullptr), family(0), train_nr(0) {}
 
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
@@ -54,8 +54,7 @@ public:
   uint32_t train_nr;
 };
 
-class connection {
-public:
+struct connection {
   struct hash {
     std::size_t operator()(connection const& c) const {
       std::size_t seed = 0;
@@ -90,8 +89,7 @@ public:
   uint8_t clasz;
 };
 
-class light_connection {
-public:
+struct light_connection {
   light_connection() = default;
 
   explicit light_connection(time d_time) : d_time(d_time) {}
