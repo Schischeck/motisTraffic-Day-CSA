@@ -6,6 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "gtest/gtest.h"
+
 #include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/messages.h"
 #include "motis/core/schedule/schedule.h"
@@ -37,11 +39,11 @@ struct transport {
   int from, to;
 };
 
-class test_schedule {
+class test_schedule : public ::testing::Test {
 public:
   test_schedule()
       : _schedule(motis::loader::load_schedule(
-            "../modules/realtime/test/test-schedule",
+            "modules/realtime/test/test-schedule",
             motis::to_unix_time(2015, 1, 26), motis::to_unix_time(2015, 2, 9))),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),
@@ -54,7 +56,7 @@ public:
 
   const motis::station* get_station(std::string name) {
     const auto station = _station_map[name];
-    REQUIRE(station != nullptr);
+    // ASSERT_TRUE(station != nullptr);
     return station;
   }
 
@@ -69,22 +71,22 @@ public:
 
     motis::pareto_dijkstra::statistics stats;
     std::vector<motis::journey> journeys = _search.get_connections(
-        {start}, {target}, departure_begin, departure_begin + 60, &stats);
+        {start}, {target}, departure_begin, departure_begin + interval, &stats);
 
-    CHECK_FALSE(stats.max_label_quit);
+    EXPECT_FALSE(stats.max_label_quit);
 
     return journeys;
   }
 
   void check_stops(const motis::journey& journey,
                    std::vector<stop> expected_stops) {
-    REQUIRE(journey.stops.size() == expected_stops.size() + 2);
+    ASSERT_EQ(expected_stops.size() + 2, journey.stops.size());
 
     for (std::size_t i = 0; i < expected_stops.size(); i++) {
       const motis::journey::stop& jstop = journey.stops[i + 1];
       const stop& estop = expected_stops[i];
-      CHECK(jstop.name == estop.station->name);
-      CHECK(jstop.eva_no == estop.station->eva_nr);
+      EXPECT_EQ(estop.station->name, jstop.name);
+      EXPECT_EQ(estop.station->eva_nr, jstop.eva_no);
 
       auto exp_arrival = estop.arrival.date_time;
       auto exp_departure = estop.departure.date_time;
@@ -94,27 +96,28 @@ public:
         exp_departure += estop.station->transfer_time;
       }
 
-      CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
-                                     jstop.arrival.timestamp) == exp_arrival);
-      CHECK(motis::unix_to_motistime(_schedule->schedule_begin_,
-                                     jstop.departure.timestamp) ==
-            exp_departure);
+      EXPECT_EQ(exp_arrival,
+                motis::unix_to_motistime(_schedule->schedule_begin_,
+                                         jstop.arrival.timestamp));
+      EXPECT_EQ(exp_departure,
+                motis::unix_to_motistime(_schedule->schedule_begin_,
+                                         jstop.departure.timestamp));
     }
   }
 
   void check_transports(const motis::journey& journey,
                         std::vector<transport> expected_transports) {
-    REQUIRE(journey.transports.size() == expected_transports.size() + 2);
+    ASSERT_EQ(expected_transports.size() + 2, journey.transports.size());
 
     for (std::size_t i = 0; i < expected_transports.size(); i++) {
       const motis::journey::transport& jtransport = journey.transports[i + 1];
       const transport& etransport = expected_transports[i];
-      CHECK(jtransport.name ==
-            etransport.category + " " + std::to_string(etransport.train_nr));
-      CHECK(jtransport.category_name == etransport.category);
-      // CHECK(jtransport.train_nr == etransport.train_nr);
-      CHECK(jtransport.from == etransport.from);
-      CHECK(jtransport.to == etransport.to);
+      EXPECT_EQ(etransport.category + " " + std::to_string(etransport.train_nr),
+                jtransport.name);
+      EXPECT_EQ(etransport.category, jtransport.category_name);
+      // EXPECT_EQ(jtransport.train_nr == etransport.train_nr);
+      EXPECT_EQ(etransport.from, jtransport.from);
+      EXPECT_EQ(etransport.to, jtransport.to);
     }
   }
 
@@ -140,8 +143,8 @@ public:
     schedule_event start_event;
     std::tie(start_event, std::ignore, std::ignore, std::ignore) =
         _rts.locate_start_of_train(first_event);
-    REQUIRE(start_event.found());
-    CHECK(start_event == first_event);
+    ASSERT_TRUE(start_event.found());
+    EXPECT_EQ(first_event, start_event);
 
     std::vector<std::tuple<node*, schedule_event, schedule_event> > events =
         _rts.get_train_events(start_event);
@@ -149,7 +152,7 @@ public:
     auto cts = stops.begin();
 
     for (auto e : events) {
-      CHECK(cts != stops.end());
+      ASSERT_TRUE(cts != stops.end());
 
       node* route_node;
       schedule_event sdep, sarr;
@@ -157,42 +160,48 @@ public:
       graph_event gdep = _rts.get_graph_event(sdep);
       graph_event garr = _rts.get_graph_event(sarr);
 
-      CHECK(route_node->get_station()->_id == cts->station->index);
+      EXPECT_EQ(cts->station->index, route_node->get_station()->_id);
 
-      CHECK(schedule_event(
-                cts->scheduled_a_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->a_train_nr, false, cts->scheduled_a_time) == sarr);
-      CHECK(schedule_event(
-                cts->scheduled_d_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->d_train_nr, true, cts->scheduled_d_time) == sdep);
+      EXPECT_EQ(
+          schedule_event(
+              cts->scheduled_a_time == INVALID_TIME ? 0 : cts->station->index,
+              cts->a_train_nr, false, cts->scheduled_a_time),
+          sarr);
+      EXPECT_EQ(
+          schedule_event(
+              cts->scheduled_d_time == INVALID_TIME ? 0 : cts->station->index,
+              cts->d_train_nr, true, cts->scheduled_d_time),
+          sdep);
 
-      CHECK(graph_event(
-                cts->real_a_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->a_train_nr, false, cts->real_a_time,
-                garr._route_id) == garr);
-      CHECK(graph_event(
-                cts->real_d_time == INVALID_TIME ? 0 : cts->station->index,
-                cts->d_train_nr, true, cts->real_d_time,
-                gdep._route_id) == gdep);
+      EXPECT_EQ(graph_event(
+                    cts->real_a_time == INVALID_TIME ? 0 : cts->station->index,
+                    cts->a_train_nr, false, cts->real_a_time, garr._route_id),
+                garr);
+      EXPECT_EQ(graph_event(
+                    cts->real_d_time == INVALID_TIME ? 0 : cts->station->index,
+                    cts->d_train_nr, true, cts->real_d_time, gdep._route_id),
+                gdep);
 
       light_connection* lc;
       if (garr.found()) {
         std::tie(std::ignore, lc) = _rts.locate_event(garr);
-        REQUIRE(lc != nullptr);
-        CHECK(cts->a_category ==
-              _rts._schedule.categories[lc->_full_con->con_info->family]->name);
+        ASSERT_TRUE(lc != nullptr);
+        EXPECT_EQ(
+            cts->a_category,
+            _rts._schedule.categories[lc->_full_con->con_info->family]->name);
       }
       if (gdep.found()) {
         std::tie(std::ignore, lc) = _rts.locate_event(gdep);
-        REQUIRE(lc != nullptr);
-        CHECK(cts->d_category ==
-              _rts._schedule.categories[lc->_full_con->con_info->family]->name);
+        ASSERT_TRUE(lc != nullptr);
+        EXPECT_EQ(
+            cts->d_category,
+            _rts._schedule.categories[lc->_full_con->con_info->family]->name);
       }
 
       ++cts;
     }
 
-    CHECK(cts == stops.end());
+    ASSERT_TRUE(cts == stops.end());
   }
 
   std::unique_ptr<motis::schedule> _schedule;
