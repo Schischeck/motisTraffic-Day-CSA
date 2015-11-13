@@ -17,10 +17,12 @@ std::vector<Offset<Stop>> convert_stops(
   std::vector<Offset<Stop>> buf_stops;
 
   for (auto const& stop : stops) {
-    auto arr = CreateEventInfo(b, stop.arrival.timestamp,
-                               b.CreateString(stop.arrival.platform));
-    auto dep = CreateEventInfo(b, stop.departure.timestamp,
-                               b.CreateString(stop.departure.platform));
+    auto arr =
+        CreateEventInfo(b, stop.arrival.valid ? stop.arrival.timestamp : 0,
+                        b.CreateString(stop.arrival.platform));
+    auto dep =
+        CreateEventInfo(b, stop.departure.valid ? stop.departure.timestamp : 0,
+                        b.CreateString(stop.departure.platform));
     buf_stops.push_back(CreateStop(b, b.CreateString(stop.eva_no),
                                    b.CreateString(stop.name), arr, dep,
                                    stop.interchange));
