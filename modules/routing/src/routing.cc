@@ -42,12 +42,11 @@ void routing::read_path_element(StationPathElement const* el,
   if (eva == 0) {
     // Eva number not set.
     // Try to guess entered station name.
-    FlatBufferBuilder b;
-    b.Finish(CreateMessage(b, MsgContent_StationGuesserRequest,
-                           motis::guesser::CreateStationGuesserRequest(
-                               b, 1, b.CreateString(el->name()->str()))
-                               .Union()));
-
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_StationGuesserRequest,
+                      motis::guesser::CreateStationGuesserRequest(
+                          b, 1, b.CreateString(el->name()->str()))
+                          .Union());
     return dispatch(make_msg(b), 0, std::bind(&routing::handle_station_guess,
                                               this, p::_1, p::_2, cb));
   } else {

@@ -73,19 +73,18 @@ struct ws_server::ws_server_impl {
   }
 
   void send_error(boost::system::error_code e, sid session, int request_id) {
-    flatbuffers::FlatBufferBuilder b;
-    b.Finish(CreateMessage(
-        b, MsgContent_MotisError,
+    MessageCreator b;
+    b.CreateAndFinish(
+        MsgContent_MotisError,
         CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
                          b.CreateString(e.message()))
-            .Union()));
+            .Union());
     send(make_msg(b), session, request_id);
   }
 
   void send_success(sid session, int request_id) {
-    flatbuffers::FlatBufferBuilder b;
-    b.Finish(CreateMessage(b, MsgContent_MotisSuccess,
-                           CreateMotisSuccess(b).Union()));
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
     send(make_msg(b), session, request_id);
   }
 

@@ -1,4 +1,4 @@
-#include "motis/launcher/mode_settings.h"
+#include "motis/launcher/launcher_settings.h"
 
 #include <ostream>
 
@@ -17,35 +17,36 @@ namespace launcher {
 
 namespace po = boost::program_options;
 
-std::istream& operator>>(std::istream& in, mode_settings::motis_mode_t& mode) {
+std::istream& operator>>(std::istream& in,
+                         launcher_settings::motis_mode_t& mode) {
   std::string token;
   in >> token;
 
   if (token == MODE_BATCH) {
-    mode = mode_settings::BATCH;
+    mode = launcher_settings::BATCH;
   } else if (token == MODE_SERVER) {
-    mode = mode_settings::SERVER;
+    mode = launcher_settings::SERVER;
   } else if (token == MODE_TEST) {
-    mode = mode_settings::TEST;
+    mode = launcher_settings::TEST;
   }
 
   return in;
 }
 
 std::ostream& operator<<(std::ostream& out,
-                         mode_settings::motis_mode_t const& mode) {
+                         launcher_settings::motis_mode_t const& mode) {
   switch (mode) {
-    case mode_settings::BATCH: out << MODE_BATCH; break;
-    case mode_settings::SERVER: out << MODE_SERVER; break;
-    case mode_settings::TEST: out << MODE_TEST; break;
+    case launcher_settings::BATCH: out << MODE_BATCH; break;
+    case launcher_settings::SERVER: out << MODE_SERVER; break;
+    case launcher_settings::TEST: out << MODE_TEST; break;
     default: out << "unknown"; break;
   }
   return out;
 }
 
-mode_settings::mode_settings(motis_mode_t m) : mode(m) {}
+launcher_settings::launcher_settings(motis_mode_t m) : mode(m) {}
 
-po::options_description mode_settings::desc() {
+po::options_description launcher_settings::desc() {
   po::options_description desc("Mode Settings");
   // clang-format off
   desc.add_options()
@@ -54,12 +55,14 @@ po::options_description mode_settings::desc() {
        "Mode of operation. Valid choices:\n"
        MODE_BATCH " = read queries from batch file\n"
        MODE_SERVER " = listen for queries from network\n"
-       MODE_TEST " = start server mode and exit after 1s");
+       MODE_TEST " = start server mode and exit after 1s")
+      ("modules", po::value<std::vector<int>>()->multitoken(),
+       "List of modules to load");
   // clang-format on
   return desc;
 }
 
-void mode_settings::print(std::ostream& out) const {
+void launcher_settings::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode;
 }
 

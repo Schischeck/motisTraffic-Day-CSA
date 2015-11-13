@@ -54,7 +54,7 @@ railviz::~railviz() {}
 void railviz::find_train(msg_ptr msg, webclient& client, callback cb) {
   auto req = msg->content<RailVizFindTrain const*>();
 
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   std::string search_string;
   search_string.assign(req->train_number()->c_str());
 
@@ -71,13 +71,13 @@ void railviz::find_train(msg_ptr msg, webclient& client, callback cb) {
           unix_to_motistime(schedule_begin_, client.time + (60 * 5)), i);
     }
     if (train.first != nullptr) {
-      b.Finish(CreateMessage(
-          b, MsgContent_RailVizRouteAtTimeReq,
+      b.CreateAndFinish(
+          MsgContent_RailVizRouteAtTimeReq,
           CreateRailVizRouteAtTimeReq(
               b, train.second->_from->get_station()->_id,
               motis_to_unixtime(schedule_begin_, train.first->d_time),
               train.second->_from->_route)
-              .Union()));
+              .Union());
       return route_at_time(make_msg(b), client, cb);
     }
   }
@@ -110,7 +110,7 @@ motis::module::msg_ptr railviz::make_all_trains_realtime_request(
     std::vector<std::pair<light_connection const*, edge const*>> const& trains)
     const {
   using namespace realtime;
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
 
   for (auto const& t : trains) {
@@ -130,10 +130,10 @@ motis::module::msg_ptr railviz::make_all_trains_realtime_request(
         true));
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RealtimeTrainInfoBatchRequest,
+  b.CreateAndFinish(
+      MsgContent_RealtimeTrainInfoBatchRequest,
       CreateRealtimeTrainInfoBatchRequest(b, b.CreateVector(train_requests))
-          .Union()));
+          .Union());
   return make_msg(b);
 }
 
@@ -143,7 +143,8 @@ callback railviz::make_all_trains_realtime_callback(
   return [this, trains, cb, with_routes](msg_ptr msg,
                                          boost::system::error_code) mutable {
     auto lock = synced_sched<schedule_access::RO>();
-    FlatBufferBuilder b;
+
+    MessageCreator b;
     realtime_response realtime_response_(msg);
     std::vector<flatbuffers::Offset<RailVizTrain>> trains_output;
     std::vector<flatbuffers::Offset<RailVizAlltraResRoute>> fb_routes;
@@ -171,11 +172,10 @@ callback railviz::make_all_trains_realtime_callback(
       }
     }
 
-    b.Finish(
-        CreateMessage(b, MsgContent_RailVizAlltraRes,
+    b.CreateAndFinish(MsgContent_RailVizAlltraRes,
                       CreateRailVizAlltraRes(b, b.CreateVector(trains_output),
                                              b.CreateVector(fb_routes))
-                          .Union()));
+                          .Union());
     cb(make_msg(b), {});
   };
 }
@@ -184,7 +184,7 @@ void railviz::station_info(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto const& stations = lock.sched().stations;
   auto const& station_nodes = lock.sched().station_nodes;
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
 
   auto req = msg->content<RailVizStationDetailReq const*>();
   unsigned index = req->station_index();
@@ -207,7 +207,7 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request(
     const timetable& timetable_) const {
   using namespace realtime;
 
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   std::vector<flatbuffers::Offset<RealtimeTrainInfoRequest>> train_requests;
 
   for (auto const& te : timetable_) {
@@ -222,10 +222,10 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request(
         true));
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RealtimeTrainInfoBatchRequest,
+  b.CreateAndFinish(
+      MsgContent_RealtimeTrainInfoBatchRequest,
       CreateRealtimeTrainInfoBatchRequest(b, b.CreateVector(train_requests))
-          .Union()));
+          .Union());
   return make_msg(b);
 }
 
@@ -235,7 +235,7 @@ callback railviz::make_station_info_realtime_callback(
                                                boost::system::error_code) {
     auto lock = synced_sched<schedule_access::RO>();
     auto const& stations = lock.sched().stations;
-    flatbuffers::FlatBufferBuilder b;
+    MessageCreator b;
 
     realtime_response realtime_response_(msg);
 
@@ -283,11 +283,11 @@ callback railviz::make_station_info_realtime_callback(
           classz, t, b.CreateString(end_station_name), end_start_station->_id,
           outgoing));
     }
-    b.Finish(CreateMessage(b, MsgContent_RailVizStationDetailRes,
-                           CreateRailVizStationDetailRes(
-                               b, b.CreateString(stations[station_index]->name),
-                               station_index, b.CreateVector(timetable_fb))
-                               .Union()));
+    b.CreateAndFinish(MsgContent_RailVizStationDetailRes,
+                      CreateRailVizStationDetailRes(
+                          b, b.CreateString(stations[station_index]->name),
+                          station_index, b.CreateVector(timetable_fb))
+                          .Union());
     return cb(make_msg(b), boost::system::error_code());
   };
 }
@@ -295,7 +295,7 @@ callback railviz::make_station_info_realtime_callback(
 void railviz::route_at_time(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto const& station_nodes = lock.sched().station_nodes;
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
 
   RailVizRouteAtTimeReq const* req =
       msg->content<RailVizRouteAtTimeReq const*>();
@@ -337,12 +337,12 @@ search_for_route_end:
     unsigned int real_time = std::get<2>(first_route_entry)->d_time;
     unsigned int route_id = std::get<1>(first_route_entry)->_route;
     callback callback_ = make_route_at_time_realtime_callback(*found_route, cb);
-    b.Finish(CreateMessage(
-        b, MsgContent_RealtimeTrainInfoRequest,
+    b.CreateAndFinish(
+        MsgContent_RealtimeTrainInfoRequest,
         realtime::CreateRealtimeTrainInfoRequest(
             b, realtime::CreateGraphTrainEvent(b, train_nr, station_index, true,
                                                real_time, route_id))
-            .Union()));
+            .Union());
     return dispatch(make_msg(b), client.id, callback_);
   }
 
@@ -353,7 +353,7 @@ callback railviz::make_route_at_time_realtime_callback(const route& route_,
                                                        callback cb) {
   return [this, route_, cb](msg_ptr msg,
                             boost::system::error_code err) mutable {
-    flatbuffers::FlatBufferBuilder b;
+    MessageCreator b;
     auto lock = synced_sched<schedule_access::RO>();
     auto const& stations = lock.sched().stations;
 
@@ -395,8 +395,8 @@ callback railviz::make_route_at_time_realtime_callback(const route& route_,
     resBuilder.add_classz(classz);
     resBuilder.add_route(b.CreateVector(fb_route_offsets));
 
-    b.Finish(CreateMessage(b, MsgContent_RailVizRouteAtTimeRes,
-                           resBuilder.Finish().Union()));
+    b.CreateAndFinish(MsgContent_RailVizRouteAtTimeRes,
+                      resBuilder.Finish().Union());
 
     return cb(make_msg(b), err);
   };
@@ -413,7 +413,7 @@ void railviz::on_open(sid session) {
 
   auto lock = synced_sched<schedule_access::RO>();
   auto const& stations = lock.sched().stations;
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
 
   std::vector<flatbuffers::Offset<RailVizInitEntry>> station_entries;
   for (auto const& station : stations) {
@@ -422,12 +422,12 @@ void railviz::on_open(sid session) {
         b, b.CreateString(stations[station->index]->name), &sc));
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RailVizInit,
+  b.CreateAndFinish(
+      MsgContent_RailVizInit,
       CreateRailVizInit(b, b.CreateVector(station_entries),
                         lock.sched().schedule_begin_,
                         lock.sched().schedule_end_ + MINUTES_A_DAY * 60)
-          .Union()));
+          .Union());
   send(make_msg(b), session);
 }
 

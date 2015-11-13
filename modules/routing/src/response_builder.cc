@@ -67,7 +67,7 @@ std::vector<Offset<Attribute>> convert_attributes(
 
 motis::module::msg_ptr journeys_to_message(
     std::vector<journey> const& journeys) {
-  FlatBufferBuilder b;
+  MessageCreator b;
 
   std::vector<Offset<Connection>> connections;
   for (auto const& j : journeys) {
@@ -77,9 +77,9 @@ motis::module::msg_ptr journeys_to_message(
         b.CreateVector(detail::convert_attributes(b, j.attributes))));
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RoutingResponse,
-      CreateRoutingResponse(b, b.CreateVector(connections)).Union()));
+  b.CreateAndFinish(
+      MsgContent_RoutingResponse,
+      CreateRoutingResponse(b, b.CreateVector(connections)).Union());
 
   return make_msg(b);
 }

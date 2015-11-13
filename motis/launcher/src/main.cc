@@ -29,8 +29,7 @@
 #include "motis/launcher/ws_server.h"
 #include "motis/launcher/dataset_settings.h"
 #include "motis/launcher/listener_settings.h"
-#include "motis/launcher/mode_settings.h"
-#include "motis/launcher/modules_settings.h"
+#include "motis/launcher/launcher_settings.h"
 
 #include "motis/loader/parser_error.h"
 
@@ -54,11 +53,10 @@ int main(int argc, char** argv) {
 
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);
-  modules_settings modules_opt("modules");
-  mode_settings mode_opt(mode_settings::SERVER);
+  launcher_settings mode_opt(launcher_settings::SERVER);
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
-                                             &modules_opt, &mode_opt};
+                                             &mode_opt};
   for (auto const& module : modules) {
     confs.push_back(module.get());
   }
@@ -149,7 +147,7 @@ int main(int argc, char** argv) {
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
-  if (mode_opt.mode == mode_settings::TEST) {
+  if (mode_opt.mode == launcher_settings::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
     timer->async_wait([&server](boost::system::error_code) { server.stop(); });
