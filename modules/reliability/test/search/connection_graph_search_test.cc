@@ -51,7 +51,7 @@ public:
           cg.stops_[connection_graph::stop::Index_departure_stop];
       ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
       ASSERT_EQ(stop.alternative_infos_.size(), 1);
-      ASSERT_EQ(stop.alternative_infos_.front().departing_journey_index_, 0);
+      ASSERT_EQ(stop.alternative_infos_.front().journey_index_, 0);
       ASSERT_EQ(stop.alternative_infos_.front().head_stop_index_,
                 connection_graph::stop::Index_first_intermediate_stop);
     }
@@ -68,21 +68,21 @@ public:
       ASSERT_EQ(stop.alternative_infos_.size(), 3);
       {
         auto const& ic = stop.alternative_infos_[0];
-        ASSERT_EQ(ic.departing_journey_index_, 1);
+        ASSERT_EQ(ic.journey_index_, 1);
         ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
         auto const& ic = stop.alternative_infos_[1];
-        ASSERT_EQ(ic.departing_journey_index_, 2);
+        ASSERT_EQ(ic.journey_index_, 2);
         ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
         auto const& ic = stop.alternative_infos_[2];
-        ASSERT_EQ(ic.departing_journey_index_, 3);
+        ASSERT_EQ(ic.journey_index_, 3);
         ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);
@@ -186,7 +186,7 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
           cg.stops_[connection_graph::stop::Index_departure_stop];
       ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
       ASSERT_EQ(stop.alternative_infos_.size(), 1);
-      ASSERT_EQ(stop.alternative_infos_.front().departing_journey_index_, 0);
+      ASSERT_EQ(stop.alternative_infos_.front().journey_index_, 0);
       ASSERT_EQ(stop.alternative_infos_.front().head_stop_index_,
                 connection_graph::stop::Index_first_intermediate_stop);
     }
@@ -203,7 +203,7 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
       ASSERT_EQ(stop.alternative_infos_.size(), 1);
       {
         auto const& ic = stop.alternative_infos_[0];
-        ASSERT_EQ(ic.departing_journey_index_, 1);
+        ASSERT_EQ(ic.journey_index_, 1);
         ASSERT_EQ(ic.head_stop_index_,
                   connection_graph::stop::Index_arrival_stop);
         // ASSERT_EQ(ic.interchange_time, 5);

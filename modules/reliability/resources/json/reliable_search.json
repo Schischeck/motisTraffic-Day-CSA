@@ -8,7 +8,7 @@
             "index": 0,
             "alternative_infos": [
               {
-                "departing_journey_index": 0,
+                "journey_index": 0,
                 "head_stop_index": 2,
                 "rating": {
                   "departure_distribution": {
@@ -43,7 +43,7 @@
             "index": 2,
             "alternative_infos": [
               {
-                "departing_journey_index": 1,
+                "journey_index": 1,
                 "head_stop_index": 1,
                 "rating": {
                   "departure_distribution": {
@@ -67,7 +67,7 @@
                 }
               },
               {
-                "departing_journey_index": 2,
+                "journey_index": 2,
                 "head_stop_index": 1,
                 "rating": {
                   "departure_distribution": {
@@ -91,7 +91,7 @@
                 }
               },
               {
-                "departing_journey_index": 3,
+                "journey_index": 3,
                 "head_stop_index": 1,
                 "rating": {
                   "departure_distribution": {
@@ -311,7 +311,32 @@
 
             ]
           }
-        ]
+        ],
+        "arrival_distribution": {
+          "begin_time": 1445239440,
+          "distribution": [
+            0.0592,
+            0.4884,
+            0.1776,
+            0.0148,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0.0192,
+            0.1584,
+            0.0576,
+            0.0048,
+            0,
+            0,
+            0.0016,
+            0.0132,
+            0.0048,
+            0.0004
+          ],
+          "sum": 1
+        }
       }
     ]
   }

@@ -130,7 +130,7 @@ TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributi
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule_->node_count);
   db_distributions db_dists(
-      "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
+      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
   precomputation::perform_precomputation(
@@ -153,7 +153,7 @@ TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributi
   distributions_container::precomputed_distributions_container
       precomputed_distributions(schedule->node_count);
   db_distributions db_dists(
-      "/home/keyhani/git/motis/DBDists/DBData/20130805/Original/td/", 120,
+      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/", 120,
       120);  // todo: read max travel time from graph
 
   precomputation::perform_precomputation(

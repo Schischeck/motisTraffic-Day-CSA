@@ -159,11 +159,11 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
     stop.index_ = stop_idx;
     stop.alternative_infos_.emplace_back();
     auto& alternative_info = stop.alternative_infos_.front();
-    alternative_info.departing_journey_index_ = cg.journeys_.size();
+    alternative_info.journey_index_ = cg.journeys_.size();
     if (stop_idx == connection_graph::stop::Index_departure_stop &&
         journeys.size() > 1) {
       stop_idx = connection_graph::stop::Index_first_intermediate_stop;
-    } else if (alternative_info.departing_journey_index_ + 1 ==
+    } else if (alternative_info.journey_index_ + 1 ==
                (unsigned short)journeys.size()) {
       stop_idx = connection_graph::stop::Index_arrival_stop;
     } else {
@@ -190,7 +190,7 @@ void add_alternative_journey(connection_graph& cg,
     auto& stop = detail::get_stop(cg, first_stop_idx, stop_idx);
     stop.alternative_infos_.emplace_back();
     auto& departure_info = stop.alternative_infos_.back();
-    departure_info.departing_journey_index_ = cg.journeys_.size();
+    departure_info.journey_index_ = cg.journeys_.size();
     if (journey_count + 1 == journeys.size()) {
       stop_idx = connection_graph::stop::Index_arrival_stop;
     } else if (stop_idx == first_stop_idx) {

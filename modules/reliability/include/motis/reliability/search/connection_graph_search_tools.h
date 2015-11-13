@@ -46,7 +46,7 @@ inline bool complete(detail::context const& c) {
 inline journey const& latest_departing_alternative(
     connection_graph const& conn_graph, connection_graph::stop const& stop) {
   return conn_graph.journeys_.at(
-      stop.alternative_infos_.back().departing_journey_index_);
+      stop.alternative_infos_.back().journey_index_);
 }
 
 inline std::pair<module::msg_ptr, detail::context::journey_cache_key>

@@ -9,7 +9,7 @@ table AlternativeRating {
 }
 
 table AlternativeInfo {
-  departing_journey_index:short;
+  journey_index:short;
   head_stop_index:short;
   rating:AlternativeRating;
 }
