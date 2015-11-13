@@ -155,6 +155,7 @@ int main(int argc, char** argv) {
     timer->async_wait([&server](boost::system::error_code) { server.stop(); });
   }
 
+  LOG(info) << "listening on " << listener_opt.host << ":" << listener_opt.port;
   ios.run();
   thread_pool.stop();
   std::for_each(begin(threads), end(threads),
