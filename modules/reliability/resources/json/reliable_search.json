@@ -6,10 +6,10 @@
         "stops": [
           {
             "index": 0,
-            "alternative_infos": [
+            "alternatives": [
               {
-                "journey_index": 0,
-                "head_stop_index": 2,
+                "journey": 0,
+                "next_stop": 2,
                 "rating": {
                   "departure_distribution": {
                     "begin_time": 1445238000,
@@ -35,16 +35,16 @@
           },
           {
             "index": 1,
-            "alternative_infos": [
+            "alternatives": [
 
             ]
           },
           {
             "index": 2,
-            "alternative_infos": [
+            "alternatives": [
               {
-                "journey_index": 1,
-                "head_stop_index": 1,
+                "journey": 1,
+                "next_stop": 1,
                 "rating": {
                   "departure_distribution": {
                     "begin_time": 1445238900,
@@ -67,8 +67,8 @@
                 }
               },
               {
-                "journey_index": 2,
-                "head_stop_index": 1,
+                "journey": 2,
+                "next_stop": 1,
                 "rating": {
                   "departure_distribution": {
                     "begin_time": 1445238960,
@@ -91,8 +91,8 @@
                 }
               },
               {
-                "journey_index": 3,
-                "head_stop_index": 1,
+                "journey": 3,
+                "next_stop": 1,
                 "rating": {
                   "departure_distribution": {
                     "begin_time": 1445239020,
