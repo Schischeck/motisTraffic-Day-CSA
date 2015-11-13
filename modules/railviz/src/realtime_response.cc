@@ -61,7 +61,9 @@ unsigned int realtime_response::delay_batch(const light_connection& lc,
                                             const station_node& station_node_,
                                             bool departure,
                                             unsigned int route_id) const {
-  if (batch_rsp == nullptr) return 0;
+  if (batch_rsp == nullptr) {
+    return 0;
+  }
 
   int num_responses = batch_rsp->trains()->Length();
   for (int i = 0; i < num_responses; i++) {
@@ -99,7 +101,8 @@ const motis::station_node* realtime_response::next_station_node(
     const motis::node& node_, unsigned int route_id) const {
   for (const motis::edge& e : node_._edges) {
     if (e.type() == motis::edge::ROUTE_EDGE) {
-      if (e._to->is_route_node() && e._to->_route == route_id)
+      if (e._to->is_route_node() &&
+          static_cast<unsigned>(e._to->_route) == route_id)
         return e._to->get_station();
     }
   }

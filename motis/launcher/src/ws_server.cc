@@ -1,4 +1,4 @@
-#include "motis/webservice/ws_server.h"
+#include "motis/launcher/ws_server.h"
 
 #include <memory>
 #include <functional>
@@ -19,7 +19,7 @@ using websocketpp::frame::opcode::TEXT;
 using namespace motis::module;
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios)
@@ -196,5 +196,5 @@ void ws_server::stop() { impl_->stop(); }
 
 void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s, 0); }
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

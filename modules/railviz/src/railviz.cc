@@ -140,8 +140,8 @@ motis::module::msg_ptr railviz::make_all_trains_realtime_request(
 callback railviz::make_all_trains_realtime_callback(
     std::vector<std::pair<light_connection const*, edge const*>> const& trains,
     bool with_routes, callback cb) {
-  return [this, trains, cb, with_routes](
-      msg_ptr msg, boost::system::error_code) mutable {
+  return [this, trains, cb, with_routes](msg_ptr msg,
+                                         boost::system::error_code) mutable {
     auto lock = synced_sched<schedule_access::RO>();
     FlatBufferBuilder b;
     realtime_response realtime_response_(msg);
@@ -231,8 +231,8 @@ motis::module::msg_ptr railviz::make_station_info_realtime_request(
 
 callback railviz::make_station_info_realtime_callback(
     int station_index, timetable const& timetable_, callback cb) {
-  return [this, timetable_, station_index, cb](
-      msg_ptr msg, boost::system::error_code) {
+  return [this, timetable_, station_index, cb](msg_ptr msg,
+                                               boost::system::error_code) {
     auto lock = synced_sched<schedule_access::RO>();
     auto const& stations = lock.sched().stations;
     flatbuffers::FlatBufferBuilder b;
@@ -294,7 +294,6 @@ callback railviz::make_station_info_realtime_callback(
 
 void railviz::route_at_time(msg_ptr msg, webclient& client, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
-  auto const& stations = lock.sched().stations;
   auto const& station_nodes = lock.sched().station_nodes;
   flatbuffers::FlatBufferBuilder b;
 
@@ -307,7 +306,7 @@ void railviz::route_at_time(msg_ptr msg, webclient& client, callback cb) {
   std::vector<route> routes;
   for (auto const& route_node :
        station_nodes[station_id].get()->get_route_nodes()) {
-    if (route_node->_route == route_id)
+    if (static_cast<unsigned>(route_node->_route) == route_id)
       routes =
           timetable_retriever_.get_routes_on_time(*route_node, departure_time);
   }

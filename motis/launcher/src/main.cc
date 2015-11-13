@@ -26,15 +26,15 @@
 #include "motis/ris/ris.h"
 #include "motis/routing/routing.h"
 
-#include "motis/webservice/ws_server.h"
-#include "motis/webservice/dataset_settings.h"
-#include "motis/webservice/listener_settings.h"
-#include "motis/webservice/mode_settings.h"
-#include "motis/webservice/modules_settings.h"
+#include "motis/launcher/ws_server.h"
+#include "motis/launcher/dataset_settings.h"
+#include "motis/launcher/listener_settings.h"
+#include "motis/launcher/mode_settings.h"
+#include "motis/launcher/modules_settings.h"
 
 #include "motis/loader/parser_error.h"
 
-using namespace motis::webservice;
+using namespace motis::launcher;
 using namespace motis::module;
 using namespace motis::logging;
 using namespace motis;

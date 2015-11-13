@@ -9,7 +9,7 @@
 #include "conf/configuration.h"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 class dataset_settings : public conf::configuration {
 public:
@@ -29,5 +29,5 @@ public:
   int num_days;
 };
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

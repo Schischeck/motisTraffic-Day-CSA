@@ -1,4 +1,4 @@
-#include "motis/webservice/mode_settings.h"
+#include "motis/launcher/mode_settings.h"
 
 #include <ostream>
 
@@ -13,33 +13,31 @@
 #define MODE_TEST "test"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 namespace po = boost::program_options;
 
-std::istream& operator>>(std::istream& in,
-                         motis::webservice::mode_settings::motis_mode_t& mode) {
+std::istream& operator>>(std::istream& in, mode_settings::motis_mode_t& mode) {
   std::string token;
   in >> token;
 
   if (token == MODE_BATCH) {
-    mode = motis::webservice::mode_settings::BATCH;
+    mode = mode_settings::BATCH;
   } else if (token == MODE_SERVER) {
-    mode = motis::webservice::mode_settings::SERVER;
+    mode = mode_settings::SERVER;
   } else if (token == MODE_TEST) {
-    mode = motis::webservice::mode_settings::TEST;
+    mode = mode_settings::TEST;
   }
 
   return in;
 }
 
-std::ostream& operator<<(
-    std::ostream& out,
-    motis::webservice::mode_settings::motis_mode_t const& mode) {
+std::ostream& operator<<(std::ostream& out,
+                         mode_settings::motis_mode_t const& mode) {
   switch (mode) {
-    case motis::webservice::mode_settings::BATCH: out << MODE_BATCH; break;
-    case motis::webservice::mode_settings::SERVER: out << MODE_SERVER; break;
-    case motis::webservice::mode_settings::TEST: out << MODE_TEST; break;
+    case mode_settings::BATCH: out << MODE_BATCH; break;
+    case mode_settings::SERVER: out << MODE_SERVER; break;
+    case mode_settings::TEST: out << MODE_TEST; break;
     default: out << "unknown"; break;
   }
   return out;
@@ -65,5 +63,5 @@ void mode_settings::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode;
 }
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

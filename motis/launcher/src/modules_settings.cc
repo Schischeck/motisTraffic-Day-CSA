@@ -1,11 +1,11 @@
-#include "motis/webservice/modules_settings.h"
+#include "motis/launcher/modules_settings.h"
 
 #include <ostream>
 
 #define MODULES_PATH "modules_path"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 namespace po = boost::program_options;
 
@@ -24,5 +24,5 @@ void modules_settings::print(std::ostream& out) const {
   out << "  " << MODULES_PATH << ": " << path;
 }
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

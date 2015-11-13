@@ -7,7 +7,7 @@
 #include "motis/module/server.h"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 struct ws_server : public module::server {
   ws_server(boost::asio::io_service& ios);
@@ -26,5 +26,5 @@ struct ws_server : public module::server {
   std::unique_ptr<ws_server_impl> impl_;
 };
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis
