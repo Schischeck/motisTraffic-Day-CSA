@@ -26,7 +26,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : label_store_(MAX_LABELS) {}
+routing::routing(int max_labels) : label_store_(max_labels) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");

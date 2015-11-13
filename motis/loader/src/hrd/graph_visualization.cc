@@ -29,7 +29,7 @@ void collect_components(node const* root,
     graph.insert(label.str());
   }
 
-  for (auto const* child : root->children()) {
+  for (auto const* child : root->children_) {
     if (child) {
       std::stringstream edge;
       edge << parent_id << " -- " << get_id(child) << ";\n";

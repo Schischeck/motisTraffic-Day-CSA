@@ -10,7 +10,7 @@ namespace motis {
 namespace routing {
 
 struct routing : public motis::module::module {
-  routing();
+  routing(int max_labels = MAX_LABELS_WITH_MARGIN);
   virtual ~routing() {}
 
   virtual boost::program_options::options_description desc() override;

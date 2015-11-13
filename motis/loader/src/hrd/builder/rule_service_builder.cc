@@ -19,7 +19,7 @@ namespace hrd {
 
 void print_tree(node const* root) {
   root->print();
-  for (auto const* child : root->children()) {
+  for (auto const* child : root->children_) {
     if (child) {
       print_tree(child);
     }
@@ -117,7 +117,7 @@ bool add_layer_node(node* n1, node* n2,
   }
   combinations.emplace(n1, n2);
 
-  layer_node candidate(n1, n2);
+  layer_node candidate({n1, n2});
   if (candidate.traffic_days().none()) {
     return false;
   }
@@ -140,7 +140,7 @@ void build_remaining_layers(rules_graph& rg) {
     std::set<std::pair<node*, node*>> combinations;
     auto count = 0;
     for (auto const& current_parent : rg.layers_[current_layer_idx]) {
-      for (auto const& child : current_parent->children()) {
+      for (auto const& child : current_parent->children_) {
         for (auto const related_parent : child->parents_) {
           if (add_layer_node(current_parent, related_parent, combinations,
                              rg)) {

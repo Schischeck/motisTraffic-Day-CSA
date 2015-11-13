@@ -30,11 +30,7 @@ void rule_node_info::resolve_services(
   }
 }
 
-service_node::service_node(hrd_service* s) : node({s}, {}), service_(s) {}
-
-std::array<node*, 2> service_node::children() const {
-  return {{nullptr, nullptr}};
-}
+service_node::service_node(hrd_service* s) : node({}, {s}, {}), service_(s) {}
 
 bitfield const& service_node::traffic_days() const {
   return service_->traffic_days_;
@@ -50,14 +46,12 @@ void service_node::print() const {
 
 rule_node::rule_node(service_node* s1, service_node* s2,
                      resolved_rule_info rule_info)
-    : node({s1->service_, s2->service_}, {&rule_}),
+    : node({s1, s2}, {s1->service_, s2->service_}, {&rule_}),
       s1_(s1),
       s2_(s2),
       rule_(
           {s1->service_, s2->service_, rule_info,
            s1->traffic_days() & s2->traffic_days() & rule_info.traffic_days}) {}
-
-std::array<node*, 2> rule_node::children() const { return {{s1_, s2_}}; }
 
 bitfield const& rule_node::traffic_days() const { return rule_.traffic_days_; }
 
@@ -67,28 +61,31 @@ void rule_node::print() const {
          rule_.rule_.type == 0 ? "TS" : "MSS");
 }
 
-std::set<hrd_service*> joined_services(node const* left, node const* right) {
+std::set<hrd_service*> joined_services(std::vector<node*> const& children) {
   std::set<hrd_service*> services;
-  services.insert(begin(left->services_), end(left->services_));
-  services.insert(begin(right->services_), end(right->services_));
+  for (auto const& c : children) {
+    services.insert(begin(c->services_), end(c->services_));
+  }
   return services;
 }
 
-std::set<rule_node_info*> joined_rule_node_infos(node const* left,
-                                                 node const* right) {
+std::set<rule_node_info*> joined_rule_node_infos(
+    std::vector<node*> const& children) {
   std::set<rule_node_info*> rules;
-  rules.insert(begin(left->rules_), end(left->rules_));
-  rules.insert(begin(right->rules_), end(right->rules_));
+  for (auto const& c : children) {
+    rules.insert(begin(c->rules_), end(c->rules_));
+  }
   return rules;
 }
 
-layer_node::layer_node(node* left, node* right)
-    : node(joined_services(left, right), joined_rule_node_infos(left, right)),
-      left_(left),
-      right_(right),
-      traffic_days_(left->traffic_days() & right->traffic_days()) {}
-
-std::array<node*, 2> layer_node::children() const { return {{left_, right_}}; }
+layer_node::layer_node(std::vector<node*> const& children)
+    : node(children, joined_services(children),
+           joined_rule_node_infos(children)),
+      traffic_days_(std::accumulate(begin(children), end(children),
+                                    create_uniform_bitfield<BIT_COUNT>('1'),
+                                    [](bitfield const& acc, node * n) {
+                                      return acc & n->traffic_days();
+                                    })) {}
 
 bitfield const& layer_node::traffic_days() const { return traffic_days_; }
 
@@ -101,8 +98,8 @@ void rules_graph::print_nodes() const {
   for (int layer_idx = layers_.size() - 1; layer_idx >= 0; --layer_idx) {
     printf("layer %d:\n", layer_idx);
     for (auto const* parent : layers_[layer_idx]) {
-      auto const* child_1 = parent->children().at(0);
-      auto const* child_2 = parent->children().at(1);
+      auto const* child_1 = parent->children_.at(0);
+      auto const* child_2 = parent->children_.at(1);
       parent->print();
       child_1->print();
       child_2->print();
