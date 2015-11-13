@@ -1,7 +1,9 @@
 #include <iostream>
+#include <memory>
 
 #include "boost/filesystem.hpp"
 #include "boost/asio/io_service.hpp"
+#include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/signal_set.hpp"
 #include "boost/thread.hpp"
 
@@ -12,6 +14,7 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/loader/loader.h"
+#include "motis/loader/util.h"
 
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
@@ -26,6 +29,7 @@
 #include "motis/webservice/ws_server.h"
 #include "motis/webservice/dataset_settings.h"
 #include "motis/webservice/listener_settings.h"
+#include "motis/webservice/mode_settings.h"
 #include "motis/webservice/modules_settings.h"
 
 #include "motis/loader/parser_error.h"
@@ -34,6 +38,7 @@ using namespace motis::webservice;
 using namespace motis::module;
 using namespace motis::logging;
 using namespace motis;
+using motis::loader::make_unique;
 
 int main(int argc, char** argv) {
   message::init_parser();
@@ -48,11 +53,12 @@ int main(int argc, char** argv) {
   modules.emplace_back(new ris::ris());
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("rohdaten", "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);
   modules_settings modules_opt("modules");
+  mode_settings mode_opt(mode_settings::SERVER);
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
-                                             &modules_opt};
+                                             &modules_opt, &mode_opt};
   for (auto const& module : modules) {
     confs.push_back(module.get());
   }
@@ -76,8 +82,9 @@ int main(int argc, char** argv) {
   auto schedule_interval = dataset_opt.interval();
   schedule_ptr sched;
   try {
-    sched = loader::load_schedule(dataset_opt.dataset, schedule_interval.first,
-                                  schedule_interval.second);
+    sched = loader::load_schedule(
+        dataset_opt.dataset, dataset_opt.use_serialized,
+        schedule_interval.first, schedule_interval.second);
   } catch (motis::loader::parser_error const& e) {
     std::cout << "unable to parse schedule\n";
     std::cout << e.filename << ":" << e.line_number << "\n";
@@ -141,7 +148,13 @@ int main(int argc, char** argv) {
     threads[i] = boost::thread(run);
   }
 
-  LOG(info) << "listening for requests";
+  std::unique_ptr<boost::asio::deadline_timer> timer;
+  if (mode_opt.mode == mode_settings::TEST) {
+    timer = make_unique<boost::asio::deadline_timer>(
+        ios, boost::posix_time::seconds(1));
+    timer->async_wait([&server](boost::system::error_code) { server.stop(); });
+  }
+
   ios.run();
   thread_pool.stop();
   std::for_each(begin(threads), end(threads),

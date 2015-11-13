@@ -12,11 +12,5 @@ int main(int argc, char** argv) {
   fs::current_path(MOTIS_TEST_EXECUTION_DIR);
 
   ::testing::InitGoogleTest(&argc, argv);
-
-  bool var;
-  if (var) {
-    printf("listening for requests");
-  }
-
   return RUN_ALL_TESTS();
 }

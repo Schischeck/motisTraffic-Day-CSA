@@ -13,8 +13,8 @@ namespace webservice {
 
 class dataset_settings : public conf::configuration {
 public:
-  dataset_settings(std::string default_dataset, std::string schedule_begin,
-                   int num_days);
+  dataset_settings(std::string default_dataset, bool ignore_serialized,
+                   std::string schedule_begin, int num_days);
 
   virtual ~dataset_settings() {}
 
@@ -23,7 +23,9 @@ public:
 
   std::pair<std::time_t, std::time_t> interval() const;
 
-  std::string dataset, schedule_begin;
+  std::string dataset;
+  bool use_serialized;
+  std::string schedule_begin;
   int num_days;
 };
 
