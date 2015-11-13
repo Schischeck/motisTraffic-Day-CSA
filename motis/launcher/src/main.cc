@@ -117,6 +117,7 @@ int main(int argc, char** argv) {
                   module->name()) == end(launcher_opt.modules)) {
       continue;
     }
+
     dispatcher.modules_.push_back(module.get());
     dispatcher.add_module(module.get());
 
