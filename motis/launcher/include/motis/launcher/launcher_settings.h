@@ -13,7 +13,7 @@ class launcher_settings : public conf::configuration {
 public:
   enum motis_mode_t { BATCH, SERVER, TEST };
 
-  launcher_settings(motis_mode_t mode);
+  launcher_settings(motis_mode_t mode, std::vector<std::string> modules);
 
   virtual ~launcher_settings() {}
 
@@ -21,6 +21,7 @@ public:
   virtual void print(std::ostream& out) const override;
 
   motis_mode_t mode;
+  std::vector<std::string> modules;
 };
 
 }  // namespace launcher
