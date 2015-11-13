@@ -1,11 +1,11 @@
-import { ReduceStore, Container } from 'flux/utils';
+import { ReduceStore } from 'flux/utils';
 import Immutable from 'immutable';
 
 import AppDispatcher from './Dispatcher';
 
 class Store extends ReduceStore {
   getInitialState() {
-    return Immutable.Map({
+    return new Immutable.Map({
       value: 0
     });
   }
@@ -15,7 +15,6 @@ class Store extends ReduceStore {
       case 'StationGuesserResponse':
         return state.set(action.componentId, action.content);
       default:
-        console.error('unknown action occured');
         return state;
     }
   }

@@ -1,4 +1,7 @@
 {
+  "plugins": [
+    "esformatter-jsx"
+  ],
   "collapseObjects": {
     "ObjectExpression": {
       "maxLineLength": 80,

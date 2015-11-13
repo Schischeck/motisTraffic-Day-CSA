@@ -1,5 +1,3 @@
-import Actions from './flux-infra/Actions';
-
 class Server {
   constructor(server) {
     this.requestId = 0;
@@ -52,8 +50,8 @@ class Server {
 
   sendMessage(message) {
     return new Promise((resolve, reject) => {
-      let localRequestId = ++this.requestId;
-      let request = {
+      const localRequestId = ++this.requestId;
+      const request = {
         'id': localRequestId,
         'content_type': message.contentType,
         'content': message.content
@@ -61,7 +59,7 @@ class Server {
 
       this.socket.send(JSON.stringify(request));
 
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');
       }, 1000);
 
