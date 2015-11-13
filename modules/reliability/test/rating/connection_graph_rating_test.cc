@@ -9,6 +9,7 @@
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
 
+#include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_graph_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 #include "motis/reliability/rating/public_transport.h"

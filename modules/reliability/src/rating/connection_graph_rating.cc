@@ -116,7 +116,7 @@ find_arriving_connection_element(search::connection_graph const& cg,
     if (it != stop.alternative_infos_.end()) {
       return std::make_pair(
           connection_to_graph_data::get_last_element(
-              schedule, cg.journeys_.at(it->departing_journey_index_)),
+              schedule, cg.journeys_.at(it->journey_index_)),
           it->rating_.arrival_distribution_);
     }
   }
@@ -148,7 +148,7 @@ void rate_first_journey_in_cg(
     context const& context) {
   connection_rating c_rating;
   rating::rate(c_rating, cg_context.cg_->journeys_.at(
-                             alternative.departing_journey_index_),
+                             alternative.journey_index_),
                context);
   alternative.rating_.departure_distribution_ =
       c_rating.public_transport_ratings_.front().departure_distribution_;
@@ -164,7 +164,7 @@ void rate_alternative_in_cg(
   auto connection_elements =
       rating::connection_to_graph_data::get_elements(
           context.schedule_, cg_context.cg_->journeys_.at(
-                                 alternative.departing_journey_index_)).second;
+                                 alternative.journey_index_)).second;
   auto const last_element = detail::find_arriving_connection_element(
       *cg_context.cg_, stop.index_, context.schedule_);
   interchange_info ic_info(last_element.first,

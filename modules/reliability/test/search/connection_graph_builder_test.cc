@@ -511,7 +511,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     auto const& stop = cg.stops_[0];
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
@@ -527,7 +527,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     auto const& stop = cg.stops_[2];
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
@@ -536,7 +536,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     auto const& stop = cg.stops_[3];
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
@@ -572,7 +572,7 @@ TEST(reliability_connection_graph_builder, add_base_journey2) {
     auto const& stop = cg.stops_[0];
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
@@ -645,7 +645,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     auto const& stop = cg.stops_[0];
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
@@ -661,9 +661,9 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     auto const& stop = cg.stops_[2];
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 2);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
-    ASSERT_EQ(stop.alternative_infos_[1].departing_journey_index_, 3);
+    ASSERT_EQ(stop.alternative_infos_[1].journey_index_, 3);
     ASSERT_EQ(stop.alternative_infos_[1].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
@@ -672,7 +672,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     auto const& stop = cg.stops_[3];
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
@@ -777,7 +777,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     auto const& stop = cg.stops_[0];
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
@@ -793,11 +793,11 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     auto const& stop = cg.stops_[2];
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 3);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
-    ASSERT_EQ(stop.alternative_infos_[1].departing_journey_index_, 3);
+    ASSERT_EQ(stop.alternative_infos_[1].journey_index_, 3);
     ASSERT_EQ(stop.alternative_infos_[1].head_stop_index_, 1);
-    ASSERT_EQ(stop.alternative_infos_[2].departing_journey_index_, 4);
+    ASSERT_EQ(stop.alternative_infos_[2].journey_index_, 4);
     ASSERT_EQ(stop.alternative_infos_[2].head_stop_index_, 4);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
@@ -806,7 +806,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     auto const& stop = cg.stops_[3];
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
@@ -815,7 +815,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     auto const& stop = cg.stops_[4];
     ASSERT_EQ(stop.index_, 4);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
-    ASSERT_EQ(stop.alternative_infos_[0].departing_journey_index_, 5);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 5);
     ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
     ASSERT_EQ(cg.station_info(4).first, "Station5");
     ASSERT_EQ(cg.station_info(4).second, "5555555");

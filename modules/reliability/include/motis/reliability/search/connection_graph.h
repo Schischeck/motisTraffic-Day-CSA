@@ -25,7 +25,7 @@ struct connection_graph {
     unsigned short index_;
 
     struct alternative_info {
-      unsigned short departing_journey_index_;
+      unsigned short journey_index_;
       unsigned short head_stop_index_;
 
       struct rating {
@@ -46,7 +46,7 @@ struct connection_graph {
     }
     auto const& stop = journeys_[stops_.at(stop_idx)
                                      .alternative_infos_.front()
-                                     .departing_journey_index_].stops.front();
+                                     .journey_index_].stops.front();
     return std::make_pair(stop.name, stop.eva_no);
   }
 
@@ -58,7 +58,7 @@ private:
                  stop::Index_arrival_stop;
     });
     auto const& stop =
-        journeys_.at(it->alternative_infos_.front().departing_journey_index_)
+        journeys_.at(it->alternative_infos_.front().journey_index_)
             .stops.back();
     return std::make_pair(stop.name, stop.eva_no);
   }

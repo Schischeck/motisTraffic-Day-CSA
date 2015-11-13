@@ -16,7 +16,7 @@ namespace simple_rating {
 
 probability is_not_cancelled(unsigned int const /* family */) { return 0.995; }
 
-probability_distribution const& get_travel_time_distribution(
+probability_distribution get_travel_time_distribution(
     connection_element const& first_element_feeder,
     connection_element const& last_element_feeder,
     start_and_travel_distributions const& s_t_distributions,
@@ -25,10 +25,16 @@ probability_distribution const& get_travel_time_distribution(
       distributions;
   s_t_distributions.get_travel_time_distributions(
       categories[first_element_feeder.light_connection_->_full_con->con_info
-                     ->family]->name,
+                     ->family]
+          ->name,
       last_element_feeder.light_connection_->a_time -
           first_element_feeder.light_connection_->d_time,
       0 /* todo: for realtime, use the departure delay */, distributions);
+  if (distributions.empty()) {
+    probability_distribution pd;
+    pd.init_one_point(0, 1.0);
+    return pd;
+  }
   return distributions.back().get();
 }
 

@@ -8,15 +8,15 @@ table AlternativeRating {
   arrival_distribution:ProbabilityDistribution;
 }
 
-table AlternativeInfo {
-  departing_journey_index:short;
-  head_stop_index:short;
+table Alternative {
+  journey:short;
+  next_stop:short;
   rating:AlternativeRating;
 }
 
 table Stop {
   index:short;
-  alternative_infos:[AlternativeInfo];
+  alternatives:[Alternative];
 }
 
 table ConnectionGraph {

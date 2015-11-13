@@ -11,6 +11,7 @@
 #include "motis/routing/response_builder.h"
 
 #include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/search/connection_graph.h"
@@ -333,10 +334,9 @@ Offset<ConnectionGraph> to_connection_graph(
   std::vector<Offset<Stop>> stops;
   b.ForceDefaults(true); /* necessary to write indices 0 */
   for (auto const& stop : cg.stops_) {
-    std::vector<Offset<AlternativeInfo>> alternative_infos;
+    std::vector<Offset<Alternative>> alternative_infos;
     for (auto const& alternative_info : stop.alternative_infos_) {
-      auto const& journey =
-          cg.journeys_.at(alternative_info.departing_journey_index_);
+      auto const& journey = cg.journeys_.at(alternative_info.journey_index_);
       auto dep_dist = rating_converter::convert(
           b, alternative_info.rating_.departure_distribution_,
           journey.stops.front().departure.timestamp);
@@ -345,8 +345,8 @@ Offset<ConnectionGraph> to_connection_graph(
           journey.stops.back().arrival.timestamp);
       auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
       alternative_infos.push_back(
-          CreateAlternativeInfo(b, alternative_info.departing_journey_index_,
-                                alternative_info.head_stop_index_, rating));
+          CreateAlternative(b, alternative_info.journey_index_,
+                            alternative_info.head_stop_index_, rating));
     }
     stops.push_back(
         CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
@@ -357,8 +357,11 @@ Offset<ConnectionGraph> to_connection_graph(
   for (auto const& j : cg.journeys_) {
     journeys.push_back(to_connection(b, j));
   }
-  return CreateConnectionGraph(b, b.CreateVector(stops),
-                               b.CreateVector(journeys));
+
+  auto const arr_dist = rating::cg::calc_arrival_distribution(cg);
+  return CreateConnectionGraph(
+      b, b.CreateVector(stops), b.CreateVector(journeys),
+      rating_converter::convert(b, arr_dist.second, arr_dist.first));
 }
 
 module::msg_ptr to_reliable_routing_response(

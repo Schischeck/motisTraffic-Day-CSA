@@ -1,4 +1,4 @@
-#include "motis/reliability/rating/connection_graph_rating.h"
+#include "motis/reliability/rating/cg_arrival_distribution.h"
 
 #include "motis/reliability/search/connection_graph.h"
 
@@ -19,7 +19,7 @@ std::vector<distribution_info> distributions_arriving_alternatives(
       if (alternative.head_stop_index_ ==
           search::connection_graph::stop::Index_arrival_stop) {
         distributions.emplace_back(
-            cg.journeys_.at(alternative.departing_journey_index_)
+            cg.journeys_.at(alternative.journey_index_)
                 .stops.back()
                 .arrival.timestamp,
             alternative.rating_.arrival_distribution_);
