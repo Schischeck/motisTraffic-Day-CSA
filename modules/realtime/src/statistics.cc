@@ -55,9 +55,18 @@ void statistics::write_csv(std::ostream& out, std::time_t from,
                            std::time_t to) const {
   const char* time_format = "%Y-%m-%d %H:%M";
 
-  out << from << "," << to << ","
-      << std::put_time(std::localtime(&from), time_format) << ","
-      << std::put_time(std::localtime(&to), time_format) << ","
+  char from_time[100], to_time[100];
+
+  if (!std::strftime(from_time, sizeof(from_time), time_format,
+                     std::localtime(&from))) {
+    from_time[0] = '\0';
+  }
+  if (!std::strftime(to_time, sizeof(to_time), time_format,
+                     std::localtime(&to))) {
+    to_time[0] = '\0';
+  }
+
+  out << from << "," << to << "," << from_time << "," << to_time << ","
       << (to - from) / 60 << "," << std::fixed << std::setprecision(2)
       << _total_processing.ms() << "," << std::fixed << std::setprecision(2)
       << 0 /*_message_fetcher.ms()*/ << "," << std::fixed
