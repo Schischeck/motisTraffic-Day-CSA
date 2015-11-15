@@ -13,10 +13,12 @@ class Server {
       console.log('open', arguments);
     };
 
+    // TODO should be a Map not Object type
     this.pendingRequests = {};
   }
 
   _onmessage(evt) {
+    console.log(JSON.parse(evt.data));
     this._resolvePending(JSON.parse(evt.data));
   }
 
@@ -34,7 +36,11 @@ class Server {
     }
 
     this._cancelTimeout(data.id);
-    this.pendingRequests[data.id].resolve(data);
+    if (data.content_type === 'MotisError') {
+      this.pendingRequests[data.id].reject(data);
+    } else {
+      this.pendingRequests[data.id].resolve(data);
+    }
     delete this.pendingRequests[data.id];
   }
 
@@ -61,7 +67,7 @@ class Server {
 
       const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');
-      }, 1000);
+      }, message.timeout);
 
       this.pendingRequests[localRequestId] = {
         resolve: resolve,
