@@ -8,7 +8,7 @@
     "start": "node devServer.js",
     "lint": "eslint src",
     "format": "find src -name \"*.js\" -exec ./node_modules/esformatter/bin/esformatter -i {} \\;",
-    "format:test": "find src -name \"*.js\" -exec ./node_modules/esformatter/bin/esformatter --diff {} \\;"
+    "format:test": "find src -name \"*.js\" -exec ./node_modules/esformatter/bin/esformatter --diff {} \\;",
     "lint:fix": "eslint src --fix",
     "format": "esformatter -i src/**/*.js",
     "format:diff": "esformatter --diff src/**/*.js"
