@@ -4,7 +4,7 @@ project(motis)
 set(schedule-dir ${CMAKE_CURRENT_SOURCE_DIR}/schedule-format)
 set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/schedule-format")
 file(GLOB_RECURSE schedule-format-files ${schedule-dir}/*.fbs)
-compile_flatbuffers_schema_to_cpp(${schedule-dir} ${generated-headers-dir} generated-headers ${schedule-format-files})
+compile_flatbuffers_schema_to_cpp("" ${schedule-dir} ${generated-headers-dir} generated-headers ${schedule-format-files})
 
 file(GLOB_RECURSE motis-loader-files src/*.cc)
 add_library(motis-loader STATIC ${motis-loader-files} ${generated-headers})

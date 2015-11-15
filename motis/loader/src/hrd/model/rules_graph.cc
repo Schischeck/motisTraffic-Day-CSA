@@ -1,5 +1,7 @@
 #include "motis/loader/hrd/model/rules_graph.h"
 
+#include <numeric>
+
 namespace motis {
 namespace loader {
 namespace hrd {
@@ -30,7 +32,10 @@ void rule_node_info::resolve_services(
   }
 }
 
-service_node::service_node(hrd_service* s) : node({}, {s}, {}), service_(s) {}
+service_node::service_node(hrd_service* s)
+    : node(std::vector<node*>(), std::set<hrd_service*>(),
+           std::set<rule_node_info*>()),
+      service_(s) {}
 
 bitfield const& service_node::traffic_days() const {
   return service_->traffic_days_;
