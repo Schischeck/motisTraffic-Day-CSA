@@ -7,7 +7,8 @@
 namespace motis {
 namespace loader {
 
-schedule_ptr load_schedule(std::string const& path, time_t from, time_t to);
+schedule_ptr load_schedule(std::string const& path, bool use_serialized,
+                           time_t from, time_t to);
 
 }  // namespace loader
 }  // namespace motis

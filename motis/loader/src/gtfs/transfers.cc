@@ -1,4 +1,4 @@
-#include "motis/loader/parsers/gtfs/transfers.h"
+#include "motis/loader/gtfs/transfers.h"
 
 #include <tuple>
 #include <algorithm>
@@ -23,7 +23,7 @@ static const column_mapping<gtfs_transfer> transfer_columns = {
 
 std::map<station_pair, transfer> read_transfers(loaded_file f) {
   std::map<station_pair, transfer> transfers;
-  for (auto const& t : read<gtfs_transfer>(f.content, transfer_columns)) {
+  for (auto const& t : read<gtfs_transfer>(f.content(), transfer_columns)) {
     transfer tr(get<min_transfer_time>(t) / 60, get<transfer_type>(t));
     transfers[std::make_pair(get<from_stop_id>(t).to_str(),
                              get<to_stop_id>(t).to_str())] = tr;

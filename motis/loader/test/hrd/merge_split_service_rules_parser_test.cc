@@ -2,25 +2,23 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
-#include "motis/schedule-format/ServiceRules_generated.h"
+#include "motis/schedule-format/RuleService_generated.h"
 
 #include "motis/loader/util.h"
-#include "motis/loader/parsers/hrd/bitfields_parser.h"
-#include "motis/loader/parsers/hrd/service_rules/merge_split_rules_parser.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+
+#include "./test_spec_test.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_ms, multiple_rules) {
-  test_spec b_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
-                   "bitfield.101");
+  test_spec b_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "bitfield.101");
   auto hrd_bitfields = parse_bitfields(b_spec.lf_);
-  test_spec ts_spec(SCHEDULES / "through-and-merge-split-services" / "stamm",
-                    "vereinig_vt.101");
-  rules rs;
+  test_spec ts_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "vereinig_vt.101");
+  service_rules rs;
   parse_merge_split_service_rules(ts_spec.lf_, hrd_bitfields, rs);
 
   ASSERT_EQ(3, rs.size());

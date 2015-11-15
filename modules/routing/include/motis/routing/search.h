@@ -21,17 +21,23 @@ public:
 
   std::vector<journey> get_connections(
       arrival from, arrival to, time interval_start, time interval_end,
-      pareto_dijkstra::statistics* stats = nullptr);
+      bool ontrip, pareto_dijkstra::statistics* stats = nullptr);
+
+  void generate_ontrip_start_labels(station_node const* start_station,
+                                    time const start_time,
+                                    std::vector<label*>& start_labels,
+                                    lower_bounds& context);
 
   void generate_start_labels(time const from, time const to,
                              station_node const* start_station_node,
-                             std::vector<label*>& indices,
+                             std::vector<label*>& start_labels,
                              station_node const* real_start, int time_off,
                              int start_price, int slot, lower_bounds& context);
 
   void generate_start_labels(time const from, time const to,
                              station_node const* start_station_node,
-                             node const* route, std::vector<label*>& indices,
+                             node const* route,
+                             std::vector<label*>& start_labels,
                              station_node const* real_start, int time_off,
                              int start_price, int slot, lower_bounds& context);
 

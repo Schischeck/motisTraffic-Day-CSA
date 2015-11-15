@@ -1,5 +1,0 @@
-namespace motis.railviz;
-
-table RailVizStationDetail {
-  name:string;
-}

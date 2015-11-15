@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -43,16 +45,15 @@ IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_1) {
-  auto const msg = parse_xmls({connection_decision_fixture_1});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_connection_decision_message, message_1) {
+  auto const messages = parse_xmls(pack(connection_decision_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444227298, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444227298, message.timestamp);
+  EXPECT_EQ(1444233600, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
@@ -115,16 +116,15 @@ TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_2) {
-  auto const msg = parse_xmls({connection_decision_fixture_2});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_connection_decision_message, message_2) {
+  auto const messages = parse_xmls(pack(connection_decision_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444227293, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444227293, message.timestamp);
+  EXPECT_EQ(1444246920, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 

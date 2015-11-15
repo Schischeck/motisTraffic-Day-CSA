@@ -22,8 +22,10 @@ enum class queue_reason : uint8_t {
   TRAIN,  // traveling train edge
   WAITING,  // waiting edge
   CANCELED,  // event canceled
-  RECALC  // recalculate (event added, cancelation revoked, other train
+  RECALC,  // recalculate (event added, cancelation revoked, other train
   // event canceled)
+  REPAIR  // fake message to repair an otherwise broken train because of
+  // conflicting is messages
 };
 
 std::ostream& operator<<(std::ostream& os, const queue_reason& r);
@@ -35,15 +37,12 @@ public:
       : _delay_info(di), _queue_reason(queue_reason) {}
 
   bool operator<(const delay_queue_entry& rhs) const {
-    const schedule_event& se = _delay_info->schedule_event();
-    const schedule_event& ose = rhs._delay_info->schedule_event();
+    const schedule_event& se = _delay_info->sched_ev();
+    const schedule_event& ose = rhs._delay_info->sched_ev();
     if (se._schedule_time == ose._schedule_time) {
       // in this case, we don't care about the order, but an order
       // must be defined, otherwise set thinks the entries are equal
-      if (_delay_info == rhs._delay_info)
-        return _queue_reason < rhs._queue_reason;
-      else
-        return _delay_info < rhs._delay_info;
+      return _delay_info < rhs._delay_info;
     } else {
       return se._schedule_time < ose._schedule_time;
     }
@@ -74,7 +73,9 @@ public:
 
   void enqueue(const schedule_event& event_id, queue_reason queue_reason,
                int32_t route_id = -1);
-  void enqueue(delay_info* di, queue_reason queue_reason);
+  void enqueue(delay_info* di, queue_reason reason);
+
+  void update_route(delay_info* di, int32_t new_route);
 
 private:
   bool calculate_max(const delay_queue_entry& entry);
@@ -93,7 +94,7 @@ private:
   // std::unordered_map<delay_info*, delay_info_update> _delay_info_updates;
   // std::map<delay_info*, delay_info_update, delay_info_ptr_compare>
   // _delay_info_updates;
-  std::unordered_map<uint32_t, std::vector<delay_info_update>>
+  std::unordered_map<int32_t, std::vector<delay_info_update>>
       _delay_info_updates;
 };
 

@@ -1,7 +1,11 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
+
+using namespace parser;
 
 namespace motis {
 namespace ris {
@@ -37,16 +41,15 @@ char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?
  TOutSnd=\"20151007000113597\"/></ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(reroute_message, message_1) {
-  auto const msg = parse_xmls({reroute_fixture_1});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_reroute_message, message_1) {
+  auto const messages = parse_xmls(pack(reroute_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444168874, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444168874, message.timestamp);
+  EXPECT_EQ(1444335660, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
@@ -129,14 +132,11 @@ char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-885
 </Paket>";
 // clang-format on
 
-TEST(reroute_message, message_only_new) {
-  auto const msg = parse_xmls({reroute_fixture_only_new});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_reroute_message, message_only_new) {
+  auto const messages = parse_xmls(pack(reroute_fixture_only_new));
+  ASSERT_EQ(1, messages.size());
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
@@ -188,14 +188,11 @@ char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-
 </Paket>";
 // clang-format on
 
-TEST(reroute_message, message_only_cancel) {
-  auto const msg = parse_xmls({reroute_fixture_only_cancel});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_reroute_message, message_only_cancel) {
+  auto const messages = parse_xmls(pack(reroute_fixture_only_cancel));
+  ASSERT_EQ(1, messages.size());
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 

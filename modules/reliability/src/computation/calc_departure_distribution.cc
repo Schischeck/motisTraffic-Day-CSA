@@ -219,7 +219,12 @@ void compute_departure_distribution(
   }
   departure_distribution.init(probabilties, 0);
 
-  assert(equal(departure_distribution.sum(), 1.0));
+  assert(std::abs(departure_distribution.sum() -
+                  (data.is_first_route_node_
+                       ? 1.0
+                       : data.train_info_.preceding_arrival_info_
+                             .arrival_distribution_->sum())) < 0.00001);
+  assert(smaller_equal(departure_distribution.sum(), 1.0));
 }
 
 }  // namespace distributions_calculator

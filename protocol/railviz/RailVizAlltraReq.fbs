@@ -1,0 +1,10 @@
+include "railviz/RailVizCoordinate.fbs";
+
+namespace motis.railviz;
+
+table RailVizAlltraReq {
+  p1 : RailVizCoordinate;
+  p2 : RailVizCoordinate;
+  time : ulong;
+  with_routes : bool = false;
+}

@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "include/helper.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml_parser.h"
 
@@ -46,16 +48,15 @@ TIn=\"20151007070635948\" TOutSnd=\"20151007070050\"/>\
 </Paket>";
 // clang-format on
 
-TEST(cancel_message, message_1) {
-  auto const msg = parse_xmls({cancel_fixture_1});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_cancel_message, message_1) {
+  auto const messages = parse_xmls(pack(cancel_fixture_1));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444194395, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444194395, message.timestamp);
+  EXPECT_EQ(1444197420, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<CancelMessage const*>(outer_msg->content());
 
@@ -120,16 +121,15 @@ TIn=\"20151007161500043\" TOutSnd=\"20151007161409\"/>\
 // clang-format on
 
 // TODO!
-TEST(ausfall_message, message_2) {
-  auto const msg = parse_xmls({cancel_fixture_2});
-  auto const batch = msg->content<RISBatch const*>();
+TEST(ris_ausfall_message, message_2) {
+  auto const messages = parse_xmls(pack(cancel_fixture_2));
+  ASSERT_EQ(1, messages.size());
 
-  EXPECT_EQ(1444227300, batch->packets()->Get(0)->timestamp());
+  auto const& message = messages[0];
+  EXPECT_EQ(1444227300, message.timestamp);
+  EXPECT_EQ(1444228560, message.scheduled);
 
-  ASSERT_EQ(1, batch->packets()->size());
-  ASSERT_EQ(1, batch->packets()->Get(0)->messages()->size());
-
-  auto outer_msg = batch->packets()->Get(0)->messages()->Get(0);
+  auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<CancelMessage const*>(outer_msg->content());
 

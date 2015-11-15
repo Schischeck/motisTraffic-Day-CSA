@@ -40,10 +40,9 @@ void waiting_edges::log_light_connection(const motis::light_connection* lc) {
              << " a=" << lc->a_time << " (" << motis::format_time(lc->a_time)
              << ")"
              << " family=" << ci->family << " ("
-             << _rts._schedule.category_names[ci->family] << ")"
+             << _rts._schedule.categories[ci->family]->name << ")"
              << " train_nr=" << ci->train_nr
-             << " wtr_category=" << _wtr.waiting_time_category(ci->family)
-             << " service=" << ci->service;
+             << " wtr_category=" << _wtr.waiting_time_category(ci->family);
 }
 
 void waiting_edges::create_waiting_edges() {
@@ -54,7 +53,7 @@ void waiting_edges::create_waiting_edges() {
     const auto& station_node = _rts._schedule.station_nodes[station_index];
     const motis::station* station =
         _rts._schedule.stations[station_index].get();
-    const int transfer_time = station->get_transfer_time;
+    const int transfer_time = station->transfer_time;
     //    LOG(debug) << "station node:"
     //               << " index=" << station.index
     //               << " eva_nr=" << station.eva_nr
@@ -87,6 +86,8 @@ void waiting_edges::create_waiting_edges() {
       const motis::edge* previous_route_edge = _rts.get_prev_edge(route_node);
       if (previous_route_edge != nullptr && !previous_route_edge->empty()) {
         // check first lightconnection
+        const int conns = previous_route_edge->_m._route_edge._conns.size();
+        if (conns == 0) continue;
         const motis::light_connection& first_feeder =
             previous_route_edge->_m._route_edge._conns[0];
         const int feeder_category = _wtr.waiting_time_category(
@@ -103,7 +104,8 @@ void waiting_edges::create_waiting_edges() {
           const motis::node* connector_route_node = out_edge.get_destination();
           if (out_edge.type() == motis::edge::FOOT_EDGE &&
               connector_route_node->is_route_node() &&
-              connector_route_node != route_node) {
+              connector_route_node != route_node &&
+              route_node->_route != connector_route_node->_route) {
 
             for (const motis::edge& route_edge : connector_route_node->_edges) {
               if (route_edge.empty()) continue;
@@ -149,8 +151,8 @@ void waiting_edges::create_waiting_edges(
 
     const motis::light_connection* connector_lc =
         connector->get_connection(feeder_lc->a_time + interchange_time);
-    while (connector_lc != nullptr) {
-      if (connector_lc->d_time - feeder_lc->a_time > 30) break;
+    while (connector_lc != nullptr &&
+           connector_lc->d_time - feeder_lc->a_time <= 30) {
       // ADD WAITING EDGE
       //      LOG(debug) << "    waiting edge between the following two LCs:"
       //                 << " (interchange time = " << interchange_time << ")";

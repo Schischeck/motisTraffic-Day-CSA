@@ -15,7 +15,7 @@ void probability_distribution::init(
   /* determine the left bound (ignore all values smaller than
    * THRESHOLD_SMALL_VALUES) */
   probability error = 0.0;  // sum of all ignored values
-  int idx_first_value = 0;
+  unsigned int idx_first_value = 0;
   while (idx_first_value + 1 < probabilities.size() &&
          probabilities[idx_first_value] < THRESHOLD_SMALL_VALUES) {
     error += probabilities[idx_first_value];
@@ -113,12 +113,6 @@ probability probability_distribution::probability_greater(
 probability probability_distribution::sum() const {
   if (probabilities_.size() == 0) return 0.0;
   return probabilities_[probabilities_.size() - 1];
-}
-
-void probability_distribution::get_probabilities(
-    std::vector<probability>& probabilities) const {
-  for (int i = first_minute_; i <= last_minute(); i++)
-    probabilities.push_back(probability_equal(i));
 }
 
 std::ostream& operator<<(std::ostream& os,

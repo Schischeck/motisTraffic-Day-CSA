@@ -33,7 +33,11 @@ struct probability_distribution {
   probability sum() const;
 
   /* insert all probabilities in to the vector 'probabilities' */
-  void get_probabilities(std::vector<probability>& probabilities) const;
+  template <typename Prob_Type>
+  void get_probabilities(std::vector<Prob_Type>& probabilities) const {
+    for (int i = first_minute_; i <= last_minute(); i++)
+      probabilities.push_back((Prob_Type)probability_equal(i));
+  }
 
   friend std::ostream& operator<<(std::ostream& os,
                                   probability_distribution const& distribution);
@@ -75,6 +79,26 @@ inline bool greater(probability const& a, probability const& b) {
 
 inline bool greater_equal(probability const& a, probability const& b) {
   return (a >= b || equal(a, b));
+}
+
+inline bool operator==(probability_distribution const& lhs,
+                       probability_distribution const& rhs) {
+  if (lhs.first_minute() != rhs.first_minute() ||
+      lhs.last_minute() != rhs.last_minute() || !equal(lhs.sum(), rhs.sum())) {
+    return false;
+  }
+  for (int d = lhs.first_minute(); d <= lhs.last_minute(); d++) {
+    if (!equal(lhs.probability_smaller_equal(d),
+               rhs.probability_smaller_equal(d))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+inline bool operator!=(probability_distribution const& lhs,
+                       probability_distribution const& rhs) {
+  return !(lhs == rhs);
 }
 
 }  // namespace reliability

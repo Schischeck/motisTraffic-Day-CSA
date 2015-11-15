@@ -115,7 +115,6 @@ public:
     // modified_trains
   } _ops;
 
-  operation_time_counter _message_fetcher;
   operation_time_counter _delay_propagator;
   operation_time_counter _graph_updater;
   operation_time_counter _total_processing;

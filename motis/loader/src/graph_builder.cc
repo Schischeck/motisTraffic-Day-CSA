@@ -1,6 +1,7 @@
 #include "motis/loader/graph_builder.h"
 
 #include <functional>
+#include <unordered_set>
 
 #include "parser/cstr.h"
 
@@ -75,14 +76,74 @@ public:
       sched_.stations.emplace_back(std::move(s));
 
       // Store DS100.
-      for (auto const& ds100 : *input_station->external_ids()) {
-        sched_.ds100_to_station.insert(std::make_pair(ds100->str(), s.get()));
+      if (input_station->external_ids()) {
+        for (auto const& ds100 : *input_station->external_ids()) {
+          sched_.ds100_to_station.insert(std::make_pair(ds100->str(), s.get()));
+        }
       }
     }
 
     // First regular node id:
     // first id after station node ids
     next_node_id_ = sched_.stations.size();
+  }
+
+  bool is_unique_service(Service const* service, bitfield const& traffic_days,
+                         std::vector<node*> const& route_nodes) const {
+    auto const& sections = service->sections();
+    for (unsigned section_idx = 0; section_idx < sections->size();
+         ++section_idx) {
+      unsigned train_nr = sections->Get(section_idx)->train_nr();
+      auto base_d_time = service->times()->Get(section_idx * 2 + 1);
+      auto base_a_time = service->times()->Get(section_idx * 2 + 2);
+      auto route_node = route_nodes[section_idx];
+      auto const& route_edge = route_node->_edges[1];
+      auto from_station = route_edge._from->get_station();
+      auto to_station = route_edge._to->get_station();
+      for (int day = first_day_; day <= last_day_; ++day) {
+        if (!traffic_days.test(day)) {
+          continue;
+        }
+        int time_offset = (day - first_day_) * MINUTES_A_DAY;
+        auto d_time = time_offset + base_d_time;
+        auto a_time = time_offset + base_a_time;
+        // check for other connections in the same route edge
+        // that have the same departure or arrival time
+        for (auto const& lc : route_edge._m._route_edge._conns) {
+          if (lc.d_time == d_time || lc.a_time == a_time) {
+            return false;
+          }
+        }
+        // check if other routes contain an event with the same time and
+        // train number
+        for (auto const& e : from_station->_edges) {
+          if (e._to->is_route_node() && e._to->_edges.size() > 1) {
+            auto const& other_route_edge = e._to->_edges[1];
+            for (auto const& lc : other_route_edge._m._route_edge._conns) {
+              if (lc._full_con->con_info->train_nr == train_nr &&
+                  lc.d_time == d_time) {
+
+                return false;
+              }
+            }
+          }
+        }
+        for (auto const& e : to_station->_edges) {
+          if (e._to->is_route_node()) {
+            if (e._to->_incoming_edges.size() == 1) {
+              auto const& other_route_edge = e._to->_incoming_edges[0];
+              for (auto const& lc : other_route_edge->_m._route_edge._conns) {
+                if (lc._full_con->con_info->train_nr == train_nr &&
+                    lc.a_time == a_time) {
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
   }
 
   void add_service(Service const* service) {
@@ -93,6 +154,11 @@ public:
                                              service->route(), routes_.size()));
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
 
+    if (!is_unique_service(service, traffic_days, route_nodes)) {
+      return;
+    }
+
+    std::unordered_set<uint32_t> train_nrs;
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
       add_service_section(
@@ -102,6 +168,15 @@ public:
           service->platforms()->Get(section_idx)->dep_platforms(),
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days);
+      train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
+    }
+    int32_t route_id = route_nodes[0]->_route;
+    for (uint32_t train_nr : train_nrs) {
+      auto& routes = sched_.train_nr_to_routes[train_nr];
+      if (std::find(std::begin(routes), std::end(routes), route_id) ==
+          std::end(routes)) {
+        routes.push_back(route_id);
+      }
     }
   }
 
@@ -119,7 +194,9 @@ public:
       for (auto& station_edge : station_node->_edges) {
         station_edge._to->_incoming_edges.push_back(&station_edge);
         for (auto& edge : station_edge._to->_edges) {
-          edge._to->_incoming_edges.push_back(&edge);
+          if (edge.type() != edge::ROUTE_EDGE) {
+            edge._to->_incoming_edges.push_back(&edge);
+          }
         }
       }
     }
@@ -328,6 +405,7 @@ private:
       }
       if (last_route_edge != nullptr) {
         last_route_edge->_to = route_node;
+        route_node->_incoming_edges.push_back(last_route_edge);
       } else {
         sched_.route_index_to_first_route_node.push_back(route_node);
       }

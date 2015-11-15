@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/parsers/gtfs/trip.h"
-#include "motis/loader/parsers/gtfs/files.h"
+#include "motis/loader/gtfs/trip.h"
+#include "motis/loader/gtfs/files.h"
 
 using namespace parser;
 
@@ -9,12 +9,12 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-cstr example_trips_file_content =
+const char* example_trips_file_content =
     R"(route_id,service_id,trip_id,trip_headsign,block_id
 A,WE,AWE1,Downtown,1
 A,WE,AWE2,Downtown,2)";
 
-cstr berlin_trips_file_content =
+const char* berlin_trips_file_content =
     R"(route_id,service_id,trip_id,trip_headsign,trip_short_name,direction_id,block_id,shape_id
 1,000856,1,Flughafen Schönefeld Terminal (Airport),,,1,
 1,000856,2,S Potsdam Hauptbahnhof,,,2,

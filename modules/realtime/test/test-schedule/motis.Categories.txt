@@ -1,5 +1,0 @@
-1 0 ZICE|ICE|
-2 1 ZIC|IC|
-3 2 FRE|RE|
-4 3 FRB|RB|
-5 4 FS|S|

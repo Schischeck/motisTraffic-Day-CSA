@@ -17,6 +17,7 @@ void statistics::print(std::ostream& out) const {
   print_message_counter(_counters.additional, out);
   print_message_counter(_counters.canceled, out);
   print_message_counter(_counters.reroutings, out);
+  print_message_counter(_counters.csd, out);
   print_message_counter(_counters.unknown, out);
 
   out << "delay propagator: " << _ops.propagator.runs << " runs, "
@@ -27,9 +28,7 @@ void statistics::print(std::ostream& out) const {
       << _ops.updater.make_modified << " make_modified, "
       << _ops.updater.adjust_train << " adjust_train\n";
 
-  out << "message fetcher:  " << std::setprecision(2) << _message_fetcher.ms()
-      << "ms\n"
-      << "delay propagator: " << std::setprecision(2) << _delay_propagator.ms()
+  out << "delay propagator: " << std::setprecision(2) << _delay_propagator.ms()
       << "ms\n"
       << "-- calc max:      " << std::setprecision(2) << _calc_max.ms()
       << "ms\n"
@@ -54,18 +53,14 @@ void statistics::print_message_counter(message_counter const& c,
 
 void statistics::write_csv(std::ostream& out, std::time_t from,
                            std::time_t to) const {
-  const char* time_format = "%Y-%m-%d %H:%M";
-
-  out << from << "," << to << ","
-      << std::put_time(std::localtime(&from), time_format) << ","
-      << std::put_time(std::localtime(&to), time_format) << ","
+  out << from << "," << to << "," << from << "," << to << ","
       << (to - from) / 60 << "," << std::fixed << std::setprecision(2)
       << _total_processing.ms() << "," << std::fixed << std::setprecision(2)
-      << _message_fetcher.ms() << "," << std::fixed << std::setprecision(2)
-      << _delay_propagator.ms() << "," << std::fixed << std::setprecision(2)
-      << _graph_updater.ms() << "," << std::fixed << std::setprecision(2)
-      << _calc_max.ms() << "," << std::fixed << std::setprecision(2)
-      << _queue_dep.ms() << ","
+      << 0 /*_message_fetcher.ms()*/ << "," << std::fixed
+      << std::setprecision(2) << _delay_propagator.ms() << "," << std::fixed
+      << std::setprecision(2) << _graph_updater.ms() << "," << std::fixed
+      << std::setprecision(2) << _calc_max.ms() << "," << std::fixed
+      << std::setprecision(2) << _queue_dep.ms() << ","
       << "0,"
       << "0,"
       << "0," << _ops.propagator.runs << "," << _ops.propagator.events << ","
@@ -172,7 +167,6 @@ statistics operator-(statistics const& lhs, statistics const& rhs) {
   s._ops.updater.adjust_train =
       lhs._ops.updater.adjust_train - rhs._ops.updater.adjust_train;
 
-  s._message_fetcher = lhs._message_fetcher - rhs._message_fetcher;
   s._delay_propagator = lhs._delay_propagator - rhs._delay_propagator;
   s._graph_updater = lhs._graph_updater - rhs._graph_updater;
   s._total_processing = lhs._total_processing - rhs._total_processing;

@@ -12,6 +12,7 @@
 #include "motis/realtime/delay_propagator.h"
 #include "motis/realtime/graph_updater.h"
 #include "motis/realtime/modified_train.h"
+#include "motis/realtime/messages.h"
 #include "motis/realtime/message_handler.h"
 #include "motis/realtime/message_output.h"
 #include "motis/realtime/tracking.h"
@@ -52,6 +53,9 @@ public:
 
   schedule_event find_departure_event(uint32_t train_nr, int day_index) const;
 
+  bool event_exists(const schedule_event& sched_event,
+                    graph_event* ge_out = nullptr) const;
+
   void track_train(uint32_t train_nr);
   bool is_tracked(uint32_t train_nr) const;
   bool is_debug_mode() const { return _debug_mode; }
@@ -67,9 +71,6 @@ public:
   motis::node* get_next_node(motis::node* route_node);
   motis::node* get_start_node(motis::node* route_node);
 
-  motis::light_connection* get_connection_with_service(motis::edge* route_edge,
-                                                       motis::time start_time,
-                                                       uint32_t service) const;
   motis::light_connection* get_connection_with_departure_time(
       motis::edge* route_edge, motis::time departure_time,
       uint32_t train_nr) const;

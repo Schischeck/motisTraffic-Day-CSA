@@ -4,9 +4,6 @@
 [submodule "external_lib/net"]
 	path = external_lib/net
 	url = https://github.com/felixguendling/net.git
-[submodule "external_lib/json11"]
-	path = external_lib/json11
-	url = https://github.com/dropbox/json11.git
 [submodule "external_lib/websocketpp"]
 	path = external_lib/websocketpp
 	url = https://bitbucket.org/makielski/websocketpp.git
@@ -31,3 +28,12 @@
 [submodule "external_lib/pugixml"]
 	path = external_lib/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "external_lib/sqlpp11-connector-sqlite3"]
+	path = external_lib/sqlpp11-connector-sqlite3
+	url = https://github.com/algotud/sqlpp11-connector-sqlite3.git
+[submodule "external_lib/sqlpp11"]
+	path = external_lib/sqlpp11
+	url = https://github.com/algotud/sqlpp11.git
+[submodule "external_lib/sqlite"]
+	path = external_lib/sqlite
+	url = https://github.com/algotud/sqlite.git
