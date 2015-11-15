@@ -115,14 +115,14 @@ export default class Typeahead extends React.Component {
              className={ style.suggestions }>
         <List desktop={ true }>
           { this.state.completions.map((val, index) => {
-              let style = {};
+              let selectedStyle = {};
               if (this.state.selectedItemIndex === index) {
-                style = {
+                selectedStyle = {
                   backgroundColor: 'rgba(0, 0, 0, 0.0980392)'
                 };
               }
               return ( <ListItem
-                                 style={ style }
+                                 style={ selectedStyle }
                                  hovered={ true }
                                  key={ index }
                                  primaryText={ val.name }

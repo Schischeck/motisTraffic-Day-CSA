@@ -7,23 +7,27 @@ export default class ConnectionView extends Component {
 
   render() {
     if (this.props.showError) {
-      return <div>An error occured</div>
+      return (<div>
+                <span>An error occured</span>
+              </div>);
     }
     if (this.props.connections.length === 0) {
-      return <div>No connections found</div>
+      return (<div>
+                <span>No connections found</span>
+              </div>);
     }
 
-    let con = this.props.connections[this.props.connections.length - 1];
+    const con = this.props.connections[this.props.connections.length - 1];
     return (
     <div>
       <ul>
-        {
-          con.stops.filter((stop, i) => {
+        { con.stops.filter((stop, i) => {
             return i === 1 || i === con.stops.length - 2 || stop.interchange;
           }).map(stop => {
-            return <li>{ stop.name }</li>
-          })
-        }
+            return ( <li>
+                       { stop.name }
+                     </li> );
+          }) }
       </ul>
     </div>
     );

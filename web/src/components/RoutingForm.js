@@ -1,12 +1,6 @@
 import React, { Component } from 'react';
 
-import { Paper,
-        Toggle,
-        DatePicker,
-        FloatingActionButton,
-        TimePicker,
-        RaisedButton,
-        ClearFix } from 'material-ui';
+import { DatePicker, FloatingActionButton, TimePicker, RaisedButton, ClearFix } from 'material-ui';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
@@ -20,32 +14,17 @@ export default class RoutingForm extends Component {
     };
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidMount = this.componentDidUpdate
+
+  componentDidUpdate() {
     // Update TimePicker by hand
     // https://github.com/callemall/material-ui/issues/1710
     this.refs.timePicker.setTime(this.state.time);
   }
 
-  componentDidMount = this.componentDidUpdate
-
-  guessStation(input) {
-    return new Promise((resolve, reject) => {
-      Server.sendMessage(new StationGuesserRequest(input, 7)).then(response => {
-        resolve(response.content.guesses);
-      });
-    });
-  }
-
-  switchStations() {
-    let fromValue = this.refs.fromInput.getValue();
-    let toValue = this.refs.toInput.getValue();
-    this.refs.fromInput.setValue(toValue);
-    this.refs.toInput.setValue(fromValue);
-  }
-
   // First argument is always null
   onTimeChange(ignore, date) {
-    let newTime = this.state.time;
+    const newTime = this.state.time;
     newTime.setMinutes(date.getMinutes());
     newTime.setHours(date.getHours());
     this.setState({
@@ -55,7 +34,7 @@ export default class RoutingForm extends Component {
 
   // First argument is always null
   onDateChange(ignore, date) {
-    let newTime = new Date(date.getFullYear(),
+    const newTime = new Date(date.getFullYear(),
       date.getMonth(),
       date.getDate(),
       this.state.time.getHours(),
@@ -65,9 +44,24 @@ export default class RoutingForm extends Component {
     });
   }
 
+  switchStations() {
+    const fromValue = this.refs.fromInput.getValue();
+    const toValue = this.refs.toInput.getValue();
+    this.refs.fromInput.setValue(toValue);
+    this.refs.toInput.setValue(fromValue);
+  }
+
+  guessStation(input) {
+    return new Promise((resolve) => {
+      Server.sendMessage(new StationGuesserRequest(input, 7)).then(response => {
+        resolve(response.content.guesses);
+      });
+    });
+  }
+
   render() {
-    let now = new Date();
-    let in8Weeks = new Date();
+    const now = new Date();
+    const in8Weeks = new Date();
     in8Weeks.setDate(now.getDate() + (8 * 7));
 
     return (
