@@ -131,15 +131,18 @@ struct ws_server::ws_server_impl {
     if (con_it == end(con_sid_map_)) {
       return;
     }
+    auto session = con_it->second;
 
     msg_ptr req_msg;
     try {
       req_msg = make_msg(msg->get_payload());
+    } catch(boost::system::system_error const& e) {
+      send_error(e.code(), session, 0);
+      return;
     } catch (...) {
       return;
     }
 
-    auto session = con_it->second;
     try {
       msg_handler_(
           req_msg, session,
