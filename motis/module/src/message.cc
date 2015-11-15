@@ -46,7 +46,7 @@ message::message(std::string const& json) {
 
   flatbuffers::Verifier verifier(parser->builder_.GetBufferPointer(),
                                  parser->builder_.GetSize());
-  if(! VerifyMessageBuffer(verifier)) {
+  if (!VerifyMessageBuffer(verifier)) {
     throw boost::system::system_error(error::malformed_msg);
   }
 

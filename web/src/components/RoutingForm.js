@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
 
-import { Paper, Toggle, DatePicker, FloatingActionButton, TimePicker, RaisedButton } from 'material-ui';
+import { Paper,
+        Toggle,
+        DatePicker,
+        FloatingActionButton,
+        TimePicker,
+        RaisedButton,
+        ClearFix } from 'material-ui';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
@@ -98,8 +104,10 @@ export default class RoutingForm extends Component {
                   onChange={ this.onTimeChange.bind(this) } />
       <RaisedButton
                     style={ {  'float': 'right'} }
-                    label="Get Me There"
-                    primary={ true } />
+                    label="Find Connections"
+                    primary={ true }
+                    onClick={ this.props.onRequestRouting } />
+      <ClearFix />
     </div>
     );
   }

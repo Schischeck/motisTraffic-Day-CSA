@@ -22,61 +22,62 @@ struct split_info {
 };
 
 struct splitter {
+  splitter(std::vector<bitfield> const& sections) : sections_(sections) {}
+
   void check_and_remember(int start, int pos, bitfield const& b) {
-    for (auto const& w : written) {
+    for (auto const& w : written_) {
       verify((b & w.traffic_days) == none, "invalid bitfields");
     }
-    written.push_back({b, start, pos - 1});
+    written_.push_back({b, start, pos - 1});
   }
 
-  void write_and_remove(std::vector<bitfield>& sections, unsigned start,
-                        unsigned pos, bitfield current) {
+  void write_and_remove(unsigned start, unsigned pos, bitfield current) {
     if (current != none) {
       auto not_current = (~current);
       for (unsigned i = start; i < pos; ++i) {
-        sections[i] &= not_current;
+        sections_[i] &= not_current;
       }
       check_and_remember(start, pos, current);
     }
   }
 
-  void split(std::vector<bitfield>& sections, unsigned start, unsigned pos,
-             bitfield current) {
-    if (pos == sections.size()) {
-      write_and_remove(sections, start, pos, current);
+  void split(unsigned start, unsigned pos, bitfield current) {
+    if (pos == sections_.size()) {
+      write_and_remove(start, pos, current);
       return;
     }
 
-    auto intersection = current & sections[pos];
+    auto intersection = current & sections_[pos];
     if (intersection == none) {
-      write_and_remove(sections, start, pos, current);
+      write_and_remove(start, pos, current);
       return;
     }
 
-    split(sections, start, pos + 1, intersection);
+    split(start, pos + 1, intersection);
     auto const diff = current & (~intersection);
-    write_and_remove(sections, start, pos, diff);
+    write_and_remove(start, pos, diff);
   }
 
-  std::vector<split_info> split(std::vector<bitfield>& sections) {
-    for (unsigned pos = 0; pos < sections.size(); ++pos) {
-      split(sections, pos, pos, sections[pos]);
+  std::vector<split_info> split() {
+    for (unsigned pos = 0; pos < sections_.size(); ++pos) {
+      split(pos, pos, sections_[pos]);
     }
-    return written;
+    return written_;
   }
 
-  std::vector<split_info> written;
+  std::vector<bitfield> sections_;
+  std::vector<split_info> written_;
 };
 
 std::vector<split_info> split(hrd_service const& s,
                               std::map<int, bitfield> const& bitfields) {
-  auto section_bitfields = transform_to_vec(
-      begin(s.sections_), end(s.sections_), [&](hrd_service::section const& s) {
-        auto it = bitfields.find(s.traffic_days[0]);
-        verify(it != end(bitfields), "bitfield not found");
-        return it->second;
-      });
-  return splitter().split(section_bitfields);
+  std::vector<bitfield> section_bitfields;
+  for (auto const& section : s.sections_) {
+    auto it = bitfields.find(section.traffic_days[0]);
+    verify(it != end(bitfields), "bitfield not found");
+    section_bitfields.push_back(it->second);
+  }
+  return splitter(section_bitfields).split();
 }
 
 hrd_service new_service_from_split(split_info const& s,
