@@ -19,7 +19,7 @@ struct light_connection;
 
 namespace railviz {
 
-struct edge_geo_index;
+class edge_geo_index;
 
 struct train_retriever {
   train_retriever(schedule const& s);

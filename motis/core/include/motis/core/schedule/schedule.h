@@ -16,8 +16,8 @@
 
 namespace motis {
 
-class connection;
-class connection_info;
+struct connection;
+struct connection_info;
 
 struct schedule {
   virtual ~schedule() {}

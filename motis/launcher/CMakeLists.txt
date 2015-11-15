@@ -25,4 +25,3 @@ target_link_libraries(motis
 
 set_target_properties(motis PROPERTIES COMPILE_DEFINITIONS _WEBSOCKETPP_CPP11_STL_)
 set_target_properties(motis PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-set_target_properties(motis PROPERTIES EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}")

@@ -14,7 +14,7 @@ namespace railviz {
 
 using namespace motis::module;
 
-class train_retriever;
+struct train_retriever;
 
 struct railviz : public motis::module::module {
   railviz();
