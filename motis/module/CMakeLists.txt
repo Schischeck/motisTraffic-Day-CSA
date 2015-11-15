@@ -7,7 +7,7 @@ compile_flatbuffers_to_resource_header("${CMAKE_SOURCE_DIR}/protocol/Message.fbs
 
 set(protocol-dir ${CMAKE_SOURCE_DIR}/protocol)
 file(GLOB_RECURSE protocol-files ${protocol-dir}/*.fbs)
-compile_flatbuffers_schema_to_cpp(${protocol-dir} ${generated-headers-dir} generated-headers ${protocol-files})
+compile_flatbuffers_schema_to_cpp("--everything-required" ${protocol-dir} ${generated-headers-dir} generated-headers ${protocol-files})
 
 file(GLOB_RECURSE motis-module-files src/*.cc)
 add_library(motis-module STATIC ${motis-module-files} ${generated-headers} ${resource-header})
