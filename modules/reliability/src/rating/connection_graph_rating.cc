@@ -111,7 +111,7 @@ find_arriving_connection_element(search::connection_graph const& cg,
         stop.alternative_infos_.begin(), stop.alternative_infos_.end(),
         [stop_idx](search::connection_graph::stop::alternative_info const&
                        alternative) {
-          return alternative.head_stop_index_ == stop_idx;
+          return alternative.next_stop_index_ == stop_idx;
         });
     if (it != stop.alternative_infos_.end()) {
       return std::make_pair(
@@ -202,9 +202,9 @@ void rate_inserted_alternative(
     detail::rate_alternative_in_cg(cg_context, stop, alternative, context);
   }
 
-  if (alternative.head_stop_index_ !=
+  if (alternative.next_stop_index_ !=
       search::connection_graph::stop::Index_arrival_stop) {
-    return rate_inserted_alternative(cg_context, alternative.head_stop_index_,
+    return rate_inserted_alternative(cg_context, alternative.next_stop_index_,
                                      context);
   }
 }

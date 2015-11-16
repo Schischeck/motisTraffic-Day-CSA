@@ -82,7 +82,6 @@ std::vector<unsigned int> insert_stop_states(
     if (cg_context.stop_states_.find(stop.index_) ==
         cg_context.stop_states_.end()) {
       auto& state = cg_context.stop_states_[stop.index_];
-      state.num_failed_requests_ = 0;
       if (stop.index_ == connection_graph::stop::Index_departure_stop ||
           stop.index_ == connection_graph::stop::Index_arrival_stop) {
         state.state_ = context::conn_graph_context::stop_state::Stop_completed;
@@ -103,7 +102,6 @@ void check_stop_states(connection_graph_optimizer const& optimizer,
     if (idx != connection_graph::stop::Index_departure_stop &&
         idx != connection_graph::stop::Index_arrival_stop) {
       auto& stop_state = cg_context.stop_states_.at(idx);
-      stop_state.num_failed_requests_ = 0;
       if (optimizer.complete(cg_context.cg_->stops_.at(idx), stop_state)) {
         stop_state.state_ =
             context::conn_graph_context::stop_state::Stop_completed;
@@ -191,11 +189,7 @@ void handle_alternative_response(motis::module::msg_ptr msg,
       msg->content<routing::RoutingResponse const*>());
 
   if (journeys.empty()) {
-    ++stop_state.num_failed_requests_;
-    if (stop_state.num_failed_requests_ > 5) { /* todo */
-      stop_state.state_ =
-          context::conn_graph_context::stop_state::Stop_completed;
-    }
+    stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
     return build_cg(c, conn_graph);
   }
 

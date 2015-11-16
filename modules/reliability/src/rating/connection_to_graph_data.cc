@@ -31,7 +31,7 @@ std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
                               tail_stop.departure.timestamp),
             unix_to_motistime(sched.schedule_begin_,
                               head_stop.arrival.timestamp),
-            transport.category_id, transport.train_nr,
+            transport.route_id, transport.category_id, transport.train_nr,
             transport.line_identifier);
         if (element.empty()) {
           return std::make_pair(false, elements);
@@ -64,7 +64,8 @@ connection_element get_last_element(schedule const& sched,
           unix_to_motistime(sched.schedule_begin_,
                             tail_stop.departure.timestamp),
           unix_to_motistime(sched.schedule_begin_, head_stop.arrival.timestamp),
-          transport.category_id, transport.train_nr, transport.line_identifier);
+          transport.route_id, transport.category_id, transport.train_nr,
+          transport.line_identifier);
     }
   }
   assert(false);
@@ -77,33 +78,40 @@ connection_element const to_element(
     unsigned int const departure_stop_idx, schedule const& sched,
     std::string const& tail_eva, std::string const& head_eva,
     motis::time const dep_time, motis::time const arr_time,
-    unsigned int const category_id, unsigned int const train_nr,
-    std::string const& line_identifier) {
+    unsigned int const route_id, unsigned int const category_id,
+    unsigned int const train_nr, std::string const& line_identifier) {
   auto const& tail_station = *sched.station_nodes.at(
       sched.eva_to_station.find(tail_eva)->second->index);
   auto const head_station_id =
       (unsigned int)sched.eva_to_station.find(head_eva)->second->index;
 
-  for (auto it = tail_station._edges.begin(); it != tail_station._edges.end();
-       ++it) {
-    auto const route_edge = graph_accessor::get_departing_route_edge(*it->_to);
+  auto const& entering_edge = std::find_if(
+      tail_station._edges.begin(), tail_station._edges.end(),
+      [route_id](edge const& e) {
+        return static_cast<unsigned int>(e._to->_route) == route_id;
+      });
+  if (entering_edge) {
+    auto const route_edge =
+        graph_accessor::get_departing_route_edge(*entering_edge->_to);
     if (route_edge && route_edge->_to->_station_node->_id == head_station_id) {
       auto const light_conn = graph_accessor::find_light_connection(
           *route_edge, dep_time, category_id, train_nr, line_identifier);
 
       if (light_conn.first) {
         bool const is_first_route_node =
-            graph_accessor::get_arriving_route_edge(*it->_to) == nullptr;
+            graph_accessor::get_arriving_route_edge(*entering_edge->_to) ==
+            nullptr;
         return connection_element(departure_stop_idx, route_edge->_from,
                                   route_edge->_to, light_conn.first,
                                   light_conn.second, is_first_route_node);
       }
     }
   }
+
   std::cout << "\nWarning(connection_to_graph_data): Could not find light "
             << "connection of train " << train_nr << " with times " << dep_time
             << " - " << arr_time << " and stations " << tail_eva << " - "
-            << head_eva << std::endl;
+            << head_eva << " and route_id " << route_id << std::endl;
   assert(false);
   // empty element (unexpected case)
   return connection_element();
