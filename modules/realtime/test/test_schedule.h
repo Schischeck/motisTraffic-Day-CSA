@@ -43,7 +43,7 @@ class test_schedule : public ::testing::Test {
 public:
   test_schedule()
       : _schedule(motis::loader::load_schedule(
-            "modules/realtime/test/test-schedule",
+            "modules/realtime/test/test-schedule", true,
             motis::to_unix_time(2015, 1, 26), motis::to_unix_time(2015, 2, 9))),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),
@@ -70,8 +70,9 @@ public:
     target.station = to->index;
 
     motis::pareto_dijkstra::statistics stats;
-    std::vector<motis::journey> journeys = _search.get_connections(
-        {start}, {target}, departure_begin, departure_begin + interval, &stats);
+    std::vector<motis::journey> journeys =
+        _search.get_connections({start}, {target}, departure_begin,
+                                departure_begin + interval, false, &stats);
 
     EXPECT_FALSE(stats.max_label_quit);
 
