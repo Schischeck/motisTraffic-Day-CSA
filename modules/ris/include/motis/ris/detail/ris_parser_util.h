@@ -69,6 +69,8 @@ std::pair<StationIdType, Offset<String>> inline parse_station(
       station.first = StationIdType_DS100;
       station.second = fbb.CreateString(station_node.attribute("Code").value());
     }
+  } else {
+    station.second = fbb.CreateString("");
   }
   return station;
 }
@@ -111,7 +113,7 @@ Offset<AdditionalEvent> parse_additional_event(FlatBufferBuilder& fbb,
                                                xml_node const& e_node,
                                                xml_node const& t_node) {
   auto track_attr = child_attr(e_node, "Gleis", "Soll");
-  auto track = (track_attr) ? fbb.CreateString(track_attr.value()) : 0;
+  auto track = fbb.CreateString(track_attr ? track_attr.value() : "");
   auto category = fbb.CreateString(t_node.attribute("Gattung").value());
   return CreateAdditionalEvent(fbb, event, category, track);
 }

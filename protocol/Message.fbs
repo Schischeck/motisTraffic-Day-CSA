@@ -52,7 +52,7 @@ table MotisError {
 //   "content": {
 //   }
 // }
-table MotisSuccess { 
+table MotisSuccess {
 }
 
 union MsgContent {
