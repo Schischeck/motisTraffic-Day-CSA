@@ -261,7 +261,7 @@ module::msg_ptr to_reliable_routing_request(
     std::string const& from_eva, std::string const& to_name,
     std::string const& to_eva, motis::time interval_begin,
     motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
-    Offset<RequestTypeWrapper>& request_type_wrapper) {
+    Offset<RequestOptionsWrapper>& request_type_wrapper) {
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
@@ -288,8 +288,8 @@ module::msg_ptr to_rating_request(std::string const& from_name,
                                   motis::time interval_end,
                                   std::tuple<int, int, int> ddmmyyyy) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_RatingReq,
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_RatingReq,
       reliability::CreateRatingReq(b).Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,
@@ -302,8 +302,8 @@ module::msg_ptr to_reliable_routing_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_ReliableSearchReq,
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_ReliableSearchReq,
       reliability::CreateReliableSearchReq(b, min_dep_diff).Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,
@@ -317,8 +317,8 @@ module::msg_ptr to_connection_tree_request(
     std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
     short const min_dep_diff) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_ConnectionTreeReq,
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_ConnectionTreeReq,
       reliability::CreateConnectionTreeReq(b, num_alternatives_at_stop,
                                            min_dep_diff)
           .Union());
