@@ -6,13 +6,13 @@
 
 namespace rt = motis::realtime;
 
-class delay_test : public motis::realtime::test::test_schedule {};
+class realtime_delay_test : public motis::realtime::test::test_schedule {};
 
 inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
 
 constexpr motis::time INV = motis::INVALID_TIME;
 
-TEST_F(delay_test, test_unmodified_events) {
+TEST_F(realtime_delay_test, test_unmodified_events) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   for (int offset = 0; offset <= 10; offset++) {
@@ -45,7 +45,7 @@ TEST_F(delay_test, test_unmodified_events) {
   }
 }
 
-TEST_F(delay_test, test_simple_arrival_delay) {
+TEST_F(realtime_delay_test, test_simple_arrival_delay) {
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
   const motis::station* langen = get_station("Langen");
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
@@ -81,7 +81,7 @@ TEST_F(delay_test, test_simple_arrival_delay) {
        {ffm_hbf, "RB", 20, t(13, 5), t(13, 8), "", 0, INV, INV}});
 }
 
-TEST_F(delay_test, test_simple_departure_delay) {
+TEST_F(realtime_delay_test, test_simple_departure_delay) {
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
   const motis::station* langen = get_station("Langen");
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
@@ -107,7 +107,7 @@ TEST_F(delay_test, test_simple_departure_delay) {
        {ffm_hbf, "RB", 20, t(13, 5), t(13, 6), "", 0, INV, INV}});
 }
 
-TEST_F(delay_test, test_waiting_edge_propagation) {
+TEST_F(realtime_delay_test, test_waiting_edge_propagation) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   // ICE 51 arrives 12:37, leaves 12:39
@@ -121,7 +121,7 @@ TEST_F(delay_test, test_waiting_edge_propagation) {
   // _rts._graph_updater.finish_graph_update();
 }
 
-TEST_F(delay_test, test_split_route) {
+TEST_F(realtime_delay_test, test_split_route) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   rt::schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
@@ -132,7 +132,7 @@ TEST_F(delay_test, test_split_route) {
   // _rts._graph_updater.finish_graph_update();
 }
 
-TEST_F(delay_test, test_is_message_back_propagation) {
+TEST_F(realtime_delay_test, test_is_message_back_propagation) {
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
   const motis::station* langen = get_station("Langen");
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");

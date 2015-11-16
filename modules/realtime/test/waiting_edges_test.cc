@@ -7,11 +7,12 @@
 
 namespace rt = motis::realtime;
 
-class waiting_edges_test : public motis::realtime::test::test_schedule {};
+class realtime_waiting_edges_test
+    : public motis::realtime::test::test_schedule {};
 
 inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
 
-TEST_F(waiting_edges_test, test_waiting_edges) {
+TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   // find arrival event

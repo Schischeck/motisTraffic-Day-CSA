@@ -6,13 +6,15 @@
 
 namespace rt = motis::realtime;
 
-class train_messages_test : public motis::realtime::test::test_schedule {};
+class realtime_train_messages_test
+    : public motis::realtime::test::test_schedule {};
 
 inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
 
 constexpr motis::time INV = motis::INVALID_TIME;
 
-TEST_F(train_messages_test, test_additional_train_with_existing_category) {
+TEST_F(realtime_train_messages_test,
+       test_additional_train_with_existing_category) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
@@ -48,7 +50,7 @@ TEST_F(train_messages_test, test_additional_train_with_existing_category) {
        {da_hbf, "RB", 999, t(9, 30), t(9, 30), "", 0, INV, INV}});
 }
 
-TEST_F(train_messages_test, test_additional_train_with_new_category) {
+TEST_F(realtime_train_messages_test, test_additional_train_with_new_category) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
@@ -85,7 +87,7 @@ TEST_F(train_messages_test, test_additional_train_with_new_category) {
                {da_hbf, "FOO", 1000, t(h, 30), t(h, 30), "", 0, INV, INV}});
 }
 
-TEST_F(train_messages_test, test_cancel_complete_train) {
+TEST_F(realtime_train_messages_test, test_cancel_complete_train) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
@@ -109,7 +111,7 @@ TEST_F(train_messages_test, test_cancel_complete_train) {
   }
 }
 
-TEST_F(train_messages_test, test_cancel_beginning_of_train) {
+TEST_F(realtime_train_messages_test, test_cancel_beginning_of_train) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
@@ -138,7 +140,7 @@ TEST_F(train_messages_test, test_cancel_beginning_of_train) {
   }
 }
 
-TEST_F(train_messages_test, test_cancel_end_of_train) {
+TEST_F(realtime_train_messages_test, test_cancel_end_of_train) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
@@ -181,7 +183,7 @@ TEST_F(train_messages_test, test_cancel_end_of_train) {
   }
 }
 
-TEST_F(train_messages_test, test_reroute_cancel_stops_in_middle) {
+TEST_F(realtime_train_messages_test, test_reroute_cancel_stops_in_middle) {
   const motis::station* ffm_tief = get_station("Frankfurt Hbf Tief");
   const motis::station* dreieich = get_station("Dreieich Buchschlag");
   const motis::station* Langen = get_station("Langen");
@@ -252,7 +254,7 @@ TEST_F(train_messages_test, test_reroute_cancel_stops_in_middle) {
        {da_hbf, "RE", 1, t(10, 26), t(10, 26), "", 0, INV, INV}});
 }
 
-TEST_F(train_messages_test, test_reroute_change_start) {
+TEST_F(realtime_train_messages_test, test_reroute_change_start) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* ffm_tief = get_station("Frankfurt Hbf Tief");
   const motis::station* dreieich = get_station("Dreieich Buchschlag");
@@ -359,7 +361,7 @@ TEST_F(train_messages_test, test_reroute_change_start) {
        {da_hbf, "RE", 1, t(10, 26), t(10, 26), "", 0, INV, INV}});
 }
 
-TEST_F(train_messages_test, test_csd_kept) {
+TEST_F(realtime_train_messages_test, test_csd_kept) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
