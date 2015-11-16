@@ -34,7 +34,7 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
 
   auto sync = synced_sched<schedule_access::RO>();
 
-  FlatBufferBuilder b;
+  MessageCreator b;
 
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
@@ -45,9 +45,9 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
         station.index, station.width, station.length));
   }
 
-  b.Finish(motis::CreateMessage(
-      b, MsgContent_StationGuesserResponse,
-      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union()));
+  b.CreateAndFinish(
+      MsgContent_StationGuesserResponse,
+      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union());
 
   return cb(make_msg(b), boost::system::error_code());
 }

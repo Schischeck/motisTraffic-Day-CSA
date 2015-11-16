@@ -198,15 +198,13 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
 void realtime::get_train_info(msg_ptr msg, callback cb) {
   auto sched = synced_sched<schedule_access::RO>();
   auto req = msg->content<RealtimeTrainInfoRequest const*>();
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   boost::system::error_code err;
   flatbuffers::Offset<RealtimeTrainInfoResponse> response;
   std::tie(err, response) = build_train_info_response(b, rts_.get(), req);
   if (err == error::ok) {
-    b.Finish(CreateMessage(b, MsgContent_RealtimeTrainInfoResponse,
-                           response.Union()));
+    b.CreateAndFinish(MsgContent_RealtimeTrainInfoResponse, response.Union());
     cb(make_msg(b), error::ok);
-
   } else {
     cb({}, err);
   }
@@ -216,7 +214,7 @@ void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
   auto sched = synced_sched<schedule_access::RO>();
   auto requests =
       msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   std::vector<flatbuffers::Offset<RealtimeTrainInfoResponse>> responses;
 
   for (auto req : *requests) {
@@ -228,9 +226,10 @@ void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
     }
   }
 
-  b.Finish(CreateMessage(b, MsgContent_RealtimeTrainInfoBatchResponse,
-                         CreateRealtimeTrainInfoBatchResponse(
-                             b, b.CreateVector(responses)).Union()));
+  b.CreateAndFinish(
+      MsgContent_RealtimeTrainInfoBatchResponse,
+      CreateRealtimeTrainInfoBatchResponse(b, b.CreateVector(responses))
+          .Union());
   cb(make_msg(b), error::ok);
 }
 
@@ -251,7 +250,7 @@ InternalTimestampReason encode_internal_reason(timestamp_reason reason) {
 }
 
 void realtime::get_delay_infos(msg_ptr, callback cb) {
-  flatbuffers::FlatBufferBuilder b;
+  MessageCreator b;
   std::vector<flatbuffers::Offset<DelayInfo>> delay_infos;
 
   std::vector<delay_info*> sorted_dis = rts_->_delay_info_manager._delay_infos;
@@ -280,9 +279,9 @@ void realtime::get_delay_infos(msg_ptr, callback cb) {
     delay_infos.push_back(dib.Finish());
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RealtimeDelayInfoResponse,
-      CreateRealtimeDelayInfoResponse(b, b.CreateVector(delay_infos)).Union()));
+  b.CreateAndFinish(
+      MsgContent_RealtimeDelayInfoResponse,
+      CreateRealtimeDelayInfoResponse(b, b.CreateVector(delay_infos)).Union());
 
   cb(make_msg(b), error::ok);
 }

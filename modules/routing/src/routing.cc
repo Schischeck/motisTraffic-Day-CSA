@@ -26,7 +26,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : label_store_(MAX_LABELS) {}
+routing::routing(int max_labels) : label_store_(max_labels) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
@@ -38,21 +38,17 @@ void routing::print(std::ostream&) const {}
 void routing::read_path_element(StationPathElement const* el,
                                 routing::path_el_cb cb) {
   auto eva = el->eva_nr();
-
-  if (eva == 0) {
-    // Eva number not set.
-    // Try to guess entered station name.
-    FlatBufferBuilder b;
-    b.Finish(CreateMessage(b, MsgContent_StationGuesserRequest,
-                           motis::guesser::CreateStationGuesserRequest(
-                               b, 1, b.CreateString(el->name()->str()))
-                               .Union()));
-
+  if (eva->size() == 0) {
+    // Eva number not set: Try to guess entered station name.
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_StationGuesserRequest,
+                      motis::guesser::CreateStationGuesserRequest(
+                          b, 1, b.CreateString(el->name()->str()))
+                          .Union());
     return dispatch(make_msg(b), 0, std::bind(&routing::handle_station_guess,
                                               this, p::_1, p::_2, cb));
   } else {
-    // Eva number set.
-    // Try to get station using the eva_to_station map.
+    // Eva number set: Try to get station using the eva_to_station map.
     auto lock = synced_sched<RO>();
     auto station_it = lock.sched().eva_to_station.find(eva->str());
     if (station_it == end(lock.sched().eva_to_station)) {

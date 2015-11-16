@@ -1,4 +1,4 @@
-#include "motis/webservice/listener_settings.h"
+#include "motis/launcher/listener_settings.h"
 
 #include <ostream>
 
@@ -10,7 +10,7 @@
 namespace po = boost::program_options;
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 listener_settings::listener_settings(std::string default_host,
                                      std::string default_port)
@@ -30,5 +30,5 @@ void listener_settings::print(std::ostream& out) const {
       << "  " << PORT << ": " << port;
 }
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

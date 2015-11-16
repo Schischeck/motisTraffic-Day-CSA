@@ -14,6 +14,9 @@ endforeach()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_GENERATOR STREQUAL "Ninja")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
@@ -84,7 +87,7 @@ function(add_modules)
 endfunction()
 add_modules(guesser railviz realtime reliability ris routing)
 
-add_subdirectory(motis/webservice)
+add_subdirectory(motis/launcher)
 
 configure_file (
   ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 

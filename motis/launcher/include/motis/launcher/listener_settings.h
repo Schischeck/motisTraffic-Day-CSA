@@ -7,7 +7,7 @@
 #include "conf/configuration.h"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 class listener_settings : public conf::configuration {
 public:
@@ -21,5 +21,5 @@ public:
   std::string host, port;
 };
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

@@ -3,7 +3,7 @@
 #include "motis/reliability/computation/data_departure.h"
 
 namespace motis {
-class light_connection;
+struct light_connection;
 class node;
 struct schedule;
 

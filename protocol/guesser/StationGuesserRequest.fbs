@@ -11,5 +11,5 @@ namespace motis.guesser;
 // }
 table StationGuesserRequest {
   guess_count:ushort=8;
-  input:string;
+  input:string (required);
 }

@@ -41,7 +41,7 @@ struct setup {
     c_.ios_ = &ios_;
     c_.dispatch_ = &dispatch_;
 
-    modules_.emplace_back(new routing::routing());
+    modules_.emplace_back(new routing::routing(100));
     modules_.emplace_back(new reliability());
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.get());

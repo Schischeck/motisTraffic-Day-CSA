@@ -1,4 +1,4 @@
-#include "motis/webservice/ws_server.h"
+#include "motis/launcher/ws_server.h"
 
 #include <memory>
 #include <functional>
@@ -19,7 +19,7 @@ using websocketpp::frame::opcode::TEXT;
 using namespace motis::module;
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios)
@@ -73,19 +73,18 @@ struct ws_server::ws_server_impl {
   }
 
   void send_error(boost::system::error_code e, sid session, int request_id) {
-    flatbuffers::FlatBufferBuilder b;
-    b.Finish(CreateMessage(
-        b, MsgContent_MotisError,
+    MessageCreator b;
+    b.CreateAndFinish(
+        MsgContent_MotisError,
         CreateMotisError(b, e.value(), b.CreateString(e.category().name()),
                          b.CreateString(e.message()))
-            .Union()));
+            .Union());
     send(make_msg(b), session, request_id);
   }
 
   void send_success(sid session, int request_id) {
-    flatbuffers::FlatBufferBuilder b;
-    b.Finish(CreateMessage(b, MsgContent_MotisSuccess,
-                           CreateMotisSuccess(b).Union()));
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
     send(make_msg(b), session, request_id);
   }
 
@@ -132,15 +131,18 @@ struct ws_server::ws_server_impl {
     if (con_it == end(con_sid_map_)) {
       return;
     }
+    auto session = con_it->second;
 
     msg_ptr req_msg;
     try {
       req_msg = make_msg(msg->get_payload());
+    } catch(boost::system::system_error const& e) {
+      send_error(e.code(), session, 0);
+      return;
     } catch (...) {
       return;
     }
 
-    auto session = con_it->second;
     try {
       msg_handler_(
           req_msg, session,
@@ -196,5 +198,5 @@ void ws_server::stop() { impl_->stop(); }
 
 void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s, 0); }
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

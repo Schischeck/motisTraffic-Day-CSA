@@ -7,21 +7,22 @@
 #include "conf/configuration.h"
 
 namespace motis {
-namespace webservice {
+namespace launcher {
 
-class mode_settings : public conf::configuration {
+class launcher_settings : public conf::configuration {
 public:
   enum motis_mode_t { BATCH, SERVER, TEST };
 
-  mode_settings(motis_mode_t mode);
+  launcher_settings(motis_mode_t mode, std::vector<std::string> modules);
 
-  virtual ~mode_settings() {}
+  virtual ~launcher_settings() {}
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
 
   motis_mode_t mode;
+  std::vector<std::string> modules;
 };
 
-}  // namespace webservice
+}  // namespace launcher
 }  // namespace motis

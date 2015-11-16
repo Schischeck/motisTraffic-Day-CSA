@@ -9,7 +9,7 @@
 #include "motis/reliability/start_and_travel_distributions.h"
 
 namespace motis {
-class light_connection;
+struct light_connection;
 class node;
 struct schedule;
 struct category;

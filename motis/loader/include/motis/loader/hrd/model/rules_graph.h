@@ -23,24 +23,26 @@ struct rule_node_info {
 };
 
 struct node {
-  node(std::set<hrd_service*> services, std::set<rule_node_info*> rules)
-      : services_(std::move(services)), rules_(std::move(rules)) {}
+  node(std::vector<node*> children, std::set<hrd_service*> services,
+       std::set<rule_node_info*> rules)
+      : children_(std::move(children)),
+        services_(std::move(services)),
+        rules_(std::move(rules)) {}
   virtual ~node() {}
 
-  virtual std::array<node*, 2> children() const = 0;
   virtual bitfield const& traffic_days() const = 0;
   virtual void print() const = 0;
 
+  std::vector<node*> children_;
+  std::vector<node*> parents_;
   std::set<hrd_service*> services_;
   std::set<rule_node_info*> rules_;
-  std::vector<node*> parents_;
 };
 
 struct service_node : node {
   service_node(hrd_service*);
   ~service_node() {}
 
-  std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
   void print() const override;
 
@@ -51,7 +53,6 @@ struct rule_node : node {
   rule_node(service_node*, service_node*, resolved_rule_info);
   ~rule_node() {}
 
-  std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
   void print() const override;
 
@@ -60,15 +61,12 @@ struct rule_node : node {
 };
 
 struct layer_node : public node {
-  layer_node(node*, node*);
+  layer_node(std::vector<node*> const& children);
   ~layer_node() {}
 
-  std::array<node*, 2> children() const override;
   bitfield const& traffic_days() const override;
   void print() const override;
 
-  node* left_;
-  node* right_;
   bitfield traffic_days_;
 };
 
