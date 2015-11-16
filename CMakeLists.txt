@@ -14,8 +14,8 @@ endforeach()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GCC")
-  set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS" "-Wno-maybe-uninitialized")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_GENERATOR STREQUAL "Ninja")
