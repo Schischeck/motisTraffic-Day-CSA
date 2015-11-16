@@ -42,42 +42,36 @@ rule_node::rule_node(service_node* s1, service_node* s2,
                     rule_info.traffic_days) {}
 
 std::pair<std::set<rule_node*>, bitfield> rule_node::max_component() {
-  std::pair<std::set<rule_node*>, bitfield> ret;
-  auto& nodes = ret.first;
-  auto& traffic_days = ret.second;
+  std::pair<std::set<rule_node*>, bitfield> max;
+  auto& component_nodes = max.first;
+  auto& component_traffic_days = max.second;
 
   rule_node* current = nullptr;
-  std::set<rule_node*> q = {this};
-  traffic_days = create_uniform_bitfield<BIT_COUNT>('1');
-  while (!q.empty()) {
-    printf("queue: ");
-    for (auto const& el : q) {
-      printf("%p ", el);
-    }
-    printf("\n");
+  std::set<rule_node*> queue = {this};
+  component_traffic_days = create_uniform_bitfield<BIT_COUNT>('1');
+  while (!queue.empty()) {
+    auto first_element = queue.begin();
+    current = *first_element;
+    queue.erase(first_element);
 
-    auto it = q.begin();
-    current = *it;
-    q.erase(it);
-
-    auto next_traffic_days = traffic_days & current->traffic_days_;
+    auto next_traffic_days = component_traffic_days & current->traffic_days_;
     if (next_traffic_days.none()) {
       continue;
     }
+    component_traffic_days = next_traffic_days;
+    component_nodes.insert(current);
 
-    nodes.insert(current);
-    traffic_days = next_traffic_days;
-
-    for (auto const& sn : {current->s1_, current->s2_}) {
-      for (auto const& rn : sn->rules_) {
-        if (rn != current && nodes.find(rn) != end(nodes)) {
-          q.insert(rn);
+    for (auto const& link_node : {current->s1_, current->s2_}) {
+      for (auto const& related_node : link_node->rule_nodes_) {
+        if (related_node != current &&
+            component_nodes.find(related_node) != end(component_nodes)) {
+          queue.insert(related_node);
         }
       }
     }
   }
 
-  return ret;
+  return max;
 }
 
 }  // hrd

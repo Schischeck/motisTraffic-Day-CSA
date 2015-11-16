@@ -77,8 +77,8 @@ void create_rule_and_service_nodes(
     auto rn = new rule_node(s1_node, s2_node, rule);
     rg.nodes_.emplace_back(rn);
 
-    s1_node->rules_.push_back(rn);
-    s2_node->rules_.push_back(rn);
+    s1_node->rule_nodes_.push_back(rn);
+    s2_node->rule_nodes_.push_back(rn);
     rg.layers_.push_back(rn);
   }
 }
@@ -105,28 +105,17 @@ void rule_service_builder::resolve_rule_services() {
 
   std::pair<std::set<rule_node*>, bitfield> component;
   for (auto const& rn : rg.layers_) {
-    printf("handling rule node %p\n", rn);
-
     while ((component = rn->max_component()).first.size() > 1) {
-      auto& nodes = component.first;
-      auto& traffic_days = component.second;
-
-      printf("  component traffic days: %s\n",
-             traffic_days.to_string().c_str());
-
       std::set<service_resolvent> s_resolvents;
       std::vector<service_rule_resolvent> sr_resolvents;
-      for (auto& node : nodes) {
-        node->resolve_services(traffic_days, s_resolvents, sr_resolvents);
+      for (auto& node : component.first) {
+        node->resolve_services(component.second, s_resolvents, sr_resolvents);
       }
 
       if (!sr_resolvents.empty()) {
         rule_services_.emplace_back(std::move(sr_resolvents),
                                     std::move(s_resolvents));
       }
-
-      printf("              after step: %s",
-             rn->traffic_days_.to_string().c_str());
     }
   }
 }

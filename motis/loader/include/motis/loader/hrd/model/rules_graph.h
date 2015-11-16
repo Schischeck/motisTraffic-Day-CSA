@@ -19,7 +19,7 @@ struct node {
 struct service_node : public node {
   service_node(hrd_service*);
 
-  std::vector<rule_node*> rules_;
+  std::vector<rule_node*> rule_nodes_;
   hrd_service* service_;
 };
 
