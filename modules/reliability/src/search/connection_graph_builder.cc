@@ -13,6 +13,25 @@ namespace search {
 namespace connection_graph_builder {
 namespace detail {
 
+template <typename T>
+void correct_transports_and_attributes_indices(std::vector<T> const& orig,
+                                               std::vector<T>& j1,
+                                               std::vector<T>& j2,
+                                               unsigned int const stop_idx) {
+  for (auto const& element : orig) {
+    if (element.from < stop_idx) {
+      j1.push_back(element);
+      j1.back().to = std::min((unsigned int)j1.back().to, stop_idx);
+    }
+    if (element.to > stop_idx) {
+      j2.push_back(element);
+      j2.back().from =
+          std::max((unsigned int)j2.back().from, stop_idx) - stop_idx;
+      j2.back().to -= stop_idx;
+    }
+  }
+}
+
 /* split journey at a stop with interchange */
 std::pair<journey, journey> split_journey(journey const& j,
                                           unsigned int const stop_idx) {
@@ -38,29 +57,10 @@ std::pair<journey, journey> split_journey(journey const& j,
   j2.stops.front().interchange = false;
   j2.stops.front().arrival.valid = false;
 
-  for (auto const& transport : j.transports) {
-    if (transport.to <= stop_idx) {
-      j1.transports.push_back(transport);
-    } else if (transport.from >= stop_idx) {
-      j2.transports.push_back(transport);
-      j2.transports.back().from -= stop_idx;
-      j2.transports.back().to -= stop_idx;
-    }
-  }
-  for (auto const& attribute : j.attributes) {
-    if (attribute.from < stop_idx) {
-      j1.attributes.push_back(attribute);
-      j1.attributes.back().to =
-          std::min((unsigned int)j1.attributes.back().to, stop_idx);
-    }
-    if (attribute.to > stop_idx) {
-      j2.attributes.push_back(attribute);
-      j2.attributes.back().from =
-          std::max((unsigned int)j2.attributes.back().from, stop_idx) -
-          stop_idx;
-      j2.attributes.back().to -= stop_idx;
-    }
-  }
+  correct_transports_and_attributes_indices(j.transports, j1.transports,
+                                            j2.transports, stop_idx);
+  correct_transports_and_attributes_indices(j.attributes, j1.attributes,
+                                            j2.attributes, stop_idx);
 
   j1.duration = journey_builder::detail::get_duration(j1);
   j2.duration = journey_builder::detail::get_duration(j2);
@@ -169,7 +169,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
     } else {
       ++stop_idx;
     }
-    alternative_info.head_stop_index_ = stop_idx;
+    alternative_info.next_stop_index_ = stop_idx;
 
     if (cg.stops_.size() == 1) {
       cg.stops_.emplace_back();
@@ -198,7 +198,7 @@ void add_alternative_journey(connection_graph& cg,
     } else {
       ++stop_idx;
     }
-    departure_info.head_stop_index_ = stop_idx;
+    departure_info.next_stop_index_ = stop_idx;
 
     cg.journeys_.push_back(j);
     ++journey_count;

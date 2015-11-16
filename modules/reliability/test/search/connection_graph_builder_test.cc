@@ -100,6 +100,7 @@ journey create_journey1() {
     transport.line_identifier = "l1";
     transport.name = "ICE 111";
     transport.provider = "DB1";
+    transport.route_id = 1;
     transport.slot = 0;
     transport.to = 1;
     transport.train_nr = 111;
@@ -115,6 +116,7 @@ journey create_journey1() {
     transport.line_identifier = "l2";
     transport.name = "IC 222";
     transport.provider = "DB2";
+    transport.route_id = 2;
     transport.slot = 0;
     transport.to = 2;
     transport.train_nr = 222;
@@ -132,6 +134,7 @@ journey create_journey1() {
     transport.line_identifier = "";
     transport.name = "";
     transport.provider = "";
+    transport.route_id = 0;
     transport.slot = 0;
     transport.train_nr = 0;
   }
@@ -145,6 +148,7 @@ journey create_journey1() {
     transport.line_identifier = "l3";
     transport.name = "RB 333";
     transport.provider = "DB3";
+    transport.route_id = 3;
     transport.slot = 0;
     transport.to = 4;
     transport.train_nr = 333;
@@ -229,6 +233,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier, "l1");
       ASSERT_EQ(transport.name, "ICE 111");
       ASSERT_EQ(transport.provider, "DB1");
+      ASSERT_EQ(1, transport.route_id);
       ASSERT_EQ(transport.slot, 0);
       ASSERT_EQ(transport.to, 1);
       ASSERT_EQ(transport.train_nr, 111);
@@ -293,6 +298,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier, "l2");
       ASSERT_EQ(transport.name, "IC 222");
       ASSERT_EQ(transport.provider, "DB2");
+      ASSERT_EQ(2, transport.route_id);
       ASSERT_EQ(transport.slot, 0);
       ASSERT_EQ(transport.to, 1);
       ASSERT_EQ(transport.train_nr, 222);
@@ -387,6 +393,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier, "l3");
       ASSERT_EQ(transport.name, "RB 333");
       ASSERT_EQ(transport.provider, "DB3");
+      ASSERT_EQ(3, transport.route_id);
       ASSERT_EQ(transport.slot, 0);
       ASSERT_EQ(transport.to, 2);
       ASSERT_EQ(transport.train_nr, 333);
@@ -512,7 +519,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
@@ -528,7 +535,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 3);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
@@ -537,7 +544,7 @@ TEST(reliability_connection_graph_builder, add_base_journey1) {
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
@@ -573,7 +580,7 @@ TEST(reliability_connection_graph_builder, add_base_journey2) {
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
@@ -646,7 +653,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
@@ -662,9 +669,9 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 2);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 3);
     ASSERT_EQ(stop.alternative_infos_[1].journey_index_, 3);
-    ASSERT_EQ(stop.alternative_infos_[1].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[1].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
@@ -673,7 +680,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey) {
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
@@ -778,7 +785,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     ASSERT_EQ(stop.index_, 0);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 2);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 2);
     ASSERT_EQ(cg.station_info(0).first, "Station0");
     ASSERT_EQ(cg.station_info(0).second, "0000000");
   }
@@ -794,11 +801,11 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     ASSERT_EQ(stop.index_, 2);
     ASSERT_EQ(stop.alternative_infos_.size(), 3);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 3);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 3);
     ASSERT_EQ(stop.alternative_infos_[1].journey_index_, 3);
-    ASSERT_EQ(stop.alternative_infos_[1].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[1].next_stop_index_, 1);
     ASSERT_EQ(stop.alternative_infos_[2].journey_index_, 4);
-    ASSERT_EQ(stop.alternative_infos_[2].head_stop_index_, 4);
+    ASSERT_EQ(stop.alternative_infos_[2].next_stop_index_, 4);
     ASSERT_EQ(cg.station_info(2).first, "Station1");
     ASSERT_EQ(cg.station_info(2).second, "1111111");
   }
@@ -807,7 +814,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     ASSERT_EQ(stop.index_, 3);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 2);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(3).first, "Station2");
     ASSERT_EQ(cg.station_info(3).second, "2222222");
   }
@@ -816,7 +823,7 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
     ASSERT_EQ(stop.index_, 4);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 5);
-    ASSERT_EQ(stop.alternative_infos_[0].head_stop_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
     ASSERT_EQ(cg.station_info(4).first, "Station5");
     ASSERT_EQ(cg.station_info(4).second, "5555555");
   }
@@ -1048,6 +1055,208 @@ TEST(reliability_connection_graph_builder, remove_dummy_stops) {
     ASSERT_EQ(attribute.code, "C");
     ASSERT_EQ(attribute.from, 1);
     ASSERT_EQ(attribute.to, 2);
+  }
+}
+
+journey create_journey_train_id_change() {
+  journey j;
+  j.transfers = 1;
+
+  j.stops.resize(3);
+  {
+    auto& stop = j.stops[0];
+    stop.eva_no = "1111111";
+    stop.index = 0;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station1";
+    stop.arrival.valid = false;
+    stop.arrival.timestamp = 1445262900;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445262900;
+  }
+  {
+    auto& stop = j.stops[1];
+    stop.eva_no = "2222222";
+    stop.index = 1;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station2";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263200;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445263500;
+  }
+  {
+    auto& stop = j.stops[2];
+    stop.eva_no = "3333333";
+    stop.index = 2;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station3";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263800;
+    stop.departure.valid = false;
+  }
+
+  j.transports.resize(2);
+  {
+    auto& transport = j.transports[0];
+    transport.from = 0;
+    transport.to = 1;
+    transport.train_nr = 1;
+    transport.walk = false;
+  }
+  {
+    auto& transport = j.transports[1];
+    transport.from = 1;
+    transport.to = 2;
+    transport.train_nr = 2;
+    transport.walk = false;
+  }
+  return j;
+}
+
+TEST(reliability_connection_graph_builder, journey_train_id_change) {
+  connection_graph cg;
+  add_base_journey(cg, create_journey_train_id_change());
+
+  ASSERT_EQ(2, cg.stops_.size());
+  {
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.alternative_infos_.size(), 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
+    ASSERT_EQ(cg.station_info(0).first, "Station1");
+    ASSERT_EQ(cg.station_info(0).second, "1111111");
+  }
+  {
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.alternative_infos_.size(), 0);
+    ASSERT_EQ("Station3", cg.station_info(1).first);
+    ASSERT_EQ("3333333", cg.station_info(1).second);
+  }
+
+  ASSERT_EQ(1, cg.journeys_.size());
+  {
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(3, j.stops.size());
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "3333333");
+    ASSERT_EQ(2, j.transports.size());
+    ASSERT_EQ(j.transports.front().train_nr, 1);
+    ASSERT_EQ(j.transports.back().train_nr, 2);
+  }
+}
+
+journey create_journey_no_new_transport_at_interchange() {
+  journey j;
+  j.transfers = 1;
+
+  j.stops.resize(3);
+  {
+    auto& stop = j.stops[0];
+    stop.eva_no = "1111111";
+    stop.index = 0;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station1";
+    stop.arrival.valid = false;
+    stop.arrival.timestamp = 1445262900;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445262900;
+  }
+  {
+    auto& stop = j.stops[1];
+    stop.eva_no = "2222222";
+    stop.index = 1;
+    stop.interchange = true;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station2";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263200;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445263500;
+  }
+  {
+    auto& stop = j.stops[2];
+    stop.eva_no = "3333333";
+    stop.index = 2;
+    stop.interchange = false;
+    stop.lat = 0.0;
+    stop.lng = 0.0;
+    stop.name = "Station3";
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445263800;
+    stop.departure.valid = false;
+  }
+
+  j.transports.resize(1);
+  {
+    auto& transport = j.transports[0];
+    transport.from = 0;
+    transport.to = 2;
+    transport.train_nr = 1;
+    transport.walk = false;
+  }
+  return j;
+}
+
+TEST(reliability_connection_graph_builder,
+     journey_no_new_transport_at_interchange) {
+  connection_graph cg;
+  add_base_journey(cg, create_journey_no_new_transport_at_interchange());
+
+  ASSERT_EQ(3, cg.stops_.size());
+  {
+    auto const& stop = cg.stops_[0];
+    ASSERT_EQ(stop.index_, 0);
+    ASSERT_EQ(stop.alternative_infos_.size(), 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 0);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 2);
+    ASSERT_EQ(cg.station_info(0).first, "Station1");
+    ASSERT_EQ(cg.station_info(0).second, "1111111");
+  }
+  {
+    auto const& stop = cg.stops_[1];
+    ASSERT_EQ(stop.index_, 1);
+    ASSERT_EQ(stop.alternative_infos_.size(), 0);
+    ASSERT_EQ("Station3", cg.station_info(1).first);
+    ASSERT_EQ("3333333", cg.station_info(1).second);
+  }
+  {
+    auto const& stop = cg.stops_[2];
+    ASSERT_EQ(stop.index_, 2);
+    ASSERT_EQ(stop.alternative_infos_.size(), 1);
+    ASSERT_EQ(stop.alternative_infos_[0].journey_index_, 1);
+    ASSERT_EQ(stop.alternative_infos_[0].next_stop_index_, 1);
+    ASSERT_EQ("Station2", cg.station_info(2).first);
+    ASSERT_EQ("2222222", cg.station_info(2).second);
+  }
+
+  ASSERT_EQ(2, cg.journeys_.size());
+  {
+    auto const& j = cg.journeys_[0];
+    ASSERT_EQ(2, j.stops.size());
+    ASSERT_EQ(j.stops.front().eva_no, "1111111");
+    ASSERT_EQ(j.stops.back().eva_no, "2222222");
+    ASSERT_EQ(1, j.transports.size());
+    ASSERT_EQ(j.transports.front().train_nr, 1);
+  }
+  {
+    auto const& j = cg.journeys_[1];
+    ASSERT_EQ(2, j.stops.size());
+    ASSERT_EQ(j.stops.front().eva_no, "2222222");
+    ASSERT_EQ(j.stops.back().eva_no, "3333333");
+    ASSERT_EQ(1, j.transports.size());
+    ASSERT_EQ(j.transports.front().train_nr, 1);
   }
 }
 

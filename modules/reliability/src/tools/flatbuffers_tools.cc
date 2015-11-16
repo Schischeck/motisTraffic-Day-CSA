@@ -346,7 +346,7 @@ Offset<ConnectionGraph> to_connection_graph(
       auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
       alternative_infos.push_back(
           CreateAlternative(b, alternative_info.journey_index_,
-                            alternative_info.head_stop_index_, rating));
+                            alternative_info.next_stop_index_, rating));
     }
     stops.push_back(
         CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));

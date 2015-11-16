@@ -21,6 +21,7 @@ struct journey {
     int slot;
     std::string direction;
     std::string provider;
+    unsigned int route_id;
   };
 
   struct stop {

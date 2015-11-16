@@ -68,11 +68,6 @@ public:
 };
 
 TEST_F(reliability_connection_to_graph_data2, to_element) {
-  auto const element_ice_s_e = detail::to_element(
-      2, *schedule_, STUTTGART.eva, ERLANGEN.eva, 11 * 60 + 32, 12 * 60 + 32,
-      graph_accessor::find_family(schedule_->categories, "ICE").second, ICE_S_E,
-      "");
-
   // route node at Frankfurt of train ICE_S_E
   auto& first_route_node =
       *graph_accessor::get_first_route_node(*schedule_, ICE_S_E);
@@ -80,6 +75,12 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+
+  auto const element_ice_s_e = detail::to_element(
+      2, *schedule_, STUTTGART.eva, ERLANGEN.eva, 11 * 60 + 32, 12 * 60 + 32,
+      first_route_node._route,
+      graph_accessor::find_family(schedule_->categories, "ICE").second, ICE_S_E,
+      "");
 
   ASSERT_TRUE(element_ice_s_e.departure_stop_idx_ == 2);
   ASSERT_TRUE(element_ice_s_e.arrival_stop_idx() == 3);
@@ -91,11 +92,6 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
 }
 
 TEST_F(reliability_connection_to_graph_data2, to_element2) {
-  auto const element_ice_k_f_s = detail::to_element(
-      3, *schedule_, FRANKFURT.eva, STUTTGART.eva, 10 * 60 + 20, 11 * 60 + 15,
-      graph_accessor::find_family(schedule_->categories, "ICE").second,
-      ICE_K_F_S, "");
-
   // route node at Frankfurt of train ICE_K_F_S
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
@@ -104,6 +100,12 @@ TEST_F(reliability_connection_to_graph_data2, to_element2) {
   // route edge from Frankfurt to Stuttgart
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
+
+  auto const element_ice_k_f_s = detail::to_element(
+      3, *schedule_, FRANKFURT.eva, STUTTGART.eva, 10 * 60 + 20, 11 * 60 + 15,
+      route_node._route,
+      graph_accessor::find_family(schedule_->categories, "ICE").second,
+      ICE_K_F_S, "");
 
   ASSERT_TRUE(element_ice_k_f_s.departure_stop_idx_ == 3);
   ASSERT_TRUE(element_ice_k_f_s.arrival_stop_idx() == 4);
