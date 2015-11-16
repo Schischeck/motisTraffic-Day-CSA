@@ -11,6 +11,13 @@ class Parser;
 namespace motis {
 namespace module {
 
+class MessageCreator : public flatbuffers::FlatBufferBuilder {
+public:
+  void CreateAndFinish(MsgContent type, flatbuffers::Offset<void> content) {
+    Finish(CreateMessage(*this, type, content, 1));
+  }
+};
+
 struct message {
   message() : msg_(nullptr), buf_(nullptr) {}
   message(std::string const& json);
@@ -42,7 +49,7 @@ inline msg_ptr make_msg(std::string const& json) {
   return std::make_shared<message>(json);
 }
 
-inline msg_ptr make_msg(flatbuffers::FlatBufferBuilder& builder) {
+inline msg_ptr make_msg(MessageCreator& builder) {
   auto buf = builder.GetBufferPointer();
   auto msg = GetMutableMessage(buf);
   auto mem = builder.ReleaseBufferPointer();

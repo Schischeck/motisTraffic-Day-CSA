@@ -10,6 +10,8 @@
 namespace motis {
 namespace journey_builder {
 
+namespace detail {
+
 journey::stop::event_info to_event_info(routing::EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
@@ -47,19 +49,11 @@ journey::transport to_transport(routing::Walk const& walk, uint16_t duration) {
   t.train_nr = 0;
   return t;
 }
-journey::transport to_transport(
-    routing::Transport const& transport, uint16_t duration,
-    std::vector<std::unique_ptr<category>> const& categories) {
+journey::transport to_transport(routing::Transport const& transport,
+                                uint16_t duration) {
   journey::transport t;
   t.category_name = transport.category_name()->c_str();
-  t.category_id = 0;
-  auto const it = std::find_if(categories.begin(), categories.end(),
-                               [t](std::unique_ptr<category> const& c) {
-                                 return c->name == t.category_name;
-                               });
-  if (it != categories.end()) {
-    t.category_id = it - categories.begin();
-  }
+  t.category_id = transport.category_id();
   t.direction = transport.direction()->c_str();
   t.duration = duration;
   t.from = transport.range()->from();
@@ -103,9 +97,10 @@ uint16_t get_transfers(journey const& journey) {
                        [](journey::stop const& s) { return s.interchange; });
 }
 
-std::vector<journey> to_journeys(
-    routing::RoutingResponse const* response,
-    std::vector<std::unique_ptr<category>> const& categories) {
+}  // namespace detail
+
+std::vector<journey> to_journeys(routing::RoutingResponse const* response) {
+  using namespace detail;
   std::vector<journey> journeys;
   for (auto conn = response->connections()->begin();
        conn != response->connections()->end(); ++conn) {
@@ -131,8 +126,8 @@ std::vector<journey> to_journeys(
       } else if (move->move_type() == routing::Move_Transport) {
         auto transport = (routing::Transport const*)move->move();
         journey.transports.push_back(to_transport(
-            *transport, get_move_duration(*transport->range(), *conn->stops()),
-            categories));
+            *transport,
+            get_move_duration(*transport->range(), *conn->stops())));
       }
     }
 

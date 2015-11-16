@@ -48,7 +48,7 @@ TIn=\"20151007070635948\" TOutSnd=\"20151007070050\"/>\
 </Paket>";
 // clang-format on
 
-TEST(cancel_message, message_1) {
+TEST(ris_cancel_message, message_1) {
   auto const messages = parse_xmls(pack(cancel_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -121,7 +121,7 @@ TIn=\"20151007161500043\" TOutSnd=\"20151007161409\"/>\
 // clang-format on
 
 // TODO!
-TEST(ausfall_message, message_2) {
+TEST(ris_ausfall_message, message_2) {
   auto const messages = parse_xmls(pack(cancel_fixture_2));
   ASSERT_EQ(1, messages.size());
 

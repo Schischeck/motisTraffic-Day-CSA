@@ -14,7 +14,8 @@ namespace hrd {
 
 struct parser_info {
   char const* filename;
-  int line_number;
+  int line_number_from;
+  int line_number_to;
 };
 
 struct hrd_service {

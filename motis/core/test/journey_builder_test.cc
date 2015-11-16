@@ -193,17 +193,13 @@ journey create_journey2() {
   return j;
 }
 
-TEST(convert_journey, journey_builder) {
+TEST(core_convert_journey, journey_builder) {
   std::vector<journey> original_journeys;
   original_journeys.push_back(create_journey1());
   original_journeys.push_back(create_journey2());
-  std::vector<std::unique_ptr<category>> categories;
-  categories.emplace_back(new category("ICE", 0));
-  categories.emplace_back(new category("IC", 0));
 
   auto msg = routing::journeys_to_message(original_journeys);
-  auto journeys =
-      to_journeys(msg->content<routing::RoutingResponse const*>(), categories);
+  auto journeys = to_journeys(msg->content<routing::RoutingResponse const*>());
 
   ASSERT_TRUE(journeys.size() == 2);
 

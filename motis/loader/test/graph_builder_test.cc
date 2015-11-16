@@ -3,18 +3,19 @@
 #include "motis/core/common/date_util.h"
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
+
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "./hrd/test_spec.h"
+#include "./hrd/test_spec_test.h"
 
 using std::get;
 
 namespace motis {
 namespace loader {
 
-class multiple_ice_graph_builder_test : public ::testing::Test {
+class loader_multiple_ice_graph_builder_test : public ::testing::Test {
 protected:
-  multiple_ice_graph_builder_test(std::string schedule_name,
+  loader_multiple_ice_graph_builder_test(std::string schedule_name,
                                   std::time_t schedule_begin,
                                   std::time_t schedule_end)
       : schedule_name_(std::move(schedule_name)),
@@ -69,25 +70,25 @@ protected:
   std::time_t schedule_begin_, schedule_end_;
 };
 
-class multiple_ice_multiple_ice_graph_builder_test
-    : public multiple_ice_graph_builder_test {
+class loader_multiple_ice_multiple_ice_graph_builder_test
+    : public loader_multiple_ice_graph_builder_test {
 public:
-  multiple_ice_multiple_ice_graph_builder_test()
-      : multiple_ice_graph_builder_test(
+  loader_multiple_ice_multiple_ice_graph_builder_test()
+      : loader_multiple_ice_graph_builder_test(
             "multiple-ice-files", to_unix_time(2015, 10, 25),
             to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
 };
 
-class direction_services_graph_builder_test
-    : public multiple_ice_graph_builder_test {
+class loader_direction_services_graph_builder_test
+    : public loader_multiple_ice_graph_builder_test {
 public:
-  direction_services_graph_builder_test()
-      : multiple_ice_graph_builder_test("direction-services",
+  loader_direction_services_graph_builder_test()
+      : loader_multiple_ice_graph_builder_test("direction-services",
                                         to_unix_time(2015, 9, 11),
                                         to_unix_time(2015, 9, 12)) {}
 };
 
-TEST_F(multiple_ice_multiple_ice_graph_builder_test, eva_num) {
+TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
   auto& stations = sched_->eva_to_station;
   EXPECT_STREQ("8000013", stations["8000013"]->eva_nr.c_str());
   EXPECT_STREQ("8000025", stations["8000025"]->eva_nr.c_str());
@@ -110,7 +111,7 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, eva_num) {
   EXPECT_STREQ("8098160", stations["8098160"]->eva_nr.c_str());
 }
 
-TEST_F(multiple_ice_multiple_ice_graph_builder_test, simple_test) {
+TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, simple_test) {
   auto& stations = sched_->eva_to_station;
   ASSERT_STREQ("Augsburg Hbf", stations["8000013"]->name.c_str());
   ASSERT_STREQ("Bamberg", stations["8000025"]->name.c_str());
@@ -133,7 +134,7 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, simple_test) {
   ASSERT_STREQ("Berlin Hbf (tief)", stations["8098160"]->name.c_str());
 }
 
-TEST_F(multiple_ice_multiple_ice_graph_builder_test, coordinates) {
+TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, coordinates) {
   auto& stations = sched_->eva_to_station;
 
   ASSERT_FLOAT_EQ(48.3654410, stations["8000013"]->width);
@@ -177,11 +178,11 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, coordinates) {
   ASSERT_FLOAT_EQ(13.3695450, stations["8098160"]->length);
 }
 
-TEST_F(multiple_ice_multiple_ice_graph_builder_test, interchange_edges) {
+TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, interchange_edges) {
   // TODO(felix) check interchange times
 }
 
-TEST_F(multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
+TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
   EXPECT_EQ(2, sched_->route_index_to_first_route_node.size());
 
   for (auto const& first_route_node : sched_->route_index_to_first_route_node) {
@@ -334,7 +335,7 @@ TEST_F(multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
   }
 }
 
-TEST_F(direction_services_graph_builder_test, direction_station) {
+TEST_F(loader_direction_services_graph_builder_test, direction_station) {
   // Get route starting at Euskirchen
   auto node_it = std::find_if(
       begin(sched_->route_index_to_first_route_node),
@@ -352,18 +353,18 @@ TEST_F(direction_services_graph_builder_test, direction_station) {
     ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());
   }
 
-  for (int i = 12; i < connections.size(); ++i) {
+  for (unsigned i = 12; i < connections.size(); ++i) {
     auto con_info = std::get<0>(connections[i])->_full_con->con_info;
     ASSERT_TRUE(con_info->dir_ == nullptr);
   }
 }
 
-TEST_F(direction_services_graph_builder_test, direction_text) {
+TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   // Get route starting at Wissmar Gewerbegebiet
   auto node_it = std::find_if(
       begin(sched_->route_index_to_first_route_node),
       end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "114965";
+        return sched_->stations[n->get_station()->_id]->eva_nr == "0114965";
       });
   ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
 

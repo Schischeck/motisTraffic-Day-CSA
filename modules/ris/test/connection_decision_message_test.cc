@@ -45,7 +45,7 @@ IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_1) {
+TEST(ris_connection_decision_message, message_1) {
   auto const messages = parse_xmls(pack(connection_decision_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -55,7 +55,8 @@ TEST(connection_decision_message, message_1) {
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
   EXPECT_EQ(75, from->trainIndex());
@@ -70,13 +71,12 @@ TEST(connection_decision_message, message_1) {
   auto e0 = to->Get(0);
   EXPECT_EQ(87488, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_EQ(nullptr, e0->base()->stationId());
+  EXPECT_EQ("", e0->base()->stationId()->str());
   EXPECT_EQ(1444229100, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(false, e0->hold());
 }
-
 
 // clang-format off
 char const* connection_decision_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -116,7 +116,7 @@ TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
 </Paket>";
 // clang-format on
 
-TEST(connection_decision_message, message_2) {
+TEST(ris_connection_decision_message, message_2) {
   auto const messages = parse_xmls(pack(connection_decision_fixture_2));
   ASSERT_EQ(1, messages.size());
 
@@ -126,7 +126,8 @@ TEST(connection_decision_message, message_2) {
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
   EXPECT_EQ(1004, from->trainIndex());
@@ -141,7 +142,7 @@ TEST(connection_decision_message, message_2) {
   auto e0 = to->Get(0);
   EXPECT_EQ(584, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_EQ(nullptr, e0->base()->stationId());
+  EXPECT_EQ("", e0->base()->stationId()->str());
   EXPECT_EQ(1444228440, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 

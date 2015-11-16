@@ -11,7 +11,8 @@ enum error_code_t {
   ok = 0,
 
   no_module_capable_of_handling = 1,
-  unable_to_parse_msg = 2
+  unable_to_parse_msg = 2,
+  malformed_msg = 3
 };
 }  // namespace error
 
@@ -25,6 +26,7 @@ public:
       case error::no_module_capable_of_handling:
         return "module: there is no module capable of handling the message";
       case error::unable_to_parse_msg: return "module: unable to parse message";
+      case error::malformed_msg: return "module: malformed message";
       default: return "module: unkown error";
     }
   }

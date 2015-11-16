@@ -1,9 +1,8 @@
 #include "motis/reliability/rating/simple_rating.h"
 
+#include "motis/core/common/journey.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/schedule.h"
-
-#include "motis/protocol/RoutingResponse_generated.h"
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -17,7 +16,7 @@ namespace simple_rating {
 
 probability is_not_cancelled(unsigned int const /* family */) { return 0.995; }
 
-probability_distribution const& get_travel_time_distribution(
+probability_distribution get_travel_time_distribution(
     connection_element const& first_element_feeder,
     connection_element const& last_element_feeder,
     start_and_travel_distributions const& s_t_distributions,
@@ -26,10 +25,16 @@ probability_distribution const& get_travel_time_distribution(
       distributions;
   s_t_distributions.get_travel_time_distributions(
       categories[first_element_feeder.light_connection_->_full_con->con_info
-                     ->family]->name,
+                     ->family]
+          ->name,
       last_element_feeder.light_connection_->a_time -
           first_element_feeder.light_connection_->d_time,
       0 /* todo: for realtime, use the departure delay */, distributions);
+  if (distributions.empty()) {
+    probability_distribution pd;
+    pd.init_one_point(0, 1.0);
+    return pd;
+  }
   return distributions.back().get();
 }
 
@@ -55,11 +60,11 @@ probability rate_interchange(
   return travel_time_distribution.probability_smaller_equal(delay);
 }
 
-bool rate(simple_connection_rating& rating,
-          routing::Connection const* connection, schedule const& schedule,
+bool rate(simple_connection_rating& rating, journey const& journey,
+          schedule const& schedule,
           start_and_travel_distributions const& s_t_distributions) {
   auto const connection_elements =
-      rating::connection_to_graph_data::get_elements(schedule, connection);
+      rating::connection_to_graph_data::get_elements(schedule, journey);
   if (!connection_elements.first) {
     return false;
   }

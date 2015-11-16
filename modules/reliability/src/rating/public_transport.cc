@@ -4,6 +4,7 @@
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
+#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
@@ -46,10 +47,7 @@ create_data_for_interchange(
     probability_distribution const& arrival_distribution,
     distributions_container::abstract_distributions_container const&
         train_distributions,
-    distributions_container::precomputed_distributions_container const&
-        feeder_distributions,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions) {
+    context const& context) {
   // interchange with walk
   if (preceding_element.to_->_station_node->_id !=
       element.from_->_station_node->_id) {
@@ -59,8 +57,8 @@ create_data_for_interchange(
             element.is_first_route_node_, *element.from_,
             *preceding_element.to_->_station_node, *element.light_connection_,
             *preceding_element.light_connection_, arrival_distribution,
-            schedule, train_distributions, feeder_distributions,
-            s_t_distributions));
+            context.schedule_, train_distributions,
+            context.precomputed_distributions_, context.s_t_distributions_));
   }
   // interchange without walk
   return std::unique_ptr<
@@ -68,8 +66,8 @@ create_data_for_interchange(
       new calc_departure_distribution::data_departure_interchange(
           element.is_first_route_node_, *element.from_,
           *element.light_connection_, *preceding_element.light_connection_,
-          arrival_distribution, schedule, train_distributions,
-          feeder_distributions, s_t_distributions));
+          arrival_distribution, context.schedule_, train_distributions,
+          context.precomputed_distributions_, context.s_t_distributions_));
 }
 
 void distributions_for_train_after_interchange(
@@ -78,10 +76,7 @@ void distributions_for_train_after_interchange(
     connection_element preceding_element,
     distributions_container::abstract_distributions_container const&
         train_distributions,
-    distributions_container::precomputed_distributions_container const&
-        feeder_distributions,
-    schedule const& schedule,
-    start_and_travel_distributions const& s_t_distributions) {
+    context const& context) {
   for (auto const& element : elements) {
     ratings.emplace_back(element.departure_stop_idx_);
     auto const& preceding_arrival_distribution =
@@ -92,8 +87,7 @@ void distributions_for_train_after_interchange(
     if (&element == &elements.front()) { /* departure with interchange */
       auto dep_data = create_data_for_interchange(
           elements.front(), preceding_element, preceding_arrival_distribution,
-          train_distributions, feeder_distributions, schedule,
-          s_t_distributions);
+          train_distributions, context);
       calc_departure_distribution::interchange::compute_departure_distribution(
           *dep_data, departure_distribution);
     } else { /* departure without interchange */
@@ -101,17 +95,18 @@ void distributions_for_train_after_interchange(
           std::unique_ptr<calc_departure_distribution::data_departure>(
               new calc_departure_distribution::data_departure(
                   *element.from_, *element.light_connection_,
-                  element.is_first_route_node_, schedule,
+                  element.is_first_route_node_, context.schedule_,
                   distributions_container::single_distribution_container(
                       preceding_arrival_distribution),
-                  feeder_distributions, s_t_distributions));
+                  context.precomputed_distributions_,
+                  context.s_t_distributions_));
       calc_departure_distribution::compute_departure_distribution(
           *dep_data, departure_distribution);
     }
 
     calc_arrival_distribution::data_arrival arr_data(
-        *element.to_, *element.light_connection_, departure_distribution,
-        schedule, s_t_distributions);
+        *element.light_connection_, departure_distribution, context.schedule_,
+        context.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(
         arr_data, arrival_distribution);
   }
@@ -119,24 +114,22 @@ void distributions_for_train_after_interchange(
 
 void rate(std::vector<rating_element>& ratings,
           std::vector<std::vector<connection_element>> const& elements,
-          schedule const& schedule,
-          distributions_container::precomputed_distributions_container const&
-              precomputed_distributions,
-          start_and_travel_distributions const& s_t_distributions) {
+          bool const first_element_already_processed,
+          reliability::context const& context) {
   assert(elements.size() > 0);
 
   distributions_container::ride_distributions_container ride_distributions;
   auto const& precomputed_flags = distributions_calculator::ride_distribution::
       compute_missing_train_distributions(ride_distributions, elements,
-                                          precomputed_distributions, schedule,
-                                          s_t_distributions);
+                                          context);
 
-  for (unsigned int train_idx = 0; train_idx < elements.size(); ++train_idx) {
+  for (unsigned int train_idx = (first_element_already_processed ? 1 : 0);
+       train_idx < elements.size(); ++train_idx) {
     auto const& train_distributions =
         precomputed_flags.at(train_idx)
             ? dynamic_cast<distributions_container::
                                abstract_distributions_container const&>(
-                  precomputed_distributions)
+                  context.precomputed_distributions_)
             : dynamic_cast<distributions_container::
                                abstract_distributions_container const&>(
                   ride_distributions);
@@ -145,10 +138,9 @@ void rate(std::vector<rating_element>& ratings,
       distributions_for_first_train(ratings, elements.front(),
                                     train_distributions);
     } else {
-      distributions_for_train_after_interchange(
-          ratings, elements[train_idx], elements[train_idx - 1].back(),
-          train_distributions, precomputed_distributions, schedule,
-          s_t_distributions);
+      distributions_for_train_after_interchange(ratings, elements[train_idx],
+                                                elements[train_idx - 1].back(),
+                                                train_distributions, context);
     }
   }
 }

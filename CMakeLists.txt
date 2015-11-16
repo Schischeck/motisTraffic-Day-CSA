@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+file(GLOB_RECURSE global_headers *.h *.hpp)
+
 foreach(flags CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()
@@ -12,6 +14,9 @@ endforeach()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_GENERATOR STREQUAL "Ninja")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
@@ -52,8 +57,12 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/ris/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
-
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
@@ -78,4 +87,29 @@ function(add_modules)
 endfunction()
 add_modules(guesser railviz realtime reliability ris routing)
 
-add_subdirectory(motis/webservice)
+add_subdirectory(motis/launcher)
+
+configure_file (
+  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
+  ${CMAKE_BINARY_DIR}/generated/test_dir.h
+)
+
+file(GLOB_RECURSE motis-modules-test-files modules/*_test.cc)
+file(GLOB_RECURSE motis-central-test-files motis/*_test.cc)
+add_executable(motis-test EXCLUDE_FROM_ALL
+  ${CMAKE_SOURCE_DIR}/test/test_main.cc
+  ${motis-modules-test-files}
+  ${motis-central-test-files})
+set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+target_link_libraries(motis-test
+  motis-guesser
+  motis-railviz
+  motis-realtime
+  motis-reliability
+  motis-ris
+  motis-routing
+  motis-module
+  motis-loader
+  ${Boost_LIBRARIES}
+)
+target_link_libraries(motis-test gtest gtest_main)

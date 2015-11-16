@@ -44,7 +44,7 @@ TIn=\"20151007001015680\" TOutSnd=\"20151007001023691\"/>\
  </Paket>";
 // clang-format on
 
-TEST(addition_message, message_1) {
+TEST(ris_addition_message, message_1) {
   auto const messages = parse_xmls(pack(addition_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -68,7 +68,7 @@ TEST(addition_message, message_1) {
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(std::string("IC"), e0->trainCategory()->c_str());
-  EXPECT_EQ(nullptr, e0->track());
+  EXPECT_EQ("", e0->track()->str());
 
   auto e1 = events->Get(1);
   EXPECT_EQ(2941, e1->base()->trainIndex());
@@ -78,7 +78,7 @@ TEST(addition_message, message_1) {
   EXPECT_EQ(EventType_Arrival, e1->base()->type());
 
   EXPECT_EQ(std::string("IC"), e1->trainCategory()->c_str());
-  EXPECT_EQ(nullptr, e1->track());
+  EXPECT_EQ("", e1->track()->str());
 }
 
 // clang-format off
@@ -137,7 +137,7 @@ TIn=\"20151007043809952\" TOutSnd=\"20151007043811898\"/>\
  </Paket>";
 // clang-format on
 
-TEST(addition_message, message_2) {
+TEST(ris_addition_message, message_2) {
   auto const messages = parse_xmls(pack(addition_fixture_2));
   ASSERT_EQ(1, messages.size());
 
@@ -171,7 +171,7 @@ TEST(addition_message, message_2) {
   EXPECT_EQ(EventType_Arrival, e1->base()->type());
 
   EXPECT_EQ(std::string("EC"), e1->trainCategory()->c_str());
-  EXPECT_EQ(nullptr, e1->track());
+  EXPECT_EQ("", e1->track()->str());
 
   auto e2 = events->Get(2);
   EXPECT_EQ(2570, e2->base()->trainIndex());
@@ -181,7 +181,7 @@ TEST(addition_message, message_2) {
   EXPECT_EQ(EventType_Departure, e2->base()->type());
 
   EXPECT_EQ(std::string("EC"), e2->trainCategory()->c_str());
-  EXPECT_EQ(nullptr, e2->track());
+  EXPECT_EQ("", e2->track()->str());
 
   auto e3 = events->Get(3);
   EXPECT_EQ(2570, e3->base()->trainIndex());

@@ -56,17 +56,16 @@ std::ostream& operator<<(std::ostream& out, motis::ris::mode const& mode) {
 
 template <typename T>
 msg_ptr pack(std::vector<T> const& messages) {
-  FlatBufferBuilder fbb;
+  MessageCreator b;
   std::vector<Offset<MessageHolder>> message_offsets;
   for (auto& message : messages) {
-    message_offsets.push_back(CreateMessageHolder(
-        fbb, fbb.CreateVector(message.data(), message.size())));
+    message_offsets.push_back(
+        CreateMessageHolder(b, b.CreateVector(message.data(), message.size())));
   }
 
-  fbb.Finish(CreateMessage(
-      fbb, MsgContent_RISBatch,
-      CreateRISBatch(fbb, fbb.CreateVector(message_offsets)).Union()));
-  return make_msg(fbb);
+  b.CreateAndFinish(MsgContent_RISBatch,
+                    CreateRISBatch(b, b.CreateVector(message_offsets)).Union());
+  return make_msg(b);
 }
 
 ris::ris()
@@ -82,8 +81,8 @@ po::options_description ris::desc() {
       (MODE,
        po::value<mode>(&mode_)->default_value(mode_),
        "Mode of operation. Valid choices:\n"
-       MODE_LIVE "= production style operation\n"
-       MODE_SIMULATION "= init db with fs, fwd via msg")
+       MODE_LIVE " = production style operation\n"
+       MODE_SIMULATION " = init db with fs, fwd via msg")
       (UPDATE_INTERVAL,
        po::value<int>(&update_interval_)->default_value(update_interval_),
        "update interval in seconds")

@@ -17,10 +17,12 @@ std::vector<Offset<Stop>> convert_stops(
   std::vector<Offset<Stop>> buf_stops;
 
   for (auto const& stop : stops) {
-    auto arr = CreateEventInfo(b, stop.arrival.timestamp,
-                               b.CreateString(stop.arrival.platform));
-    auto dep = CreateEventInfo(b, stop.departure.timestamp,
-                               b.CreateString(stop.departure.platform));
+    auto arr =
+        CreateEventInfo(b, stop.arrival.valid ? stop.arrival.timestamp : 0,
+                        b.CreateString(stop.arrival.platform));
+    auto dep =
+        CreateEventInfo(b, stop.departure.valid ? stop.departure.timestamp : 0,
+                        b.CreateString(stop.departure.platform));
     buf_stops.push_back(CreateStop(b, b.CreateString(stop.eva_no),
                                    b.CreateString(stop.name), arr, dep,
                                    stop.interchange));
@@ -41,10 +43,11 @@ std::vector<Offset<MoveWrapper>> convert_moves(
     } else {
       moves.push_back(CreateMoveWrapper(
           b, Move_Transport,
-          CreateTransport(b, &r, b.CreateString(t.category_name), t.train_nr,
-                          b.CreateString(t.line_identifier),
+          CreateTransport(b, &r, b.CreateString(t.category_name), t.category_id,
+                          t.train_nr, b.CreateString(t.line_identifier),
                           b.CreateString(t.name), b.CreateString(t.provider),
-                          b.CreateString(t.direction)).Union()));
+                          b.CreateString(t.direction))
+              .Union()));
     }
   }
 
@@ -64,7 +67,7 @@ std::vector<Offset<Attribute>> convert_attributes(
 
 motis::module::msg_ptr journeys_to_message(
     std::vector<journey> const& journeys) {
-  FlatBufferBuilder b;
+  MessageCreator b;
 
   std::vector<Offset<Connection>> connections;
   for (auto const& j : journeys) {
@@ -74,9 +77,9 @@ motis::module::msg_ptr journeys_to_message(
         b.CreateVector(detail::convert_attributes(b, j.attributes))));
   }
 
-  b.Finish(CreateMessage(
-      b, MsgContent_RoutingResponse,
-      CreateRoutingResponse(b, b.CreateVector(connections)).Union()));
+  b.CreateAndFinish(
+      MsgContent_RoutingResponse,
+      CreateRoutingResponse(b, b.CreateVector(connections)).Union());
 
   return make_msg(b);
 }

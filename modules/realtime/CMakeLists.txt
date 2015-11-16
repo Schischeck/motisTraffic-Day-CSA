@@ -12,14 +12,3 @@ target_link_libraries(motis-realtime
     motis-loader
 )
 set_target_properties(motis-realtime PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-
-file(GLOB_RECURSE motis-realtime-test-files test/*.cc)
-add_executable(motis-realtime-test EXCLUDE_FROM_ALL ${motis-realtime-test-files})
-set_target_properties(motis-realtime-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-target_link_libraries(motis-realtime-test
-    motis-realtime
-    motis-loader
-    motis-routing
-    gtest
-    gtest_main
-)

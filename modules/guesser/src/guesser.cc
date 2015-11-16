@@ -18,7 +18,7 @@ po::options_description guesser::desc() {
   return desc;
 }
 
-void guesser::print(std::ostream& out) const {}
+void guesser::print(std::ostream&) const {}
 
 void guesser::init() {
   auto sync = synced_sched<schedule_access::RO>();
@@ -34,20 +34,20 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
 
   auto sync = synced_sched<schedule_access::RO>();
 
-  FlatBufferBuilder b;
+  MessageCreator b;
 
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
        guesser_->guess(req->input()->str(), req->guess_count())) {
     auto const& station = *sync.sched().stations[guess];
-    guesses.emplace_back(CreateStation(b, b.CreateString(station.name),
-                                       b.CreateString(station.eva_nr),
-                                       station.width, station.length));
+    guesses.emplace_back(CreateStation(
+        b, b.CreateString(station.name), b.CreateString(station.eva_nr),
+        station.index, station.width, station.length));
   }
 
-  b.Finish(motis::CreateMessage(
-      b, MsgContent_StationGuesserResponse,
-      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union()));
+  b.CreateAndFinish(
+      MsgContent_StationGuesserResponse,
+      CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union());
 
   return cb(make_msg(b), boost::system::error_code());
 }

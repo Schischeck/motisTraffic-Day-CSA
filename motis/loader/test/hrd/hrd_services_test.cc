@@ -4,11 +4,11 @@
 
 #include "gtest/gtest.h"
 
-#include "test_spec.h"
-
 #include "parser/cstr.h"
 
 #include "motis/loader/hrd/model/hrd_service.h"
+
+#include "./test_spec_test.h"
 
 using namespace parser;
 namespace fs = boost::filesystem;

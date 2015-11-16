@@ -1,0 +1,343 @@
+{
+  "content_type": "ReliableRoutingResponse",
+  "content": {
+    "connection_graphs": [
+      {
+        "stops": [
+          {
+            "index": 0,
+            "alternatives": [
+              {
+                "journey": 0,
+                "next_stop": 2,
+                "rating": {
+                  "departure_distribution": {
+                    "begin_time": 1445238000,
+                    "distribution": [
+                      0.8,
+                      0.2
+                    ],
+                    "sum": 1
+                  },
+                  "arrival_distribution": {
+                    "begin_time": 1445238540,
+                    "distribution": [
+                      0.08,
+                      0.66,
+                      0.24,
+                      0.02
+                    ],
+                    "sum": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "alternatives": [
+
+            ]
+          },
+          {
+            "index": 2,
+            "alternatives": [
+              {
+                "journey": 1,
+                "next_stop": 1,
+                "rating": {
+                  "departure_distribution": {
+                    "begin_time": 1445238900,
+                    "distribution": [
+                      0.592,
+                      0.148
+                    ],
+                    "sum": 0.74
+                  },
+                  "arrival_distribution": {
+                    "begin_time": 1445239440,
+                    "distribution": [
+                      0.0592,
+                      0.4884,
+                      0.1776,
+                      0.0148
+                    ],
+                    "sum": 0.74
+                  }
+                }
+              },
+              {
+                "journey": 2,
+                "next_stop": 1,
+                "rating": {
+                  "departure_distribution": {
+                    "begin_time": 1445238960,
+                    "distribution": [
+                      0.192,
+                      0.048
+                    ],
+                    "sum": 0.24
+                  },
+                  "arrival_distribution": {
+                    "begin_time": 1445239980,
+                    "distribution": [
+                      0.0192,
+                      0.1584,
+                      0.0576,
+                      0.0048
+                    ],
+                    "sum": 0.24
+                  }
+                }
+              },
+              {
+                "journey": 3,
+                "next_stop": 1,
+                "rating": {
+                  "departure_distribution": {
+                    "begin_time": 1445239020,
+                    "distribution": [
+                      0.016,
+                      0.004
+                    ],
+                    "sum": 0.02
+                  },
+                  "arrival_distribution": {
+                    "begin_time": 1445240340,
+                    "distribution": [
+                      0.0016,
+                      0.0132,
+                      0.0048,
+                      0.0004
+                    ],
+                    "sum": 0.02
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "journeys": [
+          {
+            "stops": [
+              {
+                "eva_nr": "3333333",
+                "name": "Darmstadt",
+                "arrival": {
+                  "time": 1445238000,
+                  "platform": ""
+                },
+                "departure": {
+                  "time": 1445238000,
+                  "platform": "1"
+                }
+              },
+              {
+                "eva_nr": "2222222",
+                "name": "Langen",
+                "arrival": {
+                  "time": 1445238600,
+                  "platform": "1"
+                },
+                "departure": {
+                  "time": 1445238900,
+                  "platform": "1"
+                }
+              }
+            ],
+            "transports": [
+              {
+                "move_type": "Transport",
+                "move": {
+                  "range": {
+                    "from": 0,
+                    "to": 1
+                  },
+                  "category_name": "RE",
+                  "category_id": 2,
+                  "train_nr": 1,
+                  "line_id": "",
+                  "name": "RE 1",
+                  "provider": "",
+                  "direction": "Langen"
+                }
+              }
+            ],
+            "attributes": [
+
+            ]
+          },
+          {
+            "stops": [
+              {
+                "eva_nr": "2222222",
+                "name": "Langen",
+                "arrival": {
+                  "time": 1445238600,
+                  "platform": "1"
+                },
+                "departure": {
+                  "time": 1445238900,
+                  "platform": "1"
+                }
+              },
+              {
+                "eva_nr": "1111111",
+                "name": "Frankfurt",
+                "arrival": {
+                  "time": 1445239500,
+                  "platform": "1"
+                },
+                "departure": {
+                  "time": 1445239500,
+                  "platform": ""
+                }
+              }
+            ],
+            "transports": [
+              {
+                "move_type": "Transport",
+                "move": {
+                  "range": {
+                    "from": 0,
+                    "to": 1
+                  },
+                  "category_name": "RE",
+                  "category_id": 2,
+                  "train_nr": 2,
+                  "line_id": "",
+                  "name": "RE 2",
+                  "provider": "",
+                  "direction": "Frankfurt"
+                }
+              }
+            ],
+            "attributes": [
+
+            ]
+          },
+          {
+            "stops": [
+              {
+                "eva_nr": "2222222",
+                "name": "Langen",
+                "arrival": {
+                  "platform": ""
+                },
+                "departure": {
+                  "time": 1445238960,
+                  "platform": "1"
+                }
+              },
+              {
+                "eva_nr": "1111111",
+                "name": "Frankfurt",
+                "arrival": {
+                  "time": 1445240040,
+                  "platform": "1"
+                },
+                "departure": {
+                  "time": 1445240040,
+                  "platform": ""
+                }
+              }
+            ],
+            "transports": [
+              {
+                "move_type": "Transport",
+                "move": {
+                  "range": {
+                    "from": 0,
+                    "to": 1
+                  },
+                  "category_name": "S",
+                  "train_nr": 3,
+                  "line_id": "",
+                  "name": "S 3",
+                  "provider": "",
+                  "direction": "Frankfurt"
+                }
+              }
+            ],
+            "attributes": [
+
+            ]
+          },
+          {
+            "stops": [
+              {
+                "eva_nr": "2222222",
+                "name": "Langen",
+                "arrival": {
+                  "platform": ""
+                },
+                "departure": {
+                  "time": 1445239020,
+                  "platform": "1"
+                }
+              },
+              {
+                "eva_nr": "1111111",
+                "name": "Frankfurt",
+                "arrival": {
+                  "time": 1445240400,
+                  "platform": "1"
+                },
+                "departure": {
+                  "time": 1445240400,
+                  "platform": ""
+                }
+              }
+            ],
+            "transports": [
+              {
+                "move_type": "Transport",
+                "move": {
+                  "range": {
+                    "from": 0,
+                    "to": 1
+                  },
+                  "category_name": "IC",
+                  "category_id": 1,
+                  "train_nr": 4,
+                  "line_id": "",
+                  "name": "IC 4",
+                  "provider": "",
+                  "direction": "Frankfurt"
+                }
+              }
+            ],
+            "attributes": [
+
+            ]
+          }
+        ],
+        "arrival_distribution": {
+          "begin_time": 1445239440,
+          "distribution": [
+            0.0592,
+            0.4884,
+            0.1776,
+            0.0148,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0.0192,
+            0.1584,
+            0.0576,
+            0.0048,
+            0,
+            0,
+            0.0016,
+            0.0132,
+            0.0048,
+            0.0004
+          ],
+          "sum": 1
+        }
+      }
+    ]
+  }
+}

@@ -1,14 +1,22 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "motis/module/module.h"
 
+#include "motis/core/schedule/schedule.h"
+
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/distributions_container.h"
+#include "motis/reliability/search/cg_optimizer.h"
 
 namespace motis {
 namespace reliability {
+namespace search {
+struct connection_graph;
+}
+
 struct reliability : public motis::module::module {
   void init() override;
 
@@ -28,6 +36,15 @@ struct reliability : public motis::module::module {
     return *precomputed_distributions_;
   }
 
+  start_and_travel_distributions const& s_t_distributions() const {
+    return *s_t_distributions_;
+  }
+
+  void send_message(motis::module::msg_ptr msg, motis::module::sid session,
+                    motis::module::callback cb);
+
+  synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
+
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>
       precomputed_distributions_;
@@ -36,6 +53,10 @@ private:
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,
                                motis::module::callback);
+
+  void handle_connection_graph_result(
+      std::vector<std::shared_ptr<search::connection_graph> > const,
+      motis::module::callback cb);
 };
 }  // namespace reliability
 }  // namespace motis

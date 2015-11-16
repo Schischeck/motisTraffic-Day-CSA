@@ -19,8 +19,8 @@ protected:
         schedule_end_(schedule_end) {}
 
   virtual void SetUp() override {
-    schedule_ =
-        loader::load_schedule(schedule_path_, schedule_begin_, schedule_end_);
+    schedule_ = loader::load_schedule(schedule_path_, true, schedule_begin_,
+                                      schedule_end_);
   }
 
 public:

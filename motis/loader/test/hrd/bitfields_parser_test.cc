@@ -6,8 +6,6 @@
 #include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 
-#include "../convert.h"
-
 using namespace parser;
 
 namespace motis {
@@ -74,17 +72,6 @@ TEST(loader_hrd_bitfields, hex_str_to_bitset_valid_period_2) {
   // 0xC218 = 1100 0010 0001 1000
   ASSERT_TRUE(std::bitset<BIT_COUNT>("000010000") ==
               hex_str_to_bitset("C218", "file.101", 1));
-}
-
-TEST(loader_hrd_bitfields, deserialize_bitset) {
-  flatbuffers::FlatBufferBuilder b;
-
-  auto serialized_bitfield = b.CreateString(
-      serialize_bitset<BIT_COUNT>(std::bitset<BIT_COUNT>("000010000")));
-
-  auto str = to_string(serialized_bitfield, b);
-  std::bitset<512> bitset = deserialize_bitset<BIT_COUNT>(str.c_str());
-  ASSERT_TRUE(std::bitset<BIT_COUNT>("000010000") == bitset);
 }
 
 }  // hrd

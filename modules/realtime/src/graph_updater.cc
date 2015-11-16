@@ -103,7 +103,7 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
         LOG(info) << " ** " << *di;
       }
     }
-    assert(route_node != nullptr && lc != nullptr);
+    if (route_node == nullptr || lc == nullptr) return;
     if (ge.arrival()) {
       route_node = _rts.get_prev_node(route_node);
       assert(route_node != nullptr);
@@ -703,7 +703,8 @@ void graph_updater::adjust_train(modified_train* mt,
         LOG(debug)
             << "  creating/updating route edge from "
             << _rts._schedule.stations[last_route_node->get_station()->_id]
-                   ->name << " [" << format_time(departure_time) << "]"
+                   ->name
+            << " [" << format_time(departure_time) << "]"
             << " to "
             << _rts._schedule.stations[route_node->get_station()->_id]->name
             << " [" << format_time(arrival_time) << "]";

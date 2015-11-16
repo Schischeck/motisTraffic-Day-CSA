@@ -26,14 +26,14 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : label_store_(MAX_LABELS) {}
+routing::routing(int max_labels) : label_store_(max_labels) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
   return desc;
 }
 
-void routing::print(std::ostream& out) const {}
+void routing::print(std::ostream&) const {}
 
 void routing::read_path_element(StationPathElement const* el,
                                 routing::path_el_cb cb) {
@@ -42,12 +42,11 @@ void routing::read_path_element(StationPathElement const* el,
   if (eva == 0) {
     // Eva number not set.
     // Try to guess entered station name.
-    FlatBufferBuilder b;
-    b.Finish(
-        CreateMessage(b, MsgContent_StationGuesserRequest,
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_StationGuesserRequest,
                       motis::guesser::CreateStationGuesserRequest(
-                          b, 1, b.CreateString(el->name()->str())).Union()));
-
+                          b, 1, b.CreateString(el->name()->str()))
+                          .Union());
     return dispatch(make_msg(b), 0, std::bind(&routing::handle_station_guess,
                                               this, p::_1, p::_2, cb));
   } else {
@@ -114,7 +113,8 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
     search s(lock.sched(), label_store_);
-    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end);
+    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
+                                      req->type() != Type_PreTrip);
 
     LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
               << lock.sched().stations[path->at(1)[0].station]->name << " "

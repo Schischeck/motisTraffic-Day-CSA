@@ -194,7 +194,7 @@ bool parse_travel_time_interval(std::string const& from_travel_time_str,
   } else {
     if (to_travel_time_int < 0) {
       return false;
-    } else if (to_travel_time_int > max_expected_travel_time) {
+    } else if ((unsigned int)to_travel_time_int > max_expected_travel_time) {
       to_travel_time = max_expected_travel_time;
     } else /* to_travel_time_int <= max_expected_travel_time */ {
       to_travel_time = (unsigned int)to_travel_time_int;
@@ -221,7 +221,7 @@ bool parse_departure_delay_interval(
   } else {
     if (to_delay_int <= 0) {
       return false;
-    } else if (to_delay_int <= max_expected_departure_delay) {
+    } else if ((unsigned int)to_delay_int <= max_expected_departure_delay) {
       to_delay = to_delay_int - 1;  // right-open interval
     } else /* to_delay_int > max_expected_departure_delay */ {
       to_delay = max_expected_departure_delay;
@@ -398,7 +398,7 @@ void load_start_distributions(std::string const filepath,
     } else {
       std::vector<probability> probabilities;
       probabilities.push_back(it.second.probability_smaller_equal(0));
-      for (unsigned int d = 1; d <= it.second.last_minute(); d++) {
+      for (int d = 1; d <= it.second.last_minute(); d++) {
         probabilities.push_back(it.second.probability_equal(d));
       }
       probability_distribution pd;

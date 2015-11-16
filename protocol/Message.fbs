@@ -1,10 +1,20 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "railviz/RailVizInit.fbs";
-include "railviz/RailVizStationDetail.fbs";
-include "railviz/RailVizStationDetailRequest.fbs";
-include "railviz/RailVizAllTrainsRequest.fbs";
-include "railviz/RailVizAllTrainsResponse.fbs";
+include "railviz/RailVizAlltraReq.fbs";
+include "railviz/RailVizAlltraRes.fbs";
+include "railviz/RailVizStationDetailReq.fbs";
+include "railviz/RailVizStationDetailRes.fbs";
+include "railviz/RailVizRouteAtTimeReq.fbs";
+include "railviz/RailVizRouteAtTimeRes.fbs";
+include "railviz/RailVizFindTrain.fbs";
+include "realtime/RealtimeTrainInfoRequest.fbs";
+include "realtime/RealtimeTrainInfoResponse.fbs";
+include "realtime/RealtimeCurrentTimeRequest.fbs";
+include "realtime/RealtimeCurrentTimeResponse.fbs";
+include "realtime/RealtimeDelayInfoRequest.fbs";
+include "realtime/RealtimeDelayInfoResponse.fbs";
+include "reliability/ReliabilityRatingResponse.fbs";
 include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISBatch.fbs";
@@ -42,7 +52,7 @@ table MotisError {
 //   "content": {
 //   }
 // }
-table MotisSuccess { 
+table MotisSuccess {
 }
 
 union MsgContent {
@@ -51,12 +61,16 @@ union MsgContent {
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizInit,
-  motis.railviz.RailVizAllTrainsRequest,
-  motis.railviz.RailVizAllTrainsResponse,
-  motis.railviz.RailVizStationDetail,
-  motis.railviz.RailVizStationDetailRequest,
+  motis.railviz.RailVizAlltraReq,
+  motis.railviz.RailVizAlltraRes,
+  motis.railviz.RailVizStationDetailReq,
+  motis.railviz.RailVizStationDetailRes,
+  motis.railviz.RailVizRouteAtTimeReq,
+  motis.railviz.RailVizRouteAtTimeRes,
+  motis.railviz.RailVizFindTrain,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
+  motis.reliability.ReliabilityRatingResponse,
   motis.ris.RISBatch,
   motis.ris.RISForwardTimeRequest,
   motis.routing.RoutingRequest,

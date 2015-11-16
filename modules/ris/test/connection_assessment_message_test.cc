@@ -47,7 +47,7 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
 </ListQuelle></Nachricht></ListNachricht></Paket>";
 // clang-format on
 
-TEST(connection_assessment_message, message_1) {
+TEST(ris_connection_assessment_message, message_1) {
   auto const messages = parse_xmls(pack(connection_assessment_fixture_1));
   ASSERT_EQ(1, messages.size());
 
@@ -138,7 +138,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 </Paket>";
 // clang-format on
 
-TEST(connection_assessment_message, message_2) {
+TEST(ris_connection_assessment_message, message_2) {
   auto const messages = parse_xmls(pack(connection_assessment_fixture_2));
   ASSERT_EQ(1, messages.size());
 

@@ -13,29 +13,6 @@ namespace loader {
 namespace hrd {
 
 struct resolved_rule_info {
-  friend bool operator<(resolved_rule_info const& rhs,
-                        resolved_rule_info const& lhs) {
-    if (rhs.type < lhs.type) {
-      return true;
-    }
-    if (rhs.type > lhs.type) {
-      return false;
-    }
-    if (rhs.eva_num_1 < lhs.eva_num_1) {
-      return true;
-    }
-    if (rhs.eva_num_1 > lhs.eva_num_1) {
-      return false;
-    }
-    if (rhs.eva_num_2 < lhs.eva_num_2) {
-      return true;
-    }
-    if (rhs.eva_num_2 > lhs.eva_num_2) {
-      return false;
-    }
-    return bitset_comparator<BIT_COUNT>()(rhs.traffic_days, lhs.traffic_days);
-  }
-
   bitfield traffic_days;
   int eva_num_1, eva_num_2;
   uint8_t type;

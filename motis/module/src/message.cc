@@ -44,6 +44,12 @@ message::message(std::string const& json) {
     throw boost::system::system_error(error::unable_to_parse_msg);
   }
 
+  flatbuffers::Verifier verifier(parser->builder_.GetBufferPointer(),
+                                 parser->builder_.GetSize());
+  if (!VerifyMessageBuffer(verifier)) {
+    throw boost::system::system_error(error::malformed_msg);
+  }
+
   buf_ = parser->builder_.GetBufferPointer();
   msg_ = motis::GetMutableMessage(buf_);
   mem_ = parser->builder_.ReleaseBufferPointer();
