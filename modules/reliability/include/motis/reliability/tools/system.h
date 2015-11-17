@@ -32,7 +32,8 @@ struct setup {
     void send(module::msg_ptr const&, module::sid) override {}
   } t_;
 
-  setup(schedule* sched) : dispatcher_(t_, ios_) {
+  setup(schedule* sched, bool const set_routing_num_max_label = true)
+      : dispatcher_(t_, ios_) {
     namespace p = std::placeholders;
     dispatch_ = std::bind(&module::dispatcher::on_msg, &dispatcher_, p::_1,
                           p::_2, p::_3);
@@ -41,7 +42,8 @@ struct setup {
     c_.ios_ = &ios_;
     c_.dispatch_ = &dispatch_;
 
-    modules_.emplace_back(new routing::routing(100));
+    modules_.emplace_back(set_routing_num_max_label ? new routing::routing(100)
+                                                    : new routing::routing());
     modules_.emplace_back(new reliability());
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.get());
