@@ -64,7 +64,8 @@ std::pair<std::set<rule_node*>, bitfield> rule_node::max_component() {
     for (auto const& link_node : {current->s1_, current->s2_}) {
       for (auto const& related_node : link_node->rule_nodes_) {
         if (related_node != current &&
-            component_nodes.find(related_node) != end(component_nodes)) {
+            component_nodes.find(related_node) == end(component_nodes)) {
+          printf("\nqueue insert %p\n", related_node);
           queue.insert(related_node);
         }
       }

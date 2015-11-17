@@ -38,7 +38,7 @@ struct rule_node : public node {
 
 struct rules_graph {
   std::vector<std::unique_ptr<node>> nodes_;
-  std::vector<rule_node*> layers_;
+  std::vector<rule_node*> rule_nodes_;
 };
 
 }  // hrd

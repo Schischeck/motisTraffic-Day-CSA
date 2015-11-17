@@ -46,8 +46,8 @@ bool rule_service_builder::add_service(hrd_service const& s) {
   copied_service.second = nullptr;  // pointer to the copy if we need it
 
   for (auto const& id : s.get_ids()) {
-    auto it = rules_.find(id);
-    if (it != end(rules_)) {
+    auto it = input_rules_.find(id);
+    if (it != end(input_rules_)) {
       try_apply_rules(origin_services_, copied_service, it->second);
     }
   }
@@ -79,7 +79,7 @@ void create_rule_and_service_nodes(
 
     s1_node->rule_nodes_.push_back(rn);
     s2_node->rule_nodes_.push_back(rn);
-    rg.layers_.push_back(rn);
+    rg.rule_nodes_.push_back(rn);
   }
 }
 
@@ -97,25 +97,33 @@ void build_graph(service_rules const& rules, rules_graph& rg) {
   }
 }
 
+void add_rule_service(
+    std::pair<std::set<rule_node*>, bitfield> const& component,
+    std::vector<rule_service>& rule_services) {
+  std::set<service_resolvent> s_resolvents;
+  std::vector<service_rule_resolvent> sr_resolvents;
+  for (auto& rn : component.first) {
+    rn->resolve_services(component.second, s_resolvents, sr_resolvents);
+  }
+  if (!sr_resolvents.empty()) {
+    rule_services.emplace_back(std::move(sr_resolvents),
+                               std::move(s_resolvents));
+  }
+}
+
 void rule_service_builder::resolve_rule_services() {
   scoped_timer("resolve service rules");
 
   rules_graph rg;
-  build_graph(rules_, rg);
+  build_graph(input_rules_, rg);
 
   std::pair<std::set<rule_node*>, bitfield> component;
-  for (auto const& rn : rg.layers_) {
+  for (auto const& rn : rg.rule_nodes_) {
     while ((component = rn->max_component()).first.size() > 1) {
-      std::set<service_resolvent> s_resolvents;
-      std::vector<service_rule_resolvent> sr_resolvents;
-      for (auto& node : component.first) {
-        node->resolve_services(component.second, s_resolvents, sr_resolvents);
-      }
-
-      if (!sr_resolvents.empty()) {
-        rule_services_.emplace_back(std::move(sr_resolvents),
-                                    std::move(s_resolvents));
-      }
+      add_rule_service(component, rule_services_);
+    }
+    if (component.first.size() == 1) {
+      add_rule_service(component, rule_services_);
     }
   }
 }
@@ -133,9 +141,8 @@ void create_rule_service(
   std::vector<Offset<Rule>> fbb_rules;
   for (auto const& r : rs.rules) {
     fbb_rules.push_back(CreateRule(
-        fbb, r.rule_info.type == 0 ? RuleType_THROUGH : RuleType_MERGE_SPLIT,
-        services.at(r.s1), services.at(r.s2), r.rule_info.eva_num_1,
-        r.rule_info.eva_num_2));
+        fbb, (RuleType)r.rule_info.type, services.at(r.s1), services.at(r.s2),
+        r.rule_info.eva_num_1, r.rule_info.eva_num_2));
   }
   fbs_rule_services.push_back(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
