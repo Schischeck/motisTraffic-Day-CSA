@@ -35,7 +35,7 @@ void correct_transports_and_attributes_indices(std::vector<T> const& orig,
 /* split journey at a stop with interchange */
 std::pair<journey, journey> split_journey(journey const& j,
                                           unsigned int const stop_idx) {
-  assert(j.transports.size() > 1);
+  assert(j.transports.size() >= 1);
   assert(j.stops.size() > 2);
   assert(j.stops.at(stop_idx).interchange);
   assert(stop_idx > 0);
@@ -73,7 +73,6 @@ std::pair<journey, journey> split_journey(journey const& j,
   assert(j1.stops.size() >= 2);
   assert(j2.transports.size() >= 1);
   assert(j2.stops.size() >= 2);
-  assert(j1.transports.size() + j2.transports.size() == j.transports.size());
   assert(j1.stops.size() + j2.stops.size() == j.stops.size() + 1);
   assert(!j1.stops.front().interchange);
   assert(!j1.stops.back().interchange);
