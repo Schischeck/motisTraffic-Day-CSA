@@ -88,6 +88,12 @@ public:
   loader_ts_twice() : rule_services_test("ts-twice") {}
 };
 
+class loader_ts_twice_all_combinations : public rule_services_test {
+public:
+  loader_ts_twice_all_combinations()
+      : rule_services_test("ts-twice-all-combinations") {}
+};
+
 class loader_ts_2_to_1 : public rule_services_test {
 public:
   loader_ts_2_to_1() : rule_services_test("ts-2-to-1") {}
@@ -184,6 +190,47 @@ TEST_F(loader_ts_twice, rule_services) {
     ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
     ASSERT_EQ(bitfield{"1100000"}, sr.s1->traffic_days_);
     ASSERT_EQ(bitfield{"1100000"}, sr.s2->traffic_days_);
+  }
+}
+
+TEST_F(loader_ts_twice_all_combinations, rule_services) {
+  // check remaining services
+  ASSERT_EQ(3, rsb_.origin_services_.size());
+  auto const& service1 = rsb_.origin_services_[0];
+  ASSERT_EQ(bitfield{"0000001"}, service1->traffic_days_);
+  auto const& service2 = rsb_.origin_services_[1];
+  ASSERT_EQ(bitfield{"0000010"}, service2->traffic_days_);
+  auto const& service3 = rsb_.origin_services_[2];
+  ASSERT_EQ(bitfield{"0000100"}, service3->traffic_days_);
+
+  // check rule services
+  ASSERT_EQ(3, rsb_.rule_services_.size());
+
+  auto const& rule_service1 = rsb_.rule_services_[0];
+  ASSERT_EQ(3, rule_service1.services.size());
+  ASSERT_EQ(2, rule_service1.rules.size());
+  for (auto const& sr : rule_service1.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0100000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0100000"}, sr.s2->traffic_days_);
+  }
+
+  auto const& rule_service2 = rsb_.rule_services_[1];
+  ASSERT_EQ(2, rule_service2.services.size());
+  ASSERT_EQ(1, rule_service2.rules.size());
+  for (auto const& sr : rule_service2.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0001000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0001000"}, sr.s2->traffic_days_);
+  }
+
+  auto const& rule_service3 = rsb_.rule_services_[2];
+  ASSERT_EQ(2, rule_service3.services.size());
+  ASSERT_EQ(1, rule_service3.rules.size());
+  for (auto const& sr : rule_service3.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0010000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0010000"}, sr.s2->traffic_days_);
   }
 }
 
