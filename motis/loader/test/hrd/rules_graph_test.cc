@@ -274,7 +274,7 @@ TEST_F(loader_mss_many, rule_services) {
   }
 }
 
-TEST_F(loader_ts_mss_hrd, traffic_days) {
+TEST_F(loader_ts_mss_hrd, DISABLED_traffic_days) {
   for (auto const& rs : rsb_.rule_services_) {
     auto const& first_srp = begin(rs.rules);
     ASSERT_FALSE(first_srp == end(rs.rules));
@@ -319,12 +319,12 @@ TEST_F(loader_ts_mss_hrd, traffic_days) {
   }
 }
 
-TEST_F(loader_ts_mss_hrd, num_services) {
+TEST_F(loader_ts_mss_hrd, DISABLED_num_services) {
   ASSERT_EQ(4, rsb_.origin_services_.size());
   ASSERT_EQ(9, rsb_.rule_services_.size());
 }
 
-TEST_F(loader_ts_mss_hrd, service_rule_chains) {
+TEST_F(loader_ts_mss_hrd, DISABLED_service_rule_chains) {
   if (rsb_.rule_services_.size() == 9) {
     assert_rule_count(1, 2, rsb_.rule_services_[0]);
     assert_rule_count(1, 2, rsb_.rule_services_[1]);
