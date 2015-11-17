@@ -92,19 +92,20 @@ TEST_F(realtime_train_messages_test, test_cancel_complete_train) {
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
 
-  EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(13, 30)).empty());
+  EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(14, 25)).empty());
 
   std::vector<rt::schedule_event> events = {
-      rt::schedule_event(da_hbf->index, 20, true, t(13, 34)),
-      rt::schedule_event(Langen->index, 20, false, t(13, 49)),
-      rt::schedule_event(Langen->index, 20, true, t(13, 51)),
-      rt::schedule_event(ffm_hbf->index, 20, false, t(14, 5))};
+      rt::schedule_event(da_hbf->index, 20, true, t(14, 34)),
+      rt::schedule_event(Langen->index, 20, false, t(14, 49)),
+      rt::schedule_event(Langen->index, 20, true, t(14, 51)),
+      rt::schedule_event(ffm_hbf->index, 20, false, t(15, 5))};
 
   _rts._message_handler.handle_canceled_train(rt::cancel_train_message(events));
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 
-  EXPECT_TRUE(find_connections(da_hbf, ffm_hbf, t(13, 30)).empty());
+  auto connections = find_connections(da_hbf, ffm_hbf, t(14, 25));
+  EXPECT_TRUE(connections.empty());
 
   for (auto& e : events) {
     EXPECT_TRUE(_rts._delay_info_manager.get_delay_info(e) != nullptr);
@@ -116,24 +117,24 @@ TEST_F(realtime_train_messages_test, test_cancel_beginning_of_train) {
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
 
-  EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(13, 30)).empty());
+  EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(14, 25)).empty());
 
   std::vector<rt::schedule_event> events = {
-      rt::schedule_event(da_hbf->index, 20, true, t(13, 34)),
-      rt::schedule_event(Langen->index, 20, false, t(13, 49))};
+      rt::schedule_event(da_hbf->index, 20, true, t(14, 34)),
+      rt::schedule_event(Langen->index, 20, false, t(14, 49))};
 
   _rts._message_handler.handle_canceled_train(rt::cancel_train_message(events));
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 
-  EXPECT_TRUE(find_connections(da_hbf, ffm_hbf, t(13, 30)).empty());
+  EXPECT_TRUE(find_connections(da_hbf, ffm_hbf, t(14, 25)).empty());
 
   std::vector<motis::journey> journeys =
-      find_connections(Langen, ffm_hbf, t(13, 45));
+      find_connections(Langen, ffm_hbf, t(14, 45));
   ASSERT_EQ(1, journeys.size());
 
-  check_train({{Langen, "", 0, INV, INV, "RB", 20, t(13, 51), t(13, 51)},
-               {ffm_hbf, "RB", 20, t(14, 5), t(14, 5), "", 0, INV, INV}});
+  check_train({{Langen, "", 0, INV, INV, "RB", 20, t(14, 51), t(14, 51)},
+               {ffm_hbf, "RB", 20, t(15, 5), t(15, 5), "", 0, INV, INV}});
 
   for (auto& e : events) {
     EXPECT_TRUE(_rts._delay_info_manager.get_delay_info(e) != nullptr);
