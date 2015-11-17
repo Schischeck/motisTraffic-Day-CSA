@@ -152,9 +152,6 @@ public:
   void add_service(Service const* service) {
     auto const& sections = service->sections();
 
-    auto route_nodes = get_or_create(
-        routes_, service->route(), std::bind(&graph_builder::create_route, this,
-                                             service->route(), routes_.size()));
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
 
     if (accumulate(view::ints(first_day_, last_day_ + 1), false,
@@ -164,6 +161,9 @@ public:
       return;
     }
 
+    auto route_nodes = get_or_create(
+        routes_, service->route(), std::bind(&graph_builder::create_route, this,
+                                             service->route(), routes_.size()));
     if (!is_unique_service(service, traffic_days, route_nodes)) {
       return;
     }
