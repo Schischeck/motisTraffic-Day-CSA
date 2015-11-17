@@ -112,7 +112,7 @@ void add_rule_service(
 }
 
 void rule_service_builder::resolve_rule_services() {
-  scoped_timer("resolve service rules");
+  scoped_timer timer("resolve service rules");
 
   rules_graph rg;
   build_graph(input_rules_, rg);
