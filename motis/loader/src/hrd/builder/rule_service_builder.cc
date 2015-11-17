@@ -35,7 +35,14 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
   for (auto& r : rules) {
     int info = r->applies(*s.first);
     if (info) {
-      r->add(get_or_create(origin_services, s), info);
+      if (s.first->num_repetitions_ == 0) {
+        r->add(get_or_create(origin_services, s), info);
+      } else {
+        LOG(warn) << "suspicious service rule participant: "
+                  << s.first->origin_.filename << " ["
+                  << s.first->origin_.line_number_from << ","
+                  << s.first->origin_.line_number_to << "]";
+      }
     }
   }
 }
