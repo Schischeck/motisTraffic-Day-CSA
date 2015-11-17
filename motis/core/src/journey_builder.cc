@@ -47,6 +47,7 @@ journey::transport to_transport(routing::Walk const& walk, uint16_t duration) {
   t.provider = "";
   t.slot = 0;
   t.train_nr = 0;
+  t.route_id = 0;
   return t;
 }
 journey::transport to_transport(routing::Transport const& transport,
@@ -60,6 +61,7 @@ journey::transport to_transport(routing::Transport const& transport,
   t.line_identifier = transport.line_id()->c_str();
   t.name = transport.name()->c_str();
   t.provider = transport.provider()->c_str();
+  t.route_id = transport.route_id();
   t.slot = 0;
   t.to = transport.range()->to();
   t.train_nr = transport.train_nr();

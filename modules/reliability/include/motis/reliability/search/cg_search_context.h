@@ -40,7 +40,6 @@ struct context {
         Stop_completed,
         Stop_Aborted
       } state_ = Stop_idle;
-      unsigned short num_failed_requests_ = 0;
       probability_distribution uncovered_arrival_distribution_;
     };
     std::map<unsigned int, stop_state> stop_states_;

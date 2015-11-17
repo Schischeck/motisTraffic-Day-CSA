@@ -89,6 +89,7 @@ journey create_journey1() {
     transport.to = 1;
     transport.train_nr = 111;
     transport.walk = false;
+    transport.route_id = 1;
   }
   {
     auto& transport = j.transports[1];
@@ -104,6 +105,7 @@ journey create_journey1() {
     transport.to = 2;
     transport.train_nr = 222;
     transport.walk = false;
+    transport.route_id = 2;
   }
   {
     auto& transport = j.transports[2];
@@ -119,6 +121,7 @@ journey create_journey1() {
     transport.provider = "";
     transport.slot = 0;
     transport.train_nr = 0;
+    transport.route_id = 0;
   }
 
   j.attributes.resize(2);
@@ -189,6 +192,7 @@ journey create_journey2() {
     transport.to = 1;
     transport.train_nr = 111;
     transport.walk = false;
+    transport.route_id = 1;
   }
   return j;
 }
@@ -246,6 +250,7 @@ TEST(core_convert_journey, journey_builder) {
       ASSERT_TRUE(ot.to == jt.to);
       ASSERT_TRUE(ot.train_nr == jt.train_nr);
       ASSERT_TRUE(ot.walk == jt.walk);
+      ASSERT_TRUE(ot.route_id == jt.route_id);
     }
 
     for (unsigned int a = 0; a < o.attributes.size(); ++a) {

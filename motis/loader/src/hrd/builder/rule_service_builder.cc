@@ -35,7 +35,14 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
   for (auto& r : rules) {
     int info = r->applies(*s.first);
     if (info) {
-      r->add(get_or_create(origin_services, s), info);
+      if (s.first->num_repetitions_ == 0) {
+        r->add(get_or_create(origin_services, s), info);
+      } else {
+        LOG(warn) << "suspicious service rule participant: "
+                  << s.first->origin_.filename << " ["
+                  << s.first->origin_.line_number_from << ","
+                  << s.first->origin_.line_number_to << "]";
+      }
     }
   }
 }
@@ -150,7 +157,7 @@ void create_rule_service(
 
 void rule_service_builder::create_rule_services(service_builder_fun sbf,
                                                 FlatBufferBuilder& fbb) {
-  scoped_timer("create rule and remaining services");
+  scoped_timer timer("create rule and remaining services");
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     if (s->traffic_days_.any()) {

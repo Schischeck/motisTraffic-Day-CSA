@@ -16,7 +16,7 @@ std::vector<distribution_info> distributions_arriving_alternatives(
   std::vector<distribution_info> distributions;
   for (auto const& stop : cg.stops_) {
     for (auto const& alternative : stop.alternative_infos_) {
-      if (alternative.head_stop_index_ ==
+      if (alternative.next_stop_index_ ==
           search::connection_graph::stop::Index_arrival_stop) {
         distributions.emplace_back(
             cg.journeys_.at(alternative.journey_index_)
