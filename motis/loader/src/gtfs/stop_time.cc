@@ -50,18 +50,29 @@ int hhmm_to_min(cstr s) {
   }
 }
 
-std::map<std::string, flat_map<stop_time>> read_stop_times(loaded_file file) {
-  std::map<std::string, flat_map<stop_time>> stop_times;
+void read_stop_times(loaded_file file, trip_map& trips, stop_map const& stops) {
+  std::string last_trip_id;
+  trip* last_trip;
+
   for (auto const& s :
        read<gtfs_stop_time>(file.content(), stop_time_columns)) {
-    stop_times[get<trip_id>(s).to_str()].emplace(
+    trip* t;
+    auto t_id = get<trip_id>(s).to_str();
+    if (t_id == last_trip_id) {
+      t = last_trip;
+    } else {
+      t = trips.at(t_id).get();
+      last_trip_id = t_id;
+      last_trip = t;
+    }
+
+    t->stop_times_.emplace(
         get<stop_sequence>(s),  // index
-        get<stop_id>(s).to_str(),  // constructor arguments
+        stops.at(get<stop_id>(s).to_str()).get(),  // constructor arguments
         get<stop_headsign>(s).to_str(),  //
         hhmm_to_min(get<arrival_time>(s)), get<drop_off_type>(s) == 0,
         hhmm_to_min(get<departure_time>(s)), get<pickup_type>(s) == 0);
   }
-  return stop_times;
 }
 
 }  // namespace gtfs

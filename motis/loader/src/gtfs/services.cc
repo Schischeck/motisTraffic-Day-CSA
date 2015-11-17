@@ -1,4 +1,4 @@
-#include "motis/loader/gtfs/traffic_days.h"
+#include "motis/loader/gtfs/services.h"
 
 #include "boost/date_time/gregorian/gregorian.hpp"
 
@@ -19,13 +19,15 @@ greg::date bound_date(std::map<std::string, calendar> const& base, bool first) {
                                std::pair<std::string, calendar> const& rhs) {
                               return lhs.second.first_day <
                                      rhs.second.first_day;
-                            })->second.first_day;
+                            })
+        ->second.first_day;
   } else {
     return std::max_element(begin(base), end(base),
                             [](std::pair<std::string, calendar> const& lhs,
                                std::pair<std::string, calendar> const& rhs) {
                               return lhs.second.last_day < rhs.second.last_day;
-                            })->second.last_day;
+                            })
+        ->second.last_day;
   }
 }
 
@@ -59,13 +61,13 @@ services traffic_days(
   s.last_day = bound_date(base, false);
 
   for (auto const& base_calendar : base) {
-    s.traffic_days[base_calendar.first] =
-        calendar_to_bitfield(s.first_day, base_calendar.second);
+    s.traffic_days[base_calendar.first] = make_unique<bitfield>(
+        calendar_to_bitfield(s.first_day, base_calendar.second));
   }
 
   for (auto const& exception : exceptions) {
     for (auto const& day : exception.second) {
-      add_exception(s.first_day, day, s.traffic_days[exception.first]);
+      add_exception(s.first_day, day, *s.traffic_days[exception.first].get());
     }
   }
 

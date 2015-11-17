@@ -2,7 +2,7 @@
 
 #include "motis/loader/gtfs/calendar_date.h"
 #include "motis/loader/gtfs/calendar.h"
-#include "motis/loader/gtfs/traffic_days.h"
+#include "motis/loader/gtfs/services.h"
 #include "motis/loader/gtfs/files.h"
 
 using namespace parser;
