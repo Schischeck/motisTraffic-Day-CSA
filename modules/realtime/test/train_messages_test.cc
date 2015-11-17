@@ -38,11 +38,11 @@ TEST_F(realtime_train_messages_test,
   // TODO
   EXPECT_EQ(30 + da_hbf->transfer_time, j.duration);
 
-  check_stops(j, {{ffm_hbf, {t(9, 0)}, {t(9, 0)}},
+  check_stops(j, {{ffm_hbf, {INV}, {t(9, 0)}},
                   {Langen, {t(9, 15)}, {t(9, 17)}},
-                  {da_hbf, {t(9, 30)}, {t(9, 30)}}});
+                  {da_hbf, {t(9, 30)}, {INV}}});
 
-  check_transports(j, {{"RB", 999, 1, 3}});
+  check_transports(j, {{"RB", 999, 0, 2}});
 
   check_train(
       {{ffm_hbf, "", 0, INV, INV, "RB", 999, t(9, 0), t(9, 0)},
@@ -75,11 +75,11 @@ TEST_F(realtime_train_messages_test, test_additional_train_with_new_category) {
   // TODO
   EXPECT_EQ(30 + da_hbf->transfer_time, j.duration);
 
-  check_stops(j, {{ffm_hbf, {t(h, 0)}, {t(h, 0)}},
+  check_stops(j, {{ffm_hbf, {INV}, {t(h, 0)}},
                   {Langen, {t(h, 15)}, {t(h, 17)}},
-                  {da_hbf, {t(h, 30)}, {t(h, 30)}}});
+                  {da_hbf, {t(h, 30)}, {INV}}});
 
-  check_transports(j, {{"FOO", 1000, 1, 3}});
+  check_transports(j, {{"FOO", 1000, 0, 2}});
 
   check_train({{ffm_hbf, "", 0, INV, INV, "FOO", 1000, t(h, 0), t(h, 0)},
                {Langen, "FOO", 1000, t(h, 15), t(h, 15), "FOO", 1000, t(h, 17),
@@ -163,13 +163,14 @@ TEST_F(realtime_train_messages_test, test_cancel_end_of_train) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
     // TODO
-    EXPECT_EQ(91 + ffm_hbf->transfer_time, j.duration);
+    // calculated from query time?
+    EXPECT_EQ(95 + ffm_hbf->transfer_time, j.duration);
 
-    check_stops(j, {{da_hbf, {t(13, 34)}, {t(13, 34)}},
-                    {Langen, {t(13, 49)}, {t(14, 51)}},
-                    {ffm_hbf, {t(15, 5)}, {t(15, 5)}}});
+    check_stops(j, {{da_hbf, {INV}, {t(14, 34)}},
+                    {Langen, {t(14, 49)}, {t(14, 51)}},
+                    {ffm_hbf, {t(15, 5)}, {INV}}});
 
-    check_transports(j, {{"RB", 20, 1, 3}});
+    check_transports(j, {{"RB", 20, 0, 2}});
   }
 
   journeys = find_connections(da_hbf, Langen, t(13, 30));
@@ -207,11 +208,11 @@ TEST_F(realtime_train_messages_test, test_reroute_cancel_stops_in_middle) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{ffm_tief, {t(10, 0)}, {t(10, 0)}},
+    check_stops(j, {{ffm_tief, {INV}, {t(10, 0)}},
                     {Langen, {t(10, 10)}, {t(10, 17)}},
-                    {da_hbf, {t(10, 26)}, {t(10, 26)}}});
+                    {da_hbf, {t(10, 26)}, {INV}}});
 
-    check_transports(j, {{"RE", 1, 1, 3}});
+    check_transports(j, {{"RE", 1, 0, 2}});
   }
 
   EXPECT_TRUE(find_connections(ffm_tief, dreieich, t(10, 0)).empty());
@@ -237,12 +238,12 @@ TEST_F(realtime_train_messages_test, test_reroute_cancel_stops_in_middle) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{ffm_tief, {t(10, 0)}, {t(10, 0)}},
+    check_stops(j, {{ffm_tief, {INV}, {t(10, 0)}},
                     {dreieich, {t(10, 6)}, {t(10, 8)}},
                     {Langen, {t(10, 10)}, {t(10, 17)}},
-                    {da_hbf, {t(10, 26)}, {t(10, 26)}}});
+                    {da_hbf, {t(10, 26)}, {INV}}});
 
-    check_transports(j, {{"RE", 1, 1, 4}});
+    check_transports(j, {{"RE", 1, 0, 3}});
   }
 
   EXPECT_FALSE(find_connections(ffm_tief, dreieich, t(10, 0)).empty());
@@ -285,12 +286,12 @@ TEST_F(realtime_train_messages_test, test_reroute_change_start) {
 
     check_stops(
         j,
-        {{ffm_tief, {t(10, 3)}, {t(10, 3)}},  // 10:00 -> 10:03
+        {{ffm_tief, {INV}, {t(10, 3)}},  // 10:00 -> 10:03
          {dreieich, {t(10, 9)}, {t(10, 11)}},  // 10:06 -> 10:09, 10:08 -> 10:11
          {Langen, {t(10, 13)}, {t(10, 17)}},  // 10:10 -> 10:13
-         {da_hbf, {t(10, 26)}, {t(10, 26)}}});
+         {da_hbf, {t(10, 26)}, {INV}}});
 
-    check_transports(j, {{"RE", 1, 1, 4}});
+    check_transports(j, {{"RE", 1, 0, 3}});
   }
 
   EXPECT_FALSE(find_connections(ffm_tief, dreieich, t(10, 0)).empty());
@@ -313,12 +314,12 @@ TEST_F(realtime_train_messages_test, test_reroute_change_start) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{ffm_hbf, {t(10, 0)}, {t(10, 0)}},
+    check_stops(j, {{ffm_hbf, {INV}, {t(10, 0)}},
                     {dreieich, {t(10, 6)}, {t(10, 8)}},
                     {Langen, {t(10, 10)}, {t(10, 17)}},
-                    {da_hbf, {t(10, 26)}, {t(10, 26)}}});
+                    {da_hbf, {t(10, 26)}, {INV}}});
 
-    check_transports(j, {{"RE", 1, 1, 4}});
+    check_transports(j, {{"RE", 1, 0, 3}});
   }
 
   // TODO: verify
@@ -344,12 +345,12 @@ TEST_F(realtime_train_messages_test, test_reroute_change_start) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{ffm_tief, {t(10, 3)}, {t(10, 03)}},
+    check_stops(j, {{ffm_tief, {INV}, {t(10, 03)}},
                     {dreieich, {t(10, 9)}, {t(10, 11)}},
                     {Langen, {t(10, 13)}, {t(10, 17)}},
-                    {da_hbf, {t(10, 26)}, {t(10, 26)}}});
+                    {da_hbf, {t(10, 26)}, {INV}}});
 
-    check_transports(j, {{"RE", 1, 1, 4}});
+    check_transports(j, {{"RE", 1, 0, 3}});
   }
 
   EXPECT_FALSE(find_connections(ffm_tief, dreieich, t(10, 0)).empty());
@@ -377,12 +378,12 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{da_hbf, {t(13, 34)}, {t(13, 34)}},
+    check_stops(j, {{da_hbf, {INV}, {t(13, 34)}},
                     {Langen, {t(13, 49)}, {t(13, 51)}},
                     {ffm_hbf, {t(14, 5)}, {t(14, 15)}},
-                    {off_hbf, {t(14, 25)}, {t(14, 25)}}});
+                    {off_hbf, {t(14, 25)}, {INV}}});
 
-    check_transports(j, {{"RB", 20, 1, 3}, {"RE", 23, 3, 4}});
+    check_transports(j, {{"RB", 20, 0, 2}, {"RE", 23, 2, 3}});
   }
 
   // delay the feeder train, connection should now be broken
@@ -397,12 +398,12 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{da_hbf, {t(13, 34)}, {t(13, 34)}},
+    check_stops(j, {{da_hbf, {INV}, {t(13, 34)}},
                     {Langen, {t(13, 49)}, {t(13, 51)}},
                     {ffm_hbf, {t(14, 10)}, {t(15, 15)}},
-                    {off_hbf, {t(15, 25)}, {t(15, 25)}}});
+                    {off_hbf, {t(15, 25)}, {INV}}});
 
-    check_transports(j, {{"RB", 20, 1, 3}, {"RE", 23, 3, 4}});
+    check_transports(j, {{"RB", 20, 0, 2}, {"RE", 23, 2, 3}});
   }
 
   // now keep the connection, RE 23 should be delayed by 3 min
@@ -416,12 +417,12 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
   if (!journeys.empty()) {
     const motis::journey& j = journeys[0];
 
-    check_stops(j, {{da_hbf, {t(13, 34)}, {t(13, 34)}},
+    check_stops(j, {{da_hbf, {INV}, {t(13, 34)}},
                     {Langen, {t(13, 49)}, {t(13, 51)}},
                     {ffm_hbf, {t(14, 10)}, {t(14, 18)}},
-                    {off_hbf, {t(14, 28)}, {t(14, 28)}}});
+                    {off_hbf, {t(14, 28)}, {INV}}});
 
-    check_transports(j, {{"RB", 20, 1, 3}, {"RE", 23, 3, 4}});
+    check_transports(j, {{"RB", 20, 0, 2}, {"RE", 23, 2, 3}});
   }
 
   check_train(

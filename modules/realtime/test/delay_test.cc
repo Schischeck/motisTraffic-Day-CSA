@@ -60,10 +60,10 @@ TEST_F(realtime_delay_test, test_simple_arrival_delay) {
       find_connections(da_hbf, ffm_hbf, t(12, 30));
   ASSERT_EQ(1, journeys.size());
   const motis::journey& old_journey = journeys[0];
-  check_stops(old_journey, {{da_hbf, {t(12, 34)}, {t(12, 34)}},
+  check_stops(old_journey, {{da_hbf, {INV}, {t(12, 34)}},
                             {langen, {t(12, 49)}, {t(12, 51)}},
-                            {ffm_hbf, {t(13, 05)}, {t(13, 05)}}});
-  check_transports(old_journey, {{"RB", 20, 1, 3}});
+                            {ffm_hbf, {t(13, 05)}, {INV}}});
+  check_transports(old_journey, {{"RB", 20, 0, 2}});
 
   rt::schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
   rt::schedule_event oa_langen(langen->index, 20, false, t(12, 49));

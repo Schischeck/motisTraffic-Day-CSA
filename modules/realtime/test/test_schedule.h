@@ -5,6 +5,7 @@
 #include <tuple>
 #include <memory>
 #include <unordered_map>
+#include <iostream>
 
 #include "gtest/gtest.h"
 
@@ -72,7 +73,7 @@ public:
     motis::pareto_dijkstra::statistics stats;
     std::vector<motis::journey> journeys =
         _search.get_connections({start}, {target}, departure_begin,
-                                departure_begin + interval, false, &stats);
+                                departure_begin + interval, true, &stats);
 
     EXPECT_FALSE(stats.max_label_quit);
 
@@ -81,11 +82,12 @@ public:
 
   void check_stops(const motis::journey& journey,
                    std::vector<stop> expected_stops) {
-    ASSERT_EQ(expected_stops.size() + 2, journey.stops.size());
+    ASSERT_EQ(expected_stops.size() + 1, journey.stops.size());
 
     for (std::size_t i = 0; i < expected_stops.size(); i++) {
-      const motis::journey::stop& jstop = journey.stops[i + 1];
+      const motis::journey::stop& jstop = journey.stops[i];
       const stop& estop = expected_stops[i];
+
       EXPECT_EQ(estop.station->name, jstop.name);
       EXPECT_EQ(estop.station->eva_nr, jstop.eva_no);
 
@@ -93,8 +95,7 @@ public:
       auto exp_departure = estop.departure.date_time;
 
       if (i == expected_stops.size() - 1) {
-        exp_arrival += estop.station->transfer_time;
-        exp_departure += estop.station->transfer_time;
+        exp_departure = exp_arrival + estop.station->transfer_time;
       }
 
       EXPECT_EQ(exp_arrival,
@@ -108,10 +109,10 @@ public:
 
   void check_transports(const motis::journey& journey,
                         std::vector<transport> expected_transports) {
-    ASSERT_EQ(expected_transports.size() + 2, journey.transports.size());
+    ASSERT_EQ(expected_transports.size() + 1, journey.transports.size());
 
     for (std::size_t i = 0; i < expected_transports.size(); i++) {
-      const motis::journey::transport& jtransport = journey.transports[i + 1];
+      const motis::journey::transport& jtransport = journey.transports[i];
       const transport& etransport = expected_transports[i];
       EXPECT_EQ(etransport.category + " " + std::to_string(etransport.train_nr),
                 jtransport.name);
