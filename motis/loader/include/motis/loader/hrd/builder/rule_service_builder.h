@@ -19,7 +19,7 @@ namespace hrd {
 
 struct rule_service_builder {
   rule_service_builder() = default;
-  rule_service_builder(service_rules rs) : rules_(std::move(rs)) {}
+  rule_service_builder(service_rules rs) : input_rules_(std::move(rs)) {}
 
   bool add_service(hrd_service const&);
   void resolve_rule_services();
@@ -33,7 +33,7 @@ struct rule_service_builder {
   std::vector<flatbuffers::Offset<RuleService>> fbs_rule_services;
 
 private:
-  service_rules rules_;
+  service_rules input_rules_;
 };
 
 }  // hrd
