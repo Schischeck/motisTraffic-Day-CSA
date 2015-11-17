@@ -112,7 +112,7 @@ void add_rule_service(
 }
 
 void rule_service_builder::resolve_rule_services() {
-  scoped_timer("resolve service rules");
+  scoped_timer timer("resolve service rules");
 
   rules_graph rg;
   build_graph(input_rules_, rg);
@@ -150,7 +150,7 @@ void create_rule_service(
 
 void rule_service_builder::create_rule_services(service_builder_fun sbf,
                                                 FlatBufferBuilder& fbb) {
-  scoped_timer("create rule and remaining services");
+  scoped_timer timer("create rule and remaining services");
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     if (s->traffic_days_.any()) {
