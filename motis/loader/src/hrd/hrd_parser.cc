@@ -1,12 +1,5 @@
 #include "motis/loader/hrd/hrd_parser.h"
 
-#include <string>
-#include <stack>
-
-#include "boost/range/iterator_range.hpp"
-
-#include "parser/file.h"
-
 #include "motis/core/common/logging.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
@@ -119,30 +112,20 @@ loaded_file load(fs::path const& root, filename_key k) {
   return loaded_file(root / *it);
 }
 
-void collect_services_filenames(fs::path const& root,
-                                std::vector<fs::path>& services_files) {
-  for (auto const& entry :
-       boost::make_iterator_range(fs::directory_iterator(root), {})) {
-    if (fs::is_regular(entry.path())) {
-      services_files.push_back(entry.path().filename());
-    }
-  }
-}
-
 void parse_and_build_services(
     fs::path const& hrd_root, std::map<int, bitfield> const& bitfields,
     std::vector<loaded_file>& schedule_data,
     std::function<void(hrd_service const&)> service_builder_fun) {
   auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
-  std::vector<fs::path> services_filenames;
-  collect_services_filenames(schedule_data_root, services_filenames);
+
+  std::vector<fs::path> files;
+  collect_files(schedule_data_root, files);
 
   int count = 0;
-  for (auto const& filename : services_filenames) {
-    auto const services_file = schedule_data_root / filename;
-    schedule_data.emplace_back(services_file);
-    LOG(info) << "parsing " << ++count << "/" << services_filenames.size()
-              << " " << services_file;
+  for (auto const& file : files) {
+    schedule_data.emplace_back(file);
+    LOG(info) << "parsing " << ++count << "/" << files.size() << " "
+              << schedule_data.back().name();
     for_each_service(schedule_data.back(), bitfields, service_builder_fun);
   }
 }
