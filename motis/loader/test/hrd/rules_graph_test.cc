@@ -93,6 +93,17 @@ public:
   loader_ts_2_to_1() : rule_services_test("ts-2-to-1") {}
 };
 
+class loader_ts_2_to_1_cycle : public rule_services_test {
+public:
+  loader_ts_2_to_1_cycle() : rule_services_test("ts-2-to-1-cycle") {}
+};
+
+class loader_ts_twice_2_to_1_cycle : public rule_services_test {
+public:
+  loader_ts_twice_2_to_1_cycle()
+      : rule_services_test("ts-twice-2-to-1-cycle") {}
+};
+
 class loader_ts_passing_service : public rule_services_test {
 public:
   loader_ts_passing_service() : rule_services_test("ts-passing-service") {}
@@ -199,6 +210,40 @@ TEST_F(loader_ts_2_to_1, rule_services) {
     ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
     ASSERT_EQ(bitfield{"1100000"}, sr.s1->traffic_days_);
     ASSERT_EQ(bitfield{"1100000"}, sr.s2->traffic_days_);
+  }
+}
+
+TEST_F(loader_ts_2_to_1_cycle, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, rsb_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(1, rsb_.rule_services_.size());
+
+  auto const& rule_service1 = rsb_.rule_services_[0];
+  ASSERT_EQ(4, rule_service1.services.size());
+  ASSERT_EQ(3, rule_service1.rules.size());
+  for (auto const& sr : rule_service1.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
+  }
+}
+
+TEST_F(loader_ts_twice_2_to_1_cycle, rule_services) {
+  // check remaining services
+  ASSERT_EQ(0, rsb_.origin_services_.size());
+
+  // check rule services
+  ASSERT_EQ(1, rsb_.rule_services_.size());
+
+  auto const& rule_service1 = rsb_.rule_services_[0];
+  ASSERT_EQ(5, rule_service1.services.size());
+  ASSERT_EQ(4, rule_service1.rules.size());
+  for (auto const& sr : rule_service1.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
   }
 }
 
