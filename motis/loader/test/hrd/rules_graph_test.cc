@@ -88,6 +88,12 @@ public:
   loader_ts_twice() : rule_services_test("ts-twice") {}
 };
 
+class loader_ts_twice_all_combinations : public rule_services_test {
+public:
+  loader_ts_twice_all_combinations()
+      : rule_services_test("ts-twice-all-combinations") {}
+};
+
 class loader_ts_2_to_1 : public rule_services_test {
 public:
   loader_ts_2_to_1() : rule_services_test("ts-2-to-1") {}
@@ -122,26 +128,6 @@ public:
 class loader_mss_many : public rule_services_test {
 public:
   loader_mss_many() : rule_services_test("mss-many") {}
-};
-
-class loader_ts_mss_hrd : public rule_services_test {
-public:
-  loader_ts_mss_hrd() : rule_services_test("ts-mss-hrd") {}
-  void assert_rule_count(int num_expected_ts_rules, int num_expected_mss_rules,
-                         rule_service const& rs) {
-    int num_actual_ts_rules = 0;
-    int num_actual_mss_rules = 0;
-    for (auto const& sr : rs.rules) {
-      if (sr.rule_info.type == RuleType_THROUGH) {
-        ++num_actual_ts_rules;
-      }
-      if (sr.rule_info.type == RuleType_MERGE_SPLIT) {
-        ++num_actual_mss_rules;
-      }
-    }
-    ASSERT_EQ(num_expected_ts_rules, num_actual_ts_rules);
-    ASSERT_EQ(num_expected_mss_rules, num_actual_mss_rules);
-  }
 };
 
 TEST_F(loader_ts_once, rule_services) {
@@ -184,6 +170,47 @@ TEST_F(loader_ts_twice, rule_services) {
     ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
     ASSERT_EQ(bitfield{"1100000"}, sr.s1->traffic_days_);
     ASSERT_EQ(bitfield{"1100000"}, sr.s2->traffic_days_);
+  }
+}
+
+TEST_F(loader_ts_twice_all_combinations, rule_services) {
+  // check remaining services
+  ASSERT_EQ(3, rsb_.origin_services_.size());
+  auto const& service1 = rsb_.origin_services_[0];
+  ASSERT_EQ(bitfield{"0000001"}, service1->traffic_days_);
+  auto const& service2 = rsb_.origin_services_[1];
+  ASSERT_EQ(bitfield{"0000010"}, service2->traffic_days_);
+  auto const& service3 = rsb_.origin_services_[2];
+  ASSERT_EQ(bitfield{"0000100"}, service3->traffic_days_);
+
+  // check rule services
+  ASSERT_EQ(3, rsb_.rule_services_.size());
+
+  auto const& rule_service1 = rsb_.rule_services_[0];
+  ASSERT_EQ(3, rule_service1.services.size());
+  ASSERT_EQ(2, rule_service1.rules.size());
+  for (auto const& sr : rule_service1.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0100000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0100000"}, sr.s2->traffic_days_);
+  }
+
+  auto const& rule_service2 = rsb_.rule_services_[1];
+  ASSERT_EQ(2, rule_service2.services.size());
+  ASSERT_EQ(1, rule_service2.rules.size());
+  for (auto const& sr : rule_service2.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0001000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0001000"}, sr.s2->traffic_days_);
+  }
+
+  auto const& rule_service3 = rsb_.rule_services_[2];
+  ASSERT_EQ(2, rule_service3.services.size());
+  ASSERT_EQ(1, rule_service3.rules.size());
+  for (auto const& sr : rule_service3.rules) {
+    ASSERT_EQ(RuleType_THROUGH, sr.rule_info.type);
+    ASSERT_EQ(bitfield{"0010000"}, sr.s1->traffic_days_);
+    ASSERT_EQ(bitfield{"0010000"}, sr.s2->traffic_days_);
   }
 }
 
@@ -316,70 +343,6 @@ TEST_F(loader_mss_many, rule_services) {
     ASSERT_EQ(RuleType_MERGE_SPLIT, sr.rule_info.type);
     ASSERT_EQ(bitfield{"1111111"}, sr.s1->traffic_days_);
     ASSERT_EQ(bitfield{"1111111"}, sr.s2->traffic_days_);
-  }
-}
-
-TEST_F(loader_ts_mss_hrd, DISABLED_traffic_days) {
-  for (auto const& rs : rsb_.rule_services_) {
-    auto const& first_srp = begin(rs.rules);
-    ASSERT_FALSE(first_srp == end(rs.rules));
-    ASSERT_TRUE(first_srp->s1->traffic_days_.any());
-
-    for (auto const& sr : rs.rules) {
-      ASSERT_EQ(first_srp->s1->traffic_days_, sr.s1->traffic_days_);
-      ASSERT_EQ(sr.s1->traffic_days_, sr.s2->traffic_days_);
-    }
-  }
-
-  for (auto const& rs1 : rsb_.rule_services_) {
-    for (auto const& rs2 : rsb_.rule_services_) {
-      if (&rs1 == &rs2) {
-        continue;
-      }
-      for (auto const& sr1 : rs1.rules) {
-        for (auto const& sr2 : rs2.rules) {
-          bitfield intersection = sr1.s1->traffic_days_ & sr2.s1->traffic_days_;
-          ASSERT_TRUE(intersection.none());
-        }
-      }
-    }
-  }
-
-  for (auto const& s : rsb_.origin_services_) {
-    ASSERT_TRUE(s->traffic_days_.any());
-
-    for (auto const& rs : rsb_.rule_services_) {
-      if (std::none_of(begin(rs.services), end(rs.services),
-                       [&s](service_resolvent const& sr) {
-                         return sr.origin == s.get();
-                       })) {
-        continue;
-      }
-      auto const& srp = begin(rs.rules);
-      ASSERT_FALSE(srp == end(rs.rules));
-
-      bitfield intersection = s->traffic_days_ & srp->s1->traffic_days_;
-      ASSERT_TRUE(intersection.none());
-    }
-  }
-}
-
-TEST_F(loader_ts_mss_hrd, DISABLED_num_services) {
-  ASSERT_EQ(4, rsb_.origin_services_.size());
-  ASSERT_EQ(9, rsb_.rule_services_.size());
-}
-
-TEST_F(loader_ts_mss_hrd, DISABLED_service_rule_chains) {
-  if (rsb_.rule_services_.size() == 9) {
-    assert_rule_count(1, 2, rsb_.rule_services_[0]);
-    assert_rule_count(1, 2, rsb_.rule_services_[1]);
-    assert_rule_count(1, 2, rsb_.rule_services_[2]);
-    assert_rule_count(2, 0, rsb_.rule_services_[3]);
-    assert_rule_count(2, 0, rsb_.rule_services_[4]);
-    assert_rule_count(1, 1, rsb_.rule_services_[5]);
-    assert_rule_count(1, 1, rsb_.rule_services_[6]);
-    assert_rule_count(1, 1, rsb_.rule_services_[7]);
-    assert_rule_count(1, 1, rsb_.rule_services_[8]);
   }
 }
 
