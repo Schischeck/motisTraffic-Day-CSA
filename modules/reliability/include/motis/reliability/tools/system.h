@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "boost/asio/io_service.hpp"
+#include "boost/thread.hpp"
 
 #include "motis/core/schedule/time.h"
 
@@ -39,10 +40,12 @@ struct setup {
     dispatch_ = std::bind(&module::dispatcher::on_msg, &dispatcher_, p::_1,
                           p::_2, p::_3);
     c_.schedule_ = sched;
-    c_.thread_pool_ = &ios_;
+    c_.thread_pool_ = num_routing_modules > 1 ? &thread_pool_ : &ios_;
     c_.ios_ = &ios_;
     c_.dispatch_ = &dispatch_;
 
+    std::cout << "\ncreate " << num_routing_modules << " routing modules"
+              << std::endl;
     for (unsigned int i = 0; i < num_routing_modules; ++i) {
       modules_.emplace_back(set_routing_num_max_label
                                 ? new routing::routing(100)
@@ -55,13 +58,35 @@ struct setup {
       module->init_(&c_);
     }
 
+    if (num_routing_modules > 1) {
+      tp_work_ = std::unique_ptr<boost::asio::io_service::work>(
+          new boost::asio::io_service::work(thread_pool_));
+      ios_work_ = std::unique_ptr<boost::asio::io_service::work>(
+          new boost::asio::io_service::work(ios_));
+      threads_.resize(8);
+      auto run = [&]() {
+        try {
+          thread_pool_.run();
+        } catch (std::exception const& e) {
+          std::cout << "unhandled error: " << e.what();
+          exit(0);
+        }
+      };
+
+      for (unsigned i = 0; i < threads_.size(); ++i) {
+        threads_[i] = boost::thread(run);
+      }
+    }
+
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
         new motis::reliability::context(
             *sched, reliability_module().precomputed_distributions(),
             reliability_module().s_t_distributions()));
   }
 
-  boost::asio::io_service ios_;
+  boost::asio::io_service ios_, thread_pool_;
+  std::unique_ptr<boost::asio::io_service::work> tp_work_, ios_work_;
+  std::vector<boost::thread> threads_;
   module::dispatcher dispatcher_;
   module::msg_handler dispatch_;
   motis::module::context c_;
