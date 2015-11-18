@@ -32,7 +32,8 @@ struct setup {
     void send(module::msg_ptr const&, module::sid) override {}
   } t_;
 
-  setup(schedule* sched, bool const set_routing_num_max_label = true)
+  setup(schedule* sched, unsigned short const num_routing_modules = 1,
+        bool const set_routing_num_max_label = true)
       : dispatcher_(t_, ios_) {
     namespace p = std::placeholders;
     dispatch_ = std::bind(&module::dispatcher::on_msg, &dispatcher_, p::_1,
@@ -42,8 +43,11 @@ struct setup {
     c_.ios_ = &ios_;
     c_.dispatch_ = &dispatch_;
 
-    modules_.emplace_back(set_routing_num_max_label ? new routing::routing(100)
-                                                    : new routing::routing());
+    for (unsigned int i = 0; i < num_routing_modules; ++i) {
+      modules_.emplace_back(set_routing_num_max_label
+                                ? new routing::routing(100)
+                                : new routing::routing());
+    }
     modules_.emplace_back(new reliability());
     for (auto const& module : modules_) {
       dispatcher_.modules_.push_back(module.get());
@@ -65,7 +69,7 @@ struct setup {
   std::unique_ptr<motis::reliability::context> reliability_context_;
 
   reliability& reliability_module() {
-    return dynamic_cast<reliability&>(*modules_[1]);
+    return dynamic_cast<reliability&>(*modules_.back());
   }
 };  // struct setup
 }  // namespace system

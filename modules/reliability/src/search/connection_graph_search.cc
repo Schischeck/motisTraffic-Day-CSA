@@ -104,6 +104,7 @@ std::vector<unsigned int> insert_stop_states(
 void check_stop_states(connection_graph_optimizer const& optimizer,
                        context::conn_graph_context& cg_context,
                        std::vector<unsigned int> const& stop_indices) {
+  bool stop_completed = false;
   for (auto const idx : stop_indices) {
     if (idx != connection_graph::stop::Index_departure_stop &&
         idx != connection_graph::stop::Index_arrival_stop) {
@@ -111,14 +112,14 @@ void check_stop_states(connection_graph_optimizer const& optimizer,
       if (optimizer.complete(cg_context.cg_->stops_.at(idx), stop_state)) {
         stop_state.state_ =
             context::conn_graph_context::stop_state::Stop_completed;
-        if (tools::complete(cg_context)) {
-          cg_context.cg_state_ =
-              context::conn_graph_context::cg_state::CG_completed;
-        }
+        stop_completed = true;
       } else {
         stop_state.state_ = context::conn_graph_context::stop_state::Stop_idle;
       }
     }
+  }
+  if (stop_completed && tools::complete(cg_context)) {
+    cg_context.cg_state_ = context::conn_graph_context::cg_state::CG_completed;
   }
 }
 
@@ -189,9 +190,9 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   if (e) {
     return build_result(context::conn_graph_context::CG_failed, c);
   }
-  auto& conn_graph = c->connection_graphs_.at(conn_graph_idx);
-  assert(conn_graph.stop_states_.size() == conn_graph.cg_->stops_.size());
-  auto& stop_state = conn_graph.stop_states_.at(stop_idx);
+  auto& cg_context = c->connection_graphs_.at(conn_graph_idx);
+  assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
+  auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
   auto journeys = journey_builder::to_journeys(
       msg->content<routing::RoutingResponse const*>());
@@ -205,13 +206,17 @@ void handle_alternative_response(motis::module::msg_ptr msg,
 
   if (filtered.empty()) {
     stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
-    return build_cg(c, conn_graph);
+    if (tools::complete(cg_context)) {
+      cg_context.cg_state_ =
+          context::conn_graph_context::cg_state::CG_completed;
+    }
+    return build_cg(c, cg_context);
   }
 
   auto const& j = tools::select_alternative(filtered);
   assert(c->journey_cache.find(cache_key) == c->journey_cache.end());
   c->journey_cache[cache_key] = j;
-  add_alternative(j, c, conn_graph, stop_idx);
+  add_alternative(j, c, cg_context, stop_idx);
 }
 
 void build_result(context::conn_graph_context::cg_state state,
