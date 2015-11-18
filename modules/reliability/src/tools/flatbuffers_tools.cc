@@ -112,9 +112,12 @@ Offset<reliability::ProbabilityDistribution> convert(
     time_t event_time) {
   std::vector<float> probabilities;
   pd.get_probabilities(probabilities);
-  return CreateProbabilityDistribution(b, event_time + (pd.first_minute() * 60),
-                                       b.CreateVector(probabilities),
-                                       (float)pd.sum());
+  b.ForceDefaults(true); /* necessary to write sum 0 */
+  auto fpd = CreateProbabilityDistribution(
+      b, event_time + (pd.first_minute() * 60), b.CreateVector(probabilities),
+      (float)pd.sum());
+  b.ForceDefaults(false);
+  return fpd;
 }
 
 /* write the distributions for all events */

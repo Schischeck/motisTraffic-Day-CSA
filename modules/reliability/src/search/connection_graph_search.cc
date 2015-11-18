@@ -195,6 +195,12 @@ void handle_alternative_response(motis::module::msg_ptr msg,
 
   auto journeys = journey_builder::to_journeys(
       msg->content<routing::RoutingResponse const*>());
+  /* note: this method ignores journeys that are
+   * corrupt because the state machine in journey.cc
+   * can not handle walks at the beginning of journeys
+   * (such journeys are found in the on-trip search).
+   * This filtering is not necessary as soon as the state
+   * machine in journey.cc works correctly. */
   auto filtered = tools::remove_invalid_journeys(journeys);
 
   if (filtered.empty()) {
