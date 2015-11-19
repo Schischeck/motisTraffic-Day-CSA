@@ -34,7 +34,6 @@ std::vector<Offset<Stop>> convert_stops(
 std::vector<Offset<MoveWrapper>> convert_moves(
     FlatBufferBuilder& b, std::vector<journey::transport> const& transports) {
   std::vector<Offset<MoveWrapper>> moves;
-  b.ForceDefaults(true); /* necessary to write route-index 0 */
 
   for (auto const& t : transports) {
     Range r(t.from, t.to);
@@ -51,7 +50,6 @@ std::vector<Offset<MoveWrapper>> convert_moves(
               .Union()));
     }
   }
-  b.ForceDefaults(false);
 
   return moves;
 }
