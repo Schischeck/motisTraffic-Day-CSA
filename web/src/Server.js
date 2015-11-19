@@ -17,7 +17,7 @@ class Server {
   }
 
   _onmessage(evt) {
-    const msg = evt.data.replace('\\x', '\\u00');
+    const msg = evt.data.replace(/\\x/g, '\\u00');
     try {
       this._resolvePending(JSON.parse(msg));
     } catch (e) {

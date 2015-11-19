@@ -31,7 +31,6 @@ export class App extends Component {
 
     this.refs.routingform.getData().then(parameters => {
       const unixTime = Math.floor(parameters.date / 1000);
-      console.log(unixTime);
       return new RoutingRequest(unixTime, [
         parameters.from,
         parameters.to
@@ -93,6 +92,7 @@ export class App extends Component {
                      style={ { position: 'fixed', 'height': '100%', left: '0', zIndex: 1} }>
           <RoutingForm
                        ref="routingform"
+                       disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
           { connectionView }
         </PaddedPaper>

@@ -113,6 +113,7 @@ export default class RoutingForm extends Component {
                     style={ { 'float': 'right'} }
                     label="Find Connections"
                     primary={ true }
+                    disabled={ this.props.disabled }
                     onClick={ this.props.onRequestRouting } />
       <ClearFix />
     </div>
