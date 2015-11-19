@@ -154,7 +154,7 @@ public:
 
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
 
-    if (!accumulate(view::ints(first_day_, last_day_ + 1), false,
+    if (!accumulate(view::closed_ints(first_day_, last_day_), false,
                     [&traffic_days](bool acc, int day) {
                       return acc || traffic_days.test(day);
                     })) {
