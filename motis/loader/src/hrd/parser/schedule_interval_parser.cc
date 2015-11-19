@@ -12,6 +12,7 @@ using namespace motis::logging;
 
 namespace motis {
 namespace loader {
+namespace hrd {
 
 void verify_line_format(cstr s) {
   verify(
@@ -22,26 +23,46 @@ void verify_line_format(cstr s) {
       "interval boundary [%.*s] invalid", static_cast<int>(s.len), s.str);
 }
 
+std::tuple<int, int, int> ddmmyyyy_to_yyyymmdd(cstr s) {
+  return std::make_tuple(parse<int>(s.substr(6, size(4))),
+                         parse<int>(s.substr(3, size(2))),
+                         parse<int>(s.substr(0, size(2))));
+}
+
 time_t str_to_unixtime(cstr s) {
-  return to_unix_time(parse<int>(s.substr(6, size(4))),
-                      parse<int>(s.substr(3, size(2))),
-                      parse<int>(s.substr(0, size(2))));
+  int year, month, day;
+  std::tie(year, month, day) = ddmmyyyy_to_yyyymmdd(s);
+  return to_unix_time(year, month, day);
+}
+
+std::pair<cstr, cstr> from_to(cstr str) {
+  auto from_line = parser::get_line(str);
+  str += from_line.len + 1;
+  auto to_line = parser::get_line(str);
+
+  verify_line_format(from_line);
+  verify_line_format(to_line);
+
+  return std::make_pair(from_line, to_line);
 }
 
 Interval parse_interval(loaded_file const& basic_info_file) {
   scoped_timer timer("parsing schedule interval");
 
-  auto content = basic_info_file.content();
-
-  auto from_line = parser::get_line(content);
-  content += from_line.len + 1;
-  auto to_line = parser::get_line(content);
-
-  verify_line_format(from_line);
-  verify_line_format(to_line);
+  cstr from_line;
+  cstr to_line;
+  std::tie(from_line, to_line) = from_to(basic_info_file.content());
 
   return Interval(str_to_unixtime(from_line), str_to_unixtime(to_line));
 }
 
+boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
+  int year, month, day;
+  std::tie(year, month, day) =
+      ddmmyyyy_to_yyyymmdd(from_to(lf.content()).first);
+  return boost::gregorian::date(year, month, day);
+}
+
 }  // loader
 }  // motis
+}  // hrd
