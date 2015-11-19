@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -13,12 +12,9 @@ struct light_connection;
 class node;
 struct schedule;
 struct category;
-
 namespace reliability {
 struct probability_distribution;
-
 namespace calc_arrival_distribution {
-
 /**
  * struct storing all data necessary for calculating an arrival distribution.
  */

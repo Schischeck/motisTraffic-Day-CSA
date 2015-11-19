@@ -15,18 +15,18 @@ table ConnectionTreeReq {
   min_departure_diff:short;
 }
 
-union RequestType {
+union RequestOptions {
   RatingReq,
   ReliableSearchReq,
   LateConnectionReq,
   ConnectionTreeReq
 }
 
-table RequestTypeWrapper {
-  request_type:RequestType;
+table RequestOptionsWrapper {
+  request_options:RequestOptions;
 }
 
 table ReliableRoutingRequest {
   request:motis.routing.RoutingRequest;
-  request_type:RequestTypeWrapper;
+  request_type:RequestOptionsWrapper;
 }

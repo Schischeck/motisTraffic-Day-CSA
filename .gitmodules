@@ -37,3 +37,6 @@
 [submodule "external_lib/sqlite"]
 	path = external_lib/sqlite
 	url = https://github.com/algotud/sqlite.git
+[submodule "external_lib/range-v3"]
+	path = external_lib/range-v3
+	url = https://github.com/ericniebler/range-v3.git

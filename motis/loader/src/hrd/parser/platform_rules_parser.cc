@@ -42,7 +42,8 @@ platform_rules parse_platform_rules(loaded_file const& file,
     auto platform_name_it = platform_names.find(platform_name);
     if (platform_name_it == end(platform_names)) {
       std::tie(platform_name_it, std::ignore) = platform_names.insert(
-          std::make_pair(platform_name, to_fbs_string(b, platform_name_str)));
+          std::make_pair(platform_name,
+                         to_fbs_string(b, platform_name_str, "ISO-8859-1")));
     }
 
     prs[std::make_tuple(eva_num, train_num, train_admin)].push_back(

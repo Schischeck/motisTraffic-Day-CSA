@@ -46,7 +46,7 @@ std::vector<Offset<MoveWrapper>> convert_moves(
           CreateTransport(b, &r, b.CreateString(t.category_name), t.category_id,
                           t.train_nr, b.CreateString(t.line_identifier),
                           b.CreateString(t.name), b.CreateString(t.provider),
-                          b.CreateString(t.direction))
+                          b.CreateString(t.direction), t.route_id)
               .Union()));
     }
   }

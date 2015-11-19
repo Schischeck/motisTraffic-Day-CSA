@@ -41,7 +41,8 @@ public:
   short const RE_K_S = 8;
 };
 
-TEST_F(reliability_calc_departure_distribution, departure_independent_from_feeders) {
+TEST_F(reliability_calc_departure_distribution,
+       departure_independent_from_feeders) {
   std::vector<data_departure::feeder_info> feeders;
   probability_distribution feeder1_dist;
   feeder1_dist.init({0.4, 0.3, 0.2, 0.1}, 0);  // distribution from 13 to 16
@@ -293,7 +294,8 @@ TEST_F(reliability_calc_departure_distribution, had_to_wait_for_feeders2) {
 }
 
 // first route node without feeders
-TEST_F(reliability_calc_departure_distribution, compute_departure_distribution1) {
+TEST_F(reliability_calc_departure_distribution,
+       compute_departure_distribution1) {
   distributions_container::precomputed_distributions_container dummy(0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -318,7 +320,8 @@ TEST_F(reliability_calc_departure_distribution, compute_departure_distribution1)
 }
 
 // first route node with feeders
-TEST_F(reliability_calc_departure_distribution, compute_departure_distribution2) {
+TEST_F(reliability_calc_departure_distribution,
+       compute_departure_distribution2) {
   precomputed_distributions_test_container train_distributions(
       {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -377,10 +380,11 @@ TEST_F(reliability_calc_departure_distribution, compute_departure_distribution2)
 }
 
 // route node with preceding arrival and without feeders
-TEST_F(reliability_calc_departure_distribution, compute_departure_distribution3) {
+TEST_F(reliability_calc_departure_distribution,
+       compute_departure_distribution3) {
   precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
                                                                -1);
-  start_and_travel_test_distributions const* dummy = nullptr;
+  start_and_travel_test_distributions dummy({1.0});
 
   // route node at Hanau of train ICE_HA_W_HE
   auto& first_route_node =
@@ -398,7 +402,7 @@ TEST_F(reliability_calc_departure_distribution, compute_departure_distribution3)
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
   data_departure data(*second_route_node, light_connection, false, *schedule_,
-                      train_distributions, train_distributions, *dummy);
+                      train_distributions, train_distributions, dummy);
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
   ASSERT_TRUE(
@@ -429,7 +433,8 @@ TEST_F(reliability_calc_departure_distribution, compute_departure_distribution3)
 }
 
 // route node with preceding arrival and feeders
-TEST_F(reliability_calc_departure_distribution, compute_departure_distribution4) {
+TEST_F(reliability_calc_departure_distribution,
+       compute_departure_distribution4) {
   std::vector<probability> values;
   values.push_back(0.043);
   for (unsigned int i = 0; i < 29; i++) {
@@ -442,9 +447,11 @@ TEST_F(reliability_calc_departure_distribution, compute_departure_distribution4)
   // route node at Darmstadt of train ICE_FR_DA_H
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))->_to;
-  auto const& light_connection = graph_accessor::get_departing_route_edge(
-                                     route_node)->_m._route_edge._conns[0];
+           *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
+           ->_to;
+  auto const& light_connection =
+      graph_accessor::get_departing_route_edge(route_node)
+          ->_m._route_edge._conns[0];
 
   /* scheduled-departure-time: 06:11 largest-delay: 3
    * preceding-arrival-time: 06:05 min-standing: 2

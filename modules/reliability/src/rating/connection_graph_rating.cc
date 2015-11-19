@@ -111,13 +111,12 @@ find_arriving_connection_element(search::connection_graph const& cg,
         stop.alternative_infos_.begin(), stop.alternative_infos_.end(),
         [stop_idx](search::connection_graph::stop::alternative_info const&
                        alternative) {
-          return alternative.head_stop_index_ == stop_idx;
+          return alternative.next_stop_index_ == stop_idx;
         });
     if (it != stop.alternative_infos_.end()) {
-      return std::make_pair(
-          connection_to_graph_data::get_last_element(
-              schedule, cg.journeys_.at(it->journey_index_)),
-          it->rating_.arrival_distribution_);
+      return std::make_pair(connection_to_graph_data::get_last_element(
+                                schedule, cg.journeys_.at(it->journey_index_)),
+                            it->rating_.arrival_distribution_);
     }
   }
   assert(false);
@@ -147,8 +146,8 @@ void rate_first_journey_in_cg(
     search::connection_graph::stop::alternative_info& alternative,
     context const& context) {
   connection_rating c_rating;
-  rating::rate(c_rating, cg_context.cg_->journeys_.at(
-                             alternative.journey_index_),
+  rating::rate(c_rating,
+               cg_context.cg_->journeys_.at(alternative.journey_index_),
                context);
   alternative.rating_.departure_distribution_ =
       c_rating.public_transport_ratings_.front().departure_distribution_;
@@ -161,23 +160,38 @@ void rate_alternative_in_cg(
     search::connection_graph::stop const& stop,
     search::connection_graph::stop::alternative_info& alternative,
     context const& context) {
-  auto connection_elements =
-      rating::connection_to_graph_data::get_elements(
-          context.schedule_, cg_context.cg_->journeys_.at(
-                                 alternative.journey_index_)).second;
   auto const last_element = detail::find_arriving_connection_element(
       *cg_context.cg_, stop.index_, context.schedule_);
-  interchange_info ic_info(last_element.first,
-                           connection_elements.front().front(),
-                           context.schedule_);
+  auto const& alternative_journey =
+      cg_context.cg_->journeys_.at(alternative.journey_index_);
 
+  /* alternative to the destination consisting of a walk */
+  if (alternative_journey.transports.size() == 1 &&
+      alternative_journey.transports.front().walk) {
+    alternative.rating_.departure_distribution_ = last_element.second;
+    alternative.rating_.arrival_distribution_ = last_element.second;
+    cg_context.stop_states_.at(stop.index_)
+        .uncovered_arrival_distribution_.init_one_point(0, 0.0);
+    return;
+  }
+
+  auto connection_elements = rating::connection_to_graph_data::get_elements(
+      context.schedule_, alternative_journey);
+  assert(connection_elements.first);
+  if (!connection_elements.first) {
+    return;
+  }
+
+  interchange_info ic_info(last_element.first,
+                           connection_elements.second.front().front(),
+                           context.schedule_);
   auto const filtered_arrival_distribution =
       scheduled_transfer_filter(cg_context, stop, last_element.second, ic_info);
 
   /* rate departing alternative */
   std::tie(alternative.rating_.departure_distribution_,
            alternative.rating_.arrival_distribution_) =
-      rate(connection_elements, last_element.first,
+      rate(connection_elements.second, last_element.first,
            filtered_arrival_distribution, context);
 
   update_uncovered_arrival_distribution(cg_context, stop, last_element.second,
@@ -202,9 +216,9 @@ void rate_inserted_alternative(
     detail::rate_alternative_in_cg(cg_context, stop, alternative, context);
   }
 
-  if (alternative.head_stop_index_ !=
+  if (alternative.next_stop_index_ !=
       search::connection_graph::stop::Index_arrival_stop) {
-    return rate_inserted_alternative(cg_context, alternative.head_stop_index_,
+    return rate_inserted_alternative(cg_context, alternative.next_stop_index_,
                                      context);
   }
 }
