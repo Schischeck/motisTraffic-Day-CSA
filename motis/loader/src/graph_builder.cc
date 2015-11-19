@@ -3,6 +3,8 @@
 #include <functional>
 #include <unordered_set>
 
+#include "range/v3/all.hpp"
+
 #include "parser/cstr.h"
 
 #include "motis/core/common/hash_map.h"
@@ -20,6 +22,7 @@
 
 using namespace motis::logging;
 using namespace flatbuffers;
+using namespace ranges;
 
 namespace motis {
 namespace loader {
@@ -149,11 +152,18 @@ public:
   void add_service(Service const* service) {
     auto const& sections = service->sections();
 
+    auto traffic_days = get_or_create_bitfield(service->traffic_days());
+
+    if (!accumulate(view::ints(first_day_, last_day_ + 1), false,
+                    [&traffic_days](bool acc, int day) {
+                      return acc || traffic_days.test(day);
+                    })) {
+      return;
+    }
+
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-    auto traffic_days = get_or_create_bitfield(service->traffic_days());
-
     if (!is_unique_service(service, traffic_days, route_nodes)) {
       return;
     }
