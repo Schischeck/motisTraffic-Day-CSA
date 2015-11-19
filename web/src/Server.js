@@ -13,21 +13,24 @@ class Server {
       console.log('open', arguments);
     };
 
-    // TODO should be a Map not Object type
-    this.pendingRequests = {};
+    this.pendingRequests = new Map();
   }
 
   _onmessage(evt) {
-    console.log(JSON.parse(evt.data));
-    this._resolvePending(JSON.parse(evt.data));
+    const msg = evt.data.replace('\\x', '\\u00');
+    try {
+      this._resolvePending(JSON.parse(msg));
+    } catch (e) {
+      console.error('invalid json', msg);
+    }
   }
 
   _isPendingRequest(id) {
-    return this.pendingRequests[id] !== undefined;
+    return this.pendingRequests.has(id);
   }
 
   _cancelTimeout(id) {
-    clearTimeout(this.pendingRequests[id].timer);
+    clearTimeout(this.pendingRequests.get(id).timer);
   }
 
   _resolvePending(data) {
@@ -37,11 +40,11 @@ class Server {
 
     this._cancelTimeout(data.id);
     if (data.content_type === 'MotisError') {
-      this.pendingRequests[data.id].reject(data);
+      this.pendingRequests.get(data.id).reject(data);
     } else {
-      this.pendingRequests[data.id].resolve(data);
+      this.pendingRequests.get(data.id).resolve(data);
     }
-    delete this.pendingRequests[data.id];
+    this.pendingRequests.delete(data.id);
   }
 
   _rejectPending(id, reason) {
@@ -50,8 +53,8 @@ class Server {
     }
 
     this._cancelTimeout(id);
-    this.pendingRequests[id].reject(reason);
-    delete this.pendingRequests[id];
+    this.pendingRequests.get(id).reject(reason);
+    this.pendingRequests.delete(id);
   }
 
   sendMessage(message) {
@@ -69,11 +72,11 @@ class Server {
         this._rejectPending(localRequestId, 'timeout');
       }, message.timeout);
 
-      this.pendingRequests[localRequestId] = {
+      this.pendingRequests.set(localRequestId, {
         resolve: resolve,
         reject: reject,
         timer: timer
-      };
+      });
     });
   }
 }

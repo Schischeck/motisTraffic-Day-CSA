@@ -1,24 +1,21 @@
 import Message from './Message';
 
 export default class RoutingRequest extends Message {
-  constructor( /* begin, end, type, direction, path */ ) {
+  constructor(begin, path, intervalLength = 3000, type = 'PreTrip', direction = 'Forward') {
     super('RoutingRequest', {
       'interval': {
-        'begin': 1444896228,
-        'end': 1444899228
+        'begin': begin,
+        'end': begin + intervalLength
       },
-      'type': 'PreTrip',
-      'direction': 'Forward',
-      'path': [
-        {
-          'eva_nr': '8000096',
+      'type': type,
+      'direction': direction,
+      'path': path.map(station => {
+        return {
+          'eva_nr': station,
           'name': ''
-        },
-        {
-          'eva_nr': '8000105',
-          'name': ''
-        }
-      ]
-    }, 20000);
+        };
+      })
+    }, 30000);
+    console.log(this);
   }
 }

@@ -18,21 +18,40 @@ export class App extends Component {
     super(props);
     this.state = {
       'connections': [],
-      'showError': false
+      'showError': false,
+      'waiting': false,
+      'showResults': false
     };
   }
 
   getRouting() {
-    Server.sendMessage(new RoutingRequest()).then(response => {
+    this.setState({
+      'waiting': true,
+    });
+
+    this.refs.routingform.getData().then(parameters => {
+      const unixTime = Math.floor(parameters.date / 1000);
+      console.log(unixTime);
+      return new RoutingRequest(unixTime, [
+        parameters.from,
+        parameters.to
+      ]);
+    }).then(request => {
+      return Server.sendMessage(request);
+    }).then(response => {
       this.setState({
         'connections': response.content.connections,
-        'showError': false
+        'showError': false,
+        'waiting': false,
+        'showResults': true
       });
     }).catch(error => {
-      console.log(error);
+      console.error(error);
       this.setState({
         'connections': [],
-        'showError': true
+        'showError': true,
+        'waiting': false,
+        'showResults': true
       });
     });
   }
@@ -49,27 +68,33 @@ export class App extends Component {
     const appIcon = ( <IconButton iconClassName="material-icons">
                         card_travel
                       </IconButton> );
+
+    const connectionView = this.state.showResults ?
+      (<ConnectionView
+                       connections={ this.state.connections }
+                       showError={ this.state.showError }
+                       waiting={ this.state.waiting } />) : <div />;
     return (
     <div>
       <div
            className={ style.overlay }
-           style={ {  'width': '100%',  'height': '100%'} }>
+           style={ { 'width': '100%', 'height': '100%'} }>
         <Map />
       </div>
       <div
            className={ style.overlay }
-           style={ {  'width': '100%'} }>
+           style={ { 'width': '100%'} }>
         <AppBar
                 title="TD GUI"
                 iconElementLeft={ appIcon }
-                style={ {  'width': '100%'} } />
+                style={ { 'width': '100%'} } />
         <PaddedPaper
                      zDepth={ 1 }
-                     style={ {  position: 'fixed',  'height': '100%',  left: '0',  zIndex: 1} }>
-          <RoutingForm onRequestRouting={ this.getRouting.bind(this) } />
-          <ConnectionView
-                          connections={ this.state.connections }
-                          showError={ this.state.showError } />
+                     style={ { position: 'fixed', 'height': '100%', left: '0', zIndex: 1} }>
+          <RoutingForm
+                       ref="routingform"
+                       onRequestRouting={ this.getRouting.bind(this) } />
+          { connectionView }
         </PaddedPaper>
       </div>
     </div>

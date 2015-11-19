@@ -44,19 +44,35 @@ export default class RoutingForm extends Component {
     });
   }
 
+  getData() {
+    // TODO: use client data to get eva numbers if possible
+    return Promise.all([
+      Server.sendMessage(new StationGuesserRequest(this.refs.fromInput.getValue(), 1)),
+      Server.sendMessage(new StationGuesserRequest(this.refs.toInput.getValue(), 1))
+    ]).then(responses => {
+      const from = responses[0].content.guesses[0].eva;
+      const to = responses[1].content.guesses[0].eva;
+      return {
+        'from': from,
+        'to': to,
+        date: this.state.time
+      };
+    });
+  }
+
+  guessStation(input) {
+    return new Promise((resolve) => {
+      Server.sendMessage(new StationGuesserRequest(input)).then(response => {
+        resolve(response.content.guesses);
+      });
+    });
+  }
+
   switchStations() {
     const fromValue = this.refs.fromInput.getValue();
     const toValue = this.refs.toInput.getValue();
     this.refs.fromInput.setValue(toValue);
     this.refs.toInput.setValue(fromValue);
-  }
-
-  guessStation(input) {
-    return new Promise((resolve) => {
-      Server.sendMessage(new StationGuesserRequest(input, 7)).then(response => {
-        resolve(response.content.guesses);
-      });
-    });
   }
 
   render() {
@@ -66,9 +82,6 @@ export default class RoutingForm extends Component {
 
     return (
     <div>
-      <e>
-        Routing
-      </e>
       <Typeahead
                  ref="fromInput"
                  hintText="From"
@@ -77,7 +90,7 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ {  'position': 'absolute',  'left': '276px',  'marginTop': '5px'} }>
+                            style={ { 'position': 'absolute', 'left': '276px', 'marginTop': '5px'} }>
         <i className="material-icons">&#xE8D5;</i>
       </FloatingActionButton>
       <Typeahead
@@ -97,7 +110,7 @@ export default class RoutingForm extends Component {
                   floatingLabelText="Time"
                   onChange={ this.onTimeChange.bind(this) } />
       <RaisedButton
-                    style={ {  'float': 'right'} }
+                    style={ { 'float': 'right'} }
                     label="Find Connections"
                     primary={ true }
                     onClick={ this.props.onRequestRouting } />
