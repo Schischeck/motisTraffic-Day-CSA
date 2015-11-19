@@ -47,7 +47,7 @@ std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
       }  // for stops
     }  // if !walk
   }  // for transports
-  return std::make_pair(true, elements);
+  return std::make_pair(!elements.empty(), elements);
 }
 
 connection_element get_last_element(schedule const& sched,
