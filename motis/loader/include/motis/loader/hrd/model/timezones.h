@@ -4,31 +4,42 @@
 #include <map>
 #include <memory>
 
+#include "range/v3/utility/optional.hpp"
+
+#include "parser/util.h"
+
 namespace motis {
 namespace loader {
 namespace hrd {
 
-struct timezone_entry {
-  timezone_entry(int general_gmt_offset, int seasonal_gmt_offset,
-                 int season_begin_idx, int season_begin_time,
-                 int season_end_idx, int season_end_time)
-      : general_gmt_offset(general_gmt_offset),
-        seasonal_gmt_offset(seasonal_gmt_offset),
-        season_begin_idx(season_begin_idx),
-        season_begin_time(season_begin_time),
-        season_end_idx(season_end_idx),
-        season_end_time(season_end_time) {}
-
-  int const general_gmt_offset;  // in minutes
-  int const seasonal_gmt_offset;  // in minutes
-  int const season_begin_idx;  // bitfield index (closed)
+struct season_entry {
+  int const gmt_offset;  // in minutes
+  int const first_day_idx;  // bitfield index (closed)
   int const season_begin_time;  // minutes after midnight
-  int const season_end_idx;  // bitfield index (closed)
+  int const last_day_idx;  // bitfield index (closed)
   int const season_end_time;  // minutes after midnight
 };
 
+struct timezone_entry {
+  timezone_entry(int general_gmt_offset, ranges::optional<season_entry> season)
+      : general_gmt_offset(general_gmt_offset), season(season) {}
+  int const general_gmt_offset;  // in minutes
+  ranges::optional<season_entry> season;
+};
+
 struct timezones {
-  std::map<int, timezone_entry*> eva_num_to_tz_entry;
+
+  inline timezone_entry const* find(int eva_number) const {
+    verify(0 <= eva_number && eva_number <= 9999999, "invalid eva number: %d",
+           eva_number);
+
+    auto it = entries_.upper_bound(eva_number);
+    verify(it != end(entries_) || timezone_entries_.size() > 0,
+           "no timezone entry for eva number: %d", eva_number);
+    return std::next(it, -1)->second;
+  }
+
+  std::map<int, timezone_entry*> entries_;
   std::vector<std::unique_ptr<timezone_entry>> timezone_entries_;
 };
 

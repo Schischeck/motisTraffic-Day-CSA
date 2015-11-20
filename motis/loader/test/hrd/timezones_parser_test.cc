@@ -1,22 +1,16 @@
+#include "gtest/gtest.h"
+
+#include "motis/core/common/logging.h"
+
+#include "motis/loader/util.h"
+#include "motis/loader/hrd/parser/timezones_parser.h"
+#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+
 namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace boost::filesystem;
-using namespace motis::logging;
-
-class loader_hrd_timezones_test : testing::Test {
-
-  virtual void SetUp() {
-    data_.emplace_back("zeitvs.101", TIMEZONES_TEST_DATA);
-    data_.emplace_back("eckdaten.101", BASIC_DATA_TEST_DATA);
-    tz = parse_timezones(data_[0], data_[1]);
-  }
-
-private:
-  timezones tz;
-  std::vector<loaded_file> data_;
-  static char const* const TIMEZONES_TEST_DATA = R"(%
+constexpr char const* TIMEZONES_TEST_DATA = R"(%
 0000000 +0100 +0200 29032015 0200 25102015 0300 %  Nahverkehrsdaten; MEZ=GMT+1
 1000000 +0200 +0300 29032015 0300 25102015 0400 %  Finnland
 2000000 +0300                                   %  Russland
@@ -63,13 +57,47 @@ private:
 9800000 0000000
 9999999 0000000)";
 
-  static char const* const BASIC_DATA_TEST_DATA = R"(%
-14.12.2014
+constexpr char const* BASIC_DATA_TEST_DATA = R"(14.12.2014
 12.12.2015
 JF077 EVA_PRD~RIS Server~RIS OEV IMM~~J15~077_001 000000 END)";
+
+class loader_hrd_timezones_test : public testing::Test {
+
+  virtual void SetUp() {
+    data_.emplace_back("zeitvs.101", TIMEZONES_TEST_DATA);
+    data_.emplace_back("eckdaten.101", BASIC_DATA_TEST_DATA);
+    tz_ = parse_timezones(data_[0], data_[1]);
+  }
+
+public:
+  timezones tz_;
+  std::vector<loaded_file> data_;
 };
 
-TEST_F(loader_hrd_timezones_test, eva_numbers) {}
+void test_time_zone_entry(
+    timezone_entry const* tze, int expected_general_gmt_offset,
+    ranges::optional<season_entry> const& season_entry = {}) {
+  ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset);
+  if (season_entry) {
+    ASSERT_TRUE(tze->season);
+    auto const& expected = *season_entry;
+    auto const& actual = *(tze->season);
+    ASSERT_EQ(expected.gmt_offset, actual.gmt_offset);
+    ASSERT_EQ(expected.first_day_idx, actual.first_day_idx);
+    ASSERT_EQ(expected.season_begin_time, actual.season_begin_time);
+    ASSERT_EQ(expected.last_day_idx, actual.last_day_idx);
+    ASSERT_EQ(expected.season_end_time, actual.season_end_time);
+  } else {
+    ASSERT_FALSE(tze->season);
+  }
+}
+
+TEST_F(loader_hrd_timezones_test, timezone_entries) {
+  test_time_zone_entry(tz_.find(0), 60, {{120, 105, 120, 315, 180}});
+  test_time_zone_entry(tz_.find(9999999), 60, {{120, 105, 120, 315, 180}});
+  test_time_zone_entry(tz_.find(2000000), 180);
+  test_time_zone_entry(tz_.find(9600001), 210, {{270, 98, 60, 282, 0}});
+}
 
 }  // loader
 }  // motis
