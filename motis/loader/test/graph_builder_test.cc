@@ -183,7 +183,7 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, interchange_edges) {
 }
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
-  EXPECT_EQ(2, sched_->route_index_to_first_route_node.size());
+  EXPECT_EQ(1, sched_->route_index_to_first_route_node.size());
 
   for (auto const& first_route_node : sched_->route_index_to_first_route_node) {
     ASSERT_TRUE(first_route_node->is_route_node());

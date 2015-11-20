@@ -1,5 +1,6 @@
 #include "motis/reliability/rating/connection_to_graph_data.h"
 
+#include <exception>
 #include <string>
 #include <vector>
 
@@ -14,7 +15,7 @@ namespace reliability {
 namespace rating {
 namespace connection_to_graph_data {
 
-std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
+std::vector<std::vector<connection_element>> get_elements(
     schedule const& sched, journey const& journey) {
   std::vector<std::vector<connection_element>> elements;
   for (auto const& transport : journey.transports) {
@@ -34,7 +35,7 @@ std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
             transport.route_id, transport.category_id, transport.train_nr,
             transport.line_identifier);
         if (element.empty()) {
-          return std::make_pair(false, elements);
+          throw element_not_found_exception();
         }
 
         // begin new train if elements empty or if there is an interchange
@@ -47,7 +48,10 @@ std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
       }  // for stops
     }  // if !walk
   }  // for transports
-  return std::make_pair(true, elements);
+  if (elements.empty()) {
+    throw element_not_found_exception();
+  }
+  return elements;
 }
 
 connection_element get_last_element(schedule const& sched,
@@ -68,8 +72,7 @@ connection_element get_last_element(schedule const& sched,
           transport.line_identifier);
     }
   }
-  assert(false);
-  return connection_element();
+  throw element_not_found_exception();
 }
 
 namespace detail {
@@ -85,25 +88,25 @@ connection_element const to_element(
   auto const head_station_id =
       (unsigned int)sched.eva_to_station.find(head_eva)->second->index;
 
-  auto const& entering_edge = std::find_if(
-      tail_station._edges.begin(), tail_station._edges.end(),
-      [route_id](edge const& e) {
-        return static_cast<unsigned int>(e._to->_route) == route_id;
-      });
-  if (entering_edge) {
-    auto const route_edge =
-        graph_accessor::get_departing_route_edge(*entering_edge->_to);
-    if (route_edge && route_edge->_to->_station_node->_id == head_station_id) {
-      auto const light_conn = graph_accessor::find_light_connection(
-          *route_edge, dep_time, category_id, train_nr, line_identifier);
+  for (auto const& entering_edge : tail_station._edges) {
+    /* node: there could be multiple route nodes with the same route id
+     * at the same station */
+    if (static_cast<unsigned int>(entering_edge._to->_route) == route_id) {
+      auto const route_edge =
+          graph_accessor::get_departing_route_edge(*entering_edge._to);
+      if (route_edge &&
+          route_edge->_to->_station_node->_id == head_station_id) {
+        auto const light_conn = graph_accessor::find_light_connection(
+            *route_edge, dep_time, category_id, train_nr, line_identifier);
 
-      if (light_conn.first) {
-        bool const is_first_route_node =
-            graph_accessor::get_arriving_route_edge(*entering_edge->_to) ==
-            nullptr;
-        return connection_element(departure_stop_idx, route_edge->_from,
-                                  route_edge->_to, light_conn.first,
-                                  light_conn.second, is_first_route_node);
+        if (light_conn.first) {
+          bool const is_first_route_node =
+              graph_accessor::get_arriving_route_edge(*entering_edge._to) ==
+              nullptr;
+          return connection_element(departure_stop_idx, route_edge->_from,
+                                    route_edge->_to, light_conn.first,
+                                    light_conn.second, is_first_route_node);
+        }
       }
     }
   }
@@ -112,9 +115,8 @@ connection_element const to_element(
             << "connection of train " << train_nr << " with times " << dep_time
             << " - " << arr_time << " and stations " << tail_eva << " - "
             << head_eva << " and route_id " << route_id << std::endl;
-  assert(false);
-  // empty element (unexpected case)
-  return connection_element();
+
+  throw element_not_found_exception();
 }
 
 }  // namespace detail

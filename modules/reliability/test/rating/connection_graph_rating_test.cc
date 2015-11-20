@@ -421,6 +421,67 @@ TEST_F(reliability_connection_graph_rating_foot,
   ASSERT_TRUE(test_cb_called);
 }
 
+/* rating of a cg with a foot-path at the end of the journey */
+TEST_F(reliability_connection_graph_rating_foot,
+       reliable_routing_request_foot_at_the_end) {
+  system_tools::setup setup(schedule_.get());
+  auto msg = flatbuffers_tools::to_connection_tree_request(
+      LANGEN.name, LANGEN.eva, MESSE.name, MESSE.eva, (motis::time)(10 * 60),
+      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
+  bool test_cb_called = false;
+
+  auto test_cb = [&](
+      std::vector<std::shared_ptr<connection_graph> > const cgs) {
+    test_cb_called = true;
+    setup.ios_.stop();
+    ASSERT_EQ(cgs.size(), 1);
+    auto const cg = *cgs.front();
+    ASSERT_EQ(3, cg.stops_.size());
+    ASSERT_EQ(2, cg.journeys_.size());
+    {
+      connection_rating expected_rating_journey0;
+      rating::rate(expected_rating_journey0, cg.journeys_[0],
+                   *setup.reliability_context_);
+      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                    .departure_distribution_,
+                rating.departure_distribution_);
+      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                    .arrival_distribution_,
+                rating.arrival_distribution_);
+    }
+    {
+      ASSERT_EQ(1, cg.stops_[2].alternative_infos_.size());
+      ASSERT_TRUE(cg.journeys_.back().transports.front().walk);
+      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
+      ASSERT_EQ(
+          cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,
+          rating.departure_distribution_);
+      ASSERT_EQ(rating.departure_distribution_, rating.arrival_distribution_);
+    }
+    ASSERT_EQ(1443435600, cg.journeys_.back().stops.back().arrival.timestamp);
+
+    /* arrival distribution of the connection graph */
+    probability_distribution exp_arr_dist;
+    exp_arr_dist.init({0.08, 0.66, 0.24, 0.02}, 0);
+    auto const cg_arr_dist = calc_arrival_distribution(cg);
+    ASSERT_EQ(1443435600 + (cg.stops_[0]
+                                .alternative_infos_.front()
+                                .rating_.arrival_distribution_.first_minute() *
+                            60),
+              cg_arr_dist.first);
+    ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
+  };
+
+  boost::asio::io_service::work ios_work(setup.ios_);
+  search_cgs(msg->content<ReliableRoutingRequest const*>(),
+             setup.reliability_module(), 0,
+             std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+             test_cb);
+  setup.ios_.run();
+  ASSERT_TRUE(test_cb_called);
+}
+
 }  // namespace test
 }  // namespace cg
 }  // namespace rating
