@@ -153,8 +153,13 @@ void handle_base_response(motis::module::msg_ptr msg,
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
-  for (auto const& j : journeys) {
-    init_connection_graph_from_base_journey(*context, j);
+  try {
+    for (auto const& j : journeys) {
+      init_connection_graph_from_base_journey(*context, j);
+    }
+  } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
   for (auto& conn_graph : context->connection_graphs_) {
@@ -174,8 +179,15 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
       stop_indices.push_back(idx);
     }
   }
-  rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
-                                        c->reliability_context_);
+
+  try {
+    rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
+                                          c->reliability_context_);
+  } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    return build_result(context::conn_graph_context::CG_failed, c);
+  }
+
   check_stop_states(*c->optimizer_, conn_graph, stop_indices);
 
   build_cg(c, conn_graph);
@@ -203,6 +215,10 @@ void handle_alternative_response(motis::module::msg_ptr msg,
    * This filtering is not necessary as soon as the state
    * machine in journey.cc works correctly. */
   auto filtered = tools::remove_invalid_journeys(journeys);
+  if (filtered.size() != journeys.size()) {
+    std::cout << "\nInvalid alternatives for cg " << conn_graph_idx
+              << " at stop " << stop_idx << std::endl;
+  }
 
   if (filtered.empty()) {
     stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
