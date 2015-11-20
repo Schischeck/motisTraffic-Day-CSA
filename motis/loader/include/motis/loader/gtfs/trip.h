@@ -23,8 +23,8 @@ struct stop_time {
         dep_({dep_time, in_allowed}) {}
 
   struct ev {
-    int time;
-    bool in_out_allowed;
+    int time_;
+    bool in_out_allowed_;
   };
 
   stop const* stop_;

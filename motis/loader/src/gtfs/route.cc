@@ -23,11 +23,14 @@ static const column_mapping<gtfs_route> columns = {
 route_map read_routes(loaded_file file, agency_map const& agencies) {
   route_map routes;
   for (auto const& r : read<gtfs_route>(file.content(), columns)) {
+    auto agency_it = agencies.find(get<agency_id>(r).to_str());
+    auto agency_ptr =
+        agency_it == end(agencies) ? nullptr : agency_it->second.get();
     routes.emplace(get<route_id>(r).to_str(),
-                   make_unique<route>(
-                       agencies.at(get<agency_id>(r).to_str()).get(),
-                       get<route_short_name>(r).to_str(),
-                       get<route_long_name>(r).to_str(), get<route_type>(r)));
+                   make_unique<route>(agency_ptr, get<route_id>(r).to_str(),
+                                      get<route_short_name>(r).to_str(),
+                                      get<route_long_name>(r).to_str(),
+                                      get<route_type>(r)));
   }
   return routes;
 }

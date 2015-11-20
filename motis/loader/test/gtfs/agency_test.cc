@@ -17,9 +17,9 @@ TEST(loader_gtfs_stop, read_stations_example_data) {
 
   ASSERT_EQ(1, agencies.size());
   ASSERT_NE(agencies.find("FunBus"), end(agencies));
-  ASSERT_EQ("FunBus", agencies["FunBus"].id_);
-  ASSERT_EQ("The Fun Bus", agencies["FunBus"].name_);
-  ASSERT_EQ("America/Los_Angeles", agencies["FunBus"].timezone_);
+  ASSERT_EQ("FunBus", agencies["FunBus"]->id_);
+  ASSERT_EQ("The Fun Bus", agencies["FunBus"]->name_);
+  ASSERT_EQ("America/Los_Angeles", agencies["FunBus"]->timezone_);
 }
 
 }  // namespace gtfs

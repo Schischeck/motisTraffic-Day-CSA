@@ -12,14 +12,16 @@ namespace loader {
 namespace gtfs {
 
 struct route {
-  route(agency const* agency, std::string short_name, std::string long_name,
-        int type)
+  route(agency const* agency, std::string id, std::string short_name, std::string long_name,
+              int type)
       : agency_(agency),
+        id_(std::move(id)),
         short_name_(std::move(short_name)),
         long_name_(std::move(long_name)),
         type_(type) {}
 
   agency const* agency_;
+  std::string id_;
   std::string short_name_;
   std::string long_name_;
   int type_;

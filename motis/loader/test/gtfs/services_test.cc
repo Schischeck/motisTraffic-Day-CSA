@@ -5,23 +5,11 @@
 #include "motis/loader/gtfs/services.h"
 #include "motis/loader/gtfs/files.h"
 
+#include "./test_files.h"
+
 using namespace parser;
-
-namespace motis {
-namespace loader {
-namespace gtfs {
-
-const char* example_calendar_date_file_content =
-    R"(service_id,date,exception_type
-WD,20060703,2
-WE,20060703,1
-WD,20060704,2
-WE,20060704,1)";
-
-const char* example_calendar_file_content =
-    R"(service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
-WE,0,0,0,0,0,1,1,20060701,20060731
-WD,1,1,1,1,1,0,0,20060701,20060731)";
+using namespace motis::loader;
+using namespace motis::loader::gtfs;
 
 /*
  * -- BASE --
@@ -59,10 +47,6 @@ TEST(loader_gtfs_traffic_days, read_traffic_days_example_data) {
   EXPECT_EQ(boost::gregorian::date(2006, 7, 1), services.first_day);
   EXPECT_EQ(boost::gregorian::date(2006, 7, 31), services.last_day);
 
-  EXPECT_EQ(WE_traffic_days, services.traffic_days["WE"]);
-  EXPECT_EQ(WD_traffic_days, services.traffic_days["WD"]);
+  EXPECT_EQ(WE_traffic_days, *services.traffic_days["WE"]);
+  EXPECT_EQ(WD_traffic_days, *services.traffic_days["WD"]);
 }
-
-}  // gtfs
-}  // loader
-}  // motis

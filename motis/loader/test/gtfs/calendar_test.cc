@@ -1,17 +1,11 @@
 #include "gtest/gtest.h"
 
 #include "motis/loader/gtfs/calendar.h"
-#include "motis/loader/gtfs/calendar_date.h"
 #include "motis/loader/gtfs/files.h"
+#include "./test_files.h"
 
 using namespace parser;
-
 using namespace motis::loader::gtfs;
-
-char const* example_calendar_file_content =
-    R"(service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
-WE,0,0,0,0,0,1,1,20060701,20060731
-WD,1,1,1,1,1,0,0,20060701,20060731)";
 
 TEST(loader_gtfs_calendar, read_calendar_example_data) {
   auto calendar = read_calendar({CALENDAR_FILE, example_calendar_file_content});
