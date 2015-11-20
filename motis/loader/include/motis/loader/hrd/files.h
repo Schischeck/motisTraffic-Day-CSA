@@ -22,6 +22,7 @@ constexpr char const* DIRECTIONS_FILE = "richtung.101";
 constexpr char const* PROVIDERS_FILE = "unternehmen_ris.101";
 constexpr char const* THROUGH_SERVICES_FILE = "durchbi.101";
 constexpr char const* MERGE_SPLIT_SERVICES_FILE = "vereinig_vt.101";
+constexpr char const* TIMEZONES_FILE = "zeitvs.101";
 
 }  // namespace hrd
 }  // namespace loader

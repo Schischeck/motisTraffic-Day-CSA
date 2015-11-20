@@ -33,12 +33,12 @@ timezones parse_timezones(loaded_file const& timezones_file,
   for_each_line(timezones_file.content(), [&](cstr line) {
     if (line.length() == 15) {
       auto first_valid_eva_number = eva_number(line.substr(8, size(7)));
-      auto it = tz.entries_.find(first_valid_eva_number);
-      verify(it != end(tz.entries_),
+      auto it = tz.eva_to_tze.find(first_valid_eva_number);
+      verify(it != end(tz.eva_to_tze),
              "missing timezone information for eva number: %d",
              first_valid_eva_number);
 
-      tz.entries_[eva_number(line.substr(0, size(7)))] = it->second;
+      tz.eva_to_tze[eva_number(line.substr(0, size(7)))] = it->second;
       return;
     }
     if (isdigit(line[0]) && line.length() >= 47) {
@@ -56,7 +56,7 @@ timezones parse_timezones(loaded_file const& timezones_file,
       tz.timezone_entries_.push_back(make_unique<timezone_entry>(
           distance_to_midnight(line.substr(8, size(5))), opt_season_entry));
 
-      tz.entries_[eva_number(line.substr(0, size(7)))] =
+      tz.eva_to_tze[eva_number(line.substr(0, size(7)))] =
           tz.timezone_entries_.back().get();
     }
   });

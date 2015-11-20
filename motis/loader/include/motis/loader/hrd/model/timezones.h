@@ -33,13 +33,13 @@ struct timezones {
     verify(0 <= eva_number && eva_number <= 9999999, "invalid eva number: %d",
            eva_number);
 
-    auto it = entries_.upper_bound(eva_number);
-    verify(it != end(entries_) || timezone_entries_.size() > 0,
+    auto it = eva_to_tze.upper_bound(eva_number);
+    verify(it != end(eva_to_tze) || timezone_entries_.size() > 0,
            "no timezone entry for eva number: %d", eva_number);
     return std::next(it, -1)->second;
   }
 
-  std::map<int, timezone_entry*> entries_;
+  std::map<int, timezone_entry*> eva_to_tze;
   std::vector<std::unique_ptr<timezone_entry>> timezone_entries_;
 };
 

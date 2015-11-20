@@ -1,0 +1,14 @@
+namespace motis.loader;
+
+table Season {
+  first_date_idx : int;
+  begin_time : int; 
+  last_date_idx : int;
+  end_time : int;
+  offset: int;
+}
+
+table Timezone {
+  general_offset: int;
+  season: Season;
+}
