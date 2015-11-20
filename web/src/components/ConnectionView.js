@@ -10,7 +10,7 @@ export default class ConnectionView extends Component {
   }
 
   toTimeString(timestamp) {
-    const date = new Date(timestamp);
+    const date = new Date(timestamp * 1000);
     return date.toLocaleTimeString(navigator.language, {
       hour: '2-digit',
       minute: '2-digit'
@@ -30,7 +30,6 @@ export default class ConnectionView extends Component {
   }
 
   makeAttributes(con, interchange) {
-    console.log(con.transports[interchange]);
     return <span className={ style.trainId }>{ con.transports[interchange].move.name }</span>;
   }
 
@@ -60,6 +59,7 @@ export default class ConnectionView extends Component {
         { con.stops.filter((stop, i) => {
             return i === 1 || i === con.stops.length - 2 || stop.interchange;
           }).map((stop, i, src) => {
+            console.log(stop);
             const attrs = this.makeAttributes(con, i + 1);
             const arr = i !== 0 ? this.makeArrivalElement(stop.arrival.time) : <div />;
             const dep = i !== src.length - 1 ? this.makeArrivalElement(stop.arrival.time) : <div />;
