@@ -149,7 +149,8 @@ void create_rule_service(
   for (auto const& r : rs.rules) {
     fbb_rules.push_back(CreateRule(
         fbb, (RuleType)r.rule_info.type, services.at(r.s1), services.at(r.s2),
-        r.rule_info.eva_num_1, r.rule_info.eva_num_2));
+        fbb.CreateString(std::to_string(r.rule_info.eva_num_1)),
+        fbb.CreateString(std::to_string(r.rule_info.eva_num_2))));
   }
   fbs_rule_services.push_back(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));

@@ -10,8 +10,8 @@ table Rule {
   type: RuleType;
   service1: Service;
   service2: Service;
-  eva_1: int;
-  eva_2: int;
+  eva_1: string;
+  eva_2: string;
 }
 
 table RuleService {
