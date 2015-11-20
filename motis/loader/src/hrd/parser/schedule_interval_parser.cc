@@ -23,19 +23,19 @@ void verify_line_format(cstr s) {
       "interval boundary [%.*s] invalid", static_cast<int>(s.len), s.str);
 }
 
-std::tuple<int, int, int> ddmmyyyy_to_yyyymmdd(cstr s) {
-  return std::make_tuple(parse<int>(s.substr(6, size(4))),
-                         parse<int>(s.substr(3, size(2))),
-                         parse<int>(s.substr(0, size(2))));
+std::tuple<int, int, int> yyyymmdd(cstr ddmmyyyy) {
+  return std::make_tuple(parse<int>(ddmmyyyy.substr(6, size(4))),
+                         parse<int>(ddmmyyyy.substr(3, size(2))),
+                         parse<int>(ddmmyyyy.substr(0, size(2))));
 }
 
 time_t str_to_unixtime(cstr s) {
   int year, month, day;
-  std::tie(year, month, day) = ddmmyyyy_to_yyyymmdd(s);
+  std::tie(year, month, day) = yyyymmdd(s);
   return to_unix_time(year, month, day);
 }
 
-std::pair<cstr, cstr> from_to(cstr str) {
+std::pair<cstr, cstr> mask_dates(cstr str) {
   auto from_line = parser::get_line(str);
   str += from_line.len + 1;
   auto to_line = parser::get_line(str);
@@ -48,18 +48,15 @@ std::pair<cstr, cstr> from_to(cstr str) {
 
 Interval parse_interval(loaded_file const& basic_info_file) {
   scoped_timer timer("parsing schedule interval");
-
-  cstr from_line;
-  cstr to_line;
-  std::tie(from_line, to_line) = from_to(basic_info_file.content());
-
-  return Interval(str_to_unixtime(from_line), str_to_unixtime(to_line));
+  cstr first_date;
+  cstr last_date;
+  std::tie(first_date, last_date) = mask_dates(basic_info_file.content());
+  return Interval(str_to_unixtime(first_date), str_to_unixtime(last_date));
 }
 
 boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
   int year, month, day;
-  std::tie(year, month, day) =
-      ddmmyyyy_to_yyyymmdd(from_to(lf.content()).first);
+  std::tie(year, month, day) = yyyymmdd(mask_dates(lf.content()).first);
   return boost::gregorian::date(year, month, day);
 }
 
