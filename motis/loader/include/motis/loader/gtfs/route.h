@@ -11,14 +11,17 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-struct route {
-  route(agency const* agency, std::string id, std::string short_name, std::string long_name,
-              int type)
+class route {
+public:
+  route(agency const* agency, std::string id, std::string short_name,
+        std::string long_name, int type)
       : agency_(agency),
         id_(std::move(id)),
         short_name_(std::move(short_name)),
         long_name_(std::move(long_name)),
         type_(type) {}
+
+  static std::map<unsigned, std::string> s_types_;
 
   agency const* agency_;
   std::string id_;

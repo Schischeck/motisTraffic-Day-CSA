@@ -33,8 +33,20 @@ struct stop_time {
 };
 
 struct trip {
+  using stop_identity = std::tuple<stop const*, bool, bool>;
+  using stop_seq = std::vector<stop_identity>;
+
   trip(route const* route, bitfield const* service, std::string headsign)
       : route_(route), service_(service), headsign_(std::move(headsign)) {}
+
+  stop_seq stops() {
+    return transform_to_vec(begin(stop_times_), end(stop_times_),
+                            [](flat_map<stop_time>::entry_t const& e) {
+                              return std::make_tuple(
+                                  e.second.stop_, e.second.arr_.in_out_allowed_,
+                                  e.second.dep_.in_out_allowed_);
+                            });
+  }
 
   route const* route_;
   bitfield const* service_;

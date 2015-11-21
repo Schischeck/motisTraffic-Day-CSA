@@ -67,7 +67,12 @@ services traffic_days(
 
   for (auto const& exception : exceptions) {
     for (auto const& day : exception.second) {
-      add_exception(s.first_day, day, *s.traffic_days[exception.first].get());
+      auto bits = s.traffic_days.find(exception.first);
+      if (bits == end(s.traffic_days)) {
+        std::tie(bits, std::ignore) =
+            s.traffic_days.emplace(exception.first, make_unique<bitfield>());
+      }
+      add_exception(s.first_day, day, *bits->second);
     }
   }
 

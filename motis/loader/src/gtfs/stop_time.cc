@@ -50,15 +50,16 @@ int hhmm_to_min(cstr s) {
   }
 }
 
-void read_stop_times(loaded_file file, trip_map& trips, stop_map const& stops) {
+void read_stop_times(loaded_file const& file, trip_map& trips,
+                     stop_map const& stops) {
   std::string last_trip_id;
-  trip* last_trip;
+  trip* last_trip = nullptr;
 
   for (auto const& s :
        read<gtfs_stop_time>(file.content(), stop_time_columns)) {
-    trip* t;
+    trip* t = nullptr;
     auto t_id = get<trip_id>(s).to_str();
-    if (t_id == last_trip_id) {
+    if (last_trip != nullptr && t_id == last_trip_id) {
       t = last_trip;
     } else {
       t = trips.at(t_id).get();

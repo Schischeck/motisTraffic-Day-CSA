@@ -21,11 +21,16 @@ struct flat_map {
     }
   };
 
+  std::vector<T> to_vector() {
+    return transform_to_vec(begin(elements_), end(elements_),
+                            [](entry_t const& el) { return el.second; });
+  }
+
   template <typename... Args>
   void emplace(index_t idx, Args... args) {
     auto s = std::make_pair(idx, T(std::forward<Args>(args)...));
     auto it = std::lower_bound(elements_.begin(), elements_.end(), s, cmp());
-    elements_.emplace(it, s);
+    elements_.emplace(it, std::move(s));
   }
 
   T& operator[](index_t idx) {
@@ -41,6 +46,10 @@ struct flat_map {
   iterator end() { return elements_.end(); }
   const_iterator begin() const { return elements_.begin(); }
   const_iterator end() const { return elements_.end(); }
+  friend const_iterator begin(flat_map const& m) { return m.begin(); }
+  friend const_iterator end(flat_map const& m) { return m.end(); }
+  friend iterator begin(flat_map& m) { return m.begin(); }
+  friend iterator end(flat_map& m) { return m.end(); }
 
 private:
   std::vector<entry_t> elements_;

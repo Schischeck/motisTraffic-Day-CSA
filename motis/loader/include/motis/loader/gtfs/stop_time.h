@@ -10,7 +10,7 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-void read_stop_times(loaded_file, trip_map&, stop_map const&);
+void read_stop_times(loaded_file const&, trip_map&, stop_map const&);
 
 }  // namespace gtfs
 }  // namespace loader
