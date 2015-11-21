@@ -105,6 +105,7 @@ export default class Typeahead extends React.Component {
     return (
     <div>
       <TextField
+                 {...this.props}
                  floatingLabelText={ this.props.hintText }
                  value={ this.state.value }
                  onChange={ this._onChange.bind(this) }

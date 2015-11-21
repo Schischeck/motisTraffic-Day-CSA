@@ -8,13 +8,9 @@ export default class PaddedPaper extends Component {
   }
 
   render() {
-    const style = this.props.style || {};
-    style.padding = '20px';
     return (
-    <Paper
-           {...this.props}
-           style={ style }>
-      { this.props.children }
+    <Paper {...this.props} style={{'padding': '20px'}}>
+        { this.props.children }
     </Paper>
     );
   }
