@@ -123,6 +123,16 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
     return get_or_create(fbs_strings, s, [&]() { return fbb.CreateString(s); });
   };
 
+  auto stop_times_vec = [&](flat_map<stop_time> const& st) {
+    std::vector<int> times;
+    times.reserve(st.size() * 2);
+    for (auto const& t : st) {
+      times.push_back(t.second.dep_.time_);
+      times.push_back(t.second.arr_.time_);
+    }
+    return times;
+  };
+
   Interval interval(to_unix_time(services.first_day),
                     to_unix_time(services.last_day));
   fbb.Finish(CreateSchedule(
@@ -169,14 +179,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
                                             get_or_create_str(t->headsign_))),
                         stop_seq.size() - 1) |
                     to_vector),
-                0,
-                fbb.CreateVector(
-                    view::all(t->stop_times_) |
-                    view::transform([](flat_map<stop_time>::entry_t const& st) {
-                      return view::concat(view::single(st.second.arr_.time_),
-                                          view::single(st.second.dep_.time_));
-                    }) |
-                    view::join | to_vector));
+                0, fbb.CreateVector(stop_times_vec(t->stop_times_)));
           }) |
           to_vector),
       fbb.CreateVector(values(fbs_stations)),
