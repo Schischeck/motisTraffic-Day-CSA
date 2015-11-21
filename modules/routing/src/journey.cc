@@ -232,6 +232,10 @@ journey::transport generate_journey_transport(unsigned int from,
           name = con_info->provider_->short_name;
         }
         break;
+
+      case category::CATEGORY_AND_LINE:
+        name = cat_name + " " + line_identifier;
+        break;
     }
   }
 
