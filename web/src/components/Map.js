@@ -11,7 +11,9 @@ export default class Map extends React.Component {
   }
 
   componentDidMount() {
-    this.map = L.map('map');
+    this.map = L.map('map', {
+      'zoomControl': false
+    });
     this.map.setView([
       51.505,
       -0.09

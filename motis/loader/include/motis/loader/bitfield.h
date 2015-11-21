@@ -38,12 +38,12 @@ std::bitset<BitSetSize> create_uniform_bitfield(char val) {
   return std::bitset<BitSetSize>(all_days_bit_str);
 }
 
-template <int BitCount>
+template <std::size_t BitCount>
 inline std::string serialize_bitset(std::bitset<BitCount> const& bitset) {
   return bitset.to_string();
 }
 
-template <int BitCount>
+template <std::size_t BitCount>
 inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
   return std::bitset<BitCount>(std::string(str.str, str.len));
 }

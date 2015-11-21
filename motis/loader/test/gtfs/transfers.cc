@@ -4,27 +4,7 @@
 #include "motis/loader/gtfs/files.h"
 
 using namespace parser;
-
-namespace motis {
-namespace loader {
-namespace gtfs {
-
-const char* example_transfers_file_content =
-    R"(from_stop_id,to_stop_id,transfer_type,min_transfer_time
-S6,S7,2,300
-S7,S6,3,
-S23,S7,1,)";
-
-const char* berlin_transfers_file_content =
-    R"(from_stop_id,to_stop_id,transfer_type,min_transfer_time,from_transfer_id,to_transfer_id
-9003104,9003174,2,180,,
-9003104,9003175,2,240,,
-9003104,9003176,2,180,,
-9003174,9003104,2,180,,
-9003174,9003175,2,180,,)";
-//
-// RECOMMENDED_TRANSFER, TIMED_TRANSFER, MIN_TRANSFER_TIME,
-//     NOT_POSSIBLE
+using namespace motis::loader::gtfs;
 
 TEST(loader_gtfs_transfer, read_transfers_example_data) {
   auto transfers =
@@ -68,7 +48,3 @@ TEST(loader_gtfs_transfer, read_transfers_berlin_data) {
   EXPECT_EQ(transfer::MIN_TRANSFER_TIME,
             transfers[std::make_pair("9003174", "9003175")].type);
 }
-
-}  // gtfs
-}  // loader
-}  // motis

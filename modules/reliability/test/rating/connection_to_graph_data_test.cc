@@ -138,7 +138,7 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
         msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
-    auto const elements = get_elements(*schedule_, journeys.front()).second;
+    auto const elements = get_elements(*schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);
@@ -194,7 +194,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
         msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
-    auto const elements = get_elements(*schedule_, journeys.front()).second;
+    auto const elements = get_elements(*schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements.at(0).size() == 2);
@@ -275,7 +275,7 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
         msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
-    auto const elements = get_elements(*schedule_, journeys.front()).second;
+    auto const elements = get_elements(*schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 2);
     {
       ASSERT_TRUE(elements[0].size() == 1);

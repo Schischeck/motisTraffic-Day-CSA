@@ -14,20 +14,16 @@ namespace motis {
 namespace reliability {
 namespace rating {
 
-bool rate(connection_rating& rating, journey const& journey,
+void rate(connection_rating& rating, journey const& journey,
           context const& context) {
   auto const connection_elements =
       rating::connection_to_graph_data::get_elements(context.schedule_,
                                                      journey);
-  if (!connection_elements.first) {
-    return false;
-  }
-  public_transport::rate(rating.public_transport_ratings_,
-                         connection_elements.second, false, context);
+
+  public_transport::rate(rating.public_transport_ratings_, connection_elements,
+                         false, context);
   rating.connection_rating_ =
       rating.public_transport_ratings_.back().arrival_distribution_.sum();
-
-  return true;
 }
 
 }  // namespace rating

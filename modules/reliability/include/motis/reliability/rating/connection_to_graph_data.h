@@ -13,13 +13,19 @@ namespace rating {
 struct connection_element;
 
 namespace connection_to_graph_data {
+struct element_not_found_exception : std::exception {
+  const char* what() const throw() {
+    return "Could not find light connections of a journey";
+  };
+};
+
 /* @return for each train in the connection, a vector of all
  * transports.  If there is more than one
  * transport element for a train (because of a change of
  * train-id or category), their connection elements
  * are inserted into the same vector. */
-std::pair<bool, std::vector<std::vector<connection_element>>> get_elements(
-    schedule const&, journey const&);
+std::vector<std::vector<connection_element>> get_elements(schedule const&,
+                                                          journey const&);
 
 /* get only the last connection element of a journey */
 connection_element get_last_element(schedule const& sched,

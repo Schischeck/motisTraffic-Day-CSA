@@ -6,7 +6,7 @@
 #include "parser/cstr.h"
 
 #include "motis/loader/loaded_file.h"
-#include "motis/loader/gtfs/flat_map.h"
+#include "motis/loader/gtfs/stop.h"
 
 namespace motis {
 namespace loader {
@@ -21,14 +21,14 @@ struct transfer {
   };
 
   transfer() = default;
-  transfer(int minutes, int type) : minutes(minutes), type(type) {}
+  transfer(int minutes, int type) : minutes_(minutes), type_(type) {}
 
-  int minutes;
-  int type;
+  int minutes_;
+  int type_;
 };
 
-typedef std::pair<std::string, std::string> station_pair;
-std::map<station_pair, transfer> read_transfers(loaded_file);
+typedef std::pair<stop const*, stop const*> stop_pair;
+std::map<stop_pair, transfer> read_transfers(loaded_file, stop_map const&);
 
 }  // namespace gtfs
 }  // namespace loader
