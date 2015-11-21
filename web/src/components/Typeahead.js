@@ -1,10 +1,8 @@
 import React from 'react';
 
-import { Container } from 'flux/utils';
-
 import { TextField, List, ListItem, Paper } from 'material-ui/lib';
 
-import './Typeahead.scss';
+import style from './Typeahead.scss';
 
 function mod(a, n) {
   return ((a % n) + n) % n;
@@ -12,16 +10,27 @@ function mod(a, n) {
 
 export default class Typeahead extends React.Component {
   propTypes: {
-    complete: React.PropTypes.func.isRequired
+    complete: React.PropTypes.func.isRequired,
+    name: React.PropTypes.string
   }
 
   constructor(props) {
     super(props);
     this.state = {
-      value: "",
+      value: '',
       completions: [],
       selectedItemIndex: 0
     };
+  }
+
+  getValue() {
+    return this.state.value;
+  }
+
+  setValue(newValue) {
+    this.setState({
+      value: newValue
+    });
   }
 
   _fetchCompletions(evt) {
@@ -47,7 +56,7 @@ export default class Typeahead extends React.Component {
   }
 
   _clearCompletions() {
-    setTimeout(e => {
+    setTimeout(() => {
       this.setState({
         completions: []
       });
@@ -87,6 +96,8 @@ export default class Typeahead extends React.Component {
       case 27:
         this._clearCompletions();
         break;
+
+      default: // nop
     }
   }
 
@@ -94,31 +105,29 @@ export default class Typeahead extends React.Component {
     return (
     <div>
       <TextField
-                 hintText={ this.props.name }
+                 floatingLabelText={ this.props.hintText }
                  value={ this.state.value }
                  onChange={ this._onChange.bind(this) }
                  onKeyUp={ this._onKeyUp.bind(this) }
-                 onBlur={ this._clearCompletions.bind(this) }>
-      </TextField>
+                 onBlur={ this._clearCompletions.bind(this) } />
       <Paper
-             ref={ 'suggestionbox' }
              zDepth={ 1 }
-             className={ [  'suggestions'] }>
+             className={ style.suggestions }>
         <List desktop={ true }>
           { this.state.completions.map((val, index) => {
-              let style = {};
+              let selectedStyle = {};
               if (this.state.selectedItemIndex === index) {
-                style = {
+                selectedStyle = {
                   backgroundColor: 'rgba(0, 0, 0, 0.0980392)'
                 };
               }
-              return <ListItem
-                               style={ style }
-                               hovered={ true }
-                               key={ index }
-                               primaryText={ val.name }
-                               onMouseEnter={ this._updateSelectedIndex.bind(this, index) }
-                               onClick={ this._selectGuess.bind(this, val.name) } />
+              return ( <ListItem
+                                 style={ selectedStyle }
+                                 hovered={ true }
+                                 key={ index }
+                                 primaryText={ val.name }
+                                 onMouseEnter={ this._updateSelectedIndex.bind(this, index) }
+                                 onClick={ this._selectGuess.bind(this, val.name) } /> );
             }) }
         </List>
       </Paper>
@@ -126,5 +135,3 @@ export default class Typeahead extends React.Component {
     );
   }
 }
-
-export default Typeahead;

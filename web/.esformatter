@@ -1,4 +1,7 @@
 {
+  "plugins": [
+    "esformatter-jsx"
+  ],
   "collapseObjects": {
     "ObjectExpression": {
       "maxLineLength": 80,
@@ -21,6 +24,7 @@
     "attrsOnSameLineAsTag": false,
     "maxAttrsOnTag": 1,
     "firstAttributeOnSameLine": false,
+    "spaceInJSXExpressionContainers": " ",
     "alignWithFirstAttribute": true
   },
   "indent": {
