@@ -14,6 +14,7 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
+// Source: https://groups.google.com/d/msg/gtfs-changes/keT5rTPS7Y0/71uMz2l6ke0J
 std::map<unsigned, std::string> route::s_types_ = {
     // clang-format off
   { 0, "Tram, Light Rail, Streetcar"},
