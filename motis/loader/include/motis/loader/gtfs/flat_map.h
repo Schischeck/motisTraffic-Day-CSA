@@ -42,8 +42,6 @@ struct flat_map {
     return it->second;
   }
 
-  std::size_t size() const { return elements_.size(); }
-
   iterator begin() { return elements_.begin(); }
   iterator end() { return elements_.end(); }
   const_iterator begin() const { return elements_.begin(); }
