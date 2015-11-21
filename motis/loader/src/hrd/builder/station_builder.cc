@@ -46,7 +46,6 @@ Offset<Station> station_builder::get_or_create_station(int eva_num,
           } else {
             return CreateTimezone(fbb, tze->general_gmt_offset);
           }
-
         }));
   });
 }
