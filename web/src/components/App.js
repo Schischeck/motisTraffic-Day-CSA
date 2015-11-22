@@ -29,15 +29,8 @@ export class App extends Component {
       'waiting': true,
     });
 
-    this.refs.routingform.getData().then(parameters => {
-      const unixTime = Math.floor(parameters.date / 1000);
-      return new RoutingRequest(unixTime, [
-        parameters.from,
-        parameters.to
-      ]);
-    }).then(request => {
-      return Server.sendMessage(request);
-    }).then(response => {
+    console.log('called');
+    Server.sendMessage(this.refs.routingform.getRequest()).then(response => {
       this.setState({
         'connections': response.content.connections,
         'showError': false,
