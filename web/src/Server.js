@@ -5,19 +5,25 @@ class Server {
     this.pendingRequests = new Map();
 
     this._wsConnect();
-    setInterval(() => {
-      if (!this.socket || this.socket.readyState === 3) {
-        this._wsConnect();
-      }
-    }, 5000);
+    setInterval(this._wsCheck.bind(this), 5000);
   }
 
   _wsConnect() {
     this.socket = new WebSocket(this.server);
     this.socket.onmessage = this._onMessage.bind(this);
     this.socket.onopen = () => {
-      console.log('open', arguments);
+      console.log('connected');
     };
+    this.socket.onclose = () => {
+      console.log('disconnected');
+    };
+  }
+
+  _wsCheck() {
+    if (!this.socket || this.socket.readyState === 3) {
+      console.log('reconnect');
+      this._wsConnect();
+    }
   }
 
   _onMessage(evt) {
