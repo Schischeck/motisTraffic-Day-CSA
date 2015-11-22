@@ -8,23 +8,23 @@ class Server {
     setInterval(() => {
       if (!this.socket || this.socket.readyState === 3) {
         this._wsConnect();
-    }}, 5000);
+      }
+    }, 5000);
   }
 
   _wsConnect() {
     this.socket = new WebSocket(this.server);
-    this.socket.onmessage = this._onmessage.bind(this);
+    this.socket.onmessage = this._onMessage.bind(this);
     this.socket.onopen = () => {
       console.log('open', arguments);
     };
   }
 
-  _onmessage(evt) {
-    const msg = evt.data.replace(/\\x/g, '\\u00');
+  _onMessage(evt) {
     try {
-      this._resolvePending(JSON.parse(msg));
+      this._resolvePending(JSON.parse(evt.data));
     } catch (e) {
-      console.error('invalid json', msg);
+      console.error('invalid json', evt.data);
     }
   }
 
