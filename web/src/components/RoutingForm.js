@@ -65,10 +65,8 @@ export default class RoutingForm extends Component {
   }
 
   guessStation(input) {
-    console.log('guessing ', input);
     return new Promise((resolve) => {
       Server.sendMessage(new StationGuesserRequest(input)).then(response => {
-        console.log('resolving ', response);
         resolve(response.content.guesses);
       });
     });

@@ -28,7 +28,6 @@ export class App extends Component {
       'waiting': true,
     });
 
-    console.log('called');
     Server.sendMessage(this.refs.routingform.getRequest()).then(response => {
       this.setState({
         'connections': response.content.connections,
