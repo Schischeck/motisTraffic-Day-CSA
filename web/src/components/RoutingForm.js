@@ -92,7 +92,7 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform':'scale(.8)'}}>
+                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'}}>
         <i className="material-icons">&#xE8D5;</i>
       </FloatingActionButton>
       <div className={style.flexrow}>
@@ -133,12 +133,12 @@ export default class RoutingForm extends Component {
           <RadioButton
             value="Forward"
             label="Departure"
-            style={{marginBottom:16}} />
+            style={{marginBottom: 16}} />
           <RadioButton
             value="Backward"
             label="Arrival"
             disabled={true}
-            style={{marginBottom:16}}/>
+            style={{marginBottom: 16}}/>
         </RadioButtonGroup>
       </div>
       <RaisedButton
