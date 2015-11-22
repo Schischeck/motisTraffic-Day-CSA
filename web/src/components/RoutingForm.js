@@ -88,7 +88,7 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'top': '96px', 'left': 'calc(50% - 50px)', 'zIndex': 3}}>
+                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform':'scale(.8)'}}>
         <i className="material-icons">&#xE8D5;</i>
       </FloatingActionButton>
       <div className={style.flexrow}>
