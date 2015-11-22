@@ -36,10 +36,31 @@ void guesser::init() {
       view::transform([](station_ptr const& s) { return s->index; }) |
       to_vector;
 
-  guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(
-      view::all(station_indices_) |
-      view::transform([&](int i) { return sync.sched().stations[i]->name; }) |
-      to_vector));
+  auto stations = view::all(station_indices_) | view::transform([&](int i) {
+                    auto const& s = *sync.sched().stations[i];
+                    double factor = 0;
+                    for (unsigned i = 0; i < s.dep_class_events.size(); ++i) {
+                      factor +=
+                          std::pow(10, (9 - i) / 3) * s.dep_class_events[i];
+                    }
+                    return std::make_pair(s.name, factor);
+                  }) |
+                  to_vector;
+
+  if (!stations.empty()) {
+    auto max_importatance =
+        std::max_element(begin(stations), end(stations),
+                         [](std::pair<std::string, double> const& lhs,
+                            std::pair<std::string, double> const& rhs) {
+                           return lhs.second < rhs.second;
+                         })
+            ->second;
+    for (auto& s : stations) {
+      s.second = (s.second / max_importatance) * 0.5;
+    }
+  }
+
+  guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(stations));
 }
 
 void guesser::on_msg(msg_ptr msg, sid, callback cb) {
