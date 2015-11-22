@@ -16,22 +16,19 @@ namespace loader {
 namespace gtfs {
 
 enum { stop_id, stop_name, stop_lat, stop_lon };
-using stop = std::tuple<cstr, cstr, float, float>;
-static const column_mapping<stop> stop_columns = {
+using gtfs_stop = std::tuple<cstr, cstr, float, float>;
+static const column_mapping<gtfs_stop> columns = {
     {"stop_id", "stop_name", "stop_lat", "stop_lon"}};
 
-std::map<std::string, Offset<Station>> read_stations(loaded_file file,
-                                                     FlatBufferBuilder& b) {
-  std::vector<stop> stops = read<stop>(file.content(), stop_columns);
-  std::map<std::string, Offset<Station>> stations;
-  for (auto const& s : stops) {
-    stations.insert(
-        std::make_pair(get<stop_id>(s).to_str(),
-                       CreateStation(b, to_fbs_string(b, get<stop_id>(s)),
-                                     to_fbs_string(b, get<stop_name>(s)),
-                                     get<stop_lat>(s), get<stop_lon>(s))));
+stop_map read_stops(loaded_file file) {
+  stop_map stops;
+  for (auto const& s : read<gtfs_stop>(file.content(), columns)) {
+    stops.emplace(
+        get<stop_id>(s).to_str(),
+        make_unique<stop>(get<stop_id>(s).to_str(), get<stop_name>(s).to_str(),
+                          get<stop_lat>(s), get<stop_lon>(s)));
   }
-  return stations;
+  return stops;
 }
 
 }  // namespace gtfs

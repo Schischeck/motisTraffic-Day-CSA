@@ -26,7 +26,7 @@ struct connection_graph {
 
     struct alternative_info {
       unsigned short journey_index_;
-      unsigned short head_stop_index_;
+      unsigned short next_stop_index_;
 
       struct rating {
         probability_distribution departure_distribution_;
@@ -54,7 +54,7 @@ private:
   std::pair<std::string, std::string> arrival_station_info() const {
     auto it = std::find_if(stops_.begin(), stops_.end(), [](stop const& s) {
       return !s.alternative_infos_.empty() &&
-             s.alternative_infos_.front().head_stop_index_ ==
+             s.alternative_infos_.front().next_stop_index_ ==
                  stop::Index_arrival_stop;
     });
     auto const& stop =

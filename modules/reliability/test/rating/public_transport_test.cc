@@ -142,8 +142,7 @@ TEST_F(reliability_public_transport2, rate) {
 
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-                              *schedule_, journeys.front())
-                              .second;
+        *schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -285,8 +284,7 @@ TEST_F(reliability_public_transport5, rate2) {
         msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-                              *schedule_, journeys.front())
-                              .second;
+        *schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 3);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -377,8 +375,7 @@ TEST_F(reliability_public_transport3, rate_foot) {
         msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
-                              *schedule_, journeys.front())
-                              .second;
+        *schedule_, journeys.front());
     ASSERT_TRUE(elements.size() == 2);
 
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},

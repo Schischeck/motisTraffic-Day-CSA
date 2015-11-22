@@ -9,12 +9,7 @@ export default class RoutingRequest extends Message {
       },
       'type': type,
       'direction': direction,
-      'path': path.map(station => {
-        return {
-          'eva_nr': station,
-          'name': ''
-        };
-      })
+      'path': path
     }, 30000);
     console.log(this);
   }

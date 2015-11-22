@@ -32,6 +32,7 @@ time_t to_unix_time(std::tuple<int, int, int> ddmmyyyy, motis::time time) {
 module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
   /* convert routing::RoutingRequest to Offset<RoutingRequest> */
   module::MessageCreator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
   std::vector<Offset<routing::StationPathElement>> station_elements;
   for (auto it = request->path()->begin(); it != request->path()->end(); ++it) {
     std::string const name = it->name() ? it->name()->c_str() : "";
@@ -59,6 +60,7 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    time_t interval_begin, time_t interval_end,
                                    bool const ontrip) {
   module::MessageCreator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
@@ -112,9 +114,10 @@ Offset<reliability::ProbabilityDistribution> convert(
     time_t event_time) {
   std::vector<float> probabilities;
   pd.get_probabilities(probabilities);
-  return CreateProbabilityDistribution(b, event_time + (pd.first_minute() * 60),
-                                       b.CreateVector(probabilities),
-                                       (float)pd.sum());
+  auto fpd = CreateProbabilityDistribution(
+      b, event_time + (pd.first_minute() * 60), b.CreateVector(probabilities),
+      (float)pd.sum());
+  return fpd;
 }
 
 /* write the distributions for all events */
@@ -243,6 +246,7 @@ module::msg_ptr to_reliability_rating_response(
     bool const short_output) {
   assert(orig_routing_response->connections()->size() == orig_ratings.size());
   module::MessageCreator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
   auto const routing_response =
       convert_routing_response(b, orig_routing_response);
   auto const conn_ratings = rating_converter::convert_ratings(
@@ -261,7 +265,7 @@ module::msg_ptr to_reliable_routing_request(
     std::string const& from_eva, std::string const& to_name,
     std::string const& to_eva, motis::time interval_begin,
     motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
-    Offset<RequestTypeWrapper>& request_type_wrapper) {
+    Offset<RequestOptionsWrapper>& request_type_wrapper) {
   std::vector<Offset<routing::StationPathElement>> station_elements;
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
@@ -288,8 +292,8 @@ module::msg_ptr to_rating_request(std::string const& from_name,
                                   motis::time interval_end,
                                   std::tuple<int, int, int> ddmmyyyy) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_RatingReq,
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_RatingReq,
       reliability::CreateRatingReq(b).Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,
@@ -302,8 +306,9 @@ module::msg_ptr to_reliable_routing_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_ReliableSearchReq,
+  b.ForceDefaults(true); /* necessary to write indices 0 */
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_ReliableSearchReq,
       reliability::CreateReliableSearchReq(b, min_dep_diff).Union());
   return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
                                      interval_begin, interval_end, ddmmyyyy,
@@ -317,8 +322,9 @@ module::msg_ptr to_connection_tree_request(
     std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
     short const min_dep_diff) {
   module::MessageCreator b;
-  auto request_type_wrapper = reliability::CreateRequestTypeWrapper(
-      b, reliability::RequestType_ConnectionTreeReq,
+  b.ForceDefaults(true); /* necessary to write indices 0 */
+  auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
+      b, reliability::RequestOptions_ConnectionTreeReq,
       reliability::CreateConnectionTreeReq(b, num_alternatives_at_stop,
                                            min_dep_diff)
           .Union());
@@ -330,7 +336,7 @@ module::msg_ptr to_connection_tree_request(
 Offset<ConnectionGraph> to_connection_graph(
     FlatBufferBuilder& b, search::connection_graph const& cg) {
   std::vector<Offset<Stop>> stops;
-  b.ForceDefaults(true); /* necessary to write indices 0 */
+
   for (auto const& stop : cg.stops_) {
     std::vector<Offset<Alternative>> alternative_infos;
     for (auto const& alternative_info : stop.alternative_infos_) {
@@ -342,14 +348,14 @@ Offset<ConnectionGraph> to_connection_graph(
           b, alternative_info.rating_.arrival_distribution_,
           journey.stops.back().arrival.timestamp);
       auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
+
       alternative_infos.push_back(
           CreateAlternative(b, alternative_info.journey_index_,
-                            alternative_info.head_stop_index_, rating));
+                            alternative_info.next_stop_index_, rating));
     }
     stops.push_back(
         CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
   }
-  b.ForceDefaults(false);
 
   std::vector<Offset<routing::Connection>> journeys;
   for (auto const& j : cg.journeys_) {
@@ -365,6 +371,7 @@ Offset<ConnectionGraph> to_connection_graph(
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const& cgs) {
   module::MessageCreator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
   std::vector<Offset<ConnectionGraph>> connection_graphs;
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));

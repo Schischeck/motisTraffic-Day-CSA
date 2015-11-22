@@ -3,6 +3,8 @@
 #include <functional>
 #include <unordered_set>
 
+#include "range/v3/all.hpp"
+
 #include "parser/cstr.h"
 
 #include "motis/core/common/hash_map.h"
@@ -20,6 +22,7 @@
 
 using namespace motis::logging;
 using namespace flatbuffers;
+using namespace ranges;
 
 namespace motis {
 namespace loader {
@@ -149,11 +152,18 @@ public:
   void add_service(Service const* service) {
     auto const& sections = service->sections();
 
+    auto traffic_days = get_or_create_bitfield(service->traffic_days());
+
+    if (!accumulate(view::ints(first_day_, last_day_ + 1), false,
+                    [&traffic_days](bool acc, int day) {
+                      return acc || traffic_days.test(day);
+                    })) {
+      return;
+    }
+
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-    auto traffic_days = get_or_create_bitfield(service->traffic_days());
-
     if (!is_unique_service(service, traffic_days, route_nodes)) {
       return;
     }
@@ -164,8 +174,12 @@ public:
       add_service_section(
           &route_nodes[section_idx]->_edges[1],
           service->sections()->Get(section_idx),
-          service->platforms()->Get(section_idx + 1)->arr_platforms(),
-          service->platforms()->Get(section_idx)->dep_platforms(),
+          service->platforms()
+              ? service->platforms()->Get(section_idx + 1)->arr_platforms()
+              : nullptr,
+          service->platforms()
+              ? service->platforms()->Get(section_idx)->dep_platforms()
+              : nullptr,
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days);
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
@@ -348,6 +362,10 @@ private:
     static constexpr int NO_TRACK = 0;
     if (sched_.tracks.empty()) {
       sched_.tracks.push_back("");
+    }
+
+    if (platforms == nullptr) {
+      return NO_TRACK;
     }
 
     auto track_it = std::find_if(

@@ -8,12 +8,12 @@
 #include <memory>
 #include <map>
 
-#include "parser/cstr.h"
-#include "parser/file.h"
-
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem.hpp"
 
 #include "flatbuffers/flatbuffers.h"
+
+#include "parser/cstr.h"
+#include "parser/file.h"
 
 namespace motis {
 namespace loader {
@@ -126,6 +126,9 @@ int hhmm_to_min(int hhmm);
 
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
+
+void collect_files(boost::filesystem::path const& root,
+                   std::vector<boost::filesystem::path>& files);
 
 }  // namespace loader
 }  // namespace motis

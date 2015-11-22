@@ -34,20 +34,29 @@ struct stop {
 
 struct transport {
   transport() = default;
-  transport(unsigned int from, unsigned int to, light_connection const* con)
+  transport(unsigned int from, unsigned int to, light_connection const* con,
+            unsigned int route_id)
       : from(from),
         to(to),
         con(con),
         duration(con->a_time - con->d_time),
-        slot(-1) {}
+        slot(-1),
+        route_id(route_id) {}
 
-  transport(unsigned int from, unsigned int to, unsigned int duration, int slot)
-      : from(from), to(to), con(nullptr), duration(duration), slot(slot) {}
+  transport(unsigned int from, unsigned int to, unsigned int duration, int slot,
+            unsigned int route_id)
+      : from(from),
+        to(to),
+        con(nullptr),
+        duration(duration),
+        slot(slot),
+        route_id(route_id) {}
 
   unsigned int from, to;
   light_connection const* con;
   unsigned int duration;
   int slot;
+  unsigned int route_id;
 };
 
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
@@ -129,7 +138,7 @@ parse_label_chain(label const* terminal_label) {
             current->_now, last_con != nullptr);
 
         transports.emplace_back(station_index, (unsigned int)station_index + 1,
-                                (*std::next(it))->_now - current->_now, -1);
+                                (*std::next(it))->_now - current->_now, -1, 0);
 
         walk_arrival = (*std::next(it))->_now;
 
@@ -141,7 +150,7 @@ parse_label_chain(label const* terminal_label) {
       case IN_CONNECTION:
         transports.emplace_back((unsigned int)station_index,
                                 (unsigned int)station_index + 1,
-                                current->_connection);
+                                current->_connection, current->_node->_route);
 
         // do not collect the last connection route node.
         assert(std::next(it) != end(labels));
@@ -170,7 +179,8 @@ parse_label_chain(label const* terminal_label) {
 journey::transport generate_journey_transport(unsigned int from,
                                               unsigned int to,
                                               intermediate::transport const& t,
-                                              schedule const& sched) {
+                                              schedule const& sched,
+                                              unsigned int route_id) {
   bool walk = false;
   std::string name;
   std::string cat_name;
@@ -222,12 +232,17 @@ journey::transport generate_journey_transport(unsigned int from,
           name = con_info->provider_->short_name;
         }
         break;
+
+      case category::CATEGORY_AND_LINE:
+        name = cat_name + " " + line_identifier;
+        break;
     }
   }
 
   return {from,     to,     walk,      name,
           cat_name, cat_id, train_nr,  line_identifier,
-          duration, slot,   direction, provider};
+          duration, slot,   direction, provider,
+          route_id};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -259,8 +274,8 @@ std::vector<journey::transport> generate_journey_transports(
 
     if (!con_info_eq(con_info, last_con_info)) {
       if (last != nullptr && isset_last) {
-        journey_transports.push_back(
-            generate_journey_transport(from, transport.from, *last, sched));
+        journey_transports.push_back(generate_journey_transport(
+            from, transport.from, *last, sched, last->route_id));
       }
 
       isset_last = true;
@@ -273,7 +288,7 @@ std::vector<journey::transport> generate_journey_transports(
 
   auto back = transports.back();
   journey_transports.push_back(
-      generate_journey_transport(from, back.to, *last, sched));
+      generate_journey_transport(from, back.to, *last, sched, back.route_id));
 
   return journey_transports;
 }

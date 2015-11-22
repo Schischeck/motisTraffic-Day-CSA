@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { DatePicker, FloatingActionButton, TimePicker, RaisedButton, ClearFix, RadioButton, RadioButtonGroup } from 'material-ui';
 
 import Server from '../Server';
+import RoutingRequest from '../Messages/RoutingRequest';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
 import Typeahead from './Typeahead';
 
@@ -46,35 +47,36 @@ export default class RoutingForm extends Component {
     });
   }
 
-  getData() {
-    // TODO: use client data to get eva numbers if possible
-    return Promise.all([
-      Server.sendMessage(new StationGuesserRequest(this.refs.fromInput.getValue(), 1)),
-      Server.sendMessage(new StationGuesserRequest(this.refs.toInput.getValue(), 1))
-    ]).then(responses => {
-      const from = responses[0].content.guesses[0].eva;
-      const to = responses[1].content.guesses[0].eva;
-      return {
-        'from': from,
-        'to': to,
-        date: this.state.time
-      };
-    });
+  getRequest() {
+    let fromValue = this.refs.fromInput.getValue();
+    let toValue = this.refs.toInput.getValue();
+    return new RoutingRequest(Math.floor(this.state.time / 1000), [
+      {
+        'name': fromValue.eva !== undefined ? fromValue.name : '',
+        'eva_nr': fromValue.eva === undefined ? fromValue.eva : ''
+      },
+      {
+        'name': toValue.eva !== undefined ? toValue.name : '',
+        'eva_nr': toValue.eva === undefined ? toValue.eva : ''
+      }
+    ]);
   }
 
   guessStation(input) {
+    console.log('guessing ', input);
     return new Promise((resolve) => {
       Server.sendMessage(new StationGuesserRequest(input)).then(response => {
+        console.log('resolving ', response);
         resolve(response.content.guesses);
       });
     });
   }
 
   switchStations() {
-    const fromValue = this.refs.fromInput.getValue();
-    const toValue = this.refs.toInput.getValue();
-    this.refs.fromInput.setValue(toValue);
-    this.refs.toInput.setValue(fromValue);
+    const fromState = this.refs.fromInput.state;
+    const toState = this.refs.toInput.state;
+    this.refs.toInput.setState(fromState);
+    this.refs.fromInput.setState(toState);
   }
 
   render() {

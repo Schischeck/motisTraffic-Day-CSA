@@ -42,26 +42,32 @@ void reliability::init() {
       distributions_container::precomputed_distributions_container>(
       new distributions_container::precomputed_distributions_container(
           schedule.node_count));
-  /*s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
-      new db_distributions("", 120,
-                           120));  // TODO: read max travel time from graph*/
+#ifdef USE_DB_DISTRIBUTINS
+  s_t_distributions_ = std::unique_ptr<
+      start_and_travel_distributions>(new db_distributions(
+      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/",
+      500,
+      120));  // TODO: read max travel time from graph
+  std::cout << "\ndb-distributions" << std::endl;
+#else
   s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
       new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
+#endif
   distributions_calculator::precomputation::perform_precomputation(
       schedule, *s_t_distributions_, *precomputed_distributions_);
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   auto req = msg->content<ReliableRoutingRequest const*>();
-  if (req->request_type()->request_type_type() == RequestType_RatingReq) {
+  if (req->request_type()->request_options_type() == RequestOptions_RatingReq) {
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
                                           this, p::_1, p::_2, cb));
   }
-  if (req->request_type()->request_type_type() ==
-      RequestType_ReliableSearchReq) {
+  if (req->request_type()->request_options_type() ==
+      RequestOptions_ReliableSearchReq) {
     auto req_info =
-        (ReliableSearchReq const*)req->request_type()->request_type();
+        (ReliableSearchReq const*)req->request_type()->request_options();
     return search::connection_graph_search::search_cgs(
         req, *this, session_id,
         std::make_shared<
@@ -70,10 +76,10 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
         std::bind(&reliability::handle_connection_graph_result, this, p::_1,
                   cb));
   }
-  if (req->request_type()->request_type_type() ==
-      RequestType_ConnectionTreeReq) {
+  if (req->request_type()->request_options_type() ==
+      RequestOptions_ConnectionTreeReq) {
     auto req_info =
-        (ConnectionTreeReq const*)req->request_type()->request_type();
+        (ConnectionTreeReq const*)req->request_type()->request_options();
     return search::connection_graph_search::search_cgs(
         req, *this, session_id,
         std::make_shared<search::connection_graph_search::simple_optimizer>(
@@ -99,19 +105,18 @@ void reliability::handle_routing_response(msg_ptr msg,
       res->connections()->size());
   unsigned int rating_index = 0;
   auto const journeys = journey_builder::to_journeys(res);
-
-  for (auto const& j : journeys) {
-    bool success = rating::rate(
-        ratings[rating_index], j,
-        context(schedule, *precomputed_distributions_, *s_t_distributions_));
-    success &= rating::simple_rating::rate(simple_ratings[rating_index], j,
-                                           schedule, *s_t_distributions_);
-    if (!success) {
-      std::cout << "\nError(reliability) could not rate the connections"
-                << std::endl;
-      return cb(nullptr, error::failure);
+  try {
+    for (auto const& j : journeys) {
+      rating::rate(
+          ratings[rating_index], j,
+          context(schedule, *precomputed_distributions_, *s_t_distributions_));
+      rating::simple_rating::rate(simple_ratings[rating_index], j, schedule,
+                                  *s_t_distributions_);
+      ++rating_index;
     }
-    ++rating_index;
+  } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    return cb(nullptr, error::failure);
   }
 
   cb(flatbuffers_tools::to_reliability_rating_response(

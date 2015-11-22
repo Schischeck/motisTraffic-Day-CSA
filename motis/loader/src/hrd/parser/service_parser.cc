@@ -74,6 +74,8 @@ void for_each_service(loaded_file const& file,
     } catch (parser_error const& e) {
       LOG(error) << "skipping bad service at " << e.filename << ":"
                  << e.line_number;
+    } catch (std::runtime_error const& e) {
+      LOG(error) << "skipping bad service: " << e.what();
     }
   });
 }
