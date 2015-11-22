@@ -6,6 +6,7 @@ import PaddedPaper from './PaddedPaper';
 import RoutingForm from './RoutingForm';
 import Map from './Map';
 import ConnectionView from './ConnectionView';
+import ServerConnectionIndicator from './ServerConnectionIndicator';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
@@ -79,16 +80,17 @@ export class App extends Component {
     <div>
       <div
            className={ style.overlay }
-           style={ { 'width': '100%', 'height': '100%'} }>
+           style={ {  'width': '100%',  'height': '100%'} }>
         <Map />
       </div>
       <div
            className={ style.overlay }
-           style={ { 'width': '100%'} }>
+           style={ {  'width': '100%'} }>
         <AppBar
                 title={ <span>MOTIS</span> }
                 iconElementLeft={ appIcon }
-                style={ { 'width': '100%'} } />
+                iconElementRight={ <ServerConnectionIndicator iconStyle={{ 'color': 'white' }}/> }
+                style={ {  'width': '100%'} } />
         <PaddedPaper
                      zDepth={ 1 }
                      className={ style.leftnav }>

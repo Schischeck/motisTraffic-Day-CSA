@@ -1,3 +1,5 @@
+import AppDispatcher from './Dispatcher';
+
 class Server {
   constructor(server) {
     this.requestId = 0;
@@ -5,25 +7,26 @@ class Server {
     this.pendingRequests = new Map();
 
     this._wsConnect();
-    setInterval(this._wsCheck.bind(this), 5000);
   }
 
   _wsConnect() {
     this.socket = new WebSocket(this.server);
     this.socket.onmessage = this._onMessage.bind(this);
     this.socket.onopen = () => {
-      console.log('connected');
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': true
+      });
     };
     this.socket.onclose = () => {
-      console.log('disconnected');
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': false
+      });
+      setTimeout(() => {
+        this._wsConnect();
+      }, 2000);
     };
-  }
-
-  _wsCheck() {
-    if (!this.socket || this.socket.readyState === 3) {
-      console.log('reconnect');
-      this._wsConnect();
-    }
   }
 
   _onMessage(evt) {
@@ -75,7 +78,11 @@ class Server {
         'content': message.content
       };
 
-      this.socket.send(JSON.stringify(request));
+      try {
+        this.socket.send(JSON.stringify(request));
+      } catch (e) {
+        reject(e);
+      }
 
       const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');
