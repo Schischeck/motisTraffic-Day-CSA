@@ -99,7 +99,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
 
   auto get_or_create_stop = [&](stop const* s) {
     return get_or_create(fbs_stations, s, [&]() {
-      return CreateStation(fbb, fbb.CreateString(s->name_),
+      return CreateStation(fbb, fbb.CreateString(s->id_),
                            fbb.CreateString(s->name_), s->lat_, s->lng_, 5,
                            fbb.CreateVector(std::vector<Offset<String>>()));
     });
