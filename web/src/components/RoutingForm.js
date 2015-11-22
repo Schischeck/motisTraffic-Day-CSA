@@ -65,10 +65,8 @@ export default class RoutingForm extends Component {
   }
 
   guessStation(input) {
-    console.log('guessing ', input);
     return new Promise((resolve) => {
       Server.sendMessage(new StationGuesserRequest(input)).then(response => {
-        console.log('resolving ', response);
         resolve(response.content.guesses);
       });
     });
@@ -92,11 +90,11 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'}}>
+                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
         <i className="material-icons">&#xE8D5;</i>
       </FloatingActionButton>
-      <div className={style.flexrow}>
-        <div className={style.flexcol}>
+      <div className={ style.flexrow }>
+        <div className={ style.flexcol }>
           <Typeahead
                      ref="fromInput"
                      hintText="From"
@@ -106,11 +104,11 @@ export default class RoutingForm extends Component {
                      hintText="To"
                      complete={ this.guessStation.bind(this) } />
         </div>
-        <div className={style.flexcol}>
+        <div className={ style.flexcol }>
           <DatePicker
                       floatingLabelText="Day"
-                      DateTimeFormat={Intl.DateTimeFormat}
-                      locale={'de'}
+                      DateTimeFormat={ Intl.DateTimeFormat }
+                      locale={ 'de' }
                       minDate={ now }
                       maxDate={ in8Weeks }
                       value={ this.state.time }
@@ -121,24 +119,22 @@ export default class RoutingForm extends Component {
                       floatingLabelText="Time"
                       container="inline"
                       onChange={ this.onTimeChange.bind(this) } />
-          </div>
+        </div>
       </div>
-      <div style={{ 'marginTop': '14px'}} >
+      <div style={ { 'marginTop': '14px'} }>
         <RadioButtonGroup
-                          style={{'display': 'flex',
-                                  'width': '50%',
-                                  'flexDirection': 'row'}}
+                          style={ { 'display': 'flex', 'width': '50%', 'flexDirection': 'row'} }
                           name="arrdep"
                           valueSelected="Forward">
           <RadioButton
-            value="Forward"
-            label="Departure"
-            style={{marginBottom: 16}} />
+                       value="Forward"
+                       label="Departure"
+                       style={ { marginBottom: 16} } />
           <RadioButton
-            value="Backward"
-            label="Arrival"
-            disabled={true}
-            style={{marginBottom: 16}}/>
+                       value="Backward"
+                       label="Arrival"
+                       disabled={ true }
+                       style={ { marginBottom: 16} } />
         </RadioButtonGroup>
       </div>
       <RaisedButton

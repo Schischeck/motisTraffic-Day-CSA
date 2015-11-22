@@ -1,19 +1,22 @@
 class Server {
   constructor(server) {
     this.requestId = 0;
-    this.socket = new WebSocket(server);
+    this.server = server;
+    this.pendingRequests = new Map();
+
+    this._wsConnect();
+    setInterval(() => {
+      if (!this.socket || this.socket.readyState === 3) {
+        this._wsConnect();
+    }}, 5000);
+  }
+
+  _wsConnect() {
+    this.socket = new WebSocket(this.server);
     this.socket.onmessage = this._onmessage.bind(this);
-    this.socket.onclose = () => {
-      console.log('close', arguments);
-    };
-    this.socket.onerror = () => {
-      console.log('error', arguments);
-    };
     this.socket.onopen = () => {
       console.log('open', arguments);
     };
-
-    this.pendingRequests = new Map();
   }
 
   _onmessage(evt) {

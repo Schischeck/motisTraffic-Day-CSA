@@ -9,8 +9,10 @@ export default class PaddedPaper extends Component {
 
   render() {
     return (
-    <Paper {...this.props} style={{'padding': '20px'}}>
-        { this.props.children }
+    <Paper
+           {...this.props}
+           style={ { 'padding': '20px'} }>
+      { this.props.children }
     </Paper>
     );
   }
