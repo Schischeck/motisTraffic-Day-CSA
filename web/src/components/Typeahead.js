@@ -43,7 +43,8 @@ export default class Typeahead extends React.Component {
 
   _onChange(e) {
     this.setState({
-      value: e.target.value
+      value: e.target.value,
+      selectedCompletion: undefined
     });
     this._fetchCompletions(e);
   }

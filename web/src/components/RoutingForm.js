@@ -50,14 +50,16 @@ export default class RoutingForm extends Component {
   getRequest() {
     const fromValue = this.refs.fromInput.getValue();
     const toValue = this.refs.toInput.getValue();
+    const fromHasEva = fromValue.eva !== undefined;
+    const toHasEva = toValue.eva !== undefined;
     return new RoutingRequest(Math.floor(this.state.time / 1000), [
       {
-        'name': fromValue.eva !== undefined ? fromValue.name : '',
-        'eva_nr': fromValue.eva === undefined ? fromValue.eva : ''
+        'name': fromHasEva ? '' : fromValue.name,
+        'eva_nr': fromHasEva ? fromValue.eva : ''
       },
       {
-        'name': toValue.eva !== undefined ? toValue.name : '',
-        'eva_nr': toValue.eva === undefined ? toValue.eva : ''
+        'name': toHasEva ? '' : toValue.name,
+        'eva_nr': toHasEva ? toValue.eva : ''
       }
     ]);
   }
