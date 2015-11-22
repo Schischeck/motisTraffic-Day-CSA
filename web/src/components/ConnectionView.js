@@ -4,9 +4,42 @@ import { CircularProgress } from 'material-ui';
 
 import style from './ConnectionView.scss';
 
+function mod(a, n) {
+  return ((a % n) + n) % n;
+}
+
 export default class ConnectionView extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      selectedIndex: 0
+    };
+  }
+
+  componentDidMount() {
+    document.addEventListener("keydown", this._onKeyPress.bind(this), false);
+  }
+
+  _onKeyPress(e) {
+    switch (e.keyCode) {
+      // LEFT
+      case 37:
+        this._updateSelectedIndex(this.state.selectedIndex - 1);
+        break;
+
+      // RIGHT
+      case 39:
+        this._updateSelectedIndex(this.state.selectedIndex + 1);
+        break;
+
+      default: // nop
+    }
+  }
+
+  _updateSelectedIndex(index) {
+    this.setState({
+      selectedIndex: mod(index, this.props.connections.length)
+    });
   }
 
   toTimeString(timestamp) {
@@ -64,9 +97,10 @@ export default class ConnectionView extends Component {
               </div>);
     }
 
-    const con = this.props.connections[this.props.connections.length - 1];
+    const con = this.props.connections[this.state.selectedIndex];
     return (
     <div className={ style.conWrap }>
+      <span>{this.state.selectedIndex + 1} / {this.props.connections.length}</span>
       <ul className={ style.con }>
         { con.stops.map((stop, i) => {
             return {
