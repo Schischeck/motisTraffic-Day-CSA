@@ -46,8 +46,8 @@ export default class RoutingForm extends Component {
   }
 
   getRequest() {
-    let fromValue = this.refs.fromInput.getValue();
-    let toValue = this.refs.toInput.getValue();
+    const fromValue = this.refs.fromInput.getValue();
+    const toValue = this.refs.toInput.getValue();
     return new RoutingRequest(Math.floor(this.state.time / 1000), [
       {
         'name': fromValue.eva !== undefined ? fromValue.name : '',

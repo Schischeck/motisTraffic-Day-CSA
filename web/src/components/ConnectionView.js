@@ -62,7 +62,7 @@ export default class ConnectionView extends Component {
             console.log(stop);
             const attrs = this.makeAttributes(con, i + 1);
             const arr = i !== 0 ? this.makeArrivalElement(stop.arrival.time) : <div />;
-            const dep = i !== src.length - 1 ? this.makeArrivalElement(stop.arrival.time) : <div />;
+            const dep = i !== src.length - 1 ? this.makeArrivalElement(stop.departure.time) : <div />;
             return ( <li
                          key={ i }
                          className={ style.stop }>

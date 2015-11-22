@@ -27,9 +27,10 @@ export default class Typeahead extends React.Component {
   getValue() {
     if (this.state.selectedCompletion !== undefined) {
       return this.state.selectedCompletion;
-    } else {
-      return { name: this.state.value };
     }
+    return {
+      name: this.state.value
+    };
   }
 
   _fetchCompletions(evt) {

@@ -9,7 +9,6 @@ import ConnectionView from './ConnectionView';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
-import RoutingRequest from '../Messages/RoutingRequest';
 
 import style from './App.scss';
 
