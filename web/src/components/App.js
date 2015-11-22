@@ -81,7 +81,7 @@ export class App extends Component {
                 style={ { 'width': '100%'} } />
         <PaddedPaper
                      zDepth={ 1 }
-                     style={ { position: 'fixed', 'height': '100%', left: '0', zIndex: 1} }>
+                     className={style.leftnav}>
           <RoutingForm
                        ref="routingform"
                        disabled={ this.state.waiting }

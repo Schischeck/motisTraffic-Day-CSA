@@ -1,6 +1,12 @@
-.connection {
+.conWrap {
+  overflow: auto;
+  margin-top: 20px;
+}
+
+.con {
   list-style: none;
   padding: 0;
+  overflow: auto;
 }
 
 .stop {

@@ -54,8 +54,8 @@ export default class ConnectionView extends Component {
 
     const con = this.props.connections[this.props.connections.length - 1];
     return (
-    <div>
-      <ul className={ style.connection }>
+    <div className={ style.conWrap }>
+      <ul className={ style.con }>
         { con.stops.filter((stop, i) => {
             return i === 1 || i === con.stops.length - 2 || stop.interchange;
           }).map((stop, i, src) => {

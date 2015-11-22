@@ -1,0 +1,17 @@
+.flexcol {
+  display: flex;
+  flex-direction: column;
+}
+
+.flexrow {
+  display: flex;
+  flex-direction: row;
+}
+
+.flexrow > * {
+  padding-left: 20px;
+}
+
+.flexrow > div:first-child {
+  padding-left: 0;
+}
