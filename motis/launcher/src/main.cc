@@ -19,6 +19,7 @@
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 
+#include "motis/connectionchecker/connectionchecker.h"
 #include "motis/guesser/guesser.h"
 #include "motis/railviz/railviz.h"
 #include "motis/reliability/reliability.h"
@@ -50,6 +51,7 @@ int main(int argc, char** argv) {
   modules.emplace_back(new railviz::railviz());
   modules.emplace_back(new realtime::realtime());
   modules.emplace_back(new ris::ris());
+  modules.emplace_back(new connectionchecker::connectionchecker());
 
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);

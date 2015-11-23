@@ -14,6 +14,7 @@ target_link_libraries(motis
   conf
   motis-loader
   motis-module
+  motis-connectionchecker
   motis-guesser
   motis-railviz
   motis-realtime

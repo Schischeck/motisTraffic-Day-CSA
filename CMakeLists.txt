@@ -58,6 +58,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/connectionchecker/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
@@ -86,7 +87,15 @@ function(add_modules)
     add_subdirectory(modules/${module})
   endforeach(module)
 endfunction()
-add_modules(guesser railviz realtime reliability ris routing)
+add_modules(
+  connectionchecker
+  guesser
+  railviz
+  realtime
+  reliability
+  ris
+  routing
+)
 
 add_subdirectory(motis/launcher)
 
