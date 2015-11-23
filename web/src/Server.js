@@ -1,5 +1,3 @@
-import Actions from './flux-infra/Actions';
-
 class Server {
   constructor(server) {
     this.requestId = 0;
@@ -15,19 +13,24 @@ class Server {
       console.log('open', arguments);
     };
 
-    this.pendingRequests = {};
+    this.pendingRequests = new Map();
   }
 
   _onmessage(evt) {
-    this._resolvePending(JSON.parse(evt.data));
+    const msg = evt.data.replace(/\\x/g, '\\u00');
+    try {
+      this._resolvePending(JSON.parse(msg));
+    } catch (e) {
+      console.error('invalid json', msg);
+    }
   }
 
   _isPendingRequest(id) {
-    return this.pendingRequests[id] !== undefined;
+    return this.pendingRequests.has(id);
   }
 
   _cancelTimeout(id) {
-    clearTimeout(this.pendingRequests[id].timer);
+    clearTimeout(this.pendingRequests.get(id).timer);
   }
 
   _resolvePending(data) {
@@ -36,8 +39,12 @@ class Server {
     }
 
     this._cancelTimeout(data.id);
-    this.pendingRequests[data.id].resolve(data);
-    delete this.pendingRequests[data.id];
+    if (data.content_type === 'MotisError') {
+      this.pendingRequests.get(data.id).reject(data);
+    } else {
+      this.pendingRequests.get(data.id).resolve(data);
+    }
+    this.pendingRequests.delete(data.id);
   }
 
   _rejectPending(id, reason) {
@@ -46,14 +53,14 @@ class Server {
     }
 
     this._cancelTimeout(id);
-    this.pendingRequests[id].reject(reason);
-    delete this.pendingRequests[id];
+    this.pendingRequests.get(id).reject(reason);
+    this.pendingRequests.delete(id);
   }
 
   sendMessage(message) {
     return new Promise((resolve, reject) => {
-      let localRequestId = ++this.requestId;
-      let request = {
+      const localRequestId = ++this.requestId;
+      const request = {
         'id': localRequestId,
         'content_type': message.contentType,
         'content': message.content
@@ -61,15 +68,15 @@ class Server {
 
       this.socket.send(JSON.stringify(request));
 
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');
-      }, 1000);
+      }, message.timeout);
 
-      this.pendingRequests[localRequestId] = {
+      this.pendingRequests.set(localRequestId, {
         resolve: resolve,
         reject: reject,
         timer: timer
-      };
+      });
     });
   }
 }
