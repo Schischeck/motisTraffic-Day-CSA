@@ -151,6 +151,10 @@ public:
   }
 
   void add_rule_services(Vector<Offset<RuleService>> const* rule_services) {
+    if (rule_services == nullptr) {
+      return;
+    }
+
     printf("\n");
     printf("from day: %d\n", first_day_);
     printf("to day: %d\n", last_day_);
@@ -258,50 +262,30 @@ public:
              to_station);
 
       if (build && to_station == s1_idx) {
+        // -- MERGE STATION - STOP BUILDING --
         printf("stopping to build\n");
         printf("reusing route node %d at %s as target\n", (*s1_rn)->_id,
                sched_.stations[(*s1_rn)->get_station()->_id]->name.c_str());
         build = false;
       } else if (section_idx == 0 && from_station == s1_idx) {
+        // -- MERGE STATION - STOP BUILDING --
+        // FIRST STATION, NOTHING TO DO
         printf("first station == merge station -> nothing to do here\n");
         build = false;
       } else if (!build && from_station == s2_idx) {
+        // -- SPLIT STATION - START BUILDING --
         printf("starting to build\n");
         printf("reusing route node %d at %s as source\n", (*s2_rn)->_id,
                sched_.stations[(*s2_rn)->get_station()->_id]->name.c_str());
         build = true;
       } else if (section_idx == sections->size() - 1 && to_station == s2_idx) {
+        // -- SPLIT STATION - START BUILDING --
+        // LAST STATION - NOTHING TO DO
         printf("last station == split station -> nothing to do here\n");
       }
 
-      /*
-      add_service_section(
-          &(*route_nodes)[section_idx]->_edges[1],
-          service->sections()->Get(section_idx),
-          service->platforms()->Get(section_idx + 1)->arr_platforms(),
-          service->platforms()->Get(section_idx)->dep_platforms(),
-          service->times()->Get(section_idx * 2 + 1),
-          service->times()->Get(section_idx * 2 + 2), traffic_days);
-      */
+      printf("\n");
     }
-    //
-    //    bool build = true;
-    //    for (auto const& route_node : *route_nodes) {
-    //      auto station_id = route_node->get_station()->_id;
-    //      if (build && station_id == s1_idx) {
-    //        printf("stopping to build\n");
-    //        printf("reusing route node %d at %s as target\n", route_node->_id,
-    //               sched_.stations[station_id]->name.c_str());
-    //        build = false;
-    //      } else if (!build && station_id == s2_idx) {
-    //        printf("starting to build\n");
-    //        printf("reusing route node %d at %s as source\n", route_node->_id,
-    //               sched_.stations[station_id]->name.c_str());
-    //        build = true;
-    //      }
-    //      printf("[%c] %s\n", build ? 'X' : ' ',
-    //             sched_.stations[station_id]->name.c_str());
-    //    }
 
     printf("--- ADDING REMAINING SECTIONS END   ---\n");
     return nullptr;
@@ -547,51 +531,56 @@ private:
       auto section = add_route_section(
           route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
           out_allowed->Get(stop_idx), last_route_edge,
-          stop_idx == stops->size() - 1);
+          stop_idx != stops->size() - 1);
       route_nodes->push_back(section.first);
       last_route_edge = section.second;
+
+      if (stop_idx == 0) {
+        sched_.route_index_to_first_route_node.push_back(section.first);
+      }
     }
     return route_nodes;
   }
 
-  std::pair<node*, edge*> add_route_section(int route_index,
-                                            Station const* from_stop,
-                                            bool in_allowed, bool out_allowed,
-                                            edge* last_route_edge,
-                                            bool build_outgoing_route_edge,
-                                            node* next_route_node = nullptr) {
+  std::pair<node*, edge*> add_route_section(
+      int route_index, Station const* from_stop, bool in_allowed,
+      bool out_allowed, edge* last_route_edge, bool build_outgoing_route_edge,
+      node* route_node = nullptr, node* next_route_node = nullptr) {
     auto const& station_node = stations_[from_stop];
     auto station_id = station_node->_id;
-    auto route_node = new node(station_node, next_node_id_++);
-    route_node->_route = route_index;
 
-    // Connect the new route node with the corresponding station node:
-    // route -> station: edge cost = change time, interchange count
-    // station -> route: free
-    if (!in_allowed) {
-      station_node->_edges.push_back(
-          make_invalid_edge(station_node, route_node));
-    } else {
-      station_node->_edges.push_back(make_foot_edge(station_node, route_node));
-    }
-    if (!out_allowed) {
-      route_node->_edges.push_back(make_invalid_edge(route_node, station_node));
-    } else {
-      route_node->_edges.push_back(
-          make_foot_edge(route_node, station_node,
-                         sched_.stations[station_id]->transfer_time, true));
+    if (route_node == nullptr) {
+      route_node = new node(station_node, next_node_id_++);
+      route_node->_route = route_index;
+
+      // Connect the new route node with the corresponding station node:
+      // route -> station: edge cost = change time, interchange count
+      // station -> route: free
+      if (!in_allowed) {
+        station_node->_edges.push_back(
+            make_invalid_edge(station_node, route_node));
+      } else {
+        station_node->_edges.push_back(
+            make_foot_edge(station_node, route_node));
+      }
+      if (!out_allowed) {
+        route_node->_edges.push_back(
+            make_invalid_edge(route_node, station_node));
+      } else {
+        route_node->_edges.push_back(
+            make_foot_edge(route_node, station_node,
+                           sched_.stations[station_id]->transfer_time, true));
+      }
     }
 
     // Connect route nodes with route edges.
-    if (!build_outgoing_route_edge) {
+    if (build_outgoing_route_edge) {
       route_node->_edges.push_back(
           make_route_edge(route_node, next_route_node, {}));
     }
     if (last_route_edge != nullptr) {
       last_route_edge->_to = route_node;
       route_node->_incoming_edges.push_back(last_route_edge);
-    } else {
-      sched_.route_index_to_first_route_node.push_back(route_node);
     }
 
     return {route_node, &route_node->_edges.back()};
