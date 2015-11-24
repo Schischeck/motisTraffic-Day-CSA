@@ -177,13 +177,9 @@ void rate_alternative_in_cg(
 
   auto connection_elements = rating::connection_to_graph_data::get_elements(
       context.schedule_, alternative_journey);
-  assert(connection_elements.first);
-  if (!connection_elements.first) {
-    return;
-  }
 
   interchange_info ic_info(last_element.first,
-                           connection_elements.second.front().front(),
+                           connection_elements.front().front(),
                            context.schedule_);
   auto const filtered_arrival_distribution =
       scheduled_transfer_filter(cg_context, stop, last_element.second, ic_info);
@@ -191,7 +187,7 @@ void rate_alternative_in_cg(
   /* rate departing alternative */
   std::tie(alternative.rating_.departure_distribution_,
            alternative.rating_.arrival_distribution_) =
-      rate(connection_elements.second, last_element.first,
+      rate(connection_elements, last_element.first,
            filtered_arrival_distribution, context);
 
   update_uncovered_arrival_distribution(cg_context, stop, last_element.second,

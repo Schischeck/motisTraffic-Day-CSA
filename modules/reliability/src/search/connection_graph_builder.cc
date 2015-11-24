@@ -184,6 +184,14 @@ void add_alternative_journey(connection_graph& cg,
                              journey const& j) {
   auto journeys = detail::split_journey(detail::remove_dummy_stops(j));
 
+  /* todo:
+   * call function: std::vector<unsigned int> add_journeys(cg, journeys);
+   * for each journey, this function check whether it is already contained in
+   * cg.journeys. Only if not, it adds the journey to cg.journeys.
+   * The indices of the journeys (either added or found in cg.journeys) are
+   * delivered and used in the following for-loop.
+   * (The for-loop would not touch cg.journeys anymore) */
+
   unsigned int stop_idx = first_stop_idx, journey_count = 0;
   for (auto const& j : journeys) {
     auto& stop = detail::get_stop(cg, first_stop_idx, stop_idx);

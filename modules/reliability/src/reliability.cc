@@ -42,7 +42,7 @@ void reliability::init() {
       distributions_container::precomputed_distributions_container>(
       new distributions_container::precomputed_distributions_container(
           schedule.node_count));
-#if USE_DB_DISTRIBUTINS
+#ifdef USE_DB_DISTRIBUTINS
   s_t_distributions_ = std::unique_ptr<
       start_and_travel_distributions>(new db_distributions(
       "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/",
@@ -105,19 +105,18 @@ void reliability::handle_routing_response(msg_ptr msg,
       res->connections()->size());
   unsigned int rating_index = 0;
   auto const journeys = journey_builder::to_journeys(res);
-
-  for (auto const& j : journeys) {
-    bool success = rating::rate(
-        ratings[rating_index], j,
-        context(schedule, *precomputed_distributions_, *s_t_distributions_));
-    success &= rating::simple_rating::rate(simple_ratings[rating_index], j,
-                                           schedule, *s_t_distributions_);
-    if (!success) {
-      std::cout << "\nError(reliability) could not rate the connections"
-                << std::endl;
-      return cb(nullptr, error::failure);
+  try {
+    for (auto const& j : journeys) {
+      rating::rate(
+          ratings[rating_index], j,
+          context(schedule, *precomputed_distributions_, *s_t_distributions_));
+      rating::simple_rating::rate(simple_ratings[rating_index], j, schedule,
+                                  *s_t_distributions_);
+      ++rating_index;
     }
-    ++rating_index;
+  } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
+    return cb(nullptr, error::failure);
   }
 
   cb(flatbuffers_tools::to_reliability_rating_response(

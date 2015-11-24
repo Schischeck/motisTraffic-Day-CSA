@@ -70,9 +70,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
                                                           {0.1, 0.8, 0.1}, -1);
 
     simple_connection_rating rating;
-    bool success =
-        rate(rating, journeys.front(), *schedule_, s_t_distributions);
-    ASSERT_TRUE(success);
+    rate(rating, journeys.front(), *schedule_, s_t_distributions);
     ASSERT_TRUE(rating.ratings_elements_.size() == 2);
     ASSERT_EQ(1, rating.ratings_elements_[0].from_);
     ASSERT_TRUE(rating.ratings_elements_[0].to_ == 2);
@@ -114,10 +112,8 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
     simple_connection_rating rating;
-    bool success =
-        rate(rating, journeys.front(), *schedule_, s_t_distributions);
+    rate(rating, journeys.front(), *schedule_, s_t_distributions);
 
-    ASSERT_TRUE(success);
     ASSERT_TRUE(rating.ratings_elements_.size() == 3);
     {
       auto const& rating_element = rating.ratings_elements_[0];

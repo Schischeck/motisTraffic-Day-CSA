@@ -60,17 +60,14 @@ probability rate_interchange(
   return travel_time_distribution.probability_smaller_equal(delay);
 }
 
-bool rate(simple_connection_rating& rating, journey const& journey,
+void rate(simple_connection_rating& rating, journey const& journey,
           schedule const& schedule,
           start_and_travel_distributions const& s_t_distributions) {
   auto const connection_elements =
       rating::connection_to_graph_data::get_elements(schedule, journey);
-  if (!connection_elements.first) {
-    return false;
-  }
 
-  for (unsigned int idx = 0; idx < connection_elements.second.size(); ++idx) {
-    auto const& ce = connection_elements.second[idx];
+  for (unsigned int idx = 0; idx < connection_elements.size(); ++idx) {
+    auto const& ce = connection_elements[idx];
     rating.ratings_elements_.emplace_back(ce.front().departure_stop_idx_,
                                           ce.back().arrival_stop_idx());
     auto& element_ratings = rating.ratings_elements_.back().ratings_;
@@ -81,9 +78,9 @@ bool rate(simple_connection_rating& rating, journey const& journey,
     if (idx > 0) {
       element_ratings.emplace_back(
           rating_type::Interchange,
-          rate_interchange(connection_elements.second[idx - 1].front(),
-                           connection_elements.second[idx - 1].back(),
-                           ce.front(), s_t_distributions, schedule));
+          rate_interchange(connection_elements[idx - 1].front(),
+                           connection_elements[idx - 1].back(), ce.front(),
+                           s_t_distributions, schedule));
     }
   }
 
@@ -92,8 +89,7 @@ bool rate(simple_connection_rating& rating, journey const& journey,
     for (auto const rating_prob : transport.ratings_) {
       rating.connection_rating_ *= rating_prob.second;
     }
-  }
-  return true;
+  };
 }
 
 std::string to_string(rating_type const t) {

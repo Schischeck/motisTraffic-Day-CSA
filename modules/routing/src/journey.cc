@@ -196,11 +196,19 @@ journey::transport generate_journey_transport(unsigned int from,
     walk = true;
     slot = t.slot;
   } else {
+    std::string print_train_nr;
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
     cat_id = con_info->family;
     cat_name = sched.categories[con_info->family]->name;
     train_nr = con_info->train_nr;
+    if (train_nr != 0) {
+      print_train_nr = boost::lexical_cast<std::string>(train_nr);
+    } else if (train_nr == 0 && !line_identifier.empty()) {
+      print_train_nr = line_identifier;
+    } else {
+      print_train_nr = "";
+    }
     if (con_info->dir_ != nullptr) {
       direction = *con_info->dir_;
     }
@@ -209,13 +217,13 @@ journey::transport generate_journey_transport(unsigned int from,
     }
     switch (sched.categories[con_info->family]->output_rule) {
       case category::CATEGORY_AND_TRAIN_NUM:
-        name = cat_name + " " + boost::lexical_cast<std::string>(train_nr);
+        name = cat_name + " " + print_train_nr;
         break;
 
       case category::CATEGORY: name = cat_name; break;
 
       case category::TRAIN_NUM:
-        name = boost::lexical_cast<std::string>(train_nr);
+        name = print_train_nr;
         break;
 
       case category::NOTHING: break;
@@ -224,13 +232,17 @@ journey::transport generate_journey_transport(unsigned int from,
         if (con_info->provider_ != nullptr) {
           name = con_info->provider_->short_name + " ";
         }
-        name += boost::lexical_cast<std::string>(train_nr);
+        name += print_train_nr;
         break;
 
       case category::PROVIDER:
         if (con_info->provider_ != nullptr) {
           name = con_info->provider_->short_name;
         }
+        break;
+
+      case category::CATEGORY_AND_LINE:
+        name = cat_name + " " + line_identifier;
         break;
     }
   }

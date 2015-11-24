@@ -12,7 +12,8 @@ struct category {
     TRAIN_NUM,
     NOTHING,
     PROVIDER_AND_TRAIN_NUM,
-    PROVIDER
+    PROVIDER,
+    CATEGORY_AND_LINE
   };
 
   category(std::string name, uint8_t output_rule)

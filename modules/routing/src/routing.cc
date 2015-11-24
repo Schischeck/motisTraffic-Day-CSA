@@ -104,6 +104,11 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto lock = synced_sched<schedule_access::RO>();
     auto const& sched = lock.sched();
 
+    if (req->interval()->begin() < sched.schedule_begin_ ||
+        req->interval()->end() >= sched.schedule_end_) {
+      return cb({}, error::journey_date_not_in_schedule);
+    }
+
     auto i_begin =
         unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
     auto i_end =

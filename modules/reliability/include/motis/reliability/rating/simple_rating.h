@@ -29,7 +29,7 @@ struct simple_connection_rating {
   probability connection_rating_;
 };
 
-bool rate(simple_connection_rating&, journey const&, schedule const&,
+void rate(simple_connection_rating&, journey const&, schedule const&,
           start_and_travel_distributions const&);
 
 std::string to_string(rating_type const);
