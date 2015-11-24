@@ -100,7 +100,10 @@ export default class ConnectionView extends Component {
     const con = this.props.connections[this.state.selectedIndex];
     return (
     <div className={ style.conWrap }>
-      <span>{this.state.selectedIndex + 1} / {this.props.connections.length}</span>
+      <span>
+        {this.state.selectedIndex + 1} / {this.props.connections.length}
+        (Duration: {(con.stops[con.stops.length - 1].arrival.time - con.stops[0].departure.time)  / 60.0})
+      </span>
       <ul className={ style.con }>
         { con.stops.map((stop, i) => {
             return {

@@ -169,13 +169,13 @@ void search::generate_start_labels(time const from, time const to,
 void search::generate_start_labels(time const from, time const to,
                                    station_node const* start_station_node,
                                    node const* route_node,
-                                   std::vector<label*>& indices,
+                                   std::vector<label*>& start_labels,
                                    station_node const* real_start, int time_off,
                                    int start_price, int slot,
                                    lower_bounds& lower_bounds) {
   for (auto const& edge : route_node->_edges) {
     // not a route-edge?
-    if (edge.get_destination() == start_station_node) {
+    if (edge.empty()) {
       continue;
     }
 
@@ -218,7 +218,7 @@ void search::generate_start_labels(time const from, time const to,
 
       if (route_node_label->_travel_time[1] !=
           std::numeric_limits<uint16_t>::max()) {
-        indices.push_back(route_node_label);
+        start_labels.push_back(route_node_label);
       }
 
       t = t + 1;
