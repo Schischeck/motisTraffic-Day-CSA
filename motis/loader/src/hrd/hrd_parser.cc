@@ -54,7 +54,9 @@ enum filename_key {
   PROVIDERS,
   THROUGH_SERVICES,
   MERGE_SPLIT_SERVICES,
-  TIMEZONES
+  TIMEZONES,
+  FOOTPATHS_REG,
+  FOOTPATHS_EXT
 };
 
 std::vector<std::vector<std::string>> const required_files = {
@@ -70,7 +72,9 @@ std::vector<std::vector<std::string>> const required_files = {
     {PROVIDERS_FILE},
     {THROUGH_SERVICES_FILE},
     {MERGE_SPLIT_SERVICES_FILE},
-    {TIMEZONES_FILE}};
+    {TIMEZONES_FILE},
+    {FOOTPATHS_REG_FILE},
+    {FOOTPATHS_EXT_FILE}};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const core_data_root = path / CORE_DATA;

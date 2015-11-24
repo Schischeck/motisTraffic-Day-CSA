@@ -23,6 +23,8 @@ constexpr char const* PROVIDERS_FILE = "unternehmen_ris.101";
 constexpr char const* THROUGH_SERVICES_FILE = "durchbi.101";
 constexpr char const* MERGE_SPLIT_SERVICES_FILE = "vereinig_vt.101";
 constexpr char const* TIMEZONES_FILE = "zeitvs.101";
+constexpr char const* FOOTPATHS_REG_FILE = "metabhf.101";
+constexpr char const* FOOTPATHS_EXT_FILE = "metabhf_zusatz.101";
 
 }  // namespace hrd
 }  // namespace loader

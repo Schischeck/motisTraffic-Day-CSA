@@ -84,7 +84,23 @@ int station_meta_data::get_station_change_time(int eva_num) const {
   }
 }
 
+void parse_and_add_hrd_footpaths(
+    loaded_file const& metabhf_file,
+    std::vector<station_meta_data::footpath>& footpaths) {
+  for_each_line(metabhf_file.content(), [](cstr line) {
+    if (line.length() < 20 || line[0] == '%' || line[0] == '*' ||
+        line[7] == ':') {
+      continue;
+    }
+    footpaths.emplace_back(parse<int>(line.substr(0, size(7))),
+                           parse<int>(line.substr(8, size(7))),
+                           parse<int>(line.substr(17, size(3))));
+  });
+}
+
 void parse_station_meta_data(loaded_file const& infotext_file,
+                             loaded_file const& metabhf_file,
+                             loaded_file const& metabhf_zusatz_file,
                              station_meta_data& metas) {
   parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
@@ -111,6 +127,9 @@ void parse_station_meta_data(loaded_file const& infotext_file,
       }
     }
   }
+
+  parse_and_add_hrd_footpaths(metabhf_file, metas.footpaths_);
+  parse_and_add_hrd_footpaths(metabhf_zusatz_file, metas.footpaths_);
 }
 
 const char* station_meta_data::MINCT = R"(AA;;7;4
