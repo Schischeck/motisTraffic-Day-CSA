@@ -52,6 +52,4 @@ struct journey {
   std::vector<attribute> attributes;
 };
 
-
-
 }  // namespace motis
