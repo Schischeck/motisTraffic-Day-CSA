@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "motis/core/common/journey.h"
+#include "motis/core/journey/journey.h"
 
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"

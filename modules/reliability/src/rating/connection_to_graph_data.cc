@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "motis/core/common/journey.h"
+#include "motis/core/journey/journey.h"
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/graph_accessor.h"

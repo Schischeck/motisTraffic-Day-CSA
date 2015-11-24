@@ -1,4 +1,4 @@
-#include "motis/routing/journey.h"
+#include "motis/routing/labels_to_journey.h"
 
 #include "boost/lexical_cast.hpp"
 
@@ -356,7 +356,7 @@ std::vector<journey::attribute> generate_journey_attributes(
   return journey_attributes;
 }
 
-journey to_journey(label const* label, schedule const& sched) {
+journey labels_to_journey(label const* label, schedule const& sched) {
   journey j;
   auto parsed = intermediate::parse_label_chain(label);
   std::vector<intermediate::stop> const& s = parsed.first;

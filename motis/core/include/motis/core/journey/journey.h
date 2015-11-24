@@ -43,10 +43,15 @@ struct journey {
     std::string text;
   };
 
+  uint16_t get_duration() const;
+  uint16_t get_transfers() const;
+
   unsigned int duration, transfers, price;
   std::vector<stop> stops;
   std::vector<transport> transports;
   std::vector<attribute> attributes;
 };
+
+
 
 }  // namespace motis

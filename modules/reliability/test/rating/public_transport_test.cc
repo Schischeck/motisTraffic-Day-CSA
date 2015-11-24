@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
-#include "motis/core/common/journey.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/schedule.h"
@@ -137,7 +137,7 @@ TEST_F(reliability_public_transport2, rate) {
       false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = journey_builder::to_journeys(
+    auto const journeys = message_to_journeys(
         msg->content<routing::RoutingResponse const*>());
 
     ASSERT_TRUE(journeys.size() == 1);
@@ -280,7 +280,7 @@ TEST_F(reliability_public_transport5, rate2) {
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = journey_builder::to_journeys(
+    auto const journeys = message_to_journeys(
         msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
@@ -371,7 +371,7 @@ TEST_F(reliability_public_transport3, rate_foot) {
       (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = journey_builder::to_journeys(
+    auto const journeys = message_to_journeys(
         msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
