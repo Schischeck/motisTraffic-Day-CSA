@@ -6,7 +6,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
@@ -147,7 +147,7 @@ void handle_base_response(motis::module::msg_ptr msg,
   if (e) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
-  auto journeys = journey_builder::to_journeys(
+  auto journeys = message_to_journeys(
       msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
@@ -206,7 +206,7 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
   auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
-  auto journeys = journey_builder::to_journeys(
+  auto journeys = message_to_journeys(
       msg->content<routing::RoutingResponse const*>());
   /* note: this method ignores journeys that are
    * corrupt because the state machine in journey.cc

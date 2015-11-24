@@ -18,9 +18,10 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/routing/label.h"
+#include "motis/routing/labels_to_journey.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
-#include "motis/routing/label.h"
 
 namespace motis {
 
@@ -138,8 +139,9 @@ std::vector<journey> search::get_connections(
 
   std::vector<journey> journeys;
   journeys.resize(results.size());
-  std::transform(std::begin(results), std::end(results), std::begin(journeys),
-                 [this](label* label) { return to_journey(label, _sched); });
+  std::transform(
+      begin(results), end(results), begin(journeys),
+      [this](label* label) { return labels_to_journey(label, _sched); });
 
   return journeys;
 }

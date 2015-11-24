@@ -8,12 +8,12 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/journey/journeys_to_message.h"
 
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
 #include "motis/routing/label.h"
 #include "motis/routing/search.h"
-#include "motis/routing/response_builder.h"
 #include "motis/routing/error.h"
 
 namespace p = std::placeholders;

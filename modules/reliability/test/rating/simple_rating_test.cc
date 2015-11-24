@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/common/date_util.h"
-#include "motis/core/common/journey.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/loader/loader.h"
 
@@ -63,7 +63,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
       std::make_tuple(28, 9, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = journey_builder::to_journeys(
+    auto const journeys = message_to_journeys(
         msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
@@ -106,7 +106,7 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = journey_builder::to_journeys(
+    auto const journeys = message_to_journeys(
         msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
