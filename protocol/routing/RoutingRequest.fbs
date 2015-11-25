@@ -14,6 +14,12 @@ struct Interval {
   end:ulong;
 }
 
+table HotelEdge {
+  station_eva:string;
+  checkout_time:ushort;
+  price:ushort;
+}
+
 // JSON Example:
 // --
 // {
@@ -52,4 +58,5 @@ table RoutingRequest {
   type:Type = PreTrip;
   direction:Direction = Forward;
   path:[StationPathElement];
+  hotel_edges:[HotelEdge];
 }

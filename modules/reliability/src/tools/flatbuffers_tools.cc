@@ -44,10 +44,11 @@ module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
   }
   routing::Interval interval(request->interval()->begin(),
                              request->interval()->end());
+  std::vector<Offset<routing::HotelEdge>> dummy;
   b.CreateAndFinish(MsgContent_RoutingRequest,
                     routing::CreateRoutingRequest(
                         b, &interval, request->type(), request->direction(),
-                        b.CreateVector(station_elements))
+                        b.CreateVector(station_elements), b.CreateVector(dummy))
                         .Union());
   return module::make_msg(b);
 }
@@ -66,12 +67,13 @@ module::msg_ptr to_routing_request(std::string const& from_name,
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(interval_begin, interval_end);
+  std::vector<Offset<routing::HotelEdge>> dummy;
   b.CreateAndFinish(MsgContent_RoutingRequest,
                     routing::CreateRoutingRequest(
                         b, &interval, (ontrip ? routing::Type::Type_OnTrip
                                               : routing::Type::Type_PreTrip),
                         routing::Direction::Direction_Forward,
-                        b.CreateVector(station_elements))
+                        b.CreateVector(station_elements), b.CreateVector(dummy))
                         .Union());
   return module::make_msg(b);
 }
@@ -263,14 +265,16 @@ module::msg_ptr to_reliable_routing_request(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
                              to_unix_time(ddmmyyyy, interval_end));
-  b.CreateAndFinish(MsgContent_ReliableRoutingRequest,
-                    reliability::CreateReliableRoutingRequest(
-                        b, routing::CreateRoutingRequest(
-                               b, &interval, routing::Type::Type_PreTrip,
-                               routing::Direction::Direction_Forward,
-                               b.CreateVector(station_elements)),
-                        request_type_wrapper)
-                        .Union());
+  std::vector<Offset<routing::HotelEdge>> dummy;
+  b.CreateAndFinish(
+      MsgContent_ReliableRoutingRequest,
+      reliability::CreateReliableRoutingRequest(
+          b, routing::CreateRoutingRequest(
+                 b, &interval, routing::Type::Type_PreTrip,
+                 routing::Direction::Direction_Forward,
+                 b.CreateVector(station_elements), b.CreateVector(dummy)),
+          request_type_wrapper)
+          .Union());
   return module::make_msg(b);
 }
 
