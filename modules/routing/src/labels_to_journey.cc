@@ -222,9 +222,7 @@ journey::transport generate_journey_transport(unsigned int from,
 
       case category::CATEGORY: name = cat_name; break;
 
-      case category::TRAIN_NUM:
-        name = print_train_nr;
-        break;
+      case category::TRAIN_NUM: name = print_train_nr; break;
 
       case category::NOTHING: break;
 
@@ -314,14 +312,20 @@ std::vector<journey::stop> generate_journey_stops(
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,
                                                    stop.a_time),
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.a_time),
                                          sched.tracks[stop.a_platform]}
-             : journey::stop::event_info{false, 0, ""},
+             : journey::stop::event_info{false, 0, 0, ""},
          stop.d_time != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,
                                                    stop.d_time),
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.d_time),
                                          sched.tracks[stop.d_platform]}
-             : journey::stop::event_info{false, 0, ""}});
+             : journey::stop::event_info{false, 0, 0, ""}});
   }
   return journey_stops;
 }

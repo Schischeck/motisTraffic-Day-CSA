@@ -9,9 +9,9 @@ namespace motis {
 uint16_t get_duration(journey const&);
 uint16_t get_transfers(journey const&);
 
-template <typename F>
-void foreach_light_connection(journey const& journey, F function) {
-  for (auto const& transport : journey.transports) {
+template <typename Journey, typename F>
+void foreach_light_connection(Journey& journey, F function) {
+  for (auto& transport : journey.transports) {
     if (transport.walk) {
       continue;
     }
