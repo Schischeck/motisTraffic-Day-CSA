@@ -173,10 +173,9 @@ void message_handler::handle_additional_train(
   _rts._modified_train_manager.add(mt);
   _rts._graph_updater.adjust_train(mt, msg.events_);
 
-  //  for (const auto& e : events) {
-  //    _rts._delay_propagator.enqueue(e, queue_reason::RECALC,
-  //    mt->_new_route_id);
-  //  }
+  for (const auto& e : msg.events_) {
+    _rts._delay_propagator.enqueue(e, queue_reason::RECALC, mt->_new_route_id);
+  }
 }
 
 void message_handler::handle_canceled_train(const cancel_train_message& msg) {
