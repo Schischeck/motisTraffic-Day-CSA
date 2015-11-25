@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <ostream>
+#include <memory>
 
 #include "boost/functional/hash.hpp"
 #include "boost/operators.hpp"
@@ -115,8 +116,10 @@ public:
   ~delay_info_manager();
 
   delay_info* get_delay_info(const schedule_event& event_id) const;
+  delay_info* get_buffered_delay_info(const schedule_event& event_id) const;
   delay_info* create_delay_info(const schedule_event& event_id,
                                 int32_t route_id);
+  delay_info* create_buffered_delay_info(const schedule_event& event_id);
   void update_delay_info(const delay_info_update* update);
   motis::time reset_to_schedule(const schedule_event& event_id);
   void update_route(delay_info* di, int32_t new_route);
@@ -128,9 +131,12 @@ public:
 
   motis::time current_time(const schedule_event& event_id) const;
 
+  void upgrade_delay_info(delay_info* di, int32_t route_id);
+
   // private:
   realtime_schedule& _rts;
   std::vector<delay_info*> _delay_infos;  // TODO: unique_ptr
+  std::vector<delay_info*> _buffered_delay_infos;
 
   using schedule_event_hash = boost::hash<schedule_event>;
   using graph_event_hash = boost::hash<graph_event>;
@@ -138,6 +144,9 @@ public:
   std::unordered_map<schedule_event, delay_info*, schedule_event_hash>
       _schedule_map;
   std::unordered_map<graph_event, delay_info*, graph_event_hash> _current_map;
+
+  std::unordered_map<schedule_event, delay_info*, schedule_event_hash>
+      _buffered_map;
 };
 
 }  // namespace realtime

@@ -37,6 +37,20 @@ void delay_propagator::handle_delay_message(const schedule_event& event_id,
     if (route_node == nullptr) {
       if (_rts.is_debug_mode()) LOG(debug) << "event not found: " << event_id;
       _rts._debug_mode = old_debug;
+      di = _rts._delay_info_manager.get_buffered_delay_info(event_id);
+      if (di == nullptr) {
+        di = _rts._delay_info_manager.create_buffered_delay_info(event_id);
+      }
+      if (reason == timestamp_reason::IS) {
+        di->_current_time = new_time;
+        di->_reason = timestamp_reason::IS;
+      } else if (reason == timestamp_reason::FORECAST) {
+        di->_forecast_time = new_time;
+      } else {
+        LOG(warn) << "Unexpected delay message for missing event " << event_id
+                  << " with reason " << reason
+                  << ", new_time = " << motis::format_time(new_time);
+      }
       return;
     }
     di = _rts._delay_info_manager.create_delay_info(event_id,

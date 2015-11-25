@@ -26,7 +26,9 @@ void statistics::print(std::ostream& out) const {
       << "graph updater:    " << _ops.updater.time_updates << " time updates, "
       << _ops.updater.extract_route << " extract_route, "
       << _ops.updater.make_modified << " make_modified, "
-      << _ops.updater.adjust_train << " adjust_train\n";
+      << _ops.updater.adjust_train << " adjust_train\n"
+      << "delay infos:      " << _ops.delay_infos.buffered << " buffered, "
+      << _ops.delay_infos.upgrades << " upgrades\n";
 
   out << "delay propagator: " << std::setprecision(2) << _delay_propagator.ms()
       << "ms\n"
@@ -179,6 +181,11 @@ statistics operator-(statistics const& lhs, statistics const& rhs) {
       lhs._ops.updater.make_modified - rhs._ops.updater.make_modified;
   s._ops.updater.adjust_train =
       lhs._ops.updater.adjust_train - rhs._ops.updater.adjust_train;
+
+  s._ops.delay_infos.buffered =
+      lhs._ops.delay_infos.buffered - rhs._ops.delay_infos.buffered;
+  s._ops.delay_infos.upgrades =
+      lhs._ops.delay_infos.upgrades - rhs._ops.delay_infos.upgrades;
 
   s._delay_propagator = lhs._delay_propagator - rhs._delay_propagator;
   s._graph_updater = lhs._graph_updater - rhs._graph_updater;

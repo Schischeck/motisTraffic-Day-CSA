@@ -110,7 +110,10 @@ public:
       op_counter make_modified;
       op_counter adjust_train;
     } updater;
-    // delay_infos
+    struct {
+      op_counter buffered;
+      op_counter upgrades;
+    } delay_infos;
     // waiting_edges
     // modified_trains
   } _ops;
