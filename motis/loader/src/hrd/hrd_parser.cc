@@ -148,8 +148,10 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto const coordinates_file = load(core_data_root, COORDINATES);
   auto const timezones_file = load(core_data_root, TIMEZONES);
   auto const basic_data_file = load(core_data_root, BASIC_DATA);
+  auto const footp_1_file = load(core_data_root, FOOTPATHS_REG);
+  auto const footp_2_file = load(core_data_root, FOOTPATHS_EXT);
   station_meta_data metas;
-  parse_station_meta_data(infotext_file, metas);
+  parse_station_meta_data(infotext_file, footp_1_file, footp_2_file, metas);
   station_builder stb(parse_stations(stations_file, coordinates_file, metas),
                       parse_timezones(timezones_file, basic_data_file));
 

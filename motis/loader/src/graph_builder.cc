@@ -28,6 +28,7 @@ namespace motis {
 namespace loader {
 
 class graph_builder {
+
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
                 time_t to)
@@ -35,6 +36,7 @@ public:
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
         last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1) {
+    timezones_.set_empty_key(-1);
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
@@ -60,6 +62,10 @@ public:
     for (unsigned i = 0; i < stations->size(); ++i) {
       auto const& input_station = stations->Get(i);
       auto const station_index = i + 2;
+
+      //  add timezone lookup entry
+      timezones_[std::stoi(input_station->id()->str(), nullptr)] =
+          input_station->timezone();
 
       // Create station node.
       auto node_ptr = make_unique<station_node>(station_index);
@@ -171,9 +177,13 @@ public:
     std::unordered_set<uint32_t> train_nrs;
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
+      auto const* prev_route_edge =
+          section_idx > 0 ? &route_nodes[section_idx - 1]->_edges[1] : nullptr;
       add_service_section(
-          &route_nodes[section_idx]->_edges[1],
+          prev_route_edge, &route_nodes[section_idx]->_edges[1],
           service->sections()->Get(section_idx),
+          service->route()->stations()->Get(section_idx + 1)->id(),
+          service->route()->stations()->Get(section_idx)->id(),
           service->platforms()->Get(section_idx + 1)->arr_platforms(),
           service->platforms()->Get(section_idx)->dep_platforms(),
           service->times()->Get(section_idx * 2 + 1),
@@ -236,18 +246,108 @@ private:
     });
   }
 
-  void add_service_section(edge* e, Section const* section,
+  int get_offset(int const day_idx, String const* station_id,
+                 int const ev_time) const {
+    auto const day_offset = ev_time / MINUTES_A_DAY;
+    auto const ev_time_last_day = ev_time % MINUTES_A_DAY;
+
+    auto it = timezones_.find(std::stoi(station_id->c_str(), nullptr));
+    if (!it->second) {
+      return 0;  // expect correct UTC time
+    }
+
+    auto const* timezone = it->second;
+    auto const* season = timezone->season();
+    if (season != nullptr) {
+      auto const active_day = day_idx + day_offset;
+
+      auto const lower_bound_premise =
+          !(season->first_date_idx() <= active_day) ||
+          season->begin_time() <= ev_time_last_day;
+
+      auto const upper_bound_premise =
+          !(active_day <= season->last_date_idx()) ||
+          ev_time_last_day <= season->end_time();
+
+      return lower_bound_premise && upper_bound_premise
+                 ? season->offset()
+                 : it->second->general_offset();
+    } else {
+      return timezone->general_offset();
+    }
+  }
+
+  int compute_event_time(int const day_idx, int const ev_local_time,
+                         String const* station_id) const {
+    return MINUTES_A_DAY + (day_idx * MINUTES_A_DAY + ev_local_time +
+                            get_offset(day_idx, station_id, ev_local_time));
+  }
+
+  enum adjustment_type { ARRIVAL, BOTH, NONE };
+  std::function<adjustment_type(int, int)> adjustment_predicate(
+      edge const* prev_route_edge, int const conn_idx,
+      bool& is_repair_ev_time) const {
+    return [&](int curr_dep, int curr_arr) -> bool {
+      if (is_repair_ev_time ||
+          (prev_route_edge &&
+           curr_dep <
+               prev_route_edge->_m._route_edge._conns[conn_idx].a_time)) {
+        is_repair_ev_time = true;
+        return BOTH;
+      }
+      if (curr_arr < curr_dep) {
+        is_repair_ev_time = true;
+        return ARRIVAL;
+      }
+      return NONE;
+    };
+  }
+
+  std::pair<int, int> compute_event_times(
+      int const day_idx, String const* dep_station_id,
+      String const* arr_station_id, int const curr_dep_local_time,
+      int const curr_arr_local_time,
+      std::function<bool(int, int)> const& is_adjustment_required) {
+
+    auto const curr_dep_motis_time =
+        compute_event_time(day_idx, curr_dep_local_time, dep_station_id);
+
+    auto curr_arr_motis_time =
+        compute_event_time(day_idx, curr_arr_local_time, arr_station_id);
+
+    switch (is_adjustment_required(curr_dep_motis_time, curr_arr_motis_time)) {
+      case ARRIVAL: {
+        curr_arr_motis_time += 60;
+        break;
+      }
+      case BOTH: {
+        curr_arr_motis_time += 60;
+        curr_dep_motis_time += 60;
+        break;
+      }
+      case NONE:
+      default: break;
+    }
+
+    return std::make_pair(curr_dep_motis_time, curr_arr_motis_time);
+  }
+
+  void add_service_section(edge const* prev_route_edge, edge* curr_route_edge,
+                           Section const* curr_section,
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
                            bitfield const& traffic_days) {
-    assert(e->type() == edge::ROUTE_EDGE);
+    assert(!prev_route_edge || prev_route_edge->type() == edge::ROUTE_EDGE);
+    assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
-    auto& from = *sched_.stations[e->_from->get_station()->_id];
-    auto& to = *sched_.stations[e->_to->get_station()->_id];
+    auto& from = *sched_.stations[curr_route_edge->_from->get_station()->_id];
+    auto& to = *sched_.stations[curr_route_edge->_to->get_station()->_id];
 
     // Expand traffic days.
+    int conn_idx = 0;
+    bool repair_ev_time = false;  // TODO eine ebene höher
     for (int day = first_day_; day <= last_day_; ++day) {
       if (!traffic_days.test(day)) {
         continue;
@@ -259,12 +359,12 @@ private:
 
       // Build connection info.
       con_info_.line_identifier =
-          section->line_id() ? section->line_id()->str() : "";
-      con_info_.train_nr = section->train_nr();
-      con_info_.family = get_or_create_category_index(section->category());
-      con_info_.dir_ = get_or_create_direction(section->direction());
-      con_info_.provider_ = get_or_create_provider(section->provider());
-      read_attributes(dep_day_index, section->attributes(),
+          curr_section->line_id() ? curr_section->line_id()->str() : "";
+      con_info_.train_nr = curr_section->train_nr();
+      con_info_.family = get_or_create_category_index(curr_section->category());
+      con_info_.dir_ = get_or_create_direction(curr_section->direction());
+      con_info_.provider_ = get_or_create_provider(curr_section->provider());
+      read_attributes(dep_day_index, curr_section->attributes(),
                       con_info_.attributes);
 
       // Build full connection.
@@ -277,19 +377,25 @@ private:
       con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
       con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
 
-      auto clasz_it = sched_.classes.find(section->category()->name()->str());
+      auto clasz_it =
+          sched_.classes.find(curr_section->category()->name()->str());
       con_.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
       con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
-      int day_index = day - first_day_;
-      e->_m._route_edge._conns.emplace_back(
-          day_index * MINUTES_A_DAY + dep_time,
-          day_index * MINUTES_A_DAY + arr_time,
+      int dep_motis_time;
+      int arr_motis_time;
+      std::tie(dep_motis_time, arr_motis_time) = compute_event_times(
+          day - first_day_, curr_route_edge, dep_time, arr_time,
+          adjustment_predicate(prev_route_edge, conn_idx, repair_ev_time));
+
+      curr_route_edge->_m._route_edge._conns.emplace_back(
+          dep_motis_time, arr_motis_time,
           set_get_or_create(connections_, &con_, [&]() {
             sched_.full_connections.emplace_back(make_unique<connection>(con_));
             return sched_.full_connections.back().get();
           }));
+      conn_idx++;
 
       // Count events.
       ++from.dep_class_events[con_.clasz];
@@ -454,7 +560,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->classes = class_mapping();
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
-
   graph_builder builder(*sched.get(), serialized->interval(), from, to);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {

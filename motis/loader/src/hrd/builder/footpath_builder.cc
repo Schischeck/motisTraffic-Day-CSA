@@ -7,7 +7,7 @@ namespace hrd {
 using namespace flatbuffers;
 
 Offset<Vector<Offset<Footpath>>> create_footpaths(
-    std::vector<station_meta_data::footpath> const& hrd_footpaths,
+    std::set<station_meta_data::footpath> const& hrd_footpaths,
     std::map<int, flatbuffers::Offset<Station>> const& fbs_stations,
     FlatBufferBuilder& fbb) {
   std::vector<Offset<Footpath>> fbs_footpaths;
