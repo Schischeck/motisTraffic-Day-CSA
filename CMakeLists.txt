@@ -82,6 +82,7 @@ add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
 add_subdirectory(motis/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
+list(REMOVE_ITEM all-modules ".DS_Store")
 string (REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
