@@ -18,7 +18,7 @@
 #include "motis/loader/loader.h"
 #include "motis/routing/label.h"
 #include "motis/routing/search.h"
-#include "motis/routing/journey.h"
+#include "motis/core/journey/journey.h"
 #include "motis/routing/arrival.h"
 
 #define MAX_TEST_LABELS 10000  // MAX_LABELS_WITH_MARGIN
@@ -52,7 +52,7 @@ public:
     for (const auto& s : _schedule->stations) {
       _station_map[s->name] = s.get();
     }
-    //_rts._debug_mode = true;
+    // _rts._debug_mode = true;
   }
 
   const motis::station* get_station(std::string name) {
