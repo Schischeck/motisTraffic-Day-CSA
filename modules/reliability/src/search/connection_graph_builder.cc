@@ -2,8 +2,9 @@
 
 #include <cassert>
 
-#include "motis/core/common/journey.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/journey_util.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/reliability/search/connection_graph.h"
 
@@ -62,10 +63,10 @@ std::pair<journey, journey> split_journey(journey const& j,
   correct_transports_and_attributes_indices(j.attributes, j1.attributes,
                                             j2.attributes, stop_idx);
 
-  j1.duration = journey_builder::detail::get_duration(j1);
-  j2.duration = journey_builder::detail::get_duration(j2);
-  j1.transfers = journey_builder::detail::get_transfers(j1);
-  j2.transfers = journey_builder::detail::get_transfers(j2);
+  j1.duration = get_duration(j1);
+  j2.duration = get_duration(j2);
+  j1.transfers = get_transfers(j1);
+  j2.transfers = get_transfers(j2);
   j1.price = 0;
   j2.price = 0;
 

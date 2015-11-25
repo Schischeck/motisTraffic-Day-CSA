@@ -5,10 +5,9 @@
 #include <vector>
 
 #include "motis/core/common/date_util.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/journey/message_to_journeys.h"
 #include "motis/core/schedule/time.h"
-
-#include "motis/routing/response_builder.h"
 
 #include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
@@ -87,20 +86,11 @@ module::msg_ptr to_routing_request(
                             to_unix_time(ddmmyyyy, interval_end), ontrip);
 }
 
-Offset<routing::Connection> to_connection(FlatBufferBuilder& b,
-                                          journey const& j) {
-  using namespace routing;
-  return CreateConnection(
-      b, b.CreateVector(detail::convert_stops(b, j.stops)),
-      b.CreateVector(detail::convert_moves(b, j.transports)),
-      b.CreateVector(detail::convert_attributes(b, j.attributes)));
-}
-
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b,
     routing::RoutingResponse const* orig_routing_response) {
   std::vector<Offset<routing::Connection>> connections;
-  auto const journeys = journey_builder::to_journeys(orig_routing_response);
+  auto const journeys = message_to_journeys(orig_routing_response);
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
