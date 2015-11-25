@@ -87,6 +87,47 @@ TEST_F(realtime_train_messages_test, test_additional_train_with_new_category) {
                {da_hbf, "FOO", 1000, t(h, 30), t(h, 30), "", 0, INV, INV}});
 }
 
+TEST_F(realtime_train_messages_test, test_additional_train_with_delays) {
+  const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
+  const motis::station* Langen = get_station("Langen");
+  const motis::station* da_hbf = get_station("Darmstadt Hbf");
+
+  std::vector<rt::schedule_event> events = {
+      rt::schedule_event(ffm_hbf->index, 999, true, t(9, 0)),
+      rt::schedule_event(Langen->index, 999, false, t(9, 15)),
+      rt::schedule_event(Langen->index, 999, true, t(9, 17)),
+      rt::schedule_event(da_hbf->index, 999, false, t(9, 30))};
+
+  _rts._message_handler.handle_delay(rt::delay_message(
+      999,
+      {static_cast<unsigned>(Langen->index), 999, true, t(9, 17), t(9, 20)},
+      {}));
+  _rts._message_handler.handle_additional_train(
+      rt::additional_train_message("RB", events));
+
+  _rts._delay_propagator.process_queue();
+  _rts._graph_updater.finish_graph_update();
+
+  std::vector<motis::journey> journeys =
+      find_connections(ffm_hbf, da_hbf, t(9, 0));
+  ASSERT_EQ(1, journeys.size());
+
+  const motis::journey& j = journeys[0];
+  // TODO
+  EXPECT_EQ(33 + da_hbf->transfer_time, j.duration);
+
+  check_stops(j, {{ffm_hbf, {INV}, {t(9, 0)}},
+                  {Langen, {t(9, 15)}, {t(9, 20)}},
+                  {da_hbf, {t(9, 33)}, {INV}}});
+
+  check_transports(j, {{"RB", 999, 0, 2}});
+
+  check_train(
+      {{ffm_hbf, "", 0, INV, INV, "RB", 999, t(9, 0), t(9, 0)},
+       {Langen, "RB", 999, t(9, 15), t(9, 15), "RB", 999, t(9, 17), t(9, 20)},
+       {da_hbf, "RB", 999, t(9, 30), t(9, 33), "", 0, INV, INV}});
+}
+
 TEST_F(realtime_train_messages_test, test_cancel_complete_train) {
   const motis::station* ffm_hbf = get_station("Frankfurt Hbf");
   const motis::station* Langen = get_station("Langen");

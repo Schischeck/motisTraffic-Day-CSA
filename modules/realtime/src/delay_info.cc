@@ -83,15 +83,32 @@ void delay_info_manager::upgrade_delay_info(delay_info* di, int32_t route_id) {
 
   _rts._stats._ops.delay_infos.upgrades++;
 
+  if (_rts.is_debug_mode()) {
+    LOG(info) << "upgrading buffered delay info: " << *di
+              << ", route_id=" << route_id;
+  }
+
   _buffered_map.erase(di->sched_ev());
   _buffered_delay_infos.erase(std::remove(_buffered_delay_infos.begin(),
                                           _buffered_delay_infos.end(), di),
                               _buffered_delay_infos.end());
 
   di->_route_id = route_id;
+  auto is_time = INVALID_TIME;
+  if (di->_reason == timestamp_reason::IS) {
+    is_time = di->_current_time;
+    di->_current_time = di->sched_ev()._schedule_time;
+    di->_reason = timestamp_reason::SCHEDULE;
+  }
+
   _delay_infos.push_back(di);
   _schedule_map[di->sched_ev()] = di;
   _current_map[di->graph_ev()] = di;
+
+  if (is_time != INVALID_TIME) {
+    _rts._delay_propagator.handle_delay_message(di->sched_ev(), is_time,
+                                                timestamp_reason::IS);
+  }
 }
 
 void delay_info_manager::update_delay_info(const delay_info_update* update) {

@@ -52,6 +52,9 @@ struct delayed_event : public schedule_event {
 class delay_message : public message {
 public:
   delay_message() : message(message_type::delay) {}
+  delay_message(uint32_t train_nr, delayed_event is,
+                std::vector<delayed_event> forecasts)
+      : train_nr_(train_nr), is_(is), forecasts_(forecasts) {}
 
   uint32_t train_nr_;
   delayed_event is_;
