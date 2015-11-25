@@ -34,6 +34,8 @@
 
 #include "motis/loader/parser_error.h"
 
+#include "modules.h"
+
 using namespace motis::launcher;
 using namespace motis::module;
 using namespace motis::logging;
@@ -44,14 +46,7 @@ int main(int argc, char** argv) {
   message::init_parser();
 
   boost::asio::io_service ios, thread_pool;
-  std::vector<std::unique_ptr<motis::module::module> > modules;
-  modules.emplace_back(new routing::routing());
-  modules.emplace_back(new guesser::guesser());
-  modules.emplace_back(new reliability::reliability());
-  modules.emplace_back(new railviz::railviz());
-  modules.emplace_back(new realtime::realtime());
-  modules.emplace_back(new ris::ris());
-  modules.emplace_back(new connectionchecker::connectionchecker());
+  auto modules = build_modules();
 
   listener_settings listener_opt("0.0.0.0", "8080");
   dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);
