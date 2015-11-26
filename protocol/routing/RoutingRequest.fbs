@@ -17,6 +17,7 @@ struct Interval {
 table HotelEdge {
   station_eva:string;
   checkout_time:ushort;
+  min_stay_duration:ushort;
   price:ushort;
 }
 

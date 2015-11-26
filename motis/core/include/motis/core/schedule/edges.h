@@ -86,10 +86,12 @@ public:
   }
 
   /** hotel edge constructor. */
-  edge(node* station_node, uint16_t checkout_time, uint16_t price)
+  edge(node* station_node, uint16_t checkout_time, uint16_t min_stay_duration,
+       uint16_t price)
       : _from(station_node), _to(station_node) {
     _m._type = HOTEL_EDGE;
     _m._hotel_edge._checkout_time = checkout_time;
+    _m._hotel_edge._min_stay_duration = min_stay_duration;
     _m._hotel_edge._price = price;
   }
 
@@ -109,8 +111,11 @@ public:
       case HOTEL_EDGE: {
         uint16_t offset =
             start_time % 1440 < _m._hotel_edge._checkout_time ? 0 : 1440;
-        return edge_cost((_m._hotel_edge._checkout_time + offset) - start_time,
-                         false, _m._hotel_edge._price, 0);
+        uint16_t duration = std::max(
+            _m._hotel_edge._min_stay_duration,
+            static_cast<uint16_t>((_m._hotel_edge._checkout_time + offset) -
+                                  (start_time % 1440)));
+        return edge_cost(duration, false, _m._hotel_edge._price, 0);
       }
 
       default: return NO_EDGE;
@@ -283,7 +288,9 @@ public:
 
     // TYPE = HOTEL_EDGE
     struct {
+      uint8_t _type_padding;
       uint16_t _checkout_time;
+      uint16_t _min_stay_duration;
       uint16_t _price;
     } _hotel_edge;
   } _m;
@@ -312,8 +319,8 @@ inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
-                            uint16_t price) {
-  return edge(station_node, checkout_time, price);
+                            uint16_t min_stay_duration, uint16_t price) {
+  return edge(station_node, checkout_time, min_stay_duration, price);
 }
 
 inline edge make_invalid_edge(node* from, node* to) {
