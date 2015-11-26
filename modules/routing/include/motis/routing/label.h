@@ -103,13 +103,15 @@ public:
     l->_node = edge.get_destination();
     l->_connection = ec.connection;
 
-    l->_night_penalty =
-        _night_penalty + label_util::night_travel_duration(
-                             _now, l->_now, edge._m._type == edge::HOTEL_EDGE,
-                             60 /* night begin */, 359 /* night end */);
     if (edge._m._type == edge::HOTEL_EDGE) {
       l->_visited_hotel = true;
       l->_db_costs = _db_costs + edge._m._hotel_edge._price;
+      l->_night_penalty = _night_penalty;
+    } else {
+      l->_night_penalty =
+          _night_penalty +
+          label_util::night_travel_duration(_now, l->_now, 60 /* night begin */,
+                                            359 /* night end */);
     }
 
     return l;
