@@ -9,6 +9,7 @@
 #include "motis/core/schedule/connection.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/filters.h"
+#include "motis/routing/label_util.h"
 #include "motis/routing/memory_manager.h"
 
 #define MINUTELY_WAGE 8
@@ -60,6 +61,10 @@ public:
       std::memset(_prices, 0, sizeof(_prices));
 
     set_total_price_lower_bound(lower_bounds.price.get_distance(node->_id));
+
+    _db_costs = 0;
+    _night_penalty = 0;
+    _visited_hotel = false;
   }
 
   label* create_label(edge const& edge, lower_bounds& lower_bounds,
@@ -98,6 +103,15 @@ public:
     l->_node = edge.get_destination();
     l->_connection = ec.connection;
 
+    l->_night_penalty =
+        _night_penalty + label_util::night_travel_duration(
+                             _now, l->_now, edge._m._type == edge::HOTEL_EDGE,
+                             60 /* night begin */, 359 /* night end */);
+    if (edge._m._type == edge::HOTEL_EDGE) {
+      l->_visited_hotel = true;
+      l->_db_costs = _db_costs + edge._m._hotel_edge._price;
+    }
+
     return l;
   }
 
@@ -119,6 +133,7 @@ public:
       return false;
     }
 
+#if 0
     /* --- PRICE --- */
     unsigned my_price = _total_price[index];
     unsigned o_price = o._total_price[index];
@@ -141,6 +156,13 @@ public:
 #ifdef PRICE_TOLERANCE
     }
 #endif
+#endif
+
+    /* --- LATE NIGHT CONNECTIONS --- */
+    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty ||
+        _visited_hotel > o._visited_hotel) {
+      return false;
+    }
 
     /* --- ALL CRITERIA --- */
     // since all criteria are NOT larger at *this
@@ -158,11 +180,22 @@ public:
     if (_travel_time[0] > o._travel_time[0]) return false;
     could_dominate = could_dominate || _travel_time[0] < o._travel_time[0];
 
+#if 0
     /* --- PRICE --- */
     unsigned my_price = get_price_with_wages(false);
     unsigned o_price = o.get_price_with_wages(false);
     if (my_price > o_price) return false;
     could_dominate = could_dominate || my_price < o_price;
+#endif
+
+    /* --- LATE NIGHT CONNECTIONS --- */
+    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty ||
+        _visited_hotel > o._visited_hotel) {
+      return false;
+    }
+    could_dominate = could_dominate || _db_costs < o._db_costs ||
+                     _night_penalty < o._night_penalty ||
+                     _visited_hotel < o._visited_hotel;
 
     return could_dominate || _start >= o._start;
   }
@@ -287,6 +320,11 @@ public:
   uint8_t _transfers[2];
   bool _dominated;
   uint8_t _target_slot;
+
+  /* Pareto-criteria for late night connections incl. hotels and taxi */
+  bool _visited_hotel;
+  uint16_t _night_penalty;
+  uint16_t _db_costs;
 };
 
 }  // namespace motis

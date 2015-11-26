@@ -109,13 +109,8 @@ public:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
       case HOTEL_EDGE: {
-        uint16_t offset =
-            start_time % 1440 < _m._hotel_edge._checkout_time ? 0 : 1440;
-        uint16_t duration = std::max(
-            _m._hotel_edge._min_stay_duration,
-            static_cast<uint16_t>((_m._hotel_edge._checkout_time + offset) -
-                                  (start_time % 1440)));
-        return edge_cost(duration, false, _m._hotel_edge._price, 0);
+        return edge_cost(calc_duration_hotel_edge(start_time), false,
+                         _m._hotel_edge._price, 0);
       }
 
       default: return NO_EDGE;
@@ -294,6 +289,16 @@ public:
       uint16_t _price;
     } _hotel_edge;
   } _m;
+
+private:
+  uint16_t calc_duration_hotel_edge(time const start_time) const {
+    uint16_t offset =
+        start_time % 1440 < _m._hotel_edge._checkout_time ? 0 : 1440;
+    return std::max(
+        _m._hotel_edge._min_stay_duration,
+        static_cast<uint16_t>((_m._hotel_edge._checkout_time + offset) -
+                              (start_time % 1440)));
+  }
 };
 
 /* convenience helper functions to generate the right edge type */
