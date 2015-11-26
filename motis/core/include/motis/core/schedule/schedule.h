@@ -42,6 +42,7 @@ struct schedule {
   std::vector<std::unique_ptr<category>> categories;
   std::vector<std::unique_ptr<provider>> providers;
   std::vector<std::unique_ptr<std::string>> directions;
+  std::vector<std::unique_ptr<timezone>> timezones;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;
