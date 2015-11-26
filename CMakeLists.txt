@@ -81,12 +81,18 @@ add_subdirectory(motis/core EXCLUDE_FROM_ALL)
 add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
 add_subdirectory(motis/module EXCLUDE_FROM_ALL)
 
-function(add_modules)
-  foreach(module ${ARGV})
-    add_subdirectory(modules/${module})
-  endforeach(module)
-endfunction()
-add_modules(guesser railviz realtime reliability ris routing)
+file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
+string (REPLACE ";" " " modules-option "${all-modules}")
+set(MODULES ${modules-option} CACHE STRING "Modules to load")
+
+string (REPLACE " " ";" modules "${MODULES}")
+set(module-targets "")
+set(module-test-files "")
+foreach(module ${modules})
+  add_subdirectory(modules/${module})
+  list(APPEND module-targets "motis-${module}")
+  list(APPEND module-test-files "modules/${module}/*_test.cc")
+endforeach(module)
 
 add_subdirectory(motis/launcher)
 
@@ -94,8 +100,7 @@ configure_file (
   ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
-
-file(GLOB_RECURSE motis-modules-test-files modules/*_test.cc)
+file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-central-test-files motis/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${CMAKE_SOURCE_DIR}/test/test_main.cc
@@ -103,14 +108,10 @@ add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-central-test-files})
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
-  motis-guesser
-  motis-railviz
-  motis-realtime
-  motis-reliability
-  motis-ris
-  motis-routing
+  ${module-targets}
   motis-module
   motis-loader
+  motis-core
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-test gtest gtest_main)
