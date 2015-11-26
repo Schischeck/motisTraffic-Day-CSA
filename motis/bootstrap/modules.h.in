@@ -3,7 +3,7 @@
 @module-includes@
 
 namespace motis {
-namespace launcher {
+namespace bootstrap {
 
 ${module-map}
 

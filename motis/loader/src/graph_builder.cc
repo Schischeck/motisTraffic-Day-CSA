@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_set>
 
+#define RANGES_SUPPRESS_IOTA_WARNING
 #include "range/v3/all.hpp"
 
 #include "parser/cstr.h"

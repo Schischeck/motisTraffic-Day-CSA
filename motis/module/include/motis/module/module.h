@@ -12,7 +12,7 @@
 
 #include "motis/module/sid.h"
 #include "motis/module/message.h"
-#include "motis/module/handler_functions.h"
+#include "motis/module/callbacks.h"
 
 namespace motis {
 namespace module {

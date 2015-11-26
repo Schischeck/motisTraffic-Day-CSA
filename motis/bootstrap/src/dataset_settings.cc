@@ -1,4 +1,4 @@
-#include "motis/launcher/dataset_settings.h"
+#include "motis/bootstrap/dataset_settings.h"
 
 #include <ostream>
 
@@ -13,7 +13,7 @@
 #define NUM_DAYS "dataset.num_days"
 
 namespace motis {
-namespace launcher {
+namespace bootstrap {
 
 namespace po = boost::program_options;
 
@@ -70,5 +70,5 @@ void dataset_settings::print(std::ostream& out) const {
       << "  " << NUM_DAYS << ": " << num_days;
 }
 
-}  // namespace launcher
+}  // namespace bootstrap
 }  // namespace motis
