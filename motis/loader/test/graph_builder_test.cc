@@ -32,7 +32,7 @@ protected:
     parser.parse(schedule_path, b);
     auto serialized = GetSchedule(b.GetBufferPointer());
 
-    sched_ = build_graph(serialized, schedule_begin_, schedule_end_);
+    sched_ = build_graph(serialized, schedule_begin_, schedule_end_, true);
   }
 
   static edge const* get_route_edge(node const* route_node) {

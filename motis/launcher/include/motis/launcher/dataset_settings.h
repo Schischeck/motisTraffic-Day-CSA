@@ -14,7 +14,7 @@ namespace launcher {
 class dataset_settings : public conf::configuration {
 public:
   dataset_settings(std::string default_dataset, bool ignore_serialized,
-                   std::string schedule_begin, int num_days);
+                   bool unique_check, std::string schedule_begin, int num_days);
 
   virtual ~dataset_settings() {}
 
@@ -25,6 +25,7 @@ public:
 
   std::string dataset;
   bool use_serialized;
+  bool unique_check;
   std::string schedule_begin;
   int num_days;
 };
