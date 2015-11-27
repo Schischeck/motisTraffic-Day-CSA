@@ -14,17 +14,17 @@ struct Interval {
   end:ulong;
 }
 
-table HotelEdge {
-  station_eva:string;
-  earliest_checkout_time:ushort;
-  min_stay_duration:ushort;
-  price:ushort;
-}
-
 table MumoEdge {
   from_station_eva:string;
   to_station_eva:string;
   duration:ushort;
+  price:ushort;
+}
+
+table HotelEdge {
+  station_eva:string;
+  earliest_checkout_time:ushort;
+  min_stay_duration:ushort;
   price:ushort;
 }
 

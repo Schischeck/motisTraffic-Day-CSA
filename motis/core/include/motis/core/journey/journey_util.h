@@ -12,7 +12,7 @@ uint16_t get_transfers(journey const&);
 template <typename F>
 void foreach_light_connection(journey const& journey, F function) {
   for (auto const& transport : journey.transports) {
-    if (transport.walk) {
+    if (transport.type != journey::transport::PublicTransport) {
       continue;
     }
 

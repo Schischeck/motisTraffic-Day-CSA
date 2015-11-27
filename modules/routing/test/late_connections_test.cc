@@ -166,13 +166,17 @@ TEST_F(routing_late_connections, search) {
     ASSERT_EQ(3, journeys.size());
     { /* direct connection, arrival 02:00 */
       auto const& j = journeys[0];
+      ASSERT_EQ(60, j.night_penalty);
       ASSERT_EQ(1, j.transports.front().train_nr);
       ASSERT_EQ(FRANKFURT, j.stops[1].eva_no);
     }
     { /* hotel, arrival 10:45, 30 minutes night-penalty */
       auto const& j = journeys[1];
+      ASSERT_EQ(35, j.night_penalty);
       ASSERT_EQ(4, j.transports[0].train_nr);
-      ASSERT_TRUE(j.transports[1].walk);
+      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+      ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
+      ASSERT_EQ(5000, j.transports[1].mumo_price);
       ASSERT_EQ(5, j.transports[2].train_nr);
       ASSERT_EQ(OFFENBACH, j.stops[1].eva_no);
       ASSERT_EQ(OFFENBACH, j.stops[2].eva_no);
@@ -180,8 +184,11 @@ TEST_F(routing_late_connections, search) {
     }
     { /* hotel, arrival 10:50, no night-penalty */
       auto const& j = journeys[2];
+      ASSERT_EQ(0, j.night_penalty);
       ASSERT_EQ(2, j.transports[0].train_nr);
-      ASSERT_TRUE(j.transports[1].walk);
+      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+      ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
+      ASSERT_EQ(5000, j.transports[1].mumo_price);
       ASSERT_EQ(3, j.transports[2].train_nr);
       ASSERT_EQ(LANGEN, j.stops[1].eva_no);
       ASSERT_EQ(LANGEN, j.stops[2].eva_no);

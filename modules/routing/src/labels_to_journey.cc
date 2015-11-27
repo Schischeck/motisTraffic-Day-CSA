@@ -41,22 +41,32 @@ struct transport {
         con(con),
         duration(con->a_time - con->d_time),
         slot(-1),
-        route_id(route_id) {}
+        route_id(route_id),
+        type(journey::transport::PublicTransport),
+        mumo_type_name(""),
+        mumo_price(0) {}
 
   transport(unsigned int from, unsigned int to, unsigned int duration, int slot,
-            unsigned int route_id)
+            unsigned int route_id, journey::transport::transport_type type,
+            std::string mumo_type_name = "", unsigned int mumo_price = 0)
       : from(from),
         to(to),
         con(nullptr),
         duration(duration),
         slot(slot),
-        route_id(route_id) {}
+        route_id(route_id),
+        type(type),
+        mumo_type_name(mumo_type_name),
+        mumo_price(mumo_price) {}
 
   unsigned int from, to;
   light_connection const* con;
   unsigned int duration;
   int slot;
   unsigned int route_id;
+  journey::transport::transport_type type;
+  std::string mumo_type_name;
+  unsigned short mumo_price;
 };
 
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
@@ -137,8 +147,23 @@ parse_label_chain(label const* terminal_label) {
                                                : last_con->a_time,
             current->_now, last_con != nullptr);
 
-        transports.emplace_back(station_index, (unsigned int)station_index + 1,
-                                (*std::next(it))->_now - current->_now, -1, 0);
+        {
+          journey::transport::transport_type type = journey::transport::Walk;
+          std::string mumo_type_name = "";
+          unsigned short mumo_price = 0;
+          if (!current->_visited_hotel && (*std::next(it))->_visited_hotel) {
+            type = journey::transport::Mumo;
+            mumo_type_name = "Hotel";
+            mumo_price = (*std::next(it))->_db_costs - current->_db_costs;
+            std::cout << "HOTEL for label " << *current << " and "
+                      << *(*std::next(it)) << std::endl;
+          }
+
+          transports.emplace_back(station_index,
+                                  (unsigned int)station_index + 1,
+                                  (*std::next(it))->_now - current->_now, -1, 0,
+                                  type, mumo_type_name, mumo_price);
+        }
 
         walk_arrival = (*std::next(it))->_now;
 
@@ -181,7 +206,6 @@ journey::transport generate_journey_transport(unsigned int from,
                                               intermediate::transport const& t,
                                               schedule const& sched,
                                               unsigned int route_id) {
-  bool walk = false;
   std::string name;
   std::string cat_name;
   unsigned int cat_id = 0;
@@ -192,10 +216,7 @@ journey::transport generate_journey_transport(unsigned int from,
   std::string direction;
   std::string provider;
 
-  if (t.con == nullptr) {
-    walk = true;
-    slot = t.slot;
-  } else {
+  if (t.con != nullptr) {
     std::string print_train_nr;
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
@@ -222,9 +243,7 @@ journey::transport generate_journey_transport(unsigned int from,
 
       case category::CATEGORY: name = cat_name; break;
 
-      case category::TRAIN_NUM:
-        name = print_train_nr;
-        break;
+      case category::TRAIN_NUM: name = print_train_nr; break;
 
       case category::NOTHING: break;
 
@@ -247,10 +266,14 @@ journey::transport generate_journey_transport(unsigned int from,
     }
   }
 
-  return {from,     to,     walk,      name,
-          cat_name, cat_id, train_nr,  line_identifier,
-          duration, slot,   direction, provider,
-          route_id};
+  return {from,        to,
+          t.type,      name,
+          cat_name,    cat_id,
+          train_nr,    line_identifier,
+          duration,    slot,
+          direction,   provider,
+          route_id,    t.mumo_type_name,
+          t.mumo_price};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -369,6 +392,7 @@ journey labels_to_journey(label const* label, schedule const& sched) {
   j.duration = label->_travel_time[0];
   j.transfers = label->_transfers[0] - 1;
   j.price = label->_total_price[0];
+  j.night_penalty = label->_night_penalty;
   return j;
 }
 

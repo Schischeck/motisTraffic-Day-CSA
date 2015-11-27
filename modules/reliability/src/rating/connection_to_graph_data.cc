@@ -55,7 +55,7 @@ connection_element get_last_element(schedule const& sched,
   for (auto it = journey.transports.rbegin(); it != journey.transports.rend();
        ++it) {
     auto const& transport = *it;
-    if (!transport.walk) {
+    if (transport.type == journey::transport::PublicTransport) {
       unsigned int const tail_stop_idx = transport.to - 1;
       auto const& tail_stop = journey.stops[tail_stop_idx];
       auto const& head_stop = journey.stops[tail_stop_idx + 1];

@@ -452,7 +452,8 @@ TEST_F(reliability_connection_graph_rating_foot,
     }
     {
       ASSERT_EQ(1, cg.stops_[2].alternative_infos_.size());
-      ASSERT_TRUE(cg.journeys_.back().transports.front().walk);
+      ASSERT_EQ(journey::transport::Walk,
+                cg.journeys_.back().transports.front().type);
       auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
       ASSERT_EQ(
           cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,

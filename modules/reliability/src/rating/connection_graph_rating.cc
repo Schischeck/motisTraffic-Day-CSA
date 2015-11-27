@@ -167,7 +167,8 @@ void rate_alternative_in_cg(
 
   /* alternative to the destination consisting of a walk */
   if (alternative_journey.transports.size() == 1 &&
-      alternative_journey.transports.front().walk) {
+      alternative_journey.transports.front().type !=
+          journey::transport::PublicTransport) {
     alternative.rating_.departure_distribution_ = last_element.second;
     alternative.rating_.arrival_distribution_ = last_element.second;
     cg_context.stop_states_.at(stop.index_)
