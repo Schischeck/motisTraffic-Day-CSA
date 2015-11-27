@@ -1,16 +1,14 @@
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include <algorithm>
 
-#include "motis/core/common/journey.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/journey_util.h"
 #include "motis/core/schedule/category.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
 namespace motis {
-namespace journey_builder {
-
-namespace detail {
 
 journey::stop::event_info to_event_info(routing::EventInfo const& event,
                                         bool const valid) {
@@ -86,23 +84,7 @@ uint16_t get_move_duration(
   return (to.arrival()->time() - from.departure()->time()) / 60;
 }
 
-uint16_t get_duration(journey const& journey) {
-  if (journey.stops.size() > 0) {
-    return (journey.stops.back().arrival.timestamp -
-            journey.stops.front().departure.timestamp) /
-           60;
-  }
-  return 0;
-}
-uint16_t get_transfers(journey const& journey) {
-  return std::count_if(journey.stops.begin(), journey.stops.end(),
-                       [](journey::stop const& s) { return s.interchange; });
-}
-
-}  // namespace detail
-
-std::vector<journey> to_journeys(routing::RoutingResponse const* response) {
-  using namespace detail;
+std::vector<journey> message_to_journeys(routing::RoutingResponse const* response) {
   std::vector<journey> journeys;
   for (auto conn = response->connections()->begin();
        conn != response->connections()->end(); ++conn) {
@@ -145,5 +127,4 @@ std::vector<journey> to_journeys(routing::RoutingResponse const* response) {
   return journeys;
 }
 
-}  // namespace journey_builder
 }  // namespace motis

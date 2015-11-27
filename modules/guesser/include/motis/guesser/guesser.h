@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "guess/guesser.h"
 
 #include "motis/module/module.h"
@@ -22,6 +24,7 @@ struct guesser : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
+  std::vector<int> station_indices_;
   std::unique_ptr<guess::guesser> guesser_;
 };
 

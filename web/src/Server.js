@@ -1,33 +1,48 @@
-import Actions from './flux-infra/Actions';
+import AppDispatcher from './Dispatcher';
 
 class Server {
   constructor(server) {
     this.requestId = 0;
-    this.socket = new WebSocket(server);
-    this.socket.onmessage = this._onmessage.bind(this);
-    this.socket.onclose = () => {
-      console.log('close', arguments);
-    };
-    this.socket.onerror = () => {
-      console.log('error', arguments);
-    };
-    this.socket.onopen = () => {
-      console.log('open', arguments);
-    };
+    this.server = server;
+    this.pendingRequests = new Map();
 
-    this.pendingRequests = {};
+    this._wsConnect();
   }
 
-  _onmessage(evt) {
-    this._resolvePending(JSON.parse(evt.data));
+  _wsConnect() {
+    this.socket = new WebSocket(this.server);
+    this.socket.onmessage = this._onMessage.bind(this);
+    this.socket.onopen = () => {
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': true
+      });
+    };
+    this.socket.onclose = () => {
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': false
+      });
+      setTimeout(() => {
+        this._wsConnect();
+      }, 2000);
+    };
+  }
+
+  _onMessage(evt) {
+    try {
+      this._resolvePending(JSON.parse(evt.data));
+    } catch (e) {
+      console.error('invalid json', evt.data);
+    }
   }
 
   _isPendingRequest(id) {
-    return this.pendingRequests[id] !== undefined;
+    return this.pendingRequests.has(id);
   }
 
   _cancelTimeout(id) {
-    clearTimeout(this.pendingRequests[id].timer);
+    clearTimeout(this.pendingRequests.get(id).timer);
   }
 
   _resolvePending(data) {
@@ -36,8 +51,12 @@ class Server {
     }
 
     this._cancelTimeout(data.id);
-    this.pendingRequests[data.id].resolve(data);
-    delete this.pendingRequests[data.id];
+    if (data.content_type === 'MotisError') {
+      this.pendingRequests.get(data.id).reject(data);
+    } else {
+      this.pendingRequests.get(data.id).resolve(data);
+    }
+    this.pendingRequests.delete(data.id);
   }
 
   _rejectPending(id, reason) {
@@ -46,30 +65,34 @@ class Server {
     }
 
     this._cancelTimeout(id);
-    this.pendingRequests[id].reject(reason);
-    delete this.pendingRequests[id];
+    this.pendingRequests.get(id).reject(reason);
+    this.pendingRequests.delete(id);
   }
 
   sendMessage(message) {
     return new Promise((resolve, reject) => {
-      let localRequestId = ++this.requestId;
-      let request = {
+      const localRequestId = ++this.requestId;
+      const request = {
         'id': localRequestId,
         'content_type': message.contentType,
         'content': message.content
       };
 
-      this.socket.send(JSON.stringify(request));
+      try {
+        this.socket.send(JSON.stringify(request));
+      } catch (e) {
+        reject(e);
+      }
 
-      let timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');
-      }, 1000);
+      }, message.timeout);
 
-      this.pendingRequests[localRequestId] = {
+      this.pendingRequests.set(localRequestId, {
         resolve: resolve,
         reject: reject,
         timer: timer
-      };
+      });
     });
   }
 }
