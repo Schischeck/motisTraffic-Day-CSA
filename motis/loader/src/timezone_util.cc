@@ -7,9 +7,9 @@ namespace motis {
 namespace loader {
 
 int day_idx(int day_idx_schedule_first_day, int day_idx_schedule_last_day,
-            int day_idx_season_first_day) {
+            int day_idx_season_event_day) {
   return std::max(
-      std::min(day_idx_schedule_last_day, day_idx_season_first_day) -
+      std::min(day_idx_schedule_last_day, day_idx_season_event_day) -
           day_idx_schedule_first_day,
       0);
 }
