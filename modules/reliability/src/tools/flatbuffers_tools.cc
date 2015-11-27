@@ -44,7 +44,7 @@ module::msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
   }
   routing::Interval interval(request->interval()->begin(),
                              request->interval()->end());
-  std::vector<Offset<routing::HotelEdge>> dummy;
+  std::vector<Offset<routing::AdditionalEdgeWrapper>> dummy;
   b.CreateAndFinish(MsgContent_RoutingRequest,
                     routing::CreateRoutingRequest(
                         b, &interval, request->type(), request->direction(),
@@ -67,7 +67,7 @@ module::msg_ptr to_routing_request(std::string const& from_name,
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(interval_begin, interval_end);
-  std::vector<Offset<routing::HotelEdge>> dummy;
+  std::vector<Offset<routing::AdditionalEdgeWrapper>> dummy;
   b.CreateAndFinish(MsgContent_RoutingRequest,
                     routing::CreateRoutingRequest(
                         b, &interval, (ontrip ? routing::Type::Type_OnTrip
@@ -265,7 +265,7 @@ module::msg_ptr to_reliable_routing_request(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
   routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
                              to_unix_time(ddmmyyyy, interval_end));
-  std::vector<Offset<routing::HotelEdge>> dummy;
+  std::vector<Offset<routing::AdditionalEdgeWrapper>> dummy;
   b.CreateAndFinish(
       MsgContent_ReliableRoutingRequest,
       reliability::CreateReliableRoutingRequest(

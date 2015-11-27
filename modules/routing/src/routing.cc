@@ -115,7 +115,7 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto i_end =
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
-    auto const hotel_edges = create_hotel_edges(req->hotel_edges(), sched);
+    auto const hotel_edges = create_hotel_edges(req->additional_edges(), sched);
 
     search s(lock.sched(), label_store_);
     auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end,

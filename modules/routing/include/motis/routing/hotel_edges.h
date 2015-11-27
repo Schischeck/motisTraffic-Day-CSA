@@ -9,7 +9,7 @@ struct edge;
 struct schedule;
 namespace routing {
 std::vector<edge> create_hotel_edges(
-    flatbuffers::Vector<flatbuffers::Offset<HotelEdge>> const*,
+    flatbuffers::Vector<flatbuffers::Offset<AdditionalEdgeWrapper>> const*,
     schedule const&);
 }
 }

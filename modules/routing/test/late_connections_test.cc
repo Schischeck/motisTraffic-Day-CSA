@@ -19,7 +19,7 @@
 namespace motis {
 namespace routing {
 
-class routing_hotel_edges : public reliability::test_schedule_setup {
+class routing_late_connections : public reliability::test_schedule_setup {
 public:
   struct hotel_info {
     hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
@@ -33,7 +33,8 @@ public:
     uint16_t min_stay_duration_;
     uint16_t price_;
   };
-  routing_hotel_edges()
+
+  routing_late_connections()
       : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 21)) {}
@@ -55,17 +56,20 @@ public:
     Interval interval(
         motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 - 10),
         motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 + 50));
-    std::vector<flatbuffers::Offset<HotelEdge>> f_hotel_infos;
+    std::vector<flatbuffers::Offset<AdditionalEdgeWrapper>> additional_edges;
     for (auto const& info : hotel_infos) {
-      f_hotel_infos.push_back(CreateHotelEdge(
-          b, b.CreateString(info.station_), info.earliest_checkout_,
-          info.min_stay_duration_, info.price_));
+      additional_edges.push_back(CreateAdditionalEdgeWrapper(
+          b, AdditionalEdge_HotelEdge,
+          CreateHotelEdge(b, b.CreateString(info.station_),
+                          info.earliest_checkout_, info.min_stay_duration_,
+                          info.price_)
+              .Union()));
     }
     b.CreateAndFinish(MsgContent_RoutingRequest,
                       CreateRoutingRequest(b, &interval, Type::Type_OnTrip,
                                            Direction::Direction_Forward,
                                            b.CreateVector(station_elements),
-                                           b.CreateVector(f_hotel_infos))
+                                           b.CreateVector(additional_edges))
                           .Union());
     return module::make_msg(b);
   }
@@ -78,26 +82,30 @@ void test_hotel_edge(edge const& e, HotelEdge const* hotel_info,
                               .find(hotel_info->station_eva()->c_str())
                               ->second->index]
           .get();
-  ASSERT_EQ(station_node, e._from);
-  ASSERT_EQ(station_node, e._to);
+  ASSERT_EQ(station_node->_id, e._from->_id);
+  ASSERT_EQ(station_node->_id, e._to->_id);
   ASSERT_EQ(edge::HOTEL_EDGE, e.type());
-  ASSERT_EQ(hotel_info->checkout_time(), e._m._hotel_edge._checkout_time);
+  ASSERT_EQ(hotel_info->earliest_checkout_time(),
+            e._m._hotel_edge._checkout_time);
   ASSERT_EQ(hotel_info->min_stay_duration(),
             e._m._hotel_edge._min_stay_duration);
   ASSERT_EQ(hotel_info->price(), e._m._hotel_edge._price);
 }
 
-TEST_F(routing_hotel_edges, test_costs) {
+TEST_F(routing_late_connections, test_hotel_edges) {
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(FRANKFURT, 7 * 60, 6 * 60, 5000);
   hotel_infos.emplace_back(LANGEN, 8 * 60, 9 * 60, 4000);
   auto message = to_routing_msg(hotel_infos);
   auto req = message->content<RoutingRequest const*>();
-  auto hotel_edges = create_hotel_edges(req->hotel_edges(), *schedule_);
+  auto hotel_edges = create_hotel_edges(req->additional_edges(), *schedule_);
 
   ASSERT_EQ(2, hotel_edges.size());
   for (unsigned int i = 0; i < 2; ++i) {
-    test_hotel_edge(hotel_edges[i], (*req->hotel_edges())[i], *schedule_);
+    test_hotel_edge(
+        hotel_edges[i],
+        (HotelEdge const*)(*req->additional_edges())[i]->additional_edge(),
+        *schedule_);
   }
 
   /* checkout-time: 7 * 60, min-stay-duration: 6 * 60 */
@@ -127,7 +135,7 @@ TEST_F(routing_hotel_edges, test_costs) {
   ASSERT_FALSE(hotel_edges[0].get_minimum_cost().transfer);
 }
 
-TEST_F(routing_hotel_edges, search) {
+TEST_F(routing_late_connections, search) {
   reliability::system_tools::setup setup(schedule_.get());
   bool test_cb_called = false;
   std::vector<hotel_info> hotel_infos;
