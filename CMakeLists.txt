@@ -112,9 +112,10 @@ add_executable(motis-test EXCLUDE_FROM_ALL
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
   ${module-targets}
-  motis-module
-  motis-loader
+  motis-bootstrap
   motis-core
+  motis-loader
+  motis-module
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-test gtest gtest_main)
