@@ -20,6 +20,7 @@
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
+#include "motis/loader/timezone_util.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -41,7 +42,24 @@ public:
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
     stations_.set_empty_key(nullptr);
-    timezones_.set_empty_key(nullptr);
+  }
+
+  timezone const* get_or_create_timezone(Timezone const* input_timez) {
+    return get_or_create(timezones_, input_timez, [&]() {
+      auto const tz =
+          input_timez->season()
+              ? create_timezone(
+                    input_timez->general_offset(),
+                    input_timez->season()->offset(),  //
+                    first_day_, last_day_,
+                    input_timez->season()->day_idx_first_day(),
+                    input_timez->season()->day_idx_last_day(),
+                    input_timez->season()->minutes_after_midnight_first_day(),
+                    input_timez->season()->minutes_after_midnight_last_day())
+              : timezone(input_timez->general_offset());
+      sched_.timezones.emplace_back(new timezone(tz));
+      return sched_.timezones.back().get();
+    });
   }
 
   void add_stations(Vector<Offset<Station>> const* stations) {
@@ -79,6 +97,10 @@ public:
       s->length = input_station->lng();
       s->eva_nr = input_station->id()->str();
       s->transfer_time = input_station->interchange_time();
+      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+      s->timez = input_station->timezone()
+                     ? get_or_create_timezone(input_station->timezone())
+                     : nullptr;
       sched_.eva_to_station.insert(
           std::make_pair(input_station->id()->str(), s.get()));
       sched_.stations.emplace_back(std::move(s));
@@ -288,17 +310,23 @@ private:
       con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
-      //      auto const dep_motis_time =
-      //          sched_.stations[curr_route_edge->_from->get_station()->_id]
-      //              .get()
-      //              ->timez->to_motis_time(day - first_day_, dep_time);
-      //      auto const arr_motis_time =
-      //          sched_.stations[curr_route_edge->_to->get_station()->_id]
-      //              .get()
-      //              ->timez->to_motis_time(day - first_day_, arr_time);
+      auto const dep_timez =
+          sched_.stations[curr_route_edge->_from->get_station()->_id]
+              .get()
+              ->timez;
+      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+      auto const dep_motis_time =
+          dep_timez ? dep_timez->to_motis_time(day - first_day_, dep_time)
+                    : (day - first_day_) * MINUTES_A_DAY + dep_time;
 
-      time const dep_motis_time = 0;
-      time const arr_motis_time = 0;
+      auto const arr_timez =
+          sched_.stations[curr_route_edge->_from->get_station()->_id]
+              .get()
+              ->timez;
+      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+      auto const arr_motis_time =
+          arr_timez ? arr_timez->to_motis_time(day - first_day_, arr_time)
+                    : (day - first_day_) * MINUTES_A_DAY + arr_time;
 
       curr_route_edge->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,
@@ -449,7 +477,7 @@ private:
   std::map<String const*, std::string const*> directions_;
   std::map<Provider const*, provider const*> providers_;
   hash_map<Station const*, station_node*> stations_;
-  hash_map<Timezone const*, timezone const*> timezones_;
+  std::map<Timezone const*, timezone const*> timezones_;
   hash_map<String const*, bitfield> bitfields_;
   hash_set<connection_info*,
            deep_ptr_hash<connection_info::hash, connection_info>,

@@ -5,8 +5,8 @@ namespace loader {
 
 int day_idx(int day_idx_schedule_first_day, int day_idx_schedule_last_day,
             int day_idx_season_event) {
-  return std::max(std::min(day_idx_schedule_first_day, day_idx_season_event) -
-                      day_idx_schedule_last_day,
+  return std::max(std::min(day_idx_schedule_last_day, day_idx_season_event) -
+                      day_idx_schedule_first_day,
                   0);
 }
 

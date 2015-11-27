@@ -40,9 +40,9 @@ Offset<Station> station_builder::get_or_create_station(int eva_num,
             auto const& season = *(tze->season);
             return CreateTimezone(
                 fbb, tze->general_gmt_offset,
-                CreateSeason(fbb, season.first_day_idx,
-                             season.season_begin_time, season.last_day_idx,
-                             season.season_end_time, season.gmt_offset));
+                CreateSeason(fbb, season.gmt_offset, season.first_day_idx,
+                             season.last_day_idx, season.season_begin_time,
+                             season.season_end_time));
           } else {
             return CreateTimezone(fbb, tze->general_gmt_offset);
           }

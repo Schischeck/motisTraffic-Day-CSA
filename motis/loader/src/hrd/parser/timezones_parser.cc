@@ -48,8 +48,8 @@ timezones parse_timezones(loaded_file const& timezones_file,
         opt_season_entry = {
             distance_to_midnight(line.substr(14, size(5))),
             bitfield_idx(line.substr(20, size(8)), first_schedule_date),
-            distance_to_midnight(line.substr(29, size(4))),
             bitfield_idx(line.substr(34, size(8)), first_schedule_date),
+            distance_to_midnight(line.substr(29, size(4))),
             distance_to_midnight(line.substr(43, size(4)))};
       }
 

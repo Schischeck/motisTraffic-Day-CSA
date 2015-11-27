@@ -15,8 +15,8 @@ namespace hrd {
 struct season_entry {
   int const gmt_offset;  // in minutes
   int const first_day_idx;  // bitfield index (closed)
-  int const season_begin_time;  // minutes after midnight
   int const last_day_idx;  // bitfield index (closed)
+  int const season_begin_time;  // minutes after midnight
   int const season_end_time;  // minutes after midnight
 };
 
@@ -28,7 +28,6 @@ struct timezone_entry {
 };
 
 struct timezones {
-
   inline timezone_entry const* find(int eva_number) const {
     verify(0 <= eva_number && eva_number <= 9999999, "invalid eva number: %d",
            eva_number);
