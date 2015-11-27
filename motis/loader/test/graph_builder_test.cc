@@ -16,8 +16,8 @@ namespace loader {
 class loader_multiple_ice_graph_builder_test : public ::testing::Test {
 protected:
   loader_multiple_ice_graph_builder_test(std::string schedule_name,
-                                  std::time_t schedule_begin,
-                                  std::time_t schedule_end)
+                                         std::time_t schedule_begin,
+                                         std::time_t schedule_end)
       : schedule_name_(std::move(schedule_name)),
         schedule_begin_(schedule_begin),
         schedule_end_(schedule_end) {}
@@ -84,8 +84,8 @@ class loader_direction_services_graph_builder_test
 public:
   loader_direction_services_graph_builder_test()
       : loader_multiple_ice_graph_builder_test("direction-services",
-                                        to_unix_time(2015, 9, 11),
-                                        to_unix_time(2015, 9, 12)) {}
+                                               to_unix_time(2015, 9, 11),
+                                               to_unix_time(2015, 9, 12)) {}
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -213,10 +213,12 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
                    sched_->stations[next_route_node->get_station()->_id]
                        ->eva_nr.c_str());
 
+      // [M]otis [T]ime [O]ffset (1*MINUTES_A_DAY - GMT+1)
+      auto const MTO = 1440 - 60;
       ASSERT_EQ(1, first_route_node->_edges[1]._m._route_edge._conns.size());
       auto& lcon = first_route_node->_edges[1]._m._route_edge._conns;
-      ASSERT_EQ(19 * 60 + 3, lcon[0].d_time);
-      ASSERT_EQ(19 * 60 + 58, lcon[0].a_time);
+      ASSERT_EQ(19 * 60 + 3 + MTO, lcon[0].d_time);
+      ASSERT_EQ(19 * 60 + 58 + MTO, lcon[0].a_time);
 
       auto connections = get_connections(first_route_node, 19 * 60 + 3);
       ASSERT_EQ(8, static_cast<int>(connections.size()));
@@ -241,23 +243,23 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
       EXPECT_EQ("8011102",
                 stations[get<2>(connections[7])->get_station()->_id]->eva_nr);
 
-      EXPECT_EQ(19 * 60 + 3, get<0>(connections[0])->d_time);
-      EXPECT_EQ(20 * 60, get<0>(connections[1])->d_time);
-      EXPECT_EQ(21 * 60 + 55, get<0>(connections[2])->d_time);
-      EXPECT_EQ(22 * 60 + 34, get<0>(connections[3])->d_time);
-      EXPECT_EQ(23 * 60 + 18, get<0>(connections[4])->d_time);
-      EXPECT_EQ(23 * 60 + 49, get<0>(connections[5])->d_time);
-      EXPECT_EQ(24 * 60 + 25, get<0>(connections[6])->d_time);
-      EXPECT_EQ(24 * 60 + 33, get<0>(connections[7])->d_time);
+      EXPECT_EQ(19 * 60 + 3 + MTO, get<0>(connections[0])->d_time);
+      EXPECT_EQ(20 * 60 + MTO, get<0>(connections[1])->d_time);
+      EXPECT_EQ(21 * 60 + 55 + MTO, get<0>(connections[2])->d_time);
+      EXPECT_EQ(22 * 60 + 34 + MTO, get<0>(connections[3])->d_time);
+      EXPECT_EQ(23 * 60 + 18 + MTO, get<0>(connections[4])->d_time);
+      EXPECT_EQ(23 * 60 + 49 + MTO, get<0>(connections[5])->d_time);
+      EXPECT_EQ(24 * 60 + 25 + MTO, get<0>(connections[6])->d_time);
+      EXPECT_EQ(24 * 60 + 33 + MTO, get<0>(connections[7])->d_time);
 
-      EXPECT_EQ(19 * 60 + 58, get<0>(connections[0])->a_time);
-      EXPECT_EQ(21 * 60 + 53, get<0>(connections[1])->a_time);
-      EXPECT_EQ(22 * 60 + 32, get<0>(connections[2])->a_time);
-      EXPECT_EQ(23 * 60 + 8, get<0>(connections[3])->a_time);
-      EXPECT_EQ(23 * 60 + 47, get<0>(connections[4])->a_time);
-      EXPECT_EQ(24 * 60 + 23, get<0>(connections[5])->a_time);
-      EXPECT_EQ(24 * 60 + 30, get<0>(connections[6])->a_time);
-      EXPECT_EQ(24 * 60 + 38, get<0>(connections[7])->a_time);
+      EXPECT_EQ(19 * 60 + 58 + MTO, get<0>(connections[0])->a_time);
+      EXPECT_EQ(21 * 60 + 53 + MTO, get<0>(connections[1])->a_time);
+      EXPECT_EQ(22 * 60 + 32 + MTO, get<0>(connections[2])->a_time);
+      EXPECT_EQ(23 * 60 + 8 + MTO, get<0>(connections[3])->a_time);
+      EXPECT_EQ(23 * 60 + 47 + MTO, get<0>(connections[4])->a_time);
+      EXPECT_EQ(24 * 60 + 23 + MTO, get<0>(connections[5])->a_time);
+      EXPECT_EQ(24 * 60 + 30 + MTO, get<0>(connections[6])->a_time);
+      EXPECT_EQ(24 * 60 + 38 + MTO, get<0>(connections[7])->a_time);
 
       ASSERT_TRUE(std::all_of(
           begin(connections), end(connections),

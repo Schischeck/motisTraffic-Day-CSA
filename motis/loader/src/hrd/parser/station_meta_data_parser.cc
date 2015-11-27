@@ -88,13 +88,13 @@ void parse_and_add_hrd_footpaths(
     loaded_file const& metabhf_file,
     std::set<station_meta_data::footpath>& footpaths) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
-    if (line.length() < 20 || line[0] == '%' || line[0] == '*' ||
+    if (line.length() < 19 || line[0] == '%' || line[0] == '*' ||
         line[7] == ':') {
       return;
     }
     footpaths.insert({parse<int>(line.substr(0, size(7))),
                       parse<int>(line.substr(8, size(7))),
-                      parse<int>(line.substr(17, size(3)))});
+                      parse<int>(line.substr(16, size(3)))});
   });
 }
 

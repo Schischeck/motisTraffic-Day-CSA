@@ -60,7 +60,7 @@ TEST(loader_hrd_stations_parser, meta_data) {
     ASSERT_EQ(7, metas.get_station_change_time(8000068));
     ASSERT_EQ(8, metas.get_station_change_time(8000105));
 
-    ASSERT_EQ(3, metas.footpaths_.find({8003935, 0651301, -1})->duration);
+    ASSERT_EQ(3, metas.footpaths_.find({8003935, 651301, -1})->duration);
   } catch (parser_error const& pe) {
     pe.print_what();
     ASSERT_TRUE(false);
