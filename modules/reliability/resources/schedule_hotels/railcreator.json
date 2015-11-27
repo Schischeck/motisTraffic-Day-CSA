@@ -35,6 +35,30 @@
       "evaNumber": "3333333",
       "ds100Code": "3333333",
       "KMInfo": 0
+    },
+    {
+      "name": "Offenbach",
+      "tracks": 2,
+      "latitude": 50.096000000000004,
+      "longitude": 8.76400000000001,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "9727248",
+      "ds100Code": "9727248",
+      "KMInfo": 0
+    },
+    {
+      "name": "Mainz",
+      "tracks": 2,
+      "latitude": 50.004999999999995,
+      "longitude": 8.273000000000025,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "3953754",
+      "ds100Code": "3953754",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -134,8 +158,8 @@
         },
         {
           "station": "1111111",
-          "arrival": 15,
-          "departure": 17,
+          "arrival": 50,
+          "departure": 52,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true
@@ -154,6 +178,166 @@
         {
           "fromTime": "10:00:00.000",
           "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "RE_D_O",
+      "category": "RE",
+      "evaNumber": "0286964",
+      "trainNumber": 4,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "9727248",
+          "arrival": 90,
+          "departure": 92,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "00:00:00.000",
+          "untilTime": "00:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_O_F",
+      "category": "S",
+      "evaNumber": "8458498",
+      "trainNumber": 5,
+      "stations": [
+        {
+          "station": "9727248",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1111111",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:35:00.000",
+          "untilTime": "10:35:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_D_M",
+      "category": "RE",
+      "evaNumber": "1321694",
+      "trainNumber": 6,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3953754",
+          "arrival": 19,
+          "departure": 21,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "23:51:00.000",
+          "untilTime": "23:51:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_M_F",
+      "category": "ICE",
+      "evaNumber": "7642212",
+      "trainNumber": 7,
+      "stations": [
+        {
+          "station": "3953754",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1111111",
+          "arrival": 21,
+          "departure": 23,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:30:00.000",
+          "untilTime": "10:30:00.000",
           "interval": 1
         }
       ]

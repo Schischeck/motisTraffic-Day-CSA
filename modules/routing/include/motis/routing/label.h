@@ -347,8 +347,8 @@ public:
 };
 
 inline std::ostream& operator<<(std::ostream& os, label const& l) {
-  os << "label at node " << l._node->_id << " at station "
-     << l._node->get_station()->_id << " time: " << l._now
+  os << "label at " << l._node->type_str() << "-node " << l._node->_id
+     << " at station " << l._node->get_station()->_id << " time: " << l._now
      << " trans: " << (unsigned int)l._transfers[0] << " "
      << (unsigned int)l._transfers[1] << " visited_hotel: " << l._visited_hotel
      << " night_penalty: " << l._night_penalty << " db_costs: " << l._db_costs
