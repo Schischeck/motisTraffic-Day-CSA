@@ -4,10 +4,17 @@ include "Platform.fbs";
 
 namespace motis.loader;
 
+table Origin {
+  file : string;
+  line_from : int;
+  line_to : int;
+}
+
 table Service {
   route : Route;
   traffic_days : string;
   sections : [Section];
   platforms : [PlatformRules];
   times : [int];
+  origin : Origin;
 }

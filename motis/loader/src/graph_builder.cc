@@ -208,7 +208,8 @@ public:
               ? service->platforms()->Get(section_idx)->dep_platforms()
               : nullptr,
           service->times()->Get(section_idx * 2 + 1),
-          service->times()->Get(section_idx * 2 + 2), traffic_days);
+          service->times()->Get(section_idx * 2 + 2), traffic_days,
+          service->origin());
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
     }
     int32_t route_id = route_nodes[0]->_route;
@@ -271,7 +272,7 @@ private:
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days) {
+                           bitfield const& traffic_days, Origin const* origin) {
     assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
@@ -324,13 +325,28 @@ private:
                     : (day - first_day_) * MINUTES_A_DAY + dep_time;
 
       auto const arr_timez =
-          sched_.stations[curr_route_edge->_from->get_station()->_id]
+          sched_.stations[curr_route_edge->_to->get_station()->_id]
               .get()
               ->timez;
       // TODO (DEPRECATION WARNING) timezone should always non NULL!
       auto const arr_motis_time =
           arr_timez ? arr_timez->to_motis_time(day - first_day_, arr_time)
                     : (day - first_day_) * MINUTES_A_DAY + arr_time;
+
+      if (dep_motis_time > arr_motis_time) {
+        LOG(emrg) << dep_time << "--loader_time-->" << arr_time;
+        LOG(emrg) << "[" << origin->file()->c_str() << ","
+                  << origin->line_from() << "," << origin->line_to() << "] "
+                  << "negative edge: ("
+                  << sched_.stations[curr_route_edge->_from->get_station()->_id]
+                         .get()
+                         ->eva_nr
+                  << "," << dep_motis_time << ")--motis_time-->("
+                  << sched_.stations[curr_route_edge->_to->get_station()->_id]
+                         .get()
+                         ->eva_nr
+                  << "," << arr_motis_time << ")";
+      }
 
       curr_route_edge->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,

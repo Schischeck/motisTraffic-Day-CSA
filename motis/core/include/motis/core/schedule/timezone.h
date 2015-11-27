@@ -20,9 +20,9 @@ struct timezone {
   timezone(int general_offset, season s)
       : general_offset_(general_offset), season_(s) {}
 
-  inline time to_motis_time(int num_days, int minutes_after_midnight) const {
+  inline time to_motis_time(int day_idx, int minutes_after_midnight) const {
     auto const local_motis_time =
-        to_time(num_days, MINUTES_A_DAY + minutes_after_midnight);
+        to_time(day_idx, MINUTES_A_DAY + minutes_after_midnight);
     auto const is_in_season =
         season_.begin != INVALID_TIME &&
         season_.begin + general_offset_ <= local_motis_time &&
