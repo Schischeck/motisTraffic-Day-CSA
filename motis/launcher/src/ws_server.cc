@@ -22,30 +22,14 @@ namespace motis {
 namespace launcher {
 
 struct ws_server::ws_server_impl {
-  ws_server_impl(boost::asio::io_service& ios)
-      : ios_(ios),
-        next_sid_(0),
-        msg_handler_(nullptr),
-        open_handler_(nullptr),
-        close_handler_(nullptr) {
+  ws_server_impl(boost::asio::io_service& ios, receiver& receiver)
+      : receiver_(receiver), ios_(ios), next_sid_(0) {
     namespace p = std::placeholders;
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
     server_.set_message_handler(
         std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
-  }
-
-  void set_msg_handler(msg_handler handler) {
-    msg_handler_ = std::move(handler);
-  }
-
-  void set_open_handler(sid_handler handler) {
-    open_handler_ = std::move(handler);
-  }
-
-  void set_close_handler(sid_handler handler) {
-    close_handler_ = std::move(handler);
   }
 
   void listen(std::string const& host, std::string const& port) {
@@ -93,11 +77,7 @@ struct ws_server::ws_server_impl {
   void on_open(connection_hdl hdl) {
     sid_con_map_.insert({next_sid_, hdl});
     con_sid_map_.insert({hdl, next_sid_});
-
-    if (open_handler_) {
-      open_handler_(next_sid_);
-    }
-
+    receiver_.on_open((next_sid_));
     ++next_sid_;
   }
 
@@ -116,17 +96,10 @@ struct ws_server::ws_server_impl {
     }
 
     sid_con_map_.erase(sid_it);
-
-    if (close_handler_) {
-      close_handler_(sid);
-    }
+    receiver_.on_close(sid);
   }
 
   void on_msg(connection_hdl con, asio_ws_server::message_ptr msg) {
-    if (!msg_handler_) {
-      return;
-    }
-
     auto con_it = con_sid_map_.find(con);
     if (con_it == end(con_sid_map_)) {
       return;
@@ -136,7 +109,7 @@ struct ws_server::ws_server_impl {
     msg_ptr req_msg;
     try {
       req_msg = make_msg(msg->get_payload());
-    } catch(boost::system::system_error const& e) {
+    } catch (boost::system::system_error const& e) {
       send_error(e.code(), session, 0);
       return;
     } catch (...) {
@@ -144,7 +117,7 @@ struct ws_server::ws_server_impl {
     }
 
     try {
-      msg_handler_(
+      receiver_.on_msg(
           req_msg, session,
           [this, session, req_msg](msg_ptr res, boost::system::error_code ec) {
             if (ec) {
@@ -162,33 +135,21 @@ struct ws_server::ws_server_impl {
     }
   }
 
+  motis::module::receiver& receiver_;
+
   asio_ws_server server_;
   boost::asio::io_service& ios_;
+
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
   std::map<connection_hdl, sid, std::owner_less<connection_hdl>> con_sid_map_;
-
-  msg_handler msg_handler_;
-  sid_handler open_handler_;
-  sid_handler close_handler_;
 };
 
 ws_server::~ws_server() {}
 
-ws_server::ws_server(boost::asio::io_service& ios)
-    : impl_(new ws_server_impl(ios)) {}
-
-void ws_server::on_msg(msg_handler handler) {
-  impl_->set_msg_handler(std::move(handler));
-}
-
-void ws_server::on_open(sid_handler handler) {
-  impl_->set_open_handler(std::move(handler));
-}
-
-void ws_server::on_close(sid_handler handler) {
-  impl_->set_close_handler(std::move(handler));
-}
+ws_server::ws_server(boost::asio::io_service& ios,
+                     motis::module::receiver& receiver)
+    : impl_(new ws_server_impl(ios, receiver)) {}
 
 void ws_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);

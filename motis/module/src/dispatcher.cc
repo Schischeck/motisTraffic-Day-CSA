@@ -5,15 +5,15 @@
 namespace motis {
 namespace module {
 
-dispatcher::dispatcher(server& server, boost::asio::io_service& ios)
-    : server_(server), ios_(ios) {
-  namespace p = std::placeholders;
-  server_.on_msg(std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3));
-  server_.on_open(std::bind(&dispatcher::on_open, this, p::_1));
-  server_.on_close(std::bind(&dispatcher::on_close, this, p::_1));
-}
+dispatcher::dispatcher(boost::asio::io_service& ios) : ios_(ios) {}
 
-void dispatcher::send(msg_ptr msg, sid session) { server_.send(msg, session); }
+void dispatcher::set_send_fun(send_fun send) { send_fun_ = send; }
+
+void dispatcher::send(msg_ptr msg, sid session) {
+  if (send_fun_) {
+    send_fun_(msg, session);
+  }
+}
 
 void dispatcher::on_msg(msg_ptr msg, sid session, callback cb) {
   auto module_it = subscriptions_.find(msg->msg_->content_type());

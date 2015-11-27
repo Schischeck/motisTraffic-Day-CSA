@@ -5,25 +5,27 @@
 #include "boost/asio/io_service.hpp"
 
 #include "motis/module/module.h"
-#include "motis/module/server.h"
+#include "motis/module/receiver.h"
+#include "motis/module/callbacks.h"
 
 namespace motis {
 namespace module {
 
-struct dispatcher {
+struct dispatcher : public receiver {
   struct held_back_msg {
     msg_ptr msg;
     sid session;
     callback cb;
   };
 
-  dispatcher(server& server, boost::asio::io_service& ios);
+  dispatcher(boost::asio::io_service& ios);
 
+  void set_send_fun(send_fun);
   void send(msg_ptr msg, sid session);
 
-  void on_msg(msg_ptr msg, sid session, callback cb);
-  void on_open(sid session);
-  void on_close(sid session);
+  void on_msg(msg_ptr msg, sid session, callback cb) override;
+  void on_open(sid session) override;
+  void on_close(sid session) override;
 
   void remove_module(module* m);
   void add_module(module* m);
@@ -32,8 +34,8 @@ struct dispatcher {
                      boost::system::error_code ec);
   void reschedule_held_back_msgs();
 
-  server& server_;
   boost::asio::io_service& ios_;
+  send_fun send_fun_;
   std::vector<module*> modules_;
   std::map<MsgContent, std::vector<module*>> subscriptions_;
   std::vector<held_back_msg> held_back_msgs_;

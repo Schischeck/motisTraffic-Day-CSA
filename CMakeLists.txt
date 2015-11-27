@@ -55,6 +55,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
+include_directories(${CMAKE_SOURCE_DIR}/motis/bootstrap/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
@@ -95,6 +96,7 @@ foreach(module ${modules})
   list(APPEND module-test-files "modules/${module}/*_test.cc")
 endforeach(module)
 
+add_subdirectory(motis/bootstrap EXCLUDE_FROM_ALL)
 add_subdirectory(motis/launcher)
 
 configure_file (
