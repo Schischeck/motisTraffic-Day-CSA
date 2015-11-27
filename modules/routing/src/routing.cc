@@ -15,6 +15,7 @@
 #include "motis/routing/label.h"
 #include "motis/routing/search.h"
 #include "motis/routing/error.h"
+#include "motis/routing/hotel_edges.h"
 
 namespace p = std::placeholders;
 namespace po = boost::program_options;
@@ -114,9 +115,11 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto i_end =
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
+    auto const hotel_edges = create_hotel_edges(req->hotel_edges(), sched);
+
     search s(lock.sched(), label_store_);
     auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
-                                      req->type() != Type_PreTrip);
+                                      req->type() != Type_PreTrip, hotel_edges);
 
     LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
               << lock.sched().stations[path->at(1)[0].station]->name << " "

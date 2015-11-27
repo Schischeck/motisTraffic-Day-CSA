@@ -5,6 +5,9 @@
 
 namespace motis {
 namespace label_util {
+#define NIGHT_BEGIN 60
+#define NIGHT_END 360
+
 inline uint16_t night_travel_duration(uint16_t const begin_time,
                                       uint16_t const end_time,
                                       uint16_t const night_begin,

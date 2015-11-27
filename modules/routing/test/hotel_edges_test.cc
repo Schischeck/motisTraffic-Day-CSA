@@ -11,8 +11,9 @@
 
 #include "motis/routing/hotel_edges.h"
 
-/* todo: remove this dependency to reliability module */
+/* TODO: remove these dependencies to reliability module */
 #include "../../reliability/test/include/test_schedule_setup.h"
+#include "motis/reliability/tools/system.h"
 
 namespace motis {
 namespace routing {
@@ -22,7 +23,7 @@ public:
   routing_hotel_edges()
       : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
                             to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 20)) {}
+                            to_unix_time(2015, 10, 21)) {}
 
   std::string const FRANKFURT = "1111111";
   std::string const LANGEN = "2222222";
@@ -32,11 +33,13 @@ public:
     using namespace flatbuffers;
     module::MessageCreator b;
     std::vector<Offset<StationPathElement>> station_elements;
-    station_elements.push_back(
-        CreateStationPathElement(b, b.CreateString(""), b.CreateString("")));
-    station_elements.push_back(
-        CreateStationPathElement(b, b.CreateString(""), b.CreateString("")));
-    Interval interval(1, 1);
+    station_elements.push_back(CreateStationPathElement(
+        b, b.CreateString(""), b.CreateString(DARMSTADT)));
+    station_elements.push_back(CreateStationPathElement(
+        b, b.CreateString(""), b.CreateString(FRANKFURT)));
+    Interval interval(
+        motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 - 10),
+        motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 + 50));
     std::vector<flatbuffers::Offset<HotelEdge>> hotel_infos;
     hotel_infos.push_back(
         CreateHotelEdge(b, b.CreateString(FRANKFURT), 7 * 60, 6 * 60, 5000));
@@ -103,6 +106,31 @@ TEST_F(routing_hotel_edges, test_costs) {
   ASSERT_EQ(5000, hotel_edges[0].get_minimum_cost().price);
   ASSERT_EQ(0, hotel_edges[0].get_minimum_cost().time);
   ASSERT_FALSE(hotel_edges[0].get_minimum_cost().transfer);
+}
+
+TEST_F(routing_hotel_edges, search) {
+  reliability::system_tools::setup setup(schedule_.get());
+  bool test_cb_called = false;
+  auto msg = to_routing_msg();
+  std::cout << "\nQuery:\n" << msg->to_json() << std::endl;
+
+  std::cout << "\nSTATIONS" << std::endl;
+  for (auto const& st : schedule_->stations) {
+    std::cout << st->name << " ";
+  }
+  std::cout << std::endl;
+
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    test_cb_called = true;
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    std::cout << "\nResult:\n" << msg->to_json() << std::endl;
+  };
+
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
 }
 
 }  // namespace routing

@@ -22,7 +22,8 @@ public:
 
   std::vector<journey> get_connections(
       arrival from, arrival to, time interval_start, time interval_end,
-      bool ontrip, pareto_dijkstra::statistics* stats = nullptr);
+      bool ontrip, std::vector<edge> const& hotel_edges,
+      pareto_dijkstra::statistics* stats = nullptr);
 
   void generate_ontrip_start_labels(station_node const* start_station,
                                     time const start_time,

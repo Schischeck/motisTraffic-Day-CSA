@@ -54,8 +54,8 @@
         },
         {
           "station": "1111111",
-          "arrival": 60,
-          "departure": 62,
+          "arrival": 120,
+          "departure": 122,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true
@@ -152,8 +152,8 @@
       ],
       "intervals": [
         {
-          "fromTime": "08:00:00.000",
-          "untilTime": "08:00:00.000",
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
           "interval": 1
         }
       ]

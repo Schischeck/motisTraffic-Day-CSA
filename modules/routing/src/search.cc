@@ -39,9 +39,21 @@ void remove_intersection(arrival& from, arrival& to) {
 search::search(schedule const& schedule, memory_manager<label>& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
+void add_additional_edge(
+    node const* n, edge e,
+    std::unordered_map<node const*, std::vector<edge>>& additional_edges) {
+  auto it = additional_edges.find(n);
+  if (it == end(additional_edges)) {
+    std::tie(it, std::ignore) =
+        additional_edges.emplace(n, std::vector<edge>());
+  }
+  it->second.emplace_back(e);
+}
+
 std::vector<journey> search::get_connections(
     arrival from, arrival to, time interval_start, time interval_end,
-    bool ontrip, pareto_dijkstra::statistics* stats) {
+    bool ontrip, std::vector<edge> const& hotel_edges,
+    pareto_dijkstra::statistics* stats) {
   _label_store.reset();
   remove_intersection(from, to);
 
@@ -114,15 +126,14 @@ std::vector<journey> search::get_connections(
   station_node* target = _sched.station_nodes[DUMMY_TARGET_IDX].get();
   for (auto const& arr : to) {
     station_node* arrival_station = _sched.station_nodes[arr.station].get();
+    add_additional_edge(arrival_station,
+                        make_mumo_edge(arrival_station, target, arr.time_cost,
+                                       arr.price, arr.slot),
+                        additional_edges);
+  }
 
-    auto it = additional_edges.find(arrival_station);
-    if (it == end(additional_edges)) {
-      std::tie(it, std::ignore) =
-          additional_edges.emplace(arrival_station, std::vector<edge>());
-    }
-
-    it->second.emplace_back(make_mumo_edge(arrival_station, target,
-                                           arr.time_cost, arr.price, arr.slot));
+  for (auto const& hotel : hotel_edges) {
+    add_additional_edge(hotel._from, hotel, additional_edges);
   }
 
   pareto_dijkstra pd(_sched.node_count,

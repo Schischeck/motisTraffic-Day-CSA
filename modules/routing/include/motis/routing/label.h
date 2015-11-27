@@ -19,6 +19,8 @@
 
 namespace motis {
 
+std::ostream& operator<<(std::ostream& os, label const& l);
+
 class label {
 public:
   enum {
@@ -69,6 +71,7 @@ public:
 
   label* create_label(edge const& edge, lower_bounds& lower_bounds,
                       memory_manager<label>& label_store) {
+    std::cout << "CREATE LABEL for edge type " << edge.type_str() << std::endl;
     auto n_node = edge.get_destination()->_id;
 
     uint32_t transfers_l_b = lower_bounds.transfers.get_distance(n_node);
@@ -83,12 +86,17 @@ public:
     unsigned n_transfers = _transfers[0] + (ec.transfer ? 1 : 0);
     unsigned n_transfers_l_b = n_transfers + transfers_l_b;
 
-    if (ec == NO_EDGE ||
-        (_pred != nullptr && edge.get_destination() == _pred->_node) ||
+    if (ec == NO_EDGE || (edge.type() != edge::HOTEL_EDGE && _pred != nullptr &&
+                          edge.get_destination() == _pred->_node) ||
         is_filtered_travel_time(n_travel_time_l_b) ||
         is_filtered_transfers(n_transfers_l_b) ||
-        is_filtered_waiting_time(ec.connection, _travel_time[0], n_travel_time))
+        (edge.type() != edge::HOTEL_EDGE &&
+         is_filtered_waiting_time(
+             ec.connection,
+             _travel_time[0], /* TODO warum ist das notwendig ?! */
+             n_travel_time))) {
       return nullptr;
+    }
 
     label* l = new (label_store.create()) label(*this);
     l->_travel_time[0] = n_travel_time;
@@ -103,16 +111,19 @@ public:
     l->_node = edge.get_destination();
     l->_connection = ec.connection;
 
+    l->_visited_hotel = _visited_hotel;
+    l->_db_costs = _db_costs;
     if (edge._m._type == edge::HOTEL_EDGE) {
       l->_visited_hotel = true;
-      l->_db_costs = _db_costs + edge._m._hotel_edge._price;
+      l->_db_costs += edge._m._hotel_edge._price;
       l->_night_penalty = _night_penalty;
     } else {
       l->_night_penalty =
-          _night_penalty +
-          label_util::night_travel_duration(_now, l->_now, 60 /* night begin */,
-                                            359 /* night end */);
+          _night_penalty + label_util::night_travel_duration(
+                               _now, l->_now, NIGHT_BEGIN, NIGHT_END);
     }
+
+    std::cout << "\nCREATE LABEL " << *l << "\npred is: " << *this << std::endl;
 
     return l;
   }
@@ -161,10 +172,14 @@ public:
 #endif
 
     /* --- LATE NIGHT CONNECTIONS --- */
-    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty ||
-        _visited_hotel > o._visited_hotel) {
+    if (_visited_hotel != o._visited_hotel) {
       return false;
     }
+    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
+      return false;
+    }
+
+    std::cout << "\nLABEL " << *this << " dominates\n" << o << std::endl;
 
     /* --- ALL CRITERIA --- */
     // since all criteria are NOT larger at *this
@@ -191,13 +206,15 @@ public:
 #endif
 
     /* --- LATE NIGHT CONNECTIONS --- */
-    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty ||
-        _visited_hotel > o._visited_hotel) {
+    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
       return false;
     }
     could_dominate = could_dominate || _db_costs < o._db_costs ||
-                     _night_penalty < o._night_penalty ||
-                     _visited_hotel < o._visited_hotel;
+                     _night_penalty < o._night_penalty;
+
+    if (could_dominate || _start >= o._start) {
+      std::cout << "\nLABEL " << *this << " dominates_hard\n" << o << std::endl;
+    }
 
     return could_dominate || _start >= o._start;
   }
@@ -323,10 +340,20 @@ public:
   bool _dominated;
   uint8_t _target_slot;
 
-  /* Pareto-criteria for late night connections incl. hotels and taxi */
   bool _visited_hotel;
+  /* Pareto-criteria for late night connections incl. hotels and taxi */
   uint16_t _night_penalty;
   uint16_t _db_costs;
 };
+
+inline std::ostream& operator<<(std::ostream& os, label const& l) {
+  os << "label at node " << l._node->_id << " at station "
+     << l._node->get_station()->_id << " time: " << l._now
+     << " trans: " << (unsigned int)l._transfers[0] << " "
+     << (unsigned int)l._transfers[1] << " visited_hotel: " << l._visited_hotel
+     << " night_penalty: " << l._night_penalty << " db_costs: " << l._db_costs
+     << std::endl;
+  return os;
+}
 
 }  // namespace motis
