@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/journey.h"
+#include "motis/core/journey/journey.h"
 
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_builder.h"

@@ -4,12 +4,13 @@
 #include <string>
 #include <memory>
 
+#include "motis/core/journey/journey.h"
+#include "motis/core/schedule/time.h"
+
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/arrival.h"
 #include "motis/routing/label.h"
-#include "motis/routing/journey.h"
-#include "motis/core/schedule/time.h"
 
 namespace motis {
 

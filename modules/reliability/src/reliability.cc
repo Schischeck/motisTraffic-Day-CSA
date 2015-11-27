@@ -6,8 +6,8 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/core/common/journey.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/context.h"
@@ -104,7 +104,7 @@ void reliability::handle_routing_response(msg_ptr msg,
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
       res->connections()->size());
   unsigned int rating_index = 0;
-  auto const journeys = journey_builder::to_journeys(res);
+  auto const journeys = message_to_journeys(res);
   try {
     for (auto const& j : journeys) {
       rating::rate(
