@@ -44,24 +44,6 @@ public:
     stations_.set_empty_key(nullptr);
   }
 
-  timezone const* get_or_create_timezone(Timezone const* input_timez) {
-    return get_or_create(timezones_, input_timez, [&]() {
-      auto const tz =
-          input_timez->season()
-              ? create_timezone(
-                    input_timez->general_offset(),
-                    input_timez->season()->offset(),  //
-                    first_day_, last_day_,
-                    input_timez->season()->day_idx_first_day(),
-                    input_timez->season()->day_idx_last_day(),
-                    input_timez->season()->minutes_after_midnight_first_day(),
-                    input_timez->season()->minutes_after_midnight_last_day())
-              : timezone(input_timez->general_offset());
-      sched_.timezones.emplace_back(new timezone(tz));
-      return sched_.timezones.back().get();
-    });
-  }
-
   void add_stations(Vector<Offset<Station>> const* stations) {
     // Add dummy source station.
     auto dummy_source =
@@ -116,6 +98,24 @@ public:
     // First regular node id:
     // first id after station node ids
     next_node_id_ = sched_.stations.size();
+  }
+
+  timezone const* get_or_create_timezone(Timezone const* input_timez) {
+    return get_or_create(timezones_, input_timez, [&]() {
+      auto const tz =
+          input_timez->season()
+              ? create_timezone(
+                    input_timez->general_offset(),
+                    input_timez->season()->offset(),  //
+                    first_day_, last_day_,
+                    input_timez->season()->day_idx_first_day(),
+                    input_timez->season()->day_idx_last_day(),
+                    input_timez->season()->minutes_after_midnight_first_day(),
+                    input_timez->season()->minutes_after_midnight_last_day())
+              : timezone(input_timez->general_offset());
+      sched_.timezones.emplace_back(new timezone(tz));
+      return sched_.timezones.back().get();
+    });
   }
 
   bool is_unique_service(Service const* service, bitfield const& traffic_days,
