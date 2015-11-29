@@ -99,7 +99,7 @@ export class App extends Component {
                        ref="routingform"
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
-          <Timeline/>
+          <Timeline connections={ this.state.connections } />
           { connectionView }
         </PaddedPaper>
       </div>

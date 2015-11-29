@@ -184,10 +184,11 @@ journey::transport generate_journey_transport(unsigned int from,
   bool walk = false;
   std::string name;
   std::string cat_name;
-  unsigned int cat_id = 0;
-  unsigned int train_nr = 0;
+  unsigned cat_id = 0;
+  unsigned clasz = 0;
+  unsigned train_nr = 0;
   std::string line_identifier;
-  unsigned int duration = t.duration;
+  unsigned duration = t.duration;
   int slot = -1;
   std::string direction;
   std::string provider;
@@ -200,6 +201,7 @@ journey::transport generate_journey_transport(unsigned int from,
     connection_info const* con_info = t.con->_full_con->con_info;
     line_identifier = con_info->line_identifier;
     cat_id = con_info->family;
+    clasz = t.con->_full_con->clasz;
     cat_name = sched.categories[con_info->family]->name;
     train_nr = con_info->train_nr;
     if (train_nr != 0) {
@@ -222,9 +224,7 @@ journey::transport generate_journey_transport(unsigned int from,
 
       case category::CATEGORY: name = cat_name; break;
 
-      case category::TRAIN_NUM:
-        name = print_train_nr;
-        break;
+      case category::TRAIN_NUM: name = print_train_nr; break;
 
       case category::NOTHING: break;
 
@@ -247,10 +247,11 @@ journey::transport generate_journey_transport(unsigned int from,
     }
   }
 
-  return {from,     to,     walk,      name,
-          cat_name, cat_id, train_nr,  line_identifier,
-          duration, slot,   direction, provider,
-          route_id};
+  return {from,     to,       walk,
+          name,     cat_name, cat_id,
+          clasz,    train_nr, line_identifier,
+          duration, slot,     direction,
+          provider, route_id};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -272,7 +273,7 @@ std::vector<journey::transport> generate_journey_transports(
   bool isset_last = false;
   intermediate::transport const* last = nullptr;
   connection_info const* last_con_info = nullptr;
-  unsigned int from = 1;
+  unsigned from = 1;
 
   for (auto const& transport : transports) {
     connection_info const* con_info = nullptr;
@@ -348,8 +349,9 @@ std::vector<journey::attribute> generate_journey_attributes(
     auto const& text = attribute->_str;
 
     for (auto const& range : attribute_ranges) {
-      journey_attributes.push_back(
-          {(unsigned int)range.from, (unsigned int)range.to, code, text});
+      journey_attributes.push_back({static_cast<unsigned>(range.from),
+                                    static_cast<unsigned>(range.to), code,
+                                    text});
     }
   }
 

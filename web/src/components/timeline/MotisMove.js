@@ -26,7 +26,7 @@ SVG.MotisMove = SVG.invent({
       p.attr({'fill-rule': 'evenodd'});
 
       g.add(p);
-      g.add(new SVG.Text().text(label)
+      g.add(new SVG.Text().text(label || '???')
                           .attr({'fill': '#555'})
                           .attr({'font-family': 'Verdana'})
                           .size(12)

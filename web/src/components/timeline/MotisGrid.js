@@ -1,4 +1,4 @@
-import SVG from 'svg.js';
+import SVG from 'svg.js/dist/svg.js';
 
 import React, { Component } from 'react';
 
@@ -23,7 +23,12 @@ SVG.MotisGrid = SVG.invent({
       return this.settings.padding + (this.settings.width - this.settings.padding * 2) * percent;
     },
 
-    connections: function(cons) {
+    drawConnections: function(cons) {
+      if (this.drawedConnections) {
+        this.drawedConnections.forEach(c => { c.remove(); });
+      }
+      this.drawedConnections = [];
+
       if (cons.length == 0) {
         return;
       }
@@ -44,7 +49,7 @@ SVG.MotisGrid = SVG.invent({
 
       this.drawTimeline(begin, end);
 
-      var y = 100;
+      var y = 50;
       for (var i = 0; i < cons.length; i++) {
         var newCon = new SVG.MotisConnection;
         var c = cons[i];
@@ -61,12 +66,18 @@ SVG.MotisGrid = SVG.invent({
         newCon.draw(this.settings.thickness, this.settings.radius, elements)
         newCon.move(0, y);
         this.add(newCon);
+        this.drawedConnections.push(newCon);
 
-        y += this.settings.radius * 5;
+        y += this.settings.radius * 7;
       }
     },
 
     drawTimeline: function(begin, end) {
+      if (this.timelineElements) {
+        this.timelineElements.forEach(c => { c.remove(); });
+      }
+      this.timelineElements = [];
+
       function getScale(begin, end) {
         var scales = [
           { start: 0, end: 5, scale: 1*MINUTE },
@@ -113,14 +124,20 @@ SVG.MotisGrid = SVG.invent({
 
       for (var cut = 0; cut < totalCuts - 1; cut++) {
         t.setTime(t.getTime() + scale);
-        x = this.timeToXIntercept(t);
-        this.add(this.put(new SVG.Text)
-                     .text(pad(t.getHours(), 2) + ':' + pad(t.getMinutes(), 2))
-                     .size(15)
-                     .move(x - 20, 10));
-        this.add(this.put(new SVG.Line)
-                     .plot(x, 30, x, this.settings.height - 10)
-                     .stroke({ width: 0.2, color: '#999' }));
+        var x = this.timeToXIntercept(t);
+        var label = this.put(new SVG.Text)
+                        .text(pad(t.getHours(), 2) + ':' + pad(t.getMinutes(), 2))
+                        .size(15)
+                        .move(x - 20, 10);
+        var line = this.put(new SVG.Line)
+                       .plot(x, 30, x, this.settings.height - 10)
+                       .stroke({ width: 0.2, color: '#999' });
+
+        this.add(label);
+        this.add(line);
+
+        this.timelineElements.push(label);
+        this.timelineElements.push(line);
       }
     }
   },
@@ -130,16 +147,17 @@ SVG.MotisGrid = SVG.invent({
       grid.settings = {};
       grid.settings.thickness = thickness || 8;
       grid.settings.radius = radius || 10;
-      grid.settings.padding = padding || grid.settings.radius;
+      grid.settings.padding = 0;
       grid.settings.width = width;
       grid.settings.height = height;
 
       var g = this.put(grid);
       g.add(this.put(new SVG.Rect)
+                .radius(10)
                 .size(width, height)
                 .opacity(0.05));
 
-      grid.connections(connections);
+      grid.drawConnections(connections);
 
       return g;
     }
@@ -151,9 +169,72 @@ export default class Timeline extends React.Component {
     super(props);
   }
 
+  componentDidMount() {
+    this.grid = SVG('timeline').motisgrid(800, 500, []);
+  }
+
   render() {
+    function transports(con, from, to) {
+      return con.transports.filter(t => {
+        return t.move.range.from >= from && t.move.range.to <= to;
+      }).map(t => {
+        return {
+          'name': t.move.name,
+          'clasz': t.move.clasz
+        };
+      });
+    }
+
+    if (this.grid) {
+      var colors = {
+        1: '#FF0000',
+        2: '#708D91',
+        3: '#19DD89',
+        4: '#FD8F3A',
+        5: '#94A507',
+        6: '#F62A07',
+        7: '#563AC9',
+        8: '#4E070D',
+        9: '#7ED3FD',
+      };
+
+      this.grid.drawConnections(this.props.connections.map(c => {
+        var walkTargets = c.transports.filter(move => {
+          return move.move_type == 'Walk';
+        }).map(walk => {
+          return walk.move.range.to;
+        });
+
+        var importantStops = c.stops.map((stop, i) => {
+          return {
+            type: 'stop',
+            stop,
+            i
+          };
+        }).filter((el, i) => {
+          return i === 1 || i === c.stops.length - 2 || el.stop.interchange || walkTargets.indexOf(i) != -1;
+        });
+
+        var elements = [];
+        for (let i = 0; i < importantStops.length - 1; i++) {
+          let from = importantStops[i];
+          let to = importantStops[i + 1];
+          let transport = transports(c, from.i, to.i)[0];
+          if (transport.name) {
+            elements.push({
+              label: transport.name,
+              color: colors[transport.clasz] || '#D31996',
+              begin: new Date(from.stop.departure.time * 1000),
+              end: new Date(to.stop.arrival.time * 1000)
+            });
+          }
+        }
+        return elements;
+      }));
+    }
+
     return (
-    <div>Test!</div>
+    <div id="timeline" style={{'marginTop': '20px', 'width': '800px', 'height': '500px'}}></div>
     );
   }
 }
