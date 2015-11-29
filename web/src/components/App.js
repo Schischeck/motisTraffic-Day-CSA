@@ -7,6 +7,7 @@ import RoutingForm from './RoutingForm';
 import Map from './Map';
 import ConnectionView from './ConnectionView';
 import ServerConnectionIndicator from './ServerConnectionIndicator';
+import Timeline from './timeline/MotisGrid';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
@@ -98,6 +99,7 @@ export class App extends Component {
                        ref="routingform"
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
+          <TimeLine/>
           { connectionView }
         </PaddedPaper>
       </div>

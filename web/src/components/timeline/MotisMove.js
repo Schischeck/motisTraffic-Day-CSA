@@ -1,3 +1,5 @@
+import SVG from 'svg.js';
+
 SVG.MotisMove = SVG.invent({
   create: 'g',
   inherit: SVG.G,

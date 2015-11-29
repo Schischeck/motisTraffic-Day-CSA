@@ -1,3 +1,5 @@
+import SVG from 'svg.js';
+
 SVG.MotisConnection = SVG.invent({
   create: 'g',
   inherit: SVG.G,
