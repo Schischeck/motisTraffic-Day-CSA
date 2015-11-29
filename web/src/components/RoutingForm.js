@@ -8,6 +8,8 @@ import StationGuesserRequest from '../Messages/StationGuesserRequest';
 import Typeahead from './Typeahead';
 
 import style from './RoutingForm.scss';
+import iconcss from './MaterialIcons.scss';
+const materialicons = iconcss['material-icons'];
 
 export default class RoutingForm extends Component {
   constructor(props) {
@@ -91,7 +93,7 @@ export default class RoutingForm extends Component {
                             mini={ true }
                             secondary={ true }
                             style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
-        <i className="material-icons">&#xE8D5;</i>
+        <i className={ materialicons }>&#xE8D5;</i>
       </FloatingActionButton>
       <div className={ style.flexrow }>
         <div className={ style.flexcol }>
