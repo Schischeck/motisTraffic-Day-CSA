@@ -54,7 +54,7 @@ struct connection_rating {
   probability connection_rating_;
 };
 
-bool rate(connection_rating& rating, journey const&, context const&);
+void rate(connection_rating& rating, journey const&, context const&);
 
 }  // namespace rating
 }  // namespace reliability

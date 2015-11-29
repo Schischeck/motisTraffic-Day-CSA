@@ -1,27 +1,39 @@
+import AppDispatcher from './Dispatcher';
+
 class Server {
   constructor(server) {
     this.requestId = 0;
-    this.socket = new WebSocket(server);
-    this.socket.onmessage = this._onmessage.bind(this);
-    this.socket.onclose = () => {
-      console.log('close', arguments);
-    };
-    this.socket.onerror = () => {
-      console.log('error', arguments);
-    };
-    this.socket.onopen = () => {
-      console.log('open', arguments);
-    };
-
+    this.server = server;
     this.pendingRequests = new Map();
+
+    this._wsConnect();
   }
 
-  _onmessage(evt) {
-    const msg = evt.data.replace(/\\x/g, '\\u00');
+  _wsConnect() {
+    this.socket = new WebSocket(this.server);
+    this.socket.onmessage = this._onMessage.bind(this);
+    this.socket.onopen = () => {
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': true
+      });
+    };
+    this.socket.onclose = () => {
+      AppDispatcher.dispatch({
+        'type': 'ConnectionStateChange',
+        'connectionState': false
+      });
+      setTimeout(() => {
+        this._wsConnect();
+      }, 2000);
+    };
+  }
+
+  _onMessage(evt) {
     try {
-      this._resolvePending(JSON.parse(msg));
+      this._resolvePending(JSON.parse(evt.data));
     } catch (e) {
-      console.error('invalid json', msg);
+      console.error('invalid json', evt.data);
     }
   }
 
@@ -66,7 +78,11 @@ class Server {
         'content': message.content
       };
 
-      this.socket.send(JSON.stringify(request));
+      try {
+        this.socket.send(JSON.stringify(request));
+      } catch (e) {
+        reject(e);
+      }
 
       const timer = setTimeout(() => {
         this._rejectPending(localRequestId, 'timeout');

@@ -103,7 +103,7 @@ public:
       ASSERT_EQ(j.stops.front().eva_no, "2222222");
       ASSERT_EQ(j.stops.back().eva_no, "1111111");
       ASSERT_EQ(j.stops.front().departure.timestamp, 1445238900);  // 07:15
-      ASSERT_EQ(j.stops.back().arrival.timestamp, 1445239500);  // 07:10
+      ASSERT_EQ(j.stops.back().arrival.timestamp, 1445239500);  // 07:25
       ASSERT_EQ(j.transports.front().train_nr, RE_L_F);
     }
     {

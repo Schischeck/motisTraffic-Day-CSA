@@ -19,18 +19,18 @@ export default class Typeahead extends React.Component {
     this.state = {
       value: '',
       completions: [],
-      selectedItemIndex: 0
+      selectedItemIndex: 0,
+      selectedCompletion: undefined
     };
   }
 
   getValue() {
-    return this.state.value;
-  }
-
-  setValue(newValue) {
-    this.setState({
-      value: newValue
-    });
+    if (this.state.selectedCompletion !== undefined) {
+      return this.state.selectedCompletion;
+    }
+    return {
+      name: this.state.value
+    };
   }
 
   _fetchCompletions(evt) {
@@ -43,14 +43,17 @@ export default class Typeahead extends React.Component {
 
   _onChange(e) {
     this.setState({
-      value: e.target.value
+      value: e.target.value,
+      selectedCompletion: undefined
     });
     this._fetchCompletions(e);
   }
 
-  _selectGuess(value) {
+  _selectGuess(index) {
     this.setState({
-      value: value,
+      selectedItemIndex: 0,
+      selectedCompletion: this.state.completions[index],
+      value: this.state.completions[index].name,
       completions: []
     });
   }
@@ -85,11 +88,7 @@ export default class Typeahead extends React.Component {
       case 13:
       // ENTER
       case 14:
-        this.setState({
-          selectedItemIndex: 0,
-          value: this.state.completions[this.state.selectedItemIndex].name,
-          completions: []
-        });
+        this._selectGuess(this.state.selectedItemIndex);
         break;
 
       // ESCAPE
@@ -105,6 +104,7 @@ export default class Typeahead extends React.Component {
     return (
     <div>
       <TextField
+                 {...this.props}
                  floatingLabelText={ this.props.hintText }
                  value={ this.state.value }
                  onChange={ this._onChange.bind(this) }
@@ -127,7 +127,7 @@ export default class Typeahead extends React.Component {
                                  key={ index }
                                  primaryText={ val.name }
                                  onMouseEnter={ this._updateSelectedIndex.bind(this, index) }
-                                 onClick={ this._selectGuess.bind(this, val.name) } /> );
+                                 onClick={ this._selectGuess.bind(this, index) } /> );
             }) }
         </List>
       </Paper>

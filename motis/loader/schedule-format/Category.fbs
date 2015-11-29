@@ -6,7 +6,8 @@ enum CategoryOutputRule : byte {
   TRAIN_NUM,
   NOTHING,
   PROVIDER_AND_TRAIN_NUM,
-  PROVIDER
+  PROVIDER,
+  CATEGORY_AND_LINE
 }
 
 table Category {

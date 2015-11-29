@@ -16,7 +16,7 @@ namespace gtfs {
 
 struct services {
   boost::gregorian::date first_day, last_day;
-  std::map<std::string, bitfield> traffic_days;
+  std::map<std::string, std::unique_ptr<bitfield>> traffic_days;
 };
 
 services traffic_days(std::map<std::string, calendar> const&,

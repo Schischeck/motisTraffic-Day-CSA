@@ -174,8 +174,12 @@ public:
       add_service_section(
           &route_nodes[section_idx]->_edges[1],
           service->sections()->Get(section_idx),
-          service->platforms()->Get(section_idx + 1)->arr_platforms(),
-          service->platforms()->Get(section_idx)->dep_platforms(),
+          service->platforms()
+              ? service->platforms()->Get(section_idx + 1)->arr_platforms()
+              : nullptr,
+          service->platforms()
+              ? service->platforms()->Get(section_idx)->dep_platforms()
+              : nullptr,
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days);
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
@@ -358,6 +362,10 @@ private:
     static constexpr int NO_TRACK = 0;
     if (sched_.tracks.empty()) {
       sched_.tracks.push_back("");
+    }
+
+    if (platforms == nullptr) {
+      return NO_TRACK;
     }
 
     auto track_it = std::find_if(

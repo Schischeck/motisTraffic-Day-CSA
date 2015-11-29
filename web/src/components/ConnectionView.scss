@@ -1,6 +1,12 @@
-.connection {
+.conWrap {
+  overflow: auto;
+  margin-top: 20px;
+}
+
+.con {
   list-style: none;
   padding: 0;
+  overflow: auto;
 }
 
 .stop {
@@ -13,4 +19,10 @@
 
 .trainId {
   float: right;
+}
+
+.trainNames {
+  list-style: none;
+  font-size: 0.9em;
+  color: #555;
 }
