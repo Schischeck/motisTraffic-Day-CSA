@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "motis/core/common/journey.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/journey_util.h"
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/graph_accessor.h"
@@ -18,36 +19,31 @@ namespace connection_to_graph_data {
 std::vector<std::vector<connection_element>> get_elements(
     schedule const& sched, journey const& journey) {
   std::vector<std::vector<connection_element>> elements;
-  for (auto const& transport : journey.transports) {
-    if (!transport.walk) {
-      /* todo: it would be more efficient to find the first route edge
-       * and follow the route to get the succeeding elements */
-      for (auto stop_idx = transport.from; stop_idx < transport.to;
-           ++stop_idx) {
-        auto const& tail_stop = journey.stops[stop_idx];
-        auto const& head_stop = journey.stops[stop_idx + 1];
-        auto const element = detail::to_element(
-            stop_idx, sched, tail_stop.eva_no, head_stop.eva_no,
-            unix_to_motistime(sched.schedule_begin_,
-                              tail_stop.departure.timestamp),
-            unix_to_motistime(sched.schedule_begin_,
-                              head_stop.arrival.timestamp),
-            transport.route_id, transport.category_id, transport.train_nr,
-            transport.line_identifier);
-        if (element.empty()) {
-          throw element_not_found_exception();
-        }
 
-        // begin new train if elements empty or if there is an interchange
-        if (elements.size() == 0 ||
-            elements.back().back().to_->_id != element.from_->_id) {
-          elements.emplace_back();
-        }
+  // TODO it would be more efficient to find the first route edge
+  // and follow the route to get the succeeding elements
+  foreach_light_connection(journey, [&](journey::transport const& transport,
+                                        journey::stop const& tail_stop,
+                                        journey::stop const& head_stop) {
+    auto const element = detail::to_element(
+        tail_stop.index, sched, tail_stop.eva_no, head_stop.eva_no,
+        unix_to_motistime(sched.schedule_begin_, tail_stop.departure.timestamp),
+        unix_to_motistime(sched.schedule_begin_, head_stop.arrival.timestamp),
+        transport.route_id, transport.category_id, transport.train_nr,
+        transport.line_identifier);
+    if (element.empty()) {
+      throw element_not_found_exception();
+    }
 
-        elements.back().push_back(element);
-      }  // for stops
-    }  // if !walk
-  }  // for transports
+    // begin new train if elements empty or if there is an interchange
+    if (elements.size() == 0 ||
+        elements.back().back().to_->_id != element.from_->_id) {
+      elements.emplace_back();
+    }
+
+    elements.back().push_back(element);
+  });
+
   if (elements.empty()) {
     throw element_not_found_exception();
   }

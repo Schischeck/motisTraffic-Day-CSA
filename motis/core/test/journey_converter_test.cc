@@ -1,14 +1,12 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/journey.h"
-#include "motis/core/common/journey_builder.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/core/schedule/category.h"
 
-#include "motis/routing/response_builder.h"
-
 using namespace motis;
-using namespace motis::journey_builder;
 
 journey create_journey1() {
   journey j;
@@ -197,13 +195,14 @@ journey create_journey2() {
   return j;
 }
 
-TEST(core_convert_journey, journey_builder) {
+TEST(core_convert_journey, journey_message_journey) {
   std::vector<journey> original_journeys;
   original_journeys.push_back(create_journey1());
   original_journeys.push_back(create_journey2());
 
-  auto msg = routing::journeys_to_message(original_journeys);
-  auto journeys = to_journeys(msg->content<routing::RoutingResponse const*>());
+  auto msg = journeys_to_message(original_journeys);
+  auto journeys =
+      message_to_journeys(msg->content<routing::RoutingResponse const*>());
 
   ASSERT_TRUE(journeys.size() == 2);
 
