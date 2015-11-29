@@ -127,11 +127,9 @@ export default class RoutingForm extends Component {
                           name="arrdep"
                           valueSelected="Forward">
           <RadioButton
-                       value="Forward"
                        label="Departure"
                        style={ { marginBottom: 16} } />
           <RadioButton
-                       value="Backward"
                        label="Arrival"
                        disabled={ true }
                        style={ { marginBottom: 16} } />

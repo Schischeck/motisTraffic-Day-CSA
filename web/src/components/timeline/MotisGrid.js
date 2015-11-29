@@ -146,7 +146,7 @@ SVG.MotisGrid = SVG.invent({
   }
 });
 
-export default class TimeLine extends React.Component {
+export default class Timeline extends React.Component {
   constructor(props) {
     super(props);
   }
