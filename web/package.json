@@ -25,6 +25,7 @@
     "eslint-plugin-react": "^2.7.1",
     "express": "^4.13.3",
     "file-loader": "^0.8.4",
+    "html-webpack-plugin": "^1.7.0",
     "node-sass": "^3.4.1",
     "react-transform-catch-errors": "^1.0.0",
     "react-transform-hmr": "^1.0.0",
