@@ -18,11 +18,12 @@ struct connection_graph;
 }
 
 struct reliability : public motis::module::module {
+  reliability();
   void init() override;
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
-  virtual bool empty_config() const override { return true; }
+  virtual bool empty_config() const override { return false; }
 
   virtual std::string name() const override { return "reliability"; }
   virtual std::vector<MsgContent> subscriptions() const override {
@@ -44,6 +45,8 @@ struct reliability : public motis::module::module {
                     motis::module::callback cb);
 
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
+
+  std::string hotels_file_;
 
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>

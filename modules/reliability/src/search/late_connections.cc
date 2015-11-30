@@ -10,8 +10,7 @@ namespace search {
 namespace late_connections {
 void search(ReliableRoutingRequest const* req, reliability& rel,
             motis::module::sid sid, motis::module::callback cb) {
-  auto hotels =
-      hotels::parse_hotels("modules/reliability/resources/hotels.csv");
+  auto hotels = hotels::parse_hotels(rel.hotels_file_);
   rel.send_message(
       flatbuffers::request_builder::to_late_connections_routing_request(
           req->request(), hotels),

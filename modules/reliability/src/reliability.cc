@@ -27,15 +27,28 @@ using namespace motis::module;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
+#define HOTELS_FILE "reliability.hotels"
+
 namespace motis {
 namespace reliability {
 
+reliability::reliability()
+    : hotels_file_("modules/reliability/resources/hotels.csv") {}
+
 po::options_description reliability::desc() {
   po::options_description desc("Reliability Module");
+  // clang-format off
+  desc.add_options()
+      (HOTELS_FILE,
+       po::value<std::string>(&hotels_file_)->default_value(hotels_file_),
+       "file containing hotels info");
+  // clang-format on
   return desc;
 }
 
-void reliability::print(std::ostream&) const {}
+void reliability::print(std::ostream& out) const {
+  out << "  " << HOTELS_FILE << ": " << hotels_file_;
+}
 
 void reliability::init() {
   auto const lock = synced_sched();
