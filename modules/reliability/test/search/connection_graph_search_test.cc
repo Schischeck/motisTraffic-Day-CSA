@@ -10,7 +10,7 @@
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/cg_search_context.h"
 #include "motis/reliability/search/cg_optimizer.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "../include/start_and_travel_test_distributions.h"
@@ -127,7 +127,7 @@ public:
 
 TEST_F(reliability_connection_graph_search, reliable_routing_request) {
   auto setup = std::make_shared<system_tools::setup>(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 3, 1);
@@ -146,7 +146,7 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request) {
 TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto setup = std::make_shared<system_tools::setup>(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
+  auto msg = flatbuffers::request_builder::to_reliable_routing_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1);
@@ -165,7 +165,7 @@ TEST_F(reliability_connection_graph_search,
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1, 1);

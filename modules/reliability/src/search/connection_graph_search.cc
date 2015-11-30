@@ -147,8 +147,8 @@ void handle_base_response(motis::module::msg_ptr msg,
   if (e) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
-  auto journeys = message_to_journeys(
-      msg->content<routing::RoutingResponse const*>());
+  auto journeys =
+      message_to_journeys(msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
@@ -206,8 +206,8 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
   auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
-  auto journeys = message_to_journeys(
-      msg->content<routing::RoutingResponse const*>());
+  auto journeys =
+      message_to_journeys(msg->content<routing::RoutingResponse const*>());
   /* note: this method ignores journeys that are
    * corrupt because the state machine in journey.cc
    * can not handle walks at the beginning of journeys
@@ -263,10 +263,10 @@ void search_cgs(ReliableRoutingRequest const* request,
                 std::shared_ptr<connection_graph_optimizer const> optimizer,
                 callback cb) {
   rel.send_message(
-      flatbuffers_tools::to_flatbuffers_message(request->request()), session,
-      std::bind(
-          &detail::handle_base_response, p::_1, p::_2,
-          std::make_shared<detail::context>(rel, session, cb, optimizer)));
+      flatbuffers::request_builder::to_flatbuffers_message(request->request()),
+      session, std::bind(&detail::handle_base_response, p::_1, p::_2,
+                         std::make_shared<detail::context>(rel, session, cb,
+                                                           optimizer)));
 }
 
 }  // namespace connection_graph_search

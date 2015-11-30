@@ -16,7 +16,7 @@
 
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/rating/connection_rating.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "include/start_and_travel_test_distributions.h"
@@ -150,9 +150,23 @@ public:
   }
 };
 
+class reliability_late_connections : public test_schedule_setup {
+public:
+  reliability_late_connections()
+      : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
+                            to_unix_time(2015, 10, 19),
+                            to_unix_time(2015, 10, 21)) {}
+
+  std::string const FRANKFURT = "1111111";
+  std::string const LANGEN = "2222222";
+  std::string const DARMSTADT = "3333333";
+  std::string const OFFENBACH = "9727248";
+  std::string const MAINZ = "3953754";
+};
+
 TEST_F(reliability_test_rating, rating_request) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_rating_request(
+  auto msg = flatbuffers::request_builder::to_rating_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27),
       (motis::time)(
@@ -166,7 +180,6 @@ TEST_F(reliability_test_rating, rating_request) {
     ASSERT_EQ(e, nullptr);
     auto response = msg->content<ReliabilityRatingResponse const*>();
     ASSERT_EQ(1, response->response()->connections()->size());
-
     ASSERT_NE(response->ratings(), nullptr);
     ASSERT_EQ(response->ratings()->size(), 1);
     auto const& rating = response->ratings()->begin();
@@ -202,7 +215,7 @@ TEST_F(reliability_test_rating, rating_request) {
 
 TEST_F(reliability_test_cg, connection_tree) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 3, 1);
@@ -221,7 +234,7 @@ TEST_F(reliability_test_cg, connection_tree) {
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_reliable_routing_request(
+  auto msg = flatbuffers::request_builder::to_reliable_routing_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1);
@@ -237,6 +250,8 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
 
   ASSERT_TRUE(test_cb_called);
 }
+
+TEST_F(reliability_late_connections, late_conn_req) {}
 
 }  // namespace reliability
 }  // namespace motis

@@ -8,7 +8,7 @@ table ReliableSearchReq {
   min_departure_diff:short;
 }
 
-table LateConnectionReq {}
+table LateConnectionReq { }
 
 table ConnectionTreeReq {
   num_alternatives_at_each_stop:short;
@@ -29,4 +29,5 @@ table RequestOptionsWrapper {
 table ReliableRoutingRequest {
   request:motis.routing.RoutingRequest;
   request_type:RequestOptionsWrapper;
+  additional_edges:[motis.routing.AdditionalEdgeWrapper];
 }

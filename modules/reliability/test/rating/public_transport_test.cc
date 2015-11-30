@@ -25,7 +25,7 @@
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 #include "motis/reliability/rating/public_transport.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "../include/interchange_data_for_tests.h"
@@ -127,7 +127,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
 
 TEST_F(reliability_public_transport2, rate) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27),
       (motis::time)(
@@ -137,8 +137,8 @@ TEST_F(reliability_public_transport2, rate) {
       false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
 
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
@@ -274,14 +274,14 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
 TEST_F(reliability_public_transport5, rate2) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
         *schedule_, journeys.front());
@@ -366,13 +366,13 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 
 TEST_F(reliability_public_transport3, rate_foot) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_TRUE(journeys.size() == 1);
     auto const elements = rating::connection_to_graph_data::get_elements(
         *schedule_, journeys.front());

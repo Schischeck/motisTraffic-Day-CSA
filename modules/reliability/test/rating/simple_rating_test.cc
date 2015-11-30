@@ -9,7 +9,7 @@
 #include "motis/routing/routing.h"
 
 #include "motis/reliability/rating/simple_rating.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "../include/start_and_travel_test_distributions.h"
@@ -54,7 +54,7 @@ public:
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27),
       (motis::time)(
@@ -63,8 +63,8 @@ TEST_F(reliability_simple_rating2, simple_rate) {
       std::make_tuple(28, 9, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);
@@ -100,14 +100,14 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                           {0.1, 0.8, 0.1}, -1);

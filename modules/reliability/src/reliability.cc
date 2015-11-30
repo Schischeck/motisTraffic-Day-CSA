@@ -17,7 +17,8 @@
 #include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
+#include "motis/reliability/tools/flatbuffers/response_builder.h"
 
 #include "../test/include/start_and_travel_test_distributions.h"
 
@@ -60,9 +61,10 @@ void reliability::init() {
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   auto req = msg->content<ReliableRoutingRequest const*>();
   if (req->request_type()->request_options_type() == RequestOptions_RatingReq) {
-    return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
-                    session_id, std::bind(&reliability::handle_routing_response,
-                                          this, p::_1, p::_2, cb));
+    return dispatch(
+        flatbuffers::request_builder::to_flatbuffers_message(req->request()),
+        session_id, std::bind(&reliability::handle_routing_response, this,
+                              p::_1, p::_2, cb));
   }
   if (req->request_type()->request_options_type() ==
       RequestOptions_ReliableSearchReq) {
@@ -119,7 +121,7 @@ void reliability::handle_routing_response(msg_ptr msg,
     return cb(nullptr, error::failure);
   }
 
-  cb(flatbuffers_tools::to_reliability_rating_response(
+  cb(flatbuffers::response_builder::to_reliability_rating_response(
          res, ratings, simple_ratings, true /* short output */),
      error::ok);
 }
@@ -127,7 +129,8 @@ void reliability::handle_routing_response(msg_ptr msg,
 void reliability::handle_connection_graph_result(
     std::vector<std::shared_ptr<search::connection_graph>> const cgs,
     callback cb) {
-  return cb(flatbuffers_tools::to_reliable_routing_response(cgs), error::ok);
+  return cb(flatbuffers::response_builder::to_reliable_routing_response(cgs),
+            error::ok);
 }
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {

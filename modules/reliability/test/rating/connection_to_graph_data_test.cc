@@ -15,7 +15,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "../include/test_schedule_setup.h"
@@ -128,14 +128,14 @@ void test_element(connection_element const& expected,
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
       std::make_tuple(28, 9, 2015), false);
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front());
@@ -183,15 +183,15 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       DARMSTADT.name, DARMSTADT.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front());
@@ -264,15 +264,15 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  */
 TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
       std::make_tuple(19, 10, 2015), false);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code) {
     ASSERT_TRUE(msg);
-    auto const journeys = message_to_journeys(
-        msg->content<routing::RoutingResponse const*>());
+    auto const journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
     ASSERT_EQ(1, journeys.size());
 
     auto const elements = get_elements(*schedule_, journeys.front());

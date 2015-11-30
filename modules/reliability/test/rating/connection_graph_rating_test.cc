@@ -18,7 +18,7 @@
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
 
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/system.h"
 
 #include "../include/interchange_data_for_tests.h"
@@ -173,7 +173,7 @@ TEST_F(reliability_connection_graph_rating,
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1, 1);
@@ -236,7 +236,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 3, 1);
@@ -357,7 +357,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
@@ -425,7 +425,7 @@ TEST_F(reliability_connection_graph_rating_foot,
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
   system_tools::setup setup(schedule_.get());
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, MESSE.name, MESSE.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
