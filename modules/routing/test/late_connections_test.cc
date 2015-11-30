@@ -166,20 +166,12 @@ TEST_F(routing_late_connections, search) {
   hotel_infos.emplace_back(MAINZ);
   std::vector<taxi_info> taxi_infos;
   taxi_infos.emplace_back(LANGEN, FRANKFURT, 55, 6000);
-
   auto msg = to_routing_msg(hotel_infos, taxi_infos);
-
-  std::cout << "\nSTATIONS" << std::endl;
-  for (auto const& st : schedule_->stations) {
-    std::cout << st->name << " ";
-  }
-  std::cout << std::endl;
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     test_cb_called = true;
     ASSERT_EQ(nullptr, e);
     ASSERT_NE(nullptr, msg);
-    std::cout << "\nResult:\n" << msg->to_json() << std::endl;
     auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
     struct {
       bool operator()(journey const& a, journey const& b) {

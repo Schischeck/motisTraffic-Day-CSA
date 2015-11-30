@@ -71,7 +71,6 @@ public:
 
   label* create_label(edge const& edge, lower_bounds& lower_bounds,
                       memory_manager<label>& label_store) {
-    std::cout << "CREATE LABEL for edge type " << edge.type_str() << std::endl;
     auto n_node = edge.get_destination()->_id;
 
     uint32_t transfers_l_b = lower_bounds.transfers.get_distance(n_node);
@@ -121,8 +120,6 @@ public:
       l->_visited_hotel = true;
       l->_night_penalty = _night_penalty;
     }
-
-    std::cout << "\nCREATE LABEL " << *l << "\npred is: " << *this << std::endl;
 
     return l;
   }
@@ -178,8 +175,6 @@ public:
       return false;
     }
 
-    std::cout << "\nLABEL " << *this << " dominates\n" << o << std::endl;
-
     /* --- ALL CRITERIA --- */
     // since all criteria are NOT larger at *this
     return true;
@@ -210,10 +205,6 @@ public:
     }
     could_dominate = could_dominate || _db_costs < o._db_costs ||
                      _night_penalty < o._night_penalty;
-
-    if (could_dominate || _start >= o._start) {
-      std::cout << "\nLABEL " << *this << " dominates_hard\n" << o << std::endl;
-    }
 
     return could_dominate || _start >= o._start;
   }

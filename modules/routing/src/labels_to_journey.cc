@@ -71,14 +71,6 @@ struct transport {
 
 std::tuple<journey::transport::transport_type, std::string, unsigned short>
 get_mumo_info(label const& current_label, label const& next_label) {
-  std::cout << "Next-label has edge type "
-            << (unsigned int)next_label._used_edge_type << " and visited hotel "
-            << next_label._visited_hotel << std::endl;
-  if (next_label._visited_hotel && !current_label._visited_hotel) {
-    std::cout << "\n______EDGE TYPE IS "
-              << (unsigned int)current_label._used_edge_type << " "
-              << (unsigned int)next_label._used_edge_type << std::endl;
-  }
   journey::transport::transport_type type = journey::transport::Walk;
   std::string mumo_type_name = "";
   unsigned short mumo_price = 0;
@@ -86,16 +78,12 @@ get_mumo_info(label const& current_label, label const& next_label) {
     type = journey::transport::Mumo;
     mumo_type_name = "Hotel";
     mumo_price = next_label._db_costs - current_label._db_costs;
-    std::cout << "HOTEL for label " << current_label << " and " << next_label
-              << std::endl;
   } else if (next_label._used_edge_type == edge::MUMO_EDGE &&
              /* assure that this is not a dummy edge */
              next_label._now > current_label._now) {
     type = journey::transport::Mumo;
     mumo_type_name = "Taxi"; /* todo: read type from slot */
     mumo_price = next_label._db_costs - current_label._db_costs;
-    std::cout << "Taxi for label " << current_label << " and " << next_label
-              << std::endl;
   }
   return std::make_tuple(type, mumo_type_name, mumo_price);
 }
