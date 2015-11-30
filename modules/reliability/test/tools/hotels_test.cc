@@ -7,9 +7,11 @@
 using namespace motis::reliability;
 
 TEST(reliability_hotels, parse) {
-  auto const eva_nrs =
+  auto const hotels =
       hotels::parse_hotels("modules/reliability/resources/hotels.csv");
-  ASSERT_FALSE(eva_nrs.empty());
-  ASSERT_NE(eva_nrs.end(),
-            std::find(eva_nrs.begin(), eva_nrs.end(), "8000013"));
+  ASSERT_FALSE(hotels.empty());
+  ASSERT_NE(hotels.end(), std::find_if(hotels.begin(), hotels.end(),
+                                       [](hotels::hotel_info const& info) {
+                                         return info.station_ == "8000013";
+                                       }));
 }

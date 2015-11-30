@@ -17,6 +17,7 @@
 #include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
+#include "motis/reliability/search/late_connections.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/flatbuffers/response_builder.h"
 
@@ -60,35 +61,39 @@ void reliability::init() {
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   auto req = msg->content<ReliableRoutingRequest const*>();
-  if (req->request_type()->request_options_type() == RequestOptions_RatingReq) {
-    return dispatch(
-        flatbuffers::request_builder::to_flatbuffers_message(req->request()),
-        session_id, std::bind(&reliability::handle_routing_response, this,
-                              p::_1, p::_2, cb));
-  }
-  if (req->request_type()->request_options_type() ==
-      RequestOptions_ReliableSearchReq) {
-    auto req_info =
-        (ReliableSearchReq const*)req->request_type()->request_options();
-    return search::connection_graph_search::search_cgs(
-        req, *this, session_id,
-        std::make_shared<
-            search::connection_graph_search::reliable_cg_optimizer>(
-            req_info->min_departure_diff()),
-        std::bind(&reliability::handle_connection_graph_result, this, p::_1,
-                  cb));
-  }
-  if (req->request_type()->request_options_type() ==
-      RequestOptions_ConnectionTreeReq) {
-    auto req_info =
-        (ConnectionTreeReq const*)req->request_type()->request_options();
-    return search::connection_graph_search::search_cgs(
-        req, *this, session_id,
-        std::make_shared<search::connection_graph_search::simple_optimizer>(
-            req_info->num_alternatives_at_each_stop(),
-            req_info->min_departure_diff()),
-        std::bind(&reliability::handle_connection_graph_result, this, p::_1,
-                  cb));
+  switch (req->request_type()->request_options_type()) {
+    case RequestOptions_RatingReq: {
+      return dispatch(
+          flatbuffers::request_builder::to_flatbuffers_message(req->request()),
+          session_id, std::bind(&reliability::handle_routing_response, this,
+                                p::_1, p::_2, cb));
+    }
+    case RequestOptions_ReliableSearchReq: {
+      auto req_info =
+          (ReliableSearchReq const*)req->request_type()->request_options();
+      return search::connection_graph_search::search_cgs(
+          req, *this, session_id,
+          std::make_shared<
+              search::connection_graph_search::reliable_cg_optimizer>(
+              req_info->min_departure_diff()),
+          std::bind(&reliability::handle_connection_graph_result, this, p::_1,
+                    cb));
+    }
+    case RequestOptions_ConnectionTreeReq: {
+      auto req_info =
+          (ConnectionTreeReq const*)req->request_type()->request_options();
+      return search::connection_graph_search::search_cgs(
+          req, *this, session_id,
+          std::make_shared<search::connection_graph_search::simple_optimizer>(
+              req_info->num_alternatives_at_each_stop(),
+              req_info->min_departure_diff()),
+          std::bind(&reliability::handle_connection_graph_result, this, p::_1,
+                    cb));
+    }
+    case RequestOptions_LateConnectionReq: {
+      return search::late_connections::search(req, *this, session_id, cb);
+    }
+    default: break;
   }
   return cb({}, error::not_implemented);
 }

@@ -150,20 +150,6 @@ public:
   }
 };
 
-class reliability_late_connections : public test_schedule_setup {
-public:
-  reliability_late_connections()
-      : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
-                            to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 21)) {}
-
-  std::string const FRANKFURT = "1111111";
-  std::string const LANGEN = "2222222";
-  std::string const DARMSTADT = "3333333";
-  std::string const OFFENBACH = "9727248";
-  std::string const MAINZ = "3953754";
-};
-
 TEST_F(reliability_test_rating, rating_request) {
   system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers::request_builder::to_rating_request(
@@ -251,7 +237,59 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
   ASSERT_TRUE(test_cb_called);
 }
 
-TEST_F(reliability_late_connections, late_conn_req) {}
+class reliability_late_connections : public test_schedule_setup {
+public:
+  reliability_late_connections()
+      : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
+                            to_unix_time(2015, 10, 19),
+                            to_unix_time(2015, 10, 21)) {}
+
+  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
+  schedule_station const LANGEN = {"Langen", "2222222"};
+  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
+  schedule_station const OFFENBACH = {"Offenbach", "9727248"};
+  schedule_station const MAINZ = {"Mainz", "3953754"};
+};
+
+TEST_F(reliability_late_connections, late_conn_req) {
+  system_tools::setup setup(schedule_.get());
+  /* taxi-info: from-station, duration, price */
+  std::vector<std::tuple<std::string, unsigned short, unsigned short>>
+      taxi_infos;
+  taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
+
+  auto msg = flatbuffers::request_builder::to_late_connections_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(23 * 60 + 50), (motis::time)(1500),
+      std::make_tuple(19, 10, 2015), taxi_infos);
+  bool test_cb_called = false;
+
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    test_cb_called = true;
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    auto response = msg->content<routing::RoutingResponse const*>();
+
+    ASSERT_EQ(2, response->connections()->size());
+    ASSERT_EQ(3, (*response->connections())[0]->transports()->size());
+    auto taxi =
+        (routing::Mumo const*)(*(*response->connections())[0]->transports())[1]
+            ->move();
+    ASSERT_EQ("Taxi", std::string(taxi->name()->c_str()));
+
+    ASSERT_EQ(2, (*response->connections())[1]->transports()->size());
+    auto direct_conn =
+        (routing::Transport const*)(*(*response->connections())[1]
+                                         ->transports())[0]
+            ->move();
+    ASSERT_EQ(1, direct_conn->train_nr());
+  };
+
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
+}
 
 }  // namespace reliability
 }  // namespace motis

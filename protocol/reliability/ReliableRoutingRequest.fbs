@@ -29,5 +29,4 @@ table RequestOptionsWrapper {
 table ReliableRoutingRequest {
   request:motis.routing.RoutingRequest;
   request_type:RequestOptionsWrapper;
-  additional_edges:[motis.routing.AdditionalEdgeWrapper];
 }
