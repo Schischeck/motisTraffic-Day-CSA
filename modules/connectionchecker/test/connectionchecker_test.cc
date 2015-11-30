@@ -1,14 +1,17 @@
+
 #include "gtest/gtest.h"
 
 #include <string>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 
 #include "motis/protocol/Message_generated.h"
 
-#include "motis/bootstrap/motis_instance.h"
+#include "motis/bootstrap/motis_instance_helper.h"
 #include "motis/core/common/util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
@@ -43,10 +46,19 @@ constexpr char const* kRoutingRequest = R""(
 
 msg_ptr get_ris_message() {
   FlatBufferBuilder fbb;
-  std::vector<Offset<UpdatedEvent>> events{CreateUpdatedEvent(
-      fbb, CreateEvent(fbb, StationIdType_EVA, fbb.CreateString("8000010"), 628,
-                      EventType_Departure, 1448372160),
-      1448372220)};
+  // clang-format off
+  std::vector<Offset<UpdatedEvent>> events{
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          StationIdType_EVA,
+          fbb.CreateString("8000010"),
+          628,
+          EventType_Departure,
+          1448372160
+        ),
+      1448372220
+    )};
+  // clang-format on
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,
       CreateDelayMessage(fbb, DelayType_Is, fbb.CreateVector(events)).Union()));
@@ -59,42 +71,17 @@ msg_ptr get_ris_message() {
   return make_msg(mc);
 }
 
-using instance_ptr = std::unique_ptr<motis_instance>;
-instance_ptr launch_motis(std::string const& dataset,
-                          std::string const& schedule_begin,
-                          std::vector<std::string> const& modules) {
-  auto instance = make_unique<motis_instance>();
-  instance->init_schedule({dataset, false, schedule_begin, 2});
-  instance->init_modules(modules);
-  return instance;
-}
-
-msg_ptr send(instance_ptr const& instance, msg_ptr request) {
-  msg_ptr response;
-
-  instance->on_msg(request, 1,
-                   [&](msg_ptr r, boost::system::error_code) { response = r; });
-  instance->run();
-
-  return response;
-}
-
 TEST(connectionchecker, finds_annotated_connections) {
   auto instance =
       launch_motis("modules/connectionchecker/test_resources/schedule",
                    "20151124", {"routing", "connectionchecker", "realtime"});
   send(instance, get_ris_message());
 
-  // auto msg = parse_ris_message(kDelayMessage);
-  // auto req = msg->content<motis::ris::RISBatch const*>();
-
-  // auto routing_request = std::make_shared<message>(kRoutingRequest);
-
-  // auto journeys =
-  //     message_to_journeys(response->content<RoutingResponse const*>());
-  // ASSERT_EQ(1, journeys.size());
-
-  ASSERT_TRUE(true);
+  auto request = std::make_shared<message>(kRoutingRequest);
+  auto response = send(instance, request);
+  auto journeys =
+      message_to_journeys(response->content<RoutingResponse const*>());
+  ASSERT_EQ(1, journeys.size());
 }
 
 }  // namespace connectionchecker
