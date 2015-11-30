@@ -10,9 +10,9 @@
 
 #include "motis/module/module.h"
 
-#include "motis/routing/hotel_edges.h"
+#include "motis/routing/additional_edges.h"
 
-/* TODO: remove these dependencies to reliability module */
+/* todo: remove these dependencies on reliability module */
 #include "../../reliability/test/include/test_schedule_setup.h"
 #include "motis/reliability/tools/system.h"
 
@@ -98,7 +98,8 @@ TEST_F(routing_late_connections, test_hotel_edges) {
   hotel_infos.emplace_back(LANGEN, 8 * 60, 9 * 60, 4000);
   auto message = to_routing_msg(hotel_infos);
   auto req = message->content<RoutingRequest const*>();
-  auto hotel_edges = create_hotel_edges(req->additional_edges(), *schedule_);
+  auto hotel_edges =
+      create_additional_edges(req->additional_edges(), *schedule_);
 
   ASSERT_EQ(2, hotel_edges.size());
   for (unsigned int i = 0; i < 2; ++i) {
