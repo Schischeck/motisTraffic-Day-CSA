@@ -108,7 +108,9 @@ void service_builder::create_service(hrd_service const& s, route_builder& rb,
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
-      create_times(s.stops_, fbb)));
+      create_times(s.stops_, fbb),
+      CreateOrigin(fbb, fbb.CreateString(s.origin_.filename),
+                   s.origin_.line_number_from, s.origin_.line_number_to)));
 }
 
 }  // hrd

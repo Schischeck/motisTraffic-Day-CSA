@@ -84,7 +84,23 @@ int station_meta_data::get_station_change_time(int eva_num) const {
   }
 }
 
+void parse_and_add_hrd_footpaths(
+    loaded_file const& metabhf_file,
+    std::set<station_meta_data::footpath>& footpaths) {
+  for_each_line(metabhf_file.content(), [&](cstr line) {
+    if (line.length() < 19 || line[0] == '%' || line[0] == '*' ||
+        line[7] == ':') {
+      return;
+    }
+    footpaths.insert({parse<int>(line.substr(0, size(7))),
+                      parse<int>(line.substr(8, size(7))),
+                      parse<int>(line.substr(16, size(3)))});
+  });
+}
+
 void parse_station_meta_data(loaded_file const& infotext_file,
+                             loaded_file const& metabhf_file,
+                             loaded_file const& metabhf_zusatz_file,
                              station_meta_data& metas) {
   parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
@@ -106,11 +122,13 @@ void parse_station_meta_data(loaded_file const& infotext_file,
       auto to_eva_num_it = metas.ds100_to_eva_num_.find(to_ds100);
       if (from_eva_num_it != end(metas.ds100_to_eva_num_) &&
           to_eva_num_it != end(metas.ds100_to_eva_num_)) {
-        metas.footpaths_.push_back(
+        metas.footpaths_.insert(
             {from_eva_num_it->second, to_eva_num_it->second, duration});
       }
     }
   }
+  parse_and_add_hrd_footpaths(metabhf_file, metas.footpaths_);
+  parse_and_add_hrd_footpaths(metabhf_zusatz_file, metas.footpaths_);
 }
 
 const char* station_meta_data::MINCT = R"(AA;;7;4
