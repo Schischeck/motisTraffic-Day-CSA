@@ -12,6 +12,7 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/util.h"
 
 #include "motis/loader/util.h"
 
@@ -29,7 +30,6 @@ using namespace motis::launcher;
 using namespace motis::module;
 using namespace motis::logging;
 using namespace motis;
-using motis::loader::make_unique;
 
 int main(int argc, char** argv) {
   message::init_parser();
