@@ -33,6 +33,18 @@ public:
     uint16_t min_stay_duration_;
     uint16_t price_;
   };
+  struct taxi_info {
+    taxi_info(std::string const from_st, std::string const to_st,
+              uint16_t duration, uint16_t price)
+        : from_station_(from_st),
+          to_station_(to_st),
+          duration_(duration),
+          price_(price) {}
+    std::string from_station_;
+    std::string to_station_;
+    uint16_t duration_;
+    uint16_t price_;
+  };
 
   routing_late_connections()
       : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
@@ -45,7 +57,8 @@ public:
   std::string const OFFENBACH = "9727248";
   std::string const MAINZ = "3953754";
 
-  module::msg_ptr to_routing_msg(std::vector<hotel_info> const hotel_infos) {
+  module::msg_ptr to_routing_msg(std::vector<hotel_info> const& hotel_infos,
+                                 std::vector<taxi_info> const taxi_infos) {
     using namespace flatbuffers;
     module::MessageCreator b;
     std::vector<Offset<StationPathElement>> station_elements;
@@ -63,6 +76,14 @@ public:
           CreateHotelEdge(b, b.CreateString(info.station_),
                           info.earliest_checkout_, info.min_stay_duration_,
                           info.price_)
+              .Union()));
+    }
+    for (auto const& info : taxi_infos) {
+      additional_edges.push_back(CreateAdditionalEdgeWrapper(
+          b, AdditionalEdge_MumoEdge,
+          CreateMumoEdge(b, b.CreateString(info.from_station_),
+                         b.CreateString(info.to_station_), info.duration_,
+                         info.price_)
               .Union()));
     }
     b.CreateAndFinish(MsgContent_RoutingRequest,
@@ -96,7 +117,7 @@ TEST_F(routing_late_connections, test_hotel_edges) {
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(FRANKFURT, 7 * 60, 6 * 60, 5000);
   hotel_infos.emplace_back(LANGEN, 8 * 60, 9 * 60, 4000);
-  auto message = to_routing_msg(hotel_infos);
+  auto message = to_routing_msg(hotel_infos, {});
   auto req = message->content<RoutingRequest const*>();
   auto hotel_edges =
       create_additional_edges(req->additional_edges(), *schedule_);
@@ -143,7 +164,10 @@ TEST_F(routing_late_connections, search) {
   hotel_infos.emplace_back(LANGEN);
   hotel_infos.emplace_back(OFFENBACH);
   hotel_infos.emplace_back(MAINZ);
-  auto msg = to_routing_msg(hotel_infos);
+  std::vector<taxi_info> taxi_infos;
+  taxi_infos.emplace_back(LANGEN, FRANKFURT, 55, 6000);
+
+  auto msg = to_routing_msg(hotel_infos, taxi_infos);
 
   std::cout << "\nSTATIONS" << std::endl;
   for (auto const& st : schedule_->stations) {
@@ -164,15 +188,27 @@ TEST_F(routing_late_connections, search) {
       }
     } journey_cmp;
     std::sort(journeys.begin(), journeys.end(), journey_cmp);
-    ASSERT_EQ(3, journeys.size());
-    { /* direct connection, arrival 02:00 */
+    ASSERT_EQ(4, journeys.size());
+    { /* taxi connection, arrival 01:00 */
       auto const& j = journeys[0];
+      ASSERT_EQ(0, j.night_penalty);
+      ASSERT_EQ(3, j.transports.size());
+      ASSERT_EQ(2, j.transports[0].train_nr);
+      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+      ASSERT_EQ("Taxi", j.transports[1].mumo_type_name);
+      ASSERT_EQ(6000, j.transports[1].mumo_price);
+      ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
+      ASSERT_EQ(LANGEN, j.stops[1].eva_no);
+      ASSERT_EQ(FRANKFURT, j.stops[2].eva_no);
+    }
+    { /* direct connection, arrival 02:00 */
+      auto const& j = journeys[1];
       ASSERT_EQ(60, j.night_penalty);
       ASSERT_EQ(1, j.transports.front().train_nr);
       ASSERT_EQ(FRANKFURT, j.stops[1].eva_no);
     }
     { /* hotel, arrival 10:45, 30 minutes night-penalty */
-      auto const& j = journeys[1];
+      auto const& j = journeys[2];
       ASSERT_EQ(35, j.night_penalty);
       ASSERT_EQ(4, j.transports[0].train_nr);
       ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
@@ -184,13 +220,14 @@ TEST_F(routing_late_connections, search) {
       ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);
     }
     { /* hotel, arrival 10:50, no night-penalty */
-      auto const& j = journeys[2];
+      auto const& j = journeys[3];
       ASSERT_EQ(0, j.night_penalty);
       ASSERT_EQ(2, j.transports[0].train_nr);
       ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
       ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
       ASSERT_EQ(5000, j.transports[1].mumo_price);
       ASSERT_EQ(3, j.transports[2].train_nr);
+      ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
       ASSERT_EQ(LANGEN, j.stops[1].eva_no);
       ASSERT_EQ(LANGEN, j.stops[2].eva_no);
       ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);

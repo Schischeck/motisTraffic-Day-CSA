@@ -69,6 +69,37 @@ struct transport {
   unsigned short mumo_price;
 };
 
+std::tuple<journey::transport::transport_type, std::string, unsigned short>
+get_mumo_info(label const& current_label, label const& next_label) {
+  std::cout << "Next-label has edge type "
+            << (unsigned int)next_label._used_edge_type << " and visited hotel "
+            << next_label._visited_hotel << std::endl;
+  if (next_label._visited_hotel && !current_label._visited_hotel) {
+    std::cout << "\n______EDGE TYPE IS "
+              << (unsigned int)current_label._used_edge_type << " "
+              << (unsigned int)next_label._used_edge_type << std::endl;
+  }
+  journey::transport::transport_type type = journey::transport::Walk;
+  std::string mumo_type_name = "";
+  unsigned short mumo_price = 0;
+  if (next_label._used_edge_type == edge::HOTEL_EDGE) {
+    type = journey::transport::Mumo;
+    mumo_type_name = "Hotel";
+    mumo_price = next_label._db_costs - current_label._db_costs;
+    std::cout << "HOTEL for label " << current_label << " and " << next_label
+              << std::endl;
+  } else if (next_label._used_edge_type == edge::MUMO_EDGE &&
+             /* assure that this is not a dummy edge */
+             next_label._now > current_label._now) {
+    type = journey::transport::Mumo;
+    mumo_type_name = "Taxi"; /* todo: read type from slot */
+    mumo_price = next_label._db_costs - current_label._db_costs;
+    std::cout << "Taxi for label " << current_label << " and " << next_label
+              << std::endl;
+  }
+  return std::make_tuple(type, mumo_type_name, mumo_price);
+}
+
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
 parse_label_chain(label const* terminal_label) {
   std::vector<label const*> labels;
@@ -148,21 +179,12 @@ parse_label_chain(label const* terminal_label) {
             current->_now, last_con != nullptr);
 
         {
-          journey::transport::transport_type type = journey::transport::Walk;
-          std::string mumo_type_name = "";
-          unsigned short mumo_price = 0;
-          if (!current->_visited_hotel && (*std::next(it))->_visited_hotel) {
-            type = journey::transport::Mumo;
-            mumo_type_name = "Hotel";
-            mumo_price = (*std::next(it))->_db_costs - current->_db_costs;
-            std::cout << "HOTEL for label " << *current << " and "
-                      << *(*std::next(it)) << std::endl;
-          }
-
-          transports.emplace_back(station_index,
-                                  (unsigned int)station_index + 1,
-                                  (*std::next(it))->_now - current->_now, -1, 0,
-                                  type, mumo_type_name, mumo_price);
+          auto mumo_info = get_mumo_info(*current, *(*std::next(it)));
+          transports.emplace_back(
+              station_index, (unsigned int)station_index + 1,
+              (*std::next(it))->_now - current->_now, -1, 0,
+              std::get<0>(mumo_info), std::get<1>(mumo_info),
+              std::get<2>(mumo_info));
         }
 
         walk_arrival = (*std::next(it))->_now;

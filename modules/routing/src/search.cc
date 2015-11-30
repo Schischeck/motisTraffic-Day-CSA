@@ -52,7 +52,7 @@ void add_additional_edge(
 
 std::vector<journey> search::get_connections(
     arrival from, arrival to, time interval_start, time interval_end,
-    bool ontrip, std::vector<edge> const& hotel_edges,
+    bool ontrip, std::vector<edge> const& query_additional_edges,
     pareto_dijkstra::statistics* stats) {
   _label_store.reset();
   remove_intersection(from, to);
@@ -132,7 +132,7 @@ std::vector<journey> search::get_connections(
                         additional_edges);
   }
 
-  for (auto const& hotel : hotel_edges) {
+  for (auto const& hotel : query_additional_edges) {
     add_additional_edge(hotel._from, hotel, additional_edges);
   }
 
