@@ -60,6 +60,10 @@ private:
   void handle_connection_graph_result(
       std::vector<std::shared_ptr<search::connection_graph> > const,
       motis::module::callback cb);
+
+  void handle_late_connection_result(motis::module::msg_ptr,
+                                     boost::system::error_code,
+                                     motis::module::callback);
 };
 }  // namespace reliability
 }  // namespace motis

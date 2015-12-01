@@ -72,6 +72,39 @@ void reliability::init() {
       schedule, *s_t_distributions_, *precomputed_distributions_);
 }
 
+void short_output(journey const& j, time_t const sched_begin,
+                  std::ostream& os) {
+  auto format = [&](time_t t) -> std::string {
+    return format_time(unix_to_motistime(sched_begin, t));
+  };
+  auto to_str = [&](journey::transport const& t) -> std::string {
+    switch (t.type) {
+      case journey::transport::PublicTransport: return t.name;
+      case journey::transport::Walk: return "Walk";
+      case journey::transport::Mumo: {
+        std::stringstream sst;
+        sst << t.mumo_type_name << "," << t.mumo_price;
+        return sst.str();
+      }
+    }
+    return "unknown";
+  };
+
+  unsigned int db_cost = 0;
+  std::for_each(j.transports.begin(), j.transports.end(),
+                [&](journey::transport const& t) { db_cost += t.mumo_price; });
+
+  os << "Journey (" << j.duration << ", " << j.transfers << ", " << db_cost
+     << ", " << j.night_penalty << ")\n";
+  for (auto const& t : j.transports) {
+    auto const& from = j.stops[t.from];
+    auto const& to = j.stops[t.to];
+    os << from.name << " " << format(from.departure.timestamp) << " --"
+       << to_str(t) << "-> " << format(to.arrival.timestamp) << " " << to.name
+       << std::endl;
+  }
+}
+
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   auto req = msg->content<ReliableRoutingRequest const*>();
   switch (req->request_type()->request_options_type()) {
@@ -104,7 +137,10 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
                     cb));
     }
     case RequestOptions_LateConnectionReq: {
-      return search::late_connections::search(req, *this, session_id, cb);
+      return search::late_connections::search(
+          req, *this, session_id,
+          std::bind(&reliability::handle_late_connection_result, this, p::_1,
+                    p::_2, cb));
     }
     default: break;
   }
@@ -149,6 +185,21 @@ void reliability::handle_connection_graph_result(
     callback cb) {
   return cb(flatbuffers::response_builder::to_reliable_routing_response(cgs),
             error::ok);
+}
+
+void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
+                                                boost::system::error_code,
+                                                motis::module::callback cb) {
+  auto res = msg->content<routing::RoutingResponse const*>();
+  auto const journeys = message_to_journeys(res);
+  auto const lock = synced_sched();
+  schedule const& schedule = lock.sched();
+  std::cout << "\n\n\nJourneys found:\n\n";
+  for (auto const& j : journeys) {
+    short_output(j, schedule.schedule_begin_, std::cout);
+    std::cout << std::endl;
+  }
+  return cb(msg, error::ok);
 }
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {
