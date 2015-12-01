@@ -93,7 +93,7 @@ class loader_graph_builder_east_to_west_test
     : public loader_graph_builder_test {
 public:
   loader_graph_builder_east_to_west_test()
-      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 6),
+      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 2),
                                   to_unix_time(2015, 7, 10)) {}
 };
 
@@ -389,6 +389,17 @@ TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   }
 }
 
+void test_events(
+    std::tuple<light_connection const*, node const*, node const*> c,
+    time expected_dep, time expected_arr) {
+  EXPECT_EQ(expected_dep, get<0>(c)->d_time);
+  EXPECT_EQ(expected_arr, get<0>(c)->a_time);
+}
+
+time exp_time(int day_idx, int hhmm, int offset) {
+  return (day_idx + 1 * MINUTES_A_DAY) + hhmm_to_min(hhmm) - offset;
+}
+
 TEST_F(loader_graph_builder_east_to_west_test, event_times) {
   // Get route starting at Moskva Belorusskaja
   auto node_it = std::find_if(
@@ -396,9 +407,12 @@ TEST_F(loader_graph_builder_east_to_west_test, event_times) {
       end(sched_->route_index_to_first_route_node), [&](node const* n) {
         return sched_->stations[n->get_station()->_id]->eva_nr == "2000058";
       });
-  auto connections = get_connections(*node_it, 0);
-
-  ASSERT_EQ(1, connections.size());
+  auto cs = get_connections(*node_it, 0);
+  ASSERT_EQ(23, cs.size());
+  test_events(cs.at(0), exp_time(0, 1630, 180), exp_time(0, 1901, 180));
+  // GMT+3 -> GMT+1 (season time)
+  test_events(cs.at(8), exp_time(0, 3106, 180), exp_time(0, 3018, 120));
+  test_events(cs.at(22), exp_time(0, 5306, 120), exp_time(0, 5716, 120));
 }
 
 }  // loader
