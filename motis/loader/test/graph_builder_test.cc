@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
@@ -13,11 +14,11 @@ using std::get;
 namespace motis {
 namespace loader {
 
-class loader_multiple_ice_graph_builder_test : public ::testing::Test {
+class loader_graph_builder_test : public ::testing::Test {
 protected:
-  loader_multiple_ice_graph_builder_test(std::string schedule_name,
-                                         std::time_t schedule_begin,
-                                         std::time_t schedule_end)
+  loader_graph_builder_test(std::string schedule_name,
+                            std::time_t schedule_begin,
+                            std::time_t schedule_end)
       : schedule_name_(std::move(schedule_name)),
         schedule_begin_(schedule_begin),
         schedule_end_(schedule_end) {}
@@ -71,21 +72,29 @@ protected:
 };
 
 class loader_multiple_ice_multiple_ice_graph_builder_test
-    : public loader_multiple_ice_graph_builder_test {
+    : public loader_graph_builder_test {
 public:
   loader_multiple_ice_multiple_ice_graph_builder_test()
-      : loader_multiple_ice_graph_builder_test(
+      : loader_graph_builder_test(
             "multiple-ice-files", to_unix_time(2015, 10, 25),
             to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
 };
 
 class loader_direction_services_graph_builder_test
-    : public loader_multiple_ice_graph_builder_test {
+    : public loader_graph_builder_test {
 public:
   loader_direction_services_graph_builder_test()
-      : loader_multiple_ice_graph_builder_test("direction-services",
-                                               to_unix_time(2015, 9, 11),
-                                               to_unix_time(2015, 9, 12)) {}
+      : loader_graph_builder_test("direction-services",
+                                  to_unix_time(2015, 9, 11),
+                                  to_unix_time(2015, 9, 12)) {}
+};
+
+class loader_graph_builder_east_to_west_test
+    : public loader_graph_builder_test {
+public:
+  loader_graph_builder_east_to_west_test()
+      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 9, 11),
+                                  to_unix_time(2015, 9, 12)) {}
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -379,6 +388,8 @@ TEST_F(loader_direction_services_graph_builder_test, direction_text) {
     ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki", con_info->dir_->c_str());
   }
 }
+
+TEST_F(loader_graph_builder_east_to_west_test, event_times) {}
 
 }  // loader
 }  // motis

@@ -134,6 +134,7 @@ public:
         if (!traffic_days.test(day)) {
           continue;
         }
+
         int time_offset = (day - first_day_) * MINUTES_A_DAY;
         auto d_time = time_offset + base_d_time;
         auto a_time = time_offset + base_a_time;
@@ -352,7 +353,7 @@ private:
   // Each station should have a timezone
   void validate_events(int day, station const* dep_st, station const* arr_st,
                        time dep_motis_time, time arr_motis_time,
-                       time dep_local_time, time arr_local_time,
+                       int dep_local_time, int arr_local_time,
                        String const* origin) {
     auto const is_invalid_dep_event =
         dep_st->timez && dep_st->timez->is_invalid_time(dep_motis_time);
