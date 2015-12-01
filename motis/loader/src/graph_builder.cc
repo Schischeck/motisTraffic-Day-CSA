@@ -79,7 +79,7 @@ public:
       s->length = input_station->lng();
       s->eva_nr = input_station->id()->str();
       s->transfer_time = input_station->interchange_time();
-      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+      // TODO deprecation warning: timezone is expected to be non null!
       s->timez = input_station->timezone()
                      ? get_or_create_timezone(input_station->timezone())
                      : nullptr;
@@ -272,7 +272,7 @@ private:
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days, Origin const* origin) {
+                           bitfield const& traffic_days, String const* origin) {
     assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
@@ -315,38 +315,18 @@ private:
       con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
-      auto const dep_timez =
-          sched_.stations[curr_route_edge->_from->get_station()->_id]
-              .get()
-              ->timez;
-      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+      auto const* dep_st =
+          sched_.stations.at(curr_route_edge->_from->get_station()->_id).get();
+      auto const* arr_st =
+          sched_.stations.at(curr_route_edge->_to->get_station()->_id).get();
+
       auto const dep_motis_time =
-          dep_timez ? dep_timez->to_motis_time(day - first_day_, dep_time)
-                    : (day - first_day_) * MINUTES_A_DAY + dep_time;
-
-      auto const arr_timez =
-          sched_.stations[curr_route_edge->_to->get_station()->_id]
-              .get()
-              ->timez;
-      // TODO (DEPRECATION WARNING) timezone should always non NULL!
+          compute_event_time(day, dep_time, dep_st->timez);
       auto const arr_motis_time =
-          arr_timez ? arr_timez->to_motis_time(day - first_day_, arr_time)
-                    : (day - first_day_) * MINUTES_A_DAY + arr_time;
+          compute_event_time(day, arr_time, arr_st->timez);
 
-      if (dep_motis_time > arr_motis_time) {
-        LOG(emrg) << dep_time << "--loader_time-->" << arr_time;
-        LOG(emrg) << "[" << origin->file()->c_str() << ","
-                  << origin->line_from() << "," << origin->line_to() << "] "
-                  << "negative edge: ("
-                  << sched_.stations[curr_route_edge->_from->get_station()->_id]
-                         .get()
-                         ->eva_nr
-                  << "," << dep_motis_time << ")--motis_time-->("
-                  << sched_.stations[curr_route_edge->_to->get_station()->_id]
-                         .get()
-                         ->eva_nr
-                  << "," << arr_motis_time << ")";
-      }
+      validate_events(day, dep_st, arr_st, dep_motis_time, arr_motis_time,
+                      dep_time, arr_time, origin);
 
       curr_route_edge->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,
@@ -358,6 +338,35 @@ private:
       // Count events.
       ++from.dep_class_events[con_.clasz];
       ++to.arr_class_events[con_.clasz];
+    }
+  }
+
+  // TODO dep_tz, arr_tz == nullptr is deprecated.
+  // Each station should have a timezone
+  time compute_event_time(int day, time local_time, timezone const* tz) {
+    return tz ? tz->to_motis_time(day - first_day_, local_time)
+              : (day - first_day_) * MINUTES_A_DAY + local_time;
+  }
+
+  // TODO dep_tz, arr_tz == nullptr is deprecated.
+  // Each station should have a timezone
+  void validate_events(int day, station const* dep_st, station const* arr_st,
+                       time dep_motis_time, time arr_motis_time,
+                       time dep_local_time, time arr_local_time,
+                       String const* origin) {
+    if (dep_st->timez && dep_st->timez->is_invalid_time(dep_motis_time)) {
+      LOG(emrg) << "[" << origin->c_str() << "] "
+                << "invalid departure time for (loader) day_idx: " << day;
+    }
+    if (arr_st->timez && arr_st->timez->is_invalid_time(arr_motis_time)) {
+      LOG(emrg) << "[" << origin->c_str() << "] "
+                << "invalid arrival time for (loader) day_idx: " << day;
+    }
+    if (dep_motis_time > arr_motis_time) {
+      LOG(emrg) << "[" << origin->c_str() << "] negative edge at section ("
+                << dep_st->eva_nr << "," << arr_st->eva_nr << ")";
+      LOG(emrg) << dep_local_time << "--local_time-->" << arr_local_time;
+      LOG(emrg) << dep_motis_time << "--motis_time-->" << arr_motis_time;
     }
   }
 

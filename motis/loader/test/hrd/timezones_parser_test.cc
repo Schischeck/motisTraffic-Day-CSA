@@ -127,6 +127,7 @@ TEST_F(loader_timezones_hrd, timezone_entries) {
 
 TEST_F(loader_timezones_synthetic, timezone_interval) {
   test_timezone_entry(tz_.find(0), 60, {{120, 0, 6, 120, 180}});
+  test_timezone_entry(tz_.find(9999999), 60, {{120, 0, 6, 120, 180}});
 }
 
 }  // loader

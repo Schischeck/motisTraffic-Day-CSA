@@ -104,9 +104,7 @@ TEST(core_timezone, season_begin_end_overlaps_schedule_period) {
 
   // from: [ INV {  1*MAD  2*MAD 3*MAD 4*MAD 5*MAD }  INV ]
   // to:     INV [{ 1*MAD  2*MAD 3*MAD 4*MAD 5*MAD }] INV
-  ASSERT_EQ(
-      MINUTES_A_DAY + minutes_after_midnight_season_begin - general_offset,
-      tz.season_.begin);
+  ASSERT_EQ(0, tz.season_.begin);
   ASSERT_EQ(
       5 * MINUTES_A_DAY + minutes_after_midnight_season_end - season_offset,
       tz.season_.end);
@@ -182,10 +180,8 @@ TEST(core_timezone, move_season_begin_to_schedule_period_begin) {
       minutes_after_midnight_season_end);
 
   // from: [ INV {  1*MAD  2*MAD ] 3*MAD 4*MAD } INV INV
-  // to:   [ INV [{ 1*MAD  2*MAD ] 3*MAD 4*MAD } INV INV
-  ASSERT_EQ(
-      MINUTES_A_DAY + minutes_after_midnight_season_begin - general_offset,
-      tz.season_.begin);
+  // to:     INV [{ 1*MAD  2*MAD ] 3*MAD 4*MAD } INV INV
+  ASSERT_EQ(0, tz.season_.begin);
   ASSERT_EQ(
       2 * MINUTES_A_DAY + minutes_after_midnight_season_end - season_offset,
       tz.season_.end);
@@ -210,8 +206,8 @@ TEST(core_timezone, move_season_end_to_schedule_period_end) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  // from:   INV { 1*MAD  2*MAD [ 3*MAD 4*MAD } INV ] INV
-  // to:     INV { 1*MAD  2*MAD [ 3*MAD 4*MAD }] INV  INV
+  // from:   INV { 1*MAD  2*MAD [ 3*MAD 4*MAD }  INV ] INV
+  // to:     INV { 1*MAD  2*MAD [ 3*MAD 4*MAD }] INV   INV
   ASSERT_EQ(
       3 * MINUTES_A_DAY + minutes_after_midnight_season_begin - general_offset,
       tz.season_.begin);
