@@ -99,12 +99,21 @@ std::vector<std::string> hrd_parser::missing_files(
   }
   auto const core_data_root = hrd_root / CORE_DATA;
   for (auto const& alternatives : required_files) {
-    std::copy_if(begin(alternatives), end(alternatives),
-                 std::back_inserter(missing_files),
-                 [&core_data_root](std::string const& filename) {
-                   return fs::is_regular_file(
-                       (core_data_root / filename).string().c_str());
-                 });
+    std::vector<int> missing_indices;
+    int pos = 0;
+    for (auto const& alternative : alternatives) {
+      if (!fs::is_regular_file(
+              (core_data_root / alternative).string().c_str())) {
+        missing_indices.push_back(pos);
+      }
+      ++pos;
+    }
+    if(missing_indices.size() < alternatives.size()) {
+      continue;
+    }
+    for (auto const idx : missing_indices) {
+      missing_files.emplace_back(alternatives[idx]);
+    }
   }
   return missing_files;
 }
