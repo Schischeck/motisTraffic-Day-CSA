@@ -354,17 +354,24 @@ private:
                        time dep_motis_time, time arr_motis_time,
                        time dep_local_time, time arr_local_time,
                        String const* origin) {
-    if (dep_st->timez && dep_st->timez->is_invalid_time(dep_motis_time)) {
-      LOG(emrg) << "[" << origin->c_str() << "] "
-                << "invalid departure time for (loader) day_idx: " << day;
+    auto const is_invalid_dep_event =
+        dep_st->timez && dep_st->timez->is_invalid_time(dep_motis_time);
+    auto const is_invalid_arr_event =
+        arr_st->timez && arr_st->timez->is_invalid_time(arr_motis_time);
+    auto const is_negative_edge = dep_motis_time > arr_motis_time;
+
+    if (is_invalid_dep_event || is_invalid_arr_event || is_negative_edge) {
+      LOG(emrg) << "[" << origin->c_str() << "]";
     }
-    if (arr_st->timez && arr_st->timez->is_invalid_time(arr_motis_time)) {
-      LOG(emrg) << "[" << origin->c_str() << "] "
-                << "invalid arrival time for (loader) day_idx: " << day;
+    if (is_invalid_dep_event) {
+      LOG(emrg) << "invalid departure time for (loader) day_idx: " << day;
     }
-    if (dep_motis_time > arr_motis_time) {
-      LOG(emrg) << "[" << origin->c_str() << "] negative edge at section ("
-                << dep_st->eva_nr << "," << arr_st->eva_nr << ")";
+    if (is_invalid_arr_event) {
+      LOG(emrg) << "invalid arrival time for (loader) day_idx: " << day;
+    }
+    if (is_negative_edge) {
+      LOG(emrg) << "negative edge at section (" << dep_st->eva_nr << ","
+                << arr_st->eva_nr << ")";
       LOG(emrg) << dep_local_time << "--local_time-->" << arr_local_time;
       LOG(emrg) << dep_motis_time << "--motis_time-->" << arr_motis_time;
     }
