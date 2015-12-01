@@ -93,8 +93,8 @@ class loader_graph_builder_east_to_west_test
     : public loader_graph_builder_test {
 public:
   loader_graph_builder_east_to_west_test()
-      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 9, 11),
-                                  to_unix_time(2015, 9, 12)) {}
+      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 6),
+                                  to_unix_time(2015, 7, 10)) {}
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -389,7 +389,17 @@ TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   }
 }
 
-TEST_F(loader_graph_builder_east_to_west_test, event_times) {}
+TEST_F(loader_graph_builder_east_to_west_test, event_times) {
+  // Get route starting at Moskva Belorusskaja
+  auto node_it = std::find_if(
+      begin(sched_->route_index_to_first_route_node),
+      end(sched_->route_index_to_first_route_node), [&](node const* n) {
+        return sched_->stations[n->get_station()->_id]->eva_nr == "2000058";
+      });
+  auto connections = get_connections(*node_it, 0);
+
+  ASSERT_EQ(1, connections.size());
+}
 
 }  // loader
 }  // motis
