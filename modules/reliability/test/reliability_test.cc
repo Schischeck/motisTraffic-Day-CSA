@@ -271,7 +271,7 @@ TEST_F(reliability_late_connections, late_conn_req) {
     auto response = msg->content<routing::RoutingResponse const*>();
 
     ASSERT_EQ(2, response->connections()->size());
-    ASSERT_EQ(3, (*response->connections())[0]->transports()->size());
+    ASSERT_EQ(2, (*response->connections())[0]->transports()->size());
     auto taxi =
         (routing::Mumo const*)(*(*response->connections())[0]->transports())[1]
             ->move();

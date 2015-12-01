@@ -229,7 +229,9 @@ TEST_F(routing_late_connections, search) {
     }
 
     /* note: connection with hotel (Mainz)
-     * and arrival 10:51 will be dominated */
+     * and arrival 10:51 will be dominated.
+     * Connection via Neu-Isenburg will not be delivered
+     * since using taxi after hotel is not allowed. */
   };
 
   setup.dispatcher_.on_msg(msg, 0, test_cb);

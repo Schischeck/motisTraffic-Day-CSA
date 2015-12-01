@@ -186,8 +186,8 @@ module::msg_ptr to_late_connections_request(
     additional_edges.push_back(CreateAdditionalEdgeWrapper(
         b, AdditionalEdge_MumoEdge,
         CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
-                       b.CreateString(to_eva), std::get<1>(info),
-                       std::get<2>(info))
+                       b.CreateString("-2") /* to dummy target */,
+                       std::get<1>(info), std::get<2>(info))
             .Union()));
   }
 
