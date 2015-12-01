@@ -13,17 +13,18 @@
 namespace motis {
 namespace bootstrap {
 
-std::unique_ptr<motis_instance> launch_motis(
+inline std::unique_ptr<motis_instance> launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
-    std::vector<std::string> const& modules) {
+    std::vector<std::string> const& modules,
+    bool const use_serialized = false) {
   auto instance = make_unique<motis_instance>();
-  instance->init_schedule({dataset, false, schedule_begin, 2});
+  instance->init_schedule({dataset, use_serialized, schedule_begin, 2});
   instance->init_modules(modules);
   return instance;
 }
 
-module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
-                     module::msg_ptr request) {
+inline module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
+                            module::msg_ptr request) {
   module::msg_ptr response;
   boost::system::error_code ec;
   instance->on_msg(request, 1,
