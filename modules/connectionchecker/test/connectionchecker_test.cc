@@ -75,21 +75,24 @@ TEST(connectionchecker, finds_annotated_connections) {
       launch_motis("modules/connectionchecker/test_resources/schedule",
                    "20151124", {"routing", "connectionchecker", "realtime"});
   send(instance, get_ris_message());
-
-  auto request = std::make_shared<message>(kRoutingRequest);
-  auto response = send(instance, request);
-  auto journeys =
-      message_to_journeys(response->content<RoutingResponse const*>());
+  auto resp = send(instance, std::make_shared<message>(kRoutingRequest));
+  auto journeys = message_to_journeys(resp->content<RoutingResponse const*>());
+  std::cout << resp->to_json() << std::endl;
   ASSERT_EQ(1, journeys.size());
   auto j = journeys[0];
 
   auto s0 = j.stops[0];
   EXPECT_EQ(std::string("8000260"), s0.eva_no);
-  EXPECT_EQ(0, s0.arrival.timestamp);
   EXPECT_EQ(0, s0.arrival.schedule_timestamp);
+  EXPECT_EQ(0, s0.arrival.timestamp);
   // 2015-11-24 13:55:00 GMT+0100
-  EXPECT_EQ(1448369700, s0.departure.timestamp);
   EXPECT_EQ(1448369700, s0.departure.schedule_timestamp);
+  EXPECT_EQ(1448369700, s0.departure.timestamp);
+
+  auto s1 = j.stops[1];
+  // 2015-11-24 14:36:00 GMT+0100 --> 2015-11-24 14:37:00 GMT+0100
+  EXPECT_EQ(1448372160, s1.departure.schedule_timestamp);
+  EXPECT_EQ(1448372220, s1.departure.timestamp);
 }
 
 }  // namespace connectionchecker
