@@ -1,4 +1,3 @@
-
 #include "gtest/gtest.h"
 
 #include <string>
@@ -31,14 +30,14 @@ constexpr char const* kRoutingRequest = R""(
   "content_type": "RoutingRequest",
   "content": {
     "interval": {
-      "begin": 1448371800,
-      "end": 1448371800
+      "begin": 1448368200,  // 2015-11-24 13:30:00 GMT+0100
+      "end": 1448368200  // 2015-11-24 13:30:00 GMT+0100
     },
     "type": "OnTrip",
     "direction": "Forward",
     "path": [
-      { "eva_nr": "8000260", "name": "" },
-      { "eva_nr": "8000105", "name": "" }
+      { "eva_nr": "8000260", "name": "" }, // Würzburg
+      { "eva_nr": "8000105", "name": "" }  // TODO
     ]
   }
 }
@@ -51,12 +50,12 @@ msg_ptr get_ris_message() {
     CreateUpdatedEvent(fbb,
         CreateEvent(fbb,
           StationIdType_EVA,
-          fbb.CreateString("8000010"),
+          fbb.CreateString("8000010"),  // Aschaffenburg
           628,
           EventType_Departure,
-          1448372160
+          1448372160  // 2015-11-24 14:36:00 GMT+0100
         ),
-      1448372220
+      1448372220  // 2015-11-24 14:37:00 GMT+0100
     )};
   // clang-format on
   fbb.Finish(CreateMessage(
@@ -82,6 +81,15 @@ TEST(connectionchecker, finds_annotated_connections) {
   auto journeys =
       message_to_journeys(response->content<RoutingResponse const*>());
   ASSERT_EQ(1, journeys.size());
+  auto j = journeys[0];
+
+  auto s0 = j.stops[0];
+  EXPECT_EQ(std::string("8000260"), s0.eva_no);
+  EXPECT_EQ(0, s0.arrival.timestamp);
+  EXPECT_EQ(0, s0.arrival.schedule_timestamp);
+  // 2015-11-24 13:55:00 GMT+0100
+  EXPECT_EQ(1448369700, s0.departure.timestamp);
+  EXPECT_EQ(1448369700, s0.departure.schedule_timestamp);
 }
 
 }  // namespace connectionchecker
