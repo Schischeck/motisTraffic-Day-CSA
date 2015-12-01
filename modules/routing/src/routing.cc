@@ -125,7 +125,6 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
               << ") -> " << journeys.size() << " connections found";
 
     auto resp = journeys_to_message(journeys);
-    std::cout << resp->to_json() << std::endl;
     return dispatch(resp, 0, [resp, cb](msg_ptr annotated, error_code e) {
       if (e == motis::module::error::no_module_capable_of_handling) {
         return cb(resp, error::ok); // connectionchecker not available
