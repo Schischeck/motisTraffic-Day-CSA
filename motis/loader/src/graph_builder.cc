@@ -537,6 +537,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
 
+  sched->schedule_begin_ -= SCHEDULE_OFFSET;
   return sched;
 }
 

@@ -14,6 +14,7 @@ typedef uint16_t time;
 typedef uint16_t duration;
 
 constexpr unsigned short INVALID_TIME = USHRT_MAX;
+constexpr unsigned int SCHEDULE_OFFSET = MINUTES_A_DAY * 60;
 
 inline time to_time(int day_index, int minutes) {
   return day_index * MINUTES_A_DAY + minutes;
