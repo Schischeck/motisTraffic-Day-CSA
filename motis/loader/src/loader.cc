@@ -36,9 +36,7 @@ std::vector<std::unique_ptr<format_parser>> parsers() {
 
 schedule_ptr load_schedule(std::string const& path, bool use_serialized,
                            time_t from, time_t to) {
-
   scoped_timer time("loading schedule");
-
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (use_serialized && fs::is_regular_file(binary_schedule_file)) {

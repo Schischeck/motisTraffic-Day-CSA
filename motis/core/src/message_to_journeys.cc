@@ -15,6 +15,7 @@ journey::stop::event_info to_event_info(routing::EventInfo const& event,
   journey::stop::event_info e;
   e.platform = event.platform()->c_str();
   e.timestamp = event.time();
+  e.schedule_timestamp = event.schedule_time();
   e.valid = valid;
   return e;
 }
