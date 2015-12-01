@@ -20,6 +20,12 @@ struct dispatcher : public receiver {
 
   dispatcher(boost::asio::io_service& ios);
 
+  dispatcher(dispatcher const&) = delete;
+  dispatcher(dispatcher&&) = delete;
+
+  dispatcher& operator=(dispatcher const&) = delete;
+  dispatcher& operator=(dispatcher&&) = delete;
+
   void set_send_fun(send_fun);
   void send(msg_ptr msg, sid session);
 
