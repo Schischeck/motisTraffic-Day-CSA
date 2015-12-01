@@ -97,6 +97,10 @@ public:
       return nullptr;
     }
 
+    if (_visited_hotel && edge.type() == edge::MUMO_EDGE && ec.time > 0) {
+      return nullptr;
+    }
+
     label* l = new (label_store.create()) label(*this);
     l->_travel_time[0] = n_travel_time;
     l->_travel_time[1] = n_travel_time_l_b;

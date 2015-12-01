@@ -71,6 +71,10 @@ std::vector<journey> search::get_connections(
     lb_graph_edges[arr.station].push_back(
         simple_edge(DUMMY_SOURCE_IDX, arr.time_cost));
   }
+  for (auto const& e : query_additional_edges) {
+    lb_graph_edges[e._to->get_station()->_id].emplace_back(
+        e._from->get_station()->_id, e.get_minimum_cost());
+  }
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
@@ -132,8 +136,8 @@ std::vector<journey> search::get_connections(
                         additional_edges);
   }
 
-  for (auto const& hotel : query_additional_edges) {
-    add_additional_edge(hotel._from, hotel, additional_edges);
+  for (auto const& e : query_additional_edges) {
+    add_additional_edge(e._from, e, additional_edges);
   }
 
   pareto_dijkstra pd(_sched.node_count,

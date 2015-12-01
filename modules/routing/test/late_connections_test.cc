@@ -56,6 +56,7 @@ public:
   std::string const DARMSTADT = "3333333";
   std::string const OFFENBACH = "9727248";
   std::string const MAINZ = "3953754";
+  std::string const NEUISENBURG = "5345291";
 
   module::msg_ptr to_routing_msg(std::vector<hotel_info> const& hotel_infos,
                                  std::vector<taxi_info> const taxi_infos) {
@@ -166,6 +167,8 @@ TEST_F(routing_late_connections, search) {
   hotel_infos.emplace_back(MAINZ);
   std::vector<taxi_info> taxi_infos;
   taxi_infos.emplace_back(LANGEN, FRANKFURT, 55, 6000);
+  /* this taxi should not be used, since it can only be used after a hotel */
+  taxi_infos.emplace_back(NEUISENBURG, FRANKFURT, 10, 500);
   auto msg = to_routing_msg(hotel_infos, taxi_infos);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {

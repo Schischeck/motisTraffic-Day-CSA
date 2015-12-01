@@ -136,6 +136,8 @@ public:
       return edge_cost(0, _m._foot_edge._transfer);
     } else if (_m._type == HOTEL_EDGE) {
       return edge_cost(0, false, _m._hotel_edge._price);
+    } else if (_m._type == MUMO_EDGE) {
+      return edge_cost(0, false, _m._foot_edge._price);
     } else {
       return edge_cost(0);
     }

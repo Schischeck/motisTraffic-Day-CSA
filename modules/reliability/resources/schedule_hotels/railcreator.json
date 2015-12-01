@@ -59,6 +59,18 @@
       "evaNumber": "3953754",
       "ds100Code": "3953754",
       "KMInfo": 0
+    },
+    {
+      "name": "Neu-Isenburg",
+      "tracks": 2,
+      "latitude": 50.05599999999998,
+      "longitude": 8.69399999999996,
+      "interchangeTime": 5,
+      "minInterchangeTime": 5,
+      "platformInterchangeTime": 5,
+      "evaNumber": "5345291",
+      "ds100Code": "5345291",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -338,6 +350,46 @@
         {
           "fromTime": "10:30:00.000",
           "untilTime": "10:30:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_L_N",
+      "category": "S",
+      "evaNumber": "9899151",
+      "trainNumber": 8,
+      "stations": [
+        {
+          "station": "2222222",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "5345291",
+          "arrival": 5,
+          "departure": 7,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
           "interval": 1
         }
       ]
