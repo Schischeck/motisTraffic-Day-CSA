@@ -91,7 +91,7 @@ class reliability_connection_graph_rating_foot
 public:
   reliability_connection_graph_rating_foot()
       : reliability_connection_graph_rating_base(
-            "modules/reliability/resources/schedule3/", "20151019") {}
+            "modules/reliability/resources/schedule3/", "20150928") {}
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const MESSE = {"Frankfurt Messe", "2222222"};
   schedule_station const LANGEN = {"Langen", "3333333"};

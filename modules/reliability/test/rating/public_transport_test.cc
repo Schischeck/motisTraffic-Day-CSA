@@ -64,7 +64,7 @@ class reliability_public_transport5 : public test_motis_setup {
 public:
   reliability_public_transport5()
       : test_motis_setup("modules/reliability/resources/schedule5/",
-                         "20150928") {}
+                         "20151019") {}
   schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
   schedule_station const FRANKFURT = {"Frankfurt", "2222222"};
   schedule_station const GIESSEN = {"Giessen", "3333333"};
