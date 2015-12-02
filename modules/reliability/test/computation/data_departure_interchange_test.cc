@@ -105,7 +105,8 @@ TEST_F(reliability_data_departure_interchange2,
   // route node at Frankfurt of train ICE_K_F_S
   auto& tail_node_departing_train =
       *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))->_to;
+           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
+           ->_to;
   ASSERT_TRUE(schedule_->stations[tail_node_departing_train._station_node->_id]
                   ->eva_nr == FRANKFURT);
 
@@ -129,8 +130,10 @@ TEST_F(reliability_data_departure_interchange2,
       graph_accessor::get_departing_route_edge(
           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
           ->_m._route_edge._conns[0];
-  ASSERT_TRUE(preceding_arrival_light_conn.d_time == 9 * 60 + 15);
-  ASSERT_TRUE(preceding_arrival_light_conn.a_time == 10 * 60 + 15);
+  ASSERT_TRUE(preceding_arrival_light_conn.d_time ==
+              test_util::minutes_to_motis_time(9 * 60 + 15));
+  ASSERT_TRUE(preceding_arrival_light_conn.a_time ==
+              test_util::minutes_to_motis_time(10 * 60 + 15));
 
   ASSERT_FALSE(data.is_first_route_node_);
   ASSERT_TRUE(data.scheduled_departure_time_ ==
@@ -189,7 +192,8 @@ TEST_F(reliability_data_departure_interchange2,
   // Feeder ICE_K_F_S
   auto const& feeder = data.feeders_[0];
 
-  ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 15);
+  ASSERT_TRUE(feeder.arrival_time_ ==
+              test_util::minutes_to_motis_time(11 * 60 + 15));
   ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
   ASSERT_TRUE(
       feeder.transfer_time_ ==
@@ -245,11 +249,14 @@ TEST_F(reliability_data_departure_interchange2,
   // Feeder ICE_K_F_S
   {
     auto const& feeder = data.feeders_[0];
-    ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 15);
+    ASSERT_TRUE(feeder.arrival_time_ ==
+                test_util::minutes_to_motis_time(11 * 60 + 15));
     ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
-    ASSERT_TRUE(feeder.transfer_time_ ==
-                schedule_->stations[ic_data.tail_node_departing_train_
-                                        ._station_node->_id]->transfer_time);
+    ASSERT_TRUE(
+        feeder.transfer_time_ ==
+        schedule_
+            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
+            ->transfer_time);
     ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
                 (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) +
                     3);
@@ -257,11 +264,14 @@ TEST_F(reliability_data_departure_interchange2,
   // Feeder ICE_F_S
   {
     auto const& feeder = data.feeders_[1];
-    ASSERT_TRUE(feeder.arrival_time_ == 11 * 60 + 10);
+    ASSERT_TRUE(feeder.arrival_time_ ==
+                test_util::minutes_to_motis_time(11 * 60 + 10));
     ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
-    ASSERT_TRUE(feeder.transfer_time_ ==
-                schedule_->stations[ic_data.tail_node_departing_train_
-                                        ._station_node->_id]->transfer_time);
+    ASSERT_TRUE(
+        feeder.transfer_time_ ==
+        schedule_
+            ->stations[ic_data.tail_node_departing_train_._station_node->_id]
+            ->transfer_time);
     ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
                 (ic_data.departing_light_conn_.d_time - feeder.transfer_time_) +
                     3);

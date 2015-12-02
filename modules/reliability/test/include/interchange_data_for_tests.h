@@ -10,6 +10,8 @@
 
 #include "motis/reliability/graph_accessor.h"
 
+#include "../include/test_util.h"
+
 namespace motis {
 namespace reliability {
 
@@ -61,12 +63,14 @@ struct interchange_data_for_tests {
     EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
                     ->eva_nr == next_station_eva);
 
-    EXPECT_TRUE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
-    EXPECT_TRUE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
+    EXPECT_TRUE(arriving_light_conn_.d_time ==
+                test_util::minutes_to_motis_time(arriving_train_dep));
+    EXPECT_TRUE(arriving_light_conn_.a_time ==
+                test_util::minutes_to_motis_time(arriving_train_arr));
     EXPECT_TRUE(departing_light_conn_.d_time ==
-                (motis::time)departing_train_dep);
+                test_util::minutes_to_motis_time(departing_train_dep));
     EXPECT_TRUE(departing_light_conn_.a_time ==
-                (motis::time)departing_train_arr);
+                test_util::minutes_to_motis_time(departing_train_arr));
   }
 
   /* interchange with walking */
@@ -100,12 +104,14 @@ struct interchange_data_for_tests {
     EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
                     ->eva_nr == next_station_eva);
 
-    EXPECT_TRUE(arriving_light_conn_.d_time == (motis::time)arriving_train_dep);
-    EXPECT_TRUE(arriving_light_conn_.a_time == (motis::time)arriving_train_arr);
+    EXPECT_TRUE(arriving_light_conn_.d_time ==
+                test_util::minutes_to_motis_time(arriving_train_dep));
+    EXPECT_TRUE(arriving_light_conn_.a_time ==
+                test_util::minutes_to_motis_time(arriving_train_arr));
     EXPECT_TRUE(departing_light_conn_.d_time ==
-                (motis::time)departing_train_dep);
+                test_util::minutes_to_motis_time(departing_train_dep));
     EXPECT_TRUE(departing_light_conn_.a_time ==
-                (motis::time)departing_train_arr);
+                test_util::minutes_to_motis_time(departing_train_arr));
   }
 
   edge const& arriving_route_edge_;

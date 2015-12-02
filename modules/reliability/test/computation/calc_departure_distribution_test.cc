@@ -18,6 +18,7 @@
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -508,25 +509,33 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:07 * (feeder2 < 06:07 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 7))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7)) +
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 7))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:07 * (feeder1 < 06:07 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7)) *
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 7))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) +
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 7))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:07 * feeder2 = 06:07
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 7)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 7))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 7));
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 7)));
 
     ASSERT_TRUE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
@@ -560,25 +569,33 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:08 * (feeder2 < 06:08 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 8))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8)) +
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 8))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:08 * (feeder1 < 06:08 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8)) *
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 8))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) +
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 8))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:08 * feeder2 = 06:08
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 8)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 8))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 8));
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 8)));
 
     ASSERT_TRUE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,
@@ -612,25 +629,33 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:09 * (feeder2 < 06:09 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 9))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)) +
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[1].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:09 * (feeder1 < 06:09 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9)) *
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 9))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) +
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)));
+             timestamp_to_delay(data.feeders_[0].arrival_time_,
+                                test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:09 * feeder2 = 06:09
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_, 6 * 60 + 9)) *
+            timestamp_to_delay(data.feeders_[0].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 9))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_, 6 * 60 + 9));
+            timestamp_to_delay(data.feeders_[1].arrival_time_,
+                               test_util::minutes_to_motis_time(6 * 60 + 9)));
 
     ASSERT_TRUE(equal(
         had_to_wait_for_feeders(data.feeders_, modified_feeders_distributions,

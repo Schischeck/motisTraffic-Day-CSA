@@ -18,6 +18,7 @@
 #include "motis/reliability/tools/flatbuffers_tools.h"
 
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -74,8 +75,9 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   auto const element_ice_s_e = detail::to_element(
-      2, get_schedule(), STUTTGART.eva, ERLANGEN.eva, 11 * 60 + 32,
-      12 * 60 + 32, first_route_node._route,
+      2, get_schedule(), STUTTGART.eva, ERLANGEN.eva,
+      test_util::minutes_to_motis_time(11 * 60 + 32),
+      test_util::minutes_to_motis_time(12 * 60 + 32), first_route_node._route,
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_S_E, "");
 
@@ -99,8 +101,9 @@ TEST_F(reliability_connection_to_graph_data2, to_element2) {
   auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
 
   auto const element_ice_k_f_s = detail::to_element(
-      3, get_schedule(), FRANKFURT.eva, STUTTGART.eva, 10 * 60 + 20,
-      11 * 60 + 15, route_node._route,
+      3, get_schedule(), FRANKFURT.eva, STUTTGART.eva,
+      test_util::minutes_to_motis_time(10 * 60 + 20),
+      test_util::minutes_to_motis_time(11 * 60 + 15), route_node._route,
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_K_F_S, "");
 
@@ -148,8 +151,10 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
     ASSERT_TRUE(
         get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
         ERLANGEN.eva);
-    ASSERT_TRUE(element.light_connection_->d_time == 11 * 60 + 32);
-    ASSERT_TRUE(element.light_connection_->a_time == 12 * 60 + 32);
+    ASSERT_TRUE(element.light_connection_->d_time ==
+                test_util::minutes_to_motis_time(11 * 60 + 32));
+    ASSERT_TRUE(element.light_connection_->a_time ==
+                test_util::minutes_to_motis_time(12 * 60 + 32));
     ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                 ICE_S_E);
   }
@@ -164,8 +169,10 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
     ASSERT_TRUE(
         get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
         KASSEL.eva);
-    ASSERT_TRUE(element.light_connection_->d_time == 12 * 60 + 45);
-    ASSERT_TRUE(element.light_connection_->a_time == 14 * 60 + 15);
+    ASSERT_TRUE(element.light_connection_->d_time ==
+                test_util::minutes_to_motis_time(12 * 60 + 45));
+    ASSERT_TRUE(element.light_connection_->a_time ==
+                test_util::minutes_to_motis_time(14 * 60 + 15));
     ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                 ICE_E_K);
   }
@@ -201,8 +208,10 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       ASSERT_TRUE(
           get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
           FRANKFURT.eva);
-      ASSERT_TRUE(element.light_connection_->d_time == 8 * 60);
-      ASSERT_TRUE(element.light_connection_->a_time == 8 * 60 + 20);
+      ASSERT_TRUE(element.light_connection_->d_time ==
+                  test_util::minutes_to_motis_time(8 * 60));
+      ASSERT_TRUE(element.light_connection_->a_time ==
+                  test_util::minutes_to_motis_time(8 * 60 + 20));
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_D_F_G);
     }
@@ -216,8 +225,10 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       ASSERT_TRUE(
           get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
           GIESSEN.eva);
-      ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 22);
-      ASSERT_TRUE(element.light_connection_->a_time == 9 * 60);
+      ASSERT_TRUE(element.light_connection_->d_time ==
+                  test_util::minutes_to_motis_time(8 * 60 + 22));
+      ASSERT_TRUE(element.light_connection_->a_time ==
+                  test_util::minutes_to_motis_time(9 * 60));
       ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                   RE_D_F_G);
     }
@@ -233,8 +244,10 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
     ASSERT_TRUE(
         get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
         MARBURG.eva);
-    ASSERT_TRUE(element.light_connection_->d_time == 9 * 60 + 10);
-    ASSERT_TRUE(element.light_connection_->a_time == 9 * 60 + 40);
+    ASSERT_TRUE(element.light_connection_->d_time ==
+                test_util::minutes_to_motis_time(9 * 60 + 10));
+    ASSERT_TRUE(element.light_connection_->a_time ==
+                test_util::minutes_to_motis_time(9 * 60 + 40));
     ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                 RE_G_M);
   }
@@ -276,8 +289,10 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
     ASSERT_TRUE(
         get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
         DARMSTADT.eva);
-    ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 10);
-    ASSERT_TRUE(element.light_connection_->a_time == 8 * 60 + 40);
+    ASSERT_TRUE(element.light_connection_->d_time ==
+                test_util::minutes_to_motis_time(8 * 60 + 10));
+    ASSERT_TRUE(element.light_connection_->a_time ==
+                test_util::minutes_to_motis_time(8 * 60 + 40));
     ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                 IC_M_D);
   }
@@ -292,8 +307,10 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
     ASSERT_TRUE(
         get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
         FRANKFURT.eva);
-    ASSERT_TRUE(element.light_connection_->d_time == 8 * 60 + 45);
-    ASSERT_TRUE(element.light_connection_->a_time == 9 * 60 + 15);
+    ASSERT_TRUE(element.light_connection_->d_time ==
+                test_util::minutes_to_motis_time(8 * 60 + 45));
+    ASSERT_TRUE(element.light_connection_->a_time ==
+                test_util::minutes_to_motis_time(9 * 60 + 15));
     ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
                 RE_T_F);
   }
