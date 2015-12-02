@@ -95,7 +95,7 @@ TEST(railviz_stations_on_route, test_with_loop) {
  * const
  */
 
-TEST(DISABLE_railviz_routes_on_time, test_with_loop) {
+TEST(railviz_routes_on_time, DISABLED_test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -194,7 +194,7 @@ TEST(DISABLE_railviz_routes_on_time, test_with_loop) {
  * timetable ordered_timetable_for_station(const station_node& station) const
  */
 
-TEST(DISABLE_railviz_timetable_for_station, test_with_loop) {
+TEST(railviz_timetable_for_station, DISABLED_test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false,to_unix_time(2015, 11, 21),
@@ -282,7 +282,7 @@ TEST(DISABLE_railviz_timetable_for_station, test_with_loop) {
  * timetable_) const
  */
 
-TEST(DISABLE_railviz_timetable_station_outgoing, test_with_loop) {
+TEST(railviz_timetable_station_outgoing, DISABLED_test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -372,7 +372,7 @@ TEST(DISABLE_railviz_timetable_station_outgoing, test_with_loop) {
  * timetable_) const
  */
 
-TEST(DISABLE_railviz_timetable_station_incoming, test_with_loop) {
+TEST(railviz_timetable_station_incoming, DISABLED_test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -914,7 +914,7 @@ TEST(railviz_end_for_route, test_with_loop) {
  * ) const
  */
 
-TEST(DISABLE_railviz_route_departure_times, test_without_loop) {
+TEST(railviz_route_departure_times, DISABLED_test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -957,7 +957,7 @@ TEST(DISABLE_railviz_route_departure_times, test_without_loop) {
   EXPECT_TRUE(ttr.get_route_departure_times(*st_03_routenode) == ref_vector);
 }
 
-TEST(DISABLE_railviz_route_departure_times, test_with_loop) {
+TEST(railviz_route_departure_times, DISABLED_test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
