@@ -39,6 +39,7 @@ std::vector<edge> create_additional_edges(
                 info->edge()->to_station_eva()->c_str());
             if (from_station_node != sched.eva_to_station.end() &&
                 to_station_node != sched.eva_to_station.end()) {
+              /* todo: read validity interval and store it in the edge */
               additional_edges.push_back(make_time_dependent_mumo_edge(
                   sched.station_nodes[from_station_node->second->index].get(),
                   sched.station_nodes[to_station_node->second->index].get(),

@@ -224,7 +224,7 @@ TEST_F(reliability_late_connections, late_conn_req) {
       taxi_infos;
   taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
 
-  auto req_msg = flatbuffers::request_builder::to_late_connections_request(
+  auto req_msg = flatbuffers::request_builder::to_reliable_late_connections_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(23 * 60 + 50), (motis::time)(1500),
       std::make_tuple(19, 10, 2015), taxi_infos);

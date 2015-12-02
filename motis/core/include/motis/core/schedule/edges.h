@@ -110,7 +110,8 @@ public:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
       case TIME_DEPENDENT_MUMO_EDGE:
-        if (start_time % 1440 >= 1260 || start_time % 1440 <= 180) { /* todo */
+        if (start_time % 1440 >= 1260 ||
+            start_time % 1440 <= 180) { /* todo: read interval from edge */
           return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                            _m._foot_edge._price, _m._foot_edge._slot);
         } else {

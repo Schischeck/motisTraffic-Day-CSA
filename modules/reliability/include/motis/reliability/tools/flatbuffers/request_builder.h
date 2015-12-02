@@ -46,7 +46,7 @@ module::msg_ptr to_reliable_routing_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff);
 
-module::msg_ptr to_late_connections_request(
+module::msg_ptr to_reliable_late_connections_request(
     std::string const& from_name, std::string const& from_eva,
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
@@ -55,7 +55,7 @@ module::msg_ptr to_late_connections_request(
     std::vector<std::tuple<std::string, unsigned short, unsigned short>> const&
         taxi_infos);
 
-module::msg_ptr to_late_connections_routing_request(
+module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const*,
     std::vector<hotels::hotel_info> const& hotel_infos);
 
