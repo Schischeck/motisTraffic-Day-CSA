@@ -10,4 +10,5 @@ table Service {
   sections : [Section];
   platforms : [PlatformRules];
   times : [int];
+  origin : string;
 }

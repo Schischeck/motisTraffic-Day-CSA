@@ -15,12 +15,11 @@
 
 /* todo: remove these dependencies on reliability module */
 #include "../../reliability/test/include/test_schedule_setup.h"
-#include "motis/reliability/tools/system.h"
 
 namespace motis {
 namespace routing {
 
-class routing_late_connections : public reliability::test_schedule_setup {
+class routing_late_connections : public reliability::test_motis_setup {
 public:
   struct hotel_info {
     hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
@@ -48,9 +47,8 @@ public:
   };
 
   routing_late_connections()
-      : test_schedule_setup("modules/reliability/resources/schedule_hotels/",
-                            to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 21)) {}
+      : test_motis_setup("modules/reliability/resources/schedule_hotels/",
+                         "20151019") {}
 
   std::string const DARMSTADT = "3333333";
   std::string const FRANKFURT = "1111111";
@@ -126,14 +124,14 @@ TEST_F(routing_late_connections, test_hotel_edges) {
   auto message = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, {});
   auto req = message->content<RoutingRequest const*>();
   auto hotel_edges =
-      create_additional_edges(req->additional_edges(), *schedule_);
+      create_additional_edges(req->additional_edges(), get_schedule());
 
   ASSERT_EQ(2, hotel_edges.size());
   for (unsigned int i = 0; i < 2; ++i) {
     test_hotel_edge(
         hotel_edges[i],
         (HotelEdge const*)(*req->additional_edges())[i]->additional_edge(),
-        *schedule_);
+        get_schedule());
   }
 
   /* checkout-time: 7 * 60, min-stay-duration: 6 * 60 */
@@ -164,8 +162,6 @@ TEST_F(routing_late_connections, test_hotel_edges) {
 }
 
 TEST_F(routing_late_connections, search) {
-  reliability::system_tools::setup setup(schedule_.get());
-  bool test_cb_called = false;
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(LANGEN);
   hotel_infos.emplace_back(OFFENBACH);
@@ -178,99 +174,80 @@ TEST_F(routing_late_connections, search) {
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
   taxi_infos.emplace_back(WALLDORF, FRANKFURT, 10, 500);
-  auto msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
+  auto req_msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
+  auto msg = bootstrap::send(motis_instance_, req_msg);
 
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    test_cb_called = true;
-    ASSERT_EQ(nullptr, e);
-    ASSERT_NE(nullptr, msg);
-    auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
-    struct {
-      bool operator()(journey const& a, journey const& b) {
-        return a.stops.back().arrival.timestamp <
-               b.stops.back().arrival.timestamp;
-      }
-    } journey_cmp;
-    std::sort(journeys.begin(), journeys.end(), journey_cmp);
-    ASSERT_EQ(4, journeys.size());
-    { /* taxi connection, arrival 01:00 */
-      auto const& j = journeys[0];
-      ASSERT_EQ(0, j.night_penalty);
-      ASSERT_EQ(3, j.transports.size());
-      ASSERT_EQ(2, j.transports[0].train_nr);
-      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
-      ASSERT_EQ("Taxi", j.transports[1].mumo_type_name);
-      ASSERT_EQ(6000, j.transports[1].mumo_price);
-      ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
-      ASSERT_EQ(LANGEN, j.stops[1].eva_no);
-      ASSERT_EQ(FRANKFURT, j.stops[2].eva_no);
+  ASSERT_NE(nullptr, msg);
+  auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
+  struct {
+    bool operator()(journey const& a, journey const& b) {
+      return a.stops.back().arrival.timestamp <
+             b.stops.back().arrival.timestamp;
     }
-    { /* direct connection, arrival 02:00 */
-      auto const& j = journeys[1];
-      ASSERT_EQ(60, j.night_penalty);
-      ASSERT_EQ(1, j.transports.front().train_nr);
-      ASSERT_EQ(FRANKFURT, j.stops[1].eva_no);
-    }
-    { /* hotel, arrival 10:45, 30 minutes night-penalty */
-      auto const& j = journeys[2];
-      ASSERT_EQ(35, j.night_penalty);
-      ASSERT_EQ(4, j.transports[0].train_nr);
-      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
-      ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
-      ASSERT_EQ(5000, j.transports[1].mumo_price);
-      ASSERT_EQ(5, j.transports[2].train_nr);
-      ASSERT_EQ(OFFENBACH, j.stops[1].eva_no);
-      ASSERT_EQ(OFFENBACH, j.stops[2].eva_no);
-      ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);
-    }
-    { /* hotel, arrival 10:50, no night-penalty */
-      auto const& j = journeys[3];
-      ASSERT_EQ(0, j.night_penalty);
-      ASSERT_EQ(2, j.transports[0].train_nr);
-      ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
-      ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
-      ASSERT_EQ(5000, j.transports[1].mumo_price);
-      ASSERT_EQ(3, j.transports[2].train_nr);
-      ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
-      ASSERT_EQ(LANGEN, j.stops[1].eva_no);
-      ASSERT_EQ(LANGEN, j.stops[2].eva_no);
-      ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);
-    }
+  } journey_cmp;
+  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  ASSERT_EQ(4, journeys.size());
+  { /* taxi connection, arrival 01:00 */
+    auto const& j = journeys[0];
+    ASSERT_EQ(0, j.night_penalty);
+    ASSERT_EQ(3, j.transports.size());
+    ASSERT_EQ(2, j.transports[0].train_nr);
+    ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+    ASSERT_EQ("Taxi", j.transports[1].mumo_type_name);
+    ASSERT_EQ(6000, j.transports[1].mumo_price);
+    ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
+    ASSERT_EQ(LANGEN, j.stops[1].eva_no);
+    ASSERT_EQ(FRANKFURT, j.stops[2].eva_no);
+  }
+  { /* direct connection, arrival 02:00 */
+    auto const& j = journeys[1];
+    ASSERT_EQ(60, j.night_penalty);
+    ASSERT_EQ(1, j.transports.front().train_nr);
+    ASSERT_EQ(FRANKFURT, j.stops[1].eva_no);
+  }
+  { /* hotel, arrival 10:45, 30 minutes night-penalty */
+    auto const& j = journeys[2];
+    ASSERT_EQ(35, j.night_penalty);
+    ASSERT_EQ(4, j.transports[0].train_nr);
+    ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+    ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
+    ASSERT_EQ(5000, j.transports[1].mumo_price);
+    ASSERT_EQ(5, j.transports[2].train_nr);
+    ASSERT_EQ(OFFENBACH, j.stops[1].eva_no);
+    ASSERT_EQ(OFFENBACH, j.stops[2].eva_no);
+    ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);
+  }
+  { /* hotel, arrival 10:50, no night-penalty */
+    auto const& j = journeys[3];
+    ASSERT_EQ(0, j.night_penalty);
+    ASSERT_EQ(2, j.transports[0].train_nr);
+    ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+    ASSERT_EQ("Hotel", j.transports[1].mumo_type_name);
+    ASSERT_EQ(5000, j.transports[1].mumo_price);
+    ASSERT_EQ(3, j.transports[2].train_nr);
+    ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
+    ASSERT_EQ(LANGEN, j.stops[1].eva_no);
+    ASSERT_EQ(LANGEN, j.stops[2].eva_no);
+    ASSERT_EQ(FRANKFURT, j.stops[3].eva_no);
+  }
 
-    /* note: connection with hotel (Mainz)
-     * and arrival 10:51 will be dominated.
-     * Connection via Neu-Isenburg will not be delivered
-     * since using taxi after hotel is not allowed. */
-  };
-
-  setup.dispatcher_.on_msg(msg, 0, test_cb);
-  setup.ios_.run();
-
-  ASSERT_TRUE(test_cb_called);
+  /* note: connection with hotel (Mainz)
+   * and arrival 10:51 will be dominated.
+   * Connection via Neu-Isenburg will not be delivered
+   * since using taxi after hotel is not allowed. */
 }
 
 TEST_F(routing_late_connections, taxi_not_allowed) {
-  reliability::system_tools::setup setup(schedule_.get());
-  bool test_cb_called = false;
   std::vector<hotel_info> hotel_infos;
   std::vector<taxi_info> taxi_infos;
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
   taxi_infos.emplace_back(WALLDORF, NEUISENBURG, 10, 500);
-  auto msg = to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
-
-  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
-    test_cb_called = true;
-    ASSERT_EQ(nullptr, e);
-    ASSERT_NE(nullptr, msg);
-    ASSERT_EQ(0,
-              (msg->content<RoutingResponse const*>())->connections()->size());
-  };
-
-  setup.dispatcher_.on_msg(msg, 0, test_cb);
-  setup.ios_.run();
-
-  ASSERT_TRUE(test_cb_called);
+  auto req_msg =
+      to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
+  auto msg = bootstrap::send(motis_instance_, req_msg);
+  ASSERT_NE(nullptr, msg);
+  ASSERT_EQ(0, (msg->content<RoutingResponse const*>())->connections()->size());
 }
 
 }  // namespace routing

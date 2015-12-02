@@ -19,6 +19,7 @@
 #include "motis/loader/hrd/parser/service_parser.h"
 #include "motis/loader/hrd/parser/through_services_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+#include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/hrd/builder/attribute_builder.h"
 #include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "motis/loader/hrd/builder/category_builder.h"
@@ -52,7 +53,10 @@ enum filename_key {
   DIRECTIONS,
   PROVIDERS,
   THROUGH_SERVICES,
-  MERGE_SPLIT_SERVICES
+  MERGE_SPLIT_SERVICES,
+  TIMEZONES,
+  FOOTPATHS_REG,
+  FOOTPATHS_EXT
 };
 
 std::vector<std::vector<std::string>> const required_files = {
@@ -67,7 +71,10 @@ std::vector<std::vector<std::string>> const required_files = {
     {DIRECTIONS_FILE},
     {PROVIDERS_FILE},
     {THROUGH_SERVICES_FILE},
-    {MERGE_SPLIT_SERVICES_FILE}};
+    {MERGE_SPLIT_SERVICES_FILE},
+    {TIMEZONES_FILE},
+    {FOOTPATHS_REG_FILE},
+    {FOOTPATHS_EXT_FILE}};
 
 bool hrd_parser::applicable(fs::path const& path) {
   auto const core_data_root = path / CORE_DATA;
@@ -92,12 +99,21 @@ std::vector<std::string> hrd_parser::missing_files(
   }
   auto const core_data_root = hrd_root / CORE_DATA;
   for (auto const& alternatives : required_files) {
-    std::copy_if(begin(alternatives), end(alternatives),
-                 std::back_inserter(missing_files),
-                 [&core_data_root](std::string const& filename) {
-                   return fs::is_regular_file(
-                       (core_data_root / filename).string().c_str());
-                 });
+    std::vector<int> missing_indices;
+    int pos = 0;
+    for (auto const& alternative : alternatives) {
+      if (!fs::is_regular_file(
+              (core_data_root / alternative).string().c_str())) {
+        missing_indices.push_back(pos);
+      }
+      ++pos;
+    }
+    if(missing_indices.size() < alternatives.size()) {
+      continue;
+    }
+    for (auto const idx : missing_indices) {
+      missing_files.emplace_back(alternatives[idx]);
+    }
   }
   return missing_files;
 }
@@ -139,9 +155,14 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto const infotext_file = load(core_data_root, INFOTEXT);
   auto const stations_file = load(core_data_root, STATIONS);
   auto const coordinates_file = load(core_data_root, COORDINATES);
+  auto const timezones_file = load(core_data_root, TIMEZONES);
+  auto const basic_data_file = load(core_data_root, BASIC_DATA);
+  auto const footp_1_file = load(core_data_root, FOOTPATHS_REG);
+  auto const footp_2_file = load(core_data_root, FOOTPATHS_EXT);
   station_meta_data metas;
-  parse_station_meta_data(infotext_file, metas);
-  station_builder stb(parse_stations(stations_file, coordinates_file, metas));
+  parse_station_meta_data(infotext_file, footp_1_file, footp_2_file, metas);
+  station_builder stb(parse_stations(stations_file, coordinates_file, metas),
+                      parse_timezones(timezones_file, basic_data_file));
 
   auto const categories_file = load(core_data_root, CATEGORIES);
   category_builder cb(parse_categories(categories_file));
@@ -184,7 +205,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
     return sb.fbs_services_.back();
   }, fbb);
 
-  auto interval = parse_interval(load(core_data_root, BASIC_DATA));
+  auto interval = parse_interval(basic_data_file);
   fbb.Finish(
       CreateSchedule(fbb, fbb.CreateVector(sb.fbs_services_),
                      fbb.CreateVector(values(stb.fbs_stations_)),

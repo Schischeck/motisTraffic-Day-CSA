@@ -10,6 +10,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/journey/journeys_to_message.h"
+#include "motis/module/error.h"
 
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
@@ -128,7 +129,16 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
               << "(" << format_time(i_begin) << ", " << format_time(i_end)
               << ") -> " << journeys.size() << " connections found";
 
-    return cb(journeys_to_message(journeys), error::ok);
+    auto resp = journeys_to_message(journeys);
+    return dispatch(resp, 0, [resp, cb](msg_ptr annotated, error_code e) {
+      if (e == motis::module::error::no_module_capable_of_handling) {
+        return cb(resp, error::ok); // connectionchecker not available
+      } else if (e) {
+        return cb({}, e);
+      } else {
+        return cb(annotated, error::ok);
+      }
+    });
   };
 
   read_path_element(req->path()->Get(0), std::bind(path_cb, 0, p::_1, p::_2));

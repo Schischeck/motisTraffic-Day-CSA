@@ -2,6 +2,7 @@ namespace motis.routing;
 
 table EventInfo {
   time:ulong;
+  schedule_time:ulong;
   platform:string;
 }
 

@@ -21,7 +21,7 @@ void parse_station_names(loaded_file const& file,
                          std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
-    if (line.len == 0) {
+    if (line.len == 0 || line[0] == '%') {
       return;
     } else if (line.len < 14) {
       throw parser_error(file.name(), line_number);
@@ -43,7 +43,7 @@ void parse_station_coordinates(loaded_file const& file,
                                std::map<int, intermediate_station>& stations) {
   scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
-    if (line.len == 0) {
+    if (line.len == 0 || line[0] == '%') {
       return;
     } else if (line.len < 30) {
       throw parser_error(file.name(), line_number);

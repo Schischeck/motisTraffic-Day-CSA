@@ -14,6 +14,7 @@
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -57,8 +58,10 @@ TEST_F(reliability_data_arrival, initialize) {
   ASSERT_TRUE(
       schedule_->stations[second_route_node._station_node->_id]->eva_nr ==
       DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time == 5 * 60 + 55);
-  ASSERT_TRUE(light_connection.a_time == 6 * 60 + 5);
+  ASSERT_TRUE(light_connection.d_time ==
+              test_util::minutes_to_motis_time(5 * 60 + 55));
+  ASSERT_TRUE(light_connection.a_time ==
+              test_util::minutes_to_motis_time(6 * 60 + 5));
 
   ASSERT_TRUE(data.departure_info_.scheduled_departure_time_ ==
               light_connection.d_time);

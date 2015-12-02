@@ -4,20 +4,16 @@
 
 #include "boost/asio/io_service.hpp"
 
-#include "motis/module/server.h"
+#include "motis/module/receiver.h"
 
 namespace motis {
 namespace launcher {
 
-struct ws_server : public module::server {
-  ws_server(boost::asio::io_service& ios);
+struct ws_server {
+  ws_server(boost::asio::io_service& ios, motis::module::receiver&);
   ~ws_server();
 
-  virtual void on_msg(module::msg_handler) override;
-  virtual void on_open(module::sid_handler) override;
-  virtual void on_close(module::sid_handler) override;
-  virtual void send(motis::module::msg_ptr const& msg,
-                    module::sid session) override;
+  void send(motis::module::msg_ptr const& msg, module::sid session);
 
   void listen(std::string const& host, std::string const& port);
   void stop();

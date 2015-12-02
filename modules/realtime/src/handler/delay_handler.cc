@@ -10,11 +10,10 @@ namespace realtime {
 namespace handler {
 
 delayed_event updated_event_to_delayed_event(
-    motis::ris::UpdatedEvent const* updated_event,
-    motis::schedule const& sched) {
+    ris::UpdatedEvent const* updated_event, schedule const& sched) {
   return delayed_event(
       ris_event_to_schedule_event(*updated_event->base(), sched),
-      local_ts_to_time(updated_event->updatedTime(), sched));
+      unix_to_motistime(sched.schedule_begin_, updated_event->updatedTime()));
 }
 
 void handle_delay(motis::ris::DelayMessage const* ris_msg,

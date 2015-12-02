@@ -55,9 +55,12 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
+include_directories(${CMAKE_SOURCE_DIR}/motis/bootstrap/include)
+include_directories(${CMAKE_SOURCE_DIR}/motis/bootstrap/test_include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/connectionchecker/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
@@ -94,6 +97,7 @@ foreach(module ${modules})
   list(APPEND module-test-files "modules/${module}/*_test.cc")
 endforeach(module)
 
+add_subdirectory(motis/bootstrap EXCLUDE_FROM_ALL)
 add_subdirectory(motis/launcher)
 
 configure_file (
@@ -109,9 +113,10 @@ add_executable(motis-test EXCLUDE_FROM_ALL
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
   ${module-targets}
-  motis-module
-  motis-loader
+  motis-bootstrap
   motis-core
+  motis-loader
+  motis-module
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-test gtest gtest_main)

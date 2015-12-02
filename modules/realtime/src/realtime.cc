@@ -24,6 +24,7 @@
 #define TRACK_TRAIN "realtime.track_train"
 #define DEBUG_MODE "realtime.debug"
 
+using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::realtime::handler;
 using namespace motis::ris;
@@ -86,7 +87,7 @@ void realtime::init() {
 
 void realtime::on_msg(msg_ptr msg, sid, callback cb) {
   auto it = ops_.find(msg->msg_->content_type());
-  it->second(msg, cb);
+  it->second(msg, cb);  // XXX error handling
 }
 
 TimestampReason encode_reason(timestamp_reason reason) {
@@ -100,11 +101,9 @@ TimestampReason encode_reason(timestamp_reason reason) {
   return TimestampReason_Propagation;
 }
 
-std::pair<boost::system::error_code,
-          flatbuffers::Offset<RealtimeTrainInfoResponse>>
-build_train_info_response(flatbuffers::FlatBufferBuilder& b,
-                          realtime_schedule* rts,
-                          const RealtimeTrainInfoRequest* req) {
+Offset<RealtimeTrainInfoResponse> build_train_info_response(
+    FlatBufferBuilder& b, realtime_schedule* rts,
+    RealtimeTrainInfoRequest const* req) {
   auto first_stop = req->first_stop();
 
   graph_event first_event(first_stop->station_index(), first_stop->train_nr(),
@@ -116,13 +115,12 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
   std::tie(route_node, lc) = rts->locate_event(first_event);
 
   if (route_node == nullptr || lc == nullptr) {
-    return {error::event_not_found, 0};
+    throw boost::system::system_error(error::event_not_found);
   }
 
   first_event._route_id = route_node->_route;
 
-  std::vector<flatbuffers::Offset<EventInfo>> event_infos;
-
+  std::vector<Offset<EventInfo>> event_infos;
   if (first_event.arrival()) {
     delay_info* di_arr = rts->_delay_info_manager.get_delay_info(first_event);
     motis::time sched_arr = di_arr == nullptr
@@ -190,47 +188,44 @@ build_train_info_response(flatbuffers::FlatBufferBuilder& b,
     }
   }
 
-  return {error::ok,
-          CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
-                                          first_event._route_id)};
+  return CreateRealtimeTrainInfoResponse(b, b.CreateVector(event_infos),
+                                         first_event._route_id);
 }
 
 void realtime::get_train_info(msg_ptr msg, callback cb) {
   auto sched = synced_sched<schedule_access::RO>();
   auto req = msg->content<RealtimeTrainInfoRequest const*>();
-  MessageCreator b;
-  boost::system::error_code err;
-  flatbuffers::Offset<RealtimeTrainInfoResponse> response;
-  std::tie(err, response) = build_train_info_response(b, rts_.get(), req);
-  if (err == error::ok) {
-    b.CreateAndFinish(MsgContent_RealtimeTrainInfoResponse, response.Union());
-    cb(make_msg(b), error::ok);
-  } else {
-    cb({}, err);
+
+  try {
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_RealtimeTrainInfoResponse,
+                      build_train_info_response(b, rts_.get(), req).Union());
+    return cb(make_msg(b), error::ok);
+  } catch (boost::system::system_error const& e) {
+    return cb({}, e.code());
   }
 }
 
 void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
   auto sched = synced_sched<schedule_access::RO>();
-  auto requests =
-      msg->content<RealtimeTrainInfoBatchRequest const*>()->trains();
-  MessageCreator b;
-  std::vector<flatbuffers::Offset<RealtimeTrainInfoResponse>> responses;
+  auto requests = msg->content<RealtimeTrainInfoBatchRequest const*>();
 
-  for (auto req : *requests) {
-    boost::system::error_code err;
-    flatbuffers::Offset<RealtimeTrainInfoResponse> response;
-    std::tie(err, response) = build_train_info_response(b, rts_.get(), req);
-    if (err == error::ok) {
-      responses.push_back(response);
+  MessageCreator b;
+  std::vector<Offset<RealtimeTrainInfoResponse>> responses;
+
+  try {
+    for (auto req : *requests->trains()) {
+      responses.push_back(build_train_info_response(b, rts_.get(), req));
     }
+  } catch (boost::system::system_error const& e) {
+    return cb({}, e.code());
   }
 
   b.CreateAndFinish(
       MsgContent_RealtimeTrainInfoBatchResponse,
       CreateRealtimeTrainInfoBatchResponse(b, b.CreateVector(responses))
           .Union());
-  cb(make_msg(b), error::ok);
+  return cb(make_msg(b), error::ok);
 }
 
 void realtime::get_current_time(msg_ptr, callback) {

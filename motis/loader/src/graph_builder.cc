@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_set>
 
+#define RANGES_SUPPRESS_IOTA_WARNING
 #include "range/v3/all.hpp"
 
 #include "parser/cstr.h"
@@ -14,11 +15,13 @@
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/timezone.h"
 
 #include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
+#include "motis/loader/timezone_util.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -28,13 +31,15 @@ namespace motis {
 namespace loader {
 
 class graph_builder {
+
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to)
+                time_t to, bool unique_check)
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
-        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1) {
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
+        unique_check_(unique_check) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
@@ -43,14 +48,16 @@ public:
 
   void add_stations(Vector<Offset<Station>> const* stations) {
     // Add dummy source station.
-    auto dummy_source = make_unique<station>(0, 0.0, 0.0, 0, "-1", "DUMMY");
+    auto dummy_source =
+        make_unique<station>(0, 0.0, 0.0, 0, "-1", "DUMMY", nullptr);
     sched_.eva_to_station.insert(
         std::make_pair(dummy_source->eva_nr, dummy_source.get()));
     sched_.stations.emplace_back(std::move(dummy_source));
     sched_.station_nodes.emplace_back(make_unique<station_node>(0));
 
     // Add dummy target stations.
-    auto dummy_target = make_unique<station>(1, 0.0, 0.0, 0, "-2", "DUMMY");
+    auto dummy_target =
+        make_unique<station>(1, 0.0, 0.0, 0, "-2", "DUMMY", nullptr);
     sched_.eva_to_station.insert(
         std::make_pair(dummy_target->eva_nr, dummy_target.get()));
     sched_.stations.emplace_back(std::move(dummy_target));
@@ -74,6 +81,10 @@ public:
       s->length = input_station->lng();
       s->eva_nr = input_station->id()->str();
       s->transfer_time = input_station->interchange_time();
+      // TODO deprecation warning: timezone is expected to be non null!
+      s->timez = input_station->timezone()
+                     ? get_or_create_timezone(input_station->timezone())
+                     : nullptr;
       sched_.eva_to_station.insert(
           std::make_pair(input_station->id()->str(), s.get()));
       sched_.stations.emplace_back(std::move(s));
@@ -89,6 +100,24 @@ public:
     // First regular node id:
     // first id after station node ids
     next_node_id_ = sched_.stations.size();
+  }
+
+  timezone const* get_or_create_timezone(Timezone const* input_timez) {
+    return get_or_create(timezones_, input_timez, [&]() {
+      auto const tz =
+          input_timez->season()
+              ? create_timezone(
+                    input_timez->general_offset(),
+                    input_timez->season()->offset(),  //
+                    first_day_, last_day_,
+                    input_timez->season()->day_idx_first_day(),
+                    input_timez->season()->day_idx_last_day(),
+                    input_timez->season()->minutes_after_midnight_first_day(),
+                    input_timez->season()->minutes_after_midnight_last_day())
+              : timezone(input_timez->general_offset());
+      sched_.timezones.emplace_back(new timezone(tz));
+      return sched_.timezones.back().get();
+    });
   }
 
   bool is_unique_service(Service const* service, bitfield const& traffic_days,
@@ -107,6 +136,7 @@ public:
         if (!traffic_days.test(day)) {
           continue;
         }
+
         int time_offset = (day - first_day_) * MINUTES_A_DAY;
         auto d_time = time_offset + base_d_time;
         auto a_time = time_offset + base_a_time;
@@ -154,7 +184,7 @@ public:
 
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
 
-    if (!accumulate(view::ints(first_day_, last_day_ + 1), false,
+    if (!accumulate(view::closed_ints(first_day_, last_day_), false,
                     [&traffic_days](bool acc, int day) {
                       return acc || traffic_days.test(day);
                     })) {
@@ -164,7 +194,8 @@ public:
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-    if (!is_unique_service(service, traffic_days, route_nodes)) {
+    if (unique_check_ &&
+        !is_unique_service(service, traffic_days, route_nodes)) {
       return;
     }
 
@@ -181,7 +212,8 @@ public:
               ? service->platforms()->Get(section_idx)->dep_platforms()
               : nullptr,
           service->times()->Get(section_idx * 2 + 1),
-          service->times()->Get(section_idx * 2 + 2), traffic_days);
+          service->times()->Get(section_idx * 2 + 2), traffic_days,
+          service->origin());
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
     }
     int32_t route_id = route_nodes[0]->_route;
@@ -240,16 +272,16 @@ private:
     });
   }
 
-  void add_service_section(edge* e, Section const* section,
+  void add_service_section(edge* curr_route_edge, Section const* curr_section,
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days) {
-    assert(e->type() == edge::ROUTE_EDGE);
+                           bitfield const& traffic_days, String const* origin) {
+    assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
-    auto& from = *sched_.stations[e->_from->get_station()->_id];
-    auto& to = *sched_.stations[e->_to->get_station()->_id];
+    auto& from = *sched_.stations[curr_route_edge->_from->get_station()->_id];
+    auto& to = *sched_.stations[curr_route_edge->_to->get_station()->_id];
 
     // Expand traffic days.
     for (int day = first_day_; day <= last_day_; ++day) {
@@ -263,12 +295,12 @@ private:
 
       // Build connection info.
       con_info_.line_identifier =
-          section->line_id() ? section->line_id()->str() : "";
-      con_info_.train_nr = section->train_nr();
-      con_info_.family = get_or_create_category_index(section->category());
-      con_info_.dir_ = get_or_create_direction(section->direction());
-      con_info_.provider_ = get_or_create_provider(section->provider());
-      read_attributes(dep_day_index, section->attributes(),
+          curr_section->line_id() ? curr_section->line_id()->str() : "";
+      con_info_.train_nr = curr_section->train_nr();
+      con_info_.family = get_or_create_category_index(curr_section->category());
+      con_info_.dir_ = get_or_create_direction(curr_section->direction());
+      con_info_.provider_ = get_or_create_provider(curr_section->provider());
+      read_attributes(dep_day_index, curr_section->attributes(),
                       con_info_.attributes);
 
       // Build full connection.
@@ -281,15 +313,28 @@ private:
       con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
       con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
 
-      auto clasz_it = sched_.classes.find(section->category()->name()->str());
+      auto clasz_it =
+          sched_.classes.find(curr_section->category()->name()->str());
       con_.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
       con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
-      int day_index = day - first_day_;
-      e->_m._route_edge._conns.emplace_back(
-          day_index * MINUTES_A_DAY + dep_time,
-          day_index * MINUTES_A_DAY + arr_time,
+      auto const* dep_st =
+          sched_.stations.at(curr_route_edge->_from->get_station()->_id).get();
+      auto const* arr_st =
+          sched_.stations.at(curr_route_edge->_to->get_station()->_id).get();
+
+      auto const dep_motis_time =
+          compute_event_time(day, dep_time, dep_st->timez);
+      auto const arr_motis_time =
+          compute_event_time(day, arr_time, arr_st->timez);
+
+      //      validate_events(day, dep_st, arr_st, dep_motis_time,
+      //      arr_motis_time,
+      //                      dep_time, arr_time, origin);
+
+      curr_route_edge->_m._route_edge._conns.emplace_back(
+          dep_motis_time, arr_motis_time,
           set_get_or_create(connections_, &con_, [&]() {
             sched_.full_connections.emplace_back(make_unique<connection>(con_));
             return sched_.full_connections.back().get();
@@ -298,6 +343,42 @@ private:
       // Count events.
       ++from.dep_class_events[con_.clasz];
       ++to.arr_class_events[con_.clasz];
+    }
+  }
+
+  // TODO dep_tz, arr_tz == nullptr is deprecated.
+  // Each station should have a timezone
+  time compute_event_time(int day, time local_time, timezone const* tz) {
+    return tz ? tz->to_motis_time(day - first_day_, local_time)
+              : (day - first_day_ + 1) * MINUTES_A_DAY + local_time;
+  }
+
+  // TODO dep_tz, arr_tz == nullptr is deprecated.
+  // Each station should have a timezone
+  void validate_events(int day, station const* dep_st, station const* arr_st,
+                       time dep_motis_time, time arr_motis_time,
+                       int dep_local_time, int arr_local_time,
+                       String const* origin) {
+    auto const is_invalid_dep_event =
+        dep_st->timez && dep_st->timez->is_invalid_time(dep_motis_time);
+    auto const is_invalid_arr_event =
+        arr_st->timez && arr_st->timez->is_invalid_time(arr_motis_time);
+    auto const is_negative_edge = dep_motis_time > arr_motis_time;
+
+    if (is_invalid_dep_event || is_invalid_arr_event || is_negative_edge) {
+      LOG(emrg) << "[" << origin->c_str() << "]";
+    }
+    if (is_invalid_dep_event) {
+      LOG(emrg) << "invalid departure time for (loader) day_idx: " << day;
+    }
+    if (is_invalid_arr_event) {
+      LOG(emrg) << "invalid arrival time for (loader) day_idx: " << day;
+    }
+    if (is_negative_edge) {
+      LOG(emrg) << "negative edge at section (" << dep_st->eva_nr << ","
+                << arr_st->eva_nr << ")";
+      LOG(emrg) << dep_local_time << "--local_time-->" << arr_local_time;
+      LOG(emrg) << dep_motis_time << "--motis_time-->" << arr_motis_time;
     }
   }
 
@@ -441,6 +522,7 @@ private:
   std::map<String const*, std::string const*> directions_;
   std::map<Provider const*, provider const*> providers_;
   hash_map<Station const*, station_node*> stations_;
+  std::map<Timezone const*, timezone const*> timezones_;
   hash_map<String const*, bitfield> bitfields_;
   hash_set<connection_info*,
            deep_ptr_hash<connection_info::hash, connection_info>,
@@ -450,12 +532,14 @@ private:
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
+  bool unique_check_;
 
   connection_info con_info_;
   connection con_;
 };
 
-schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
+schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
+                         bool unique_check) {
   scoped_timer timer("building graph");
 
   schedule_ptr sched(new schedule());
@@ -463,7 +547,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
-  graph_builder builder(*sched.get(), serialized->interval(), from, to);
+  graph_builder builder(*sched.get(), serialized->interval(), from, to,
+                        unique_check);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
@@ -476,6 +561,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
 
+  sched->schedule_begin_ -= SCHEDULE_OFFSET;
   return sched;
 }
 

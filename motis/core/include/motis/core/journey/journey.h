@@ -37,6 +37,7 @@ struct journey {
     struct event_info {
       bool valid;
       std::time_t timestamp;
+      std::time_t schedule_timestamp;
       std::string platform;
     } arrival, departure;
   };
