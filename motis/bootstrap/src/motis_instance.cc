@@ -29,9 +29,9 @@ std::vector<motis::module::module*> motis_instance::modules() const {
 
 void motis_instance::init_schedule(dataset_settings const& dataset_opt) {
   auto interval = dataset_opt.interval();
-  schedule_ =
-      loader::load_schedule(dataset_opt.dataset, dataset_opt.use_serialized,
-                            interval.first, interval.second);
+  schedule_ = loader::load_schedule(
+      dataset_opt.dataset, dataset_opt.use_serialized, dataset_opt.unique_check,
+      interval.first, interval.second);
 }
 
 void motis_instance::init_modules(std::vector<std::string> const& modules) {

@@ -31,11 +31,12 @@ namespace loader {
 class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to)
+                time_t to, bool unique_check)
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
-        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1) {
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
+        unique_check_(unique_check) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
@@ -165,7 +166,8 @@ public:
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-    if (!is_unique_service(service, traffic_days, route_nodes)) {
+    if (unique_check_ &&
+        !is_unique_service(service, traffic_days, route_nodes)) {
       return;
     }
 
@@ -451,12 +453,14 @@ private:
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
+  bool unique_check_;
 
   connection_info con_info_;
   connection con_;
 };
 
-schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
+schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
+                         bool unique_check) {
   scoped_timer timer("building graph");
 
   schedule_ptr sched(new schedule());
@@ -464,7 +468,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to) {
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
-  graph_builder builder(*sched.get(), serialized->interval(), from, to);
+  graph_builder builder(*sched.get(), serialized->interval(), from, to,
+                        unique_check);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);

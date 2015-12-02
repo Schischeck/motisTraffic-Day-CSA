@@ -18,7 +18,7 @@ inline std::unique_ptr<motis_instance> launch_motis(
     std::vector<std::string> const& modules,
     bool const use_serialized = false) {
   auto instance = make_unique<motis_instance>();
-  instance->init_schedule({dataset, use_serialized, schedule_begin, 2});
+  instance->init_schedule({dataset, use_serialized, true, schedule_begin, 2});
   instance->init_modules(modules);
   return instance;
 }
