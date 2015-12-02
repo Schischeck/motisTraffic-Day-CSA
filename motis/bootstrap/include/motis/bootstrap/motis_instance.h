@@ -31,11 +31,11 @@ struct motis_instance : public motis::module::dispatcher {
 
   void run();
 
-  std::vector<std::unique_ptr<motis::module::module>> modules_;
   boost::asio::io_service thread_pool_;
   schedule_ptr schedule_;
   motis::module::context module_context_;
   motis::module::msg_handler dispatch_fun_;
+  std::vector<std::unique_ptr<motis::module::module>> modules_;
 };
 
 }  // namespace bootstrap

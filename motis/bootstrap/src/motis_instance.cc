@@ -16,8 +16,8 @@ namespace bootstrap {
 
 motis_instance::motis_instance(boost::asio::io_service* ios)
     : dispatcher(ios ? *ios : thread_pool_),
-      modules_(build_modules()),
-      dispatch_fun_(std::bind(&dispatcher::on_msg, this, _1, _2, _3)) {}
+      dispatch_fun_(std::bind(&dispatcher::on_msg, this, _1, _2, _3)),
+      modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {
   std::vector<motis::module::module*> m;
