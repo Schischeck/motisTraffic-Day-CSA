@@ -184,10 +184,12 @@ module::msg_ptr to_late_connections_request(
   std::vector<Offset<AdditionalEdgeWrapper>> additional_edges;
   for (auto const& info : taxi_infos) {
     additional_edges.push_back(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_MumoEdge,
-        CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
-                       b.CreateString("-2") /* to dummy target */,
-                       std::get<1>(info), std::get<2>(info))
+        b, AdditionalEdge_TimeDependentMumoEdge,
+        CreateTimeDependentMumoEdge(
+            b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
+                              b.CreateString("-2") /* to dummy target */,
+                              std::get<1>(info), std::get<2>(info)),
+            21 * 60, 3 * 60)
             .Union()));
   }
 
@@ -217,13 +219,19 @@ module::msg_ptr to_late_connections_routing_request(
   std::vector<Offset<AdditionalEdgeWrapper>> additional_edges;
   for (auto it = request->additional_edges()->begin();
        it != request->additional_edges()->end(); ++it) {
-    auto const* mumo = (MumoEdge const*)it->additional_edge();
-    additional_edges.push_back(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_MumoEdge,
-        CreateMumoEdge(b, b.CreateString(mumo->from_station_eva()->c_str()),
-                       b.CreateString(mumo->to_station_eva()->c_str()),
-                       mumo->duration(), mumo->price())
-            .Union()));
+    if (it->additional_edge_type() == AdditionalEdge_TimeDependentMumoEdge) {
+      auto const* mumo = (TimeDependentMumoEdge const*)it->additional_edge();
+      additional_edges.push_back(CreateAdditionalEdgeWrapper(
+          b, AdditionalEdge_TimeDependentMumoEdge,
+          CreateTimeDependentMumoEdge(
+              b,
+              CreateMumoEdge(
+                  b, b.CreateString(mumo->edge()->from_station_eva()->c_str()),
+                  b.CreateString(mumo->edge()->to_station_eva()->c_str()),
+                  mumo->edge()->duration(), mumo->edge()->price()),
+              21 * 60, 3 * 60)
+              .Union()));
+    }
   }
   for (auto const& hotel : hotel_infos) {
     additional_edges.push_back(CreateAdditionalEdgeWrapper(

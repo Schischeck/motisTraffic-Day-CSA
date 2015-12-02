@@ -90,14 +90,14 @@ public:
         is_filtered_travel_time(n_travel_time_l_b) ||
         is_filtered_transfers(n_transfers_l_b) ||
         (edge.type() != edge::HOTEL_EDGE &&
-         is_filtered_waiting_time(
-             ec.connection,
-             _travel_time[0], /* TODO warum ist das notwendig ?! */
-             n_travel_time))) {
+         is_filtered_waiting_time(ec.connection, _travel_time[0],
+                                  n_travel_time))) {
       return nullptr;
     }
 
-    if (_visited_hotel && edge.type() == edge::MUMO_EDGE && ec.time > 0) {
+    /* using taxi after hotel is not allowed */
+    if (_visited_hotel && edge.type() == edge::TIME_DEPENDENT_MUMO_EDGE &&
+        ec.time > 0) {
       return nullptr;
     }
 

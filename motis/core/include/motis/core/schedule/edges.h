@@ -55,6 +55,7 @@ public:
     FOOT_EDGE,
     AFTER_TRAIN_FOOT_EDGE,
     MUMO_EDGE,
+    TIME_DEPENDENT_MUMO_EDGE,
     HOTEL_EDGE
   };
 
@@ -108,6 +109,13 @@ public:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
+      case TIME_DEPENDENT_MUMO_EDGE:
+        if (start_time % 1440 >= 1260 || start_time % 1440 <= 180) { /* todo */
+          return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
+                           _m._foot_edge._price, _m._foot_edge._slot);
+        } else {
+          return NO_EDGE;
+        }
       case HOTEL_EDGE: {
         return edge_cost(calc_duration_hotel_edge(start_time), false,
                          _m._hotel_edge._price, 0);
@@ -136,7 +144,7 @@ public:
       return edge_cost(0, _m._foot_edge._transfer);
     } else if (_m._type == HOTEL_EDGE) {
       return edge_cost(0, false, _m._hotel_edge._price);
-    } else if (_m._type == MUMO_EDGE) {
+    } else if (_m._type == MUMO_EDGE || _m._type == TIME_DEPENDENT_MUMO_EDGE) {
       return edge_cost(0, false, _m._foot_edge._price);
     } else {
       return edge_cost(0);
@@ -178,6 +186,7 @@ public:
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
+      case TIME_DEPENDENT_MUMO_EDGE: return "TIME_DEPENDENT_MUMO_EDGE";
       case HOTEL_EDGE: return "HOTEL_EDGE";
       default: return "INVALID";
     }
@@ -323,6 +332,14 @@ inline edge make_after_train_edge(node* from, node* to, uint16_t time_cost = 0,
 inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
                            uint16_t price = 0, uint8_t slot = 0) {
   return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
+}
+
+inline edge make_time_dependent_mumo_edge(node* from, node* to,
+                                          uint16_t time_cost = 0,
+                                          uint16_t price = 0,
+                                          uint8_t slot = 0) {
+  return edge(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
+              slot);
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,

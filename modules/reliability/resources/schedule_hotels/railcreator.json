@@ -71,6 +71,18 @@
       "evaNumber": "5345291",
       "ds100Code": "5345291",
       "KMInfo": 0
+    },
+    {
+      "name": "Walldorf",
+      "tracks": 2,
+      "latitude": 49.995000000000005,
+      "longitude": 8.527000000000044,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2813399",
+      "ds100Code": "2813399",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -390,6 +402,46 @@
         {
           "fromTime": "10:00:00.000",
           "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "S_D_W",
+      "category": "S",
+      "evaNumber": "1900441",
+      "trainNumber": 9,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2813399",
+          "arrival": 180,
+          "departure": 182,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "00:30:00.000",
+          "untilTime": "00:30:00.000",
           "interval": 1
         }
       ]

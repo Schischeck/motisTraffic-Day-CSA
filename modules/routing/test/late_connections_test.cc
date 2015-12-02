@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/core/schedule/edges.h"
 
@@ -51,22 +52,24 @@ public:
                             to_unix_time(2015, 10, 19),
                             to_unix_time(2015, 10, 21)) {}
 
+  std::string const DARMSTADT = "3333333";
   std::string const FRANKFURT = "1111111";
   std::string const LANGEN = "2222222";
-  std::string const DARMSTADT = "3333333";
-  std::string const OFFENBACH = "9727248";
   std::string const MAINZ = "3953754";
   std::string const NEUISENBURG = "5345291";
+  std::string const OFFENBACH = "9727248";
+  std::string const WALLDORF = "2813399";
 
-  module::msg_ptr to_routing_msg(std::vector<hotel_info> const& hotel_infos,
+  module::msg_ptr to_routing_msg(std::string const from, std::string const to,
+                                 std::vector<hotel_info> const& hotel_infos,
                                  std::vector<taxi_info> const taxi_infos) {
     using namespace flatbuffers;
     module::MessageCreator b;
     std::vector<Offset<StationPathElement>> station_elements;
-    station_elements.push_back(CreateStationPathElement(
-        b, b.CreateString(""), b.CreateString(DARMSTADT)));
-    station_elements.push_back(CreateStationPathElement(
-        b, b.CreateString(""), b.CreateString(FRANKFURT)));
+    station_elements.push_back(
+        CreateStationPathElement(b, b.CreateString(""), b.CreateString(from)));
+    station_elements.push_back(
+        CreateStationPathElement(b, b.CreateString(""), b.CreateString(to)));
     Interval interval(
         motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 - 10),
         motis_to_unixtime(motis::to_unix_time(2015, 10, 19), 1440 + 50));
@@ -81,10 +84,12 @@ public:
     }
     for (auto const& info : taxi_infos) {
       additional_edges.push_back(CreateAdditionalEdgeWrapper(
-          b, AdditionalEdge_MumoEdge,
-          CreateMumoEdge(b, b.CreateString(info.from_station_),
-                         b.CreateString(info.to_station_), info.duration_,
-                         info.price_)
+          b, AdditionalEdge_TimeDependentMumoEdge,
+          CreateTimeDependentMumoEdge(
+              b, CreateMumoEdge(b, b.CreateString(info.from_station_),
+                                b.CreateString(info.to_station_),
+                                info.duration_, info.price_),
+              21 * 60, 3 * 60)
               .Union()));
     }
     b.CreateAndFinish(MsgContent_RoutingRequest,
@@ -118,7 +123,7 @@ TEST_F(routing_late_connections, test_hotel_edges) {
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(FRANKFURT, 7 * 60, 6 * 60, 5000);
   hotel_infos.emplace_back(LANGEN, 8 * 60, 9 * 60, 4000);
-  auto message = to_routing_msg(hotel_infos, {});
+  auto message = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, {});
   auto req = message->content<RoutingRequest const*>();
   auto hotel_edges =
       create_additional_edges(req->additional_edges(), *schedule_);
@@ -167,9 +172,13 @@ TEST_F(routing_late_connections, search) {
   hotel_infos.emplace_back(MAINZ);
   std::vector<taxi_info> taxi_infos;
   taxi_infos.emplace_back(LANGEN, FRANKFURT, 55, 6000);
-  /* this taxi should not be used, since it can only be used after a hotel */
+  /* this taxi should not be found
+   * since it can only be reached after a hotel */
   taxi_infos.emplace_back(NEUISENBURG, FRANKFURT, 10, 500);
-  auto msg = to_routing_msg(hotel_infos, taxi_infos);
+  /* this taxi should not be found
+   * since it can only be reached after 3 o'clock */
+  taxi_infos.emplace_back(WALLDORF, FRANKFURT, 10, 500);
+  auto msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
 
   auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
     test_cb_called = true;
@@ -232,6 +241,30 @@ TEST_F(routing_late_connections, search) {
      * and arrival 10:51 will be dominated.
      * Connection via Neu-Isenburg will not be delivered
      * since using taxi after hotel is not allowed. */
+  };
+
+  setup.dispatcher_.on_msg(msg, 0, test_cb);
+  setup.ios_.run();
+
+  ASSERT_TRUE(test_cb_called);
+}
+
+TEST_F(routing_late_connections, taxi_not_allowed) {
+  reliability::system_tools::setup setup(schedule_.get());
+  bool test_cb_called = false;
+  std::vector<hotel_info> hotel_infos;
+  std::vector<taxi_info> taxi_infos;
+  /* this taxi should not be found
+   * since it can only be reached after 3 o'clock */
+  taxi_infos.emplace_back(WALLDORF, NEUISENBURG, 10, 500);
+  auto msg = to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
+
+  auto test_cb = [&](motis::module::msg_ptr msg, boost::system::error_code e) {
+    test_cb_called = true;
+    ASSERT_EQ(nullptr, e);
+    ASSERT_NE(nullptr, msg);
+    ASSERT_EQ(0,
+              (msg->content<RoutingResponse const*>())->connections()->size());
   };
 
   setup.dispatcher_.on_msg(msg, 0, test_cb);

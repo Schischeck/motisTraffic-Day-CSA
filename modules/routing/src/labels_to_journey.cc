@@ -78,7 +78,8 @@ get_mumo_info(label const& current_label, label const& next_label) {
     type = journey::transport::Mumo;
     mumo_type_name = "Hotel";
     mumo_price = next_label._db_costs - current_label._db_costs;
-  } else if (next_label._used_edge_type == edge::MUMO_EDGE &&
+  } else if ((next_label._used_edge_type == edge::MUMO_EDGE ||
+              next_label._used_edge_type == edge::TIME_DEPENDENT_MUMO_EDGE) &&
              /* assure that this is not a dummy edge */
              next_label._now > current_label._now) {
     type = journey::transport::Mumo;
