@@ -19,7 +19,7 @@ using namespace motis;
  * node) const
  */
 
-TEST(stations_on_route, test_with_loop) {
+TEST(railviz_stations_on_route, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -30,7 +30,7 @@ TEST(stations_on_route, test_with_loop) {
 
   it = schedule->eva_to_station.find("5001307");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -40,7 +40,7 @@ TEST(stations_on_route, test_with_loop) {
 
   it = schedule->eva_to_station.find("7347220");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -52,7 +52,7 @@ TEST(stations_on_route, test_with_loop) {
 
   it = schedule->eva_to_station.find("7190994");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -62,7 +62,7 @@ TEST(stations_on_route, test_with_loop) {
 
   it = schedule->eva_to_station.find("5386096");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -72,7 +72,7 @@ TEST(stations_on_route, test_with_loop) {
 
   it = schedule->eva_to_station.find("7514434");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -86,7 +86,7 @@ TEST(stations_on_route, test_with_loop) {
   std::vector<motis::station_node const *> res_st_nodes_02 =
       ttr.stations_on_route(*st_02_loop_routenode);
 
-  assert(ref_st_nodes_02 == res_st_nodes_02);
+  EXPECT_TRUE(ref_st_nodes_02 == res_st_nodes_02);
 }
 
 /**
@@ -95,7 +95,7 @@ TEST(stations_on_route, test_with_loop) {
  * const
  */
 
-TEST(routes_on_time, test_with_loop) {
+TEST(DISABLE_railviz_routes_on_time, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -106,7 +106,7 @@ TEST(routes_on_time, test_with_loop) {
 
   it = schedule->eva_to_station.find("5001307");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -116,7 +116,7 @@ TEST(routes_on_time, test_with_loop) {
 
   it = schedule->eva_to_station.find("7347220");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -128,7 +128,7 @@ TEST(routes_on_time, test_with_loop) {
 
   it = schedule->eva_to_station.find("7190994");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -138,7 +138,7 @@ TEST(routes_on_time, test_with_loop) {
 
   it = schedule->eva_to_station.find("5386096");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -148,7 +148,7 @@ TEST(routes_on_time, test_with_loop) {
 
   it = schedule->eva_to_station.find("7514434");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -159,34 +159,34 @@ TEST(routes_on_time, test_with_loop) {
   std::vector<motis::railviz::route> res_st_node_02 =
       ttr.get_routes_on_time(*st_02_loop_routenode, 1439);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(0)) == st_01_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(0)) == st_01_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(0))->d_time == 1439);
-  assert(std::get<2>(res_st_node_02.at(0).at(0))->a_time == 1474);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(0)) == st_01_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(0)) == st_01_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(0))->d_time == 1439);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(0))->a_time == 1474);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(1)) == st_02_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(1)) == st_02_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(1))->d_time == 1476);
-  assert(std::get<2>(res_st_node_02.at(0).at(1))->a_time == 1541);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(1)) == st_02_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(1)) == st_02_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(1))->d_time == 1476);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(1))->a_time == 1541);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(2)) == st_03_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(2)) == st_03_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(2))->d_time == 1543);
-  assert(std::get<2>(res_st_node_02.at(0).at(2))->a_time == 1562);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(2)) == st_03_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(2)) == st_03_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(2))->d_time == 1543);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(2))->a_time == 1562);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(3)) == st_04_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(3)) == st_04_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(3))->d_time == 1564);
-  assert(std::get<2>(res_st_node_02.at(0).at(3))->a_time == 1644);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(3)) == st_04_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(3)) == st_04_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(3))->d_time == 1564);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(3))->a_time == 1644);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(4)) == st_02_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(4)) == st_02_loop_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(4))->d_time == 1646);
-  assert(std::get<2>(res_st_node_02.at(0).at(4))->a_time == 1732);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(4)) == st_02_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(4)) == st_02_loop_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(4))->d_time == 1646);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(4))->a_time == 1732);
 
-  assert(std::get<0>(res_st_node_02.at(0).at(5)) == st_05_stnode);
-  assert(std::get<1>(res_st_node_02.at(0).at(5)) == st_05_routenode);
-  assert(std::get<2>(res_st_node_02.at(0).at(5)) == NULL);
+  EXPECT_TRUE(std::get<0>(res_st_node_02.at(0).at(5)) == st_05_stnode);
+  EXPECT_TRUE(std::get<1>(res_st_node_02.at(0).at(5)) == st_05_routenode);
+  EXPECT_TRUE(std::get<2>(res_st_node_02.at(0).at(5)) == NULL);
 }
 
 /**
@@ -194,7 +194,7 @@ TEST(routes_on_time, test_with_loop) {
  * timetable ordered_timetable_for_station(const station_node& station) const
  */
 
-TEST(timetable_for_station, test_with_loop) {
+TEST(DISABLE_railviz_timetable_for_station, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false,to_unix_time(2015, 11, 21),
@@ -204,7 +204,7 @@ TEST(timetable_for_station, test_with_loop) {
   motis::railviz::timetable ref_vector;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -213,7 +213,7 @@ TEST(timetable_for_station, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -224,7 +224,7 @@ TEST(timetable_for_station, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -233,7 +233,7 @@ TEST(timetable_for_station, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -242,7 +242,7 @@ TEST(timetable_for_station, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -252,28 +252,27 @@ TEST(timetable_for_station, test_with_loop) {
 
   motis::railviz::timetable res_tt_02 =
       ttr.ordered_timetable_for_station(*st_02_stnode);
-
-  assert(std::get<0>(res_tt_02[0])->d_time == 36);
-  assert(std::get<0>(res_tt_02[0])->a_time == 101);
-  assert(std::get<1>(res_tt_02[0]) ==
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->d_time == 36);
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->a_time == 101);
+  EXPECT_TRUE(std::get<1>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[0]) ==
       ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
-  assert(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
-  assert(std::get<4>(res_tt_02[0]) == true);
-  assert(std::get<5>(res_tt_02[0]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[0]) == true);
+  EXPECT_TRUE(std::get<5>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->_route);
-  assert(std::get<0>(res_tt_02[28])->d_time == 10116);
-  assert(std::get<0>(res_tt_02[28])->a_time == 10181);
-  assert(std::get<1>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->d_time == 10116);
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->a_time == 10181);
+  EXPECT_TRUE(std::get<1>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[28]) ==
       ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
-  assert(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
-  assert(std::get<4>(res_tt_02[28]) == true);
-  assert(std::get<5>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[28]) == true);
+  EXPECT_TRUE(std::get<5>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->_route);
 }
 
@@ -283,7 +282,7 @@ TEST(timetable_for_station, test_with_loop) {
  * timetable_) const
  */
 
-TEST(timetable_station_outgoing, test_with_loop) {
+TEST(DISABLE_railviz_timetable_station_outgoing, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -293,7 +292,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
   motis::railviz::timetable ref_vector;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -302,7 +301,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -313,7 +312,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -322,7 +321,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -331,7 +330,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -340,29 +339,30 @@ TEST(timetable_station_outgoing, test_with_loop) {
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
   motis::railviz::timetable res_tt_02;
-
+	
   ttr.timetable_for_station_outgoing(*st_02_stnode, res_tt_02);
-  assert(std::get<0>(res_tt_02[0])->d_time == 36);
-  assert(std::get<0>(res_tt_02[0])->a_time == 101);
-  assert(std::get<1>(res_tt_02[0]) ==
+
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->d_time == 36);
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->a_time == 101);
+  EXPECT_TRUE(std::get<1>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[0]) ==
       ttr.child_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
-  assert(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
-  assert(std::get<4>(res_tt_02[0]) == true);
-  assert(std::get<5>(res_tt_02[0]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[0]) == st_05_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[0]) == true);
+  EXPECT_TRUE(std::get<5>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->_route);
-  assert(std::get<0>(res_tt_02[28])->d_time == 206);
-  assert(std::get<0>(res_tt_02[28])->a_time == 292);
-  assert(std::get<1>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->d_time == 206);
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->a_time == 292);
+  EXPECT_TRUE(std::get<1>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[28]) ==
       ttr.child_node(*(st_02_stnode->get_route_nodes().at(1)))->get_station());
-  assert(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
-  assert(std::get<4>(res_tt_02[28]) == true);
-  assert(std::get<5>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[28]) == st_05_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[28]) == true);
+  EXPECT_TRUE(std::get<5>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->_route);
 }
 
@@ -372,7 +372,7 @@ TEST(timetable_station_outgoing, test_with_loop) {
  * timetable_) const
  */
 
-TEST(timetable_station_incoming, test_with_loop) {
+TEST(DISABLE_railviz_timetable_station_incoming, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -382,7 +382,7 @@ TEST(timetable_station_incoming, test_with_loop) {
   motis::railviz::timetable ref_vector;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
   motis::station_node *st_01_stnode =
@@ -390,7 +390,7 @@ TEST(timetable_station_incoming, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
   motis::station *st_02 = it->second;
@@ -400,7 +400,7 @@ TEST(timetable_station_incoming, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
   motis::station_node *st_03_stnode =
@@ -408,7 +408,7 @@ TEST(timetable_station_incoming, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
   motis::station_node *st_04_stnode =
@@ -416,7 +416,7 @@ TEST(timetable_station_incoming, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
   motis::station_node *st_05_stnode =
@@ -425,27 +425,28 @@ TEST(timetable_station_incoming, test_with_loop) {
 
   motis::railviz::timetable res_tt_02;
   ttr.timetable_for_station_incoming(*st_02_stnode, res_tt_02);
-  assert(std::get<0>(res_tt_02[0])->d_time == 1439);
-  assert(std::get<0>(res_tt_02[0])->a_time == 1474);
-  assert(std::get<1>(res_tt_02[0]) ==
+	
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->d_time == 1439);
+  EXPECT_TRUE(std::get<0>(res_tt_02[0])->a_time == 1474);
+  EXPECT_TRUE(std::get<1>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[0]) ==
       ttr.parent_node(*(st_02_stnode->get_route_nodes().at(0)))->get_station());
-  assert(std::get<3>(res_tt_02[0]) == st_01_routenode->get_station());
-  assert(std::get<4>(res_tt_02[0]) == false);
-  assert(std::get<5>(res_tt_02[0]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[0]) == st_01_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[0]) == false);
+  EXPECT_TRUE(std::get<5>(res_tt_02[0]) ==
               st_02_stnode->get_route_nodes().at(0)->_route);
-  assert(std::get<0>(res_tt_02[28])->d_time == 124);
-  assert(std::get<0>(res_tt_02[28])->a_time == 204);
-  assert(std::get<1>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->d_time == 124);
+  EXPECT_TRUE(std::get<0>(res_tt_02[28])->a_time == 204);
+  EXPECT_TRUE(std::get<1>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->get_station());
-  assert(
+  EXPECT_TRUE(
       std::get<2>(res_tt_02[28]) ==
       ttr.parent_node(*(st_02_stnode->get_route_nodes().at(1)))->get_station());
-  assert(std::get<3>(res_tt_02[28]) == st_01_routenode->get_station());
-  assert(std::get<4>(res_tt_02[28]) == false);
-  assert(std::get<5>(res_tt_02[28]) ==
+  EXPECT_TRUE(std::get<3>(res_tt_02[28]) == st_01_routenode->get_station());
+  EXPECT_TRUE(std::get<4>(res_tt_02[28]) == false);
+  EXPECT_TRUE(std::get<5>(res_tt_02[28]) ==
               st_02_stnode->get_route_nodes().at(1)->_route);
 }
 
@@ -454,7 +455,7 @@ TEST(timetable_station_incoming, test_with_loop) {
  * const motis::node* parent_node(const node &node) const
  */
 
-TEST(parent_node, test_without_loop) {
+TEST(railviz_parent_node, test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -463,7 +464,7 @@ TEST(parent_node, test_without_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
   motis::station_node *st_01_stnode =
@@ -471,7 +472,7 @@ TEST(parent_node, test_without_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_02_routenode;
   motis::station *st_02 = it->second;
   motis::station_node *st_02_stnode =
@@ -479,21 +480,21 @@ TEST(parent_node, test_without_loop) {
   st_02_routenode = st_02_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
   motis::station_node *st_03_stnode =
       schedule->station_nodes[st_03->index].get();
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-  assert(ttr.parent_node(*st_01_routenode) == nullptr);
+  EXPECT_TRUE(ttr.parent_node(*st_01_routenode) == nullptr);
 
-  assert(ttr.parent_node(*st_02_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_02_routenode) == st_01_routenode);
 
-  assert(ttr.parent_node(*st_03_routenode) == st_02_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_03_routenode) == st_02_routenode);
 }
 
-TEST(parent_node, test_with_loop) {
+TEST(railviz_parent_node, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -502,7 +503,7 @@ TEST(parent_node, test_with_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -511,7 +512,7 @@ TEST(parent_node, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -522,7 +523,7 @@ TEST(parent_node, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -531,7 +532,7 @@ TEST(parent_node, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -540,7 +541,7 @@ TEST(parent_node, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -548,17 +549,17 @@ TEST(parent_node, test_with_loop) {
       schedule->station_nodes[st_05->index].get();
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-  assert(ttr.parent_node(*st_01_routenode) == nullptr);
+  EXPECT_TRUE(ttr.parent_node(*st_01_routenode) == nullptr);
 
-  assert(ttr.parent_node(*st_02_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_02_routenode) == st_01_routenode);
 
-  assert(ttr.parent_node(*st_03_routenode) == st_02_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_03_routenode) == st_02_routenode);
 
-  assert(ttr.parent_node(*st_04_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_04_routenode) == st_03_routenode);
 
-  assert(ttr.parent_node(*st_02_loop_routenode) == st_04_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_02_loop_routenode) == st_04_routenode);
 
-  assert(ttr.parent_node(*st_05_routenode) == st_02_loop_routenode);
+  EXPECT_TRUE(ttr.parent_node(*st_05_routenode) == st_02_loop_routenode);
 }
 
 /**
@@ -566,7 +567,7 @@ TEST(parent_node, test_with_loop) {
  * const motis::node* child_node(const node &node) const
  */
 
-TEST(child_node, test_without_loop) {
+TEST(railviz_child_node, test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -575,7 +576,7 @@ TEST(child_node, test_without_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -584,7 +585,7 @@ TEST(child_node, test_without_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::station *st_02 = it->second;
@@ -593,7 +594,7 @@ TEST(child_node, test_without_loop) {
   st_02_routenode = st_02_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -601,14 +602,14 @@ TEST(child_node, test_without_loop) {
       schedule->station_nodes[st_03->index].get();
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-  assert(ttr.child_node(*st_01_routenode) == st_02_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_01_routenode) == st_02_routenode);
 
-  assert(ttr.child_node(*st_02_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_02_routenode) == st_03_routenode);
 
-  assert(ttr.child_node(*st_03_routenode) == nullptr);
+  EXPECT_TRUE(ttr.child_node(*st_03_routenode) == nullptr);
 }
 
-TEST(child_node, test_with_loop) {
+TEST(railviz_child_node, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -617,7 +618,7 @@ TEST(child_node, test_with_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -626,7 +627,7 @@ TEST(child_node, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -637,7 +638,7 @@ TEST(child_node, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -646,7 +647,7 @@ TEST(child_node, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -655,7 +656,7 @@ TEST(child_node, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -663,17 +664,17 @@ TEST(child_node, test_with_loop) {
       schedule->station_nodes[st_05->index].get();
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-  assert(ttr.child_node(*st_01_routenode) == st_02_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_01_routenode) == st_02_routenode);
 
-  assert(ttr.child_node(*st_02_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_02_routenode) == st_03_routenode);
 
-  assert(ttr.child_node(*st_03_routenode) == st_04_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_03_routenode) == st_04_routenode);
 
-  assert(ttr.child_node(*st_04_routenode) == st_02_loop_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_04_routenode) == st_02_loop_routenode);
 
-  assert(ttr.child_node(*st_02_loop_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.child_node(*st_02_loop_routenode) == st_05_routenode);
 
-  assert(ttr.child_node(*st_05_routenode) == nullptr);
+  EXPECT_TRUE(ttr.child_node(*st_05_routenode) == nullptr);
 }
 
 /**
@@ -681,7 +682,7 @@ TEST(child_node, test_with_loop) {
  * const motis::node* start_node_for_route( const motis::node& node_ ) const
  */
 
-TEST(start_for_route, test_without_loop) {
+TEST(railviz_start_for_route, test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -691,7 +692,7 @@ TEST(start_for_route, test_without_loop) {
 
   it = schedule->eva_to_station.find("5001307");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
   motis::station_node *st_01_stnode =
@@ -700,7 +701,7 @@ TEST(start_for_route, test_without_loop) {
 
   it = schedule->eva_to_station.find("7347220");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_02_routenode;
   motis::station *st_02 = it->second;
   motis::station_node *st_02_stnode =
@@ -709,21 +710,21 @@ TEST(start_for_route, test_without_loop) {
 
   it = schedule->eva_to_station.find("7190994");
 
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
   motis::station_node *st_03_stnode =
       schedule->station_nodes[st_03->index].get();
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-  assert(ttr.start_node_for_route(*st_01_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_01_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_02_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_02_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_03_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_03_routenode) == st_01_routenode);
 }
 
-TEST(start_for_route, test_with_loop) {
+TEST(railviz_start_for_route, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -732,7 +733,7 @@ TEST(start_for_route, test_with_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -741,7 +742,7 @@ TEST(start_for_route, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -752,7 +753,7 @@ TEST(start_for_route, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -761,7 +762,7 @@ TEST(start_for_route, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -770,7 +771,7 @@ TEST(start_for_route, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -778,18 +779,18 @@ TEST(start_for_route, test_with_loop) {
       schedule->station_nodes[st_05->index].get();
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-  assert(ttr.start_node_for_route(*st_01_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_01_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_02_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_02_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_03_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_03_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_04_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_04_routenode) == st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_02_loop_routenode) ==
+  EXPECT_TRUE(ttr.start_node_for_route(*st_02_loop_routenode) ==
               st_01_routenode);
 
-  assert(ttr.start_node_for_route(*st_05_routenode) == st_01_routenode);
+  EXPECT_TRUE(ttr.start_node_for_route(*st_05_routenode) == st_01_routenode);
 }
 
 /**
@@ -797,7 +798,7 @@ TEST(start_for_route, test_with_loop) {
  * const motis::node* end_node_for_route( const motis::node& node_ ) const
  */
 
-TEST(end_for_route, test_without_loop) {
+TEST(railviz_end_for_route, test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -806,7 +807,7 @@ TEST(end_for_route, test_without_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -815,7 +816,7 @@ TEST(end_for_route, test_without_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::station *st_02 = it->second;
@@ -824,7 +825,7 @@ TEST(end_for_route, test_without_loop) {
   st_02_routenode = st_02_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -832,14 +833,14 @@ TEST(end_for_route, test_without_loop) {
       schedule->station_nodes[st_03->index].get();
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-  assert(ttr.end_node_for_route(*st_01_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_01_routenode) == st_03_routenode);
 
-  assert(ttr.end_node_for_route(*st_02_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_02_routenode) == st_03_routenode);
 
-  assert(ttr.end_node_for_route(*st_03_routenode) == st_03_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_03_routenode) == st_03_routenode);
 }
 
-TEST(end_for_route, test_with_loop) {
+TEST(railviz_end_for_route, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -848,7 +849,7 @@ TEST(end_for_route, test_with_loop) {
   std::map<std::string, motis::station *>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -857,7 +858,7 @@ TEST(end_for_route, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -868,7 +869,7 @@ TEST(end_for_route, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -877,7 +878,7 @@ TEST(end_for_route, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -886,7 +887,7 @@ TEST(end_for_route, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -894,17 +895,17 @@ TEST(end_for_route, test_with_loop) {
       schedule->station_nodes[st_05->index].get();
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-  assert(ttr.end_node_for_route(*st_01_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_01_routenode) == st_05_routenode);
 
-  assert(ttr.end_node_for_route(*st_02_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_02_routenode) == st_05_routenode);
 
-  assert(ttr.end_node_for_route(*st_03_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_03_routenode) == st_05_routenode);
 
-  assert(ttr.end_node_for_route(*st_04_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_04_routenode) == st_05_routenode);
 
-  assert(ttr.end_node_for_route(*st_02_loop_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_02_loop_routenode) == st_05_routenode);
 
-  assert(ttr.end_node_for_route(*st_05_routenode) == st_05_routenode);
+  EXPECT_TRUE(ttr.end_node_for_route(*st_05_routenode) == st_05_routenode);
 }
 
 /**
@@ -913,7 +914,7 @@ TEST(end_for_route, test_with_loop) {
  * ) const
  */
 
-TEST(route_departure_times, test_without_loop) {
+TEST(DISABLE_railviz_route_departure_times, test_without_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "01_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -926,7 +927,7 @@ TEST(route_departure_times, test_without_loop) {
       30239, 31679, 33119, 34559, 35999, 37439, 38879, 40319};
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
   motis::station_node *st_01_stnode =
@@ -934,7 +935,7 @@ TEST(route_departure_times, test_without_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_02_routenode;
   motis::station *st_02 = it->second;
   motis::station_node *st_02_stnode =
@@ -942,21 +943,21 @@ TEST(route_departure_times, test_without_loop) {
   st_02_routenode = st_02_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
   motis::station_node *st_03_stnode =
       schedule->station_nodes[st_03->index].get();
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
-  assert(ttr.get_route_departure_times(*st_01_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_01_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_02_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_02_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_03_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_03_routenode) == ref_vector);
 }
 
-TEST(route_departure_times, test_with_loop) {
+TEST(DISABLE_railviz_route_departure_times, test_with_loop) {
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
@@ -969,7 +970,7 @@ TEST(route_departure_times, test_with_loop) {
       30239, 31679, 33119, 34559, 35999, 37439, 38879, 40319};
 
   it = schedule->eva_to_station.find("5001307");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_01_routenode;
   motis::station *st_01 = it->second;
@@ -978,7 +979,7 @@ TEST(route_departure_times, test_with_loop) {
   st_01_routenode = st_01_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_02_routenode;
   motis::node *st_02_loop_routenode;
@@ -989,7 +990,7 @@ TEST(route_departure_times, test_with_loop) {
   st_02_loop_routenode = st_02_stnode->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7190994");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_03_routenode;
   motis::station *st_03 = it->second;
@@ -998,7 +999,7 @@ TEST(route_departure_times, test_with_loop) {
   st_03_routenode = st_03_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("5386096");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_04_routenode;
   motis::station *st_04 = it->second;
@@ -1007,7 +1008,7 @@ TEST(route_departure_times, test_with_loop) {
   st_04_routenode = st_04_stnode->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7514434");
-  assert(it != schedule->eva_to_station.end());
+  EXPECT_TRUE(it != schedule->eva_to_station.end());
 
   motis::node *st_05_routenode;
   motis::station *st_05 = it->second;
@@ -1015,16 +1016,16 @@ TEST(route_departure_times, test_with_loop) {
       schedule->station_nodes[st_05->index].get();
   st_05_routenode = st_05_stnode->get_route_nodes()[0];
 
-  assert(ttr.get_route_departure_times(*st_01_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_01_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_02_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_02_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_03_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_03_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_04_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_04_routenode) == ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_02_loop_routenode) ==
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_02_loop_routenode) ==
               ref_vector);
 
-  assert(ttr.get_route_departure_times(*st_05_routenode) == ref_vector);
+  EXPECT_TRUE(ttr.get_route_departure_times(*st_05_routenode) == ref_vector);
 }

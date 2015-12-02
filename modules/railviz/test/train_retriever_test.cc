@@ -9,7 +9,7 @@
 using namespace motis::railviz;
 using namespace motis;
 
-TEST(search_train, simple_test){
+TEST(railviz_all_train, simple_test){
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
                                         "02_test_set/",
                                         true, false, to_unix_time(2015, 11, 21),
