@@ -329,8 +329,9 @@ private:
       auto const arr_motis_time =
           compute_event_time(day, arr_time, arr_st->timez);
 
-      validate_events(day, dep_st, arr_st, dep_motis_time, arr_motis_time,
-                      dep_time, arr_time, origin);
+      //      validate_events(day, dep_st, arr_st, dep_motis_time,
+      //      arr_motis_time,
+      //                      dep_time, arr_time, origin);
 
       curr_route_edge->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,
@@ -349,7 +350,7 @@ private:
   // Each station should have a timezone
   time compute_event_time(int day, time local_time, timezone const* tz) {
     return tz ? tz->to_motis_time(day - first_day_, local_time)
-              : (day - first_day_) * MINUTES_A_DAY + local_time;
+              : (day - first_day_ + 1) * MINUTES_A_DAY + local_time;
   }
 
   // TODO dep_tz, arr_tz == nullptr is deprecated.
