@@ -35,13 +35,14 @@ std::vector<std::unique_ptr<format_parser>> parsers() {
 }
 
 schedule_ptr load_schedule(std::string const& path, bool use_serialized,
-                           time_t from, time_t to) {
+                           bool unique_check, time_t from, time_t to) {
   scoped_timer time("loading schedule");
+
   auto binary_schedule_file = fs::path(path) / SCHEDULE_FILE;
 
   if (use_serialized && fs::is_regular_file(binary_schedule_file)) {
     auto buf = file(binary_schedule_file.string().c_str(), "r").content();
-    return build_graph(GetSchedule(buf.buf_), from, to);
+    return build_graph(GetSchedule(buf.buf_), from, to, unique_check);
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(path)) {
@@ -51,7 +52,8 @@ schedule_ptr load_schedule(std::string const& path, bool use_serialized,
           parser::file(binary_schedule_file.string().c_str(), "w+")
               .write(builder.GetBufferPointer(), builder.GetSize());
         }
-        return build_graph(GetSchedule(builder.GetBufferPointer()), from, to);
+        return build_graph(GetSchedule(builder.GetBufferPointer()), from, to,
+                           unique_check);
       }
     }
 

@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
   ws_server server(ios, instance);
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("rohdaten", true, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
       loader::transform_to_vec(
