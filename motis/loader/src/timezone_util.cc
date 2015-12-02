@@ -26,15 +26,21 @@ timezone create_timezone(int general_offset, int season_offset,
     return timezone(general_offset);
   }
 
-  auto const season_begin = to_time(
-      day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,
-              day_idx_season_first_day),
-      MINUTES_A_DAY + minutes_after_midnight_season_begin - general_offset);
+  time season_begin = 0;
+  if (day_idx_schedule_first_day <= day_idx_season_first_day) {
+    season_begin = to_time(
+        day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,
+                day_idx_season_first_day),
+        MINUTES_A_DAY + minutes_after_midnight_season_begin - general_offset);
+  }
 
-  auto const season_end = to_time(
-      day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,
-              day_idx_season_last_day),
-      MINUTES_A_DAY + minutes_after_midnight_season_end - season_offset);
+  time season_end = INVALID_TIME - season_offset;
+  if (day_idx_season_last_day <= day_idx_schedule_last_day) {
+    season_end = to_time(
+        day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,
+                day_idx_season_last_day),
+        MINUTES_A_DAY + minutes_after_midnight_season_end - season_offset);
+  }
 
   return {general_offset, {season_offset, season_begin, season_end}};
 }
