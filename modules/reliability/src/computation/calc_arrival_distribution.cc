@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
-#include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 namespace motis {
 namespace reliability {

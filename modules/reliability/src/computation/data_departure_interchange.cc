@@ -1,8 +1,8 @@
 #include "motis/reliability/computation/data_departure_interchange.h"
 
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 #include <cassert>
 

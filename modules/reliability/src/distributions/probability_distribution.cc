@@ -1,4 +1,4 @@
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 #include <algorithm>
 #include <cassert>

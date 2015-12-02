@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 using namespace motis;
 using namespace motis::reliability;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "motis/reliability/db_distributions_loader.h"
+#include "motis/reliability/distributions/db_distributions_loader.h"
 #include "start_and_travel_distributions.h"
 
 namespace motis {

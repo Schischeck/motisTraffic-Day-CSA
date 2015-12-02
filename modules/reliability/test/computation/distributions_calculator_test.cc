@@ -7,12 +7,12 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/computation/ride_distributions_calculator.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/context.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 
 #include "../include/start_and_travel_test_distributions.h"

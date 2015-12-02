@@ -5,7 +5,7 @@
 
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 namespace motis {
 struct light_connection;

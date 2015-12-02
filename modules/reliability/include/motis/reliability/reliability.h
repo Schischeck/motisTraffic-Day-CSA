@@ -7,8 +7,8 @@
 
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/start_and_travel_distributions.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/search/cg_optimizer.h"
 
 namespace motis {

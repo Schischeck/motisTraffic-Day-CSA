@@ -6,10 +6,10 @@
 
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"

@@ -4,10 +4,10 @@
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 #include "motis/reliability/rating/public_transport.h"

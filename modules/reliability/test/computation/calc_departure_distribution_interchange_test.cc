@@ -9,9 +9,9 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 #include "../include/interchange_data_for_tests.h"
 #include "../include/precomputed_distributions_test_container.h"

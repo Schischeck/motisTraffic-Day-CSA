@@ -6,7 +6,7 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"

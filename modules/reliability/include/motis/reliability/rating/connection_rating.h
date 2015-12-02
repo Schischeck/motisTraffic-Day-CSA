@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "motis/reliability/computation/distributions_calculator.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 namespace motis {
 struct journey;

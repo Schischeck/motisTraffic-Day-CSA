@@ -6,7 +6,7 @@
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/computation/distributions_calculator.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/public_transport.h"

@@ -4,9 +4,9 @@
 
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 namespace motis {
 namespace reliability {

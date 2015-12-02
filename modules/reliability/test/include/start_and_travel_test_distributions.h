@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 namespace motis {
 namespace reliability {

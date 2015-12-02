@@ -5,11 +5,11 @@
 #include "motis/core/common/date_util.h"
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/graph_accessor.h"
 
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"

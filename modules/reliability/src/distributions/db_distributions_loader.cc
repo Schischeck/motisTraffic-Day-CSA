@@ -1,4 +1,4 @@
-#include "motis/reliability/db_distributions_loader.h"
+#include "motis/reliability/distributions/db_distributions_loader.h"
 
 #include <climits>
 #include <utility>
@@ -7,7 +7,7 @@
 
 #include "parser/csv.h"
 
-#include "motis/reliability/db_distributions.h"
+#include "motis/reliability/distributions/db_distributions.h"
 
 namespace motis {
 namespace reliability {

@@ -5,7 +5,7 @@
 
 #include "motis/core/journey/journey.h"
 
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 
 namespace motis {
@@ -44,9 +44,9 @@ struct connection_graph {
     if (stop_idx == stop::Index_arrival_stop) {
       return arrival_station_info();
     }
-    auto const& stop = journeys_[stops_.at(stop_idx)
-                                     .alternative_infos_.front()
-                                     .journey_index_].stops.front();
+    auto const& stop =
+        journeys_[stops_.at(stop_idx).alternative_infos_.front().journey_index_]
+            .stops.front();
     return std::make_pair(stop.name, stop.eva_no);
   }
 

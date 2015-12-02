@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
 
 namespace motis {
 namespace reliability {

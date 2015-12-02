@@ -12,7 +12,7 @@
 
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/context.h"
-#include "motis/reliability/db_distributions.h"
+#include "motis/reliability/distributions/db_distributions.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"

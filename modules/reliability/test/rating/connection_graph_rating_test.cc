@@ -2,12 +2,11 @@
 
 #include "motis/core/common/date_util.h"
 
-#include "motis/reliability/probability_distribution.h"
-
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_graph_rating.h"

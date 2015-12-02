@@ -6,9 +6,9 @@
 
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 
 #include "../include/interchange_data_for_tests.h"
 #include "../include/precomputed_distributions_test_container.h"

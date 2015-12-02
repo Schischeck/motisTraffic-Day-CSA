@@ -1,4 +1,4 @@
-#include "motis/reliability/db_distributions.h"
+#include "motis/reliability/distributions/db_distributions.h"
 
 #include <algorithm>
 #include <cassert>
@@ -37,7 +37,8 @@ db_distributions::db_distributions(
             orig_mapping));
     distribution_mappings_
         [std::get<db_distributions_loader::resolved_mapping_pos::rm_class>(
-             orig_mapping)].push_back(mapping);
+             orig_mapping)]
+            .push_back(mapping);
   }
 
   default_start_distribution_.init_one_point(0, 1.0);

@@ -8,7 +8,7 @@
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"

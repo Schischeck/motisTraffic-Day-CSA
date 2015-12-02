@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "motis/reliability/db_distributions_loader.h"
+#include "motis/reliability/distributions/db_distributions_loader.h"
 
 namespace motis {
 namespace reliability {

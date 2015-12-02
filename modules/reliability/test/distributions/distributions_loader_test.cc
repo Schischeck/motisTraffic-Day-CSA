@@ -4,8 +4,8 @@
 #include <map>
 #include <vector>
 
-#include "motis/reliability/db_distributions_loader.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/db_distributions_loader.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 using namespace motis::reliability;
 using namespace motis::reliability::db_distributions_loader;

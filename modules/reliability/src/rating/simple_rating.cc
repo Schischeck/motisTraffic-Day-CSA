@@ -4,10 +4,10 @@
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/schedule.h"
 
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
-#include "motis/reliability/start_and_travel_distributions.h"
 
 namespace motis {
 namespace reliability {

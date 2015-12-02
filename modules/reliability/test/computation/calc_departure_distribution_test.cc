@@ -9,11 +9,11 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/graph_accessor.h"
 
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
