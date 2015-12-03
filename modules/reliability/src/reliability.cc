@@ -6,6 +6,7 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
 
@@ -21,7 +22,9 @@
 
 #include "../test/include/start_and_travel_test_distributions.h"
 
+using namespace motis::logging;
 using namespace motis::module;
+using namespace motis::realtime;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
@@ -58,7 +61,19 @@ void reliability::init() {
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
-  auto req = msg->content<ReliableRoutingRequest const*>();
+  auto content_type = msg->msg_->content_type();
+  if (content_type == MsgContent_ReliableRoutingRequest) {
+    auto req = msg->content<ReliableRoutingRequest const*>();
+    return handle_routing_request(req, session_id, cb);
+  } else if (content_type == MsgContent_RealtimeDelayInfoResponse) {
+    auto update = msg->content<RealtimeDelayInfoResponse const*>();
+    return handle_realtime_update(update, cb);
+  }
+  return cb({}, error::not_implemented);
+}
+
+void reliability::handle_routing_request(ReliableRoutingRequest const* req, sid session_id,
+                                         callback cb) {
   if (req->request_type()->request_options_type() == RequestOptions_RatingReq) {
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
@@ -89,6 +104,11 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
                   cb));
   }
   return cb({}, error::not_implemented);
+}
+
+void reliability::handle_realtime_update(RealtimeDelayInfoResponse const*,
+                                         callback) {
+  LOG(info) << "reliability received delay infos";
 }
 
 void reliability::handle_routing_response(msg_ptr msg,
