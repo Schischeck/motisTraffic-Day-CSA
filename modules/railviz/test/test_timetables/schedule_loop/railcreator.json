@@ -73,7 +73,7 @@
           "arrival": 0,
           "departure": 0,
           "track": 1,
-          "enteringAllowed": false,
+          "enteringAllowed": true,
           "leavingAllowed": true
         },
         {
@@ -90,7 +90,31 @@
           "departure": 104,
           "track": 1,
           "enteringAllowed": true,
-          "leavingAllowed": false
+          "leavingAllowed": true
+        },
+        {
+          "station": "5386096",
+          "arrival": 123,
+          "departure": 125,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7347220",
+          "arrival": 205,
+          "departure": 207,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "7514434",
+          "arrival": 293,
+          "departure": 295,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
         }
       ],
       "serviceDays": [
@@ -104,9 +128,9 @@
       ],
       "intervals": [
         {
-          "fromTime": "23:59:00.000",
-          "untilTime": "23:59:00.000",
-          "interval": 1
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:59:00.000",
+          "interval": 10
         }
       ]
     }
