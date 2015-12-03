@@ -28,7 +28,7 @@ execute_process(
 )
 
 configure_file (
-  "motis/core/include/motis/core/version.h.in"
+  "base/core/include/motis/core/version.h.in"
   "${CMAKE_BINARY_DIR}/generated/version.h"
 )
 
@@ -110,11 +110,11 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 ################################
 # MOTIS
 ################################
-include_directories(${CMAKE_SOURCE_DIR}/motis/bootstrap/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/bootstrap/test_include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/test_include)
+include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/connectionchecker/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
@@ -123,9 +123,9 @@ include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/ris/include)
 include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
 
-add_subdirectory(motis/core EXCLUDE_FROM_ALL)
-add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
-add_subdirectory(motis/module EXCLUDE_FROM_ALL)
+add_subdirectory(base/core EXCLUDE_FROM_ALL)
+add_subdirectory(base/loader EXCLUDE_FROM_ALL)
+add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
 string (REPLACE ";" " " modules-option "${all-modules}")
@@ -140,8 +140,8 @@ foreach(module ${modules})
   list(APPEND module-test-files "modules/${module}/*_test.cc")
 endforeach(module)
 
-add_subdirectory(motis/bootstrap EXCLUDE_FROM_ALL)
-add_subdirectory(motis/launcher)
+add_subdirectory(base/bootstrap EXCLUDE_FROM_ALL)
+add_subdirectory(base/launcher)
 
 
 ################################
@@ -152,11 +152,11 @@ configure_file (
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
-file(GLOB_RECURSE motis-central-test-files motis/*_test.cc)
+file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${CMAKE_SOURCE_DIR}/test/test_main.cc
   ${motis-modules-test-files}
-  ${motis-central-test-files})
+  ${motis-base-test-files})
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
   ${module-targets}
