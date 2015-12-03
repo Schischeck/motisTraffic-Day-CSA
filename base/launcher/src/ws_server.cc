@@ -1,5 +1,6 @@
 #include "motis/launcher/ws_server.h"
 
+#include <limits>
 #include <memory>
 #include <functional>
 
@@ -83,11 +84,17 @@ struct ws_server::ws_server_impl {
 
   void stop() { server_.stop(); }
 
-  void on_open(connection_hdl hdl) {
+  sid add_session(connection_hdl& hdl) {
     sid_con_map_.insert({next_sid_, hdl});
     con_sid_map_.insert({hdl, next_sid_});
     receiver_.on_open((next_sid_));
-    ++next_sid_;
+    return next_sid_++;
+  }
+
+  void on_open(connection_hdl hdl) {
+    if (api_key_.empty()) {
+      add_session(hdl);
+    }
   }
 
   void on_close(connection_hdl hdl) {
@@ -108,27 +115,21 @@ struct ws_server::ws_server_impl {
     receiver_.on_close(sid);
   }
 
-  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg,
+  void on_msg(connection_hdl hdl, asio_ws_server::message_ptr msg,
               bool authenticated) {
-    bool new_auth = false;
     if (!authenticated && !api_key_.empty() && msg->get_payload() == api_key_) {
-      server_.get_con_from_hdl(con)->set_message_handler(
+      server_.get_con_from_hdl(hdl)->set_message_handler(
           std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2, true));
-      new_auth = true;
+      send_success(add_session(hdl), 0);
     } else if (!authenticated) {
       return;
     }
 
-    auto con_it = con_sid_map_.find(con);
+    auto con_it = con_sid_map_.find(hdl);
     if (con_it == end(con_sid_map_)) {
       return;
     }
     auto session = con_it->second;
-
-    if (new_auth) {
-      send_success(session, 0);
-      return;
-    }
 
     msg_ptr req_msg;
     try {
@@ -187,7 +188,9 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(msg_ptr const& msg, sid s) { impl_->send(msg, s, 0); }
+void ws_server::send(msg_ptr const& msg, sid s) {
+  impl_->send(msg, s, std::numeric_limits<int>::max());
+}
 
 }  // namespace launcher
 }  // namespace motis

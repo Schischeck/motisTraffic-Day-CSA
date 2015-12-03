@@ -19,6 +19,7 @@ module.exports = {
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.DefinePlugin({
+      __API_KEY__: JSON.stringify(JSON.parse(process.env.API_KEY || '')),
       'process.env': {
         'NODE_ENV': JSON.stringify('production')
       }
