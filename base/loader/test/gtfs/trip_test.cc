@@ -5,24 +5,27 @@
 #include "motis/loader/gtfs/trip.h"
 #include "motis/loader/gtfs/files.h"
 
-#include "./test_files.h"
+#include "./resources.h"
 
 using namespace parser;
+using namespace motis::loader;
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
 TEST(loader_gtfs_trip, read_trips_example_data) {
-  auto agencies = read_agencies({AGENCY_FILE, example_agencies_file_content});
+  auto agencies =
+      read_agencies(loaded_file{SCHEDULES / "example" / AGENCY_FILE});
   auto routes =
-      read_routes({ROUTES_FILE, example_routes_file_content}, agencies);
+      read_routes(loaded_file{SCHEDULES / "example" / ROUTES_FILE}, agencies);
   auto dates = read_calendar_date(
-      {CALENDAR_DATES_FILE, example_calendar_date_file_content});
-  auto calendar = read_calendar({CALENDAR_FILE, example_calendar_file_content});
+      loaded_file{SCHEDULES / "example" / CALENDAR_DATES_FILE});
+  auto calendar =
+      read_calendar(loaded_file{SCHEDULES / "example" / CALENDAR_FILE});
   auto services = traffic_days(calendar, dates);
-  auto trips =
-      read_trips({TRIPS_FILE, example_trips_file_content}, routes, services);
+  auto trips = read_trips(loaded_file{SCHEDULES / "example" / TRIPS_FILE},
+                          routes, services);
 
   EXPECT_EQ(2, trips.size());
   EXPECT_NE(end(trips), trips.find("AWE1"));
@@ -31,15 +34,17 @@ TEST(loader_gtfs_trip, read_trips_example_data) {
 }
 
 TEST(loader_gtfs_trip, read_trips_berlin_data) {
-  auto agencies = read_agencies({AGENCY_FILE, berlin_agencies_file_content});
+  auto agencies =
+      read_agencies(loaded_file{SCHEDULES / "berlin" / AGENCY_FILE});
   auto routes =
-      read_routes({ROUTES_FILE, berlin_routes_file_content}, agencies);
+      read_routes(loaded_file{SCHEDULES / "berlin" / ROUTES_FILE}, agencies);
   auto dates = read_calendar_date(
-      {CALENDAR_DATES_FILE, berlin_calendar_date_file_content});
-  auto calendar = read_calendar({CALENDAR_FILE, berlin_calendar_file_content});
+      loaded_file{SCHEDULES / "berlin" / CALENDAR_DATES_FILE});
+  auto calendar =
+      read_calendar(loaded_file{SCHEDULES / "berlin" / CALENDAR_FILE});
   auto services = traffic_days(calendar, dates);
-  auto trips =
-      read_trips({TRIPS_FILE, berlin_trips_file_content}, routes, services);
+  auto trips = read_trips(loaded_file{SCHEDULES / "berlin" / TRIPS_FILE},
+                          routes, services);
 
   EXPECT_EQ(3, trips.size());
 

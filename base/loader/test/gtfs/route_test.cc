@@ -2,15 +2,18 @@
 
 #include "motis/loader/gtfs/route.h"
 #include "motis/loader/gtfs/files.h"
-#include "./test_files.h"
+
+#include "./resources.h"
 
 using namespace parser;
+using namespace motis::loader;
 using namespace motis::loader::gtfs;
 
 TEST(loader_gtfs_route, read_routes_example_data) {
-  auto agencies = read_agencies({AGENCY_FILE, example_agencies_file_content});
+  auto agencies =
+      read_agencies(loaded_file{SCHEDULES / "example" / AGENCY_FILE});
   auto routes =
-      read_routes({ROUTES_FILE, example_routes_file_content}, agencies);
+      read_routes(loaded_file{SCHEDULES / "example" / ROUTES_FILE}, agencies);
 
   EXPECT_EQ(1, routes.size());
   EXPECT_NE(end(routes), routes.find("A"));
@@ -21,9 +24,10 @@ TEST(loader_gtfs_route, read_routes_example_data) {
 }
 
 TEST(loader_gtfs_route, read_routes_berlin_data) {
-  auto agencies = read_agencies({AGENCY_FILE, berlin_agencies_file_content});
+  auto agencies =
+      read_agencies(loaded_file{SCHEDULES / "berlin" / AGENCY_FILE});
   auto routes =
-      read_routes({ROUTES_FILE, berlin_routes_file_content}, agencies);
+      read_routes(loaded_file{SCHEDULES / "berlin" / ROUTES_FILE}, agencies);
 
   EXPECT_EQ(8, routes.size());
 

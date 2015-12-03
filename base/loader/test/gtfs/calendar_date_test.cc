@@ -2,14 +2,16 @@
 
 #include "motis/loader/gtfs/calendar_date.h"
 #include "motis/loader/gtfs/files.h"
-#include "./test_files.h"
+
+#include "resources.h"
 
 using namespace parser;
+using namespace motis::loader;
 using namespace motis::loader::gtfs;
 
 TEST(loader_gtfs_calendar_date, read_calendar_date_example_data) {
   auto dates = read_calendar_date(
-      {CALENDAR_DATES_FILE, example_calendar_date_file_content});
+      loaded_file{SCHEDULES / "example" / CALENDAR_DATES_FILE});
 
   EXPECT_EQ(2, dates.size());
   EXPECT_EQ(2, dates["WD"].size());

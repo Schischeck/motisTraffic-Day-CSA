@@ -4,16 +4,18 @@
 #include "motis/loader/gtfs/files.h"
 #include "motis/loader/util.h"
 
-#include "./test_files.h"
+#include "resources.h"
 
 using namespace parser;
+using namespace motis::loader;
 
 namespace motis {
 namespace loader {
 namespace gtfs {
 
 TEST(loader_gtfs_stop, read_stations_example_data) {
-  auto agencies = read_agencies({AGENCY_FILE, example_agencies_file_content});
+  auto agencies =
+      read_agencies(loaded_file{SCHEDULES / "example" / AGENCY_FILE});
 
   ASSERT_EQ(1, agencies.size());
   ASSERT_NE(agencies.find("FunBus"), end(agencies));

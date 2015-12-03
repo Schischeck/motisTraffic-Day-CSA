@@ -4,13 +4,14 @@
 #include "motis/loader/gtfs/files.h"
 #include "motis/loader/util.h"
 
-#include "./test_files.h"
+#include "./resources.h"
 
 using namespace parser;
+using namespace motis::loader;
 using namespace motis::loader::gtfs;
 
 TEST(loader_gtfs_stop, read_stations_example_data) {
-  auto stops = read_stops({STOPS_FILE, example_stops_file_content});
+  auto stops = read_stops(loaded_file{SCHEDULES / "example" / STOPS_FILE});
 
   EXPECT_EQ(8, stops.size());
 
@@ -34,7 +35,7 @@ TEST(loader_gtfs_stop, read_stations_example_data) {
 }
 
 TEST(loader_gtfs_stop, read_stations_berlin_data) {
-  auto stops = read_stops({STOPS_FILE, berlin_stops_file_content});
+  auto stops = read_stops(loaded_file{SCHEDULES / "berlin" / STOPS_FILE});
 
   EXPECT_EQ(3, stops.size());
 

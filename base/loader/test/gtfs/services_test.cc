@@ -5,7 +5,7 @@
 #include "motis/loader/gtfs/services.h"
 #include "motis/loader/gtfs/files.h"
 
-#include "./test_files.h"
+#include "./resources.h"
 
 using namespace parser;
 using namespace motis::loader;
@@ -33,8 +33,9 @@ using namespace motis::loader::gtfs;
 
 TEST(loader_gtfs_traffic_days, read_traffic_days_example_data) {
   auto dates = read_calendar_date(
-      {CALENDAR_DATES_FILE, example_calendar_date_file_content});
-  auto calendar = read_calendar({CALENDAR_FILE, example_calendar_file_content});
+      loaded_file{SCHEDULES / "example" / CALENDAR_DATES_FILE});
+  auto calendar =
+      read_calendar(loaded_file{SCHEDULES / "example" / CALENDAR_FILE});
   auto services = traffic_days(calendar, dates);
 
   std::string WE_bit_str = "1111000110000011000001100000110";
