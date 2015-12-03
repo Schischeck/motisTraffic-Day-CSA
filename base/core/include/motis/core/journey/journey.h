@@ -10,22 +10,23 @@ struct journey {
   journey() = default;
 
   struct transport {
-    unsigned int from, to;
+    unsigned from, to;
     bool walk;
     std::string name;
     std::string category_name;
-    unsigned int category_id;
-    unsigned int train_nr;
+    unsigned category_id;
+    unsigned clasz;
+    unsigned train_nr;
     std::string line_identifier;
-    unsigned int duration;
+    unsigned duration;
     int slot;
     std::string direction;
     std::string provider;
-    unsigned int route_id;
+    unsigned route_id;
   };
 
   struct stop {
-    unsigned int index;
+    unsigned index;
     bool interchange;
     std::string name;
     std::string eva_no;
@@ -39,7 +40,7 @@ struct journey {
   };
 
   struct attribute {
-    unsigned int from, to;
+    unsigned from, to;
     std::string code;
     std::string text;
   };
@@ -47,7 +48,7 @@ struct journey {
   uint16_t get_duration() const;
   uint16_t get_transfers() const;
 
-  unsigned int duration, transfers, price;
+  unsigned duration, transfers, price;
   std::vector<stop> stops;
   std::vector<transport> transports;
   std::vector<attribute> attributes;

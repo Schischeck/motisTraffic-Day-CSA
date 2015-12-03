@@ -7,10 +7,9 @@
     "build": "npm run clean && npm run build:webpack",
     "start": "node devServer.js",
     "lint": "eslint src",
-    "format": "find src -name \"*.js\" -exec ./node_modules/esformatter/bin/esformatter -i {} \\;",
+    "format": "esformatter -i src/**/*.js",
     "format:test": "find src -name \"*.js\" -exec ./node_modules/esformatter/bin/esformatter --diff {} \\;",
     "lint:fix": "eslint src --fix",
-    "format": "esformatter -i src/**/*.js",
     "format:diff": "esformatter --diff src/**/*.js"
   },
   "devDependencies": {
@@ -26,6 +25,7 @@
     "eslint-plugin-react": "^2.7.1",
     "express": "^4.13.3",
     "file-loader": "^0.8.4",
+    "html-webpack-plugin": "^1.7.0",
     "node-sass": "^3.4.1",
     "react-transform-catch-errors": "^1.0.0",
     "react-transform-hmr": "^1.0.0",
@@ -42,13 +42,14 @@
     "flux": "^2.1.1",
     "immutable": "^3.7.5",
     "leaflet": "^0.7.7",
-    "material-ui": "^0.13.3",
+    "material-ui": "^0.13.4",
     "react": "^0.14.0",
     "react-addons-create-fragment": "^0.14.0",
     "react-addons-pure-render-mixin": "^0.14.0",
     "react-addons-transition-group": "^0.14.0",
     "react-addons-update": "^0.14.0",
     "react-dom": "^0.14.0",
-    "react-tap-event-plugin": "^0.2.1"
+    "react-tap-event-plugin": "^0.2.1",
+    "svg.js": "chuve/svg.js#fixed_support_amd"
   }
 }
