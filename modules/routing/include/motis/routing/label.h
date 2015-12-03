@@ -16,6 +16,8 @@
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
+#define WITH_PRICES
+
 namespace motis {
 
 class label {
@@ -119,6 +121,7 @@ public:
       return false;
     }
 
+#ifdef WITH_PRICES
     /* --- PRICE --- */
     unsigned my_price = _total_price[index];
     unsigned o_price = o._total_price[index];
@@ -142,6 +145,8 @@ public:
     }
 #endif
 
+#endif // WITH_PRICES
+
     /* --- ALL CRITERIA --- */
     // since all criteria are NOT larger at *this
     return true;
@@ -158,11 +163,13 @@ public:
     if (_travel_time[0] > o._travel_time[0]) return false;
     could_dominate = could_dominate || _travel_time[0] < o._travel_time[0];
 
+#ifdef WITH_PRICES
     /* --- PRICE --- */
     unsigned my_price = get_price_with_wages(false);
     unsigned o_price = o.get_price_with_wages(false);
     if (my_price > o_price) return false;
     could_dominate = could_dominate || my_price < o_price;
+#endif // WITH_PRICES
 
     return could_dominate || _start >= o._start;
   }
