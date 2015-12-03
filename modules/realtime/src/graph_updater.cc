@@ -89,11 +89,11 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
       }
       LOG(info) << "searching all delay_infos for the train...";
       std::vector<delay_info*> dis;
-      std::copy_if(_rts._delay_info_manager._delay_infos.begin(),
-                   _rts._delay_info_manager._delay_infos.end(),
-                   std::back_inserter(dis), [=](const delay_info* di) {
-                     return di->_schedule_event._train_nr == train_nr;
-                   });
+      for(auto const& di : _rts._delay_info_manager.delay_infos()) {
+        if(di->_schedule_event._train_nr == train_nr) {
+          dis.push_back(di.get());
+        }
+      }
       std::sort(dis.begin(), dis.end(),
                 [](const delay_info* a, const delay_info* b) {
                   return a->_schedule_event._schedule_time <
