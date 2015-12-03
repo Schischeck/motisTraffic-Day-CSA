@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
   motis_instance instance(&ios);
   ws_server server(ios, instance);
 
-  listener_settings listener_opt("0.0.0.0", "8080");
+  listener_settings listener_opt("0.0.0.0", "8080", "");
   dataset_settings dataset_opt("rohdaten", true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
         [&server](msg_ptr msg, sid session) { server.send(msg, session); });
     instance.init_schedule(dataset_opt);
     instance.init_modules(launcher_opt.modules);
+    server.set_api_key(listener_opt.api_key);
     server.listen(listener_opt.host, listener_opt.port);
   } catch (std::exception const& e) {
     std::cout << "initialization error: " << e.what() << "\n";

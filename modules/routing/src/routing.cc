@@ -70,7 +70,6 @@ void routing::read_path_element(StationPathElement const* el,
 }
 
 void routing::init() {
-  printf("allocating %d labels\n", max_label_count_);
   label_store_ = make_unique<memory_manager<label>>(max_label_count_);
 }
 

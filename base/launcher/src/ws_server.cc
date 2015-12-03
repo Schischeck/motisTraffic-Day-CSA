@@ -9,6 +9,8 @@
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
+namespace p = std::placeholders;
+
 typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 
 using websocketpp::connection_hdl;
@@ -24,12 +26,19 @@ namespace launcher {
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios, receiver& receiver)
       : receiver_(receiver), ios_(ios), next_sid_(0) {
-    namespace p = std::placeholders;
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
     server_.set_message_handler(
-        std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2));
+        std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2, true));
+  }
+
+  void set_api_key(std::string const& api_key) {
+    api_key_ = api_key;
+    if (!api_key.empty()) {
+      server_.set_message_handler(
+          std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2, false));
+    }
   }
 
   void listen(std::string const& host, std::string const& port) {
@@ -99,12 +108,27 @@ struct ws_server::ws_server_impl {
     receiver_.on_close(sid);
   }
 
-  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg) {
+  void on_msg(connection_hdl con, asio_ws_server::message_ptr msg,
+              bool authenticated) {
+    bool new_auth = false;
+    if (!authenticated && !api_key_.empty() && msg->get_payload() == api_key_) {
+      server_.get_con_from_hdl(con)->set_message_handler(
+          std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2, true));
+      new_auth = true;
+    } else if (!authenticated) {
+      return;
+    }
+
     auto con_it = con_sid_map_.find(con);
     if (con_it == end(con_sid_map_)) {
       return;
     }
     auto session = con_it->second;
+
+    if (new_auth) {
+      send_success(session, 0);
+      return;
+    }
 
     msg_ptr req_msg;
     try {
@@ -140,6 +164,8 @@ struct ws_server::ws_server_impl {
   asio_ws_server server_;
   boost::asio::io_service& ios_;
 
+  std::string api_key_;
+
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
   std::map<connection_hdl, sid, std::owner_less<connection_hdl>> con_sid_map_;
@@ -150,6 +176,10 @@ ws_server::~ws_server() {}
 ws_server::ws_server(boost::asio::io_service& ios,
                      motis::module::receiver& receiver)
     : impl_(new ws_server_impl(ios, receiver)) {}
+
+void ws_server::set_api_key(std::string const& api_key) {
+  impl_->set_api_key(api_key);
+}
 
 void ws_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);

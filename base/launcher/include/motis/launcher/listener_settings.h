@@ -11,7 +11,8 @@ namespace launcher {
 
 class listener_settings : public conf::configuration {
 public:
-  listener_settings(std::string default_host, std::string default_port);
+  listener_settings(std::string default_host, std::string default_port,
+                    std::string api_key);
 
   virtual ~listener_settings() {}
 
@@ -19,6 +20,7 @@ public:
   virtual void print(std::ostream& out) const override;
 
   std::string host, port;
+  std::string api_key;
 };
 
 }  // namespace launcher
