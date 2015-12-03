@@ -20,8 +20,6 @@ inline std::unique_ptr<motis_instance> launch_motis(
     std::vector<std::string> const& modules,
     std::vector<std::string> const& modules_cmdline_opt = {}) {
   auto instance = make_unique<motis_instance>();
-  instance->init_schedule({dataset, false, true, true, schedule_begin, 2});
-  instance->init_modules(modules);
 
   std::vector<conf::configuration*> confs;
   for (auto const& module : instance->modules()) {
@@ -33,6 +31,9 @@ inline std::unique_ptr<motis_instance> launch_motis(
                                end(modules_cmdline_opt));
   opt.push_back("--routing.max_label_count=1000");
   parser.read_command_line_args(opt);
+
+  instance->init_schedule({dataset, false, true, true, schedule_begin, 2});
+  instance->init_modules(modules);
 
   return instance;
 }
