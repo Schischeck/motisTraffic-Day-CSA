@@ -10,7 +10,7 @@
 #include "motis/module/module.h"
 #include "motis/module/dispatcher.h"
 #include "motis/module/callbacks.h"
-#include "motis/bootstrap/dataset_settings.h"
+#include "motis/loader/loader_options.h"
 #include "modules.h"
 
 namespace motis {
@@ -26,7 +26,7 @@ struct motis_instance : public motis::module::dispatcher {
   motis_instance& operator=(motis_instance&&) = delete;
 
   std::vector<motis::module::module*> modules() const;
-  void init_schedule(dataset_settings const& dataset_opt);
+  void init_schedule(motis::loader::loader_options const& dataset_opt);
   void init_modules(std::vector<std::string> const& modules);
 
   void run();

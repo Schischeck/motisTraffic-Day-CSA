@@ -29,8 +29,7 @@ class reliability_calc_departure_distribution : public test_schedule_setup {
 public:
   reliability_calc_departure_distribution()
       : test_schedule_setup("modules/reliability/resources/schedule/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   /* train numbers */
   short const IC_DA_H = 1;
   short const IC_FR_DA = 2;

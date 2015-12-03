@@ -1,14 +1,13 @@
 #pragma once
 
-#include <ctime>
-
 #include "motis/core/schedule/schedule.h"
+
+#include "motis/loader/loader_options.h"
 
 namespace motis {
 namespace loader {
 
-schedule_ptr load_schedule(std::string const& path, bool use_serialized,
-                           bool unique_check, time_t from, time_t to);
+schedule_ptr load_schedule(loader_options const&);
 
 }  // namespace loader
 }  // namespace motis

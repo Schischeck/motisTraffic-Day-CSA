@@ -6,6 +6,8 @@
 
 #include "boost/system/system_error.hpp"
 
+#include "conf/options_parser.h"
+
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/core/common/util.h"
 #include "motis/module/message.h"
@@ -16,10 +18,22 @@ namespace bootstrap {
 inline std::unique_ptr<motis_instance> launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
     std::vector<std::string> const& modules,
-    bool const use_serialized = false) {
+    std::vector<std::string> const& modules_cmdline_opt = {}) {
   auto instance = make_unique<motis_instance>();
-  instance->init_schedule({dataset, use_serialized, true, schedule_begin, 2});
+  instance->init_schedule({dataset, false, true, true, schedule_begin, 2});
   instance->init_modules(modules);
+
+  std::vector<conf::configuration*> confs;
+  for (auto const& module : instance->modules()) {
+    confs.push_back(module);
+  }
+
+  conf::options_parser parser(confs);
+  std::vector<std::string> opt(begin(modules_cmdline_opt),
+                               end(modules_cmdline_opt));
+  opt.push_back("--routing.max_label_count=1000");
+  parser.read_command_line_args(opt);
+
   return instance;
 }
 
@@ -27,7 +41,7 @@ inline module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
                             module::msg_ptr request) {
   module::msg_ptr response;
   boost::system::error_code ec;
-  instance->on_msg(request, 1,
+  instance->on_msg(request, 0,
                    [&](module::msg_ptr r, boost::system::error_code e) {
                      ec = e;
                      response = r;
@@ -36,8 +50,7 @@ inline module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
   instance->thread_pool_.run();
 
   if (ec) {
-    throw std::runtime_error(std::string(ec.category().name()) + " - " +
-                             ec.category().message(ec.value()));
+    throw boost::system::system_error(ec);
   }
 
   return response;

@@ -23,6 +23,7 @@
 #include "motis/launcher/listener_settings.h"
 #include "motis/launcher/launcher_settings.h"
 
+#include "version.h"
 #include "modules.h"
 
 using namespace motis::bootstrap;
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
   ws_server server(ios, instance);
 
   listener_settings listener_opt("0.0.0.0", "8080");
-  dataset_settings dataset_opt("rohdaten", true, true, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
       loader::transform_to_vec(
@@ -54,27 +55,36 @@ int main(int argc, char** argv) {
     confs.push_back(module);
   }
 
-  conf::options_parser parser(confs);
-  parser.read_command_line_args(argc, argv);
+  try {
+    conf::options_parser parser(confs);
+    parser.read_command_line_args(argc, argv, false);
 
-  if (parser.help()) {
-    std::cout << "\n\tMOTIS Webservice\n\n";
-    parser.print_help(std::cout);
-    return 0;
-  } else if (parser.version()) {
-    std::cout << "MOTIS Webservice\n";
-    return 0;
+    if (parser.help()) {
+      std::cout << "\n\tMOTIS v" << short_version() << "\n\n";
+      parser.print_help(std::cout);
+      return 0;
+    } else if (parser.version()) {
+      std::cout << "MOTIS v" << long_version() << "\n";
+      return 0;
+    }
+
+    parser.read_configuration_file(false);
+    parser.print_used(std::cout);
+  } catch (std::exception const& e) {
+    std::cout << "options error: " << e.what() << "\n";
+    return 1;
   }
 
-  parser.read_configuration_file();
-  parser.print_unrecognized(std::cout);
-  parser.print_used(std::cout);
-
-  instance.set_send_fun(
-      [&server](msg_ptr msg, sid session) { server.send(msg, session); });
-  instance.init_schedule(dataset_opt);
-  instance.init_modules(launcher_opt.modules);
-  server.listen(listener_opt.host, listener_opt.port);
+  try {
+    instance.set_send_fun(
+        [&server](msg_ptr msg, sid session) { server.send(msg, session); });
+    instance.init_schedule(dataset_opt);
+    instance.init_modules(launcher_opt.modules);
+    server.listen(listener_opt.host, listener_opt.port);
+  } catch (std::exception const& e) {
+    std::cout << "initialization error: " << e.what() << "\n";
+    return 1;
+  }
 
   using net::http::server::shutdown_handler;
   shutdown_handler<ws_server> server_shutdown_handler(ios, server);
@@ -107,7 +117,14 @@ int main(int argc, char** argv) {
   }
 
   LOG(info) << "listening on " << listener_opt.host << ":" << listener_opt.port;
-  ios.run();
+  std::function<void()> run_server = [&ios, &run_server]() {
+    try {
+      ios.run();
+    } catch (...) {
+      run_server();
+    }
+  };
+  run_server();
   instance.thread_pool_.stop();
   std::for_each(begin(threads), end(threads),
                 [](boost::thread& t) { t.join(); });

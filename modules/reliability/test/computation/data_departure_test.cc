@@ -24,8 +24,7 @@ class reliability_data_departure : public test_schedule_setup {
 public:
   reliability_data_departure()
       : test_schedule_setup("modules/reliability/resources/schedule/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   /* eva numbers */
   std::string const DARMSTADT = "4219971";
   std::string const FRANKFURT = "8351230";

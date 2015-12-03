@@ -9,9 +9,8 @@ using namespace motis;
 
 TEST(railviz_stations_on_route, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -46,9 +45,8 @@ TEST(railviz_stations_on_route, test_with_loop) {
 
 TEST(railviz_routes_on_time, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
@@ -101,10 +99,8 @@ TEST(railviz_routes_on_time, test_with_loop) {
 
 TEST(railviz_timetable_for_station, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
-
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
@@ -150,9 +146,8 @@ TEST(railviz_timetable_for_station, test_with_loop) {
 
 TEST(railviz_timetable_station_outgoing, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
@@ -194,16 +189,16 @@ TEST(railviz_timetable_station_outgoing, test_with_loop) {
 
 TEST(railviz_timetable_station_incoming, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
@@ -237,23 +232,25 @@ TEST(railviz_timetable_station_incoming, test_with_loop) {
 
 TEST(railviz_parent_node, test_without_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_03 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_03 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(nullptr, ttr.parent_node(*route_node_01));
   EXPECT_EQ(route_node_01, ttr.parent_node(*route_node_02));
@@ -262,24 +259,27 @@ TEST(railviz_parent_node, test_without_loop) {
 
 TEST(railviz_parent_node, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
-  auto route_node_02_loop = schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02_loop =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7514434");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_05 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_05 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(nullptr, ttr.parent_node(*route_node_01));
   EXPECT_EQ(route_node_01, ttr.parent_node(*route_node_02));
@@ -288,49 +288,60 @@ TEST(railviz_parent_node, test_with_loop) {
 
 TEST(railviz_child_node, test_without_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_03 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_03 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+
+  it = schedule->eva_to_station.find("5386096");
+  ASSERT_NE(schedule->eva_to_station.end(), it);
+  auto route_node_04 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_02, ttr.child_node(*route_node_01));
   EXPECT_EQ(route_node_03, ttr.child_node(*route_node_02));
-  EXPECT_EQ(nullptr, ttr.child_node(*route_node_03));
+  EXPECT_EQ(route_node_04, ttr.child_node(*route_node_03));
 }
 
 TEST(railviz_child_node, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
+
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
-  auto route_node_02_loop = schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02_loop =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7514434");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_05 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_05 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_02, ttr.child_node(*route_node_01));
   EXPECT_EQ(route_node_05, ttr.child_node(*route_node_02_loop));
@@ -339,23 +350,25 @@ TEST(railviz_child_node, test_with_loop) {
 
 TEST(railviz_start_for_route, test_without_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7190994");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_03 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_03 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_01, ttr.start_node_for_route(*route_node_01));
   EXPECT_EQ(route_node_01, ttr.start_node_for_route(*route_node_02));
@@ -364,24 +377,27 @@ TEST(railviz_start_for_route, test_without_loop) {
 
 TEST(railviz_start_for_route, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
-  auto route_node_02_loop = schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02_loop =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7514434");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_05 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_05 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_01, ttr.start_node_for_route(*route_node_01));
   EXPECT_EQ(route_node_01, ttr.start_node_for_route(*route_node_02));
@@ -391,23 +407,25 @@ TEST(railviz_start_for_route, test_with_loop) {
 
 TEST(railviz_end_for_route, test_without_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule/",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
-  it = schedule->eva_to_station.find("7190994");
+  it = schedule->eva_to_station.find("7514434");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_03 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_03 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_03, ttr.end_node_for_route(*route_node_01));
   EXPECT_EQ(route_node_03, ttr.end_node_for_route(*route_node_02));
@@ -416,24 +434,27 @@ TEST(railviz_end_for_route, test_without_loop) {
 
 TEST(railviz_end_for_route, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_01 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_01 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   it = schedule->eva_to_station.find("7347220");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_02 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
-  auto route_node_02_loop = schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
+  auto route_node_02 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_02_loop =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[1];
 
   it = schedule->eva_to_station.find("7514434");
   ASSERT_NE(schedule->eva_to_station.end(), it);
-  auto route_node_05 = schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
+  auto route_node_05 =
+      schedule->station_nodes[it->second->index].get()->get_route_nodes()[0];
 
   EXPECT_EQ(route_node_05, ttr.end_node_for_route(*route_node_01));
   EXPECT_EQ(route_node_05, ttr.end_node_for_route(*route_node_02));
@@ -443,9 +464,8 @@ TEST(railviz_end_for_route, test_with_loop) {
 
 TEST(railviz_route_departure_times, test_without_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,
@@ -459,9 +479,8 @@ TEST(railviz_route_departure_times, test_without_loop) {
 
 TEST(railviz_route_departure_times, test_with_loop) {
   auto schedule = loader::load_schedule(
-      "modules/railviz/test/test_timetables/"
-      "schedule_loop",
-      true, false, to_unix_time(2015, 11, 21), to_unix_time(2015, 11, 22));
+      {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
+       false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,
