@@ -9,15 +9,19 @@
 using namespace motis::railviz;
 using namespace motis;
 
-TEST(railviz_all_train, simple_test){
+TEST(railviz_all_train, two_trains_driving){
   auto schedule = loader::load_schedule("modules/railviz/test/test_timetables/"
-                                        "02_test_set/",
+                                        "schedule_loop/",
                                         true, false, to_unix_time(2015, 11, 21),
                                         to_unix_time(2015, 11, 22));																	
   train_retriever ttr(*schedule);
+	constexpr motis::time offset = MINUTES_A_DAY + 600;
 	geo::box area = {{49.8728, 8.24411},
                    {50.969, 9.79821}};
-	std::vector<std::pair<light_connection const*, edge const*>> trains = ttr.trains(2800, 3100, 1000, area);
+							
+	std::vector<std::pair<light_connection const*, edge const*>> trains = ttr.trains(offset, offset+10, 1000, area);
 	ASSERT_NE(0, trains.size());
-	ASSERT_EQ(5, trains.size());
+	ASSERT_EQ(2, trains.size());
+	EXPECT_EQ(offset, trains[0].first->d_time);
+	EXPECT_EQ(offset+10, trains[1].first->d_time);
 }
