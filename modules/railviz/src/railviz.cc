@@ -62,7 +62,7 @@ void railviz::find_train(msg_ptr msg, webclient& client, callback cb) {
     return cb({}, error::train_not_found);
   }
 
-  for (int i = 0; i <= 4; ++i) {
+  for (int i = 0; i <= 10; ++i) {
     std::pair<light_connection const*, edge const*> train;
     {
       auto lock = synced_sched<schedule_access::RO>();
@@ -92,7 +92,6 @@ void railviz::all_trains(msg_ptr msg, webclient& client, callback cb) {
   client.bounds = {{req->p1()->lat(), req->p1()->lng()},
                    {req->p2()->lat(), req->p2()->lng()}};
   client.time = req->time();
-
   // request trains for the next 5 minutes
   auto trains = train_retriever_->trains(
       unix_to_motistime(schedule_begin_, client.time),
@@ -406,6 +405,7 @@ void railviz::init() {
   auto lock = synced_sched<schedule_access::RO>();
   train_retriever_ =
       std::unique_ptr<train_retriever>(new train_retriever(lock.sched()));
+	schedule_begin_ = lock.sched().schedule_begin_;
 }
 
 void railviz::on_open(sid session) {
@@ -421,11 +421,11 @@ void railviz::on_open(sid session) {
     station_entries.push_back(CreateRailVizInitEntry(
         b, b.CreateString(stations[station->index]->name), &sc));
   }
-
+	
   b.CreateAndFinish(
       MsgContent_RailVizInit,
       CreateRailVizInit(b, b.CreateVector(station_entries),
-                        lock.sched().schedule_begin_,
+                        lock.sched().schedule_begin_ + SCHEDULE_OFFSET,
                         lock.sched().schedule_end_ + MINUTES_A_DAY * 60)
           .Union());
   send(make_msg(b), session);
