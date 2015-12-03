@@ -155,7 +155,6 @@ public:
             for (auto const& lc : other_route_edge._m._route_edge._conns) {
               if (lc._full_con->con_info->train_nr == train_nr &&
                   lc.d_time == d_time) {
-
                 return false;
               }
             }
@@ -199,7 +198,9 @@ public:
       return;
     }
 
+
     std::unordered_set<uint32_t> train_nrs;
+    auto offset = service->times()->Get(service->times()->size() - 2) / 1440;
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
       add_service_section(
@@ -213,7 +214,7 @@ public:
               : nullptr,
           service->times()->Get(section_idx * 2 + 1),
           service->times()->Get(section_idx * 2 + 2), traffic_days,
-          service->origin());
+          service->origin(), offset);
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
     }
     int32_t route_id = route_nodes[0]->_route;
@@ -276,7 +277,8 @@ private:
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days, String const* origin) {
+                           bitfield const& traffic_days, String const* origin,
+                           int offset) {
     assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
@@ -284,7 +286,7 @@ private:
     auto& to = *sched_.stations[curr_route_edge->_to->get_station()->_id];
 
     // Expand traffic days.
-    for (int day = first_day_; day <= last_day_; ++day) {
+    for (int day = first_day_ - offset; day <= last_day_; ++day) {
       if (!traffic_days.test(day)) {
         continue;
       }
