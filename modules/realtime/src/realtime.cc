@@ -244,24 +244,20 @@ InternalTimestampReason encode_internal_reason(timestamp_reason reason) {
   return InternalTimestampReason_Propagation;
 }
 
-void realtime::get_delay_infos(msg_ptr, callback cb) {
-  MessageCreator b;
+void pack_delay_infos(MessageCreator& fbb, std::vector<delay_info*>& dis) {
+  std::sort(std::begin(dis), std::end(dis), [](delay_info* a, delay_info* b) {
+    const auto& ae = a->_schedule_event;
+    const auto& be = b->_schedule_event;
+    return std::tie(ae._schedule_time, ae._station_index, ae._train_nr,
+                    ae._departure) < std::tie(be._schedule_time,
+                                              be._station_index, be._train_nr,
+                                              be._departure);
+  });
+
   std::vector<flatbuffers::Offset<DelayInfo>> delay_infos;
-
-  std::vector<delay_info*> sorted_dis = rts_->_delay_info_manager._delay_infos;
-  std::sort(std::begin(sorted_dis), std::end(sorted_dis),
-            [](delay_info* a, delay_info* b) {
-              const auto& ae = a->_schedule_event;
-              const auto& be = b->_schedule_event;
-              return std::tie(ae._schedule_time, ae._station_index,
-                              ae._train_nr, ae._departure) <
-                     std::tie(be._schedule_time, be._station_index,
-                              be._train_nr, be._departure);
-            });
-
-  delay_infos.reserve(sorted_dis.size());
-  for (const delay_info* di : sorted_dis) {
-    DelayInfoBuilder dib(b);
+  delay_infos.reserve(dis.size());
+  for (const delay_info* di : dis) {
+    DelayInfoBuilder dib(fbb);
     dib.add_train_nr(di->_schedule_event._train_nr);
     dib.add_station_index(di->_schedule_event._station_index);
     dib.add_departure(di->_schedule_event.departure());
@@ -274,10 +270,23 @@ void realtime::get_delay_infos(msg_ptr, callback cb) {
     delay_infos.push_back(dib.Finish());
   }
 
-  b.CreateAndFinish(
+  fbb.CreateAndFinish(
       MsgContent_RealtimeDelayInfoResponse,
-      CreateRealtimeDelayInfoResponse(b, b.CreateVector(delay_infos)).Union());
+      CreateRealtimeDelayInfoResponse(fbb, fbb.CreateVector(delay_infos))
+          .Union());
+}
 
+void realtime::get_delay_infos(msg_ptr, callback cb) {
+  auto const& dis = rts_->_delay_info_manager.delay_infos();
+
+  std::vector<delay_info*> delay_infos;
+  delay_infos.reserve(dis.size());
+  for (auto const& di : dis) {
+    delay_infos.push_back(di.get());
+  }
+
+  MessageCreator b;
+  pack_delay_infos(b, delay_infos);
   cb(make_msg(b), error::ok);
 }
 
@@ -335,6 +344,11 @@ void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
     std::ofstream f("stats.csv", std::ofstream::app);
     run_stats.write_csv(f, /*start_time*/ 0, /*end_time*/ 0);
   }
+
+  MessageCreator b;
+  auto delay_infos = rts_->_delay_info_manager.get_delay_info_delta();
+  pack_delay_infos(b, delay_infos);
+  dispatch(make_msg(b));
 
   return cb({}, error::ok);
 }

@@ -27,8 +27,7 @@ class reliability_calc_departure_distribution2 : public test_schedule_setup {
 public:
   reliability_calc_departure_distribution2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   std::string const KASSEL = "6380201";
   std::string const FRANKFURT = "5744986";
   std::string const STUTTGART = "7309882";

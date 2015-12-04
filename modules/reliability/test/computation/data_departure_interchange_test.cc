@@ -23,8 +23,7 @@ class reliability_data_departure_interchange2 : public test_schedule_setup {
 public:
   reliability_data_departure_interchange2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   std::string const KASSEL = "6380201";
   std::string const FRANKFURT = "5744986";
   std::string const STUTTGART = "7309882";
@@ -44,8 +43,7 @@ class reliability_data_departure_interchange3 : public test_schedule_setup {
 public:
   reliability_data_departure_interchange3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   std::string const FRANKFURT = "1111111";
   std::string const MESSE = "2222222";
   std::string const LANGEN = "3333333";

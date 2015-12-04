@@ -13,7 +13,7 @@
 
 #include "motis/routing/additional_edges.h"
 
-/* todo: remove these dependencies on reliability module */
+/* todo: remove this dependency on reliability module */
 #include "../../reliability/test/include/test_schedule_setup.h"
 
 namespace motis {

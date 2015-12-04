@@ -26,8 +26,7 @@ class reliability_distributions_calculator : public test_schedule_setup {
 public:
   reliability_distributions_calculator()
       : test_schedule_setup("modules/reliability/resources/schedule/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   /* train numbers */
   short const IC_DA_H = 1;
   short const IC_FR_DA = 2;
@@ -43,8 +42,7 @@ class reliability_distributions_calculator4 : public test_schedule_setup {
 public:
   reliability_distributions_calculator4()
       : test_schedule_setup("modules/reliability/resources/schedule4/",
-                            to_unix_time(2015, 10, 19),
-                            to_unix_time(2015, 10, 20)) {}
+                            "20151019") {}
   short const RE_F_L_D = 1;
 };
 

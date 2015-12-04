@@ -17,6 +17,8 @@
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
+#define WITH_PRICES
+
 namespace motis {
 
 std::ostream& operator<<(std::ostream& os, label const& l);
@@ -146,7 +148,7 @@ public:
       return false;
     }
 
-#if 0
+#ifdef WITH_PRICES
     /* --- PRICE --- */
     unsigned my_price = _total_price[index];
     unsigned o_price = o._total_price[index];
@@ -169,7 +171,7 @@ public:
 #ifdef PRICE_TOLERANCE
     }
 #endif
-#endif
+#endif  // WITH_PRICES
 
     /* --- LATE NIGHT CONNECTIONS --- */
     if (_visited_hotel != o._visited_hotel) {
@@ -195,13 +197,14 @@ public:
     if (_travel_time[0] > o._travel_time[0]) return false;
     could_dominate = could_dominate || _travel_time[0] < o._travel_time[0];
 
-#if 0
+#ifdef WITH_PRICES
     /* --- PRICE --- */
     unsigned my_price = get_price_with_wages(false);
     unsigned o_price = o.get_price_with_wages(false);
     if (my_price > o_price) return false;
     could_dominate = could_dominate || my_price < o_price;
-#endif
+
+#endif  // WITH_PRICES
 
     /* --- LATE NIGHT CONNECTIONS --- */
     if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
