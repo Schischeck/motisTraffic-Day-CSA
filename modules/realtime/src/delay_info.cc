@@ -7,12 +7,6 @@ namespace realtime {
 
 using namespace motis::logging;
 
-delay_info_manager::~delay_info_manager() {
-  for (delay_info* delay_info : _delay_infos) {
-    delete delay_info;
-  }
-}
-
 delay_info* delay_info_manager::get_delay_info(
     const schedule_event& event_id) const {
   auto it = _schedule_map.find(event_id);
@@ -25,16 +19,16 @@ delay_info* delay_info_manager::get_delay_info(
 
 delay_info* delay_info_manager::create_delay_info(
     const schedule_event& event_id, int32_t route_id) {
-  assert(event_id.found());
-  delay_info* di = new delay_info(event_id);
-  di->_route_id = route_id;
   assert(route_id != -1);
-
-  _delay_infos.push_back(di);
+  assert(event_id.found());
+  _delay_infos.push_back(make_unique<delay_info>(event_id, route_id));
+  auto const& di = _delay_infos.back().get();
   _schedule_map[event_id] = di;
 
   // no delay so far
   _current_map[di->graph_ev()] = di;
+
+  _updated_delay_infos.push_back(di);
 
   return di;
 }
@@ -65,11 +59,12 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
   assert(delay_info->_route_id != -1);
   // add new entry to mapping
   _current_map[delay_info->graph_ev()] = delay_info;
+  _updated_delay_infos.push_back(delay_info);
 }
 
 motis::time delay_info_manager::reset_to_schedule(
     const schedule_event& event_id) {
-  delay_info* di = get_delay_info(event_id);
+  auto const& di = get_delay_info(event_id);
   if (di != nullptr) {
     if (di->_reason == timestamp_reason::IS ||
         di->_reason == timestamp_reason::REPAIR) {
@@ -105,6 +100,7 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
 
   // add new entry to mapping
   _current_map[di->graph_ev()] = di;
+  _updated_delay_infos.push_back(di);
 }
 
 delay_info* delay_info_manager::get_delay_info(
@@ -127,6 +123,7 @@ delay_info* delay_info_manager::cancel_event(const schedule_event& event_id,
     update_route(di, route_id);
   }
   di->_canceled = true;
+  _updated_delay_infos.push_back(di);
   return di;
 }
 
@@ -135,6 +132,7 @@ delay_info* delay_info_manager::undo_cancelation(
   delay_info* di = get_delay_info(event_id);
   if (di != nullptr) {
     di->_canceled = false;
+    _updated_delay_infos.push_back(di);
   }
   return di;
 }
@@ -147,6 +145,15 @@ motis::time delay_info_manager::current_time(
   } else {
     return event_id._schedule_time;
   }
+}
+
+std::vector<delay_info*> delay_info_manager::get_delay_info_delta() {
+  std::vector<delay_info*> delta;
+  std::swap(delta, _updated_delay_infos); // retrieve delta and reset state
+
+  std::sort(begin(delta), end(delta));
+  delta.erase(std::unique(begin(delta), end(delta)), end(delta));
+  return delta;
 }
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {

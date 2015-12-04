@@ -13,9 +13,12 @@ class Server {
     this.socket = new WebSocket(this.server);
     this.socket.onmessage = this._onMessage.bind(this);
     this.socket.onopen = () => {
-      AppDispatcher.dispatch({
-        'type': 'ConnectionStateChange',
-        'connectionState': true
+      this.sendAuth().then(response => {
+        console.log('auth response', response);
+        AppDispatcher.dispatch({
+          'type': 'ConnectionStateChange',
+          'connectionState': true
+        });
       });
     };
     this.socket.onclose = () => {
@@ -67,6 +70,32 @@ class Server {
     this._cancelTimeout(id);
     this.pendingRequests.get(id).reject(reason);
     this.pendingRequests.delete(id);
+  }
+
+  sendAuth() {
+    return new Promise((resolve, reject) => {
+      console.log('API KEY: ', __API_KEY__);
+      if (__API_KEY__ == undefined || !__API_KEY__) {
+        console.log('immediate resolve');
+        return resolve({ 'id': 0 });
+      }
+
+      try {
+        this.socket.send(__API_KEY__);
+      } catch (e) {
+        reject(e);
+      }
+
+      const timer = setTimeout(() => {
+        this._rejectPending(0, 'timeout');
+      }, 1000);
+
+      this.pendingRequests.set(0, {
+        resolve: resolve,
+        reject: reject,
+        timer: timer
+      });
+    });
   }
 
   sendMessage(message) {

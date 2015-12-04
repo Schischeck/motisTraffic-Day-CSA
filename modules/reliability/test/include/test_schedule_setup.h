@@ -16,15 +16,13 @@ namespace reliability {
 
 class test_schedule_setup : public ::testing::Test {
 protected:
-  test_schedule_setup(std::string schedule_name, std::time_t schedule_begin,
-                      std::time_t schedule_end)
+  test_schedule_setup(std::string schedule_name, std::string schedule_begin)
       : schedule_path_(std::move(schedule_name)),
-        schedule_begin_(schedule_begin),
-        schedule_end_(schedule_end) {}
+        schedule_begin_(std::move(schedule_begin)) {}
 
   virtual void SetUp() override {
-    schedule_ = loader::load_schedule(schedule_path_, true, true,
-                                      schedule_begin_, schedule_end_);
+    schedule_ = loader::load_schedule(
+        {schedule_path_, false, true, false, schedule_begin_, 2});
   }
 
 public:
@@ -32,7 +30,7 @@ public:
 
 private:
   std::string schedule_path_;
-  std::time_t schedule_begin_, schedule_end_;
+  std::string schedule_begin_;
 };
 
 class test_motis_setup : public ::testing::Test {
@@ -42,8 +40,8 @@ protected:
 
   virtual void SetUp() override {
     std::vector<std::string> modules = {"reliability", "routing"};
-    motis_instance_ = std::move(bootstrap::launch_motis(
-        schedule_path_, schedule_begin_, modules, true));
+    motis_instance_ =
+        bootstrap::launch_motis(schedule_path_, schedule_begin_, modules);
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
         new motis::reliability::context(
             get_schedule(),

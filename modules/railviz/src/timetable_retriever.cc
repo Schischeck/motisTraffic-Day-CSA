@@ -144,9 +144,9 @@ const motis::node* timetable_retriever::child_node(const node& node) const {
   if (outgoing.size() == 0) {
     return nullptr;
   }
-  for (auto const& edge_ : outgoing) {
-    if (edge_.type() == motis::edge::ROUTE_EDGE) {
-      return edge_._to;
+  for (auto const& edge : outgoing) {
+    if (edge.type() == motis::edge::ROUTE_EDGE) {
+      return edge._to;
     }
   }
   return nullptr;

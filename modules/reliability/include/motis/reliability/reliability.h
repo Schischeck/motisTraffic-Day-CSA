@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "motis/protocol/Message_generated.h"
+
 #include "motis/module/module.h"
 
 #include "motis/core/schedule/schedule.h"
@@ -27,10 +29,18 @@ struct reliability : public motis::module::module {
 
   virtual std::string name() const override { return "reliability"; }
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_ReliableRoutingRequest};
+    return {MsgContent_ReliableRoutingRequest,
+            MsgContent_RealtimeDelayInfoResponse};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
+
+  void handle_routing_request(
+      motis::reliability::ReliableRoutingRequest const* req,
+      motis::module::sid session_id, motis::module::callback cb);
+  void handle_realtime_update(
+      motis::realtime::RealtimeDelayInfoResponse const* update,
+      motis::module::callback cb);
 
   distributions_container::precomputed_distributions_container const&
   precomputed_distributions() const {
