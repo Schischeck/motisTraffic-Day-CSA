@@ -1,7 +1,9 @@
 #include "motis/loader/graph_builder.h"
 
+#include <set>
 #include <cassert>
 #include <functional>
+#include <algorithm>
 #include <unordered_set>
 
 #define RANGES_SUPPRESS_IOTA_WARNING
@@ -207,6 +209,22 @@ public:
 
   void add_rule_services(Vector<Offset<RuleService>> const* rule_services) {
     if (rule_services == nullptr) {
+      return;
+    }
+
+    if (!apply_rules_) {
+      // Build rule services separately.
+      std::set<Service const*> built;
+      for (auto const& rs : *rule_services) {
+        for (auto const& r : *rs->rules()) {
+          for (auto const& s : {r->service1(), r->service2()}) {
+            if (built.find(s) != end(built)) {
+              add_service(s);
+              built.insert(s);
+            }
+          }
+        }
+      }
       return;
     }
 
