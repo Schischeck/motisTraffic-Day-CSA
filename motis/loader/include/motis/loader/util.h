@@ -18,6 +18,8 @@
 namespace motis {
 namespace loader {
 
+std::string pad_to_7_digits(int eva_num);
+
 template <typename T>
 inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
     flatbuffers::FlatBufferBuilder& b, T const& s) {

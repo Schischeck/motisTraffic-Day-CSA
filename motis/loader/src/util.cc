@@ -1,11 +1,20 @@
 #include "motis/loader/util.h"
 
+#include <sstream>
+#include <iomanip>
+
 using namespace flatbuffers;
 using namespace parser;
 namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {
+
+std::string pad_to_7_digits(int eva_num) {
+  std::stringstream s;
+  s << std::setw(7) << std::setfill('0') << eva_num;
+  return s.str();
+}
 
 int hhmm_to_min(int hhmm) {
   if (hhmm < 0) {
