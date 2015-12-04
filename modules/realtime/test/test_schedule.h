@@ -43,9 +43,9 @@ struct transport {
 class test_schedule : public ::testing::Test {
 public:
   test_schedule()
-      : _schedule(motis::loader::load_schedule(
-            "modules/realtime/test/test-schedule", true,
-            motis::to_unix_time(2015, 1, 26), motis::to_unix_time(2015, 2, 9))),
+      : _schedule(
+            motis::loader::load_schedule({"modules/realtime/test/test-schedule",
+                                          true, false, true, "20150126", 21})),
         _rts(*_schedule),
         _label_store(MAX_TEST_LABELS),
         _search(*_schedule, _label_store) {

@@ -286,7 +286,7 @@ private:
     auto& to = *sched_.stations[curr_route_edge->_to->get_station()->_id];
 
     // Expand traffic days.
-    for (int day = first_day_ - offset; day <= last_day_; ++day) {
+    for (int day = std::max(0, first_day_ - offset); day <= last_day_; ++day) {
       if (!traffic_days.test(day)) {
         continue;
       }
