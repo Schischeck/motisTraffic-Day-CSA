@@ -380,6 +380,8 @@ public:
 
         case SKIP_END: return BUILD; break;
       }
+      assert(false);
+      return ENTRY;
     };
 
     state s = ENTRY;
@@ -393,7 +395,7 @@ public:
       s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
       route_info route_node(nullptr, -1);
       switch (s) {
-        case ENTRY: assert(false && "state not accessible");
+        case ENTRY: assert(false && "state not accessible"); break;
         case BUILD:
           std::tie(route_node, last_route_edge) = add_route_section(
               route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
@@ -568,7 +570,7 @@ private:
     auto& to = *sched_.stations[e->_to->get_station()->_id];
 
     // Expand traffic days.
-    for (int day = first_day_ - offset; day <= last_day_; ++day) {
+    for (int day = std::max(0, first_day_ - offset); day <= last_day_; ++day) {
       if (!traffic_days.test(day)) {
         continue;
       }
