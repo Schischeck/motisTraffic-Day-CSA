@@ -1,3 +1,4 @@
+/*
 #include "osrm-backend/Library/OSRM.h"
 #include "osrm-backend/plugins/multi_target.hpp"
 #include "osrm-backend/Server/DataStructures/BaseDataFacade.h"
@@ -102,3 +103,5 @@ private:
   std::unique_ptr<MultiTarget> multi_target_;
   std::unique_ptr<MultiSource> multi_source_;
 };
+
+*/
