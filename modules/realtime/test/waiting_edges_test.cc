@@ -3,20 +3,22 @@
 #include <algorithm>
 #include <tuple>
 
+#include "motis/core/schedule/time.h"
+
 #include "test_schedule.h"
 
+using namespace motis;
 namespace rt = motis::realtime;
 
 class realtime_waiting_edges_test
     : public motis::realtime::test::test_schedule {};
 
-inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
-
 TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   // find arrival event
-  rt::schedule_event event(wuerzburg->index, 51, false, t(10, 37));
+  rt::schedule_event event(wuerzburg->index, 51, false,
+                           to_motis_time(0, 10, 37));
   motis::node* route_node;
   motis::light_connection* inc_lc;
   std::tie(route_node, inc_lc) = _rts.locate_event(rt::graph_event(event));
@@ -35,14 +37,16 @@ TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
                static_cast<int>(e._connector_departure._station_index) ==
                    wuerzburg->index;
       }));
-  EXPECT_TRUE(std::any_of(
-      edges.begin(), edges.end(), [&](const rt::single_waiting_edge& e) {
-        return e._connector_departure._schedule_time == t(10, 49) &&
-               e._connector_departure._train_nr == 55;
-      }));
-  EXPECT_TRUE(std::any_of(
-      edges.begin(), edges.end(), [&](const rt::single_waiting_edge& e) {
-        return e._connector_departure._schedule_time == t(10, 46) &&
-               e._connector_departure._train_nr == 50;
-      }));
+  EXPECT_TRUE(std::any_of(edges.begin(), edges.end(),
+                          [&](const rt::single_waiting_edge& e) {
+                            return e._connector_departure._schedule_time ==
+                                       to_motis_time(0, 10, 49) &&
+                                   e._connector_departure._train_nr == 55;
+                          }));
+  EXPECT_TRUE(std::any_of(edges.begin(), edges.end(),
+                          [&](const rt::single_waiting_edge& e) {
+                            return e._connector_departure._schedule_time ==
+                                       to_motis_time(0, 10, 46) &&
+                                   e._connector_departure._train_nr == 50;
+                          }));
 }
