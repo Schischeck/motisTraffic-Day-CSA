@@ -107,8 +107,8 @@ public:
   }
 
   bool operator==(const graph_event& other) const {
-    assert((_route_id != -1 && other._route_id != -1) ||
-           (_route_id == -1 && other._route_id == -1));
+    assert(_route_id != -1 && other._route_id != -1);
+    assert(_route_id == -1 && other._route_id == -1);
     return _station_index == other._station_index &&
            _train_nr == other._train_nr && _departure == other._departure &&
            _current_time == other._current_time && _route_id == other._route_id;
