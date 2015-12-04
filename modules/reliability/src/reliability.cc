@@ -54,10 +54,9 @@ void reliability::print(std::ostream& out) const {
 void reliability::init() {
   auto const lock = synced_sched();
   schedule const& schedule = lock.sched();
-  precomputed_distributions_ = std::unique_ptr<
-      distributions_container::precomputed_distributions_container>(
-      new distributions_container::precomputed_distributions_container(
-          schedule.node_count));
+  precomputed_distributions_ =
+      std::unique_ptr<distributions_container::container>(
+          new distributions_container::container(schedule.node_count));
 #ifdef USE_DB_DISTRIBUTINS
   s_t_distributions_ = std::unique_ptr<
       start_and_travel_distributions>(new db_distributions(

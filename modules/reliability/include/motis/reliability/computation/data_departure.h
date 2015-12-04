@@ -17,7 +17,7 @@ struct probability_distribution;
 struct start_and_travel_distributions;
 
 namespace distributions_container {
-struct abstract_distributions_container;
+struct container;
 }
 
 namespace calc_departure_distribution {
@@ -26,15 +26,18 @@ namespace calc_departure_distribution {
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct data_departure {
-  /* todo: use reliability::context */
+  /* constructor for first route node */
+  data_departure(node const& route_node,
+                 light_connection const& light_connection,
+                 motis::time const scheduled_departure_time,
+                 reliability::context const& context);
+  /* constructor for route node with preceding arrival */
   data_departure(
       node const& route_node, light_connection const& light_connection,
-      bool const is_first_route_node, schedule const& schedule,
-      distributions_container::abstract_distributions_container const&
-          train_distributions_container,
-      distributions_container::abstract_distributions_container const&
-          feeder_distributions_container,
-      start_and_travel_distributions const& s_t_distributions);
+      motis::time const scheduled_departure_time,
+      reliability::context const& context,
+      motis::time const scheduled_arrival_time,
+      distributions_container::container const& train_distributions_container);
 
   /* constructor necessary for the derived struct data_departure_connection */
   data_departure(bool const is_first_route_node, time const scheduled_dep_time);
@@ -89,20 +92,20 @@ struct data_departure {
   duration maximum_waiting_time_;
 
 protected:
-  void init_train_info(
-      node const& route_node, light_connection const& light_conn,
-      distributions_container::abstract_distributions_container const&
-          distributions_container,
-      start_and_travel_distributions const& s_t_distributions,
-      std::vector<std::unique_ptr<category>> const& categories);
+  void init_first_departure_info(light_connection const& departing_light_conn,
+                                 start_and_travel_distributions const&,
+                                 std::vector<std::unique_ptr<category>> const&);
+
+  void init_preceding_arrival_info(node const& route_node,
+                                   motis::time const departure_time,
+                                   motis::time const scheduled_arrival_time,
+                                   distributions_container::container const&);
 
   void init_feeder_info(
-      light_connection const& light_conn,
+      light_connection const& departing_light_conn,
       std::vector<std::unique_ptr<graph_accessor::feeder_info>> const&
           all_feeders_data,
-      schedule const& schedule,
-      distributions_container::abstract_distributions_container const&
-          distributions_container);
+      schedule const&, distributions_container::container const&);
 };
 
 }  // namespace calc_departure_distribution

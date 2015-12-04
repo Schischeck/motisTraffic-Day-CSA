@@ -177,6 +177,7 @@ void perform_precomputation(
     queue.pop();
   }
 }
+
 }  // namespace precomputation
 }  // namespace distributions_calculator
 }  // namespace reliability

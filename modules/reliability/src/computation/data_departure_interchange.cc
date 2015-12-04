@@ -11,21 +11,19 @@ namespace reliability {
 namespace calc_departure_distribution {
 
 /** get vector containing all potential feeders but not arriving_light_conn */
-std::vector<std::unique_ptr<graph_accessor::feeder_info> >
-get_all_potential_feeders_except_ic(
+std::vector<light_connection const*> get_all_potential_feeders_except_ic(
     node const& route_node, light_connection const& departing_light_conn,
     light_connection const& arriving_light_conn, duration const transfer_time) {
   auto all_feeders = graph_accessor::get_all_potential_feeders(
       route_node, departing_light_conn, transfer_time);
-  auto const it = std::find_if(
-      all_feeders.begin(), all_feeders.end(),
-      [arriving_light_conn](
-          std::unique_ptr<graph_accessor::feeder_info> const& feeder) {
-        return feeder->light_conn_.d_time == arriving_light_conn.d_time &&
-               feeder->light_conn_.a_time == arriving_light_conn.a_time &&
-               feeder->light_conn_._full_con->con_info ==
-                   arriving_light_conn._full_con->con_info;
-      });
+  auto const it =
+      std::find_if(all_feeders.begin(), all_feeders.end(),
+                   [arriving_light_conn](light_connection const* feeder) {
+                     return feeder->d_time == arriving_light_conn.d_time &&
+                            feeder->a_time == arriving_light_conn.a_time &&
+                            feeder->_full_con->con_info ==
+                                arriving_light_conn._full_con->con_info;
+                   });
   if (it != all_feeders.end()) {
     all_feeders.erase(it);
   }

@@ -62,9 +62,7 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
   auto const first_route_node = get_first_route_node(*schedule_, ICE_FR_DA_H);
   ASSERT_EQ(schedule_->stations[first_route_node->_station_node->_id]->eva_nr,
             FRANKFURT);
-
   auto const first_route_edge = get_departing_route_edge(*first_route_node);
-
   {
     auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
     ASSERT_EQ(first_light_conn.d_time,
@@ -80,11 +78,12 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
         get_departing_route_edge(*second_route_node)->_m._route_edge._conns[0];
     ASSERT_EQ(second_light_conn.d_time,
               test_util::minutes_to_motis_time(6 * 60 + 11));
-    auto const& previous_light_conn =
-        get_previous_light_connection(*second_route_node, second_light_conn);
+    auto const& previous_light_conn = get_previous_light_connection(
+        graph_accessor::get_arriving_route_edge(*second_route_node)
+            ->_m._route_edge._conns,
+        second_light_conn.d_time);
 
-    ASSERT_EQ(previous_light_conn.first, &first_light_conn);
-    ASSERT_EQ(previous_light_conn.second, 0);
+    ASSERT_EQ(&previous_light_conn, &first_light_conn);
   }
   {
     auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
@@ -101,12 +100,47 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
         get_departing_route_edge(*second_route_node)->_m._route_edge._conns[1];
     ASSERT_EQ(second_light_conn.d_time,
               test_util::minutes_to_motis_time(7 * 60 + 11));
-    auto const& previous_light_conn =
-        get_previous_light_connection(*second_route_node, second_light_conn);
+    auto const& previous_light_conn = get_previous_light_connection(
+        graph_accessor::get_arriving_route_edge(*second_route_node)
+            ->_m._route_edge._conns,
+        second_light_conn.d_time);
 
-    ASSERT_EQ(previous_light_conn.first, &first_light_conn);
-    ASSERT_EQ(previous_light_conn.second, 1);
+    ASSERT_EQ(&previous_light_conn, &first_light_conn);
   }
+}
+
+TEST_F(reliability_graph_accessor, get_previous_light_connection2) {
+  array<light_connection> arriving_connections;
+  arriving_connections.emplace_back(10, 20, nullptr);
+  arriving_connections.emplace_back(15, 25, nullptr);
+  arriving_connections.emplace_back(15, 30, nullptr);
+  arriving_connections.emplace_back(20, 30, nullptr);
+  arriving_connections.emplace_back(40, 50, nullptr);
+
+  ASSERT_EQ(
+      &arriving_connections[0],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 20));
+  ASSERT_EQ(
+      &arriving_connections[0],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 24));
+  ASSERT_EQ(
+      &arriving_connections[1],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 25));
+  ASSERT_EQ(
+      &arriving_connections[1],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 29));
+  ASSERT_EQ(
+      &arriving_connections[3],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 30));
+  ASSERT_EQ(
+      &arriving_connections[3],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 31));
+  ASSERT_EQ(
+      &arriving_connections[4],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 50));
+  ASSERT_EQ(
+      &arriving_connections[4],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 51));
 }
 
 TEST_F(reliability_graph_accessor, get_feeder_time_interval) {
@@ -197,7 +231,7 @@ TEST_F(reliability_graph_accessor, get_feeders) {
   ASSERT_EQ(all_potential_feeders.size(), 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
+    auto const& feeder_light_conn = *all_potential_feeders[i];
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, second_light_conn);
     switch (i) {
@@ -251,7 +285,7 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
   ASSERT_EQ(all_potential_feeders.size(), 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
+    auto const& feeder_light_conn = *all_potential_feeders[i];
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, first_light_conn);
     switch (i) {

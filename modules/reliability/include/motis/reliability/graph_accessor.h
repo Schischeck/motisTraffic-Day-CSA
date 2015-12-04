@@ -34,27 +34,30 @@ inline edge const* get_arriving_route_edge(node const& route_node) {
 }
 
 /**
- * returns the light-connection that belongs to the train of
- * 'departing_light_conn', arrives at the departure station of
- * 'departing_light_conn', and has an arrival time next to the departure time of
- * 'departing_light_conn'.
- * This function also returns the position of the light-connection's arrival
- * distribution stored in 'route_node'.
+ * returns the latest light-connection that arrives not later
+ * than 'departure_time'.
+ * Note: this function assumes that departing_light_conn is not the
+ * first departure of the route.
  * @param route_node is the tail node of departing_light_conn
  */
-inline std::pair<light_connection const*, unsigned int>
-get_previous_light_connection(node const& route_node,
-                              light_connection const& departing_light_conn) {
-  auto arriving_route_edge = get_arriving_route_edge(route_node);
-
-  auto& all_connections = arriving_route_edge->_m._route_edge._conns;
-  unsigned int pos = 0;
-  while (pos + 1 < all_connections.size() &&
-         all_connections[pos + 1].a_time <= departing_light_conn.d_time) {
-    ++pos;
+inline light_connection const& get_previous_light_connection(
+    array<light_connection> const& arriving_light_connections,
+    motis::time const departure_time) {
+  if (arriving_light_connections.size() == 1) {
+    return arriving_light_connections.begin();
   }
-
-  return std::make_pair(&all_connections[pos], pos);
+  auto ub = std::upper_bound(
+      arriving_light_connections.begin(), arriving_light_connections.end(),
+      departure_time,
+      [](unsigned int const dep_time, light_connection const& lc) {
+        return dep_time < lc.a_time;
+      });
+  if (ub == arriving_light_connections.begin()) {
+    return *arriving_light_connections.front();
+  } else if (ub == arriving_light_connections.end()) {
+    return *arriving_light_connections.back();
+  }
+  return *(--ub);
 }
 
 /* returns success, begin_time, end_time */
@@ -74,20 +77,10 @@ inline std::tuple<bool, time, time> get_feeder_time_interval(
 
 #define FEEDER_THRESHOLD 30 /* XXX */
 
-struct feeder_info {
-  feeder_info(node const& route_node, light_connection const& light_conn,
-              unsigned int const light_conn_idx)
-      : head_route_node_(route_node),
-        light_conn_(light_conn),
-        light_conn_idx_(light_conn_idx) {}
-  node const& head_route_node_;
-  light_connection const& light_conn_;
-  unsigned int const light_conn_idx_;
-};
-inline std::vector<std::unique_ptr<feeder_info>> get_all_potential_feeders(
+inline std::vector<light_connection const*> get_all_potential_feeders(
     node const& route_node, light_connection const& departing_light_conn,
     duration const transfer_time) {
-  std::vector<std::unique_ptr<feeder_info>> feeders;
+  std::vector<light_connection const*> feeders;
 
   for (auto const in_edge : route_node._station_node->_incoming_edges) {
     // ignore transfer edge to route_node itself
@@ -107,8 +100,7 @@ inline std::vector<std::unique_ptr<feeder_info>> get_all_potential_feeders(
         for (unsigned int i = 0; i < all_connections.size(); i++) {
           if (all_connections[i].a_time >= time_begin &&
               all_connections[i].a_time <= time_end) {
-            feeders.emplace_back(
-                new feeder_info(feeder_route_node, all_connections[i], i));
+            feeders.emplace_back(&all_connections[i]);
           }
         }
       }

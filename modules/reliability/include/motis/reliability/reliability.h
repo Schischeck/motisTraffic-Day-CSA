@@ -32,8 +32,7 @@ struct reliability : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-  distributions_container::precomputed_distributions_container const&
-  precomputed_distributions() const {
+  distributions_container::container const& precomputed_distributions() const {
     return *precomputed_distributions_;
   }
 
@@ -49,7 +48,7 @@ struct reliability : public motis::module::module {
   std::string hotels_file_;
 
 private:
-  std::unique_ptr<distributions_container::precomputed_distributions_container>
+  std::unique_ptr<distributions_container::container>
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
 
