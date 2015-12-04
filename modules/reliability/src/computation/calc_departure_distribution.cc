@@ -19,7 +19,7 @@ probability train_arrived(data_departure const& data) {
   }
 
   int const delay = timestamp_to_delay(
-      data.train_info_.preceding_arrival_info_.arrival_time_,
+      data.train_info_.preceding_arrival_info_.scheduled_arrival_time_,
       data.scheduled_departure_time_ -
           data.train_info_.preceding_arrival_info_.min_standing_);
   return data.train_info_.preceding_arrival_info_.arrival_distribution_
@@ -40,7 +40,7 @@ probability train_arrives_at_time(data_departure const& data,
   // largest delay such that an interchange from the feeder
   // into the departing train is still feasible.
   int const train_delay = timestamp_to_delay(
-      arrival_info.arrival_time_, timestamp - arrival_info.min_standing_);
+      arrival_info.scheduled_arrival_time_, timestamp - arrival_info.min_standing_);
 
   // get the probability that the train arrives with a delay of 'train_delay'
   return arrival_info.arrival_distribution_->probability_equal(train_delay);
@@ -60,7 +60,7 @@ probability train_arrives_before_time(data_departure const& data,
   // largest delay such that an interchange from the feeder
   // into the departing train is still feasible.
   int const train_delay = timestamp_to_delay(
-      arrival_info.arrival_time_, timestamp - arrival_info.min_standing_);
+      arrival_info.scheduled_arrival_time_, timestamp - arrival_info.min_standing_);
 
   // get the probability that the train arrives with a delay of 'train_delay'
   return arrival_info.arrival_distribution_->probability_smaller(train_delay);
@@ -79,10 +79,11 @@ probability departure_independent_from_feeders(
       prob_no_waiting_feeder = 1.0;
     } else {
       probability const prob_waiting_feeder =
-          feeder.distribution_.probability_smaller_equal(timestamp_to_delay(
-              feeder.arrival_time_, feeder.latest_feasible_arrival_)) -
           feeder.distribution_.probability_smaller_equal(
-              timestamp_to_delay(feeder.arrival_time_, waiting_interval_begin));
+              timestamp_to_delay(feeder.scheduled_arrival_time_,
+                                 feeder.latest_feasible_arrival_)) -
+          feeder.distribution_.probability_smaller_equal(timestamp_to_delay(
+              feeder.scheduled_arrival_time_, waiting_interval_begin));
       prob_no_waiting_feeder = 1.0 - prob_waiting_feeder;
     }
     prob_no_waiting *= prob_no_waiting_feeder;
@@ -105,7 +106,7 @@ probability had_to_wait_for_feeders(
     auto const& feeder = feeders[i];
     auto const& modified_distribution = modified_feeders_distributions[i];
     int const feeder_delay = timestamp_to_delay(
-        feeder.arrival_time_, timestamp - feeder.transfer_time_);
+        feeder.scheduled_arrival_time_, timestamp - feeder.transfer_time_);
 
     prob_max_feeders_delay1 *=
         (1.0 - modified_distribution.probability_greater(feeder_delay));
@@ -125,8 +126,9 @@ void cut_minutes_after_latest_feasible_arrival(
     auto const& feeder = feeders[feeder_idx];
     std::vector<probability> probabilities;
 
-    assert(feeder.latest_feasible_arrival_ >= feeder.arrival_time_);
-    time lfa_minute = feeder.latest_feasible_arrival_ - feeder.arrival_time_;
+    assert(feeder.latest_feasible_arrival_ >= feeder.scheduled_arrival_time_);
+    time lfa_minute =
+        feeder.latest_feasible_arrival_ - feeder.scheduled_arrival_time_;
 
     for (int feeder_delay = feeder.distribution_.first_minute();
          feeder_delay <= feeder.distribution_.last_minute(); feeder_delay++) {

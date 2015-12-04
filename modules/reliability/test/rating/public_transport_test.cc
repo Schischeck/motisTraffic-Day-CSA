@@ -80,8 +80,7 @@ public:
  * Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
 std::vector<rating::rating_element> compute_test_ratings1(
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
+    distributions_container::container const& precomputed_distributions,
     start_and_travel_distributions const& s_t_distributions,
     reliability_public_transport2 const& test_info) {
   std::vector<rating::rating_element> ratings;
@@ -94,21 +93,28 @@ std::vector<rating::rating_element> compute_test_ratings1(
   ratings.emplace_back(1);
   ratings.back().departure_distribution_ =
       precomputed_distributions.get_distribution(
-          ic_data.arriving_route_edge_._from->_id, 0,
-          distributions_container::departure);
+          distributions_container::to_container_key(
+              ic_data.arriving_light_conn_,
+              ic_data.arriving_route_edge_._from->get_station()->_id,
+              distributions_container::container::key::departure,
+              0 /* todo scheduled */));
   // arrival ICE_S_E in Erlangen
   ratings.back().arrival_distribution_ =
       precomputed_distributions.get_distribution(
-          ic_data.arriving_route_edge_._to->_id, 0,
-          distributions_container::arrival);
+          distributions_container::to_container_key(
+              ic_data.arriving_light_conn_,
+              ic_data.arriving_route_edge_._to->get_station()->_id,
+              distributions_container::container::key::arrival,
+              0 /* todo scheduled */));
 
   // departure ICE_E_K in Erlangen
   ratings.emplace_back(2);
   calc_departure_distribution::data_departure_interchange dep_data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, ratings[0].arrival_distribution_,
-      test_info.get_schedule(), precomputed_distributions,
-      precomputed_distributions, s_t_distributions);
+      precomputed_distributions,
+      context(test_info.get_schedule(), precomputed_distributions,
+              s_t_distributions));
   calc_departure_distribution::interchange::compute_departure_distribution(
       dep_data, ratings.back().departure_distribution_);
 
@@ -174,25 +180,45 @@ std::vector<rating::rating_element> compute_test_ratings2(
   node const& node_b = *graph_accessor::get_departing_route_edge(node_m)->_to;
   node const& node_d1 = *graph_accessor::get_departing_route_edge(node_b)->_to;
   {
-    distributions_container::ride_distributions_container ride_distributions;
+    distributions_container::container ride_distributions;
     distributions_calculator::ride_distribution::detail::
         compute_distributions_for_a_ride(0, node_d1, c, ride_distributions);
     ratings.emplace_back(1);
     // departure RE_M_B_D in Mannheim
     ratings.back().departure_distribution_ =
-        ride_distributions.get_distribution(node_m._id, 0,
-                                            distributions_container::departure);
+        ride_distributions.get_distribution(
+            distributions_container::to_container_key(
+                graph_accessor::get_departing_route_edge(node_m)
+                    ->_m._route_edge._conns.front(),
+                node_m.get_station()->_id,
+                distributions_container::container::key::departure,
+                0 /* todo scheduled */));
     // arrival RE_M_B_D in Bensheim
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
-        node_b._id, 0, distributions_container::arrival);
+        distributions_container::to_container_key(
+            graph_accessor::get_departing_route_edge(node_m)
+                ->_m._route_edge._conns.front(),
+            node_b.get_station()->_id,
+            distributions_container::container::key::arrival,
+            0 /* todo scheduled */));
     ratings.emplace_back(2);
     // departure RE_M_B_D in Bensheim
     ratings.back().departure_distribution_ =
-        ride_distributions.get_distribution(node_b._id, 0,
-                                            distributions_container::departure);
+        ride_distributions.get_distribution(
+            distributions_container::to_container_key(
+                graph_accessor::get_departing_route_edge(node_b)
+                    ->_m._route_edge._conns.front(),
+                node_b.get_station()->_id,
+                distributions_container::container::key::departure,
+                0 /* todo scheduled */));
     // arrival RE_M_B_D in Darmstadt
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
-        node_d1._id, 0, distributions_container::arrival);
+        distributions_container::to_container_key(
+            graph_accessor::get_departing_route_edge(node_b)
+                ->_m._route_edge._conns.front(),
+            node_d1.get_station()->_id,
+            distributions_container::container::key::arrival,
+            0 /* todo scheduled */));
   }
 
   /* distributions for RE_D_F_G */
@@ -207,8 +233,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
   ratings.emplace_back(3);
   calc_departure_distribution::data_departure_interchange dep_data(
       true, node_d2, lc_d_f, lc_b_d, ratings[1].arrival_distribution_,
-      test_info.get_schedule(), c.precomputed_distributions_,
-      c.precomputed_distributions_, c.s_t_distributions_);
+      c.precomputed_distributions_,
+      context(test_info.get_schedule(), c.precomputed_distributions_,
+              c.s_t_distributions_));
   calc_departure_distribution::interchange::compute_departure_distribution(
       dep_data, ratings.back().departure_distribution_);
 
@@ -225,10 +252,11 @@ std::vector<rating::rating_element> compute_test_ratings2(
   auto const& lc_f_g = edge_f_g._m._route_edge._conns[0];
   ratings.emplace_back(4);
   calc_departure_distribution::data_departure dep_data_f(
-      node_f, lc_f_g, false, test_info.get_schedule(),
+      node_f, lc_f_g, false,
       distributions_container::single_distribution_container(
           ratings[2].arrival_distribution_),
-      c.precomputed_distributions_, c.s_t_distributions_);
+      context(test_info.get_schedule(), c.precomputed_distributions_,
+              c.s_t_distributions_));
   calc_departure_distribution::compute_departure_distribution(
       dep_data_f, ratings.back().departure_distribution_);
 
@@ -249,8 +277,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
   ratings.emplace_back(5);
   calc_departure_distribution::data_departure_interchange dep_data_g(
       true, node_g, lc_g_m, lc_f_g, ratings[3].arrival_distribution_,
-      test_info.get_schedule(), c.precomputed_distributions_,
-      c.precomputed_distributions_, c.s_t_distributions_);
+      c.precomputed_distributions_,
+      context(test_info.get_schedule(), c.precomputed_distributions_,
+              c.s_t_distributions_));
   calc_departure_distribution::interchange::compute_departure_distribution(
       dep_data_g, ratings.back().departure_distribution_);
 
@@ -304,8 +333,7 @@ TEST_F(reliability_public_transport5, rate2) {
  * Frankfurt Hbf to Frankfurt Messe via walking, and
  * Frankfurt Messe to Frankfurt West with S_M_W */
 std::vector<rating::rating_element> compute_test_ratings_foot(
-    distributions_container::precomputed_distributions_container const&
-        precomputed_distributions,
+    distributions_container::container const& precomputed_distributions,
     start_and_travel_distributions const& s_t_distributions,
     reliability_public_transport3 const& test_info) {
   std::vector<rating::rating_element> ratings;
@@ -321,13 +349,19 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   ratings.emplace_back(1);
   ratings.back().departure_distribution_ =
       precomputed_distributions.get_distribution(
-          ic_data.arriving_route_edge_._from->_id, 0,
-          distributions_container::departure);
+          distributions_container::to_container_key(
+              ic_data.arriving_light_conn_,
+              ic_data.arriving_route_edge_._from->get_station()->_id,
+              distributions_container::container::key::departure,
+              0 /* todo scheduled */));
   // arrival ICE_L_H in Frankfurt Hbf
   ratings.back().arrival_distribution_ =
       precomputed_distributions.get_distribution(
-          ic_data.arriving_route_edge_._to->_id, 0,
-          distributions_container::arrival);
+          distributions_container::to_container_key(
+              ic_data.arriving_light_conn_,
+              ic_data.arriving_route_edge_._to->get_station()->_id,
+              distributions_container::container::key::arrival,
+              0 /* todo scheduled */));
 
   // departure S_M_W in Frankfurt Messe
   ratings.emplace_back(3);
@@ -335,8 +369,9 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to->_station_node,
       ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
-      ratings[0].arrival_distribution_, test_info.get_schedule(),
-      precomputed_distributions, precomputed_distributions, s_t_distributions);
+      ratings[0].arrival_distribution_, precomputed_distributions,
+      context(test_info.get_schedule(), precomputed_distributions,
+              s_t_distributions));
   calc_departure_distribution::interchange::compute_departure_distribution(
       dep_data, ratings.back().departure_distribution_);
 

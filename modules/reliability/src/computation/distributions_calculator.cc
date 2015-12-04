@@ -43,15 +43,13 @@ void output_element(std::ostream& os, schedule const& schedule,
 
 void compute_dep_and_arr_distribution(
     queue_element const& element,
-    distributions_container::abstract_distributions_container const&
-        train_distributions_container,
+    distributions_container::container const& train_distributions_container,
     context const& context, probability_distribution& departure_distribution,
     probability_distribution& arrival_distribution) {
   assert(departure_distribution.empty());
   calc_departure_distribution::data_departure d_data(
       *element.from_, *element.light_connection_, element.is_first_route_node_,
-      context.schedule_, train_distributions_container,
-      context.precomputed_distributions_, context.s_t_distributions_);
+      train_distributions_container, context);
   calc_departure_distribution::compute_departure_distribution(
       d_data, departure_distribution);
 
@@ -86,28 +84,15 @@ bool is_pre_computed_route(schedule const& schedule,
   return false;
 }
 
-void prepare_distributions_container(
-    edge const& route_edge,
-    distributions_container::precomputed_distributions_container& container) {
-  container.create_route_node_distributions(
-      route_edge._from->_id, distributions_container::departure,
-      route_edge._m._route_edge._conns.size());
-  container.create_route_node_distributions(
-      route_edge._to->_id, distributions_container::arrival,
-      route_edge._m._route_edge._conns.size());
-}
-
 template <bool IsFirstRouteNode, bool CheckClass>
-void insert_all_light_connections(
-    node const& tail_node, common::queue_type& queue,
-    distributions_container::precomputed_distributions_container& container,
-    schedule const& schedule) {
+void insert_all_light_connections(node const& tail_node,
+                                  common::queue_type& queue,
+                                  schedule const& schedule) {
   if (!CheckClass || detail::is_pre_computed_route(schedule, tail_node)) {
     auto const route_edge = graph_accessor::get_departing_route_edge(tail_node);
     if (route_edge == nullptr) {
       return;
     }
-    prepare_distributions_container(*route_edge, container);
     for (unsigned short light_conn_idx = 0;
          light_conn_idx < route_edge->_m._route_edge._conns.size();
          ++light_conn_idx) {
@@ -122,18 +107,21 @@ void process_element(
     common::queue_element const& element, schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
     common::queue_type& queue,
-    distributions_container::precomputed_distributions_container&
-        distributions_container) {
+    distributions_container::container& distributions_container) {
   /* departure distribution */
   auto& departure_distribution =
       distributions_container.get_distribution_non_const(
-          element.from_->_id, element.light_connection_idx_,
-          distributions_container::departure);
+          distributions_container::to_container_key(
+              *element.light_connection_, element.from_->get_station()->_id,
+              distributions_container::container::key::departure,
+              0 /* todo scheduled time */));
   /* arrival distribution */
   auto& arrival_distribution =
       distributions_container.get_distribution_non_const(
-          element.to_->_id, element.light_connection_idx_,
-          distributions_container::arrival);
+          distributions_container::to_container_key(
+              *element.light_connection_, element.to_->get_station()->_id,
+              distributions_container::container::key::arrival,
+              0 /* todo scheduled time */));
 
   if (!departure_distribution.empty() || !arrival_distribution.empty()) {
     std::cout << "\nWarning(distributions_calculator): departure or arrival "
@@ -152,8 +140,8 @@ void process_element(
   // But we have to insert the light connections of the head-node
   // only once into the queue.
   if (element.light_connection_idx_ == 0) {
-    detail::insert_all_light_connections<false, false>(
-        *element.to_, queue, distributions_container, schedule);
+    detail::insert_all_light_connections<false, false>(*element.to_, queue,
+                                                       schedule);
   }
 }
 }  // namespace detail
@@ -161,14 +149,13 @@ void process_element(
 void perform_precomputation(
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions,
-    distributions_container::precomputed_distributions_container&
-        distributions_container) {
+    distributions_container::container& distributions_container) {
   logging::scoped_timer time("computing distributions");
   common::queue_type queue;
 
   for (auto const first_route_node : schedule.route_index_to_first_route_node) {
-    detail::insert_all_light_connections<true, true>(
-        *first_route_node, queue, distributions_container, schedule);
+    detail::insert_all_light_connections<true, true>(*first_route_node, queue,
+                                                     schedule);
   }
 
   while (!queue.empty()) {

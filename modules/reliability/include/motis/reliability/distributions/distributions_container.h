@@ -31,17 +31,6 @@ struct container {
 
   virtual ~container() {}
 
-  virtual void add_distribution(key const& k,
-                                probability_distribution const& pd) {
-    auto& it = distributions_[k];
-    if (it.empty()) {
-      it = pd;
-    } else {
-      std::cout << "\nWarning(container::add_distribution): key is not unique!"
-                << std::endl;
-    }
-  }
-
   virtual probability_distribution const& get_distribution(key const& k) const {
     auto it = distributions_.find(k);
     if (it != distributions_.end()) {
@@ -50,15 +39,38 @@ struct container {
     return invalid_distribution_;
   }
 
+  virtual probability_distribution& get_distribution_non_const(key const& k) {
+    return distributions_[k];
+  }
+
+  virtual bool contains_distribution(key const& k) const {
+    auto it = distributions_.find(k);
+    if (it != distributions_.end()) {
+      return true;
+    }
+    return false;
+  }
+
 private:
   std::map<key, probability_distribution> distributions_;
   probability_distribution invalid_distribution_;
 };
 
-container::key to_container_key(light_connection const& lc,
-                                unsigned int const station_idx,
-                                container::key::event_type type,
-                                motis::time scheduled_event_time) {
+struct single_distribution_container : container {
+  single_distribution_container(probability_distribution const& distribution)
+      : distribution_(distribution) {}
+  probability_distribution const& get_distribution(key const&) const override {
+    return distribution_;
+  };
+
+private:
+  probability_distribution const& distribution_;
+};
+
+inline container::key to_container_key(light_connection const& lc,
+                                       unsigned int const station_idx,
+                                       container::key::event_type type,
+                                       motis::time scheduled_event_time) {
   auto const& conn_info = *lc._full_con->con_info;
   return {conn_info.train_nr,
           conn_info.family,

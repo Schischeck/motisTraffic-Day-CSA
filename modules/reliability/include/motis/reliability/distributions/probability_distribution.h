@@ -53,8 +53,8 @@ private:
   static const double THRESHOLD_SMALL_VALUES;
 };
 
-inline int timestamp_to_delay(time const& scheduled_time,
-                              time const& delayed_time) {
+inline int timestamp_to_delay(time const scheduled_time,
+                              time const delayed_time) {
   return delayed_time - scheduled_time;
 }
 

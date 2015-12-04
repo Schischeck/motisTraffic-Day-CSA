@@ -20,8 +20,8 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/interchange_data_for_tests.h"
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 
 namespace motis {
@@ -56,10 +56,11 @@ public:
     interchange::compute_departure_distribution(
         data_departure_interchange(
             true, *departing_route_edge._from, departing_light_conn,
-            arriving_light_conn, arrival_distribution, get_schedule(),
+            arriving_light_conn, arrival_distribution,
             get_reliability_module().precomputed_distributions(),
-            get_reliability_module().precomputed_distributions(),
-            get_reliability_module().s_t_distributions()),
+            context(get_schedule(),
+                    get_reliability_module().precomputed_distributions(),
+                    get_reliability_module().s_t_distributions())),
         dep_dist);
     compute_arrival_distribution(
         data_arrival(departing_light_conn, dep_dist, get_schedule(),

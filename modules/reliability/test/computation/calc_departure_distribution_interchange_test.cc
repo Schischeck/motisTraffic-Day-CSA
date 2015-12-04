@@ -14,8 +14,8 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 
 #include "../include/interchange_data_for_tests.h"
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
 
@@ -83,7 +83,7 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 // first route node without feeders, no waiting, interchange highly reliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic1) {
-  distributions_container::precomputed_distributions_container dummy(0);
+  distributions_container::container dummy;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
   interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
                                            FRANKFURT, STUTTGART, 8 * 60,
@@ -92,8 +92,8 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.1, .7, .2}, -1);
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, arrival_distribution, *schedule_, dummy,
-      dummy, s_t_distributions);
+      ic_data.arriving_light_conn_, arrival_distribution, dummy,
+      context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
   ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
 
@@ -110,7 +110,7 @@ TEST_F(reliability_calc_departure_distribution2,
 // first route node without feeders, no waiting, interchange unreliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic2) {
-  distributions_container::precomputed_distributions_container dummy(0);
+  distributions_container::container dummy;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
   interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
                                            FRANKFURT, STUTTGART, 8 * 60,
@@ -119,8 +119,8 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.05, .05, .1, .1, .1, .1, .1, .1, 0.3}, -1);
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, arrival_distribution, *schedule_, dummy,
-      dummy, s_t_distributions);
+      ic_data.arriving_light_conn_, arrival_distribution, dummy,
+      context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
   ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
 
@@ -139,7 +139,7 @@ TEST_F(reliability_calc_departure_distribution2,
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic3) {
   // preceding-arrival: 10:18 - 10:19
-  precomputed_distributions_test_container precomputed({0.9, 0.1}, 3);
+  distributions_container::test_container precomputed({0.9, 0.1}, 3);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   // route node at Frankfurt of train ICE_K_F_S
   auto& tail_node_departing_train =
@@ -158,12 +158,13 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.4, .3, .2, .1}, 14);  // 10:14 - 10:17
   data_departure_interchange data(
       false, tail_node_departing_train, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, arrival_distribution, *schedule_,
-      precomputed, precomputed, s_t_distributions);
+      ic_data.arriving_light_conn_, arrival_distribution, precomputed,
+      context(*schedule_, precomputed, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
   ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
-  ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
-              test_util::minutes_to_motis_time(10 * 60 + 15));
+  ASSERT_TRUE(
+      data.train_info_.preceding_arrival_info_.scheduled_arrival_time_ ==
+      test_util::minutes_to_motis_time(10 * 60 + 15));
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
 
   probability_distribution departure_distribution;
@@ -180,7 +181,7 @@ TEST_F(reliability_calc_departure_distribution2,
 // first route node, waiting for ic-feeder and other feeder
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic5) {
-  precomputed_distributions_test_container precomputed(
+  distributions_container::test_container precomputed(
       {.9, .05, .05}, 12);  // feeder arrival 11:27 - 11:29
   start_and_travel_test_distributions s_t_distributions(
       {.6, .4});  // start distribution 11:32 - 11:33
@@ -195,12 +196,12 @@ TEST_F(reliability_calc_departure_distribution2,
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, arrival_distribution, *schedule_,
-      precomputed, precomputed, s_t_distributions);
+      ic_data.arriving_light_conn_, arrival_distribution, precomputed,
+      context(*schedule_, precomputed, s_t_distributions));
 
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
   ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 3);
-  ASSERT_TRUE(data.feeders_.at(0).arrival_time_ ==
+  ASSERT_TRUE(data.feeders_.at(0).scheduled_arrival_time_ ==
               test_util::minutes_to_motis_time(11 * 60 + 15));
   ASSERT_TRUE(data.feeders_.at(0).transfer_time_ == 5);
   ASSERT_TRUE(data.feeders_.at(0).latest_feasible_arrival_ ==

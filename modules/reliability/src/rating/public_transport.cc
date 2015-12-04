@@ -25,18 +25,21 @@ namespace public_transport {
 void distributions_for_first_train(
     std::vector<rating_element>& ratings,
     std::vector<connection_element> const& elements,
-    distributions_container::abstract_distributions_container const&
-        distributions_container) {
+    distributions_container::container const& distributions_container) {
   for (auto const& element : elements) {
     ratings.emplace_back(element.departure_stop_idx_);
     ratings.back().departure_distribution_ =
         distributions_container.get_distribution(
-            element.from_->_id, element.light_connection_idx_,
-            distributions_container::departure);
+            distributions_container::to_container_key(
+                *element.light_connection_, element.from_->get_station()->_id,
+                distributions_container::container::key::departure,
+                0 /* todo scheduled time */));
     ratings.back().arrival_distribution_ =
         distributions_container.get_distribution(
-            element.to_->_id, element.light_connection_idx_,
-            distributions_container::arrival);
+            distributions_container::to_container_key(
+                *element.light_connection_, element.to_->get_station()->_id,
+                distributions_container::container::key::arrival,
+                0 /* todo scheduled time */));
   }
 }
 
@@ -45,8 +48,7 @@ create_data_for_interchange(
     connection_element const& element,
     connection_element const& preceding_element,
     probability_distribution const& arrival_distribution,
-    distributions_container::abstract_distributions_container const&
-        train_distributions,
+    distributions_container::container const& train_distributions,
     context const& context) {
   // interchange with walk
   if (preceding_element.to_->_station_node->_id !=
@@ -57,8 +59,7 @@ create_data_for_interchange(
             element.is_first_route_node_, *element.from_,
             *preceding_element.to_->_station_node, *element.light_connection_,
             *preceding_element.light_connection_, arrival_distribution,
-            context.schedule_, train_distributions,
-            context.precomputed_distributions_, context.s_t_distributions_));
+            train_distributions, context));
   }
   // interchange without walk
   return std::unique_ptr<
@@ -66,16 +67,14 @@ create_data_for_interchange(
       new calc_departure_distribution::data_departure_interchange(
           element.is_first_route_node_, *element.from_,
           *element.light_connection_, *preceding_element.light_connection_,
-          arrival_distribution, context.schedule_, train_distributions,
-          context.precomputed_distributions_, context.s_t_distributions_));
+          arrival_distribution, train_distributions, context));
 }
 
 void distributions_for_train_after_interchange(
     std::vector<rating_element>& ratings,
     std::vector<connection_element> const& elements,
     connection_element preceding_element,
-    distributions_container::abstract_distributions_container const&
-        train_distributions,
+    distributions_container::container const& train_distributions,
     context const& context) {
   for (auto const& element : elements) {
     ratings.emplace_back(element.departure_stop_idx_);
@@ -95,11 +94,10 @@ void distributions_for_train_after_interchange(
           std::unique_ptr<calc_departure_distribution::data_departure>(
               new calc_departure_distribution::data_departure(
                   *element.from_, *element.light_connection_,
-                  element.is_first_route_node_, context.schedule_,
+                  element.is_first_route_node_,
                   distributions_container::single_distribution_container(
                       preceding_arrival_distribution),
-                  context.precomputed_distributions_,
-                  context.s_t_distributions_));
+                  context));
       calc_departure_distribution::compute_departure_distribution(
           *dep_data, departure_distribution);
     }
@@ -118,21 +116,16 @@ void rate(std::vector<rating_element>& ratings,
           reliability::context const& context) {
   assert(elements.size() > 0);
 
-  distributions_container::ride_distributions_container ride_distributions;
+  distributions_container::container ride_distributions;
   auto const& precomputed_flags = distributions_calculator::ride_distribution::
       compute_missing_train_distributions(ride_distributions, elements,
                                           context);
 
   for (unsigned int train_idx = (first_element_already_processed ? 1 : 0);
        train_idx < elements.size(); ++train_idx) {
-    auto const& train_distributions =
-        precomputed_flags.at(train_idx)
-            ? dynamic_cast<distributions_container::
-                               abstract_distributions_container const&>(
-                  context.precomputed_distributions_)
-            : dynamic_cast<distributions_container::
-                               abstract_distributions_container const&>(
-                  ride_distributions);
+    auto const& train_distributions = precomputed_flags.at(train_idx)
+                                          ? context.precomputed_distributions_
+                                          : ride_distributions;
 
     if (train_idx == 0) {
       distributions_for_first_train(ratings, elements.front(),

@@ -17,8 +17,8 @@ data_arrival::data_arrival(
     probability_distribution const& departure_distribution,
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions)
-    : departure_info_(departure_distribution, light_connection.d_time),
-      scheduled_arrival_time_(light_connection.a_time) {
+    : departure_info_(departure_distribution, 0 /* todo scheduled */),
+      scheduled_arrival_time_(0 /* todo scheduled */) {
   init_travel_info(light_connection, s_t_distributions, schedule.categories);
 }
 

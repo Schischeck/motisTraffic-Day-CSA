@@ -4,6 +4,7 @@
 
 #include "motis/core/schedule/time.h"
 
+#include "motis/reliability/context.h"
 #include "motis/reliability/graph_accessor.h"
 
 namespace motis {
@@ -26,10 +27,11 @@ namespace calc_departure_distribution {
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct data_departure {
-  data_departure(node const& route_node, light_connection const&,
-                 bool const is_first_route_node, reliability::context const&,
-                 distributions_container::container const&
-                     distributions_preceding_arrival);
+  data_departure(
+      node const& route_node, light_connection const&,
+      bool const is_first_route_node,
+      distributions_container::container const& distributions_preceding_arrival,
+      reliability::context const&);
 
   /* constructor necessary for the derived struct data_departure_connection */
   data_departure(bool const is_first_route_node, time const scheduled_dep_time);
@@ -40,12 +42,12 @@ struct data_departure {
 
   bool const is_first_route_node_;
 
-  time const scheduled_departure_time_;
+  time scheduled_departure_time_;
 
   union train_info {
     struct preceding_arrival_info {
       /** scheduled arrival time of the preceding arrival event of the train */
-      time arrival_time_;
+      time scheduled_arrival_time_;
 
       /** arrival distribution of the preceding arrival event of the train */
       probability_distribution const* arrival_distribution_;

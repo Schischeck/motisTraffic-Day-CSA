@@ -44,7 +44,7 @@ inline light_connection const& get_previous_light_connection(
     array<light_connection> const& arriving_light_connections,
     motis::time const departure_time) {
   if (arriving_light_connections.size() == 1) {
-    return arriving_light_connections.begin();
+    return arriving_light_connections.front();
   }
   auto ub = std::upper_bound(
       arriving_light_connections.begin(), arriving_light_connections.end(),
@@ -53,9 +53,9 @@ inline light_connection const& get_previous_light_connection(
         return dep_time < lc.a_time;
       });
   if (ub == arriving_light_connections.begin()) {
-    return *arriving_light_connections.front();
+    return arriving_light_connections.front();
   } else if (ub == arriving_light_connections.end()) {
-    return *arriving_light_connections.back();
+    return arriving_light_connections.back();
   }
   return *(--ub);
 }
@@ -77,10 +77,8 @@ inline std::tuple<bool, time, time> get_feeder_time_interval(
 
 #define FEEDER_THRESHOLD 30 /* XXX */
 struct feeder_info {
-  feeder_info(light_connection const& light_conn, unsigned int const route_id)
-      : light_conn_(light_conn), route_id_(route_id) {}
-  light_connection const& light_conn_;
-  unsigned int const route_id_;
+  light_connection const* light_conn_;
+  int route_id_;
 };
 inline std::vector<feeder_info> get_all_potential_feeders(
     node const& route_node, motis::time const departure_time,
@@ -105,7 +103,7 @@ inline std::vector<feeder_info> get_all_potential_feeders(
         for (unsigned int i = 0; i < all_connections.size(); i++) {
           if (all_connections[i].a_time >= time_begin &&
               all_connections[i].a_time <= time_end) {
-            feeders.emplace_back(all_connections[i], feeder_route_node._route);
+            feeders.push_back({&all_connections[i], feeder_route_node._route});
           }
         }
       }

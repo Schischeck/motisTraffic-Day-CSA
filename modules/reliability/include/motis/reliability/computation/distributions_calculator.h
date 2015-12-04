@@ -15,9 +15,7 @@ struct context;
 struct probability_distribution;
 struct start_and_travel_distributions;
 namespace distributions_container {
-struct abstract_distributions_container;
-struct precomputed_distributions_container;
-struct ride_distributions_container;
+struct container;
 }
 
 namespace distributions_calculator {
@@ -53,16 +51,15 @@ using queue_type =
 
 void compute_dep_and_arr_distribution(
     queue_element const& element,
-    distributions_container::abstract_distributions_container const&
-        train_distributions_container,
+    distributions_container::container const& train_distributions_container,
     context const&, probability_distribution& departure_distribution,
     probability_distribution& arrival_distribution);
 }  // namespace common
 
 namespace precomputation {
-void perform_precomputation(
-    schedule const&, start_and_travel_distributions const&,
-    distributions_container::precomputed_distributions_container&);
+void perform_precomputation(schedule const&,
+                            start_and_travel_distributions const&,
+                            distributions_container::container&);
 
 namespace detail {
 bool is_pre_computed_route(schedule const& schedule,

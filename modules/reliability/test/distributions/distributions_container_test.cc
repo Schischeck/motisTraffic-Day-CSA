@@ -61,7 +61,7 @@ TEST(reliability_distributions_container, realtime_container) {
   distributions.back().second.init({1.0}, 3);
 
   for (auto const& it : distributions) {
-    c.add_distribution(it.first, it.second);
+    c.get_distribution_non_const(it.first) = it.second;
   }
 
   for (auto const& it : distributions) {
