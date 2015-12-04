@@ -4,6 +4,12 @@
 
 #include "boost/program_options.hpp"
 
+#include "osrm-backend/library/osrm.hpp"
+#include "osrm-backend/plugins/multi_target.hpp"
+#include "osrm-backend/server/data_structures/datafacade_base.hpp"
+#include "osrm-backend/server/data_structures/internal_datafacade.hpp"
+#include "osrm-backend/util/simple_logger.hpp"
+
 #include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
