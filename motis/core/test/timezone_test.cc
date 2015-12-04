@@ -212,5 +212,31 @@ TEST(core_timezone, move_season_end_to_schedule_period_end) {
   ASSERT_EQ(INVALID_TIME - season_offset, tz.season_.end);
 }
 
+TEST(core_timezone, invalid_event) {
+  auto const general_offset = 60;
+  auto const season_offset = 120;
+
+  auto const day_idx_schedule_first_day = 0;
+  auto const day_idx_schedule_last_day = 6;
+
+  auto const day_idx_season_first_day = 1;
+  auto const day_idx_season_last_day = 5;
+
+  auto const minutes_after_midnight_season_begin = 120;
+  auto const minutes_after_midnight_season_end = 180;
+
+  timezone const tz = create_timezone(
+      general_offset, season_offset, day_idx_schedule_first_day,
+      day_idx_schedule_last_day, day_idx_season_first_day,
+      day_idx_season_last_day, minutes_after_midnight_season_begin,
+      minutes_after_midnight_season_end);
+
+  // { MAD [ 2*MAD  3*MAD 4*MAD 5*MAD  6*MAD ] 7*MAD }
+  EXPECT_FALSE(tz.is_invalid_time(tz.to_motis_time(1, 119)));
+  EXPECT_FALSE(tz.is_invalid_time(tz.to_motis_time(1, 180)));
+  EXPECT_TRUE(tz.is_invalid_time(tz.to_motis_time(1, 120)));
+  EXPECT_TRUE(tz.is_invalid_time(tz.to_motis_time(1, 179)));
+}
+
 }  // namespace loader
 }  // namespace motis
