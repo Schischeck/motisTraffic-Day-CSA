@@ -1,5 +1,6 @@
 #include "motis/loader/graph_builder.h"
 
+#include <cassert>
 #include <functional>
 #include <unordered_set>
 
@@ -30,16 +31,41 @@ using namespace ranges;
 namespace motis {
 namespace loader {
 
-class graph_builder {
+struct route_info {
+  route_info() = default;
+  route_info(node* rn, int edge_idx)
+      : route_node(rn), outgoing_route_edge_index(edge_idx) {
+    assert(rn == nullptr || rn->is_route_node());
+  }
 
+  edge* edge() {
+    if (outgoing_route_edge_index == -1) {
+      return nullptr;
+    }
+
+    assert(outgoing_route_edge_index >= 0);
+    assert(static_cast<unsigned>(outgoing_route_edge_index) <
+           route_node->_edges.size());
+    assert(route_node->_edges[outgoing_route_edge_index].type() ==
+           edge::ROUTE_EDGE);
+    return &route_node->_edges[outgoing_route_edge_index];
+  }
+
+  node* route_node;
+  int outgoing_route_edge_index;
+};
+typedef std::vector<route_info> route;
+
+class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to, bool unique_check)
+                time_t to, bool unique_check, bool apply_rules)
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
         last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
-        unique_check_(unique_check) {
+        unique_check_(unique_check),
+        apply_rules_(apply_rules) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
@@ -121,14 +147,14 @@ public:
   }
 
   bool is_unique_service(Service const* service, bitfield const& traffic_days,
-                         std::vector<node*> const& route_nodes) const {
+                         route const& route_nodes) const {
     auto const& sections = service->sections();
     for (unsigned section_idx = 0; section_idx < sections->size();
          ++section_idx) {
       unsigned train_nr = sections->Get(section_idx)->train_nr();
       auto base_d_time = service->times()->Get(section_idx * 2 + 1);
       auto base_a_time = service->times()->Get(section_idx * 2 + 2);
-      auto route_node = route_nodes[section_idx];
+      auto route_node = route_nodes[section_idx].route_node;
       auto const& route_edge = route_node->_edges[1];
       auto from_station = route_edge._from->get_station();
       auto to_station = route_edge._to->get_station();
@@ -155,6 +181,7 @@ public:
             for (auto const& lc : other_route_edge._m._route_edge._conns) {
               if (lc._full_con->con_info->train_nr == train_nr &&
                   lc.d_time == d_time) {
+
                 return false;
               }
             }
@@ -178,33 +205,287 @@ public:
     return true;
   }
 
-  void add_service(Service const* service) {
-    auto const& sections = service->sections();
+  void add_rule_services(Vector<Offset<RuleService>> const* rule_services) {
+    if (rule_services == nullptr) {
+      return;
+    }
 
+    unsigned route_id = routes_.size();
+    for (auto const& rule_service : *rule_services) {
+      auto traffic_days = get_or_create_bitfield(
+          rule_service->rules()->Get(0)->service1()->traffic_days());
+      if (!accumulate(view::ints(first_day_, last_day_ + 1), false,
+                      [&traffic_days](bool acc, int day) {
+                        return acc || traffic_days.test(day);
+                      })) {
+        continue;
+      }
+
+      int iterations = 0;
+      std::map<Service const*, route const*> service_route_nodes;
+      bool first = true;
+      std::vector<std::string> history;
+      std::vector<Rule const*> rules(begin(*rule_service->rules()),
+                                     end(*rule_service->rules()));
+      auto it = begin(rules);
+      while (!rules.empty()) {
+        if (it == end(rules)) {
+          it = begin(rules);
+        }
+        auto const& rule = *it;
+
+        try {
+          ++iterations;
+          verify(iterations < 10000, "iterations maximum reached");
+
+          if (rule->type() != RuleType_MERGE_SPLIT) {
+            it = rules.erase(it);
+            continue;
+          }
+
+          auto s1_it = service_route_nodes.find(rule->service1());
+          auto s2_it = service_route_nodes.find(rule->service2());
+
+          auto s1_new = s1_it == end(service_route_nodes);
+          auto s2_new = s2_it == end(service_route_nodes);
+
+          if (!first && s1_new && s2_new) {
+            ++it;
+            continue;
+          }
+
+          verify(s1_new || s2_new, "not both services already built");
+          if (s1_new && !s2_new) {
+            service_route_nodes.emplace(
+                rule->service1(), add_remaining_merge_split_sections(
+                                      traffic_days, route_id, rule->service1(),
+                                      rule, s2_it->second));
+          } else if (!s1_new && s2_new) {
+            service_route_nodes.emplace(
+                rule->service2(), add_remaining_merge_split_sections(
+                                      traffic_days, route_id, rule->service2(),
+                                      rule, s1_it->second));
+          } else /* if (s1_new && s2_new) */ {
+            std::tie(s1_it, std::ignore) = service_route_nodes.emplace(
+                rule->service1(), add_service(rule->service1(), route_id));
+            service_route_nodes.emplace(
+                rule->service2(), add_remaining_merge_split_sections(
+                                      traffic_days, route_id, rule->service2(),
+                                      rule, s1_it->second));
+          }
+        } catch (...) {
+          printf("\n\n\nERROR:\n");
+          printf("offending %d %d\n\n",
+                 rule->service1()->sections()->Get(0)->train_nr(),
+                 rule->service2()->sections()->Get(0)->train_nr());
+          for (auto const& r : *rule_service->rules()) {
+            auto t1 = r->service1()->sections()->Get(0)->train_nr();
+            auto t2 = r->service2()->sections()->Get(0)->train_nr();
+            printf("%d\t%d\t\t\t%p\t%p\n", t1, t2, r->service1(),
+                   r->service2());
+          }
+          printf("\n\n\n");
+          goto next;
+        }
+
+        it = rules.erase(it);
+        first = false;
+      }
+
+    next:
+      ++route_id;
+    }
+  }
+
+  route const* add_remaining_merge_split_sections(
+      bitfield const& traffic_days, int route_index, Service const* new_service,
+      Rule const* r, route const* existing_service_route_nodes) {
+    auto const& stops = new_service->route()->stations();
+    auto merge_station_id = sched_.eva_to_station.at(r->eva_1()->str())->index;
+    auto split_station_id = sched_.eva_to_station.at(r->eva_2()->str())->index;
+
+    // Determine merge and split route nodes of the existing service.
+    auto merge_rn_it = std::find_if(begin(*existing_service_route_nodes),
+                                    end(*existing_service_route_nodes),
+                                    [&merge_station_id](route_info const& n) {
+                                      return n.route_node->get_station()->_id ==
+                                             merge_station_id;
+                                    });
+    verify(merge_rn_it != end(*existing_service_route_nodes),
+           "mss: service[1] doesn't contain merge station mentioned in rule");
+    auto other_service_merge_idx =
+        std::distance(begin(*existing_service_route_nodes), merge_rn_it);
+
+    auto split_rn_it = std::find_if(begin(*existing_service_route_nodes),
+                                    end(*existing_service_route_nodes),
+                                    [&split_station_id](route_info const& n) {
+                                      return n.route_node->get_station()->_id ==
+                                             split_station_id;
+                                    });
+    verify(split_rn_it != end(*existing_service_route_nodes),
+           "mss: service[1] doesn't contain split station mentioned in rule");
+#ifndef NDEBUG
+    auto other_service_split_idx =
+        std::distance(begin(*existing_service_route_nodes), split_rn_it);
+#endif
+
+    // Determine merge and split stop indices of the new service.
+    auto merge_stop_it = std::find_if(
+        begin(*stops), end(*stops),
+        [&r](Station const* s) { return s->id()->str() == r->eva_1()->str(); });
+    verify(merge_stop_it != end(*stops),
+           "mss: service[2] doesn't contain merge station mentioned in rule");
+    auto merge_stop_idx = std::distance(begin(*stops), merge_stop_it);
+
+    auto split_stop_it = std::find_if(
+        begin(*stops), end(*stops),
+        [&r](Station const* s) { return s->id()->str() == r->eva_2()->str(); });
+    verify(split_stop_it != end(*stops),
+           "mss: service[2] doesn't contain split station mentioned in rule");
+    auto split_stop_idx = std::distance(begin(*stops), split_stop_it);
+
+    enum state {
+      ENTRY,  // allows to skip the BUILD_END state (1st station = merge)
+      BUILD,  // non-common part of both services -> build new service
+      BUILD_END,  // merge station -> set edge target of last built edge
+      SKIP,  // common part -> do nothing
+      SKIP_END  // split station -> start building
+    };
+    auto next_state = [](state s, bool merge, bool split) {
+      switch (s) {
+        case ENTRY:
+          if (merge) {
+            return SKIP;
+          } else {
+            return BUILD;
+          }
+
+        case BUILD:
+          if (merge) {
+            return BUILD_END;
+          } else {
+            return BUILD;
+          }
+          break;
+
+        case BUILD_END: return SKIP; break;
+
+        case SKIP:
+          if (split) {
+            return SKIP_END;
+          } else {
+            return SKIP;
+          }
+          break;
+
+        case SKIP_END: return BUILD; break;
+      }
+    };
+
+    state s = ENTRY;
+    edge* last_route_edge = nullptr;
+    auto route_nodes = make_unique<route>();
+    auto const& in_allowed = new_service->route()->in_allowed();
+    auto const& out_allowed = new_service->route()->out_allowed();
+    for (unsigned stop_idx = 0,
+                  other_service_route_node_idx = other_service_merge_idx;
+         stop_idx < stops->size(); ++stop_idx, ++other_service_route_node_idx) {
+      s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
+      route_info route_node(nullptr, -1);
+      switch (s) {
+        case ENTRY: assert(false && "state not accessible");
+        case BUILD:
+          std::tie(route_node, last_route_edge) = add_route_section(
+              route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
+              out_allowed->Get(stop_idx), last_route_edge,
+              stop_idx != stops->size() - 1);
+          break;
+
+        case BUILD_END:
+          route_node = *merge_rn_it;
+          last_route_edge->_to = merge_rn_it->route_node;
+          other_service_route_node_idx = other_service_merge_idx;
+          break;
+
+        case SKIP:
+          route_node =
+              (*existing_service_route_nodes)[other_service_route_node_idx];
+          // add_merge_info(route_node.edge());
+          break;
+
+        case SKIP_END:
+          assert(other_service_route_node_idx == other_service_split_idx);
+          std::tie(route_node, last_route_edge) = add_route_section(
+              route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
+              out_allowed->Get(stop_idx), nullptr,
+              stop_idx != stops->size() - 1, split_rn_it->route_node);
+          break;
+      }
+
+      verify(route_node.route_node != nullptr &&
+                 (stop_idx == stops->size() - 1 ||
+                  route_node.outgoing_route_edge_index != -1),
+             "route node must be set and only last node has no outgoing edge: "
+             "stop_idx=%d, #stops=%d, "
+             "route_node.outgoing_route_edge_index=%d\n",
+             stop_idx, stops->size(), route_node.outgoing_route_edge_index);
+      route_nodes->push_back(route_node);
+    }
+
+    for (unsigned stop_idx = 0; stop_idx < stops->size() - 1; ++stop_idx) {
+      s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
+      switch (s) {
+        case BUILD:
+        case SKIP_END:
+          add_service_section(
+              (*route_nodes)[stop_idx].edge(),
+              new_service->sections()->Get(stop_idx),
+              new_service->platforms()
+                  ? new_service->platforms()->Get(stop_idx + 1)->arr_platforms()
+                  : nullptr,
+              new_service->platforms()
+                  ? new_service->platforms()->Get(stop_idx)->dep_platforms()
+                  : nullptr,
+              new_service->times()->Get(stop_idx * 2 + 1),
+              new_service->times()->Get(stop_idx * 2 + 2), traffic_days);
+          break;
+
+        default:;
+      }
+    }
+
+    routes_mem_.emplace_back(std::move(route_nodes));
+    return routes_mem_.back().get();
+  }
+
+  route const* add_service(Service const* service, int route_index = -1) {
     auto traffic_days = get_or_create_bitfield(service->traffic_days());
-
     if (!accumulate(view::closed_ints(first_day_, last_day_), false,
                     [&traffic_days](bool acc, int day) {
                       return acc || traffic_days.test(day);
                     })) {
-      return;
+      return nullptr;
     }
 
     auto route_nodes = get_or_create(
-        routes_, service->route(), std::bind(&graph_builder::create_route, this,
-                                             service->route(), routes_.size()));
-    if (unique_check_ &&
-        !is_unique_service(service, traffic_days, route_nodes)) {
-      return;
-    }
+        routes_, service->route(), [this, &service, &route_index]() {
+          routes_mem_.emplace_back(
+              create_route(service->route(),
+                           route_index == -1 ? routes_.size() : route_index));
+          return routes_mem_.back().get();
+        });
 
+    if (unique_check_ &&
+        !is_unique_service(service, traffic_days, *route_nodes)) {
+      return route_nodes;
+    }
 
     std::unordered_set<uint32_t> train_nrs;
     auto offset = service->times()->Get(service->times()->size() - 2) / 1440;
-    for (unsigned section_idx = 0; section_idx < sections->size();
+    for (unsigned section_idx = 0; section_idx < service->sections()->size();
          ++section_idx) {
       add_service_section(
-          &route_nodes[section_idx]->_edges[1],
+          &(*route_nodes)[section_idx].route_node->_edges[1],
           service->sections()->Get(section_idx),
           service->platforms()
               ? service->platforms()->Get(section_idx + 1)->arr_platforms()
@@ -213,18 +494,20 @@ public:
               ? service->platforms()->Get(section_idx)->dep_platforms()
               : nullptr,
           service->times()->Get(section_idx * 2 + 1),
-          service->times()->Get(section_idx * 2 + 2), traffic_days,
-          service->origin(), offset);
+          service->times()->Get(section_idx * 2 + 2), traffic_days, offset);
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
     }
-    int32_t route_id = route_nodes[0]->_route;
-    for (uint32_t train_nr : train_nrs) {
-      auto& routes = sched_.train_nr_to_routes[train_nr];
-      if (std::find(std::begin(routes), std::end(routes), route_id) ==
-          std::end(routes)) {
-        routes.push_back(route_id);
+
+    if (route_index != -1) {
+      for (uint32_t train_nr : train_nrs) {
+        auto& routes = sched_.train_nr_to_routes[train_nr];
+        if (std::find(begin(routes), end(routes), route_index) == end(routes)) {
+          routes.push_back(route_index);
+        }
       }
     }
+
+    return route_nodes;
   }
 
   void add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
@@ -273,17 +556,16 @@ private:
     });
   }
 
-  void add_service_section(edge* curr_route_edge, Section const* curr_section,
+  void add_service_section(edge* e, Section const* section,
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days, String const* origin,
-                           int offset) {
-    assert(curr_route_edge->type() == edge::ROUTE_EDGE);
+                           bitfield const& traffic_days, int offset = 0) {
+    assert(e->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
-    auto& from = *sched_.stations[curr_route_edge->_from->get_station()->_id];
-    auto& to = *sched_.stations[curr_route_edge->_to->get_station()->_id];
+    auto& from = *sched_.stations[e->_from->get_station()->_id];
+    auto& to = *sched_.stations[e->_to->get_station()->_id];
 
     // Expand traffic days.
     for (int day = first_day_ - offset; day <= last_day_; ++day) {
@@ -297,12 +579,12 @@ private:
 
       // Build connection info.
       con_info_.line_identifier =
-          curr_section->line_id() ? curr_section->line_id()->str() : "";
-      con_info_.train_nr = curr_section->train_nr();
-      con_info_.family = get_or_create_category_index(curr_section->category());
-      con_info_.dir_ = get_or_create_direction(curr_section->direction());
-      con_info_.provider_ = get_or_create_provider(curr_section->provider());
-      read_attributes(dep_day_index, curr_section->attributes(),
+          section->line_id() ? section->line_id()->str() : "";
+      con_info_.train_nr = section->train_nr();
+      con_info_.family = get_or_create_category_index(section->category());
+      con_info_.dir_ = get_or_create_direction(section->direction());
+      con_info_.provider_ = get_or_create_provider(section->provider());
+      read_attributes(dep_day_index, section->attributes(),
                       con_info_.attributes);
 
       // Build full connection.
@@ -315,16 +597,14 @@ private:
       con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
       con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
 
-      auto clasz_it =
-          sched_.classes.find(curr_section->category()->name()->str());
+      auto clasz_it = sched_.classes.find(section->category()->name()->str());
       con_.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
       con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
       // Build light connection.
       auto const* dep_st =
-          sched_.stations.at(curr_route_edge->_from->get_station()->_id).get();
-      auto const* arr_st =
-          sched_.stations.at(curr_route_edge->_to->get_station()->_id).get();
+          sched_.stations.at(e->_from->get_station()->_id).get();
+      auto const* arr_st = sched_.stations.at(e->_to->get_station()->_id).get();
 
       auto const dep_motis_time =
           compute_event_time(day, dep_time, dep_st->timez);
@@ -335,7 +615,7 @@ private:
       //      arr_motis_time,
       //                      dep_time, arr_time, origin);
 
-      curr_route_edge->_m._route_edge._conns.emplace_back(
+      e->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,
           set_get_or_create(connections_, &con_, [&]() {
             sched_.full_connections.emplace_back(make_unique<connection>(con_));
@@ -452,11 +732,10 @@ private:
     }
 
     auto track_it = std::find_if(
-        std::begin(*platforms), std::end(*platforms),
-        [&](Platform const* track) {
+        begin(*platforms), end(*platforms), [&](Platform const* track) {
           return get_or_create_bitfield(track->bitfield()).test(day);
         });
-    if (track_it == std::end(*platforms)) {
+    if (track_it == end(*platforms)) {
       return NO_TRACK;
     } else {
       auto name = track_it->name()->str();
@@ -468,30 +747,50 @@ private:
     }
   }
 
-  std::vector<node*> create_route(Route const* route, int route_index) {
-    auto const& stops = route->stations();
-    auto const& in_allowed = route->in_allowed();
-    auto const& out_allowed = route->out_allowed();
-    std::vector<node*> route_nodes;
+  std::unique_ptr<route> create_route(Route const* r, int route_index) {
+    auto const& stops = r->stations();
+    auto const& in_allowed = r->in_allowed();
+    auto const& out_allowed = r->out_allowed();
+    auto route_nodes = make_unique<route>();
     edge* last_route_edge = nullptr;
     for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
-      auto const& from_stop = stops->Get(stop_idx);
-      auto const& station_node = stations_[from_stop];
-      auto station_id = station_node->_id;
-      auto route_node = new node(station_node, next_node_id_++);
+      auto section = add_route_section(
+          route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
+          out_allowed->Get(stop_idx), last_route_edge,
+          stop_idx != stops->size() - 1);
+      route_nodes->push_back(section.first);
+      last_route_edge = section.second;
+
+      if (stop_idx == 0) {
+        sched_.route_index_to_first_route_node.push_back(
+            section.first.route_node);
+      }
+    }
+    return route_nodes;
+  }
+
+  std::pair<route_info, edge*> add_route_section(
+      int route_index, Station const* from_stop, bool in_allowed,
+      bool out_allowed, edge* last_route_edge, bool build_outgoing_route_edge,
+      node* route_node = nullptr) {
+    auto const& station_node = stations_[from_stop];
+    auto station_id = station_node->_id;
+
+    if (route_node == nullptr) {
+      route_node = new node(station_node, next_node_id_++);
       route_node->_route = route_index;
 
       // Connect the new route node with the corresponding station node:
       // route -> station: edge cost = change time, interchange count
       // station -> route: free
-      if (in_allowed->Get(stop_idx) == 0) {
+      if (!in_allowed) {
         station_node->_edges.push_back(
             make_invalid_edge(station_node, route_node));
       } else {
         station_node->_edges.push_back(
             make_foot_edge(station_node, route_node));
       }
-      if (out_allowed->Get(stop_idx) == 0) {
+      if (!out_allowed) {
         route_node->_edges.push_back(
             make_invalid_edge(route_node, station_node));
       } else {
@@ -499,26 +798,26 @@ private:
             make_foot_edge(route_node, station_node,
                            sched_.stations[station_id]->transfer_time, true));
       }
-
-      // Connect route nodes with route edges.
-      if (stop_idx != stops->size() - 1) {
-        route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
-      }
-      if (last_route_edge != nullptr) {
-        last_route_edge->_to = route_node;
-        route_node->_incoming_edges.push_back(last_route_edge);
-      } else {
-        sched_.route_index_to_first_route_node.push_back(route_node);
-      }
-
-      last_route_edge = &route_node->_edges.back();
-      route_nodes.push_back(route_node);
     }
-    return route_nodes;
+
+    // Connect route nodes with route edges.
+    int route_edge_index = -1;
+    if (build_outgoing_route_edge) {
+      route_edge_index = route_node->_edges.size();
+      route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
+    }
+    if (last_route_edge != nullptr) {
+      last_route_edge->_to = route_node;
+      route_node->_incoming_edges.push_back(last_route_edge);
+    }
+
+    return {route_info(route_node, route_edge_index),
+            &route_node->_edges.back()};
   }
 
   std::map<Category const*, int> categories_;
-  std::map<Route const*, std::vector<node*>> routes_;
+  std::map<Route const*, route const*> routes_;
+  std::vector<std::unique_ptr<route>> routes_mem_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
   std::map<String const*, std::string const*> directions_;
@@ -535,13 +834,14 @@ private:
   schedule& sched_;
   int first_day_, last_day_;
   bool unique_check_;
+  bool apply_rules_;
 
   connection_info con_info_;
   connection con_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool unique_check) {
+                         bool unique_check, bool apply_rules) {
   scoped_timer timer("building graph");
 
   schedule_ptr sched(new schedule());
@@ -550,11 +850,12 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_end_ = to;
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
-                        unique_check);
+                        unique_check, apply_rules);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
   }
+  builder.add_rule_services(serialized->rule_services());
   builder.add_footpaths(serialized->footpaths());
   builder.connect_reverse();
   builder.sort_connections();

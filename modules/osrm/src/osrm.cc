@@ -14,7 +14,7 @@ namespace motis {
 namespace osrm {
 
 po::options_description osrm::desc() {
-  po::options_description desc("osrm Module");
+  po::options_description desc("OSRM Module");
   return desc;
 }
 

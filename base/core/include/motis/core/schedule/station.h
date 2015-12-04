@@ -32,7 +32,7 @@ public:
         dep_class_events({{0}}),
         timez(nullptr) {}
 
-  int index;
+  unsigned index;
   double length, width;
   int transfer_time;
   std::array<uint64_t, 10> arr_class_events, dep_class_events;
