@@ -38,7 +38,7 @@ struct route_info {
     assert(rn == nullptr || rn->is_route_node());
   }
 
-  edge* edge() {
+  edge* get_route_edge() {
     if (outgoing_route_edge_index == -1) {
       return nullptr;
     }
@@ -225,8 +225,8 @@ public:
       std::map<Service const*, route const*> service_route_nodes;
       bool first = true;
       std::vector<std::string> history;
-      std::vector<Rule const*> rules(begin(*rule_service->rules()),
-                                     end(*rule_service->rules()));
+      std::vector<Rule const*> rules(std::begin(*rule_service->rules()),
+                                     std::end(*rule_service->rules()));
       auto it = begin(rules);
       while (!rules.empty()) {
         if (it == end(rules)) {
@@ -331,18 +331,18 @@ public:
 
     // Determine merge and split stop indices of the new service.
     auto merge_stop_it = std::find_if(
-        begin(*stops), end(*stops),
+        std::begin(*stops), std::end(*stops),
         [&r](Station const* s) { return s->id()->str() == r->eva_1()->str(); });
-    verify(merge_stop_it != end(*stops),
+    verify(merge_stop_it != std::end(*stops),
            "mss: service[2] doesn't contain merge station mentioned in rule");
-    auto merge_stop_idx = std::distance(begin(*stops), merge_stop_it);
+    auto merge_stop_idx = std::distance(std::begin(*stops), merge_stop_it);
 
     auto split_stop_it = std::find_if(
-        begin(*stops), end(*stops),
+        std::begin(*stops), std::end(*stops),
         [&r](Station const* s) { return s->id()->str() == r->eva_2()->str(); });
-    verify(split_stop_it != end(*stops),
+    verify(split_stop_it != std::end(*stops),
            "mss: service[2] doesn't contain split station mentioned in rule");
-    auto split_stop_idx = std::distance(begin(*stops), split_stop_it);
+    auto split_stop_idx = std::distance(std::begin(*stops), split_stop_it);
 
     enum state {
       ENTRY,  // allows to skip the BUILD_END state (1st station = merge)
@@ -410,7 +410,7 @@ public:
         case SKIP:
           route_node =
               (*existing_service_route_nodes)[other_service_route_node_idx];
-          // add_merge_info(route_node.edge());
+          // add_merge_info(route_node.);
           break;
 
         case SKIP_END:
@@ -438,7 +438,7 @@ public:
         case BUILD:
         case SKIP_END:
           add_service_section(
-              (*route_nodes)[stop_idx].edge(),
+              (*route_nodes)[stop_idx].get_route_edge(),
               new_service->sections()->Get(stop_idx),
               new_service->platforms()
                   ? new_service->platforms()->Get(stop_idx + 1)->arr_platforms()
@@ -732,10 +732,11 @@ private:
     }
 
     auto track_it = std::find_if(
-        begin(*platforms), end(*platforms), [&](Platform const* track) {
+        std::begin(*platforms), std::end(*platforms),
+        [&](Platform const* track) {
           return get_or_create_bitfield(track->bitfield()).test(day);
         });
-    if (track_it == end(*platforms)) {
+    if (track_it == std::end(*platforms)) {
       return NO_TRACK;
     } else {
       auto name = track_it->name()->str();
