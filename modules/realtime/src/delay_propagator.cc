@@ -328,7 +328,7 @@ void delay_propagator::add_update(delay_info* di, motis::time new_time,
 
   _rts._stats._ops.propagator.updates++;
 
-  assert(di->_route_id > 0);
+  assert(di->_route_id >= 0); // XXX route_id 0 is first route!?
 
   std::vector<delay_info_update>& updates = _delay_info_updates[di->_route_id];
   auto e = std::find_if(
@@ -367,7 +367,7 @@ void delay_propagator::enqueue(const schedule_event& event_id,
   } else if (route_id != -1) {
     di->_route_id = route_id;
   }
-  assert(di->_route_id > 0);
+  assert(di->_route_id >= 0); // XXX route_id 0 is first route!?
   enqueue(di, queue_reason);
 }
 
@@ -388,7 +388,7 @@ void delay_propagator::enqueue(delay_info* di, queue_reason reason) {
 }
 
 void delay_propagator::update_route(delay_info* di, int32_t new_route) {
-  assert(di->_route_id > 0);
+  assert(di->_route_id >= 0); // XXX route_id 0 is first route!?
   assert(di->_route_id != new_route);
 
   std::vector<delay_info_update>& old_route_updates =
@@ -403,7 +403,7 @@ void delay_propagator::update_route(delay_info* di, int32_t new_route) {
 }
 
 motis::time delay_propagator::new_time(delay_info* di) const {
-  assert(di->_route_id > 0);
+  assert(di->_route_id >= 0); // XXX route_id 0 is first route!?
   auto it = _delay_info_updates.find(di->_route_id);
   if (it != _delay_info_updates.end()) {
     auto& updates = it->second;
@@ -424,7 +424,7 @@ motis::time delay_propagator::new_time(const schedule_event& event_id) const {
 }
 
 timestamp_reason delay_propagator::new_reason(delay_info* di) const {
-  assert(di->_route_id > 0);
+  assert(di->_route_id >= 0); // XXX route_id 0 is first route!?
   auto it = _delay_info_updates.find(di->_route_id);
   if (it != _delay_info_updates.end()) {
     auto& updates = it->second;

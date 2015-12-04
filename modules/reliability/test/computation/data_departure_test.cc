@@ -14,6 +14,7 @@
 #include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -23,8 +24,7 @@ class reliability_data_departure : public test_schedule_setup {
 public:
   reliability_data_departure()
       : test_schedule_setup("modules/reliability/resources/schedule/",
-                            to_unix_time(2015, 9, 28),
-                            to_unix_time(2015, 9, 29)) {}
+                            "20150928") {}
   /* eva numbers */
   std::string const DARMSTADT = "4219971";
   std::string const FRANKFURT = "8351230";
@@ -59,8 +59,10 @@ TEST_F(reliability_data_departure, first_route_node_no_feeders) {
   ASSERT_TRUE(
       schedule_->stations[first_route_node._station_node->_id]->eva_nr ==
       FRANKFURT);
-  ASSERT_TRUE(first_light_conn.d_time == 5 * 60 + 55);
-  ASSERT_TRUE(first_light_conn.a_time == 6 * 60 + 5);
+  ASSERT_TRUE(first_light_conn.d_time ==
+              test_util::minutes_to_motis_time(5 * 60 + 55));
+  ASSERT_TRUE(first_light_conn.a_time ==
+              test_util::minutes_to_motis_time(6 * 60 + 5));
   ASSERT_TRUE(first_light_conn._full_con->con_info->train_nr == 5);
 
   ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time);
@@ -102,8 +104,10 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
   ASSERT_TRUE(
       schedule_->stations[second_route_node->_station_node->_id]->eva_nr ==
       WURZBURG);
-  ASSERT_TRUE(light_connection.d_time == 10 * 60 + 34);
-  ASSERT_TRUE(light_connection.a_time == 11 * 60 + 7);
+  ASSERT_TRUE(light_connection.d_time ==
+              test_util::minutes_to_motis_time(10 * 60 + 34));
+  ASSERT_TRUE(light_connection.a_time ==
+              test_util::minutes_to_motis_time(11 * 60 + 7));
 
   ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time);
   ASSERT_TRUE(data.largest_delay() == 1);
@@ -112,7 +116,7 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
   ASSERT_TRUE(data.feeders_.size() == 0);
 
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
-              10 * 60 + 32);
+              test_util::minutes_to_motis_time(10 * 60 + 32));
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
               &train_distributions.get_distribution(
@@ -140,8 +144,10 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
   ASSERT_TRUE(
       schedule_->stations[first_route_node._station_node->_id]->eva_nr ==
       DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time == 7 * 60);
-  ASSERT_TRUE(light_connection.a_time == 7 * 60 + 28);
+  ASSERT_TRUE(light_connection.d_time ==
+              test_util::minutes_to_motis_time(7 * 60));
+  ASSERT_TRUE(light_connection.a_time ==
+              test_util::minutes_to_motis_time(7 * 60 + 28));
 
   ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time);
   ASSERT_TRUE(data.largest_delay() == data.maximum_waiting_time_);
@@ -155,19 +161,23 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
 
   {
     auto const& feeder = data.feeders_[0];
-    ASSERT_TRUE(feeder.arrival_time_ == 6 * 60 + 41);
+    ASSERT_TRUE(feeder.arrival_time_ ==
+                test_util::minutes_to_motis_time(6 * 60 + 41));
     ASSERT_TRUE(feeder.transfer_time_ == 5);
-    ASSERT_TRUE(feeder.latest_feasible_arrival_ == (7 * 60 + 3) - 5);
+    ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
+                test_util::minutes_to_motis_time((7 * 60 + 3) - 5));
     ASSERT_TRUE(&feeder.distribution_ ==
                 &feeder_distributions.get_distribution(
                     0, 0, distributions_container::arrival));
   }
   {
     auto const& feeder = data.feeders_[1];
-    ASSERT_TRUE(feeder.arrival_time_ == 6 * 60 + 54);
+    ASSERT_TRUE(feeder.arrival_time_ ==
+                test_util::minutes_to_motis_time(6 * 60 + 54));
     ASSERT_TRUE(feeder.transfer_time_ == 5);  // TODO use platform change time
     ASSERT_TRUE(feeder.latest_feasible_arrival_ ==
-                (7 * 60 + 3) - 5);  // TODO use platform change time
+                test_util::minutes_to_motis_time(
+                    (7 * 60 + 3) - 5));  // TODO use platform change time
     ASSERT_TRUE(&feeder.distribution_ ==
                 &feeder_distributions.get_distribution(
                     0, 0, distributions_container::arrival));
@@ -196,15 +206,17 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
 
   ASSERT_TRUE(schedule_->stations[route_node._station_node->_id]->eva_nr ==
               DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time == 6 * 60 + 11);
-  ASSERT_TRUE(light_connection.a_time == 6 * 60 + 45);
+  ASSERT_TRUE(light_connection.d_time ==
+              test_util::minutes_to_motis_time(6 * 60 + 11));
+  ASSERT_TRUE(light_connection.a_time ==
+              test_util::minutes_to_motis_time(6 * 60 + 45));
 
   ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time);
   ASSERT_TRUE(data.largest_delay() == data.maximum_waiting_time_);
   ASSERT_TRUE(!data.is_first_route_node_);
 
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_time_ ==
-              6 * 60 + 5);
+              test_util::minutes_to_motis_time(6 * 60 + 5));
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
               &train_distributions.get_distribution(
@@ -213,18 +225,20 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
   ASSERT_TRUE(data.maximum_waiting_time_ == 3);
   ASSERT_TRUE(data.feeders_.size() == 2);
 
-  ASSERT_TRUE(data.feeders_[0].arrival_time_ == 5 * 60 + 41);
+  ASSERT_TRUE(data.feeders_[0].arrival_time_ ==
+              test_util::minutes_to_motis_time(5 * 60 + 41));
   ASSERT_TRUE(data.feeders_[0].transfer_time_ == 5);
   ASSERT_TRUE(data.feeders_[0].latest_feasible_arrival_ ==
-              (6 * 60 + 11 + 3) - 5);
+              test_util::minutes_to_motis_time((6 * 60 + 11 + 3) - 5));
   ASSERT_TRUE(&data.feeders_[0].distribution_ ==
               &feeder_distributions.get_distribution(
                   0, 0, distributions_container::arrival));
 
-  ASSERT_TRUE(data.feeders_[1].arrival_time_ == 5 * 60 + 56);
+  ASSERT_TRUE(data.feeders_[1].arrival_time_ ==
+              test_util::minutes_to_motis_time(5 * 60 + 56));
   ASSERT_TRUE(data.feeders_[1].transfer_time_ == 5);
   ASSERT_TRUE(data.feeders_[1].latest_feasible_arrival_ ==
-              (6 * 60 + 11 + 3) - 5);
+              test_util::minutes_to_motis_time((6 * 60 + 11 + 3) - 5));
   ASSERT_TRUE(&data.feeders_[1].distribution_ ==
               &feeder_distributions.get_distribution(
                   0, 0, distributions_container::arrival));
@@ -248,8 +262,10 @@ TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
   ASSERT_TRUE(
       schedule_->stations[first_route_node._station_node->_id]->eva_nr ==
       KARLSRUHE);
-  ASSERT_TRUE(first_light_conn.d_time == 13 * 60);
-  ASSERT_TRUE(first_light_conn.a_time == 13 * 60 + 46);
+  ASSERT_TRUE(first_light_conn.d_time ==
+              test_util::minutes_to_motis_time(13 * 60));
+  ASSERT_TRUE(first_light_conn.a_time ==
+              test_util::minutes_to_motis_time(13 * 60 + 46));
   ASSERT_TRUE(first_light_conn._full_con->con_info->train_nr == 8);
 
   ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time);

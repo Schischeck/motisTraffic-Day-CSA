@@ -9,4 +9,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 // https://github.com/zilverline/react-tap-event-plugin
 injectTapEventPlugin();
 
+var root = document.createElement('div');
+root.setAttribute('id', 'root');
+document.body.appendChild(root);
 ReactDOM.render(<App />, document.getElementById('root'));

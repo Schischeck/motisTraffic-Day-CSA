@@ -8,15 +8,6 @@ namespace realtime {
 
 using namespace motis::logging;
 
-delay_info_manager::~delay_info_manager() {
-  for (delay_info* delay_info : _delay_infos) {
-    delete delay_info;
-  }
-  for (delay_info* delay_info : _buffered_delay_infos) {
-    delete delay_info;
-  }
-}
-
 delay_info* delay_info_manager::get_delay_info(
     const schedule_event& event_id) const {
   auto it = _schedule_map.find(event_id);
@@ -38,41 +29,40 @@ delay_info* delay_info_manager::get_buffered_delay_info(
 }
 
 delay_info* delay_info_manager::create_delay_info(
-    const schedule_event& event_id, int32_t route_id) {
+    schedule_event const& event_id, int32_t route_id) {
   assert(event_id.found());
 
-  delay_info* di = get_buffered_delay_info(event_id);
-  if (di == nullptr) {
-    di = new delay_info(event_id);
-    di->_route_id = route_id;
-    assert(route_id != -1);
-
-    _delay_infos.push_back(di);
-    _schedule_map[event_id] = di;
-
-    // no delay so far
-    _current_map[di->graph_ev()] = di;
-  } else {
-    upgrade_delay_info(di, route_id);
+  auto buffered_di = get_buffered_delay_info(event_id);
+  if (buffered_di != nullptr) {
+    upgrade_delay_info(buffered_di, route_id);
+    return buffered_di;
   }
 
+  assert(route_id != -1);
+  _delay_infos.push_back(make_unique<delay_info>(event_id, route_id));
+  auto di = _delay_infos.back().get();
+
+  _schedule_map[event_id] = di;
+  _current_map[di->graph_ev()] = di;  // no delay so far
+
+  _updated_delay_infos.push_back(di);
   return di;
 }
 
 delay_info* delay_info_manager::create_buffered_delay_info(
     const schedule_event& event_id) {
   assert(event_id.found());
-  auto di = new delay_info(event_id);
-  di->_route_id = -1;
 
-  if (_schedule_map.find(event_id) != _schedule_map.end()) {
-    LOG(warn) << "buffered delay info conflict: " << event_id;
-  }
-
-  _rts._stats._ops.delay_infos.buffered++;
+  _buffered_delay_infos.push_back(make_unique<delay_info>(event_id, -1));
+  auto di = _buffered_delay_infos.back().get();
 
   _buffered_map[event_id] = di;
-  _buffered_delay_infos.push_back(di);
+  if (_schedule_map.find(event_id) != end(_schedule_map)) {
+
+    LOG(warn) << "buffered delay info conflict: " << event_id;
+  }
+  _rts._stats._ops.delay_infos.buffered++;
+
 
   return di;
 }
@@ -84,14 +74,23 @@ void delay_info_manager::upgrade_delay_info(delay_info* di, int32_t route_id) {
   _rts._stats._ops.delay_infos.upgrades++;
 
   if (_rts.is_debug_mode()) {
-    LOG(info) << "upgrading buffered delay info: " << *di
-              << ", route_id=" << route_id;
+    LOG(info) << "upgrading buffered di: " << *di << ", route_id=" << route_id;
   }
 
+  auto it = std::find_if(
+      begin(_buffered_delay_infos), end(_buffered_delay_infos),
+      [&di](std::unique_ptr<delay_info> const& e) { return e.get() == di; });
+
+  if(it == end(_buffered_delay_infos)) {
+    throw std::runtime_error("could not find buffered_delay info.");
+  }
+
+  _delay_infos.emplace_back(std::move(*it));
+  _buffered_delay_infos.erase(it);
+
   _buffered_map.erase(di->sched_ev());
-  _buffered_delay_infos.erase(std::remove(_buffered_delay_infos.begin(),
-                                          _buffered_delay_infos.end(), di),
-                              _buffered_delay_infos.end());
+  _current_map[di->graph_ev()] = di;
+  _schedule_map[di->sched_ev()] = di;
 
   di->_route_id = route_id;
   auto is_time = INVALID_TIME;
@@ -100,10 +99,6 @@ void delay_info_manager::upgrade_delay_info(delay_info* di, int32_t route_id) {
     di->_current_time = di->sched_ev()._schedule_time;
     di->_reason = timestamp_reason::SCHEDULE;
   }
-
-  _delay_infos.push_back(di);
-  _schedule_map[di->sched_ev()] = di;
-  _current_map[di->graph_ev()] = di;
 
   if (is_time != INVALID_TIME) {
     _rts._delay_propagator.handle_delay_message(di->sched_ev(), is_time,
@@ -137,11 +132,12 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
   assert(delay_info->_route_id != -1);
   // add new entry to mapping
   _current_map[delay_info->graph_ev()] = delay_info;
+  _updated_delay_infos.push_back(delay_info);
 }
 
 motis::time delay_info_manager::reset_to_schedule(
     const schedule_event& event_id) {
-  delay_info* di = get_delay_info(event_id);
+  auto const& di = get_delay_info(event_id);
   if (di != nullptr) {
     if (di->_reason == timestamp_reason::IS ||
         di->_reason == timestamp_reason::REPAIR) {
@@ -177,6 +173,7 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
 
   // add new entry to mapping
   _current_map[di->graph_ev()] = di;
+  _updated_delay_infos.push_back(di);
 }
 
 delay_info* delay_info_manager::get_delay_info(
@@ -199,6 +196,7 @@ delay_info* delay_info_manager::cancel_event(const schedule_event& event_id,
     update_route(di, route_id);
   }
   di->_canceled = true;
+  _updated_delay_infos.push_back(di);
   return di;
 }
 
@@ -207,6 +205,7 @@ delay_info* delay_info_manager::undo_cancelation(
   delay_info* di = get_delay_info(event_id);
   if (di != nullptr) {
     di->_canceled = false;
+    _updated_delay_infos.push_back(di);
   }
   return di;
 }
@@ -219,6 +218,15 @@ motis::time delay_info_manager::current_time(
   } else {
     return event_id._schedule_time;
   }
+}
+
+std::vector<delay_info*> delay_info_manager::get_delay_info_delta() {
+  std::vector<delay_info*> delta;
+  std::swap(delta, _updated_delay_infos);  // retrieve delta and reset state
+
+  std::sort(begin(delta), end(delta));
+  delta.erase(std::unique(begin(delta), end(delta)), end(delta));
+  return delta;
 }
 
 std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {

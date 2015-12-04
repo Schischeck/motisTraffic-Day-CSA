@@ -1,8 +1,41 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
-file(GLOB_RECURSE global_headers *.h *.hpp)
+include_directories(${CMAKE_BINARY_DIR}/generated)
 
+################################
+# MOTIS Version
+################################
+execute_process(
+  COMMAND git rev-parse --abbrev-ref HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE motis_git_branch
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+  COMMAND git --no-pager log -1 --format=%h
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE motis_git_ref
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+  COMMAND git describe --tags --dirty=-dirty
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE motis_git_tag
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+configure_file (
+  "base/core/include/motis/core/version.h.in"
+  "${CMAKE_BINARY_DIR}/generated/version.h"
+)
+
+
+################################
+# Basic Compiler Flags
+################################
 foreach(flags CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()
@@ -10,8 +43,6 @@ endforeach()
 foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
   string(REPLACE "-O3" "-O2" ${flags} "${${flags}}")
 endforeach()
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
@@ -32,6 +63,10 @@ if(MINGW)
   set(NETWORKING ws2_32 mswsock)
 endif()
 
+
+################################
+# 3rd Party (Boost, pthread)
+################################
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
@@ -41,6 +76,10 @@ find_package(Threads)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
+
+################################
+# Contained Dependencies
+################################
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libzip/lib)
@@ -55,16 +94,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/loader/include)
-include_directories(${CMAKE_SOURCE_DIR}/motis/module/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/ris/include)
-include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
-include_directories(${CMAKE_BINARY_DIR}/generated)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
@@ -77,9 +106,26 @@ add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 
-add_subdirectory(motis/core EXCLUDE_FROM_ALL)
-add_subdirectory(motis/loader EXCLUDE_FROM_ALL)
-add_subdirectory(motis/module EXCLUDE_FROM_ALL)
+
+################################
+# MOTIS
+################################
+include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/test_include)
+include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/connectionchecker/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/guesser/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/railviz/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/realtime/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/reliability/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/ris/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/routing/include)
+
+add_subdirectory(base/core EXCLUDE_FROM_ALL)
+add_subdirectory(base/loader EXCLUDE_FROM_ALL)
+add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
 list(REMOVE_ITEM all-modules ".DS_Store")
@@ -95,24 +141,31 @@ foreach(module ${modules})
   list(APPEND module-test-files "modules/${module}/*_test.cc")
 endforeach(module)
 
-add_subdirectory(motis/launcher)
+add_subdirectory(base/bootstrap EXCLUDE_FROM_ALL)
+add_subdirectory(base/launcher)
 
+
+################################
+# Tests
+################################
 configure_file (
   ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
-file(GLOB_RECURSE motis-central-test-files motis/*_test.cc)
+file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${CMAKE_SOURCE_DIR}/test/test_main.cc
   ${motis-modules-test-files}
-  ${motis-central-test-files})
+  ${motis-base-test-files})
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
   ${module-targets}
-  motis-module
-  motis-loader
+  motis-bootstrap
   motis-core
+  motis-loader
+  motis-module
+  conf
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-test gtest gtest_main)

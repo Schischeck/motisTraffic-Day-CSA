@@ -9,6 +9,7 @@
 #include "boost/functional/hash.hpp"
 #include "boost/operators.hpp"
 
+#include "motis/core/common/util.h"
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/connection.h"
@@ -31,9 +32,9 @@ std::ostream& operator<<(std::ostream& os, const timestamp_reason& r);
 
 class delay_info {
 public:
-  delay_info(class schedule_event schedule_event)
+  delay_info(class schedule_event schedule_event, int32_t route_id = -1)
       : _schedule_event(schedule_event),
-        _route_id(-1),
+        _route_id(route_id),
         _forecast_time(motis::INVALID_TIME),
         _current_time(schedule_event._schedule_time),
         _canceled(false),
@@ -113,8 +114,8 @@ class realtime_schedule;
 class delay_info_manager {
 public:
   delay_info_manager(realtime_schedule& rts) : _rts(rts) {}
-  ~delay_info_manager();
 
+  std::vector<std::unique_ptr<delay_info>> const& delay_infos() const { return _delay_infos; }
   delay_info* get_delay_info(const schedule_event& event_id) const;
   delay_info* get_buffered_delay_info(const schedule_event& event_id) const;
   delay_info* create_delay_info(const schedule_event& event_id,
@@ -133,10 +134,14 @@ public:
 
   void upgrade_delay_info(delay_info* di, int32_t route_id);
 
-  // private:
+  std::vector<delay_info*> get_delay_info_delta();
+
+private:
   realtime_schedule& _rts;
-  std::vector<delay_info*> _delay_infos;  // TODO: unique_ptr
-  std::vector<delay_info*> _buffered_delay_infos;
+  std::vector<std::unique_ptr<delay_info>> _delay_infos;
+  std::vector<std::unique_ptr<delay_info>> _buffered_delay_infos;
+
+  std::vector<delay_info*> _updated_delay_infos;
 
   using schedule_event_hash = boost::hash<schedule_event>;
   using graph_event_hash = boost::hash<graph_event>;
