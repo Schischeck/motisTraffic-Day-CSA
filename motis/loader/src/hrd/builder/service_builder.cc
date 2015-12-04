@@ -108,12 +108,14 @@ void service_builder::create_service(hrd_service const& s, route_builder& rb,
   std::stringstream origin;
   origin << s.origin_.filename << " " << s.origin_.line_number_from << " "
          << s.origin_.line_number_to;
+  auto const route_offset = rb.get_or_create_route(s.stops_, sb, fbb);
   fbs_services_.push_back(CreateService(
       fbb, rb.get_or_create_route(s.stops_, sb, fbb),
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
-      create_times(s.stops_, fbb), fbb.CreateString(origin.str())));
+      create_times(s.stops_, fbb), fbb.CreateString(origin.str()),
+      route_offset.o));
 }
 
 }  // hrd

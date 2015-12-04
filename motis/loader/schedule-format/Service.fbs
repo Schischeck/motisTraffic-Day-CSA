@@ -11,4 +11,5 @@ table Service {
   platforms : [PlatformRules];
   times : [int];
   origin : string;
+  route_key : uint (key);
 }
