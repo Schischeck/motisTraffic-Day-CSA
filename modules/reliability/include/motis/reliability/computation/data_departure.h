@@ -26,18 +26,10 @@ namespace calc_departure_distribution {
  * Class storing all data necessary for calculating a departure distribution.
  */
 struct data_departure {
-  /* constructor for first route node */
-  data_departure(node const& route_node,
-                 light_connection const& light_connection,
-                 motis::time const scheduled_departure_time,
-                 reliability::context const& context);
-  /* constructor for route node with preceding arrival */
-  data_departure(
-      node const& route_node, light_connection const& light_connection,
-      motis::time const scheduled_departure_time,
-      reliability::context const& context,
-      motis::time const scheduled_arrival_time,
-      distributions_container::container const& train_distributions_container);
+  data_departure(node const& route_node, light_connection const&,
+                 bool const is_first_route_node, reliability::context const&,
+                 distributions_container::container const&
+                     distributions_preceding_arrival);
 
   /* constructor necessary for the derived struct data_departure_connection */
   data_departure(bool const is_first_route_node, time const scheduled_dep_time);
@@ -67,15 +59,16 @@ struct data_departure {
 
   struct feeder_info {
     feeder_info(probability_distribution const& distribution,
-                time const arrival_time, time const latest_feasible_arrival,
+                time const scheduled_arrival_time,
+                time const latest_feasible_arrival,
                 duration const transfer_time)
         : distribution_(distribution),
-          arrival_time_(arrival_time),
+          scheduled_arrival_time_(scheduled_arrival_time),
           latest_feasible_arrival_(latest_feasible_arrival),
           transfer_time_(transfer_time) {}
 
     probability_distribution const& distribution_;
-    time const arrival_time_;
+    time const scheduled_arrival_time_;
     /** latest arrival times of the feeder such that an interchange
      * from the feeder into the departing train is possible */
     time const latest_feasible_arrival_;
@@ -98,14 +91,13 @@ protected:
 
   void init_preceding_arrival_info(node const& route_node,
                                    motis::time const departure_time,
-                                   motis::time const scheduled_arrival_time,
                                    distributions_container::container const&);
-
-  void init_feeder_info(
-      light_connection const& departing_light_conn,
-      std::vector<std::unique_ptr<graph_accessor::feeder_info>> const&
-          all_feeders_data,
-      schedule const&, distributions_container::container const&);
+  void init_feeder_info(light_connection const& departing_light_conn,
+                        unsigned int const station_id,
+                        std::vector<graph_accessor::feeder_info> const&
+                            feeders /* pair.second: scheduled-arrival-time */,
+                        schedule const&,
+                        distributions_container::container const&);
 };
 
 }  // namespace calc_departure_distribution

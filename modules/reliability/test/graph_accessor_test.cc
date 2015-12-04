@@ -231,7 +231,8 @@ TEST_F(reliability_graph_accessor, get_feeders) {
   ASSERT_EQ(all_potential_feeders.size(), 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = *all_potential_feeders[i];
+    auto const& feeder_light_conn = all_potential_feeders[i].light_conn_;
+    auto const feeder_route_id = all_potential_feeders[i].route_id_;
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, second_light_conn);
     switch (i) {
@@ -241,6 +242,8 @@ TEST_F(reliability_graph_accessor, get_feeders) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(5 * 60 + 41));
         ASSERT_EQ(waiting_time, 3);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, IC_FH_DA),
+                  feeder_route_id);
         break;
       }
       case 1: {
@@ -249,6 +252,8 @@ TEST_F(reliability_graph_accessor, get_feeders) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(5 * 60 + 56));
         ASSERT_EQ(waiting_time, 3);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, IC_FH_DA),
+                  feeder_route_id);
         break;
       }
       case 2: {
@@ -257,6 +262,8 @@ TEST_F(reliability_graph_accessor, get_feeders) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(5 * 60 + 52));
         ASSERT_EQ(waiting_time, 0);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, RE_MA_DA),
+                  feeder_route_id);
         break;
       }
     }
@@ -285,7 +292,8 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
   ASSERT_EQ(all_potential_feeders.size(), 3);
 
   for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = *all_potential_feeders[i];
+    auto const& feeder_light_conn = all_potential_feeders[i].light_conn_;
+    auto const feeder_route_id = all_potential_feeders[i].route_id_;
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, first_light_conn);
     switch (i) {
@@ -295,6 +303,8 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(6 * 60 + 41));
         ASSERT_EQ(waiting_time, 3);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, IC_FH_DA),
+                  feeder_route_id);
         break;
       }
       case 1: {
@@ -303,6 +313,8 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(6 * 60 + 52));
         ASSERT_EQ(waiting_time, 0);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, RE_MA_DA),
+                  feeder_route_id);
         break;
       }
       case 2: {
@@ -311,6 +323,8 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(6 * 60 + 54));
         ASSERT_EQ(waiting_time, 3);
+        ASSERT_EQ(graph_accessor::get_first_route_node(*schedule_, IC_FR_DA),
+                  feeder_route_id);
         break;
       }
     }
