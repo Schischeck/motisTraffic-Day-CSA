@@ -814,10 +814,13 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
   sched->schedule_begin_ -= SCHEDULE_OFFSET;
-  duplicate_checker dup_checker(*sched, false);
-  dup_checker.remove_duplicates();
-  LOG(info) << "removed " << dup_checker.get_duplicate_count()
-            << " duplicate events";
+
+  if (unique_check) {
+    duplicate_checker dup_checker(*sched, false);
+    dup_checker.remove_duplicates();
+    LOG(info) << "removed " << dup_checker.get_duplicate_count()
+              << " duplicate events";
+  }
 
   return sched;
 }
