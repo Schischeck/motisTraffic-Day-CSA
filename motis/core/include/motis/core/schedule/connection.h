@@ -43,8 +43,7 @@ struct connection_info {
 
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
-           line_identifier == o.line_identifier && attributes == o.attributes &&
-           origin == o.origin;
+           line_identifier == o.line_identifier && attributes == o.attributes;
   }
 
   std::vector<attribute const*> attributes;
@@ -53,7 +52,6 @@ struct connection_info {
   provider const* provider_;
   uint32_t family;
   uint32_t train_nr;
-  std::string const* origin;
 };
 
 struct connection {

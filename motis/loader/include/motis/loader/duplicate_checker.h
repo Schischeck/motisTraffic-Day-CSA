@@ -1,30 +1,29 @@
 #pragma once
 
-#include <string>
-#include <set>
+#include <vector>
 
 #include "motis/core/schedule/schedule.h"
-#include "motis/core/schedule/connection.h"
 
 namespace motis {
 namespace loader {
 
-struct duplicate {
-  bool operator<(duplicate const& d) const {
-    return std::tie(route_node, connection_idx) <
-           std::tie(d.route_node, d.connection_idx);
-  }
-
-  connection_info const* lc;
-  node* route_node;
-  uint32_t connection_idx;
-};
-
 struct duplicate_checker {
-  std::set<duplicate> check(station_node const*);
-  void remove_duplicates();
+  duplicate_checker(schedule&, bool ignore_local_traffic = true);
 
-  schedule const& schedule_;
+  void remove_duplicates();
+  void remove_duplicates(station_node*);
+  unsigned get_duplicate_count();
+
+private:
+  void handle_duplicates(std::vector<std::pair<time, light_connection*>>&);
+  bool is_duplicate_event(std::pair<time, light_connection*> const&,
+                          std::pair<time, light_connection*> const&) const;
+  void set_new_service_num(light_connection*);
+
+  schedule& schedule_;
+  int last_service_num_;
+  bool ignore_local_traffic_;
+  unsigned duplicate_count_;
 };
 
 }  // namespace loader

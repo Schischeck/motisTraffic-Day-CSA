@@ -118,81 +118,6 @@ public:
     });
   }
 
-  std::tuple<std::string const*, std::string, std::string> is_unique_service(
-      Service const* service, bitfield const& traffic_days,
-      std::vector<node*> const& route_nodes) const {
-
-    auto const& sections = service->sections();
-
-    for (unsigned section_idx = 0; section_idx < sections->size();
-         ++section_idx) {
-
-      unsigned train_nr = sections->Get(section_idx)->train_nr();
-      auto line_info = sections->Get(section_idx)->line_id()
-                           ? sections->Get(section_idx)->line_id()->c_str()
-                           : "";
-      auto base_d_time = service->times()->Get(section_idx * 2 + 1);
-      auto base_a_time = service->times()->Get(section_idx * 2 + 2);
-      auto route_node = route_nodes[section_idx];
-      auto const& route_edge = route_node->_edges[1];
-      auto from_station = route_edge._from->get_station();
-      auto to_station = route_edge._to->get_station();
-      for (int day = first_day_; day <= last_day_; ++day) {
-        if (!traffic_days.test(day)) {
-          continue;
-        }
-
-        auto const* dep_st = sched_.stations.at(from_station->_id).get();
-        auto const* arr_st = sched_.stations.at(to_station->_id).get();
-
-        auto const dep_motis_time =
-            compute_event_time(day, base_d_time, dep_st->timez);
-        auto const arr_motis_time =
-            compute_event_time(day, base_a_time, arr_st->timez);
-
-        for (auto const& lc : route_edge._m._route_edge._conns) {
-          if (lc.d_time == dep_motis_time || lc.a_time == arr_motis_time) {
-            return std::make_tuple(lc._full_con->con_info->origin,
-                                   dep_st->eva_nr, arr_st->eva_nr);
-          }
-        }
-
-        for (auto const& e : from_station->_edges) {
-          if (e._to->is_route_node() && e._to->_edges.size() > 1) {
-            auto const& other_route_edge = e._to->_edges[1];
-            for (auto const& lc : other_route_edge._m._route_edge._conns) {
-              if (lc._full_con->con_info->train_nr == train_nr &&
-                  strcmp(lc._full_con->con_info->line_identifier.c_str(),
-                         line_info) == 0 &&
-                  lc.d_time == dep_motis_time) {
-                return std::make_tuple(lc._full_con->con_info->origin,
-                                       dep_st->eva_nr, arr_st->eva_nr);
-              }
-            }
-          }
-        }
-
-        for (auto const& e : to_station->_edges) {
-          if (e._to->is_route_node()) {
-            if (e._to->_incoming_edges.size() == 1) {
-              auto const& other_route_edge = e._to->_incoming_edges[0];
-              for (auto const& lc : other_route_edge->_m._route_edge._conns) {
-                if (lc._full_con->con_info->train_nr == train_nr &&
-                    strcmp(lc._full_con->con_info->line_identifier.c_str(),
-                           line_info) == 0 &&
-                    lc.a_time == arr_motis_time) {
-                  return std::make_tuple(lc._full_con->con_info->origin,
-                                         dep_st->eva_nr, arr_st->eva_nr);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return std::make_tuple(nullptr, "", "");
-  }
-
   void add_service(Service const* service) {
     auto const& sections = service->sections();
 
@@ -208,17 +133,6 @@ public:
     auto route_nodes = get_or_create(
         routes_, service->route(), std::bind(&graph_builder::create_route, this,
                                              service->route(), routes_.size()));
-    auto const existing_origin =
-        is_unique_service(service, traffic_days, route_nodes);
-    if (get<0>(existing_origin)) {
-      LOG(warn) << "found duplicate: " << get<0>(existing_origin)->c_str()
-                << " | " << service->origin()->c_str() << " | "
-                << get<1>(existing_origin) << "->" << get<2>(existing_origin);
-      duplicate_count_++;
-      return;
-    }
-    sched_.origin_services.emplace_back(
-        make_unique<std::string>(service->origin()->str()));
 
     std::unordered_set<uint32_t> train_nrs;
     for (unsigned section_idx = 0; section_idx < sections->size();
@@ -233,8 +147,7 @@ public:
               ? service->platforms()->Get(section_idx)->dep_platforms()
               : nullptr,
           service->times()->Get(section_idx * 2 + 1),
-          service->times()->Get(section_idx * 2 + 2), traffic_days,
-          sched_.origin_services.back().get());
+          service->times()->Get(section_idx * 2 + 2), traffic_days);
       train_nrs.insert(service->sections()->Get(section_idx)->train_nr());
     }
     int32_t route_id = route_nodes[0]->_route;
@@ -299,8 +212,7 @@ private:
                            Vector<Offset<Platform>> const* arr_platforms,
                            Vector<Offset<Platform>> const* dep_platforms,
                            int const dep_time, int const arr_time,
-                           bitfield const& traffic_days,
-                           std::string const* origin) {
+                           bitfield const& traffic_days) {
     assert(curr_route_edge->type() == edge::ROUTE_EDGE);
 
     // Departure station and arrival station.
@@ -324,7 +236,6 @@ private:
       con_info_.family = get_or_create_category_index(curr_section->category());
       con_info_.dir_ = get_or_create_direction(curr_section->direction());
       con_info_.provider_ = get_or_create_provider(curr_section->provider());
-      con_info_.origin = origin;
       read_attributes(dep_day_index, curr_section->attributes(),
                       con_info_.attributes);
 
@@ -367,13 +278,11 @@ private:
     }
   }
 
-  // Each station should have a timezone
   time compute_event_time(int day, int local_time, timezone const* tz) const {
     return tz ? tz->to_motis_time(day - first_day_, local_time)
               : (day - first_day_ + 1) * MINUTES_A_DAY + local_time;
   }
 
-  // Each station should have a timezone
   void validate_events(int day, station const* dep_st, station const* arr_st,
                        time dep_motis_time, time arr_motis_time,
                        int dep_local_time, int arr_local_time,

@@ -212,7 +212,7 @@ TEST(core_timezone, move_season_end_to_schedule_period_end) {
   ASSERT_EQ(INVALID_TIME - season_offset, tz.season_.end);
 }
 
-TEST(core_timezone, invalid_event) {
+TEST(DISABLED_core_timezone, invalid_event) {
   auto const general_offset = 60;
   auto const season_offset = 120;
 

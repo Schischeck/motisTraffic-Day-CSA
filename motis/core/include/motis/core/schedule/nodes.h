@@ -99,36 +99,12 @@ public:
     return route_nodes;
   }
 
-  std::vector<node const*> get_incoming_route_nodes() const {
-    std::vector<node const*> route_nodes;
-
-    for (auto& edge : _incoming_edges) {
-      if (edge->_from->is_route_node()) {
-        route_nodes.emplace_back(edge->_from);
-      }
-    }
-
-    return route_nodes;
-  }
-
   std::vector<node*> get_route_nodes() {
     std::vector<node*> route_nodes;
 
     for (auto& edge : _edges) {
       if (edge._to->is_route_node()) {
         route_nodes.emplace_back(edge._to);
-      }
-    }
-
-    return route_nodes;
-  }
-
-  std::vector<node*> get_incoming_route_nodes() {
-    std::vector<node*> route_nodes;
-
-    for (auto& edge : _incoming_edges) {
-      if (edge->_from->is_route_node()) {
-        route_nodes.emplace_back(edge->_from);
       }
     }
 
