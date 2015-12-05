@@ -105,15 +105,16 @@ void service_builder::create_service(hrd_service const& s, route_builder& rb,
                                      bitfield_builder& bb,
                                      direction_builder& db,
                                      FlatBufferBuilder& fbb) {
-  std::stringstream origin;
-  origin << s.origin_.filename << " " << s.origin_.line_number_from << " "
-         << s.origin_.line_number_to;
   fbs_services_.push_back(CreateService(
       fbb, rb.get_or_create_route(s.stops_, sb, fbb),
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
-      create_times(s.stops_, fbb), fbb.CreateString(origin.str())));
+      create_times(s.stops_, fbb),
+      CreateServiceDebugInfo(
+          fbb, get_or_create(filenames_, s.origin_.filename, [&fbb, &s]() {
+            return fbb.CreateString(s.origin_.filename);
+          }), s.origin_.line_number_from)));
 }
 
 }  // hrd
