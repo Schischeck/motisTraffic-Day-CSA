@@ -71,6 +71,7 @@ void duplicate_checker::set_new_service_num(light_connection* lc) {
   schedule_.connection_infos.emplace_back(
       new connection_info(*lc->_full_con->con_info));
   auto conn_info_cpy = schedule_.connection_infos.back().get();
+  conn_info_cpy->original_train_nr = conn_info_cpy->train_nr;
   conn_info_cpy->train_nr = --last_service_num_;
 
   schedule_.full_connections.emplace_back(new connection(*lc->_full_con));

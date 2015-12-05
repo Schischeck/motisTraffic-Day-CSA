@@ -25,6 +25,7 @@
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/timezone_util.h"
+#include "motis/loader/duplicate_checker.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -61,12 +62,11 @@ typedef std::vector<route_info> route;
 class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to, bool unique_check, bool apply_rules)
+                time_t to, bool apply_rules)
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
         last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
-        unique_check_(unique_check),
         apply_rules_(apply_rules) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
@@ -784,7 +784,6 @@ private:
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
-  bool unique_check_;
   bool apply_rules_;
 
   connection_info con_info_;
@@ -801,7 +800,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_end_ = to;
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
-                        unique_check, apply_rules);
+                        apply_rules);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
@@ -814,8 +813,12 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
-
   sched->schedule_begin_ -= SCHEDULE_OFFSET;
+  duplicate_checker dup_checker(*sched, false);
+  dup_checker.remove_duplicates();
+  LOG(info) << "removed " << dup_checker.get_duplicate_count()
+            << " duplicate events";
+
   return sched;
 }
 

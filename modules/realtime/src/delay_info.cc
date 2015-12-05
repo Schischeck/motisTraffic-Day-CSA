@@ -22,7 +22,7 @@ delay_info* delay_info_manager::create_delay_info(
   assert(route_id != -1);
   assert(event_id.found());
   _delay_infos.push_back(make_unique<delay_info>(event_id, route_id));
-  auto const& di = _delay_infos.back().get();
+  auto const di = _delay_infos.back().get();
   _schedule_map[event_id] = di;
 
   // no delay so far
@@ -149,7 +149,7 @@ motis::time delay_info_manager::current_time(
 
 std::vector<delay_info*> delay_info_manager::get_delay_info_delta() {
   std::vector<delay_info*> delta;
-  std::swap(delta, _updated_delay_infos); // retrieve delta and reset state
+  std::swap(delta, _updated_delay_infos);  // retrieve delta and reset state
 
   std::sort(begin(delta), end(delta));
   delta.erase(std::unique(begin(delta), end(delta)), end(delta));
