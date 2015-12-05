@@ -19,7 +19,6 @@
 #include "motis/reliability/search/connection_graph_search_tools.h"
 
 #include "motis/reliability/tools/flatbuffers_tools.h"
-#include "motis/reliability/tools/system.h"
 
 #include "../include/interchange_data_for_tests.h"
 #include "../include/precomputed_distributions_test_container.h"
@@ -33,42 +32,39 @@ namespace rating {
 namespace cg {
 namespace test {
 
-class reliability_connection_graph_rating_base : public test_schedule_setup {
+class reliability_connection_graph_rating_base : public test_motis_setup {
 public:
   reliability_connection_graph_rating_base(std::string schedule_name,
-                                           std::time_t schedule_begin,
-                                           std::time_t schedule_end)
-      : test_schedule_setup(schedule_name, schedule_begin, schedule_end) {}
+                                           std::string schedule_begin)
+      : test_motis_setup(schedule_name, schedule_begin) {}
 
   std::pair<probability_distribution, probability_distribution>
   calc_distributions(interchange_data_for_tests const& ic_data,
-                     probability_distribution const& arrival_distribution,
-                     system_tools::setup& setup) {
+                     probability_distribution const& arrival_distribution) {
     return calc_distributions(
         ic_data.arriving_light_conn_, ic_data.departing_light_conn_,
-        ic_data.departing_route_edge_, arrival_distribution, setup);
+        ic_data.departing_route_edge_, arrival_distribution);
   }
 
   std::pair<probability_distribution, probability_distribution>
   calc_distributions(light_connection const& arriving_light_conn,
                      light_connection const& departing_light_conn,
                      edge const& departing_route_edge,
-                     probability_distribution const& arrival_distribution,
-                     system_tools::setup& setup) {
+                     probability_distribution const& arrival_distribution) {
     probability_distribution dep_dist, arr_dist;
     using namespace calc_departure_distribution;
     using namespace calc_arrival_distribution;
     interchange::compute_departure_distribution(
         data_departure_interchange(
             true, *departing_route_edge._from, departing_light_conn,
-            arriving_light_conn, arrival_distribution, *schedule_,
-            setup.reliability_module().precomputed_distributions(),
-            setup.reliability_module().precomputed_distributions(),
-            setup.reliability_module().s_t_distributions()),
+            arriving_light_conn, arrival_distribution, get_schedule(),
+            get_reliability_module().precomputed_distributions(),
+            get_reliability_module().precomputed_distributions(),
+            get_reliability_module().s_t_distributions()),
         dep_dist);
     compute_arrival_distribution(
-        data_arrival(departing_light_conn, dep_dist, *schedule_,
-                     setup.reliability_module().s_t_distributions()),
+        data_arrival(departing_light_conn, dep_dist, get_schedule(),
+                     get_reliability_module().s_t_distributions()),
         arr_dist);
     return std::make_pair(dep_dist, arr_dist);
   }
@@ -79,8 +75,7 @@ class reliability_connection_graph_rating
 public:
   reliability_connection_graph_rating()
       : reliability_connection_graph_rating_base(
-            "modules/reliability/resources/schedule7_cg/",
-            to_unix_time(2015, 10, 19), to_unix_time(2015, 10, 20)) {}
+            "modules/reliability/resources/schedule7_cg/", "20151019") {}
 
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const LANGEN = {"Langen", "2222222"};
@@ -96,8 +91,7 @@ class reliability_connection_graph_rating_foot
 public:
   reliability_connection_graph_rating_foot()
       : reliability_connection_graph_rating_base(
-            "modules/reliability/resources/schedule3/",
-            to_unix_time(2015, 9, 28), to_unix_time(2015, 9, 29)) {}
+            "modules/reliability/resources/schedule3/", "20150928") {}
   schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
   schedule_station const MESSE = {"Frankfurt Messe", "2222222"};
   schedule_station const LANGEN = {"Langen", "3333333"};
@@ -172,7 +166,6 @@ TEST_F(reliability_connection_graph_rating,
 
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
-  system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
@@ -182,15 +175,14 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
     test_cb_called = true;
-    setup.ios_.stop();
-    ASSERT_EQ(cgs.size(), 1);
+    ASSERT_EQ(1, cgs.size());
     auto const cg = *cgs.front();
     ASSERT_EQ(3, cg.stops_.size());
     ASSERT_EQ(2, cg.journeys_.size());
     {
       connection_rating expected_rating_journey0;
       rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *setup.reliability_context_);
+                   *reliability_context_);
       auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
       ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
                     .departure_distribution_,
@@ -201,16 +193,15 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
     }
     {
       interchange_data_for_tests ic_data(
-          *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
-          7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+          get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
+          FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
       auto const dists = calc_distributions(
           ic_data,
           detail::scheduled_transfer_filter(
               cg.stops_[0]
                   .alternative_infos_.front()
                   .rating_.arrival_distribution_,
-              detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)),
-          setup);
+              detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)));
       auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
       ASSERT_EQ(dists.second, rating.arrival_distribution_);
@@ -224,18 +215,16 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
     ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
   };
 
-  boost::asio::io_service::work ios_work(setup.ios_);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0,
+             get_reliability_module(), 0,
              std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
              test_cb);
-  setup.ios_.run();
+  motis_instance_->run();
   ASSERT_TRUE(test_cb_called);
 }
 
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
-  system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
@@ -245,7 +234,6 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
     test_cb_called = true;
-    setup.ios_.stop();
     ASSERT_EQ(1, cgs.size());
     auto const cg = *cgs.front();
     ASSERT_EQ(3, cg.stops_.size());
@@ -254,7 +242,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
     {
       connection_rating expected_rating_journey0;
       rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *setup.reliability_context_);
+                   *reliability_context_);
       auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
       ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
                     .departure_distribution_,
@@ -267,13 +255,13 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
         cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_;
     {
       interchange_data_for_tests ic_data(
-          *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
-          7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+          get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
+          FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
       auto const dists = calc_distributions(
-          ic_data, detail::scheduled_transfer_filter(
-                       uncovered_arr_dist, detail::interchange_info(
-                                               7 * 60 + 10, 7 * 60 + 15, 5, 0)),
-          setup);
+          ic_data,
+          detail::scheduled_transfer_filter(
+              uncovered_arr_dist,
+              detail::interchange_info(7 * 60 + 10, 7 * 60 + 15, 5, 0)));
       auto const& rating = cg.stops_[2].alternative_infos_[0].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
       ASSERT_EQ(dists.second, rating.arrival_distribution_);
@@ -282,11 +270,11 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
       /* note: S_L_F and RE_L_F are on the same route */
       auto const departing_lc =
           graph_accessor::get_departing_route_edge(
-              *graph_accessor::get_first_route_node(*schedule_, RE_L_F))
+              *graph_accessor::get_first_route_node(get_schedule(), RE_L_F))
               ->_m._route_edge._conns[1];
       interchange_data_for_tests ic_data(
-          *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
-          7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+          get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
+          FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
       uncovered_arr_dist =
           rating::cg::detail::compute_uncovered_arrival_distribution(
               uncovered_arr_dist,
@@ -295,9 +283,9 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
           uncovered_arr_dist,
           detail::interchange_info(7 * 60 + 10, 7 * 60 + 16, 5, 0));
 
-      auto const dists = calc_distributions(
-          ic_data.arriving_light_conn_, departing_lc,
-          ic_data.departing_route_edge_, filtered_arr_dist, setup);
+      auto const dists =
+          calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[1].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
       ASSERT_EQ(dists.second, rating.arrival_distribution_);
@@ -306,11 +294,11 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
       /* note: IC_L_F and RE_L_F are on the same route */
       auto const departing_lc =
           graph_accessor::get_departing_route_edge(
-              *graph_accessor::get_first_route_node(*schedule_, RE_L_F))
+              *graph_accessor::get_first_route_node(get_schedule(), RE_L_F))
               ->_m._route_edge._conns[2];
       interchange_data_for_tests ic_data(
-          *schedule_, RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva, FRANKFURT.eva,
-          7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+          get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
+          FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
       uncovered_arr_dist =
           rating::cg::detail::compute_uncovered_arrival_distribution(
               uncovered_arr_dist,
@@ -319,9 +307,9 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
           uncovered_arr_dist,
           detail::interchange_info(7 * 60 + 10, 7 * 60 + 17, 5, 0));
 
-      auto const dists = calc_distributions(
-          ic_data.arriving_light_conn_, departing_lc,
-          ic_data.departing_route_edge_, filtered_arr_dist, setup);
+      auto const dists =
+          calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[2].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
       ASSERT_EQ(dists.second, rating.arrival_distribution_);
@@ -344,19 +332,17 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
     ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
   };
 
-  boost::asio::io_service::work ios_work(setup.ios_);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0,
+             get_reliability_module(), 0,
              std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
              test_cb);
-  setup.ios_.run();
+  motis_instance_->run();
   ASSERT_TRUE(test_cb_called);
 }
 
 /* rating of a cg with a foot-path */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
-  system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
@@ -365,15 +351,14 @@ TEST_F(reliability_connection_graph_rating_foot,
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
     test_cb_called = true;
-    setup.ios_.stop();
-    ASSERT_EQ(cgs.size(), 1);
+    ASSERT_EQ(1, cgs.size());
     auto const cg = *cgs.front();
     ASSERT_EQ(3, cg.stops_.size());
     ASSERT_EQ(2, cg.journeys_.size());
     {
       connection_rating expected_rating_journey0;
       rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *setup.reliability_context_);
+                   *reliability_context_);
       auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
       ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
                     .departure_distribution_,
@@ -387,7 +372,7 @@ TEST_F(reliability_connection_graph_rating_foot,
       // interchange at Frankfurt and walking to Messe
       // departing train S_M_W from Messe to West
       interchange_data_for_tests const ic_data(
-          *schedule_, ICE_L_H, S_M_W, LANGEN.eva, FRANKFURT.eva, MESSE.eva,
+          get_schedule(), ICE_L_H, S_M_W, LANGEN.eva, FRANKFURT.eva, MESSE.eva,
           WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
 
       auto const dists = calc_distributions(
@@ -396,8 +381,7 @@ TEST_F(reliability_connection_graph_rating_foot,
               cg.stops_[0]
                   .alternative_infos_.front()
                   .rating_.arrival_distribution_,
-              detail::interchange_info(10 * 60 + 10, 10 * 60 + 20, 10, 0)),
-          setup);
+              detail::interchange_info(10 * 60 + 10, 10 * 60 + 20, 10, 0)));
       auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
       ASSERT_EQ(dists.second, rating.arrival_distribution_);
@@ -412,19 +396,17 @@ TEST_F(reliability_connection_graph_rating_foot,
     ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
   };
 
-  boost::asio::io_service::work ios_work(setup.ios_);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0,
+             get_reliability_module(), 0,
              std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
              test_cb);
-  setup.ios_.run();
+  motis_instance_->run();
   ASSERT_TRUE(test_cb_called);
 }
 
 /* rating of a cg with a foot-path at the end of the journey */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
-  system_tools::setup setup(schedule_.get());
   auto msg = flatbuffers_tools::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, MESSE.name, MESSE.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
@@ -433,7 +415,6 @@ TEST_F(reliability_connection_graph_rating_foot,
   auto test_cb = [&](
       std::vector<std::shared_ptr<connection_graph> > const cgs) {
     test_cb_called = true;
-    setup.ios_.stop();
     ASSERT_EQ(cgs.size(), 1);
     auto const cg = *cgs.front();
     ASSERT_EQ(3, cg.stops_.size());
@@ -441,7 +422,7 @@ TEST_F(reliability_connection_graph_rating_foot,
     {
       connection_rating expected_rating_journey0;
       rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *setup.reliability_context_);
+                   *reliability_context_);
       auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
       ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
                     .departure_distribution_,
@@ -473,12 +454,11 @@ TEST_F(reliability_connection_graph_rating_foot,
     ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
   };
 
-  boost::asio::io_service::work ios_work(setup.ios_);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
-             setup.reliability_module(), 0,
+             get_reliability_module(), 0,
              std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
              test_cb);
-  setup.ios_.run();
+  motis_instance_->run();
   ASSERT_TRUE(test_cb_called);
 }
 

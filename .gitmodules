@@ -28,6 +28,9 @@
 [submodule "external_lib/pugixml"]
 	path = external_lib/pugixml
 	url = https://github.com/zeux/pugixml.git
+[submodule "external_lib/osrm-backend"]
+	path = external_lib/osrm-backend
+	url = https://github.com/felixguendling/osrm-backend.git
 [submodule "external_lib/sqlpp11-connector-sqlite3"]
 	path = external_lib/sqlpp11-connector-sqlite3
 	url = https://github.com/algotud/sqlpp11-connector-sqlite3.git

@@ -10,13 +10,14 @@ namespace motis {
 namespace routing {
 
 struct routing : public motis::module::module {
-  routing(int max_labels = MAX_LABELS_WITH_MARGIN);
+  routing();
   virtual ~routing() {}
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
-  virtual bool empty_config() const override { return true; }
+  virtual bool empty_config() const override { return false; }
 
+  void init() override;
   virtual std::string name() const override { return "routing"; }
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RoutingRequest};
@@ -32,7 +33,8 @@ private:
   void handle_station_guess(motis::module::msg_ptr, boost::system::error_code,
                             path_el_cb);
 
-  memory_manager<label> label_store_;
+  int max_label_count_;
+  std::unique_ptr<memory_manager<label>> label_store_;
 };
 
 }  // namespace routing

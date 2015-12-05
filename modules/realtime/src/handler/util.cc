@@ -16,54 +16,20 @@ namespace handler {
 
 unsigned find_station_by_eva(std::string const& eva, schedule const& sched) {
   auto it = sched.eva_to_station.find(eva);
-  if (it == std::end(sched.eva_to_station)) {
-    return 0;
-  } else {
-    return it->second->index;
-  }
+  return it == end(sched.eva_to_station) ? 0 : it->second->index;
 }
 
 unsigned find_station_by_ds100(std::string const& ds100,
                                schedule const& sched) {
   auto it = sched.ds100_to_station.find(ds100);
-  if (it == std::end(sched.ds100_to_station)) {
-    return 0;
-  } else {
-    return it->second->index;
-  }
-}
-
-std::unordered_map<std::time_t, motis::time> time_cache;
-
-time local_ts_to_time(std::time_t unix_ts, schedule const& sched) {
-  auto it = time_cache.find(unix_ts);
-  if (it != time_cache.end()) {
-    return it->second;
-  }
-  // timestamps in messages are in the local timezone, not utc
-  std::tm* t = std::localtime(&unix_ts);
-  if (t == nullptr) return INVALID_TIME;
-
-  auto schedule_begin =
-      boost::posix_time::from_time_t(sched.schedule_begin_).date();
-  boost::gregorian::date msg_date(t->tm_year + 1900, t->tm_mon + 1, t->tm_mday);
-  motis::time mt = INVALID_TIME;
-  if (msg_date >= schedule_begin) {
-    mt = motis::to_time((msg_date - schedule_begin).days(),
-                        t->tm_hour * 60 + t->tm_min);
-  }
-  if (time_cache.size() > 10000) {
-    time_cache.clear();
-  }
-  time_cache[unix_ts] = mt;
-  return mt;
+  return it == end(sched.ds100_to_station) ? 0 : it->second->index;
 }
 
 schedule_event ris_event_to_schedule_event(Event const& ris_event,
                                            schedule const& sched) {
-  schedule_event e(0, ris_event.trainIndex(),
-                   ris_event.type() == EventType_Departure,
-                   local_ts_to_time(ris_event.scheduledTime(), sched));
+  schedule_event e(
+      0, ris_event.trainIndex(), ris_event.type() == EventType_Departure,
+      unix_to_motistime(sched.schedule_begin_, ris_event.scheduledTime()));
 
   switch (ris_event.stationIdType()) {
     case StationIdType_EVA:

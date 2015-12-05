@@ -147,8 +147,8 @@ void handle_base_response(motis::module::msg_ptr msg,
   if (e) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
-  auto journeys = message_to_journeys(
-      msg->content<routing::RoutingResponse const*>());
+  auto journeys =
+      message_to_journeys(msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
@@ -206,8 +206,8 @@ void handle_alternative_response(motis::module::msg_ptr msg,
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
   auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
-  auto journeys = message_to_journeys(
-      msg->content<routing::RoutingResponse const*>());
+  auto journeys =
+      message_to_journeys(msg->content<routing::RoutingResponse const*>());
   /* note: this method ignores journeys that are
    * corrupt because the state machine in journey.cc
    * can not handle walks at the beginning of journeys

@@ -5,6 +5,9 @@ import { IconButton } from 'material-ui';
 
 import ConnectionStateStore from '../ConnectionStateStore';
 
+import iconcss from './MaterialIcons.scss';
+const materialicons = iconcss['material-icons'];
+
 class ServerConnectionIndicator extends Component {
   static getStores() {
     return [
@@ -22,13 +25,13 @@ class ServerConnectionIndicator extends Component {
     if (this.state.connected) {
       return <IconButton
                          {...this.props}
-                         iconClassName="material-icons">
+                         iconClassName={ materialicons }>
                cloud_done
              </IconButton>;
     } else {
       return <IconButton
                          {...this.props}
-                         iconClassName="material-icons">
+                         iconClassName={ materialicons }>
                cloud_off
              </IconButton>;
     }
