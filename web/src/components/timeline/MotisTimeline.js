@@ -4,14 +4,26 @@ import SVG from 'svg.js';
 
 import MotisGrid from './MotisGrid';
 
+import style from './MotisTimeline.scss';
+
 export default class Timeline extends React.Component {
   constructor(props) {
     super(props);
   }
 
+  getHeight() {
+    return this.props.connections.length * 75;
+  }
+
   componentDidMount() {
-    const svg = SVG('timeline').clear();
-    const grid = svg.motisgrid(800, 550, []);
+    if (this.grid) {
+      delete this.grid;
+    }
+    if (this.svg) {
+      delete this.svg;
+    }
+    this.svg = SVG('timeline').clear();
+    this.grid = this.svg.motisgrid(550, this.getHeight(), []);
 
     function transports(con, from, to) {
       return con.transports.filter(t => {
@@ -36,7 +48,7 @@ export default class Timeline extends React.Component {
       9: '#7ED3FD',
     };
 
-    grid.drawConnections(this.props.connections.map(c => {
+    this.grid.drawConnections(this.props.connections.map(c => {
       const walkTargets = c.transports.filter(move => {
         return move.move_type == 'Walk';
       }).map(walk => {
@@ -75,9 +87,9 @@ export default class Timeline extends React.Component {
 
   render() {
     return (
-    <div style={ {  'marginTop': '20px',  'width': '800px',  'height': '550px'} }>
-      <svg id="timeline"></svg>
-    </div>
+      <div className={ style.timeline }  {...this.props}>
+        <svg id="timeline" style={{height: this.getHeight()}}></svg>
+      </div>
     );
   }
 }
