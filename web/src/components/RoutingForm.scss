@@ -1,11 +1,11 @@
 .flexcol {
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
 }
 
 .flexrow {
   display: flex;
-  flex-direction: row;
 }
 
 .flexrow > * {
