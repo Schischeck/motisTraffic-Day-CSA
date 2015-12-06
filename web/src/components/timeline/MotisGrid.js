@@ -150,11 +150,6 @@ SVG.MotisGrid = SVG.invent({
       grid.settings.height = height;
 
       var g = this.put(grid);
-      g.add(this.put(new SVG.Rect)
-                .radius(10)
-                .size(width, height)
-                .opacity(0.05));
-
       grid.drawConnections(connections);
 
       return g;
