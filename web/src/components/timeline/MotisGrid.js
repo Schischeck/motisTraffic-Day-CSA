@@ -170,10 +170,9 @@ export default class Timeline extends React.Component {
   }
 
   componentDidMount() {
-    this.grid = SVG('timeline').motisgrid(800, 500, []);
-  }
+    const svg = SVG('timeline').clear();
+    const grid = svg.motisgrid(800, 500, []);
 
-  render() {
     function transports(con, from, to) {
       return con.transports.filter(t => {
         return t.move.range.from >= from && t.move.range.to <= to;
@@ -185,56 +184,58 @@ export default class Timeline extends React.Component {
       });
     }
 
-    if (this.grid) {
-      var colors = {
-        1: '#FF0000',
-        2: '#708D91',
-        3: '#19DD89',
-        4: '#FD8F3A',
-        5: '#94A507',
-        6: '#F62A07',
-        7: '#563AC9',
-        8: '#4E070D',
-        9: '#7ED3FD',
-      };
+    const colors = {
+      1: '#FF0000',
+      2: '#708D91',
+      3: '#19DD89',
+      4: '#FD8F3A',
+      5: '#94A507',
+      6: '#F62A07',
+      7: '#563AC9',
+      8: '#4E070D',
+      9: '#7ED3FD',
+    };
 
-      this.grid.drawConnections(this.props.connections.map(c => {
-        var walkTargets = c.transports.filter(move => {
-          return move.move_type == 'Walk';
-        }).map(walk => {
-          return walk.move.range.to;
-        });
+    grid.drawConnections(this.props.connections.map(c => {
+      const walkTargets = c.transports.filter(move => {
+        return move.move_type == 'Walk';
+      }).map(walk => {
+        return walk.move.range.to;
+      });
 
-        var importantStops = c.stops.map((stop, i) => {
-          return {
-            type: 'stop',
-            stop,
-            i
-          };
-        }).filter((el, i) => {
-          return i === 1 || i === c.stops.length - 2 || el.stop.interchange || walkTargets.indexOf(i) != -1;
-        });
+      let importantStops = c.stops.map((stop, i) => {
+        return {
+          type: 'stop',
+          stop,
+          i
+        };
+      }).filter((el, i) => {
+        return i === 1 || i === c.stops.length - 2 || el.stop.interchange || walkTargets.indexOf(i) != -1;
+      });
 
-        var elements = [];
-        for (let i = 0; i < importantStops.length - 1; i++) {
-          let from = importantStops[i];
-          let to = importantStops[i + 1];
-          let transport = transports(c, from.i, to.i)[0];
-          if (transport.name) {
-            elements.push({
-              label: transport.name,
-              color: colors[transport.clasz] || '#D31996',
-              begin: new Date(from.stop.departure.time * 1000),
-              end: new Date(to.stop.arrival.time * 1000)
-            });
-          }
+      let elements = [];
+      for (let i = 0; i < importantStops.length - 1; i++) {
+        let from = importantStops[i];
+        let to = importantStops[i + 1];
+        let transport = transports(c, from.i, to.i)[0];
+        if (transport.name) {
+          elements.push({
+            label: transport.name,
+            color: colors[transport.clasz] || '#D31996',
+            begin: new Date(from.stop.departure.time * 1000),
+            end: new Date(to.stop.arrival.time * 1000)
+          });
         }
-        return elements;
-      }));
-    }
+      }
+      return elements;
+    }));
+  }
 
+  componentDidUpdate = this.componentDidMount
+
+  render() {
     return (
-    <div id="timeline" style={{'marginTop': '20px', 'width': '800px', 'height': '500px'}}></div>
+    <svg id="timeline" style={{'marginTop': '20px', 'width': '800px', 'height': '500px'}}></svg>
     );
   }
 }

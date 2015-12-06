@@ -17,11 +17,12 @@ import style from './App.scss';
 export class App extends Component {
   constructor(props) {
     super(props);
+    const cached = JSON.parse(localStorage.getItem('motiscache')) || {};
     this.state = {
-      'connections': [],
+      'connections': cached.connections || [],
       'showError': false,
       'waiting': false,
-      'showResults': false
+      'showResults': !!cached.connections
     };
   }
 
@@ -30,13 +31,17 @@ export class App extends Component {
       'waiting': true,
     });
 
-    Server.sendMessage(this.refs.routingform.getRequest()).then(response => {
+    const req = this.refs.routingform.getRequest();
+    Server.sendMessage(req).then(response => {
       this.setState({
         'connections': response.content.connections,
         'showError': false,
         'waiting': false,
         'showResults': true
       });
+      localStorage.setItem('motiscache', JSON.stringify({
+        'connections': response.content.connections
+      }));
     }).catch(error => {
       console.error(error);
       this.setState({
