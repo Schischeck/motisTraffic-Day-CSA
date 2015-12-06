@@ -10,6 +10,7 @@ SVG.MotisConnection = SVG.invent({
       var self = this;
       var totalOffset = 0;
       var lastEnd = 0;
+      var lastCorrection = 0;
       elements.forEach(function(el) {
         let move = new SVG.MotisMove;
 
@@ -21,7 +22,6 @@ SVG.MotisConnection = SVG.invent({
         }
 
         // Try to reduce offset by shrinking travel time.
-        lastEnd = el.x + el.len;
         let before = el.len;
         el.len -= totalOffset;
         if (el.len < 0) {
@@ -32,12 +32,15 @@ SVG.MotisConnection = SVG.invent({
                             .draw(thickness, radius, el.len, el.label)
                             .move(el.x + totalOffset, 0)
                             .fill(el.color);
+        lastCorrection  = before - el.len;
         totalOffset = Math.max(totalOffset + move.getOffset(), 0);
+        lastEnd = el.x + el.len;
+
         self.add(moveGroup);
       });
 
       var lastEl = elements[elements.length - 1];
-      var x = lastEl.x + lastEl.len + totalOffset;
+      var x = lastEl.x + lastEl.len + totalOffset + lastCorrection;
       var circleGroup = this.put(new SVG.G)
                             .move(x, thickness / 2)
                             .fill('#666');
