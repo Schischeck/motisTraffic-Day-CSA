@@ -15,7 +15,7 @@ export default class RoutingForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: new Date()
+      time: props.initDate || new Date()
     };
   }
 
@@ -56,11 +56,11 @@ export default class RoutingForm extends Component {
     const toHasEva = toValue.eva !== undefined;
     return new RoutingRequest(Math.floor(this.state.time / 1000), [
       {
-        'name': fromHasEva ? '' : fromValue.name,
+        'name': fromValue.name,
         'eva_nr': fromHasEva ? fromValue.eva : ''
       },
       {
-        'name': toHasEva ? '' : toValue.name,
+        'name': toValue.name,
         'eva_nr': toHasEva ? toValue.eva : ''
       }
     ]);
@@ -100,10 +100,12 @@ export default class RoutingForm extends Component {
           <Typeahead
                      ref="fromInput"
                      hintText="From"
+                     initVal={this.props.initFrom}
                      complete={ this.guessStation.bind(this) } />
           <Typeahead
                      ref="toInput"
                      hintText="To"
+                     initVal={this.props.initTo}
                      complete={ this.guessStation.bind(this) } />
         </div>
         <div className={ style.flexcol }>
@@ -127,7 +129,7 @@ export default class RoutingForm extends Component {
         <RadioButtonGroup
                           style={ { 'display': 'flex', 'width': '50%', 'flexDirection': 'row'} }
                           name="arrdep"
-                          valueSelected="Forward">
+                          valueSelected="Departure">
           <RadioButton
                        label="Departure"
                        style={ { marginBottom: 16} } />

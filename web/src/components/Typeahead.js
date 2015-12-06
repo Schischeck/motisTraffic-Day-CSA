@@ -11,13 +11,14 @@ function mod(a, n) {
 export default class Typeahead extends React.Component {
   propTypes: {
     complete: React.PropTypes.func.isRequired,
-    name: React.PropTypes.string
+    name: React.PropTypes.string,
+    initVal: React.PropTypes.string
   }
 
   constructor(props) {
     super(props);
     this.state = {
-      value: '',
+      value: this.props.initVal || '',
       completions: [],
       selectedItemIndex: 0,
       selectedCompletion: undefined
