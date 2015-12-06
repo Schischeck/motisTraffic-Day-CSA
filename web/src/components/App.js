@@ -7,7 +7,7 @@ import RoutingForm from './RoutingForm';
 import Map from './Map';
 import ConnectionView from './ConnectionView';
 import ServerConnectionIndicator from './ServerConnectionIndicator';
-import Timeline from './timeline/MotisGrid';
+import Timeline from './timeline/MotisTimeline';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
