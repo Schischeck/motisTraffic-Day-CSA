@@ -18,8 +18,15 @@ export class App extends Component {
   constructor(props) {
     super(props);
     const cached = JSON.parse(localStorage.getItem('motiscache')) || {};
+    const lastReq = cached.req;
+    let lastFrom = lastReq ? lastReq.content.path[0].name : '';
+    let lastTo = lastReq ? lastReq.content.path[1].name : '';
+    let lastDate = lastReq ? new Date(lastReq.content.interval.begin * 1000) : new Date();
     this.state = {
       'connections': cached.connections || [],
+      'lastFrom': lastFrom,
+      'lastTo': lastTo,
+      'lastDate': lastDate,
       'showError': false,
       'waiting': false,
       'showResults': !!cached.connections
@@ -40,7 +47,8 @@ export class App extends Component {
         'showResults': true
       });
       localStorage.setItem('motiscache', JSON.stringify({
-        'connections': response.content.connections
+        'connections': response.content.connections,
+        'req': req
       }));
     });
   }
@@ -87,6 +95,9 @@ export class App extends Component {
           </div>
           <RoutingForm
                        ref="routingform"
+                       initFrom={ this.state.lastFrom }
+                       initTo={ this.state.lastTo }
+                       initDate={ this.state.lastDate }
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
           <Timeline style={{ maxHeight: '400px', overflowY: 'scroll' }}
