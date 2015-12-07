@@ -38,7 +38,8 @@ constexpr char const* kRoutingRequest = R""(
     "path": [
       { "eva_nr": "8000260", "name": "" }, // Würzburg
       { "eva_nr": "8000208", "name": "" }  // Köln-Ehrenfeld
-    ]
+    ],
+    "additional_edges": []
   }
 }
 )"";
