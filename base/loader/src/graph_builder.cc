@@ -480,9 +480,7 @@ public:
       for (auto& station_edge : station_node->_edges) {
         station_edge._to->_incoming_edges.push_back(&station_edge);
         for (auto& edge : station_edge._to->_edges) {
-          if (edge.type() != edge::ROUTE_EDGE) {
-            edge._to->_incoming_edges.push_back(&edge);
-          }
+          edge._to->_incoming_edges.push_back(&edge);
         }
       }
     }
@@ -759,7 +757,6 @@ private:
     }
     if (last_route_edge != nullptr) {
       last_route_edge->_to = route_node;
-      route_node->_incoming_edges.push_back(last_route_edge);
     }
 
     return {route_info(route_node, route_edge_index),
@@ -817,7 +814,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   if (unique_check) {
     scoped_timer timer("unique check");
-    duplicate_checker dup_checker(*sched, false);
+    duplicate_checker dup_checker(*sched);
     dup_checker.remove_duplicates();
     LOG(info) << "removed " << dup_checker.get_duplicate_count()
               << " duplicate events";

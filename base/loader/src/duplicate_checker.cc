@@ -5,11 +5,8 @@
 namespace motis {
 namespace loader {
 
-duplicate_checker::duplicate_checker(schedule& sched, bool ignore_local_traffic)
-    : schedule_(sched),
-      last_service_num_(0),
-      ignore_local_traffic_(ignore_local_traffic),
-      duplicate_count_(0) {}
+duplicate_checker::duplicate_checker(schedule& sched)
+    : schedule_(sched), last_service_num_(0), duplicate_count_(0) {}
 
 void duplicate_checker::remove_duplicates() {
   for (auto& station_node_ptr : schedule_.station_nodes) {
@@ -57,9 +54,6 @@ void duplicate_checker::handle_duplicates(
 bool duplicate_checker::is_duplicate_event(
     std::pair<time, light_connection*> const& p1,
     std::pair<time, light_connection*> const& p2) const {
-  if (ignore_local_traffic_ && p1.second->_full_con->clasz <= 4) {
-    return false;
-  }
   return p1.first == p2.first &&
          p1.second->_full_con->con_info->train_nr ==
              p2.second->_full_con->con_info->train_nr &&

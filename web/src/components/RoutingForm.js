@@ -131,20 +131,6 @@ export default class RoutingForm extends Component {
                       onChange={ this.onTimeChange.bind(this) } />
         </div>
       </div>
-      <div style={ { 'marginTop': '14px'} }>
-        <RadioButtonGroup
-                          style={ { 'display': 'flex', 'width': '50%', 'flexDirection': 'row'} }
-                          name="arrdep"
-                          valueSelected="Departure">
-          <RadioButton
-                       label="Departure"
-                       style={ { marginBottom: 16} } />
-          <RadioButton
-                       label="Arrival"
-                       disabled={ true }
-                       style={ { marginBottom: 16} } />
-        </RadioButtonGroup>
-      </div>
       <ClearFix />
     </div>
     );

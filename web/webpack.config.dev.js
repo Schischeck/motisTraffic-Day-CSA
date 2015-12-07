@@ -16,7 +16,10 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
-      __API_KEY__: JSON.stringify(''),
+      __MOTIS_API_KEY__: false,
+      __MOTIS_REMOTE_HOST__: false,
+      __MOTIS_REMOTE_PORT__: false,
+      __MOTIS_REMOTE_PATH__: false
     })
   ],
   module: {

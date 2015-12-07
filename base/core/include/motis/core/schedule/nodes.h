@@ -122,20 +122,8 @@ public:
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
-            for (auto const& e : route_node->_edges) {
-              if (e.type() == edge::ROUTE_EDGE) {
-                assert(e._to->_incoming_edges.size() == 1);
-                e._to->_incoming_edges.resize(0);
-              }
-            }
             route_node->_edges.push_back(
                 make_after_train_edge(route_node, _foot_node, 0, true));
-            for (auto& e : route_node->_edges) {
-              if (e.type() == edge::ROUTE_EDGE) {
-                assert(e._to->_incoming_edges.size() == 0);
-                e._to->_incoming_edges.push_back(&e);
-              }
-            }
             break;
           }
         }
