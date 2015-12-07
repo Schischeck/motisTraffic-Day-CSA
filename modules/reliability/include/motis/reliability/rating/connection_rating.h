@@ -11,9 +11,6 @@ struct schedule;
 namespace reliability {
 struct context;
 struct start_and_travel_distributions;
-namespace distributions_container {
-struct precomputed_distributions_container;
-}
 
 namespace rating {
 
@@ -54,7 +51,7 @@ struct connection_rating {
   probability connection_rating_;
 };
 
-void rate(connection_rating& rating, journey const&, context const&);
+void rate(connection_rating&, journey const&, context const&);
 
 }  // namespace rating
 }  // namespace reliability

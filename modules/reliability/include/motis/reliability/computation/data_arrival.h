@@ -16,7 +16,7 @@ namespace reliability {
 struct probability_distribution;
 namespace calc_arrival_distribution {
 /**
- * struct storing all data necessary for calculating an arrival distribution.
+ * struct storing all data necessary to calculate an arrival distribution.
  */
 struct data_arrival {
   data_arrival(light_connection const& light_connection,
@@ -45,10 +45,9 @@ struct data_arrival {
   int right_bound_;
 
 private:
-  void init_travel_info(
-      light_connection const& light_connection,
-      start_and_travel_distributions const& s_t_distributions,
-      std::vector<std::unique_ptr<category>> const& categories);
+  void init_travel_info(light_connection const& light_connection,
+                        start_and_travel_distributions const&,
+                        std::vector<std::unique_ptr<category>> const&);
 };
 
 }  // namespace calc_arrival_distribution {

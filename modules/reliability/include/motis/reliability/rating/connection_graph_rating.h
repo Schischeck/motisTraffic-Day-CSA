@@ -10,14 +10,12 @@ namespace reliability {
 struct context;
 struct probability_distribution;
 struct start_and_travel_distributions;
-namespace distributions_container {
-struct precomputed_distributions_container;
-}
 namespace search {
 struct connection_graph;
 }
 namespace rating {
 struct connection_element;
+
 namespace cg {
 void rate_inserted_alternative(
     search::connection_graph_search::detail::context::conn_graph_context&,
