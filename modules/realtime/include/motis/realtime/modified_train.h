@@ -4,9 +4,11 @@
 #include <utility>
 #include <unordered_map>
 
-#include "motis/realtime/event.h"
+#include "motis/core/common/hash_map.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/nodes.h"
+
+#include "motis/realtime/event.h"
 
 namespace motis {
 namespace realtime {
@@ -54,13 +56,22 @@ public:
 
 class modified_train_manager {
 public:
+  modified_train_manager() {
+    constexpr auto inv_u = std::numeric_limits<uint32_t>::max();
+    constexpr auto inv = std::numeric_limits<int32_t>::max();
+
+    _modified_trains.set_empty_key(inv);
+    _train_with_event.set_empty_key({inv_u, inv_u, true, INVALID_TIME});
+  }
+
   void add(modified_train* mt);
   modified_train* train_with_event(const schedule_event& event_id) const;
   modified_train* train_with_route_id(int32_t route_id) const;
 
-  std::unordered_map<int32_t, modified_train*> _modified_trains;
-  std::unordered_map<schedule_event, modified_train*,
-                     boost::hash<schedule_event>> _train_with_event;
+private:
+  std::vector<std::unique_ptr<modified_train>> _owner;
+  hash_map<schedule_event, modified_train*> _train_with_event;
+  hash_map<int32_t, modified_train*> _modified_trains;
 };
 
 }  // namespace realtime

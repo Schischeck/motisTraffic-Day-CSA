@@ -125,10 +125,9 @@ void message_handler::handle_additional_train(
   _rts._modified_train_manager.add(mt);
   _rts._graph_updater.adjust_train(mt, msg.events_);
 
-  //  for (const auto& e : events) {
-  //    _rts._delay_propagator.enqueue(e, queue_reason::RECALC,
-  //    mt->_new_route_id);
-  //  }
+  for (const auto& e : msg.events_) {
+    _rts._delay_propagator.enqueue(e, queue_reason::RECALC, mt->_new_route_id);
+  }
 }
 
 void message_handler::handle_canceled_train(const cancel_train_message& msg) {
@@ -349,7 +348,7 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
       }
     }
     const auto it = std::upper_bound(all_events.begin(), all_events.end(), ne);
-    if (it == all_events.end() || *it > ne) {
+    if (it == all_events.end() || ne < *it) {
       all_events.insert(it, ne);
     }
   }
@@ -527,7 +526,7 @@ bool message_handler::train_exists(
   std::tie(start_event, std::ignore, std::ignore, std::ignore) =
       _rts.locate_start_of_train(events[0]);
   if (!start_event.found()) return false;
-  if (start_event != events[0]) {
+  if (! (start_event == events[0])) {
     if (_rts.is_debug_mode()) LOG(warn) << "partial train match (v1)";
     return false;
   }
