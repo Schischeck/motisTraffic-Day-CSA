@@ -10,7 +10,7 @@ namespace motis {
 namespace loader {
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool check_unique);
+                         bool check_unique, bool apply_rules);
 
 }  // namespace loader
 }  // namespace motis

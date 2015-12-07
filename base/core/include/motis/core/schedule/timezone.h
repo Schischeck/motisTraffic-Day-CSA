@@ -22,14 +22,14 @@ struct timezone {
 
   inline bool is_invalid_time(time actual) const {
     if (season_.begin != INVALID_TIME) {
-      auto const distanceLowerBound = actual - season_.begin;
-      auto const distanceUpperBound = season_.end - actual;
+      auto const distance_to_season_begin = actual - season_.begin;
+      auto const distance_to_season_end = season_.end - actual;
 
       // motis time t is within 1 hour...
       // ...hour after season begin, or
       // ...hour before season end
-      return (0 <= distanceLowerBound && distanceLowerBound <= 1) ||
-             (0 <= distanceUpperBound && distanceUpperBound <= 1);
+      return (0 <= distance_to_season_begin && distance_to_season_begin < 1) ||
+             (0 <= distance_to_season_end && distance_to_season_end < 1);
     }
     return false;
   }

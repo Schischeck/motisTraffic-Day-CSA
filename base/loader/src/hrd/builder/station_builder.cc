@@ -1,8 +1,5 @@
 #include "motis/loader/hrd/builder/station_builder.h"
 
-#include <sstream>
-#include <iomanip>
-
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
 
@@ -15,12 +12,6 @@ using namespace flatbuffers;
 station_builder::station_builder(
     std::map<int, intermediate_station> hrd_stations, timezones tz)
     : hrd_stations_(std::move(hrd_stations)), timezones_(std::move(tz)){};
-
-std::string pad_to_7_digits(int eva_num) {
-  std::stringstream s;
-  s << std::setw(7) << std::setfill('0') << eva_num;
-  return s.str();
-}
 
 Offset<Station> station_builder::get_or_create_station(int eva_num,
                                                        FlatBufferBuilder& fbb) {

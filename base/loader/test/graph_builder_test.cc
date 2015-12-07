@@ -33,7 +33,8 @@ protected:
     parser.parse(schedule_path, b);
     auto serialized = GetSchedule(b.GetBufferPointer());
 
-    sched_ = build_graph(serialized, schedule_begin_, schedule_end_, true);
+    sched_ =
+        build_graph(serialized, schedule_begin_, schedule_end_, true, true);
   }
 
   static edge const* get_route_edge(node const* route_node) {
@@ -87,6 +88,13 @@ public:
       : loader_graph_builder_test("direction-services",
                                   to_unix_time(2015, 9, 11),
                                   to_unix_time(2015, 9, 12)) {}
+};
+
+class loader_merge_split_graph_builder_test : public loader_graph_builder_test {
+public:
+  loader_merge_split_graph_builder_test()
+      : loader_graph_builder_test("cnl-schedule", to_unix_time(2015, 11, 5),
+                                  to_unix_time(2015, 11, 7)) {}
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -464,6 +472,8 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
   // +1 -> +2
   test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120));
 }
+
+TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
 
 }  // loader
 }  // motis

@@ -19,7 +19,10 @@ module.exports = {
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.DefinePlugin({
-      __API_KEY__: JSON.stringify(JSON.parse(process.env.API_KEY || '')),
+      __MOTIS_API_KEY__: JSON.stringify(JSON.parse(process.env.MOTIS_API_KEY || '')),
+      __MOTIS_REMOTE_HOST__: JSON.stringify(JSON.parse(process.env.MOTIS_REMOTE_HOST || '')),
+      __MOTIS_REMOTE_PORT__: JSON.stringify(JSON.parse(process.env.MOTIS_REMOTE_PORT || '')),
+      __MOTIS_REMOTE_PATH__: JSON.stringify(JSON.parse(process.env.MOTIS_REMOTE_PATH || '')),
       'process.env': {
         'NODE_ENV': JSON.stringify('production')
       }

@@ -99,36 +99,12 @@ public:
     return route_nodes;
   }
 
-  std::vector<node const*> get_incoming_route_nodes() const {
-    std::vector<node const*> route_nodes;
-
-    for (auto& edge : _incoming_edges) {
-      if (edge->_from->is_route_node()) {
-        route_nodes.emplace_back(edge->_from);
-      }
-    }
-
-    return route_nodes;
-  }
-
   std::vector<node*> get_route_nodes() {
     std::vector<node*> route_nodes;
 
     for (auto& edge : _edges) {
       if (edge._to->is_route_node()) {
         route_nodes.emplace_back(edge._to);
-      }
-    }
-
-    return route_nodes;
-  }
-
-  std::vector<node*> get_incoming_route_nodes() {
-    std::vector<node*> route_nodes;
-
-    for (auto& edge : _incoming_edges) {
-      if (edge->_from->is_route_node()) {
-        route_nodes.emplace_back(edge->_from);
       }
     }
 
@@ -146,20 +122,8 @@ public:
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
-            for (auto const& e : route_node->_edges) {
-              if (e.type() == edge::ROUTE_EDGE) {
-                assert(e._to->_incoming_edges.size() == 1);
-                e._to->_incoming_edges.resize(0);
-              }
-            }
             route_node->_edges.push_back(
                 make_after_train_edge(route_node, _foot_node, 0, true));
-            for (auto& e : route_node->_edges) {
-              if (e.type() == edge::ROUTE_EDGE) {
-                assert(e._to->_incoming_edges.size() == 0);
-                e._to->_incoming_edges.push_back(&e);
-              }
-            }
             break;
           }
         }

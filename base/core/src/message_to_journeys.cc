@@ -54,6 +54,7 @@ journey::transport to_transport(routing::Transport const& transport,
   journey::transport t;
   t.category_name = transport.category_name()->c_str();
   t.category_id = transport.category_id();
+  t.clasz = transport.clasz();
   t.direction = transport.direction()->c_str();
   t.duration = duration;
   t.from = transport.range()->from();
