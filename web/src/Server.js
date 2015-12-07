@@ -74,14 +74,14 @@ class Server {
 
   sendAuth() {
     return new Promise((resolve, reject) => {
-      console.log('API KEY: ', __API_KEY__);
-      if (__API_KEY__ == undefined || !__API_KEY__) {
+      console.log('API KEY: ', __MOTIS_API_KEY__);
+      if (__MOTIS_API_KEY__ == undefined || !__MOTIS_API_KEY__) {
         console.log('immediate resolve');
         return resolve({ 'id': 0 });
       }
 
       try {
-        this.socket.send(__API_KEY__);
+        this.socket.send(__MOTIS_API_KEY__);
       } catch (e) {
         reject(e);
       }
