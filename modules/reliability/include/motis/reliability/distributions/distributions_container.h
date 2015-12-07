@@ -9,7 +9,7 @@
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
-#include "motis/reliability/tools/time_util.h"
+#include "motis/reliability/realtime/time_util.h"
 
 namespace motis {
 namespace reliability {

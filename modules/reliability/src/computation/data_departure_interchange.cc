@@ -3,7 +3,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
-#include "motis/reliability/tools/time_util.h"
+#include "motis/reliability/realtime/time_util.h"
 
 #include <cassert>
 

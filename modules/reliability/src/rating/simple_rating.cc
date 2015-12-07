@@ -8,7 +8,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
-#include "motis/reliability/tools/time_util.h"
+#include "motis/reliability/realtime/time_util.h"
 
 namespace motis {
 namespace reliability {

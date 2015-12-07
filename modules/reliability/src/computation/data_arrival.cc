@@ -7,7 +7,7 @@
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/tools/time_util.h"
+#include "motis/reliability/realtime/time_util.h"
 
 namespace motis {
 namespace reliability {
