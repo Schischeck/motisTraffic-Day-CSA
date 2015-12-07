@@ -22,11 +22,11 @@ TEST_F(realtime_train_messages_test,
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(ffm_hbf->index, 999, true, t(9, 0)),
-      rt::schedule_event(Langen->index, 999, false, t(9, 15)),
-      rt::schedule_event(Langen->index, 999, true, t(9, 17)),
-      rt::schedule_event(da_hbf->index, 999, false, t(9, 30))};
+  std::vector<schedule_event> events = {
+      schedule_event(ffm_hbf->index, 999, true, t(9, 0)),
+      schedule_event(Langen->index, 999, false, t(9, 15)),
+      schedule_event(Langen->index, 999, true, t(9, 17)),
+      schedule_event(da_hbf->index, 999, false, t(9, 30))};
 
   _rts._message_handler.handle_additional_train(
       rt::additional_train_message("RB", events));
@@ -59,11 +59,11 @@ TEST_F(realtime_train_messages_test, test_additional_train_with_new_category) {
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
   const int h = 15;
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(ffm_hbf->index, 1000, true, t(h, 0)),
-      rt::schedule_event(Langen->index, 1000, false, t(h, 15)),
-      rt::schedule_event(Langen->index, 1000, true, t(h, 17)),
-      rt::schedule_event(da_hbf->index, 1000, false, t(h, 30))};
+  std::vector<schedule_event> events = {
+      schedule_event(ffm_hbf->index, 1000, true, t(h, 0)),
+      schedule_event(Langen->index, 1000, false, t(h, 15)),
+      schedule_event(Langen->index, 1000, true, t(h, 17)),
+      schedule_event(da_hbf->index, 1000, false, t(h, 30))};
 
   _rts._message_handler.handle_additional_train(
       rt::additional_train_message("FOO", events));
@@ -95,11 +95,11 @@ TEST_F(realtime_train_messages_test, test_additional_train_with_delays) {
   const motis::station* Langen = get_station("Langen");
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(ffm_hbf->index, 999, true, t(9, 0)),
-      rt::schedule_event(Langen->index, 999, false, t(9, 15)),
-      rt::schedule_event(Langen->index, 999, true, t(9, 17)),
-      rt::schedule_event(da_hbf->index, 999, false, t(9, 30))};
+  std::vector<schedule_event> events = {
+      schedule_event(ffm_hbf->index, 999, true, t(9, 0)),
+      schedule_event(Langen->index, 999, false, t(9, 15)),
+      schedule_event(Langen->index, 999, true, t(9, 17)),
+      schedule_event(da_hbf->index, 999, false, t(9, 30))};
 
   _rts._message_handler.handle_delay(rt::delay_message(
       999,
@@ -138,11 +138,11 @@ TEST_F(realtime_train_messages_test, test_cancel_complete_train) {
 
   EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(14, 25)).empty());
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(da_hbf->index, 20, true, t(14, 34)),
-      rt::schedule_event(Langen->index, 20, false, t(14, 49)),
-      rt::schedule_event(Langen->index, 20, true, t(14, 51)),
-      rt::schedule_event(ffm_hbf->index, 20, false, t(15, 5))};
+  std::vector<schedule_event> events = {
+      schedule_event(da_hbf->index, 20, true, t(14, 34)),
+      schedule_event(Langen->index, 20, false, t(14, 49)),
+      schedule_event(Langen->index, 20, true, t(14, 51)),
+      schedule_event(ffm_hbf->index, 20, false, t(15, 5))};
 
   _rts._message_handler.handle_canceled_train(rt::cancel_train_message(events));
   _rts._delay_propagator.process_queue();
@@ -163,9 +163,9 @@ TEST_F(realtime_train_messages_test, test_cancel_beginning_of_train) {
 
   EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(14, 25)).empty());
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(da_hbf->index, 20, true, t(14, 34)),
-      rt::schedule_event(Langen->index, 20, false, t(14, 49))};
+  std::vector<schedule_event> events = {
+      schedule_event(da_hbf->index, 20, true, t(14, 34)),
+      schedule_event(Langen->index, 20, false, t(14, 49))};
 
   _rts._message_handler.handle_canceled_train(rt::cancel_train_message(events));
   _rts._delay_propagator.process_queue();
@@ -192,9 +192,9 @@ TEST_F(realtime_train_messages_test, test_cancel_end_of_train) {
 
   EXPECT_FALSE(find_connections(da_hbf, ffm_hbf, t(13, 30)).empty());
 
-  std::vector<rt::schedule_event> events = {
-      rt::schedule_event(Langen->index, 20, true, t(13, 51)),
-      rt::schedule_event(ffm_hbf->index, 20, false, t(14, 5))};
+  std::vector<schedule_event> events = {
+      schedule_event(Langen->index, 20, true, t(13, 51)),
+      schedule_event(ffm_hbf->index, 20, false, t(14, 5))};
 
   _rts._message_handler.handle_canceled_train(rt::cancel_train_message(events));
   _rts._delay_propagator.process_queue();
@@ -238,9 +238,9 @@ TEST_F(realtime_train_messages_test, test_reroute_cancel_stops_in_middle) {
   EXPECT_FALSE(find_connections(ffm_tief, da_hbf, t(10, 0)).empty());
   EXPECT_FALSE(find_connections(ffm_tief, dreieich, t(10, 0)).empty());
 
-  std::vector<rt::schedule_event> canceled_events = {
-      rt::schedule_event(dreieich->index, 1, false, t(10, 6)),
-      rt::schedule_event(dreieich->index, 1, true, t(10, 8))};
+  std::vector<schedule_event> canceled_events = {
+      schedule_event(dreieich->index, 1, false, t(10, 6)),
+      schedule_event(dreieich->index, 1, true, t(10, 8))};
 
   _rts._message_handler.handle_rerouted_train(
       rt::reroute_train_message("RE", canceled_events, {}));
@@ -310,16 +310,16 @@ TEST_F(realtime_train_messages_test, test_reroute_change_start) {
   EXPECT_FALSE(find_connections(ffm_tief, da_hbf, t(10, 0)).empty());
   EXPECT_TRUE(find_connections(ffm_hbf, da_hbf, t(10, 0)).empty());
 
-  std::vector<rt::schedule_event> canceled_events = {
-      rt::schedule_event(ffm_tief->index, 1, true, t(10, 0)),
+  std::vector<schedule_event> canceled_events = {
+      schedule_event(ffm_tief->index, 1, true, t(10, 0)),
   };
 
-  std::vector<rt::schedule_event> new_events = {
-      rt::schedule_event(ffm_hbf->index, 1, true, t(10, 0))};
+  std::vector<schedule_event> new_events = {
+      schedule_event(ffm_hbf->index, 1, true, t(10, 0))};
 
   // delay the soon to be canceled event
   _rts._message_handler.handle_delay(canceled_events[0], t(10, 3),
-                                     rt::timestamp_reason::FORECAST);
+                                     timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 
@@ -413,8 +413,8 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
   const motis::station* da_hbf = get_station("Darmstadt Hbf");
   const motis::station* off_hbf = get_station("Offenbach Hbf");
 
-  rt::schedule_event feeder_arrival(ffm_hbf->index, 20, false, t(14, 5));
-  rt::schedule_event connector_departure(ffm_hbf->index, 23, true, t(14, 15));
+  schedule_event feeder_arrival(ffm_hbf->index, 20, false, t(14, 5));
+  schedule_event connector_departure(ffm_hbf->index, 23, true, t(14, 15));
 
   // check that connection works without any messages
   std::vector<motis::journey> journeys =
@@ -433,7 +433,7 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
 
   // delay the feeder train, connection should now be broken
   _rts._message_handler.handle_delay(feeder_arrival, t(14, 10),
-                                     rt::timestamp_reason::FORECAST);
+                                     timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 

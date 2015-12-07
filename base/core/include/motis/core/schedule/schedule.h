@@ -5,14 +5,17 @@
 #include <unordered_map>
 #include <vector>
 
-#include "motis/core/schedule/station.h"
-#include "motis/core/schedule/nodes.h"
-#include "motis/core/schedule/constant_graph.h"
+#include "motis/core/common/hash_map.h"
+#include "motis/core/common/synchronization.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/category.h"
+#include "motis/core/schedule/constant_graph.h"
+#include "motis/core/schedule/delay_info.h"
+#include "motis/core/schedule/event.h"
+#include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/station.h"
 #include "motis/core/schedule/waiting_time_rules.h"
-#include "motis/core/common/synchronization.h"
 
 namespace motis {
 
@@ -20,6 +23,14 @@ struct connection;
 struct connection_info;
 
 struct schedule {
+  schedule() {
+    constexpr auto i = std::numeric_limits<int32_t>::max();
+    constexpr auto iu = std::numeric_limits<uint32_t>::max();
+
+    schedule_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME});
+    graph_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME, i});
+    graph_to_delay_info.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
+  }
   virtual ~schedule() {}
 
   std::time_t schedule_begin_, schedule_end_;
@@ -44,6 +55,10 @@ struct schedule {
   std::vector<std::unique_ptr<std::string>> directions;
   std::vector<std::unique_ptr<timezone>> timezones;
   std::vector<std::unique_ptr<std::string>> origin_services;
+
+  std::vector<std::unique_ptr<delay_info>> delay_infos;
+  hash_map<schedule_event, delay_info*> schedule_to_delay_info;
+  hash_map<graph_event, delay_info*> graph_to_delay_info;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

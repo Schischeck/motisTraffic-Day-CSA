@@ -44,6 +44,7 @@ realtime_schedule::locate_event(const graph_event& event_id) const {
   for (motis::edge& edge :
        _schedule.station_nodes[event_id._station_index]->_edges) {
     motis::node* route_node = edge._to;
+
     if (!route_node->is_route_node() ||
         (route_id != -1 && route_node->_route != route_id))
       continue;

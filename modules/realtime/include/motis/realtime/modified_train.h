@@ -6,9 +6,9 @@
 
 #include "motis/core/common/hash_map.h"
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/event.h"
 #include "motis/core/schedule/nodes.h"
 
-#include "motis/realtime/event.h"
 
 namespace motis {
 namespace realtime {

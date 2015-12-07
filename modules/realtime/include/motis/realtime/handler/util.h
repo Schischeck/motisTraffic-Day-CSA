@@ -5,6 +5,8 @@
 namespace motis {
 
 struct schedule;
+class schedule_event;
+class graph_event;
 
 namespace ris {
 
@@ -13,10 +15,6 @@ struct Event;
 }  // namespace ris
 
 namespace realtime {
-
-class schedule_event;
-class graph_event;
-
 namespace handler {
 
 schedule_event ris_event_to_schedule_event(motis::ris::Event const& ris_event,

@@ -1,16 +1,30 @@
-#include <motis/realtime/statistics.h>
-#include "motis/realtime/delay_info.h"
-#include "motis/realtime/realtime_schedule.h"
+#include "motis/realtime/delay_info_manager.h"
+
 #include "motis/core/common/logging.h"
+
+#include "motis/realtime/realtime_schedule.h"
+#include "motis/realtime/statistics.h"
 
 namespace motis {
 namespace realtime {
 
 using namespace motis::logging;
 
+std::vector<std::unique_ptr<delay_info>> const&
+delay_info_manager::delay_infos() const {
+  return _rts._schedule.delay_infos;
+}
+
 delay_info* delay_info_manager::get_delay_info(schedule_event const& e) const {
-  auto it = _schedule_map.find(e);
-  return (it != end(_schedule_map)) ? it->second : nullptr;
+  auto const& map = _rts._schedule.schedule_to_delay_info;
+  auto it = map.find(e);
+  return (it != end(map)) ? it->second : nullptr;
+}
+
+delay_info* delay_info_manager::get_delay_info(graph_event const& e) const {
+  auto const& map = _rts._schedule.graph_to_delay_info;
+  auto it = map.find(e);
+  return (it != map.end()) ? it->second : nullptr;
 }
 
 delay_info* delay_info_manager::get_buffered_delay_info(
@@ -19,32 +33,27 @@ delay_info* delay_info_manager::get_buffered_delay_info(
   return (it != _buffered_map.end()) ? it->second : nullptr;
 }
 
-delay_info* delay_info_manager::get_delay_info(graph_event const& e) const {
-  auto it = _current_map.find(e);
-  return (it != _current_map.end()) ? it->second : nullptr;
-}
-
 motis::time delay_info_manager::current_time(const schedule_event& e) const {
   delay_info* di = get_delay_info(e);
   return (di != nullptr) ? di->_current_time : e._schedule_time;
 }
 
-delay_info* delay_info_manager::create_delay_info(
-    schedule_event const& event_id, int32_t route_id) {
-  assert(event_id.found());
+delay_info* delay_info_manager::create_delay_info(schedule_event const& evt,
+                                                  int32_t route_id) {
+  assert(evt.found());
 
-  auto buffered_di = get_buffered_delay_info(event_id);
+  auto buffered_di = get_buffered_delay_info(evt);
   if (buffered_di != nullptr) {
     upgrade_delay_info(buffered_di, route_id);
     return buffered_di;
   }
 
   assert(route_id != -1);
-  _delay_infos.push_back(make_unique<delay_info>(event_id, route_id));
-  auto di = _delay_infos.back().get();
+  _rts._schedule.delay_infos.push_back(make_unique<delay_info>(evt, route_id));
+  auto di = _rts._schedule.delay_infos.back().get();
 
-  _schedule_map[event_id] = di;
-  _current_map[di->graph_ev()] = di;  // no delay so far
+  _rts._schedule.schedule_to_delay_info[evt] = di;
+  _rts._schedule.graph_to_delay_info[di->graph_ev()] = di;  // no delay so far
 
   _updated_delay_infos.push_back(di);
   return di;
@@ -58,8 +67,8 @@ delay_info* delay_info_manager::create_buffered_delay_info(
   auto di = _buffered_delay_infos.back().get();
 
   _buffered_map[event_id] = di;
-  if (_schedule_map.find(event_id) != end(_schedule_map)) {
-
+  auto const& schedule_map = _rts._schedule.schedule_to_delay_info;
+  if (schedule_map.find(event_id) != end(schedule_map)) {
     LOG(warn) << "buffered delay info conflict: " << event_id;
   }
   _rts._stats._ops.delay_infos.buffered++;
@@ -85,12 +94,12 @@ void delay_info_manager::upgrade_delay_info(delay_info* di, int32_t route_id) {
     throw std::runtime_error("could not find buffered_delay info.");
   }
 
-  _delay_infos.emplace_back(std::move(*it));
+  _rts._schedule.delay_infos.emplace_back(std::move(*it));
   _buffered_delay_infos.erase(it);
 
   _buffered_map.erase(di->sched_ev());
-  _current_map[di->graph_ev()] = di;
-  _schedule_map[di->sched_ev()] = di;
+  _rts._schedule.graph_to_delay_info[di->graph_ev()] = di;
+  _rts._schedule.schedule_to_delay_info[di->sched_ev()] = di;
 
   di->_route_id = route_id;
   auto is_time = INVALID_TIME;
@@ -114,10 +123,11 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
   }
 
   // remove old entry from mapping
-  auto it = _current_map.find(delay_info->graph_ev());
-  if (it != _current_map.end()) {
+  auto& current_map = _rts._schedule.graph_to_delay_info;
+  auto it = current_map.find(delay_info->graph_ev());
+  if (it != current_map.end()) {
     if (it->second == update->_delay_info) {
-      _current_map.erase(it);
+      current_map.erase(it);
     } else {
       LOG(debug) << "update delay info: " << *update
                  << " - not removing old entry: " << *it->second;
@@ -131,7 +141,7 @@ void delay_info_manager::update_delay_info(const delay_info_update* update) {
 
   assert(delay_info->_route_id != -1);
   // add new entry to mapping
-  _current_map[delay_info->graph_ev()] = delay_info;
+  _rts._schedule.graph_to_delay_info[delay_info->graph_ev()] = delay_info;
   _updated_delay_infos.push_back(delay_info);
 }
 
@@ -157,10 +167,11 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
     return;
   }
   // remove old entry from mapping
-  auto it = _current_map.find(di->graph_ev());
-  if (it != _current_map.end()) {
+  auto& current_map = _rts._schedule.graph_to_delay_info;
+  auto it = current_map.find(di->graph_ev());
+  if (it != current_map.end()) {
     assert(it->second == di);
-    _current_map.erase(it);
+    current_map.erase(it);
   } else {
     LOG(warn) << "old entry in current_map not found: " << *di;
   }
@@ -172,7 +183,7 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
   di->_route_id = new_route;
 
   // add new entry to mapping
-  _current_map[di->graph_ev()] = di;
+  current_map[di->graph_ev()] = di;
   _updated_delay_infos.push_back(di);
 }
 
@@ -207,17 +218,6 @@ std::vector<delay_info*> delay_info_manager::get_delay_info_delta() {
   std::sort(begin(delta), end(delta));
   delta.erase(std::unique(begin(delta), end(delta)), end(delta));
   return delta;
-}
-
-std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
-  switch (r) {
-    case timestamp_reason::SCHEDULE: os << "s"; break;
-    case timestamp_reason::IS: os << "i"; break;
-    case timestamp_reason::FORECAST: os << "f"; break;
-    case timestamp_reason::PROPAGATION: os << "p"; break;
-    case timestamp_reason::REPAIR: os << "r"; break;
-  }
-  return os;
 }
 
 }  // namespace realtime

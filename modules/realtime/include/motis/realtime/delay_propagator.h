@@ -8,7 +8,8 @@
 
 #include "boost/operators.hpp"
 
-#include "motis/realtime/delay_info.h"
+#include "motis/core/schedule/delay_info.h"
+#include "motis/realtime/delay_info_manager.h"
 
 namespace motis {
 namespace realtime {
