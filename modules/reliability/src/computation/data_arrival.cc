@@ -7,6 +7,7 @@
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/graph_accessor.h"
+#include "motis/reliability/tools/time_util.h"
 
 namespace motis {
 namespace reliability {
@@ -14,11 +15,17 @@ namespace calc_arrival_distribution {
 
 data_arrival::data_arrival(
     light_connection const& light_connection,
+    unsigned int const preceding_departure_station_id,
+    unsigned int const arrival_station_id,
     probability_distribution const& departure_distribution,
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions)
-    : departure_info_(departure_distribution, 0 /* todo scheduled */),
-      scheduled_arrival_time_(0 /* todo scheduled */) {
+    : departure_info_(departure_distribution,
+                      time_util::get_scheduled_event_time(
+                          light_connection, preceding_departure_station_id,
+                          time_util::departure, schedule)),
+      scheduled_arrival_time_(time_util::get_scheduled_event_time(
+          light_connection, arrival_station_id, time_util::arrival, schedule)) {
   init_travel_info(light_connection, s_t_distributions, schedule.categories);
 }
 

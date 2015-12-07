@@ -25,21 +25,20 @@ namespace public_transport {
 void distributions_for_first_train(
     std::vector<rating_element>& ratings,
     std::vector<connection_element> const& elements,
-    distributions_container::container const& distributions_container) {
+    distributions_container::container const& distributions_container,
+    schedule const& sched) {
   for (auto const& element : elements) {
     ratings.emplace_back(element.departure_stop_idx_);
     ratings.back().departure_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
                 *element.light_connection_, element.from_->get_station()->_id,
-                distributions_container::container::key::departure,
-                0 /* todo scheduled time */));
+                time_util::departure, sched));
     ratings.back().arrival_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
                 *element.light_connection_, element.to_->get_station()->_id,
-                distributions_container::container::key::arrival,
-                0 /* todo scheduled time */));
+                time_util::arrival, sched));
   }
 }
 
@@ -103,8 +102,9 @@ void distributions_for_train_after_interchange(
     }
 
     calc_arrival_distribution::data_arrival arr_data(
-        *element.light_connection_, departure_distribution, context.schedule_,
-        context.s_t_distributions_);
+        *element.light_connection_, element.from_->get_station()->_id,
+        element.to_->get_station()->_id, departure_distribution,
+        context.schedule_, context.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(
         arr_data, arrival_distribution);
   }
@@ -129,7 +129,7 @@ void rate(std::vector<rating_element>& ratings,
 
     if (train_idx == 0) {
       distributions_for_first_train(ratings, elements.front(),
-                                    train_distributions);
+                                    train_distributions, context.schedule_);
     } else {
       distributions_for_train_after_interchange(ratings, elements[train_idx],
                                                 elements[train_idx - 1].back(),

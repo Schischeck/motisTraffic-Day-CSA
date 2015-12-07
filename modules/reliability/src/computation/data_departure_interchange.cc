@@ -3,6 +3,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
+#include "motis/reliability/tools/time_util.h"
 
 #include <cassert>
 
@@ -38,13 +39,17 @@ data_departure_interchange::data_departure_interchange(
     probability_distribution const& arrival_distribution,
     distributions_container::container const& distribution_preceding_train,
     reliability::context const& context)
-    : data_departure(is_first_route_node, 0 /* todo: scheduled-dep-time */) {
+    : data_departure(is_first_route_node,
+                     time_util::get_scheduled_event_time(
+                         departing_light_conn, route_node.get_station()->_id,
+                         time_util::departure, context.schedule_)) {
   if (is_first_route_node) {
     init_first_departure_info(departing_light_conn, context.s_t_distributions_,
                               context.schedule_.categories);
   } else {
     init_preceding_arrival_info(route_node, departing_light_conn.d_time,
-                                distribution_preceding_train);
+                                distribution_preceding_train,
+                                context.schedule_);
   }
 
   duration const transfer_time =
@@ -53,9 +58,11 @@ data_departure_interchange::data_departure_interchange(
   duration const waiting_time = graph_accessor::get_waiting_time(
       context.schedule_.waiting_time_rules_, arriving_light_conn,
       departing_light_conn);
-  init_interchange_feeder_info(0 /* todo: scheduled-arr-time */,
-                               arrival_distribution, transfer_time,
-                               waiting_time);
+  init_interchange_feeder_info(
+      time_util::get_scheduled_event_time(
+          arriving_light_conn, route_node.get_station()->_id,
+          time_util::arrival, context.schedule_),
+      arrival_distribution, transfer_time, waiting_time);
 
   auto const all_feeders_data = get_all_potential_feeders_except_ic(
       route_node, departing_light_conn, arriving_light_conn,
@@ -105,7 +112,10 @@ data_departure_interchange_walk::data_departure_interchange_walk(
                                  is_first_route_node,
                                  preceding_arrival_distribution, context) {
   init_interchange_feeder_info(
-      0 /* todo scheduled */, arrival_distribution,
+      time_util::get_scheduled_event_time(
+          arriving_light_conn, arrival_station.get_station()->_id,
+          time_util::arrival, context.schedule_),
+      arrival_distribution,
       graph_accessor::walking_duration(arrival_station,
                                        *departing_route_node._station_node),
       0);

@@ -20,6 +20,8 @@ namespace calc_arrival_distribution {
  */
 struct data_arrival {
   data_arrival(light_connection const& light_connection,
+               unsigned int const preceding_departure_station_id,
+               unsigned int const arrival_station_id,
                probability_distribution const& departure_distribution,
                schedule const& schedule,
                start_and_travel_distributions const& s_t_distributions);

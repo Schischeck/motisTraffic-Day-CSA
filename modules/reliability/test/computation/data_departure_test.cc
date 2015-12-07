@@ -290,7 +290,8 @@ TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
 
 bool key_equals(distributions_container::container::key const& a,
                 distributions_container::container::key const& b) {
-  return a.family_ == b.family_ && a.line_identifier_ == b.line_identifier_ &&
+  return a.category_ == b.category_ &&
+         a.line_identifier_ == b.line_identifier_ &&
          a.scheduled_event_time_ == b.scheduled_event_time_ &&
          a.station_index_ == b.station_index_ && a.train_id_ == b.train_id_ &&
          a.type_ == b.type_;
@@ -302,18 +303,19 @@ TEST_F(reliability_data_departure, check_train_distributions) {
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
            ->_to;
-  auto const& light_connection =
-      graph_accessor::get_departing_route_edge(route_node)
-          ->_m._route_edge._conns[0];
 
   using namespace distributions_container;
 
   struct train_distributions_test_container : container {
     train_distributions_test_container(container::key const& k) : key_(k) {
       train_.init_one_point(0, 1.0);
+      std::cout << "\nkey: ";
+      key_.output(std::cout);
     }
     probability_distribution const& get_distribution(
         container::key const& k) const override {
+      std::cout << "\nget_distribution: ";
+      k.output(std::cout);
       if (key_equals(k, key_)) {
         return train_;
       }
@@ -321,9 +323,10 @@ TEST_F(reliability_data_departure, check_train_distributions) {
     }
     probability_distribution train_, fail_;
     distributions_container::container::key const key_;
-  } train_distributions(
-      to_container_key(light_connection, route_node.get_station()->_id,
-                       container::key::departure, 0 /* todo scheduled */));
+  } train_distributions(to_container_key(
+      graph_accessor::get_arriving_route_edge(route_node)
+          ->_m._route_edge._conns[0],
+      route_node.get_station()->_id, time_util::arrival, *schedule_));
 
   /* route node at Darmstadt of train IC_FH_DA */
   auto const& last_route_node_IC_FH_DA =
@@ -356,14 +359,17 @@ TEST_F(reliability_data_departure, check_train_distributions) {
                          to_container_key(
                              route_edge_IC_FH_DA._m._route_edge._conns[0],
                              last_route_node_IC_FH_DA.get_station()->_id,
-                             container::key::arrival, 0 /* todo scheduled*/),
+                             time_util::arrival, *schedule_),
                          /* IC_FH_DA arrival 05:56 */
                          to_container_key(
                              route_edge_IC_FH_DA._m._route_edge._conns[1],
                              last_route_node_IC_FH_DA.get_station()->_id,
-                             container::key::arrival, 0 /* todo scheduled*/));
+                             time_util::arrival, *schedule_));
 
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
+  auto const& light_connection =
+      graph_accessor::get_departing_route_edge(route_node)
+          ->_m._route_edge._conns[0];
 
   data_departure data(
       route_node, light_connection, false, train_distributions,

@@ -93,7 +93,8 @@ protected:
 
   void init_preceding_arrival_info(node const& route_node,
                                    motis::time const departure_time,
-                                   distributions_container::container const&);
+                                   distributions_container::container const&,
+                                   schedule const&);
   void init_feeder_info(light_connection const& departing_light_conn,
                         unsigned int const station_id,
                         std::vector<graph_accessor::feeder_info> const&

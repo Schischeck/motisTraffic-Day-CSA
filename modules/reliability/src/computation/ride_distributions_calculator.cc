@@ -42,15 +42,13 @@ void process_element(
       ride_distributions_container.get_distribution_non_const(
           distributions_container::to_container_key(
               *element.light_connection_, element.from_->get_station()->_id,
-              distributions_container::container::key::departure,
-              0 /* todo scheduled */));
+              time_util::departure, context.schedule_));
   /* arrival distribution */
   auto& arrival_distribution =
       ride_distributions_container.get_distribution_non_const(
           distributions_container::to_container_key(
               *element.light_connection_, element.to_->get_station()->_id,
-              distributions_container::container::key::arrival,
-              0 /* todo scheduled */));
+              time_util::arrival, context.schedule_));
   common::compute_dep_and_arr_distribution(
       element, ride_distributions_container, context, departure_distribution,
       arrival_distribution);
@@ -84,9 +82,8 @@ std::vector<bool> compute_missing_train_distributions(
       context.precomputed_distributions_.contains_distribution(
           distributions_container::to_container_key(
               *first_element.light_connection_,
-              first_element.from_->get_station()->_id,
-              distributions_container::container::key::departure,
-              0 /* todo scheduled */)));
+              first_element.from_->get_station()->_id, time_util::departure,
+              context.schedule_)));
 
   /* For the first train, we have to compute the distributions of all events
    * of that train in the connection. */
@@ -108,8 +105,7 @@ std::vector<bool> compute_missing_train_distributions(
         context.precomputed_distributions_.contains_distribution(
             distributions_container::to_container_key(
                 *element.light_connection_, element.from_->get_station()->_id,
-                distributions_container::container::key::departure,
-                0 /* todo scheduled */)));
+                time_util::departure, context.schedule_)));
     if (!precomputed_flags.back()) {
       detail::compute_distributions_for_a_ride(element.light_connection_idx_,
                                                *element.from_, context,

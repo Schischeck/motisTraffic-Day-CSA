@@ -55,8 +55,9 @@ void compute_dep_and_arr_distribution(
 
   assert(arrival_distribution.empty());
   calc_arrival_distribution::data_arrival a_data(
-      *element.light_connection_, departure_distribution, context.schedule_,
-      context.s_t_distributions_);
+      *element.light_connection_, element.from_->get_station()->_id,
+      element.to_->get_station()->_id, departure_distribution,
+      context.schedule_, context.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(a_data,
                                                           arrival_distribution);
 }
@@ -113,15 +114,13 @@ void process_element(
       distributions_container.get_distribution_non_const(
           distributions_container::to_container_key(
               *element.light_connection_, element.from_->get_station()->_id,
-              distributions_container::container::key::departure,
-              0 /* todo scheduled time */));
+              time_util::departure, schedule));
   /* arrival distribution */
   auto& arrival_distribution =
       distributions_container.get_distribution_non_const(
           distributions_container::to_container_key(
               *element.light_connection_, element.to_->get_station()->_id,
-              distributions_container::container::key::arrival,
-              0 /* todo scheduled time */));
+              time_util::arrival, schedule));
 
   if (!departure_distribution.empty() || !arrival_distribution.empty()) {
     std::cout << "\nWarning(distributions_calculator): departure or arrival "

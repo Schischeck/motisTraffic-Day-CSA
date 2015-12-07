@@ -68,7 +68,10 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(light_connection,
+                    first_route_edge->_from->get_station()->_id,
+                    first_route_edge->_to->get_station()->_id, dep_dist,
+                    *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -98,7 +101,10 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution2) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(light_connection,
+                    first_route_edge->_from->get_station()->_id,
+                    first_route_edge->_to->get_station()->_id, dep_dist,
+                    *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -128,7 +134,10 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution3) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(light_connection,
+                    first_route_edge->_from->get_station()->_id,
+                    first_route_edge->_to->get_station()->_id, dep_dist,
+                    *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);

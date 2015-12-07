@@ -59,7 +59,7 @@ TEST_F(reliability_distributions_calculator, is_pre_computed_train) {
 void test_distributions(
     node const& route_node,
     distributions_container::container& precomputed_distributions,
-    bool const pre_computed_distributions) {
+    bool const pre_computed_distributions, schedule const& sched) {
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
   // last route node
   if (route_edge == nullptr) {
@@ -69,13 +69,10 @@ void test_distributions(
   for (unsigned int l = 0; l < route_edge->_m._route_edge._conns.size(); l++) {
     auto const dep_key = distributions_container::to_container_key(
         route_edge->_m._route_edge._conns[l], route_node.get_station()->_id,
-        distributions_container::container::key::departure,
-        0 /* todo scheduled */);
+        time_util::departure, sched);
     auto const arr_key = distributions_container::to_container_key(
         route_edge->_m._route_edge._conns[l],
-        head_route_node.get_station()->_id,
-        distributions_container::container::key::arrival,
-        0 /* todo scheduled */);
+        head_route_node.get_station()->_id, time_util::arrival, sched);
 
     if (pre_computed_distributions) {
       ASSERT_TRUE(precomputed_distributions.contains_distribution(dep_key));
@@ -96,7 +93,7 @@ void test_distributions(
   }
 
   test_distributions(head_route_node, precomputed_distributions,
-                     pre_computed_distributions);
+                     pre_computed_distributions, sched);
 }
 
 TEST_F(reliability_distributions_calculator, Initial_distributions_simple) {
@@ -111,7 +108,8 @@ TEST_F(reliability_distributions_calculator, Initial_distributions_simple) {
        schedule_->route_index_to_first_route_node) {
     test_distributions(*first_route_node, precomputed_distributions,
                        precomputation::detail::is_pre_computed_route(
-                           *schedule_, *first_route_node));
+                           *schedule_, *first_route_node),
+                       *schedule_);
   }
 }
 
@@ -186,9 +184,8 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->_m._route_edge._conns.front(),
-            first_route_node.get_station()->_id,
-            distributions_container::container::key::departure,
-            0 /* todo scheduled */));
+            first_route_node.get_station()->_id, time_util::departure,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -197,9 +194,8 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->_m._route_edge._conns.front(),
-            second_route_node.get_station()->_id,
-            distributions_container::container::key::arrival,
-            0 /* todo scheduled */));
+            second_route_node.get_station()->_id, time_util::arrival,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -208,9 +204,8 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->_m._route_edge._conns.front(),
-            second_route_node.get_station()->_id,
-            distributions_container::container::key::departure,
-            0 /* todo scheduled */));
+            second_route_node.get_station()->_id, time_util::departure,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -219,9 +214,8 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->_m._route_edge._conns.front(),
-            last_route_node.get_station()->_id,
-            distributions_container::container::key::arrival,
-            0 /* todo scheduled */));
+            last_route_node.get_station()->_id, time_util::arrival,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -253,10 +247,9 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
     auto const& distribution =
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(first_route_node)
-                ->_m._route_edge._conns.front(),
-            first_route_node.get_station()->_id,
-            distributions_container::container::key::departure,
-            0 /* todo scheduled */));
+                ->_m._route_edge._conns[light_conn_idx],
+            first_route_node.get_station()->_id, time_util::departure,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -264,10 +257,9 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
     auto const& distribution =
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(first_route_node)
-                ->_m._route_edge._conns.front(),
-            second_route_node.get_station()->_id,
-            distributions_container::container::key::arrival,
-            0 /* todo scheduled */));
+                ->_m._route_edge._conns[light_conn_idx],
+            second_route_node.get_station()->_id, time_util::arrival,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -275,10 +267,9 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
     auto const& distribution =
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(second_route_node)
-                ->_m._route_edge._conns.front(),
-            second_route_node.get_station()->_id,
-            distributions_container::container::key::departure,
-            0 /* todo scheduled */));
+                ->_m._route_edge._conns[light_conn_idx],
+            second_route_node.get_station()->_id, time_util::departure,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -286,10 +277,9 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
     auto const& distribution =
         container.get_distribution(distributions_container::to_container_key(
             graph_accessor::get_departing_route_edge(second_route_node)
-                ->_m._route_edge._conns.front(),
-            last_route_node.get_station()->_id,
-            distributions_container::container::key::arrival,
-            0 /* todo scheduled */));
+                ->_m._route_edge._conns[light_conn_idx],
+            last_route_node.get_station()->_id, time_util::arrival,
+            *schedule_));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
