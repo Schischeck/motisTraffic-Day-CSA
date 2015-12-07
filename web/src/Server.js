@@ -135,9 +135,10 @@ function parseURL() {
   }, new Map());
 };
 const params = parseURL();
-const host = params.get('host') || '127.0.0.1';
-const port = params.get('port') || '8080';
-const url = 'ws://' + host + ':' + port;
+const host = params.get('host') || __MOTIS_REMOTE_HOST__ || window.location.hostname;
+const port = params.get('port') || __MOTIS_REMOTE_PORT__ || '8080';
+const path = params.get('path') || __MOTIS_REMOTE_PATH__ || '/';
+const url = 'ws://' + host + ':' + port + path;
 
 const instance = new Server(url);
 export default instance;
