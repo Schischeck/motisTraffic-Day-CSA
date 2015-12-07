@@ -37,3 +37,15 @@ struct deep_ptr_eq {
 };
 
 }  // namespace motis
+
+namespace std {
+template <typename T, typename U>
+struct hash<std::pair<T, U>> {
+  std::size_t operator()(std::pair<T, U> const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e.first);
+    motis::hash_combine(seed, e.second);
+    return seed;
+  }
+};
+}  // namespace std

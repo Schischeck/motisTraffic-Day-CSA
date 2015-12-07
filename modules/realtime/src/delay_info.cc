@@ -8,24 +8,25 @@ namespace realtime {
 
 using namespace motis::logging;
 
-delay_info* delay_info_manager::get_delay_info(
-    const schedule_event& event_id) const {
-  auto it = _schedule_map.find(event_id);
-  if (it != _schedule_map.end()) {
-    return it->second;
-  } else {
-    return nullptr;
-  }
+delay_info* delay_info_manager::get_delay_info(schedule_event const& e) const {
+  auto it = _schedule_map.find(e);
+  return (it != end(_schedule_map)) ? it->second : nullptr;
 }
 
 delay_info* delay_info_manager::get_buffered_delay_info(
-    const schedule_event& event_id) const {
-  auto it = _buffered_map.find(event_id);
-  if (it != _buffered_map.end()) {
-    return it->second;
-  } else {
-    return nullptr;
-  }
+    schedule_event const& e) const {
+  auto it = _buffered_map.find(e);
+  return (it != _buffered_map.end()) ? it->second : nullptr;
+}
+
+delay_info* delay_info_manager::get_delay_info(graph_event const& e) const {
+  auto it = _current_map.find(e);
+  return (it != _current_map.end()) ? it->second : nullptr;
+}
+
+motis::time delay_info_manager::current_time(const schedule_event& e) const {
+  delay_info* di = get_delay_info(e);
+  return (di != nullptr) ? di->_current_time : e._schedule_time;
 }
 
 delay_info* delay_info_manager::create_delay_info(
@@ -63,7 +64,6 @@ delay_info* delay_info_manager::create_buffered_delay_info(
   }
   _rts._stats._ops.delay_infos.buffered++;
 
-
   return di;
 }
 
@@ -81,7 +81,7 @@ void delay_info_manager::upgrade_delay_info(delay_info* di, int32_t route_id) {
       begin(_buffered_delay_infos), end(_buffered_delay_infos),
       [&di](std::unique_ptr<delay_info> const& e) { return e.get() == di; });
 
-  if(it == end(_buffered_delay_infos)) {
+  if (it == end(_buffered_delay_infos)) {
     throw std::runtime_error("could not find buffered_delay info.");
   }
 
@@ -176,16 +176,6 @@ void delay_info_manager::update_route(delay_info* di, int32_t new_route) {
   _updated_delay_infos.push_back(di);
 }
 
-delay_info* delay_info_manager::get_delay_info(
-    const graph_event& event_id) const {
-  auto it = _current_map.find(event_id);
-  if (it != _current_map.end()) {
-    return it->second;
-  } else {
-    return nullptr;
-  }
-}
-
 delay_info* delay_info_manager::cancel_event(const schedule_event& event_id,
                                              int32_t route_id) {
   delay_info* di = get_delay_info(event_id);
@@ -208,16 +198,6 @@ delay_info* delay_info_manager::undo_cancelation(
     _updated_delay_infos.push_back(di);
   }
   return di;
-}
-
-motis::time delay_info_manager::current_time(
-    const schedule_event& event_id) const {
-  delay_info* delay_info = get_delay_info(event_id);
-  if (delay_info != nullptr) {
-    return delay_info->_current_time;
-  } else {
-    return event_id._schedule_time;
-  }
 }
 
 std::vector<delay_info*> delay_info_manager::get_delay_info_delta() {

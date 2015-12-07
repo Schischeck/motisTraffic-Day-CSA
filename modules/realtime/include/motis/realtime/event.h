@@ -1,17 +1,16 @@
 #pragma once
 
+#include <cassert>
 #include <ostream>
+#include <iostream>
 
-#include "boost/functional/hash.hpp"
-#include "boost/operators.hpp"
-
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/time.h"
 
 namespace motis {
 namespace realtime {
 
-class base_event {
-public:
+struct base_event {
   base_event(unsigned station_index, uint32_t train_nr, bool departure)
       : _station_index(station_index),
         _train_nr(train_nr),
@@ -28,48 +27,37 @@ public:
   bool _departure;
 };
 
-class graph_event;
+struct graph_event;
 
-class schedule_event : public base_event,
-                       private boost::less_than_comparable<schedule_event>,
-                       private boost::equality_comparable<schedule_event> {
-public:
+struct schedule_event : public base_event {
   schedule_event(unsigned station_index, uint32_t train_nr, bool departure,
                  motis::time schedule_time)
       : base_event(station_index, train_nr, departure),
         _schedule_time(schedule_time) {}
 
-  schedule_event() : base_event(), _schedule_time(motis::INVALID_TIME) {}
+  schedule_event() : base_event(), _schedule_time(INVALID_TIME) {}
 
   motis::time time() const { return _schedule_time; }
 
   inline bool valid() const {
-    return _schedule_time != motis::INVALID_TIME && _station_index != 0;
+    return _schedule_time != INVALID_TIME && _station_index != 0;
   }
 
-  bool operator==(const schedule_event& other) const {
-    return _station_index == other._station_index &&
-           _train_nr == other._train_nr && _departure == other._departure &&
-           _schedule_time == other._schedule_time;
+  friend bool operator==(schedule_event const& lhs, const schedule_event& rhs) {
+    return std::tie(lhs._station_index, lhs._train_nr, lhs._departure,
+                    lhs._schedule_time) ==
+           std::tie(rhs._station_index, rhs._train_nr, rhs._departure,
+                    rhs._schedule_time);
   }
 
-  bool operator<(const schedule_event& rhs) const {
-    if (_schedule_time != rhs._schedule_time) {
-      return _schedule_time < rhs._schedule_time;
+  friend bool operator<(schedule_event const& lhs, const schedule_event& rhs) {
+    if (lhs._schedule_time != rhs._schedule_time) {
+      return lhs._schedule_time < rhs._schedule_time;
     } else {
-      return _station_index == rhs._station_index
-                 ? !_departure && rhs._departure
-                 : _departure && !rhs._departure;
+      return lhs._station_index == rhs._station_index
+                 ? !lhs._departure && rhs._departure
+                 : lhs._departure && !rhs._departure;
     }
-  }
-
-  friend std::size_t hash_value(const schedule_event& e) {
-    std::size_t seed = 0;
-    boost::hash_combine(seed, e._station_index);
-    boost::hash_combine(seed, e._train_nr);
-    boost::hash_combine(seed, e._departure);
-    boost::hash_combine(seed, e._schedule_time);
-    return seed;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const schedule_event& e) {
@@ -82,51 +70,58 @@ public:
   motis::time _schedule_time;
 };
 
-class graph_event : public base_event,
-                    private boost::less_than_comparable<graph_event>,
-                    private boost::equality_comparable<graph_event> {
-public:
+}  // namespace realtime
+}  // namespace motis
+
+namespace std {
+template <>
+struct hash<motis::realtime::schedule_event> {
+  std::size_t operator()(motis::realtime::schedule_event const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e._station_index);
+    motis::hash_combine(seed, e._train_nr);
+    motis::hash_combine(seed, e._departure);
+    motis::hash_combine(seed, e._schedule_time);
+    return seed;
+  }
+};
+}  // namespace std
+
+namespace motis {
+namespace realtime {
+
+struct graph_event : public base_event {
   graph_event(unsigned station_index, uint32_t train_nr, bool departure,
               motis::time current_time, int32_t route_id)
       : base_event(station_index, train_nr, departure),
         _current_time(current_time),
         _route_id(route_id) {}
 
-  explicit graph_event(const schedule_event& se)
+  explicit graph_event(schedule_event const& se)
       : base_event(se._station_index, se._train_nr, se._departure),
         _current_time(se._schedule_time),
         _route_id(-1) {}
 
-  graph_event()
-      : base_event(), _current_time(motis::INVALID_TIME), _route_id(-1) {}
+  graph_event() : base_event(), _current_time(INVALID_TIME), _route_id(-1) {}
 
   motis::time time() const { return _current_time; }
 
-  bool valid() {
-    return _current_time != motis::INVALID_TIME && _station_index != 0;
+  bool valid() { return _current_time != INVALID_TIME && _station_index != 0; }
+
+  friend bool operator==(graph_event const& lhs, const graph_event& rhs) {
+    // assert((lhs._route_id != -1 && rhs._route_id != -1) ||
+    //        (lhs._route_id == -1 && rhs._route_id == -1));
+
+    return lhs._station_index == rhs._station_index &&
+           lhs._train_nr == rhs._train_nr && lhs._departure == rhs._departure &&
+           lhs._current_time == rhs._current_time &&
+           lhs._route_id == rhs._route_id;
   }
 
-  bool operator==(const graph_event& other) const {
-    assert(_route_id != -1 && other._route_id != -1);
-    assert(_route_id == -1 && other._route_id == -1);
-    return _station_index == other._station_index &&
-           _train_nr == other._train_nr && _departure == other._departure &&
-           _current_time == other._current_time && _route_id == other._route_id;
-  }
-
-  bool operator<(const graph_event& rhs) const {
-    return _current_time == rhs._current_time
-               ? _departure && !rhs._departure
-               : _current_time < rhs._current_time;
-  }
-
-  friend std::size_t hash_value(const graph_event& e) {
-    std::size_t seed = 0;
-    boost::hash_combine(seed, e._station_index);
-    boost::hash_combine(seed, e._train_nr);
-    boost::hash_combine(seed, e._departure);
-    boost::hash_combine(seed, e._current_time);
-    return seed;
+  friend bool operator<(graph_event const& lhs, const graph_event& rhs) {
+    return lhs._current_time == rhs._current_time
+               ? lhs._departure && !rhs._departure
+               : lhs._current_time < rhs._current_time;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const graph_event& e) {
@@ -143,3 +138,17 @@ public:
 
 }  // namespace realtime
 }  // namespace motis
+
+namespace std {
+template <>
+struct hash<motis::realtime::graph_event> {
+  std::size_t operator()(motis::realtime::graph_event const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e._station_index);
+    motis::hash_combine(seed, e._train_nr);
+    motis::hash_combine(seed, e._departure);
+    motis::hash_combine(seed, e._current_time);
+    return seed;
+  }
+};
+}  // namespace std

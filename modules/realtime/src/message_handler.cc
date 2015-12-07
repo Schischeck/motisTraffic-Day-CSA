@@ -348,7 +348,7 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
       }
     }
     const auto it = std::upper_bound(all_events.begin(), all_events.end(), ne);
-    if (it == all_events.end() || *it > ne) {
+    if (it == all_events.end() || ne < *it) {
       all_events.insert(it, ne);
     }
   }
@@ -526,7 +526,7 @@ bool message_handler::train_exists(
   std::tie(start_event, std::ignore, std::ignore, std::ignore) =
       _rts.locate_start_of_train(events[0]);
   if (!start_event.found()) return false;
-  if (start_event != events[0]) {
+  if (! (start_event == events[0])) {
     if (_rts.is_debug_mode()) LOG(warn) << "partial train match (v1)";
     return false;
   }
