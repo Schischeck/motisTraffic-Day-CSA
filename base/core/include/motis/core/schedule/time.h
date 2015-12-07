@@ -16,9 +16,10 @@ typedef uint16_t duration;
 constexpr unsigned short INVALID_TIME = USHRT_MAX;
 constexpr unsigned int SCHEDULE_OFFSET = MINUTES_A_DAY * 60;
 
-inline time to_motis_time(int day_index, int minutes_after_midnight) {
-  // +1 for schedule offset
-  return (1 + day_index) * MINUTES_A_DAY + minutes_after_midnight;
+inline time to_motis_time(int day_index, int minutes) {
+  // plus four days, because the maximum journey duration is 4 days
+  // plus one day, because the first valid motis timestamp is MINUTES_A_DAY
+  return (day_index + 5) * MINUTES_A_DAY + minutes;
 }
 
 inline time to_motis_time(int day_index, int hours, int minutes) {
