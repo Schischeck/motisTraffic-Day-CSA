@@ -19,6 +19,9 @@ struct osrm : public motis::module::module {
   virtual std::vector<MsgContent> subscriptions() const override { return {}; }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
+
+private:
+
 };
 
 }  // namespace osrm

@@ -10,6 +10,9 @@
 
 #include "boost/functional/hash.hpp"
 
+#include "motis/core/common/hash_map.h"
+#include "motis/core/common/hash_helper.h"
+
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/schedule/schedule.h"
@@ -89,7 +92,18 @@ public:
 class waiting_edges {
 public:
   waiting_edges(realtime_schedule& rts, motis::waiting_time_rules& wtr)
-      : _rts(rts), _wtr(wtr) {}
+      : _rts(rts), _wtr(wtr) {
+    constexpr auto inv_u = std::numeric_limits<uint32_t>::max();
+    constexpr auto inv = std::numeric_limits<int32_t>::max();
+
+    _outgoing_edges.set_empty_key({inv_u, inv});
+    _incoming_edges.set_empty_key({inv_u, inv});
+
+    _additional_outgoing_edges.set_empty_key(
+        {inv_u, inv_u, true, INVALID_TIME});
+    _additional_incoming_edges.set_empty_key(
+        {inv_u, inv_u, true, INVALID_TIME});
+  }
   ~waiting_edges();
 
   void create_waiting_edges();
@@ -118,15 +132,13 @@ public:
   using index_type = std::pair<uint32_t, int32_t>;  // station_index, route_id
 
 private:
-  std::unordered_map<index_type, std::vector<waiting_edge*>,
-                     boost::hash<index_type>> _outgoing_edges;
-  std::unordered_map<index_type, std::vector<waiting_edge*>,
-                     boost::hash<index_type>> _incoming_edges;
+  hash_map<index_type, std::vector<waiting_edge*>> _outgoing_edges;
+  hash_map<index_type, std::vector<waiting_edge*>> _incoming_edges;
 
-  std::unordered_map<schedule_event, std::vector<single_waiting_edge*>,
-                     boost::hash<schedule_event>> _additional_outgoing_edges;
-  std::unordered_map<schedule_event, std::vector<single_waiting_edge*>,
-                     boost::hash<schedule_event>> _additional_incoming_edges;
+  hash_map<schedule_event, std::vector<single_waiting_edge*>>
+      _additional_outgoing_edges;
+  hash_map<schedule_event, std::vector<single_waiting_edge*>>
+      _additional_incoming_edges;
 
   void create_waiting_edges(const motis::edge* feeder,
                             const motis::edge* connector,

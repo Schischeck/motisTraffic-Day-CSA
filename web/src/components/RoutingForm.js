@@ -15,7 +15,7 @@ export default class RoutingForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: new Date()
+      time: props.initDate || new Date()
     };
   }
 
@@ -56,11 +56,11 @@ export default class RoutingForm extends Component {
     const toHasEva = toValue.eva !== undefined;
     return new RoutingRequest(Math.floor(this.state.time / 1000), [
       {
-        'name': fromHasEva ? '' : fromValue.name,
+        'name': fromValue.name,
         'eva_nr': fromHasEva ? fromValue.eva : ''
       },
       {
-        'name': toHasEva ? '' : toValue.name,
+        'name': toValue.name,
         'eva_nr': toHasEva ? toValue.eva : ''
       }
     ]);
@@ -92,18 +92,26 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'top': '94px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
+                            style={ { 'position': 'absolute', 'margin-top': '80px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
         <i className={ materialicons }>&#xE8D5;</i>
+      </FloatingActionButton>
+      <FloatingActionButton
+                            onClick={ this.props.onRequestRouting }
+                            secondary={ true }
+                            style={ { 'position': 'absolute', 'marginTop': '150px', 'left': 'calc(50% + 255px)', 'zIndex': 1 } }>
+        <i className={ materialicons }>search</i>
       </FloatingActionButton>
       <div className={ style.flexrow }>
         <div className={ style.flexcol }>
           <Typeahead
                      ref="fromInput"
                      hintText="From"
+                     initVal={this.props.initFrom}
                      complete={ this.guessStation.bind(this) } />
           <Typeahead
                      ref="toInput"
                      hintText="To"
+                     initVal={this.props.initTo}
                      complete={ this.guessStation.bind(this) } />
         </div>
         <div className={ style.flexcol }>
@@ -123,26 +131,6 @@ export default class RoutingForm extends Component {
                       onChange={ this.onTimeChange.bind(this) } />
         </div>
       </div>
-      <div style={ { 'marginTop': '14px'} }>
-        <RadioButtonGroup
-                          style={ { 'display': 'flex', 'width': '50%', 'flexDirection': 'row'} }
-                          name="arrdep"
-                          valueSelected="Forward">
-          <RadioButton
-                       label="Departure"
-                       style={ { marginBottom: 16} } />
-          <RadioButton
-                       label="Arrival"
-                       disabled={ true }
-                       style={ { marginBottom: 16} } />
-        </RadioButtonGroup>
-      </div>
-      <RaisedButton
-                    style={ { 'float': 'right', 'marginTop': '14px'} }
-                    label="Find Connections"
-                    primary={ true }
-                    disabled={ this.props.disabled }
-                    onClick={ this.props.onRequestRouting } />
       <ClearFix />
     </div>
     );

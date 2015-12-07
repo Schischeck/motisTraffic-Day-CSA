@@ -356,7 +356,7 @@ const std::vector<single_waiting_edge> waiting_edges::get_edges_to(
   // from waiting time rules
   auto it =
       _incoming_edges.find({connector_departure._station_index, route_id});
-  if (it != _outgoing_edges.end()) {
+  if (it != _incoming_edges.end()) {
     for (waiting_edge* we : it->second) {
       we->add_feeder_arrival_events(connector_departure._schedule_time, result);
     }

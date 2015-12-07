@@ -1,7 +1,9 @@
 #include "motis/loader/graph_builder.h"
 
+#include <set>
 #include <cassert>
 #include <functional>
+#include <algorithm>
 #include <unordered_set>
 
 #define RANGES_SUPPRESS_IOTA_WARNING
@@ -23,6 +25,7 @@
 #include "motis/loader/bitfield.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/timezone_util.h"
+#include "motis/loader/duplicate_checker.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -59,17 +62,17 @@ typedef std::vector<route_info> route;
 class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to, bool unique_check, bool apply_rules)
+                time_t to, bool apply_rules)
       : next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
         last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
-        unique_check_(unique_check),
         apply_rules_(apply_rules) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
     stations_.set_empty_key(nullptr);
+    duplicate_count_ = 0;
   }
 
   void add_stations(Vector<Offset<Station>> const* stations) {
@@ -107,7 +110,6 @@ public:
       s->length = input_station->lng();
       s->eva_nr = input_station->id()->str();
       s->transfer_time = input_station->interchange_time();
-      // TODO deprecation warning: timezone is expected to be non null!
       s->timez = input_station->timezone()
                      ? get_or_create_timezone(input_station->timezone())
                      : nullptr;
@@ -146,67 +148,24 @@ public:
     });
   }
 
-  bool is_unique_service(Service const* service, bitfield const& traffic_days,
-                         route const& route_nodes) const {
-    auto const& sections = service->sections();
-    for (unsigned section_idx = 0; section_idx < sections->size();
-         ++section_idx) {
-      unsigned train_nr = sections->Get(section_idx)->train_nr();
-      auto base_d_time = service->times()->Get(section_idx * 2 + 1);
-      auto base_a_time = service->times()->Get(section_idx * 2 + 2);
-      auto route_node = route_nodes[section_idx].route_node;
-      auto const& route_edge = route_node->_edges[1];
-      auto from_station = route_edge._from->get_station();
-      auto to_station = route_edge._to->get_station();
-      for (int day = first_day_; day <= last_day_; ++day) {
-        if (!traffic_days.test(day)) {
-          continue;
-        }
+  void add_rule_services(Vector<Offset<RuleService>> const* rule_services) {
+    if (rule_services == nullptr) {
+      return;
+    }
 
-        int time_offset = (day - first_day_) * MINUTES_A_DAY;
-        auto d_time = time_offset + base_d_time;
-        auto a_time = time_offset + base_a_time;
-        // check for other connections in the same route edge
-        // that have the same departure or arrival time
-        for (auto const& lc : route_edge._m._route_edge._conns) {
-          if (lc.d_time == d_time || lc.a_time == a_time) {
-            return false;
-          }
-        }
-        // check if other routes contain an event with the same time and
-        // train number
-        for (auto const& e : from_station->_edges) {
-          if (e._to->is_route_node() && e._to->_edges.size() > 1) {
-            auto const& other_route_edge = e._to->_edges[1];
-            for (auto const& lc : other_route_edge._m._route_edge._conns) {
-              if (lc._full_con->con_info->train_nr == train_nr &&
-                  lc.d_time == d_time) {
-
-                return false;
-              }
-            }
-          }
-        }
-        for (auto const& e : to_station->_edges) {
-          if (e._to->is_route_node()) {
-            if (e._to->_incoming_edges.size() == 1) {
-              auto const& other_route_edge = e._to->_incoming_edges[0];
-              for (auto const& lc : other_route_edge->_m._route_edge._conns) {
-                if (lc._full_con->con_info->train_nr == train_nr &&
-                    lc.a_time == a_time) {
-                  return false;
-                }
-              }
+    if (!apply_rules_) {
+      // Build rule services separately.
+      std::set<Service const*> built;
+      for (auto const& rs : *rule_services) {
+        for (auto const& r : *rs->rules()) {
+          for (auto const& s : {r->service1(), r->service2()}) {
+            if (built.find(s) != end(built)) {
+              add_service(s);
+              built.insert(s);
             }
           }
         }
       }
-    }
-    return true;
-  }
-
-  void add_rule_services(Vector<Offset<RuleService>> const* rule_services) {
-    if (rule_services == nullptr) {
       return;
     }
 
@@ -477,11 +436,6 @@ public:
           return routes_mem_.back().get();
         });
 
-    if (unique_check_ &&
-        !is_unique_service(service, traffic_days, *route_nodes)) {
-      return route_nodes;
-    }
-
     std::unordered_set<uint32_t> train_nrs;
     auto offset = service->times()->Get(service->times()->size() - 2) / 1440;
     for (unsigned section_idx = 0; section_idx < service->sections()->size();
@@ -526,9 +480,7 @@ public:
       for (auto& station_edge : station_node->_edges) {
         station_edge._to->_incoming_edges.push_back(&station_edge);
         for (auto& edge : station_edge._to->_edges) {
-          if (edge.type() != edge::ROUTE_EDGE) {
-            edge._to->_incoming_edges.push_back(&edge);
-          }
+          edge._to->_incoming_edges.push_back(&edge);
         }
       }
     }
@@ -549,6 +501,8 @@ public:
   }
 
   int node_count() const { return next_node_id_; }
+
+  unsigned duplicate_count_;
 
 private:
   bitfield const& get_or_create_bitfield(String const* serialized_bitfield) {
@@ -613,10 +567,6 @@ private:
       auto const arr_motis_time =
           compute_event_time(day, arr_time, arr_st->timez);
 
-      //      validate_events(day, dep_st, arr_st, dep_motis_time,
-      //      arr_motis_time,
-      //                      dep_time, arr_time, origin);
-
       e->_m._route_edge._conns.emplace_back(
           dep_motis_time, arr_motis_time,
           set_get_or_create(connections_, &con_, [&]() {
@@ -630,15 +580,11 @@ private:
     }
   }
 
-  // TODO dep_tz, arr_tz == nullptr is deprecated.
-  // Each station should have a timezone
-  time compute_event_time(int day, time local_time, timezone const* tz) {
+  time compute_event_time(int day, int local_time, timezone const* tz) const {
     return tz ? tz->to_motis_time(day - first_day_, local_time)
               : (day - first_day_ + 1) * MINUTES_A_DAY + local_time;
   }
 
-  // TODO dep_tz, arr_tz == nullptr is deprecated.
-  // Each station should have a timezone
   void validate_events(int day, station const* dep_st, station const* arr_st,
                        time dep_motis_time, time arr_motis_time,
                        int dep_local_time, int arr_local_time,
@@ -811,7 +757,6 @@ private:
     }
     if (last_route_edge != nullptr) {
       last_route_edge->_to = route_node;
-      route_node->_incoming_edges.push_back(last_route_edge);
     }
 
     return {route_info(route_node, route_edge_index),
@@ -836,7 +781,6 @@ private:
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
-  bool unique_check_;
   bool apply_rules_;
 
   connection_info con_info_;
@@ -853,7 +797,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_end_ = to;
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
-                        unique_check, apply_rules);
+                        apply_rules);
   builder.add_stations(serialized->stations());
   for (auto const& service : *serialized->services()) {
     builder.add_service(service);
@@ -866,8 +810,16 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
-
   sched->schedule_begin_ -= SCHEDULE_OFFSET;
+
+  if (unique_check) {
+    scoped_timer timer("unique check");
+    duplicate_checker dup_checker(*sched);
+    dup_checker.remove_duplicates();
+    LOG(info) << "removed " << dup_checker.get_duplicate_count()
+              << " duplicate events";
+  }
+
   return sched;
 }
 
