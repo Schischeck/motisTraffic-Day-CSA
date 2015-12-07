@@ -2,14 +2,17 @@
 #include <vector>
 #include <algorithm>
 
+#include "motis/core/schedule/time.h"
+
 #include "test_schedule.h"
 
+using namespace motis;
 namespace rt = motis::realtime;
 
 class realtime_train_messages_test
     : public motis::realtime::test::test_schedule {};
 
-inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
+inline motis::time t(int h, int m) { return to_motis_time(0, h, m); }
 
 constexpr motis::time INV = motis::INVALID_TIME;
 
