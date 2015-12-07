@@ -70,8 +70,8 @@ export default class ConnectionView extends Component {
     return (<ul key={ key } className={style.trainNames}>
               { con.transports.filter(t => {
                   return t.move.range.from >= from && t.move.range.to <= to;
-                }).map(t => {
-                  return <li>
+                }).map((t, i) => {
+                  return <li key={key * 10 + i}>
                            { t.move.name }
                          </li>;
                 }) }

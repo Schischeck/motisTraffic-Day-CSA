@@ -235,7 +235,8 @@ journey::transport generate_journey_transport(unsigned int from,
     cat_id = con_info->family;
     clasz = t.con->_full_con->clasz;
     cat_name = sched.categories[con_info->family]->name;
-    train_nr = con_info->train_nr;
+    train_nr = con_info->train_nr >= 0 ? con_info->train_nr
+                                       : con_info->original_train_nr;
     if (train_nr != 0) {
       print_train_nr = boost::lexical_cast<std::string>(train_nr);
     } else if (train_nr == 0 && !line_identifier.empty()) {

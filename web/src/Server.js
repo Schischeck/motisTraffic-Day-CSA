@@ -126,5 +126,18 @@ class Server {
   }
 }
 
-const instance = new Server('ws://localhost:8080');
+
+function parseURL() {
+  return location.search.slice(1).split('&').reduce((map, el) => {
+    if (el === '') return map;
+    const keyval = el.split('=', 2);
+    return map.set(keyval[0], keyval[1] || true);
+  }, new Map());
+};
+const params = parseURL();
+const host = params.get('host') || '127.0.0.1';
+const port = params.get('port') || '8080';
+const url = 'ws://' + host + ':' + port;
+
+const instance = new Server(url);
 export default instance;

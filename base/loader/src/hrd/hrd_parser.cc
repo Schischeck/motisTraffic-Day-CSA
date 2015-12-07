@@ -207,7 +207,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
 
   auto interval = parse_interval(basic_data_file);
   fbb.Finish(
-      CreateSchedule(fbb, fbb.CreateVector(sb.fbs_services_),
+      CreateSchedule(fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),
                      fbb.CreateVector(values(stb.fbs_stations_)),
                      fbb.CreateVector(values(rb.routes_)), &interval,
                      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),

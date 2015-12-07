@@ -30,6 +30,7 @@ struct service_builder {
 
   platform_rules const plf_rules_;
   std::vector<flatbuffers::Offset<Service>> fbs_services_;
+  std::map<char const*, flatbuffers::Offset<flatbuffers::String>> filenames_;
 };
 
 }  // hrd

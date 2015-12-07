@@ -44,5 +44,12 @@ timezone create_timezone(int general_offset, int season_offset,
 
   return {general_offset, {season_offset, season_begin, season_end}};
 }
+
+time compute_event_time(int first_day, int day, int local_time,
+                        timezone const* tz) {
+  return tz ? tz->to_motis_time(day - first_day, local_time)
+            : (day - first_day + 1) * MINUTES_A_DAY + local_time;
+}
+
 }  // namspace loader
 }  // namespace motis

@@ -67,6 +67,7 @@ journey::transport to_transport(routing::Transport const& transport,
   t.type = journey::transport::PublicTransport;
   t.category_name = transport.category_name()->c_str();
   t.category_id = transport.category_id();
+  t.clasz = transport.clasz();
   t.direction = transport.direction()->c_str();
   t.line_identifier = transport.line_id()->c_str();
   t.name = transport.name()->c_str();

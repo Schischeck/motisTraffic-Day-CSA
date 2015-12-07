@@ -39,7 +39,11 @@ struct connection_info {
   };
 
   connection_info()
-      : dir_(nullptr), provider_(nullptr), family(0), train_nr(0) {}
+      : dir_(nullptr),
+        provider_(nullptr),
+        family(0),
+        train_nr(0),
+        original_train_nr(0) {}
 
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
@@ -51,7 +55,8 @@ struct connection_info {
   std::string const* dir_;
   provider const* provider_;
   uint32_t family;
-  uint32_t train_nr;
+  int32_t train_nr;
+  uint32_t original_train_nr;
 };
 
 struct connection {

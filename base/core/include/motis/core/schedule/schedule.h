@@ -43,6 +43,7 @@ struct schedule {
   std::vector<std::unique_ptr<provider>> providers;
   std::vector<std::unique_ptr<std::string>> directions;
   std::vector<std::unique_ptr<timezone>> timezones;
+  std::vector<std::unique_ptr<std::string>> origin_services;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;
