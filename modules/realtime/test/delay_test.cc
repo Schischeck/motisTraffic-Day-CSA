@@ -4,11 +4,13 @@
 
 #include "test_schedule.h"
 
+#include "motis/core/schedule/time.h"
+
 namespace rt = motis::realtime;
 
 class realtime_delay_test : public motis::realtime::test::test_schedule {};
 
-inline motis::time t(int hours, int minutes) { return hours * 60 + minutes; }
+inline motis::time t(int h, int m) { return motis::to_motis_time(0, h, m); }
 
 constexpr motis::time INV = motis::INVALID_TIME;
 
@@ -20,8 +22,8 @@ TEST_F(realtime_delay_test, test_unmodified_events) {
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, false, t(9 + offset, 43), -1);
     std::tie(route_node, lc) = _rts.locate_event(event);
-    EXPECT_TRUE(route_node != nullptr);
-    EXPECT_TRUE(lc != nullptr);
+    ASSERT_TRUE(route_node != nullptr);
+    ASSERT_TRUE(lc != nullptr);
     if (lc) {
       EXPECT_EQ(t(9 + offset, 43), lc->a_time);
     }
@@ -35,8 +37,8 @@ TEST_F(realtime_delay_test, test_unmodified_events) {
     motis::light_connection* lc;
     rt::graph_event event(wuerzburg->index, 50, true, t(9 + offset, 46), -1);
     std::tie(route_node, lc) = _rts.locate_event(event);
-    EXPECT_TRUE(route_node != nullptr);
-    EXPECT_TRUE(lc != nullptr);
+    ASSERT_TRUE(route_node != nullptr);
+    ASSERT_TRUE(lc != nullptr);
     if (lc) {
       EXPECT_EQ(t(9 + offset, 46), lc->d_time);
     }
