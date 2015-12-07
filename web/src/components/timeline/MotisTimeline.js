@@ -12,7 +12,7 @@ export default class Timeline extends React.Component {
   }
 
   getHeight() {
-    return this.props.connections.length * 75;
+    return Math.max(200, this.props.connections.length * 75);
   }
 
   componentDidMount() {

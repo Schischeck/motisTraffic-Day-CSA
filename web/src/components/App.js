@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { AppBar, IconButton } from 'material-ui';
+import { AppBar, IconButton, CircularProgress } from 'material-ui';
 
 import PaddedPaper from './PaddedPaper';
 import RoutingForm from './RoutingForm';
@@ -83,6 +83,12 @@ export class App extends Component {
                        showError={ this.state.showError }
                        waiting={ this.state.waiting } />) : <div />;
 
+    const results = this.state.waiting
+                    ? <CircularProgress
+                          mode="indeterminate"
+                          style={ {  'margin': '50px auto',  'display': 'block'} } />
+                    : <Timeline style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'scroll' }}
+                                connections={ this.state.connections } />;
 
     return (
     <div className={ style.app }>
@@ -100,8 +106,7 @@ export class App extends Component {
                        initDate={ this.state.lastDate }
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
-          <Timeline style={{ maxHeight: '400px', overflowY: 'scroll' }}
-                    connections={ this.state.connections } />
+          { results }
       </PaddedPaper>
     </div>
     );
