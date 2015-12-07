@@ -25,7 +25,7 @@ inline std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
 }
 
 struct delay_info {
-  delay_info(class schedule_event schedule_event, int32_t route_id = -1)
+  delay_info(struct schedule_event schedule_event, int32_t route_id = -1)
       : _schedule_event(schedule_event),
         _route_id(route_id),
         _forecast_time(motis::INVALID_TIME),
@@ -59,7 +59,7 @@ struct delay_info {
     return os;
   }
 
-  class schedule_event _schedule_event;
+  struct schedule_event _schedule_event;
   int32_t _route_id;
 
   motis::time _forecast_time;

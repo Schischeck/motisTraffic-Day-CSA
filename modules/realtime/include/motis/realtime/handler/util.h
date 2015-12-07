@@ -5,8 +5,8 @@
 namespace motis {
 
 struct schedule;
-class schedule_event;
-class graph_event;
+struct schedule_event;
+struct graph_event;
 
 namespace ris {
 
