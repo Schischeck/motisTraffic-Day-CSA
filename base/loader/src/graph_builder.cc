@@ -480,9 +480,7 @@ public:
       for (auto& station_edge : station_node->_edges) {
         station_edge._to->_incoming_edges.push_back(&station_edge);
         for (auto& edge : station_edge._to->_edges) {
-          if (edge.type() != edge::ROUTE_EDGE) {
-            edge._to->_incoming_edges.push_back(&edge);
-          }
+          edge._to->_incoming_edges.push_back(&edge);
         }
       }
     }
@@ -759,7 +757,6 @@ private:
     }
     if (last_route_edge != nullptr) {
       last_route_edge->_to = route_node;
-      route_node->_incoming_edges.push_back(last_route_edge);
     }
 
     return {route_info(route_node, route_edge_index),
