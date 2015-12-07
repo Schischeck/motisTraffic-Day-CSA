@@ -8,7 +8,7 @@ namespace motis {
 namespace loader {
 
 struct duplicate_checker {
-  duplicate_checker(schedule&, bool ignore_local_traffic = true);
+  duplicate_checker(schedule&);
 
   void remove_duplicates();
   void remove_duplicates(station_node*);
@@ -21,8 +21,7 @@ private:
   void set_new_service_num(light_connection*);
 
   schedule& schedule_;
-  int last_service_num_;
-  bool ignore_local_traffic_;
+  uint32_t last_service_num_;
   unsigned duplicate_count_;
 };
 

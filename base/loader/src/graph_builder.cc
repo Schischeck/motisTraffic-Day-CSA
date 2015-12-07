@@ -814,7 +814,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   if (unique_check) {
     scoped_timer timer("unique check");
-    duplicate_checker dup_checker(*sched, false);
+    duplicate_checker dup_checker(*sched);
     dup_checker.remove_duplicates();
     LOG(info) << "removed " << dup_checker.get_duplicate_count()
               << " duplicate events";

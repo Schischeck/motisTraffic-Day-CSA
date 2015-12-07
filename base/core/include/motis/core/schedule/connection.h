@@ -55,7 +55,7 @@ struct connection_info {
   std::string const* dir_;
   provider const* provider_;
   uint32_t family;
-  int32_t train_nr;
+  uint32_t train_nr;
   uint32_t original_train_nr;
 };
 
