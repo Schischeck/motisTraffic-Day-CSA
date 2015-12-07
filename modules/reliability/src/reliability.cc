@@ -27,7 +27,6 @@
 
 using namespace motis::logging;
 using namespace motis::module;
-using namespace motis::realtime;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
@@ -81,7 +80,7 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
     auto req = msg->content<ReliableRoutingRequest const*>();
     return handle_routing_request(req, session_id, cb);
   } else if (content_type == MsgContent_RealtimeDelayInfoResponse) {
-    auto update = msg->content<RealtimeDelayInfoResponse const*>();
+    auto update = msg->content<realtime::RealtimeDelayInfoResponse const*>();
     return handle_realtime_update(update, cb);
   }
   return cb({}, error::not_implemented);
@@ -129,8 +128,8 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
   return cb({}, error::not_implemented);
 }
 
-void reliability::handle_realtime_update(RealtimeDelayInfoResponse const*,
-                                         callback) {
+void reliability::handle_realtime_update(
+    realtime::RealtimeDelayInfoResponse const*, callback) {
   LOG(info) << "reliability received delay infos";
 }
 
