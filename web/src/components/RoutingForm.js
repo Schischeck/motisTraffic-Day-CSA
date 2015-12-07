@@ -95,6 +95,12 @@ export default class RoutingForm extends Component {
                             style={ { 'position': 'absolute', 'margin-top': '80px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
         <i className={ materialicons }>&#xE8D5;</i>
       </FloatingActionButton>
+      <FloatingActionButton
+                            onClick={ this.props.onRequestRouting }
+                            secondary={ true }
+                            style={ { 'position': 'absolute', 'marginTop': '150px', 'left': 'calc(50% + 255px)', 'zIndex': 1 } }>
+        <i className={ materialicons }>search</i>
+      </FloatingActionButton>
       <div className={ style.flexrow }>
         <div className={ style.flexcol }>
           <Typeahead
@@ -139,12 +145,6 @@ export default class RoutingForm extends Component {
                        style={ { marginBottom: 16} } />
         </RadioButtonGroup>
       </div>
-      <RaisedButton
-                    style={ { 'float': 'right', 'marginTop': '14px'} }
-                    label="Find Connections"
-                    primary={ true }
-                    disabled={ this.props.disabled }
-                    onClick={ this.props.onRequestRouting } />
       <ClearFix />
     </div>
     );
