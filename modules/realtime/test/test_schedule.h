@@ -73,7 +73,7 @@ public:
     motis::pareto_dijkstra::statistics stats;
     std::vector<motis::journey> journeys =
         _search.get_connections({start}, {target}, departure_begin,
-                                departure_begin + interval, true, &stats);
+                                departure_begin + interval, true, {}, &stats);
 
     EXPECT_FALSE(stats.max_label_quit);
 
