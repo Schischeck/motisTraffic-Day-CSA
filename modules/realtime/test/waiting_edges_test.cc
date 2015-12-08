@@ -17,11 +17,11 @@ TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   // find arrival event
-  rt::schedule_event event(wuerzburg->index, 51, false,
+  schedule_event event(wuerzburg->index, 51, false,
                            to_motis_time(0, 10, 37));
   motis::node* route_node;
   motis::light_connection* inc_lc;
-  std::tie(route_node, inc_lc) = _rts.locate_event(rt::graph_event(event));
+  std::tie(route_node, inc_lc) = _rts.locate_event(graph_event(event));
 
   ASSERT_TRUE(route_node != nullptr);
 

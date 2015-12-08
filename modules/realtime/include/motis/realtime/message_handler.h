@@ -5,8 +5,8 @@
 #include <utility>
 #include <unordered_map>
 
-#include "motis/realtime/event.h"
-#include "motis/realtime/delay_info.h"
+#include "motis/core/schedule/delay_info.h"
+#include "motis/core/schedule/event.h"
 #include "motis/realtime/messages.h"
 
 namespace motis {

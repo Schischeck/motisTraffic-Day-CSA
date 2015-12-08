@@ -8,7 +8,6 @@
 #include "motis/core/schedule/time.h"
 
 namespace motis {
-namespace realtime {
 
 struct base_event {
   base_event(unsigned station_index, uint32_t train_nr, bool departure)
@@ -70,13 +69,12 @@ struct schedule_event : public base_event {
   motis::time _schedule_time;
 };
 
-}  // namespace realtime
 }  // namespace motis
 
 namespace std {
 template <>
-struct hash<motis::realtime::schedule_event> {
-  std::size_t operator()(motis::realtime::schedule_event const& e) const {
+struct hash<motis::schedule_event> {
+  std::size_t operator()(motis::schedule_event const& e) const {
     std::size_t seed = 0;
     motis::hash_combine(seed, e._station_index);
     motis::hash_combine(seed, e._train_nr);
@@ -88,7 +86,6 @@ struct hash<motis::realtime::schedule_event> {
 }  // namespace std
 
 namespace motis {
-namespace realtime {
 
 struct graph_event : public base_event {
   graph_event(unsigned station_index, uint32_t train_nr, bool departure,
@@ -136,13 +133,12 @@ struct graph_event : public base_event {
   int32_t _route_id;
 };
 
-}  // namespace realtime
 }  // namespace motis
 
 namespace std {
 template <>
-struct hash<motis::realtime::graph_event> {
-  std::size_t operator()(motis::realtime::graph_event const& e) const {
+struct hash<motis::graph_event> {
+  std::size_t operator()(motis::graph_event const& e) const {
     std::size_t seed = 0;
     motis::hash_combine(seed, e._station_index);
     motis::hash_combine(seed, e._train_nr);

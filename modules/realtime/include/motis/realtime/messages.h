@@ -7,9 +7,8 @@
 
 #include "boost/operators.hpp"
 
+#include "motis/core/schedule/event.h"
 #include "motis/core/schedule/time.h"
-
-#include "motis/realtime/event.h"
 
 namespace motis {
 namespace realtime {

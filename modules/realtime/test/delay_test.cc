@@ -6,11 +6,12 @@
 
 #include "motis/core/schedule/time.h"
 
+using namespace motis;
 namespace rt = motis::realtime;
 
 class realtime_delay_test : public motis::realtime::test::test_schedule {};
 
-inline motis::time t(int h, int m) { return motis::to_motis_time(0, h, m); }
+inline motis::time t(int h, int m) { return to_motis_time(0, h, m); }
 
 constexpr motis::time INV = motis::INVALID_TIME;
 
@@ -20,7 +21,7 @@ TEST_F(realtime_delay_test, test_unmodified_events) {
   for (int offset = 0; offset <= 10; offset++) {
     motis::node* route_node;
     motis::light_connection* lc;
-    rt::graph_event event(wuerzburg->index, 50, false, t(9 + offset, 43), -1);
+    graph_event event(wuerzburg->index, 50, false, t(9 + offset, 43), -1);
     std::tie(route_node, lc) = _rts.locate_event(event);
     ASSERT_TRUE(route_node != nullptr);
     ASSERT_TRUE(lc != nullptr);
@@ -28,21 +29,21 @@ TEST_F(realtime_delay_test, test_unmodified_events) {
       EXPECT_EQ(t(9 + offset, 43), lc->a_time);
     }
 
-    EXPECT_EQ(event, rt::graph_event(_rts.get_schedule_event(event)));
+    EXPECT_EQ(event, graph_event(_rts.get_schedule_event(event)));
     EXPECT_EQ(nullptr, _rts._delay_info_manager.get_delay_info(event));
   }
 
   for (int offset = 0; offset <= 10; offset++) {
     motis::node* route_node;
     motis::light_connection* lc;
-    rt::graph_event event(wuerzburg->index, 50, true, t(9 + offset, 46), -1);
+    graph_event event(wuerzburg->index, 50, true, t(9 + offset, 46), -1);
     std::tie(route_node, lc) = _rts.locate_event(event);
     ASSERT_TRUE(route_node != nullptr);
     ASSERT_TRUE(lc != nullptr);
     if (lc) {
       EXPECT_EQ(t(9 + offset, 46), lc->d_time);
     }
-    EXPECT_EQ(event, rt::graph_event(_rts.get_schedule_event(event)));
+    EXPECT_EQ(event, graph_event(_rts.get_schedule_event(event)));
     EXPECT_EQ(nullptr, _rts._delay_info_manager.get_delay_info(event));
   }
 }
@@ -67,13 +68,13 @@ TEST_F(realtime_delay_test, test_simple_arrival_delay) {
                             {ffm_hbf, {t(13, 05)}, {INV}}});
   check_transports(old_journey, {{"RB", 20, 0, 2}});
 
-  rt::schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
-  rt::schedule_event oa_langen(langen->index, 20, false, t(12, 49));
-  rt::schedule_event od_langen(langen->index, 20, true, t(12, 51));
-  rt::schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
+  schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
+  schedule_event oa_langen(langen->index, 20, false, t(12, 49));
+  schedule_event od_langen(langen->index, 20, true, t(12, 51));
+  schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
 
   _rts._delay_propagator.handle_delay_message(oa_langen, t(12, 52),
-                                              rt::timestamp_reason::IS);
+                                              timestamp_reason::IS);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 
@@ -93,13 +94,13 @@ TEST_F(realtime_delay_test, test_simple_departure_delay) {
   // darmstadt hbf        12:34         12:35
   // langen         12:49 12:51   12:50 12:52
   // frankfurt hbf  13:05         13:06
-  rt::schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
-  rt::schedule_event oa_langen(langen->index, 20, false, t(12, 49));
-  rt::schedule_event od_langen(langen->index, 20, true, t(12, 51));
-  rt::schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
+  schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
+  schedule_event oa_langen(langen->index, 20, false, t(12, 49));
+  schedule_event od_langen(langen->index, 20, true, t(12, 51));
+  schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
 
   _rts._delay_propagator.handle_delay_message(od_da_hbf, t(12, 35),
-                                              rt::timestamp_reason::FORECAST);
+                                              timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 
@@ -115,10 +116,10 @@ TEST_F(realtime_delay_test, test_waiting_edge_propagation) {
   // ICE 51 arrives 12:37, leaves 12:39
   // ICE 55 leaves 12:49
 
-  rt::schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
+  schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
 
   _rts._delay_propagator.handle_delay_message(oa_wue, t(12, 42),
-                                              rt::timestamp_reason::FORECAST);
+                                              timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 }
@@ -126,10 +127,10 @@ TEST_F(realtime_delay_test, test_waiting_edge_propagation) {
 TEST_F(realtime_delay_test, test_split_route) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
-  rt::schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
+  schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
 
   _rts._delay_propagator.handle_delay_message(oa_wue, t(13, 45),
-                                              rt::timestamp_reason::FORECAST);
+                                              timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 }
@@ -144,13 +145,13 @@ TEST_F(realtime_delay_test, test_is_message_back_propagation) {
   // darmstadt hbf        12:34         12:36
   // langen         12:49 12:51   12:51 12:53
   // frankfurt hbf  13:05         13:07
-  rt::schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
-  rt::schedule_event oa_langen(langen->index, 20, false, t(12, 49));
-  rt::schedule_event od_langen(langen->index, 20, true, t(12, 51));
-  rt::schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
+  schedule_event od_da_hbf(da_hbf->index, 20, true, t(12, 34));
+  schedule_event oa_langen(langen->index, 20, false, t(12, 49));
+  schedule_event od_langen(langen->index, 20, true, t(12, 51));
+  schedule_event oa_ffm_hbf(ffm_hbf->index, 20, false, t(13, 5));
 
   _rts._delay_propagator.handle_delay_message(od_da_hbf, t(12, 36),
-                                              rt::timestamp_reason::FORECAST);
+                                              timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 
@@ -163,7 +164,7 @@ TEST_F(realtime_delay_test, test_is_message_back_propagation) {
   // of the preceding events
 
   _rts._delay_propagator.handle_delay_message(od_langen, t(12, 50),
-                                              rt::timestamp_reason::IS);
+                                              timestamp_reason::IS);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
 
