@@ -19,6 +19,7 @@
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/timezone.h"
+#include "motis/core/schedule/print.h"
 
 #include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
@@ -151,14 +152,21 @@ public:
   }
 
   void add_services(Vector<Offset<Service>> const* services) {
-    auto it = services->begin();
-    while (it != services->end()) {
+    std::vector<Service const*> sorted(services->size());
+    std::copy(std::begin(*services), std::end(*services), begin(sorted));
+    std::sort(begin(sorted), end(sorted),
+              [](Service const* lhs, Service const* rhs) {
+                return lhs->route() < rhs->route();
+              });
+
+    auto it = begin(sorted);
+    while (it != end(sorted)) {
       std::vector<Service const*> route_services;
-      auto route = it->route();
+      auto route = (*it)->route();
       do {
         route_services.push_back(*it);
         ++it;
-      } while (it != services->end() && route == it->route());
+      } while (it != end(sorted) && route == (*it)->route());
       add_route_services(route_services);
     }
   }
@@ -169,8 +177,6 @@ public:
     }
 
     std::vector<route_lcs> alt_routes;
-    alt_routes.push_back(route_lcs(services[0]->sections()->size()));
-
     for (auto const& s : services) {
       auto const traffic_days = get_or_create_bitfield(s->traffic_days());
       auto const first_day_offset =
@@ -292,12 +298,12 @@ public:
     auto& to = *sched_.stations.at(
         stations_[s->route()->stations()->Get(section_idx + 1)]->_id);
 
-    auto dep_platforms =
-        s->platforms() ? s->platforms()->Get(section_idx + 1)->arr_platforms()
-                       : nullptr;
-    auto arr_platforms = s->platforms()
+    auto dep_platforms = s->platforms()
                              ? s->platforms()->Get(section_idx)->dep_platforms()
                              : nullptr;
+    auto arr_platforms =
+        s->platforms() ? s->platforms()->Get(section_idx + 1)->arr_platforms()
+                       : nullptr;
 
     auto section = s->sections()->Get(section_idx);
     auto dep_time = s->times()->Get(section_idx * 2 + 1);
@@ -587,7 +593,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->node_count = builder.node_count();
   sched->lower_bounds = constant_graph(sched->station_nodes);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories);
-  sched->schedule_begin_ -= SCHEDULE_OFFSET;
+  sched->schedule_begin_ -= SCHEDULE_OFFSET_MINUTES * 60;
 
   if (unique_check) {
     scoped_timer timer("unique check");

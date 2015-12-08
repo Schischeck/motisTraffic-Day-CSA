@@ -223,7 +223,7 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
                        ->eva_nr.c_str());
 
       // [M]otis [T]ime [O]ffset (1*MINUTES_A_DAY - GMT+1)
-      auto const MTO = 1440 - 60;
+      auto const MTO = SCHEDULE_OFFSET_MINUTES - 60;
       ASSERT_EQ(1, first_route_node->_edges[1]._m._route_edge._conns.size());
       auto& lcon = first_route_node->_edges[1]._m._route_edge._conns;
       ASSERT_EQ(19 * 60 + 3 + MTO, lcon[0].d_time);
@@ -397,7 +397,7 @@ void test_events(
 }
 
 time exp_time(int day_idx, int hhmm, int offset) {
-  return (day_idx + 1 * MINUTES_A_DAY) + hhmm_to_min(hhmm) - offset;
+  return (day_idx + SCHEDULE_OFFSET_MINUTES) + hhmm_to_min(hhmm) - offset;
 }
 
 class loader_graph_builder_east_to_west_test

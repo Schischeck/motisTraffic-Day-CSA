@@ -186,13 +186,18 @@ TEST_F(reliability_graph_accessor, get_feeders) {
   // route edge from Darmstadt to Heidelberg
   auto& second_route_edge = *get_departing_route_edge(second_route_node);
   auto const& second_light_conn = second_route_edge._m._route_edge._conns[0];
-  auto const all_potential_feeders = get_all_potential_feeders(
+  auto all_potential_feeders = get_all_potential_feeders(
       second_route_node, second_light_conn,
       schedule_->stations[second_route_node._station_node->_id]->transfer_time);
 
   ASSERT_EQ(second_light_conn.d_time,
             test_util::minutes_to_motis_time(6 * 60 + 11));
   ASSERT_EQ(all_potential_feeders.size(), 3);
+  std::sort(begin(all_potential_feeders), end(all_potential_feeders),
+            [](std::unique_ptr<feeder_info> const& lhs,
+               std::unique_ptr<feeder_info> const& rhs) {
+              return lhs->light_conn_.a_time < rhs->light_conn_.a_time;
+            });
 
   for (unsigned int i = 0; i < 3; ++i) {
     auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
@@ -208,19 +213,19 @@ TEST_F(reliability_graph_accessor, get_feeders) {
         break;
       }
       case 1: {
-        // IC_FH_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FH_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(5 * 60 + 56));
-        ASSERT_EQ(waiting_time, 3);
-        break;
-      }
-      case 2: {
         // RE_MA_DA
         ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, RE_MA_DA);
         ASSERT_EQ(feeder_light_conn.a_time,
                   test_util::minutes_to_motis_time(5 * 60 + 52));
         ASSERT_EQ(waiting_time, 0);
+        break;
+      }
+      case 2: {
+        // IC_FH_DA
+        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FH_DA);
+        ASSERT_EQ(feeder_light_conn.a_time,
+                  test_util::minutes_to_motis_time(5 * 60 + 56));
+        ASSERT_EQ(waiting_time, 3);
         break;
       }
     }
@@ -234,9 +239,15 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
   auto const first_route_edge = get_departing_route_edge(first_route_node);
   // journey 07:00 --> 07:28
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
-  auto const all_potential_feeders = get_all_potential_feeders(
+  auto all_potential_feeders = get_all_potential_feeders(
       first_route_node, first_light_conn,
       schedule_->stations[first_route_node._station_node->_id]->transfer_time);
+
+  std::sort(begin(all_potential_feeders), end(all_potential_feeders),
+            [](std::unique_ptr<feeder_info> const& lhs,
+               std::unique_ptr<feeder_info> const& rhs) {
+              return lhs->light_conn_.a_time < rhs->light_conn_.a_time;
+            });
 
   ASSERT_EQ(schedule_->stations[first_route_node._station_node->_id]->eva_nr,
             DARMSTADT);
