@@ -309,13 +309,9 @@ TEST_F(reliability_data_departure, check_train_distributions) {
   struct train_distributions_test_container : container {
     train_distributions_test_container(container::key const& k) : key_(k) {
       train_.init_one_point(0, 1.0);
-      std::cout << "\nkey: ";
-      key_.output(std::cout);
     }
     probability_distribution const& get_distribution(
         container::key const& k) const override {
-      std::cout << "\nget_distribution: ";
-      k.output(std::cout);
       if (key_equals(k, key_)) {
         return train_;
       }
