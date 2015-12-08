@@ -11,6 +11,7 @@
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 #include "motis/reliability/rating/public_transport.h"
+#include "motis/reliability/realtime/time_util.h"
 #include "motis/reliability/search/connection_graph.h"
 
 namespace motis {
@@ -21,8 +22,12 @@ namespace detail {
 interchange_info::interchange_info(connection_element const& arriving_element,
                                    connection_element const& departing_element,
                                    schedule const& sched) {
-  scheduled_arrival_time_ = arriving_element.light_connection_->a_time;
-  scheduled_departure_time_ = departing_element.light_connection_->d_time;
+  scheduled_arrival_time_ = time_util::get_scheduled_event_time(
+      *arriving_element.light_connection_,
+      arriving_element.to_->get_station()->_id, time_util::arrival, sched);
+  scheduled_departure_time_ = time_util::get_scheduled_event_time(
+      *departing_element.light_connection_,
+      departing_element.from_->get_station()->_id, time_util::departure, sched);
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);
   waiting_time_ = graph_accessor::get_waiting_time(

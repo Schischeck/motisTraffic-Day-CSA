@@ -78,8 +78,9 @@ void data_departure::init_preceding_arrival_info(
               train_info_.preceding_arrival_info_.scheduled_arrival_time_,
               sched));
   // the standing-time is always less or equal 2 minutes
-  train_info_.preceding_arrival_info_.min_standing_ =
-      std::min(2, scheduled_departure_time_ - arriving_light_conn.a_time);
+  train_info_.preceding_arrival_info_.min_standing_ = std::min(
+      2, scheduled_departure_time_ -
+             train_info_.preceding_arrival_info_.scheduled_arrival_time_);
 
   assert(train_info_.preceding_arrival_info_.scheduled_arrival_time_ <=
          scheduled_departure_time_);

@@ -19,24 +19,25 @@ probability is_not_cancelled(unsigned int const /* family */) { return 0.995; }
 
 probability_distribution get_travel_time_distribution(
     connection_element const& first_element_feeder,
-    connection_element const& last_element_feeder,
+    time const scheduled_arrival_time,
     start_and_travel_distributions const& s_t_distributions,
     schedule const& sched) {
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       distributions;
+  time const scheduled_departure_time = time_util::get_scheduled_event_time(
+      *first_element_feeder.light_connection_,
+      first_element_feeder.from_->get_station()->_id, time_util::departure,
+      sched);
   int const departure_delay =
       std::max(0, first_element_feeder.light_connection_->d_time -
-                      time_util::get_scheduled_event_time(
-                          *first_element_feeder.light_connection_,
-                          first_element_feeder.from_->get_station()->_id,
-                          time_util::departure, sched));
+                      scheduled_departure_time);
+
   s_t_distributions.get_travel_time_distributions(
       sched.categories[first_element_feeder.light_connection_->_full_con
                            ->con_info->family]
           ->name,
-      last_element_feeder.light_connection_->a_time -
-          first_element_feeder.light_connection_->d_time,
-      departure_delay, distributions);
+      scheduled_arrival_time - scheduled_departure_time, departure_delay,
+      distributions);
   if (distributions.empty()) {
     probability_distribution pd;
     pd.init_one_point(0, 1.0);
@@ -51,18 +52,24 @@ probability rate_interchange(
     connection_element const& first_element_departing_train,
     start_and_travel_distributions const& s_t_distributions,
     schedule const& schedule) {
-  auto const& travel_time_distribution = get_travel_time_distribution(
-      first_element_feeder, last_element_feeder, s_t_distributions, schedule);
+  time const scheduled_departure_time = time_util::get_scheduled_event_time(
+      *first_element_departing_train.light_connection_,
+      first_element_departing_train.from_->get_station()->_id,
+      time_util::departure, schedule);
+  time const scheduled_arrival_time = time_util::get_scheduled_event_time(
+      *last_element_feeder.light_connection_,
+      last_element_feeder.to_->get_station()->_id, time_util::arrival,
+      schedule);
+
+  auto const& travel_time_distribution =
+      get_travel_time_distribution(first_element_feeder, scheduled_arrival_time,
+                                   s_t_distributions, schedule);
   time const latest_feasible_arrival =
-      first_element_departing_train.light_connection_->d_time -
+      scheduled_departure_time -
       graph_accessor::get_interchange_time(*last_element_feeder.to_,
                                            *first_element_departing_train.from_,
                                            schedule);
-  int const delay = (int)latest_feasible_arrival -
-                    (int)time_util::get_scheduled_event_time(
-                        *last_element_feeder.light_connection_,
-                        last_element_feeder.to_->get_station()->_id,
-                        time_util::arrival, schedule);
+  int const delay = (int)latest_feasible_arrival - (int)scheduled_arrival_time;
   return travel_time_distribution.probability_smaller_equal(delay);
 }
 

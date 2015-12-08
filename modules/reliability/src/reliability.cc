@@ -129,8 +129,10 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
 }
 
 void reliability::handle_realtime_update(
-    realtime::RealtimeDelayInfoResponse const*, callback) {
+    realtime::RealtimeDelayInfoResponse const*, callback cb) {
   LOG(info) << "reliability received delay infos";
+
+  return cb({}, error::ok);
 }
 
 void reliability::handle_routing_response(msg_ptr msg,
