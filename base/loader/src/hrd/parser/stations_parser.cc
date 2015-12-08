@@ -23,7 +23,7 @@ void parse_station_names(loaded_file const& file,
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
       return;
-    } else if (line.len < 14) {
+    } else if (line.len < 13) {
       throw parser_error(file.name(), line_number);
     }
 
