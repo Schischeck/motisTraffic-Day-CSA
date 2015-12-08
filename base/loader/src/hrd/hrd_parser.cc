@@ -108,7 +108,7 @@ std::vector<std::string> hrd_parser::missing_files(
       }
       ++pos;
     }
-    if(missing_indices.size() < alternatives.size()) {
+    if (missing_indices.size() < alternatives.size()) {
       continue;
     }
     for (auto const idx : missing_indices) {

@@ -405,7 +405,7 @@ void railviz::init() {
   auto lock = synced_sched<schedule_access::RO>();
   train_retriever_ =
       std::unique_ptr<train_retriever>(new train_retriever(lock.sched()));
-	schedule_begin_ = lock.sched().schedule_begin_;
+  schedule_begin_ = lock.sched().schedule_begin_;
 }
 
 void railviz::on_open(sid session) {
@@ -421,12 +421,13 @@ void railviz::on_open(sid session) {
     station_entries.push_back(CreateRailVizInitEntry(
         b, b.CreateString(stations[station->index]->name), &sc));
   }
-	
+
   b.CreateAndFinish(
       MsgContent_RailVizInit,
-      CreateRailVizInit(b, b.CreateVector(station_entries),
-                        lock.sched().schedule_begin_ + SCHEDULE_OFFSET,
-                        lock.sched().schedule_end_ + MINUTES_A_DAY * 60)
+      CreateRailVizInit(
+          b, b.CreateVector(station_entries),
+          lock.sched().schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
+          lock.sched().schedule_end_ + MINUTES_A_DAY * 60)
           .Union());
   send(make_msg(b), session);
 }

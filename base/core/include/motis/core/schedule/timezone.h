@@ -20,28 +20,24 @@ struct timezone {
   timezone(int general_offset, season s)
       : general_offset_(general_offset), season_(s) {}
 
-  inline bool is_invalid_time(time actual) const {
-    if (season_.begin != INVALID_TIME) {
-      auto const distance_to_season_begin = actual - season_.begin;
-      auto const distance_to_season_end = season_.end - actual;
-
-      // motis time t is within 1 hour...
-      // ...hour after season begin, or
-      // ...hour before season end
-      return (0 <= distance_to_season_begin && distance_to_season_begin < 1) ||
-             (0 <= distance_to_season_end && distance_to_season_end < 1);
-    }
-    return false;
-  }
-
   inline time to_motis_time(int day_idx, int minutes_after_midnight) const {
-    auto const local_motis_time =
+    auto const minutes_after_schedule_begin =
         motis::to_motis_time(day_idx, minutes_after_midnight);
+
     auto const is_in_season =
         season_.begin != INVALID_TIME &&
-        season_.begin + general_offset_ <= local_motis_time &&
-        local_motis_time <= season_.end + season_.offset;
-    return local_motis_time - (is_in_season ? season_.offset : general_offset_);
+        season_.begin + general_offset_ <= minutes_after_schedule_begin &&
+        minutes_after_schedule_begin <= season_.end + season_.offset;
+    auto is_invalid_time =
+        is_in_season &&
+        minutes_after_schedule_begin < season_.begin + general_offset_ + 60;
+
+    if (is_invalid_time) {
+      return INVALID_TIME;
+    } else {
+      return minutes_after_schedule_begin -
+             (is_in_season ? season_.offset : general_offset_);
+    }
   }
 
   inline std::time_t to_local_time(std::time_t schedule_begin,

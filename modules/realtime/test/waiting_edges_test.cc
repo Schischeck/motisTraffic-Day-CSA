@@ -17,8 +17,7 @@ TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
 
   // find arrival event
-  schedule_event event(wuerzburg->index, 51, false,
-                           to_motis_time(0, 10, 37));
+  schedule_event event(wuerzburg->index, 51, false, to_motis_time(0, 10, 37));
   motis::node* route_node;
   motis::light_connection* inc_lc;
   std::tie(route_node, inc_lc) = _rts.locate_event(graph_event(event));
@@ -32,10 +31,8 @@ TEST_F(realtime_waiting_edges_test, test_waiting_edges) {
 
   EXPECT_TRUE(std::all_of(
       edges.begin(), edges.end(), [&](const rt::single_waiting_edge& e) {
-        return static_cast<int>(e._feeder_arrival._station_index) ==
-                   wuerzburg->index &&
-               static_cast<int>(e._connector_departure._station_index) ==
-                   wuerzburg->index;
+        return e._feeder_arrival._station_index == wuerzburg->index &&
+               e._connector_departure._station_index == wuerzburg->index;
       }));
   EXPECT_TRUE(std::any_of(edges.begin(), edges.end(),
                           [&](const rt::single_waiting_edge& e) {

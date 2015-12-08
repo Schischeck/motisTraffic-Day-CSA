@@ -49,7 +49,7 @@ TEST(railviz_routes_on_time, test_with_loop) {
        false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector_times = {
       offset + 0,   offset + 35,  offset + 37,  offset + 102, offset + 104,
       offset + 123, offset + 125, offset + 205, offset + 207, offset + 293};
@@ -102,7 +102,7 @@ TEST(railviz_timetable_for_station, test_with_loop) {
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
        false, "20151121", 1});
   timetable_retriever ttr;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
@@ -149,7 +149,7 @@ TEST(railviz_timetable_station_outgoing, test_with_loop) {
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
        false, "20151121", 1});
   timetable_retriever ttr;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("7347220");
@@ -192,7 +192,7 @@ TEST(railviz_timetable_station_incoming, test_with_loop) {
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
        false, "20151121", 1});
   timetable_retriever ttr;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
 
   it = schedule->eva_to_station.find("5001307");
@@ -467,7 +467,7 @@ TEST(railviz_route_departure_times, test_without_loop) {
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
        false, "20151121", 1});
   timetable_retriever ttr;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,
                                          offset + 30, offset + 40, offset + 50};
   auto const& it = schedule->eva_to_station.find("7347220");
@@ -482,7 +482,7 @@ TEST(railviz_route_departure_times, test_with_loop) {
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
        false, "20151121", 1});
   timetable_retriever ttr;
-  constexpr motis::time offset = MINUTES_A_DAY + 600;
+  constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,
                                          offset + 30, offset + 40, offset + 50};
   auto const& it = schedule->eva_to_station.find("5386096");

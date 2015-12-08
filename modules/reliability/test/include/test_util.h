@@ -5,9 +5,11 @@
 namespace motis {
 namespace reliability {
 namespace test_util {
+
 inline motis::time minutes_to_motis_time(uint16_t minutes) {
-  return static_cast<motis::time>(minutes + 1440);
+  return to_motis_time(minutes);
 }
-}
-}
-}
+
+}  // namespace test_util
+}  // namespace reliability
+}  // namespace motis
