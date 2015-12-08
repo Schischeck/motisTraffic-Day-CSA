@@ -21,9 +21,6 @@ struct timezone {
       : general_offset_(general_offset), season_(s) {}
 
   inline time to_motis_time(int day_idx, int minutes_after_midnight) const {
-    printf("  %d %d\t%02d:%02d.%d", day_idx, minutes_after_midnight,
-           minutes_after_midnight / 60, minutes_after_midnight % 60, day_idx);
-
     auto const minutes_after_schedule_begin =
         motis::to_motis_time(day_idx, minutes_after_midnight);
 
@@ -34,14 +31,6 @@ struct timezone {
     auto is_invalid_time =
         is_in_season &&
         minutes_after_schedule_begin < season_.begin + general_offset_ + 60;
-
-    if (is_in_season) {
-      printf(" in_season");
-    }
-    if (is_invalid_time) {
-      printf(" invalid");
-    }
-    printf("\n");
 
     if (is_invalid_time) {
       return INVALID_TIME;
