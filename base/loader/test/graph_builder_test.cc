@@ -470,7 +470,7 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
 
   test_events(cs.at(0), exp_time(0, 108, 60), exp_time(0, 111, 60));
   // +1 -> +2
-  test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120));
+  test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120 - 60));
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}

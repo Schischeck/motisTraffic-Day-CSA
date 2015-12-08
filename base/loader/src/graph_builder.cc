@@ -337,7 +337,6 @@ public:
     con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
 
     // Build light connection.
-    printf("-> input 0: (%d) %d %d\n", prev_arr, dep_time, arr_time);
     time dep_motis_time, arr_motis_time;
     std::tie(dep_motis_time, arr_motis_time) =
         get_event_times(day - first_day_, prev_arr, dep_time, arr_time,
