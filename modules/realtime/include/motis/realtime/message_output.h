@@ -4,8 +4,8 @@
 #include <vector>
 #include <iostream>
 
+#include "motis/core/schedule/delay_info.h"
 #include "motis/realtime/messages.h"
-#include "motis/realtime/delay_info.h"
 
 namespace motis {
 namespace realtime {

@@ -1,14 +1,14 @@
+#include "motis/realtime/waiting_edges.h"
+
 #include <iostream>
 #include <sstream>
 #include <algorithm>
 
-#include "motis/realtime/waiting_edges.h"
-#include "motis/realtime/realtime_schedule.h"
-#include "motis/realtime/delay_info.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/station.h"
+#include "motis/realtime/realtime_schedule.h"
 
 namespace motis {
 namespace realtime {

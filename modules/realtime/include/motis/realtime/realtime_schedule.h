@@ -7,15 +7,15 @@
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/waiting_time_rules.h"
-#include "motis/realtime/delay_info.h"
-#include "motis/realtime/waiting_edges.h"
+#include "motis/realtime/delay_info_manager.h"
 #include "motis/realtime/delay_propagator.h"
 #include "motis/realtime/graph_updater.h"
-#include "motis/realtime/modified_train.h"
 #include "motis/realtime/messages.h"
 #include "motis/realtime/message_handler.h"
 #include "motis/realtime/message_output.h"
+#include "motis/realtime/modified_train.h"
 #include "motis/realtime/tracking.h"
+#include "motis/realtime/waiting_edges.h"
 #include "motis/realtime/statistics.h"
 
 namespace motis {

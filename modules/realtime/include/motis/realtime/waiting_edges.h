@@ -13,10 +13,10 @@
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_helper.h"
 
+#include "motis/core/schedule/event.h"
+#include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/waiting_time_rules.h"
-#include "motis/core/schedule/schedule.h"
-#include "motis/realtime/event.h"
 
 namespace motis {
 namespace realtime {
@@ -26,8 +26,8 @@ class realtime_schedule;
 
 class single_waiting_edge {
 public:
-  single_waiting_edge(const schedule_event& feeder_arrival,
-                      const schedule_event& connector_departure,
+  single_waiting_edge(schedule_event const& feeder_arrival,
+                      schedule_event const& connector_departure,
                       int waiting_time, waiting_edge* full_waiting_edge)
       : _feeder_arrival(feeder_arrival),
         _connector_departure(connector_departure),
