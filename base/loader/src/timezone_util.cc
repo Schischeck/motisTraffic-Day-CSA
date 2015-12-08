@@ -62,10 +62,16 @@ std::pair<time, time> get_event_times(int day_idx,  //
   auto const offset = adjusted ? adjustment : 0;
   auto const prev_adjusted = adjusted;
 
+  printf("--> input: %d %d\n", curr_dep_local_time, curr_arr_local_time);
   auto dep_motis_time =
       get_event_time(day_idx, curr_dep_local_time + offset, tz_dep);
   auto arr_motis_time =
       get_event_time(day_idx, curr_arr_local_time + offset, tz_arr);
+
+  printf("%s %s\n", dep_motis_time == INVALID_TIME ? "INVALID" : "ok",
+         arr_motis_time == INVALID_TIME ? "INVALID" : "ok");
+
+  printf("%s\n", prev_arr_motis_time > dep_motis_time ? "ERROR 1" : "-");
 
   if (prev_arr_motis_time > dep_motis_time || dep_motis_time == INVALID_TIME) {
     dep_motis_time = get_event_time(
@@ -91,11 +97,14 @@ std::pair<time, time> get_event_times(int day_idx,  //
   }
 
   if (arr_motis_time < dep_motis_time) {
+    printf("%s %d %d\n", "ERROR 2", arr_motis_time, dep_motis_time);
     arr_motis_time = get_event_time(
         day_idx, curr_arr_local_time + offset + adjustment, tz_arr);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 4]");
   }
+
+  printf("%s\n", adjusted ? "ADJUSTED" : "-");
 
   return std::make_pair(dep_motis_time, arr_motis_time);
 }
