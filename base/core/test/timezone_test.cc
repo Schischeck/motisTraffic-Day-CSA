@@ -37,7 +37,7 @@ TEST(core_timezone, gmt_plus_one) {
   ASSERT_EQ(general_offset, tz.general_offset_);
   ASSERT_EQ(season_offset, tz.season_.offset);
 
-  // { MAD 2*MAD [ 3*MAD 4*MAD 5*MAD ] 6*MAD 7*MAD }
+  // { MAD 5*MAD [ 6*MAD 7*MAD 8*MAD ] 9*MAD 10*MAD }
   ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + 2 * MINUTES_A_DAY +
                 minutes_after_midnight_season_begin - general_offset,
             tz.season_.begin);
@@ -72,7 +72,7 @@ TEST(core_timezone, gmt_minus_one) {
   ASSERT_EQ(general_offset, tz.general_offset_);
   ASSERT_EQ(season_offset, tz.season_.offset);
 
-  // { MAD 2*MAD [ 3*MAD 4*MAD 5*MAD ] 6*MAD 7*MAD }
+  // { MAD 5*MAD [ 6*MAD 7*MAD 8*MAD ] 9*MAD 10*MAD }
   ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + 2 * MINUTES_A_DAY +
                 minutes_after_midnight_season_begin - general_offset,
             tz.season_.begin);
@@ -104,8 +104,8 @@ TEST(core_timezone, season_begin_end_overlaps_schedule_period) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  // from: [ INV {  1*MAD  2*MAD 3*MAD 4*MAD 5*MAD }  INV ]
-  // to:     INV [{ 1*MAD  2*MAD 3*MAD 4*MAD 5*MAD }] INV
+  // from: [ INV {  5*MAD  6*MAD 7*MAD 8*MAD 9*MAD }  INV ]
+  // to:     INV [{ 5*MAD  6*MAD 7*MAD 8*MAD 9*MAD }] INV
   ASSERT_EQ(0, tz.season_.begin);
   ASSERT_EQ(INVALID_TIME - season_offset, tz.season_.end);
 }
@@ -129,7 +129,7 @@ TEST(core_timezone, season_end_before_schedule_period) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  //  [ INV INV INV ] { 1*MAD  2*MAD 3*MAD 4*MAD }
+  //  [ INV INV INV ] { 5*MAD  6*MAD 7*MAD 8*MAD }
   ASSERT_EQ(INVALID_TIME, tz.season_.begin);
   ASSERT_EQ(INVALID_TIME, tz.season_.end);
   ASSERT_EQ(INVALID_TIME, tz.season_.offset);
@@ -154,7 +154,7 @@ TEST(core_timezone, season_begin_after_schedule_period) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  //  { 1*MAD  2*MAD 3*MAD 4*MAD } [ INV INV INV ]
+  //  { 5*MAD  6*MAD 7*MAD 8*MAD } [ INV INV INV ]
   ASSERT_EQ(INVALID_TIME, tz.season_.begin);
   ASSERT_EQ(INVALID_TIME, tz.season_.end);
   ASSERT_EQ(INVALID_TIME, tz.season_.offset);
@@ -179,8 +179,8 @@ TEST(core_timezone, move_season_begin_to_schedule_period_begin) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  // from: [ INV {  1*MAD  2*MAD ] 3*MAD 4*MAD } INV INV
-  // to:     INV [{ 1*MAD  2*MAD ] 3*MAD 4*MAD } INV INV
+  // from: [ INV {  5*MAD  6*MAD ] 7*MAD 8*MAD } INV INV
+  // to:     INV [{ 5*MAD  6*MAD ] 7*MAD 8*MAD } INV INV
   ASSERT_EQ(0, tz.season_.begin);
   ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + MINUTES_A_DAY +
                 minutes_after_midnight_season_end - season_offset,
@@ -206,8 +206,8 @@ TEST(core_timezone, move_season_end_to_schedule_period_end) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  // from:   INV { 1*MAD  2*MAD [ 3*MAD 4*MAD }  INV ] INV
-  // to:     INV { 1*MAD  2*MAD [ 3*MAD 4*MAD }] INV   INV
+  // from:   INV { 5*MAD  6*MAD [ 7*MAD 8*MAD }  INV ] INV
+  // to:     INV { 5*MAD  6*MAD [ 7*MAD 8*MAD }] INV   INV
   ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + 2 * MINUTES_A_DAY +
                 minutes_after_midnight_season_begin - general_offset,
             tz.season_.begin);
@@ -238,7 +238,7 @@ TEST(core_timezone, invalid_event) {
       day_idx_season_last_day, minutes_after_midnight_season_begin,
       minutes_after_midnight_season_end);
 
-  // { MAD [ 2*MAD  3*MAD 4*MAD 5*MAD  6*MAD ] 7*MAD }
+  // { MAD [ 5*MAD  6*MAD 7*MAD 8*MAD  9*MAD ] 10*MAD }
   EXPECT_FALSE(is_invalid_time(1, 119, tz));
   EXPECT_FALSE(is_invalid_time(1, 180, tz));
   EXPECT_FALSE(is_invalid_time(1, 181, tz));

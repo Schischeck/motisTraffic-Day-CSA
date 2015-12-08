@@ -448,7 +448,6 @@ TEST_F(loader_graph_builder_season_valid, event_times) {
   test_events(cs.at(37), exp_time(0, 344, 120), exp_time(0, 347, 120));
 }
 
-// TODO implement solution for invalid times
 class loader_graph_builder_season_invalid : public loader_graph_builder_test {
 public:
   loader_graph_builder_season_invalid()
