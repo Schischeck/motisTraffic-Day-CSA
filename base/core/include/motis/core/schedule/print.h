@@ -45,7 +45,7 @@ inline void print_node(node const& node, std::ostream& out, int indent,
 inline void print_edge(edge const& edge, std::ostream& out, int indent) {
   out << "to=" << edge._to->_id << ", ";
   switch (edge._m._type) {
-    case edge::type::ROUTE_EDGE: {
+    case edge::ROUTE_EDGE: {
       out << "type=route_edge, "
           << "[#connections=" << edge._m._route_edge._conns.size() << "]:\n";
       for (unsigned i = 0; i < edge._m._route_edge._conns.size(); ++i) {
@@ -55,7 +55,7 @@ inline void print_edge(edge const& edge, std::ostream& out, int indent) {
       break;
     }
 
-    case edge::type::FOOT_EDGE:
+    case edge::FOOT_EDGE:
       out << "type=foot_edge, "
           << "duration=" << edge._m._foot_edge._time_cost << ", "
           << "transfer=" << std::boolalpha << edge._m._foot_edge._transfer
@@ -63,7 +63,7 @@ inline void print_edge(edge const& edge, std::ostream& out, int indent) {
           << "slot=" << static_cast<int>(edge._m._foot_edge._slot) << "\n";
       break;
 
-    case edge::type::INVALID_EDGE: out << "NO_EDGE\n"; break;
+    case edge::INVALID_EDGE: out << "NO_EDGE\n"; break;
 
     default: out << "UNKOWN [type=" << static_cast<int>(edge._m._type) << "]\n";
   }
