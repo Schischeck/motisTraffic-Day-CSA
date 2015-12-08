@@ -35,11 +35,17 @@ private:
 
 class test_motis_setup : public ::testing::Test {
 protected:
-  test_motis_setup(std::string schedule_path, std::string schedule_begin)
-      : schedule_path_(schedule_path), schedule_begin_(schedule_begin) {}
+  test_motis_setup(std::string schedule_path, std::string schedule_begin,
+                   bool realtime = false)
+      : schedule_path_(schedule_path),
+        schedule_begin_(schedule_begin),
+        realtime_(realtime) {}
 
   virtual void SetUp() override {
     std::vector<std::string> modules = {"reliability", "routing"};
+    if (realtime_) {
+      modules.push_back("realtime");
+    }
     motis_instance_ =
         bootstrap::launch_motis(schedule_path_, schedule_begin_, modules);
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
@@ -66,6 +72,7 @@ public:
 
 private:
   std::string schedule_path_, schedule_begin_;
+  bool realtime_;
 };
 
 struct schedule_station {
