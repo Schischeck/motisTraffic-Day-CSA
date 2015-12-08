@@ -97,13 +97,13 @@ inline container::key to_container_key(light_connection const& lc,
           scheduled_event_time};
 }
 
-inline container::key to_container_key(light_connection const& lc,
-                                       unsigned int const station_idx,
+inline container::key to_container_key(node const& route_node,
+                                       light_connection const& lc,
                                        time_util::event_type type,
                                        schedule const& sched) {
   return to_container_key(
-      lc, station_idx, type,
-      time_util::get_scheduled_event_time(lc, station_idx, type, sched), sched);
+      lc, route_node.get_station()->_id, type,
+      time_util::get_scheduled_event_time(route_node, lc, type, sched), sched);
 };
 
 }  // namespace distributions_container

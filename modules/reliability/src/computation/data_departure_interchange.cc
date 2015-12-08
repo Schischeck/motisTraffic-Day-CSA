@@ -33,7 +33,8 @@ std::vector<graph_accessor::feeder_info> get_all_potential_feeders_except_ic(
 }
 
 data_departure_interchange::data_departure_interchange(
-    bool const is_first_route_node, node const& route_node,
+    bool const is_first_route_node, node const& departing_route_node,
+    node const& arriving_route_node,
     light_connection const& departing_light_conn,
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
@@ -41,34 +42,34 @@ data_departure_interchange::data_departure_interchange(
     reliability::context const& context)
     : data_departure(is_first_route_node,
                      time_util::get_scheduled_event_time(
-                         departing_light_conn, route_node.get_station()->_id,
+                         departing_route_node, departing_light_conn,
                          time_util::departure, context.schedule_)) {
   if (is_first_route_node) {
     init_first_departure_info(departing_light_conn, context.s_t_distributions_,
                               context.schedule_.categories);
   } else {
-    init_preceding_arrival_info(route_node, departing_light_conn.d_time,
-                                distribution_preceding_train,
-                                context.schedule_);
+    init_preceding_arrival_info(
+        departing_route_node, departing_light_conn.d_time,
+        distribution_preceding_train, context.schedule_);
   }
 
-  duration const transfer_time =
-      context.schedule_.stations[route_node._station_node->_id]
-          ->transfer_time; /* TODO: use track change time if possible) */
+  duration const transfer_time = graph_accessor::get_interchange_time(
+      arriving_route_node, departing_route_node, context.schedule_);
   duration const waiting_time = graph_accessor::get_waiting_time(
       context.schedule_.waiting_time_rules_, arriving_light_conn,
       departing_light_conn);
-  init_interchange_feeder_info(
-      time_util::get_scheduled_event_time(
-          arriving_light_conn, route_node.get_station()->_id,
-          time_util::arrival, context.schedule_),
-      arrival_distribution, transfer_time, waiting_time);
+
+  init_interchange_feeder_info(time_util::get_scheduled_event_time(
+                                   arriving_route_node, arriving_light_conn,
+                                   time_util::arrival, context.schedule_),
+                               arrival_distribution, transfer_time,
+                               waiting_time);
 
   auto const all_feeders_data = get_all_potential_feeders_except_ic(
-      route_node, departing_light_conn, arriving_light_conn,
-      context.schedule_.stations[route_node._station_node->_id]->transfer_time);
-  init_feeder_info(departing_light_conn, route_node.get_station()->_id,
-                   all_feeders_data, context.schedule_,
+      departing_route_node, departing_light_conn, arriving_light_conn,
+      context.schedule_.stations[departing_route_node._station_node->_id]
+          ->transfer_time);
+  init_feeder_info(departing_light_conn, all_feeders_data, context.schedule_,
                    context.precomputed_distributions_);
   maximum_waiting_time_ =
       std::max(maximum_waiting_time_, interchange_feeder_info_.waiting_time_);
@@ -103,7 +104,8 @@ data_departure_interchange::data_departure_interchange(
 
 data_departure_interchange_walk::data_departure_interchange_walk(
     bool const is_first_route_node, node const& departing_route_node,
-    node const& arrival_station, light_connection const& departing_light_conn,
+    node const& arriving_route_node,
+    light_connection const& departing_light_conn,
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
     distributions_container::container const& preceding_arrival_distribution,
@@ -113,11 +115,11 @@ data_departure_interchange_walk::data_departure_interchange_walk(
                                  preceding_arrival_distribution, context) {
   init_interchange_feeder_info(
       time_util::get_scheduled_event_time(
-          arriving_light_conn, arrival_station.get_station()->_id,
-          time_util::arrival, context.schedule_),
+          arriving_route_node, arriving_light_conn, time_util::arrival,
+          context.schedule_),
       arrival_distribution,
-      graph_accessor::walking_duration(arrival_station,
-                                       *departing_route_node._station_node),
+      graph_accessor::walking_duration(*arriving_route_node.get_station(),
+                                       *departing_route_node.get_station()),
       0);
 }
 

@@ -91,7 +91,8 @@ TEST_F(reliability_calc_departure_distribution2,
   probability_distribution arrival_distribution;
   arrival_distribution.init({.1, .7, .2}, -1);
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -118,7 +119,8 @@ TEST_F(reliability_calc_departure_distribution2,
   probability_distribution arrival_distribution;
   arrival_distribution.init({.05, .05, .1, .1, .1, .1, .1, .1, 0.3}, -1);
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -157,8 +159,9 @@ TEST_F(reliability_calc_departure_distribution2,
   probability_distribution arrival_distribution;
   arrival_distribution.init({.4, .3, .2, .1}, 14);  // 10:14 - 10:17
   data_departure_interchange data(
-      false, tail_node_departing_train, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, arrival_distribution, precomputed,
+      false, tail_node_departing_train, *ic_data.arriving_route_edge_._to,
+      ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
+      arrival_distribution, precomputed,
       context(*schedule_, precomputed, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
   ASSERT_TRUE(data.interchange_feeder_info_.waiting_time_ == 0);
@@ -195,7 +198,8 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.4, .3, .2, .1}, 16);  // 11:26 - 11:29
 
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, precomputed,
       context(*schedule_, precomputed, s_t_distributions));
 

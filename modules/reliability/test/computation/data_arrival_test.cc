@@ -52,10 +52,8 @@ TEST_F(reliability_data_arrival, initialize) {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  data_arrival data(light_connection,
-                    first_route_edge->_from->get_station()->_id,
-                    first_route_edge->_to->get_station()->_id, dep_dist,
-                    *schedule_, s_t_distributions);
+  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+                    light_connection, dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(
       schedule_->stations[second_route_node._station_node->_id]->eva_nr ==
@@ -116,9 +114,8 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
   // get the second light connection
   auto const& light_connection = route_edge->_m._route_edge._conns[1];
 
-  data_arrival data(light_connection, route_edge->_from->get_station()->_id,
-                    route_edge->_to->get_station()->_id, dep_dist, *schedule_,
-                    s_t_distributions);
+  data_arrival data(*route_edge->_from, *route_edge->_to, light_connection,
+                    dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);
   ASSERT_TRUE(&data.travel_distributions_[0].get() ==

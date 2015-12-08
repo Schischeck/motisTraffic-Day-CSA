@@ -24,7 +24,8 @@ namespace calc_departure_distribution {
 /** arrival and departure at the same station (no walking) */
 struct data_departure_interchange : data_departure {
   data_departure_interchange(
-      bool const is_first_route_node, node const& route_node,
+      bool const is_first_route_node, node const& departing_route_node,
+      node const& arriving_route_node,
       light_connection const& departing_light_conn,
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
@@ -59,7 +60,8 @@ protected:
 struct data_departure_interchange_walk : data_departure_interchange {
   data_departure_interchange_walk(
       bool const is_first_route_node, node const& departing_route_node,
-      node const& arrival_station, light_connection const& departing_light_conn,
+      node const& arriving_route_node,
+      light_connection const& departing_light_conn,
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
       distributions_container::container const& preceding_arrival_distribution,

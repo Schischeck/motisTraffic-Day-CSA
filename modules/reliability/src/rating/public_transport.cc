@@ -32,13 +32,13 @@ void distributions_for_first_train(
     ratings.back().departure_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
-                *element.light_connection_, element.from_->get_station()->_id,
+                *element.from_, *element.light_connection_,
                 time_util::departure, sched));
     ratings.back().arrival_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
-                *element.light_connection_, element.to_->get_station()->_id,
-                time_util::arrival, sched));
+                *element.to_, *element.light_connection_, time_util::arrival,
+                sched));
   }
 }
 
@@ -56,7 +56,7 @@ create_data_for_interchange(
         calc_departure_distribution::data_departure_interchange>(
         new calc_departure_distribution::data_departure_interchange_walk(
             element.is_first_route_node_, *element.from_,
-            *preceding_element.to_->_station_node, *element.light_connection_,
+            *preceding_element.to_, *element.light_connection_,
             *preceding_element.light_connection_, arrival_distribution,
             train_distributions, context));
   }
@@ -64,7 +64,7 @@ create_data_for_interchange(
   return std::unique_ptr<
       calc_departure_distribution::data_departure_interchange>(
       new calc_departure_distribution::data_departure_interchange(
-          element.is_first_route_node_, *element.from_,
+          element.is_first_route_node_, *element.from_, *preceding_element.to_,
           *element.light_connection_, *preceding_element.light_connection_,
           arrival_distribution, train_distributions, context));
 }
@@ -102,9 +102,8 @@ void distributions_for_train_after_interchange(
     }
 
     calc_arrival_distribution::data_arrival arr_data(
-        *element.light_connection_, element.from_->get_station()->_id,
-        element.to_->get_station()->_id, departure_distribution,
-        context.schedule_, context.s_t_distributions_);
+        *element.from_, *element.to_, *element.light_connection_,
+        departure_distribution, context.schedule_, context.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(
         arr_data, arrival_distribution);
   }

@@ -230,7 +230,7 @@ TEST_F(reliability_graph_accessor, get_feeders) {
 
   for (unsigned int i = 0; i < 3; ++i) {
     auto const& feeder_light_conn = *all_potential_feeders[i].light_conn_;
-    auto const feeder_route_id = all_potential_feeders[i].route_id_;
+    auto const feeder_route_id = all_potential_feeders[i].arrival_node_->_route;
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, second_light_conn);
     switch (i) {
@@ -294,7 +294,7 @@ TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
 
   for (unsigned int i = 0; i < 3; ++i) {
     auto const& feeder_light_conn = *all_potential_feeders[i].light_conn_;
-    auto const feeder_route_id = all_potential_feeders[i].route_id_;
+    auto const feeder_route_id = all_potential_feeders[i].arrival_node_->_route;
     auto const waiting_time = get_waiting_time(
         schedule_->waiting_time_rules_, feeder_light_conn, first_light_conn);
     switch (i) {

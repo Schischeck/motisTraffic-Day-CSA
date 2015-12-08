@@ -66,7 +66,8 @@ TEST_F(reliability_data_departure_interchange2,
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
       context(*schedule_, dummy, s_t_distributions));
 
@@ -119,9 +120,10 @@ TEST_F(reliability_data_departure_interchange2,
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      false, tail_node_departing_train, ic_data.departing_light_conn_,
-      ic_data.arriving_light_conn_, dummy_arrival_distribution,
-      train_distributions, context(*schedule_, dummy, s_t_distributions));
+      false, tail_node_departing_train, *ic_data.arriving_route_edge_._to,
+      ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
+      dummy_arrival_distribution, train_distributions,
+      context(*schedule_, dummy, s_t_distributions));
 
   // light conn of route edge from Kassel to Frankfurt of train ICE_K_F_S
   auto const& preceding_arrival_light_conn =
@@ -178,7 +180,8 @@ TEST_F(reliability_data_departure_interchange2,
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
       context(*schedule_, feeder_distributions, s_t_distributions));
 
@@ -235,7 +238,8 @@ TEST_F(reliability_data_departure_interchange2,
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
       context(*schedule_, feeder_distributions, s_t_distributions));
 
@@ -308,7 +312,8 @@ TEST_F(reliability_data_departure_interchange2,
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
   data_departure_interchange data(
-      true, ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+      true, ic_data.tail_node_departing_train_,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
       context(*schedule_, dummy, s_t_distributions));
 
@@ -350,9 +355,8 @@ TEST_F(reliability_data_departure_interchange3, interchange_walk) {
 
   data_departure_interchange_walk data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to->_station_node,
-      ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
-      dummy_arrival_distribution, dummy,
+      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
       context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);

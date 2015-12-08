@@ -42,12 +42,14 @@ public:
                      probability_distribution const& arrival_distribution) {
     return calc_distributions(
         ic_data.arriving_light_conn_, ic_data.departing_light_conn_,
-        ic_data.departing_route_edge_, arrival_distribution);
+        *ic_data.arriving_route_edge_._to, ic_data.departing_route_edge_,
+        arrival_distribution);
   }
 
   std::pair<probability_distribution, probability_distribution>
   calc_distributions(light_connection const& arriving_light_conn,
                      light_connection const& departing_light_conn,
+                     node const& arriving_route_node,
                      edge const& departing_route_edge,
                      probability_distribution const& arrival_distribution) {
     probability_distribution dep_dist, arr_dist;
@@ -55,18 +57,16 @@ public:
     using namespace calc_arrival_distribution;
     interchange::compute_departure_distribution(
         data_departure_interchange(
-            true, *departing_route_edge._from, departing_light_conn,
-            arriving_light_conn, arrival_distribution,
+            true, *departing_route_edge._from, arriving_route_node,
+            departing_light_conn, arriving_light_conn, arrival_distribution,
             get_reliability_module().precomputed_distributions(),
             context(get_schedule(),
                     get_reliability_module().precomputed_distributions(),
                     get_reliability_module().s_t_distributions())),
         dep_dist);
     compute_arrival_distribution(
-        data_arrival(departing_light_conn,
-                     departing_route_edge._from->get_station()->_id,
-                     departing_route_edge._to->get_station()->_id, dep_dist,
-                     get_schedule(),
+        data_arrival(*departing_route_edge._from, *departing_route_edge._to,
+                     departing_light_conn, dep_dist, get_schedule(),
                      get_reliability_module().s_t_distributions()),
         arr_dist);
     return std::make_pair(dep_dist, arr_dist);
@@ -288,6 +288,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 
       auto const dists =
           calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             *ic_data.arriving_route_edge_._to,
                              ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[1].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
@@ -312,6 +313,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 
       auto const dists =
           calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             *ic_data.arriving_route_edge_._to,
                              ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[2].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);

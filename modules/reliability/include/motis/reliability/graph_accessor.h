@@ -77,8 +77,8 @@ inline std::tuple<bool, time, time> get_feeder_time_interval(
 
 #define FEEDER_THRESHOLD 30 /* XXX */
 struct feeder_info {
+  node const* arrival_node_;
   light_connection const* light_conn_;
-  int route_id_;
 };
 inline std::vector<feeder_info> get_all_potential_feeders(
     node const& route_node, motis::time const departure_time,
@@ -103,7 +103,7 @@ inline std::vector<feeder_info> get_all_potential_feeders(
         for (unsigned int i = 0; i < all_connections.size(); i++) {
           if (all_connections[i].a_time >= time_begin &&
               all_connections[i].a_time <= time_end) {
-            feeders.push_back({&all_connections[i], feeder_route_node._route});
+            feeders.push_back({&feeder_route_node, &all_connections[i]});
           }
         }
       }

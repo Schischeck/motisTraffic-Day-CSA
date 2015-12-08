@@ -14,18 +14,17 @@ namespace reliability {
 namespace calc_arrival_distribution {
 
 data_arrival::data_arrival(
+    node const& departure_node, node const& arrival_node,
     light_connection const& light_connection,
-    unsigned int const preceding_departure_station_id,
-    unsigned int const arrival_station_id,
     probability_distribution const& departure_distribution,
     schedule const& schedule,
     start_and_travel_distributions const& s_t_distributions)
-    : departure_info_(departure_distribution,
-                      time_util::get_scheduled_event_time(
-                          light_connection, preceding_departure_station_id,
-                          time_util::departure, schedule)),
+    : departure_info_(
+          departure_distribution,
+          time_util::get_scheduled_event_time(departure_node, light_connection,
+                                              time_util::departure, schedule)),
       scheduled_arrival_time_(time_util::get_scheduled_event_time(
-          light_connection, arrival_station_id, time_util::arrival, schedule)) {
+          arrival_node, light_connection, time_util::arrival, schedule)) {
   init_travel_info(light_connection, s_t_distributions, schedule.categories);
 }
 

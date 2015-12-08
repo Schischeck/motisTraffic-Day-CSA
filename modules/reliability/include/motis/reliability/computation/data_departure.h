@@ -96,7 +96,6 @@ protected:
                                    distributions_container::container const&,
                                    schedule const&);
   void init_feeder_info(light_connection const& departing_light_conn,
-                        unsigned int const station_id,
                         std::vector<graph_accessor::feeder_info> const&
                             feeders /* pair.second: scheduled-arrival-time */,
                         schedule const&,
