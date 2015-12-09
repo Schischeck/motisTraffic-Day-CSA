@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include <climits>
+#include <cinttypes>
 
 #include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
@@ -132,6 +133,16 @@ public:
   loader_graph_builder_duplicates_check()
       : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
                                   to_unix_time(2015, 1, 10)) {}
+
+  uint32_t get_train_num(char const* first_stop_id) {
+    auto it = std::find_if(
+        begin(sched_->route_index_to_first_route_node),
+        end(sched_->route_index_to_first_route_node), [&](node const* n) {
+          return sched_->stations[n->get_station()->_id]->eva_nr ==
+                 first_stop_id;
+        });
+    return get<0>(get_connections(*it, 0).at(0))->_full_con->con_info->train_nr;
+  }
 };
 
 class loader_merge_split_graph_builder_test : public loader_graph_builder_test {
@@ -521,24 +532,12 @@ TEST_F(loader_graph_builder_never_meet, routes) {
 }
 
 TEST_F(loader_graph_builder_duplicates_check, synthetic) {
-  ASSERT_EQ(4, sched_.get()->route_index_to_first_route_node.size());
-
-  auto node_it = begin(sched_->route_index_to_first_route_node);
-  auto conn_info =
-      get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
-  EXPECT_EQ(0, conn_info->train_nr);
-
-  node_it = next(node_it, 1);
-  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
-  EXPECT_EQ(UINT_MAX - 1, conn_info->train_nr);
-
-  node_it = next(node_it, 1);
-  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
-  EXPECT_EQ(1, conn_info->train_nr);
-
-  node_it = next(node_it, 1);
-  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
-  EXPECT_EQ(UINT_MAX, conn_info->train_nr);
+  ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
+  EXPECT_EQ(1, get_train_num("0000002"));
+  EXPECT_EQ(UINT_MAX, get_train_num("0000004"));
+  EXPECT_EQ(UINT_MAX - 1, get_train_num("0000006"));
+  EXPECT_EQ(0, get_train_num("0000003"));
+  EXPECT_EQ(UINT_MAX - 2, get_train_num("0000005"));
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
