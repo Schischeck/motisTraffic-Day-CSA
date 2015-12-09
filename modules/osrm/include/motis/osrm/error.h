@@ -9,7 +9,8 @@ namespace osrm {
 namespace error {
 enum error_code_t {
   ok = 0,
-  no_routing_response = 1,
+  not_initialized = 1,
+  no_routing_response = 2,
 };
 }  // namespace error
 
@@ -19,6 +20,7 @@ public:
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {
+      case error::not_initialized: return "osrm: not initialized";
       case error::no_routing_response: return "osrm: no routing response";
       default: return "osrm: unkown error";
     }

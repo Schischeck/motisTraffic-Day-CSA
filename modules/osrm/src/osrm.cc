@@ -50,7 +50,7 @@ public:
     populate_base_path(server_paths);
 
     if (ret == INIT_FAILED) {
-      LOG(motis::logging::error) << "OSRM initialization failed";
+      throw std::runtime_error("OSRM initialization failed");
       return;
     }
 
@@ -122,10 +122,18 @@ void osrm::print(std::ostream& out) const {
   out << "  " << OSRM_DATASET_PATH << ": " << path_;
 }
 
-void osrm::init() { impl_ = make_unique<osrm::impl>(path_); }
+void osrm::init() {
+  if (!path_.empty()) {
+    impl_ = make_unique<osrm::impl>(path_);
+  }
+}
 
 void osrm::on_msg(msg_ptr msg, sid, callback cb) {
-  return impl_->route(msg->content<OSRMRoutingRequest const*>(), cb);
+  if (impl_) {
+    return impl_->route(msg->content<OSRMRoutingRequest const*>(), cb);
+  } else {
+    return cb({}, error::not_initialized);
+  }
 }
 
 }  // namespace osrm
