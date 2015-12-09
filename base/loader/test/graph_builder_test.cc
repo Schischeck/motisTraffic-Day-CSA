@@ -534,10 +534,10 @@ TEST_F(loader_graph_builder_never_meet, routes) {
 TEST_F(loader_graph_builder_duplicates_check, synthetic) {
   ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
   EXPECT_EQ(1, get_train_num("0000002"));
-  EXPECT_EQ(UINT_MAX, get_train_num("0000004"));
-  EXPECT_EQ(UINT_MAX - 1, get_train_num("0000006"));
   EXPECT_EQ(0, get_train_num("0000003"));
-  EXPECT_EQ(UINT_MAX - 2, get_train_num("0000005"));
+  EXPECT_LT(UINT_MAX - 3, get_train_num("0000005"));
+  EXPECT_LT(UINT_MAX - 3, get_train_num("0000004"));
+  EXPECT_LT(UINT_MAX - 3, get_train_num("0000006"));
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
