@@ -531,13 +531,28 @@ TEST_F(loader_graph_builder_never_meet, routes) {
   EXPECT_EQ(3, get<0>(connections[0])->_full_con->con_info->train_nr);
 }
 
-TEST_F(loader_graph_builder_duplicates_check, synthetic) {
+TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
-  EXPECT_EQ(1, get_train_num("0000002"));
-  EXPECT_EQ(0, get_train_num("0000003"));
-  EXPECT_LT(UINT_MAX - 3, get_train_num("0000005"));
-  EXPECT_LT(UINT_MAX - 3, get_train_num("0000004"));
-  EXPECT_LT(UINT_MAX - 3, get_train_num("0000006"));
+
+  auto train_num_zero_count = 0;
+  auto train_num_one_count = 0;
+  auto duplicate_count = 0;
+
+  for (auto const train_num :
+       {get_train_num("0000002"), get_train_num("0000003"),
+        get_train_num("0000004"), get_train_num("0000006"),
+        get_train_num("0000005")}) {
+    if (UINT_MAX - 3 < train_num) {
+      ++duplicate_count;
+    } else if (train_num == 0) {
+      ++train_num_zero_count;
+    } else if (train_num == 1) {
+      ++train_num_one_count;
+    }
+  }
+  EXPECT_EQ(1, train_num_zero_count);
+  EXPECT_EQ(1, train_num_one_count);
+  EXPECT_EQ(3, duplicate_count);
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
