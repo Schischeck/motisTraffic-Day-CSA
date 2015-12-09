@@ -17,7 +17,7 @@
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
-#define WITH_PRICES
+//#define WITH_PRICES
 
 namespace motis {
 

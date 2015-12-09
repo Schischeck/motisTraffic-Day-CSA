@@ -238,9 +238,8 @@ inline void print_route_edge(edge const& route_edge, schedule const& schedule,
   unsigned int light_connection_idx = 0;
   for (auto const& light_connection : route_edge._m._route_edge._conns) {
     os << schedule.stations[route_edge._from->_station_node->_id]->name << "/"
-       << schedule.stations[route_edge._from->_station_node->_id]->eva_nr << "("
-       << route_edge._from->_id << ")"
-       << " " << format_time(light_connection.d_time) << "--"
+       << schedule.stations[route_edge._from->_station_node->_id]->eva_nr << " "
+       << format_time(light_connection.d_time) << "--"
        << schedule.categories[light_connection._full_con->con_info->family]
               ->name
        << light_connection._full_con->con_info->train_nr << ","
@@ -248,9 +247,8 @@ inline void print_route_edge(edge const& route_edge, schedule const& schedule,
        << light_connection_idx++ << ")->"
        << format_time(light_connection.a_time) << " "
        << schedule.stations[route_edge._to->_station_node->_id]->name << "/"
-       << schedule.stations[route_edge._to->_station_node->_id]->eva_nr << "("
-       << route_edge._to->_id << ")"
-       << " " << &light_connection << std::endl;
+       << schedule.stations[route_edge._to->_station_node->_id]->eva_nr
+       << std::endl;
   }
 }
 
