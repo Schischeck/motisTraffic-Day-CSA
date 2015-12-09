@@ -4,6 +4,7 @@
 #include "motis/core/common/date_util.h"
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
+#include "motis/loader/parser_error.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -29,12 +30,17 @@ protected:
     const auto schedule_path = hrd::SCHEDULES / schedule_name_;
     ASSERT_TRUE(parser.applicable(schedule_path));
 
-    flatbuffers::FlatBufferBuilder b;
-    parser.parse(schedule_path, b);
-    auto serialized = GetSchedule(b.GetBufferPointer());
+    try {
+      flatbuffers::FlatBufferBuilder b;
+      parser.parse(schedule_path, b);
+      auto serialized = GetSchedule(b.GetBufferPointer());
 
-    sched_ =
-        build_graph(serialized, schedule_begin_, schedule_end_, true, true);
+      sched_ =
+          build_graph(serialized, schedule_begin_, schedule_end_, true, true);
+    } catch (parser_error const& e) {
+      e.print_what();
+      ASSERT_TRUE(false);
+    }
   }
 
   static edge const* get_route_edge(node const* route_node) {
@@ -88,6 +94,35 @@ public:
       : loader_graph_builder_test("direction-services",
                                   to_unix_time(2015, 9, 11),
                                   to_unix_time(2015, 9, 12)) {}
+};
+
+class loader_graph_builder_east_to_west_test
+    : public loader_graph_builder_test {
+public:
+  loader_graph_builder_east_to_west_test()
+      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 2),
+                                  to_unix_time(2015, 7, 10)) {}
+};
+
+class loader_graph_builder_season_valid : public loader_graph_builder_test {
+public:
+  loader_graph_builder_season_valid()
+      : loader_graph_builder_test("season-valid", to_unix_time(2015, 3, 29),
+                                  to_unix_time(2015, 3, 31)) {}
+};
+
+class loader_graph_builder_season_invalid : public loader_graph_builder_test {
+public:
+  loader_graph_builder_season_invalid()
+      : loader_graph_builder_test("season-invalid", to_unix_time(2015, 3, 29),
+                                  to_unix_time(2015, 3, 31)) {}
+};
+
+class loader_graph_builder_never_meet : public loader_graph_builder_test {
+public:
+  loader_graph_builder_never_meet()
+      : loader_graph_builder_test("never-meet", to_unix_time(2015, 1, 4),
+                                  to_unix_time(2015, 1, 10)) {}
 };
 
 class loader_merge_split_graph_builder_test : public loader_graph_builder_test {
@@ -400,14 +435,6 @@ time exp_time(int day_idx, int hhmm, int offset) {
   return (day_idx + SCHEDULE_OFFSET_MINUTES) + hhmm_to_min(hhmm) - offset;
 }
 
-class loader_graph_builder_east_to_west_test
-    : public loader_graph_builder_test {
-public:
-  loader_graph_builder_east_to_west_test()
-      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 2),
-                                  to_unix_time(2015, 7, 10)) {}
-};
-
 TEST_F(loader_graph_builder_east_to_west_test, event_times) {
   // Get route starting at Moskva Belorusskaja
   auto node_it = std::find_if(
@@ -422,13 +449,6 @@ TEST_F(loader_graph_builder_east_to_west_test, event_times) {
   test_events(cs.at(8), exp_time(0, 3106, 180), exp_time(0, 3018, 120));
   test_events(cs.at(22), exp_time(0, 5306, 120), exp_time(0, 5716, 120));
 }
-
-class loader_graph_builder_season_valid : public loader_graph_builder_test {
-public:
-  loader_graph_builder_season_valid()
-      : loader_graph_builder_test("season-valid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
-};
 
 TEST_F(loader_graph_builder_season_valid, event_times) {
   // Get route starting at Dortmund Hbf
@@ -448,14 +468,6 @@ TEST_F(loader_graph_builder_season_valid, event_times) {
   test_events(cs.at(37), exp_time(0, 344, 120), exp_time(0, 347, 120));
 }
 
-// TODO implement solution for invalid times
-class loader_graph_builder_season_invalid : public loader_graph_builder_test {
-public:
-  loader_graph_builder_season_invalid()
-      : loader_graph_builder_test("season-invalid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
-};
-
 TEST_F(loader_graph_builder_season_invalid, event_times) {
   // Get route starting at Muenster(Westf)Hbf
   auto node_it = std::find_if(
@@ -471,6 +483,40 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
   test_events(cs.at(0), exp_time(0, 108, 60), exp_time(0, 111, 60));
   // +1 -> +2
   test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120 - 60));
+}
+
+TEST_F(loader_graph_builder_never_meet, routes) {
+  ASSERT_EQ(3, sched_.get()->route_index_to_first_route_node.size());
+
+  auto node_it = begin(sched_->route_index_to_first_route_node);
+  auto connections = get_connections(*node_it, 0);
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  EXPECT_EQ(2, connections.size());
+  for (auto const& c : connections) {
+    EXPECT_EQ(1, get<0>(c)->_full_con->con_info->train_nr);
+  }
+
+  connections = get_connections(*node_it, get<0>(connections[0])->d_time + 1);
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  EXPECT_EQ(2, connections.size());
+  for (auto const& c : connections) {
+    EXPECT_EQ(4, get<0>(c)->_full_con->con_info->train_nr);
+  }
+
+  node_it = next(node_it, 1);
+  connections = get_connections(*node_it, 0);
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  EXPECT_EQ(2, connections.size());
+  for (auto const& c : connections) {
+    EXPECT_EQ(2, get<0>(c)->_full_con->con_info->train_nr);
+  }
+
+  node_it = next(node_it, 1);
+  connections = get_connections(*node_it, 0);
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  for (auto const& c : connections) {
+    EXPECT_EQ(3, get<0>(c)->_full_con->con_info->train_nr);
+  }
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
