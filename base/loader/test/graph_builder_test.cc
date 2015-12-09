@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <climits>
+
 #include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
 #include "motis/loader/hrd/hrd_parser.h"
@@ -122,6 +124,13 @@ class loader_graph_builder_never_meet : public loader_graph_builder_test {
 public:
   loader_graph_builder_never_meet()
       : loader_graph_builder_test("never-meet", to_unix_time(2015, 1, 4),
+                                  to_unix_time(2015, 1, 10)) {}
+};
+
+class loader_graph_builder_duplicates_check : public loader_graph_builder_test {
+public:
+  loader_graph_builder_duplicates_check()
+      : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
                                   to_unix_time(2015, 1, 10)) {}
 };
 
@@ -490,33 +499,46 @@ TEST_F(loader_graph_builder_never_meet, routes) {
 
   auto node_it = begin(sched_->route_index_to_first_route_node);
   auto connections = get_connections(*node_it, 0);
+
   ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
   EXPECT_EQ(2, connections.size());
-  for (auto const& c : connections) {
-    EXPECT_EQ(1, get<0>(c)->_full_con->con_info->train_nr);
-  }
+  EXPECT_EQ(1, get<0>(connections[0])->_full_con->con_info->train_nr);
 
   connections = get_connections(*node_it, get<0>(connections[0])->d_time + 1);
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
   EXPECT_EQ(2, connections.size());
-  for (auto const& c : connections) {
-    EXPECT_EQ(4, get<0>(c)->_full_con->con_info->train_nr);
-  }
+  EXPECT_EQ(4, get<0>(connections[0])->_full_con->con_info->train_nr);
 
   node_it = next(node_it, 1);
   connections = get_connections(*node_it, 0);
   ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
   EXPECT_EQ(2, connections.size());
-  for (auto const& c : connections) {
-    EXPECT_EQ(2, get<0>(c)->_full_con->con_info->train_nr);
-  }
+  EXPECT_EQ(2, get<0>(connections[0])->_full_con->con_info->train_nr);
 
   node_it = next(node_it, 1);
   connections = get_connections(*node_it, 0);
   ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-  for (auto const& c : connections) {
-    EXPECT_EQ(3, get<0>(c)->_full_con->con_info->train_nr);
-  }
+  EXPECT_EQ(3, get<0>(connections[0])->_full_con->con_info->train_nr);
+}
+
+TEST_F(loader_graph_builder_duplicates_check, synthetic) {
+  ASSERT_EQ(4, sched_.get()->route_index_to_first_route_node.size());
+
+  auto node_it = begin(sched_->route_index_to_first_route_node);
+  auto conn_info =
+      get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
+  EXPECT_EQ(0, conn_info->train_nr);
+
+  node_it = next(node_it, 1);
+  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
+  EXPECT_EQ(UINT_MAX - 1, conn_info->train_nr);
+
+  node_it = next(node_it, 1);
+  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
+  EXPECT_EQ(1, conn_info->train_nr);
+
+  node_it = next(node_it, 1);
+  conn_info = get<0>(get_connections(*node_it, 0).at(0))->_full_con->con_info;
+  EXPECT_EQ(UINT_MAX, conn_info->train_nr);
 }
 
 TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
