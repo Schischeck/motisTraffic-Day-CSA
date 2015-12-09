@@ -44,6 +44,19 @@ void duplicate_checker::remove_duplicates(station_node* s) {
 
 void duplicate_checker::handle_duplicates(
     std::vector<std::pair<time, light_connection*>>& candidates) {
+  for (auto it = begin(candidates); it != end(candidates); ++it) {
+    for (auto check_it = std::next(it); check_it != end(candidates);
+         ++check_it) {
+      if (it->first != check_it->first) {
+        break;
+      }
+
+      if (is_duplicate_event(*it, *check_it)) {
+        set_new_service_num(check_it->second);
+      }
+    }
+  }
+
   for (unsigned i = 1; i < candidates.size(); ++i) {
     if (is_duplicate_event(candidates.at(i - 1), candidates.at(i))) {
       set_new_service_num(candidates.at(i - 1).second);
