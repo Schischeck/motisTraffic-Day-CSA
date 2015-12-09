@@ -38,7 +38,7 @@ SVG.MotisMove = SVG.invent({
       g.add(p);
       g.add(new SVG.Text().text(label || '???')
                           .attr({'fill': '#FFF'})
-                          .attr({'font-family': 'Verdana'})
+                          .attr({'font-family': 'Verdana,sans-serif'})
                           .attr({'font-weight': 'bold'})
                           .attr({'text-anchor': 'middle'})
                           .size(9.5)

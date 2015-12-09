@@ -124,6 +124,7 @@ SVG.MotisGrid = SVG.invent({
         var x = this.timeToXIntercept(t);
         var label = this.put(new SVG.Text)
                         .text(pad(t.getHours(), 2) + ':' + pad(t.getMinutes(), 2))
+                        .attr({'font-family': 'Verdana,sans-serif'})
                         .attr({'text-anchor': 'middle'})
                         .size(9)
                         .move(x, 10);
