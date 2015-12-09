@@ -27,7 +27,7 @@ public:
   short const ICE_F_L_D = 1;
   short const ICE_L_H = 2;
 
-  void test_departure() {
+  void test_departure_frankfurt() {
     auto const& route_node =
         *graph_accessor::get_first_route_node(get_schedule(), ICE_F_L_D);
     auto const& light_conn =
@@ -57,7 +57,7 @@ public:
     ASSERT_DOUBLE_EQ(0.2, start_distribution.probability_equal(1));
   }
 
-  void test_arrival() {
+  void test_arrival_langen() {
     auto const& departing_route_node =
         *graph_accessor::get_first_route_node(get_schedule(), ICE_F_L_D);
     auto const& route_edge =
@@ -93,6 +93,48 @@ public:
 
     ASSERT_EQ(-1, data.left_bound_);
     ASSERT_EQ(2, data.right_bound_);
+  }
+
+  void test_departure_langen() {
+    auto const& route_node =
+        *graph_accessor::get_departing_route_edge(
+             *graph_accessor::get_first_route_node(get_schedule(), ICE_F_L_D))
+             ->_to;
+    auto const& light_conn =
+        graph_accessor::get_departing_route_edge(route_node)
+            ->_m._route_edge._conns[0];
+
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 8), light_conn.d_time);
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 7),
+              get_scheduled_event_time(route_node, light_conn, departure,
+                                       get_schedule()));
+
+    auto const& arriving_light_conn =
+        graph_accessor::get_arriving_route_edge(route_node)
+            ->_m._route_edge._conns[0];
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 6),
+              arriving_light_conn.a_time);
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 5),
+              get_scheduled_event_time(route_node, arriving_light_conn, arrival,
+                                       get_schedule()));
+
+    distributions_container::container dummy;
+    start_and_travel_test_distributions s_t_distributions({0.8, 0.2});
+    probability_distribution arrival_dist;
+    arrival_dist.init({0.9, 0.1}, 0);
+    distributions_container::single_distribution_container precomputed(
+        arrival_dist);
+    calc_departure_distribution::data_departure data(
+        route_node, light_conn, false, precomputed,
+        context(get_schedule(), dummy, s_t_distributions));
+
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 7),
+              data.scheduled_departure_time_);
+    ASSERT_EQ(1, data.largest_delay());
+    ASSERT_EQ(&arrival_dist,
+              data.train_info_.preceding_arrival_info_.arrival_distribution_);
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 5),
+              data.train_info_.preceding_arrival_info_.scheduled_arrival_time_);
   }
 
   module::msg_ptr get_ris_message(std::string const& station,
@@ -160,9 +202,9 @@ TEST_F(reliability_realtime_dist_data_test,
                                   1445241660 /* 2015-10-19 08:01:00 GMT */,
                                   departure, ris::DelayType_Forecast));
 
-  test_departure(); /* test departure forcast */
+  test_departure_frankfurt(); /* test departure forecast */
 
-  test_arrival(); /* test arrival propagation */
+  test_arrival_langen(); /* test arrival propagation */
 }
 
 TEST_F(reliability_realtime_dist_data_test, data_arrival_forecast) {
@@ -171,7 +213,8 @@ TEST_F(reliability_realtime_dist_data_test, data_arrival_forecast) {
                                   1445241900 /* 2015-10-19 08:05:00 GMT */,
                                   1445241960 /* 2015-10-19 08:06:00 GMT */,
                                   arrival, ris::DelayType_Forecast));
-  test_arrival();
+  test_arrival_langen();
+  test_departure_langen();
 }
 
 TEST_F(reliability_realtime_dist_data_test,
@@ -182,9 +225,9 @@ TEST_F(reliability_realtime_dist_data_test,
                                   1445241660 /* 2015-10-19 08:01:00 GMT */,
                                   departure, ris::DelayType_Is));
 
-  test_departure(); /* test departure forcast */
+  test_departure_frankfurt(); /* test departure forecast */
 
-  test_arrival(); /* test arrival propagation */
+  test_arrival_langen(); /* test arrival propagation */
 }
 
 TEST_F(reliability_realtime_dist_data_test, data_arrival_is) {
@@ -193,7 +236,52 @@ TEST_F(reliability_realtime_dist_data_test, data_arrival_is) {
                                   1445241900 /* 2015-10-19 08:05:00 GMT */,
                                   1445241960 /* 2015-10-19 08:06:00 GMT */,
                                   arrival, ris::DelayType_Is));
-  test_arrival();
+  test_arrival_langen();
+  test_departure_langen();
+}
+
+TEST_F(reliability_realtime_dist_data_test, data_feeder_is) {
+  bootstrap::send(motis_instance_,
+                  get_ris_message(LANGEN, ICE_F_L_D /* train nr */,
+                                  1445241900 /* 2015-10-19 08:05:00 GMT */,
+                                  1445241960 /* 2015-10-19 08:06:00 GMT */,
+                                  arrival, ris::DelayType_Is));
+  bootstrap::send(motis_instance_,
+                  get_ris_message(LANGEN, ICE_L_H /* train nr */,
+                                  1445242200 /* 2015-10-19 08:10:00 GMT */,
+                                  1445242320 /* 2015-10-19 08:12:00 GMT */,
+                                  departure, ris::DelayType_Forecast));
+
+  auto const& route_node =
+      *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);
+  auto const& light_conn = graph_accessor::get_departing_route_edge(route_node)
+                               ->_m._route_edge._conns[0];
+
+  ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 12), light_conn.d_time);
+  ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 10),
+            get_scheduled_event_time(route_node, light_conn, departure,
+                                     get_schedule()));
+
+  distributions_container::container dummy;
+  probability_distribution feeder_dist;
+  feeder_dist.init({0.9, 0.1}, 0);
+  distributions_container::single_distribution_container feeder_dist_container(
+      feeder_dist);
+  start_and_travel_test_distributions s_t_distributions({0.8, 0.2});
+  calc_departure_distribution::data_departure data(
+      route_node, light_conn, true, dummy,
+      context(get_schedule(), feeder_dist_container, s_t_distributions));
+
+  ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 10),
+            data.scheduled_departure_time_);
+  ASSERT_EQ(1, data.feeders_.size());
+  auto const& feeder = data.feeders_.front();
+  ASSERT_EQ(&feeder_dist, &feeder.distribution_);
+  ASSERT_EQ(test_util::minutes_to_motis_time((8 * 60 + 10 + 3) - 5),
+            feeder.latest_feasible_arrival_);
+  ASSERT_EQ(5, feeder.transfer_time_);
+  ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 5),
+            feeder.scheduled_arrival_time_);
 }
 
 }  // namespace time_util

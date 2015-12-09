@@ -59,15 +59,14 @@ void data_departure::init_preceding_arrival_info(
     node const& route_node, motis::time const departure_time,
     distributions_container::container const& distributions_container,
     schedule const& sched) {
-  auto const& arriving_route_edge =
-      *graph_accessor::get_arriving_route_edge(route_node);
   auto const& arriving_light_conn =
       graph_accessor::get_previous_light_connection(
-          arriving_route_edge._m._route_edge._conns, departure_time);
+          graph_accessor::get_arriving_route_edge(route_node)
+              ->_m._route_edge._conns,
+          departure_time);
 
   train_info_.preceding_arrival_info_.scheduled_arrival_time_ =
-      time_util::get_scheduled_event_time(*arriving_route_edge._from,
-                                          arriving_light_conn,
+      time_util::get_scheduled_event_time(route_node, arriving_light_conn,
                                           time_util::arrival, sched);
   train_info_.preceding_arrival_info_.arrival_distribution_ =
       &distributions_container.get_distribution(
