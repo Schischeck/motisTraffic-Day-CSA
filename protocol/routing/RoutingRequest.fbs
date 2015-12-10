@@ -5,7 +5,7 @@ table StationPathElement {
   eva_nr : string;
 }
 
-enum Type : byte { PreTrip, OnTrip }
+enum Type : byte { PreTrip, OnTrip, LateConnection }
 enum Direction : byte { Forward, Backward }
 
 // Uses unix timestamps.

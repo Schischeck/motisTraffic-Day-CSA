@@ -83,12 +83,13 @@ public:
               21 * 60, 3 * 60)
               .Union()));
     }
-    b.CreateAndFinish(MsgContent_RoutingRequest,
-                      CreateRoutingRequest(b, &interval, Type::Type_OnTrip,
-                                           Direction::Direction_Forward,
-                                           b.CreateVector(station_elements),
-                                           b.CreateVector(additional_edges))
-                          .Union());
+    b.CreateAndFinish(
+        MsgContent_RoutingRequest,
+        CreateRoutingRequest(b, &interval, Type::Type_LateConnection,
+                             Direction::Direction_Forward,
+                             b.CreateVector(station_elements),
+                             b.CreateVector(additional_edges))
+            .Union());
     return module::make_msg(b);
   }
 };
@@ -240,7 +241,19 @@ TEST_F(routing_late_connections, taxi_not_allowed) {
       to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
   auto msg = bootstrap::send(motis_instance_, req_msg);
   ASSERT_NE(nullptr, msg);
-  ASSERT_EQ(0, (msg->content<RoutingResponse const*>())->connections()->size());
+  auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
+
+  /* Whether the search finds a connection or not depends on
+   * the filter in label.h: If the maximum travel time is limited,
+   * the search finds nothing. Otherwise the search waits for a long time
+   * at a station and takes the next train. */
+  ASSERT_GE(1, journeys.size());
+  if (journeys.size() == 1) {
+    auto const& j = journeys.front();
+    for (auto t : j.transports) {
+      ASSERT_NE(journey::transport::Mumo, t.type); /* taxi not allowed */
+    }
+  }
 }
 
 }  // namespace routing

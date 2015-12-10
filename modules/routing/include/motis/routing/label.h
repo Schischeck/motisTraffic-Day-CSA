@@ -35,14 +35,16 @@ public:
 
   label() = default;
 
-  label(node const* node, label* pred, time now, lower_bounds& lower_bounds)
+  label(node const* node, label* pred, time now, lower_bounds& lower_bounds,
+        bool is_late_connection_search)
       : _pred(pred),
         _node(node),
         _connection(nullptr),
         _start(pred != nullptr ? pred->_start : now),
         _now(now),
         _dominated(false),
-        _target_slot(pred == nullptr ? 0 : pred->_target_slot) {
+        _target_slot(pred == nullptr ? 0 : pred->_target_slot),
+        _is_late_connection_search(is_late_connection_search) {
     auto transfers_lb = lower_bounds.transfers.get_distance(node->_id);
     if (transfers_lb == std::numeric_limits<uint32_t>::max()) {
       _travel_time[1] = std::numeric_limits<uint16_t>::max();
@@ -98,8 +100,8 @@ public:
     }
 
     /* using taxi after hotel is not allowed */
-    if (_visited_hotel && edge.type() == edge::TIME_DEPENDENT_MUMO_EDGE &&
-        ec.time > 0) {
+    if (_is_late_connection_search && _visited_hotel &&
+        edge.type() == edge::TIME_DEPENDENT_MUMO_EDGE && ec.time > 0) {
       return nullptr;
     }
 
@@ -116,15 +118,17 @@ public:
     l->_node = edge.get_destination();
     l->_connection = ec.connection;
 
-    l->_used_edge_type = edge.type();
-    l->_visited_hotel = _visited_hotel;
-    l->_db_costs = _db_costs + ec.price;
-    l->_night_penalty =
-        _night_penalty + label_util::night_travel_duration(
-                             _now, l->_now, NIGHT_BEGIN, NIGHT_END);
-    if (edge.type() == edge::HOTEL_EDGE) {
-      l->_visited_hotel = true;
-      l->_night_penalty = _night_penalty;
+    if (_is_late_connection_search) {
+      l->_used_edge_type = edge.type();
+      l->_visited_hotel = _visited_hotel;
+      l->_db_costs = _db_costs + ec.price;
+      l->_night_penalty =
+          _night_penalty + label_util::night_travel_duration(
+                               _now, l->_now, NIGHT_BEGIN, NIGHT_END);
+      if (edge.type() == edge::HOTEL_EDGE) {
+        l->_visited_hotel = true;
+        l->_night_penalty = _night_penalty;
+      }
     }
 
     return l;
@@ -174,11 +178,13 @@ public:
 #endif  // WITH_PRICES
 
     /* --- LATE NIGHT CONNECTIONS --- */
-    if (_visited_hotel != o._visited_hotel) {
-      return false;
-    }
-    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
-      return false;
+    if (_is_late_connection_search) {
+      if (_visited_hotel != o._visited_hotel) {
+        return false;
+      }
+      if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
+        return false;
+      }
     }
 
     /* --- ALL CRITERIA --- */
@@ -207,11 +213,13 @@ public:
 #endif  // WITH_PRICES
 
     /* --- LATE NIGHT CONNECTIONS --- */
-    if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
-      return false;
+    if (_is_late_connection_search) {
+      if (_db_costs > o._db_costs || _night_penalty > o._night_penalty) {
+        return false;
+      }
+      could_dominate = could_dominate || _db_costs < o._db_costs ||
+                       _night_penalty < o._night_penalty;
     }
-    could_dominate = could_dominate || _db_costs < o._db_costs ||
-                     _night_penalty < o._night_penalty;
 
     return could_dominate || _start >= o._start;
   }
@@ -337,6 +345,7 @@ public:
   bool _dominated;
   uint8_t _target_slot;
 
+  bool _is_late_connection_search;
   bool _visited_hotel;
   /* Pareto-criteria for late night connections incl. hotels and taxi */
   uint16_t _night_penalty;

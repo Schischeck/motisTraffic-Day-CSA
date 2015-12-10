@@ -134,9 +134,10 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
         create_additional_edges(req->additional_edges(), sched);
 
     search s(lock.sched(), *label_store_);
-    auto journeys =
-        s.get_connections(path->at(0), path->at(1), i_begin, i_end,
-                          req->type() != Type_PreTrip, additional_edges);
+    auto journeys = s.get_connections(
+        path->at(0), path->at(1), i_begin, i_end,
+        req->type() == Type_OnTrip || req->type() == Type_LateConnection,
+        req->type() == Type_LateConnection, additional_edges);
 
     LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
               << lock.sched().stations[path->at(1)[0].station]->name << " "

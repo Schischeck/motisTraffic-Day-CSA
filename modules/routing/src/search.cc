@@ -52,7 +52,8 @@ void add_additional_edge(
 
 std::vector<journey> search::get_connections(
     arrival from, arrival to, time interval_start, time interval_end,
-    bool ontrip, std::vector<edge> const& query_additional_edges,
+    bool ontrip, bool is_late_connection_search,
+    std::vector<edge> const& query_additional_edges,
     pareto_dijkstra::statistics* stats) {
   _label_store.reset();
   remove_intersection(from, to);
@@ -109,7 +110,8 @@ std::vector<journey> search::get_connections(
       throw std::runtime_error("ontrip accepts exactly one station");
     }
     generate_ontrip_start_labels(_sched.station_nodes[from[0].station].get(),
-                                 interval_start, start_labels, lower_bounds);
+                                 interval_start, start_labels, lower_bounds,
+                                 is_late_connection_search);
   } else {
     station_node* dummy_source_station =
         _sched.station_nodes[DUMMY_SOURCE_IDX].get();
@@ -122,7 +124,7 @@ std::vector<journey> search::get_connections(
           interval_start, interval_end, station, start_labels,
           dummy_source_station,
           s.time_cost + _sched.stations[s.station]->transfer_time, s.price,
-          s.slot, lower_bounds);
+          s.slot, lower_bounds, is_late_connection_search);
     }
   }
 
@@ -163,9 +165,11 @@ std::vector<journey> search::get_connections(
 
 void search::generate_ontrip_start_labels(
     station_node const* start_station_node, time const start_time,
-    std::vector<label*>& start_labels, lower_bounds& lower_bounds) {
-  start_labels.push_back(new (_label_store.create()) label(
-      start_station_node, nullptr, start_time, lower_bounds));
+    std::vector<label*>& start_labels, lower_bounds& lower_bounds,
+    bool const is_late_connection_search) {
+  start_labels.push_back(new (_label_store.create())
+                             label(start_station_node, nullptr, start_time,
+                                   lower_bounds, is_late_connection_search));
 }
 
 void search::generate_start_labels(time const from, time const to,
@@ -173,21 +177,20 @@ void search::generate_start_labels(time const from, time const to,
                                    std::vector<label*>& indices,
                                    station_node const* real_start, int time_off,
                                    int start_price, int slot,
-                                   lower_bounds& lower_bounds) {
+                                   lower_bounds& lower_bounds,
+                                   bool is_late_connection_search) {
   for (auto const& edge : start_station_node->_edges) {
     generate_start_labels(from, to, start_station_node, edge.get_destination(),
                           indices, real_start, time_off, start_price, slot,
-                          lower_bounds);
+                          lower_bounds, is_late_connection_search);
   }
 }
 
-void search::generate_start_labels(time const from, time const to,
-                                   station_node const* start_station_node,
-                                   node const* route_node,
-                                   std::vector<label*>& start_labels,
-                                   station_node const* real_start, int time_off,
-                                   int start_price, int slot,
-                                   lower_bounds& lower_bounds) {
+void search::generate_start_labels(
+    time const from, time const to, station_node const* start_station_node,
+    node const* route_node, std::vector<label*>& start_labels,
+    station_node const* real_start, int time_off, int start_price, int slot,
+    lower_bounds& lower_bounds, bool const is_late_connection_search) {
   for (auto const& edge : route_node->_edges) {
     // not a route-edge?
     if (edge.empty()) {
@@ -218,17 +221,20 @@ void search::generate_start_labels(time const from, time const to,
       label* earlier = nullptr;
       if (real_start != nullptr) {
         earlier = new (_label_store.create())
-            label(real_start, nullptr, t - time_off, lower_bounds);
+            label(real_start, nullptr, t - time_off, lower_bounds,
+                  is_late_connection_search);
       }
 
       label* station_node_label = new (_label_store.create())
-          label(start_station_node, earlier, t, lower_bounds);
+          label(start_station_node, earlier, t, lower_bounds,
+                is_late_connection_search);
       station_node_label->_prices[label::ADDITIONAL_PRICE] = start_price;
       station_node_label->_total_price[0] = start_price;
 
       // create the label we are really interested in
       label* route_node_label = new (_label_store.create())
-          label(route_node, station_node_label, t, lower_bounds);
+          label(route_node, station_node_label, t, lower_bounds,
+                is_late_connection_search);
       route_node_label->set_slot(true, slot);
 
       if (route_node_label->_travel_time[1] !=

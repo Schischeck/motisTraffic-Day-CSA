@@ -242,12 +242,12 @@ module::msg_ptr to_routing_late_connections_message(
             .Union()));
   }
 
-  b.CreateAndFinish(MsgContent_RoutingRequest,
-                    CreateRoutingRequest(b, &interval, Type::Type_OnTrip,
-                                         request->direction(),
-                                         b.CreateVector(station_elements),
-                                         b.CreateVector(additional_edges))
-                        .Union());
+  b.CreateAndFinish(
+      MsgContent_RoutingRequest,
+      CreateRoutingRequest(
+          b, &interval, Type::Type_LateConnection, request->direction(),
+          b.CreateVector(station_elements), b.CreateVector(additional_edges))
+          .Union());
   return module::make_msg(b);
 }
 
