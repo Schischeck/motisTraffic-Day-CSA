@@ -34,14 +34,7 @@ public:
     uint16_t price_;
   };
   struct taxi_info {
-    taxi_info(std::string const from_st, std::string const to_st,
-              uint16_t duration, uint16_t price)
-        : from_station_(from_st),
-          to_station_(to_st),
-          duration_(duration),
-          price_(price) {}
     std::string from_station_;
-    std::string to_station_;
     uint16_t duration_;
     uint16_t price_;
   };
@@ -84,9 +77,9 @@ public:
       additional_edges.push_back(CreateAdditionalEdgeWrapper(
           b, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(
-              b, CreateMumoEdge(b, b.CreateString(info.from_station_),
-                                b.CreateString(info.to_station_),
-                                info.duration_, info.price_),
+              b,
+              CreateMumoEdge(b, b.CreateString(info.from_station_),
+                             b.CreateString("-2"), info.duration_, info.price_),
               21 * 60, 3 * 60)
               .Union()));
     }
@@ -167,13 +160,13 @@ TEST_F(routing_late_connections, search) {
   hotel_infos.emplace_back(OFFENBACH);
   hotel_infos.emplace_back(MAINZ);
   std::vector<taxi_info> taxi_infos;
-  taxi_infos.emplace_back(LANGEN, FRANKFURT, 55, 6000);
+  taxi_infos.push_back({LANGEN, 55, 6000});
   /* this taxi should not be found
    * since it can only be reached after a hotel */
-  taxi_infos.emplace_back(NEUISENBURG, FRANKFURT, 10, 500);
+  taxi_infos.push_back({NEUISENBURG, 10, 500});
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  taxi_infos.emplace_back(WALLDORF, FRANKFURT, 10, 500);
+  taxi_infos.push_back({WALLDORF, 10, 500});
   auto req_msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
   auto msg = bootstrap::send(motis_instance_, req_msg);
 
@@ -186,18 +179,18 @@ TEST_F(routing_late_connections, search) {
     }
   } journey_cmp;
   std::sort(journeys.begin(), journeys.end(), journey_cmp);
+
   ASSERT_EQ(4, journeys.size());
   { /* taxi connection, arrival 01:00 */
     auto const& j = journeys[0];
     ASSERT_EQ(0, j.night_penalty);
-    ASSERT_EQ(3, j.transports.size());
+    ASSERT_EQ(2, j.transports.size());
     ASSERT_EQ(2, j.transports[0].train_nr);
     ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
     ASSERT_EQ("Taxi", j.transports[1].mumo_type_name);
     ASSERT_EQ(6000, j.transports[1].mumo_price);
-    ASSERT_EQ(journey::transport::Walk, j.transports.back().type);
     ASSERT_EQ(LANGEN, j.stops[1].eva_no);
-    ASSERT_EQ(FRANKFURT, j.stops[2].eva_no);
+    ASSERT_EQ("-2", j.stops[2].eva_no);
   }
   { /* direct connection, arrival 02:00 */
     auto const& j = journeys[1];
@@ -242,7 +235,7 @@ TEST_F(routing_late_connections, taxi_not_allowed) {
   std::vector<taxi_info> taxi_infos;
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  taxi_infos.emplace_back(WALLDORF, NEUISENBURG, 10, 500);
+  taxi_infos.push_back({WALLDORF, 10, 500});
   auto req_msg =
       to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
   auto msg = bootstrap::send(motis_instance_, req_msg);
