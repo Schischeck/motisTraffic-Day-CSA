@@ -50,7 +50,7 @@ TEST_F(reliability_realtime_data_interchange,
 
   bootstrap::send(
       motis_instance_,
-      realtime::get_ris_message(ERLANGEN, ICE_S_E,
+      realtime::get_delay_message(ERLANGEN, ICE_S_E,
                                 1443443520 /* 2015-09-28 12:32:00 GMT */,
                                 1443444120 /* 2015-10-19 12:42:00 GMT */,
                                 ris::EventType_Arrival, ris::DelayType_Is));
@@ -95,7 +95,7 @@ TEST_F(reliability_realtime_data_interchange_walk, interchange_walk) {
 
   bootstrap::send(
       motis_instance_,
-      realtime::get_ris_message(FRANKFURT, ICE_L_H,
+      realtime::get_delay_message(FRANKFURT, ICE_L_H,
                                 1443435000 /* 2015-09-28 10:10:00 GMT */,
                                 1443435060 /* 2015-10-19 10:11:00 GMT */,
                                 ris::EventType_Arrival, ris::DelayType_Is));
