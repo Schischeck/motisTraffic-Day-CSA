@@ -12,7 +12,7 @@ export default class Timeline extends React.Component {
   }
 
   getHeight() {
-    return Math.max(200, this.props.connections.length * 75);
+    return Math.max(200, this.props.connections.length * 72.5);
   }
 
   componentDidMount() {
@@ -23,7 +23,7 @@ export default class Timeline extends React.Component {
       delete this.svg;
     }
     this.svg = SVG('timeline').clear();
-    this.grid = this.svg.motisgrid(550, this.getHeight(), []);
+    this.grid = this.svg.motisgrid(520, this.getHeight(), []);
 
     function transports(con, from, to) {
       return con.transports.filter(t => {
@@ -87,8 +87,10 @@ export default class Timeline extends React.Component {
 
   render() {
     return (
-      <div className={ style.timeline }  {...this.props}>
-        <svg id="timeline" style={{height: this.getHeight()}}></svg>
+      <div className={ style.timeline } style={{height: Math.min(300, (this.getHeight() + 10)) + 'px'}}  {...this.props}>
+        <div className={ style.container }>
+          <svg id="timeline" style={{height: this.getHeight() + 'px'}}></svg>
+        </div>
       </div>
     );
   }

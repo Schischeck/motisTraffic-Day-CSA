@@ -87,8 +87,7 @@ export class App extends Component {
                     ? <CircularProgress
                           mode="indeterminate"
                           style={ {  'margin': '50px auto',  'display': 'block'} } />
-                    : <Timeline style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'scroll' }}
-                                connections={ this.state.connections } />;
+                    : <Timeline connections={ this.state.connections } />;
 
     return (
     <div className={ style.app }>

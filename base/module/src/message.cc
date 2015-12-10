@@ -5,9 +5,9 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
-#include "motis/protocol/resources.h"
-
+#include "motis/core/common/logging.h"
 #include "motis/module/error.h"
+#include "motis/protocol/resources.h"
 
 #undef GetMessage
 
@@ -41,6 +41,7 @@ message::message(std::string const& json) {
 
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
+    LOG(motis::logging::error) << "parse error: " << parser->error_;
     throw boost::system::system_error(error::unable_to_parse_msg);
   }
 

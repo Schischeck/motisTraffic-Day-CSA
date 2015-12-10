@@ -8,6 +8,8 @@ include "railviz/RailVizStationDetailRes.fbs";
 include "railviz/RailVizRouteAtTimeReq.fbs";
 include "railviz/RailVizRouteAtTimeRes.fbs";
 include "railviz/RailVizFindTrain.fbs";
+include "osrm/OSRMRoutingRequest.fbs";
+include "osrm/OSRMRoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
 include "realtime/RealtimeTrainInfoResponse.fbs";
 include "realtime/RealtimeCurrentTimeRequest.fbs";
@@ -68,6 +70,8 @@ union MsgContent {
   motis.railviz.RailVizRouteAtTimeReq,
   motis.railviz.RailVizRouteAtTimeRes,
   motis.railviz.RailVizFindTrain,
+  motis.osrm.OSRMRoutingRequest,
+  motis.osrm.OSRMRoutingResponse,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
   motis.reliability.ReliabilityRatingResponse,

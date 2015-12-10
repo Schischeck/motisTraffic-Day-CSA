@@ -1,0 +1,10 @@
+namespace motis.osrm;
+
+struct Cost {
+  time : int;
+  distance : double;
+}
+
+table OSRMRoutingResponse {
+  costs : [Cost];
+}

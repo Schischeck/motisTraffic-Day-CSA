@@ -99,29 +99,48 @@ parse_label_chain(label const* terminal_label) {
 
   std::vector<intermediate::stop> stops;
   std::vector<intermediate::transport> transports;
-  enum state {
-    AT_STATION,
-    PRE_CONNECTION,
-    IN_CONNECTION,
-    WALK
-  } state = AT_STATION;
+  enum state { AT_STATION, PRE_CONNECTION, IN_CONNECTION, PRE_WALK, WALK };
+
   light_connection const* last_con = nullptr;
   time walk_arrival = INVALID_TIME;
   int station_index = -1;
 
-  for (auto it = begin(labels); it != end(labels); ++it) {
+  auto next_state = [](int s, label const* c, label const* n) -> state {
+    switch (s) {
+      case AT_STATION:
+        if (n && n->_node->is_station_node()) {
+          return WALK;
+        } else {
+          return PRE_CONNECTION;
+        }
+      case PRE_CONNECTION: return IN_CONNECTION;
+      case IN_CONNECTION:
+        if (c->_connection == nullptr) {
+          return n->_node->is_station_node() ? WALK : AT_STATION;
+        } else {
+          return IN_CONNECTION;
+        }
+      case WALK: return AT_STATION;
+    }
+    return static_cast<state>(s);
+  };
+
+  int current_state;
+
+  auto it = begin(labels);
+  if (labels[1]->_node->is_station_node()) {
+    current_state = WALK;
+  } else if (labels[1]->_node->is_foot_node()) {
+    current_state = WALK;
+    ++it;
+  } else {
+    current_state = AT_STATION;
+  }
+
+  for (; it != end(labels);) {
     auto current = *it;
 
-    if (state == IN_CONNECTION && current->_connection == nullptr) {
-      state = current->_node->is_station_node() ? AT_STATION : WALK;
-    }
-
-    if (state == AT_STATION && std::next(it) != end(labels) &&
-        (*std::next(it))->_node->is_station_node()) {
-      state = WALK;
-    }
-
-    switch (state) {
+    switch (current_state) {
       case AT_STATION: {
         int a_platform = UNKNOWN_TRACK;
         int d_platform = UNKNOWN_TRACK;
@@ -147,12 +166,8 @@ parse_label_chain(label const* terminal_label) {
                            d_platform, a_time, d_time,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
-
-        state = PRE_CONNECTION;
         break;
       }
-
-      case PRE_CONNECTION: state = IN_CONNECTION; break;
 
       case WALK:
         assert(std::next(it) != end(labels));
@@ -179,8 +194,6 @@ parse_label_chain(label const* terminal_label) {
         walk_arrival = (*std::next(it))->_now;
 
         last_con = nullptr;
-
-        state = AT_STATION;
         break;
 
       case IN_CONNECTION:
@@ -201,6 +214,15 @@ parse_label_chain(label const* terminal_label) {
 
         last_con = current->_connection;
         break;
+    }
+
+    ++it;
+    if (it != end(labels)) {
+      current = *it;
+      auto next = it == end(labels) || std::next(it) == end(labels)
+                      ? nullptr
+                      : *std::next(it);
+      current_state = next_state(current_state, current, next);
     }
   }
 
