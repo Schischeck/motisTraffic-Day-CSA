@@ -41,6 +41,7 @@ private:
   mode mode_;
   int update_interval_;
   std::string zip_folder_;
+  int max_days_;
 
   std::time_t simulation_time_;
   std::unique_ptr<boost::asio::deadline_timer> timer_;

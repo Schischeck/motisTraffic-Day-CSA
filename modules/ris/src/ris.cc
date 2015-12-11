@@ -15,6 +15,7 @@
 #define MODE "ris.mode"
 #define UPDATE_INTERVAL "ris.update_interval"
 #define ZIP_FOLDER "ris.zip_folder"
+#define MAX_DAYS "ris.max_days"
 
 #define MODE_LIVE "default"
 #define MODE_SIMULATION "simulation"
@@ -72,6 +73,7 @@ ris::ris()
     : mode_(mode::LIVE),
       update_interval_(10),
       zip_folder_("ris"),
+      max_days_(-1),
       simulation_time_(0) {}
 
 po::options_description ris::desc() {
@@ -88,7 +90,10 @@ po::options_description ris::desc() {
        "update interval in seconds")
       (ZIP_FOLDER,
        po::value<std::string>(&zip_folder_)->default_value(zip_folder_),
-       "folder containing RISML ZIPs");
+       "folder containing RISML ZIPs")
+      (MAX_DAYS,
+       po::value<int>(&max_days_)->default_value(max_days_),
+       "periodically delete messages older than n days (-1 = infinite)");
   // clang-format on
   return desc;
 }
@@ -96,7 +101,14 @@ po::options_description ris::desc() {
 void ris::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode_ << "\n"
       << "  " << UPDATE_INTERVAL << ": " << update_interval_ << "\n"
-      << "  " << ZIP_FOLDER << ": " << zip_folder_;
+      << "  " << ZIP_FOLDER << ": " << zip_folder_ << "\n"
+      << "  " << MAX_DAYS << ": " << max_days_;
+}
+
+std::time_t days_ago(long days) {
+    std::time_t now = std::time(nullptr);
+    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+    return now - kTwentyFourHours * days;
 }
 
 void ris::init() {
@@ -108,10 +120,7 @@ void ris::init() {
   if (mode_ == mode::LIVE) {
     auto sync = synced_sched<schedule_access::RO>();
 
-    std::time_t now = std::time(nullptr);
-    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
-
-    auto from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
+    auto from = std::max(sync.sched().schedule_begin_, days_ago(1));
     auto to = sync.sched().schedule_end_;
 
     dispatch(pack(db_get_messages(from, to)));
@@ -155,8 +164,8 @@ void ris::schedule_update(error_code e) {
         std::bind(&ris::schedule_update, this, std::placeholders::_1));
   });
 
-  // TODO implement housekeeping
   parse_zips();
+  db_clean_messages(days_ago(max_days_));
 }
 
 void ris::parse_zips() {

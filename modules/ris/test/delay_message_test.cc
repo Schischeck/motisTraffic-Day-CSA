@@ -102,6 +102,76 @@ TEST(ris_delay_message, ist_message_2) {
 }
 
 // clang-format off
+char const* ist_fixture_3 = "<?xml version=\"1.0\"?>\
+<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151116171000721\" KNr=\"187859610\">\
+  <ListNachricht>\
+    <Nachricht>\
+      <Ist>\
+        <Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
+IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
+ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
+IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
+          <ListZug>\
+            <Zug Nr=\"59622\" Gattung=\"RB\" GattungInt=\"RB\" Name=\"RB 59622\" Verwaltung=\"07\">\
+              <ListZE>\
+                <ZE Typ=\"An\">\
+                  <Bf Code=\"MSTA\" EvaNr=\"8005672\" Name=\"Iffeldorf\"/>\
+                  <Zeit Soll=\"20151116170800\" Ist=\"20151116170900\"/>\
+                </ZE>\
+                <ZE Typ=\"Ab\">\
+                  <Bf Code=\"MSTA\" EvaNr=\"8005672\" Name=\"Iffeldorf\"/>\
+                  <Zeit Soll=\"20151116170900\" Ist=\"20151116170900\"/>\
+                </ZE>\
+              </ListZE>\
+            </Zug>\
+          </ListZug>\
+        </Service>\
+      </Ist>\
+      <ListQuelle>\
+        <Quelle Sender=\"ZENTRAL\" Typ=\"IstProg\" KNr=\"3325\" \
+TIn=\"20151116170958659\" TOutSnd=\"20151116170958601\"/>\
+        <Quelle Sender=\"GPS\" TIn=\"20151116170954\"/>\
+      </ListQuelle>\
+    </Nachricht>\
+  </ListNachricht>\
+</Paket>";
+// clang-format on
+
+TEST(ris_delay_message, ist_message_3) {
+  auto const messages = parse_xmls(pack(ist_fixture_3));
+  ASSERT_EQ(1, messages.size());
+
+  auto const& message = messages[0];
+  EXPECT_EQ(1447690200, message.timestamp);
+  EXPECT_EQ(1447693200, message.scheduled);
+
+  auto outer_msg = GetMessage(message.data());
+  ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
+  auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
+
+  EXPECT_EQ(DelayType_Is, inner_msg->type());
+
+  auto events = inner_msg->events();
+  ASSERT_EQ(2, events->size());
+
+  auto const& e0 = events->Get(0);
+  EXPECT_EQ(59622, e0->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
+  EXPECT_EQ(std::string("8005672"), e0->base()->stationId()->c_str());
+  EXPECT_EQ(1447690080, e0->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+  EXPECT_EQ(1447690140, e0->updatedTime());
+
+  auto const& e1 = events->Get(1);
+  EXPECT_EQ(59622, e1->base()->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, e1->base()->stationIdType());
+  EXPECT_EQ(std::string("8005672"), e1->base()->stationId()->c_str());
+  EXPECT_EQ(1447690140, e1->base()->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e1->base()->type());
+  EXPECT_EQ(1447690140, e1->updatedTime());
+}
+
+// clang-format off
 std::string type_fixture(std::string type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket TOut=\"12345678901234\"><ListNachricht><Nachricht>\

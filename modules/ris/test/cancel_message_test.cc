@@ -120,7 +120,6 @@ TIn=\"20151007161500043\" TOutSnd=\"20151007161409\"/>\
 </Paket>";
 // clang-format on
 
-// TODO!
 TEST(ris_ausfall_message, message_2) {
   auto const messages = parse_xmls(pack(cancel_fixture_2));
   ASSERT_EQ(1, messages.size());
