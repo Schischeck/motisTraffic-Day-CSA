@@ -41,40 +41,75 @@ struct http_server::impl {
 
   void operator()(net::http::server::route_request const& req,
                   net::http::server::callback cb) {
-    MessageCreator fbb;
-    fbb.CreateAndFinish(
-        MsgContent_HTTPRequest,
-        CreateHTTPRequest(
-            fbb, translate_method_string(req.method), fbb.CreateString(req.uri),
-            fbb.CreateVector(loader::transform_to_vec(
-                begin(req.headers), end(req.headers),
-                [&](header const& h) {
-                  return CreateHTTPHeader(fbb, fbb.CreateString(h.name),
-                                          fbb.CreateString(h.value));
-                })),
-            fbb.CreateString(req.content))
-            .Union());
-    receiver_.on_msg(make_msg(fbb), 0,
-                     std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+    try {
+      auto content_type_header_it = std::find_if(
+          begin(req.headers), end(req.headers),
+          [](header const& h) { return h.name == "Content-Type"; });
+      if (req.method == "POST" &&  //
+          content_type_header_it != end(req.headers) &&
+          content_type_header_it->value.find("application/json") !=
+              std::string::npos) {
+        return receiver_.on_msg(
+            make_msg(req.content), 0,
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+      } else {
+        MessageCreator fbb;
+        fbb.CreateAndFinish(
+            MsgContent_HTTPRequest,
+            CreateHTTPRequest(fbb, translate_method_string(req.method),
+                              fbb.CreateString(req.uri),
+                              fbb.CreateVector(loader::transform_to_vec(
+                                  begin(req.headers), end(req.headers),
+                                  [&](header const& h) {
+                                    return CreateHTTPHeader(
+                                        fbb, fbb.CreateString(h.name),
+                                        fbb.CreateString(h.value));
+                                  })),
+                              fbb.CreateString(req.content))
+                .Union());
+        return receiver_.on_msg(
+            make_msg(fbb), 0,
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+      }
+    } catch (boost::system::system_error const& e) {
+      reply rep = reply::stock_reply(reply::internal_server_error);
+      rep.content = e.code().message();
+      return cb(rep);
+    } catch (std::exception const& e) {
+      reply rep = reply::stock_reply(reply::internal_server_error);
+      rep.content = e.what();
+      return cb(rep);
+    } catch (...) {
+      return cb(reply::stock_reply(reply::internal_server_error));
+    }
   }
 
   void on_response(net::http::server::callback cb, msg_ptr msg,
                    boost::system::error_code ec) {
-    reply rep;
-    if (!ec && msg && msg->content_type() == MsgContent_HTTPResponse) {
-      auto http_res = msg->content<HTTPResponse const*>();
-      rep.status = http_res->status() == HTTPStatus_OK
-                       ? reply::ok
-                       : reply::internal_server_error;
-      rep.content = http_res->content()->str();
-      for (auto const& h : *http_res->headers()) {
-        rep.headers.push_back(header(h->name()->str(), h->value()->str()));
+    reply rep = reply::stock_reply(reply::internal_server_error);
+    try {
+      if (!ec && msg) {
+        if (msg->content_type() == MsgContent_HTTPResponse) {
+          auto http_res = msg->content<HTTPResponse const*>();
+          rep.status = http_res->status() == HTTPStatus_OK
+                           ? reply::ok
+                           : reply::internal_server_error;
+          rep.content = http_res->content()->str();
+          for (auto const& h : *http_res->headers()) {
+            rep.headers.push_back(header(h->name()->str(), h->value()->str()));
+          }
+        } else {
+          rep.content = msg->to_json();
+          rep.status = reply::ok;
+          rep.headers.push_back(header("Content-Type", "application/json"));
+        }
+      } else if (!ec) {
+        rep = reply::stock_reply(reply::ok);
+      } else {
+        rep.content = ec.message();
       }
-    } else if (!ec) {
-      rep = reply::stock_reply(reply::ok);
-    } else {
-      rep = reply::stock_reply(reply::internal_server_error);
-      rep.content = ec.message();
+    } catch (...) {
+      // reply is already set to internal_server_error
     }
     return cb(rep);
   }
