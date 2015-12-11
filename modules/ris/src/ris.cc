@@ -4,11 +4,12 @@
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
+#include "websocketpp/common/md5.hpp"
+
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
 #include "motis/ris/database.h"
-#include "motis/ris/error.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
 #include "motis/ris/zip_reader.h"
@@ -24,6 +25,7 @@
 using boost::system::error_code;
 namespace fs = boost::filesystem;
 using fs::directory_iterator;
+using websocketpp::md5::md5_hash_hex;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
@@ -140,12 +142,10 @@ void ris::fill_database() {
 }
 
 void ris::on_msg(msg_ptr msg, sid, callback cb) {
-  if (msg->msg_->content_type() == RISForwardTimeRequest) {
-    return handle_forward_time(msg, cb);
-  } else if (msg->msg_->content_type() == RISForwardTimeRequest) {
-    return handle_zipfile_upload(msg, cb);
-  } else {
-    return cb({}, error::not_implemented);
+  switch (msg->content_type()) {
+    case MsgContent_RISForwardTimeRequest: return handle_forward_time(msg, cb);
+    case MsgContent_HTTPRequest: return handle_zipfile_upload(msg, cb);
+    default: assert(false);
   }
 }
 
@@ -165,17 +165,24 @@ void ris::handle_forward_time(msg_ptr msg, callback cb) {
 }
 
 void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
-  auto req = msg->content<RISForwardTimeRequest const*>();
+  auto req = msg->content<HTTPRequest const*>();
   try {
-    auto parsed_messages = parse_xmls(read_zip_buf(*req->content()));
-    db_put_messages(new_file, parsed_messages);
+    auto buf = parser::buffer(req->content()->c_str(), req->content()->size());
+    auto parsed_messages = parse_xmls(read_zip_buf(buf));
+    db_put_messages(
+        md5_hash_hex(reinterpret_cast<const unsigned char*>(buf.data()),
+                     buf.size()),
+        parsed_messages);
     dispatch(pack(parsed_messages));
   } catch (std::exception const& e) {
     LOG(error) << "bad zip file: " << e.what();
     MessageCreator b;
-    b.CreateAndFinish(MsgContent_HTTPResponse,
-                      CreateHTTPResponse(b, HTTPStatus_INTERNAL_SERVER_ERROR,
-                                         b.CreateVector(), b.CreateString("")));
+    b.CreateAndFinish(
+        MsgContent_HTTPResponse,
+        CreateHTTPResponse(b, HTTPStatus_INTERNAL_SERVER_ERROR,
+                           b.CreateVector(std::vector<Offset<HTTPHeader>>()),
+                           b.CreateString(e.what()))
+            .Union());
     return cb(make_msg(b), boost::system::error_code());
   }
 
@@ -194,7 +201,7 @@ void ris::schedule_update(error_code e) {
   });
 
   parse_zips();
-  db_clean_messages(days_ago(max_days_));
+  // TODO db_clean_messages(days_ago(max_days_));
 }
 
 void ris::parse_zips() {

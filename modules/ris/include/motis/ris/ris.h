@@ -31,8 +31,10 @@ struct ris : public motis::module::module {
   void on_msg(motis::module::msg_ptr, motis::module::sid,
               motis::module::callback) override;
 
-  void handle_forward_time(msg_ptr msg, callback cb);
-  void handle_zipfile_upload(msg_ptr msg, callback cb);
+  void handle_forward_time(motis::module::msg_ptr msg,
+                           motis::module::callback cb);
+  void handle_zipfile_upload(motis::module::msg_ptr msg,
+                             motis::module::callback cb);
 
 private:
   void fill_database();
