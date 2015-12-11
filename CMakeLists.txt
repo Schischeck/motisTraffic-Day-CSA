@@ -114,10 +114,10 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 # MOTIS
 ################################
 include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/test_include)
 include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
@@ -128,10 +128,10 @@ list(REMOVE_ITEM all-modules ".DS_Store")
 string (REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
-string (REPLACE " " ";" modules "${MODULES}")
+string(REPLACE " " ";" modules "${MODULES}")
 set(module-targets "")
 set(module-test-files "")
-foreach(module ${modules})
+foreach(module ${all-modules})
   include_directories(${CMAKE_SOURCE_DIR}/modules/${module}/include)
 endforeach(module)
 foreach(module ${modules})
@@ -151,10 +151,11 @@ configure_file (
   ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
+file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
-  ${CMAKE_SOURCE_DIR}/test/test_main.cc
+  ${motis-test-files}
   ${motis-modules-test-files}
   ${motis-base-test-files})
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

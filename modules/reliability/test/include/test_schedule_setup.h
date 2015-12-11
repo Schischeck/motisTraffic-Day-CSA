@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/bootstrap/motis_instance_helper.h"
+#include "motis/test/motis_instance_helper.h"
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/loader.h"
@@ -41,7 +41,7 @@ protected:
   virtual void SetUp() override {
     std::vector<std::string> modules = {"reliability", "routing"};
     motis_instance_ =
-        bootstrap::launch_motis(schedule_path_, schedule_begin_, modules);
+        test::launch_motis(schedule_path_, schedule_begin_, modules);
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
         new motis::reliability::context(
             get_schedule(),

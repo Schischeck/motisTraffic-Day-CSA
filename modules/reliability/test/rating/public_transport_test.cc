@@ -131,7 +131,7 @@ TEST_F(reliability_public_transport2, rate) {
       std::make_tuple(28, 9, 2015),
       false);
 
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
@@ -270,7 +270,7 @@ TEST_F(reliability_public_transport5, rate2) {
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), false);
 
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
@@ -356,7 +356,7 @@ TEST_F(reliability_public_transport3, rate_foot) {
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015), false);
 
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());

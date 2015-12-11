@@ -131,7 +131,7 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
       (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
       std::make_tuple(28, 9, 2015), false);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
   ASSERT_TRUE(msg);
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
@@ -187,7 +187,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
       std::make_tuple(19, 10, 2015), false);
 
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
   ASSERT_TRUE(msg);
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
@@ -269,7 +269,7 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
       MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
       std::make_tuple(19, 10, 2015), false);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_TRUE(msg);
   auto const journeys =
