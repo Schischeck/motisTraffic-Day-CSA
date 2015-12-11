@@ -43,3 +43,6 @@
 [submodule "external_lib/range-v3"]
 	path = external_lib/range-v3
 	url = https://github.com/ericniebler/range-v3.git
+[submodule "external_lib/miniz"]
+	path = external_lib/miniz
+	url = https://github.com/richgel999/miniz.git
