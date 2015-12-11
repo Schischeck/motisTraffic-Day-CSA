@@ -6,10 +6,10 @@
 
 #define LISTEN_WS "listen.ws"
 #define LISTEN_HTTP "listen.http"
-#define WS_HOST "listen.host"
-#define WS_PORT "listen.port"
-#define HTTP_HOST "listen.host"
-#define HTTP_PORT "listen.port"
+#define WS_HOST "listen.ws_host"
+#define WS_PORT "listen.ws_port"
+#define HTTP_HOST "listen.http_host"
+#define HTTP_PORT "listen.http_port"
 #define API_KEY "listen.api_key"
 
 namespace po = boost::program_options;
