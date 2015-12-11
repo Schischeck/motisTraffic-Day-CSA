@@ -13,6 +13,7 @@ target_link_libraries(motis
   ${NETWORKING}
   conf
   motis-bootstrap
+  net-http_server
 )
 
 set_target_properties(motis PROPERTIES COMPILE_DEFINITIONS _WEBSOCKETPP_CPP11_STL_)

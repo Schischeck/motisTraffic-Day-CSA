@@ -20,6 +20,7 @@
 #include "motis/bootstrap/motis_instance.h"
 
 #include "motis/launcher/ws_server.h"
+#include "motis/launcher/http_server.h"
 #include "motis/launcher/listener_settings.h"
 #include "motis/launcher/launcher_settings.h"
 
@@ -37,9 +38,11 @@ int main(int argc, char** argv) {
 
   boost::asio::io_service ios;
   motis_instance instance(&ios);
-  ws_server server(ios, instance);
+  ws_server websocket(ios, instance);
+  http_server http(ios, instance);
 
-  listener_settings listener_opt("0.0.0.0", "8080", "");
+  listener_settings listener_opt(true, false, "0.0.0.0", "8080", "0.0.0.0",
+                                 "8081", "");
   dataset_settings dataset_opt("rohdaten", true, true, false, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
@@ -76,19 +79,27 @@ int main(int argc, char** argv) {
   }
 
   try {
-    instance.set_send_fun(
-        [&server](msg_ptr msg, sid session) { server.send(msg, session); });
+    instance.set_send_fun([&websocket](msg_ptr msg, sid session) {
+      websocket.send(msg, session);
+    });
     instance.init_schedule(dataset_opt);
     instance.init_modules(launcher_opt.modules);
-    server.set_api_key(listener_opt.api_key);
-    server.listen(listener_opt.host, listener_opt.port);
+
+    if (listener_opt.listen_ws) {
+      websocket.set_api_key(listener_opt.api_key);
+      websocket.listen(listener_opt.ws_host, listener_opt.ws_port);
+    }
+
+    if (listener_opt.listen_http) {
+      http.listen(listener_opt.http_host, listener_opt.http_port);
+    }
   } catch (std::exception const& e) {
     std::cout << "initialization error: " << e.what() << "\n";
     return 1;
   }
 
   using net::http::server::shutdown_handler;
-  shutdown_handler<ws_server> server_shutdown_handler(ios, server);
+  shutdown_handler<ws_server> server_shutdown_handler(ios, websocket);
 
   boost::asio::io_service::work tp_work(instance.thread_pool_), ios_work(ios);
   std::vector<boost::thread> threads(8);
@@ -114,10 +125,10 @@ int main(int argc, char** argv) {
   if (launcher_opt.mode == launcher_settings::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
-    timer->async_wait([&server](boost::system::error_code) { server.stop(); });
+    timer->async_wait(
+        [&websocket](boost::system::error_code) { websocket.stop(); });
   }
 
-  LOG(info) << "listening on " << listener_opt.host << ":" << listener_opt.port;
   std::function<void()> run_server = [&ios, &run_server]() {
     try {
       ios.run();
