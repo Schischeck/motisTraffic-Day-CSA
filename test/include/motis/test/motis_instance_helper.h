@@ -4,12 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "boost/system/system_error.hpp"
-
-#include "conf/options_parser.h"
-
 #include "motis/bootstrap/motis_instance.h"
-#include "motis/core/common/util.h"
 #include "motis/module/message.h"
 
 namespace motis {
