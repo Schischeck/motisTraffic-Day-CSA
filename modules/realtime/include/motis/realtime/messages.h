@@ -36,30 +36,6 @@ public:
   std::time_t release_time_;
 };
 
-struct delayed_event : public schedule_event {
-  delayed_event() : schedule_event(), delayed_time_(INVALID_TIME) {}
-  delayed_event(const schedule_event& event, motis::time delayed_time)
-      : schedule_event(event), delayed_time_(delayed_time) {}
-  delayed_event(unsigned station_index, uint32_t train_nr, bool departure,
-                motis::time schedule_time, motis::time delayed_time)
-      : schedule_event(station_index, train_nr, departure, schedule_time),
-        delayed_time_(delayed_time) {}
-
-  motis::time delayed_time_;
-};
-
-class delay_message : public message {
-public:
-  delay_message() : message(message_type::delay) {}
-  delay_message(uint32_t train_nr, delayed_event is,
-                std::vector<delayed_event> forecasts)
-      : train_nr_(train_nr), is_(is), forecasts_(forecasts) {}
-
-  uint32_t train_nr_;
-  delayed_event is_;
-  std::vector<delayed_event> forecasts_;
-};
-
 class additional_train_message : public message {
 public:
   additional_train_message() : message(message_type::additional) {}

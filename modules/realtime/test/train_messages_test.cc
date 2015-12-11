@@ -4,6 +4,8 @@
 
 #include "motis/core/schedule/time.h"
 
+#include "motis/realtime/handler/delay_handler.h"
+
 #include "test_schedule.h"
 
 using namespace motis;
@@ -101,10 +103,9 @@ TEST_F(realtime_train_messages_test, test_additional_train_with_delays) {
       schedule_event(Langen->index, 999, true, t(9, 17)),
       schedule_event(da_hbf->index, 999, false, t(9, 30))};
 
-  _rts._message_handler.handle_delay(rt::delay_message(
-      999,
-      {static_cast<unsigned>(Langen->index), 999, true, t(9, 17), t(9, 20)},
-      {}));
+  schedule_event e(Langen->index, 999, true, t(9, 17));
+  rt::handler::handle_delay(_rts, e, t(9, 20), timestamp_reason::IS);
+
   _rts._message_handler.handle_additional_train(
       rt::additional_train_message("RB", events));
 
@@ -318,8 +319,8 @@ TEST_F(realtime_train_messages_test, test_reroute_change_start) {
       schedule_event(ffm_hbf->index, 1, true, t(10, 0))};
 
   // delay the soon to be canceled event
-  _rts._message_handler.handle_delay(canceled_events[0], t(10, 3),
-                                     timestamp_reason::FORECAST);
+  rt::handler::handle_delay(_rts, canceled_events[0], t(10, 3),
+                            timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 
@@ -432,8 +433,9 @@ TEST_F(realtime_train_messages_test, test_csd_kept) {
   }
 
   // delay the feeder train, connection should now be broken
-  _rts._message_handler.handle_delay(feeder_arrival, t(14, 10),
-                                     timestamp_reason::FORECAST);
+  rt::handler::handle_delay(_rts, feeder_arrival, t(14, 10),
+                           timestamp_reason::FORECAST);
+
   _rts._delay_propagator.process_queue();
   _rts._graph_updater.finish_graph_update();
 

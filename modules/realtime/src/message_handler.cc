@@ -19,59 +19,6 @@ using namespace motis::logging;
 
 message_handler::message_handler(realtime_schedule& rts) : _rts(rts) {}
 
-void message_handler::handle_delay(const schedule_event& schedule_event,
-                                   motis::time new_time,
-                                   timestamp_reason reason) {
-  _rts._stats._counters.delay_events.increment();
-  if (reason == timestamp_reason::IS) {
-    _rts._stats._counters.delay_is.increment();
-  } else if (reason == timestamp_reason::FORECAST) {
-    _rts._stats._counters.delay_fc.increment();
-  }
-
-  if (std::abs(new_time - schedule_event._schedule_time) > MINUTES_A_DAY) {
-    LOG(warn) << "invalid delay message received for " << schedule_event
-              << ", new_time=" << motis::format_time(new_time)
-              << ", reason=" << reason << " - ignoring message";
-
-    _rts._stats._counters.delay_events.ignore();
-    if (reason == timestamp_reason::IS) {
-      _rts._stats._counters.delay_is.ignore();
-    } else if (reason == timestamp_reason::FORECAST) {
-      _rts._stats._counters.delay_fc.ignore();
-    }
-    return;
-  }
-
-  _rts._delay_propagator.handle_delay_message(schedule_event, new_time, reason);
-}
-
-void message_handler::handle_delay(const delay_message& msg) {
-  bool old_debug = _rts._debug_mode;
-  if (_rts.is_tracked(msg.train_nr_)) {
-    _rts._tracking.in_message(msg);
-    _rts._debug_mode = true;
-  }
-  _rts._stats._counters.delay_msgs.increment();
-  bool ignored = true;
-  if (msg.is_.valid() && msg.is_.delayed_time_ != motis::INVALID_TIME) {
-    handle_delay(msg.is_, msg.is_.delayed_time_, timestamp_reason::IS);
-    ignored = false;
-  }
-  for (const delayed_event& delayed_stop : msg.forecasts_) {
-    if (delayed_stop.valid() &&
-        delayed_stop.delayed_time_ != motis::INVALID_TIME) {
-      handle_delay(delayed_stop, delayed_stop.delayed_time_,
-                   timestamp_reason::FORECAST);
-      ignored = false;
-    }
-  }
-  if (ignored) {
-    _rts._stats._counters.delay_msgs.ignore();
-  }
-  _rts._debug_mode = old_debug;
-}
-
 void message_handler::handle_additional_train(
     const additional_train_message& msg) {
   _rts._stats._counters.additional.increment();
