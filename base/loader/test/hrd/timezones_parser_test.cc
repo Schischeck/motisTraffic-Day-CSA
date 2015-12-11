@@ -1,7 +1,5 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/logging.h"
-
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
@@ -102,7 +100,7 @@ public:
 
 void test_timezone_entry(
     timezone_entry const* tze, int expected_general_gmt_offset,
-    ranges::optional<season_entry> const& expected_season_entry = {}) {
+    boost::optional<season_entry> const& expected_season_entry = {}) {
   ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset);
   if (expected_season_entry) {
     ASSERT_TRUE(tze->season);
