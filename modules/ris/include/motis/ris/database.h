@@ -28,5 +28,7 @@ std::set<std::string> db_get_files(db_ptr const& db = default_db());
 std::vector<std::basic_string<uint8_t>> db_get_messages(
     std::time_t from, std::time_t to, db_ptr const& db = default_db());
 
+void db_clean_messages(std::time_t threshold, db_ptr const& db = default_db());
+
 }  // namespace ris
 }  // namespace motis

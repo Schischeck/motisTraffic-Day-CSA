@@ -120,5 +120,10 @@ std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from,
   return result;
 }
 
+void db_clean_messages(std::time_t threshold, db_ptr const& db) {
+  db::ris_message::ris_message m;
+  (*db)(remove_from(m).where(m.scheduled < threshold));
+}
+
 }  // namespace ris
 }  // namespace motis

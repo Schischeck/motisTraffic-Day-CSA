@@ -80,7 +80,6 @@ TEST(ris_database, binary_storage) {
 TEST(ris_database, basic) {
   sql::connection_config conf;
   conf.path_to_database = ":memory:";
-  // conf.path_to_database = "foo.sqlite";
   conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
   conf.debug = false;
 
@@ -125,6 +124,29 @@ TEST(ris_database, basic) {
   ASSERT_EQ(2, result3.size());
   EXPECT_EQ(std::basic_string<uint8_t>{1}, result3[0]);
   EXPECT_EQ(std::basic_string<uint8_t>{0}, result3[1]);
+}
+
+TEST(ris_database, cleanup) {
+  sql::connection_config conf;
+  conf.path_to_database = ":memory:";
+  conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+  conf.debug = false;
+
+  db_ptr db(new sql::connection(conf));
+  db_init(db);
+
+  std::vector<ris_message> m;
+  m.emplace_back(8, 10, 1, std::unique_ptr<uint8_t>{new uint8_t(1)});
+  db_put_messages("foo", m, db);
+
+  db_clean_messages(9, db);
+
+  auto files = db_get_files(db);
+  ASSERT_EQ(1, files.size());
+  EXPECT_EQ(std::string("foo"), *begin(files));
+
+  auto found_result = db_get_messages(0, 99, db);
+  ASSERT_EQ(0, found_result.size());
 }
 
 }  // namespace ris
