@@ -26,10 +26,13 @@ struct ris : public motis::module::module {
   void init() override;
   std::string name() const override { return "ris"; }
   std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RISForwardTimeRequest};
+    return {MsgContent_RISForwardTimeRequest, MsgContent_HTTPRequest};
   }
   void on_msg(motis::module::msg_ptr, motis::module::sid,
               motis::module::callback) override;
+
+  void handle_forward_time(msg_ptr msg, callback cb);
+  void handle_zipfile_upload(msg_ptr msg, callback cb);
 
 private:
   void fill_database();

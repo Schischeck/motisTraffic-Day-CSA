@@ -8,6 +8,7 @@
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
 #include "motis/ris/database.h"
+#include "motis/ris/error.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
 #include "motis/ris/zip_reader.h"
@@ -106,9 +107,9 @@ void ris::print(std::ostream& out) const {
 }
 
 std::time_t days_ago(long days) {
-    std::time_t now = std::time(nullptr);
-    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
-    return now - kTwentyFourHours * days;
+  std::time_t now = std::time(nullptr);
+  constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+  return now - kTwentyFourHours * days;
 }
 
 void ris::init() {
@@ -139,8 +140,18 @@ void ris::fill_database() {
 }
 
 void ris::on_msg(msg_ptr msg, sid, callback cb) {
+  if (msg->msg_->content_type() == RISForwardTimeRequest) {
+    return handle_forward_time(msg, cb);
+  } else if (msg->msg_->content_type() == RISForwardTimeRequest) {
+    return handle_zipfile_upload(msg, cb);
+  } else {
+    return cb({}, error::not_implemented);
+  }
+}
+
+void ris::handle_forward_time(msg_ptr msg, callback cb) {
   if (mode_ != mode::SIMULATION) {
-    LOG(error) << "RIS received a message (but is not in simulation mode).";
+    LOG(error) << "RIS received a fwd time msg (but is not in sim mode).";
     return cb({}, boost::system::error_code());
   }
 
@@ -149,6 +160,24 @@ void ris::on_msg(msg_ptr msg, sid, callback cb) {
   dispatch(pack(db_get_messages(simulation_time_, new_time)));
   simulation_time_ = new_time;
   LOG(info) << "RIS forwarded time to " << new_time;
+
+  return cb({}, boost::system::error_code());
+}
+
+void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
+  auto req = msg->content<RISForwardTimeRequest const*>();
+  try {
+    auto parsed_messages = parse_xmls(read_zip_buf(*req->content()));
+    db_put_messages(new_file, parsed_messages);
+    dispatch(pack(parsed_messages));
+  } catch (std::exception const& e) {
+    LOG(error) << "bad zip file: " << e.what();
+    MessageCreator b;
+    b.CreateAndFinish(MsgContent_HTTPResponse,
+                      CreateHTTPResponse(b, HTTPStatus_INTERNAL_SERVER_ERROR,
+                                         b.CreateVector(), b.CreateString("")));
+    return cb(make_msg(b), boost::system::error_code());
+  }
 
   return cb({}, boost::system::error_code());
 }
