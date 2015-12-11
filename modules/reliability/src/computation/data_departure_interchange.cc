@@ -12,24 +12,21 @@ namespace reliability {
 namespace calc_departure_distribution {
 
 /** get vector containing all potential feeders but not arriving_light_conn */
-std::vector<graph_accessor::feeder_info> get_all_potential_feeders_except_ic(
-    node const& route_node, light_connection const& departing_light_conn,
-    light_connection const& arriving_light_conn, duration const transfer_time) {
-  auto all_feeders = graph_accessor::get_all_potential_feeders(
-      route_node, departing_light_conn.d_time, transfer_time);
-  /* todo: accelerate with lower_bound? */
-  auto const it = std::find_if(
-      all_feeders.begin(), all_feeders.end(),
-      [arriving_light_conn](graph_accessor::feeder_info const& feeder) {
-        return feeder.light_conn_->d_time == arriving_light_conn.d_time &&
-               feeder.light_conn_->a_time == arriving_light_conn.a_time &&
-               feeder.light_conn_->_full_con->con_info ==
-                   arriving_light_conn._full_con->con_info;
-      });
-  if (it != all_feeders.end()) {
-    all_feeders.erase(it);
+std::vector<distributions_container::container::node const*>
+get_all_potential_feeders_except_ic(
+    std::vector<distributions_container::container::node const*> const& feeders,
+    distributions_container::container::key const& ic_feeder) {
+  std::vector<distributions_container::container::node const*> filtered_feeders(
+      feeders);
+  auto const it =
+      std::find_if(filtered_feeders.begin(), filtered_feeders.end(),
+                   [&](distributions_container::container::node const* feeder) {
+                     return feeder->key_ == ic_feeder;
+                   });
+  if (it != filtered_feeders.end()) {
+    filtered_feeders.erase(it);
   }
-  return all_feeders;
+  return filtered_feeders;
 }
 
 data_departure_interchange::data_departure_interchange(
@@ -39,6 +36,7 @@ data_departure_interchange::data_departure_interchange(
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
     distributions_container::container const& distribution_preceding_train,
+    distributions_container::container::node const& departing_distribution_node,
     reliability::context const& context)
     : data_departure(is_first_route_node,
                      time_util::get_scheduled_event_time(
@@ -66,11 +64,11 @@ data_departure_interchange::data_departure_interchange(
                                waiting_time);
 
   auto const all_feeders_data = get_all_potential_feeders_except_ic(
-      departing_route_node, departing_light_conn, arriving_light_conn,
-      context.schedule_.stations[departing_route_node._station_node->_id]
-          ->transfer_time);
-  init_feeder_info(departing_light_conn, all_feeders_data, context.schedule_,
-                   context.precomputed_distributions_);
+      departing_distribution_node.predecessors_,
+      distributions_container::to_container_key(
+          arriving_route_node, arriving_light_conn, time_util::arrival,
+          context.schedule_));
+  init_feeder_info(departing_light_conn, all_feeders_data, context.schedule_);
   maximum_waiting_time_ =
       std::max(maximum_waiting_time_, interchange_feeder_info_.waiting_time_);
 }
@@ -96,9 +94,11 @@ data_departure_interchange::data_departure_interchange(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node,
     distributions_container::container const& preceding_arrival_distribution,
+    distributions_container::container::node const& departing_distribution_node,
     reliability::context const& context)
     : data_departure(route_node, light_connection, is_first_route_node,
-                     preceding_arrival_distribution, context) {
+                     preceding_arrival_distribution,
+                     departing_distribution_node, context) {
   // nothing to do
 }
 
@@ -109,10 +109,12 @@ data_departure_interchange_walk::data_departure_interchange_walk(
     light_connection const& arriving_light_conn,
     probability_distribution const& arrival_distribution,
     distributions_container::container const& preceding_arrival_distribution,
+    distributions_container::container::node const& departing_distribution_node,
     reliability::context const& context)
     : data_departure_interchange(departing_route_node, departing_light_conn,
                                  is_first_route_node,
-                                 preceding_arrival_distribution, context) {
+                                 preceding_arrival_distribution,
+                                 departing_distribution_node, context) {
   init_interchange_feeder_info(
       time_util::get_scheduled_event_time(
           arriving_route_node, arriving_light_conn, time_util::arrival,

@@ -34,25 +34,35 @@ void insert_all_elements_into_queue(node const& first_route_node,
     node = route_edge->_to;
   }
 }
+
 void process_element(
-    common::queue_element const& element, context const& context,
-    distributions_container::container& ride_distributions_container) {
+    common::queue_element const& element,
+    distributions_container::container& ride_distributions_container,
+    context const& context) {
   /* departure distribution */
   auto& departure_distribution =
-      ride_distributions_container.get_distribution_non_const(
+      ride_distributions_container.get_node_non_const(
           distributions_container::to_container_key(
               *element.from_, *element.light_connection_, time_util::departure,
               context.schedule_));
   /* arrival distribution */
-  auto& arrival_distribution =
-      ride_distributions_container.get_distribution_non_const(
-          distributions_container::to_container_key(
-              *element.to_, *element.light_connection_, time_util::arrival,
-              context.schedule_));
+  auto& arrival_distribution = ride_distributions_container.get_node_non_const(
+      distributions_container::to_container_key(
+          *element.to_, *element.light_connection_, time_util::arrival,
+          context.schedule_));
+  if (!departure_distribution.pd_.empty() ||
+      !arrival_distribution.pd_.empty()) {
+    std::cout
+        << "\nWarning(ride_distributions_calculator): departure or arrival "
+           "distribution already computed: ";
+    return;
+  }
+
   common::compute_dep_and_arr_distribution(
-      element, ride_distributions_container, context, departure_distribution,
-      arrival_distribution);
+      element, departure_distribution, departure_distribution.pd_,
+      arrival_distribution.pd_, context, ride_distributions_container);
 }
+
 void compute_distributions_for_a_ride(
     unsigned int const light_connection_idx, node const& last_route_node,
     context const& context,
@@ -63,7 +73,7 @@ void compute_distributions_for_a_ride(
   detail::insert_all_elements_into_queue(
       very_first_route_node, light_connection_idx, last_route_node, queue);
   while (!queue.empty()) {
-    detail::process_element(queue.top(), context, ride_distributions_container);
+    process_element(queue.top(), ride_distributions_container, context);
     queue.pop();
   }
 }

@@ -54,9 +54,10 @@ TEST_F(reliability_realtime_dependencies, RE_H_F_dep) {
   auto const& light_conn =
       graph_accessor::get_departing_route_edge(node)->_m._route_edge._conns[0];
 
-  auto const dependencies =
-      find_dependencies(distributions_container::to_container_key(
-          node, light_conn, time_util::departure, get_schedule()));
+  auto const dependencies = find_dependencies(
+      distributions_container::to_container_key(
+          node, light_conn, time_util::departure, get_schedule()),
+      get_schedule());
   ASSERT_EQ(1, dependencies.size());
   auto const& dependency = dependencies.front();
 
@@ -78,7 +79,8 @@ TEST_F(reliability_realtime_dependencies, RE_H_F_arr) {
 
   ASSERT_TRUE(find_dependencies(
                   distributions_container::to_container_key(
-                      node, light_conn, time_util::arrival, get_schedule()))
+                      node, light_conn, time_util::arrival, get_schedule()),
+                  get_schedule())
                   .empty());
 }
 
@@ -101,9 +103,10 @@ void test_ICE_D_L_F_Frankfurt(reliability_realtime_dependencies& test_info,
   ASSERT_EQ(test_util::minutes_to_motis_time(actual_arrival_time),
             light_conn.a_time);
 
-  auto const dependencies =
-      find_dependencies(distributions_container::to_container_key(
-          node, light_conn, time_util::arrival, test_info.get_schedule()));
+  auto const dependencies = find_dependencies(
+      distributions_container::to_container_key(
+          node, light_conn, time_util::arrival, test_info.get_schedule()),
+      test_info.get_schedule());
   ASSERT_EQ(1, dependencies.size());
 
   auto const& dependent_node = *graph_accessor::get_first_route_node(
@@ -173,7 +176,8 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
   auto const dependencies = find_dependencies(
       {ICE_D_L_F, "ICE", "",
        get_schedule().eva_to_station.find("LANGEN")->second->index,
-       time_util::arrival, test_util::minutes_to_motis_time(9 * 60)});
+       time_util::arrival, test_util::minutes_to_motis_time(9 * 60)},
+      get_schedule());
   ASSERT_EQ(1, dependencies.size());
 
   auto const& dependent_node =
@@ -212,7 +216,8 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
   auto const dependencies = find_dependencies(
       {ICE_D_L_F, "ICE", "",
        get_schedule().eva_to_station.find("LANGEN")->second->index,
-       time_util::arrival, test_util::minutes_to_motis_time(9 * 60)});
+       time_util::arrival, test_util::minutes_to_motis_time(9 * 60)},
+      get_schedule());
   ASSERT_EQ(1, dependencies.size());
 
   auto const& dependent_node =
@@ -251,7 +256,8 @@ TEST_F(reliability_realtime_dependencies, reroute_additional) {
   auto const dependencies = find_dependencies(
       {ICE_D_F, "ICE", "",
        get_schedule().eva_to_station.find("LANGEN")->second->index,
-       time_util::arrival, test_util::minutes_to_motis_time(16 * 10)});
+       time_util::arrival, test_util::minutes_to_motis_time(16 * 10)},
+      get_schedule());
   ASSERT_EQ(1, dependencies.size());
 
   auto const& dependent_node =
@@ -264,6 +270,50 @@ TEST_F(reliability_realtime_dependencies, reroute_additional) {
   ASSERT_EQ(&dependent_node, dependency.route_node_);
   ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
   ASSERT_EQ(time_util::departure, dependency.type_);
+}
+
+/* Arrival of ICE_D_F at 16:10 in Langen (rerouted train)
+ * has no dependent successors since
+ * departure of ICE_L_H_16 at 16:30 in Langen is cancelled. */
+TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
+  {
+    std::vector<realtime::rerouted_event> events;
+    events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271000 /* 16:10 */,
+                                        ris::EventType_Arrival},
+                        "ICE", "");
+    events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
+                                        ris::EventType_Departure},
+                        "ICE", "");
+    bootstrap::send(motis_instance_, realtime::get_reroute_message({}, events));
+
+    /* Ensure that arrival at 16:10 is added */
+    auto const& all_connections =
+        graph_accessor::get_departing_route_edge(
+            *graph_accessor::get_first_route_node(get_schedule(), ICE_D_F))
+            ->_m._route_edge._conns;
+    ASSERT_EQ(1, all_connections.size());
+    ASSERT_EQ(test_util::minutes_to_motis_time(16 * 60 + 10),
+              all_connections[0].a_time);
+  }
+  {
+    std::vector<realtime::event> events;
+    events.push_back(
+        {LANGEN, ICE_L_H_16, 1445272200, ris::EventType_Departure});
+    events.push_back({HANAU, ICE_L_H_16, 1445272740, ris::EventType_Arrival});
+    bootstrap::send(motis_instance_, realtime::get_reroute_message(events, {}));
+
+    /* Ensure that ICE_L_H_16 is cancelled */
+    ASSERT_EQ(nullptr,
+              graph_accessor::get_first_route_node(get_schedule(), ICE_L_H_16));
+  }
+
+  ASSERT_TRUE(
+      find_dependencies(
+          {ICE_D_F, "ICE", "",
+           get_schedule().eva_to_station.find("LANGEN")->second->index,
+           time_util::arrival, test_util::minutes_to_motis_time(16 * 10)},
+          get_schedule())
+          .size());
 }
 
 /** RE_H_F does not wait for and depend on the
@@ -279,8 +329,65 @@ TEST_F(reliability_realtime_dependencies, ICE_L_H) {
 
   ASSERT_TRUE(find_dependencies(
                   distributions_container::to_container_key(
-                      node, light_conn, time_util::arrival, get_schedule()))
+                      node, light_conn, time_util::arrival, get_schedule()),
+                  get_schedule())
                   .empty());
+}
+
+/** The following events depend on the
+ * arrival of ICE_D_L_F at 08:30 in Langen:
+ * Departure of ICE_D_L_F at 08:32 in Langen (stay in train)
+ * Departure of ICE_L_H at 08:50 in Langen */
+void test_ICE_D_L_F_Langen(reliability_realtime_dependencies& test_info) {
+  /* route node in Langen */
+  auto const& node = *graph_accessor::get_departing_route_edge(
+                          *graph_accessor::get_first_route_node(
+                              test_info.get_schedule(), test_info.ICE_D_L_F))
+                          ->_to;
+  auto const& light_conn =
+      graph_accessor::get_arriving_route_edge(node)->_m._route_edge._conns[1];
+
+  auto dependencies = find_dependencies(
+      distributions_container::to_container_key(
+          node, light_conn, time_util::arrival, test_info.get_schedule()),
+      test_info.get_schedule());
+  ASSERT_EQ(2, dependencies.size());
+
+  std::sort(dependencies.begin(), dependencies.end(),
+            [](dependency const& lhs, dependency const& rhs) {
+              return lhs.light_connection_->d_time <
+                     rhs.light_connection_->d_time;
+            });
+
+  {
+    /* Departure of ICE_D_L_F at 08:32 in Langen (stay in train) */
+    auto const& dependent_node =
+        *graph_accessor::get_departing_route_edge(
+             *graph_accessor::get_first_route_node(test_info.get_schedule(),
+                                                   test_info.ICE_D_L_F))
+             ->_to;
+    auto const& dependent_light_conn =
+        graph_accessor::get_departing_route_edge(dependent_node)
+            ->_m._route_edge._conns[1];
+
+    auto const& dependency = dependencies.front();
+    ASSERT_EQ(&dependent_node, dependency.route_node_);
+    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
+    ASSERT_EQ(time_util::departure, dependency.type_);
+  }
+  {
+    /* Departure of ICE_L_H at 08:50 in Langen */
+    auto const& dependent_node = *graph_accessor::get_first_route_node(
+        test_info.get_schedule(), test_info.ICE_L_H);
+    auto const& dependent_light_conn =
+        graph_accessor::get_departing_route_edge(dependent_node)
+            ->_m._route_edge._conns[1];
+
+    auto const& dependency = dependencies.front();
+    ASSERT_EQ(&dependent_node, dependency.route_node_);
+    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
+    ASSERT_EQ(time_util::departure, dependency.type_);
+  }
 }
 
 /** The following events depend on the
@@ -289,160 +396,14 @@ TEST_F(reliability_realtime_dependencies, ICE_L_H) {
  * Departure of ICE_D_L_F at 08:52 in Langen
  * Departure of ICE_L_H at 08:50 in Langen */
 TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen) {
-  /* route node in Langen */
-  auto const& node =
-      *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-           ->_to;
-  auto const& light_conn =
-      graph_accessor::get_arriving_route_edge(node)->_m._route_edge._conns[1];
-
-  auto dependencies =
-      find_dependencies(distributions_container::to_container_key(
-          node, light_conn, time_util::arrival, get_schedule()));
-  ASSERT_EQ(3, dependencies.size());
-
-  std::sort(dependencies.begin(), dependencies.end(),
-            [](dependency const& lhs, dependency const& rhs) {
-              return lhs.light_connection_->d_time <
-                     rhs.light_connection_->d_time;
-            });
-
-  {
-    /* Departure of ICE_D_L_F at 08:32 in Langen (stay in train) */
-    auto const& dependent_node =
-        *graph_accessor::get_departing_route_edge(
-             *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-             ->_to;
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[1];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-  {
-    /* Departure of ICE_L_H at 08:50 in Langen */
-    auto const& dependent_node =
-        *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[1];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-  {
-    /* Departure of ICE_D_L_F at 08:52 in Langen */
-    auto const& dependent_node =
-        *graph_accessor::get_departing_route_edge(
-             *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-             ->_to;
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[2];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-}
-
-/** Arrival of ICE_D_L_F at 08:30 in Langen
- * is delayed to 08:50. The following events depend on it:
- * Departure of ICE_D_L_F at 08:32 in Langen (stay in train)
- * Departure of ICE_D_L_F at 08:52 in Langen
- * Departure of ICE_L_H at 08:50 in Langen.
- * Additionally, the following event depends on it:
- * Departure of ICE_L_H at 09:20 in Langen.
- * */
-TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen_delay) {
+  test_ICE_D_L_F_Langen(*this);
   bootstrap::send(
       motis_instance_,
       realtime::get_delay_message(LANGEN, ICE_D_L_F,
                                   1445243400 /* 2015-10-19 08:30:00 GMT */,
                                   1445244600 /* 2015-10-19 08:50:00 GMT */,
                                   ris::EventType_Arrival, ris::DelayType_Is));
-  /* route node in Langen */
-  auto const& node =
-      *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-           ->_to;
-  auto const& light_conn =
-      graph_accessor::get_arriving_route_edge(node)->_m._route_edge._conns[1];
-
-  auto dependencies =
-      find_dependencies(distributions_container::to_container_key(
-          node, light_conn, time_util::arrival, get_schedule()));
-  ASSERT_EQ(3, dependencies.size());
-
-  std::sort(dependencies.begin(), dependencies.end(),
-            [](dependency const& lhs, dependency const& rhs) {
-              return lhs.light_connection_->d_time <
-                     rhs.light_connection_->d_time;
-            });
-
-  {
-    /* Departure of ICE_D_L_F at 08:32 in Langen (stay in train) */
-    auto const& dependent_node =
-        *graph_accessor::get_departing_route_edge(
-             *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-             ->_to;
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[1];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-  {
-    /* Departure of ICE_L_H at 08:50 in Langen */
-    auto const& dependent_node =
-        *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[1];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-  {
-    /* Departure of ICE_D_L_F at 08:52 in Langen */
-    auto const& dependent_node =
-        *graph_accessor::get_departing_route_edge(
-             *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
-             ->_to;
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[2];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
-  {
-    /* Departure of ICE_L_H at 09:20 in Langen */
-    auto const& dependent_node =
-        *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);
-    auto const& dependent_light_conn =
-        graph_accessor::get_departing_route_edge(dependent_node)
-            ->_m._route_edge._conns[2];
-
-    auto const& dependency = dependencies.front();
-    ASSERT_EQ(&dependent_node, dependency.route_node_);
-    ASSERT_EQ(&dependent_light_conn, dependency.light_connection_);
-    ASSERT_EQ(time_util::departure, dependency.type_);
-  }
+  test_ICE_D_L_F_Langen(*this);
 }
 }
 }

@@ -1,11 +1,11 @@
-#include "../../include/motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "gtest/gtest.h"
 
 namespace motis {
 namespace reliability {
 namespace distributions_container {
 
-TEST(reliability_distributions_container, realtime_container) {
+TEST(reliability_distributions_container, get_distribution) {
   container c;
   std::vector<std::pair<container::key, probability_distribution> >
       distributions;
@@ -61,7 +61,7 @@ TEST(reliability_distributions_container, realtime_container) {
   distributions.back().second.init({1.0}, 3);
 
   for (auto const& it : distributions) {
-    c.get_distribution_non_const(it.first) = it.second;
+    c.get_node_non_const(it.first).pd_ = it.second;
   }
 
   for (auto const& it : distributions) {

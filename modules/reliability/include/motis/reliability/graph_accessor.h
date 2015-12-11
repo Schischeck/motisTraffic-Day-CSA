@@ -60,67 +60,20 @@ inline light_connection const& get_previous_light_connection(
   return *(--ub);
 }
 
-/* returns success, begin_time, end_time */
-inline std::tuple<bool, time, time> get_feeder_time_interval(
-    time const departure_time, duration change_time,
-    duration const feeder_threshold) {
-  change_time = std::max(change_time, (duration)1);
-  time const begin_time =
-      (departure_time <= feeder_threshold ? 0
-                                          : departure_time - feeder_threshold);
-  time const end_time = departure_time - change_time;
-  bool const success =
-      (begin_time <= end_time && departure_time >= change_time);
-
-  return std::make_tuple(success, begin_time, end_time);
+inline duration get_waiting_time(waiting_time_rules const& waiting_time_rules,
+                                 uint32_t const family_feeder_train,
+                                 uint32_t const family_connecting_train) {
+  return (duration)waiting_time_rules.waiting_time(
+      waiting_time_rules.waiting_time_category(family_connecting_train),
+      waiting_time_rules.waiting_time_category(family_feeder_train));
 }
-
-#define FEEDER_THRESHOLD 30 /* XXX */
-struct feeder_info {
-  node const* arrival_node_;
-  light_connection const* light_conn_;
-};
-inline std::vector<feeder_info> get_all_potential_feeders(
-    node const& route_node, motis::time const departure_time,
-    duration const transfer_time) {
-  std::vector<feeder_info> feeders;
-
-  for (auto const in_edge : route_node._station_node->_incoming_edges) {
-    // ignore transfer edge to route_node itself
-    if (in_edge->_from->_id == route_node._id) {
-      continue;
-    }
-
-    bool success;
-    time time_begin, time_end;
-    std::tie(success, time_begin, time_end) = get_feeder_time_interval(
-        departure_time, transfer_time, FEEDER_THRESHOLD);
-    if (success) {
-      auto const& feeder_route_node = *in_edge->_from;
-      auto const feeder_route_edge = get_arriving_route_edge(feeder_route_node);
-      if (feeder_route_edge != nullptr) {
-        auto& all_connections = feeder_route_edge->_m._route_edge._conns;
-        for (unsigned int i = 0; i < all_connections.size(); i++) {
-          if (all_connections[i].a_time >= time_begin &&
-              all_connections[i].a_time <= time_end) {
-            feeders.push_back({&feeder_route_node, &all_connections[i]});
-          }
-        }
-      }
-    }
-  }  // end of for
-  return feeders;
-}
-
 inline duration get_waiting_time(
     waiting_time_rules const& waiting_time_rules,
     light_connection const& feeder_light_conn,
     light_connection const& connecting_light_conn) {
-  return (duration)waiting_time_rules.waiting_time(
-      waiting_time_rules.waiting_time_category(
-          connecting_light_conn._full_con->con_info->family),
-      waiting_time_rules.waiting_time_category(
-          feeder_light_conn._full_con->con_info->family));
+  return get_waiting_time(waiting_time_rules,
+                          feeder_light_conn._full_con->con_info->family,
+                          connecting_light_conn._full_con->con_info->family);
 }
 
 inline std::string train_name(

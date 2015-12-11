@@ -6,6 +6,8 @@
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/nodes.h"
 
+#include "motis/reliability/distributions/distributions_container.h"
+
 namespace motis {
 struct schedule;
 class node;
@@ -14,9 +16,6 @@ namespace reliability {
 struct context;
 struct probability_distribution;
 struct start_and_travel_distributions;
-namespace distributions_container {
-struct container;
-}
 
 namespace distributions_calculator {
 namespace common {
@@ -50,10 +49,11 @@ using queue_type =
                         queue_element::queue_element_cmp>;
 
 void compute_dep_and_arr_distribution(
-    queue_element const& element,
-    distributions_container::container const& train_distributions_container,
-    context const&, probability_distribution& departure_distribution,
-    probability_distribution& arrival_distribution);
+    queue_element const&,
+    distributions_container::container::node const& departing_distribution_node,
+    probability_distribution& departure_distribution,
+    probability_distribution& arrival_distribution, context const&,
+    distributions_container::container const& train_distributions_container);
 }  // namespace common
 
 namespace precomputation {

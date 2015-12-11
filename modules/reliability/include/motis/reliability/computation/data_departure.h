@@ -5,6 +5,7 @@
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/context.h"
+#include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 
 namespace motis {
@@ -17,10 +18,6 @@ namespace reliability {
 struct probability_distribution;
 struct start_and_travel_distributions;
 
-namespace distributions_container {
-struct container;
-}
-
 namespace calc_departure_distribution {
 
 /**
@@ -31,6 +28,8 @@ struct data_departure {
       node const& route_node, light_connection const&,
       bool const is_first_route_node,
       distributions_container::container const& distributions_preceding_arrival,
+      distributions_container::container::node const&
+          departing_distributions_node,
       reliability::context const&);
 
   /* constructor necessary for the derived struct data_departure_connection */
@@ -95,11 +94,11 @@ protected:
                                    motis::time const departure_time,
                                    distributions_container::container const&,
                                    schedule const&);
-  void init_feeder_info(light_connection const& departing_light_conn,
-                        std::vector<graph_accessor::feeder_info> const&
-                            feeders /* pair.second: scheduled-arrival-time */,
-                        schedule const&,
-                        distributions_container::container const&);
+  void init_feeder_info(
+      light_connection const& departing_light_conn,
+      std::vector<distributions_container::container::node const*> const&
+          feeders,
+      schedule const&);
 };
 
 }  // namespace calc_departure_distribution

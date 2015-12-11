@@ -48,6 +48,7 @@ create_data_for_interchange(
     connection_element const& preceding_element,
     probability_distribution const& arrival_distribution,
     distributions_container::container const& train_distributions,
+    distributions_container::container::node const& departing_distribution_node,
     context const& context) {
   // interchange with walk
   if (preceding_element.to_->_station_node->_id !=
@@ -58,7 +59,7 @@ create_data_for_interchange(
             element.is_first_route_node_, *element.from_,
             *preceding_element.to_, *element.light_connection_,
             *preceding_element.light_connection_, arrival_distribution,
-            train_distributions, context));
+            train_distributions, departing_distribution_node, context));
   }
   // interchange without walk
   return std::unique_ptr<
@@ -66,7 +67,8 @@ create_data_for_interchange(
       new calc_departure_distribution::data_departure_interchange(
           element.is_first_route_node_, *element.from_, *preceding_element.to_,
           *element.light_connection_, *preceding_element.light_connection_,
-          arrival_distribution, train_distributions, context));
+          arrival_distribution, train_distributions,
+          departing_distribution_node, context));
 }
 
 void distributions_for_train_after_interchange(
@@ -81,11 +83,15 @@ void distributions_for_train_after_interchange(
         ratings[ratings.size() - 2].arrival_distribution_;
     auto& departure_distribution = ratings.back().departure_distribution_;
     auto& arrival_distribution = ratings.back().arrival_distribution_;
+    auto const& distribution_node = context.precomputed_distributions_.get_node(
+        distributions_container::to_container_key(
+            *element.from_, *element.light_connection_, time_util::departure,
+            context.schedule_));
 
     if (&element == &elements.front()) { /* departure with interchange */
       auto dep_data = create_data_for_interchange(
           elements.front(), preceding_element, preceding_arrival_distribution,
-          train_distributions, context);
+          train_distributions, distribution_node, context);
       calc_departure_distribution::interchange::compute_departure_distribution(
           *dep_data, departure_distribution);
     } else { /* departure without interchange */
@@ -96,7 +102,7 @@ void distributions_for_train_after_interchange(
                   element.is_first_route_node_,
                   distributions_container::single_distribution_container(
                       preceding_arrival_distribution),
-                  context));
+                  distribution_node, context));
       calc_departure_distribution::compute_departure_distribution(
           *dep_data, departure_distribution);
     }

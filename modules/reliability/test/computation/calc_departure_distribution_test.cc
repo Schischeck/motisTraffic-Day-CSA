@@ -96,6 +96,7 @@ TEST_F(reliability_calc_departure_distribution,
 // first route node
 TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
   distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -107,6 +108,7 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   data_departure data(first_route_node, first_light_conn, true, dummy,
+                      dummy_node,
                       context(*schedule_, dummy, s_t_distributions));
   train_arrived(data);
 
@@ -115,6 +117,8 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
 
 // preceding arrival
 TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
                                                               -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
@@ -130,9 +134,9 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  data_departure data(
-      *second_route_node, light_connection, false, train_distributions,
-      context(*schedule_, train_distributions, s_t_distributions));
+  data_departure data(*second_route_node, light_connection, false,
+                      train_distributions, dummy_node,
+                      context(*schedule_, dummy, s_t_distributions));
   train_arrived(data);
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
@@ -298,6 +302,7 @@ TEST_F(reliability_calc_departure_distribution, had_to_wait_for_feeders2) {
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution1) {
   distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -309,6 +314,7 @@ TEST_F(reliability_calc_departure_distribution,
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
   data_departure data(first_route_node, first_light_conn, true, dummy,
+                      dummy_node,
                       context(*schedule_, dummy, s_t_distributions));
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
@@ -383,6 +389,8 @@ TEST_F(reliability_calc_departure_distribution,
 // route node with preceding arrival and without feeders
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution3) {
+  distributions_container::container dummy_container;
+  distributions_container::container::node dummy_node;
   distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
                                                               -1);
   start_and_travel_test_distributions dummy({1.0});
@@ -403,8 +411,8 @@ TEST_F(reliability_calc_departure_distribution,
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
   data_departure data(*second_route_node, light_connection, false,
-                      train_distributions,
-                      context(*schedule_, train_distributions, dummy));
+                      train_distributions, dummy_node,
+                      context(*schedule_, dummy_container, dummy));
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
   ASSERT_TRUE(
