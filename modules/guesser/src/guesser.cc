@@ -1,6 +1,7 @@
 #include "motis/guesser/guesser.h"
 
 #include <iostream>
+#include <numeric>
 
 #include "boost/program_options.hpp"
 

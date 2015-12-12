@@ -48,7 +48,7 @@ SVG.MotisGrid = SVG.invent({
 
       var y = 50;
       for (var i = 0; i < cons.length; i++) {
-        var newCon = new SVG.MotisConnection;
+        var newCon = this.put(new SVG.MotisConnection);
         var c = cons[i];
         var elements = [];
         for (var j = 0; j < c.length; j++) {

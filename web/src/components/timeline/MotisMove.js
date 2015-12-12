@@ -24,27 +24,26 @@ SVG.MotisMove = SVG.invent({
         len = minWidth;
       }
 
-      var g = new SVG.G;
-      var p = new SVG.Path;
-      p.plot('m' + in_eq_width + ',' + 0 +
-             'a' + radius + ',' + radius + ' 0 1,0 0,' + thickness +
-             'h ' + len +
-             'v -' + thickness +
-             'z' +
-             'M' + (x + len - radius) + ',' + (y - y_offset) +
-             'a' + radius + ',' + radius + ' 0 0,0 0,' + thickness);
-      p.attr({'fill-rule': 'evenodd'});
+      var g = this.put(new SVG.G);
+      g.add(this.put(new SVG.Path)
+                .attr({'fill-rule': 'evenodd'})
+                .plot('m' + in_eq_width + ',' + 0 +
+                      'a' + radius + ',' + radius + ' 0 1,0 0,' + thickness +
+                      'h ' + len +
+                      'v -' + thickness +
+                      'z' +
+                      'M' + (x + len - radius) + ',' + (y - y_offset) +
+                      'a' + radius + ',' + radius + ' 0 0,0 0,' + thickness));
+      g.add(this.put(new SVG.Text())
+                .text(label || '???')
+                .attr({'fill': '#FFF'})
+                .attr({'font-family': 'Verdana,sans-serif'})
+                .attr({'font-weight': 'bold'})
+                .attr({'text-anchor': 'middle'})
+                .size(9.5)
+                .move(0, -0.25 * thickness));
 
-      g.add(p);
-      g.add(new SVG.Text().text(label || '???')
-                          .attr({'fill': '#FFF'})
-                          .attr({'font-family': 'Verdana,sans-serif'})
-                          .attr({'font-weight': 'bold'})
-                          .attr({'text-anchor': 'middle'})
-                          .size(9.5)
-                          .move(0, -0.45 * thickness));
-
-      return this.put(g);
+      return g;
     }
   },
   construct: {
