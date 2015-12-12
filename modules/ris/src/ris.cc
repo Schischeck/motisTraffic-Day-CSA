@@ -4,6 +4,8 @@
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
+#include "websocketpp/common/md5.hpp"
+
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
@@ -23,6 +25,7 @@
 using boost::system::error_code;
 namespace fs = boost::filesystem;
 using fs::directory_iterator;
+using websocketpp::md5::md5_hash_hex;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
@@ -106,9 +109,9 @@ void ris::print(std::ostream& out) const {
 }
 
 std::time_t days_ago(long days) {
-    std::time_t now = std::time(nullptr);
-    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
-    return now - kTwentyFourHours * days;
+  std::time_t now = std::time(nullptr);
+  constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+  return now - kTwentyFourHours * days;
 }
 
 void ris::init() {
@@ -139,8 +142,16 @@ void ris::fill_database() {
 }
 
 void ris::on_msg(msg_ptr msg, sid, callback cb) {
+  switch (msg->content_type()) {
+    case MsgContent_RISForwardTimeRequest: return handle_forward_time(msg, cb);
+    case MsgContent_HTTPRequest: return handle_zipfile_upload(msg, cb);
+    default: assert(false);
+  }
+}
+
+void ris::handle_forward_time(msg_ptr msg, callback cb) {
   if (mode_ != mode::SIMULATION) {
-    LOG(error) << "RIS received a message (but is not in simulation mode).";
+    LOG(error) << "RIS received a fwd time msg (but is not in sim mode).";
     return cb({}, boost::system::error_code());
   }
 
@@ -149,6 +160,31 @@ void ris::on_msg(msg_ptr msg, sid, callback cb) {
   dispatch(pack(db_get_messages(simulation_time_, new_time)));
   simulation_time_ = new_time;
   LOG(info) << "RIS forwarded time to " << new_time;
+
+  return cb({}, boost::system::error_code());
+}
+
+void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
+  auto req = msg->content<HTTPRequest const*>();
+  try {
+    auto buf = parser::buffer(req->content()->c_str(), req->content()->size());
+    auto parsed_messages = parse_xmls(read_zip_buf(buf));
+    db_put_messages(
+        md5_hash_hex(reinterpret_cast<const unsigned char*>(buf.data()),
+                     buf.size()),
+        parsed_messages);
+    dispatch(pack(parsed_messages));
+  } catch (std::exception const& e) {
+    LOG(error) << "bad zip file: " << e.what();
+    MessageCreator b;
+    b.CreateAndFinish(
+        MsgContent_HTTPResponse,
+        CreateHTTPResponse(b, HTTPStatus_INTERNAL_SERVER_ERROR,
+                           b.CreateVector(std::vector<Offset<HTTPHeader>>()),
+                           b.CreateString(e.what()))
+            .Union());
+    return cb(make_msg(b), boost::system::error_code());
+  }
 
   return cb({}, boost::system::error_code());
 }
@@ -165,7 +201,7 @@ void ris::schedule_update(error_code e) {
   });
 
   parse_zips();
-  db_clean_messages(days_ago(max_days_));
+  // TODO db_clean_messages(days_ago(max_days_));
 }
 
 void ris::parse_zips() {

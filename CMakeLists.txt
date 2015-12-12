@@ -49,11 +49,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND CMAKE_GENERATOR STREQUAL "Ninja")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
-endif()
-
 if(MINGW)
   add_definitions(-DWINVER=0x0501)
   add_definitions(-D_WIN32_WINNT=0x0501)
@@ -82,14 +77,13 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libzip/lib)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/range-v3/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
@@ -105,7 +99,6 @@ add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/osrm-backend EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/libzip EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
@@ -116,10 +109,10 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 # MOTIS
 ################################
 include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/test_include)
 include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
@@ -130,10 +123,10 @@ list(REMOVE_ITEM all-modules ".DS_Store")
 string (REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
-string (REPLACE " " ";" modules "${MODULES}")
+string(REPLACE " " ";" modules "${MODULES}")
 set(module-targets "")
 set(module-test-files "")
-foreach(module ${modules})
+foreach(module ${all-modules})
   include_directories(${CMAKE_SOURCE_DIR}/modules/${module}/include)
 endforeach(module)
 foreach(module ${modules})
@@ -153,10 +146,11 @@ configure_file (
   ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
+file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
-  ${CMAKE_SOURCE_DIR}/test/test_main.cc
+  ${motis-test-files}
   ${motis-modules-test-files}
   ${motis-base-test-files})
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

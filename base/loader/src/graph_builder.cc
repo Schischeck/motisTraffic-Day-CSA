@@ -6,9 +6,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#define RANGES_SUPPRESS_IOTA_WARNING
-#include "range/v3/all.hpp"
-
 #include "parser/cstr.h"
 
 #include "motis/core/common/hash_map.h"
@@ -30,7 +27,6 @@
 
 using namespace motis::logging;
 using namespace flatbuffers;
-using namespace ranges;
 
 namespace motis {
 namespace loader {
