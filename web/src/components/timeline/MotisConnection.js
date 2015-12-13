@@ -53,7 +53,7 @@ SVG.MotisConnection = SVG.invent({
         this.moves.push({
           svgElement: moveGroup,
           info: el.info,
-          x: el.x + totalOffset - 50
+          x: Math.max(10, el.x + totalOffset + el.len / 2.0 - 140)
         });
 
         lastCorrection  = before - el.len;

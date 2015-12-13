@@ -20,8 +20,6 @@ SVG.MotisGrid = SVG.invent({
   inherit: SVG.G,
   extend: {
     updateInfoHoverContent: function(el) {
-      console.log(el);
-
       const from = el.from.stop;
       const to = el.to.stop;
       const transport = el.transport.move;
@@ -80,7 +78,7 @@ SVG.MotisGrid = SVG.invent({
     createInfoHover: function() {
       if (!this.infoHover) {
         var foreignObject = this.put(new SVG.ForeignObject);
-        foreignObject.size(250, 20);
+        foreignObject.size(260, 20);
 
         this.infoHover = document.createElement('div');
 
@@ -135,6 +133,7 @@ SVG.MotisGrid = SVG.invent({
         }
         newCon.draw(this.settings.thickness, this.settings.radius, elements);
         newCon.move(0, y);
+        newCon.attr({'cursor': 'pointer'});
         this.add(newCon);
         this.drawedConnections.push(newCon);
 
@@ -142,7 +141,7 @@ SVG.MotisGrid = SVG.invent({
           this.updateInfoHoverContent(el);
           this.updateInfoHoverPosition(x, y);
           this.showInfoHover();
-        }.bind(this, y + 20));
+        }.bind(this, i == cons.length - 1 ? y - 75 : y + 20));
         newCon.onHoverEnd(function(el, x, y) {
           this.hideInfoHover();
         }.bind(this));

@@ -64,7 +64,7 @@ SVG.MotisMove = SVG.invent({
       g.add(this.path);
       g.add(this.put(new SVG.Text())
                 .text(el.label || '???')
-                .attr({'cursor': 'default'})
+                .attr({'cursor': 'pointer'})
                 .attr({'fill': '#FFF'})
                 .attr({'font-family': 'Verdana,sans-serif'})
                 .attr({'font-weight': 'bold'})
