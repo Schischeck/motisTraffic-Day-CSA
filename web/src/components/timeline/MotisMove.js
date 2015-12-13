@@ -53,7 +53,7 @@ SVG.MotisMove = SVG.invent({
       this.updatePath();
     },
 
-    draw: function(thickness, radius, desired_len, label, labelRotation) {
+    draw: function(thickness, radius, desired_len, el, labelRotation) {
       this.setDrawParameters(thickness, radius, desired_len);
 
       var g = this.put(new SVG.G);
@@ -63,7 +63,8 @@ SVG.MotisMove = SVG.invent({
 
       g.add(this.path);
       g.add(this.put(new SVG.Text())
-                .text(label || '???')
+                .text(el.label || '???')
+                .attr({'cursor': 'pointer'})
                 .attr({'fill': '#FFF'})
                 .attr({'font-family': 'Verdana,sans-serif'})
                 .attr({'font-weight': 'bold'})

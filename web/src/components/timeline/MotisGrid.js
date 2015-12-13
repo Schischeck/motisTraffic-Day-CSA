@@ -1,18 +1,114 @@
 import SVG from 'svg.js';
 
+import ForeignObject from './ForeignObject'
 import MotisConnection from './MotisConnection';
 
 import TimelineCalculator from './TimelineCalculator';
+
+function pad(num, size) {
+  var s = '000' + num;
+  return s.substr(s.length-size);
+}
+
+function formatTime(time) {
+  const date = new Date(time * 1000);
+  return pad(date.getHours(), 2) + ':' + pad(date.getMinutes(), 2);
+}
 
 SVG.MotisGrid = SVG.invent({
   create: 'g',
   inherit: SVG.G,
   extend: {
+    updateInfoHoverContent: function(el) {
+      const from = el.from.stop;
+      const to = el.to.stop;
+      const transport = el.transport.move;
+
+      const departure = {
+        time: formatTime(from.departure.time),
+        isDelayed: from.departure.time != from.departure.schedule_time,
+        track: from.departure.platform
+      };
+
+      const arrival = {
+        time: formatTime(to.arrival.time),
+        isDelayed: to.arrival.time != to.arrival.schedule_time,
+        track: to.arrival.platform
+      };
+
+      this.infoHover.innerHTML =
+            '<table style="padding: 3px 5px; margin: 0">' +
+              '<tr>' +
+                '<td>' + from.name + '</td>' +
+                '<td>' +
+                  '<span style="' + (departure.isDelayed ? 'color: #A33' : '') + '">' +
+                    departure.time +
+                  '</span>' +
+                '</td>' +
+                '<td>' + (departure.track ? 'tr. ' + departure.track : '') + '</td>' +
+                '<td style="border-left: dashed 1px #CCC; padding-left: 8px; text-align: right" rowspan="2">' +
+                  '<span style="font-weight: bold">' + transport.name + '</span>' +
+                '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td>' + to.name + '</td>' +
+                '<td>' +
+                  '<span style="' + (arrival.isDelayed ? 'color: #A33' : '') + '">' +
+                    arrival.time +
+                  '</span>' +
+                '</td>' +
+                '<td>' + (arrival.track ? 'tr. ' + arrival.track : '') + '</td>' +
+              '</tr>' +
+             '</table>';
+    },
+
+    updateInfoHoverPosition: function(x, y) {
+      this.infoHover.style.left = x + 'px';
+      this.infoHover.style.top = y + 'px';
+    },
+
+    showInfoHover: function() {
+      this.infoHover.style.visibility = 'visible';
+    },
+
+    hideInfoHover: function() {
+      this.infoHover.style.visibility = 'hidden';
+    },
+
+    createInfoHover: function() {
+      if (!this.infoHover) {
+        var foreignObject = this.put(new SVG.ForeignObject);
+        foreignObject.size(260, 20);
+
+        this.infoHover = document.createElement('div');
+
+        var style = '';
+        style += 'box-shadow: 0 3px 14px rgba(0,0,0,0.4);';
+        style += 'width: 100%;';
+        style += 'position: relative;'
+        style += 'font-family: sans-serif;';
+        style += 'color: #999;';
+        style += 'font-weight: lighter;';
+        style += 'font-size: .7em;';
+        style += 'border-radius: 2px;';
+        style += 'background-color: white;';
+        style += 'border: 1px solid #BBB';
+        style += 'visibility: hidden';
+
+        foreignObject.appendChild(this.infoHover, {'style': style});
+        this.add(foreignObject);
+
+        this.updateInfoHoverPosition(100, 100);
+      }
+    },
+
     drawConnections: function(cons, timelineSettings) {
       if (this.drawedConnections) {
         this.drawedConnections.forEach(c => { c.remove(); });
       }
       this.drawedConnections = [];
+
+      this.createInfoHover();
 
       if (cons.length == 0) {
         return;
@@ -31,13 +127,24 @@ SVG.MotisGrid = SVG.invent({
             x: this.timeline.timeToXIntercept(section.begin),
             len: this.timeline.timeToXIntercept(section.end) - this.timeline.timeToXIntercept(section.begin),
             color: section.color,
-            label: section.label
+            label: section.transport.move.category_name,
+            info: section
           });
         }
-        newCon.draw(this.settings.thickness, this.settings.radius, elements)
+        newCon.draw(this.settings.thickness, this.settings.radius, elements);
         newCon.move(0, y);
+        newCon.attr({'cursor': 'pointer'});
         this.add(newCon);
         this.drawedConnections.push(newCon);
+
+        newCon.onHoverBegin(function(y, el, x) {
+          this.updateInfoHoverContent(el);
+          this.updateInfoHoverPosition(x, y);
+          this.showInfoHover();
+        }.bind(this, i == cons.length - 1 ? y - 75 : y + 20));
+        newCon.onHoverEnd(function(el, x, y) {
+          this.hideInfoHover();
+        }.bind(this));
 
         y += this.settings.radius * 5.5;
       }
