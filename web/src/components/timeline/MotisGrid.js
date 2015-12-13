@@ -6,7 +6,8 @@ import MotisConnection from './MotisConnection';
 import TimelineCalculator from './TimelineCalculator';
 
 const isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-const offset = isFirefox ? 8 : 20;
+const isMS = document.documentMode || /Edge/.test(navigator.userAgent);
+const offset = (isFirefox || isMS) ? 8 : 20;
 
 function pad(num, size) {
   var s = '000' + num;
