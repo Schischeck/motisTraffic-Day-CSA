@@ -25,6 +25,7 @@ SVG.MotisMove = SVG.invent({
       var minWidth = this.in_eq_width / 2.0;
       var len = desired_len - (this.radius + this.in_eq_width) - (this.thickness / 6.0);
       var offset = minWidth - len;
+
       if (len < minWidth) {
         len = minWidth;
       }
@@ -52,7 +53,7 @@ SVG.MotisMove = SVG.invent({
       this.updatePath();
     },
 
-    draw: function(thickness, radius, desired_len, el) {
+    draw: function(thickness, radius, desired_len, el, labelRotation) {
       this.setDrawParameters(thickness, radius, desired_len);
 
       var g = this.put(new SVG.G);
@@ -69,7 +70,7 @@ SVG.MotisMove = SVG.invent({
                 .attr({'font-weight': 'bold'})
                 .attr({'text-anchor': 'middle'})
                 .size(9.5)
-                .move(0, -0.25 * thickness));
+                .move(0, -0.25 * thickness).rotate(labelRotation || 0));
 
       return g;
     }

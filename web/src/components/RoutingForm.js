@@ -82,10 +82,6 @@ export default class RoutingForm extends Component {
   }
 
   render() {
-    const now = new Date();
-    const in8Weeks = new Date();
-    in8Weeks.setDate(now.getDate() + (8 * 7));
-
     return (
     <div>
       <FloatingActionButton
