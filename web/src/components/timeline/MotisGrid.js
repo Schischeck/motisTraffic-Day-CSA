@@ -5,6 +5,10 @@ import MotisConnection from './MotisConnection';
 
 import TimelineCalculator from './TimelineCalculator';
 
+const isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+const isMS = document.documentMode || /Edge/.test(navigator.userAgent);
+const offset = (isFirefox || isMS) ? 8 : 20;
+
 function pad(num, size) {
   var s = '000' + num;
   return s.substr(s.length-size);
@@ -66,10 +70,13 @@ SVG.MotisGrid = SVG.invent({
 
     showInfoHover: function() {
       this.infoHoverContent.style.display = 'table';
+      this.infoHoverContent.style.visibility = 'visible';
     },
 
     hideInfoHover: function() {
       this.infoHoverContent.style.display = 'none';
+      this.infoHoverContent.style.visibility = 'hidden';
+      this.infoHover.move(1000, 1000);
     },
 
     createInfoHover: function() {
@@ -95,6 +102,7 @@ SVG.MotisGrid = SVG.invent({
 
         this.infoHover.appendChild(this.infoHoverContent, {'style': style});
         this.add(this.infoHover);
+        this.hideInfoHover()
       }
     },
 
@@ -135,7 +143,7 @@ SVG.MotisGrid = SVG.invent({
           this.updateInfoHoverContent(el);
           this.updateInfoHoverPosition(x, y);
           this.showInfoHover();
-        }.bind(this, i == cons.length - 1 ? y - 75 : y + 20));
+        }.bind(this, y + offset));
         newCon.onHoverEnd(function(el, x, y) {
           this.hideInfoHover();
         }.bind(this));
