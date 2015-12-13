@@ -35,11 +35,6 @@ export default class Timeline extends React.Component {
     function transports(con, from, to) {
       return con.transports.filter(t => {
         return t.move.range.from >= from && t.move.range.to <= to;
-      }).map(t => {
-        return {
-          'name': t.move.category_name,
-          'clasz': t.move.clasz
-        };
       });
     }
 
@@ -77,10 +72,12 @@ export default class Timeline extends React.Component {
         let from = importantStops[i];
         let to = importantStops[i + 1];
         let transport = transports(c, from.i, to.i)[0];
-        if (transport && transport.name) {
+        if (transport && transport.move.name) {
           elements.push({
-            label: transport.name,
-            color: colors[transport.clasz] || '#D31996',
+            transport,
+            from,
+            to,
+            color: colors[transport.move.clasz] || '#D31996',
             begin: new Date(from.stop.departure.time * 1000),
             end: new Date(to.stop.arrival.time * 1000)
           });
