@@ -36,7 +36,7 @@ SVG.MotisGrid = SVG.invent({
         track: to.arrival.platform
       };
 
-      this.infoHover.innerHTML =
+      this.infoHoverContent.innerHTML =
             '<table style="padding: 3px 5px; margin: 0">' +
               '<tr>' +
                 '<td>' + from.name + '</td>' +
@@ -45,8 +45,7 @@ SVG.MotisGrid = SVG.invent({
                     departure.time +
                   '</span>' +
                 '</td>' +
-                '<td>' + (departure.track ? 'tr. ' + departure.track : '') + '</td>' +
-                '<td style="border-left: dashed 1px #CCC; padding-left: 8px; text-align: right" rowspan="2">' +
+                '<td style="min-width: 45px; border-left: dashed 1px #CCC; margin-left: 8px; padding-left: 8px; text-align: right" rowspan="2">' +
                   '<span style="font-weight: bold">' + transport.name + '</span>' +
                 '</td>' +
               '</tr>' +
@@ -57,48 +56,45 @@ SVG.MotisGrid = SVG.invent({
                     arrival.time +
                   '</span>' +
                 '</td>' +
-                '<td>' + (arrival.track ? 'tr. ' + arrival.track : '') + '</td>' +
               '</tr>' +
              '</table>';
     },
 
     updateInfoHoverPosition: function(x, y) {
-      this.infoHover.style.left = x + 'px';
-      this.infoHover.style.top = y + 'px';
+      this.infoHover.move(x, y);
     },
 
     showInfoHover: function() {
-      this.infoHover.style.visibility = 'visible';
+      this.infoHoverContent.style.display = 'table';
     },
 
     hideInfoHover: function() {
-      this.infoHover.style.visibility = 'hidden';
+      this.infoHoverContent.style.display = 'none';
     },
 
     createInfoHover: function() {
-      if (!this.infoHover) {
-        var foreignObject = this.put(new SVG.ForeignObject);
-        foreignObject.size(260, 20);
+      if (!this.infoHoverContent) {
+        this.infoHover = this.put(new SVG.ForeignObject);
+        this.infoHover.size(280, 120);
 
-        this.infoHover = document.createElement('div');
+        this.infoHoverContent = document.createElement('div');
 
         var style = '';
+        style += 'margin: 20px;';
+        style += 'max-height: 80px;';
+        style += 'width: 240px;';
+        style += 'display: none;';
         style += 'box-shadow: 0 3px 14px rgba(0,0,0,0.4);';
-        style += 'width: 100%;';
-        style += 'position: relative;'
-        style += 'font-family: sans-serif;';
         style += 'color: #999;';
+        style += 'font-family: sans-serif;';
         style += 'font-weight: lighter;';
         style += 'font-size: .7em;';
         style += 'border-radius: 2px;';
         style += 'background-color: white;';
-        style += 'border: 1px solid #BBB';
-        style += 'visibility: hidden';
+        style += 'border: 1px solid #BBB;';
 
-        foreignObject.appendChild(this.infoHover, {'style': style});
-        this.add(foreignObject);
-
-        this.updateInfoHoverPosition(100, 100);
+        this.infoHover.appendChild(this.infoHoverContent, {'style': style});
+        this.add(this.infoHover);
       }
     },
 
@@ -107,8 +103,6 @@ SVG.MotisGrid = SVG.invent({
         this.drawedConnections.forEach(c => { c.remove(); });
       }
       this.drawedConnections = [];
-
-      this.createInfoHover();
 
       if (cons.length == 0) {
         return;
@@ -148,6 +142,8 @@ SVG.MotisGrid = SVG.invent({
 
         y += this.settings.radius * 5.5;
       }
+
+      this.createInfoHover();
     },
 
     drawTimeline: function(timelineSettings) {
