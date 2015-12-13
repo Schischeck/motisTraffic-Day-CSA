@@ -8,6 +8,7 @@ import Map from './Map';
 import ConnectionView from './ConnectionView';
 import ServerConnectionIndicator from './ServerConnectionIndicator';
 import Timeline from './timeline/MotisTimeline';
+import DetailView from './timeline/MotisDetailView';
 
 import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
@@ -106,6 +107,41 @@ export class App extends Component {
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
           { results }
+          // Detail View with mock-data
+          /*
+          <DetailView connection={[
+            {
+              "name": "Frankfurt (Main) Hbf",
+              "color":"#19DD89",
+              "label":"RE"
+            },
+            {
+              "name": "Hanau Hbf",
+              "color":"#D31996",
+              "label":"ICE"
+            },
+            {
+              "name": "Sonstwo",
+              "color":"#FD8F3A",
+              "label":"RB"
+            },
+            {
+              "name": "In der Wallachei",
+              "color":"#FD8F3A",
+              "label":"RB"
+            },
+            {
+              "name": "Lorem Ipsum",
+              "color":"#19DD89",
+              "label":"RE"
+            },
+            {
+              "name": "Berlin Hbf",
+              "color":"#19DD89",
+              "label":"RE"
+            }
+          ]} />
+          */
       </PaddedPaper>
     </div>
     );

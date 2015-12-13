@@ -7,6 +7,7 @@ SVG.MotisConnection = SVG.invent({
   inherit: SVG.G,
   extend: {
     draw: function(thickness, radius, elements) {
+      console.log(elements)
       var self = this;
       var totalOffset = 0;
       var lastEnd = 0;
