@@ -10,17 +10,17 @@ SVG.ForeignObject = function() {
 SVG.ForeignObject.prototype = new SVG.Shape
 
 SVG.extend(SVG.ForeignObject, {
-  appendChild: function (child, attrs) {
+  appendChild: function(child, attrs) {
     var newChild = typeof(child)=='string' ? document.createElement(child) : child
     if (typeof(attrs)=='object'){
       for(var a in attrs) {
         newChild.setAttribute(a, attrs[a]);
       }
     }
-    this.node.appendChild(newChild)
-    return this
+    this.node.appendChild(newChild);
+    return this;
   },
-  getChild: function (index) {
+  getChild: function(index) {
     return this.node.childNodes[index]
   }
 })
