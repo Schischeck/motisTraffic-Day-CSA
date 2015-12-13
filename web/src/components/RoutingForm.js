@@ -119,8 +119,6 @@ export default class RoutingForm extends Component {
                       floatingLabelText="Day"
                       DateTimeFormat={ Intl.DateTimeFormat }
                       locale={ 'de' }
-                      minDate={ now }
-                      maxDate={ in8Weeks }
                       value={ this.state.time }
                       onChange={ this.onDateChange.bind(this) } />
           <TimePicker

@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import SVG from 'svg.js';
 
 import MotisGrid from './MotisGrid';
+import SVGTimeLabels from './SVGTimeLabels';
+import TimelineCalculator from './TimelineCalculator';
 
 import style from './MotisTimeline.scss';
 
@@ -19,11 +21,16 @@ export default class Timeline extends React.Component {
     if (this.grid) {
       delete this.grid;
     }
-    if (this.svg) {
-      delete this.svg;
+    if (this.timelineLabelsSVG) {
+      delete this.timelineLabelsSVG;
     }
-    this.svg = SVG('timeline').clear();
-    this.grid = this.svg.motisgrid(520, this.getHeight(), []);
+    if (this.timelineSVG) {
+      delete this.timelineSVG;
+    }
+    this.timelineLabelsSVG = SVG('timeline-labels').clear();
+    this.timelineSVG = SVG('timeline').clear();
+    this.grid = this.timelineSVG.motisgrid(520, this.getHeight(), []);
+    this.timelineLabels = this.timelineLabelsSVG.motistimelabels(520, 20, []);
 
     function transports(con, from, to) {
       return con.transports.filter(t => {
@@ -48,7 +55,7 @@ export default class Timeline extends React.Component {
       9: '#7ED3FD',
     };
 
-    this.grid.drawConnections(this.props.connections.map(c => {
+    const cons = this.props.connections.map(c => {
       const walkTargets = c.transports.filter(move => {
         return move.move_type == 'Walk';
       }).map(walk => {
@@ -80,15 +87,20 @@ export default class Timeline extends React.Component {
         }
       }
       return elements;
-    }));
+    });
+
+    const settings = TimelineCalculator(cons, 520, 52);
+    this.grid.drawConnections(cons, settings);
+    this.timelineLabels.drawTimeline(settings);
   }
 
   componentDidUpdate = this.componentDidMount
 
   render() {
     return (
-      <div className={ style.timeline } style={{height: Math.min(300, (this.getHeight() + 10)) + 'px'}}  {...this.props}>
-        <div className={ style.container }>
+      <div style={{marginTop: '10px'}}>
+        <svg style={{height: '20px'}} id="timeline-labels"></svg>
+        <div className={ style.timeline } style={{height: Math.min(300, (this.getHeight() + 10)) + 'px'}}>
           <svg id="timeline" style={{height: this.getHeight() + 'px'}}></svg>
         </div>
       </div>
