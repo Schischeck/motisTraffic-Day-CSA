@@ -95,7 +95,7 @@ export default class RoutingForm extends Component {
                             onClick={ this.props.onRequestRouting }
                             secondary={ true }
                             style={ { 'position': 'absolute', 'marginTop': '110px', 'left': 'calc(50% + 255px)', 'zIndex': 1 } }>
-        <i className={ materialicons }>search</i>
+        <i className={ materialicons }>&#xe8b6;</i>
       </FloatingActionButton>
       <div className={ style.flexrow }>
         <div className={ style.flexcol }>
