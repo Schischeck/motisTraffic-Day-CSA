@@ -147,7 +147,7 @@ bool is_pre_computed_route(schedule const& schedule,
       if (schedule.waiting_time_rules_.other_trains_wait_for(
               schedule.waiting_time_rules_.waiting_time_category(family)) ||
           /* trains which wait for other trains are added to the
-           * precomputed-distributions-container since the container
+           * precomputed-distributions-container since
            * this is the only way to find their feeders
            * (see container::node). */
           schedule.waiting_time_rules_.waits_for_other_trains(

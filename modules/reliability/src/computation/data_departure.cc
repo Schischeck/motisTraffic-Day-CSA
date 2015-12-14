@@ -88,6 +88,9 @@ void data_departure::init_feeder_info(
     std::vector<distributions_container::container::node const*> const& feeders,
     schedule const& schedule) {
   for (auto const& feeder : feeders) {
+    /* TODO: test whether feeder is cancelled or rerouted!
+     * (do the same for preceding arrival or interchange feeder?!)
+     */
     auto const waiting_time = graph_accessor::get_waiting_time(
         schedule.waiting_time_rules_,
         graph_accessor::find_family(schedule.categories, feeder->key_.category_)

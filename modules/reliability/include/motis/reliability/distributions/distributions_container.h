@@ -37,14 +37,6 @@ struct container {
              std::tie(o.train_id_, o.category_, o.line_identifier_,
                       o.station_index_, o.type_, o.scheduled_event_time_);
     }
-
-    void output(std::ostream& os) const {
-      os << "key: tr=" << train_id_ << " cat='" << category_ << "'"
-         << " line='" << line_identifier_ << "'"
-         << " st=" << station_index_
-         << " tp=" << (type_ == time_util::departure ? "d" : "a")
-         << " t=" << scheduled_event_time_ << std::endl;
-    }
   };
 
   struct node {
@@ -90,6 +82,15 @@ private:
   std::map<key, node> distributions_nodes_;
   node invalid_node_;
 };
+
+inline std::ostream& operator<<(std::ostream& out, container::key const& k) {
+  out << "key: tr=" << k.train_id_ << " cat='" << k.category_ << "'"
+      << " line='" << k.line_identifier_ << "'"
+      << " st=" << k.station_index_
+      << " tp=" << (k.type_ == time_util::departure ? "d" : "a")
+      << " t=" << format_time(k.scheduled_event_time_) << std::endl;
+  return out;
+}
 
 struct single_distribution_container : container {
   single_distribution_container(probability_distribution const& distribution)
