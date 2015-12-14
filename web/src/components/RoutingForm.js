@@ -88,13 +88,13 @@ export default class RoutingForm extends Component {
                             onClick={ this.switchStations.bind(this) }
                             mini={ true }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'margin-top': '80px', 'left': 'calc(50% - 50px)', 'zIndex': 1, 'transform': 'scale(.8)'} }>
+                            style={ { 'position': 'absolute', 'margin-top': '80px', 'left': 'calc(50% - 50px)', 'zIndex': 10, 'transform': 'scale(.8)'} }>
         <i className={ materialicons }>&#xE8D5;</i>
       </FloatingActionButton>
       <FloatingActionButton
                             onClick={ this.props.onRequestRouting }
                             secondary={ true }
-                            style={ { 'position': 'absolute', 'marginTop': '110px', 'left': 'calc(50% + 255px)', 'zIndex': 1 } }>
+                            style={ { 'position': 'absolute', 'marginTop': '110px', 'left': 'calc(50% + 255px)', 'zIndex': 10 } }>
         <i className={ materialicons }>&#xe8b6;</i>
       </FloatingActionButton>
       <div className={ style.flexrow }>
