@@ -104,7 +104,7 @@ struct mss_rule : public service_rule {
 
     // ensure that all stops between the merge and split match
     --split_idx_s1;
-    --split_idx_s1;
+    --split_idx_s2;
     while (++merge_idx_s1 <= split_idx_s1 && ++merge_idx_s2 <= split_idx_s2) {
       auto const& stop_s1 = s1->stops_[split_idx_s1];
       auto const& stop_s2 = s2->stops_[split_idx_s2];
