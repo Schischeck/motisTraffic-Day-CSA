@@ -1,5 +1,7 @@
 #include "motis/loader/timezone_util.h"
 
+#include <algorithm>
+
 #include "parser/util.h"
 
 #include "motis/core/schedule/time.h"
