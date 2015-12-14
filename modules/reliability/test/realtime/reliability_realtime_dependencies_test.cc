@@ -12,7 +12,6 @@
 namespace motis {
 namespace reliability {
 namespace realtime {
-namespace dependencies_finder {
 
 class reliability_realtime_dependencies : public test_motis_setup {
 public:
@@ -434,7 +433,6 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen) {
     ASSERT_EQ(&distribution_node_arr,
               distribution_node_dep.predecessors_.front());
   }
-}
 }
 }
 }
