@@ -31,6 +31,7 @@ public:
   reliability_calc_departure_distribution()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
+  std::string DARMSTADT = "4219971";
   /* train numbers */
   short const IC_DA_H = 1;
   short const IC_FR_DA = 2;
@@ -329,8 +330,7 @@ TEST_F(reliability_calc_departure_distribution,
 // first route node with feeders
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution2) {
-  distributions_container::test_container train_distributions(
-      {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
+  distributions_container::container dummy;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
@@ -342,6 +342,11 @@ TEST_F(reliability_calc_departure_distribution,
   // light connection d07:00 a07:28
   auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
 
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, first_route_node, light_connection,
+      {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1, *schedule_);
+
   /* Scheduled departure time: 07:00
    * First Feeder:
    *   feeder-arrival-time: 06:54, lfa: 06:58, transfer-time: 5
@@ -350,8 +355,8 @@ TEST_F(reliability_calc_departure_distribution,
    * The second feeder has no influence on this departure
    */
   data_departure data(
-      first_route_node, light_connection, true, train_distributions,
-      context(*schedule_, train_distributions, s_t_distributions));
+      first_route_node, light_connection, true, dummy, distribution_node,
+      context(*schedule_, feeder_distributions, s_t_distributions));
 
   ASSERT_TRUE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.6));
@@ -366,9 +371,8 @@ TEST_F(reliability_calc_departure_distribution,
       equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
             1.0));
 
-  ASSERT_TRUE(equal(departure_independent_from_feeders(
-                        data.feeders_, data.scheduled_departure_time_ + 1),
-                    0.8));
+  ASSERT_DOUBLE_EQ(0.8, departure_independent_from_feeders(
+                            data.feeders_, data.scheduled_departure_time_ + 1));
 
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
@@ -450,7 +454,6 @@ TEST_F(reliability_calc_departure_distribution,
   for (unsigned int i = 0; i < 29; i++) {
     values.push_back(0.033);
   }
-
   distributions_container::test_container train_distributions(values, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
@@ -462,6 +465,11 @@ TEST_F(reliability_calc_departure_distribution,
   auto const& light_connection =
       graph_accessor::get_departing_route_edge(route_node)
           ->_m._route_edge._conns[0];
+
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, route_node, light_connection, values, 0,
+      *schedule_);
 
   /* scheduled-departure-time: 06:11 largest-delay: 3
    * preceding-arrival-time: 06:05 min-standing: 2
@@ -475,7 +483,8 @@ TEST_F(reliability_calc_departure_distribution,
    */
   data_departure data(
       route_node, light_connection, false, train_distributions,
-      context(*schedule_, train_distributions, s_t_distributions));
+      distribution_node,
+      context(*schedule_, feeder_distributions, s_t_distributions));
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(

@@ -7,6 +7,7 @@
 
 #include "../include/message_builder.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
 
@@ -39,9 +40,10 @@ public:
                                        get_schedule()));
 
     distributions_container::container dummy;
+    distributions_container::container::node dummy_node;
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2});
     calc_departure_distribution::data_departure data(
-        route_node, light_conn, true, dummy,
+        route_node, light_conn, true, dummy, dummy_node,
         context(get_schedule(), dummy, s_t_distributions));
 
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60),
@@ -118,13 +120,14 @@ public:
                                        get_schedule()));
 
     distributions_container::container dummy;
+    distributions_container::container::node dummy_node;
     start_and_travel_test_distributions s_t_distributions({0.8, 0.2});
     probability_distribution arrival_dist;
     arrival_dist.init({0.9, 0.1}, 0);
     distributions_container::single_distribution_container train_dist(
         arrival_dist);
     calc_departure_distribution::data_departure data(
-        route_node, light_conn, false, train_dist,
+        route_node, light_conn, false, train_dist, dummy_node,
         context(get_schedule(), dummy, s_t_distributions));
 
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 7),
@@ -151,9 +154,9 @@ TEST_F(reliability_realtime_dist_data_test, get_scheduled_event_time) {
   bootstrap::send(
       motis_instance_,
       realtime::get_delay_message(FRANKFURT, ICE_F_L_D,
-                                1445241600 /* 2015-10-19 08:00:00 GMT */,
-                                1445241660 /* 2015-10-19 08:01:00 GMT */,
-                                ris::EventType_Departure, ris::DelayType_Is));
+                                  1445241600 /* 2015-10-19 08:00:00 GMT */,
+                                  1445241660 /* 2015-10-19 08:01:00 GMT */,
+                                  ris::EventType_Departure, ris::DelayType_Is));
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 1), first_lc.d_time);
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60),
             get_scheduled_event_time(first_route_node, first_lc, departure,
@@ -190,9 +193,9 @@ TEST_F(reliability_realtime_dist_data_test,
   bootstrap::send(
       motis_instance_,
       realtime::get_delay_message(FRANKFURT, ICE_F_L_D,
-                                1445241600 /* 2015-10-19 08:00:00 GMT */,
-                                1445241660 /* 2015-10-19 08:01:00 GMT */,
-                                ris::EventType_Departure, ris::DelayType_Is));
+                                  1445241600 /* 2015-10-19 08:00:00 GMT */,
+                                  1445241660 /* 2015-10-19 08:01:00 GMT */,
+                                  ris::EventType_Departure, ris::DelayType_Is));
 
   test_departure_frankfurt(); /* test departure forecast */
 
@@ -203,9 +206,9 @@ TEST_F(reliability_realtime_dist_data_test, data_arrival_is) {
   bootstrap::send(
       motis_instance_,
       realtime::get_delay_message(LANGEN, ICE_F_L_D,
-                                1445241900 /* 2015-10-19 08:05:00 GMT */,
-                                1445241960 /* 2015-10-19 08:06:00 GMT */,
-                                ris::EventType_Arrival, ris::DelayType_Is));
+                                  1445241900 /* 2015-10-19 08:05:00 GMT */,
+                                  1445241960 /* 2015-10-19 08:06:00 GMT */,
+                                  ris::EventType_Arrival, ris::DelayType_Is));
   test_arrival_langen();
   test_departure_langen();
 }
@@ -214,9 +217,9 @@ TEST_F(reliability_realtime_dist_data_test, data_feeder_is) {
   bootstrap::send(
       motis_instance_,
       realtime::get_delay_message(LANGEN, ICE_F_L_D,
-                                1445241900 /* 2015-10-19 08:05:00 GMT */,
-                                1445241960 /* 2015-10-19 08:06:00 GMT */,
-                                ris::EventType_Arrival, ris::DelayType_Is));
+                                  1445241900 /* 2015-10-19 08:05:00 GMT */,
+                                  1445241960 /* 2015-10-19 08:06:00 GMT */,
+                                  ris::EventType_Arrival, ris::DelayType_Is));
   bootstrap::send(motis_instance_,
                   realtime::get_delay_message(
                       LANGEN, ICE_L_H, 1445242200 /* 2015-10-19 08:10:00 GMT */,
@@ -236,18 +239,21 @@ TEST_F(reliability_realtime_dist_data_test, data_feeder_is) {
   distributions_container::container dummy;
   probability_distribution feeder_dist;
   feeder_dist.init({0.9, 0.1}, 0);
-  distributions_container::single_distribution_container feeder_dist_container(
-      feeder_dist);
+  distributions_container::container feeder_dist_container;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_dist_container, route_node, light_conn, {0.9, 0.1}, 0,
+      get_schedule());
+
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2});
   calc_departure_distribution::data_departure data(
-      route_node, light_conn, true, dummy,
+      route_node, light_conn, true, dummy, distribution_node,
       context(get_schedule(), feeder_dist_container, s_t_distributions));
 
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 10),
             data.scheduled_departure_time_);
   ASSERT_EQ(1, data.feeders_.size());
   auto const& feeder = data.feeders_.front();
-  ASSERT_EQ(&feeder_dist, &feeder.distribution_);
+  ASSERT_EQ(feeder_dist, feeder.distribution_);
   ASSERT_EQ(test_util::minutes_to_motis_time((8 * 60 + 10 + 3) - 5),
             feeder.latest_feasible_arrival_);
   ASSERT_EQ(5, feeder.transfer_time_);

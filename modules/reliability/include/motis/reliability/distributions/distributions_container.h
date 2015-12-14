@@ -104,7 +104,7 @@ private:
 
 inline container::key to_container_key(light_connection const& lc,
                                        unsigned int const station_idx,
-                                       time_util::event_type type,
+                                       time_util::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {
   auto to_lower = [](std::string str) -> std::string {
@@ -123,7 +123,7 @@ inline container::key to_container_key(light_connection const& lc,
 
 inline container::key to_container_key(node const& route_node,
                                        light_connection const& lc,
-                                       time_util::event_type type,
+                                       time_util::event_type const type,
                                        schedule const& sched) {
   return to_container_key(
       lc, route_node.get_station()->_id, type,

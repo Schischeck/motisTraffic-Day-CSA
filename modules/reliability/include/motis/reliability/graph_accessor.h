@@ -169,10 +169,14 @@ inline duration get_interchange_time(node const& arrival_node_feeder,
 inline std::pair<bool, int> find_family(
     std::vector<std::unique_ptr<category>> const& categories,
     std::string const& category_name) {
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
   auto const cat_it =
       std::find_if(categories.begin(), categories.end(),
-                   [category_name](std::unique_ptr<category> const& cat) {
-                     return cat->name == category_name;
+                   [&](std::unique_ptr<category> const& cat) {
+                     return to_lower(cat->name) == to_lower(category_name);
                    });
 
   if (cat_it == categories.end()) {

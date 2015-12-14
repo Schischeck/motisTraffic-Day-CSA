@@ -110,6 +110,10 @@ std::vector<rating::rating_element> compute_test_ratings1(
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, ratings[0].arrival_distribution_,
       precomputed_distributions,
+      precomputed_distributions.get_node(
+          distributions_container::to_container_key(
+              ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+              time_util::departure, test_info.get_schedule())),
       context(test_info.get_schedule(), precomputed_distributions,
               s_t_distributions));
   calc_departure_distribution::interchange::compute_departure_distribution(
@@ -226,6 +230,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
   calc_departure_distribution::data_departure_interchange dep_data(
       true, node_d2, node_d1, lc_d_f, lc_b_d, ratings[1].arrival_distribution_,
       c.precomputed_distributions_,
+      c.precomputed_distributions_.get_node(
+          distributions_container::to_container_key(
+              node_d2, lc_d_f, time_util::departure, c.schedule_)),
       context(test_info.get_schedule(), c.precomputed_distributions_,
               c.s_t_distributions_));
   calc_departure_distribution::interchange::compute_departure_distribution(
@@ -248,6 +255,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
       node_f, lc_f_g, false,
       distributions_container::single_distribution_container(
           ratings[2].arrival_distribution_),
+      c.precomputed_distributions_.get_node(
+          distributions_container::to_container_key(
+              node_f, lc_f_g, time_util::departure, c.schedule_)),
       context(test_info.get_schedule(), c.precomputed_distributions_,
               c.s_t_distributions_));
   calc_departure_distribution::compute_departure_distribution(
@@ -272,6 +282,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
   calc_departure_distribution::data_departure_interchange dep_data_g(
       true, node_g, *edge_f_g._to, lc_g_m, lc_f_g,
       ratings[3].arrival_distribution_, c.precomputed_distributions_,
+      c.precomputed_distributions_.get_node(
+          distributions_container::to_container_key(
+              node_g, lc_g_m, time_util::departure, c.schedule_)),
       context(test_info.get_schedule(), c.precomputed_distributions_,
               c.s_t_distributions_));
   calc_departure_distribution::interchange::compute_departure_distribution(
@@ -361,6 +374,10 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, ratings[0].arrival_distribution_,
       precomputed_distributions,
+      precomputed_distributions.get_node(
+          distributions_container::to_container_key(
+              ic_data.tail_node_departing_train_, ic_data.departing_light_conn_,
+              time_util::departure, test_info.get_schedule())),
       context(test_info.get_schedule(), precomputed_distributions,
               s_t_distributions));
   calc_departure_distribution::interchange::compute_departure_distribution(

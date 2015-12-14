@@ -64,6 +64,12 @@ void perform_precomputation(schedule const&,
 namespace detail {
 bool is_pre_computed_route(schedule const& schedule,
                            node const& first_route_node);
+std::tuple<bool, time, time> get_feeder_time_interval(
+    time const departure_time, duration change_time,
+    duration const feeder_threshold);
+std::vector<std::pair<node const*, light_connection const*>> get_feeders(
+    node const& route_node, light_connection const& light_conn,
+    schedule const& sched);
 }  // namespace detail
 }  // namespace precomputation
 }  // namespace distributions_calculator

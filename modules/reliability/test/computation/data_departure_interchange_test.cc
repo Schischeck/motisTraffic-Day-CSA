@@ -56,20 +56,18 @@ public:
 TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_no_feeders) {
   distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
-
+  probability_distribution dummy_arrival_distribution;
+  dummy_arrival_distribution.init_one_point(0, 1.0);
   interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
                                            FRANKFURT, STUTTGART, 8 * 60,
                                            10 * 60, 10 * 60 + 10, 11 * 60 + 10);
-
-  probability_distribution dummy_arrival_distribution;
-  dummy_arrival_distribution.init_one_point(0, 1.0);
-
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
-      context(*schedule_, dummy, s_t_distributions));
+      dummy_node, context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);
   ASSERT_TRUE(data.scheduled_departure_time_ ==
@@ -99,6 +97,7 @@ TEST_F(reliability_data_departure_interchange2,
        interchange_preceding_arrival_no_feeders) {
   distributions_container::test_container train_distributions({0.9, 0.1}, 0);
   distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_K_F_S
@@ -122,7 +121,7 @@ TEST_F(reliability_data_departure_interchange2,
   data_departure_interchange data(
       false, tail_node_departing_train, *ic_data.arriving_route_edge_._to,
       ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
-      dummy_arrival_distribution, train_distributions,
+      dummy_arrival_distribution, train_distributions, dummy_node,
       context(*schedule_, dummy, s_t_distributions));
 
   // light conn of route edge from Kassel to Frankfurt of train ICE_K_F_S
@@ -165,10 +164,6 @@ TEST_F(reliability_data_departure_interchange2,
 
 TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_feeders_incl_ic) {
-  distributions_container::container dummy;
-  distributions_container::test_container feeder_distributions({0.9, 0.1}, 0);
-  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
-
   // arriving train ICE_F_S from Frankfurt to Stuttgart
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
@@ -176,27 +171,38 @@ TEST_F(reliability_data_departure_interchange2,
       *schedule_, ICE_F_S, ICE_S_E, FRANKFURT, STUTTGART, ERLANGEN,
       10 * 60 + 10, 11 * 60 + 10, 11 * 60 + 32, 12 * 60 + 32);
 
+  distributions_container::container dummy;
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
+
+  probability_distribution feeder_dist;
+  feeder_dist.init({0.9, 0.1}, 0);
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, ic_data.tail_node_departing_train_,
+      ic_data.departing_light_conn_, {0.9, 0.1}, 0, *schedule_);
+  ASSERT_EQ(2, distribution_node.predecessors_.size());
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
+      distribution_node,
       context(*schedule_, feeder_distributions, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);
-  ASSERT_TRUE(data.scheduled_departure_time_ ==
-              ic_data.departing_light_conn_.d_time);
-  ASSERT_TRUE(data.largest_delay() == 3);
-  ASSERT_TRUE(data.feeders_.size() == 1);
+  ASSERT_EQ(ic_data.departing_light_conn_.d_time,
+            data.scheduled_departure_time_);
+  ASSERT_EQ(3, data.largest_delay());
+  ASSERT_EQ(1, data.feeders_.size());
 
   // Feeder ICE_K_F_S
   auto const& feeder = data.feeders_[0];
 
-  ASSERT_TRUE(feeder.scheduled_arrival_time_ ==
-              test_util::minutes_to_motis_time(11 * 60 + 15));
-  ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+  ASSERT_EQ(test_util::minutes_to_motis_time(11 * 60 + 15),
+            feeder.scheduled_arrival_time_);
+  ASSERT_TRUE(feeder.distribution_ == feeder_dist);
   ASSERT_TRUE(
       feeder.transfer_time_ ==
       schedule_->stations[ic_data.tail_node_departing_train_._station_node->_id]
@@ -223,24 +229,29 @@ TEST_F(reliability_data_departure_interchange2,
 
 TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_feeders_excl_ic) {
-  distributions_container::container dummy;
-  distributions_container::test_container feeder_distributions({0.9, 0.1}, 0);
-  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
-
   // arriving train S_H_S from Heilbronn to Stuttgart
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
   interchange_data_for_tests const ic_data(
       *schedule_, S_H_S, ICE_S_E, HEILBRONN, STUTTGART, ERLANGEN, 7 * 60 + 15,
       11 * 60 + 15, 11 * 60 + 32, 12 * 60 + 32);
-
+  distributions_container::container dummy;
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
+
+  probability_distribution feeder_dist;
+  feeder_dist.init({0.9, 0.1}, 0);
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, ic_data.tail_node_departing_train_,
+      ic_data.departing_light_conn_, {0.9, 0.1}, 0, *schedule_);
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
+      distribution_node,
       context(*schedule_, feeder_distributions, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);
@@ -254,7 +265,7 @@ TEST_F(reliability_data_departure_interchange2,
     auto const& feeder = data.feeders_[0];
     ASSERT_TRUE(feeder.scheduled_arrival_time_ ==
                 test_util::minutes_to_motis_time(11 * 60 + 15));
-    ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+    ASSERT_TRUE(feeder.distribution_ == feeder_dist);
     ASSERT_TRUE(
         feeder.transfer_time_ ==
         schedule_
@@ -269,7 +280,7 @@ TEST_F(reliability_data_departure_interchange2,
     auto const& feeder = data.feeders_[1];
     ASSERT_TRUE(feeder.scheduled_arrival_time_ ==
                 test_util::minutes_to_motis_time(11 * 60 + 10));
-    ASSERT_TRUE(&feeder.distribution_ == &feeder_distributions.dist);
+    ASSERT_TRUE(feeder.distribution_ == feeder_dist);
     ASSERT_TRUE(
         feeder.transfer_time_ ==
         schedule_
@@ -298,16 +309,15 @@ TEST_F(reliability_data_departure_interchange2,
 
 TEST_F(reliability_data_departure_interchange2,
        interchange_first_route_node_no_other_feeder_but_icfeeder) {
-  distributions_container::container dummy;
-  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
-
   // arriving train ICE_S_E from Stuttgart to Erlangen
   // interchange at Stuttgart
   // departing train ICE_E_K from Erlangen to Kassel
   interchange_data_for_tests const ic_data(
       *schedule_, ICE_S_E, ICE_E_K, STUTTGART, ERLANGEN, KASSEL, 11 * 60 + 32,
       12 * 60 + 32, 12 * 60 + 45, 14 * 60 + 15);
-
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
+  start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
@@ -315,7 +325,7 @@ TEST_F(reliability_data_departure_interchange2,
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
-      context(*schedule_, dummy, s_t_distributions));
+      dummy_node, context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);
   ASSERT_TRUE(data.scheduled_departure_time_ ==
@@ -340,16 +350,15 @@ TEST_F(reliability_data_departure_interchange2,
 }
 
 TEST_F(reliability_data_departure_interchange3, interchange_walk) {
-  distributions_container::container dummy;
-  start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
-
   // arriving train ICE_L_H from Langen to Frankfurt
   // interchange at Frankfurt and walking to Messe
   // departing train S_M_W from Messe to West
   interchange_data_for_tests const ic_data(
       *schedule_, ICE_L_H, S_M_W, LANGEN, FRANKFURT, MESSE, WEST, 10 * 60,
       10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
-
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
+  start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
   probability_distribution dummy_arrival_distribution;
   dummy_arrival_distribution.init_one_point(0, 1.0);
 
@@ -357,7 +366,7 @@ TEST_F(reliability_data_departure_interchange3, interchange_walk) {
       true, ic_data.tail_node_departing_train_,
       *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, dummy_arrival_distribution, dummy,
-      context(*schedule_, dummy, s_t_distributions));
+      dummy_node, context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(data.is_first_route_node_);
   ASSERT_TRUE(data.scheduled_departure_time_ ==

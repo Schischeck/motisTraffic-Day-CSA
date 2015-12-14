@@ -60,6 +60,10 @@ public:
             true, *departing_route_edge._from, arriving_route_node,
             departing_light_conn, arriving_light_conn, arrival_distribution,
             get_reliability_module().precomputed_distributions(),
+            get_reliability_module().precomputed_distributions().get_node(
+                distributions_container::to_container_key(
+                    *departing_route_edge._from, departing_light_conn,
+                    time_util::departure, get_schedule())),
             context(get_schedule(),
                     get_reliability_module().precomputed_distributions(),
                     get_reliability_module().s_t_distributions())),

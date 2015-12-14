@@ -65,7 +65,7 @@ void compute_dep_and_arr_distribution(
 namespace precomputation {
 namespace detail {
 /* returns success, begin_time, end_time */
-inline std::tuple<bool, time, time> get_feeder_time_interval(
+std::tuple<bool, time, time> get_feeder_time_interval(
     time const departure_time, duration change_time,
     duration const feeder_threshold) {
   change_time = std::max(change_time, (duration)1);
@@ -104,7 +104,8 @@ std::vector<std::pair<node const*, light_connection const*>> get_feeders(
     auto const& feeder_route_node = *in_edge->_from;
     auto const feeder_route_edge =
         graph_accessor::get_arriving_route_edge(feeder_route_node);
-    if (feeder_route_edge == nullptr) {
+    if (feeder_route_edge == nullptr ||
+        feeder_route_node._id == route_node._id) {
       continue;
     }
     auto& all_connections = feeder_route_edge->_m._route_edge._conns;
@@ -121,14 +122,16 @@ std::vector<std::pair<node const*, light_connection const*>> get_feeders(
 
 void add_feeders(common::queue_element const& element,
                  distributions_container::container::node& departure_dist_node,
-                 distributions_container::container const& container,
+                 distributions_container::container& container,
                  schedule const& sched) {
   auto const feeders =
       detail::get_feeders(*element.from_, *element.light_connection_, sched);
   for (auto const& f : feeders) {
-    departure_dist_node.predecessors_.push_back(
-        &container.get_node(distributions_container::to_container_key(
-            *f.first, *f.second, time_util::arrival, sched)));
+    auto& feeder_node =
+        container.get_node_non_const(distributions_container::to_container_key(
+            *f.first, *f.second, time_util::arrival, sched));
+    departure_dist_node.predecessors_.push_back(&feeder_node);
+    feeder_node.successors_.push_back(&departure_dist_node);
   }
 }
 
@@ -182,29 +185,30 @@ void process_element(
     common::queue_type& queue,
     distributions_container::container& distributions_container) {
   /* departure distribution */
-  auto& departure_distribution = distributions_container.get_node_non_const(
-      distributions_container::to_container_key(
-          *element.from_, *element.light_connection_, time_util::departure,
-          schedule));
+  auto& departure_distribution_node =
+      distributions_container.get_node_non_const(
+          distributions_container::to_container_key(
+              *element.from_, *element.light_connection_, time_util::departure,
+              schedule));
   /* arrival distribution */
-  auto& arrival_distribution = distributions_container.get_node_non_const(
+  auto& arrival_distribution_node = distributions_container.get_node_non_const(
       distributions_container::to_container_key(*element.to_,
                                                 *element.light_connection_,
                                                 time_util::arrival, schedule));
-  if (!departure_distribution.pd_.empty() ||
-      !arrival_distribution.pd_.empty()) {
+  if (!departure_distribution_node.pd_.empty() ||
+      !arrival_distribution_node.pd_.empty()) {
     std::cout << "\nWarning(distributions_calculator): departure or arrival "
                  "distribution already computed: ";
     common::output_element(std::cout, schedule, element);
     return;
   }
 
-  add_feeders(element, departure_distribution, distributions_container,
+  add_feeders(element, departure_distribution_node, distributions_container,
               schedule);
 
   common::compute_dep_and_arr_distribution(
-      element, departure_distribution, departure_distribution.pd_,
-      arrival_distribution.pd_,
+      element, departure_distribution_node, departure_distribution_node.pd_,
+      arrival_distribution_node.pd_,
       context(schedule, distributions_container, s_t_distributions),
       distributions_container);
   // insert all light connections out-going from the head-node
