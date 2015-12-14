@@ -79,13 +79,13 @@ int main(int argc, char** argv) {
   }
 
   try {
-    instance.set_send_fun([&websocket](msg_ptr msg, sid session) {
-      websocket.send(msg, session);
-    });
     instance.init_schedule(dataset_opt);
     instance.init_modules(launcher_opt.modules);
 
     if (listener_opt.listen_ws) {
+      instance.set_send_fun([&websocket](msg_ptr msg, sid session) {
+        websocket.send(msg, session);
+      });
       websocket.set_api_key(listener_opt.api_key);
       websocket.listen(listener_opt.ws_host, listener_opt.ws_port);
     }

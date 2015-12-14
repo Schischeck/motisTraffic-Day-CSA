@@ -69,7 +69,7 @@ struct mss_rule : public service_rule {
     auto first_stop_it = std::find_if(
         begin(s->stops_), end(s->stops_),
         [&](hrd_service::stop const& st) { return st.eva_num == eva_num; });
-    assert(first_stop_it != end(s->stops_));
+    verify(first_stop_it != end(s->stops_), "merge/split stop not found");
     return std::make_pair(((*first_stop_it).*ev).time,
                           std::distance(begin(s->stops_), first_stop_it));
   }
