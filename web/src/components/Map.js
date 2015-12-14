@@ -23,7 +23,7 @@ export default class Map extends React.Component {
     ], 13);//
     //L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     //L.tileLayer('http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg', {
-    L.tileLayer('http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap-Mitwirkende'
     }).addTo(this.map);
     //this.layer = new RailViz(this.refs.canvas, this.map);

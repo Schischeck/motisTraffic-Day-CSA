@@ -14,7 +14,7 @@ export default class Timeline extends React.Component {
   }
 
   getHeight() {
-    return Math.max(200, this.props.connections.length * 72.5) + 30;
+    return Math.max(200, this.props.connections.length * 72.5) + 50;
   }
 
   componentDidMount() {
@@ -86,7 +86,7 @@ export default class Timeline extends React.Component {
       return elements;
     });
 
-    const settings = TimelineCalculator(cons, 520, 52);
+    const settings = TimelineCalculator(cons, 520, 60);
     this.grid.drawConnections(cons, settings);
     this.timelineLabels.drawTimeline(settings);
   }

@@ -16,7 +16,7 @@
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
-#define WITH_PRICES
+//#define WITH_PRICES
 
 namespace motis {
 
@@ -145,7 +145,7 @@ public:
     }
 #endif
 
-#endif // WITH_PRICES
+#endif  // WITH_PRICES
 
     /* --- ALL CRITERIA --- */
     // since all criteria are NOT larger at *this
@@ -156,22 +156,38 @@ public:
     bool could_dominate = false;
 
     /* --- TRANSFERS --- */
-    if (_transfers[0] > o._transfers[0]) return false;
+    if (_transfers[0] > o._transfers[0]) {
+      return false;
+    }
     could_dominate = could_dominate || _transfers[0] < o._transfers[0];
 
     /* --- TRAVEL TIME --- */
-    if (_travel_time[0] > o._travel_time[0]) return false;
-    could_dominate = could_dominate || _travel_time[0] < o._travel_time[0];
+    auto delta_start = std::abs(_start - o._start);
+    auto delta_target = std::abs(_now - o._now);
+    auto dist = std::min(delta_start, delta_target);
+
+    auto o_alpha =
+        0.5f * (static_cast<double>(o._travel_time[0]) / _travel_time[0]);
+    if (o._travel_time[0] + o_alpha * dist < _travel_time[0]) {
+      return false;
+    }
+
+    auto my_alpha =
+        0.5f * (static_cast<double>(_travel_time[0]) / o._travel_time[0]);
+    could_dominate =
+        could_dominate || _travel_time[0] + my_alpha * dist < o._travel_time[0];
 
 #ifdef WITH_PRICES
     /* --- PRICE --- */
     unsigned my_price = get_price_with_wages(false);
     unsigned o_price = o.get_price_with_wages(false);
-    if (my_price > o_price) return false;
+    if (my_price > o_price) {
+      return false;
+    }
     could_dominate = could_dominate || my_price < o_price;
-#endif // WITH_PRICES
+#endif  // WITH_PRICES
 
-    return could_dominate || _start >= o._start;
+    return could_dominate;
   }
 
   bool operator<(label const& o) const {

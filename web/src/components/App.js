@@ -93,6 +93,7 @@ export class App extends Component {
     return (
     <div className={ style.app }>
       <Map />
+      <div className={ style.layer }/>
       <PaddedPaper
         className={ style.overlay }
         zDepth={ 1 }>
