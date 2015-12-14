@@ -1,5 +1,7 @@
 #include "motis/loader/gtfs/gtfs_parser.h"
 
+#include <numeric>
+
 #include "boost/filesystem.hpp"
 
 #include "motis/core/common/date_util.h"

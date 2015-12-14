@@ -26,13 +26,13 @@ class ServerConnectionIndicator extends Component {
       return <IconButton
                          {...this.props}
                          iconClassName={ materialicons }>
-               cloud_done
+               &#xe2bf;
              </IconButton>;
     } else {
       return <IconButton
                          {...this.props}
                          iconClassName={ materialicons }>
-               cloud_off
+               &#xe2c1;
              </IconButton>;
     }
   }

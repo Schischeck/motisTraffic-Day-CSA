@@ -82,10 +82,6 @@ export default class RoutingForm extends Component {
   }
 
   render() {
-    const now = new Date();
-    const in8Weeks = new Date();
-    in8Weeks.setDate(now.getDate() + (8 * 7));
-
     return (
     <div>
       <FloatingActionButton
@@ -99,7 +95,7 @@ export default class RoutingForm extends Component {
                             onClick={ this.props.onRequestRouting }
                             secondary={ true }
                             style={ { 'position': 'absolute', 'marginTop': '110px', 'left': 'calc(50% + 255px)', 'zIndex': 1 } }>
-        <i className={ materialicons }>search</i>
+        <i className={ materialicons }>&#xe8b6;</i>
       </FloatingActionButton>
       <div className={ style.flexrow }>
         <div className={ style.flexcol }>
@@ -119,8 +115,6 @@ export default class RoutingForm extends Component {
                       floatingLabelText="Day"
                       DateTimeFormat={ Intl.DateTimeFormat }
                       locale={ 'de' }
-                      minDate={ now }
-                      maxDate={ in8Weeks }
                       value={ this.state.time }
                       onChange={ this.onDateChange.bind(this) } />
           <TimePicker

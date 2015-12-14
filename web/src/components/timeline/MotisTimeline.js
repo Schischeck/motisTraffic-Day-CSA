@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import SVG from 'svg.js';
 
 import MotisGrid from './MotisGrid';
+import SVGTimeLabels from './SVGTimeLabels';
+import TimelineCalculator from './TimelineCalculator';
 
 import style from './MotisTimeline.scss';
 
@@ -12,27 +14,27 @@ export default class Timeline extends React.Component {
   }
 
   getHeight() {
-    return Math.max(200, this.props.connections.length * 72.5);
+    return Math.max(200, this.props.connections.length * 72.5) + 20;
   }
 
   componentDidMount() {
     if (this.grid) {
       delete this.grid;
     }
-    if (this.svg) {
-      delete this.svg;
+    if (this.timelineLabelsSVG) {
+      delete this.timelineLabelsSVG;
     }
-    this.svg = SVG('timeline').clear();
-    this.grid = this.svg.motisgrid(520, this.getHeight(), []);
+    if (this.timelineSVG) {
+      delete this.timelineSVG;
+    }
+    this.timelineLabelsSVG = SVG('timeline-labels').clear();
+    this.timelineSVG = SVG('timeline').clear();
+    this.grid = this.timelineSVG.motisgrid(520, this.getHeight(), []);
+    this.timelineLabels = this.timelineLabelsSVG.motistimelabels(520, 20, []);
 
     function transports(con, from, to) {
       return con.transports.filter(t => {
         return t.move.range.from >= from && t.move.range.to <= to;
-      }).map(t => {
-        return {
-          'name': t.move.category_name,
-          'clasz': t.move.clasz
-        };
       });
     }
 
@@ -48,7 +50,7 @@ export default class Timeline extends React.Component {
       9: '#7ED3FD',
     };
 
-    this.grid.drawConnections(this.props.connections.map(c => {
+    const cons = this.props.connections.map(c => {
       const walkTargets = c.transports.filter(move => {
         return move.move_type == 'Walk';
       }).map(walk => {
@@ -70,25 +72,32 @@ export default class Timeline extends React.Component {
         let from = importantStops[i];
         let to = importantStops[i + 1];
         let transport = transports(c, from.i, to.i)[0];
-        if (transport && transport.name) {
+        if (transport && transport.move.name) {
           elements.push({
-            label: transport.name,
-            color: colors[transport.clasz] || '#D31996',
+            transport,
+            from,
+            to,
+            color: colors[transport.move.clasz] || '#D31996',
             begin: new Date(from.stop.departure.time * 1000),
             end: new Date(to.stop.arrival.time * 1000)
           });
         }
       }
       return elements;
-    }));
+    });
+
+    const settings = TimelineCalculator(cons, 520, 52);
+    this.grid.drawConnections(cons, settings);
+    this.timelineLabels.drawTimeline(settings);
   }
 
   componentDidUpdate = this.componentDidMount
 
   render() {
     return (
-      <div className={ style.timeline } style={{height: Math.min(300, (this.getHeight() + 10)) + 'px'}}  {...this.props}>
-        <div className={ style.container }>
+      <div style={{marginTop: '10px'}}>
+        <svg style={{height: '20px'}} id="timeline-labels"></svg>
+        <div className={ style.timeline } style={{height: Math.min(300, (this.getHeight() + 10)) + 'px'}}>
           <svg id="timeline" style={{height: this.getHeight() + 'px'}}></svg>
         </div>
       </div>
