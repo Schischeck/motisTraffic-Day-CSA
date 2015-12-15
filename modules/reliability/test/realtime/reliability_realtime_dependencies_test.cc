@@ -17,7 +17,7 @@ class reliability_realtime_dependencies : public test_motis_setup {
 public:
   reliability_realtime_dependencies()
       : test_motis_setup(
-            "modules/reliability/resources/schedule_realtime_update/",
+            "modules/reliability/resources/schedule_realtime_dependencies/",
             "20151019", true) {}
   std::string const DARMSTADT = "3333333";
   std::string const FRANKFURT = "1111111";
