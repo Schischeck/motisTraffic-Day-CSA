@@ -23,10 +23,11 @@ namespace hrd {
 struct service_builder {
   service_builder(platform_rules);
 
-  void create_service(hrd_service const&, route_builder&, station_builder&,
-                      category_builder&, provider_builder&, line_builder&,
-                      attribute_builder&, bitfield_builder&, direction_builder&,
-                      flatbuffers::FlatBufferBuilder&);
+  flatbuffers::Offset<Service> create_service(
+      hrd_service const&, route_builder&, station_builder&, category_builder&,
+      provider_builder&, line_builder&, attribute_builder&, bitfield_builder&,
+      direction_builder&, flatbuffers::FlatBufferBuilder&,
+      bool is_rule_participant);
 
   platform_rules const plf_rules_;
   std::vector<flatbuffers::Offset<Service>> fbs_services_;

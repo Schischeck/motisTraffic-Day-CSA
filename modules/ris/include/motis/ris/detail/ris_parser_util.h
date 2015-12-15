@@ -63,8 +63,13 @@ std::pair<StationIdType, Offset<String>> inline parse_station(
   if (station_node) {
     auto const& eva_attribute = station_node.attribute("EvaNr");
     if (!eva_attribute.empty()) {
+      std::string eva_string(eva_attribute.value());
+      if(eva_string.size() == 6) {
+        eva_string.insert(0, 1, '0');
+      }
+
       station.first = StationIdType_EVA;
-      station.second = fbb.CreateString(eva_attribute.value());
+      station.second = fbb.CreateString(eva_string);
     } else {
       station.first = StationIdType_DS100;
       station.second = fbb.CreateString(station_node.attribute("Code").value());

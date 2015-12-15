@@ -151,12 +151,11 @@ TEST_F(reliability_realtime_dist_data_test, get_scheduled_event_time) {
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60),
             get_scheduled_event_time(first_route_node, first_lc, departure,
                                      get_schedule()));
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(FRANKFURT, ICE_F_L_D,
-                                  1445241600 /* 2015-10-19 08:00:00 GMT */,
-                                  1445241660 /* 2015-10-19 08:01:00 GMT */,
-                                  ris::EventType_Departure, ris::DelayType_Is));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 FRANKFURT, ICE_F_L_D, 1445241600 /* 2015-10-19 08:00:00 GMT */,
+                 1445241660 /* 2015-10-19 08:01:00 GMT */,
+                 ris::EventType_Departure, ris::DelayType_Is));
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 1), first_lc.d_time);
   ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60),
             get_scheduled_event_time(first_route_node, first_lc, departure,
@@ -165,12 +164,11 @@ TEST_F(reliability_realtime_dist_data_test, get_scheduled_event_time) {
 
 TEST_F(reliability_realtime_dist_data_test,
        data_departure_forecast_arrival_propagation) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(
-          FRANKFURT, ICE_F_L_D, 1445241600 /* 2015-10-19 08:00:00 GMT */,
-          1445241660 /* 2015-10-19 08:01:00 GMT */, ris::EventType_Departure,
-          ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 FRANKFURT, ICE_F_L_D, 1445241600 /* 2015-10-19 08:00:00 GMT */,
+                 1445241660 /* 2015-10-19 08:01:00 GMT */,
+                 ris::EventType_Departure, ris::DelayType_Forecast));
 
   test_departure_frankfurt(); /* test departure forecast */
 
@@ -178,24 +176,22 @@ TEST_F(reliability_realtime_dist_data_test,
 }
 
 TEST_F(reliability_realtime_dist_data_test, data_arrival_forecast) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(
-          LANGEN, ICE_F_L_D, 1445241900 /* 2015-10-19 08:05:00 GMT */,
-          1445241960 /* 2015-10-19 08:06:00 GMT */, ris::EventType_Arrival,
-          ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_F_L_D, 1445241900 /* 2015-10-19 08:05:00 GMT */,
+                 1445241960 /* 2015-10-19 08:06:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Forecast));
   test_arrival_langen();
   test_departure_langen();
 }
 
 TEST_F(reliability_realtime_dist_data_test,
        data_departure_is_arrival_propagation) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(FRANKFURT, ICE_F_L_D,
-                                  1445241600 /* 2015-10-19 08:00:00 GMT */,
-                                  1445241660 /* 2015-10-19 08:01:00 GMT */,
-                                  ris::EventType_Departure, ris::DelayType_Is));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 FRANKFURT, ICE_F_L_D, 1445241600 /* 2015-10-19 08:00:00 GMT */,
+                 1445241660 /* 2015-10-19 08:01:00 GMT */,
+                 ris::EventType_Departure, ris::DelayType_Is));
 
   test_departure_frankfurt(); /* test departure forecast */
 
@@ -203,28 +199,26 @@ TEST_F(reliability_realtime_dist_data_test,
 }
 
 TEST_F(reliability_realtime_dist_data_test, data_arrival_is) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(LANGEN, ICE_F_L_D,
-                                  1445241900 /* 2015-10-19 08:05:00 GMT */,
-                                  1445241960 /* 2015-10-19 08:06:00 GMT */,
-                                  ris::EventType_Arrival, ris::DelayType_Is));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_F_L_D, 1445241900 /* 2015-10-19 08:05:00 GMT */,
+                 1445241960 /* 2015-10-19 08:06:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Is));
   test_arrival_langen();
   test_departure_langen();
 }
 
 TEST_F(reliability_realtime_dist_data_test, data_feeder_is) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(LANGEN, ICE_F_L_D,
-                                  1445241900 /* 2015-10-19 08:05:00 GMT */,
-                                  1445241960 /* 2015-10-19 08:06:00 GMT */,
-                                  ris::EventType_Arrival, ris::DelayType_Is));
-  bootstrap::send(motis_instance_,
-                  realtime::get_delay_message(
-                      LANGEN, ICE_L_H, 1445242200 /* 2015-10-19 08:10:00 GMT */,
-                      1445242320 /* 2015-10-19 08:12:00 GMT */,
-                      ris::EventType_Departure, ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_F_L_D, 1445241900 /* 2015-10-19 08:05:00 GMT */,
+                 1445241960 /* 2015-10-19 08:06:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Is));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_L_H, 1445242200 /* 2015-10-19 08:10:00 GMT */,
+                 1445242320 /* 2015-10-19 08:12:00 GMT */,
+                 ris::EventType_Departure, ris::DelayType_Forecast));
 
   auto const& route_node =
       *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);

@@ -169,7 +169,7 @@ TEST_F(routing_late_connections, search) {
    * since it can only be reached after 3 o'clock */
   taxi_infos.push_back({WALLDORF, 10, 500});
   auto req_msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_NE(nullptr, msg);
   auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
@@ -239,7 +239,7 @@ TEST_F(routing_late_connections, taxi_not_allowed) {
   taxi_infos.push_back({WALLDORF, 10, 500});
   auto req_msg =
       to_routing_msg(DARMSTADT, NEUISENBURG, hotel_infos, taxi_infos);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
   ASSERT_NE(nullptr, msg);
   auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
 

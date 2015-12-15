@@ -1,14 +1,8 @@
 #include "motis/loader/gtfs/gtfs_parser.h"
 
-#include "boost/filesystem.hpp"
+#include <numeric>
 
-#include "range/v3/view/transform.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/view/repeat_n.hpp"
-#include "range/v3/view/concat.hpp"
-#include "range/v3/view/single.hpp"
-#include "range/v3/view/join.hpp"
-#include "range/v3/view/map.hpp"
+#include "boost/filesystem.hpp"
 
 #include "motis/core/common/date_util.h"
 #include "motis/loader/gtfs/files.h"
@@ -24,7 +18,6 @@
 #include "motis/loader/gtfs/services.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-using namespace ranges;
 using namespace flatbuffers;
 namespace fs = boost::filesystem;
 using std::get;
@@ -126,72 +119,70 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
   Interval interval(to_unix_time(services.first_day),
                     to_unix_time(services.last_day));
   fbb.Finish(CreateSchedule(
-      fbb,
-      fbb.CreateVector(
-          view::values(trips) |
-          view::transform([&](std::unique_ptr<trip> const& t) {
-            auto const stop_seq = t->stops();
-            return CreateService(
-                fbb,
-                get_or_create(
-                    fbs_routes, stop_seq,
-                    [&]() {
-                      return CreateRoute(
-                          fbb,  //
-                          fbb.CreateVector(view::all(stop_seq) |
-                                           view::transform(get_n<0>()) |
-                                           view::transform([&](stop const* s) {
-                                             return get_or_create_stop(s);
-                                           }) |
-                                           to_vector),
-                          fbb.CreateVector(view::all(stop_seq) |
-                                           view::transform(get_n<1>()) |
-                                           view::transform([&](bool t) {
-                                             return (uint8_t)(t ? 1 : 0);
-                                           }) |
-                                           to_vector),
-                          fbb.CreateVector(view::all(stop_seq) |
-                                           view::transform(get_n<2>()) |
-                                           view::transform([&](bool t) {
-                                             return (uint8_t)(t ? 1 : 0);
-                                           }) |
-                                           to_vector));
-                    }),
-                fbb.CreateString(serialize_bitset(*t->service_)),
-                fbb.CreateVector(
-                    view::repeat_n(
-                        CreateSection(
-                            fbb, get_or_create_category(t->route_->type_),
-                            get_or_create_provider(t->route_->agency_), 0,
-                            get_or_create_str(t->route_->short_name_),
-                            fbb.CreateVector(std::vector<Offset<Attribute>>()),
-                            CreateDirection(fbb, 0,
-                                            get_or_create_str(t->headsign_))),
-                        stop_seq.size() - 1) |
-                    to_vector),
-                0,
-                fbb.CreateVector(
-                    view::all(t->stop_times_) |
-                    view::transform([](flat_map<stop_time>::entry_t const& st) {
-                      return view::concat(view::single(st.second.arr_.time_),
-                                          view::single(st.second.dep_.time_));
-                    }) |
-                    view::join | to_vector));
-          }) |
-          to_vector),
+      fbb, fbb.CreateVector(transform_to_vec(
+               begin(trips), end(trips),
+               [&](std::pair<std::string const, std::unique_ptr<trip>> const&
+                       entry) {
+                 auto const& t = entry.second;
+                 auto const stop_seq = t->stops();
+                 return CreateService(
+                     fbb,
+                     get_or_create(fbs_routes, stop_seq,
+                                   [&]() {
+                                     return CreateRoute(
+                                         fbb,  //
+                                         fbb.CreateVector(transform_to_vec(
+                                             begin(stop_seq), end(stop_seq),
+                                             [&](trip::stop_identity const& s) {
+                                               return get_or_create_stop(
+                                                   std::get<0>(s));
+                                             })),
+                                         fbb.CreateVector(transform_to_vec(
+                                             begin(stop_seq), end(stop_seq),
+                                             [](trip::stop_identity const& s) {
+                                               return static_cast<uint8_t>(
+                                                   std::get<1>(s) ? 1u : 0u);
+                                             })),
+                                         fbb.CreateVector(transform_to_vec(
+                                             begin(stop_seq), end(stop_seq),
+                                             [](trip::stop_identity const& s) {
+                                               return static_cast<uint8_t>(
+                                                   std::get<2>(s) ? 1u : 0u);
+                                             })));
+                                   }),
+                     fbb.CreateString(serialize_bitset(*t->service_)),
+                     fbb.CreateVector(repeat_n(
+                         CreateSection(
+                             fbb, get_or_create_category(t->route_->type_),
+                             get_or_create_provider(t->route_->agency_), 0,
+                             get_or_create_str(t->route_->short_name_),
+                             fbb.CreateVector(std::vector<Offset<Attribute>>()),
+                             CreateDirection(fbb, 0,
+                                             get_or_create_str(t->headsign_))),
+                         stop_seq.size() - 1)),
+                     0, fbb.CreateVector(std::accumulate(
+                            begin(t->stop_times_), end(t->stop_times_),
+                            std::vector<int>(),
+                            [](std::vector<int>& times,
+                               flat_map<stop_time>::entry_t const& st) {
+                              times.push_back(st.second.arr_.time_);
+                              times.push_back(st.second.dep_.time_);
+                              return times;
+                            })));
+               })),
       fbb.CreateVector(values(fbs_stations)),
       fbb.CreateVector(values(fbs_routes)), &interval,
-      fbb.CreateVector(
-          view::all(transfers) |
-          view::remove_if([](std::pair<stop_pair, transfer> const& t) {
-            return t.second.type_ != transfer::TIMED_TRANSFER;
-          }) |
-          view::transform([&](std::pair<stop_pair, transfer> const& t) {
-            return CreateFootpath(fbb, get_or_create_stop(t.first.first),
-                                  get_or_create_stop(t.first.second),
-                                  t.second.minutes_);
-          }) |
-          to_vector),
+      fbb.CreateVector(std::accumulate(
+          begin(transfers), end(transfers), std::vector<Offset<Footpath>>(),
+          [&](std::vector<Offset<Footpath>>& footpaths,
+              std::pair<stop_pair, transfer> const& t) {
+            if (t.second.type_ == transfer::TIMED_TRANSFER) {
+              footpaths.push_back(CreateFootpath(
+                  fbb, get_or_create_stop(t.first.first),
+                  get_or_create_stop(t.first.second), t.second.minutes_));
+            }
+            return footpaths;
+          })),
       fbb.CreateVector(std::vector<Offset<RuleService>>())));
 }
 

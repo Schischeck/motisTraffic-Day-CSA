@@ -106,6 +106,13 @@ inline auto transform_to_vec(It s, It e, UnaryOperation op)
   return vec;
 }
 
+template <typename T>
+inline std::vector<T> repeat_n(T const& el, std::size_t n) {
+  std::vector<T> els(n);
+  std::fill(begin(els), end(els), el);
+  return els;
+}
+
 inline int yyyymmdd_year(int yyyymmdd) { return yyyymmdd / 10000; }
 inline int yyyymmdd_month(int yyyymmdd) { return (yyyymmdd % 10000) / 100; }
 inline int yyyymmdd_day(int yyyymmdd) { return yyyymmdd % 100; }

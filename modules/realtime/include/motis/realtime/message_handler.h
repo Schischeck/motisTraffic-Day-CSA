@@ -18,9 +18,6 @@ class message_handler {
 public:
   message_handler(realtime_schedule& rts);
 
-  void handle_delay(const schedule_event& schedule_event, motis::time new_time,
-                    timestamp_reason reason);
-  void handle_delay(const delay_message& msg);
   void handle_additional_train(const additional_train_message& msg);
   void handle_canceled_train(const cancel_train_message& msg);
   void handle_rerouted_train(const reroute_train_message& msg);

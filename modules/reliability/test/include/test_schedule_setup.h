@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/bootstrap/motis_instance_helper.h"
+#include "motis/test/motis_instance_helper.h"
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/loader.h"
@@ -47,7 +47,7 @@ protected:
       modules.push_back("realtime");
     }
     motis_instance_ =
-        bootstrap::launch_motis(schedule_path_, schedule_begin_, modules);
+        test::launch_motis(schedule_path_, schedule_begin_, modules);
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
         new motis::reliability::context(
             get_schedule(),

@@ -194,15 +194,14 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   parse_and_build_services(
       hrd_root, bb.hrd_bitfields_, schedule_data, [&](hrd_service const& s) {
         if (!rsb.add_service(s)) {
-          sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
+          sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, false);
         }
       });
 
-  // compute and build ruleservices
+  // compute and build rule services
   rsb.resolve_rule_services();
   rsb.create_rule_services([&](hrd_service const& s, FlatBufferBuilder& fbb) {
-    sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb);
-    return sb.fbs_services_.back();
+    return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, true);
   }, fbb);
 
   auto interval = parse_interval(basic_data_file);

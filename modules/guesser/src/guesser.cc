@@ -1,16 +1,13 @@
 #include "motis/guesser/guesser.h"
 
 #include <iostream>
-
-#include "range/v3/view/transform.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/numeric/accumulate.hpp"
+#include <numeric>
 
 #include "boost/program_options.hpp"
 
+#include "motis/loader/util.h"
 #include "motis/protocol/Message_generated.h"
 
-using namespace ranges;
 using namespace flatbuffers;
 using namespace motis::module;
 namespace po = boost::program_options;
@@ -29,23 +26,25 @@ void guesser::init() {
   auto sync = synced_sched<schedule_access::RO>();
 
   station_indices_ =
-      view::all(sync.sched().stations) |
-      view::remove_if([](station_ptr const& s) {
-        return accumulate(view::all(s->dep_class_events), 0) == 0;
-      }) |
-      view::transform([](station_ptr const& s) { return s->index; }) |
-      to_vector;
+      std::accumulate(begin(sync.sched().stations), end(sync.sched().stations),
+                      std::vector<unsigned>(),
+                      [](std::vector<unsigned>& indices, station_ptr const& s) {
+                        if (std::accumulate(begin(s->dep_class_events),
+                                            end(s->dep_class_events), 0) != 0) {
+                          indices.push_back(s->index);
+                        }
+                        return indices;
+                      });
 
-  auto stations = view::all(station_indices_) | view::transform([&](int i) {
-                    auto const& s = *sync.sched().stations[i];
-                    double factor = 0;
-                    for (unsigned i = 0; i < s.dep_class_events.size(); ++i) {
-                      factor +=
-                          std::pow(10, (9 - i) / 3) * s.dep_class_events[i];
-                    }
-                    return std::make_pair(s.name, factor);
-                  }) |
-                  to_vector;
+  auto stations = loader::transform_to_vec(
+      begin(station_indices_), end(station_indices_), [&](unsigned i) {
+        auto const& s = *sync.sched().stations[i];
+        double factor = 0;
+        for (unsigned i = 0; i < s.dep_class_events.size(); ++i) {
+          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events[i];
+        }
+        return std::make_pair(s.name, factor);
+      });
 
   if (!stations.empty()) {
     auto max_importatance =

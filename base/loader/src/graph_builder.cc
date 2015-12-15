@@ -6,9 +6,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#define RANGES_SUPPRESS_IOTA_WARNING
-#include "range/v3/all.hpp"
-
 #include "parser/cstr.h"
 
 #include "motis/core/common/hash_map.h"
@@ -30,7 +27,6 @@
 
 using namespace motis::logging;
 using namespace flatbuffers;
-using namespace ranges;
 
 namespace motis {
 namespace loader {
@@ -65,12 +61,13 @@ typedef std::vector<route_info> route;
 class graph_builder {
 public:
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to)
+                time_t to, bool apply_rules)
       : next_route_index_(-1),
         next_node_id_(-1),
         sched_(sched),
         first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
-        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1) {
+        last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
+        apply_rules_(apply_rules) {
     connections_.set_empty_key(nullptr);
     con_infos_.set_empty_key(nullptr);
     bitfields_.set_empty_key(nullptr);
@@ -164,7 +161,9 @@ public:
       std::vector<Service const*> route_services;
       auto route = (*it)->route();
       do {
-        route_services.push_back(*it);
+        if (!apply_rules_ || !(*it)->rule_participant()) {
+          route_services.push_back(*it);
+        }
         ++it;
       } while (it != end(sorted) && route == (*it)->route());
       add_route_services(route_services);
@@ -569,13 +568,14 @@ private:
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
+  bool apply_rules_;
 
   connection_info con_info_;
   connection con_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool unique_check, bool /* apply_rules */) {
+                         bool unique_check, bool apply_rules) {
   scoped_timer timer("building graph");
 
   schedule_ptr sched(new schedule());
@@ -583,7 +583,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
-  graph_builder builder(*sched.get(), serialized->interval(), from, to);
+  graph_builder builder(*sched.get(), serialized->interval(), from, to,
+                        apply_rules);
   builder.add_stations(serialized->stations());
   builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());

@@ -1,8 +1,4 @@
-#pragma once
-
-#include <memory>
-#include <string>
-#include <vector>
+#include "motis/test/motis_instance_helper.h"
 
 #include "boost/system/system_error.hpp"
 
@@ -12,13 +8,15 @@
 #include "motis/core/common/util.h"
 #include "motis/module/message.h"
 
-namespace motis {
-namespace bootstrap {
+using motis::bootstrap::motis_instance;
 
-inline std::unique_ptr<motis_instance> launch_motis(
+namespace motis {
+namespace test {
+
+std::unique_ptr<motis_instance> launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
     std::vector<std::string> const& modules,
-    std::vector<std::string> const& modules_cmdline_opt = {}) {
+    std::vector<std::string> const& modules_cmdline_opt) {
   auto instance = make_unique<motis_instance>();
 
   std::vector<conf::configuration*> confs;
@@ -38,8 +36,8 @@ inline std::unique_ptr<motis_instance> launch_motis(
   return instance;
 }
 
-inline module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
-                            module::msg_ptr request) {
+module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
+                     module::msg_ptr request) {
   module::msg_ptr response;
   boost::system::error_code ec;
   instance->on_msg(request, 0,
@@ -57,5 +55,5 @@ inline module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
   return response;
 }
 
-}  // namespace bootstrap
+}  // namespace test
 }  // namespace motis

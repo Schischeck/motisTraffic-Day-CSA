@@ -63,11 +63,65 @@ struct mss_rule : public service_rule {
     participants_.push_back(s);
   }
 
+  std::pair<int, int> get_event_time(
+      hrd_service const* s, int eva_num,
+      hrd_service::event hrd_service::stop::*ev) const {
+    auto first_stop_it = std::find_if(
+        begin(s->stops_), end(s->stops_),
+        [&](hrd_service::stop const& st) { return st.eva_num == eva_num; });
+    verify(first_stop_it != end(s->stops_), "merge/split stop not found");
+    return std::make_pair(((*first_stop_it).*ev).time,
+                          std::distance(begin(s->stops_), first_stop_it));
+  }
+
+  bool all_ms_events_exist(hrd_service const* s1, hrd_service const* s2,
+                           int mss_begin, int mss_end) const {
+    int merge_time_s1, merge_time_s2, merge_idx_s1, merge_idx_s2;
+    std::tie(merge_time_s1, merge_idx_s1) =
+        get_event_time(s1, mss_begin, &hrd_service::stop::dep);
+    std::tie(merge_time_s2, merge_idx_s2) =
+        get_event_time(s2, mss_begin, &hrd_service::stop::dep);
+
+    if (merge_time_s1 != merge_time_s2) {
+      return false;
+    }
+
+    int split_time_s1, split_time_s2, split_idx_s1, split_idx_s2;
+    std::tie(split_time_s1, split_idx_s1) =
+        get_event_time(s1, mss_end, &hrd_service::stop::arr);
+    std::tie(split_time_s2, split_idx_s2) =
+        get_event_time(s2, mss_end, &hrd_service::stop::arr);
+
+    if (split_time_s1 != split_time_s2) {
+      return false;
+    }
+
+    auto const ms_distance_s1 = split_idx_s1 - merge_idx_s1;
+    auto const ms_distance_s2 = split_idx_s2 - merge_idx_s2;
+    if (ms_distance_s1 != ms_distance_s2) {
+      return false;
+    }
+
+    // ensure that all stops between the merge and split match
+    --split_idx_s1;
+    --split_idx_s2;
+    while (++merge_idx_s1 <= split_idx_s1 && ++merge_idx_s2 <= split_idx_s2) {
+      auto const& stop_s1 = s1->stops_[split_idx_s1];
+      auto const& stop_s2 = s2->stops_[split_idx_s2];
+      if (stop_s1.eva_num != stop_s2.eva_num ||
+          stop_s1.arr.time != stop_s2.arr.time ||
+          stop_s1.dep.time != stop_s2.dep.time) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   std::vector<service_combination> service_combinations() const override {
     std::vector<service_combination> unordered_pairs;
     std::set<std::pair<hrd_service*, hrd_service*>> combinations;
-    for (auto const& s1 : participants_) {
-      for (auto const& s2 : participants_) {
+    for (auto s1 : participants_) {
+      for (auto s2 : participants_) {
         if (s1 == s2 ||
             combinations.find(std::make_pair(s2, s1)) != end(combinations)) {
           continue;
@@ -75,7 +129,8 @@ struct mss_rule : public service_rule {
         combinations.emplace(s1, s2);
 
         auto intersection = s1->traffic_days_ & s2->traffic_days_ & mask_;
-        if (intersection.any()) {
+        if (intersection.any() &&
+            all_ms_events_exist(s1, s2, eva_num_begin_, eva_num_end_)) {
           unordered_pairs.emplace_back(
               s1, s2, resolved_rule_info{intersection, eva_num_begin_,
                                          eva_num_end_, RuleType_MERGE_SPLIT});

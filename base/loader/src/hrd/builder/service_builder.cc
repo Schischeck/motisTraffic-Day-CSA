@@ -98,23 +98,25 @@ Offset<Vector<int32_t>> create_times(
   return fbb.CreateVector(times);
 }
 
-void service_builder::create_service(hrd_service const& s, route_builder& rb,
-                                     station_builder& sb, category_builder& cb,
-                                     provider_builder& pb, line_builder& lb,
-                                     attribute_builder& ab,
-                                     bitfield_builder& bb,
-                                     direction_builder& db,
-                                     FlatBufferBuilder& fbb) {
+Offset<Service> service_builder::create_service(
+    hrd_service const& s, route_builder& rb, station_builder& sb,
+    category_builder& cb, provider_builder& pb, line_builder& lb,
+    attribute_builder& ab, bitfield_builder& bb, direction_builder& db,
+    FlatBufferBuilder& fbb, bool is_rule_participant) {
   fbs_services_.push_back(CreateService(
       fbb, rb.get_or_create_route(s.stops_, sb, fbb),
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
       create_times(s.stops_, fbb), rb.get_or_create_route(s.stops_, sb, fbb).o,
-      CreateServiceDebugInfo(
-          fbb, get_or_create(filenames_, s.origin_.filename, [&fbb, &s]() {
-            return fbb.CreateString(s.origin_.filename);
-          }), s.origin_.line_number_from)));
+      CreateServiceDebugInfo(fbb, get_or_create(filenames_, s.origin_.filename,
+                                                [&fbb, &s]() {
+                                                  return fbb.CreateString(
+                                                      s.origin_.filename);
+                                                }),
+                             s.origin_.line_number_from),
+      static_cast<uint8_t>(is_rule_participant ? 1u : 0u)));
+  return fbs_services_.back();
 }
 
 }  // hrd

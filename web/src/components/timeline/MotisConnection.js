@@ -6,7 +6,23 @@ SVG.MotisConnection = SVG.invent({
   create: 'g',
   inherit: SVG.G,
   extend: {
+    onHoverBegin: function(fun) {
+      this.moves.forEach(function(move) {
+        move.svgElement.mouseover(function() {
+          fun(move.info, move.x);
+        });
+      });
+    },
+
+    onHoverEnd: function(fun) {
+      this.moves.forEach(function(move) {
+        move.svgElement.mouseout(fun);
+      });
+    },
+
     draw: function(thickness, radius, elements) {
+      this.moves = [];
+
       var self = this;
       var totalOffset = 0;
       var lastEnd = 0;
@@ -29,15 +45,21 @@ SVG.MotisConnection = SVG.invent({
         }
 
         let moveGroup = self.put(move)
-                            .draw(thickness, radius, el.len, el.label)
+                            .draw(thickness, radius, el.len, el)
                             .move(el.x + totalOffset, 0)
                             .fill(el.color);
+
+        self.add(moveGroup);
+        this.moves.push({
+          svgElement: moveGroup,
+          info: el.info,
+          x: Math.min(250, Math.max(10, el.x + totalOffset + el.len / 2.0 - 140))
+        });
+
         lastCorrection  = before - el.len;
         totalOffset = Math.max(totalOffset + move.getOffset(), 0);
         lastEnd = el.x + el.len;
-
-        self.add(moveGroup);
-      });
+      }.bind(this));
 
       var lastEl = elements[elements.length - 1];
       var x = lastEl.x + lastEl.len + totalOffset + lastCorrection;

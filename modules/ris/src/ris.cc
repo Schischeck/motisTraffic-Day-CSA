@@ -4,6 +4,8 @@
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
+#include "websocketpp/common/md5.hpp"
+
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
@@ -15,6 +17,7 @@
 #define MODE "ris.mode"
 #define UPDATE_INTERVAL "ris.update_interval"
 #define ZIP_FOLDER "ris.zip_folder"
+#define MAX_DAYS "ris.max_days"
 
 #define MODE_LIVE "default"
 #define MODE_SIMULATION "simulation"
@@ -22,6 +25,7 @@
 using boost::system::error_code;
 namespace fs = boost::filesystem;
 using fs::directory_iterator;
+using websocketpp::md5::md5_hash_hex;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
@@ -72,6 +76,7 @@ ris::ris()
     : mode_(mode::LIVE),
       update_interval_(10),
       zip_folder_("ris"),
+      max_days_(-1),
       simulation_time_(0) {}
 
 po::options_description ris::desc() {
@@ -88,7 +93,10 @@ po::options_description ris::desc() {
        "update interval in seconds")
       (ZIP_FOLDER,
        po::value<std::string>(&zip_folder_)->default_value(zip_folder_),
-       "folder containing RISML ZIPs");
+       "folder containing RISML ZIPs")
+      (MAX_DAYS,
+       po::value<int>(&max_days_)->default_value(max_days_),
+       "periodically delete messages older than n days (-1 = infinite)");
   // clang-format on
   return desc;
 }
@@ -96,7 +104,14 @@ po::options_description ris::desc() {
 void ris::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode_ << "\n"
       << "  " << UPDATE_INTERVAL << ": " << update_interval_ << "\n"
-      << "  " << ZIP_FOLDER << ": " << zip_folder_;
+      << "  " << ZIP_FOLDER << ": " << zip_folder_ << "\n"
+      << "  " << MAX_DAYS << ": " << max_days_;
+}
+
+std::time_t days_ago(long days) {
+  std::time_t now = std::time(nullptr);
+  constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
+  return now - kTwentyFourHours * days;
 }
 
 void ris::init() {
@@ -108,10 +123,7 @@ void ris::init() {
   if (mode_ == mode::LIVE) {
     auto sync = synced_sched<schedule_access::RO>();
 
-    std::time_t now = std::time(nullptr);
-    constexpr std::time_t kTwentyFourHours = 60 * 60 * 24;
-
-    auto from = std::max(sync.sched().schedule_begin_, now - kTwentyFourHours);
+    auto from = std::max(sync.sched().schedule_begin_, days_ago(1));
     auto to = sync.sched().schedule_end_;
 
     dispatch(pack(db_get_messages(from, to)));
@@ -130,8 +142,16 @@ void ris::fill_database() {
 }
 
 void ris::on_msg(msg_ptr msg, sid, callback cb) {
+  switch (msg->content_type()) {
+    case MsgContent_RISForwardTimeRequest: return handle_forward_time(msg, cb);
+    case MsgContent_HTTPRequest: return handle_zipfile_upload(msg, cb);
+    default: assert(false);
+  }
+}
+
+void ris::handle_forward_time(msg_ptr msg, callback cb) {
   if (mode_ != mode::SIMULATION) {
-    LOG(error) << "RIS received a message (but is not in simulation mode).";
+    LOG(error) << "RIS received a fwd time msg (but is not in sim mode).";
     return cb({}, boost::system::error_code());
   }
 
@@ -140,6 +160,31 @@ void ris::on_msg(msg_ptr msg, sid, callback cb) {
   dispatch(pack(db_get_messages(simulation_time_, new_time)));
   simulation_time_ = new_time;
   LOG(info) << "RIS forwarded time to " << new_time;
+
+  return cb({}, boost::system::error_code());
+}
+
+void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
+  auto req = msg->content<HTTPRequest const*>();
+  try {
+    auto buf = parser::buffer(req->content()->c_str(), req->content()->size());
+    auto parsed_messages = parse_xmls(read_zip_buf(buf));
+    db_put_messages(
+        md5_hash_hex(reinterpret_cast<const unsigned char*>(buf.data()),
+                     buf.size()),
+        parsed_messages);
+    dispatch(pack(parsed_messages));
+  } catch (std::exception const& e) {
+    LOG(error) << "bad zip file: " << e.what();
+    MessageCreator b;
+    b.CreateAndFinish(
+        MsgContent_HTTPResponse,
+        CreateHTTPResponse(b, HTTPStatus_INTERNAL_SERVER_ERROR,
+                           b.CreateVector(std::vector<Offset<HTTPHeader>>()),
+                           b.CreateString(e.what()))
+            .Union());
+    return cb(make_msg(b), boost::system::error_code());
+  }
 
   return cb({}, boost::system::error_code());
 }
@@ -155,8 +200,8 @@ void ris::schedule_update(error_code e) {
         std::bind(&ris::schedule_update, this, std::placeholders::_1));
   });
 
-  // TODO implement housekeeping
   parse_zips();
+  // TODO db_clean_messages(days_ago(max_days_));
 }
 
 void ris::parse_zips() {

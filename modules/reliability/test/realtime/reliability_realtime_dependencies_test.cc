@@ -166,26 +166,23 @@ void test_ICE_D_L_F_Frankfurt(reliability_realtime_dependencies& test_info,
  * have no effect on the dependencies. */
 TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
   test_ICE_D_L_F_Frankfurt(*this, 9 * 60);
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(
-          FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
-          1445248800 /* 2015-10-19 10:00:00 GMT */, ris::EventType_Arrival,
-          ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
+                 1445248800 /* 2015-10-19 10:00:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 10 * 60);
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(
-          FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
-          1445247000 /* 2015-10-19 09:30:00 GMT */, ris::EventType_Arrival,
-          ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
+                 1445247000 /* 2015-10-19 09:30:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 30);
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(
-          LANGEN, ICE_D_L_F, 1445244720 /* 2015-10-19 08:52:00 GMT */,
-          1445247000 /* 2015-10-19 09:30:00 GMT */, ris::EventType_Departure,
-          ris::DelayType_Forecast));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_D_L_F, 1445244720 /* 2015-10-19 08:52:00 GMT */,
+                 1445247000 /* 2015-10-19 09:30:00 GMT */,
+                 ris::EventType_Departure, ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 38);
 }
 
@@ -199,7 +196,7 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
   events.push_back({LANGEN, ICE_D_L_F, 1445244600, ris::EventType_Arrival});
   events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_Departure});
   events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_Arrival});
-  bootstrap::send(motis_instance_, realtime::get_cancel_message(events));
+  test::send(motis_instance_, realtime::get_cancel_message(events));
 
   /* Ensure that 08:40 is cancelled */
   auto const& all_connections =
@@ -243,7 +240,7 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
   std::vector<realtime::event> events;
   events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_Departure});
   events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_Arrival});
-  bootstrap::send(motis_instance_, realtime::get_reroute_message(events, {}));
+  test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
   /* Ensure that arrival at 09:00 is cancelled */
   auto const& all_connections =
@@ -294,7 +291,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional) {
   events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
                                       ris::EventType_Departure},
                       "ICE", "");
-  bootstrap::send(motis_instance_, realtime::get_reroute_message({}, events));
+  test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
   /* Ensure that arrival at 16:10 is added */
   auto const& all_connections =
@@ -344,7 +341,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
     events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
                                         ris::EventType_Departure},
                         "ICE", "");
-    bootstrap::send(motis_instance_, realtime::get_reroute_message({}, events));
+    test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
     /* Ensure that arrival at 16:10 is added */
     auto const& all_connections =
@@ -360,7 +357,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
     events.push_back(
         {LANGEN, ICE_L_H_16, 1445272200, ris::EventType_Departure});
     events.push_back({HANAU, ICE_L_H_16, 1445272740, ris::EventType_Arrival});
-    bootstrap::send(motis_instance_, realtime::get_reroute_message(events, {}));
+    test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
     /* Ensure that ICE_L_H_16 is cancelled */
     ASSERT_EQ(nullptr,
@@ -400,12 +397,11 @@ TEST_F(reliability_realtime_dependencies, ICE_L_H) {
  * arrival of ICE_D_L_F at 08:30 in Langen
  * Note: the is message results in creating a new route */
 TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen) {
-  bootstrap::send(
-      motis_instance_,
-      realtime::get_delay_message(LANGEN, ICE_D_L_F,
-                                  1445243400 /* 2015-10-19 08:30:00 GMT */,
-                                  1445244600 /* 2015-10-19 08:59:00 GMT */,
-                                  ris::EventType_Arrival, ris::DelayType_Is));
+  test::send(motis_instance_,
+             realtime::get_delay_message(
+                 LANGEN, ICE_D_L_F, 1445243400 /* 2015-10-19 08:30:00 GMT */,
+                 1445244600 /* 2015-10-19 08:59:00 GMT */,
+                 ris::EventType_Arrival, ris::DelayType_Is));
 
   auto const node_key = distributions_container::container::key{
       ICE_D_L_F,

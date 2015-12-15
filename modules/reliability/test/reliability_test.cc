@@ -154,8 +154,7 @@ TEST_F(reliability_test_rating, rating_request) {
           11 * 60 +
           27) /* regard interchange time at the beginning of the journey */,
       std::make_tuple(28, 9, 2015));
-
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
 
   auto response = msg->content<ReliabilityRatingResponse const*>();
   ASSERT_EQ(1, response->response()->connections()->size());
@@ -164,15 +163,12 @@ TEST_F(reliability_test_rating, rating_request) {
   ASSERT_EQ(response->ratings()->size(), 1);
   auto const& rating = response->ratings()->begin();
   ASSERT_DOUBLE_EQ(rating->connection_rating(), 1.0);
-  ASSERT_EQ(rating->rating_elements()->size(), 2);
-  ASSERT_DOUBLE_EQ((*rating->rating_elements())[0]->dep_distribution()->sum(),
-                   1.0);
-  ASSERT_DOUBLE_EQ((*rating->rating_elements())[0]->arr_distribution()->sum(),
-                   1.0);
-  ASSERT_DOUBLE_EQ((*rating->rating_elements())[1]->dep_distribution()->sum(),
-                   1.0);
-  ASSERT_DOUBLE_EQ((*rating->rating_elements())[1]->arr_distribution()->sum(),
-                   1.0);
+  auto const& rating_elements = *rating->rating_elements();
+  ASSERT_EQ(rating_elements.size(), 2);
+  ASSERT_DOUBLE_EQ(rating_elements[0]->dep_distribution()->sum(), 1.0);
+  ASSERT_DOUBLE_EQ(rating_elements[0]->arr_distribution()->sum(), 1.0);
+  ASSERT_DOUBLE_EQ(rating_elements[1]->dep_distribution()->sum(), 1.0);
+  ASSERT_DOUBLE_EQ(rating_elements[1]->arr_distribution()->sum(), 1.0);
   ASSERT_NE((*rating->rating_elements())[0]->range(), nullptr);
   ASSERT_NE((*rating->rating_elements())[1]->range(), nullptr);
 
@@ -192,7 +188,7 @@ TEST_F(reliability_test_cg, connection_tree) {
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 3, 1);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
   test_cg(msg);
 }
 
@@ -201,7 +197,7 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto msg = test::send(motis_instance_, req_msg);
   test_cg(msg);
 }
 
@@ -224,11 +220,12 @@ TEST_F(reliability_late_connections, late_conn_req) {
       taxi_infos;
   taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
 
-  auto req_msg = flatbuffers::request_builder::to_reliable_late_connections_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(23 * 60 + 50), (motis::time)(1500),
-      std::make_tuple(19, 10, 2015), taxi_infos);
-  auto msg = bootstrap::send(motis_instance_, req_msg);
+  auto req_msg =
+      flatbuffers::request_builder::to_reliable_late_connections_request(
+          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+          (motis::time)(23 * 60 + 50), (motis::time)(1500),
+          std::make_tuple(19, 10, 2015), taxi_infos);
+  auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_NE(nullptr, msg);
   auto response = msg->content<routing::RoutingResponse const*>();

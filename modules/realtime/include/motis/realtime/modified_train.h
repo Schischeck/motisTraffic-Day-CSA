@@ -30,8 +30,6 @@ public:
   bool _leaving_allowed;
 };
 
-class realtime_schedule;
-
 class modified_train {
 public:
   modified_train(int32_t original_route_id, int32_t new_route_id,

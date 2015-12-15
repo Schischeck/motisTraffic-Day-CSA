@@ -50,6 +50,7 @@ class Server {
 
   _resolvePending(data) {
     if (!this._isPendingRequest(data.id)) {
+			AppDispatcher.dispatch(data);
       return;
     }
 
