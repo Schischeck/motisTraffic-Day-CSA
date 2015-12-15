@@ -7,6 +7,8 @@
 #include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/statistics.h"
 
+using namespace motis::logging;
+
 namespace motis {
 namespace realtime {
 

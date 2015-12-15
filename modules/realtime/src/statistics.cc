@@ -1,5 +1,6 @@
 #include <vector>
 #include <iomanip>
+#include <string>
 
 #include "motis/realtime/statistics.h"
 

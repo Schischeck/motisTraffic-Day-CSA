@@ -51,7 +51,11 @@ inline time unix_to_motistime(std::time_t schedule_begin, std::time_t t) {
   if (t < schedule_begin) {
     return INVALID_TIME;
   }
-  return (t - schedule_begin) / 60;
+  auto motistime = (t - schedule_begin) / 60;
+  if (motistime > INVALID_TIME) {
+    return INVALID_TIME;
+  }
+  return static_cast<time>(motistime);
 }
 
 }  // namespace motis

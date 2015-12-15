@@ -5,6 +5,10 @@
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
 
+#if defined(_WIN32) && defined(CreateService)
+#undef CreateService
+#endif
+
 using namespace parser;
 using namespace flatbuffers;
 
