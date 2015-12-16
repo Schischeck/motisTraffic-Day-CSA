@@ -11,17 +11,18 @@ export class Train {
     this.path = path;
     this.startTimeDelay = startTimeDelay;
     this.endTimeDelay = endTimeDelay;
-    let p = this.currentPosition(new Date());
+    let p = this._currentPosition(new Date());
     this.x = p.x;
     this.y = p.y;
     this.updatable = true;
   }
-
-  isDriving(currentTime) {
+	
+	isVisible(){
+		let currentTime = TimeStore.getTime();
     if (currentTime < this.startTime || currentTime > this.endTime)
       return false;
     return true;
-  }
+	}
 
   delayClass() {
     if (this.endTimeDelay <= 2)
@@ -37,16 +38,16 @@ export class Train {
   }
 
   update() {
-    let p = this.currentPosition(TimeStore.getTime());
+    let p = this._currentPosition(TimeStore.getTime());
     this.x = p.x;
     this.y = p.y;
     this.dirty = true;
   }
 
-  currentPosition(currentTime) {
+  _currentPosition(currentTime) {
     let maxDX = Math.abs(this.startStation.x - this.endStation.x);
     let maxDY = Math.abs(this.startStation.y - this.endStation.y);
-    let driven = (currentTime - this.startTime) / (this.endTime - this.startTime);
+    let driven = Math.fround(currentTime - this.startTime) / (this.endTime - this.startTime);
     if (this.startStation.x > this.endStation.x)
       maxDX *= -1;
     if (this.startStation.y > this.endStation.y)

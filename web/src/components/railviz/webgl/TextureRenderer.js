@@ -3,7 +3,7 @@ import { Shader } from './Shader';
 export class TextureRenderer {
 
   constructor(gl) {
-    this.program = this.compileShaderProgram(gl, Shader.lines.vertex, Shader.lines.fragment);
+    this.program = this.compileShaderProgram(gl, Shader.texture.vertex, Shader.texture.fragment);
   }
 
   render(gl, buffer, texture, matrix, zoom) {

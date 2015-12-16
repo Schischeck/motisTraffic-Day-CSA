@@ -37,11 +37,13 @@ class RailVizStore extends ReduceStore {
 
   _convertToStations(s) {
     let stations = [];
+		let index = 0;
     s.forEach(station => {
       let ll = new L.LatLng(station.station_coord.lat, station.station_coord.lng);
       let point = this.getMap().project(ll, 0);
-      let newStation = new Station(station.station_coord.lat, station.station_coord.lng, point.x, point.y, station.station_name);
+      let newStation = new Station(index, station.station_coord.lat, station.station_coord.lng, point.x, point.y, station.station_name);
       stations.push(newStation);
+			index++;
     });
     return stations;
   }
@@ -61,7 +63,7 @@ class RailVizStore extends ReduceStore {
       if (train.a_time_delay) {
         endDelay = train.a_time_delay;
       }
-      let route = new Array();
+      let route = [];
       if (routes[index]) {
         let route_ids = routes[index].route;
         for (let j = 0; j < route_ids.length; j++) {
