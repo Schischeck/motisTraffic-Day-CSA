@@ -15,6 +15,7 @@
 #include "motis/loader/classes.h"
 #include "motis/loader/timezone_util.h"
 #include "motis/loader/duplicate_checker.h"
+#include "motis/loader/rule_service_graph_builder.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -135,6 +136,16 @@ void graph_builder::add_services(Vector<Offset<Service>> const* services) {
   }
 }
 
+void graph_builder::index_first_route_node(route const& r) {
+  assert(!r.empty());
+  auto route_index = r[0].route_node->_route;
+  if (static_cast<int>(sched_.route_index_to_first_route_node.size()) <=
+      route_index) {
+    sched_.route_index_to_first_route_node.resize(route_index + 1);
+  }
+  sched_.route_index_to_first_route_node[route_index] = r[0].route_node;
+}
+
 void graph_builder::add_route_services(
     std::vector<Service const*> const& services) {
   if (services.empty()) {
@@ -172,7 +183,9 @@ void graph_builder::add_route_services(
       continue;
     }
 
-    auto r = create_route(services[0]->route());
+    auto r = create_route(services[0]->route(), ++next_route_index_);
+    index_first_route_node(*r);
+
     for (unsigned section_idx = 0; section_idx < route.size(); ++section_idx) {
       if (section_idx != 0) {
         verify(route[section_idx].size() == route[section_idx - 1].size(),
@@ -445,8 +458,8 @@ int graph_builder::get_or_create_platform(
   }
 }
 
-std::unique_ptr<route> graph_builder::create_route(Route const* r) {
-  auto route_index = ++next_route_index_;
+std::unique_ptr<route> graph_builder::create_route(Route const* r,
+                                                   unsigned route_index) {
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
@@ -459,10 +472,6 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r) {
                           last_route_edge, stop_idx != stops->size() - 1);
     route_nodes->push_back(section);
     last_route_edge = section.get_route_edge();
-
-    if (stop_idx == 0) {
-      sched_.route_index_to_first_route_node.push_back(section.route_node);
-    }
   }
   return route_nodes;
 }
@@ -525,6 +534,12 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   builder.add_stations(serialized->stations());
   builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());
+
+  if (apply_rules) {
+    rule_service_graph_builder rsgb(builder);
+    rsgb.add_rule_services(serialized->rule_services());
+  }
+
   builder.connect_reverse();
   builder.sort_connections();
 
@@ -541,6 +556,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
               << " duplicate events";
   }
 
+  std::cout << "routes: " << builder.next_route_index_ << "\n";
   return sched;
 }
 

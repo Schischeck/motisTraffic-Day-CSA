@@ -10,6 +10,26 @@ namespace loader {
 
 using namespace flatbuffers;
 
+int calculate_offset(RuleService const* rule_service) {
+  int offset = 0;
+  for (auto const& rule : *rule_service->rules()) {
+    for (auto const& s : {rule->service1(), rule->service2()}) {
+      auto last_stop_arrival_time = s->times()->Get(s->times()->size() - 2);
+      offset = std::max(offset, last_stop_arrival_time / 1440);
+    }
+  }
+  return offset;
+}
+
+bool has_active_days(bitfield const& traffic_days, int first, int last) {
+  for (int day = first; day <= last; ++day) {
+    if (traffic_days.test(day)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 rule_service_graph_builder::rule_service_graph_builder(graph_builder& gb)
     : gb_(gb) {}
 
@@ -24,10 +44,11 @@ void rule_service_graph_builder::add_rule_services(
     auto traffic_days = gb_.get_or_create_bitfield(
         rule_service->rules()->Get(0)->service1()->traffic_days());
 
-    for (int day = gb_.first_day_; day < gb_.last_day_; ++day) {
-      if (traffic_days.test(day)) {
-        continue;
-      }
+    auto offset = calculate_offset(rule_service);
+    auto first_day = std::max(0, gb_.first_day_ - offset);
+    auto last_day = gb_.last_day_;
+    if (!has_active_days(traffic_days, first_day, last_day)) {
+      continue;
     }
 
     int iterations = 0;
@@ -67,20 +88,21 @@ void rule_service_graph_builder::add_rule_services(
         if (s1_new && !s2_new) {
           service_route_nodes.emplace(
               rule->service1(), add_remaining_merge_split_sections(
-                                    traffic_days, route_id, rule->service1(),
-                                    rule, s2_it->second));
+                                    traffic_days, first_day, last_day, route_id,
+                                    rule->service1(), rule, s2_it->second));
         } else if (!s1_new && s2_new) {
           service_route_nodes.emplace(
               rule->service2(), add_remaining_merge_split_sections(
-                                    traffic_days, route_id, rule->service2(),
-                                    rule, s1_it->second));
+                                    traffic_days, first_day, last_day, route_id,
+                                    rule->service2(), rule, s1_it->second));
         } else /* if (s1_new && s2_new) */ {
           std::tie(s1_it, std::ignore) = service_route_nodes.emplace(
-              rule->service1(), add_service(rule->service1(), route_id));
+              rule->service1(), add_service(rule->service1(), traffic_days,
+                                            first_day, last_day, route_id));
           service_route_nodes.emplace(
               rule->service2(), add_remaining_merge_split_sections(
-                                    traffic_days, route_id, rule->service2(),
-                                    rule, s1_it->second));
+                                    traffic_days, first_day, last_day, route_id,
+                                    rule->service2(), rule, s1_it->second));
         }
       } catch (...) {
         goto next;
@@ -96,8 +118,9 @@ void rule_service_graph_builder::add_rule_services(
 }
 
 route const* rule_service_graph_builder::add_remaining_merge_split_sections(
-    bitfield const& traffic_days, int route_index, Service const* new_service,
-    Rule const* r, route const* existing_service_route_nodes) {
+    bitfield const& traffic_days, int first_day, int last_day, int route_index,
+    Service const* new_service, Rule const* r,
+    route const* existing_service_route_nodes) {
   auto const& stops = new_service->route()->stations();
   auto merge_station_id =
       gb_.sched_.eva_to_station.at(r->eva_1()->str())->index;
@@ -183,39 +206,38 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
   };
 
   state s = ENTRY;
-  edge* last_route_edge = nullptr;
   auto route_nodes = make_unique<route>();
+  route_info route_node(nullptr, -1);
   auto const& in_allowed = new_service->route()->in_allowed();
   auto const& out_allowed = new_service->route()->out_allowed();
   for (unsigned stop_idx = 0,
                 other_service_route_node_idx = other_service_merge_idx;
        stop_idx < stops->size(); ++stop_idx, ++other_service_route_node_idx) {
     s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
-    route_info route_node(nullptr, -1);
     switch (s) {
       case ENTRY: assert(false && "state not accessible"); break;
       case BUILD:
-        std::tie(route_node, last_route_edge) = add_route_section(
+        route_node = gb_.add_route_section(
             route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
-            out_allowed->Get(stop_idx), last_route_edge,
+            out_allowed->Get(stop_idx), route_node.get_route_edge(),
             stop_idx != stops->size() - 1);
         break;
 
       case BUILD_END:
         route_node = *merge_rn_it;
-        last_route_edge->_to = merge_rn_it->route_node;
+        route_node.get_route_edge()->_to = merge_rn_it->route_node;
         other_service_route_node_idx = other_service_merge_idx;
         break;
 
       case SKIP:
         route_node =
             (*existing_service_route_nodes)[other_service_route_node_idx];
-        // add_merge_info(route_node.);
+        // TODO add additional train numbers add_merge_info(route_node.);
         break;
 
       case SKIP_END:
         assert(other_service_route_node_idx == other_service_split_idx);
-        std::tie(route_node, last_route_edge) = add_route_section(
+        route_node = gb_.add_route_section(
             route_index, stops->Get(stop_idx), in_allowed->Get(stop_idx),
             out_allowed->Get(stop_idx), nullptr, stop_idx != stops->size() - 1,
             split_rn_it->route_node);
@@ -232,26 +254,32 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
     route_nodes->push_back(route_node);
   }
 
+  int num_days = last_day - first_day + 1;
+  std::array<bool, BIT_COUNT> adjusted;
+  std::vector<time> prev_arrival(num_days);
   for (unsigned stop_idx = 0; stop_idx < stops->size() - 1; ++stop_idx) {
     s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
     switch (s) {
+      case SKIP:
+      // TODO remember last arrival of already built sections
+
       case BUILD:
       case SKIP_END:
-        // TODO gb_.add_route_section()
-        //        add_service_section(
-        //            (*route_nodes)[stop_idx].get_route_edge(),
-        //            new_service->sections()->Get(stop_idx),
-        //            new_service->platforms()
-        //                ? new_service->platforms()->Get(stop_idx +
-        //                1)->arr_platforms()
-        //                : nullptr,
-        //            new_service->platforms()
-        //                ?
-        //                new_service->platforms()->Get(stop_idx)->dep_platforms()
-        //                : nullptr,
-        //            new_service->times()->Get(stop_idx * 2 + 1),
-        //            new_service->times()->Get(stop_idx * 2 + 2),
-        //            traffic_days);
+        for (int day = first_day; day <= last_day; ++day) {
+          if (!traffic_days.test(day)) {
+            continue;
+          }
+
+          auto motis_day_idx = day - first_day;
+          auto lcon = gb_.section_to_connection(new_service, day, stop_idx,
+                                                prev_arrival[motis_day_idx],
+                                                adjusted[motis_day_idx]);
+          (*route_nodes)[stop_idx]
+              .get_route_edge()
+              ->_m._route_edge._conns.push_back(lcon);
+
+          prev_arrival[motis_day_idx] = lcon.a_time;
+        }
         break;
 
       default:;
@@ -262,42 +290,36 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
   return routes_mem_.back().get();
 }
 
-route const* rule_service_graph_builder::add_service(Service const* service,
-                                                     int route_index) {
-  auto traffic_days = gb_.get_or_create_bitfield(service->traffic_days());
-  for (int day = gb_.first_day_; day < gb_.last_day_; ++day) {
-    if (traffic_days.test(day)) {
-      return nullptr;
+route const* rule_service_graph_builder::add_service(
+    Service const* service, bitfield const& traffic_days, int first_day,
+    int last_day, int route_index) {
+  routes_mem_.emplace_back(gb_.create_route(service->route(), route_index));
+  auto& route_nodes = *routes_mem_.back();
+
+  int num_days = last_day - first_day + 1;
+  std::array<bool, BIT_COUNT> adjusted;
+  std::vector<time> prev_arrival(num_days);
+
+  for (unsigned section_idx = 0; section_idx < service->sections()->size();
+       ++section_idx) {
+    for (int day = first_day; day <= last_day; ++day) {
+      if (!traffic_days.test(day)) {
+        continue;
+      }
+
+      auto motis_day_idx = day - first_day;
+      auto lcon = gb_.section_to_connection(service, day, section_idx,
+                                            prev_arrival[motis_day_idx],
+                                            adjusted[motis_day_idx]);
+      route_nodes[section_idx]
+          .get_route_edge()
+          ->_m._route_edge._conns.push_back(lcon);
+
+      prev_arrival[motis_day_idx] = lcon.a_time;
     }
   }
 
-  //  auto& route_nodes = *get_or_create(
-  //      gb_.routes_, service->route(), [this, &service, &route_index]() {
-  //        routes_mem_.emplace_back(
-  //            create_route(service->route(),
-  //                         route_index == -1 ? routes_.size() : route_index));
-  //        return routes_mem_.back().get();
-  //      });
-
-  auto offset = service->times()->Get(service->times()->size() - 2) / 1440;
-  for (unsigned section_idx = 0; section_idx < service->sections()->size();
-       ++section_idx) {
-    // TODO gb_.add_route_section()
-    //    add_service_section(
-    //        &(*route_nodes)[section_idx].route_node->_edges[1],
-    //        service->sections()->Get(section_idx),
-    //        service->platforms()
-    //            ? service->platforms()->Get(section_idx + 1)->arr_platforms()
-    //            : nullptr,
-    //        service->platforms()
-    //            ? service->platforms()->Get(section_idx)->dep_platforms()
-    //            : nullptr,
-    //        service->times()->Get(section_idx * 2 + 1),
-    //        service->times()->Get(section_idx * 2 + 2), traffic_days, offset);
-  }
-
-  //  return &route_nodes;
-  return nullptr;
+  return &route_nodes;
 }
 
 }  // loader

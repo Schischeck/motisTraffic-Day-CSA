@@ -22,7 +22,7 @@ namespace motis {
 namespace loader {
 
 struct route_info {
-  route_info() = default;
+  route_info() : route_node(nullptr), outgoing_route_edge_index(-1) {}
   route_info(node* rn, int edge_idx)
       : route_node(rn), outgoing_route_edge_index(edge_idx) {
     assert(rn == nullptr || rn->is_route_node());
@@ -58,6 +58,8 @@ struct graph_builder {
 
   void add_services(
       flatbuffers::Vector<flatbuffers::Offset<Service>> const* services);
+
+  void index_first_route_node(route const& r);
 
   void add_route_services(std::vector<Service const*> const& services);
 
@@ -103,7 +105,7 @@ struct graph_builder {
       int day,
       flatbuffers::Vector<flatbuffers::Offset<Platform>> const* platforms);
 
-  std::unique_ptr<route> create_route(Route const* r);
+  std::unique_ptr<route> create_route(Route const* r, unsigned route_index);
 
   route_info add_route_section(int route_index, Station const* from_stop,
                                bool in_allowed, bool out_allowed,
