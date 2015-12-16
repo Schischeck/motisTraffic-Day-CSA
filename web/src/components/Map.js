@@ -26,7 +26,7 @@ export default class Map extends React.Component {
     L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap-Mitwirkende'
     }).addTo(this.map);
-    //this.layer = new RailViz(this.refs.canvas, this.map);
+    this.layer = new RailViz(this.refs.canvas, this.map);
 		this._initMap(this.map);
   }
 	

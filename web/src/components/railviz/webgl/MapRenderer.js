@@ -1,51 +1,93 @@
-import { Matrix } from './Matrix';
-import { TextureRenderer } from './TextureRenderer';
-import { ShapeRenderer } from './ShapeRenderer';
+import {Matrix} from './Matrix';
+import {TextureRenderer} from './TextureRenderer';
+import {ShapeRenderer} from './ShapeRenderer';
 
 export class MapRenderer {
 
   constructor(canvas, map) {
+    this.gl = this._initGL(canvas);
+    this.textureRenderer = new TextureRenderer(this.gl);
+    this.shapeRenderer = new ShapeRenderer(this.gl);
     this.canvas = canvas;
     this.map = map;
     this.pixelsToWebGLMatrix = new Matrix();
     this.mapMatrix = new Matrix();
     this.layers = [];
-
-    this.gl = this.initGL(canvas);
-    this.onResize();
-    this.textureRenderer = new TextureRenderer(this.gl);
-    this.shapeRenderer = new ShapeRenderer(this.gl);
-    window.addEventListener('resize', this.onResize.bind(this));
-    window.requestAnimationFrame(this.update.bind(this));
-    this.map.on('zoomstart', this.renderLayers.bind(this));
-    this.map.on('move', this.renderLayers.bind(this));
-    this.map.on('resize', this.renderLayers.bind(this));
+    this._onResize();
+    this._setupEvents();
   }
 
-  onResize() {
+  _setupEvents() {
+    window.addEventListener('resize', this._onResize.bind(this));
+    window.requestAnimationFrame(this._update.bind(this));
+    this.map.on('zoomstart', this._renderLayers.bind(this));
+    this.map.on('move', this._renderLayers.bind(this));
+    this.map.on('resize', this._renderLayers.bind(this));
+  }
+
+  _centerOn() {
+    if (this.followEntity) {
+      let latlng = this.map.unproject(
+          new L.Point(this.followEntity.x, this.followEntity.y),0);
+      let zoom_ = this.map.getZoom();
+      this.map.setView(latlng, zoom_,
+                       {animate : false});
+    }
+  }
+
+	centerOn(entity){
+		if(entity){
+			this.followEntity = entity;
+			this.follow = true;
+		}else{
+			this.follow = false;
+		}
+	}
+	
+  project(position) {
+    let matrix = this._getMatrix();
+    let pos = matrix.multiply([ position.x, position.y, 1, 1 ]);
+    return {x : pos[0], y : pos[1]};
+  }
+
+  _onResize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     let width = this.canvas.width;
     let height = this.canvas.height;
     this.gl.viewport(0, 0, width, height);
     this.pixelsToWebGLMatrix.fromArray([
-      2 / this.canvas.width,0,0,0, 
-      0,-2 / this.canvas.height,0,0,
-      0,0,0,0,
-      -1,1,0,1
+      2 / this.canvas.width,
+      0,
+      0,
+      0,
+      0,
+      -2 / this.canvas.height,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      1,
+      0,
+      1
     ]);
   }
 
-  initGL(canvas) {
+  _initGL(canvas) {
     let gl;
     try {
-      gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      gl =
+          canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       let width = canvas.width;
       let height = canvas.height;
       gl.viewportWidth = width;
       gl.viewportHeight = height;
       gl.viewport(0, 0, width, height);
-    } catch (e) {}
+    } catch (e) {
+    }
     if (!gl) {
       alert("Unable to initialize WebGL. Your browser may not support it.");
       gl = null;
@@ -53,17 +95,20 @@ export class MapRenderer {
     return gl;
   }
 
-  update() {
-    this.updateLayers();
-    this.render();
+  _update() {
+    this._updateLayers();
+    this._render();
+    if (this.follow) {
+      this._centerOn();
+    }
   }
 
-  render() {
-    this.renderLayers();
-    window.requestAnimationFrame(this.update.bind(this));
+  _render() {
+    this._renderLayers();
+    window.requestAnimationFrame(this._update.bind(this));
   }
 
-  getMatrix() {
+  _getMatrix() {
     // copy pixel->webgl matrix
     this.mapMatrix.set(this.pixelsToWebGLMatrix);
     // Scale to current zoom (worldCoords * 2^zoom)
@@ -73,12 +118,13 @@ export class MapRenderer {
     let topleft = new L.LatLng(bounds.getNorth(), bounds.getWest());
     let offset = this.map.project(topleft, 0);
     this.mapMatrix.translate(-offset.x, -offset.y);
-    this.mapMatrix.zoom = this.map.getZoom() * 0.5;
+    let zoom = this.map.getZoom();
+    this.mapMatrix.zoom = (zoom * zoom) * 0.035;
     return this.mapMatrix;
   }
 
-  renderLayers() {
-    let matrix = this.getMatrix();
+  _renderLayers() {
+    let matrix = this._getMatrix();
     let gl = this.gl;
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);
@@ -88,18 +134,21 @@ export class MapRenderer {
       let buffers = layer.getLayerBuffers();
       let textures = layer.getTextures();
       let metaData = layer.getMetaData();
-      let entities = layer.getEntities();
       for (let i = 0; i < buffers.length; i++) {
         if (textures[i] != "LINES") {
-          this.textureRenderer.render(gl, buffers[i], textures[i], matrix, metaData[i] && metaData[i]['zoom'] ? metaData[i].zoom : matrix.zoom);
+          this.textureRenderer.render(gl, buffers[i], textures[i], matrix,
+                                      metaData[i] && metaData[i]['zoom']
+                                          ? metaData[i].zoom
+                                          : matrix.zoom);
         } else {
-          this.shapeRenderer.render(gl, buffers[i], gl.LINES, metaData[i], matrix);
+          this.shapeRenderer.render(gl, buffers[i], gl.LINES, metaData[i],
+                                    matrix);
         }
       }
     });
   }
 
-  updateLayers() {
+  _updateLayers() {
     this.layers.forEach(layer => {
       layer.update();
       if (layer.dirty) {
@@ -108,9 +157,7 @@ export class MapRenderer {
     });
   }
 
-  add(layer) {
-    this.layers.unshift(layer);
-  }
+  add(layer) { this.layers.push(layer); }
 
   remove(id) {
     let index;
@@ -124,6 +171,10 @@ export class MapRenderer {
     if (found)
       this.layers.splice(index, 1);
   }
+	
+	getLayers(){
+		return this.layers;
+	}
 
   createTextureFromCanvas(cv) {
     let gl = this.gl;
@@ -138,5 +189,4 @@ export class MapRenderer {
     }
     return tex;
   }
-
 }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { AppBar, IconButton, CircularProgress } from 'material-ui';
+import { AppBar, IconButton, CircularProgress, FloatingActionButton } from 'material-ui';
 
 import PaddedPaper from './PaddedPaper';
 import RoutingForm from './RoutingForm';
@@ -14,7 +14,8 @@ import Server from '../Server';
 import StationGuesserRequest from '../Messages/StationGuesserRequest';
 
 import style from './App.scss';
-
+import iconcss from './MaterialIcons.scss';
+const materialicons = iconcss['material-icons'];
 export class App extends Component {
   constructor(props) {
     super(props);
@@ -30,7 +31,8 @@ export class App extends Component {
       'lastDate': lastDate,
       'showError': false,
       'waiting': false,
-      'showResults': !!cached.connections
+      'showResults': !!cached.connections,
+			'visibleSearch': true
     };
   }
 
@@ -53,6 +55,18 @@ export class App extends Component {
       }));
     });
   }
+	
+	hideSearch(){
+		this.setState({
+			'visibleSearch': false
+		});
+	}
+	
+	showSearch(){
+		this.setState({
+			'visibleSearch': true
+		});
+	}
 
   guessStation(input) {
     return new Promise(resolve => {
@@ -89,12 +103,8 @@ export class App extends Component {
                           mode="indeterminate"
                           style={ {  'margin': '50px auto',  'display': 'block'} } />
                     : <Timeline connections={ this.state.connections } />;
-
-    return (
-    <div className={ style.app }>
-      <Map />
-      <div className={ style.layer }/>
-      <PaddedPaper
+		const layer = this.state.visibleSearch ?  <div className={ style.layer }/> : <div />
+		const search = this.state.visibleSearch ?  <PaddedPaper
         className={ style.overlay }
         zDepth={ 1 }>
           <div className={ style.topbar }>
@@ -108,7 +118,36 @@ export class App extends Component {
                        disabled={ this.state.waiting }
                        onRequestRouting={ this.getRouting.bind(this) } />
           { results }
-      </PaddedPaper>
+      </PaddedPaper>: <div /> ;
+		const searchButton = <FloatingActionButton
+                            onClick={ this.showSearch.bind(this) }
+                            secondary={ true }
+														style = { { 'margin': '2px' } }
+                            >
+        <i className={ materialicons }>&#xe8b6;</i>
+														</FloatingActionButton>;
+		const railVizButton = <FloatingActionButton
+                            onClick={ this.hideSearch.bind(this) }
+                            secondary={ true }
+														style = { { 'margin': '2px' } }
+                            >
+        <i className={ materialicons }>&#xe8f4;</i>
+														</FloatingActionButton>;
+														
+		const statusButton = <FloatingActionButton
+                            onClick={ this.hideSearch.bind(this) }
+                            secondary={ true }
+														style = { { 'margin': '2px' } }
+                            >
+        <i className={ materialicons }>&#xe8b8;</i>
+														</FloatingActionButton>;
+    return (
+    <div className={ style.app }>
+      <Map />
+      
+			{ layer }
+			<div className={ style.control }>{ searchButton }{ railVizButton }{ statusButton }</div>
+      { search }
     </div>
     );
   }
