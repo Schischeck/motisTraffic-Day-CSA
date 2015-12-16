@@ -10,13 +10,13 @@ struct rule_service_graph_builder {
       flatbuffers::Vector<flatbuffers::Offset<RuleService>> const*
           rule_services);
 
-  route const* add_service(Service const* service, bitfield const& traffic_days,
-                           int first_day, int last_day, int route_index);
+  route* add_service(Service const* service, bitfield const& traffic_days,
+                     int first_day, int last_day, int route_index);
 
-  route const* add_remaining_merge_split_sections(
+  route* add_remaining_merge_split_sections(
       bitfield const& traffic_days, int first_day, int last_day,
       int route_index, Service const* new_service, Rule const* r,
-      route const* existing_service_route_nodes);
+      route* existing_service_route_nodes);
 
   graph_builder& gb_;
   std::map<Route const*, route const*> routes_;

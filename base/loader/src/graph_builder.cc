@@ -536,6 +536,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   builder.add_footpaths(serialized->footpaths());
 
   if (apply_rules) {
+    scoped_timer timer("rule services");
     rule_service_graph_builder rsgb(builder);
     rsgb.add_rule_services(serialized->rule_services());
   }
@@ -556,7 +557,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
               << " duplicate events";
   }
 
-  std::cout << "routes: " << builder.next_route_index_ << "\n";
   return sched;
 }
 

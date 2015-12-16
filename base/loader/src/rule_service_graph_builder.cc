@@ -52,7 +52,7 @@ void rule_service_graph_builder::add_rule_services(
     }
 
     int iterations = 0;
-    std::map<Service const*, route const*> service_route_nodes;
+    std::map<Service const*, route*> service_route_nodes;
     bool first = true;
     std::vector<std::string> history;
     std::vector<Rule const*> rules(std::begin(*rule_service->rules()),
@@ -117,10 +117,10 @@ void rule_service_graph_builder::add_rule_services(
   }
 }
 
-route const* rule_service_graph_builder::add_remaining_merge_split_sections(
+route* rule_service_graph_builder::add_remaining_merge_split_sections(
     bitfield const& traffic_days, int first_day, int last_day, int route_index,
     Service const* new_service, Rule const* r,
-    route const* existing_service_route_nodes) {
+    route* existing_service_route_nodes) {
   auto const& stops = new_service->route()->stations();
   auto merge_station_id =
       gb_.sched_.eva_to_station.at(r->eva_1()->str())->index;
@@ -145,10 +145,8 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
       });
   verify(split_rn_it != end(*existing_service_route_nodes),
          "mss: service[1] doesn't contain split station mentioned in rule");
-#ifndef NDEBUG
   auto other_service_split_idx =
       std::distance(begin(*existing_service_route_nodes), split_rn_it);
-#endif
 
   // Determine merge and split stop indices of the new service.
   auto merge_stop_it = std::find_if(
@@ -260,11 +258,18 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
   for (unsigned stop_idx = 0; stop_idx < stops->size() - 1; ++stop_idx) {
     s = next_state(s, stop_idx == merge_stop_idx, stop_idx == split_stop_idx);
     switch (s) {
-      case SKIP:
-      // TODO remember last arrival of already built sections
+      case SKIP_END: {
+        auto prev_edge =
+            (*existing_service_route_nodes)[other_service_split_idx - 1]
+                .get_route_edge();
+        std::transform(begin(prev_edge->_m._route_edge._conns),
+                       end(prev_edge->_m._route_edge._conns),
+                       begin(prev_arrival),
+                       [](light_connection const& l) { return l.a_time; });
+      }
+      // fall through intended
 
       case BUILD:
-      case SKIP_END:
         for (int day = first_day; day <= last_day; ++day) {
           if (!traffic_days.test(day)) {
             continue;
@@ -290,9 +295,10 @@ route const* rule_service_graph_builder::add_remaining_merge_split_sections(
   return routes_mem_.back().get();
 }
 
-route const* rule_service_graph_builder::add_service(
-    Service const* service, bitfield const& traffic_days, int first_day,
-    int last_day, int route_index) {
+route* rule_service_graph_builder::add_service(Service const* service,
+                                               bitfield const& traffic_days,
+                                               int first_day, int last_day,
+                                               int route_index) {
   routes_mem_.emplace_back(gb_.create_route(service->route(), route_index));
   auto& route_nodes = *routes_mem_.back();
 
