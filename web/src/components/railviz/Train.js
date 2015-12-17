@@ -16,8 +16,8 @@ export class Train {
     this.y = p.y;
     this.updatable = true;
   }
-	
-	isVisible(){
+
+	isVisible() {
 		let currentTime = TimeStore.getTime();
     if (currentTime < this.startTime || currentTime > this.endTime)
       return false;
@@ -34,7 +34,7 @@ export class Train {
     if (this.endTimeDelay <= 30)
       return 3;
     if (this.endTimeDelay > 30)
-      return 4
+      return 4;
   }
 
   update() {

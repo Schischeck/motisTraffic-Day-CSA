@@ -1,20 +1,15 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 import SVG from 'svg.js';
-
-import MotisGrid from './MotisGrid';
-import SVGTimeLabels from './SVGTimeLabels';
-import TimelineCalculator from './TimelineCalculator';
+import './MotisGrid';
+import './SVGTimeLabels';
+import timelineCalculator from './TimelineCalculator';
 
 import style from './MotisTimeline.scss';
 
 export default class Timeline extends React.Component {
   constructor(props) {
     super(props);
-  }
-
-  getHeight() {
-    return Math.max(200, this.props.connections.length * 72.5) + 50;
   }
 
   componentDidMount() {
@@ -38,6 +33,7 @@ export default class Timeline extends React.Component {
       });
     }
 
+
     const colors = {
       1: '#FF0000',
       2: '#708D91',
@@ -52,26 +48,26 @@ export default class Timeline extends React.Component {
 
     const cons = this.props.connections.map(c => {
       const walkTargets = c.transports.filter(move => {
-        return move.move_type == 'Walk';
+        return move.move_type === 'Walk';
       }).map(walk => {
         return walk.move.range.to;
       });
 
-      let importantStops = c.stops.map((stop, i) => {
+      const importantStops = c.stops.map((stop, i) => {
         return {
           type: 'stop',
           stop,
           i
         };
       }).filter((el, i) => {
-        return i === 1 || i === c.stops.length - 2 || el.stop.interchange || walkTargets.indexOf(i) != -1;
+        return i === 1 || i === c.stops.length - 2 || el.stop.interchange || walkTargets.indexOf(i) !== -1;
       });
 
-      let elements = [];
+      const elements = [];
       for (let i = 0; i < importantStops.length - 1; i++) {
-        let from = importantStops[i];
-        let to = importantStops[i + 1];
-        let transport = transports(c, from.i, to.i)[0];
+        const from = importantStops[i];
+        const to = importantStops[i + 1];
+        const transport = transports(c, from.i, to.i)[0];
         if (transport && transport.move.name) {
           elements.push({
             transport,
@@ -86,12 +82,16 @@ export default class Timeline extends React.Component {
       return elements;
     });
 
-    const settings = TimelineCalculator(cons, 520, 60);
+    const settings = timelineCalculator(cons, 520, 60);
     this.grid.drawConnections(cons, settings);
     this.timelineLabels.drawTimeline(settings);
   }
 
   componentDidUpdate = this.componentDidMount
+
+  getHeight() {
+    return Math.max(200, this.props.connections.length * 72.5) + 50;
+  }
 
   render() {
     return (

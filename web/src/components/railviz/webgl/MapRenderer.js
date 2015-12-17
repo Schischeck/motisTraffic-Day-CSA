@@ -28,22 +28,22 @@ export class MapRenderer {
   _centerOn() {
     if (this.followEntity) {
       let latlng = this.map.unproject(
-          new L.Point(this.followEntity.x, this.followEntity.y),0);
+          new L.Point(this.followEntity.x, this.followEntity.y), 0);
       let zoom_ = this.map.getZoom();
       this.map.setView(latlng, zoom_,
                        {animate : false});
     }
   }
 
-	centerOn(entity){
-		if(entity){
+	centerOn(entity) {
+		if (entity) {
 			this.followEntity = entity;
 			this.follow = true;
-		}else{
+		} else {
 			this.follow = false;
 		}
 	}
-	
+
   project(position) {
     let matrix = this._getMatrix();
     let pos = matrix.multiply([ position.x, position.y, 1, 1 ]);
@@ -80,7 +80,7 @@ export class MapRenderer {
     let gl;
     try {
       gl =
-          canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+          canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       let width = canvas.width;
       let height = canvas.height;
       gl.viewportWidth = width;
@@ -89,7 +89,7 @@ export class MapRenderer {
     } catch (e) {
     }
     if (!gl) {
-      alert("Unable to initialize WebGL. Your browser may not support it.");
+      alert('Unable to initialize WebGL. Your browser may not support it.');
       gl = null;
     }
     return gl;
@@ -135,7 +135,7 @@ export class MapRenderer {
       let textures = layer.getTextures();
       let metaData = layer.getMetaData();
       for (let i = 0; i < buffers.length; i++) {
-        if (textures[i] != "LINES") {
+        if (textures[i] !== 'LINES') {
           this.textureRenderer.render(gl, buffers[i], textures[i], matrix,
                                       metaData[i] && metaData[i]['zoom']
                                           ? metaData[i].zoom
@@ -171,8 +171,8 @@ export class MapRenderer {
     if (found)
       this.layers.splice(index, 1);
   }
-	
-	getLayers(){
+
+	getLayers() {
 		return this.layers;
 	}
 

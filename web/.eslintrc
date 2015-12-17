@@ -1,11 +1,32 @@
 {
   "parser": "babel-eslint",
   "extends": "airbnb",
+  "globals": {
+      __MOTIS_API_KEY__: false,
+      __MOTIS_REMOTE_HOST__: false,
+      __MOTIS_REMOTE_PORT__: false,
+      __MOTIS_REMOTE_PATH__: false
+  },
   "rules": {
     "strict": 0,
     "comma-dangle": 0,
     "indent": 0,
     "react/prop-types": 0,
-    "no-console": 0
+    "no-console": 0,
+    "eol-last": 0,
+    "no-else-return": 0,
+    "func-names": 0,
+    "react/sort-comp": [2, {
+      order: [
+        'constructor',
+        'getStores',
+        'calculateState',
+        'lifecycle',
+        'everything-else',
+        'render'
+      ]
+    }],
+    "new-cap": [2, {"capIsNewExceptions": ["SVG"]}],
+    "no-trailing-spaces": 2
   }
 }
