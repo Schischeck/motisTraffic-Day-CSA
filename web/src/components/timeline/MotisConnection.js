@@ -42,7 +42,7 @@ SVG.MotisConnection = SVG.invent({
         }
 
         const moveGroup = this.put(move)
-                            .draw(thickness, radius, el.len, el)
+                            .draw(thickness, radius, el.len, el.label)
                             .move(el.x + totalOffset, 0)
                             .fill(el.color);
 

@@ -5,6 +5,8 @@ import './MotisGrid';
 import './SVGTimeLabels';
 import timelineCalculator from './TimelineCalculator';
 
+import colors from './MoveColors';
+
 import style from './MotisTimeline.scss';
 
 export default class Timeline extends React.Component {
@@ -33,19 +35,6 @@ export default class Timeline extends React.Component {
       });
     }
 
-
-    const colors = {
-      1: '#FF0000',
-      2: '#708D91',
-      3: '#19DD89',
-      4: '#FD8F3A',
-      5: '#94A507',
-      6: '#F62A07',
-      7: '#563AC9',
-      8: '#4E070D',
-      9: '#7ED3FD',
-    };
-
     const cons = this.props.connections.map(c => {
       const walkTargets = c.transports.filter(move => {
         return move.move_type === 'Walk';
@@ -73,7 +62,7 @@ export default class Timeline extends React.Component {
             transport,
             from,
             to,
-            color: colors[transport.move.clasz] || '#D31996',
+            color: colors[transport.move.clasz] || colors.fallback,
             begin: new Date(from.stop.departure.time * 1000),
             end: new Date(to.stop.arrival.time * 1000)
           });
