@@ -29,6 +29,14 @@ SVG.MotisDetailView = SVG.invent({
         this.add(stopNameObj);
       }.bind(this);
 
+      const addTimeLabel = function(time, pos) {
+        addLabel(formatTime(time), 115, len * pos + 0.5 * radius, 'font-weight: lighter');
+      }.bind(this);
+
+      const addStationLabel = function(text, pos) {
+        addLabel(text, 280, len * pos + 0.33 * radius, 'font-size: 115%; font-weight: lighter');
+      }.bind(this);
+
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
       elements.forEach((el, i) => {
         const move = new SVG.MotisMove;
@@ -38,15 +46,13 @@ SVG.MotisDetailView = SVG.invent({
                             .fill(el.color);
         rotateGroup.add(moveGroup);
 
-        addLabel(el.from.stop.name, 280, len * i + 0.33 * radius, 'font-size: 115%; font-weight: lighter');
-        addLabel(formatTime(el.from.stop.departure.time), 115, len * i + 0.15 * radius, 'font-weight: lighter');
+        addStationLabel(el.from.stop.name, i);
+        addTimeLabel(el.from.stop.departure.time, i);
       });
 
       const finalStopEl = elements[elements.length - 1];
-      addLabel(finalStopEl.to.stop.name, 280, len * elements.length, 'font-size: 115%; font-weight: lighter');
-
-      const finalStopTimeDOM = document.createElement('span');
-      addLabel(formatTime(finalStopEl.from.stop.departure.time), 115, len * elements.length, 'font-weight: lighter');
+      addStationLabel(finalStopEl.to.stop.name, elements.length);
+      addTimeLabel(finalStopEl.to.stop.arrival.time, elements.length);
 
       this.add(rotateGroup);
       const x = elements.length * len;
