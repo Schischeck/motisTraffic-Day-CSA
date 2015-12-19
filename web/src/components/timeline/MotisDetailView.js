@@ -20,16 +20,14 @@ SVG.MotisDetailView = SVG.invent({
   inherit: SVG.G,
   extend: {
     draw: function(thickness, radius, len, totalHeight, elements) {
-      const rotateGroup = this.put(new SVG.G);
+      const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
       elements.forEach((el, i) => {
         const move = new SVG.MotisMove;
         const moveGroup = rotateGroup.put(move)
                             .draw(thickness, radius, len, el.label, -90)
                             .move(len * i, 0)
                             .fill(el.color);
-        rotateGroup.add(moveGroup)
-            .move(180, radius)
-            .rotate(90, 0, 0);
+        rotateGroup.add(moveGroup);
 
         const stopNameDOM = document.createElement('span');
         stopNameDOM.innerHTML = el.from.stop.name;
