@@ -20,6 +20,15 @@ SVG.MotisDetailView = SVG.invent({
   inherit: SVG.G,
   extend: {
     draw: function(thickness, radius, len, totalHeight, elements) {
+      const addLabel = function(text, x, y, style) {
+        const stopNameDOM = document.createElement('span');
+        stopNameDOM.innerHTML = text;
+        const stopNameObj = this.put(new SVG.ForeignObject).size('100%', '100%');
+        stopNameObj.appendChild(stopNameDOM, {style});
+        stopNameObj.move(x, y);
+        this.add(stopNameObj);
+      }.bind(this);
+
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
       elements.forEach((el, i) => {
         const move = new SVG.MotisMove;
@@ -29,35 +38,15 @@ SVG.MotisDetailView = SVG.invent({
                             .fill(el.color);
         rotateGroup.add(moveGroup);
 
-        const stopNameDOM = document.createElement('span');
-        stopNameDOM.innerHTML = el.from.stop.name;
-        const stopNameObj = this.put(new SVG.ForeignObject).size('100%', '100%');
-        stopNameObj.appendChild(stopNameDOM, {style: 'font-size: 115%; font-weight: lighter'});
-        stopNameObj.move(280, len * i + 0.33*radius);
-        this.add(stopNameObj);
-
-        const stopTimeDOM = document.createElement('span');
-        stopTimeDOM.innerHTML = formatTime(el.from.stop.departure.time);
-        const stopTimeObj = this.put(new SVG.ForeignObject).size('100%', '100%');
-        stopTimeObj.appendChild(stopTimeDOM, {style: 'font-weight: lighter'});
-        stopTimeObj.move(115, len * i + 0.15*radius);
-        this.add(stopTimeObj);
+        addLabel(el.from.stop.name, 280, len * i + 0.33 * radius, 'font-size: 115%; font-weight: lighter');
+        addLabel(formatTime(el.from.stop.departure.time), 115, len * i + 0.15 * radius, 'font-weight: lighter');
       });
 
       const finalStopEl = elements[elements.length - 1];
-      const finalStopNameDOM = document.createElement('span');
-      finalStopNameDOM.innerHTML = finalStopEl.to.stop.name;
-      const finalStopNameObj = this.put(new SVG.ForeignObject).size('100%', '100%');
-      finalStopNameObj.appendChild(finalStopNameDOM, {style: 'font-size: 115%; font-weight: lighter'});
-      finalStopNameObj.move(300, len * elements.length);
-      this.add(finalStopNameObj);
+      addLabel(finalStopEl.to.stop.name, 280, len * elements.length, 'font-size: 115%; font-weight: lighter');
 
       const finalStopTimeDOM = document.createElement('span');
-      finalStopTimeDOM.innerHTML = formatTime(finalStopEl.from.stop.departure.time);
-      const finalstopTimeObj = this.put(new SVG.ForeignObject).size('100%', '100%');
-      finalstopTimeObj.appendChild(finalStopTimeDOM, {style: 'font-weight: lighter'});
-      finalstopTimeObj.move(115, len * elements.length);
-      this.add(finalstopTimeObj);
+      addLabel(formatTime(finalStopEl.from.stop.departure.time), 115, len * elements.length, 'font-weight: lighter');
 
       this.add(rotateGroup);
       const x = elements.length * len;
