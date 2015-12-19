@@ -20,21 +20,46 @@ SVG.MotisDetailView = SVG.invent({
   inherit: SVG.G,
   extend: {
     draw: function(thickness, radius, len, totalHeight, elements) {
-      const addLabel = function(text, x, y, style) {
-        const stopNameDOM = document.createElement('span');
+      const addLabel = function(text, x, y, style, width, height) {
+        width = width || '100%';
+        height = height || '100%';
+        style['width'] = width;
+        style['height'] = height;
+        style['display'] = 'table-cell';
+        style['vertical-align'] = 'middle';
+
+        let styleStr = '';
+        for (let key in style) {
+          styleStr += key + ':' + style[key] + ';';
+        }
+
+        const stopNameDOM = document.createElement('div');
         stopNameDOM.innerHTML = text;
-        const stopNameObj = this.put(new SVG.ForeignObject).size('100%', '100%');
-        stopNameObj.appendChild(stopNameDOM, {style});
+        const stopNameObj = this.put(new SVG.ForeignObject).size(width, height);
+        stopNameObj.appendChild(stopNameDOM, {style: styleStr});
         stopNameObj.move(x, y);
         this.add(stopNameObj);
       }.bind(this);
 
-      const addTimeLabel = function(time, pos) {
-        addLabel(formatTime(time), 115, len * pos + 0.5 * radius, 'font-weight: lighter');
+      const addTimeLabel = function(pos, arrivalTime, departureTime) {
+        let text = '';
+        if (arrivalTime) {
+          text += ' ' + formatTime(arrivalTime);
+        }
+        if (departureTime) {
+          text += ' ' + formatTime(departureTime);
+        }
+        addLabel(text, 115, len * pos, {
+          'font-size': '75%',
+          'color': '#555'
+        }, '40px', '2em');
       }.bind(this);
 
       const addStationLabel = function(text, pos) {
-        addLabel(text, 280, len * pos + 0.33 * radius, 'font-size: 115%; font-weight: lighter');
+        addLabel(text, 250, len * pos, {
+          'font-size': '90%',
+          'font-weight': 'lighter',
+        }, '220px', '2em');
       }.bind(this);
 
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
@@ -47,12 +72,12 @@ SVG.MotisDetailView = SVG.invent({
         rotateGroup.add(moveGroup);
 
         addStationLabel(el.from.stop.name, i);
-        addTimeLabel(el.from.stop.departure.time, i);
+        addTimeLabel(i, i != 0 ? el.from.stop.arrival.time : null, el.from.stop.departure.time);
       });
 
       const finalStopEl = elements[elements.length - 1];
       addStationLabel(finalStopEl.to.stop.name, elements.length);
-      addTimeLabel(finalStopEl.to.stop.arrival.time, elements.length);
+      addTimeLabel(elements.length, finalStopEl.to.stop.arrival.time);
 
       this.add(rotateGroup);
       const x = elements.length * len;
@@ -148,7 +173,7 @@ export default class DeltailView extends React.Component {
 
   render() {
     return (
-      <div style={{height: Math.min(300, (this.state.height)) + 'px', overflow: 'auto'}} {...this.props}>
+      <div style={{marginTop: '10px', height: Math.min(300, (this.state.height)) + 'px', overflow: 'auto'}} {...this.props}>
         <div>
           <svg id="detailview" style={{height: this.state.height + 'px'}}></svg>
         </div>
