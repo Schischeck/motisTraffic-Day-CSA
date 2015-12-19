@@ -12,6 +12,7 @@
 #include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/hrd/model/service_rule.h"
 #include "motis/loader/hrd/model/rule_service.h"
+#include "motis/loader/hrd/builder/station_builder.h"
 
 namespace motis {
 namespace loader {
@@ -25,7 +26,7 @@ struct rule_service_builder {
   void resolve_rule_services();
   typedef std::function<flatbuffers::Offset<Service>(
       hrd_service const&, flatbuffers::FlatBufferBuilder&)> service_builder_fun;
-  void create_rule_services(service_builder_fun,
+  void create_rule_services(service_builder_fun, station_builder&,
                             flatbuffers::FlatBufferBuilder&);
 
   std::vector<std::unique_ptr<hrd_service>> origin_services_;

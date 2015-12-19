@@ -137,6 +137,7 @@ void rule_service_builder::resolve_rule_services() {
 
 void create_rule_service(
     rule_service const& rs, rule_service_builder::service_builder_fun sbf,
+    station_builder& sb,
     std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
   std::map<hrd_service const*, Offset<Service>> services;
@@ -149,14 +150,15 @@ void create_rule_service(
   for (auto const& r : rs.rules) {
     fbb_rules.push_back(CreateRule(
         fbb, (RuleType)r.rule_info.type, services.at(r.s1), services.at(r.s2),
-        fbb.CreateString(pad_to_7_digits(r.rule_info.eva_num_1)),
-        fbb.CreateString(pad_to_7_digits(r.rule_info.eva_num_2))));
+        sb.get_or_create_station(r.rule_info.eva_num_1, fbb),
+        sb.get_or_create_station(r.rule_info.eva_num_2, fbb)));
   }
   fbs_rule_services.push_back(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
 }
 
 void rule_service_builder::create_rule_services(service_builder_fun sbf,
+                                                station_builder& sb,
                                                 FlatBufferBuilder& fbb) {
   scoped_timer timer("create rule and remaining services");
   LOG(info) << "#remaining services: " << origin_services_.size();
@@ -167,7 +169,7 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   }
   LOG(info) << "#rule services: " << rule_services_.size();
   for (auto const& rs : rule_services_) {
-    create_rule_service(rs, sbf, fbs_rule_services, fbb);
+    create_rule_service(rs, sbf, sb, fbs_rule_services, fbb);
   }
 }
 
