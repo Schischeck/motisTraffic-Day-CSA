@@ -90,9 +90,9 @@ SVG.MotisDetailView = SVG.invent({
       const addDirectionLabel = function(train, direction, pos, expandable) {
         let text = '';
         if (expandable) {
-          text += '<span style="vertical-align: middle; display: table-cell; font-size: inherit; font-weight: bold" class="' + materialicons + '">&#xe5cc; </span>';
+          text += '<div style="line-height: 1.4; vertical-align: middle; display: table-cell; font-size: inherit; font-weight: bold" class="' + materialicons + '">&#xe5cc;</div>';
         }
-        text += '<span style="display: table-cell">';
+        text += '<div style="display: table-cell">';
         if (train) {
           text += '<span style="font-weight: bold">' + train + '</span>';
         }
@@ -100,7 +100,7 @@ SVG.MotisDetailView = SVG.invent({
           text += ' towards ';
           text += '<span style="font-weight: normal">' + direction + '</span>';
         }
-        text += '</span>';
+        text += '</div>';
         addLabel(text, 195, len * (pos + 0.5), {
           'font-size': '78%',
           'font-weight': 'lighter',
