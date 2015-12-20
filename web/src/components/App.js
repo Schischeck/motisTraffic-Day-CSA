@@ -80,7 +80,7 @@ export class App extends Component {
                     ? <CircularProgress
                           mode="indeterminate"
                           style={ { 'margin': '50px auto', 'display': 'block'} } />
-                    : <Timeline connections={ this.state.connections } />;
+                    : <DetailView connection={ this.state.connections[0] } />;
     const layer = this.state.visibleSearch ? <div className={ style.layer }/> : <div />;
     const search = this.state.visibleSearch ? <PaddedPaper
         className={ style.overlay }
