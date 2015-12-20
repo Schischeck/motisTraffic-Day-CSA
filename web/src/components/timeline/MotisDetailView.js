@@ -54,16 +54,14 @@ SVG.MotisDetailView = SVG.invent({
         }
         addLabel(text, 115, len * pos, {
           'font-size': '75%',
-          'color': '#555',
-
+          'color': '#555'
         }, '40px', '2.5em');
       }.bind(this);
 
       const addStationLabel = function(text, pos) {
         addLabel(text, 260, len * pos - 2.5, {
           'font-size': '90%',
-          'font-weight': 'lighter',
-
+          'font-weight': 'lighter'
         }, '220px', '2.5em');
       }.bind(this);
 
@@ -72,13 +70,13 @@ SVG.MotisDetailView = SVG.invent({
         if (arrivalTrack) {
           text += ' Track ' + arrivalTrack;
         } else {
-          text += '-';
+          text += '&nbsp;';
         }
         text += '<br/>';
         if (departureTrack) {
           text += ' Track ' + departureTrack;
         } else {
-          text += '-';
+          text += '&nbsp;';
         }
         addLabel(text, 195, len * pos, {
           'font-size': '75%',
