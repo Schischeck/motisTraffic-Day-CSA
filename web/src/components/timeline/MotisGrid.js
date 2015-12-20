@@ -102,7 +102,7 @@ SVG.MotisGrid = SVG.invent({
       }
     },
 
-    drawConnections: function(cons, timelineSettings) {
+    drawConnections: function(cons, timelineSettings, onConnectionSelected) {
       if (this.drawedConnections) {
         this.drawedConnections.forEach(c => { c.remove(); });
       }
@@ -135,6 +135,11 @@ SVG.MotisGrid = SVG.invent({
         this.add(newCon);
         this.drawedConnections.push(newCon);
 
+        newCon.onClick((i) => {
+          if (onConnectionSelected) {
+            onConnectionSelected(i);
+          }
+        }.bind(this, i));
         newCon.onHoverBegin((y, el, x) => {
           this.updateInfoHoverContent(el);
           this.updateInfoHoverPosition(x, y);

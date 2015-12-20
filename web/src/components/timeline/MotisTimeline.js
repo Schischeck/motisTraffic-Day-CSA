@@ -72,7 +72,7 @@ export default class Timeline extends React.Component {
     });
 
     const settings = timelineCalculator(cons, 520, 60);
-    this.grid.drawConnections(cons, settings);
+    this.grid.drawConnections(cons, settings, this.props.onConnectionSelected);
     this.timelineLabels.drawTimeline(settings);
   }
 

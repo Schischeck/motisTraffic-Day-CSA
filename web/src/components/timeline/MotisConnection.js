@@ -6,6 +6,12 @@ SVG.MotisConnection = SVG.invent({
   create: 'g',
   inherit: SVG.G,
   extend: {
+    onClick: function(fun) {
+      this.moves.forEach(function(move) {
+        move.svgElement.click(fun);
+      });
+    },
+
     onHoverBegin: function(fun) {
       this.moves.forEach(function(move) {
         move.svgElement.mouseover(function() {

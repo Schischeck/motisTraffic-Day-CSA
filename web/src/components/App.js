@@ -32,7 +32,8 @@ export class App extends Component {
       'showError': false,
       'waiting': false,
       'showResults': !!cached.connections,
-      'visibleSearch': true
+      'visibleSearch': true,
+      'selectedConnection': false
     };
   }
 
@@ -82,6 +83,12 @@ export class App extends Component {
     });
   }
 
+  onConnectionSelected(i) {
+    this.setState({
+      selectedConnection: i
+    });
+  }
+
   render() {
     let results = <div style={{height: '250px'}} />
     if (this.state.waiting) {
@@ -89,7 +96,12 @@ export class App extends Component {
                   mode="indeterminate"
                   style={ { 'margin': '50px auto', 'display': 'block'} } />
     } else if (this.state.showResults) {
-      results = <DetailView connection={ this.state.connections[0] } />
+      if (this.state.selectedConnection !== false) {
+        results = <DetailView connection={ this.state.connections[this.state.selectedConnection] } />
+      } else {
+        results = <Timeline onConnectionSelected={ this.onConnectionSelected.bind(this) }
+                            connections={ this.state.connections } />
+      }
     } else if (this.state.showError) {
       results = (<div>
                   <div className={ style.error + ' ' + materialicons } />
@@ -137,7 +149,6 @@ export class App extends Component {
     return (
     <div className={ style.app }>
       <Map />
-
       { layer }
       <div className={ style.control }>{ searchButton }{ railVizButton }{ statusButton }</div>
       { search }
