@@ -65,18 +65,24 @@ SVG.MotisDetailView = SVG.invent({
         }, '220px', '2.5em');
       }.bind(this);
 
-      const addTrackLabel = function(pos, arrivalTrack, departureTrack) {
+      const addTrackLabel = function(pos, showArrival, arrivalTrack, showDeparture, departureTrack) {
         let text = '';
-        if (arrivalTrack) {
-          text += ' Track ' + arrivalTrack;
-        } else {
-          text += '&nbsp;';
+        if (showArrival) {
+          if (arrivalTrack) {
+            text += ' Track ' + arrivalTrack;
+          } else {
+            text += '&nbsp;';
+          }
         }
-        text += '<br/>';
-        if (departureTrack) {
-          text += ' Track ' + departureTrack;
-        } else {
-          text += '&nbsp;';
+        if (showArrival && showDeparture) {
+          text += '<br/>';
+        }
+        if (showDeparture) {
+          if (departureTrack) {
+            text += ' Track ' + departureTrack;
+          } else {
+            text += '&nbsp;';
+          }
         }
         addLabel(text, 195, len * pos, {
           'font-size': '75%',
@@ -106,6 +112,7 @@ SVG.MotisDetailView = SVG.invent({
       }.bind(this);
 
 
+      let lastIsIcon = false;
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
       elements.forEach((el, i) => {
         let label = el.label;
@@ -123,15 +130,17 @@ SVG.MotisDetailView = SVG.invent({
 
         addStationLabel(el.from.stop.name, i);
         addTimeLabel(i, i != 0 ? el.from.stop.arrival.time : null, el.from.stop.departure.time);
-        addTrackLabel(i, el.from.stop.arrival.platform, el.from.stop.departure.platform);
+        addTrackLabel(i, i != 0 && !lastIsIcon, el.from.stop.arrival.platform, !isIcon, el.from.stop.departure.platform);
         const isExpandable = el.transport.move.range.from + 1 !== el.transport.move.range.to;
         addDirectionLabel(el.transport.move.name, el.transport.move.direction, i, isExpandable);
+
+        lastIsIcon = isIcon;
       });
 
       const finalStopEl = elements[elements.length - 1];
       addStationLabel(finalStopEl.to.stop.name, elements.length);
       addTimeLabel(elements.length, finalStopEl.to.stop.arrival.time);
-      addTrackLabel(elements.length, finalStopEl.to.stop.arrival.platform, finalStopEl.to.stop.departure.platform);
+      addTrackLabel(elements.length, true, finalStopEl.to.stop.arrival.platform, false, finalStopEl.to.stop.departure.platform);
 
       this.add(rotateGroup);
       const x = elements.length * len;

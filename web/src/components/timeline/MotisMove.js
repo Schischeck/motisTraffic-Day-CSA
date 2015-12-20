@@ -70,7 +70,7 @@ SVG.MotisMove = SVG.invent({
                 .attr({'font-weight': isIcon ? 'normal' : 'bold'})
                 .attr({'text-anchor': 'middle'})
                 .size(isIcon ? 18 : 9.5)
-                .move(0, isIcon ? -0.5 * thickness : -0.12 * thickness)
+                .move(isIcon ? 2 : 0, isIcon ? -5 : -1.2)
                 .rotate(labelRotation || 0));
 
       return g;
