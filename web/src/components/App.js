@@ -40,6 +40,7 @@ export class App extends Component {
   getRouting() {
     this.setState({
       'waiting': true,
+      'selectedConnection': false
     });
 
     const req = this.refs.routingform.getRequest();
