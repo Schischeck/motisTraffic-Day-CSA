@@ -51,15 +51,37 @@ SVG.MotisDetailView = SVG.invent({
         }
         addLabel(text, 115, len * pos, {
           'font-size': '75%',
-          'color': '#555'
-        }, '40px', '2em');
+          'color': '#555',
+
+        }, '40px', '2.5em');
       }.bind(this);
 
       const addStationLabel = function(text, pos) {
-        addLabel(text, 250, len * pos, {
+        addLabel(text, 260, len * pos - 2.5, {
           'font-size': '90%',
           'font-weight': 'lighter',
-        }, '220px', '2em');
+
+        }, '220px', '2.5em');
+      }.bind(this);
+
+      const addTrackLabel = function(pos, arrivalTrack, departureTrack) {
+        let text = '';
+        if (arrivalTrack) {
+          text += ' Track ' + arrivalTrack;
+        } else {
+          text += '-';
+        }
+        text += '<br/>';
+        if (departureTrack) {
+          text += ' Track ' + departureTrack;
+        } else {
+          text += '-';
+        }
+        addLabel(text, 195, len * pos, {
+          'font-size': '75%',
+          'color': '#555',
+
+        }, '65px', '2.5em');
       }.bind(this);
 
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
@@ -73,11 +95,13 @@ SVG.MotisDetailView = SVG.invent({
 
         addStationLabel(el.from.stop.name, i);
         addTimeLabel(i, i != 0 ? el.from.stop.arrival.time : null, el.from.stop.departure.time);
+        addTrackLabel(i, el.from.stop.arrival.platform, el.from.stop.departure.platform);
       });
 
       const finalStopEl = elements[elements.length - 1];
       addStationLabel(finalStopEl.to.stop.name, elements.length);
       addTimeLabel(elements.length, finalStopEl.to.stop.arrival.time);
+      addTrackLabel(elements.length, finalStopEl.to.stop.arrival.platform, finalStopEl.to.stop.departure.platform);
 
       this.add(rotateGroup);
       const x = elements.length * len;
@@ -121,7 +145,7 @@ export default class DeltailView extends React.Component {
 
   componentWillReceiveProps(newProps) {
     this.segments = this.connectionToDisplayParts(newProps.connection);
-    const height = Math.max(this.segments.length * (this.movelen + 13), 200);
+    const height = Math.max(this.segments.length * (this.movelen + 10) + 20, 200);
     this.setState({height});
   }
 
@@ -151,11 +175,13 @@ export default class DeltailView extends React.Component {
     });
 
     return importantStops.reduce((acc, from, i) => {
-      if (i === importantStops.length - 1) return acc;
+      if (i >= importantStops.length - 2) {
+        return acc;
+      }
 
       const to = importantStops[i + 1];
       const transport = transports(c, from.i, to.i)[0];
-      if (transport && transport.move.name) {
+      if (transport) {
         acc.push({
           transport,
           from,
@@ -173,7 +199,7 @@ export default class DeltailView extends React.Component {
 
   render() {
     return (
-      <div style={{marginTop: '10px', height: Math.min(300, (this.state.height)) + 'px', overflow: 'auto'}} {...this.props}>
+      <div style={{marginTop: '20px', height: Math.min(300, (this.state.height + 20)) + 'px', overflow: 'auto'}} {...this.props}>
         <div>
           <svg id="detailview" style={{height: this.state.height + 'px'}}></svg>
         </div>
