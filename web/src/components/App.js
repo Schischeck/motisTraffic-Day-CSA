@@ -53,6 +53,12 @@ export class App extends Component {
         'connections': response.content.connections,
         'req': req
       }));
+    }).catch(err => {
+      this.setState({
+        'showError': err.content.reason,
+        'waiting': false,
+        'showResults': false
+      });
     });
   }
 
@@ -84,6 +90,11 @@ export class App extends Component {
                   style={ { 'margin': '50px auto', 'display': 'block'} } />
     } else if (this.state.showResults) {
       results = <DetailView connection={ this.state.connections[0] } />
+    } else if (this.state.showError) {
+      results = (<div>
+                  <div className={ style.error + ' ' + materialicons } />
+                  <p style={{textAlign: 'center', color: '#aaa', fontWeight: 'bold'}}>{ this.state.showError }</p>
+                 </div>)
     }
     const layer = this.state.visibleSearch ? <div className={ style.layer }/> : <div />;
     const search = this.state.visibleSearch ? <PaddedPaper
