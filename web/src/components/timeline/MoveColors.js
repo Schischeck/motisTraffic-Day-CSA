@@ -8,6 +8,7 @@ const colors = {
   7: '#563AC9',
   8: '#4E070D',
   9: '#7ED3FD',
+  'walk': '#000000',
   'fallback': '#D31996'
 };
 export default colors;

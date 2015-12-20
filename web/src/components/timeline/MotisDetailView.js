@@ -5,6 +5,9 @@ import './ForeignObject';
 import './MotisMove';
 import colors from './MoveColors';
 
+import iconcss from '../MaterialIcons.scss';
+const materialicons = iconcss['material-icons'];
+
 function pad(num, size) {
   const s = '000' + num;
   return s.substr(s.length - size);
@@ -84,11 +87,38 @@ SVG.MotisDetailView = SVG.invent({
         }, '65px', '2.5em');
       }.bind(this);
 
+      const addDirectionLabel = function(train, direction, pos, expandable) {
+        let text = '';
+        if (expandable) {
+          text += '<span style="vertical-align: middle; display: table-cell; font-size: inherit; font-weight: bold" class="' + materialicons + '">&#xe5cc; </span>';
+        }
+        text += '<span style="display: table-cell">';
+        if (train) {
+          text += '<span style="font-weight: bold">' + train + '</span>';
+        }
+        if (direction) {
+          text += ' towards ';
+          text += '<span style="font-weight: normal">' + direction + '</span>';
+        }
+        text += '</span>';
+        addLabel(text, 195, len * (pos + 0.5), {
+          'font-size': '78%',
+          'font-weight': 'lighter',
+        }, '220px', '2em');
+      }.bind(this);
+
+
       const rotateGroup = this.put(new SVG.G).move(180, radius).rotate(90);
       elements.forEach((el, i) => {
+        let label = el.label;
+        let isIcon = false;
+        if (!el.label) {
+          label = '\uE536';
+          isIcon = true;
+        }
         const move = new SVG.MotisMove;
         const moveGroup = rotateGroup.put(move)
-                            .draw(thickness, radius, len, el.label, -90)
+                            .draw(thickness, radius, len, label, -90, isIcon)
                             .move(len * i, 0)
                             .fill(el.color);
         rotateGroup.add(moveGroup);
@@ -96,6 +126,8 @@ SVG.MotisDetailView = SVG.invent({
         addStationLabel(el.from.stop.name, i);
         addTimeLabel(i, i != 0 ? el.from.stop.arrival.time : null, el.from.stop.departure.time);
         addTrackLabel(i, el.from.stop.arrival.platform, el.from.stop.departure.platform);
+        const isExpandable = el.transport.move.range.from + 1 !== el.transport.move.range.to;
+        addDirectionLabel(el.transport.move.name, el.transport.move.direction, i, isExpandable);
       });
 
       const finalStopEl = elements[elements.length - 1];
@@ -187,7 +219,7 @@ export default class DeltailView extends React.Component {
           from,
           to,
           label: transport.move.category_name,
-          color: colors[transport.move.clasz] || colors.fallback,
+          color: transport.move_type === 'Walk' ? colors.walk : colors[transport.move.clasz] || colors.fallback,
           begin: new Date(from.stop.departure.time * 1000),
           end: new Date(to.stop.arrival.time * 1000)
         });

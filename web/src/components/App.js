@@ -15,6 +15,7 @@ import StationGuesserRequest from '../Messages/StationGuesserRequest';
 import style from './App.scss';
 import iconcss from './MaterialIcons.scss';
 const materialicons = iconcss['material-icons'];
+
 export class App extends Component {
   constructor(props) {
     super(props);
@@ -76,11 +77,14 @@ export class App extends Component {
   }
 
   render() {
-    const results = this.state.waiting
-                    ? <CircularProgress
-                          mode="indeterminate"
-                          style={ { 'margin': '50px auto', 'display': 'block'} } />
-                    : <DetailView connection={ this.state.connections[0] } />;
+    let results = <div style={{height: '250px'}} />
+    if (this.state.waiting) {
+      results = <CircularProgress
+                  mode="indeterminate"
+                  style={ { 'margin': '50px auto', 'display': 'block'} } />
+    } else if (this.state.showResults) {
+      results = <DetailView connection={ this.state.connections[0] } />
+    }
     const layer = this.state.visibleSearch ? <div className={ style.layer }/> : <div />;
     const search = this.state.visibleSearch ? <PaddedPaper
         className={ style.overlay }
