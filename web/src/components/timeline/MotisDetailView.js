@@ -87,7 +87,6 @@ SVG.MotisDetailView = SVG.invent({
         addLabel(text, 195, len * pos, {
           'font-size': '75%',
           'color': '#555',
-
         }, '65px', '2.5em');
       }.bind(this);
 
@@ -98,7 +97,7 @@ SVG.MotisDetailView = SVG.invent({
         }
         text += '<div style="display: table-cell">';
         if (train) {
-          text += '<span style="font-weight: bold">' + train + '</span>';
+          text += '<span style="font-weight: bold; color: #444">' + train + '</span>';
         }
         if (direction) {
           text += ' towards ';
