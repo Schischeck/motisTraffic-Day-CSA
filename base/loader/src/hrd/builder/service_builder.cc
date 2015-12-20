@@ -80,7 +80,7 @@ Offset<Vector<Offset<PlatformRules>>> create_platforms(
 
     create_platforms(dep_event_key, from_stop.dep.time, plf_rules, bb,
                      stops_platforms[from_stop_index].dep_platforms, fbb);
-    create_platforms(arr_event_key, from_stop.arr.time, plf_rules, bb,
+    create_platforms(arr_event_key, to_stop.arr.time, plf_rules, bb,
                      stops_platforms[to_stop_index].arr_platforms, fbb);
   }
 
