@@ -13,7 +13,7 @@ export class Layer {
   }
 
   update() {
-		if(!this.static){
+		if (!this.static) {
     	this.entityBuffers.forEach(entities => {
       	entities.forEach(entity => {
          	entity.update();
@@ -30,7 +30,7 @@ export class Layer {
     for (let i = 0; i < this.entityBuffers.length; i++) {
       let data = [];
       this.entityBuffers[i].forEach(entity => {
-				if(entity.isVisible()){
+				if (entity.isVisible()) {
         	data.push(entity.x);
         	data.push(entity.y);
 				}
@@ -67,7 +67,7 @@ export class Layer {
   add(entity) {
     let found = false;
     for (let i = 0; i < this.textures.length; i++) {
-      if (entity.texture.id == this.textures[i].id) {
+      if (entity.texture.id === this.textures[i].id) {
         this.entityBuffers[i].push(entity);
         found = true;
         break;

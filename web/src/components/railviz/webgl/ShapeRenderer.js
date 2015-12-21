@@ -14,7 +14,7 @@ export class ShapeRenderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(attrLoc);
     gl.vertexAttribPointer(attrLoc, 2, gl.FLOAT, false, 0, 0);
-    if (texture == gl.LINES) {
+    if (texture === gl.LINES) {
       for (let i = 0; i < metaData.length; i++) {
         gl.drawArrays(gl.LINES, metaData[i].start, metaData[i].size);
       }

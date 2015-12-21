@@ -11,6 +11,6 @@ export class Station {
   }
 
   update() {}
-	
+
 	isVisible() {return true;}
 }

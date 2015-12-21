@@ -78,7 +78,7 @@ class RailVizStore extends ReduceStore {
         route,
         startDelay,
         endDelay);
-      trainObjects.push(t)
+      trainObjects.push(t);
       index++;
     });
     return trainObjects;

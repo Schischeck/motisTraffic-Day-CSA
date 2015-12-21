@@ -323,8 +323,9 @@ void message_handler::handle_rerouted_train(const reroute_train_message& msg) {
   }
 
   bool update_all_edges = false;
-  if (msg.category_ !=
-      _rts._schedule.categories[mt->_connection_info->family]->name) {
+  if (msg.new_events_.size() > 0 &&
+      msg.category_ !=
+          _rts._schedule.categories[mt->_connection_info->family]->name) {
     // category change
     if (_rts.is_debug_mode())
       LOG(debug)

@@ -76,7 +76,7 @@ class Server {
   sendAuth() {
     return new Promise((resolve, reject) => {
       console.log('API KEY: ', __MOTIS_API_KEY__);
-      if (__MOTIS_API_KEY__ == undefined || !__MOTIS_API_KEY__) {
+      if (__MOTIS_API_KEY__ === undefined || !__MOTIS_API_KEY__) {
         console.log('immediate resolve');
         return resolve({ 'id': 0 });
       }
@@ -134,7 +134,7 @@ function parseURL() {
     const keyval = el.split('=', 2);
     return map.set(keyval[0], keyval[1] || true);
   }, new Map());
-};
+}
 const params = parseURL();
 const host = params.get('host') || __MOTIS_REMOTE_HOST__ || window.location.hostname;
 const port = params.get('port') || __MOTIS_REMOTE_PORT__ || '8080';
