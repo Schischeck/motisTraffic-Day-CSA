@@ -279,9 +279,9 @@ TEST_F(routing_hotel_foot, hotel_after_foot) {
   ASSERT_EQ(1, journeys.size());
 
   auto const& j = journeys.back();
-  ASSERT_EQ(6, j.transports.size());
-  ASSERT_EQ(journey::transport::Walk, j.transports[2].type);
-  ASSERT_EQ(journey::transport::Mumo, j.transports[3].type);
+  ASSERT_EQ(5, j.transports.size());
+  ASSERT_EQ(journey::transport::Walk, j.transports[1].type);
+  ASSERT_EQ(journey::transport::Mumo, j.transports[2].type);
 }
 
 TEST_F(routing_hotel_foot, foot_after_hotel) {
@@ -296,7 +296,6 @@ TEST_F(routing_hotel_foot, foot_after_hotel) {
   ASSERT_EQ(1, journeys.size());
 
   auto const& j = journeys.back();
-  print_journey(j, get_schedule().schedule_begin_, std::cout);
   ASSERT_EQ(5, j.transports.size());
   ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
   ASSERT_EQ(journey::transport::Walk, j.transports[2].type);
