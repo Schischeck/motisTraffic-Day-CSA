@@ -5,7 +5,7 @@
 #include "motis/protocol/RoutingRequest_generated.h"
 
 namespace motis {
-struct edge;
+class edge;
 struct schedule;
 namespace routing {
 std::vector<edge> create_additional_edges(
