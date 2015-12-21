@@ -28,6 +28,10 @@ struct route_info {
     assert(rn == nullptr || rn->is_route_node());
   }
 
+  bool is_valid() const {
+    return route_node != nullptr && outgoing_route_edge_index != -1;
+  }
+
   edge* get_route_edge() {
     if (outgoing_route_edge_index == -1) {
       return nullptr;

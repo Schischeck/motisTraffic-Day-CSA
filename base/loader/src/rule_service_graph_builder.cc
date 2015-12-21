@@ -1,12 +1,12 @@
 #include "motis/loader/rule_service_graph_builder.h"
 
 #include <map>
+#include <set>
 #include <vector>
 #include <queue>
 #include <algorithm>
 
 #include "motis/core/schedule/price.h"
-#include "motis/core/common/logging.h"
 
 #include "motis/loader/util.h"
 
@@ -35,6 +35,162 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
   return false;
 }
 
+struct participant {
+  Service const* service;
+  int section_idx;
+};
+
+typedef std::pair<route_info, std::vector<participant>> service_section;
+typedef std::pair<Service const*, Rule const*> neighbor;
+
+struct rule_service_section_builder {
+  rule_service_section_builder(graph_builder& gb, RuleService const* rs)
+      : gb_(gb), neighbors_(build_neighbors(rs)) {}
+
+  static std::map<Service const*, std::vector<neighbor>> build_neighbors(
+      RuleService const* rs) {
+    std::map<Service const*, std::vector<neighbor>> neighbors;
+    for (auto const& r : *rs->rules()) {
+      if (r->type() != RuleType_THROUGH) {
+        neighbors[r->service1()].emplace_back(r->service2(), r);
+        neighbors[r->service2()].emplace_back(r->service1(), r);
+      }
+    }
+    return neighbors;
+  }
+
+  static int stop_index_of(Service const* s, Station const* station) {
+    auto const& stations = *s->route()->stations();
+    auto it = std::find(std::begin(stations), std::end(stations), station);
+    verify(it != std::end(stations), "rule station not found");
+    return std::distance(std::begin(stations), it);
+  }
+
+  void build_sections(RuleService const* rs) {
+    std::set<Service const*> built;
+    for (auto const& r : *rs->rules()) {
+      for (auto const& s : {r->service1(), r->service2()}) {
+        if (built.insert(s).second) {
+          add_service(r->service2());
+        }
+      }
+    }
+  }
+
+  void add_service(Service const* service) {
+    auto& sections = sections_[service];
+    sections.resize(service->sections()->size());
+    add_service(service, 0, service->sections()->size(), 0,
+                service->sections()->size(), sections, {});
+  }
+
+  void add_service(Service const* service,  //
+                   int from_idx, int to_idx,  //
+                   int src_from_idx, int src_to_idx,  //
+                   std::vector<service_section*>& sections,
+                   std::set<Service const*> visited) {
+    visited.emplace(service);
+
+    // Recursive add_service call for each neighbor.
+    for (auto const& neighbor : neighbors_[service]) {
+      Rule const* rule;
+      Service const* neighbor_service;
+      std::tie(neighbor_service, rule) = neighbor;
+
+      if (visited.find(neighbor_service) != end(visited)) {
+        continue;
+      }
+
+      auto rule_service_from = stop_index_of(service, rule->from());
+      auto rule_service_to = stop_index_of(service, rule->to());
+      auto rule_neighbor_from = stop_index_of(neighbor_service, rule->from());
+      auto rule_neighbor_to = stop_index_of(neighbor_service, rule->to());
+
+      auto service_from = std::max(rule_service_from, from_idx);
+      auto service_to = std::min(rule_service_to, to_idx);
+      auto neighbor_from =
+          rule_neighbor_from + (service_from - rule_service_from);
+      auto neighbor_to = rule_neighbor_to + (service_to - rule_service_to);
+
+      if (service_from < service_to) {
+        add_service(neighbor_service, neighbor_from, neighbor_to, src_from_idx,
+                    src_to_idx, sections, visited);
+      }
+    }
+
+    // Add service as participant to the specified sections.
+    for (int src_section_idx = src_from_idx, neighbor_section_idx = from_idx;
+         src_section_idx < src_to_idx;
+         ++src_section_idx, ++neighbor_section_idx) {
+      if (sections[src_section_idx] == nullptr) {
+        section_mem_.emplace_back(new service_section());
+        sections[src_section_idx] = section_mem_.back().get();
+      }
+
+      auto& section_participants = sections[src_section_idx]->second;
+      auto not_already_added =
+          std::find_if(begin(section_participants), end(section_participants),
+                       [&service](participant const& p) {
+                         return p.service == service;
+                       }) == end(section_participants);
+
+      if (not_already_added) {
+        section_participants.push_back(
+            participant{service, neighbor_section_idx});
+      }
+    }
+  }
+
+  graph_builder& gb_;
+  std::map<Service const*, std::vector<neighbor>> neighbors_;
+  std::map<Service const*, std::vector<service_section*>> sections_;
+  std::vector<std::unique_ptr<service_section>> section_mem_;
+};
+
+struct rule_service_route_builder {
+  rule_service_route_builder(
+      graph_builder& gb,
+      std::map<Service const*, std::vector<service_section*>>& sections,
+      unsigned route_id)
+      : gb_(gb), sections_(sections), route_id_(route_id) {}
+
+  void build_routes() {
+    for (auto& entry : sections_) {
+      build_route(entry.first, entry.second);
+    }
+  }
+
+  void build_route(Service const* s, std::vector<service_section*>& sections) {
+    assert(s->sections()->size() == sections.size());
+    assert(std::none_of(begin(sections), end(sections),
+                        [](service_section* ss) { return ss == nullptr; }));
+    assert(
+        std::all_of(begin(sections), end(sections), [&s](service_section* ss) {
+          auto is_curr = [&s](participant const& p) { p.service == s; };
+          auto contains_curr = std::find_if(begin(ss->second), end(ss->second),
+                                            is_curr) != end(sections);
+          return contains_curr;
+        }));
+
+    auto const& r = s->route();
+    auto const& stops = r->stations();
+    auto const& in_allowed = r->in_allowed();
+    auto const& out_allowed = r->out_allowed();
+    edge* last_route_edge = nullptr;
+    for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
+      auto section = gb_.add_route_section(
+          route_id_, stops->Get(stop_idx), in_allowed->Get(stop_idx),
+          out_allowed->Get(stop_idx), last_route_edge,
+          stop_idx != stops->size() - 1);
+      last_route_edge = section.get_route_edge();
+    }
+  }
+
+  graph_builder& gb_;
+  std::map<Service const*, std::vector<service_section*>>& sections_;
+  unsigned route_id_;
+};
+
 rule_service_graph_builder::rule_service_graph_builder(graph_builder& gb)
     : gb_(gb) {}
 
@@ -55,112 +211,16 @@ void rule_service_graph_builder::add_rule_services(
       continue;
     }
 
-    add_rule_service(rule_service);
+    auto route_id = ++gb_.next_node_id_;
+
+    rule_service_section_builder section_builder(gb_, rule_service);
+    section_builder.build_sections(rule_service);
+
+    rule_service_route_builder route_builder(gb_, section_builder.sections_,
+                                             route_id);
+    route_builder.build_routes();
   }
 }
-
-struct rule_service_builder {
-  struct participant {
-    Service const* service;
-    std::size_t section_idx;
-  };
-
-  struct service_range {
-    Service const* service;
-    std::size_t src_from_idx, src_to_idx;
-    std::size_t neighbor_from_idx, neighbor_to_idx;
-    Station const *from, *to;
-  };
-
-  typedef std::vector<participant> service_section;
-  typedef std::pair<Service const*, Rule const*> neighbor;
-
-  rule_service_builder(graph_builder& gb, RuleService const* rs)
-      : gb_(gb),
-        route_id_(++gb.next_node_id_),
-        neighbors_(build_neighbors(rs)) {
-    build_sections(rs);
-  }
-
-  static std::map<Service const*, std::vector<neighbor>> build_neighbors(
-      RuleService const* rs) {
-    std::map<Service const*, std::vector<neighbor>> neighbors;
-    for (auto const& r : *rs->rules()) {
-      neighbors[r->service1()].emplace_back(r->service2(), r);
-      neighbors[r->service2()].emplace_back(r->service1(), r);
-    }
-    return neighbors;
-  }
-
-  static int stop_index_of(Service const* s, Station const* station) {
-    auto const& stations = *s->route()->stations();
-    auto it = std::find(std::begin(stations), std::end(stations), station);
-    verify(it != std::end(stations), "rule station not found");
-    return std::distance(std::begin(stations), it);
-  }
-
-  void build_sections(RuleService const* rs) {
-    for (auto const& r : *rs->rules()) {
-      build_sections(r->service2());
-      build_sections(r->service1());
-    }
-  }
-
-  void build_sections(Service const* s) {
-    auto const& stations = s->route()->stations();
-    std::queue<service_range> queue;
-    queue.push(service_range{s,  // extracted "neighbor"
-                             0, stations->size() - 1,  // source from, to
-                             0, stations->size() - 1,  // neighbor from, to
-                             stations->Get(0),
-                             stations->Get(stations->size() - 1)});
-
-    auto& sections =
-        sections_.emplace(s,
-                          std::vector<service_section*>(s->sections()->size()))
-            .first->second;
-
-    while (!queue.empty()) {
-      auto curr = queue.front();
-      queue.pop();
-
-      for (unsigned src_section_idx = curr.src_from_idx,
-                    neighbor_section_idx = curr.neighbor_from_idx;
-           src_section_idx < curr.src_to_idx;
-           ++src_section_idx, ++neighbor_section_idx) {
-        assert(neighbor_section_idx < curr.neighbor_to_idx);
-
-        if (sections[src_section_idx] == nullptr) {
-          section_mem_.emplace_back(new service_section());
-          sections[src_section_idx] = section_mem_.back().get();
-        }
-
-        sections[src_section_idx]->push_back(
-            participant{curr.service, neighbor_section_idx});
-      }
-
-      for (auto const& neighbor : neighbors_[curr.service]) {
-        if (!considered(curr.service, neighbor.first)) {
-        }
-      }
-    }
-  }
-
-  bool considered(Service const* s1, Service const* s2) const {
-    auto it = considered_.find(s1);
-    if (it == end(considered_)) {
-      return false;
-    }
-    return std::find(begin(it->second), end(it->second), s2) != end(it->second);
-  }
-
-  graph_builder& gb_;
-  unsigned route_id_;
-  std::map<Service const*, std::vector<Service const*>> considered_;
-  std::map<Service const*, std::vector<neighbor>> neighbors_;
-  std::map<Service const*, std::vector<service_section*>> sections_;
-  std::vector<std::unique_ptr<service_section>> section_mem_;
-};
 
 }  // loader
 }  // motis
