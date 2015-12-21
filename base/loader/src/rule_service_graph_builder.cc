@@ -178,6 +178,20 @@ struct rule_service_route_builder {
     auto const& out_allowed = r->out_allowed();
     edge* last_route_edge = nullptr;
     for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
+      if (stop_idx == stops->size() - 1) {
+        // Last stop: there is no following section from stop_idx to stop_idx+1
+        // Only build the last route node (no outgoing route edge).
+        auto last_route_edge = sections[stop_idx - 1]->first.get_route_edge();
+        if (last_route_edge->_to == nullptr) {
+          gb_.add_route_section(
+              route_id_, stops->Get(stop_idx), in_allowed->Get(stop_idx),
+              out_allowed->Get(stop_idx), last_route_edge, false);
+        }
+      } else if (sections[stop_idx]->first.is_valid()) {
+        // Section already built.
+        continue;
+      }
+
       auto section = gb_.add_route_section(
           route_id_, stops->Get(stop_idx), in_allowed->Get(stop_idx),
           out_allowed->Get(stop_idx), last_route_edge,
