@@ -120,7 +120,12 @@ parse_label_chain(label const* terminal_label) {
         } else {
           return IN_CONNECTION;
         }
-      case WALK: return AT_STATION;
+      case WALK:
+        if (n && n->_node->is_station_node()) {
+          return WALK;
+        } else {
+          return AT_STATION;
+        }
     }
     return static_cast<state>(s);
   };
