@@ -43,6 +43,9 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule_hotels/",
                          "20151019") {}
 
+  routing_late_connections(std::string schedule, std::string date)
+      : test_motis_setup(schedule, date) {}
+
   std::string const DARMSTADT = "3333333";
   std::string const FRANKFURT = "1111111";
   std::string const LANGEN = "2222222";
@@ -93,6 +96,20 @@ public:
     return module::make_msg(b);
   }
 };
+
+class routing_hotel_foot : public routing_late_connections {
+public:
+  routing_hotel_foot()
+      : routing_late_connections(
+            "modules/reliability/resources/schedule_hotels_foot/", "20151019") {
+  }
+};
+
+struct {
+  bool operator()(journey const& a, journey const& b) {
+    return a.stops.back().arrival.timestamp < b.stops.back().arrival.timestamp;
+  }
+} journey_cmp;
 
 void test_hotel_edge(edge const& e, HotelEdge const* hotel_info,
                      schedule const& sched) {
@@ -173,12 +190,6 @@ TEST_F(routing_late_connections, search) {
 
   ASSERT_NE(nullptr, msg);
   auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.stops.back().arrival.timestamp <
-             b.stops.back().arrival.timestamp;
-    }
-  } journey_cmp;
   std::sort(journeys.begin(), journeys.end(), journey_cmp);
 
   ASSERT_EQ(4, journeys.size());
@@ -254,6 +265,41 @@ TEST_F(routing_late_connections, taxi_not_allowed) {
       ASSERT_NE(journey::transport::Mumo, t.type); /* taxi not allowed */
     }
   }
+}
+
+TEST_F(routing_hotel_foot, hotel_after_foot) {
+  std::vector<taxi_info> taxi_infos;
+  std::vector<hotel_info> hotel_infos;
+  hotel_infos.emplace_back(NEUISENBURG);
+  auto req_msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
+  auto msg = test::send(motis_instance_, req_msg);
+
+  ASSERT_NE(nullptr, msg);
+  auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
+  ASSERT_EQ(1, journeys.size());
+
+  auto const& j = journeys.back();
+  ASSERT_EQ(6, j.transports.size());
+  ASSERT_EQ(journey::transport::Walk, j.transports[2].type);
+  ASSERT_EQ(journey::transport::Mumo, j.transports[3].type);
+}
+
+TEST_F(routing_hotel_foot, foot_after_hotel) {
+  std::vector<taxi_info> taxi_infos;
+  std::vector<hotel_info> hotel_infos;
+  hotel_infos.emplace_back(LANGEN);
+  auto req_msg = to_routing_msg(DARMSTADT, FRANKFURT, hotel_infos, taxi_infos);
+  auto msg = test::send(motis_instance_, req_msg);
+
+  ASSERT_NE(nullptr, msg);
+  auto journeys = message_to_journeys(msg->content<RoutingResponse const*>());
+  ASSERT_EQ(1, journeys.size());
+
+  auto const& j = journeys.back();
+  print_journey(j, get_schedule().schedule_begin_, std::cout);
+  ASSERT_EQ(5, j.transports.size());
+  ASSERT_EQ(journey::transport::Mumo, j.transports[1].type);
+  ASSERT_EQ(journey::transport::Walk, j.transports[2].type);
 }
 
 }  // namespace routing
