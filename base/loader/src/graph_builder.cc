@@ -23,8 +23,6 @@ using namespace flatbuffers;
 namespace motis {
 namespace loader {
 
-using route_lcs = std::vector<std::vector<light_connection>>;
-
 graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
                              time_t from, time_t to, bool apply_rules)
     : next_route_index_(-1),
@@ -123,8 +121,8 @@ void graph_builder::add_services(Vector<Offset<Service>> const* services) {
             });
 
   auto it = begin(sorted);
+  std::vector<Service const*> route_services;
   while (it != end(sorted)) {
-    std::vector<Service const*> route_services;
     auto route = (*it)->route();
     do {
       if (!apply_rules_ || !(*it)->rule_participant()) {
@@ -132,18 +130,23 @@ void graph_builder::add_services(Vector<Offset<Service>> const* services) {
       }
       ++it;
     } while (it != end(sorted) && route == (*it)->route());
-    add_route_services(route_services);
+
+    if (!route_services.empty()) {
+      add_route_services(route_services);
+    }
+
+    route_services.clear();
   }
 }
 
 void graph_builder::index_first_route_node(route const& r) {
   assert(!r.empty());
-  auto route_index = r[0].route_node->_route;
+  auto route_index = r[0].from_route_node->_route;
   if (static_cast<int>(sched_.route_index_to_first_route_node.size()) <=
       route_index) {
     sched_.route_index_to_first_route_node.resize(route_index + 1);
   }
-  sched_.route_index_to_first_route_node[route_index] = r[0].route_node;
+  sched_.route_index_to_first_route_node[route_index] = r[0].from_route_node;
 }
 
 void graph_builder::add_route_services(
@@ -167,10 +170,11 @@ void graph_builder::add_route_services(
       time prev_arr = 0;
       bool adjusted = false;
       std::vector<light_connection> lcons;
-      for (unsigned section_idx = 0; section_idx < s->sections()->size();
+      for (int section_idx = 0;
+           section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
-        lcons.push_back(
-            section_to_connection(s, day, section_idx, prev_arr, adjusted));
+        lcons.push_back(section_to_connection({{participant{s, section_idx}}},
+                                              day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 
@@ -183,17 +187,8 @@ void graph_builder::add_route_services(
       continue;
     }
 
-    auto r = create_route(services[0]->route(), ++next_route_index_);
+    auto r = create_route(services[0]->route(), route, ++next_route_index_);
     index_first_route_node(*r);
-
-    for (unsigned section_idx = 0; section_idx < route.size(); ++section_idx) {
-      if (section_idx != 0) {
-        verify(route[section_idx].size() == route[section_idx - 1].size(),
-               "same number of connections on each route edge");
-      }
-      (*r)[section_idx].get_route_edge()->_m._route_edge._conns.set(
-          begin(route[section_idx]), end(route[section_idx]));
-    }
   }
 }
 
@@ -264,52 +259,91 @@ void graph_builder::add_to_routes(
   add_to_route(alt_routes.back(), sections, 0);
 }
 
-light_connection graph_builder::section_to_connection(Service const* s, int day,
-                                                      unsigned section_idx,
-                                                      time prev_arr,
-                                                      bool& adjusted) {
-  auto& from = *sched_.stations.at(
-      stations_[s->route()->stations()->Get(section_idx)]->_id);
-  auto& to = *sched_.stations.at(
-      stations_[s->route()->stations()->Get(section_idx + 1)]->_id);
-
-  auto dep_platforms = s->platforms()
-                           ? s->platforms()->Get(section_idx)->dep_platforms()
-                           : nullptr;
-  auto arr_platforms =
-      s->platforms() ? s->platforms()->Get(section_idx + 1)->arr_platforms()
-                     : nullptr;
-
-  auto section = s->sections()->Get(section_idx);
-  auto dep_time = s->times()->Get(section_idx * 2 + 1);
-  auto arr_time = s->times()->Get(section_idx * 2 + 2);
-
-  // Day indices for shifted bitfields (platforms, attributes)
-  int dep_day_index = day + (dep_time / MINUTES_A_DAY);
-  int arr_day_index = day + (arr_time / MINUTES_A_DAY);
-
-  // Build connection info.
+connection_info* graph_builder::get_or_create_connection_info(
+    Section const* section, int dep_day_index, connection_info* merged_with) {
   con_info_.line_identifier =
       section->line_id() ? section->line_id()->str() : "";
   con_info_.train_nr = section->train_nr();
   con_info_.family = get_or_create_category_index(section->category());
   con_info_.dir_ = get_or_create_direction(section->direction());
   con_info_.provider_ = get_or_create_provider(section->provider());
+  con_info_.merged_with = merged_with;
   read_attributes(dep_day_index, section->attributes(), con_info_.attributes);
 
-  // Build full connection.
-  con_.con_info = set_get_or_create(con_infos_, &con_info_, [&]() {
+  return set_get_or_create(con_infos_, &con_info_, [&]() {
     sched_.connection_infos.emplace_back(
         make_unique<connection_info>(con_info_));
     return sched_.connection_infos.back().get();
   });
+}
 
-  con_.d_platform = get_or_create_platform(dep_day_index, dep_platforms);
-  con_.a_platform = get_or_create_platform(arr_day_index, arr_platforms);
+connection_info* graph_builder::get_or_create_connection_info(
+    std::array<participant, 16> const& services, int dep_day_index) {
+  int parallel_services = 0;
+  connection_info* prev_con_info = nullptr;
+  for (auto const& s : services) {
+    if (s.service == nullptr) {
+      return prev_con_info;
+    }
+    ++parallel_services;
+    prev_con_info =
+        get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
+                                      dep_day_index, prev_con_info);
+  }
+  return prev_con_info;
+}
 
+light_connection graph_builder::section_to_connection(
+    std::array<participant, 16> const& services, int day, time prev_arr,
+    bool& adjusted) {
+  auto const& ref = services[0].service;
+  auto const& section_idx = services[0].section_idx;
+
+  assert(ref != nullptr);
+  assert(std::all_of(begin(services), end(services), [&](participant const& s) {
+    if (s.service == nullptr) {
+      return true;
+    }
+
+    auto const& ref_stops = ref->route()->stations();
+    auto const& s_stops = s.service->route()->stations();
+    auto stations_match =
+        s_stops->Get(s.section_idx) == ref_stops->Get(section_idx) &&
+        s_stops->Get(s.section_idx + 1) == ref_stops->Get(section_idx + 1);
+
+    auto times_match = s.service->times()->Get(s.section_idx * 2 + 1) ==
+                           ref->times()->Get(section_idx * 2 + 1) &&
+                       s.service->times()->Get(s.section_idx * 2 + 2) ==
+                           ref->times()->Get(section_idx * 2 + 2);
+
+    return stations_match && times_match;
+  }));
+  assert(std::is_sorted(begin(services), end(services)));
+
+  auto& from = *sched_.stations.at(
+      stations_[ref->route()->stations()->Get(section_idx)]->_id);
+  auto& to = *sched_.stations.at(
+      stations_[ref->route()->stations()->Get(section_idx + 1)]->_id);
+
+  auto plfs = ref->platforms();
+  auto dep_platf = plfs ? plfs->Get(section_idx)->dep_platforms() : nullptr;
+  auto arr_platf = plfs ? plfs->Get(section_idx + 1)->arr_platforms() : nullptr;
+
+  auto section = ref->sections()->Get(section_idx);
+  auto dep_time = ref->times()->Get(section_idx * 2 + 1);
+  auto arr_time = ref->times()->Get(section_idx * 2 + 2);
+
+  // Day indices for shifted bitfields (platforms, attributes)
+  int dep_day_index = day + (dep_time / MINUTES_A_DAY);
+  int arr_day_index = day + (arr_time / MINUTES_A_DAY);
+
+  // Build full connection.
   auto clasz_it = sched_.classes.find(section->category()->name()->str());
   con_.clasz = (clasz_it == end(sched_.classes)) ? 9 : clasz_it->second;
   con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
+  con_.d_platform = get_or_create_platform(dep_day_index, dep_platf);
+  con_.a_platform = get_or_create_platform(arr_day_index, arr_platf);
+  con_.con_info = get_or_create_connection_info(services, dep_day_index);
 
   // Build light connection.
   time dep_motis_time, arr_motis_time;
@@ -459,65 +493,78 @@ int graph_builder::get_or_create_platform(
 }
 
 std::unique_ptr<route> graph_builder::create_route(Route const* r,
+                                                   route_lcs const& lcons,
                                                    unsigned route_index) {
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
   auto route_nodes = make_unique<route>();
-  edge* last_route_edge = nullptr;
-  for (unsigned stop_idx = 0; stop_idx < stops->size(); ++stop_idx) {
-    auto section =
-        add_route_section(route_index, stops->Get(stop_idx),
-                          in_allowed->Get(stop_idx), out_allowed->Get(stop_idx),
-                          last_route_edge, stop_idx != stops->size() - 1);
-    route_nodes->push_back(section);
-    last_route_edge = section.get_route_edge();
+
+  route_section last_route_section;
+  for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
+    auto from = i;
+    auto to = i + 1;
+    route_nodes->push_back(add_route_section(
+        route_index, lcons[i],  //
+        stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
+        stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
+        last_route_section, route_section()));
+    last_route_section = route_nodes->back();
   }
+
   return route_nodes;
 }
 
-route_info graph_builder::add_route_section(int route_index,
-                                            Station const* from_stop,
-                                            bool in_allowed, bool out_allowed,
-                                            edge* last_route_edge,
-                                            bool build_outgoing_route_edge,
-                                            node* route_node) {
-  auto const& station_node = stations_[from_stop];
-  auto station_id = station_node->_id;
+node* graph_builder::build_route_node(int route_index, Station const* station,
+                                      bool in_allowed, bool out_allowed) {
+  auto station_node = stations_[station];
 
-  if (route_node == nullptr) {
-    route_node = new node(station_node, next_node_id_++);
-    route_node->_route = route_index;
+  auto route_node = new node(station_node, next_node_id_++);
+  route_node->_route = route_index;
 
-    // Connect the new route node with the corresponding station node:
-    // route -> station: edge cost = change time, interchange count
-    // station -> route: free
-    if (!in_allowed) {
-      station_node->_edges.push_back(
-          make_invalid_edge(station_node, route_node));
-    } else {
-      station_node->_edges.push_back(make_foot_edge(station_node, route_node));
-    }
-    if (!out_allowed) {
-      route_node->_edges.push_back(make_invalid_edge(route_node, station_node));
-    } else {
-      route_node->_edges.push_back(
-          make_foot_edge(route_node, station_node,
-                         sched_.stations[station_id]->transfer_time, true));
-    }
+  if (!in_allowed) {
+    station_node->_edges.push_back(make_invalid_edge(station_node, route_node));
+  } else {
+    station_node->_edges.push_back(make_foot_edge(station_node, route_node));
   }
 
-  // Connect route nodes with route edges.
-  int route_edge_index = -1;
-  if (build_outgoing_route_edge) {
-    route_edge_index = route_node->_edges.size();
-    route_node->_edges.push_back(make_route_edge(route_node, nullptr, {}));
-  }
-  if (last_route_edge != nullptr) {
-    last_route_edge->_to = route_node;
+  if (!out_allowed) {
+    route_node->_edges.push_back(make_invalid_edge(route_node, station_node));
+  } else {
+    route_node->_edges.push_back(make_foot_edge(
+        route_node, station_node,
+        sched_.stations[station_node->_id]->transfer_time, true));
   }
 
-  return route_info(route_node, route_edge_index);
+  return route_node;
+}
+
+route_section graph_builder::add_route_section(
+    int route_index, std::vector<light_connection> const& connections,
+    Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
+    Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
+    route_section prev_section, route_section next_section) {
+  route_section section;
+
+  if (prev_section.is_valid()) {
+    section.from_route_node = prev_section.to_route_node;
+  } else {
+    section.from_route_node = build_route_node(
+        route_index, from_stop, from_in_allowed, from_out_allowed);
+  }
+
+  if (next_section.is_valid()) {
+    section.to_route_node = next_section.from_route_node;
+  } else {
+    section.to_route_node =
+        build_route_node(route_index, to_stop, to_in_allowed, to_out_allowed);
+  }
+
+  section.outgoing_route_edge_index = section.from_route_node->_edges.size();
+  section.from_route_node->_edges.push_back(make_route_edge(
+      section.from_route_node, section.to_route_node, connections));
+
+  return section;
 }
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,

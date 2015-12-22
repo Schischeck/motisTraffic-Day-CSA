@@ -3,6 +3,7 @@
 #include <ctime>
 #include <vector>
 #include <map>
+#include <array>
 
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
@@ -21,15 +22,23 @@
 namespace motis {
 namespace loader {
 
-struct route_info {
-  route_info() : route_node(nullptr), outgoing_route_edge_index(-1) {}
-  route_info(node* rn, int edge_idx)
-      : route_node(rn), outgoing_route_edge_index(edge_idx) {
-    assert(rn == nullptr || rn->is_route_node());
+struct route_section {
+  route_section()
+      : from_route_node(nullptr),
+        to_route_node(nullptr),
+        outgoing_route_edge_index(-1) {}
+
+  route_section(node* from, node* to, int edge_idx)
+      : from_route_node(from),
+        to_route_node(to),
+        outgoing_route_edge_index(edge_idx) {
+    assert(from_route_node == nullptr || from_route_node->is_route_node());
+    assert(to_route_node == nullptr || to_route_node->is_route_node());
   }
 
   bool is_valid() const {
-    return route_node != nullptr && outgoing_route_edge_index != -1;
+    return from_route_node != nullptr && to_route_node != nullptr &&
+           outgoing_route_edge_index != -1;
   }
 
   edge* get_route_edge() {
@@ -39,17 +48,41 @@ struct route_info {
 
     assert(outgoing_route_edge_index >= 0);
     assert(static_cast<unsigned>(outgoing_route_edge_index) <
-           route_node->_edges.size());
-    assert(route_node->_edges[outgoing_route_edge_index].type() ==
+           from_route_node->_edges.size());
+    assert(from_route_node->_edges[outgoing_route_edge_index].type() ==
            edge::ROUTE_EDGE);
-    return &route_node->_edges[outgoing_route_edge_index];
+    return &from_route_node->_edges[outgoing_route_edge_index];
   }
 
-  node* route_node;
+  node* from_route_node;
+  node* to_route_node;
   int outgoing_route_edge_index;
 };
 
-typedef std::vector<route_info> route;
+struct participant {
+  participant() : service(nullptr), section_idx(0) {}
+
+  participant(Service const* service, int section_idx)
+      : service(service), section_idx(section_idx) {}
+
+  friend bool operator<(participant const& lhs, participant const& rhs) {
+    return lhs.service > rhs.service;
+  }
+
+  friend bool operator>(participant const& lhs, participant const& rhs) {
+    return lhs.service < rhs.service;
+  }
+
+  friend bool operator==(participant const& lhs, participant const& rhs) {
+    return lhs.service == rhs.service;
+  }
+
+  Service const* service;
+  int section_idx;
+};
+
+typedef std::vector<route_section> route;
+typedef std::vector<std::vector<light_connection>> route_lcs;
 
 struct graph_builder {
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
@@ -78,9 +111,16 @@ struct graph_builder {
       std::vector<std::vector<std::vector<light_connection>>>& alt_routes,
       std::vector<light_connection> const& sections);
 
-  light_connection section_to_connection(Service const* s, int day,
-                                         unsigned section_idx, time prev_arr,
-                                         bool& adjusted);
+  connection_info* get_or_create_connection_info(Section const* section,
+                                                 int dep_day_index,
+                                                 connection_info* merged_with);
+
+  connection_info* get_or_create_connection_info(
+      std::array<participant, 16> const& services, int dep_day_index);
+
+  light_connection section_to_connection(
+      std::array<participant, 16> const& services, int day, time prev_arr,
+      bool& adjusted);
 
   void add_footpaths(
       flatbuffers::Vector<flatbuffers::Offset<Footpath>> const* footpaths);
@@ -109,13 +149,17 @@ struct graph_builder {
       int day,
       flatbuffers::Vector<flatbuffers::Offset<Platform>> const* platforms);
 
-  std::unique_ptr<route> create_route(Route const* r, unsigned route_index);
+  std::unique_ptr<route> create_route(Route const* r, route_lcs const& lcons,
+                                      unsigned route_index);
 
-  route_info add_route_section(int route_index, Station const* from_stop,
-                               bool in_allowed, bool out_allowed,
-                               edge* last_route_edge,
-                               bool build_outgoing_route_edge,
-                               node* route_node = nullptr);
+  node* build_route_node(int route_index, Station const* station,
+                         bool in_allowed, bool out_allowed);
+
+  route_section add_route_section(
+      int route_index, std::vector<light_connection> const& connections,
+      Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
+      Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
+      route_section prev_section, route_section next_section);
 
   unsigned duplicate_count_;
   unsigned next_route_index_;
