@@ -10,7 +10,7 @@ export var Shader = {
 			void main() {
 				// transform world coordinate by matrix uniform variable
 				gl_Position = (mapMatrix * worldCoord);
-				
+
 				// a constant size for points, regardless of zoom level
 				gl_PointSize = zoom;
 			}
@@ -27,7 +27,7 @@ export var Shader = {
 			}
 		`
 	},
-	
+
 	lines: {
 		vertex: `
 			// TRACK VERTEX SHADER __________________________________
@@ -39,7 +39,7 @@ export var Shader = {
 			void main() {
 				// transform world coordinate by matrix uniform variable
 				gl_Position = mapMatrix * worldCoord;
-				
+
 				// a constant size for points, regardless of zoom level
 				gl_PointSize = 10.0;
 			}

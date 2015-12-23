@@ -1,11 +1,11 @@
 import Message from './Message';
 
 export default class RailVizRouteAtTimeReq extends Message {
-  constructor(routeId, departure_time, departure_station) {
+  constructor(routeId, departureTime, departureStation) {
     super('RailVizRouteAtTimeReq', {
-				station_id: departure_station,
-		    departure_time: departure_time,
-		    route_id: routeId
-			});
+      station_id: departureStation,
+      departure_time: departureTime,
+      route_id: routeId
+    });
   }
 }

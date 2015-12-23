@@ -15,7 +15,7 @@ class ServerConnectionIndicator extends Component {
     ];
   }
 
-  static calculateState(prevState) {
+  static calculateState(/* prevState */) {
     return {
       connected: ConnectionStateStore.isConnected(),
     };
@@ -23,17 +23,17 @@ class ServerConnectionIndicator extends Component {
 
   render() {
     if (this.state.connected) {
-      return <IconButton
+      return (<IconButton
                          {...this.props}
                          iconClassName={ materialicons }>
                &#xe2bf;
-             </IconButton>;
+             </IconButton>);
     } else {
-      return <IconButton
+      return (<IconButton
                          {...this.props}
                          iconClassName={ materialicons }>
                &#xe2c1;
-             </IconButton>;
+             </IconButton>);
     }
   }
 }

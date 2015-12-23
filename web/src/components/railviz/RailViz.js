@@ -20,15 +20,15 @@ export class RailViz {
     this.renderer = new MapRenderer(canvas, map);
 		this._setupEvents();
   }
-	
-	_setupEvents(){
+
+	_setupEvents() {
     window.requestAnimationFrame(this.updateStations.bind(this));
     this.map.on('dragend', this._requestAllTrains.bind(this));
 		this.map.on('zoomend', this._requestAllTrains.bind(this));
 		this.map.on('click', this._click.bind(this));
     this.interval = setInterval(this._tick, 10);
 	}
-	
+
   _tick() {
     Dispatcher.dispatch({
       content_type: 'tick'
@@ -53,7 +53,7 @@ export class RailViz {
     if (p1.x < 0) p1.x = 0;
     if (p1.y < 0) p1.y = 0;
     p2.x = p2.x + width;
-    p2.y = p2.y + height
+    p2.y = p2.y + height;
     let ll1 = this.map.unproject(new L.Point(p1.x, p1.y), 0);
     let ll2 = this.map.unproject(new L.Point(p2.x, p2.y), 0);
     let time = Math.round((TimeStore.getTime() / 1000));
@@ -65,8 +65,8 @@ export class RailViz {
       this.updateTrains();
     });
   }
-	
-	_requestStationInfo(id){
+
+	_requestStationInfo(id) {
 		Server.sendMessage(new RailVizStationDetailReq(id)).then(response => {
 			Dispatcher.dispatch({
 				content_type: response.content_type,
@@ -74,8 +74,8 @@ export class RailViz {
 			});
 		});
 	}
-	
-	_requestDetailedTrain(routeId, departure_time, departure_station){
+
+	_requestDetailedTrain(routeId, departure_time, departure_station) {
 		Server.sendMessage(new RailVizRouteAtTimeReq(routeId, departure_time, departure_station)).then(response => {
 			Dispatcher.dispatch({
 				content_type: response.content_type,
@@ -84,7 +84,7 @@ export class RailViz {
 			console.log(response);
 		});
 	}
-	
+
 	requestTrain(train_number)
 	{
 		Server.sendMessage(new RailVizFindTrain(train_number)).then(response => {
@@ -94,9 +94,9 @@ export class RailViz {
 			});
 		});
 	}
-	
-	
-	
+
+
+
   _click(e) {
     let ll = new L.LatLng(e.latlng.lat, e.latlng.lng);
     // let lp = L.Projection.SphericalMercator.project(ll);
@@ -111,7 +111,7 @@ export class RailViz {
             Math.abs(pos.y - newPos.y) < 0.0002 && entity.isVisible()) {
           console.log(entity);
           followEntity = entity;
-					if(entity instanceof Train){
+					if (entity instanceof Train) {
 						this._requestDetailedTrain(entity.routeId, entity.departure_time, entity.departure_station);
 					}
           return;
@@ -128,8 +128,8 @@ export class RailViz {
       let tracks = [];
       let metaData = [];
       this.renderer.remove('trains');
-      let texture = this.renderer.createTextureFromCanvas(Texture.createCircle(20, 
-				[71,186,255,255], [59,153,0,255], 8));
+      let texture = this.renderer.createTextureFromCanvas(Texture.createCircle(20,
+				[71, 186, 255, 255], [59, 153, 0, 255], 8));
       this.trainLayer = new Layer('trains');
       trains.forEach(train => {
           drivingTrains.push(train);
@@ -144,9 +144,9 @@ export class RailViz {
           }
       });
       this.trainLayer.addAll(drivingTrains, texture, {
-        zoom: this.map.getZoom()*1.5
+        zoom: this.map.getZoom() * 1.5
       });
-      this.trainLayer.addAll(tracks, "LINES", metaData);
+      this.trainLayer.addAll(tracks, 'LINES', metaData);
       this.renderer.add(this.trainLayer);
     }
   }
@@ -156,8 +156,8 @@ export class RailViz {
     if (s) {
       this.stations = s;
       let layer = new Layer('stations');
-      let texture = this.renderer.createTextureFromCanvas(Texture.createCircle(20, 
-				[220,30,30,255], [220,30,30,255], 8));
+      let texture = this.renderer.createTextureFromCanvas(Texture.createCircle(20,
+				[220, 30, 30, 255], [220, 30, 30, 255], 8));
 			layer.addAll(s, texture, null);
 			layer.static = true;
       this.renderer.add(layer);

@@ -1,14 +1,8 @@
 import SVG from 'svg.js';
 
-import MotisConnection from './MotisConnection';
-
-import TimelineCalculator from './TimelineCalculator';
-
-var MINUTE = 60*1000;
-
 function pad(num, size) {
-  var s = '000' + num;
-  return s.substr(s.length-size);
+  const s = '000' + num;
+  return s.substr(s.length - size);
 }
 
 SVG.TimeLabels = SVG.invent({
@@ -21,14 +15,14 @@ SVG.TimeLabels = SVG.invent({
       }
       this.timelineElements = [];
 
-      var t = new Date(timelineSettings.start.getTime());
-      var totalCuts = timelineSettings.totalCuts;
-      var scale = timelineSettings.scale;
+      const t = new Date(timelineSettings.start.getTime());
+      const totalCuts = timelineSettings.totalCuts;
+      const scale = timelineSettings.scale;
 
-      for (var cut = 0; cut < totalCuts - 1; cut++) {
+      for (let cut = 0; cut < totalCuts - 1; cut++) {
         t.setTime(t.getTime() + scale);
-        var x = timelineSettings.timeToXIntercept(t);
-        var label = this.put(new SVG.Text)
+        const x = timelineSettings.timeToXIntercept(t);
+        const label = this.put(new SVG.Text)
                         .text(pad(t.getHours(), 2) + ':' + pad(t.getMinutes(), 2))
                         .attr({'font-family': 'Verdana,sans-serif'})
                         .attr({'text-anchor': 'middle'})
