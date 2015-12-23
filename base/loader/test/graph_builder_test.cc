@@ -156,7 +156,43 @@ class service_rules_graph_builder_test : public loader_graph_builder_test {
 public:
   service_rules_graph_builder_test()
       : loader_graph_builder_test("mss-ts", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
+                                  to_unix_time(2015, 3, 30)) {}
+
+  bool all_stations_exist(std::vector<std::string> const& station_ids) {
+    auto const& stations = sched_.get()->stations;
+    return std::all_of(
+        begin(station_ids), end(station_ids), [&](std::string const& id) {
+          auto s = std::find_if(
+              begin(stations), end(stations),
+              [&](station_ptr const& s) { return s.get()->name == id; });
+          if (s == end(stations)) {
+            printf("\nmissing station node: id=%s\n");
+            return false;
+          } else {
+            return false;
+          }
+        });
+  }
+  std::vector<edge*> get_path(std::vector<std::string> const& station_ids) {
+    assert(station_ids.size() > 1);
+
+    auto const& stations = sched_.get()->stations;
+    auto const& station_nodes = sched_.get()->station_nodes;
+    auto s = std::find_if(
+        begin(stations), end(stations),
+        [&](station_ptr const& s) { return s.get()->name == station_ids[0]; });
+    for (size_t i = 1; i < station_ids.size(); ++i) {
+
+      s = std::find_if(begin(stations), end(stations),
+                       [&](station_ptr const& s) {
+                         return s.get()->name == station_ids[i];
+                       });
+    }
+
+    return std::all_of(
+        begin(station_ids), end(station_ids),
+        [&](std::string const& id) { return s != end(stations); });
+  }
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -563,17 +599,8 @@ TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
 }
 
 TEST_F(service_rules_graph_builder_test, mss_ts) {
-
-  auto const& stations = sched_.get()->stations;
-  auto station_a =
-      std::find_if(begin(stations), end(stations),
-                   [&](station_ptr const& s) { return s.get()->name == "A"; });
-  ASSERT_FALSE(station_a == end(stations));
-
-  auto station_b =
-      std::find_if(begin(stations), end(stations),
-                   [&](station_ptr const& s) { return s.get()->name == "B"; });
-  ASSERT_FALSE(station_b == end(stations));
+  ASSERT_TRUE(all_stations_exist(
+      {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}));
 }
 
 }  // loader
