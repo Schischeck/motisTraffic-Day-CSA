@@ -61,12 +61,10 @@ struct rule_service_section_builder {
   build_empty_sections(RuleService const* rs) {
     std::map<Service const*, std::vector<service_section*>> sections;
     for (auto const& r : *rs->rules()) {
-      if (r->type() != RuleType_THROUGH) {
-        sections.emplace(r->service1(), std::vector<service_section*>(
-                                            r->service1()->sections()->size()));
-        sections.emplace(r->service2(), std::vector<service_section*>(
-                                            r->service2()->sections()->size()));
-      }
+      sections.emplace(r->service1(), std::vector<service_section*>(
+                                          r->service1()->sections()->size()));
+      sections.emplace(r->service2(), std::vector<service_section*>(
+                                          r->service2()->sections()->size()));
     }
     return sections;
   }
@@ -117,6 +115,10 @@ struct rule_service_section_builder {
 
       auto new_service_from_idx = std::max(rule_service_from, from_idx);
       auto new_service_to_idx = std::min(rule_service_to, to_idx);
+
+      if (new_service_from_idx >= new_service_to_idx) {
+        continue;
+      }
 
       auto neighbor_from =
           rule_neighbor_from + (new_service_from_idx - rule_service_from);
