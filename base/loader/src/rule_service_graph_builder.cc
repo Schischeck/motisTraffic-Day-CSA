@@ -163,6 +163,56 @@ struct rule_service_section_builder {
   std::vector<std::unique_ptr<service_section>> section_mem_;
 };
 
+struct lcon_time_adjuster {
+  static void adjust(edge* prev_edge, edge* e) {
+    auto& prev_lcons = prev_edge->_m._route_edge._conns;
+    auto& curr_lcons = e->_m._route_edge._conns;
+
+    for (int lcon_idx = 0; lcon_idx < static_cast<int>(prev_lcons.size());
+         ++lcon_idx) {
+      auto& prev_lcon = prev_lcons[lcon_idx];
+      auto& curr_lcon = curr_lcons[lcon_idx];
+
+      auto& last_arr = prev_lcon.a_time;
+      auto& curr_dep = curr_lcon.d_time;
+      auto& curr_arr = curr_lcon.a_time;
+
+      if (last_arr > curr_dep) {
+        curr_dep += 60;
+      }
+
+      if (curr_dep > curr_arr) {
+        curr_arr += 60;
+      }
+
+      assert(last_arr <= curr_dep && curr_dep <= curr_arr);
+    }
+  }
+
+  void process_following_route_edges(edge* e) {
+    for (auto& following : e->_to->_edges) {
+      if (!following.empty()) {
+        adjust(e, &following);
+        queue_.emplace(&following);
+      }
+    }
+  }
+
+  void adjust_times(node* first_route_node) {
+    for (auto& following : first_route_node->_edges) {
+      queue_.emplace(&following);
+    }
+
+    while (!queue_.empty()) {
+      auto el = queue_.front();
+      queue_.pop();
+      process_following_route_edges(el);
+    }
+  }
+
+  std::queue<edge*> queue_;
+};
+
 struct rule_service_route_builder {
   rule_service_route_builder(
       graph_builder& gb,  //
@@ -179,6 +229,12 @@ struct rule_service_route_builder {
   void build_routes() {
     for (auto& entry : sections_) {
       build_route(entry.first, entry.second);
+    }
+  }
+
+  void adjust_times() {
+    for (auto& entry : sections_) {
+      lcon_time_adjuster().adjust_times(entry.second[0]->first.from_route_node);
     }
   }
 
