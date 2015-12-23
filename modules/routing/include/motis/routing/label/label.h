@@ -6,7 +6,8 @@ namespace routing {
 template <typename... DataClass>
 struct label_data : public DataClass... {};
 
-template <typename Data, typename Updater, typename Dominator>
+template <typename Data, typename Updater, typename Dominance,
+          typename Comparator>
 struct label : public Data {
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
@@ -16,7 +17,7 @@ struct label : public Data {
     }
 
     l = *this;
-    LabelUpdater::update(l, ec, lb);
+    Updater::update(l, ec, lb);
     return l;
   }
 
@@ -24,11 +25,15 @@ struct label : public Data {
     if (_start < o._start || _now > o._now) {
       return false;
     }
-    return LabelDominator::dominates<false>(false, *this, o);
+    return Dominance::dominates<false>(false, *this, o);
   }
 
   bool dominates_hard(label const& o) {
-    return LabelDominator::dominates<true>(false, *this, o);
+    return Dominance::dominates<true>(false, *this, o);
+  }
+
+  bool operator<(label const& o) {
+    return Comparator::lexicographical_compare(*this, o);
   }
 
   label* pred_;

@@ -75,10 +75,6 @@ std::vector<journey> search::get_connections(
   lower_bounds.transfers.run();
   MOTIS_STOP_TIMING(transfers_l_b_timing);
 
-  MOTIS_START_TIMING(price_l_b_timing);
-  lower_bounds.price.run();
-  MOTIS_STOP_TIMING(price_l_b_timing);
-
   MOTIS_STOP_TIMING(lower_bounds_timing);
 
   if (lower_bounds.travel_time.get_distance(DUMMY_SOURCE_IDX) ==

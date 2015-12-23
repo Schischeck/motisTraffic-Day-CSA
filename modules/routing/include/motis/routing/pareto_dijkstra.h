@@ -6,15 +6,12 @@
 #include <unordered_map>
 
 #include "motis/routing/statistics.h"
-#include "motis/routing/label.h"
-#include "motis/routing/lower_bounds.h"
 
 namespace motis {
 
-const bool DOMINANCE = true;
 const bool FORWARDING = true;
 
-template <Label>
+template <typename Label, typename LowerBounds>
 class pareto_dijkstra {
 public:
   class compare_labels {
@@ -28,8 +25,7 @@ public:
                   std::vector<Label*> const& start_labels,
                   std::unordered_map<node const*, std::vector<edge>> const&
                       additional_edges,
-                  lower_bounds& lower_bounds,
-                  memory_manager<Label>& label_store)
+                  LowerBounds& lower_bounds, memory_manager<Label>& label_store)
       : _goal(goal),
         _node_labels(node_count),
         _queue(std::begin(start_labels), std::end(start_labels)),
@@ -42,7 +38,6 @@ public:
   }
 
   std::vector<Label*>& search() {
-    _stats = statistics();
     _stats.start_label_count = _queue.size();
     _stats.labels_created = _label_store.used_size();
 
@@ -75,7 +70,7 @@ public:
         continue;
       }
 
-      if (DOMINANCE && dominated_by_results(label)) {
+      if (dominated_by_results(label)) {
         _stats.labels_dominated_by_results++;
         continue;
       }
@@ -103,13 +98,13 @@ public:
 private:
   void create_new_label(Label* l, edge const& edge) {
     // use the edge to generate a new label
-    label blank;
+    Label blank;
     bool created = l->create_label(blank, edge, _lower_bounds);
     if (!created) {
       return;
     }
 
-    auto new_label = new (label_store.create()) label(blank);
+    auto new_label = new (label_store.create()) Label(blank);
     ++_stats.labels_created;
 
     if (edge.get_destination() == _goal) {
@@ -122,7 +117,7 @@ private:
 
     // if the label is not dominated by a former one for the same node...
     //...add it to the queue
-    if (!DOMINANCE || !dominated_by_results(new_label)) {
+    if (!dominated_by_results(new_label)) {
       if (add_label_to_node(new_label, edge.get_destination())) {
         // if the new_label is as good as label we don't have to push it into
         // the queue
@@ -139,9 +134,9 @@ private:
     }
   }
 
-  bool add_result(label* terminal_label) {
+  bool add_result(Label* terminal_label) {
     for (auto it = _results.begin(); it != _results.end();) {
-      label* o = *it;
+      Label* o = *it;
       if (terminal_label->dominates(*o, true)) {
         it = _results.erase(it);
       } else if (o->dominates(*terminal_label, true)) {
@@ -155,10 +150,10 @@ private:
     return true;
   }
 
-  bool add_label_to_node(label* new_label, node const* dest) {
+  bool add_label_to_node(Label* new_label, node const* dest) {
     auto& dest_labels = _node_labels[dest->_id];
     for (auto it = dest_labels.begin(); it != dest_labels.end();) {
-      label* o = *it;
+      Label* o = *it;
       if (o->dominates(*new_label, false)) {
         return false;
       }
@@ -177,7 +172,7 @@ private:
     return true;
   }
 
-  bool dominated_by_results(label* label) {
+  bool dominated_by_results(Label* label) {
     for (auto const& result : _results) {
       if (result->dominates(*label, true)) {
         return true;
@@ -193,7 +188,7 @@ private:
       restart = false;
       std::size_t size_before = _results.size();
       _results.erase(std::remove_if(std::begin(_results), std::end(_results),
-                                    [it](label const* l) {
+                                    [it](Label const* l) {
                                       return l == (*it)
                                                  ? false
                                                  : (*it)->dominates_hard(*l);
@@ -206,13 +201,13 @@ private:
   }
 
   station_node const* _goal;
-  std::vector<std::vector<label*>> _node_labels;
-  std::priority_queue<label*, std::vector<label*>, compare_labels> _queue;
-  std::vector<label*> _equals;
+  std::vector<std::vector<Label*>> _node_labels;
+  std::priority_queue<Label*, std::vector<Label*>, compare_labels> _queue;
+  std::vector<Label*> _equals;
   std::unordered_map<node const*, std::vector<edge>> _additional_edges;
-  std::vector<label*> _results;
-  lower_bounds& _lower_bounds;
-  memory_manager<label>& _label_store;
+  std::vector<Label*> _results;
+  LowerBounds& _lower_bounds;
+  memory_manager<Label>& _label_store;
   statistics _stats;
 };
 

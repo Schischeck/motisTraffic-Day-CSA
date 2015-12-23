@@ -19,7 +19,7 @@ struct dominance<FirstDominator, RestDominators...> {
 template <>
 struct dominance<> {
   template <bool ByTerminal, typename Label>
-  static bool dominates(bool could_dominate, Label const& a, Label const& b) {
+  static bool dominates(bool, Label const&, Label const&) {
     return true;
   }
 };
