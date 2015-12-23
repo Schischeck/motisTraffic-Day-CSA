@@ -145,11 +145,18 @@ public:
   }
 };
 
-class loader_merge_split_graph_builder_test : public loader_graph_builder_test {
+// class service_rules_graph_builder_test : public loader_graph_builder_test {
+// public:
+//  service_rules_graph_builder_test()
+//      : loader_graph_builder_test("cnl-schedule", to_unix_time(2015, 11, 5),
+//                                  to_unix_time(2015, 11, 7)) {}
+//};
+
+class service_rules_graph_builder_test : public loader_graph_builder_test {
 public:
-  loader_merge_split_graph_builder_test()
-      : loader_graph_builder_test("cnl-schedule", to_unix_time(2015, 11, 5),
-                                  to_unix_time(2015, 11, 7)) {}
+  service_rules_graph_builder_test()
+      : loader_graph_builder_test("mss-ts", to_unix_time(2015, 3, 29),
+                                  to_unix_time(2015, 3, 31)) {}
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -555,7 +562,19 @@ TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   EXPECT_EQ(3, duplicate_count);
 }
 
-TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
+TEST_F(service_rules_graph_builder_test, mss_ts) {
+
+  auto const& stations = sched_.get()->stations;
+  auto station_a =
+      std::find_if(begin(stations), end(stations),
+                   [&](station_ptr const& s) { return s.get()->name == "A"; });
+  ASSERT_FALSE(station_a == end(stations));
+
+  auto station_b =
+      std::find_if(begin(stations), end(stations),
+                   [&](station_ptr const& s) { return s.get()->name == "B"; });
+  ASSERT_FALSE(station_b == end(stations));
+}
 
 }  // loader
 }  // motis
