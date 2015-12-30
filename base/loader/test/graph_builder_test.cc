@@ -160,12 +160,14 @@ public:
 
   bool all_stations_exist(std::vector<std::string> const& station_ids) {
     auto const& stations = sched_.get()->stations;
+    auto const& station_nodes = sched_.get()->station_nodes;
     return std::all_of(
         begin(station_ids), end(station_ids), [&](std::string const& id) {
-          auto s = std::find_if(
-              begin(stations), end(stations),
-              [&](station_ptr const& s) { return s.get()->name == id; });
-          if (s == end(stations)) {
+          auto s = std::find_if(begin(station_nodes), end(station_nodes),
+                                [&](station_node_ptr const& s) {
+                                  return stations.at(s.get()->_id)->name == id;
+                                });
+          if (s == end(station_nodes)) {
             printf("\nmissing station node: id=%s\n", id.c_str());
             return false;
           } else {
@@ -173,27 +175,50 @@ public:
           }
         });
   }
-  //  std::vector<edge*> get_path(std::vector<std::string> const& station_ids) {
-  //    assert(station_ids.size() > 1);
-  //
-  //    auto const& stations = sched_.get()->stations;
-  //    auto const& station_nodes = sched_.get()->station_nodes;
-  //    auto s = std::find_if(
-  //        begin(stations), end(stations),
-  //        [&](station_ptr const& s) { return s.get()->name == station_ids[0];
-  //        });
-  //    for (size_t i = 1; i < station_ids.size(); ++i) {
-  //
-  //      s = std::find_if(begin(stations), end(stations),
-  //                       [&](station_ptr const& s) {
-  //                         return s.get()->name == station_ids[i];
-  //                       });
-  //    }
-  //
-  //    return std::all_of(
-  //        begin(station_ids), end(station_ids),
-  //        [&](std::string const& id) { return s != end(stations); });
-  //  }
+
+  std::vector<std::tuple<station_node*, node*, std::vector<light_connection*>,
+                         station_node*>>
+  get_path(std::vector<std::string> const& expected_path) {
+
+    auto const& stations = sched_.get()->stations;
+    auto const& station_nodes = sched_.get()->station_nodes;
+
+    auto prev_station_node = std::find_if(
+        begin(station_nodes), end(station_nodes),
+        [&](station_node_ptr const& s) {
+          return stations.at(s.get()->_id)->name == expected_path.at(0);
+        });
+
+    // check from-station
+    if (prev_station_node == end(station_nodes)) {
+      return {};
+    }
+
+    std::vector<std::tuple<station_node*, node*, std::vector<light_connection*>,
+                           station_node*>> path;
+    for (unsigned i = 1; i < expected_path.size(); ++i) {
+      for (auto const& rn : prev_station_node->get()->get_route_nodes()) {
+        for (auto const& re : rn->_edges) {
+          if (stations.at(re._to->_id)->name == expected_path[i]) {
+            path.push_back(std::make_tuple(
+                prev_station_node->get(), rn,
+                transform_to_vec(
+                    begin(re._m._route_edge._conns),
+                    end(re._m._route_edge._conns),
+                        [&](light_connection* lc) {
+              return lc; })),
+                re._to));
+          }
+        }
+      }
+    }
+
+    if (path.size() == expected_path.size()) {
+      return path;
+    } else {
+      return {};
+    }
+  }
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
