@@ -156,7 +156,7 @@ class service_rules_graph_builder_test : public loader_graph_builder_test {
 public:
   service_rules_graph_builder_test()
       : loader_graph_builder_test("mss-ts", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 30)) {}
+                                  to_unix_time(2015, 3, 31)) {}
 
   bool all_stations_exist(std::vector<std::string> const& station_ids) {
     auto const& stations = sched_.get()->stations;
@@ -176,48 +176,60 @@ public:
         });
   }
 
-  std::vector<std::tuple<station_node*, node*, std::vector<light_connection*>,
-                         station_node*>>
+  std::vector<
+      std::tuple<station_node*, node*, array<light_connection>, station_node*>>
   get_path(std::vector<std::string> const& expected_path) {
-
     auto const& stations = sched_.get()->stations;
     auto const& station_nodes = sched_.get()->station_nodes;
 
-    auto prev_station_node = std::find_if(
-        begin(station_nodes), end(station_nodes),
-        [&](station_node_ptr const& s) {
-          return stations.at(s.get()->_id)->name == expected_path.at(0);
-        });
+    auto from = std::find_if(begin(station_nodes), end(station_nodes),
+                             [&](station_node_ptr const& s) {
+                               return stations.at(s.get()->_id)->name ==
+                                      expected_path.at(0);
+                             });
 
     // check from-station
-    if (prev_station_node == end(station_nodes)) {
+    if (from == end(station_nodes)) {
       return {};
     }
 
-    std::vector<std::tuple<station_node*, node*, std::vector<light_connection*>,
+    auto prev_station_node = from->get();
+    std::vector<std::tuple<station_node*, node*, array<light_connection>,
                            station_node*>> path;
     for (unsigned i = 1; i < expected_path.size(); ++i) {
-      for (auto const& rn : prev_station_node->get()->get_route_nodes()) {
-        for (auto const& re : rn->_edges) {
-          if (stations.at(re._to->_id)->name == expected_path[i]) {
-            path.push_back(std::make_tuple(
-                prev_station_node->get(), rn,
-                transform_to_vec(
-                    begin(re._m._route_edge._conns),
-                    end(re._m._route_edge._conns),
-                        [&](light_connection* lc) {
-              return lc; })),
-                re._to));
+      for (auto& rn : prev_station_node->get_route_nodes()) {
+        for (auto& re : rn->_edges) {
+          if (re.type() == edge::ROUTE_EDGE &&
+              stations.at(re._to->_station_node->_id)->name ==
+                  expected_path.at(i)) {
+
+            path.push_back(std::make_tuple(prev_station_node, rn,
+                                           re._m._route_edge._conns,
+                                           re._to->_station_node));
+
+            prev_station_node = re._to->_station_node;
           }
         }
       }
     }
 
-    if (path.size() == expected_path.size()) {
+    if (path.size() == expected_path.size() - 1) {
       return path;
     } else {
       return {};
     }
+  }
+
+  std::set<connection_info const*> collect_conn_infos(
+      light_connection const* lc) {
+    std::set<connection_info const*> acc;
+    connection_info const* next = lc->_full_con->con_info;
+    // TODO does 'merged_with' induces a closed cycle?
+    while (next && acc.find(next) == end(acc)) {
+      acc.insert(next);
+      next = next->merged_with;
+    }
+    return acc;
   }
 };
 
@@ -624,9 +636,52 @@ TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   EXPECT_EQ(3, duplicate_count);
 }
 
+// TODO test Durchbindung s1->s4 at station G
+// TODO verify service numbers
+// TODO verify node degree at route nodes 'rn_C', 'rn_D', 'rn_E', 'rn_G', 'rn_J'
 TEST_F(service_rules_graph_builder_test, mss_ts) {
+  // HINTS: * timezone=GMT+1
+  //        * season_begin=2015-03-29T02:00 (GMT+1), 2015-03-29T01:00 (UTC)
+  //        * events are given in motis time (UTC)
+  time const ADJUSTMENT = 60;
+
   ASSERT_TRUE(all_stations_exist(
       {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}));
+
+  auto const& s1_to_c = get_path({"A", "C"});
+  ASSERT_FALSE(s1_to_c.empty());
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + 10, std::get<2>(s1_to_c[0])[0].d_time);
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + MINUTES_A_DAY - 50,
+            std::get<2>(s1_to_c[0])[1].d_time);
+
+  auto const& s3_to_c = get_path({"B", "C"});
+  ASSERT_FALSE(s3_to_c.empty());
+  // HINT: due to a necessary event time adjustment,
+  //       the service starts within the season
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + ADJUSTMENT + 10,
+            std::get<2>(s3_to_c[0])[0].d_time);
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + MINUTES_A_DAY + 70,
+            std::get<2>(s3_to_c[0])[1].d_time);
+
+  auto const& s1_s2_s3_C_to_D = get_path({"C", "D"});
+  ASSERT_FALSE(s1_s2_s3_C_to_D.empty());
+  ASSERT_EQ(3, collect_conn_infos(&std::get<2>(s1_s2_s3_C_to_D[0])[0]).size());
+
+  auto const& s1_s2_D_to_E = get_path({"D", "E"});
+  ASSERT_FALSE(s1_s2_D_to_E.empty());
+  ASSERT_EQ(2, collect_conn_infos(&std::get<2>(s1_s2_D_to_E[0])[0]).size());
+
+  auto const& s2_E_to_J = get_path({"E", "J"});
+  ASSERT_FALSE(s2_E_to_J.empty());
+  ASSERT_EQ(1, collect_conn_infos(&std::get<2>(s2_E_to_J[0])[0]).size());
+
+  auto const& s2_s3_J_to_K = get_path({"J", "K"});
+  ASSERT_FALSE(s2_s3_J_to_K.empty());
+  ASSERT_EQ(2, collect_conn_infos(&std::get<2>(s2_s3_J_to_K[0])[0]).size());
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + ADJUSTMENT + 300,
+            std::get<2>(s2_s3_J_to_K[0])[0].a_time);
+  ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + MINUTES_A_DAY + 360,
+            std::get<2>(s2_s3_J_to_K[0])[1].a_time);
 }
 
 }  // loader
