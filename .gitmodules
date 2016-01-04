@@ -46,3 +46,6 @@
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
 	url = https://github.com/richgel999/miniz.git
+[submodule "external_lib/snappy-cmake"]
+	path = external_lib/snappy-cmake
+	url = https://github.com/okuoku/snappy-cmake.git

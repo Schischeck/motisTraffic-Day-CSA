@@ -1,5 +1,6 @@
 #include "motis/module/message.h"
 
+#include <cstring>
 #include <stdexcept>
 
 #include "flatbuffers/idl.h"
@@ -51,6 +52,7 @@ message::message(std::string const& json) {
     throw boost::system::system_error(error::malformed_msg);
   }
 
+  len_ = parser->builder_.GetSize();
   buf_ = parser->builder_.GetBufferPointer();
   msg_ = motis::GetMutableMessage(buf_);
   mem_ = parser->builder_.ReleaseBufferPointer();
@@ -70,6 +72,32 @@ std::string message::to_json() const {
   flatbuffers::GenerateText(*parser, buf_, opt, &json);
 
   return json;
+}
+
+msg_ptr make_msg(std::string const& json) {
+  return std::make_shared<message>(json);
+}
+
+msg_ptr make_msg(MessageCreator& builder) {
+  auto len = builder.GetSize();
+  auto buf = builder.GetBufferPointer();
+  auto msg = GetMutableMessage(buf);
+  auto mem = builder.ReleaseBufferPointer();
+  builder.Clear();
+  return std::make_shared<message>(len, std::move(mem), msg, buf);
+}
+
+msg_ptr make_msg(void* buf, size_t len) {
+  flatbuffers::unique_ptr_t mem(static_cast<uint8_t*>(operator new(len)));
+  std::memcpy(mem.get(), buf, len);
+
+  flatbuffers::Verifier verifier(mem.get(), len);
+  if (!VerifyMessageBuffer(verifier)) {
+    throw boost::system::system_error(error::malformed_msg);
+  }
+
+  return std::make_shared<message>(len, std::move(mem),
+                                   reinterpret_cast<Message*>(mem.get()), buf);
 }
 
 }  // namespace module

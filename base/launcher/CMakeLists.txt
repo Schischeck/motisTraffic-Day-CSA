@@ -11,6 +11,7 @@ target_link_libraries(motis
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY}
   ${NETWORKING}
+  snappy
   conf
   motis-bootstrap
   net-http_server

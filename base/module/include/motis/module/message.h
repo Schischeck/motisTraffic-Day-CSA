@@ -19,10 +19,10 @@ public:
 };
 
 struct message {
-  message() : msg_(nullptr), buf_(nullptr) {}
+  message() : len_(0), msg_(nullptr), buf_(nullptr) {}
   message(std::string const& json);
-  message(flatbuffers::unique_ptr_t mem, Message* msg, void* buf)
-      : mem_(std::move(mem)), msg_(msg), buf_(buf) {}
+  message(size_t len, flatbuffers::unique_ptr_t mem, Message* msg, void* buf)
+      : len_(len), mem_(std::move(mem)), msg_(msg), buf_(buf) {}
 
   template <typename T>
   T content() {
@@ -38,6 +38,7 @@ struct message {
   static void init_parser();
 
   static std::unique_ptr<flatbuffers::Parser> parser;
+  size_t len_;
   flatbuffers::unique_ptr_t mem_;
   Message* msg_;
   void* buf_;
@@ -45,17 +46,9 @@ struct message {
 
 typedef std::shared_ptr<message> msg_ptr;
 
-inline msg_ptr make_msg(std::string const& json) {
-  return std::make_shared<message>(json);
-}
-
-inline msg_ptr make_msg(MessageCreator& builder) {
-  auto buf = builder.GetBufferPointer();
-  auto msg = GetMutableMessage(buf);
-  auto mem = builder.ReleaseBufferPointer();
-  builder.Clear();
-  return std::make_shared<message>(std::move(mem), msg, buf);
-}
+msg_ptr make_msg(std::string const& json);
+msg_ptr make_msg(MessageCreator& builder);
+msg_ptr make_msg(void* buf, size_t len);
 
 }  // namespace module
 }  // namespace motis
