@@ -27,8 +27,7 @@ struct socket_server::impl {
   void receive(std::string const& request, net::handler_cb_fun cb) {
     snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
                        &buf_);
-    auto req_msg = make_msg(
-        static_cast<void*>(const_cast<char*>((buf_.data()))), buf_.size());
+    auto req_msg = make_msg((void*)buf_.data(), buf_.size());
     receiver_.on_msg(
         req_msg, 0,
         std::bind(&impl::reply, this, req_msg->msg_->id(), cb, p::_1, p::_2));
@@ -55,9 +54,10 @@ struct socket_server::impl {
     }
     response->msg_->mutate_id(id);
 
+    std::string b;
     snappy::Compress(static_cast<char const*>(response->buf_), response->len_,
-                     &buf_);
-    cb(buf_, false);
+                     &b);
+    cb(std::ref(b), true);
   }
 
 private:

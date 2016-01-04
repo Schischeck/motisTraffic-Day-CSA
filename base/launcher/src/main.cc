@@ -21,6 +21,7 @@
 
 #include "motis/launcher/ws_server.h"
 #include "motis/launcher/http_server.h"
+#include "motis/launcher/socket_server.h"
 #include "motis/launcher/listener_settings.h"
 #include "motis/launcher/launcher_settings.h"
 
@@ -40,9 +41,10 @@ int main(int argc, char** argv) {
   motis_instance instance(&ios);
   ws_server websocket(ios, instance);
   http_server http(ios, instance);
+  socket_server tcp(ios, instance);
 
-  listener_settings listener_opt(true, false, "0.0.0.0", "8080", "0.0.0.0",
-                                 "8081", "");
+  listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
+                                 "0.0.0.0", "8081", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", true, true, false, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
@@ -92,6 +94,10 @@ int main(int argc, char** argv) {
 
     if (listener_opt.listen_http) {
       http.listen(listener_opt.http_host, listener_opt.http_port);
+    }
+
+    if (listener_opt.listen_tcp) {
+      tcp.listen(listener_opt.tcp_host, listener_opt.tcp_port);
     }
   } catch (std::exception const& e) {
     std::cout << "initialization error: " << e.what() << "\n";
