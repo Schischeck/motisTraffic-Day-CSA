@@ -17,7 +17,6 @@ int main() {
 
   request = request.substr(1);
   auto req = make_msg(request);
-  printf("request:\n%s\n", req->to_json().c_str());
 
   std::string buf;
   snappy::Compress(static_cast<char const*>(req->buf_), req->len_, &buf);
@@ -37,8 +36,7 @@ int main() {
     std::string buf;
     snappy::Uncompress(static_cast<char const*>(response.data()),
                        response.size(), &buf);
-    printf("response:\n%s\n",
-           make_msg((void*)buf.data(), buf.size())->to_json().c_str());
+    printf("%s\n", make_msg((void*)buf.data(), buf.size())->to_json().c_str());
   });
 
   ios.run();
