@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
   boost::asio::io_service ios;
   auto con = std::make_shared<motis_con>(ios, host, port,
                                          boost::posix_time::seconds(30));
-  printf("sending %d\n", buf.size());
   con->query(buf, [&](net::tcp::tcp_ptr, std::string const& response,
                       boost::system::error_code ec) {
     if (ec) {
