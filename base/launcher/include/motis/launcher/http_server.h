@@ -15,6 +15,7 @@ struct http_server {
   ~http_server();
 
   void listen(std::string const& host, std::string const& port);
+  void stop();
 
 private:
   struct impl;

@@ -24,6 +24,8 @@ struct socket_server::impl {
     server_->listen(host, port, std::bind(&impl::receive, this, p::_1, p::_2));
   }
 
+  void stop() { server_->stop(); }
+
   void receive(std::string const& request, net::handler_cb_fun cb) {
     snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
                        &buf_);
@@ -74,6 +76,8 @@ socket_server::~socket_server() {}
 void socket_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);
 }
+
+void socket_server::stop() { impl_->stop(); }
 
 }  // namespace launcher
 }  // namespace motis

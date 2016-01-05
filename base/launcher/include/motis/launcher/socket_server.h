@@ -15,6 +15,7 @@ struct socket_server {
   ~socket_server();
 
   void listen(std::string const& host, std::string const& port);
+  void stop();
 
 private:
   struct impl;
