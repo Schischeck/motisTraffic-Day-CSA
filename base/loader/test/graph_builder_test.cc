@@ -220,6 +220,59 @@ public:
     }
   }
 
+  std::vector<edge const*> get_npath(
+      std::vector<std::string> const& expected_path) {
+    assert(expected_path.size() > 1);
+
+    auto const& stations = sched_.get()->stations;
+    auto const& station_nodes = sched_.get()->station_nodes;
+
+    auto const from = std::find_if(begin(station_nodes), end(station_nodes),
+                                   [&](station_node_ptr const& s) {
+                                     return stations.at(s.get()->_id)->name ==
+                                            expected_path.at(0);
+                                   });
+    if (from == end(station_nodes)) {
+      return {};
+    }
+
+    std::vector<edge const*> path;
+    node const* prev_route_node = nullptr;
+
+    auto augument_path = [&](node const* rn, unsigned i) -> bool {
+      for (auto const& re : rn->_edges) {
+        if (re.type() == edge::ROUTE_EDGE &&
+            stations.at(re._to->_station_node->_id)->name ==
+                expected_path.at(i)) {
+          path.push_back(&re);
+          prev_route_node = path.back()->_to;
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // find first edge
+    for (auto& rn : from->get()->get_route_nodes()) {
+      if (augument_path(rn, 1 /* next station*/)) {
+        break;
+      } else {
+        return {};
+      }
+    }
+
+    // find remaining edges
+    for (unsigned i = 2; i < expected_path.size(); ++i) {
+      if (augument_path(prev_route_node, i)) {
+        continue;
+      } else {
+        return {};
+      }
+    }
+
+    return path;
+  }
+
   std::set<connection_info const*> collect_conn_infos(
       light_connection const* lc) {
     std::set<connection_info const*> acc;
@@ -231,6 +284,23 @@ public:
     }
     return acc;
   }
+
+  std::vector<uint32_t> service_numbers(light_connection const* lc) {
+    auto const& conn_infos = collect_conn_infos(lc);
+    return transform_to_vec(
+        begin(conn_infos), end(conn_infos),
+        [&](connection_info const* ci) { return ci->train_nr; });
+  }
+
+  int deg(node const* route_node, array<edge> node::*edges) {
+    int count = 0;
+    for (auto const& e : route_node->*edges) {
+      if (e.type() == edge::ROUTE_EDGE) {
+        ++count;
+      }
+    }
+    return count;
+  };
 };
 
 TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
@@ -636,10 +706,8 @@ TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   EXPECT_EQ(3, duplicate_count);
 }
 
-// TODO test Durchbindung s1->s4 at station G
-// TODO verify service numbers
-// TODO verify node degree at route nodes 'rn_C', 'rn_D', 'rn_E', 'rn_G', 'rn_J'
-TEST_F(service_rules_graph_builder_test, mss_ts) {
+// TODO replace
+TEST_F(service_rules_graph_builder_test, mss_ts_deprecated) {
   // HINTS: * timezone=GMT+1
   //        * season_begin=2015-03-29T02:00 (GMT+1), 2015-03-29T01:00 (UTC)
   //        * events are given in motis time (UTC)
@@ -682,6 +750,24 @@ TEST_F(service_rules_graph_builder_test, mss_ts) {
             std::get<2>(s2_s3_J_to_K[0])[0].a_time);
   ASSERT_EQ(SCHEDULE_OFFSET_MINUTES + MINUTES_A_DAY + 360,
             std::get<2>(s2_s3_J_to_K[0])[1].a_time);
+}
+
+// TODO test Durchbindung s1->s4 at station G
+// TODO verify service numbers
+// TODO verify timestamps
+// TODO verify node degree at route nodes 'rn_C', 'rn_D', 'rn_E', 'rn_G', 'rn_J'
+TEST_F(service_rules_graph_builder_test, mss_ts_new) {
+  auto const& p1 = get_npath({"A", "C", "D", "E", "G"});
+  auto const& p2 = get_npath({"A", "C", "D", "E", "J", "K"});
+  auto const& p3 = get_npath({"A", "C", "D", "F", "H", "J", "K"});
+
+  auto const& p4 = get_npath({"B", "C", "D", "E", "G"});
+  auto const& p5 = get_npath({"B", "C", "D", "E", "J", "K"});
+  auto const& p6 = get_npath({"B", "C", "D", "F", "H", "J", "K"});
+
+  for (auto const& p : {p1, p2, p3, p4, p5, p6}) {
+    ASSERT_FALSE(p.empty());
+  }
 }
 
 }  // loader
