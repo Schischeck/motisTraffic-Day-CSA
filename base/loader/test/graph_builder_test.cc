@@ -176,6 +176,7 @@ public:
         });
   }
 
+  // TODO replace
   std::vector<
       std::tuple<station_node*, node*, array<light_connection>, station_node*>>
   get_path(std::vector<std::string> const& expected_path) {
@@ -292,9 +293,19 @@ public:
         [&](connection_info const* ci) { return ci->train_nr; });
   }
 
-  int deg(node const* route_node, array<edge> node::*edges) {
+  int deg_in(node const* route_node) {
     int count = 0;
-    for (auto const& e : route_node->*edges) {
+    for (auto const& e : route_node->_incoming_edges) {
+      if (e->type() == edge::ROUTE_EDGE) {
+        ++count;
+      }
+    }
+    return count;
+  };
+
+  int deg_out(node const* route_node) {
+    int count = 0;
+    for (auto const& e : route_node->_edges) {
       if (e.type() == edge::ROUTE_EDGE) {
         ++count;
       }
@@ -752,11 +763,22 @@ TEST_F(service_rules_graph_builder_test, mss_ts_deprecated) {
             std::get<2>(s2_s3_J_to_K[0])[1].a_time);
 }
 
+void assert_service_nums_eq(std::vector<uint32_t> const& expected,
+                            std::vector<uint32_t> const& actual) {
+  ASSERT_EQ(expected.size(), actual.size());
+  for (unsigned i = 0; i < actual.size(); ++i) {
+    ASSERT_EQ(expected[i], actual[i]);
+  }
+}
+
 // TODO test Durchbindung s1->s4 at station G
-// TODO verify service numbers
 // TODO verify timestamps
-// TODO verify node degree at route nodes 'rn_C', 'rn_D', 'rn_E', 'rn_G', 'rn_J'
+// TODO verify node degree at route nodes 'rn_G', 'rn_I'
 TEST_F(service_rules_graph_builder_test, mss_ts_new) {
+
+  // 1. test existence/possibility of certain connections
+  //    not using footedges edges
+
   auto const& p1 = get_npath({"A", "C", "D", "E", "G"});
   auto const& p2 = get_npath({"A", "C", "D", "E", "J", "K"});
   auto const& p3 = get_npath({"A", "C", "D", "F", "H", "J", "K"});
@@ -768,6 +790,31 @@ TEST_F(service_rules_graph_builder_test, mss_ts_new) {
   for (auto const& p : {p1, p2, p3, p4, p5, p6}) {
     ASSERT_FALSE(p.empty());
   }
+
+  // 2. test route edge reusage by
+  //    analyzing connection infos
+  assert_service_nums_eq({1, 2, 3},
+                         service_numbers(&p2[1]->_m._route_edge._conns[0]));
+  assert_service_nums_eq({1, 2},
+                         service_numbers(&p2[2]->_m._route_edge._conns[0]));
+  assert_service_nums_eq({2},
+                         service_numbers(&p2[3]->_m._route_edge._conns[0]));
+  assert_service_nums_eq({2, 3},
+                         service_numbers(&p2[4]->_m._route_edge._conns[0]));
+
+  // 3. test node degree
+  //    (degree := number of incoming/leaving route edges)
+  //    of the route nodes
+
+  // >C-D<
+  ASSERT_EQ(2, deg_in(p1[1]->_from));
+  ASSERT_EQ(1, deg_out(p1[1]->_from));
+  ASSERT_EQ(2, deg_out(p1[1]->_to));
+
+  // -E<J-
+  ASSERT_EQ(2, deg_out(p2[3]->_from));
+  ASSERT_EQ(2, deg_in(p2[3]->_to));
+  ASSERT_EQ(1, deg_out(p2[3]->_to));
 }
 
 }  // loader
