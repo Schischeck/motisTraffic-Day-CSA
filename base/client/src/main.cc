@@ -8,7 +8,12 @@
 using namespace motis::module;
 using namespace motis::client;
 
-int main() {
+int main(int argc, char* argv[]) {
+  if (argc != 3) {
+    printf("usage: %s {host} {port}\n", argv[0]);
+    return 0;
+  }
+
   std::string request;
   std::string line;
   do {
@@ -21,11 +26,12 @@ int main() {
   std::string buf;
   snappy::Compress(static_cast<char const*>(req->buf_), req->len_, &buf);
 
-  std::string host = "127.0.0.1";
-  std::string port = "7000";
+  std::string host = argv[1];
+  std::string port = argv[2];
   boost::asio::io_service ios;
   auto con = std::make_shared<motis_con>(ios, host, port,
                                          boost::posix_time::seconds(30));
+  printf("sending %d\n", buf.size());
   con->query(buf, [&](net::tcp::tcp_ptr, std::string const& response,
                       boost::system::error_code ec) {
     if (ec) {
