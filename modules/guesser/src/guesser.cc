@@ -25,16 +25,19 @@ void guesser::print(std::ostream&) const {}
 void guesser::init() {
   auto sync = synced_sched<schedule_access::RO>();
 
-  station_indices_ =
-      std::accumulate(begin(sync.sched().stations), end(sync.sched().stations),
-                      std::vector<unsigned>(),
-                      [](std::vector<unsigned>& indices, station_ptr const& s) {
-                        if (std::accumulate(begin(s->dep_class_events),
-                                            end(s->dep_class_events), 0) != 0) {
-                          indices.push_back(s->index);
-                        }
-                        return indices;
-                      });
+  station_indices_ = std::accumulate(
+      begin(sync.sched().stations), end(sync.sched().stations),
+      std::vector<unsigned>(),
+      [](std::vector<unsigned>& indices, station_ptr const& s) {
+        auto total_events = std::accumulate(begin(s->dep_class_events),
+                                            end(s->dep_class_events), 0) +
+                            std::accumulate(begin(s->arr_class_events),
+                                            end(s->arr_class_events), 0);
+        if (total_events != 0) {
+          indices.push_back(s->index);
+        }
+        return indices;
+      });
 
   auto stations = loader::transform_to_vec(
       begin(station_indices_), end(station_indices_), [&](unsigned i) {

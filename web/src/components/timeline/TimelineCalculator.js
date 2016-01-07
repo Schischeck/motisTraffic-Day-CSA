@@ -1,10 +1,10 @@
-var MINUTE = 60*1000;
+const MINUTE = 60 * 1000;
 
 function getBeginAndEnd(cons) {
   let begin = cons[0][0].begin;
   let end = cons[0][cons[0].length - 1].end;
   for (let i = 0; i < cons.length; i++) {
-    let c = cons[i];
+    const c = cons[i];
     for (let j = 0; j < c.length; j++) {
       if (c[j].begin < begin) {
         begin = c[j].begin;
@@ -17,25 +17,25 @@ function getBeginAndEnd(cons) {
   return {
     'begin': begin,
     'end': end
-  }
+  };
 }
 
 function getScale(begin, end) {
   const scales = [
-    { start: 0, end: 5, scale: 1*MINUTE },
-    { start: 5, end: 10, scale: 2*MINUTE },
-    { start: 10, end: 30, scale: 5*MINUTE },
-    { start: 30, end: 90, scale: 10*MINUTE },
-    { start: 90, end: 180, scale: 30*MINUTE },
-    { start: 3*60, end: 6*60, scale: 60*MINUTE },
-    { start: 6*60, end: 12*60, scale: 120*MINUTE },
-    { start: 12*60, end: 48*60, scale: 240*MINUTE },
+    { start: 0, end: 5, scale: 1 * MINUTE },
+    { start: 5, end: 10, scale: 2 * MINUTE },
+    { start: 10, end: 30, scale: 5 * MINUTE },
+    { start: 30, end: 90, scale: 10 * MINUTE },
+    { start: 90, end: 180, scale: 30 * MINUTE },
+    { start: 3 * 60, end: 6 * 60, scale: 60 * MINUTE },
+    { start: 6 * 60, end: 12 * 60, scale: 120 * MINUTE },
+    { start: 12 * 60, end: 48 * 60, scale: 240 * MINUTE },
   ];
 
-  const minutes = (end.getTime() - begin.getTime()) / (60*1000);
-  let scale = 480*MINUTE;
+  const minutes = (end.getTime() - begin.getTime()) / (60 * 1000);
+  let scale = 480 * MINUTE;
   for (let i = 0; i < scales.length; i++) {
-    let s = scales[i];
+    const s = scales[i];
     if (minutes >= s.start && minutes < s.end) {
       scale = s.scale;
       break;
@@ -57,7 +57,7 @@ function roundToScale(t, scale) {
   return t;
 }
 
-let calculateTimelineSettings = function(cons, width, padding) {
+const calculateTimelineSettings = function(cons, width, padding) {
   const beginAndEnd = getBeginAndEnd(cons);
   const begin = beginAndEnd.begin;
   const end = beginAndEnd.end;
@@ -70,11 +70,11 @@ let calculateTimelineSettings = function(cons, width, padding) {
     'totalCuts': Math.ceil((end.getTime() - begin.getTime()) / scale),
     'timeToXIntercept': function(t) {
       const period = end.getTime() - begin.getTime();
-      const until_t = t.getTime() - begin.getTime();
-      const percent = until_t / period;
+      const untilT = t.getTime() - begin.getTime();
+      const percent = untilT / period;
       return padding + (width - padding * 2) * percent;
     }
-  }
-}
+  };
+};
 
 export default calculateTimelineSettings;

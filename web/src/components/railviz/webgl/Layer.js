@@ -4,6 +4,7 @@ export class Layer {
 
   constructor(id) {
     this.dirty = true;
+		this.static = false;
     this.name = id;
     this.layerBuffers = [];
     this.textures = [];
@@ -12,15 +13,16 @@ export class Layer {
   }
 
   update() {
-    this.entityBuffers.forEach(entities => {
-      entities.forEach(entity => {
-        if (entity.updatable)
-          entity.update();
-        if (entity.dirty) {
-          this.dirty = true;
-        }
-      });
-    });
+		if (!this.static) {
+    	this.entityBuffers.forEach(entities => {
+      	entities.forEach(entity => {
+         	entity.update();
+        	if (entity.dirty) {
+          	this.dirty = true;
+        	}
+      	});
+   	 });
+		}
   }
 
   loadBuffers(gl) {
@@ -28,8 +30,10 @@ export class Layer {
     for (let i = 0; i < this.entityBuffers.length; i++) {
       let data = [];
       this.entityBuffers[i].forEach(entity => {
-        data.push(entity.x);
-        data.push(entity.y);
+				if (entity.isVisible()) {
+        	data.push(entity.x);
+        	data.push(entity.y);
+				}
       });
       let buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -53,13 +57,17 @@ export class Layer {
   }
 
   getEntities() {
-    return this.entityBuffers;
+		let entities = [];
+    this.entityBuffers.forEach(buffer =>{
+    	buffer.forEach(entity => entities.push(entity));
+    });
+		return entities;
   }
 
   add(entity) {
     let found = false;
     for (let i = 0; i < this.textures.length; i++) {
-      if (entity.texture.id == this.textures[i].id) {
+      if (entity.texture.id === this.textures[i].id) {
         this.entityBuffers[i].push(entity);
         found = true;
         break;

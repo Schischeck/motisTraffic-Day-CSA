@@ -9,8 +9,8 @@ export var Shader = {
 
 			void main() {
 				// transform world coordinate by matrix uniform variable
-				gl_Position = mapMatrix * worldCoord;
-				
+				gl_Position = (mapMatrix * worldCoord);
+
 				// a constant size for points, regardless of zoom level
 				gl_PointSize = zoom;
 			}
@@ -27,7 +27,7 @@ export var Shader = {
 			}
 		`
 	},
-	
+
 	lines: {
 		vertex: `
 			// TRACK VERTEX SHADER __________________________________
@@ -39,7 +39,7 @@ export var Shader = {
 			void main() {
 				// transform world coordinate by matrix uniform variable
 				gl_Position = mapMatrix * worldCoord;
-				
+
 				// a constant size for points, regardless of zoom level
 				gl_PointSize = 10.0;
 			}
@@ -50,7 +50,7 @@ export var Shader = {
 			precision mediump float;
 
 			void main() {
-				gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+				gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 			}
 			// TRACK FRAGMENT SHADER END_____________________________
 		`

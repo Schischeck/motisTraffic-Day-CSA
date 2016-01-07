@@ -39,6 +39,8 @@ struct http_server::impl {
     server_.listen(host, port, router_);
   }
 
+  void stop() { server_.stop(); }
+
   void operator()(net::http::server::route_request const& req,
                   net::http::server::callback cb) {
     try {
@@ -128,6 +130,8 @@ http_server::~http_server() {}
 void http_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);
 }
+
+void http_server::stop() { impl_->stop(); }
 
 }  // namespace launcher
 }  // namespace motis

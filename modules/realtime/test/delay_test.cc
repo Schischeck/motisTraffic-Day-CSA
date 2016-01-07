@@ -125,7 +125,20 @@ TEST_F(realtime_delay_test, test_waiting_edge_propagation) {
 }
 
 TEST_F(realtime_delay_test, test_split_route) {
+  const motis::station* muenchen = get_station("München Hbf");
+  const motis::station* nuernberg = get_station("Nürnberg Hbf");
   const motis::station* wuerzburg = get_station("Würzburg Hbf");
+  const motis::station* frankfurt = get_station("Frankfurt Hbf");
+  const motis::station* koeln = get_station("Köln Hbf");
+
+  check_train({{muenchen, "", 0, INV, INV, "ICE", 51, t(11, 0), t(11, 0)},
+               {nuernberg, "ICE", 51, t(11, 59), t(11, 59), "ICE", 51, t(12, 1),
+                t(12, 1)},
+               {wuerzburg, "ICE", 51, t(12, 37), t(12, 37), "ICE", 51,
+                t(12, 39), t(12, 39)},
+               {frankfurt, "ICE", 51, t(13, 17), t(13, 17), "ICE", 51,
+                t(13, 20), t(13, 20)},
+               {koeln, "ICE", 51, t(14, 20), t(14, 20), "", 0, INV, INV}});
 
   schedule_event oa_wue(wuerzburg->index, 51, false, t(12, 37));
 
@@ -133,6 +146,15 @@ TEST_F(realtime_delay_test, test_split_route) {
                                               timestamp_reason::FORECAST);
   _rts._delay_propagator.process_queue();
   // _rts._graph_updater.finish_graph_update();
+
+  check_train({{muenchen, "", 0, INV, INV, "ICE", 51, t(11, 0), t(11, 0)},
+               {nuernberg, "ICE", 51, t(11, 59), t(11, 59), "ICE", 51, t(12, 1),
+                t(12, 1)},
+               {wuerzburg, "ICE", 51, t(12, 37), t(13, 45), "ICE", 51,
+                t(12, 39), t(13, 47)},
+               {frankfurt, "ICE", 51, t(13, 17), t(14, 25), "ICE", 51,
+                t(13, 20), t(14, 27)},
+               {koeln, "ICE", 51, t(14, 20), t(15, 27), "", 0, INV, INV}});
 }
 
 TEST_F(realtime_delay_test, test_is_message_back_propagation) {

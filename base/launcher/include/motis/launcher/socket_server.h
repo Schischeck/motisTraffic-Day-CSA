@@ -10,9 +10,9 @@
 namespace motis {
 namespace launcher {
 
-struct http_server {
-  http_server(boost::asio::io_service&, motis::module::receiver&);
-  ~http_server();
+struct socket_server {
+  socket_server(boost::asio::io_service&, motis::module::receiver&);
+  ~socket_server();
 
   void listen(std::string const& host, std::string const& port);
   void stop();

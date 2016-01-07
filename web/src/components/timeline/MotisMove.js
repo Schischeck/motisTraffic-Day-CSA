@@ -8,7 +8,7 @@ SVG.MotisMove = SVG.invent({
       return this.offset;
     },
 
-    setDrawParameters: function(thickness, radius, desired_len) {
+    setDrawParameters: function(thickness, radius, desiredLen) {
       this.thickness = thickness;
       this.radius = radius;
 
@@ -18,13 +18,13 @@ SVG.MotisMove = SVG.invent({
       this.x = this.x_offset;
       this.y = this.y_offset;
 
-      this.setDesiredLength(desired_len);
+      this.setDesiredLength(desiredLen);
     },
 
-    setDesiredLength: function(desired_len) {
-      var minWidth = this.in_eq_width / 2.0;
-      var len = desired_len - (this.radius + this.in_eq_width) - (this.thickness / 6.0);
-      var offset = minWidth - len;
+    setDesiredLength: function(desiredLen) {
+      const minWidth = this.in_eq_width / 2.0;
+      let len = desiredLen - (this.radius + this.in_eq_width) - (this.thickness / 6.0);
+      const offset = minWidth - len;
 
       if (len < minWidth) {
         len = minWidth;
@@ -48,29 +48,29 @@ SVG.MotisMove = SVG.invent({
       this.path.plot(this.generatePathData());
     },
 
-    updateLength: function(desired_len) {
-      this.setDesiredLength(desired_len);
+    updateLength: function(desiredLen) {
+      this.setDesiredLength(desiredLen);
       this.updatePath();
     },
 
-    draw: function(thickness, radius, desired_len, el, labelRotation) {
-      this.setDrawParameters(thickness, radius, desired_len);
+    draw: function(thickness, radius, desiredLen, label, labelRotation, isIcon) {
+      this.setDrawParameters(thickness, radius, desiredLen);
 
-      var g = this.put(new SVG.G);
+      const g = this.put(new SVG.G);
       this.path = this.put(new SVG.Path)
                       .attr({'fill-rule': 'evenodd'});
       this.updatePath();
 
       g.add(this.path);
       g.add(this.put(new SVG.Text())
-                .text(el.label || '???')
+                .text(label || '???')
                 .attr({'cursor': 'pointer'})
                 .attr({'fill': '#FFF'})
-                .attr({'font-family': 'Verdana,sans-serif'})
-                .attr({'font-weight': 'bold'})
+                .attr({'font-family': isIcon ? 'Material Icons' : 'Verdana,sans-serif'})
+                .attr({'font-weight': isIcon ? 'normal' : 'bold'})
                 .attr({'text-anchor': 'middle'})
-                .size(9.5)
-                .move(0, -0.12 * thickness)
+                .size(isIcon ? 18 : 9.5)
+                .move(isIcon ? -1 : 0, isIcon ? -5 : -1.2)
                 .rotate(labelRotation || 0));
 
       return g;

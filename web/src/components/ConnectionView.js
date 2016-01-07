@@ -17,7 +17,7 @@ export default class ConnectionView extends Component {
   }
 
   componentDidMount() {
-    document.addEventListener("keydown", this._onKeyPress.bind(this), false);
+    document.addEventListener('keydown', this._onKeyPress.bind(this), false);
   }
 
   _onKeyPress(e) {
@@ -71,9 +71,9 @@ export default class ConnectionView extends Component {
               { con.transports.filter(t => {
                   return t.move.range.from >= from && t.move.range.to <= to;
                 }).map((t, i) => {
-                  return <li key={key * 10 + i}>
+                  return (<li key={key * 10 + i}>
                            { t.move.name }
-                         </li>;
+                         </li>);
                 }) }
             </ul>);
   }
@@ -82,7 +82,7 @@ export default class ConnectionView extends Component {
     if (this.props.waiting) {
       return (<CircularProgress
                                 mode="indeterminate"
-                                style={ {  'margin': '10px auto',  'display': 'block'} } />);
+                                style={ { 'margin': '10px auto', 'display': 'block'} } />);
     }
 
     if (this.props.showError) {
@@ -102,7 +102,7 @@ export default class ConnectionView extends Component {
     <div className={ style.conWrap }>
       <span>
         {this.state.selectedIndex + 1} / {this.props.connections.length}
-        (Duration: {(con.stops[con.stops.length - 1].arrival.time - con.stops[0].departure.time)  / 60.0})
+        (Duration: {(con.stops[con.stops.length - 1].arrival.time - con.stops[0].departure.time) / 60.0})
       </span>
       <ul className={ style.con }>
         { con.stops.map((stop, i) => {
@@ -124,7 +124,7 @@ export default class ConnectionView extends Component {
             acc.push(curr);
             return acc;
           }, []).map((el, index) => {
-            if (el.type == 'stop') {
+            if (el.type === 'stop') {
               const arr = el.i !== 1 ? this.makeArrivalElement(el.stop.arrival.time) : <div />;
               const dep = el.i !== con.stops.length - 2 ? this.makeArrivalElement(el.stop.departure.time) : <div />;
               return ( <li

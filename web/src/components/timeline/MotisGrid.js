@@ -1,17 +1,14 @@
 import SVG from 'svg.js';
-
-import ForeignObject from './ForeignObject'
-import MotisConnection from './MotisConnection';
-
-import TimelineCalculator from './TimelineCalculator';
+import './ForeignObject';
+import './MotisConnection';
 
 const isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
 const isMS = document.documentMode || /Edge/.test(navigator.userAgent);
 const offset = (isFirefox || isMS) ? 8 : 20;
 
 function pad(num, size) {
-  var s = '000' + num;
-  return s.substr(s.length-size);
+  const s = '000' + num;
+  return s.substr(s.length - size);
 }
 
 function formatTime(time) {
@@ -30,13 +27,13 @@ SVG.MotisGrid = SVG.invent({
 
       const departure = {
         time: formatTime(from.departure.time),
-        isDelayed: from.departure.time != from.departure.schedule_time,
+        isDelayed: from.departure.time !== from.departure.schedule_time,
         track: from.departure.platform
       };
 
       const arrival = {
         time: formatTime(to.arrival.time),
-        isDelayed: to.arrival.time != to.arrival.schedule_time,
+        isDelayed: to.arrival.time !== to.arrival.schedule_time,
         track: to.arrival.platform
       };
 
@@ -86,7 +83,7 @@ SVG.MotisGrid = SVG.invent({
 
         this.infoHoverContent = document.createElement('div');
 
-        var style = '';
+        let style = '';
         style += 'margin: 20px;';
         style += 'max-height: 80px;';
         style += 'width: 240px;';
@@ -101,29 +98,29 @@ SVG.MotisGrid = SVG.invent({
 
         this.infoHover.appendChild(this.infoHoverContent, {'style': style});
         this.add(this.infoHover);
-        this.hideInfoHover()
+        this.hideInfoHover();
       }
     },
 
-    drawConnections: function(cons, timelineSettings) {
+    drawConnections: function(cons, timelineSettings, onConnectionSelected) {
       if (this.drawedConnections) {
         this.drawedConnections.forEach(c => { c.remove(); });
       }
       this.drawedConnections = [];
 
-      if (cons.length == 0) {
+      if (cons.length === 0) {
         return;
       }
 
       this.drawTimeline(timelineSettings);
 
-      var y = Math.max(20, (3 - cons.length) * 50);
-      for (var i = 0; i < cons.length; i++) {
-        var newCon = this.put(new SVG.MotisConnection);
-        var c = cons[i];
-        var elements = [];
-        for (var j = 0; j < c.length; j++) {
-          var section = c[j];
+      let yPos = Math.max(20, (3 - cons.length) * 50);
+      for (let i = 0; i < cons.length; i++) {
+        const newCon = this.put(new SVG.MotisConnection);
+        const c = cons[i];
+        const elements = [];
+        for (let j = 0; j < c.length; j++) {
+          const section = c[j];
           elements.push({
             x: this.timeline.timeToXIntercept(section.begin),
             len: this.timeline.timeToXIntercept(section.end) - this.timeline.timeToXIntercept(section.begin),
@@ -133,21 +130,26 @@ SVG.MotisGrid = SVG.invent({
           });
         }
         newCon.draw(this.settings.thickness, this.settings.radius, elements);
-        newCon.move(0, y);
+        newCon.move(0, yPos);
         newCon.attr({'cursor': 'pointer'});
         this.add(newCon);
         this.drawedConnections.push(newCon);
 
-        newCon.onHoverBegin(function(y, el, x) {
+        newCon.onClick((i) => {
+          if (onConnectionSelected) {
+            onConnectionSelected(i);
+          }
+        }.bind(this, i));
+        newCon.onHoverBegin((y, el, x) => {
           this.updateInfoHoverContent(el);
           this.updateInfoHoverPosition(x, y);
           this.showInfoHover();
-        }.bind(this, y + offset));
-        newCon.onHoverEnd(function(el, x, y) {
+        }.bind(this, yPos + offset));
+        newCon.onHoverEnd(() => {
           this.hideInfoHover();
-        }.bind(this));
+        });
 
-        y += this.settings.radius * 5.5;
+        yPos += this.settings.radius * 5.5;
       }
 
       this.createInfoHover();
@@ -163,14 +165,14 @@ SVG.MotisGrid = SVG.invent({
       this.settings.end = new Date(timelineSettings.end.getTime());
       this.timeline = timelineSettings;
 
-      var t = new Date(this.timeline.start.getTime());
-      var totalCuts = this.timeline.totalCuts;
-      var scale = this.timeline.scale;
+      const t = new Date(this.timeline.start.getTime());
+      const totalCuts = this.timeline.totalCuts;
+      const scale = this.timeline.scale;
 
-      for (var cut = 0; cut < totalCuts - 1; cut++) {
+      for (let cut = 0; cut < totalCuts - 1; cut++) {
         t.setTime(t.getTime() + scale);
-        var x = this.timeline.timeToXIntercept(t);
-        var line = this.put(new SVG.Line)
+        const x = this.timeline.timeToXIntercept(t);
+        const line = this.put(new SVG.Line)
                        .plot(x, 0, x, this.settings.height - 10)
                        .stroke({ width: 0.2, color: '#999' });
         this.add(line);
@@ -181,7 +183,7 @@ SVG.MotisGrid = SVG.invent({
 
   construct: {
     motisgrid: function(width, height, connections, padding, thickness, radius) {
-      var grid = new SVG.MotisGrid;
+      const grid = new SVG.MotisGrid;
       grid.settings = {};
       grid.settings.thickness = thickness || 9;
       grid.settings.radius = radius || 13;
@@ -189,7 +191,7 @@ SVG.MotisGrid = SVG.invent({
       grid.settings.width = width;
       grid.settings.height = height;
 
-      var g = this.put(grid);
+      const g = this.put(grid);
       grid.drawConnections(connections);
 
       return g;

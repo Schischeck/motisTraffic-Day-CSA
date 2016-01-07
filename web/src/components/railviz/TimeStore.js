@@ -5,19 +5,21 @@ import AppDispatcher from '../../Dispatcher';
 
 class TimeStore extends ReduceStore {
   getInitialState() {
-    let time = new Date().getTime();
+    let time = Date.now();
     return Immutable.Map({
-      simulatedTime: time
+      simulatedTime: time,
+			lastnow: 0
     });
   }
 
   reduce(state, action) {
     switch (action.content_type) {
       case 'RailVizInit':
+				state.set('lastnow', performance.now());
         return state.set('schedule_end', action.content['schedule_end'] * 1000);
       case 'tick':
         let simTime = state.get('simulatedTime');
-        return state.set('simulatedTime', simTime + 1000);
+        return state.set('simulatedTime', simTime + 10);
       default:
         return state;
     }
