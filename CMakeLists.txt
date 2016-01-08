@@ -79,6 +79,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
@@ -97,6 +98,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 
+add_subdirectory(external_lib/snappy-cmake EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
@@ -116,6 +118,7 @@ include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/client/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
@@ -141,6 +144,7 @@ endforeach(module)
 
 add_subdirectory(base/bootstrap EXCLUDE_FROM_ALL)
 add_subdirectory(base/launcher)
+add_subdirectory(base/client)
 
 
 ################################
