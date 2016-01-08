@@ -1,0 +1,6 @@
+namespace motis.intermodal;
+
+table IntermodalRequest {
+  lat : double;
+  lng : double;
+}

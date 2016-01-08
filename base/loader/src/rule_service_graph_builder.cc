@@ -297,6 +297,20 @@ struct rule_service_route_builder {
     }
   }
 
+  void connect_through_services(RuleService const* rs) {
+    for (auto const& r : *rs->rules()) {
+      if (r->type() == RuleType_THROUGH) {
+        connect_route_nodes(r);
+      }
+    }
+  }
+
+  void connect_route_nodes(Rule const* r) {
+    auto s1_node = sections_.at(r->service1()).back()->first.to_route_node;
+    auto s2_node = sections_.at(r->service2()).front()->first.from_route_node;
+    s1_node->_edges.push_back(make_through_edge(s1_node, s2_node));
+  }
+
   graph_builder& gb_;
   bitfield const& traffic_days_;
   int first_day_, last_day_;
@@ -333,6 +347,7 @@ void rule_service_graph_builder::add_rule_services(
         gb_, traffic_days, first_day, last_day, section_builder.sections_,
         route_id);
     route_builder.build_routes();
+    route_builder.connect_through_services(rule_service);
   }
 }
 
