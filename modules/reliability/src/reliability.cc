@@ -30,17 +30,29 @@ using namespace motis::module;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
+#define USE_DB_DISTRIBUTINS "reliability.use_db_distributions"
+#define DB_DISTRIBUTIONS_FOLDER "reliability.db_distributions_folder"
 #define HOTELS_FILE "reliability.hotels"
 
 namespace motis {
 namespace reliability {
 
 reliability::reliability()
-    : hotels_file_("modules/reliability/resources/hotels.csv") {}
+    : use_db_distributions_(false),
+      db_distributions_folder_("/data/db_distributions/"),
+      hotels_file_("modules/reliability/resources/hotels.csv") {}
 
 po::options_description reliability::desc() {
   po::options_description desc("Reliability Module");
   // clang-format off
+  desc.add_options()
+      (USE_DB_DISTRIBUTINS,
+       po::value<bool>(&use_db_distributions_)->default_value(use_db_distributions_),
+       "use DB distributions");
+  desc.add_options()
+      (DB_DISTRIBUTIONS_FOLDER,
+       po::value<std::string>(&db_distributions_folder_)->default_value(db_distributions_folder_),
+       "folder containing DB distributions");
   desc.add_options()
       (HOTELS_FILE,
        po::value<std::string>(&hotels_file_)->default_value(hotels_file_),
@@ -50,7 +62,9 @@ po::options_description reliability::desc() {
 }
 
 void reliability::print(std::ostream& out) const {
-  out << "  " << HOTELS_FILE << ": " << hotels_file_;
+  out << "  " << USE_DB_DISTRIBUTINS << ": " << use_db_distributions_ << "  "
+      << DB_DISTRIBUTIONS_FOLDER << ": " << db_distributions_folder_ << "  "
+      << HOTELS_FILE << ": " << hotels_file_;
 }
 
 void reliability::init() {
@@ -59,17 +73,18 @@ void reliability::init() {
   precomputed_distributions_ =
       std::unique_ptr<distributions_container::container>(
           new distributions_container::container);
-#ifdef USE_DB_DISTRIBUTINS
-  s_t_distributions_ = std::unique_ptr<
-      start_and_travel_distributions>(new db_distributions(
-      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/",
-      500,
-      120));  // TODO: read max travel time from graph
-  std::cout << "\ndb-distributions" << std::endl;
-#else
-  s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
-      new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
-#endif
+  if (use_db_distributions_) {
+    s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
+        new db_distributions(db_distributions_folder_, 500,
+                             120));  // TODO: read max travel time from graph
+    LOG(info) << "Using DB start and travel distributions";
+  } else {
+    s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
+        new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1},
+                                                -1));
+    LOG(info) << "Using generated start and travel distributions";
+  }
+
   distributions_calculator::precomputation::perform_precomputation(
       schedule, *s_t_distributions_, *precomputed_distributions_);
 }

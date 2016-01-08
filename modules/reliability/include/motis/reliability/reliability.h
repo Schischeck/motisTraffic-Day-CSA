@@ -55,6 +55,8 @@ struct reliability : public motis::module::module {
 
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
+  bool use_db_distributions_;
+  std::string db_distributions_folder_;
   std::string hotels_file_;
 
 private:
