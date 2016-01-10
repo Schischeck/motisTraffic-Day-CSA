@@ -89,7 +89,8 @@ struct rule_service_section_builder {
 
   void add_service(Service const* service) {
     add_service(service, 0, service->sections()->size(), 0,
-                service->sections()->size(), sections_[service], {});
+                service->sections()->size(), sections_[service],
+                std::set<Service const*>());
   }
 
   void add_service(Service const* service,  //
