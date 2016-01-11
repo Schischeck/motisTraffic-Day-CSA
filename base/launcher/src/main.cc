@@ -24,6 +24,7 @@
 #include "motis/launcher/socket_server.h"
 #include "motis/launcher/listener_settings.h"
 #include "motis/launcher/launcher_settings.h"
+#include "motis/launcher/batch_mode.h"
 
 #include "version.h"
 #include "modules.h"
@@ -57,7 +58,8 @@ int main(int argc, char** argv) {
           begin(instance.modules_), end(instance.modules_),
           [](std::unique_ptr<motis::module::module> const& m) {
             return m->name();
-          }));
+          }),
+      "queries.txt", "responses.txt");
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
                                              &launcher_opt};
@@ -147,6 +149,10 @@ int main(int argc, char** argv) {
         ios, boost::posix_time::seconds(1));
     timer->async_wait(
         [&websocket](boost::system::error_code) { websocket.stop(); });
+  } else if (launcher_opt.mode == launcher_settings::BATCH) {
+    std::cout << "batch mode\n";
+    inject_queries(ios, instance, launcher_opt.batch_input_file,
+                   launcher_opt.batch_output_file);
   }
 
   std::function<void()> run_server = [&ios, &run_server]() {
