@@ -46,7 +46,7 @@ public:
 
 private:
   msg_ptr next_query() {
-    if (in_.peek() == EOF || in_.eof()) {
+    if (in_.eof() || in_.peek() == EOF) {
       return nullptr;
     }
 

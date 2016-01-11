@@ -150,17 +150,21 @@ int main(int argc, char** argv) {
     timer->async_wait(
         [&websocket](boost::system::error_code) { websocket.stop(); });
   } else if (launcher_opt.mode == launcher_settings::BATCH) {
-    std::cout << "batch mode\n";
     inject_queries(ios, instance, launcher_opt.batch_input_file,
                    launcher_opt.batch_output_file);
   }
 
-  std::function<void()> run_server = [&ios, &run_server]() {
-    try {
-      ios.run();
-    } catch (...) {
-      run_server();
-    }
+  auto run_server = [&ios]() {
+    start:
+      try {
+        ios.run();
+      } catch (std::exception const& e) {
+        LOG(emrg) << "unhandled error in I/O service: " << e.what();
+        goto start;
+      } catch (...) {
+        LOG(emrg) << "unhandled unknown error in I/O service";
+        goto start;
+      }
   };
   run_server();
   instance.thread_pool_.stop();
