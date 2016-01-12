@@ -95,9 +95,8 @@ protected:
                                    distributions_container::container const&,
                                    schedule const&);
   void init_feeder_info(
-      light_connection const& departing_light_conn,
-      std::vector<distributions_container::container::node const*> const&
-          feeders,
+      node const& route_node, light_connection const& departing_light_conn,
+      std::vector<distributions_container::container::node*> const& feeders,
       schedule const&);
 };
 

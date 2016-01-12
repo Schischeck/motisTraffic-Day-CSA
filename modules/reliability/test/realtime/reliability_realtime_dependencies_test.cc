@@ -403,20 +403,35 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen) {
                  1445244600 /* 2015-10-19 08:59:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Is));
 
-  auto const node_key = distributions_container::container::key{
-      ICE_D_L_F,
-      "ice",
-      "",
-      get_schedule().eva_to_station.find(LANGEN)->second->index,
-      time_util::arrival,
-      test_util::minutes_to_motis_time(8 * 60 + 30)};
   auto const& distribution_node_arr =
-      get_reliability_module().precomputed_distributions().get_node(node_key);
+      get_reliability_module().precomputed_distributions().get_node(
+          distributions_container::container::key(
+              ICE_D_L_F, "ice", "",
+              get_schedule().eva_to_station.find(LANGEN)->second->index,
+              time_util::arrival,
+              test_util::minutes_to_motis_time(8 * 60 + 30)));
 
-  ASSERT_EQ(1, distribution_node_arr.successors_.size());
+  ASSERT_EQ(2, distribution_node_arr.successors_.size());
+  {
+    /* Departure of ICE_D_L_F at 08:32 in Langen */
+    auto const& distribution_node_dep = *distribution_node_arr.successors_[0];
+    auto const& node_dep =
+        *graph_accessor::get_departing_route_edge(
+             *graph_accessor::get_first_route_node(get_schedule(), ICE_D_L_F))
+             ->_to;
+    auto const& lc_dep = graph_accessor::get_departing_route_edge(node_dep)
+                             ->_m._route_edge._conns[2];
+    ASSERT_EQ(distributions_container::to_container_key(
+                  node_dep, lc_dep, time_util::departure, get_schedule()),
+              distribution_node_dep.key_);
+
+    ASSERT_EQ(1, distribution_node_dep.predecessors_.size());
+    ASSERT_EQ(&distribution_node_arr,
+              distribution_node_dep.predecessors_.front());
+  }
   {
     /* Departure of ICE_L_H at 08:50 in Langen */
-    auto const& distribution_node_dep = *distribution_node_arr.successors_[0];
+    auto const& distribution_node_dep = *distribution_node_arr.successors_[1];
     auto const& node_dep =
         *graph_accessor::get_first_route_node(get_schedule(), ICE_L_H);
     auto const& lc_dep = graph_accessor::get_departing_route_edge(node_dep)

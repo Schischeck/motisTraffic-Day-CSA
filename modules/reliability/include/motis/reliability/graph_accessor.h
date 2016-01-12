@@ -111,27 +111,41 @@ inline node const* get_first_route_node(schedule const& schedule,
 }
 
 inline std::pair<light_connection const*, unsigned int> find_light_connection(
-    edge const& route_edge, motis::time const departure_time,
-    unsigned int const family, unsigned int const train_nr,
-    std::string const& line_identifier) {
+    edge const& route_edge, motis::time const event_time, bool is_departure,
+    std::function<bool(connection_info const&)> check_connection_info) {
+  auto lc_time = [is_departure](light_connection const& lc) -> unsigned int {
+    return is_departure ? lc.d_time : lc.a_time;
+  };
   if (route_edge.empty()) {
     return std::make_pair(nullptr, 0);
   }
-  auto it = std::lower_bound(std::begin(route_edge._m._route_edge._conns),
-                             std::end(route_edge._m._route_edge._conns),
-                             light_connection(departure_time));
+  auto it =
+      std::lower_bound(std::begin(route_edge._m._route_edge._conns),
+                       std::end(route_edge._m._route_edge._conns), event_time,
+                       [&](light_connection const& a, unsigned int const b) {
+                         return lc_time(a) < b;
+                       });
   while (it != std::end(route_edge._m._route_edge._conns) &&
-         it->d_time == departure_time &&
-         (it->_full_con->con_info->train_nr != train_nr ||
-          it->_full_con->con_info->family != family ||
-          it->_full_con->con_info->line_identifier != line_identifier)) {
+         lc_time(*it) == event_time &&
+         !check_connection_info(*it->_full_con->con_info)) {
     ++it;
   }
   return (it == std::end(route_edge._m._route_edge._conns) ||
-          it->d_time != departure_time)
+          lc_time(*it) != event_time)
              ? std::make_pair(nullptr, 0)
              : std::make_pair(
                    it, it - std::begin(route_edge._m._route_edge._conns));
+}
+
+inline std::pair<light_connection const*, unsigned int> find_light_connection(
+    edge const& route_edge, motis::time const event_time, bool is_departure,
+    unsigned int const family, unsigned int const train_nr,
+    std::string const& line_identifier) {
+  return find_light_connection(
+      route_edge, event_time, is_departure, [&](connection_info const& ci) {
+        return ci.train_nr == train_nr && ci.family == family &&
+               ci.line_identifier == line_identifier;
+      });
 }
 
 inline duration walking_duration(node const& tail_station,

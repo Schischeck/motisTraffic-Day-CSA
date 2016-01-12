@@ -12,20 +12,19 @@ namespace reliability {
 namespace calc_departure_distribution {
 
 /** get vector containing all potential feeders but not arriving_light_conn */
-std::vector<distributions_container::container::node const*>
+std::vector<distributions_container::container::node*>
 get_all_potential_feeders_except_ic(
-    std::vector<distributions_container::container::node const*> const& feeders,
+    std::vector<distributions_container::container::node*> const& feeders,
     distributions_container::container::key const& ic_feeder) {
-  std::vector<distributions_container::container::node const*> filtered_feeders(
+  std::vector<distributions_container::container::node*> filtered_feeders(
       feeders);
-  auto const it =
-      std::find_if(filtered_feeders.begin(), filtered_feeders.end(),
-                   [&](distributions_container::container::node const* feeder) {
-                     return feeder->key_ == ic_feeder;
-                   });
-  if (it != filtered_feeders.end()) {
-    filtered_feeders.erase(it);
-  }
+  filtered_feeders.erase(
+      std::remove_if(
+          filtered_feeders.begin(), filtered_feeders.end(),
+          [&](distributions_container::container::node const* feeder) {
+            return feeder->key_ == ic_feeder;
+          }),
+      filtered_feeders.end());
   return filtered_feeders;
 }
 
@@ -68,7 +67,8 @@ data_departure_interchange::data_departure_interchange(
       distributions_container::to_container_key(
           arriving_route_node, arriving_light_conn, time_util::arrival,
           context.schedule_));
-  init_feeder_info(departing_light_conn, all_feeders_data, context.schedule_);
+  init_feeder_info(departing_route_node, departing_light_conn, all_feeders_data,
+                   context.schedule_);
   maximum_waiting_time_ =
       std::max(maximum_waiting_time_, interchange_feeder_info_.waiting_time_);
 }

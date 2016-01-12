@@ -135,6 +135,32 @@ void add_feeders(common::queue_element const& element,
   }
 }
 
+void init_predecessors_and_successors(
+    distributions_container::container::node& departure_distribution_node,
+    distributions_container::container::node& arrival_distribution_node,
+    distributions_container::container& distributions_container,
+    common::queue_element const& element, schedule const& schedule) {
+  departure_distribution_node.successors_.push_back(&arrival_distribution_node);
+  arrival_distribution_node.predecessors_.push_back(
+      &departure_distribution_node);
+  add_feeders(element, departure_distribution_node, distributions_container,
+              schedule);
+  if (auto const* route_edge =
+          graph_accessor::get_arriving_route_edge(*element.from_)) {
+    auto& preceding_arrival_distribution_node =
+        distributions_container.get_node_non_const(
+            distributions_container::to_container_key(
+                *element.from_, graph_accessor::get_previous_light_connection(
+                                    route_edge->_m._route_edge._conns,
+                                    element.light_connection_->d_time),
+                time_util::arrival, schedule));
+    preceding_arrival_distribution_node.successors_.push_back(
+        &departure_distribution_node);
+    departure_distribution_node.predecessors_.push_back(
+        &preceding_arrival_distribution_node);
+  }
+}
+
 bool is_pre_computed_route(schedule const& schedule,
                            node const& first_route_node) {
   node const* node = &first_route_node;
@@ -203,8 +229,9 @@ void process_element(
     return;
   }
 
-  add_feeders(element, departure_distribution_node, distributions_container,
-              schedule);
+  init_predecessors_and_successors(departure_distribution_node,
+                                   arrival_distribution_node,
+                                   distributions_container, element, schedule);
 
   common::compute_dep_and_arr_distribution(
       element, departure_distribution_node, departure_distribution_node.pd_,

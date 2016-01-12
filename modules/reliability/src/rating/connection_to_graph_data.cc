@@ -93,7 +93,8 @@ connection_element const to_element(
       if (route_edge &&
           route_edge->_to->_station_node->_id == head_station_id) {
         auto const light_conn = graph_accessor::find_light_connection(
-            *route_edge, dep_time, category_id, train_nr, line_identifier);
+            *route_edge, dep_time, true, category_id, train_nr,
+            line_identifier);
 
         if (light_conn.first) {
           bool const is_first_route_node =

@@ -153,55 +153,59 @@ TEST_F(reliability_graph_accessor, get_light_connection) {
   edge route_edge;
   route_edge._m._type = edge::ROUTE_EDGE;
 
-  light_connection lc1(10);
   connection fc1;
   connection_info ci1;
   ci1.train_nr = 1;
   ci1.family = 1;
   fc1.con_info = &ci1;
-  lc1._full_con = &fc1;
+  light_connection lc1(10, 11, &fc1);
   route_edge._m._route_edge._conns.push_back(lc1);
 
-  light_connection lc2(20);
   connection fc2;
   connection_info ci2;
   ci2.train_nr = 2;
   ci2.family = 3;
   fc2.con_info = &ci2;
-  lc2._full_con = &fc2;
+  light_connection lc2(20, 21, &fc2);
   route_edge._m._route_edge._conns.push_back(lc2);
 
-  light_connection lc3(20);
   connection fc3;
   connection_info ci3;
   ci3.train_nr = 3;
   ci3.family = 2;
   fc3.con_info = &ci3;
-  lc3._full_con = &fc3;
+  light_connection lc3(20, 22, &fc3);
   route_edge._m._route_edge._conns.push_back(lc3);
 
-  light_connection lc4(20);
   connection fc4;
   connection_info ci4;
   ci4.train_nr = 2;
   ci4.family = 2;
+  ci4.line_identifier = "1";
   fc4.con_info = &ci4;
-  lc4._full_con = &fc4;
+  light_connection lc4(20, 23, &fc4);
   route_edge._m._route_edge._conns.push_back(lc4);
 
-  light_connection lc5(20);
   connection fc5;
   connection_info ci5;
   ci5.train_nr = 2;
   ci5.family = 2;
   fc5.con_info = &ci5;
-  lc5._full_con = &fc5;
+  light_connection lc5(20, 24, &fc5);
   route_edge._m._route_edge._conns.push_back(lc5);
 
-  auto lc = find_light_connection(route_edge, 20, 2, 2, "");
-  // index 3 is lc4
-  ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[3]);
-  ASSERT_EQ(lc.second, 3);
+  {
+    auto lc = find_light_connection(route_edge, 20, true, 2, 2, "1");
+    // index 3 is lc4
+    ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[3]);
+    ASSERT_EQ(lc.second, 3);
+  }
+  {
+    auto lc = find_light_connection(route_edge, 22, false, 2, 3, "");
+    // index 3 is lc4
+    ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[2]);
+    ASSERT_EQ(lc.second, 2);
+  }
 }
 
 TEST_F(reliability_graph_accessor3, walking_duration) {

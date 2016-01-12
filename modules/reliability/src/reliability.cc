@@ -17,6 +17,7 @@
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/realtime/realtime_update.h"
 #include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/late_connections.h"
@@ -95,7 +96,8 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
     auto req = msg->content<ReliableRoutingRequest const*>();
     return handle_routing_request(req, session_id, cb);
   } else if (content_type == MsgContent_RealtimeDelayInfoResponse) {
-    auto update = msg->content<realtime::RealtimeDelayInfoResponse const*>();
+    auto update =
+        msg->content<motis::realtime::RealtimeDelayInfoResponse const*>();
     return handle_realtime_update(update, cb);
   }
   return cb({}, error::not_implemented);
@@ -144,9 +146,14 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
 }
 
 void reliability::handle_realtime_update(
-    realtime::RealtimeDelayInfoResponse const*, callback cb) {
-  LOG(info) << "reliability received delay infos";
+    motis::realtime::RealtimeDelayInfoResponse const* res, callback cb) {
+  LOG(info) << "reliability received " << res->delay_infos()->size()
+            << " delay infos";
 
+  auto const lock = synced_sched();
+  schedule const& schedule = lock.sched();
+  realtime::update_precomputed_distributions(res, schedule, *s_t_distributions_,
+                                             *precomputed_distributions_);
   return cb({}, error::ok);
 }
 

@@ -32,8 +32,8 @@ data_departure::data_departure(
                                 distributions_preceding_arrival,
                                 context.schedule_);
   }
-  init_feeder_info(light_connection, distributions_node.predecessors_,
-                   context.schedule_);
+  init_feeder_info(route_node, light_connection,
+                   distributions_node.predecessors_, context.schedule_);
 }
 
 data_departure::data_departure(bool const is_first_route_node,
@@ -83,10 +83,40 @@ void data_departure::init_preceding_arrival_info(
   assert(!train_info_.preceding_arrival_info_.arrival_distribution_->empty());
 }
 
-void data_departure::init_feeder_info(
-    light_connection const& light_conn,
-    std::vector<distributions_container::container::node const*> const& feeders,
+void erase_preceding_arrival(
+    node const& route_node, light_connection const& light_conn,
+    std::vector<distributions_container::container::node*>& predecessors,
+    motis::time const preceding_arrival_time_scheduled,
     schedule const& schedule) {
+  auto const& arriving_light_conn =
+      graph_accessor::get_previous_light_connection(
+          graph_accessor::get_arriving_route_edge(route_node)
+              ->_m._route_edge._conns,
+          light_conn.d_time);
+  auto const preceding_arrival_key = distributions_container::to_container_key(
+      arriving_light_conn, route_node.get_station()->_id, time_util::arrival,
+      preceding_arrival_time_scheduled, schedule);
+
+  predecessors.erase(
+      std::remove_if(
+          predecessors.begin(), predecessors.end(),
+          [&](distributions_container::container::node const* feeder) {
+            return feeder->key_ == preceding_arrival_key;
+          }),
+      predecessors.end());
+}
+
+void data_departure::init_feeder_info(
+    node const& route_node, light_connection const& light_conn,
+    std::vector<distributions_container::container::node*> const& predecessors,
+    schedule const& schedule) {
+  std::vector<distributions_container::container::node*> feeders(predecessors);
+  if (!is_first_route_node_) {
+    erase_preceding_arrival(
+        route_node, light_conn, feeders,
+        train_info_.preceding_arrival_info_.scheduled_arrival_time_, schedule);
+  }
+
   for (auto const& feeder : feeders) {
     /* TODO: test whether feeder is cancelled or rerouted!
      * (do the same for preceding arrival or interchange feeder?!)

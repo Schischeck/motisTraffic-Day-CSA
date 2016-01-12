@@ -21,8 +21,25 @@ struct container {
     std::string category_;
     std::string line_identifier_;
     uint32_t station_index_;
-    enum time_util::event_type type_;
+    time_util::event_type type_;
     motis::time scheduled_event_time_;
+
+    key()
+        : train_id_(0),
+          category_(""),
+          line_identifier_(""),
+          station_index_(0),
+          type_(time_util::departure),
+          scheduled_event_time_(0) {}
+    key(uint32_t train_id, std::string category, std::string line_identifier,
+        uint32_t station_index, time_util::event_type type,
+        motis::time scheduled_event_time)
+        : train_id_(train_id),
+          category_(to_lower(category)),
+          line_identifier_(line_identifier),
+          station_index_(station_index),
+          type_(type),
+          scheduled_event_time_(scheduled_event_time) {}
 
     bool operator<(key const& o) const {
       return std::tie(train_id_, category_, line_identifier_, station_index_,
@@ -37,37 +54,48 @@ struct container {
              std::tie(o.train_id_, o.category_, o.line_identifier_,
                       o.station_index_, o.type_, o.scheduled_event_time_);
     }
+
+  private:
+    static std::string to_lower(std::string str) {
+      std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+      return str;
+    };
   };
 
   struct node {
     key key_;
     probability_distribution pd_;
-    std::vector<node const*> successors_;
-    std::vector<node const*> predecessors_;
+    std::vector<node*> successors_;
+    std::vector<node*> predecessors_;
   };
+
+  container() : invalid_node_(std::make_shared<node>()) {}
 
   virtual ~container() {}
 
   virtual probability_distribution const& get_distribution(key const& k) const {
     auto it = distributions_nodes_.find(k);
     if (it != distributions_nodes_.end()) {
-      return it->second.pd_;
+      return it->second->pd_;
     }
-    return invalid_node_.pd_;
+    return invalid_node_->pd_;
   }
 
   virtual node const& get_node(key const& k) const {
     auto it = distributions_nodes_.find(k);
     if (it != distributions_nodes_.end()) {
-      return it->second;
+      return *it->second;
     }
-    return invalid_node_;
+    return *invalid_node_;
   }
 
   virtual node& get_node_non_const(key const& k) {
-    auto& node = distributions_nodes_[k];
-    node.key_ = k;
-    return node;
+    auto& n = distributions_nodes_[k];
+    if (!n) {
+      n = std::make_shared<node>();
+      n->key_ = k;
+    }
+    return *n;
   }
 
   virtual bool contains_distribution(key const& k) const {
@@ -79,8 +107,8 @@ struct container {
   }
 
 private:
-  std::map<key, node> distributions_nodes_;
-  node invalid_node_;
+  std::map<key, std::shared_ptr<node> > distributions_nodes_;
+  std::shared_ptr<node> invalid_node_;
 };
 
 inline std::ostream& operator<<(std::ostream& out, container::key const& k) {
@@ -108,18 +136,10 @@ inline container::key to_container_key(light_connection const& lc,
                                        time_util::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {
-  auto to_lower = [](std::string str) -> std::string {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    return str;
-  };
-
   auto const& conn_info = *lc._full_con->con_info;
-  return {conn_info.train_nr,
-          to_lower(sched.categories.at(conn_info.family)->name),
-          conn_info.line_identifier,
-          station_idx,
-          type,
-          scheduled_event_time};
+  return container::key(
+      conn_info.train_nr, sched.categories.at(conn_info.family)->name,
+      conn_info.line_identifier, station_idx, type, scheduled_event_time);
 }
 
 inline container::key to_container_key(node const& route_node,
