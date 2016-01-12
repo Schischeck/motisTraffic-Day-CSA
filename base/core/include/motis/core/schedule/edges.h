@@ -56,7 +56,8 @@ public:
     AFTER_TRAIN_FOOT_EDGE,
     MUMO_EDGE,
     TIME_DEPENDENT_MUMO_EDGE,
-    HOTEL_EDGE
+    HOTEL_EDGE,
+    THROUGH_EDGE
   };
 
   edge() = default;
@@ -105,6 +106,7 @@ public:
         if (last_con == nullptr) {
           return NO_EDGE;
         }
+      /* no break */
       case MUMO_EDGE:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
@@ -121,6 +123,8 @@ public:
         return edge_cost(calc_duration_hotel_edge(start_time), false,
                          _m._hotel_edge._price, 0);
       }
+
+      case THROUGH_EDGE: return edge_cost(0, false, 0, 0);
 
       default: return NO_EDGE;
     }
@@ -350,6 +354,10 @@ inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
 
 inline edge make_invalid_edge(node* from, node* to) {
   return edge(from, to, edge::INVALID_EDGE, 0, 0, false, 0);
+}
+
+inline edge make_through_edge(node* from, node* to) {
+  return edge(from, to, edge::THROUGH_EDGE, 0, 0, false, 0);
 }
 
 }  // namespace motis

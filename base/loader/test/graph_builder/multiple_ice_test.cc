@@ -1,158 +1,21 @@
-#include "gtest/gtest.h"
+#include "./graph_builder_test.h"
 
-#include <climits>
-#include <cinttypes>
-
-#include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
-#include "motis/loader/hrd/hrd_parser.h"
-#include "motis/loader/graph_builder.h"
-#include "motis/loader/parser_error.h"
-
-#include "motis/schedule-format/Schedule_generated.h"
-
-#include "./hrd/test_spec_test.h"
 
 using std::get;
 
 namespace motis {
 namespace loader {
 
-class loader_graph_builder_test : public ::testing::Test {
-protected:
-  loader_graph_builder_test(std::string schedule_name,
-                            std::time_t schedule_begin,
-                            std::time_t schedule_end)
-      : schedule_name_(std::move(schedule_name)),
-        schedule_begin_(schedule_begin),
-        schedule_end_(schedule_end) {}
-
-  virtual void SetUp() {
-    hrd::hrd_parser parser;
-
-    const auto schedule_path = hrd::SCHEDULES / schedule_name_;
-    ASSERT_TRUE(parser.applicable(schedule_path));
-
-    try {
-      flatbuffers::FlatBufferBuilder b;
-      parser.parse(schedule_path, b);
-      auto serialized = GetSchedule(b.GetBufferPointer());
-
-      sched_ =
-          build_graph(serialized, schedule_begin_, schedule_end_, true, true);
-    } catch (parser_error const& e) {
-      e.print_what();
-      ASSERT_TRUE(false);
-    }
-  }
-
-  static edge const* get_route_edge(node const* route_node) {
-    auto it = std::find_if(
-        begin(route_node->_edges), end(route_node->_edges),
-        [](edge const& e) { return e.type() == edge::ROUTE_EDGE; });
-    if (it == end(route_node->_edges)) {
-      return nullptr;
-    } else {
-      return &(*it);
-    }
-  }
-
-  static std::vector<
-      std::tuple<light_connection const*, node const*, node const*>>
-  get_connections(node const* first_route_node, time departure_time) {
-    decltype(get_connections(first_route_node, departure_time)) cons;
-    edge const* route_edge = nullptr;
-    node const* route_node = first_route_node;
-    while ((route_edge = get_route_edge(route_node)) != nullptr) {
-      auto const* con = route_edge->get_connection(departure_time);
-      if (con) {
-        cons.emplace_back(con, route_node, route_edge->_to);
-        route_node = route_edge->_to;
-        departure_time = std::get<0>(cons.back())->a_time;
-      } else {
-        break;
-      }
-    }
-    return cons;
-  }
-
-  schedule_ptr sched_;
-  std::string schedule_name_;
-  std::time_t schedule_begin_, schedule_end_;
-};
-
-class loader_multiple_ice_multiple_ice_graph_builder_test
-    : public loader_graph_builder_test {
+class loader_graph_builder_multiple_ice : public loader_graph_builder_test {
 public:
-  loader_multiple_ice_multiple_ice_graph_builder_test()
+  loader_graph_builder_multiple_ice()
       : loader_graph_builder_test(
             "multiple-ice-files", to_unix_time(2015, 10, 25),
             to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
 };
 
-class loader_direction_services_graph_builder_test
-    : public loader_graph_builder_test {
-public:
-  loader_direction_services_graph_builder_test()
-      : loader_graph_builder_test("direction-services",
-                                  to_unix_time(2015, 9, 11),
-                                  to_unix_time(2015, 9, 12)) {}
-};
-
-class loader_graph_builder_east_to_west_test
-    : public loader_graph_builder_test {
-public:
-  loader_graph_builder_east_to_west_test()
-      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 2),
-                                  to_unix_time(2015, 7, 10)) {}
-};
-
-class loader_graph_builder_season_valid : public loader_graph_builder_test {
-public:
-  loader_graph_builder_season_valid()
-      : loader_graph_builder_test("season-valid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
-};
-
-class loader_graph_builder_season_invalid : public loader_graph_builder_test {
-public:
-  loader_graph_builder_season_invalid()
-      : loader_graph_builder_test("season-invalid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
-};
-
-class loader_graph_builder_never_meet : public loader_graph_builder_test {
-public:
-  loader_graph_builder_never_meet()
-      : loader_graph_builder_test("never-meet", to_unix_time(2015, 1, 4),
-                                  to_unix_time(2015, 1, 10)) {}
-};
-
-class loader_graph_builder_duplicates_check : public loader_graph_builder_test {
-public:
-  loader_graph_builder_duplicates_check()
-      : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
-                                  to_unix_time(2015, 1, 10)) {}
-
-  uint32_t get_train_num(char const* first_stop_id) {
-    auto it = std::find_if(
-        begin(sched_->route_index_to_first_route_node),
-        end(sched_->route_index_to_first_route_node), [&](node const* n) {
-          return sched_->stations[n->get_station()->_id]->eva_nr ==
-                 first_stop_id;
-        });
-    return get<0>(get_connections(*it, 0).at(0))->_full_con->con_info->train_nr;
-  }
-};
-
-class loader_merge_split_graph_builder_test : public loader_graph_builder_test {
-public:
-  loader_merge_split_graph_builder_test()
-      : loader_graph_builder_test("cnl-schedule", to_unix_time(2015, 11, 5),
-                                  to_unix_time(2015, 11, 7)) {}
-};
-
-TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
+TEST_F(loader_graph_builder_multiple_ice, eva_num) {
   auto& stations = sched_->eva_to_station;
   EXPECT_STREQ("8000013", stations["8000013"]->eva_nr.c_str());
   EXPECT_STREQ("8000025", stations["8000025"]->eva_nr.c_str());
@@ -175,7 +38,7 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, eva_num) {
   EXPECT_STREQ("8098160", stations["8098160"]->eva_nr.c_str());
 }
 
-TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, simple_test) {
+TEST_F(loader_graph_builder_multiple_ice, simple_test) {
   auto& stations = sched_->eva_to_station;
   ASSERT_STREQ("Augsburg Hbf", stations["8000013"]->name.c_str());
   ASSERT_STREQ("Bamberg", stations["8000025"]->name.c_str());
@@ -198,7 +61,7 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, simple_test) {
   ASSERT_STREQ("Berlin Hbf (tief)", stations["8098160"]->name.c_str());
 }
 
-TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, coordinates) {
+TEST_F(loader_graph_builder_multiple_ice, coordinates) {
   auto& stations = sched_->eva_to_station;
 
   ASSERT_FLOAT_EQ(48.3654410, stations["8000013"]->width);
@@ -242,11 +105,7 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, coordinates) {
   ASSERT_FLOAT_EQ(13.3695450, stations["8098160"]->length);
 }
 
-TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, interchange_edges) {
-  // TODO(felix) check interchange times
-}
-
-TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
+TEST_F(loader_graph_builder_multiple_ice, route_nodes) {
   EXPECT_EQ(1, sched_->route_index_to_first_route_node.size());
 
   for (auto const& first_route_node : sched_->route_index_to_first_route_node) {
@@ -400,162 +259,6 @@ TEST_F(loader_multiple_ice_multiple_ice_graph_builder_test, route_nodes) {
     }
   }
 }
-
-TEST_F(loader_direction_services_graph_builder_test, direction_station) {
-  // Get route starting at Euskirchen
-  auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000100";
-      });
-  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
-
-  auto connections = get_connections(*node_it, 0);
-  ASSERT_GE(connections.size(), 16);
-
-  for (int i = 0; i < 12; ++i) {
-    auto con_info = std::get<0>(connections[i])->_full_con->con_info;
-    ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());
-  }
-
-  for (unsigned i = 12; i < connections.size(); ++i) {
-    auto con_info = std::get<0>(connections[i])->_full_con->con_info;
-    ASSERT_TRUE(con_info->dir_ == nullptr);
-  }
-}
-
-TEST_F(loader_direction_services_graph_builder_test, direction_text) {
-  // Get route starting at Wissmar Gewerbegebiet
-  auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "0114965";
-      });
-  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
-
-  auto connections = get_connections(*node_it, 0);
-  ASSERT_GE(connections.size(), 27);
-
-  for (auto const& e : connections) {
-    auto con_info = std::get<0>(e)->_full_con->con_info;
-    ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki", con_info->dir_->c_str());
-  }
-}
-
-void test_events(
-    std::tuple<light_connection const*, node const*, node const*> c,
-    time expected_dep, time expected_arr) {
-  EXPECT_EQ(expected_dep, get<0>(c)->d_time);
-  EXPECT_EQ(expected_arr, get<0>(c)->a_time);
-}
-
-time exp_time(int day_idx, int hhmm, int offset) {
-  return (day_idx + SCHEDULE_OFFSET_MINUTES) + hhmm_to_min(hhmm) - offset;
-}
-
-TEST_F(loader_graph_builder_east_to_west_test, event_times) {
-  // Get route starting at Moskva Belorusskaja
-  auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "2000058";
-      });
-  auto cs = get_connections(*node_it, 0);
-  ASSERT_EQ(23, cs.size());
-  test_events(cs.at(0), exp_time(0, 1630, 180), exp_time(0, 1901, 180));
-  // GMT+3 -> GMT+1 (season time)
-  test_events(cs.at(8), exp_time(0, 3106, 180), exp_time(0, 3018, 120));
-  test_events(cs.at(22), exp_time(0, 5306, 120), exp_time(0, 5716, 120));
-}
-
-TEST_F(loader_graph_builder_season_valid, event_times) {
-  // Get route starting at Dortmund Hbf
-  auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000080";
-      });
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-
-  auto cs = get_connections(*node_it, 0);
-  ASSERT_EQ(38, cs.size());
-
-  test_events(cs.at(0), exp_time(0, 53, 60), exp_time(0, 55, 60));
-  // +1 -> +2
-  test_events(cs.at(20), exp_time(0, 158, 60), exp_time(0, 300, 120));
-  test_events(cs.at(37), exp_time(0, 344, 120), exp_time(0, 347, 120));
-}
-
-TEST_F(loader_graph_builder_season_invalid, event_times) {
-  // Get route starting at Muenster(Westf)Hbf
-  auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000263";
-      });
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-
-  auto cs = get_connections(*node_it, 0);
-  ASSERT_EQ(10, cs.size());
-
-  test_events(cs.at(0), exp_time(0, 108, 60), exp_time(0, 111, 60));
-  // +1 -> +2
-  test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120 - 60));
-}
-
-TEST_F(loader_graph_builder_never_meet, routes) {
-  ASSERT_EQ(3, sched_.get()->route_index_to_first_route_node.size());
-
-  auto node_it = begin(sched_->route_index_to_first_route_node);
-  auto connections = get_connections(*node_it, 0);
-
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-  EXPECT_EQ(2, connections.size());
-  EXPECT_EQ(1, get<0>(connections[0])->_full_con->con_info->train_nr);
-
-  connections = get_connections(*node_it, get<0>(connections[0])->d_time + 1);
-  EXPECT_EQ(2, connections.size());
-  EXPECT_EQ(4, get<0>(connections[0])->_full_con->con_info->train_nr);
-
-  node_it = next(node_it, 1);
-  connections = get_connections(*node_it, 0);
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-  EXPECT_EQ(2, connections.size());
-  EXPECT_EQ(2, get<0>(connections[0])->_full_con->con_info->train_nr);
-
-  node_it = next(node_it, 1);
-  connections = get_connections(*node_it, 0);
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
-  EXPECT_EQ(3, get<0>(connections[0])->_full_con->con_info->train_nr);
-}
-
-TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
-  ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
-
-  auto train_num_zero_count = 0;
-  auto train_num_one_count = 0;
-  auto duplicate_count = 0;
-
-  for (auto const train_num :
-       {get_train_num("0000002"), get_train_num("0000003"),
-        get_train_num("0000004"), get_train_num("0000006"),
-        get_train_num("0000005")}) {
-    if (UINT_MAX - 3 < train_num) {
-      ++duplicate_count;
-    } else if (train_num == 0) {
-      ++train_num_zero_count;
-    } else if (train_num == 1) {
-      ++train_num_one_count;
-    }
-  }
-  EXPECT_EQ(1, train_num_zero_count);
-  EXPECT_EQ(1, train_num_one_count);
-  EXPECT_EQ(3, duplicate_count);
-}
-
-TEST_F(loader_merge_split_graph_builder_test, merge_split) {}
 
 }  // loader
 }  // motis

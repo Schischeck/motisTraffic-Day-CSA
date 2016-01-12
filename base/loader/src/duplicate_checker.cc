@@ -56,12 +56,6 @@ void duplicate_checker::handle_duplicates(
       }
     }
   }
-
-  for (unsigned i = 1; i < candidates.size(); ++i) {
-    if (is_duplicate_event(candidates.at(i - 1), candidates.at(i))) {
-      set_new_service_num(candidates.at(i - 1).second);
-    }
-  }
 }
 
 bool duplicate_checker::is_duplicate_event(

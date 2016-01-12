@@ -44,13 +44,20 @@ SVG.MotisDetailView = SVG.invent({
         this.add(stopNameObj);
       }.bind(this);
 
-      const addTimeLabel = function(pos, arrivalTime, departureTime) {
+      const addTimeLabel = function(pos, showArrival, arrivalTime, showDeparture, departureTime) {
         let text = '';
-        if (arrivalTime) {
-          text += ' ' + formatTime(arrivalTime);
+        if (showArrival && arrivalTime) {
+          text += formatTime(arrivalTime);
+        } else {
+          text += '&nbsp;';
         }
-        if (departureTime) {
-          text += ' ' + formatTime(departureTime);
+        if (showArrival && showDeparture) {
+          text += '<br/>';
+        }
+        if (showDeparture) {
+          text += formatTime(departureTime);
+        } else {
+          text += '&nbsp;';
         }
         addLabel(text, 115, len * pos, {
           'font-size': '75%',
@@ -69,7 +76,7 @@ SVG.MotisDetailView = SVG.invent({
         let text = '';
         if (showArrival) {
           if (arrivalTrack) {
-            text += ' Track ' + arrivalTrack;
+            text += 'Track ' + arrivalTrack;
           } else {
             text += '&nbsp;';
           }
@@ -79,7 +86,7 @@ SVG.MotisDetailView = SVG.invent({
         }
         if (showDeparture) {
           if (departureTrack) {
-            text += ' Track ' + departureTrack;
+            text += 'Track ' + departureTrack;
           } else {
             text += '&nbsp;';
           }
@@ -128,7 +135,7 @@ SVG.MotisDetailView = SVG.invent({
         rotateGroup.add(moveGroup);
 
         addStationLabel(el.from.stop.name, i);
-        addTimeLabel(i, i != 0 ? el.from.stop.arrival.time : null, el.from.stop.departure.time);
+        addTimeLabel(i, i != 0 && !lastIsIcon, el.from.stop.arrival.time, !isIcon, el.from.stop.departure.time);
         addTrackLabel(i, i != 0 && !lastIsIcon, el.from.stop.arrival.platform, !isIcon, el.from.stop.departure.platform);
         const isExpandable = el.transport.move.range.from + 1 !== el.transport.move.range.to;
         addDirectionLabel(el.transport.move.name, el.transport.move.direction, i, isExpandable);
@@ -138,7 +145,7 @@ SVG.MotisDetailView = SVG.invent({
 
       const finalStopEl = elements[elements.length - 1];
       addStationLabel(finalStopEl.to.stop.name, elements.length);
-      addTimeLabel(elements.length, finalStopEl.to.stop.arrival.time);
+      addTimeLabel(elements.length, true, finalStopEl.to.stop.arrival.time);
       addTrackLabel(elements.length, true, finalStopEl.to.stop.arrival.platform, false, finalStopEl.to.stop.departure.platform);
 
       this.add(rotateGroup);
