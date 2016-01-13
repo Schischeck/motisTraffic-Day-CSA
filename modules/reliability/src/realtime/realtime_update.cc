@@ -120,9 +120,7 @@ route_node_and_lc_info get_node_and_light_connection(
 }
 
 namespace detail {
-/* update the distribution of the node and deliver dependent successors */
-std::vector<distributions_container::container::node*> const&
-process_is_message(
+distributions_container::container::node* find_distribution_node(
     motis::realtime::DelayInfo const* delay_info, schedule const& sched,
     distributions_container::container& precomputed_distributions) {
   // TODO: category and line-identification can be read from the RIS-message
@@ -134,14 +132,7 @@ process_is_message(
       delay_info->departure() == 1 ? time_util::departure : time_util::arrival,
       delay_info->scheduled_time());
 
-  auto& dist_node = precomputed_distributions.get_node_non_const(key);
-  int delay = (int)graph_util::get_event_time(delay_info) -
-              (int)delay_info->scheduled_time();
-  if (delay_info->departure() == 1 && delay < 0) {
-    delay = 0;
-  }
-  dist_node.pd_.init_one_point(delay, 1.0);
-  return dist_node.successors_;
+  return &precomputed_distributions.get_node_non_const(key);
 }
 
 bool is_significant_update(probability_distribution const& before,
@@ -252,12 +243,8 @@ void update_precomputed_distributions(
        ++it) {
     if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
       try {
-        auto const& successors =
-            detail::process_is_message(*it, sched, precomputed_distributions);
-        std::for_each(successors.begin(), successors.end(),
-                      [&](distributions_container::container::node* n) {
-                        queue.emplace(n);
-                      });
+        queue.emplace(detail::find_distribution_node(
+            *it, sched, precomputed_distributions));
       } catch (std::exception& e) {
         /*LOG(logging::error) << e.what() << " tr: " << it->train_nr()
                             << " st: " << it->station_index();*/

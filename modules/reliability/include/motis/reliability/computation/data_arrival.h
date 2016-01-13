@@ -36,7 +36,7 @@ struct data_arrival {
     time const scheduled_departure_time_;
   } departure_info_;
 
-  time const scheduled_arrival_time_;
+  time scheduled_arrival_time_;
 
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       travel_distributions_;
@@ -45,7 +45,13 @@ struct data_arrival {
   int left_bound_;
   int right_bound_;
 
+  struct {
+    bool received_;
+    time current_time_;
+  } is_message_;
+
 private:
+  void init_arrival_time(node const&, light_connection const&, schedule const&);
   void init_travel_info(light_connection const& light_connection,
                         start_and_travel_distributions const&,
                         std::vector<std::unique_ptr<category>> const&);

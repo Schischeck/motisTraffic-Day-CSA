@@ -39,8 +39,9 @@ probability train_arrives_at_time(data_departure const& data,
 
   // largest delay such that an interchange from the feeder
   // into the departing train is still feasible.
-  int const train_delay = timestamp_to_delay(
-      arrival_info.scheduled_arrival_time_, timestamp - arrival_info.min_standing_);
+  int const train_delay =
+      timestamp_to_delay(arrival_info.scheduled_arrival_time_,
+                         timestamp - arrival_info.min_standing_);
 
   // get the probability that the train arrives with a delay of 'train_delay'
   return arrival_info.arrival_distribution_->probability_equal(train_delay);
@@ -59,8 +60,9 @@ probability train_arrives_before_time(data_departure const& data,
 
   // largest delay such that an interchange from the feeder
   // into the departing train is still feasible.
-  int const train_delay = timestamp_to_delay(
-      arrival_info.scheduled_arrival_time_, timestamp - arrival_info.min_standing_);
+  int const train_delay =
+      timestamp_to_delay(arrival_info.scheduled_arrival_time_,
+                         timestamp - arrival_info.min_standing_);
 
   // get the probability that the train arrives with a delay of 'train_delay'
   return arrival_info.arrival_distribution_->probability_smaller(train_delay);
@@ -200,6 +202,17 @@ probability departure_after_waiting_interval(data_departure const& data,
 void compute_departure_distribution(
     data_departure const& data,
     probability_distribution& departure_distribution) {
+  if (data.is_message_.received_) {
+    unsigned int const delay = std::max(
+        data.is_message_.current_time_ - data.scheduled_departure_time_, 0);
+    departure_distribution.init_one_point(
+        delay, data.is_first_route_node_
+                   ? data.train_info_.first_departure_distribution_->sum()
+                   : data.train_info_.preceding_arrival_info_
+                         .arrival_distribution_->sum());
+    return;
+  }
+
   duration const largest_delay = data.largest_delay();
   std::vector<probability> probabilties(largest_delay + 1);
 

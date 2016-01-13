@@ -37,10 +37,8 @@ data_departure_interchange::data_departure_interchange(
     distributions_container::container const& distribution_preceding_train,
     distributions_container::container::node const& departing_distribution_node,
     reliability::context const& context)
-    : data_departure(is_first_route_node,
-                     time_util::get_scheduled_event_time(
-                         departing_route_node, departing_light_conn,
-                         time_util::departure, context.schedule_)) {
+    : data_departure(departing_route_node, departing_light_conn,
+                     is_first_route_node, context.schedule_) {
   if (is_first_route_node) {
     init_first_departure_info(departing_light_conn, context.s_t_distributions_,
                               context.schedule_.categories);

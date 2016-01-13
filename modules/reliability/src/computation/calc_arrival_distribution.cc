@@ -12,6 +12,12 @@ namespace calc_arrival_distribution {
 
 void compute_arrival_distribution(
     data_arrival const& data, probability_distribution& arrival_distribution) {
+  if (data.is_message_.received_) {
+    arrival_distribution.init_one_point(
+        data.is_message_.current_time_ - data.scheduled_arrival_time_,
+        data.departure_info_.distribution_.sum());
+    return;
+  }
   // if there is no travel distribution for this class,
   // copy this arrival distribution
   if (data.travel_distributions_.size() == 0) {

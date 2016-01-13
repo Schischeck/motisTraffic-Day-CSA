@@ -98,6 +98,14 @@ probability departure_after_waiting_interval(
 void compute_departure_distribution(
     data_departure_interchange const& data,
     probability_distribution& departure_distribution) {
+  if (data.is_message_.received_) {
+    unsigned int const delay = std::max(
+        data.is_message_.current_time_ - data.scheduled_departure_time_, 0);
+    departure_distribution.init_one_point(
+        delay, data.interchange_feeder_info_.arrival_distribution_->sum());
+    return;
+  }
+
   duration const largest_delay = data.largest_delay();
   std::vector<probability> probabilties(largest_delay + 1);
 

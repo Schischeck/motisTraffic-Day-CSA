@@ -22,10 +22,27 @@ data_arrival::data_arrival(
     : departure_info_(
           departure_distribution,
           time_util::get_scheduled_event_time(departure_node, light_connection,
-                                              time_util::departure, schedule)),
-      scheduled_arrival_time_(time_util::get_scheduled_event_time(
-          arrival_node, light_connection, time_util::arrival, schedule)) {
+                                              time_util::departure, schedule)) {
+  init_arrival_time(arrival_node, light_connection, schedule);
   init_travel_info(light_connection, s_t_distributions, schedule.categories);
+}
+
+void data_arrival::init_arrival_time(node const& route_node,
+                                     light_connection const& light_conn,
+                                     schedule const& sched) {
+  is_message_.received_ = false;
+  scheduled_arrival_time_ = light_conn.a_time;
+
+  auto it = sched.graph_to_delay_info.find(graph_event(
+      route_node.get_station()->_id, light_conn._full_con->con_info->train_nr,
+      false, light_conn.a_time, route_node._route));
+  if (it != sched.graph_to_delay_info.end()) {
+    scheduled_arrival_time_ = it->second->_schedule_event._schedule_time;
+    if (it->second->_reason == timestamp_reason::IS) {
+      is_message_.received_ = true;
+      is_message_.current_time_ = it->second->_current_time;
+    }
+  }
 }
 
 void data_arrival::init_travel_info(

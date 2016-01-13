@@ -22,8 +22,7 @@ data_departure::data_departure(
     distributions_container::container::node const& distributions_node,
     reliability::context const& context)
     : is_first_route_node_(is_first_route_node), maximum_waiting_time_(0) {
-  scheduled_departure_time_ = time_util::get_scheduled_event_time(
-      route_node, light_connection, time_util::departure, context.schedule_);
+  init_departure_time(route_node, light_connection, context.schedule_);
   if (is_first_route_node) {
     init_first_departure_info(light_connection, context.s_t_distributions_,
                               context.schedule_.categories);
@@ -36,11 +35,31 @@ data_departure::data_departure(
                    distributions_node.predecessors_, context.schedule_);
 }
 
-data_departure::data_departure(bool const is_first_route_node,
-                               time const scheduled_dep_time)
-    : is_first_route_node_(is_first_route_node),
-      scheduled_departure_time_(scheduled_dep_time),
-      maximum_waiting_time_(0) {}
+data_departure::data_departure(node const& route_node,
+                               light_connection const& light_connection,
+                               bool const is_first_route_node,
+                               schedule const& sched)
+    : is_first_route_node_(is_first_route_node), maximum_waiting_time_(0) {
+  init_departure_time(route_node, light_connection, sched);
+}
+
+void data_departure::init_departure_time(node const& route_node,
+                                         light_connection const& light_conn,
+                                         schedule const& sched) {
+  is_message_.received_ = false;
+  scheduled_departure_time_ = light_conn.d_time;
+
+  auto it = sched.graph_to_delay_info.find(graph_event(
+      route_node.get_station()->_id, light_conn._full_con->con_info->train_nr,
+      true, light_conn.d_time, route_node._route));
+  if (it != sched.graph_to_delay_info.end()) {
+    scheduled_departure_time_ = it->second->_schedule_event._schedule_time;
+    if (it->second->_reason == timestamp_reason::IS) {
+      is_message_.received_ = true;
+      is_message_.current_time_ = it->second->_current_time;
+    }
+  }
+}
 
 void data_departure::init_first_departure_info(
     light_connection const& light_conn,

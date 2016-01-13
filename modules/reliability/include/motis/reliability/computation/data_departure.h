@@ -33,7 +33,8 @@ struct data_departure {
       reliability::context const&);
 
   /* constructor necessary for the derived struct data_departure_connection */
-  data_departure(bool const is_first_route_node, time const scheduled_dep_time);
+  data_departure(node const& route_node, light_connection const&,
+                 bool const is_first_route_node, schedule const&);
 
   duration largest_delay() const;
 
@@ -85,6 +86,11 @@ struct data_departure {
   /** maximal waiting time of the departing train of any feeder */
   duration maximum_waiting_time_;
 
+  struct {
+    bool received_;
+    time current_time_;
+  } is_message_;
+
 protected:
   void init_first_departure_info(light_connection const& departing_light_conn,
                                  start_and_travel_distributions const&,
@@ -98,6 +104,10 @@ protected:
       node const& route_node, light_connection const& departing_light_conn,
       std::vector<distributions_container::container::node*> const& feeders,
       schedule const&);
+
+private:
+  void init_departure_time(node const& route_node, light_connection const&,
+                           schedule const&);
 };
 
 }  // namespace calc_departure_distribution
