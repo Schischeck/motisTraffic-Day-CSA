@@ -55,8 +55,6 @@ route_node_and_lc_info get_node_and_light_connection(
       }
     }
   }
-
-  LOG(logging::error) << "Could not find route-node and light connection";
   throw lc_not_found_exception();
 }
 
@@ -135,8 +133,11 @@ process_is_message(
       delay_info->scheduled_time());
 
   auto& dist_node = precomputed_distributions.get_node_non_const(key);
-  int const delay = (int)graph_util::get_event_time(delay_info) -
-                    (int)delay_info->scheduled_time();
+  int delay = (int)graph_util::get_event_time(delay_info) -
+              (int)delay_info->scheduled_time();
+  if (delay_info->departure() == 1 && delay < 0) {
+    delay = 0;
+  }
   dist_node.pd_.init_one_point(delay, 1.0);
   return dist_node.successors_;
 }
@@ -173,6 +174,8 @@ using queue_type =
                         std::vector<distributions_container::container::node*>,
                         queue_element_cmp>;
 
+unsigned int not_significant = 0;
+unsigned int ignored_elements = 0;
 void process_element(queue_type& queue, context const& c) {
   auto* element = queue.top();
   queue.pop();
@@ -184,7 +187,8 @@ void process_element(queue_type& queue, context const& c) {
     std::tie(route_node, lc, lc_pos) =
         graph_util::get_node_and_light_connection(element->key_, c.schedule_);
   } catch (std::exception& e) {
-    LOG(logging::error) << e.what();
+    // LOG(logging::error) << e.what() << " key: " << element->key_;
+    ++ignored_elements;
     return;
   }
 
@@ -210,6 +214,8 @@ void process_element(queue_type& queue, context const& c) {
     std::for_each(
         successors.begin(), successors.end(),
         [&](distributions_container::container::node* n) { queue.emplace(n); });
+  } else {
+    ++not_significant;
   }
 }
 }
@@ -219,6 +225,7 @@ void update_precomputed_distributions(
     schedule const& sched,
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::container& precomputed_distributions) {
+  logging::scoped_timer time("updating distributions");
   detail::queue_type queue;
   for (auto it = res->delay_infos()->begin(); it != res->delay_infos()->end();
        ++it) {
@@ -231,15 +238,27 @@ void update_precomputed_distributions(
                         queue.emplace(n);
                       });
       } catch (std::exception& e) {
-        LOG(logging::error) << e.what();
+        /*LOG(logging::error) << e.what() << " tr: " << it->train_nr()
+                            << " st: " << it->station_index();*/
       }
     }
   }
 
+  unsigned int num_processed = 0;
   context const c(sched, precomputed_distributions, s_t_distributions);
   while (!queue.empty()) {
-    detail::process_element(queue, c);
+    try {
+      detail::process_element(queue, c);
+    } catch (std::exception& e) {
+      LOG(logging::error) << e.what() << std::endl;
+    }
+    ++num_processed;
   }
+  LOG(logging::info) << "Distributions updated " << num_processed
+                     << " distributions (not significant updates: "
+                     << detail::not_significant
+                     << ", ignored elements: " << detail::ignored_elements
+                     << ")";
 }
 
 }  // namespace realtime

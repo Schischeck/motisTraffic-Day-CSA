@@ -262,11 +262,14 @@ void perform_precomputation(
                                                      schedule);
   }
 
+  unsigned int num_distributions = 0;
   while (!queue.empty()) {
     detail::process_element(queue.top(), schedule, s_t_distributions, queue,
                             distributions_container);
     queue.pop();
+    ++num_distributions;
   }
+  LOG(logging::info) << "precomputed distributions: " << num_distributions;
 }
 
 }  // namespace precomputation

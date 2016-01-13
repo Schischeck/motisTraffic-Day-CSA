@@ -174,7 +174,7 @@ inline bool parse_integer(std::string const& str, int& number) {
   try {
     number = boost::lexical_cast<int>(str);
     return true;
-  } catch (const boost::bad_lexical_cast&) {
+  } catch (const std::exception&) {
     return false;
   }
 }
