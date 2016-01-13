@@ -40,7 +40,7 @@ public:
   void start() {
     auto self = shared_from_this();
     ios_.post([this, self]() {
-      for (int i = 0; i < 64; ++i) inject_msg(self);
+      for (int i = 0; i < 10; ++i) inject_msg(self);
     });
   }
 
