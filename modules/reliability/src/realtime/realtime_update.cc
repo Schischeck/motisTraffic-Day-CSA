@@ -1,5 +1,7 @@
 #include "motis/reliability/realtime/realtime_update.h"
 
+#include <set>
+
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 
@@ -174,11 +176,27 @@ using queue_type =
                         std::vector<distributions_container::container::node*>,
                         queue_element_cmp>;
 
+unsigned int significant = 0;
 unsigned int not_significant = 0;
-unsigned int ignored_elements = 0;
-void process_element(queue_type& queue, context const& c) {
+unsigned int already_updated = 0;
+unsigned int errors = 0;
+void process_element(
+    queue_type& queue,
+    std::set<distributions_container::container::node*>& currently_processed,
+    context const& c) {
   auto* element = queue.top();
   queue.pop();
+
+  // set containing all processed elements of the currently processed minute
+  if (!currently_processed.empty() &&
+      (*currently_processed.begin())->key_.scheduled_event_time_ <
+          element->key_.scheduled_event_time_) {
+    currently_processed.clear();
+  } else if (!currently_processed.insert(element).second) {
+    ++already_updated;
+    return;
+  }
+
   node const* route_node;
   light_connection const* lc;
   unsigned int lc_pos;
@@ -188,7 +206,7 @@ void process_element(queue_type& queue, context const& c) {
         graph_util::get_node_and_light_connection(element->key_, c.schedule_);
   } catch (std::exception& e) {
     // LOG(logging::error) << e.what() << " key: " << element->key_;
-    ++ignored_elements;
+    ++errors;
     return;
   }
 
@@ -214,6 +232,7 @@ void process_element(queue_type& queue, context const& c) {
     std::for_each(
         successors.begin(), successors.end(),
         [&](distributions_container::container::node* n) { queue.emplace(n); });
+    ++significant;
   } else {
     ++not_significant;
   }
@@ -227,6 +246,8 @@ void update_precomputed_distributions(
     distributions_container::container& precomputed_distributions) {
   logging::scoped_timer time("updating distributions");
   detail::queue_type queue;
+  std::set<distributions_container::container::node*> currently_processed;
+
   for (auto it = res->delay_infos()->begin(); it != res->delay_infos()->end();
        ++it) {
     if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
@@ -248,17 +269,25 @@ void update_precomputed_distributions(
   context const c(sched, precomputed_distributions, s_t_distributions);
   while (!queue.empty()) {
     try {
-      detail::process_element(queue, c);
+      detail::process_element(queue, currently_processed, c);
     } catch (std::exception& e) {
       LOG(logging::error) << e.what() << std::endl;
     }
     ++num_processed;
   }
-  LOG(logging::info) << "Distributions updated " << num_processed
-                     << " distributions (not significant updates: "
-                     << detail::not_significant
-                     << ", ignored elements: " << detail::ignored_elements
-                     << ")";
+
+  auto to_percent = [num_processed](unsigned int c) -> float {
+    return ((c * 100.0) / (double)num_processed);
+  };
+  LOG(logging::info) << "Queue contained " << num_processed << " elements ("
+                     << std::fixed << std::setprecision(1)
+                     << to_percent(detail::significant)
+                     << "% significant updates, "
+                     << to_percent(detail::not_significant)
+                     << "% not significant updates, "
+                     << to_percent(detail::already_updated)
+                     << "% already updated, " << to_percent(detail::errors)
+                     << "% errors)";
 }
 
 }  // namespace realtime
