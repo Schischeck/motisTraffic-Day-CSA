@@ -45,6 +45,7 @@ protected:
     std::vector<std::string> modules = {"reliability", "routing"};
     if (realtime_) {
       modules.push_back("realtime");
+      modules.push_back("connectionchecker");
     }
     motis_instance_ =
         test::launch_motis(schedule_path_, schedule_begin_, modules);

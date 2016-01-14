@@ -35,7 +35,7 @@ struct probability_distribution {
   /* insert all probabilities in to the vector 'probabilities' */
   template <typename Prob_Type>
   void get_probabilities(std::vector<Prob_Type>& probabilities) const {
-    for (int i = first_minute_; i <= last_minute(); i++)
+    for (int i = first_minute_; i <= last_minute(); ++i)
       probabilities.push_back((Prob_Type)probability_equal(i));
   }
 

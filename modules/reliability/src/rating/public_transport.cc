@@ -121,6 +121,11 @@ void rate(std::vector<rating_element>& ratings,
           reliability::context const& context) {
   assert(elements.size() > 0);
 
+  /* XXX if the first element is already processed
+   * (this is the case when rating connection graph
+   * alternative after an interchange) and the train
+   * of this first element has not a precomputation-class,
+   * this call unnecessarily computes its distributions. */
   distributions_container::container ride_distributions;
   auto const& precomputed_flags = distributions_calculator::ride_distribution::
       compute_missing_train_distributions(ride_distributions, elements,

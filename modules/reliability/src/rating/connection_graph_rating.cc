@@ -22,24 +22,55 @@ namespace detail {
 interchange_info::interchange_info(connection_element const& arriving_element,
                                    connection_element const& departing_element,
                                    schedule const& sched) {
-  scheduled_arrival_time_ = time_util::get_scheduled_event_time(
-      *arriving_element.to_, *arriving_element.light_connection_,
-      time_util::arrival, sched);
-  scheduled_departure_time_ = time_util::get_scheduled_event_time(
-      *departing_element.from_, *departing_element.light_connection_,
-      time_util::departure, sched);
+  arrival_time_ = arriving_element.light_connection_->a_time;
+  departure_time_ = departing_element.light_connection_->d_time;
+  scheduled_arrival_time_ = arrival_time_;
+  scheduled_departure_time_ = departure_time_;
+  {
+    auto const it = sched.graph_to_delay_info.find(graph_event(
+        arriving_element.to_->get_station()->_id,
+        arriving_element.light_connection_->_full_con->con_info->train_nr,
+        false, arriving_element.light_connection_->a_time,
+        arriving_element.to_->_route));
+    if (it != sched.graph_to_delay_info.end()) {
+      arrival_is_ = it->second->_reason == timestamp_reason::IS;
+      scheduled_arrival_time_ = it->second->_schedule_event._schedule_time;
+    }
+  }
+  {
+    auto const it = sched.graph_to_delay_info.find(graph_event(
+        departing_element.from_->get_station()->_id,
+        departing_element.light_connection_->_full_con->con_info->train_nr,
+        true, departing_element.light_connection_->d_time,
+        departing_element.from_->_route));
+    if (it != sched.graph_to_delay_info.end()) {
+      departure_is_ = it->second->_reason == timestamp_reason::IS;
+      scheduled_departure_time_ = it->second->_schedule_event._schedule_time;
+    }
+  }
+
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);
-  waiting_time_ = graph_accessor::get_waiting_time(
+
+  int const max_waiting = (int)graph_accessor::get_waiting_time(
       sched.waiting_time_rules_, *arriving_element.light_connection_,
       *departing_element.light_connection_);
+  int const departure_delay = departure_time_ - scheduled_departure_time_;
+
+  if (!departure_is_ && departure_delay < (int)max_waiting) {
+    waiting_time_ = max_waiting - departure_delay;
+  } else {
+    waiting_time_ = 0;
+  }
 }
 
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
     interchange_info const& ic_info) {
   int const latest_arrival_delay =
-      ((ic_info.scheduled_departure_time_ + ic_info.waiting_time_) -
+      ((ic_info.departure_is_
+            ? ic_info.departure_time_
+            : ic_info.scheduled_departure_time_ + ic_info.waiting_time_) -
        ic_info.transfer_time_) -
       ic_info.scheduled_arrival_time_;
   std::vector<probability> values;
@@ -79,7 +110,9 @@ probability_distribution compute_uncovered_arrival_distribution(
        d <= arr_distribution.last_minute(); ++d) {
     /* interchange was possible */
     if (ic_info.scheduled_arrival_time_ + d + ic_info.transfer_time_ <=
-        ic_info.scheduled_departure_time_ + ic_info.waiting_time_) {
+        (ic_info.departure_is_
+             ? ic_info.departure_time_
+             : ic_info.scheduled_departure_time_ + ic_info.waiting_time_)) {
       values.push_back(0.0);
     }
     /* interchange was not possible */

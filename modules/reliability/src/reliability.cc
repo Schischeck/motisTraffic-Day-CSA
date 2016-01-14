@@ -193,8 +193,10 @@ void reliability::handle_routing_response(msg_ptr msg,
 void reliability::handle_connection_graph_result(
     std::vector<std::shared_ptr<search::connection_graph>> const cgs,
     callback cb) {
-  return cb(flatbuffers::response_builder::to_reliable_routing_response(cgs),
-            error::ok);
+  auto res = flatbuffers::response_builder::to_reliable_routing_response(cgs);
+  std::ofstream os("CG.json");
+  os << res->to_json() << std::endl;
+  return cb(res, error::ok);
 }
 
 void reliability::handle_late_connection_result(motis::module::msg_ptr msg,

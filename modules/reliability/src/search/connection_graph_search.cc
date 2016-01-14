@@ -3,10 +3,13 @@
 #include <limits>
 #include <memory>
 
+#include "motis/core/common/logging.h"
+
+#include "motis/core/journey/journey_util.h"
+#include "motis/core/journey/message_to_journeys.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
-
-#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
@@ -76,7 +79,7 @@ void build_cg(std::shared_ptr<context> c,
   } else {
     return build_result(context::conn_graph_context::CG_completed, c);
   }
-  std::cout << "\nbuild_cg: unexpected case" << std::endl;
+  LOG(logging::error) << "build_cg: unexpected case";
   /* unexpected case */
   return build_result(context::conn_graph_context::CG_failed, c);
 }
@@ -184,7 +187,7 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
     rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
                                           c->reliability_context_);
   } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+    LOG(logging::error) << e.what();
     return build_result(context::conn_graph_context::CG_failed, c);
   }
 
@@ -199,27 +202,28 @@ void handle_alternative_response(motis::module::msg_ptr msg,
                                  unsigned int const conn_graph_idx,
                                  unsigned int const stop_idx,
                                  context::journey_cache_key const cache_key) {
-  if (e) {
-    return build_result(context::conn_graph_context::CG_failed, c);
-  }
   auto& cg_context = c->connection_graphs_.at(conn_graph_idx);
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
   auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
-  auto journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
-  /* note: this method ignores journeys that are
-   * corrupt because the state machine in journey.cc
-   * can not handle walks at the beginning of journeys
-   * (such journeys are found in the on-trip search).
-   * This filtering is not necessary as soon as the state
-   * machine in journey.cc works correctly. */
-  auto filtered = tools::remove_invalid_journeys(journeys);
-  if (filtered.size() != journeys.size()) {
-    std::cout << "\nInvalid alternatives for cg " << conn_graph_idx
-              << " at stop " << stop_idx << std::endl;
+  std::vector<journey> filtered;
+  if (e) {
+    LOG(logging::error) << "Routing failed: " << e.message();
+  } else {
+    auto journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
+    /* note: this method ignores journeys that are
+     * corrupt because the state machine in journey.cc
+     * can not handle walks at the beginning of journeys
+     * (such journeys are found in the on-trip search).
+     * This filtering is not necessary as soon as the state
+     * machine in journey.cc works correctly. */
+    filtered = tools::remove_invalid_journeys(journeys);
+    if (filtered.size() != journeys.size()) {
+      LOG(logging::error) << "Invalid alternatives for cg " << conn_graph_idx
+                          << " at stop " << stop_idx;
+    }
   }
-
   if (filtered.empty()) {
     stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
     if (tools::complete(cg_context)) {

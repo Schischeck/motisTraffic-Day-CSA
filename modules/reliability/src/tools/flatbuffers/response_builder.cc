@@ -36,12 +36,12 @@ namespace rating_converter {
 
 Offset<reliability::ProbabilityDistribution> convert(
     FlatBufferBuilder& b, probability_distribution const& pd,
-    time_t event_time) {
+    time_t scheduled_event_time) {
   std::vector<float> probabilities;
   pd.get_probabilities(probabilities);
   auto fpd = CreateProbabilityDistribution(
-      b, event_time + (pd.first_minute() * 60), b.CreateVector(probabilities),
-      (float)pd.sum());
+      b, scheduled_event_time + (pd.first_minute() * 60),
+      b.CreateVector(probabilities), (float)pd.sum());
   return fpd;
 }
 
@@ -53,13 +53,14 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
   for (auto e : conn_rating.public_transport_ratings_) {
     Range r(e.departure_stop_idx_, e.arrival_stop_idx());
     rating_elements.push_back(CreateRatingElement(
-        b, &r,
-        convert(
-            b, e.departure_distribution_,
-            (*orig_conn->stops())[e.departure_stop_idx_]->departure()->time()),
-        convert(
-            b, e.arrival_distribution_,
-            (*orig_conn->stops())[e.arrival_stop_idx()]->arrival()->time())));
+        b, &r, convert(b, e.departure_distribution_,
+                       (*orig_conn->stops())[e.departure_stop_idx_]
+                           ->departure()
+                           ->schedule_time()),
+        convert(b, e.arrival_distribution_,
+                (*orig_conn->stops())[e.arrival_stop_idx()]
+                    ->arrival()
+                    ->schedule_time())));
   }
   return rating_elements;
 }
@@ -99,11 +100,11 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
           b, &r, convert(b, rating_from->departure_distribution_,
                          (*orig_conn->stops())[rating_from->departure_stop_idx_]
                              ->departure()
-                             ->time()),
+                             ->schedule_time()),
           convert(b, rating_to->arrival_distribution_,
                   (*orig_conn->stops())[rating_to->arrival_stop_idx()]
                       ->arrival()
-                      ->time())));
+                      ->schedule_time())));
     }
   }
   return rating_elements;
@@ -195,10 +196,10 @@ Offset<ConnectionGraph> to_connection_graph(
       auto const& journey = cg.journeys_.at(alternative_info.journey_index_);
       auto dep_dist = rating_converter::convert(
           b, alternative_info.rating_.departure_distribution_,
-          journey.stops.front().departure.timestamp);
+          journey.stops.front().departure.schedule_timestamp);
       auto arr_dist = rating_converter::convert(
           b, alternative_info.rating_.arrival_distribution_,
-          journey.stops.back().arrival.timestamp);
+          journey.stops.back().arrival.schedule_timestamp);
       auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
 
       alternative_infos.push_back(

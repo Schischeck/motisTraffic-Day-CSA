@@ -8,7 +8,7 @@ namespace rating {
 namespace cg {
 namespace detail {
 
-using distribution_info = std::pair<time_t, probability_distribution const&>;
+using distribution_info = std::pair<time_t, probability_distribution>;
 
 std::vector<distribution_info> distributions_arriving_alternatives(
     search::connection_graph const& cg) {
@@ -18,11 +18,16 @@ std::vector<distribution_info> distributions_arriving_alternatives(
     for (auto const& alternative : stop.alternative_infos_) {
       if (alternative.next_stop_index_ ==
           search::connection_graph::stop::Index_arrival_stop) {
+        std::vector<probability> values;
+        alternative.rating_.arrival_distribution_.get_probabilities(values);
+        probability_distribution pd;
+        pd.init(values, 0);
         distributions.emplace_back(
             cg.journeys_.at(alternative.journey_index_)
-                .stops.back()
-                .arrival.timestamp,
-            alternative.rating_.arrival_distribution_);
+                    .stops.back()
+                    .arrival.schedule_timestamp +
+                (alternative.rating_.arrival_distribution_.first_minute() * 60),
+            pd);
       }
     }
   }
@@ -30,15 +35,15 @@ std::vector<distribution_info> distributions_arriving_alternatives(
   return distributions;
 }
 
+/* note: distributions are moved such that they start with delay minute 0 */
 time_t earliest_arrival_time(
     std::vector<distribution_info> const& distributions) {
   auto const& min_element = *std::min_element(
       distributions.begin(), distributions.end(),
       [](distribution_info const& a, distribution_info const& b) {
-        return a.first + (a.second.first_minute() * 60) <
-               b.first + (b.second.first_minute() * 60);
+        return a.first < b.first;
       });
-  return min_element.first + (min_element.second.first_minute() * 60);
+  return min_element.first;
 }
 time_t latest_arrival_time(
     std::vector<distribution_info> const& distributions) {

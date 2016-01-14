@@ -138,6 +138,47 @@ TEST_F(reliability_connection_graph_rating, scheduled_transfer_filter) {
 }
 
 TEST_F(reliability_connection_graph_rating,
+       scheduled_transfer_filter_realtime) {
+  using namespace detail;
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1, 0.2}, -1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({0.0}, 1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({1.0}, 1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       true, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1, 0.2, 0.3}, -1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       true, 1, 0)));
+  }
+}
+
+TEST_F(reliability_connection_graph_rating,
        compute_uncovered_arrival_distribution) {
   using namespace detail;
   probability_distribution arr_dist;
@@ -168,6 +209,47 @@ TEST_F(reliability_connection_graph_rating,
                             arr_dist, interchange_info(10, 13, 3, 0)));
     ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
                             arr_dist, interchange_info(9, 12, 3, 0)));
+  }
+}
+
+TEST_F(reliability_connection_graph_rating,
+       compute_uncovered_arrival_distribution_realtime) {
+  using namespace detail;
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.3, 0.1}, 1);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({1.0}, 1);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({0.0}, 1);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       true, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1}, 2);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       true, 1, 0)));
   }
 }
 

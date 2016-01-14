@@ -11,7 +11,7 @@ inline module::msg_ptr get_delay_message(std::string const& station,
                                          time_t const delayed_time,
                                          ris::EventType event_type,
                                          ris::DelayType const delayType) {
-  using namespace flatbuffers;
+  using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
   // clang-format off
@@ -46,7 +46,7 @@ struct event {
   ris::EventType event_type;
 };
 inline module::msg_ptr get_cancel_message(std::vector<event> const& events) {
-  using namespace flatbuffers;
+  using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
   std::vector<Offset<Event>> o_events;
@@ -82,7 +82,7 @@ struct rerouted_event : event {
 inline module::msg_ptr get_reroute_message(
     std::vector<event> const& cancelled_events,
     std::vector<rerouted_event> const& new_events) {
-  using namespace flatbuffers;
+  using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
   std::vector<Offset<Event>> o_cancelled_events;

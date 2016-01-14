@@ -132,7 +132,11 @@ distributions_container::container::node* find_distribution_node(
       delay_info->departure() == 1 ? time_util::departure : time_util::arrival,
       delay_info->scheduled_time());
 
-  return &precomputed_distributions.get_node_non_const(key);
+  if (precomputed_distributions.contains_distribution(key)) {
+    return &precomputed_distributions.get_node_non_const(key);
+  } else {
+    return nullptr;
+  }
 }
 
 bool is_significant_update(probability_distribution const& before,
@@ -243,8 +247,10 @@ void update_precomputed_distributions(
        ++it) {
     if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
       try {
-        queue.emplace(detail::find_distribution_node(
-            *it, sched, precomputed_distributions));
+        if (auto n = detail::find_distribution_node(
+                *it, sched, precomputed_distributions)) {
+          queue.emplace(n);
+        }
       } catch (std::exception& e) {
         /*LOG(logging::error) << e.what() << " tr: " << it->train_nr()
                             << " st: " << it->station_index();*/
