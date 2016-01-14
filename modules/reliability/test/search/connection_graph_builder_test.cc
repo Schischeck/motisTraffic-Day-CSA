@@ -1201,6 +1201,64 @@ TEST(reliability_connection_graph_builder,
   }
 }
 
+journey create_journey_early_walk() {
+  journey j;
+
+  j.stops.resize(3);
+  {
+    auto& stop = j.stops[0];
+    stop.arrival.valid = false;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445212800;
+    stop.departure.schedule_timestamp = 1445212800;
+  }
+  {
+    auto& stop = j.stops[1];
+    stop.interchange = false;
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445213400;
+    stop.arrival.schedule_timestamp = 1445213400;
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445214000;
+  }
+  {
+    auto& stop = j.stops[2];
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445214600;
+    stop.departure.valid = false;
+  }
+
+  j.transports.resize(2);
+  {
+    auto& transport = j.transports[0];
+    transport.from = 0;
+    transport.to = 1;
+    transport.type = journey::transport::Walk;
+  }
+  {
+    auto& transport = j.transports[1];
+    transport.from = 1;
+    transport.to = 2;
+    transport.type = journey::transport::PublicTransport;
+  }
+
+  return j;
+}
+
+TEST(reliability_connection_graph_builder, move_early_walk) {
+  journey const j = detail::move_early_walk(create_journey_early_walk());
+
+  ASSERT_EQ(3, j.stops.size());
+  ASSERT_EQ(1445213400, j.stops[0].departure.timestamp);
+  ASSERT_EQ(1445213400, j.stops[0].departure.schedule_timestamp);
+  ASSERT_EQ(1445214000, j.stops[1].arrival.timestamp);
+  ASSERT_EQ(1445214000, j.stops[1].arrival.schedule_timestamp);
+  ASSERT_EQ(1445214000, j.stops[1].departure.timestamp);
+  ASSERT_EQ(1445214600, j.stops[2].arrival.timestamp);
+
+  ASSERT_EQ(2, j.transports.size());
+}
+
 }  // namespace connection_graph_search
 }  // namespace search
 }  // namespace reliability
