@@ -51,6 +51,7 @@ void dataset_settings::print(std::ostream& out) const {
   out << "  " << DATASET << ": " << dataset << "\n"
       << "  " << WRITE_SERIALIZED << ": " << write_serialized << "\n"
       << "  " << UNIQUE_CHECK << ": " << unique_check << "\n"
+      << "  " << APPLY_RULES << ": " << apply_rules << "\n"
       << "  " << SCHEDULE_BEGIN << ": " << schedule_begin << "\n"
       << "  " << NUM_DAYS << ": " << num_days;
 }
