@@ -18,24 +18,6 @@ public:
                                   to_unix_time(2015, 1, 10)) {}
 };
 
-class loader_graph_builder_duplicates_check : public loader_graph_builder_test {
-public:
-  loader_graph_builder_duplicates_check()
-      : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
-                                  to_unix_time(2015, 1, 10)) {}
-
-  uint32_t get_train_num(char const* first_stop_id) {
-    auto it = std::find_if(
-        begin(sched_->route_index_to_first_route_node),
-        end(sched_->route_index_to_first_route_node), [&](node const* n) {
-          return sched_->stations[n->get_station()->_id]->eva_nr ==
-                 first_stop_id;
-        });
-    return std::get<0>(get_connections(*it, 0).at(0))
-        ->_full_con->con_info->train_nr;
-  }
-};
-
 TEST_F(loader_graph_builder_never_meet, routes) {
   ASSERT_EQ(3, sched_.get()->route_index_to_first_route_node.size());
 
@@ -62,6 +44,24 @@ TEST_F(loader_graph_builder_never_meet, routes) {
   ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
   EXPECT_EQ(3, std::get<0>(connections[0])->_full_con->con_info->train_nr);
 }
+
+class loader_graph_builder_duplicates_check : public loader_graph_builder_test {
+public:
+  loader_graph_builder_duplicates_check()
+      : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
+                                  to_unix_time(2015, 1, 10)) {}
+
+  uint32_t get_train_num(char const* first_stop_id) {
+    auto it = std::find_if(
+        begin(sched_->route_index_to_first_route_node),
+        end(sched_->route_index_to_first_route_node), [&](node const* n) {
+          return sched_->stations[n->get_station()->_id]->eva_nr ==
+                 first_stop_id;
+        });
+    return std::get<0>(get_connections(*it, 0).at(0))
+        ->_full_con->con_info->train_nr;
+  }
+};
 
 TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
