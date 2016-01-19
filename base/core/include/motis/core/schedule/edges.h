@@ -163,6 +163,7 @@ public:
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
+      case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
     }
   }
