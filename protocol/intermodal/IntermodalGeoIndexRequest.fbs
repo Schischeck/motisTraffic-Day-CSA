@@ -15,7 +15,7 @@ table RequestCoordinates {
 //       {
 //         lat: 49.8774869,
 //         lng: 8.6546632,
-//         radius: 123.45  
+//         radius: 456.78
 //       },
 //       {
 //         lat: 49.835668,
