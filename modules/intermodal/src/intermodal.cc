@@ -6,6 +6,7 @@
 #include "boost/program_options.hpp"
 
 #include "motis/loader/util.h"
+#include "motis/intermodal/error.h"
 #include "motis/intermodal/station_geo_index.h"
 #include "motis/protocol/Message_generated.h"
 
@@ -25,23 +26,27 @@ struct intermodal::impl {
   explicit impl(std::vector<station_ptr> const& stations)
       : station_index_(stations) {}
 
-  std::vector<std::vector<coordinate>> reachable(coordinate const& start) {
-    auto car_stations = station_index_.stations(start.lat, start.lng, 15000);
-    auto bike_stations = station_index_.stations(start.lat, start.lng, 5000);
-    auto walk_stations = station_index_.stations(start.lat, start.lng, 700);
+  std::vector<std::vector<coordinate>> reachable(coordinate const& pos) const {
+    auto const station_to_coordinates = [](station const* s) {
+      return coordinate{s->width, s->length};
+    };
 
-    return {transform_to_vec(begin(car_stations), end(car_stations),
-                             [](station const* s) {
-                               return coordinate{s->width, s->length};
-                             }),
-            transform_to_vec(begin(bike_stations), end(bike_stations),
-                             [](station const* s) {
-                               return coordinate{s->width, s->length};
-                             }),
-            transform_to_vec(begin(walk_stations), end(walk_stations),
-                             [](station const* s) {
-                               return coordinate{s->width, s->length};
-                             })};
+    return {close_stations(pos.lat, pos.lng, 15000, station_to_coordinates),
+            close_stations(pos.lat, pos.lng, 5000, station_to_coordinates),
+            close_stations(pos.lat, pos.lng, 700, station_to_coordinates)};
+  }
+
+  template <typename T>
+  constexpr T identity(T&& v) {
+    return std::forward<T>(v);
+  }
+
+  template <typename F>
+  std::vector<typename std::result_of<F(station const*)>::type> close_stations(
+      double const lat, double const lng, double const radius,
+      F func = identity) const {
+    auto stations = station_index_.stations(lat, lng, radius);
+    return transform_to_vec(begin(stations), end(stations), func);
   }
 
   station_geo_index station_index_;
@@ -63,13 +68,28 @@ void intermodal::init() {
 }
 
 void intermodal::on_msg(msg_ptr msg, sid, callback cb) {
-  auto req = msg->content<IntermodalRequest const*>();
+  auto content_type = msg->msg_->content_type();
+
+  if (content_type == MsgContent_IntermodalRoutingRequest) {
+    auto req = msg->content<IntermodalRoutingRequest const*>();
+    return handle_routing_request(req, cb);
+
+  } else if (content_type == MsgContent_IntermodalGeoIndexRequest) {
+    auto req = msg->content<IntermodalGeoIndexRequest const*>();
+    return handle_geo_index_request(req, cb);
+  }
+
+  return cb({}, error::not_implemented);
+}
+
+void intermodal::handle_routing_request(IntermodalRoutingRequest const* req,
+                                        callback cb) {
   auto reachable = impl_->reachable(coordinate{req->lat(), req->lng()});
 
   MessageCreator fbb;
   fbb.CreateAndFinish(
-      MsgContent_IntermodalResponse,
-      CreateIntermodalResponse(
+      MsgContent_IntermodalRoutingResponse,
+      CreateIntermodalRoutingResponse(
           fbb, fbb.CreateVector(transform_to_vec(
                    begin(reachable), end(reachable),
                    [&](std::vector<coordinate> const& stations) {
@@ -85,6 +105,28 @@ void intermodal::on_msg(msg_ptr msg, sid, callback cb) {
                    })))
           .Union());
   return cb(make_msg(fbb), boost::system::error_code());
+}
+
+void intermodal::handle_geo_index_request(IntermodalGeoIndexRequest const* req,
+                                          callback cb) {
+  MessageCreator fbb;
+  auto const storeStation = [&fbb](station const* s) {
+    return CreateStation(fbb, fbb.CreateString(s->name),
+                         fbb.CreateString(s->eva_nr), s->width, s->length);
+  };
+
+  std::vector<Offset<StationList>> list;
+  for (auto const& c : *req->coordinates()) {
+    list.push_back(CreateStationList(
+        fbb, fbb.CreateVector(impl_->close_stations(
+                 c->lat(), c->lng(), c->radius(), storeStation))));
+  }
+
+  fbb.CreateAndFinish(
+      MsgContent_IntermodalGeoIndexResponse,
+      CreateIntermodalGeoIndexResponse(fbb, fbb.CreateVector(list)).Union());
+
+  return cb(make_msg(fbb), error::ok);
 }
 
 }  // namespace intermodal

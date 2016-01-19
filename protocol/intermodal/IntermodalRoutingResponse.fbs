@@ -9,6 +9,6 @@ table Mode {
   stations: [Coordinate];
 } 
 
-table IntermodalResponse {
+table IntermodalRoutingResponse {
   stations : [Mode];
 }
