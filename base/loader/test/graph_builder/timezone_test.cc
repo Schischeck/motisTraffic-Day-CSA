@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include "motis/core/common/date_util.h"
+
 #include "motis/loader/util.h"
 
 namespace motis {
