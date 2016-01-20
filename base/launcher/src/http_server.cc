@@ -53,7 +53,7 @@ struct http_server::impl {
               std::string::npos) {
         return receiver_.on_msg(
             make_msg(req.content), 0,
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2), false);
       } else {
         MessageCreator fbb;
         fbb.CreateAndFinish(
@@ -71,7 +71,7 @@ struct http_server::impl {
                 .Union());
         return receiver_.on_msg(
             make_msg(fbb), 0,
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2), false);
       }
     } catch (boost::system::system_error const& e) {
       reply rep = reply::stock_reply(reply::internal_server_error);

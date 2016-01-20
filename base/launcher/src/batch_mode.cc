@@ -60,7 +60,8 @@ private:
     if (next) {
       receiver_.on_msg(next, 0, std::bind(&query_injector::on_response, this,
                                           shared_from_this(), ++next_query_id_,
-                                          p::_1, p::_2));
+                                          p::_1, p::_2),
+                       false);
     }
   }
 
