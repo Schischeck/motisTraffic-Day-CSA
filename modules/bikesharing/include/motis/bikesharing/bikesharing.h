@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "motis/module/module.h"
@@ -8,6 +9,7 @@ namespace motis {
 namespace bikesharing {
 
 struct bikesharing : public motis::module::module {
+  bikesharing();
   virtual ~bikesharing() {}
 
   virtual boost::program_options::options_description desc() override;
@@ -22,6 +24,7 @@ struct bikesharing : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
+  std::string nextbike_path_;
 };
 
 }  // namespace bikesharing
