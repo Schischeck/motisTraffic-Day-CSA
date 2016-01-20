@@ -1,21 +1,19 @@
 #pragma once
 
+#include <ctime>
+#include <string>
 #include <vector>
 
 #include "parser/buffer.h"
 
+#include "motis/bikesharing/terminal.h"
+
 namespace motis {
 namespace bikesharing {
 
-struct parsed_bikesharing_terminal {
-  int uid;
-  double lat, lng;
-  std::string name;
-  int available_bikes;
-};
+std::time_t nextbike_filename_to_timestamp(std::string const& filename);
 
-std::vector<parsed_bikesharing_terminal> parse_nextbike_xml(
-    parser::buffer&& buffer);
+std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer);
 
 }  // namespace bikesharing
 }  // namespace motis
