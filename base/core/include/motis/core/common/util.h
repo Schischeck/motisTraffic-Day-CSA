@@ -18,5 +18,5 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 #else
 using std::make_unique;
 #endif
-  
+
 } // namespace motis

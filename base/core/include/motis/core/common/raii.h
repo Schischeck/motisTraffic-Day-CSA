@@ -27,6 +27,17 @@ struct raii {
   bool omit_destruct_;
 };
 
+template <typename T>
+struct resetter {
+  resetter(T& value, T new_value) : value_(value) {
+    old_value_ = std::forward<T>(value_);
+    value_ = std::forward<T>(new_value);
+  }
+  ~resetter() { value_ = std::forward<T>(old_value_); }
+  T& value_;
+  T old_value_;
+};
+
 template <typename T, typename DestructFun>
 raii<T, DestructFun> make_raii(T&& el, DestructFun&& destruct) {
   return {std::forward<T>(el), std::forward<DestructFun>(destruct)};

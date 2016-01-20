@@ -69,8 +69,8 @@ void reliability::print(std::ostream& out) const {
 }
 
 void reliability::init() {
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
+  auto lock = synced_sched();
+  schedule& sched = lock.sched();
   precomputed_distributions_ =
       std::unique_ptr<distributions_container::container>(
           new distributions_container::container);
@@ -85,9 +85,8 @@ void reliability::init() {
                                                 -1));
     LOG(info) << "Using generated start and travel distributions";
   }
-
   distributions_calculator::precomputation::perform_precomputation(
-      schedule, *s_t_distributions_, *precomputed_distributions_);
+      sched, *s_t_distributions_, *precomputed_distributions_);
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
@@ -150,9 +149,9 @@ void reliability::handle_realtime_update(
   LOG(info) << "reliability received " << res->delay_infos()->size()
             << " delay infos";
 
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
-  realtime::update_precomputed_distributions(res, schedule, *s_t_distributions_,
+  auto lock = synced_sched();
+  schedule& sched = lock.sched();
+  realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
                                              *precomputed_distributions_);
   return cb({}, error::ok);
 }
@@ -163,8 +162,8 @@ void reliability::handle_routing_response(msg_ptr msg,
   if (e) {
     return cb(nullptr, e);
   }
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
+  auto lock = synced_sched();
+  schedule& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
   std::vector<rating::connection_rating> ratings(res->connections()->size());
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
@@ -204,11 +203,11 @@ void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
                                                 motis::module::callback cb) {
   auto res = msg->content<routing::RoutingResponse const*>();
   auto const journeys = message_to_journeys(res);
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
+  auto lock = synced_sched();
+  schedule& sched = lock.sched();
   std::cout << "\n\n\nJourneys found:\n\n";
   for (auto const& j : journeys) {
-    print_journey(j, schedule.schedule_begin_, std::cout);
+    print_journey(j, sched.schedule_begin_, std::cout);
     std::cout << std::endl;
   }
   return cb(msg, error::ok);

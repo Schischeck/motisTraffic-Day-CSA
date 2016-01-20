@@ -3,9 +3,7 @@
 #include <map>
 #include <memory>
 
-#include "motis/core/schedule/synced_schedule.h"
-
-#include "motis/module/sid.h"
+#include "motis/module/module.h"
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/probability_distribution.h"
@@ -67,7 +65,7 @@ struct context {
   };
   std::map<journey_cache_key, journey> journey_cache;
 
-  synced_schedule<RO> synced_sched_;
+  module::locked_schedule synced_sched_;
   motis::reliability::context reliability_context_;
 };
 

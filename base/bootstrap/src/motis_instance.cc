@@ -7,16 +7,17 @@
 
 #include "modules.h"
 
-using namespace std::placeholders;
 using namespace motis::module;
 using namespace motis::logging;
+namespace p = std::placeholders;
 
 namespace motis {
 namespace bootstrap {
 
 motis_instance::motis_instance(boost::asio::io_service* ios)
     : dispatcher(ios ? *ios : thread_pool_),
-      dispatch_fun_(std::bind(&dispatcher::on_msg, this, _1, _2, _3)),
+      dispatch_fun_(
+          std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3, p::_4)),
       modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {

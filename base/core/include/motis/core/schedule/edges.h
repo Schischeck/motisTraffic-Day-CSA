@@ -193,6 +193,7 @@ public:
       case MUMO_EDGE: return "MUMO_EDGE";
       case TIME_DEPENDENT_MUMO_EDGE: return "TIME_DEPENDENT_MUMO_EDGE";
       case HOTEL_EDGE: return "HOTEL_EDGE";
+      case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
     }
   }
