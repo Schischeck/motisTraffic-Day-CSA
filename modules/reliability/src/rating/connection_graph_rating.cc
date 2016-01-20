@@ -26,6 +26,8 @@ interchange_info::interchange_info(connection_element const& arriving_element,
   departure_time_ = departing_element.light_connection_->d_time;
   scheduled_arrival_time_ = arrival_time_;
   scheduled_departure_time_ = departure_time_;
+  arrival_is_ = false;
+  departure_is_ = false;
   {
     auto const it = sched.graph_to_delay_info.find(graph_event(
         arriving_element.to_->get_station()->_id,
@@ -57,11 +59,9 @@ interchange_info::interchange_info(connection_element const& arriving_element,
       *departing_element.light_connection_);
   int const departure_delay = departure_time_ - scheduled_departure_time_;
 
-  if (!departure_is_ && departure_delay < (int)max_waiting) {
-    waiting_time_ = max_waiting - departure_delay;
-  } else {
-    waiting_time_ = 0;
-  }
+  waiting_time_ = (!departure_is_ && departure_delay < (int)max_waiting)
+                      ? max_waiting - departure_delay
+                      : 0;
 }
 
 probability_distribution scheduled_transfer_filter(
