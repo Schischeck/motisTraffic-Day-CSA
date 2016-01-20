@@ -39,12 +39,12 @@ po::options_description reliability::desc() {
 void reliability::print(std::ostream&) const {}
 
 void reliability::init() {
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
+  auto lock = synced_sched();
+  schedule& sched = lock.sched();
   precomputed_distributions_ = std::unique_ptr<
       distributions_container::precomputed_distributions_container>(
       new distributions_container::precomputed_distributions_container(
-          schedule.node_count));
+          sched.node_count));
 #ifdef USE_DB_DISTRIBUTINS
   s_t_distributions_ = std::unique_ptr<
       start_and_travel_distributions>(new db_distributions(
@@ -57,7 +57,7 @@ void reliability::init() {
       new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1}, -1));
 #endif
   distributions_calculator::precomputation::perform_precomputation(
-      schedule, *s_t_distributions_, *precomputed_distributions_);
+      sched, *s_t_distributions_, *precomputed_distributions_);
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
@@ -72,8 +72,8 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
   return cb({}, error::not_implemented);
 }
 
-void reliability::handle_routing_request(ReliableRoutingRequest const* req, sid session_id,
-                                         callback cb) {
+void reliability::handle_routing_request(ReliableRoutingRequest const* req,
+                                         sid session_id, callback cb) {
   if (req->request_type()->request_options_type() == RequestOptions_RatingReq) {
     return dispatch(flatbuffers_tools::to_flatbuffers_message(req->request()),
                     session_id, std::bind(&reliability::handle_routing_response,
@@ -117,8 +117,8 @@ void reliability::handle_routing_response(msg_ptr msg,
   if (e) {
     return cb(nullptr, e);
   }
-  auto const lock = synced_sched();
-  schedule const& schedule = lock.sched();
+  auto lock = synced_sched();
+  schedule& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
   std::vector<rating::connection_rating> ratings(res->connections()->size());
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
