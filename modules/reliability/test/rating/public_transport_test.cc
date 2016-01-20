@@ -132,12 +132,8 @@ std::vector<rating::rating_element> compute_test_ratings1(
 TEST_F(reliability_public_transport2, rate) {
   auto req_msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 27),
-      (motis::time)(
-          11 * 60 +
-          27), /* regard interchange time at the beginning of the journey*/
-      std::make_tuple(28, 9, 2015),
-      false);
+      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
+      std::make_tuple(28, 9, 2015), false);
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =

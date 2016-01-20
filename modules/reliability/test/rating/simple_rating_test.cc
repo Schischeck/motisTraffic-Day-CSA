@@ -52,10 +52,7 @@ public:
 TEST_F(reliability_simple_rating2, simple_rate) {
   auto req_msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 27),
-      (motis::time)(
-          11 * 60 +
-          27) /* regard interchange time at the beginning of the journey */,
+      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
       std::make_tuple(28, 9, 2015), false);
   auto msg = test::send(motis_instance_, req_msg);
 

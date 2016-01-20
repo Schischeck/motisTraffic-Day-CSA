@@ -123,8 +123,8 @@ std::vector<journey> search::get_connections(
       generate_start_labels(
           interval_start, interval_end, station, start_labels,
           dummy_source_station,
-          s.time_cost + _sched.stations[s.station]->transfer_time, s.price,
-          s.slot, lower_bounds, is_late_connection_search);
+          s.time_cost /* XXX + _sched.stations[s.station]->transfer_time*/,
+          s.price, s.slot, lower_bounds, is_late_connection_search);
     }
   }
 

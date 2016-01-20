@@ -129,7 +129,7 @@ void test_element(connection_element const& expected,
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
   auto req_msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
+      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
       std::make_tuple(28, 9, 2015), false);
   auto msg = test::send(motis_instance_, req_msg);
   ASSERT_TRUE(msg);
