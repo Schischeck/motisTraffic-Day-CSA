@@ -93,10 +93,12 @@ parse_label_chain(label const* terminal_label) {
       case PRE_CONNECTION: return IN_CONNECTION;
       case IN_CONNECTION:
         if (c->_connection == nullptr) {
-          if (!n->_node->is_route_node()) {
-            return n->_node->is_station_node() ? WALK : AT_STATION;
-          } else {
+          if (n->_node->is_station_node()) {
+            return WALK;
+          } else if (n->_node->is_station_node()) {
             return IN_CONNECTION_THROUGH;
+          } else {
+            return AT_STATION;
           }
         } else {
           return IN_CONNECTION;
@@ -183,12 +185,12 @@ parse_label_chain(label const* terminal_label) {
         assert(std::next(it) != end(labels));
         auto succ = *std::next(it);
 
-        // skip through edge.
-        if (!succ->_connection) {
-          succ = *std::next(it, 2);
-        }
-
         if (succ->_node->is_route_node()) {
+          // skip through edge.
+          if (!succ->_connection) {
+            succ = *std::next(it, 2);
+          }
+
           stops.emplace_back(
               (unsigned int)++station_index, current->_node->get_station()->_id,
               current->_connection->_full_con->a_platform,
