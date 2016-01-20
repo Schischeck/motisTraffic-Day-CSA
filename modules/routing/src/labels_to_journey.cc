@@ -264,13 +264,19 @@ journey::transport generate_journey_transport(unsigned int from,
     cat_name = sched.categories[con_info->family]->name;
     train_nr = con_info->train_nr <= 999999 ? con_info->train_nr
                                             : con_info->original_train_nr;
-    if (train_nr != 0) {
-      print_train_nr = boost::lexical_cast<std::string>(train_nr);
-    } else if (train_nr == 0 && !line_identifier.empty()) {
-      print_train_nr = line_identifier;
+    // print line identifier instead of train number
+    // whenever this information exists.
+    // Note: this is a deviation from the hafas output rules.
+    if (line_identifier.empty()) {
+      if (train_nr != 0) {
+        print_train_nr = boost::lexical_cast<std::string>(train_nr);
+      } else {
+        print_train_nr = "";
+      }
     } else {
-      print_train_nr = "";
+      print_train_nr = line_identifier;
     }
+
     if (con_info->dir_ != nullptr) {
       direction = *con_info->dir_;
     }
