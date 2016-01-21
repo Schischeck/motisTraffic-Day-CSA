@@ -1204,31 +1204,51 @@ TEST(reliability_connection_graph_builder,
 journey create_journey_early_walk() {
   journey j;
 
-  j.stops.resize(3);
-  {
+  j.stops.resize(6);
+  { /* tail of first walk */
     auto& stop = j.stops[0];
     stop.arrival.valid = false;
     stop.departure.valid = true;
-    stop.departure.timestamp = 1445212800;
-    stop.departure.schedule_timestamp = 1445212800;
+    stop.departure.timestamp = 1445212800; /* 00:00 */
+    stop.departure.schedule_timestamp = 1445212800; /* 00:00 */
   }
-  {
+  { /* head of first walk and tail of first train */
     auto& stop = j.stops[1];
-    stop.interchange = false;
     stop.arrival.valid = true;
-    stop.arrival.timestamp = 1445213400;
-    stop.arrival.schedule_timestamp = 1445213400;
+    stop.arrival.timestamp = 1445213400; /* 00:10 */
+    stop.arrival.schedule_timestamp = 1445213400; /* 00:10 */
     stop.departure.valid = true;
-    stop.departure.timestamp = 1445214000;
+    stop.departure.timestamp = 1445214000; /* 00:20 */
   }
-  {
+  { /* head of first train and tail of second walk */
     auto& stop = j.stops[2];
     stop.arrival.valid = true;
-    stop.arrival.timestamp = 1445214600;
+    stop.arrival.timestamp = 1445214600; /* 00:30 */
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445214600; /* 00:30 */
+  }
+  { /* head of second walk and tail of second train*/
+    auto& stop = j.stops[3];
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445215200; /* 00:40 */
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445215800; /* 00:50 */
+  }
+  { /* head of second train and tail of third walk*/
+    auto& stop = j.stops[4];
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445216400; /* 01:00 */
+    stop.departure.valid = true;
+    stop.departure.timestamp = 1445216400; /* 01:00 */
+  }
+  { /* head of third walk */
+    auto& stop = j.stops[5];
+    stop.arrival.valid = true;
+    stop.arrival.timestamp = 1445217000; /* 01:10 */
     stop.departure.valid = false;
   }
 
-  j.transports.resize(2);
+  j.transports.resize(5);
   {
     auto& transport = j.transports[0];
     transport.from = 0;
@@ -1241,6 +1261,24 @@ journey create_journey_early_walk() {
     transport.to = 2;
     transport.type = journey::transport::PublicTransport;
   }
+  {
+    auto& transport = j.transports[2];
+    transport.from = 2;
+    transport.to = 3;
+    transport.type = journey::transport::Walk;
+  }
+  {
+    auto& transport = j.transports[3];
+    transport.from = 3;
+    transport.to = 4;
+    transport.type = journey::transport::PublicTransport;
+  }
+  {
+    auto& transport = j.transports[4];
+    transport.from = 4;
+    transport.to = 5;
+    transport.type = journey::transport::Walk;
+  }
 
   return j;
 }
@@ -1248,15 +1286,21 @@ journey create_journey_early_walk() {
 TEST(reliability_connection_graph_builder, move_early_walk) {
   journey const j = detail::move_early_walk(create_journey_early_walk());
 
-  ASSERT_EQ(3, j.stops.size());
-  ASSERT_EQ(1445213400, j.stops[0].departure.timestamp);
-  ASSERT_EQ(1445213400, j.stops[0].departure.schedule_timestamp);
-  ASSERT_EQ(1445214000, j.stops[1].arrival.timestamp);
-  ASSERT_EQ(1445214000, j.stops[1].arrival.schedule_timestamp);
-  ASSERT_EQ(1445214000, j.stops[1].departure.timestamp);
-  ASSERT_EQ(1445214600, j.stops[2].arrival.timestamp);
+  ASSERT_EQ(6, j.stops.size());
+  ASSERT_EQ(1445213400 /* 00:10 */, j.stops[0].departure.timestamp);
+  ASSERT_EQ(1445213400 /* 00:10 */, j.stops[0].departure.schedule_timestamp);
+  ASSERT_EQ(1445214000 /* 00:20 */, j.stops[1].arrival.timestamp);
+  ASSERT_EQ(1445214000 /* 00:20 */, j.stops[1].arrival.schedule_timestamp);
+  ASSERT_EQ(1445214000 /* 00:20 */, j.stops[1].departure.timestamp);
+  ASSERT_EQ(1445214600 /* 00:30 */, j.stops[2].arrival.timestamp);
+  ASSERT_EQ(1445215200 /* 00:40 */, j.stops[2].departure.timestamp);
+  ASSERT_EQ(1445215800 /* 00:50 */, j.stops[3].arrival.timestamp);
+  ASSERT_EQ(1445215800 /* 00:50 */, j.stops[3].departure.timestamp);
+  ASSERT_EQ(1445216400 /* 01:00 */, j.stops[4].arrival.timestamp);
+  ASSERT_EQ(1445216400 /* 01:00 */, j.stops[4].departure.timestamp);
+  ASSERT_EQ(1445217000 /* 01:10 */, j.stops[5].arrival.timestamp);
 
-  ASSERT_EQ(2, j.transports.size());
+  ASSERT_EQ(5, j.transports.size());
 }
 
 }  // namespace connection_graph_search

@@ -139,15 +139,19 @@ std::vector<journey> split_journey(journey const& orig_journey) {
 
 journey move_early_walk(journey const& orig_j) {
   journey j = orig_j;
-  if (j.transports.size() > 1 &&
-      j.transports[0].type == journey::transport::Walk) {
-    auto const buffer =
-        j.stops[1].departure.timestamp - j.stops[1].arrival.timestamp;
-    if (buffer > 0) {
-      j.stops[0].departure.timestamp += buffer;
-      j.stops[0].departure.schedule_timestamp += buffer;
-      j.stops[1].arrival.timestamp += buffer;
-      j.stops[1].arrival.schedule_timestamp += buffer;
+  if (j.transports.size() > 1 && j.stops.size() > 2) {
+    unsigned int const index_last_stop = j.stops.size() - 1;
+    for (auto const& tr : j.transports) {
+      if (tr.type == journey::transport::Walk && tr.to < index_last_stop) {
+        auto const buffer = j.stops[tr.to].departure.timestamp -
+                            j.stops[tr.to].arrival.timestamp;
+        if (buffer > 0) {
+          j.stops[tr.from].departure.timestamp += buffer;
+          j.stops[tr.from].departure.schedule_timestamp += buffer;
+          j.stops[tr.to].arrival.timestamp += buffer;
+          j.stops[tr.to].arrival.schedule_timestamp += buffer;
+        }
+      }
     }
   }
   return j;
@@ -167,8 +171,8 @@ connection_graph::stop& get_stop(connection_graph& cg,
 }  // namespace detail
 
 void add_base_journey(connection_graph& cg, journey const& base_journey) {
-  auto journeys =
-      detail::split_journey(detail::remove_dummy_stops(base_journey));
+  auto journeys = detail::split_journey(
+      detail::move_early_walk(detail::remove_dummy_stops(base_journey)));
 
   unsigned int stop_idx = connection_graph::stop::Index_departure_stop;
   for (auto const& j : journeys) {
