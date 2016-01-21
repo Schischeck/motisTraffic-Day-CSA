@@ -52,7 +52,17 @@ struct module : public conf::configuration {
   void on_msg_(msg_ptr msg, sid session, callback cb, bool locked) {
     namespace p = std::placeholders;
     strand_->post([this, locked, msg, session, cb]() {
-      resetter<bool> reset(locked_, locked || locked_);
+      struct resetter {
+        resetter(module& instance, bool locked) : instance_(instance) {
+          previous_ = instance_.locked_.load();
+          instance_.locked_.store(previous_ || locked);
+        }
+
+        ~resetter() { instance_.locked_.store(previous_); }
+
+        module& instance_;
+        bool previous_;
+      } r(*this, locked);
       on_msg(msg, session, cb);
     });
   }
@@ -60,7 +70,7 @@ struct module : public conf::configuration {
 protected:
   template <schedule_access access>
   locked_schedule synced_sched() {
-    if (locked_ && access == RO) {
+    if (locked_.load() && access == RO) {
       return std::make_shared<synced_schedule>(*context_->schedule_, RE,
                                                []() {});
     } else {
@@ -96,7 +106,7 @@ protected:
 
 private:
   context* context_;
-  bool locked_;
+  std::atomic<bool> locked_;
   std::unique_ptr<boost::asio::strand> strand_;
 };
 
