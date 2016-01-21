@@ -118,6 +118,11 @@ struct array final {
   T* begin() { return _el; }
   T* end() { return _el + _used_size; }
 
+  T const* rbegin() const { return std::reverse_iterator<T*>(_el); }
+  T const* rend() const { return std::reverse_iterator<T*>(_el + _used_size); }
+  T* rbegin() { return std::reverse_iterator<T*>(_el); }
+  T* rend() { return std::reverse_iterator<T*>(_el + _used_size); }
+
   friend T const* begin(array const& a) { return a.begin(); }
   friend T const* end(array const& a) { return a.end(); }
 
