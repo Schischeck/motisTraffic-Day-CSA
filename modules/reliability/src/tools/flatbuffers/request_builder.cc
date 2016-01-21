@@ -16,11 +16,11 @@ time_t to_unix_time(std::tuple<int, int, int> ddmmyyyy, motis::time time) {
                           std::get<0>(ddmmyyyy)),
       time);
 }
-module::msg_ptr to_reliable_routing_request(
+void to_reliable_routing_request(
     module::MessageCreator& b, std::string const& from_name,
     std::string const& from_eva, std::string const& to_name,
-    std::string const& to_eva, motis::time interval_begin,
-    motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
+    std::string const& to_eva, std::time_t interval_begin,
+    std::time_t interval_end,
     Offset<RequestOptionsWrapper>& request_type_wrapper,
     std::vector<Offset<routing::AdditionalEdgeWrapper>> const&
         additional_edges) {
@@ -29,8 +29,7 @@ module::msg_ptr to_reliable_routing_request(
       b, b.CreateString(from_name), b.CreateString(from_eva)));
   station_elements.push_back(routing::CreateStationPathElement(
       b, b.CreateString(to_name), b.CreateString(to_eva)));
-  routing::Interval interval(to_unix_time(ddmmyyyy, interval_begin),
-                             to_unix_time(ddmmyyyy, interval_end));
+  routing::Interval interval(interval_begin, interval_end);
   b.CreateAndFinish(MsgContent_ReliableRoutingRequest,
                     reliability::CreateReliableRoutingRequest(
                         b, routing::CreateRoutingRequest(
@@ -40,18 +39,32 @@ module::msg_ptr to_reliable_routing_request(
                                b.CreateVector(additional_edges)),
                         request_type_wrapper)
                         .Union());
-  return module::make_msg(b);
 }
-module::msg_ptr to_reliable_routing_request(
+
+void to_reliable_routing_request(
+    module::MessageCreator& b, std::string const& from_name,
+    std::string const& from_eva, std::string const& to_name,
+    std::string const& to_eva, motis::time interval_begin,
+    motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
+    Offset<RequestOptionsWrapper>& request_type_wrapper,
+    std::vector<Offset<routing::AdditionalEdgeWrapper>> const&
+        additional_edges) {
+
+  to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                              to_unix_time(ddmmyyyy, interval_begin),
+                              to_unix_time(ddmmyyyy, interval_end),
+                              request_type_wrapper, additional_edges);
+}
+void to_reliable_routing_request(
     module::MessageCreator& b, std::string const& from_name,
     std::string const& from_eva, std::string const& to_name,
     std::string const& to_eva, motis::time interval_begin,
     motis::time interval_end, std::tuple<int, int, int> ddmmyyyy,
     Offset<RequestOptionsWrapper>& request_type_wrapper) {
   std::vector<Offset<routing::AdditionalEdgeWrapper>> dummy;
-  return to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
-                                     interval_begin, interval_end, ddmmyyyy,
-                                     request_type_wrapper, dummy);
+  to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                              interval_begin, interval_end, ddmmyyyy,
+                              request_type_wrapper, dummy);
 }
 }
 
@@ -126,9 +139,12 @@ module::msg_ptr to_reliable_routing_request(
   auto request_type_wrapper = reliability::CreateRequestOptionsWrapper(
       b, reliability::RequestOptions_ReliableSearchReq,
       reliability::CreateReliableSearchReq(b, min_dep_diff).Union());
-  return detail::to_reliable_routing_request(
-      b, from_name, from_eva, to_name, to_eva, interval_begin, interval_end,
-      ddmmyyyy, request_type_wrapper);
+
+  detail::to_reliable_routing_request(b, from_name, from_eva, to_name, to_eva,
+                                      interval_begin, interval_end, ddmmyyyy,
+                                      request_type_wrapper);
+
+  return module::make_msg(b);
 }
 
 module::msg_ptr to_rating_request(std::string const& from_name,

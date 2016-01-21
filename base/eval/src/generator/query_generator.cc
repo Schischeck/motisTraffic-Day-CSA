@@ -13,6 +13,8 @@
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/module/message.h"
 
+#include "motis/reliability/tools/request_builder.h"
+
 namespace po = boost::program_options;
 namespace pt = boost::posix_time;
 using namespace flatbuffers;
@@ -73,20 +75,11 @@ static It rand_in(It begin, It end) {
 
 std::string query(std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
-  MessageCreator fbb;
-  Interval interval(interval_start, interval_end);
 
-  std::vector<Offset<StationPathElement>> path;
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(from_eva)));
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(to_eva)));
-  fbb.CreateAndFinish(
-      MsgContent_RoutingRequest,
-      CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
-                           fbb.CreateVector(path))
-          .Union());
-  std::string s = make_msg(fbb)->to_json();
+  std::string s = to_reliable_routing_request("", from_eva, "", to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy, 10)->to_json();
+
   s.erase(std::remove(begin(s), end(s), '\n'), end(s));
   return s;
 }
@@ -108,8 +101,8 @@ station* random_station(std::vector<station_ptr> const& stations) {
 std::pair<std::string, std::string> random_eva_pair(
     std::vector<station_ptr> const& stations) {
   std::pair<station*, station*> p = std::make_pair(nullptr, nullptr);
-  while (p.first == p.second || dep_event_sum(*p.first) == 0 ||
-         arr_event_sum(*p.second) == 0) {
+  while (p.first == p.second || dep_event_sum(*p.first) < 10 ||
+         arr_event_sum(*p.second) < 10) {
     p.first = random_station(stations);
     p.second = random_station(stations);
   }
