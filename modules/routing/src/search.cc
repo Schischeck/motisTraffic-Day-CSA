@@ -93,7 +93,9 @@ std::vector<journey> search::get_connections(
   MOTIS_STOP_TIMING(transfers_l_b_timing);
 
   MOTIS_START_TIMING(price_l_b_timing);
+#ifdef WITH_PRICES
   lower_bounds.price.run();
+#endif
   MOTIS_STOP_TIMING(price_l_b_timing);
 
   MOTIS_STOP_TIMING(lower_bounds_timing);

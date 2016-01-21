@@ -17,7 +17,7 @@
 #define MAX_LABELS_WITH_MARGIN (MAX_LABELS + 1000)
 #define MOTIS_MAX_REGIONAL_TRAIN_TICKET_PRICE (4200u)
 
-//#define WITH_PRICES
+/* note: define WITH_PRICES in lower_bounds.h */
 
 namespace motis {
 
@@ -59,6 +59,7 @@ public:
     _transfers[1] = _transfers[0];
     _transfers[1] += transfers_lb;
 
+#ifdef WITH_PRICES
     _total_price[0] = pred != nullptr ? pred->_total_price[0] : 0;
 
     if (pred != nullptr)
@@ -67,6 +68,7 @@ public:
       std::memset(_prices, 0, sizeof(_prices));
 
     set_total_price_lower_bound(lower_bounds.price.get_distance(node->_id));
+#endif
 
     _db_costs = 0;
     _night_penalty = 0;
@@ -110,8 +112,10 @@ public:
     l->_travel_time[1] = n_travel_time_l_b;
     l->_transfers[0] = n_transfers;
     l->_transfers[1] = n_transfers_l_b;
+#ifdef WITH_PRICES
     l->add_price_of_connection(ec, edge._m._type == edge::MUMO_EDGE);
     l->set_total_price_lower_bound(lower_bounds.price.get_distance(n_node));
+#endif
     l->_pred = this;
     l->_start = _start;
     l->_now = _now + ec.time;
@@ -246,9 +250,13 @@ public:
     if (_transfers[1] != o._transfers[1])
       return _transfers[1] < o._transfers[1];
 
+#ifdef WITH_PRICES
     unsigned my_price_heuristic = get_price_with_wages(true);
     unsigned o_price_heuristic = o.get_price_with_wages(true);
     return my_price_heuristic < o_price_heuristic || _start > o._start;
+#else
+    return _start > o._start;
+#endif
   }
 
   unsigned get_travel_time_price() const {
