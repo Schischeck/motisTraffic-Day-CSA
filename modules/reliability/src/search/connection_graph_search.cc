@@ -148,11 +148,13 @@ void handle_base_response(motis::module::msg_ptr msg,
                           boost::system::error_code e,
                           std::shared_ptr<context> context) {
   if (e) {
+    LOG(logging::error) << "routing module replied: " << e.message();
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
   auto journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
+    LOG(logging::error) << "List of journeys from routing module is empty";
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
@@ -161,7 +163,7 @@ void handle_base_response(motis::module::msg_ptr msg,
       init_connection_graph_from_base_journey(*context, j);
     }
   } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+    LOG(logging::error) << e.what();
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 

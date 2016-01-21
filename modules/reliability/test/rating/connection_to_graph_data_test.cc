@@ -77,7 +77,7 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
   auto const element_ice_s_e = detail::to_element(
       2, get_schedule(), STUTTGART.eva, ERLANGEN.eva,
       test_util::minutes_to_motis_time(11 * 60 + 32),
-      test_util::minutes_to_motis_time(12 * 60 + 32), first_route_node._route,
+      test_util::minutes_to_motis_time(12 * 60 + 32),
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_S_E, "");
 
@@ -103,7 +103,7 @@ TEST_F(reliability_connection_to_graph_data2, to_element2) {
   auto const element_ice_k_f_s = detail::to_element(
       3, get_schedule(), FRANKFURT.eva, STUTTGART.eva,
       test_util::minutes_to_motis_time(10 * 60 + 20),
-      test_util::minutes_to_motis_time(11 * 60 + 15), route_node._route,
+      test_util::minutes_to_motis_time(11 * 60 + 15),
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_K_F_S, "");
 

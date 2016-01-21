@@ -143,8 +143,8 @@ inline std::pair<light_connection const*, unsigned int> find_light_connection(
     std::string const& line_identifier) {
   return find_light_connection(
       route_edge, event_time, is_departure, [&](connection_info const& ci) {
-        return ci.train_nr == train_nr && ci.family == family &&
-               ci.line_identifier == line_identifier;
+        return (train_nr == 0 || ci.train_nr == train_nr) &&
+               ci.family == family && ci.line_identifier == line_identifier;
       });
 }
 
