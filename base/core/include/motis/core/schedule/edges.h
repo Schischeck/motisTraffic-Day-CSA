@@ -165,7 +165,22 @@ public:
                                std::end(_m._route_edge._conns),
                                light_connection(start_time));
 
-    return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
+    return (it == std::end(_m._route_edge._conns)) ? nullptr : &*it;
+  }
+
+  light_connection const* get_connection_reverse(time const start_time) const {
+    if (_m._route_edge._conns.size() == 0) {
+      return nullptr;
+    }
+
+    auto it = std::lower_bound(
+        _m._route_edge._conns.rbegin(), _m._route_edge._conns.rend(),
+        light_connection(0, start_time, nullptr),
+        [](light_connection const& lhs, light_connection const& rhs) {
+          return lhs.a_time > rhs.a_time;
+        });
+
+    return (it == _m._route_edge._conns.rend()) ? nullptr : &*it;
   }
 
   light_connection* get_connection(time const start_time) {

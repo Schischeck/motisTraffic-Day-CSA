@@ -24,5 +24,6 @@ struct connectionchecker : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 };
+
 }  // namespace connectionchecker
 }  // namespace motis
