@@ -127,7 +127,7 @@ struct request_builder {
 
 // convert routing::RoutingRequest to Offset<RoutingRequest>
 msg_ptr to_flatbuffers_message(routing::RoutingRequest const* request) {
-  return request_builder(request).build_routing_request();
+  return detail::request_builder(request).build_routing_request();
 }
 
 module::msg_ptr to_routing_request(std::string const& from_name,
@@ -136,7 +136,7 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    std::string const& to_eva,
                                    time_t interval_begin, time_t interval_end,
                                    bool const ontrip) {
-  return request_builder(ontrip ? routing::Type::Type_OnTrip
+  return detail::request_builder(ontrip ? routing::Type::Type_OnTrip
                                 : routing::Type::Type_PreTrip)
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
@@ -149,7 +149,7 @@ module::msg_ptr to_routing_request(
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, bool const ontrip) {
-  return request_builder(ontrip ? routing::Type::Type_OnTrip
+  return detail::request_builder(ontrip ? routing::Type::Type_OnTrip
                                 : routing::Type::Type_PreTrip)
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
@@ -162,10 +162,24 @@ module::msg_ptr to_reliable_routing_request(
     std::string const& to_name, std::string const& to_eva,
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const min_dep_diff) {
-  return request_builder()
+  return detail::request_builder()
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(ddmmyyyy, interval_begin, interval_end)
+      .build_search_request(min_dep_diff);
+}
+
+module::msg_ptr to_reliable_routing_request(std::string const& from_name,
+                                            std::string const& from_eva,
+                                            std::string const& to_name,
+                                            std::string const& to_eva,
+                                            std::time_t interval_begin,
+                                            std::time_t interval_end,
+                                            short const min_dep_diff) {
+  return detail::request_builder()
+      .add_station(from_name, from_eva)
+      .add_station(to_name, to_eva)
+      .set_interval(interval_begin, interval_end)
       .build_search_request(min_dep_diff);
 }
 
@@ -176,7 +190,7 @@ module::msg_ptr to_rating_request(std::string const& from_name,
                                   motis::time interval_begin,
                                   motis::time interval_end,
                                   std::tuple<int, int, int> ddmmyyyy) {
-  return request_builder()
+  return detail::request_builder()
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(ddmmyyyy, interval_begin, interval_end)
@@ -189,7 +203,7 @@ module::msg_ptr to_connection_tree_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, short const num_alternatives_at_stop,
     short const min_dep_diff) {
-  return request_builder()
+  return detail::request_builder()
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(ddmmyyyy, interval_begin, interval_end)
@@ -207,7 +221,7 @@ module::msg_ptr to_reliable_late_connections_request(
     std::vector<taxi_info> const& taxi_infos) {
   using namespace routing;
 
-  request_builder builder;
+  detail::request_builder builder;
   builder.add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(ddmmyyyy, interval_begin, interval_end);
@@ -232,7 +246,7 @@ module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const* request,
     std::vector<hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
-  request_builder builder(request);
+  detail::request_builder builder(request);
   builder.type_ = Type::Type_LateConnection;
 
   auto& b = builder.b_;

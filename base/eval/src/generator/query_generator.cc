@@ -12,8 +12,7 @@
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/module/message.h"
-
-#include "motis/reliability/tools/request_builder.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 namespace po = boost::program_options;
 namespace pt = boost::posix_time;
@@ -22,6 +21,7 @@ using namespace motis;
 using namespace motis::bootstrap;
 using namespace motis::module;
 using namespace motis::routing;
+using namespace motis::reliability::flatbuffers::request_builder;
 
 #define QUERY_COUNT "query_count"
 #define TARGET_FILE "target_file"
@@ -75,11 +75,9 @@ static It rand_in(It begin, It end) {
 
 std::string query(std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
-
   std::string s = to_reliable_routing_request("", from_eva, "", to_eva,
-    motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy, 10)->to_json();
-
+                                              interval_start, interval_end, 10)
+                      ->to_json();
   s.erase(std::remove(begin(s), end(s), '\n'), end(s));
   return s;
 }
