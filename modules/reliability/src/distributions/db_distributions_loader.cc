@@ -315,14 +315,19 @@ void check_mapping(resolved_mapping const& current,
 void load_distributions_classes(
     std::string const filepath,
     std::map<std::string, std::string>& family_to_distribution_class) {
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
+
   std::vector<classes_csv> classes_entries;
   parser::read_file<classes_csv, ';'>(filepath.c_str(), classes_entries,
                                       classes_columns);
 
   for (auto const& entry : classes_entries) {
     if (!std::get<classes_pos::c_distribution_class>(entry).empty()) {
-      family_to_distribution_class[std::get<classes_pos::c_family>(entry)] =
-          std::get<classes_pos::c_distribution_class>(entry);
+      family_to_distribution_class[to_lower(std::get<classes_pos::c_family>(
+          entry))] = std::get<classes_pos::c_distribution_class>(entry);
     }
   }
 }

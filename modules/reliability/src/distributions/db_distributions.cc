@@ -75,7 +75,11 @@ probability_distribution const& db_distributions::get_start_distribution(
 
 std::string const& db_distributions::get_distribution_class(
     std::string const& family) const {
-  auto const it = family_to_distribution_class_.find(family);
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
+  auto const it = family_to_distribution_class_.find(to_lower(family));
   if (it != family_to_distribution_class_.end()) {
     return it->second;
   }
