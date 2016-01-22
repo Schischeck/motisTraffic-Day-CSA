@@ -1,0 +1,30 @@
+namespace motis.intermodal;
+
+table RequestCoordinates {
+  lat: double;
+  lng: double;
+  radius: double;
+}
+
+// JSON example:
+// --
+// {
+//   "content_type": "IntermodalGeoIndexRequest",
+//   "content": {
+//     "coordinates": [
+//       {
+//         lat: 49.8774869,
+//         lng: 8.6546632,
+//         radius: 456.78
+//       },
+//       {
+//         lat: 49.835668,
+//         lng: 9.144335,
+//         radius: 1000 
+//       }
+//     ]
+//   }
+// }
+table IntermodalGeoIndexRequest {
+  coordinates: [RequestCoordinates];
+}

@@ -1,0 +1,16 @@
+namespace motis.intermodal;
+
+table Station {
+  name: string;
+  eva: string;
+  lat: double;
+  lng: double;
+}
+
+table StationList {
+  stations: [Station];
+}
+
+table IntermodalGeoIndexResponse {
+  coordinates: [StationList];
+}

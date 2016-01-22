@@ -40,11 +40,11 @@ module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
                      module::msg_ptr request) {
   module::msg_ptr response;
   boost::system::error_code ec;
-  instance->on_msg(request, 0,
-                   [&](module::msg_ptr r, boost::system::error_code e) {
+  instance->on_msg(request,
+                   0, [&](module::msg_ptr r, boost::system::error_code e) {
                      ec = e;
                      response = r;
-                   });
+                   }, false);
   instance->thread_pool_.reset();
   instance->thread_pool_.run();
 

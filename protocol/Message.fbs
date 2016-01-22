@@ -29,6 +29,10 @@ include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
 include "realtime/RealtimeDelayInfoRequest.fbs";
 include "realtime/RealtimeDelayInfoResponse.fbs";
+include "intermodal/IntermodalRoutingRequest.fbs";
+include "intermodal/IntermodalRoutingResponse.fbs";
+include "intermodal/IntermodalGeoIndexRequest.fbs";
+include "intermodal/IntermodalGeoIndexResponse.fbs";
 include "HTTPMessage.fbs";
 
 namespace motis;
@@ -89,7 +93,11 @@ union MsgContent {
   motis.realtime.RealtimeCurrentTimeRequest,
   motis.realtime.RealtimeCurrentTimeResponse,
   motis.realtime.RealtimeDelayInfoRequest,
-  motis.realtime.RealtimeDelayInfoResponse
+  motis.realtime.RealtimeDelayInfoResponse,
+  motis.intermodal.IntermodalRoutingRequest,
+  motis.intermodal.IntermodalRoutingResponse,
+  motis.intermodal.IntermodalGeoIndexRequest,
+  motis.intermodal.IntermodalGeoIndexResponse
 }
 
 table Message {

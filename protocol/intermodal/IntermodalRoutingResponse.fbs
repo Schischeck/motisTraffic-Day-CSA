@@ -1,0 +1,14 @@
+namespace motis.intermodal;
+
+struct Coordinate {
+  lat : double;
+  lng : double;
+}
+
+table Mode {
+  stations: [Coordinate];
+} 
+
+table IntermodalRoutingResponse {
+  stations : [Mode];
+}

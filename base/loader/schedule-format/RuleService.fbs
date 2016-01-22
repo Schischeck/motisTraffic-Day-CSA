@@ -1,4 +1,5 @@
 include "Service.fbs";
+include "Station.fbs";
 
 namespace motis.loader;
 
@@ -10,8 +11,8 @@ table Rule {
   type: RuleType;
   service1: Service;
   service2: Service;
-  eva_1: string;
-  eva_2: string;
+  from: Station;
+  to: Station;
 }
 
 table RuleService {

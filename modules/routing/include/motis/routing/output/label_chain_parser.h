@@ -14,7 +14,14 @@ namespace motis {
 namespace routing {
 namespace output {
 
-enum state { AT_STATION, PRE_CONNECTION, IN_CONNECTION, PRE_WALK, WALK };
+enum state {
+  AT_STATION,
+  PRE_CONNECTION,
+  IN_CONNECTION,
+  PRE_WALK,
+  WALK,
+  IN_CONNECTION_THROUGH
+};
 
 template <typename Label>
 state next_state(int s, Label const* c, Label const* n) {
@@ -28,10 +35,17 @@ state next_state(int s, Label const* c, Label const* n) {
     case PRE_CONNECTION: return IN_CONNECTION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        return n->node_->is_station_node() ? WALK : AT_STATION;
+        if (n->node_->is_station_node()) {
+          return WALK;
+        } else if (n->node_->is_station_node()) {
+          return IN_CONNECTION_THROUGH;
+        } else {
+          return AT_STATION;
+        }
       } else {
         return IN_CONNECTION;
       }
+    case IN_CONNECTION_THROUGH: return IN_CONNECTION;
     case WALK: return AT_STATION;
   }
   return static_cast<state>(s);
@@ -53,6 +67,7 @@ template <typename Label>
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
 parse_label_chain(Label const* terminal_label) {
   std::vector<Label const*> labels;
+
   auto c = terminal_label;
   do {
     labels.insert(begin(labels), c);
@@ -122,15 +137,23 @@ parse_label_chain(Label const* terminal_label) {
         last_con = nullptr;
         break;
 
-      case IN_CONNECTION:
-        transports.emplace_back((unsigned int)station_index,
-                                (unsigned int)station_index + 1,
-                                current->connection_, current->node_->_route);
+      case IN_CONNECTION: {
+        if (current->connection_) {
+          transports.emplace_back((unsigned int)station_index,
+                                  (unsigned int)station_index + 1,
+                                  current->connection_, current->node_->_route);
+        }
 
         // do not collect the last connection route node.
         assert(std::next(it) != end(labels));
         auto succ = *std::next(it);
+
         if (succ->node_->is_route_node()) {
+          // skip through edge.
+          if (!succ->connection_) {
+            succ = *std::next(it, 2);
+          }
+
           stops.emplace_back(
               (unsigned int)++station_index, current->node_->get_station()->_id,
               current->connection_->_full_con->a_platform,
@@ -140,6 +163,7 @@ parse_label_chain(Label const* terminal_label) {
 
         last_con = current->connection_;
         break;
+      }
     }
 
     ++it;

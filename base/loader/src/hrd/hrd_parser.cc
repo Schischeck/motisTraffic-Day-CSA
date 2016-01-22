@@ -202,7 +202,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   rsb.resolve_rule_services();
   rsb.create_rule_services([&](hrd_service const& s, FlatBufferBuilder& fbb) {
     return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, true);
-  }, fbb);
+  }, stb, fbb);
 
   auto interval = parse_interval(basic_data_file);
   fbb.Finish(

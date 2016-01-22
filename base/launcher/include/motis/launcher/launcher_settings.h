@@ -13,7 +13,9 @@ class launcher_settings : public conf::configuration {
 public:
   enum motis_mode_t { BATCH, SERVER, TEST };
 
-  launcher_settings(motis_mode_t mode, std::vector<std::string> modules);
+  launcher_settings(motis_mode_t mode, std::vector<std::string> modules,
+                    std::string batch_input_file,
+                    std::string batch_output_file);
 
   virtual ~launcher_settings() {}
 
@@ -22,6 +24,7 @@ public:
 
   motis_mode_t mode;
   std::vector<std::string> modules;
+  std::string batch_input_file, batch_output_file;
 };
 
 }  // namespace launcher

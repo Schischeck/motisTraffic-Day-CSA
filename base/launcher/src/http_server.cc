@@ -39,6 +39,8 @@ struct http_server::impl {
     server_.listen(host, port, router_);
   }
 
+  void stop() { server_.stop(); }
+
   void operator()(net::http::server::route_request const& req,
                   net::http::server::callback cb) {
     try {
@@ -51,7 +53,7 @@ struct http_server::impl {
               std::string::npos) {
         return receiver_.on_msg(
             make_msg(req.content), 0,
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2), false);
       } else {
         MessageCreator fbb;
         fbb.CreateAndFinish(
@@ -69,7 +71,7 @@ struct http_server::impl {
                 .Union());
         return receiver_.on_msg(
             make_msg(fbb), 0,
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2), false);
       }
     } catch (boost::system::system_error const& e) {
       reply rep = reply::stock_reply(reply::internal_server_error);
@@ -128,6 +130,8 @@ http_server::~http_server() {}
 void http_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);
 }
+
+void http_server::stop() { impl_->stop(); }
 
 }  // namespace launcher
 }  // namespace motis

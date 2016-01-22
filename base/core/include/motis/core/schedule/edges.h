@@ -53,7 +53,8 @@ public:
     ROUTE_EDGE,
     FOOT_EDGE,
     AFTER_TRAIN_FOOT_EDGE,
-    MUMO_EDGE
+    MUMO_EDGE,
+    THROUGH_EDGE
   };
 
   edge() = default;
@@ -92,10 +93,13 @@ public:
         if (last_con == nullptr) {
           return NO_EDGE;
         }
+      /* no break */
       case MUMO_EDGE:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
+
+      case THROUGH_EDGE: return edge_cost(0, false, 0, 0);
 
       default: return NO_EDGE;
     }
@@ -132,7 +136,22 @@ public:
                                std::end(_m._route_edge._conns),
                                light_connection(start_time));
 
-    return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
+    return (it == std::end(_m._route_edge._conns)) ? nullptr : &*it;
+  }
+
+  light_connection const* get_connection_reverse(time const start_time) const {
+    if (_m._route_edge._conns.size() == 0) {
+      return nullptr;
+    }
+
+    auto it = std::lower_bound(
+        _m._route_edge._conns.rbegin(), _m._route_edge._conns.rend(),
+        light_connection(0, start_time, nullptr),
+        [](light_connection const& lhs, light_connection const& rhs) {
+          return lhs.a_time > rhs.a_time;
+        });
+
+    return (it == _m._route_edge._conns.rend()) ? nullptr : &*it;
   }
 
   light_connection* get_connection(time const start_time) {
@@ -158,6 +177,7 @@ public:
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
+      case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
     }
   }
@@ -280,6 +300,10 @@ inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
 
 inline edge make_invalid_edge(node* from, node* to) {
   return edge(from, to, edge::INVALID_EDGE, 0, 0, false, 0);
+}
+
+inline edge make_through_edge(node* from, node* to) {
+  return edge(from, to, edge::THROUGH_EDGE, 0, 0, false, 0);
 }
 
 }  // namespace motis
