@@ -14,11 +14,10 @@
 
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
-#include "motis/routing/label.h"
 #include "motis/routing/search.h"
 #include "motis/routing/error.h"
 
-#define MAX_LABEL_COUNT "routing.max_label_count"
+#define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
 namespace p = std::placeholders;
 namespace po = boost::program_options;
@@ -30,15 +29,15 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : max_label_count_(MAX_LABELS_WITH_MARGIN) {}
+routing::routing() : max_label_count_(8 * 1024 * 1024) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
   // clang-format off
   desc.add_options()
-    (MAX_LABEL_COUNT,
+    (LABEL_MEMORY_NUM_BYTES,
      po::value<int>(&max_label_count_)->default_value(max_label_count_),
-     "number of labels to preallocate (crashes if not enough!)");
+     "size of the label store in bytes");
   // clang-format on
   return desc;
 }
@@ -70,7 +69,7 @@ void routing::read_path_element(StationPathElement const* el,
 }
 
 void routing::init() {
-  label_store_ = make_unique<memory_manager<label>>(max_label_count_);
+  label_store_ = make_unique<memory_manager>(max_label_count_);
 }
 
 void routing::handle_station_guess(msg_ptr res, error_code e,

@@ -4,15 +4,22 @@ namespace motis {
 namespace routing {
 
 struct travel_time {
-  travel_time() : travel_time_(0), travel_time_lb_(0) {}
   duration travel_time_, travel_time_lb_;
+};
+
+struct travel_time_initializer {
+  template <typename Label, typename LowerBounds>
+  static void init(Label& l, LowerBounds& lb) {
+    l.travel_time_ = l.now_ - l.start_;
+    l.travel_time_lb_ = lb.travel_time[l.node_->_id];
+  }
 };
 
 struct travel_time_updater {
   template <typename Label, typename LowerBounds>
-  void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
-    l.travel_time_ += ec.duration_;
-    l.travel_time_lb_ = l.travel_time_ + lb.travel_time[l.node_];
+  static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
+    l.travel_time_ += ec.time;
+    l.travel_time_lb_ = l.travel_time_ + lb.travel_time[l.node_->_id];
   }
 };
 

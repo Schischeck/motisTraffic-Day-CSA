@@ -4,17 +4,24 @@ namespace motis {
 namespace routing {
 
 struct transfers {
-  transfers() : transfers_(0), transfers_lb_(0) {}
   uint8_t transfers_, transfers_lb_;
+};
+
+struct transfers_initializer {
+  template <typename Label, typename LowerBounds>
+  static void init(Label& l, LowerBounds& lb) {
+    l.transfers_ = 0;
+    l.transfers_lb_ = lb.transfers[l.node_->_id];
+  }
 };
 
 struct transfers_updater {
   template <typename Label, typename LowerBounds>
-  void operator()(Label& l, edge_cost const& ec, LowerBounds& lb) {
-    if (ec.interchange_) {
+  static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
+    if (ec.transfer) {
       ++l.transfers_;
     }
-    l.transfers_lb_ = l.transfers_ + lb.transfers[l.node_];
+    l.transfers_lb_ = l.transfers_ + lb.transfers[l.node_->_id];
   }
 };
 

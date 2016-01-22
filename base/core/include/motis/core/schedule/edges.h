@@ -44,6 +44,8 @@ struct edge_cost {
   uint8_t slot;
 };
 
+const edge_cost NO_EDGE = edge_cost();
+
 class edge {
 public:
   enum type {

@@ -7,6 +7,8 @@
 #include "boost/icl/interval_set.hpp"
 
 namespace motis {
+namespace routing {
+namespace output {
 
 template <typename T>
 class interval_map {
@@ -42,4 +44,6 @@ private:
   std::map<T, boost::icl::interval_set<int>> attributes;
 };
 
+}  // namespace output
+}  // namespace routing
 }  // namespace motis

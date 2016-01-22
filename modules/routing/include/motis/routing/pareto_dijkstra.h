@@ -6,8 +6,10 @@
 #include <unordered_map>
 
 #include "motis/routing/statistics.h"
+#include "motis/routing/memory_manager.h"
 
 namespace motis {
+namespace routing {
 
 const bool FORWARDING = true;
 
@@ -25,15 +27,16 @@ public:
                   std::vector<Label*> const& start_labels,
                   std::unordered_map<node const*, std::vector<edge>> const&
                       additional_edges,
-                  LowerBounds& lower_bounds, memory_manager<Label>& label_store)
+                  LowerBounds& lower_bounds, memory_manager& label_store)
       : _goal(goal),
         _node_labels(node_count),
-        _queue(std::begin(start_labels), std::end(start_labels)),
+        _queue(begin(start_labels), end(start_labels)),
         _additional_edges(additional_edges),
         _lower_bounds(lower_bounds),
-        _label_store(label_store) {
+        _label_store(label_store),
+        _max_labels(label_store.size() / sizeof(Label)) {
     for (auto const& start_label : start_labels) {
-      _node_labels[start_label->_node->_id].emplace_back(start_label);
+      _node_labels[start_label->node_->_id].emplace_back(start_label);
     }
   }
 
@@ -42,8 +45,8 @@ public:
     _stats.labels_created = _label_store.used_size();
 
     while (!_queue.empty() || _equals.size() != 0) {
-      if ((_stats.labels_created > (MAX_LABELS / 2) && _results.empty()) ||
-          _stats.labels_created > MAX_LABELS) {
+      if ((_stats.labels_created > (_max_labels / 2) && _results.empty()) ||
+          _stats.labels_created > _max_labels) {
         _stats.max_label_quit = true;
         filter_results();
         return _results;
@@ -65,7 +68,7 @@ public:
       }
 
       // is label already made obsolete
-      if (label->_dominated) {
+      if (label->dominated_) {
         _stats.labels_dominated_by_later_labels++;
         continue;
       }
@@ -75,16 +78,16 @@ public:
         continue;
       }
 
-      if (_goal == label->_node->_station_node) continue;
+      if (_goal == label->node_->_station_node) continue;
 
-      auto it = _additional_edges.find(label->_node);
+      auto it = _additional_edges.find(label->node_);
       if (it != std::end(_additional_edges)) {
         for (auto const& additional_edge : it->second) {
           create_new_label(label, additional_edge);
         }
       }
 
-      for (auto const& edge : label->_node->_edges) {
+      for (auto const& edge : label->node_->_edges) {
         create_new_label(label, edge);
       }
     }
@@ -104,7 +107,7 @@ private:
       return;
     }
 
-    auto new_label = new (label_store.create()) Label(blank);
+    auto new_label = new (_label_store.create<Label>()) Label(blank);
     ++_stats.labels_created;
 
     if (edge.get_destination() == _goal) {
@@ -137,9 +140,9 @@ private:
   bool add_result(Label* terminal_label) {
     for (auto it = _results.begin(); it != _results.end();) {
       Label* o = *it;
-      if (terminal_label->dominates(*o, true)) {
+      if (terminal_label->dominates_hard(*o)) {
         it = _results.erase(it);
-      } else if (o->dominates(*terminal_label, true)) {
+      } else if (o->dominates_hard(*terminal_label)) {
         return false;
       } else {
         ++it;
@@ -160,7 +163,7 @@ private:
 
       if (new_label->dominates(*o, false)) {
         it = dest_labels.erase(it);
-        o->_dominated = true;
+        o->dominated_ = true;
       } else {
         ++it;
       }
@@ -174,7 +177,7 @@ private:
 
   bool dominated_by_results(Label* label) {
     for (auto const& result : _results) {
-      if (result->dominates(*label, true)) {
+      if (result->dominates_hard(*label)) {
         return true;
       }
     }
@@ -207,8 +210,10 @@ private:
   std::unordered_map<node const*, std::vector<edge>> _additional_edges;
   std::vector<Label*> _results;
   LowerBounds& _lower_bounds;
-  memory_manager<Label>& _label_store;
+  memory_manager& _label_store;
   statistics _stats;
+  int _max_labels;
 };
 
+}  // namespace routing
 }  // namespace motis

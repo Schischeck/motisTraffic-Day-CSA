@@ -3,7 +3,6 @@
 #include "motis/module/module.h"
 
 #include "motis/routing/memory_manager.h"
-#include "motis/routing/label.h"
 #include "motis/routing/arrival.h"
 
 namespace motis {
@@ -34,7 +33,7 @@ private:
                             path_el_cb);
 
   int max_label_count_;
-  std::unique_ptr<memory_manager<label>> label_store_;
+  std::unique_ptr<memory_manager> label_store_;
 };
 
 }  // namespace routing
