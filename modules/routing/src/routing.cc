@@ -29,14 +29,14 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : max_label_count_(8 * 1024 * 1024) {}
+routing::routing() : label_bytes_(1024 * 1024 * 1024) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
   // clang-format off
   desc.add_options()
     (LABEL_MEMORY_NUM_BYTES,
-     po::value<int>(&max_label_count_)->default_value(max_label_count_),
+     po::value<std::size_t>(&label_bytes_)->default_value(label_bytes_),
      "size of the label store in bytes");
   // clang-format on
   return desc;
@@ -69,7 +69,7 @@ void routing::read_path_element(StationPathElement const* el,
 }
 
 void routing::init() {
-  label_store_ = make_unique<memory_manager>(max_label_count_);
+  label_store_ = make_unique<memory_manager>(label_bytes_);
 }
 
 void routing::handle_station_guess(msg_ptr res, error_code e,

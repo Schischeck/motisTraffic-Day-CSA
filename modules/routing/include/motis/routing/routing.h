@@ -32,7 +32,7 @@ private:
   void handle_station_guess(motis::module::msg_ptr, boost::system::error_code,
                             path_el_cb);
 
-  int max_label_count_;
+  std::size_t label_bytes_;
   std::unique_ptr<memory_manager> label_store_;
 };
 

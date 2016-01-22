@@ -140,9 +140,9 @@ private:
   bool add_result(Label* terminal_label) {
     for (auto it = _results.begin(); it != _results.end();) {
       Label* o = *it;
-      if (terminal_label->dominates_hard(*o)) {
+      if (terminal_label->dominates(*o)) {
         it = _results.erase(it);
-      } else if (o->dominates_hard(*terminal_label)) {
+      } else if (o->dominates(*terminal_label)) {
         return false;
       } else {
         ++it;
@@ -177,7 +177,7 @@ private:
 
   bool dominated_by_results(Label* label) {
     for (auto const& result : _results) {
-      if (result->dominates_hard(*label)) {
+      if (result->dominates(*label)) {
         return true;
       }
     }
@@ -212,7 +212,7 @@ private:
   LowerBounds& _lower_bounds;
   memory_manager& _label_store;
   statistics _stats;
-  int _max_labels;
+  std::size_t _max_labels;
 };
 
 }  // namespace routing

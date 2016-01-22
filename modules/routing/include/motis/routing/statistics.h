@@ -7,8 +7,8 @@ namespace routing {
 
 struct statistics {
   statistics()
-      : labels_popped(0),
-        labels_created(0),
+      : labels_created(0),
+        labels_popped(0),
         labels_dominated_by_results(0),
         labels_filtered(0),
         labels_dominated_by_former_labels(0),
@@ -20,7 +20,8 @@ struct statistics {
         labels_equals_popped(0),
         max_label_quit(false) {}
 
-  int labels_popped, labels_created, labels_dominated_by_results;
+  std::size_t labels_created;
+  int labels_popped, labels_dominated_by_results;
   int labels_filtered, labels_dominated_by_former_labels,
       labels_dominated_by_later_labels;
   int labels_popped_until_first_result, labels_popped_after_last_result;
