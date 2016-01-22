@@ -24,22 +24,19 @@ struct travel_time_updater {
 };
 
 struct travel_time_dominance {
-  template <bool ByTerminal, typename Label>
+  template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(ByTerminal ? a.travel_time_lb_ > b.travel_time_lb_
-                              : a.travel_time_ > b.travel_time_),
-          smaller_(ByTerminal ? a.travel_time_lb_ < b.travel_time_lb_
-                              : a.travel_time_ < b.travel_time_) {}
+        : greater_(a.travel_time_lb_ > b.travel_time_lb_),
+          smaller_(a.travel_time_lb_ < b.travel_time_lb_) {}
     inline bool greater() const { return greater_; }
     inline bool smaller() const { return smaller_; }
     bool greater_, smaller_;
   };
 
-  template <bool ByTerminal, typename Label>
-  static domination_info<ByTerminal, Label> dominates(Label const& a,
-                                                      Label const& b) {
-    return domination_info<ByTerminal, Label>(a, b);
+  template <typename Label>
+  static domination_info<Label> dominates(Label const& a, Label const& b) {
+    return domination_info<Label>(a, b);
   }
 };
 

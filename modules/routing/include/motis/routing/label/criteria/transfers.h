@@ -26,22 +26,19 @@ struct transfers_updater {
 };
 
 struct transfers_dominance {
-  template <bool ByTerminal, typename Label>
+  template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(ByTerminal ? a.transfers_lb_ > b.transfers_lb_
-                              : a.transfers_ > b.transfers_),
-          smaller_(ByTerminal ? a.transfers_lb_ < b.transfers_lb_
-                              : a.transfers_ < b.transfers_) {}
+        : greater_(a.transfers_lb_ > b.transfers_lb_),
+          smaller_(a.transfers_lb_ < b.transfers_lb_) {}
     inline bool greater() const { return greater_; }
     inline bool smaller() const { return smaller_; }
     bool greater_, smaller_;
   };
 
-  template <bool ByTerminal, typename Label>
-  static domination_info<ByTerminal, Label> dominates(Label const& a,
-                                                      Label const& b) {
-    return domination_info<ByTerminal, Label>(a, b);
+  template <typename Label>
+  static domination_info<Label> dominates(Label const& a, Label const& b) {
+    return domination_info<Label>(a, b);
   }
 };
 

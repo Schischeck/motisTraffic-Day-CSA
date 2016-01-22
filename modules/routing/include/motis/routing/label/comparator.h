@@ -10,7 +10,7 @@ template <typename FirstDominator, typename... RestDominators>
 struct comparator<FirstDominator, RestDominators...> {
   template <typename Label>
   static bool lexicographical_compare(Label const& a, Label const& b) {
-    auto d = FirstDominator::dominates<true>(a, b);
+    auto d = FirstDominator::dominates(a, b);
     if (d.smaller()) {
       return true;
     } else if (d.greater()) {

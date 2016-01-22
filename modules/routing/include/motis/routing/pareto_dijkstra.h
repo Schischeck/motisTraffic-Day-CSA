@@ -157,11 +157,11 @@ private:
     auto& dest_labels = _node_labels[dest->_id];
     for (auto it = dest_labels.begin(); it != dest_labels.end();) {
       Label* o = *it;
-      if (o->dominates(*new_label, false)) {
+      if (o->dominates(*new_label)) {
         return false;
       }
 
-      if (new_label->dominates(*o, false)) {
+      if (new_label->dominates(*o)) {
         it = dest_labels.erase(it);
         o->dominated_ = true;
       } else {

@@ -41,11 +41,11 @@ struct label : public Data {
     if (start_ < o.start_ || now_ > o.now_) {
       return false;
     }
-    return Dominance::dominates<false>(false, *this, o);
+    return Dominance::dominates(false, *this, o);
   }
 
   bool dominates_hard(label const& o) const {
-    return Dominance::dominates<true>(false, *this, o);
+    return Dominance::dominates(false, *this, o);
   }
 
   bool operator<(label const& o) const {
