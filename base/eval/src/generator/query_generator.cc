@@ -9,6 +9,7 @@
 
 #include "conf/options_parser.h"
 
+#include "motis/core/schedule/time.h"
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/module/message.h"
@@ -54,6 +55,62 @@ public:
   std::string target_file;
 };
 
+struct search_interval_generator {
+  search_interval_generator(time_t begin, time_t end)
+      : begin_(begin), rng_(rd_()), d_(generate_distribution(begin, end)) {
+    rng_.seed(std::time(nullptr));
+  }
+
+  std::pair<time_t, time_t> random_interval() {
+    auto begin = begin_ + d_(rng_) * 3600;
+    return {begin, begin + 3600};
+  }
+
+private:
+  static std::discrete_distribution<int> generate_distribution(time_t begin,
+                                                               time_t end) {
+    auto constexpr kTwoHours = 2 * 3600;
+    static const int prob[] = {
+        0,  // 01: 00:00 - 01:00
+        0,  // 02: 01:00 - 02:00
+        0,  // 03: 02:00 - 03:00
+        0,  // 04: 03:00 - 04:00
+        0,  // 05: 04:00 - 05:00
+        1,  // 06: 05:00 - 06:00
+        2,  // 07: 06:00 - 07:00
+        3,  // 08: 07:00 - 08:00
+        3,  // 09: 08:00 - 09:00
+        2,  // 10: 09:00 - 10:00
+        1,  // 11: 10:00 - 11:00
+        1,  // 12: 11:00 - 12:00
+        1,  // 13: 12:00 - 13:00
+        1,  // 14: 13:00 - 14:00
+        2,  // 15: 14:00 - 15:00
+        3,  // 16: 15:00 - 16:00
+        3,  // 17: 16:00 - 17:00
+        3,  // 18: 17:00 - 18:00
+        3,  // 19: 18:00 - 19:00
+        2,  // 20: 19:00 - 20:00
+        1,  // 21: 20:00 - 21:00
+        0,  // 22: 21:00 - 22:00
+        0,  // 23: 22:00 - 23:00
+        0  // 24: 23:00 - 24:00
+    };
+    std::vector<int> v;
+    for (time_t t = begin, hour = 0; t < end - kTwoHours; t += 3600, ++hour) {
+      int h = hour % 24;
+      v.push_back(prob[h]);
+    }
+    return std::discrete_distribution<int>(std::begin(v), std::end(v));
+  }
+
+  time_t begin_;
+  std::random_device rd_;
+  std::mt19937 rng_;
+  std::vector<int> hour_prob_;
+  std::discrete_distribution<int> d_;
+};
+
 static int rand_in(int start, int end) {
   static bool initialized = false;
   static std::mt19937 rng;
@@ -91,29 +148,48 @@ std::string query(std::time_t interval_start, std::time_t interval_end,
   return s;
 }
 
-int dep_event_sum(station const& s) {
-  return std::accumulate(begin(s.dep_class_events), end(s.dep_class_events), 0);
+bool has_events(edge const& e, motis::time from, motis::time to) {
+  auto con = e.get_connection(from);
+  return con != nullptr && con->d_time <= to;
 }
 
-int arr_event_sum(station const& s) {
-  return std::accumulate(begin(s.arr_class_events), end(s.arr_class_events), 0);
-}
-
-station* random_station(std::vector<station_ptr> const& stations) {
-  auto first = std::next(begin(stations), 1);
-  auto last = std::next(begin(stations), stations.size() - 1);
-  return rand_in(first, last)->get();
-}
-
-std::pair<std::string, std::string> random_eva_pair(
-    std::vector<station_ptr> const& stations) {
-  std::pair<station*, station*> p = std::make_pair(nullptr, nullptr);
-  while (p.first == p.second || dep_event_sum(*p.first) == 0 ||
-         arr_event_sum(*p.second) == 0) {
-    p.first = random_station(stations);
-    p.second = random_station(stations);
+bool has_events(station_node const& s, motis::time from, motis::time to) {
+  for (auto const& r : s.get_route_nodes()) {
+    for (auto const& e : r->_edges) {
+      if (!e.empty() && has_events(e, from, to)) {
+        return true;
+      }
+    }
   }
-  return std::make_pair(p.first->eva_nr, p.second->eva_nr);
+  return false;
+}
+
+std::string random_station_id(schedule const& sched, time_t interval_start,
+                              time_t interval_end) {
+  auto first = std::next(begin(sched.station_nodes), 2);
+  auto last = end(sched.station_nodes);
+
+  auto motis_interval_start =
+      unix_to_motistime(sched.schedule_begin_, interval_start);
+  auto motis_interval_end =
+      unix_to_motistime(sched.schedule_begin_, interval_end);
+
+  station_node const* s;
+  do {
+    s = rand_in(first, last)->get();
+  } while (!has_events(*s, motis_interval_start, motis_interval_end));
+  return sched.stations[s->_id]->eva_nr;
+}
+
+std::pair<std::string, std::string> random_station_ids(schedule const& sched,
+                                                       time_t interval_start,
+                                                       time_t interval_end) {
+  std::string from, to;
+  do {
+    from = random_station_id(sched, interval_start, interval_end);
+    to = random_station_id(sched, interval_start, interval_end);
+  } while (from == to);
+  return std::make_pair(from, to);
 }
 
 int main(int argc, char** argv) {
@@ -145,14 +221,14 @@ int main(int argc, char** argv) {
   instance.init_schedule(dataset_opt);
 
   auto const& sched = *instance.schedule_;
-  int total_seconds = sched.schedule_end_ - sched.schedule_begin_ -
-                      (SCHEDULE_OFFSET_MINUTES * 60);
+  search_interval_generator interval_gen(
+      sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
+      sched.schedule_end_);
 
   for (int i = 0; i < generator_opt.query_count; ++i) {
-    auto interval_start = sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60 +
-                          rand_in(0, total_seconds);
-    auto interval_end = interval_start + 3600;
-    auto evas = random_eva_pair(sched.stations);
-    out << query(interval_start, interval_end, evas.first, evas.second) << "\n";
+    auto interval = interval_gen.random_interval();
+    auto evas = random_station_ids(sched, interval.first, interval.second);
+    out << query(interval.first, interval.second, evas.first, evas.second)
+        << "\n";
   }
 }
