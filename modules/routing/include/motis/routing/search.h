@@ -37,6 +37,7 @@ typedef label<label_data<travel_time, transfers>,
               initializer<travel_time_initializer, transfers_initializer>,
               updater<travel_time_updater, transfers_updater>,
               dominance<travel_time_dominance, transfers_dominance>,
+              dominance<travel_time_alpha_dominance, transfers_dominance>,
               comparator<travel_time_dominance, transfers_dominance>> my_label;
 
 class search {

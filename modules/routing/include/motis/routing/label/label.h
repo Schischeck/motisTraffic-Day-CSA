@@ -7,7 +7,7 @@ template <typename... DataClass>
 struct label_data : public DataClass... {};
 
 template <typename Data, typename Init, typename Updater, typename Dominance,
-          typename Comparator>
+          typename PostSearchDominance, typename Comparator>
 struct label : public Data {
   label() = default;
 
@@ -44,8 +44,8 @@ struct label : public Data {
     return Dominance::dominates(false, *this, o);
   }
 
-  bool dominates_hard(label const& o) const {
-    return Dominance::dominates(false, *this, o);
+  bool dominates_post_search(label const& o) const {
+    return PostSearchDominance::dominates(false, *this, o);
   }
 
   bool operator<(label const& o) const {

@@ -40,5 +40,34 @@ struct travel_time_dominance {
   }
 };
 
+struct travel_time_alpha_dominance {
+  template <typename Label>
+  struct domination_info {
+    domination_info(Label const& a, Label const& b)
+        : travel_time_a_(a.travel_time_),
+          travel_time_b_(b.travel_time_),
+          dist_(std::min(std::abs(a.start_ - b.start_),
+                         std::abs(a.now_ - b.now_))) {}
+
+    inline bool greater() const {
+      auto a = 0.5f * (static_cast<double>(travel_time_b_) / travel_time_a_);
+      return travel_time_b_ + a * dist_ < travel_time_a_;
+    }
+
+    inline bool smaller() const {
+      auto a = 0.5f * (static_cast<double>(travel_time_a_) / travel_time_b_);
+      return travel_time_a_ + a * dist_ < travel_time_b_;
+    }
+
+    time travel_time_a_, travel_time_b_;
+    time dist_;
+  };
+
+  template <typename Label>
+  static domination_info<Label> dominates(Label const& a, Label const& b) {
+    return domination_info<Label>(a, b);
+  }
+};
+
 }  // namespace routing
 }  // namespace motis
