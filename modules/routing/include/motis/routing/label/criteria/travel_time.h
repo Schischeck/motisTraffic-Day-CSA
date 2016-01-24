@@ -69,5 +69,21 @@ struct travel_time_alpha_dominance {
   }
 };
 
+struct travel_time_filter {
+  template <typename Label>
+  static bool is_filtered(Label const& l) {
+    return l.travel_time_lb_ > 1440;
+  }
+};
+
+struct waiting_time_filter {
+  template <typename Label>
+  static bool is_filtered(Label const& l) {
+    auto const& c = l.connection_;
+    unsigned con_time = c != nullptr ? c->a_time - c->d_time : 0;
+    return l.travel_time_ - l.pred_->travel_time_ - con_time > 200;
+  }
+};
+
 }  // namespace routing
 }  // namespace motis

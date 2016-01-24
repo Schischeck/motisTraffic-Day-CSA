@@ -6,8 +6,8 @@ namespace routing {
 template <typename... DataClass>
 struct label_data : public DataClass... {};
 
-template <typename Data, typename Init, typename Updater, typename Dominance,
-          typename PostSearchDominance, typename Comparator>
+template <typename Data, typename Init, typename Updater, typename Filter,
+          typename Dominance, typename PostSearchDominance, typename Comparator>
 struct label : public Data {
   label() = default;
 
@@ -34,7 +34,7 @@ struct label : public Data {
     l.connection_ = ec.connection;
     l.now_ += ec.time;
     Updater::update(l, ec, lb);
-    return true;
+    return !Filter::is_filtered(l);
   }
 
   bool dominates(label const& o) const {

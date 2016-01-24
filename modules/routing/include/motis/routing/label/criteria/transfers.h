@@ -42,5 +42,12 @@ struct transfers_dominance {
   }
 };
 
+struct transfers_filter {
+  template <typename Label>
+  static bool is_filtered(Label const& l) {
+    return l.transfers_lb_ > 6;
+  }
+};
+
 }  // namespace routing
 }  // namespace motis
