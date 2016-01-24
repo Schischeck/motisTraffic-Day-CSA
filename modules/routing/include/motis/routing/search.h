@@ -16,13 +16,21 @@ namespace motis {
 
 struct schedule;
 
+struct search_result {
+  search_result() = default;
+  search_result(pareto_dijkstra::statistics stats,
+                std::vector<journey> journeys)
+      : stats(stats), journeys(std::move(journeys)) {}
+  pareto_dijkstra::statistics stats;
+  std::vector<journey> journeys;
+};
+
 class search {
 public:
   search(schedule const& schedule, memory_manager<label>& label_store);
 
-  std::vector<journey> get_connections(
-      arrival from, arrival to, time interval_start, time interval_end,
-      bool ontrip, pareto_dijkstra::statistics* stats = nullptr);
+  search_result get_connections(arrival from, arrival to, time interval_start,
+                                time interval_end, bool ontrip);
 
   void generate_ontrip_start_labels(station_node const* start_station,
                                     time const start_time,

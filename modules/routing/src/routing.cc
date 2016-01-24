@@ -130,15 +130,16 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
     search s(lock.sched(), *label_store_);
-    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
-                                      req->type() != Type_PreTrip);
+    auto result = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
+                                    req->type() != Type_PreTrip);
 
     LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
               << lock.sched().stations[path->at(1)[0].station]->name << " "
               << "(" << format_time(i_begin) << ", " << format_time(i_end)
-              << ") -> " << journeys.size() << " connections found";
+              << ") -> " << result.journeys.size() << " connections found";
 
-    auto resp = journeys_to_message(journeys);
+    auto resp =
+        journeys_to_message(result.journeys, result.stats.pareto_dijkstra);
     return dispatch(resp, 0, [resp, cb](msg_ptr annotated, error_code e) {
       if (e == motis::module::error::no_module_capable_of_handling) {
         return cb(resp, error::ok);  // connectionchecker not available

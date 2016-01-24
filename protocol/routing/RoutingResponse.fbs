@@ -104,5 +104,6 @@ table Connection {
 }
 
 table RoutingResponse {
+  pareto_dijkstra_timing: uint;
   connections:[Connection];
 }

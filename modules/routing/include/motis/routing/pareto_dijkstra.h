@@ -51,6 +51,7 @@ public:
     int transfers_l_b;
     int price_l_b;
     int total_calculation_time;
+    int pareto_dijkstra;
 
     friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
       return o << "stats:\n"
