@@ -17,7 +17,7 @@ set_target_properties(motis-analyzer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAK
 
 file(GLOB_RECURSE motis-comparator-files src/comparator/*.cc)
 add_executable(motis-comparator EXCLUDE_FROM_ALL ${motis-comparator-files})
-target_link_libraries(motis-comparator ${Boost_SYSTEM_LIBRARY} conf)
+target_link_libraries(motis-comparator ${Boost_SYSTEM_LIBRARY} conf motis-module)
 set_target_properties(motis-comparator PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 set_target_properties(motis-comparator PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 

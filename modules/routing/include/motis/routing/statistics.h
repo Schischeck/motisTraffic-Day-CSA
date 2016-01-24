@@ -18,7 +18,12 @@ struct statistics {
         priority_queue_max_size(0),
         start_label_count(0),
         labels_equals_popped(0),
-        max_label_quit(false) {}
+        max_label_quit(false),
+        travel_time_l_b(0),
+        transfers_l_b(0),
+        price_l_b(0),
+        total_calculation_time(0),
+        pareto_dijkstra(0) {}
 
   std::size_t labels_created;
   int labels_popped, labels_dominated_by_results;
@@ -33,6 +38,7 @@ struct statistics {
   int transfers_l_b;
   int price_l_b;
   int total_calculation_time;
+  int pareto_dijkstra;
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     return o << "stats:\n"

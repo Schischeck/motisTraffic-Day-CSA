@@ -39,9 +39,9 @@ void remove_intersection(arrival& from, arrival& to) {
 search::search(schedule const& schedule, memory_manager& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
-std::vector<journey> search::get_connections(arrival from, arrival to,
-                                             time interval_start,
-                                             time interval_end, bool ontrip) {
+search_result search::get_connections(arrival from, arrival to,
+                                      time interval_start, time interval_end,
+                                      bool ontrip) {
   _label_store.reset();
   remove_intersection(from, to);
 
@@ -69,7 +69,7 @@ std::vector<journey> search::get_connections(arrival from, arrival to,
   if (lb.travel_time[DUMMY_SOURCE_IDX] ==
       std::numeric_limits<uint32_t>::max()) {
     LOG(logging::error) << "no path from source to target found";
-    return {};
+    return search_result();
   }
 
   std::vector<my_label*> start_labels;
@@ -110,7 +110,13 @@ std::vector<journey> search::get_connections(arrival from, arrival to,
   pareto_dijkstra<my_label, lower_bounds> pd(
       _sched.node_count, _sched.station_nodes[DUMMY_TARGET_IDX].get(),
       start_labels, additional_edges, lb, _label_store);
+
+  MOTIS_START_TIMING(pareto_dijkstra_timing);
   auto& results = pd.search();
+  MOTIS_STOP_TIMING(pareto_dijkstra_timing);
+
+  auto stats = pd.get_statistics();
+  stats.pareto_dijkstra = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
   std::vector<journey> journeys;
   journeys.resize(results.size());
@@ -119,7 +125,7 @@ std::vector<journey> search::get_connections(arrival from, arrival to,
                    return output::labels_to_journey(label, _sched);
                  });
 
-  return journeys;
+  return search_result(stats, journeys);
 }
 
 void search::generate_ontrip_start_labels(

@@ -96,7 +96,7 @@ public:
     return _results;
   }
 
-  statistics get_statistics() const;
+  statistics get_statistics() const { return _stats; };
 
 private:
   void create_new_label(Label* l, edge const& edge) {

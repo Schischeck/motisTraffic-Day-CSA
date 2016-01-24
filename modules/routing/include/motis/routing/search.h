@@ -10,7 +10,7 @@
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/arrival.h"
-
+#include "motis/routing/statistics.h"
 #include "motis/routing/label/label.h"
 #include "motis/routing/label/initializer.h"
 #include "motis/routing/label/updater.h"
@@ -25,21 +25,26 @@ struct schedule;
 
 namespace routing {
 
+struct search_result {
+  search_result() = default;
+  search_result(statistics stats, std::vector<journey> journeys)
+      : stats(stats), journeys(std::move(journeys)) {}
+  statistics stats;
+  std::vector<journey> journeys;
+};
+
 typedef label<label_data<travel_time, transfers>,
               initializer<travel_time_initializer, transfers_initializer>,
               updater<travel_time_updater, transfers_updater>,
               dominance<travel_time_dominance, transfers_dominance>,
               comparator<travel_time_dominance, transfers_dominance>> my_label;
 
-struct statistics;
-
 class search {
 public:
   search(schedule const& schedule, memory_manager& label_store);
 
-  std::vector<journey> get_connections(arrival from, arrival to,
-                                       time interval_start, time interval_end,
-                                       bool ontrip);
+  search_result get_connections(arrival from, arrival to, time interval_start,
+                                time interval_end, bool ontrip);
 
   void generate_ontrip_start_labels(station_node const* start_station,
                                     time const start_time,
