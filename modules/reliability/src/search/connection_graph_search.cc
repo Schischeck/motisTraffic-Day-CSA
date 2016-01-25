@@ -158,12 +158,14 @@ void handle_base_response(motis::module::msg_ptr msg,
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
-  try {
-    for (auto const& j : journeys) {
+  for (auto const& j : journeys) {
+    try {
       init_connection_graph_from_base_journey(*context, j);
+    } catch (std::exception& e) {
+      LOG(logging::error) << e.what();
     }
-  } catch (std::exception& e) {
-    LOG(logging::error) << e.what();
+  }
+  if (context->connection_graphs_.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 

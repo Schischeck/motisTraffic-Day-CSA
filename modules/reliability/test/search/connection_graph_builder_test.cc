@@ -189,7 +189,7 @@ journey create_journey1() {
 
 TEST(reliability_connection_graph_builder, split_journey) {
   auto const journeys = detail::split_journey(create_journey1());
-  ASSERT_EQ(journeys.size(), 3);
+  ASSERT_EQ(3, journeys.size());
   {
     auto const& journey = journeys[0];
     ASSERT_EQ(journey.duration, 10);

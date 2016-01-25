@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "motis/core/common/logging.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
@@ -85,11 +86,32 @@ std::pair<journey, journey> split_journey(journey const& j,
   return std::make_pair(j1, j2);
 }
 
+bool no_public_transport_after_this_stop(journey const& j,
+                                         unsigned int const stop_idx) {
+  auto const& transport_it =
+      std::find_if(j.transports.begin(), j.transports.end(),
+                   [stop_idx](journey::transport const& t) {
+                     return t.from <= stop_idx && t.to > stop_idx;
+                   });
+  if (transport_it == j.transports.end()) {
+    LOG(logging::error) << "Transport not found!";
+    return true;
+  }
+
+  auto const& public_transport_it = std::find_if(
+      transport_it, j.transports.end(), [](journey::transport const& t) {
+        return t.type == journey::transport::PublicTransport;
+      });
+
+  return public_transport_it == j.transports.end();
+}
+
 void split_journey(std::vector<journey>& journeys) {
   auto const& stop =
       std::find_if(journeys.back().stops.begin(), journeys.back().stops.end(),
                    [](journey::stop const& s) { return s.interchange; });
-  if (stop == journeys.back().stops.end()) {
+  if (stop == journeys.back().stops.end() ||
+      no_public_transport_after_this_stop(journeys.back(), stop->index)) {
     return;
   }
   auto splitted_journey = split_journey(journeys.back(), stop->index);
