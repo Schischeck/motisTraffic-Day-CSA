@@ -62,10 +62,6 @@ bool db_distributions::get_travel_time_distributions(
     if (mappings_vector_it != distribution_mappings_.end()) {
       get_distributions(travel_time, to_departure_delay,
                         mappings_vector_it->second, distributions);
-      if (family[0] == 'B' || family[0] == 'b')
-        LOG(logging::info) << distributions.size() << " dists for " << family
-                           << " " << travel_time << " " << to_departure_delay
-                           << " CLASS " << distribution_class << std::endl;
       return distributions.size() == to_departure_delay + 1;
     }
   }
