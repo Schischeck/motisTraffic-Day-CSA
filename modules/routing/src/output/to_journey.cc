@@ -10,6 +10,10 @@ namespace motis {
 namespace routing {
 namespace output {
 
+int output_train_nr(uint32_t const& train_nr, uint32_t original_train_nr) {
+  return train_nr <= 999999 ? train_nr : original_train_nr;
+}
+
 journey::transport generate_journey_transport(
     unsigned int from, unsigned int to, connection_info const* con_info,
     schedule const& sched, unsigned int route_id = 0, duration duration = 0,
@@ -37,8 +41,7 @@ journey::transport generate_journey_transport(
 
     line_identifier = con_info->line_identifier;
 
-    train_nr = con_info->train_nr <= 999999 ? con_info->train_nr
-                                            : con_info->original_train_nr;
+    train_nr = output_train_nr(con_info->train_nr, con_info->original_train_nr);
     if (train_nr != 0) {
       print_train_nr = boost::lexical_cast<std::string>(train_nr);
     } else if (train_nr == 0 && !line_identifier.empty()) {
@@ -97,8 +100,10 @@ std::vector<journey::transport> generate_journey_transports(
     schedule const& sched) {
   struct con_info_cmp {
     bool operator()(connection_info const* a, connection_info const* b) {
-      return std::tie(a->line_identifier, a->family, a->train_nr, a->dir_) <
-             std::tie(b->line_identifier, b->family, b->train_nr, b->dir_);
+      auto train_nr_a = output_train_nr(a->train_nr, a->original_train_nr);
+      auto train_nr_b = output_train_nr(b->train_nr, b->original_train_nr);
+      return std::tie(a->line_identifier, a->family, train_nr_a, a->dir_) <
+             std::tie(b->line_identifier, b->family, train_nr_b, b->dir_);
     }
   };
 
