@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdlib>
 #include <memory>
 
@@ -17,7 +18,7 @@ public:
 
   template <typename T>
   T* create() {
-    assert(next_position_ <= memory_buffer_.get() + size);
+    assert(next_position_ <= memory_buffer_.get() + size());
     auto el = (T*)next_position_;
     next_position_ += sizeof(T);
     return el;
