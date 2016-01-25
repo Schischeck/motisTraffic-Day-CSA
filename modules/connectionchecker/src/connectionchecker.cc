@@ -10,6 +10,7 @@
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/schedule/edges.h"
 
 #include "motis/connectionchecker/error.h"
 
@@ -34,11 +35,16 @@ time scheduled_dep_time(hash_map<graph_event, delay_info*> const& graph_to_di,
   int route_id = -1;
   for (auto const& rn : node->get_route_nodes()) {
     for (auto const& e : rn->_edges) {
-      if (!e.empty() &&
-          e.get_connection(t)->_full_con->con_info->train_nr == train_nr) {
-        route_id = rn->_route;
-        goto route_id_found;
+      if (e.type() != edge::ROUTE_EDGE) {
+        continue;
       }
+      auto conn = e.get_connection(t);
+      if (conn == nullptr || conn->_full_con->con_info->train_nr != train_nr) {
+        continue;
+      }
+
+      route_id = rn->_route;
+      goto route_id_found;
     }
   }
 route_id_found:
@@ -55,12 +61,16 @@ time scheduled_arr_time(hash_map<graph_event, delay_info*> const& graph_to_di,
   int route_id = -1;
   for (auto const& rn : node->get_route_nodes()) {
     for (auto const& e : rn->_incoming_edges) {
-      if (!e->empty() &&
-          e->get_connection_reverse(t)->_full_con->con_info->train_nr ==
-              train_nr) {
-        route_id = rn->_route;
-        goto route_id_found;
+      if (e->type() != edge::ROUTE_EDGE) {
+        continue;
       }
+      auto conn = e->get_connection_reverse(t);
+      if (conn == nullptr || conn->_full_con->con_info->train_nr != train_nr) {
+        continue;
+      }
+
+      route_id = rn->_route;
+      goto route_id_found;
     }
   }
 route_id_found:
