@@ -40,7 +40,7 @@ TEST(loader_graph_builder_rule_service, search) {
       res->content<routing::RoutingResponse const*>()->connections();
 
   ASSERT_EQ(1, connections->size());
-  for (int i = 0; i < connections->Get(0)->stops()->size() - 2; ++i) {
+  for (unsigned i = 0; i < connections->Get(0)->stops()->size() - 2; ++i) {
     auto stop = connections->Get(0)->stops()->Get(i);
     EXPECT_FALSE(stop->interchange() ? true : false);
   }

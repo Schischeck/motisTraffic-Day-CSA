@@ -37,7 +37,7 @@ state next_state(int s, Label const* c, Label const* n) {
       if (c->connection_ == nullptr) {
         if (n->node_->is_station_node()) {
           return WALK;
-        } else if (n->node_->is_station_node()) {
+        } else if (n->node_->is_route_node()) {
           return IN_CONNECTION_THROUGH;
         } else {
           return AT_STATION;

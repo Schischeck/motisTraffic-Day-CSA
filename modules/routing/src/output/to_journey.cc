@@ -10,11 +10,10 @@ namespace motis {
 namespace routing {
 namespace output {
 
-journey::transport generate_journey_transport(unsigned int from,
-                                              unsigned int to,
-                                              intermediate::transport const& t,
-                                              schedule const& sched,
-                                              unsigned int route_id) {
+journey::transport generate_journey_transport(
+    unsigned int from, unsigned int to, connection_info const* con_info,
+    schedule const& sched, unsigned int route_id = 0, duration duration = 0,
+    int slot = 0) {
   bool walk = false;
   std::string name;
   std::string cat_name;
@@ -22,21 +21,22 @@ journey::transport generate_journey_transport(unsigned int from,
   unsigned clasz = 0;
   unsigned train_nr = 0;
   std::string line_identifier;
-  unsigned duration = t.duration;
-  int slot = -1;
   std::string direction;
   std::string provider;
 
-  if (t.con == nullptr) {
+  if (con_info == nullptr) {
     walk = true;
-    slot = t.slot;
   } else {
     std::string print_train_nr;
-    connection_info const* con_info = t.con->_full_con->con_info;
-    line_identifier = con_info->line_identifier;
+
     cat_id = con_info->family;
-    clasz = t.con->_full_con->clasz;
     cat_name = sched.categories[con_info->family]->name;
+
+    auto clasz_it = sched.classes.find(cat_name);
+    clasz = clasz_it == end(sched.classes) ? 9 : clasz_it->second;
+
+    line_identifier = con_info->line_identifier;
+
     train_nr = con_info->train_nr <= 999999 ? con_info->train_nr
                                             : con_info->original_train_nr;
     if (train_nr != 0) {
@@ -46,12 +46,15 @@ journey::transport generate_journey_transport(unsigned int from,
     } else {
       print_train_nr = "";
     }
+
     if (con_info->dir_ != nullptr) {
       direction = *con_info->dir_;
     }
+
     if (con_info->provider_ != nullptr) {
       provider = con_info->provider_->full_name;
     }
+
     switch (sched.categories[con_info->family]->output_rule) {
       case category::CATEGORY_AND_TRAIN_NUM:
         name = cat_name + " " + print_train_nr;
@@ -92,47 +95,34 @@ journey::transport generate_journey_transport(unsigned int from,
 std::vector<journey::transport> generate_journey_transports(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
-  auto con_info_eq = [](connection_info const* a,
-                        connection_info const* b) -> bool {
-    if (a == nullptr || b == nullptr) {
-      return false;
-    } else {
-      // equals comparison ignoring attributes:
-      return a->line_identifier == b->line_identifier &&
-             a->family == b->family && a->train_nr == b->train_nr;
+  struct con_info_cmp {
+    bool operator()(connection_info const* a, connection_info const* b) {
+      return std::tie(a->line_identifier, a->family, a->train_nr, a->dir_) <
+             std::tie(b->line_identifier, b->family, b->train_nr, b->dir_);
     }
   };
 
   std::vector<journey::transport> journey_transports;
-
-  bool isset_last = false;
-  intermediate::transport const* last = nullptr;
-  connection_info const* last_con_info = nullptr;
-  unsigned from = 1;
-
-  for (auto const& transport : transports) {
-    connection_info const* con_info = nullptr;
-    if (transport.con != nullptr) {
-      con_info = transport.con->_full_con->con_info;
-    }
-
-    if (!con_info_eq(con_info, last_con_info)) {
-      if (last != nullptr && isset_last) {
-        journey_transports.push_back(generate_journey_transport(
-            from, transport.from, *last, sched, last->route_id));
+  interval_map<connection_info const*, con_info_cmp> intervals;
+  for (auto const& t : transports) {
+    if (t.con) {
+      auto con_info = t.con->_full_con->con_info;
+      while (con_info) {
+        intervals.add_entry(con_info, t.from, t.to);
+        con_info = con_info->merged_with;
       }
-
-      isset_last = true;
-      last = &transport;
-      from = transport.from;
+    } else {
+      journey_transports.push_back(generate_journey_transport(
+          t.from, t.to, nullptr, sched, t.duration, t.slot));
     }
-
-    last_con_info = con_info;
   }
 
-  auto back = transports.back();
-  journey_transports.push_back(
-      generate_journey_transport(from, back.to, *last, sched, back.route_id));
+  for (auto const& t : intervals.get_attribute_ranges()) {
+    for (auto const& range : t.second) {
+      journey_transports.push_back(
+          generate_journey_transport(range.from, range.to, t.first, sched));
+    }
+  }
 
   return journey_transports;
 }

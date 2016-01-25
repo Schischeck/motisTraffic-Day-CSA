@@ -15,7 +15,6 @@ struct schedule;
 namespace routing {
 namespace output {
 
-
 template <typename Label>
 journey labels_to_journey(Label const* label, schedule const& sched) {
   journey j;
