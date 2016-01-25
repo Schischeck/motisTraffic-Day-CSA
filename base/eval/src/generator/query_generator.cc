@@ -128,7 +128,7 @@ static It rand_in(It begin, It end) {
   return std::next(begin, rand_in(0, std::distance(begin, end) - 1));
 }
 
-std::string query(std::time_t interval_start, std::time_t interval_end,
+std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
   MessageCreator fbb;
   Interval interval(interval_start, interval_end);
@@ -225,10 +225,10 @@ int main(int argc, char** argv) {
       sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
       sched.schedule_end_);
 
-  for (int i = 0; i < generator_opt.query_count; ++i) {
+  for (int i = 1; i <= generator_opt.query_count; ++i) {
     auto interval = interval_gen.random_interval();
     auto evas = random_station_ids(sched, interval.first, interval.second);
-    out << query(interval.first, interval.second, evas.first, evas.second)
+    out << query(i, interval.first, interval.second, evas.first, evas.second)
         << "\n";
   }
 }

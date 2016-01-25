@@ -23,6 +23,10 @@ struct label : public Data {
 
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
+    if (e.get_destination() == pred_->node_) {
+      return false;
+    }
+
     auto ec = e.get_edge_cost(now_, connection_);
     if (!ec.is_valid()) {
       return false;

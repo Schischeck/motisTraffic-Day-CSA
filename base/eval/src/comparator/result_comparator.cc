@@ -38,12 +38,12 @@ void printEmpty() {
 }
 
 bool printDifferences(response const& r1, response const& r2,
-                      RoutingRequest const*, int id) {
+                      RoutingRequest const*, int line, int id) {
   if (r1.connections == r2.connections) {
     return true;
   }
 
-  std::cout << "ERROR [line = " << id << "] ";
+  std::cout << "ERROR [line = " << line << ", id = " << id << "] ";
   if (r1.connections.size() != r2.connections.size()) {
     std::cout << "#con1 = " << r1.connections.size() << ", "
               << "#con2 = " << r2.connections.size() << " ";
@@ -210,7 +210,8 @@ int main(int argc, char* argv[]) {
 
     if (printDifferences(response(res1->content<RoutingResponse const*>()),
                          response(res2->content<RoutingResponse const*>()),
-                         q->content<RoutingRequest const*>(), q->id())) {
+                         q->content<RoutingRequest const*>(), lineCount,
+                         q->id())) {
       ++matches;
     } else {
       ++mismatches;
