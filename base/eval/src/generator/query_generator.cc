@@ -143,7 +143,11 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
       CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
                            fbb.CreateVector(path))
           .Union());
-  std::string s = make_msg(fbb)->to_json();
+  auto msg = make_msg(fbb);
+
+  msg->msg_->mutate_id(id);
+
+  std::string s = msg->to_json();
   s.erase(std::remove(begin(s), end(s), '\n'), end(s));
   return s;
 }
