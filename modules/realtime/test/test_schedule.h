@@ -20,8 +20,6 @@
 #include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/messages.h"
 
-#define MAX_TEST_LABELS 10000  // MAX_LABELS_WITH_MARGIN
-
 namespace motis {
 namespace realtime {
 namespace test {
@@ -46,7 +44,7 @@ public:
             motis::loader::load_schedule({"modules/realtime/test/test-schedule",
                                           true, false, true, "20150126", 21})),
         _rts(*_schedule),
-        _label_store(MAX_TEST_LABELS),
+        _label_store((size_t)32 * 1042 * 1024),
         _search(*_schedule, _label_store) {
     for (const auto& s : _schedule->stations) {
       _station_map[s->name] = s.get();

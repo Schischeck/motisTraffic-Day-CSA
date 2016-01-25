@@ -107,6 +107,7 @@ std::vector<journey::transport> generate_journey_transports(
     }
   };
 
+  std::map<connection_info const*, int> route_ids;
   std::vector<journey::transport> journey_transports;
   interval_map<connection_info const*, con_info_cmp> intervals;
   for (auto const& t : transports) {
@@ -114,6 +115,7 @@ std::vector<journey::transport> generate_journey_transports(
       auto con_info = t.con->_full_con->con_info;
       while (con_info) {
         intervals.add_entry(con_info, t.from, t.to);
+        route_ids.emplace(con_info, t.route_id);
         con_info = con_info->merged_with;
       }
     } else {
@@ -124,10 +126,15 @@ std::vector<journey::transport> generate_journey_transports(
 
   for (auto const& t : intervals.get_attribute_ranges()) {
     for (auto const& range : t.second) {
-      journey_transports.push_back(
-          generate_journey_transport(range.from, range.to, t.first, sched));
+      journey_transports.push_back(generate_journey_transport(
+          range.from, range.to, t.first, sched, route_ids.at(t.first)));
     }
   }
+
+  std::sort(begin(journey_transports), end(journey_transports),
+            [](journey::transport const& lhs, journey::transport const& rhs) {
+              return lhs.from < rhs.from;
+            });
 
   return journey_transports;
 }
