@@ -24,6 +24,8 @@ struct message {
   message(size_t len, flatbuffers::unique_ptr_t mem, Message* msg, void* buf)
       : len_(len), mem_(std::move(mem)), msg_(msg), buf_(buf) {}
 
+  int id() const { return msg_->id(); }
+
   template <typename T>
   T content() {
     return reinterpret_cast<T>(msg_->content());

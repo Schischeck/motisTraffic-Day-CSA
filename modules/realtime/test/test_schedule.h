@@ -71,9 +71,10 @@ public:
     target.station = to->index;
 
     motis::pareto_dijkstra::statistics stats;
-    std::vector<motis::journey> journeys = _search.get_connections(
-        {start}, {target}, departure_begin, departure_begin + interval, true,
-        false, {}, &stats);
+    auto journeys =
+        _search.get_connections({start}, {target}, departure_begin,
+                                departure_begin + interval, true, false, {})
+            .journeys;
 
     EXPECT_FALSE(stats.max_label_quit);
 
