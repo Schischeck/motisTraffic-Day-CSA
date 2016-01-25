@@ -100,7 +100,6 @@ public:
 
 private:
   void create_new_label(Label* l, edge const& edge) {
-    // use the edge to generate a new label
     Label blank;
     bool created = l->create_label(blank, edge, _lower_bounds);
     if (!created) {
