@@ -84,11 +84,11 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
     start_and_travel_test2_distributions() {
       distribution_.init_one_point(0, 1.0);
     }
-    probability_distribution const& get_start_distribution(
+    std::pair<bool, probability_distribution_cref> get_start_distribution(
         std::string const&) const override {
-      return distribution_;
+      return std::make_pair(true, std::cref(distribution_));
     }
-    void get_travel_time_distributions(
+    bool get_travel_time_distributions(
         std::string const& family, unsigned int const travel_time,
         unsigned int const to_departure_delay,
         std::vector<probability_distribution_cref>& distributions)
@@ -97,7 +97,9 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
         for (unsigned int d = 0; d <= to_departure_delay; d++) {
           distributions.push_back(std::cref(distribution_));
         }
+        return true;
       }
+      return false;
     }
     probability_distribution distribution_;
   } s_t_distributions;

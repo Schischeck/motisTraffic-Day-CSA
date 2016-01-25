@@ -5,15 +5,17 @@
 #include <string>
 
 #include "boost/program_options.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/context.h"
-#include "motis/reliability/distributions/db_distributions.h"
+#include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
@@ -31,41 +33,54 @@ using namespace motis::module;
 namespace po = boost::program_options;
 namespace p = std::placeholders;
 
-#define USE_DB_DISTRIBUTINS "reliability.use_db_distributions"
-#define DB_DISTRIBUTIONS_FOLDER "reliability.db_distributions_folder"
+#define READ_DISTRIBUTINS "reliability.read_distributions"
+#define DISTRIBUTIONS_FOLDERS "reliability.distributions_folders"
 #define HOTELS_FILE "reliability.hotels"
 
 namespace motis {
 namespace reliability {
 
 reliability::reliability()
-    : use_db_distributions_(false),
-      db_distributions_folder_("/data/db_distributions/"),
+    : read_distributions_(false),
+      distributions_folders_(
+          {"/data/db_distributions/train/", "/data/db_distributions/bus/"}),
       hotels_file_("modules/reliability/resources/hotels.csv") {}
 
 po::options_description reliability::desc() {
   po::options_description desc("Reliability Module");
   // clang-format off
   desc.add_options()
-      (USE_DB_DISTRIBUTINS,
-       po::value<bool>(&use_db_distributions_)->default_value(use_db_distributions_),
-       "use DB distributions");
+      (READ_DISTRIBUTINS,
+       po::value<bool>(&read_distributions_)->
+       default_value(read_distributions_),
+       "read start and travel time distributions");
   desc.add_options()
-      (DB_DISTRIBUTIONS_FOLDER,
-       po::value<std::string>(&db_distributions_folder_)->default_value(db_distributions_folder_),
-       "folder containing DB distributions");
+      (DISTRIBUTIONS_FOLDERS,
+       po::value<std::vector<std::string>>(&distributions_folders_)->
+       default_value(distributions_folders_)->multitoken(),
+       "folders containing distributions");
   desc.add_options()
       (HOTELS_FILE,
-       po::value<std::string>(&hotels_file_)->default_value(hotels_file_),
+       po::value<std::string>(&hotels_file_)->
+       default_value(hotels_file_),
        "file containing hotels info");
   // clang-format on
   return desc;
 }
 
 void reliability::print(std::ostream& out) const {
-  out << "  " << USE_DB_DISTRIBUTINS << ": " << use_db_distributions_ << "  "
-      << DB_DISTRIBUTIONS_FOLDER << ": " << db_distributions_folder_ << "  "
+  out << "  " << READ_DISTRIBUTINS << ": " << read_distributions_ << "\n  "
+      << DISTRIBUTIONS_FOLDERS << ": " << distributions_folders_ << "\n  "
       << HOTELS_FILE << ": " << hotels_file_;
+}
+
+std::vector<s_t_distributions_container::parameters>
+get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
+  std::vector<s_t_distributions_container::parameters> param;
+  for (auto const& p : paths) {
+    param.push_back({p, 500, 120});  // TODO: read max travel time from graph
+  }
+  return param;
 }
 
 void reliability::init() {
@@ -74,11 +89,11 @@ void reliability::init() {
   precomputed_distributions_ =
       std::unique_ptr<distributions_container::container>(
           new distributions_container::container);
-  if (use_db_distributions_) {
+  if (read_distributions_) {
     s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
-        new db_distributions(db_distributions_folder_, 500,
-                             120));  // TODO: read max travel time from graph
-    LOG(info) << "Using DB start and travel distributions";
+        new s_t_distributions_container(
+            get_s_t_distributions_parameters(distributions_folders_)));
+    LOG(info) << "Read start and travel distributions from files";
   } else {
     s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
         new start_and_travel_test_distributions({0.8, 0.2}, {0.1, 0.8, 0.1},

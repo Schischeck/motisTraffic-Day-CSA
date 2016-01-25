@@ -20,7 +20,7 @@ void compute_arrival_distribution(
   }
   // if there is no travel distribution for this class,
   // copy this arrival distribution
-  if (data.travel_distributions_.size() == 0) {
+  if (data.travel_distributions_.empty()) {
     arrival_distribution.init(data.departure_info_.distribution_);
     return;
   }

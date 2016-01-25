@@ -9,7 +9,7 @@ TEST(db_distributions, reliability_start_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
   {
-    auto const& pd = db_dists.get_start_distribution("RB");
+    auto const& pd = db_dists.get_start_distribution("RB").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 1);
     ASSERT_TRUE(equal(pd.sum(), 1.0));
@@ -17,7 +17,7 @@ TEST(db_distributions, reliability_start_distributions) {
     ASSERT_TRUE(equal(pd.probability_equal(1), 0.1));
   }
   {
-    auto const& pd = db_dists.get_start_distribution("ICE");
+    auto const& pd = db_dists.get_start_distribution("ICE").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 3);
     ASSERT_TRUE(equal(pd.sum(), 1.0));
@@ -26,14 +26,14 @@ TEST(db_distributions, reliability_start_distributions) {
     ASSERT_TRUE(equal(pd.probability_equal(2), 0.0));
     ASSERT_TRUE(equal(pd.probability_equal(3), 0.1));
   }
-  ASSERT_TRUE(&db_dists.get_start_distribution("RE") ==
-              &db_dists.get_start_distribution("RB"));
-  ASSERT_TRUE(&db_dists.get_start_distribution("IC") ==
-              &db_dists.get_start_distribution("ICE"));
-  ASSERT_FALSE(&db_dists.get_start_distribution("RE") ==
-               &db_dists.get_start_distribution("ICE"));
+  ASSERT_TRUE(&db_dists.get_start_distribution("RE").second.get() ==
+              &db_dists.get_start_distribution("RB").second.get());
+  ASSERT_TRUE(&db_dists.get_start_distribution("IC").second.get() ==
+              &db_dists.get_start_distribution("ICE").second.get());
+  ASSERT_FALSE(&db_dists.get_start_distribution("RE").second.get() ==
+               &db_dists.get_start_distribution("ICE").second.get());
   {
-    auto const& pd = db_dists.get_start_distribution("BUS");
+    auto const& pd = db_dists.get_start_distribution("BUS").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 0);
     ASSERT_TRUE(equal(pd.probability_equal(0), 1.0));
