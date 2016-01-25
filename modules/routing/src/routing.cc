@@ -29,7 +29,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : label_bytes_(1024 * 1024 * 1024) {}
+routing::routing() : label_bytes_((uint64_t) 8 * 1024 * 1024 * 1024) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
