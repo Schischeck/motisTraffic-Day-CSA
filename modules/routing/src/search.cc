@@ -102,11 +102,9 @@ search_result search::get_connections(arrival from, arrival to,
 
       // generate labels at all route nodes
       // for all trains departing in the specified interval
-      generate_start_labels(
-          interval_start, interval_end, station, start_labels,
-          dummy_source_station,
-          s.time_cost + _sched.stations[s.station]->transfer_time, s.price,
-          s.slot, lower_bounds);
+      generate_start_labels(interval_start, interval_end, station, start_labels,
+                            dummy_source_station, s.time_cost, s.price, s.slot,
+                            lower_bounds);
     }
   }
 
