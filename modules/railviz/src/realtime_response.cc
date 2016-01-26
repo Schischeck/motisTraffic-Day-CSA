@@ -5,7 +5,7 @@ namespace railviz {
 
 realtime_response::realtime_response(motis::module::msg_ptr msg)
     : msg(msg), rsp(nullptr), batch_rsp(nullptr) {
-  const motis::Message* parsed_msg = GetMessage(msg->buf_);
+  auto const& parsed_msg = msg->get();
   if (parsed_msg->content_type() == MsgContent_RealtimeTrainInfoResponse) {
     rsp = reinterpret_cast<motis::realtime::RealtimeTrainInfoResponse const*>(
         parsed_msg->content());

@@ -86,7 +86,7 @@ void realtime::init() {
 }
 
 void realtime::on_msg(msg_ptr msg, sid, callback cb) {
-  auto it = ops_.find(msg->msg_->content_type());
+  auto it = ops_.find(msg->content_type());
   it->second(msg, cb);  // XXX error handling
 }
 

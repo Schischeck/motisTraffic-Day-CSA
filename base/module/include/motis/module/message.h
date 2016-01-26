@@ -4,6 +4,8 @@
 
 #include "motis/protocol/Message_generated.h"
 
+#include "motis/core/common/typed_flatbuffer.h"
+
 namespace flatbuffers {
 class Parser;
 }
@@ -18,30 +20,21 @@ public:
   }
 };
 
-struct message {
-  message() : len_(0), msg_(nullptr), buf_(nullptr) {}
-  message(std::string const& json);
-  message(size_t len, flatbuffers::unique_ptr_t mem, Message* msg, void* buf)
-      : len_(len), mem_(std::move(mem)), msg_(msg), buf_(buf) {}
+struct message : public typed_flatbuffer<Message> {
+  message() : typed_flatbuffer(0, nullptr) {}
+  message(size_t len, flatbuffers::unique_ptr_t mem)
+      : typed_flatbuffer(len, std::move(mem)) {}
+
+  int id() const { return get()->id(); }
 
   template <typename T>
   T content() {
-    return reinterpret_cast<T>(msg_->content());
+    return reinterpret_cast<T>(get()->content());
   }
 
-  MsgContent content_type() const { return msg_->content_type(); }
-
-  operator bool() { return msg_ != nullptr || buf_ == nullptr; }
+  MsgContent content_type() const { return get()->content_type(); }
 
   std::string to_json() const;
-
-  static void init_parser();
-
-  static std::unique_ptr<flatbuffers::Parser> parser;
-  size_t len_;
-  flatbuffers::unique_ptr_t mem_;
-  Message* msg_;
-  void* buf_;
 };
 
 typedef std::shared_ptr<message> msg_ptr;

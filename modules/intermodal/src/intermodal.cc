@@ -68,7 +68,7 @@ void intermodal::init() {
 }
 
 void intermodal::on_msg(msg_ptr msg, sid, callback cb) {
-  auto content_type = msg->msg_->content_type();
+  auto content_type = msg->content_type();
 
   if (content_type == MsgContent_IntermodalRoutingRequest) {
     auto req = msg->content<IntermodalRoutingRequest const*>();

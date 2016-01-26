@@ -30,9 +30,8 @@ struct socket_server::impl {
     snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
                        &buf_);
     auto req_msg = make_msg((void*)buf_.data(), buf_.size());
-    receiver_.on_msg(
-        req_msg, 0,
-        std::bind(&impl::reply, this, req_msg->msg_->id(), cb, p::_1, p::_2));
+    receiver_.on_msg(req_msg, 0, std::bind(&impl::reply, this, req_msg->id(),
+                                           cb, p::_1, p::_2));
   }
 
   void reply(int id, net::handler_cb_fun cb, msg_ptr res,
@@ -54,11 +53,11 @@ struct socket_server::impl {
       b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
       response = make_msg(b);
     }
-    response->msg_->mutate_id(id);
+    response->get()->mutate_id(id);
 
     std::string b;
-    snappy::Compress(static_cast<char const*>(response->buf_), response->len_,
-                     &b);
+    snappy::Compress(reinterpret_cast<char const*>(response->data()),
+                     response->size(), &b);
     cb(std::ref(b), true);
   }
 
