@@ -27,8 +27,6 @@ struct message : public typed_flatbuffer<Message> {
 
   int id() const { return get()->id(); }
 
-  int id() const { return msg_->id(); }
-
   template <typename T>
   T content() {
     return reinterpret_cast<T>(get()->content());
