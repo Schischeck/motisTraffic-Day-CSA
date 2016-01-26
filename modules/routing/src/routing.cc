@@ -22,14 +22,13 @@
 namespace p = std::placeholders;
 namespace po = boost::program_options;
 using boost::system::error_code;
-using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
 
 namespace motis {
 namespace routing {
 
-routing::routing() : label_bytes_((uint64_t) 8 * 1024 * 1024 * 1024) {}
+routing::routing() : label_bytes_((uint64_t)8 * 1024 * 1024 * 1024) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
@@ -128,12 +127,12 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto i_end =
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
-    search s(lock.sched(), *label_store_);
+    search s(sched, *label_store_);
     auto result = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
                                     req->type() != Type_PreTrip);
 
-    LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
-              << lock.sched().stations[path->at(1)[0].station]->name << " "
+    LOG(info) << sched.stations[path->at(0)[0].station]->name << " to "
+              << sched.stations[path->at(1)[0].station]->name << " "
               << "(" << format_time(i_begin) << ", " << format_time(i_end)
               << ") -> " << result.journeys.size() << " connections found";
 

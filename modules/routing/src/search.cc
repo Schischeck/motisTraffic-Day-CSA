@@ -155,21 +155,13 @@ void search::generate_start_labels(time const from, time const to,
                                    station_node const* real_start, int time_off,
                                    lower_bounds& lower_bounds) {
   for (auto const& edge : route_node->_edges) {
-    // not a route-edge?
     if (edge.empty()) {
       continue;
     }
 
     time t = from + time_off;
-
-    // don't set label on foot node
-    // this isn't neccesary in a intermodal scenario.
-    if (edge._m._type != edge::ROUTE_EDGE) {
-      continue;
-    }
-
     while (t <= to + time_off) {
-      light_connection const* con = edge.get_connection(t);
+      auto con = edge.get_connection(t);
       if (con == nullptr) {
         break;
       }
@@ -180,7 +172,6 @@ void search::generate_start_labels(time const from, time const to,
         break;
       }
 
-      // was there an earlier start station?
       my_label* earlier = nullptr;
       if (real_start != nullptr) {
         earlier = new (_label_store.create<my_label>())
@@ -190,7 +181,6 @@ void search::generate_start_labels(time const from, time const to,
       auto station_node_label = new (_label_store.create<my_label>())
           my_label(start_station_node, earlier, t, lower_bounds);
 
-      // create the label we are really interested in
       auto route_node_label = new (_label_store.create<my_label>())
           my_label(route_node, station_node_label, t, lower_bounds);
 

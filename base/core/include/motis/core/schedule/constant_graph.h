@@ -18,10 +18,11 @@ struct simple_edge {
                cost.price}}) {}
 
   bool operator<(const simple_edge& o) const {
-    if (to < o.to)
+    if (to < o.to) {
       return true;
-    else if (to == o.to)
+    } else if (to == o.to) {
       return dist < o.dist;
+    }
     return false;
   }
 
@@ -36,8 +37,9 @@ public:
   constant_graph(std::vector<station_node_ptr> const& station_nodes) {
     for (auto const& station_node : station_nodes) {
       add_edges(*station_node.get());
-      for (auto const& station_node_edge : station_node->_edges)
+      for (auto const& station_node_edge : station_node->_edges) {
         add_edges(*station_node_edge.get_destination());
+      }
     }
   }
 
@@ -45,7 +47,9 @@ public:
     for (auto const& edge : node._edges) {
       auto from = edge.get_destination()->_id;
 
-      if (_edges.size() <= from) _edges.resize(from + 1);
+      if (_edges.size() <= from) {
+        _edges.resize(from + 1);
+      }
 
       _edges[from].emplace_back(node._id, edge.get_minimum_cost());
     }
@@ -59,7 +63,7 @@ public:
   std::vector<std::vector<simple_edge>> _edges;
 };
 
-template <int criterion>
+template <int Criterion>
 class constant_graph_dijkstra {
 public:
   struct label {
@@ -91,18 +95,21 @@ public:
       auto label = _pq.top();
       _pq.pop();
 
-      for (auto const& edge : _graph._edges[label.node])
+      for (auto const& edge : _graph._edges[label.node]) {
         expand_edge(label.dist, edge);
+      }
 
       auto additional_edges_it = _additional_edges.find(label.node);
-      if (additional_edges_it != std::end(_additional_edges))
-        for (auto const& edge : additional_edges_it->second)
+      if (additional_edges_it != std::end(_additional_edges)) {
+        for (auto const& edge : additional_edges_it->second) {
           expand_edge(label.dist, edge);
+        }
+      }
     }
   }
 
   inline void expand_edge(uint32_t dist, simple_edge const& edge) {
-    uint32_t new_dist = dist + edge.dist[criterion];
+    uint32_t new_dist = dist + edge.dist[Criterion];
     if (new_dist < _dists[edge.to]) {
       _dists[edge.to] = new_dist;
       _pq.push(label(edge.to, new_dist));
