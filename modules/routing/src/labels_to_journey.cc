@@ -264,6 +264,10 @@ parse_label_chain(label const* terminal_label) {
 
 }  // namespace intermediate
 
+int output_train_nr(uint32_t const& train_nr, uint32_t original_train_nr) {
+  return train_nr <= 999999 ? train_nr : original_train_nr;
+}
+
 journey::transport generate_journey_transport(unsigned int from,
                                               unsigned int to,
                                               intermediate::transport const& t,
@@ -287,8 +291,7 @@ journey::transport generate_journey_transport(unsigned int from,
     cat_id = con_info->family;
     clasz = t.con->_full_con->clasz;
     cat_name = sched.categories[con_info->family]->name;
-    train_nr = con_info->train_nr <= 999999 ? con_info->train_nr
-                                            : con_info->original_train_nr;
+    train_nr = output_train_nr(con_info->train_nr, con_info->original_train_nr);
     // print line identifier instead of train number
     // whenever this information exists.
     // Note: this is a deviation from the hafas output rules.
@@ -352,9 +355,11 @@ std::vector<journey::transport> generate_journey_transports(
     if (a == nullptr || b == nullptr) {
       return false;
     } else {
+      auto train_nr_a = output_train_nr(a->train_nr, a->original_train_nr);
+      auto train_nr_b = output_train_nr(b->train_nr, b->original_train_nr);
       // equals comparison ignoring attributes:
       return a->line_identifier == b->line_identifier &&
-             a->family == b->family && a->train_nr == b->train_nr;
+             a->family == b->family && train_nr_a == train_nr_b;
     }
   };
 
