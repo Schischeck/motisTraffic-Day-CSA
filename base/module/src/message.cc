@@ -75,16 +75,14 @@ msg_ptr make_msg(MessageCreator& builder) {
 }
 
 msg_ptr make_msg(void* buf, size_t len) {
-  flatbuffers::unique_ptr_t mem(static_cast<uint8_t*>(operator new(len)),
-                                std::default_delete<uint8_t>());
-  std::memcpy(mem.get(), buf, len);
+  auto msg = std::make_shared<message>(len, buf);
 
-  flatbuffers::Verifier verifier(mem.get(), len);
+  flatbuffers::Verifier verifier(msg->data(), msg->size());
   if (!VerifyMessageBuffer(verifier)) {
     throw boost::system::system_error(error::malformed_msg);
   }
 
-  return std::make_shared<message>(len, std::move(mem));
+  return msg;
 }
 
 }  // namespace module

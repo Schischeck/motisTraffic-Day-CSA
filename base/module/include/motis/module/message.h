@@ -24,6 +24,7 @@ struct message : public typed_flatbuffer<Message> {
   message() : typed_flatbuffer(0, nullptr) {}
   message(size_t len, flatbuffers::unique_ptr_t mem)
       : typed_flatbuffer(len, std::move(mem)) {}
+  message(size_t len, void* ptr) : typed_flatbuffer(len, ptr) {}
 
   int id() const { return get()->id(); }
 
