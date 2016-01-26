@@ -33,8 +33,6 @@ struct message {
 
   MsgContent content_type() const { return msg_->content_type(); }
 
-  operator bool() { return msg_ != nullptr || buf_ == nullptr; }
-
   std::string to_json() const;
 
   static void init_parser();
