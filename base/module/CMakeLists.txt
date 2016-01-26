@@ -1,12 +1,13 @@
 project(motis)
 cmake_minimum_required(VERSION 2.8)
 
-set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/protocol")
-set(resource-header "${generated-headers-dir}/resources.h")
-compile_flatbuffers_to_resource_header("${CMAKE_SOURCE_DIR}/protocol/Message.fbs" "${resource-header}")
-
 set(protocol-dir ${CMAKE_SOURCE_DIR}/protocol)
 file(GLOB_RECURSE protocol-files ${protocol-dir}/*.fbs)
+
+set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/protocol")
+set(resource-header "${generated-headers-dir}/resources.h")
+compile_flatbuffers_to_resource_header("${CMAKE_SOURCE_DIR}/protocol/Message.fbs" "${resource-header}" "${protocol-files}")
+
 compile_flatbuffers_schema_to_cpp("--everything-required" ${protocol-dir} ${generated-headers-dir} generated-headers ${protocol-files})
 
 file(GLOB_RECURSE motis-module-files src/*.cc)

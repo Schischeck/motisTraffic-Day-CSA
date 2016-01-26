@@ -142,6 +142,7 @@ foreach(module ${modules})
   add_subdirectory(modules/${module})
   list(APPEND module-targets "motis-${module}")
   list(APPEND module-test-files "modules/${module}/*_test.cc")
+  list(APPEND module-itest-files "modules/${module}/*_itest.cc")
 endforeach(module)
 
 add_subdirectory(base/bootstrap EXCLUDE_FROM_ALL)
@@ -175,3 +176,29 @@ target_link_libraries(motis-test
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-test gtest gtest_main)
+
+
+################################
+# Integration Tests
+################################
+configure_file (
+  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in
+  ${CMAKE_BINARY_DIR}/generated/test_dir.h
+)
+file(GLOB_RECURSE motis-modules-itest-files ${module-itest-files})
+file(GLOB_RECURSE motis-base-itest-files base/*_itest.cc)
+add_executable(motis-itest EXCLUDE_FROM_ALL
+  ${motis-test-files}
+  ${motis-modules-itest-files}
+  ${motis-base-itest-files})
+set_target_properties(motis-itest PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+target_link_libraries(motis-itest
+  ${module-targets}
+  motis-bootstrap
+  motis-core
+  motis-loader
+  motis-module
+  conf
+  ${Boost_LIBRARIES}
+)
+target_link_libraries(motis-itest gtest gtest_main)

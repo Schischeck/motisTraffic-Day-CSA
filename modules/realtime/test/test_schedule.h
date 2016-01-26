@@ -9,19 +9,16 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/realtime/realtime_schedule.h"
-#include "motis/realtime/messages.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
-#include "motis/loader/loader.h"
-#include "motis/routing/label.h"
-#include "motis/routing/search.h"
 #include "motis/core/journey/journey.h"
+#include "motis/loader/loader.h"
+#include "motis/routing/search.h"
 #include "motis/routing/arrival.h"
-
-#define MAX_TEST_LABELS 10000  // MAX_LABELS_WITH_MARGIN
+#include "motis/realtime/realtime_schedule.h"
+#include "motis/realtime/messages.h"
 
 namespace motis {
 namespace realtime {
@@ -47,7 +44,7 @@ public:
             motis::loader::load_schedule({"modules/realtime/test/test-schedule",
                                           true, false, true, "20150126", 21})),
         _rts(*_schedule),
-        _label_store(MAX_TEST_LABELS),
+        _label_store((size_t)32 * 1042 * 1024),
         _search(*_schedule, _label_store) {
     for (const auto& s : _schedule->stations) {
       _station_map[s->name] = s.get();
@@ -70,14 +67,9 @@ public:
     motis::arrival_part target;
     target.station = to->index;
 
-    motis::pareto_dijkstra::statistics stats;
-    std::vector<motis::journey> journeys =
-        _search.get_connections({start}, {target}, departure_begin,
-                                departure_begin + interval, true, &stats);
-
-    EXPECT_FALSE(stats.max_label_quit);
-
-    return journeys;
+    return _search.get_connections({start}, {target}, departure_begin,
+                                   departure_begin + interval, true)
+        .journeys;
   }
 
   void check_stops(const motis::journey& journey,
@@ -208,8 +200,8 @@ public:
 
   std::unique_ptr<motis::schedule> _schedule;
   motis::realtime::realtime_schedule _rts;
-  motis::memory_manager<motis::label> _label_store;
-  motis::search _search;
+  motis::routing::memory_manager _label_store;
+  motis::routing::search _search;
   std::unordered_map<std::string, const motis::station*> _station_map;
 };
 

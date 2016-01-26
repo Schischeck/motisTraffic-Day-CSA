@@ -8,7 +8,8 @@
 
 namespace motis {
 
-motis::module::msg_ptr journeys_to_message(std::vector<journey> const&);
+motis::module::msg_ptr journeys_to_message(std::vector<journey> const&,
+                                           int pareto_dijkstra_time = 0);
 
 flatbuffers::Offset<routing::Connection> to_connection(
     flatbuffers::FlatBufferBuilder&, journey const&);

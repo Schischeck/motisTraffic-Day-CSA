@@ -8,6 +8,7 @@
 #include "motis/module/module.h"
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/synced_schedule.h"
 
 #include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/distributions_container.h"
@@ -53,7 +54,9 @@ struct reliability : public motis::module::module {
   void send_message(motis::module::msg_ptr msg, motis::module::sid session,
                     motis::module::callback cb);
 
-  synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
+  motis::module::locked_schedule synced_sched() {
+    return module::synced_sched<RO>();
+  }
 
 private:
   std::unique_ptr<distributions_container::precomputed_distributions_container>

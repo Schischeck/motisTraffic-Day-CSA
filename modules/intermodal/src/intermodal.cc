@@ -22,6 +22,11 @@ struct coordinate {
   double lat, lng;
 };
 
+template <typename T>
+constexpr T identity(T&& v) {
+  return std::forward<T>(v);
+}
+
 struct intermodal::impl {
   explicit impl(std::vector<station_ptr> const& stations)
       : station_index_(stations) {}
@@ -34,11 +39,6 @@ struct intermodal::impl {
     return {close_stations(pos.lat, pos.lng, 15000, station_to_coordinates),
             close_stations(pos.lat, pos.lng, 5000, station_to_coordinates),
             close_stations(pos.lat, pos.lng, 700, station_to_coordinates)};
-  }
-
-  template <typename T>
-  constexpr T identity(T&& v) {
-    return std::forward<T>(v);
   }
 
   template <typename F>

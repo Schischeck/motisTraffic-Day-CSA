@@ -118,6 +118,17 @@ struct array final {
   T* begin() { return _el; }
   T* end() { return _el + _used_size; }
 
+  std::reverse_iterator<T const*> rbegin() const {
+    return std::reverse_iterator<T*>(_el + size());
+  }
+  std::reverse_iterator<T const*> rend() const {
+    return std::reverse_iterator<T*>(_el);
+  }
+  std::reverse_iterator<T*> rbegin() {
+    return std::reverse_iterator<T*>(_el + size());
+  }
+  std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(_el); }
+
   friend T const* begin(array const& a) { return a.begin(); }
   friend T const* end(array const& a) { return a.end(); }
 
@@ -170,9 +181,6 @@ struct array final {
   void resize(size_type size) {
     reserve(size);
     _used_size = size;
-    for (size_type i = 0; i < size; ++i) {
-      new (_el + i) T();
-    }
   }
 
   void reserve(TemplateSizeType new_size) {

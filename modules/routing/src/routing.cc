@@ -14,11 +14,10 @@
 
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
-#include "motis/routing/label.h"
 #include "motis/routing/search.h"
 #include "motis/routing/error.h"
 
-#define MAX_LABEL_COUNT "routing.max_label_count"
+#define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
 namespace p = std::placeholders;
 namespace po = boost::program_options;
@@ -30,15 +29,15 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing() : max_label_count_(MAX_LABELS_WITH_MARGIN) {}
+routing::routing() : label_bytes_((uint64_t) 8 * 1024 * 1024 * 1024) {}
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
   // clang-format off
   desc.add_options()
-    (MAX_LABEL_COUNT,
-     po::value<int>(&max_label_count_)->default_value(max_label_count_),
-     "number of labels to preallocate (crashes if not enough!)");
+    (LABEL_MEMORY_NUM_BYTES,
+     po::value<std::size_t>(&label_bytes_)->default_value(label_bytes_),
+     "size of the label store in bytes");
   // clang-format on
   return desc;
 }
@@ -70,7 +69,7 @@ void routing::read_path_element(StationPathElement const* el,
 }
 
 void routing::init() {
-  label_store_ = make_unique<memory_manager<label>>(max_label_count_);
+  label_store_ = make_unique<memory_manager>(label_bytes_);
 }
 
 void routing::handle_station_guess(msg_ptr res, error_code e,
@@ -130,15 +129,16 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
     search s(lock.sched(), *label_store_);
-    auto journeys = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
-                                      req->type() != Type_PreTrip);
+    auto result = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
+                                    req->type() != Type_PreTrip);
 
     LOG(info) << lock.sched().stations[path->at(0)[0].station]->name << " to "
               << lock.sched().stations[path->at(1)[0].station]->name << " "
               << "(" << format_time(i_begin) << ", " << format_time(i_end)
-              << ") -> " << journeys.size() << " connections found";
+              << ") -> " << result.journeys.size() << " connections found";
 
-    auto resp = journeys_to_message(journeys);
+    auto resp =
+        journeys_to_message(result.journeys, result.stats.pareto_dijkstra);
     return dispatch(resp, 0, [resp, cb](msg_ptr annotated, error_code e) {
       if (e == motis::module::error::no_module_capable_of_handling) {
         return cb(resp, error::ok);  // connectionchecker not available

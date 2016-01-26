@@ -13,16 +13,20 @@ namespace motis {
 class node;
 
 struct edge_cost {
-  edge_cost(uint16_t time, light_connection const* c)
+  edge_cost() : time(INVALID_TIME) {}
+
+  edge_cost(duration time, light_connection const* c)
       : connection(c), time(time), price(0), transfer(false), slot(0) {}
 
-  edge_cost(uint16_t time, bool transfer = false, uint16_t price = 0,
+  edge_cost(duration time, bool transfer = false, uint16_t price = 0,
             uint8_t slot = 0)
       : connection(nullptr),
         time(time),
         price(price),
         transfer(transfer),
         slot(slot) {}
+
+  bool is_valid() const { return time != INVALID_TIME; }
 
   uint16_t operator[](int index) const {
     switch (index) {
@@ -33,19 +37,14 @@ struct edge_cost {
     }
   }
 
-  bool operator==(const edge_cost& o) const {
-    return o.time == time && o.price == price && o.transfer == transfer &&
-           o.slot == slot;
-  }
-
   light_connection const* connection;
-  uint16_t time;
+  duration time;
   uint16_t price;
   bool transfer;
   uint8_t slot;
 };
 
-const edge_cost NO_EDGE(-1);
+const edge_cost NO_EDGE = edge_cost();
 
 class edge {
 public:
@@ -137,7 +136,22 @@ public:
                                std::end(_m._route_edge._conns),
                                light_connection(start_time));
 
-    return (it == std::end(_m._route_edge._conns)) ? nullptr : it;
+    return (it == std::end(_m._route_edge._conns)) ? nullptr : &*it;
+  }
+
+  light_connection const* get_connection_reverse(time const start_time) const {
+    if (_m._route_edge._conns.size() == 0) {
+      return nullptr;
+    }
+
+    auto it = std::lower_bound(
+        _m._route_edge._conns.rbegin(), _m._route_edge._conns.rend(),
+        light_connection(0, start_time, nullptr),
+        [](light_connection const& lhs, light_connection const& rhs) {
+          return lhs.a_time > rhs.a_time;
+        });
+
+    return (it == _m._route_edge._conns.rend()) ? nullptr : &*it;
   }
 
   light_connection* get_connection(time const start_time) {
@@ -163,6 +177,7 @@ public:
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
+      case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
     }
   }

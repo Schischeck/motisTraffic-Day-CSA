@@ -81,7 +81,7 @@ public:
     _pq.push(label(goal, 0));
   }
 
-  inline uint32_t get_distance(int node) const {
+  inline uint32_t operator[](int node) const {
     assert(node < static_cast<int>(_dists.size()));
     return _dists[node];
   }

@@ -8,8 +8,8 @@
 
 #include "conf/configuration.h"
 
+#include "motis/core/common/raii.h"
 #include "motis/core/schedule/synced_schedule.h"
-
 #include "motis/module/sid.h"
 #include "motis/module/message.h"
 #include "motis/module/callbacks.h"
@@ -23,6 +23,12 @@ struct context {
   boost::asio::io_service* thread_pool_;
   send_fun* send_;
   msg_handler* dispatch_;
+};
+
+struct locked_schedule {
+  locked_schedule(std::shared_ptr<synced_schedule> lock) : lock_(lock) {}
+  schedule& sched() { return lock_->sched(); }
+  std::shared_ptr<synced_schedule> lock_;
 };
 
 struct module : public conf::configuration {
@@ -43,15 +49,36 @@ struct module : public conf::configuration {
     init();
   }
 
-  void on_msg_(msg_ptr msg, sid session, callback cb) {
+  void on_msg_(msg_ptr msg, sid session, callback cb, bool locked) {
     namespace p = std::placeholders;
-    strand_->post(std::bind(&module::on_msg, this, msg, session, cb));
+    strand_->post([this, locked, msg, session, cb]() {
+      struct resetter {
+        resetter(module& instance, bool locked) : instance_(instance) {
+          previous_ = instance_.locked_.load();
+          instance_.locked_.store(previous_ || locked);
+        }
+
+        ~resetter() { instance_.locked_.store(previous_); }
+
+        module& instance_;
+        bool previous_;
+      } r(*this, locked);
+      on_msg(msg, session, cb);
+    });
   }
 
 protected:
-  template <schedule_access A>
-  synced_schedule<A> synced_sched() {
-    return synced_schedule<A>(*context_->schedule_);
+  template <schedule_access access>
+  locked_schedule synced_sched() {
+    if (locked_.load() && access == RO) {
+      return std::make_shared<synced_schedule>(*context_->schedule_, RE,
+                                               []() {});
+    } else {
+      bool prev_schedule_locked = locked_;
+      return std::make_shared<synced_schedule>(
+          *context_->schedule_, access,
+          [this, prev_schedule_locked]() { locked_ = prev_schedule_locked; });
+    }
   }
 
   void dispatch(msg_ptr msg, sid session, callback cb) {
@@ -61,7 +88,7 @@ protected:
       (*context_->dispatch_)(msg, session, [=](msg_ptr res, error_code e) {
         // Make sure the callback gets called in thread pool.
         strand_->post(std::bind(cb, res, e));
-      });
+      }, locked_);
     });
   }
 
@@ -69,7 +96,7 @@ protected:
     using boost::system::error_code;
     // Make sure, the dispatch function gets called in the I/O thread.
     context_->ios_->post([=]() {
-      (*context_->dispatch_)(msg, session, [](msg_ptr, error_code) {});
+      (*context_->dispatch_)(msg, session, [](msg_ptr, error_code) {}, locked_);
     });
   }
 
@@ -79,6 +106,7 @@ protected:
 
 private:
   context* context_;
+  std::atomic<bool> locked_;
   std::unique_ptr<boost::asio::strand> strand_;
 };
 

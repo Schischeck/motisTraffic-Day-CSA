@@ -94,7 +94,7 @@ Offset<routing::RoutingResponse> convert_routing_response(
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  return CreateRoutingResponse(b, b.CreateVector(connections));
+  return CreateRoutingResponse(b, 0, b.CreateVector(connections));
 }
 
 namespace rating_converter {
