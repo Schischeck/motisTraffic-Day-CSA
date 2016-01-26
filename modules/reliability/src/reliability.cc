@@ -78,7 +78,13 @@ std::vector<s_t_distributions_container::parameters>
 get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
   std::vector<s_t_distributions_container::parameters> param;
   for (auto const& p : paths) {
-    param.push_back({p, 500, 120});  // TODO: read max travel time from graph
+    if (p.find("train") != std::string::npos) {
+      param.push_back({p, 500, 120});  // TODO: read max travel time from graph
+    } else if (p.find("bus") != std::string::npos) {
+      param.push_back({p, 35, 45});
+    } else {
+      LOG(logging::warn) << "Undefined distribution type";
+    }
   }
   return param;
 }
