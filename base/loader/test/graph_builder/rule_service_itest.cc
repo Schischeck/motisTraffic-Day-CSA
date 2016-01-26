@@ -28,8 +28,6 @@ namespace motis {
 namespace loader {
 
 TEST(loader_graph_builder_rule_service, search) {
-  message::init_parser();
-
   auto instance = launch_motis((hrd::SCHEDULES / "mss-ts").generic_string(),
                                "20151124", {"routing"});
 
