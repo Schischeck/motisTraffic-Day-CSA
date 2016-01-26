@@ -41,8 +41,6 @@ template <typename T>
 using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
 
 int main(int argc, char** argv) {
-  message::init_parser();
-
   boost::asio::io_service ios;
   motis_instance instance(&ios);
   ws_server websocket(ios, instance);

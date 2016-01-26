@@ -16,7 +16,7 @@ void dispatcher::send(msg_ptr msg, sid session) {
 }
 
 void dispatcher::on_msg(msg_ptr msg, sid session, callback cb, bool locked) {
-  auto module_it = subscriptions_.find(msg->msg_->content_type());
+  auto module_it = subscriptions_.find(msg->content_type());
   if (module_it == end(subscriptions_)) {
     return cb({}, error::no_module_capable_of_handling);
   }

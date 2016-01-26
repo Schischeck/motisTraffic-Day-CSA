@@ -180,6 +180,7 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
 
   auto const& payload = msg.first_child();
   auto it = map.find(payload.name());
+
   if (it == end(map)) {
     return boost::none;
   }
@@ -217,8 +218,8 @@ std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
 
   std::sort(begin(parsed_messages), end(parsed_messages),
             [](ris_message const& lhs, ris_message const& rhs) {
-              return std::tie(lhs.timestamp, lhs.scheduled, *lhs.buffer) <
-                     std::tie(rhs.timestamp, rhs.scheduled, *rhs.buffer);
+              return std::tie(lhs.timestamp, lhs.scheduled, *lhs.buffer_) <
+                     std::tie(rhs.timestamp, rhs.scheduled, *rhs.buffer_);
             });
 
   return parsed_messages;
