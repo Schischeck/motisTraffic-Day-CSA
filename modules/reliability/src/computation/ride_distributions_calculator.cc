@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/reliability/context.h"
@@ -52,9 +53,7 @@ void process_element(
           context.schedule_));
   if (!departure_distribution.pd_.empty() ||
       !arrival_distribution.pd_.empty()) {
-    std::cout
-        << "\nWarning(ride_distributions_calculator): departure or arrival "
-           "distribution already computed: ";
+    LOG(logging::error) << "departure or arrival distribution already computed";
     return;
   }
 

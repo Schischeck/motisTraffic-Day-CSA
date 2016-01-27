@@ -16,7 +16,8 @@ namespace hrd {
 
 using namespace parser;
 
-constexpr int DEFAULT_CHANGE_TIME = 5;
+constexpr int DEFAULT_CHANGE_TIME_LONG_DISTANCE = 5;
+constexpr int DEFAULT_CHANGE_TIME_LOCAL_TRANSPORT = 2;
 
 //   0: <Gültig-Ab-Datum>
 //   1: <Gelöscht-Flag>
@@ -78,7 +79,11 @@ void load_minct(std::vector<minct>& records) {
 int station_meta_data::get_station_change_time(int eva_num) const {
   auto it = station_change_times_.find(eva_num);
   if (it == std::end(station_change_times_)) {
-    return DEFAULT_CHANGE_TIME;
+    if (eva_num < 1000000) {
+      return DEFAULT_CHANGE_TIME_LOCAL_TRANSPORT;
+    } else {
+      return DEFAULT_CHANGE_TIME_LONG_DISTANCE;
+    }
   } else {
     return it->second;
   }

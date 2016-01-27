@@ -13,6 +13,11 @@ db_distributions::db_distributions(
     std::string const root, unsigned int const max_expected_travel_time,
     unsigned int const max_expected_departure_delay)
     : empty_string_("") {
+  LOG(logging::info) << "Read distributions from " << root
+                     << " with a max-expected-travel-time of "
+                     << max_expected_travel_time
+                     << " and a max-expected-departure-delay of "
+                     << max_expected_departure_delay;
   std::vector<db_distributions_loader::resolved_mapping> distribution_mappings;
   db_distributions_loader::load_distributions(
       root, max_expected_travel_time, max_expected_departure_delay,
