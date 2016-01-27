@@ -125,7 +125,8 @@ std::ostream& operator<<(std::ostream& os,
        << " last-min=" << distribution.last_minute() << " values=";
     for (int i = distribution.first_minute(); i <= distribution.last_minute();
          i++) {
-      os << distribution.probability_equal(i);
+      os << std::fixed << std::setprecision(5)
+         << distribution.probability_equal(i);
       if (i + 1 <= distribution.last_minute()) {
         os << ",";
       }
