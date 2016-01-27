@@ -9,7 +9,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/category.h"
-
+#include "motis/core/common/constants.h"
 #include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
 #include "motis/loader/classes.h"
@@ -365,10 +365,22 @@ light_connection graph_builder::section_to_connection(
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
   for (auto const& footpath : *footpaths) {
-    auto from = stations_[footpath->from()];
-    auto to = stations_[footpath->to()];
-    next_node_id_ = from->add_foot_edge(
-        next_node_id_, make_foot_edge(from, to, footpath->duration()));
+    auto from_node = stations_[footpath->from()];
+    auto to_node = stations_[footpath->to()];
+    auto const& from_station = *sched_.stations.at(from_node->_id);
+    auto const& to_station = *sched_.stations.at(to_node->_id);
+
+    uint32_t max_transfer_time =
+        std::max(from_station.transfer_time, to_station.transfer_time);
+    auto const duration = std::max(max_transfer_time, footpath->duration());
+    auto const max_distance = duration * 60 * WALK_SPEED;
+
+    if (get_distance(from_station, to_station) > max_distance) {
+      continue;
+    }
+
+    next_node_id_ = from_node->add_foot_edge(
+        next_node_id_, make_foot_edge(from_node, to_node, duration));
   }
 }
 
