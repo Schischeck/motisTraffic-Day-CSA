@@ -31,6 +31,11 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
       first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
       last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
       apply_rules_(apply_rules) {
+  if (to <= from || schedule_interval->from() >= static_cast<uint64_t>(to) ||
+      schedule_interval->to() <= static_cast<uint64_t>(from)) {
+    throw std::runtime_error("schedule out of bounds");
+  }
+
   connections_.set_empty_key(nullptr);
   con_infos_.set_empty_key(nullptr);
   bitfields_.set_empty_key(nullptr);
