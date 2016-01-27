@@ -86,7 +86,7 @@ TEST(loader_hrd_stations_parser, parse_stations) {
     ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name.c_str());
     ASSERT_TRUE(std::abs(station.lng - 8.679296) <= 0.001);
     ASSERT_TRUE(std::abs(station.lat - 50.113963) <= 0.001);
-    ASSERT_EQ(5, station.change_time);
+    ASSERT_EQ(2, station.change_time);
 
     it = stations.find(100002);
     ASSERT_TRUE(it != end(stations));
@@ -95,7 +95,7 @@ TEST(loader_hrd_stations_parser, parse_stations) {
     ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main", station.name.c_str());
     ASSERT_TRUE(std::abs(station.lng - 8.681793) <= 0.001);
     ASSERT_TRUE(std::abs(station.lat - 50.110902) <= 0.001);
-    ASSERT_EQ(5, station.change_time);
+    ASSERT_EQ(2, station.change_time);
   } catch (parser_error const& pe) {
     pe.print_what();
     ASSERT_TRUE(false);

@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
           make_unique<shutdown_handler<socket_server>>(ios, tcp);
     }
   } catch (std::exception const& e) {
-    std::cout << "initialization error: " << e.what() << "\n";
+    std::cout << "\ninitialization error: " << e.what() << "\n";
     return 1;
   }
 
