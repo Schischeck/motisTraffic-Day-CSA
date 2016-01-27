@@ -236,8 +236,7 @@ TEST_F(reliability_connection_graph_rating,
   {
     probability_distribution arr_dist;
     arr_dist.init({1.0}, 1);
-    probability_distribution expected;
-    expected.init({0.0}, 1);
+    probability_distribution expected; /* empty distribution */
     ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
                             arr_dist, interchange_info(10, 11, 11, 12, true,
                                                        true, 1, 0)));
