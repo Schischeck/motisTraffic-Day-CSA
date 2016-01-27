@@ -374,8 +374,7 @@ void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
         std::max(from_station.transfer_time, to_station.transfer_time);
     auto const duration = std::max(max_transfer_time, footpath->duration());
     auto const max_distance = duration * 60 * WALK_SPEED;
-
-    if (get_distance(from_station, to_station) > max_distance) {
+    if (get_distance(from_station, to_station) * 1000 > max_distance) {
       continue;
     }
 
