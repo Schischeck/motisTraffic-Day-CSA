@@ -81,7 +81,7 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
     if (p.rfind("/train/") != std::string::npos) {
       param.push_back({p, 500, 120});  // TODO: read max travel time from graph
     } else if (p.rfind("/bus/") != std::string::npos) {
-      param.push_back({p, 35, 45});
+      param.push_back({p, 60, 45});
     } else if (p.rfind("/str/") != std::string::npos) {
       param.push_back({p, 20, 31});
     } else {
