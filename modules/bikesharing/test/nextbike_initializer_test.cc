@@ -8,7 +8,7 @@
 
 #include "parser/buffer.h"
 
-#include "motis/bikesharing/nextbike_parser.h"
+#include "motis/bikesharing/nextbike_initializer.h"
 #include "motis/bikesharing/terminal.h"
 
 namespace motis {
@@ -46,7 +46,7 @@ char const* xml_fixture = R"((
 </markers>
 ))";
 
-TEST(bikesharing_nextbike_parser, parser_test) {
+TEST(bikesharing_nextbike_initializer, parser_test) {
   auto result = nextbike_parse_xml(parser::buffer{xml_fixture});
 
   ASSERT_EQ(2, result.size());
@@ -66,7 +66,7 @@ TEST(bikesharing_nextbike_parser, parser_test) {
   EXPECT_EQ(5, r1.available_bikes);
 }
 
-TEST(bikesharing_nextbike_parser, filename_to_timestamp) {
+TEST(bikesharing_nextbike_initializer, filename_to_timestamp) {
   std::string filename{"nextbike-1432133475.xml"};
   EXPECT_EQ(1432133475, nextbike_filename_to_timestamp(filename));
 }

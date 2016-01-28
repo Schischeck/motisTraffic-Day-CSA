@@ -28,13 +28,8 @@ struct availability {
   double percent_reliable;
 };
 
-struct attached_station {
-  int id;
-  int duration;
-};
-
-struct reachable_terminal {
-  int id;
+struct close_location {
+  std::string id;
   int duration;
 };
 
@@ -54,7 +49,7 @@ struct snapshot_merger {
   void add_snapshot(std::time_t timestamp,
                     std::vector<terminal_snapshot> const& snapshot);
 
-  std::vector<std::pair<terminal, hourly_availabilities>> merged();
+  std::pair<std::vector<terminal>, std::vector<hourly_availabilities>> merged();
 
   size_t snapshot_count_ = 0;
   std::map<int, terminal> terminals_;

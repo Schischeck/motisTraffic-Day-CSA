@@ -1,7 +1,5 @@
 #include "motis/bikesharing/database.h"
 
-#include <string>
-
 #include "leveldb/db.h"
 
 #include "motis/bikesharing/error.h"
@@ -66,26 +64,21 @@ void database::put(std::vector<persistable_terminal> const& terminals) {
 
 namespace detail {
 
-Offset<Availability> create_availability(FlatBufferBuilder& b,
-                                         availability const& a) {
-  return CreateAvailability(b, a.average, a.median, a.minimum, a.q90,
-                            a.percent_reliable);
-}
-
-Offset<Vector<Offset<AttachedStation>>> create_attached_stations(
-    FlatBufferBuilder& b, std::vector<attached_station> const& stations) {
-  std::vector<Offset<AttachedStation>> vec;
-  for (auto const& station : stations) {
-    vec.push_back(CreateAttachedStation(b, station.id, station.duration));
+Offset<Vector<Offset<Availability>>> create_availabilities(
+    FlatBufferBuilder& b, hourly_availabilities const& availabilities) {
+  std::vector<Offset<Availability>> vec;
+  for (auto const& a : availabilities) {
+    vec.push_back(CreateAvailability(b, a.average, a.median, a.minimum, a.q90,
+                                     a.percent_reliable));
   }
   return b.CreateVector(vec);
 }
 
-Offset<Vector<Offset<ReachableTerminal>>> create_reachable_terminals(
-    FlatBufferBuilder& b, std::vector<reachable_terminal> const& reachables) {
-  std::vector<Offset<ReachableTerminal>> vec;
-  for (auto const& reachable : reachables) {
-    vec.push_back(CreateReachableTerminal(b, reachable.id, reachable.duration));
+Offset<Vector<Offset<CloseLocation>>> create_close_locations(
+    FlatBufferBuilder& b, std::vector<close_location> const& locations) {
+  std::vector<Offset<CloseLocation>> vec;
+  for (auto const& l : locations) {
+    vec.push_back(CreateCloseLocation(b, b.CreateString(l.id), l.duration));
   }
   return b.CreateVector(vec);
 }
@@ -93,15 +86,15 @@ Offset<Vector<Offset<ReachableTerminal>>> create_reachable_terminals(
 }  // namespace detail
 
 persistable_terminal convert_terminal(
-    terminal const& terminal, availability const& availability,
-    std::vector<attached_station> const& attached,
-    std::vector<reachable_terminal> const& reachable) {
+    terminal const& terminal, hourly_availabilities const& availabilities,
+    std::vector<close_location> const& attached,
+    std::vector<close_location> const& reachable) {
   FlatBufferBuilder b;
   b.Finish(CreateTerminal(b, terminal.uid, terminal.lat, terminal.lng,
                           b.CreateString(terminal.name),
-                          detail::create_availability(b, availability),
-                          detail::create_attached_stations(b, attached),
-                          detail::create_reachable_terminals(b, reachable)));
+                          detail::create_availabilities(b, availabilities),
+                          detail::create_close_locations(b, attached),
+                          detail::create_close_locations(b, reachable)));
   return {std::move(b)};
 }
 

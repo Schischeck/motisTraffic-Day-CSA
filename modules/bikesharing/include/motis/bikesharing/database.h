@@ -14,9 +14,9 @@ namespace bikesharing {
 using persistable_terminal = typed_flatbuffer<Terminal>;
 
 persistable_terminal convert_terminal(
-    terminal const& terminal, availability const& availability,
-    std::vector<attached_station> const& attached,
-    std::vector<reachable_terminal> const& reachable);
+    terminal const& terminal, hourly_availabilities const& availabilities,
+    std::vector<close_location> const& attached,
+    std::vector<close_location> const& reachable);
 
 class database {
 public:
