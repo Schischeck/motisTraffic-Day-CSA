@@ -52,14 +52,14 @@ TEST(bikesharing_nextbike_initializer, parser_test) {
   ASSERT_EQ(2, result.size());
 
   auto r0 = result[0];
-  EXPECT_EQ(28, r0.uid);
+  EXPECT_EQ(std::string{"28"}, r0.uid);
   EXPECT_EQ(51.3405051597014, r0.lat);
   EXPECT_EQ(12.3688137531281, r0.lng);
   EXPECT_EQ(std::string{"Gottschedstraße/Bosestraße "}, r0.name);
   EXPECT_EQ(3, r0.available_bikes);
 
   auto r1 = result[1];
-  EXPECT_EQ(128, r1.uid);
+  EXPECT_EQ(std::string{"128"}, r1.uid);
   EXPECT_EQ(51.3371237726003, r1.lat);
   EXPECT_EQ(12.37330377101898, r1.lng);
   EXPECT_EQ(std::string{"Burgplatz/Freifläche/Zaun"}, r1.name);

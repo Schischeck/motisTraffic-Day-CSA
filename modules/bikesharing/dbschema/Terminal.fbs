@@ -14,7 +14,7 @@ table CloseLocation {
 }
 
 table Terminal {
-  id:int;
+  id:string;
   lat: double;
   lng: double;
   name: string;

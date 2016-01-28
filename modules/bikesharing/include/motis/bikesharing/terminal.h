@@ -11,7 +11,7 @@ namespace motis {
 namespace bikesharing {
 
 struct terminal {
-  int uid;
+  std::string uid;
   double lat, lng;
   std::string name;
 };
@@ -52,8 +52,8 @@ struct snapshot_merger {
   std::pair<std::vector<terminal>, std::vector<hourly_availabilities>> merged();
 
   size_t snapshot_count_ = 0;
-  std::map<int, terminal> terminals_;
-  std::map<int, hourly_buckets> distributions_;
+  std::map<std::string, terminal> terminals_;
+  std::map<std::string, hourly_buckets> distributions_;
 };
 
 }  // namespace bikesharing

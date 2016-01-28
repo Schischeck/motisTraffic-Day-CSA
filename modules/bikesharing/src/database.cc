@@ -41,9 +41,7 @@ struct database::database_impl {
 
   void put(std::vector<persistable_terminal> const& terminals) {
     for (auto const& t : terminals) {
-      Status s = db_->Put(WriteOptions(), std::to_string(t.get()->id()),
-                          t.to_string());
-
+      Status s = db_->Put(WriteOptions(), t.get()->id()->str(), t.to_string());
       if (!s.ok()) {
         throw system_error(error::database_error);
       }
@@ -90,11 +88,24 @@ persistable_terminal convert_terminal(
     std::vector<close_location> const& attached,
     std::vector<close_location> const& reachable) {
   FlatBufferBuilder b;
-  b.Finish(CreateTerminal(b, terminal.uid, terminal.lat, terminal.lng,
-                          b.CreateString(terminal.name),
+  b.Finish(CreateTerminal(b, b.CreateString(terminal.uid), terminal.lat,
+                          terminal.lng, b.CreateString(terminal.name),
                           detail::create_availabilities(b, availabilities),
                           detail::create_close_locations(b, attached),
                           detail::create_close_locations(b, reachable)));
+  return {std::move(b)};
+}
+
+bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
+  FlatBufferBuilder b;
+
+  std::vector<Offset<TerminalLocation>> locations;
+  for (auto const& terminal : terminals) {
+    locations.push_back(CreateTerminalLocation(b, b.CreateString(terminal.uid),
+                                               terminal.lat, terminal.lng));
+  }
+  b.Finish(CreateSummary(b, b.CreateVector(locations)));
+
   return {std::move(b)};
 }
 

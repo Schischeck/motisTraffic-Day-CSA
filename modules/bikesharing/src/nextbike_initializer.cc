@@ -22,6 +22,7 @@
 
 using namespace flatbuffers;
 using namespace motis::intermodal;
+using namespace motis::geo_detail;
 using namespace motis::logging;
 using namespace motis::module;
 using namespace parser;
@@ -94,7 +95,7 @@ struct context {
   dispatch_fun dispatch_fun_;
   module::callback finished_cb_;
 
-  std::vector<std::unique_ptr<terminal>> terminals_;
+  std::vector<terminal> terminals_;
   std::vector<hourly_availabilities> availabilities_;
 
   std::vector<std::vector<close_location>> attached_stations_;
@@ -137,9 +138,7 @@ void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path) {
   auto merged = merger.merged();
   merge_timer.stop_and_print();
 
-  for (auto const& t : merged.first) {
-    ctx->terminals_.emplace_back(make_unique<terminal>(t));
-  }
+  ctx->terminals_ = merged.first;
   ctx->availabilities_ = merged.second;
 
   auto req = terminals_to_geo_request(merged.first, MAX_WALK_DIST);
@@ -160,7 +159,7 @@ void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec) {
     auto const& found_stations = content->coordinates()->Get(i)->stations();
     std::vector<close_location> attached_stations;
     for (auto const& station : *found_stations) {
-      int dist = distance_in_m(t->lat, t->lng, station->lat(), station->lng());
+      int dist = distance_in_m(t.lat, t.lng, station->lat(), station->lng());
       attached_stations.push_back({station->eva()->str(), dist});
     }
 
@@ -171,18 +170,25 @@ void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec) {
 }
 
 void find_close_terminals(ctx_ptr ctx) {
-  auto index = make_geo_index(
-      ctx->terminals_,
-      [](std::unique_ptr<terminal> const& t) -> std::pair<double, double> {
-        return {t->lat, t->lng};
-      });
+  std::vector<value> values;
+  for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
+    values.push_back({{ctx->terminals_[i].lng, ctx->terminals_[i].lat}, i});
+  }
+  bgi::rtree<value, bgi::quadratic<16>> rtree{values};
 
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     auto const& t = ctx->terminals_[i];
+    spherical_point t_location(t.lng, t.lat);
+
     std::vector<close_location> reachable_terminals;
-    for (auto const& found : index.in_radius(t->lat, t->lng, MAX_BIKE_DIST)) {
-      int dist = distance_in_m(t->lat, t->lng, found->lat, found->lng);
-      reachable_terminals.push_back({std::to_string(found->uid), dist});
+    for (auto it = rtree.qbegin(
+             bgi::intersects(generate_box(t_location, MAX_BIKE_DIST)) &&
+             bgi::satisfies([&t_location](value const& v) {
+               return distance_in_m(v.first, t_location) < MAX_BIKE_DIST;
+             }));
+         it != rtree.qend(); ++it) {
+      int dist = distance_in_m(it->first, t_location);
+      reachable_terminals.push_back({ctx->terminals_[it->second].uid, dist});
     }
     ctx->reachable_terminals_.push_back(reachable_terminals);
   }
@@ -193,11 +199,12 @@ void find_close_terminals(ctx_ptr ctx) {
 void persist_terminals(ctx_ptr ctx) {
   std::vector<persistable_terminal> p;
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
-    p.push_back(convert_terminal(*ctx->terminals_[i], ctx->availabilities_[i],
+    p.push_back(convert_terminal(ctx->terminals_[i], ctx->availabilities_[i],
                                  ctx->attached_stations_[i],
                                  ctx->reachable_terminals_[i]));
   }
   ctx->db_->put(p);
+  ctx->db_->put_summary(make_summary(ctx->terminals_));
   ctx->finished_cb_({}, error::ok);
 }
 
