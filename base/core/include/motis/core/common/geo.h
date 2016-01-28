@@ -26,6 +26,8 @@ using spherical_point = bg::model::point<double, 2, coordinate_system>;
 using box = bg::model::box<spherical_point>;
 using value = std::pair<spherical_point, size_t>;
 
+using quadratic_rtree = bgi::rtree<value, bgi::quadratic<16>>;
+
 enum { LNG, LAT };
 
 /// Generates a query box around the given origin with edge length 2xdist
@@ -51,53 +53,10 @@ double distance_in_m(const spherical_point& a, const spherical_point& b) {
   return boost::geometry::distance(a, b) * kEarthRadiusMeters;
 }
 
-template <typename V>
-struct geo_index {
-
-  geo_index(std::vector<std::unique_ptr<V>> const& entries,
-            std::vector<value> const& values)
-      : entries_(entries), rtree_(values) {}
-
-  std::vector<V const*> in_radius(double lat, double lng, double radius) const {
-    std::vector<V const*> vec;
-    spherical_point query_point = spherical_point(lng, lat);
-
-    std::vector<value> result_n;
-    rtree_.query(bgi::intersects(generate_box(query_point, radius)) &&
-                     bgi::satisfies([&query_point, radius](const value& v) {
-                       return distance_in_m(v.first, query_point) < radius;
-                     }),
-                 std::back_inserter(result_n));
-
-    for (const auto& result : result_n) {
-      vec.push_back(entries_[result.second].get());
-    }
-
-    return vec;
-  }
-
-  std::vector<std::unique_ptr<V>> const& entries_;
-  bgi::rtree<value, bgi::quadratic<16>> rtree_;
-};
-
-template <typename T, typename F>
-geo_index<T> make_geo_index(std::vector<std::unique_ptr<T>> const& entries,
-                            F func) {
-  std::vector<value> values;
-  for (size_t i = 0; i < entries.size(); ++i) {
-    std::pair<double, double> latlng = func(entries[i]);
-    values.push_back({{latlng.second, latlng.first}, i});
-  }
-  return {entries, values};
-}
-}  // namespace geo_detail
-
-using geo_detail::geo_index;
-using geo_detail::make_geo_index;
-
 inline double distance_in_m(double a_lat, double a_lng, double b_lat,
                             double b_lng) {
   return geo_detail::distance_in_m({a_lng, a_lat}, {b_lng, b_lat});
 }
 
+}  // namespace geo_detail
 }  // namespace motis
