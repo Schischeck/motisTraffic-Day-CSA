@@ -30,7 +30,8 @@ std::unique_ptr<motis_instance> launch_motis(
   opt.push_back("--routing.max_label_count=1000");
   parser.read_command_line_args(opt);
 
-  instance->init_schedule({dataset, false, true, true, schedule_begin, 2});
+  instance->init_schedule(
+      {dataset, false, true, false, true, schedule_begin, 2});
   instance->init_modules(modules);
 
   return instance;

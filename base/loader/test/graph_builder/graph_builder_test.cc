@@ -27,8 +27,8 @@ void loader_graph_builder_test::SetUp() {
     parser.parse(schedule_path, b);
     auto serialized = GetSchedule(b.GetBufferPointer());
 
-    sched_ =
-        build_graph(serialized, schedule_begin_, schedule_end_, true, true);
+    sched_ = build_graph(serialized, schedule_begin_, schedule_end_, true, true,
+                         false);
   } catch (parser_error const& e) {
     e.print_what();
     ASSERT_TRUE(false);
