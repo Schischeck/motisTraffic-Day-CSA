@@ -27,10 +27,10 @@ public:
   database(std::string const& path);
   ~database();
 
-  persistable_terminal get(int id);
+  persistable_terminal get(std::string const& id) const;
   void put(std::vector<persistable_terminal> const& terminals);
 
-  bikesharing_summary get_summary();
+  bikesharing_summary get_summary() const;
   void put_summary(bikesharing_summary const& summary);
 
 private:

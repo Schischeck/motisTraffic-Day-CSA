@@ -22,9 +22,9 @@ struct terminal_snapshot : public terminal {
 
 struct availability {
   double average;
-  int median;
-  int minimum;
-  int q90;
+  double median;
+  double minimum;
+  double q90;
   double percent_reliable;
 };
 

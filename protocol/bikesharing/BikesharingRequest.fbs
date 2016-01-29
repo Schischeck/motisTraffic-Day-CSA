@@ -1,0 +1,8 @@
+namespace motis.bikesharing;
+
+table BikesharingRequest {
+  // departure
+  lat: double;
+  lng: double;
+  time: long;
+}

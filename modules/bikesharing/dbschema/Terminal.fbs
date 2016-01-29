@@ -2,9 +2,9 @@ namespace motis.bikesharing;
 
 table Availability {
   average: double;
-  median: int;
-  minimum: int;
-  q90: int;
+  median: double;
+  minimum: double;
+  q90: double;
   percent_reliable: double;
 }
 

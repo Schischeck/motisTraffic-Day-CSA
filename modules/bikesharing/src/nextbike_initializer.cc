@@ -91,7 +91,10 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
 }
 
 struct context {
-  database* db_;
+  context(database& db, dispatch_fun dispatch_fun, module::callback finished_cb)
+      : db_(db), dispatch_fun_(dispatch_fun), finished_cb_(finished_cb) {}
+
+  database& db_;
   dispatch_fun dispatch_fun_;
   module::callback finished_cb_;
 
@@ -110,13 +113,10 @@ void find_close_terminals(ctx_ptr ctx);
 void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec);
 void persist_terminals(ctx_ptr ctx);
 
-void initialize_nextbike(database* db, dispatch_fun dispatch_fun,
+void initialize_nextbike(database& db, dispatch_fun dispatch_fun,
                          module::callback finished_cb,
                          std::string const& nextbike_path) {
-  auto ctx = std::make_shared<context>();
-  ctx->db_ = db;
-  ctx->dispatch_fun_ = dispatch_fun;
-  ctx->finished_cb_ = finished_cb;
+  auto ctx = std::make_shared<context>(db, dispatch_fun, finished_cb);
   return initialize_nextbike(ctx, nextbike_path);
 }
 
@@ -203,8 +203,8 @@ void persist_terminals(ctx_ptr ctx) {
                                  ctx->attached_stations_[i],
                                  ctx->reachable_terminals_[i]));
   }
-  ctx->db_->put(p);
-  ctx->db_->put_summary(make_summary(ctx->terminals_));
+  ctx->db_.put(p);
+  ctx->db_.put_summary(make_summary(ctx->terminals_));
   ctx->finished_cb_({}, error::ok);
 }
 

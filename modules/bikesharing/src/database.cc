@@ -12,7 +12,10 @@ using namespace flatbuffers;
 namespace motis {
 namespace bikesharing {
 
+constexpr auto kSummaryKey = "__summary";
+
 struct database::database_impl {
+
   database_impl(std::string const& path) {
     DB* db;
     Options options;
@@ -26,9 +29,9 @@ struct database::database_impl {
     db_.reset(db);
   }
 
-  persistable_terminal get(int id) {
+  persistable_terminal get(std::string const& id) const {
     std::string value;
-    Status s = db_->Get(ReadOptions(), std::to_string(id), &value);
+    Status s = db_->Get(ReadOptions(), id, &value);
 
     if (s.IsNotFound()) {
       throw boost::system::system_error(error::terminal_not_found);
@@ -47,6 +50,23 @@ struct database::database_impl {
       }
     }
   }
+  bikesharing_summary get_summary() const {
+    std::string value;
+    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
+
+    if (s.IsNotFound() || !s.ok()) {
+      throw system_error(error::database_error);
+    }
+
+    return value;
+  }
+
+  void put_summary(bikesharing_summary const& summary) {
+    Status s = db_->Put(WriteOptions(), kSummaryKey, summary.to_string());
+    if (!s.ok()) {
+      throw system_error(error::database_error);
+    }
+  }
 
   std::unique_ptr<DB> db_;
 };
@@ -54,10 +74,20 @@ struct database::database_impl {
 database::database(std::string const& path) : impl_(new database_impl(path)) {}
 database::~database() = default;
 
-persistable_terminal database::get(int id) { return impl_->get(id); }
+persistable_terminal database::get(std::string const& id) const {
+  return impl_->get(id);
+}
 
 void database::put(std::vector<persistable_terminal> const& terminals) {
   impl_->put(terminals);
+}
+
+bikesharing_summary database::get_summary() const {
+  return impl_->get_summary();
+}
+
+void database::put_summary(bikesharing_summary const& summary) {
+  impl_->put_summary(summary);
 }
 
 namespace detail {
