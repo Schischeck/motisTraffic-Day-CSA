@@ -2,6 +2,6 @@
 
 namespace motis {
 
-constexpr int WALK_SPEED = 1;  // m/s
+constexpr double WALK_SPEED = 1.5;  // m/s
 
 }  // namespace motis

@@ -125,8 +125,8 @@ TEST(connectionchecker, finds_annotated_connections) {
   EXPECT_EQ(1448378340, s4.departure.timestamp);
   auto s5 = j.stops[5];  // Köln Messe/Deutz
   // 2015-11-24 16:20:00 GMT+0100
-  EXPECT_EQ(1448378400, s5.arrival.schedule_timestamp);
-  EXPECT_EQ(1448378400, s5.arrival.timestamp);
+  EXPECT_EQ(1448378640, s5.arrival.schedule_timestamp);
+  EXPECT_EQ(1448378640, s5.arrival.timestamp);
 
   // re 10958
 

@@ -377,15 +377,22 @@ void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
 
     uint32_t max_transfer_time =
         std::max(from_station.transfer_time, to_station.transfer_time);
-    auto const duration = std::max(max_transfer_time, footpath->duration());
-    auto const max_distance = duration * 60 * WALK_SPEED;
+    auto duration = std::max(max_transfer_time, footpath->duration());
 
-    if (get_distance(from_station, to_station) > max_distance) {
+    auto const distance = get_distance(from_station, to_station) * 1000;
+    auto const max_distance_adjust = duration * 60 * WALK_SPEED;
+    auto const max_distance = 2 * duration * 60 * WALK_SPEED;
+
+    if (distance > max_distance) {
       continue;
+    } else if (distance > max_distance_adjust) {
+      duration = std::round(distance / (60 * WALK_SPEED));
     }
 
-    next_node_id_ = from_node->add_foot_edge(
-        next_node_id_, make_foot_edge(from_node, to_node, duration));
+    if (duration <= 15) {
+      next_node_id_ = from_node->add_foot_edge(
+          next_node_id_, make_foot_edge(from_node, to_node, duration));
+    }
   }
 }
 
