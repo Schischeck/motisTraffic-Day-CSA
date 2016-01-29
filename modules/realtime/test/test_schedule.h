@@ -44,7 +44,7 @@ public:
             {"modules/realtime/test/test-schedule", true, false, true, false,
              "20150126", 21})),
         _rts(*_schedule),
-        _label_store((size_t)32 * 1042 * 1024),
+        _label_store((size_t)10 * 1024),
         _search(*_schedule, _label_store) {
     for (const auto& s : _schedule->stations) {
       _station_map[s->name] = s.get();

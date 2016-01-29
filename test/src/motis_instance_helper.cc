@@ -27,7 +27,7 @@ std::unique_ptr<motis_instance> launch_motis(
   conf::options_parser parser(confs);
   std::vector<std::string> opt(begin(modules_cmdline_opt),
                                end(modules_cmdline_opt));
-  opt.push_back("--routing.label_store_size=100000");
+  opt.push_back("--routing.label_store_size=32000");
   parser.read_command_line_args(opt);
 
   instance->init_schedule(
