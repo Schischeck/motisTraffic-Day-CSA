@@ -1,5 +1,7 @@
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
+include "lookup/LookupStationEventsRequest.fbs";
+include "lookup/LookupStationEventsResponse.fbs";
 include "railviz/RailVizInit.fbs";
 include "railviz/RailVizAlltraReq.fbs";
 include "railviz/RailVizAlltraRes.fbs";
@@ -69,6 +71,8 @@ union MsgContent {
   motis.HTTPResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
+  motis.lookup.LookupStationEventsRequest,
+  motis.lookup.LookupStationEventsResponse,
   motis.railviz.RailVizInit,
   motis.railviz.RailVizAlltraReq,
   motis.railviz.RailVizAlltraRes,

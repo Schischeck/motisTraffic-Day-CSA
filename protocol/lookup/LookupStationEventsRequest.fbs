@@ -1,0 +1,7 @@
+namespace motis.lookup;
+
+table LookupStationEventsRequest {
+  eva_nr: string;
+  begin:ulong;
+  end:ulong;
+}

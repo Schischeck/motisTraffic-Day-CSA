@@ -1,0 +1,16 @@
+namespace motis.lookup;
+
+enum EventType : bool {Arrival, Departure}
+
+table Event {
+  type:EventType;
+  train_nr:uint;
+  graph_time:ulong;
+
+  // TODO
+  // scheduled_time:ushort;
+}
+
+table LookupStationEventsResponse {
+  events: [Event];
+}
