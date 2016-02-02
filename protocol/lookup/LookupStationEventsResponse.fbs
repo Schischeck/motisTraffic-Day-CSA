@@ -1,6 +1,6 @@
-namespace motis.lookup;
+include "lookup/LookupCommon.fbs";
 
-enum EventType : bool {Arrival, Departure}
+namespace motis.lookup;
 
 table Event {
   type:EventType;

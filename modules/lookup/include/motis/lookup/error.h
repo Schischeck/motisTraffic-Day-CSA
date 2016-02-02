@@ -11,6 +11,7 @@ enum error_code_t {
   ok = 0,
   not_implemented = 1,
   station_not_found = 2,
+  route_not_found = 3,
   failure = 127
 };
 }  // namespace error
@@ -23,7 +24,8 @@ public:
     switch (ev) {
       case error::ok: return "lookup: no error";
       case error::not_implemented: return "lookup: not implemented";
-      case error::station_not_found: return "lookup: station_not_found";
+      case error::station_not_found: return "lookup: station not found";
+      case error::route_not_found: return "lookup: route not found";
       default: return "lookup: unkown error";
     }
   }
