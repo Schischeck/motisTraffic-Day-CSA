@@ -306,9 +306,29 @@ struct rule_service_route_builder {
     }
   }
 
+  node* get_through_route_node(Service const* service, Station const* station,
+                               bool source) {
+    auto get_node = [source](service_section const* s) {
+      return source ? s->first.to_route_node : s->first.from_route_node;
+    };
+
+    auto station_it = gb_.stations_.find(station);
+    verify(station_it != end(gb_.stations_), "through station not found");
+    auto station_node = station_it->second;
+
+    auto& sections = sections_.at(service);
+    auto it = std::find_if(begin(sections), end(sections),
+                           [&](service_section const* s) {
+                             return get_node(s)->get_station() == station_node;
+                           });
+    verify(it != end(sections), "through station not found");
+
+    return get_node(*it);
+  }
+
   void connect_route_nodes(Rule const* r) {
-    auto s1_node = sections_.at(r->service1()).back()->first.to_route_node;
-    auto s2_node = sections_.at(r->service2()).front()->first.from_route_node;
+    auto s1_node = get_through_route_node(r->service1(), r->from(), true);
+    auto s2_node = get_through_route_node(r->service2(), r->from(), false);
     s1_node->_edges.push_back(make_through_edge(s1_node, s2_node));
   }
 
