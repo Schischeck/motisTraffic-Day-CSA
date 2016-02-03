@@ -27,13 +27,17 @@ void lookup::print(std::ostream&) const {}
 void lookup::init() {}
 
 void lookup::on_msg(msg_ptr msg, sid, callback cb) {
-  auto type = msg->content_type();
-  if (type == MsgContent_LookupStationEventsRequest) {
-    auto req = msg->content<LookupStationEventsRequest const*>();
-    return lookup_station_events(req, cb);
-  } else if (type == MsgContent_LookupTrainRequest) {
-    auto req = msg->content<LookupTrainRequest const*>();
-    return lookup_train(req, cb);
+  try {
+    auto type = msg->content_type();
+    if (type == MsgContent_LookupStationEventsRequest) {
+      auto req = msg->content<LookupStationEventsRequest const*>();
+      return lookup_station_events(req, cb);
+    } else if (type == MsgContent_LookupTrainRequest) {
+      auto req = msg->content<LookupTrainRequest const*>();
+      return lookup_train(req, cb);
+    }
+  } catch (boost::system::system_error const& e) {
+    return cb({}, e.code());
   }
 
   return cb({}, error::not_implemented);
@@ -105,7 +109,7 @@ void lookup::lookup_station_events(LookupStationEventsRequest const* req,
 }
 
 std::pair<int, int> get_route_id_and_position(station_node const* node,
-                                              unsigned train_nr, time t,
+                                              uint32_t train_nr, time t,
                                               bool is_departure) {
   if (!is_departure) {
     throw boost::system::system_error(error::not_implemented);
