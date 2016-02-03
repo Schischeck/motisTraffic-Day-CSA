@@ -176,7 +176,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     dep.valid = true;
     dep.timestamp = d_time;
     dep.schedule_timestamp = d_time;
-    dep.platform = lcon._full_con->d_platform;
+    dep.platform = std::to_string(lcon._full_con->d_platform);
 
     j.stops.back().departure = dep;
 
@@ -197,7 +197,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     arr.valid = true;
     arr.timestamp = a_time;
     arr.schedule_timestamp = a_time;
-    arr.platform = lcon._full_con->d_platform;
+    arr.platform = std::to_string(lcon._full_con->d_platform);
     a_stop.arrival = arr;
 
     j.stops.push_back(a_stop);
