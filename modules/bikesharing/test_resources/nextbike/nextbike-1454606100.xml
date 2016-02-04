@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<markers>
+ <country country="DE">
+  <city>
+   <place uid="1" lat="49.8780247" lng="8.6545839" name="Algo" bikes="3" />
+   <place uid="2" lat="49.875768" lng="8.6578002" name="Mensa" bikes="1" />
+   <place uid="3" lat="49.8725581" lng="8.6317004" name="HBF" bikes="0" />
+   <place uid="4" lat="49.8722315" lng="8.6282539" name="HBF west" bikes="0" />
+  </city>
+</country>
+</markers>

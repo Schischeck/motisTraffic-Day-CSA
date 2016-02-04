@@ -79,7 +79,7 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
     auto const& node = xnode.node();
 
     terminal_snapshot terminal;
-    terminal.uid = node.attribute("uid").as_int();
+    terminal.uid = node.attribute("uid").value();
     terminal.lat = node.attribute("lat").as_double();
     terminal.lng = node.attribute("lng").as_double();
     terminal.name = node.attribute("name").value();

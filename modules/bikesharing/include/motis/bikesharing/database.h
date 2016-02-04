@@ -33,7 +33,6 @@ public:
   bikesharing_summary get_summary() const;
   void put_summary(bikesharing_summary const& summary);
 
-private:
   struct database_impl;
   std::unique_ptr<database_impl> impl_;
 };

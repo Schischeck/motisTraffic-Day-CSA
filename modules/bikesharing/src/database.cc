@@ -16,6 +16,7 @@ constexpr auto kSummaryKey = "__summary";
 
 struct database::database_impl {
 
+  database_impl() = default;
   database_impl(std::string const& path) {
     DB* db;
     Options options;
@@ -29,7 +30,7 @@ struct database::database_impl {
     db_.reset(db);
   }
 
-  persistable_terminal get(std::string const& id) const {
+  virtual persistable_terminal get(std::string const& id) const {
     std::string value;
     Status s = db_->Get(ReadOptions(), id, &value);
 
@@ -42,7 +43,7 @@ struct database::database_impl {
     return value;
   }
 
-  void put(std::vector<persistable_terminal> const& terminals) {
+  virtual void put(std::vector<persistable_terminal> const& terminals) {
     for (auto const& t : terminals) {
       Status s = db_->Put(WriteOptions(), t.get()->id()->str(), t.to_string());
       if (!s.ok()) {
@@ -50,7 +51,8 @@ struct database::database_impl {
       }
     }
   }
-  bikesharing_summary get_summary() const {
+
+  virtual bikesharing_summary get_summary() const {
     std::string value;
     Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
 
@@ -61,7 +63,7 @@ struct database::database_impl {
     return value;
   }
 
-  void put_summary(bikesharing_summary const& summary) {
+  virtual void put_summary(bikesharing_summary const& summary) {
     Status s = db_->Put(WriteOptions(), kSummaryKey, summary.to_string());
     if (!s.ok()) {
       throw system_error(error::database_error);
@@ -71,7 +73,39 @@ struct database::database_impl {
   std::unique_ptr<DB> db_;
 };
 
-database::database(std::string const& path) : impl_(new database_impl(path)) {}
+struct inmemory_database : public database::database_impl {
+  persistable_terminal get(std::string const& id) const {
+    auto it = store_.find(id);
+    if (it == end(store_)) {
+      throw boost::system::system_error(error::terminal_not_found);
+    }
+    return it->second;
+  }
+
+  void put(std::vector<persistable_terminal> const& terminals) {
+    for (auto const& t : terminals) {
+      store_[t.get()->id()->str()] = t.to_string();
+    }
+  }
+
+  bikesharing_summary get_summary() const {
+    auto it = store_.find(kSummaryKey);
+    if (it == end(store_)) {
+      throw boost::system::system_error(error::terminal_not_found);
+    }
+    return it->second;
+  }
+
+  void put_summary(bikesharing_summary const& summary) {
+    store_[kSummaryKey] = summary.to_string();
+  }
+
+  std::map<std::string, std::string> store_;
+};
+
+database::database(std::string const& path)
+    : impl_(path == ":memory:" ? new inmemory_database()
+                               : new database_impl(path)) {}
 database::~database() = default;
 
 persistable_terminal database::get(std::string const& id) const {
