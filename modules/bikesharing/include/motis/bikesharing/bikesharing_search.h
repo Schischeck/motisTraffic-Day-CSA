@@ -14,8 +14,8 @@ struct bikesharing_search {
   module::msg_ptr find_connections(BikesharingRequest const* req) const;
 
 private:
-  struct bikesharing_search_impl;
-  std::unique_ptr<bikesharing_search_impl> impl_;
+  struct impl;
+  std::unique_ptr<impl> impl_;
 };
 
 }  // namespace bikesharing

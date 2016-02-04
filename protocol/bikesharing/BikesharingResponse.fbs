@@ -1,6 +1,25 @@
 namespace motis.bikesharing;
 
-table BikesharingResponse {
-  
+struct BikesharingAvailability {
+  begin: ulong; // inclusive
+  end: ulong;  // exclusive
+  value: double;
+}
 
+table BikesharingTerminal {
+  id: string;
+  lat: double;
+  lng: double;
+  name: string;
+}
+
+table BikesharingEdge {
+  from: BikesharingTerminal;
+  to: BikesharingTerminal;
+  availability: [BikesharingAvailability];
+}
+
+table BikesharingResponse {
+  departure_edges: [BikesharingEdge];
+  arrival_edges: [BikesharingEdge];
 }

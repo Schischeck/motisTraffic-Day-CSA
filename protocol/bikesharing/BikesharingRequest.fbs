@@ -1,8 +1,13 @@
 namespace motis.bikesharing;
 
+// XXX this looks like code duplication of RoutingRequest
 table BikesharingRequest {
-  // departure
-  lat: double;
-  lng: double;
-  time: long;
+  departure_lat: double;
+  departure_lng: double;
+
+  arrival_lat: double;
+  arrival_lng: double;
+
+  window_begin: long;
+  window_end: long;
 }
