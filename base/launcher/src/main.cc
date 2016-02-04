@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
   listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
-  dataset_settings dataset_opt("rohdaten", true, true, false, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
       loader::transform_to_vec(

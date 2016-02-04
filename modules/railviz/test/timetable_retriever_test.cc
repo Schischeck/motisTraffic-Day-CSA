@@ -10,7 +10,7 @@ using namespace motis;
 TEST(railviz_stations_on_route, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -46,7 +46,7 @@ TEST(railviz_stations_on_route, test_with_loop) {
 TEST(railviz_routes_on_time, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
@@ -100,7 +100,7 @@ TEST(railviz_routes_on_time, test_with_loop) {
 TEST(railviz_timetable_for_station, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
@@ -147,7 +147,7 @@ TEST(railviz_timetable_for_station, test_with_loop) {
 TEST(railviz_timetable_station_outgoing, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
@@ -190,7 +190,7 @@ TEST(railviz_timetable_station_outgoing, test_with_loop) {
 TEST(railviz_timetable_station_incoming, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::map<std::string, motis::station*>::iterator it;
@@ -233,7 +233,7 @@ TEST(railviz_timetable_station_incoming, test_with_loop) {
 TEST(railviz_parent_node, test_without_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -260,7 +260,7 @@ TEST(railviz_parent_node, test_without_loop) {
 TEST(railviz_parent_node, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -289,7 +289,7 @@ TEST(railviz_parent_node, test_with_loop) {
 TEST(railviz_child_node, test_without_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -321,7 +321,7 @@ TEST(railviz_child_node, test_without_loop) {
 TEST(railviz_child_node, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
 
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
@@ -351,7 +351,7 @@ TEST(railviz_child_node, test_with_loop) {
 TEST(railviz_start_for_route, test_without_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -378,7 +378,7 @@ TEST(railviz_start_for_route, test_without_loop) {
 TEST(railviz_start_for_route, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -408,7 +408,7 @@ TEST(railviz_start_for_route, test_with_loop) {
 TEST(railviz_end_for_route, test_without_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -435,7 +435,7 @@ TEST(railviz_end_for_route, test_without_loop) {
 TEST(railviz_end_for_route, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   std::map<std::string, motis::station*>::iterator it;
 
@@ -465,7 +465,7 @@ TEST(railviz_end_for_route, test_with_loop) {
 TEST(railviz_route_departure_times, test_without_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,
@@ -480,7 +480,7 @@ TEST(railviz_route_departure_times, test_without_loop) {
 TEST(railviz_route_departure_times, test_with_loop) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 1});
+       false, false, "20151121", 1});
   timetable_retriever ttr;
   constexpr motis::time offset = 5 * MINUTES_A_DAY + 600;
   std::vector<motis::time> ref_vector = {offset + 0,  offset + 10, offset + 20,

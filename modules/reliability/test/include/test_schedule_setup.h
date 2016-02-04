@@ -22,7 +22,7 @@ protected:
 
   virtual void SetUp() override {
     schedule_ = loader::load_schedule(
-        {schedule_path_, false, true, false, schedule_begin_, 2});
+        {schedule_path_, false, true, false, false, schedule_begin_, 2});
   }
 
 public:

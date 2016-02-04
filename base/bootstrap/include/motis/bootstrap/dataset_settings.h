@@ -17,7 +17,7 @@ class dataset_settings : public conf::configuration,
                          public motis::loader::loader_options {
 public:
   dataset_settings(std::string default_dataset, bool write_serialized,
-                   bool unique_check, bool apply_rules,
+                   bool unique_check, bool apply_rules, bool adjust_footpaths,
                    std::string schedule_begin, int num_days);
 
   virtual ~dataset_settings() {}

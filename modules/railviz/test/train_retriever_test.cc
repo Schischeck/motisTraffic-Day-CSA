@@ -12,7 +12,7 @@ using namespace motis;
 TEST(railviz_all_train, two_trains_driving) {
   auto schedule = loader::load_schedule(
       {"modules/railviz/test/test_timetables/schedule_loop/", false, false,
-       false, "20151121", 2});
+       false, false, "20151121", 2});
   train_retriever ttr(*schedule);
   constexpr motis::time offset = MINUTES_A_DAY * 5 + 600;
   geo::box area = {{49.8728, 8.24411}, {50.969, 9.79821}};

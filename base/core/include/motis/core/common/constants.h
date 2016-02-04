@@ -2,7 +2,7 @@
 
 namespace motis {
 
-constexpr int WALK_SPEED = 1;  // m/s
+constexpr double WALK_SPEED = 1.5;  // m/s
 constexpr int BIKE_SPEED = 15;  // m/s
 
 constexpr int MAX_WALK_TIME = 10 * 60; // s
