@@ -31,7 +31,7 @@ using quadratic_rtree = bgi::rtree<value, bgi::quadratic<16>>;
 enum { LNG, LAT };
 
 /// Generates a query box around the given origin with edge length 2xdist
-box generate_box(const spherical_point& center, double dist_in_m) {
+inline box generate_box(const spherical_point& center, double dist_in_m) {
   // The distance of latitude degrees in km is always the same (~111000.0f)
   double lat_diff = dist_in_m / 111000.0f;
 
@@ -49,7 +49,8 @@ box generate_box(const spherical_point& center, double dist_in_m) {
 }
 
 /// Computes the distance (in meters) between two coordinates
-double distance_in_m(const spherical_point& a, const spherical_point& b) {
+inline double distance_in_m(spherical_point const& a,
+                            spherical_point const& b) {
   return boost::geometry::distance(a, b) * kEarthRadiusMeters;
 }
 
