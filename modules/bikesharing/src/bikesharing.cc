@@ -10,6 +10,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
 
+#define DATABASE_PATH "bikesharing.database_path"
 #define NEXTBIKE_PATH "bikesharing.nextbike_path"
 
 using namespace flatbuffers;
@@ -20,12 +21,16 @@ namespace po = boost::program_options;
 namespace motis {
 namespace bikesharing {
 
-bikesharing::bikesharing() : nextbike_path_("") {}
+bikesharing::bikesharing()
+    : database_path_("bikesharing"), nextbike_path_("") {}
 
 po::options_description bikesharing::desc() {
   po::options_description desc("bikesharing Module");
   // clang-format off
   desc.add_options()
+      (DATABASE_PATH,
+       po::value<std::string>(&database_path_)->default_value(database_path_),
+       "Location of the Bikesharing Database (folder or ':memory:')")
       (NEXTBIKE_PATH,
        po::value<std::string>(&nextbike_path_)->default_value(nextbike_path_),
        "Where nextbike snapshots can be found (may be folder or single file)");
@@ -34,7 +39,8 @@ po::options_description bikesharing::desc() {
 }
 
 void bikesharing::print(std::ostream& out) const {
-  out << "  " << NEXTBIKE_PATH << ": " << nextbike_path_;
+  out << "  " << DATABASE_PATH << ": " << database_path_ << "\n"
+      << "  " << NEXTBIKE_PATH << ": " << nextbike_path_;
 }
 
 void bikesharing::init() {

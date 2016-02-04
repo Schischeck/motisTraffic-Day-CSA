@@ -25,6 +25,7 @@ struct bikesharing : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
+  std::string database_path_;
   std::string nextbike_path_;
 };
 
