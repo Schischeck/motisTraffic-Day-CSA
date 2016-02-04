@@ -6,6 +6,7 @@
 
 #include "parser/cstr.h"
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/category.h"
