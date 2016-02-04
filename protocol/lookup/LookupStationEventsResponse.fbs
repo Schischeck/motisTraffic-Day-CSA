@@ -5,7 +5,7 @@ namespace motis.lookup;
 table Event {
   type:EventType;
   train_nr:uint;
-  graph_time:ulong;
+  graph_time:ulong; // TODO consistent time naming
 
   // TODO
   // scheduled_time:ushort;
