@@ -82,9 +82,9 @@ msg_ptr get_ris_message() {
 }
 
 TEST(connectionchecker, finds_annotated_connections) {
-  auto instance =
-      launch_motis("modules/connectionchecker/test_resources/schedule",
-                   "20151124", {"routing", "connectionchecker", "realtime"});
+  auto instance = launch_motis(
+      "modules/connectionchecker/test_resources/schedule", "20151124",
+      {"routing", "connectionchecker", "realtime", "reliability"});
   send(instance, get_ris_message());
   auto resp = send(instance, make_msg(kRoutingRequest));
   auto journeys = message_to_journeys(resp->content<RoutingResponse const*>());

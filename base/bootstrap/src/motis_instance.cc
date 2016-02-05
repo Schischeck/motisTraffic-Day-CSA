@@ -112,6 +112,9 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
   ios_init_thread.join();
   worker_init_thread.join();
 
+  ios_.reset();
+  thread_pool_.reset();
+
   LOG(info) << "init modules finished";
 }
 
