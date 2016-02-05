@@ -144,8 +144,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                            fbb.CreateVector(path))
           .Union());
   auto msg = make_msg(fbb);
-
-  msg->msg_->mutate_id(id);
+  msg->get()->mutate_id(id);
 
   std::string s = msg->to_json();
   s.erase(std::remove(begin(s), end(s), '\n'), end(s));
@@ -197,7 +196,8 @@ std::pair<std::string, std::string> random_station_ids(schedule const& sched,
 }
 
 int main(int argc, char** argv) {
-  dataset_settings dataset_opt("rohdaten", true, false, false, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, false, false, false, "TODAY",
+                               2);
   generator_settings generator_opt(1000, "queries.txt");
 
   conf::options_parser parser({&dataset_opt, &generator_opt});
