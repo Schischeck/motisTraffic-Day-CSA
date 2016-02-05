@@ -2,8 +2,6 @@
 
 #include "motis/core/schedule/constant_graph.h"
 
-//#define WITH_PRICES
-
 namespace motis {
 
 struct lower_bounds {
