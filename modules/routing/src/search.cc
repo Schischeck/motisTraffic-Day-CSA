@@ -18,12 +18,12 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/edges.h"
-#include "motis/routing/label.h"
-#include "motis/routing/labels_to_journey.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/pareto_dijkstra.h"
+#include "motis/routing/output/labels_to_journey.h"
 
 namespace motis {
+namespace routing {
 
 void remove_intersection(arrival& from, arrival& to) {
   for (auto const& to_arr_part : to) {
@@ -36,7 +36,7 @@ void remove_intersection(arrival& from, arrival& to) {
   }
 }
 
-search::search(schedule const& schedule, memory_manager<label>& label_store)
+search::search(schedule const& schedule, memory_manager& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
 void add_additional_edge(
@@ -52,8 +52,7 @@ void add_additional_edge(
 
 search_result search::get_connections(
     arrival from, arrival to, time interval_start, time interval_end,
-    bool ontrip, bool is_late_connection_search,
-    std::vector<edge> const& query_additional_edges) {
+    bool ontrip, std::vector<edge> const& query_additional_edges) {
 
   _label_store.reset();
   remove_intersection(from, to);
@@ -79,41 +78,23 @@ search_result search::get_connections(
 
   // initialize lower bound graphs and
   // check if there is a path from source to target
-  lower_bounds lower_bounds(_sched.lower_bounds, DUMMY_TARGET_IDX,
-                            lb_graph_edges);
+  lower_bounds lb(_sched.lower_bounds, DUMMY_TARGET_IDX, lb_graph_edges);
+  lb.travel_time.run();
+  lb.transfers.run();
 
-  MOTIS_START_TIMING(lower_bounds_timing);
-
-  MOTIS_START_TIMING(travel_l_b_time_timing);
-  lower_bounds.travel_time.run();
-  MOTIS_STOP_TIMING(travel_l_b_time_timing);
-
-  MOTIS_START_TIMING(transfers_l_b_timing);
-  lower_bounds.transfers.run();
-  MOTIS_STOP_TIMING(transfers_l_b_timing);
-
-  MOTIS_START_TIMING(price_l_b_timing);
-#ifdef WITH_PRICES
-  lower_bounds.price.run();
-#endif
-  MOTIS_STOP_TIMING(price_l_b_timing);
-
-  MOTIS_STOP_TIMING(lower_bounds_timing);
-
-  if (lower_bounds.travel_time.get_distance(DUMMY_SOURCE_IDX) ==
+  if (lb.travel_time[DUMMY_SOURCE_IDX] ==
       std::numeric_limits<uint32_t>::max()) {
     LOG(logging::error) << "no path from source to target found";
     return search_result();
   }
 
-  std::vector<label*> start_labels;
+  std::vector<my_label*> start_labels;
   if (ontrip) {
     if (from.size() != 1) {
       throw std::runtime_error("ontrip accepts exactly one station");
     }
     generate_ontrip_start_labels(_sched.station_nodes[from[0].station].get(),
-                                 interval_start, start_labels, lower_bounds,
-                                 is_late_connection_search);
+                                 interval_start, start_labels, lb);
   } else {
     station_node* dummy_source_station =
         _sched.station_nodes[DUMMY_SOURCE_IDX].get();
@@ -122,9 +103,10 @@ search_result search::get_connections(
 
       // generate labels at all route nodes
       // for all trains departing in the specified interval
-      generate_start_labels(interval_start, interval_end, station, start_labels,
-                            dummy_source_station, s.time_cost, s.price, s.slot,
-                            lower_bounds, is_late_connection_search);
+      generate_start_labels(
+          interval_start, interval_end, station, start_labels,
+          dummy_source_station,
+          s.time_cost + _sched.stations[s.station]->transfer_time, lb);
     }
   }
 
@@ -142,73 +124,59 @@ search_result search::get_connections(
     add_additional_edge(e._from, e, additional_edges);
   }
 
-  pareto_dijkstra pd(_sched.node_count,
-                     _sched.station_nodes[DUMMY_TARGET_IDX].get(), start_labels,
-                     additional_edges, lower_bounds, _label_store);
+  pareto_dijkstra<my_label, lower_bounds> pd(
+      _sched.node_count, _sched.station_nodes[DUMMY_TARGET_IDX].get(),
+      start_labels, additional_edges, lb, _label_store);
 
   MOTIS_START_TIMING(pareto_dijkstra_timing);
-  std::vector<label*>& results = pd.search();
+  auto& results = pd.search();
   MOTIS_STOP_TIMING(pareto_dijkstra_timing);
 
   auto stats = pd.get_statistics();
-  stats.travel_time_l_b = MOTIS_TIMING_MS(travel_l_b_time_timing);
-  stats.transfers_l_b = MOTIS_TIMING_MS(transfers_l_b_timing);
-  stats.price_l_b = MOTIS_TIMING_MS(price_l_b_timing);
   stats.pareto_dijkstra = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
   std::vector<journey> journeys;
   journeys.resize(results.size());
-  std::transform(
-      begin(results), end(results), begin(journeys),
-      [this](label* label) { return labels_to_journey(label, _sched); });
+  std::transform(begin(results), end(results), begin(journeys),
+                 [this](my_label* label) {
+                   return output::labels_to_journey(label, _sched);
+                 });
 
   return search_result(stats, journeys);
 }
 
 void search::generate_ontrip_start_labels(
     station_node const* start_station_node, time const start_time,
-    std::vector<label*>& start_labels, lower_bounds& lower_bounds,
-    bool const is_late_connection_search) {
-  start_labels.push_back(new (_label_store.create())
-                             label(start_station_node, nullptr, start_time,
-                                   lower_bounds, is_late_connection_search));
+    std::vector<my_label*>& start_labels, lower_bounds& lower_bounds) {
+  start_labels.push_back(new (_label_store.create<my_label>()) my_label(
+      start_station_node, nullptr, start_time, lower_bounds));
 }
 
 void search::generate_start_labels(time const from, time const to,
                                    station_node const* start_station_node,
-                                   std::vector<label*>& indices,
+                                   std::vector<my_label*>& indices,
                                    station_node const* real_start, int time_off,
-                                   int start_price, int slot,
-                                   lower_bounds& lower_bounds,
-                                   bool is_late_connection_search) {
+                                   lower_bounds& lower_bounds) {
   for (auto const& edge : start_station_node->_edges) {
     generate_start_labels(from, to, start_station_node, edge.get_destination(),
-                          indices, real_start, time_off, start_price, slot,
-                          lower_bounds, is_late_connection_search);
+                          indices, real_start, time_off, lower_bounds);
   }
 }
 
-void search::generate_start_labels(
-    time const from, time const to, station_node const* start_station_node,
-    node const* route_node, std::vector<label*>& start_labels,
-    station_node const* real_start, int time_off, int start_price, int slot,
-    lower_bounds& lower_bounds, bool const is_late_connection_search) {
+void search::generate_start_labels(time const from, time const to,
+                                   station_node const* start_station_node,
+                                   node const* route_node,
+                                   std::vector<my_label*>& start_labels,
+                                   station_node const* real_start, int time_off,
+                                   lower_bounds& lower_bounds) {
   for (auto const& edge : route_node->_edges) {
-    // not a route-edge?
     if (edge.empty()) {
       continue;
     }
 
     time t = from + time_off;
-
-    // don't set label on foot node
-    // this isn't neccesary in a intermodal scenario.
-    if (edge._m._type != edge::ROUTE_EDGE) {
-      continue;
-    }
-
     while (t <= to + time_off) {
-      light_connection const* con = edge.get_connection(t);
+      auto con = edge.get_connection(t);
       if (con == nullptr) {
         break;
       }
@@ -219,34 +187,28 @@ void search::generate_start_labels(
         break;
       }
 
-      // was there an earlier start station?
-      label* earlier = nullptr;
+      my_label* earlier = nullptr;
       if (real_start != nullptr) {
-        earlier = new (_label_store.create())
-            label(real_start, nullptr, t - time_off, lower_bounds,
-                  is_late_connection_search);
+        earlier = new (_label_store.create<my_label>())
+            my_label(real_start, nullptr, t - time_off, lower_bounds);
       }
 
-      label* station_node_label = new (_label_store.create())
-          label(start_station_node, earlier, t, lower_bounds,
-                is_late_connection_search);
-      station_node_label->_prices[label::ADDITIONAL_PRICE] = start_price;
-      station_node_label->_total_price[0] = start_price;
+      auto station_node_label = new (_label_store.create<my_label>())
+          my_label(start_station_node, earlier, t, lower_bounds);
 
-      // create the label we are really interested in
-      label* route_node_label = new (_label_store.create())
-          label(route_node, station_node_label, t, lower_bounds,
-                is_late_connection_search);
-      route_node_label->set_slot(true, slot);
+      auto route_node_label = new (_label_store.create<my_label>())
+          my_label(route_node, station_node_label, t, lower_bounds);
 
-      if (route_node_label->_travel_time[1] !=
-          std::numeric_limits<uint16_t>::max()) {
-        start_labels.push_back(route_node_label);
-      }
+      // TODO
+      // if (route_node_label->_travel_time[1] !=
+      //     std::numeric_limits<uint16_t>::max()) {
+      start_labels.push_back(route_node_label);
+      // }
 
       t = t + 1;
     }
   }
 }
 
+}  // namespace routing
 }  // namespace motis

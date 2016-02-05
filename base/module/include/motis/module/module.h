@@ -32,6 +32,7 @@ struct locked_schedule {
 };
 
 struct module : public conf::configuration {
+  module() : context_(nullptr), locked_(false) {}
   virtual ~module() {}
 
   virtual std::string name() const = 0;

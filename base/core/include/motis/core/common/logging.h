@@ -50,5 +50,23 @@ struct scoped_timer final {
   std::chrono::time_point<std::chrono::steady_clock> _start;
 };
 
+struct manual_timer final {
+  manual_timer(char const* name)
+      : _name(name), _start(std::chrono::steady_clock::now()) {
+    LOG(info) << "[" << _name << "] starting";
+  }
+
+  void stop_and_print() {
+    using namespace std::chrono;
+    auto stop = steady_clock::now();
+    double t = duration_cast<microseconds>(stop - _start).count() / 1000.0;
+    LOG(info) << "[" << _name << "] finished"
+              << " (" << t << "ms)";
+  }
+
+  const char* _name;
+  std::chrono::time_point<std::chrono::steady_clock> _start;
+};
+
 }  // namespace logging
 }  // namespace motis

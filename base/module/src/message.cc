@@ -7,18 +7,19 @@
 #include "flatbuffers/util.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/util.h"
 #include "motis/module/error.h"
 #include "motis/protocol/resources.h"
 
 #undef GetMessage
 
+using namespace flatbuffers;
+
 namespace motis {
 namespace module {
 
-std::unique_ptr<flatbuffers::Parser> message::parser =
-    std::unique_ptr<flatbuffers::Parser>(new flatbuffers::Parser());
-
-void message::init_parser() {
+std::unique_ptr<Parser> init_parser() {
+  auto parser = make_unique<Parser>();
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {
@@ -33,13 +34,21 @@ void message::init_parser() {
     printf("error: %s\n", parser->error_.c_str());
     throw std::runtime_error("flatbuffer protocol definitions parser error");
   }
+  return parser;
+}
+static std::unique_ptr<Parser> parser = init_parser();
+
+std::string message::to_json() const {
+  auto opt = flatbuffers::GeneratorOptions();
+  opt.strict_json = true;
+
+  std::string json;
+  flatbuffers::GenerateText(*parser, data(), opt, &json);
+
+  return json;
 }
 
-message::message(std::string const& json) {
-  if (!parser->root_struct_def_) {
-    init_parser();
-  }
-
+msg_ptr make_msg(std::string const& json) {
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
     LOG(motis::logging::error) << "parse error: " << parser->error_;
@@ -51,40 +60,18 @@ message::message(std::string const& json) {
   if (!VerifyMessageBuffer(verifier)) {
     throw boost::system::system_error(error::malformed_msg);
   }
-
-  len_ = parser->builder_.GetSize();
-  buf_ = parser->builder_.GetBufferPointer();
-  msg_ = motis::GetMutableMessage(buf_);
-  mem_ = parser->builder_.ReleaseBufferPointer();
+  auto size = parser->builder_.GetSize();
+  auto buffer = parser->builder_.ReleaseBufferPointer();
 
   parser->builder_.Clear();
-}
-
-std::string message::to_json() const {
-  if (!parser->root_struct_def_) {
-    init_parser();
-  }
-
-  auto opt = flatbuffers::GeneratorOptions();
-  opt.strict_json = true;
-
-  std::string json;
-  flatbuffers::GenerateText(*parser, buf_, opt, &json);
-
-  return json;
-}
-
-msg_ptr make_msg(std::string const& json) {
-  return std::make_shared<message>(json);
+  return std::make_shared<message>(size, std::move(buffer));
 }
 
 msg_ptr make_msg(MessageCreator& builder) {
   auto len = builder.GetSize();
-  auto buf = builder.GetBufferPointer();
-  auto msg = GetMutableMessage(buf);
   auto mem = builder.ReleaseBufferPointer();
   builder.Clear();
-  return std::make_shared<message>(len, std::move(mem), msg, buf);
+  return std::make_shared<message>(len, std::move(mem));
 }
 
 msg_ptr make_msg(void* buf, size_t len) {
@@ -97,9 +84,7 @@ msg_ptr make_msg(void* buf, size_t len) {
     throw boost::system::system_error(error::malformed_msg);
   }
 
-  void* ptr = mem.get();
-  return std::make_shared<message>(len, std::move(mem), GetMutableMessage(ptr),
-                                   buf);
+  return std::make_shared<message>(len, std::move(mem));
 }
 
 }  // namespace module

@@ -113,7 +113,7 @@ void reliability::init() {
 }
 
 void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
-  auto content_type = msg->msg_->content_type();
+  auto content_type = msg->content_type();
   if (content_type == MsgContent_ReliableRoutingRequest) {
     auto req = msg->content<ReliableRoutingRequest const*>();
     return handle_routing_request(req, session_id, cb);

@@ -44,7 +44,7 @@ schedule_ptr load_schedule(loader_options const& opt) {
   if (fs::is_regular_file(binary_schedule_file)) {
     auto buf = file(binary_schedule_file.string().c_str(), "r").content();
     return build_graph(GetSchedule(buf.buf_), from, to, opt.unique_check,
-                       opt.apply_rules);
+                       opt.apply_rules, opt.adjust_footpaths);
   } else {
     for (auto const& parser : parsers()) {
       if (parser->applicable(opt.dataset)) {
@@ -55,7 +55,8 @@ schedule_ptr load_schedule(loader_options const& opt) {
               .write(builder.GetBufferPointer(), builder.GetSize());
         }
         return build_graph(GetSchedule(builder.GetBufferPointer()), from, to,
-                           opt.unique_check, opt.apply_rules);
+                           opt.unique_check, opt.apply_rules,
+                           opt.adjust_footpaths);
       }
     }
 

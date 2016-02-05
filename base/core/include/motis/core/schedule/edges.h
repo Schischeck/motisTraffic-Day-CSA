@@ -13,16 +13,20 @@ namespace motis {
 class node;
 
 struct edge_cost {
-  edge_cost(uint16_t time, light_connection const* c)
+  edge_cost() : time(INVALID_TIME) {}
+
+  edge_cost(duration time, light_connection const* c)
       : connection(c), time(time), price(0), transfer(false), slot(0) {}
 
-  edge_cost(uint16_t time, bool transfer = false, uint16_t price = 0,
+  edge_cost(duration time, bool transfer = false, uint16_t price = 0,
             uint8_t slot = 0)
       : connection(nullptr),
         time(time),
         price(price),
         transfer(transfer),
         slot(slot) {}
+
+  bool is_valid() const { return time != INVALID_TIME; }
 
   uint16_t operator[](int index) const {
     switch (index) {
@@ -33,19 +37,14 @@ struct edge_cost {
     }
   }
 
-  bool operator==(const edge_cost& o) const {
-    return o.time == time && o.price == price && o.transfer == transfer &&
-           o.slot == slot;
-  }
-
   light_connection const* connection;
-  uint16_t time;
+  duration time;
   uint16_t price;
   bool transfer;
   uint8_t slot;
 };
 
-const edge_cost NO_EDGE(-1);
+const edge_cost NO_EDGE = edge_cost();
 
 class edge {
 public:

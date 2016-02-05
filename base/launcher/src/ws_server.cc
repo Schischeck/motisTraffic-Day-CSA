@@ -49,7 +49,7 @@ struct ws_server::ws_server_impl {
   }
 
   void send(msg_ptr const& msg, sid session, int request_id) {
-    msg->msg_->mutate_id(request_id);
+    msg->get()->mutate_id(request_id);
 
     if (!msg) {
       return;
@@ -146,16 +146,16 @@ struct ws_server::ws_server_impl {
           req_msg, session,
           [this, session, req_msg](msg_ptr res, boost::system::error_code ec) {
             if (ec) {
-              send_error(ec, session, req_msg->msg_->id());
+              send_error(ec, session, req_msg->id());
             } else if (res) {
-              send(res, session, req_msg->msg_->id());
+              send(res, session, req_msg->id());
             } else {
-              send_success(session, req_msg->msg_->id());
+              send_success(session, req_msg->id());
             }
           },
           false);
     } catch (boost::system::system_error const& e) {
-      send_error(e.code(), session, req_msg->msg_->id());
+      send_error(e.code(), session, req_msg->id());
     } catch (...) {
       std::cout << "unknown error occured\n";
     }

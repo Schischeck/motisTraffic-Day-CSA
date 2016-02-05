@@ -5,107 +5,214 @@
 #include <ostream>
 #include <unordered_map>
 
-#include "motis/routing/label.h"
-#include "motis/routing/lower_bounds.h"
+#include "motis/routing/statistics.h"
+#include "motis/routing/memory_manager.h"
 
 namespace motis {
+namespace routing {
 
-class heuristic;
-class node;
-class station_node;
+const bool FORWARDING = true;
 
+template <typename Label, typename LowerBounds>
 class pareto_dijkstra {
 public:
   class compare_labels {
   public:
-    bool operator()(const label* l1, const label* l2) const {
+    bool operator()(const Label* l1, const Label* l2) const {
       return l2->operator<(*l1);
     }
   };
 
-  /** stores search statistics for performance analysis */
-  struct statistics {
-    statistics()
-        : labels_popped(0),
-          labels_created(0),
-          labels_dominated_by_results(0),
-          labels_filtered(0),
-          labels_dominated_by_former_labels(0),
-          labels_dominated_by_later_labels(0),
-          labels_popped_until_first_result(-1),
-          labels_popped_after_last_result(0),
-          priority_queue_max_size(0),
-          start_label_count(0),
-          labels_equals_popped(0),
-          max_label_quit(false) {}
-
-    int labels_popped, labels_created, labels_dominated_by_results;
-    int labels_filtered, labels_dominated_by_former_labels,
-        labels_dominated_by_later_labels;
-    int labels_popped_until_first_result, labels_popped_after_last_result;
-    int priority_queue_max_size;
-    int start_label_count;
-    int labels_equals_popped;
-    bool max_label_quit;
-    int travel_time_l_b;
-    int transfers_l_b;
-    int price_l_b;
-    int total_calculation_time;
-    int pareto_dijkstra;
-
-    friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
-      return o << "stats:\n"
-               << "\ttravel_time_l_b: " << s.travel_time_l_b << "ms\n"
-               << "\ttransfers_l_b: " << s.transfers_l_b << "ms\n"
-               << "\tprice_l_b: " << s.price_l_b << "ms\n"
-               << "\tstart_label_count:" << s.start_label_count << "\n"
-               << "\tcreated: " << s.labels_created << "\n"
-               << "\tpopped: " << s.labels_popped << "\n"
-               << "\tequals_popped:" << s.labels_equals_popped << "\n"
-               << "\tdominated_by_results:" << s.labels_dominated_by_results
-               << "\n"
-               << "\tdominated_by_former_labels:"
-               << s.labels_dominated_by_former_labels << "\n"
-               << "\tpopped_until_first_result:"
-               << s.labels_popped_until_first_result << "\n"
-               << "\tpopped_after_last_result:"
-               << s.labels_popped_after_last_result << "\n"
-               << "\tpriority_queue_max_size:" << s.priority_queue_max_size
-               << "\n"
-               << "\tfiltered:" << s.labels_filtered << "\n"
-               << "\tmax_label_quit:" << std::boolalpha << s.max_label_quit
-               << "\n"
-               << "\ttotal_calculation_time:" << s.total_calculation_time
-               << "\n";
-    }
-  };
-
   pareto_dijkstra(int node_count, station_node const* goal,
-                  std::vector<label*> const& start_labels,
+                  std::vector<Label*> const& start_labels,
                   std::unordered_map<node const*, std::vector<edge>> const&
                       additional_edges,
-                  lower_bounds& lower_bounds,
-                  memory_manager<label>& label_store);
+                  LowerBounds& lower_bounds, memory_manager& label_store)
+      : _goal(goal),
+        _node_labels(node_count),
+        _queue(begin(start_labels), end(start_labels)),
+        _additional_edges(additional_edges),
+        _lower_bounds(lower_bounds),
+        _label_store(label_store),
+        _max_labels(label_store.size() / sizeof(Label)) {
+    for (auto const& start_label : start_labels) {
+      _node_labels[start_label->node_->_id].emplace_back(start_label);
+    }
+  }
 
-  std::vector<label*>& search();
-  statistics get_statistics() const;
+  std::vector<Label*>& search() {
+    _stats.start_label_count = _queue.size();
+    _stats.labels_created = _label_store.used_size();
+
+    while (!_queue.empty() || _equals.size() != 0) {
+      if ((_stats.labels_created > (_max_labels / 2) && _results.empty()) ||
+          _stats.labels_created > _max_labels) {
+        _stats.max_label_quit = true;
+        filter_results();
+        return _results;
+      }
+
+      // get best label
+      Label* label;
+      if (_equals.size() > 0) {
+        label = _equals.back();
+        _equals.pop_back();
+        _stats.labels_equals_popped++;
+      } else {
+        label = _queue.top();
+        _stats.priority_queue_max_size =
+            std::max(_stats.priority_queue_max_size, (int)_queue.size());
+        _queue.pop();
+        _stats.labels_popped++;
+        _stats.labels_popped_after_last_result++;
+      }
+
+      // is label already made obsolete
+      if (label->dominated_) {
+        _stats.labels_dominated_by_later_labels++;
+        continue;
+      }
+
+      if (dominated_by_results(label)) {
+        _stats.labels_dominated_by_results++;
+        continue;
+      }
+
+      if (_goal == label->node_->_station_node) continue;
+
+      auto it = _additional_edges.find(label->node_);
+      if (it != std::end(_additional_edges)) {
+        for (auto const& additional_edge : it->second) {
+          create_new_label(label, additional_edge);
+        }
+      }
+
+      for (auto const& edge : label->node_->_edges) {
+        create_new_label(label, edge);
+      }
+    }
+
+    filter_results();
+    return _results;
+  }
+
+  statistics get_statistics() const { return _stats; };
 
 private:
-  void create_new_label(label* label, edge const& edge);
-  bool add_result(label* li);
-  bool dominated_by_results(label* label);
-  bool add_label_to_node(label* label, node const* dest);
-  void filter_results();
+  void create_new_label(Label* l, edge const& edge) {
+    Label blank;
+    bool created = l->create_label(blank, edge, _lower_bounds);
+    if (!created) {
+      return;
+    }
+
+    auto new_label = new (_label_store.create<Label>()) Label(blank);
+    ++_stats.labels_created;
+
+    if (edge.get_destination() == _goal) {
+      add_result(new_label);
+      if (_stats.labels_popped_until_first_result == -1) {
+        _stats.labels_popped_until_first_result = _stats.labels_popped;
+      }
+      return;
+    }
+
+    // if the label is not dominated by a former one for the same node...
+    //...add it to the queue
+    if (!dominated_by_results(new_label)) {
+      if (add_label_to_node(new_label, edge.get_destination())) {
+        // if the new_label is as good as label we don't have to push it into
+        // the queue
+        if (!FORWARDING || l < new_label) {
+          _queue.push(new_label);
+        } else {
+          _equals.push_back(new_label);
+        }
+      } else {
+        _stats.labels_dominated_by_former_labels++;
+      }
+    } else {
+      _stats.labels_dominated_by_results++;
+    }
+  }
+
+  bool add_result(Label* terminal_label) {
+    for (auto it = _results.begin(); it != _results.end();) {
+      Label* o = *it;
+      if (terminal_label->dominates(*o)) {
+        it = _results.erase(it);
+      } else if (o->dominates(*terminal_label)) {
+        return false;
+      } else {
+        ++it;
+      }
+    }
+    _results.push_back(terminal_label);
+    _stats.labels_popped_after_last_result = 0;
+    return true;
+  }
+
+  bool add_label_to_node(Label* new_label, node const* dest) {
+    auto& dest_labels = _node_labels[dest->_id];
+    for (auto it = dest_labels.begin(); it != dest_labels.end();) {
+      Label* o = *it;
+      if (o->dominates(*new_label)) {
+        return false;
+      }
+
+      if (new_label->dominates(*o)) {
+        it = dest_labels.erase(it);
+        o->dominated_ = true;
+      } else {
+        ++it;
+      }
+    }
+
+    // it is very important for the performance to push front here
+    // because earlier labels tend not to dominate later ones (not comparable)
+    dest_labels.insert(std::begin(dest_labels), new_label);
+    return true;
+  }
+
+  bool dominated_by_results(Label* label) {
+    for (auto const& result : _results) {
+      if (result->dominates(*label)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void filter_results() {
+    bool restart = false;
+    for (auto it = std::begin(_results); it != std::end(_results);
+         it = restart ? std::begin(_results) : std::next(it)) {
+      restart = false;
+      std::size_t size_before = _results.size();
+      _results.erase(
+          std::remove_if(std::begin(_results), std::end(_results),
+                         [it](Label const* l) {
+                           return l == (*it) ? false
+                                             : (*it)->dominates_post_search(*l);
+                         }),
+          std::end(_results));
+      if (_results.size() != size_before) {
+        restart = true;
+      }
+    }
+  }
 
   station_node const* _goal;
-  std::vector<std::vector<label*>> _node_labels;
-  std::priority_queue<label*, std::vector<label*>, compare_labels> _queue;
-  std::vector<label*> _equals;
+  std::vector<std::vector<Label*>> _node_labels;
+  std::priority_queue<Label*, std::vector<Label*>, compare_labels> _queue;
+  std::vector<Label*> _equals;
   std::unordered_map<node const*, std::vector<edge>> _additional_edges;
-  std::vector<label*> _results;
-  lower_bounds& _lower_bounds;
-  memory_manager<label>& _label_store;
+  std::vector<Label*> _results;
+  LowerBounds& _lower_bounds;
+  memory_manager& _label_store;
   statistics _stats;
+  std::size_t _max_labels;
 };
 
+}  // namespace routing
 }  // namespace motis

@@ -79,36 +79,38 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # for osrm-backend
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # osrm-backend, too
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 
-add_subdirectory(external_lib/snappy-cmake EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/leveldb EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/osrm-backend EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/snappy-cmake EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 
 
 ################################

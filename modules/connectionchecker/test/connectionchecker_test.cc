@@ -86,7 +86,7 @@ TEST(connectionchecker, finds_annotated_connections) {
       launch_motis("modules/connectionchecker/test_resources/schedule",
                    "20151124", {"routing", "connectionchecker", "realtime"});
   send(instance, get_ris_message());
-  auto resp = send(instance, std::make_shared<message>(kRoutingRequest));
+  auto resp = send(instance, make_msg(kRoutingRequest));
   auto journeys = message_to_journeys(resp->content<RoutingResponse const*>());
 
   ASSERT_EQ(1, journeys.size());
