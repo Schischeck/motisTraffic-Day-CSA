@@ -2,7 +2,7 @@
 
 #include "start_and_travel_distributions.h"
 
-#include <functional>
+#include <functional> /* reference_wrapper */
 #include <string>
 #include <vector>
 
@@ -19,14 +19,20 @@ struct start_and_travel_distributions {
 
   virtual ~start_and_travel_distributions() {}
 
-  virtual probability_distribution const& get_start_distribution(
+  /**
+   * @return true if a distribution could be found.
+   *         false if a dummy distribution is returned.
+   */
+  virtual std::pair<bool, probability_distribution_cref> get_start_distribution(
       std::string const& family) const = 0;
 
   /* For each departure delay from 0 to 'to_departure_delay',
-   * this method returns a travel-time distributions for a travel with a train
-   * of class as stored in 'family' with a travel-time as stored in
-   * 'travel_time' */
-  virtual void get_travel_time_distributions(
+   * this method returns a travel-time distributions for a travel
+   * with a train of class as stored in 'family'
+   * with a travel-time as stored in 'travel_time'
+   *
+   * @return true, if there was a distribution for the given parameters.*/
+  virtual bool get_travel_time_distributions(
       std::string const& family, unsigned int const travel_time,
       unsigned int const to_departure_delay,
       std::vector<probability_distribution_cref>& distributions) const = 0;

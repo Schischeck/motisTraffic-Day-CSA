@@ -440,7 +440,7 @@ void railviz::on_msg(msg_ptr msg, sid session, callback cb) {
     return cb({}, error::client_not_registered);
   }
 
-  auto it = ops_.find(msg->msg_->content_type());
+  auto it = ops_.find(msg->content_type());
   return it->second(msg, client_it->second, cb);
 }
 

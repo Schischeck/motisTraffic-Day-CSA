@@ -17,15 +17,15 @@ TEST(reliability_load_distributions_classes, distributions_loader) {
       family_to_distribution_class);
 
   ASSERT_TRUE(family_to_distribution_class.size() == 7);
-  ASSERT_TRUE(family_to_distribution_class.find("CNL")->second == "Nachtzug");
-  ASSERT_TRUE(family_to_distribution_class.find("EN")->second == "Nachtzug");
-  ASSERT_TRUE(family_to_distribution_class.find("HLB") ==
+  ASSERT_TRUE(family_to_distribution_class.find("cnl")->second == "Nachtzug");
+  ASSERT_TRUE(family_to_distribution_class.find("en")->second == "Nachtzug");
+  ASSERT_TRUE(family_to_distribution_class.find("hlb") ==
               family_to_distribution_class.end());
-  ASSERT_TRUE(family_to_distribution_class.find("IC")->second == "FV");
-  ASSERT_TRUE(family_to_distribution_class.find("ICE")->second == "FV");
-  ASSERT_TRUE(family_to_distribution_class.find("RB")->second == "RV");
-  ASSERT_TRUE(family_to_distribution_class.find("RE")->second == "RV");
-  ASSERT_TRUE(family_to_distribution_class.find("S")->second == "S");
+  ASSERT_TRUE(family_to_distribution_class.find("ic")->second == "FV");
+  ASSERT_TRUE(family_to_distribution_class.find("ice")->second == "FV");
+  ASSERT_TRUE(family_to_distribution_class.find("rb")->second == "RV");
+  ASSERT_TRUE(family_to_distribution_class.find("re")->second == "RV");
+  ASSERT_TRUE(family_to_distribution_class.find("s")->second == "S");
 }
 
 TEST(reliability_load_distributions, distributions_loader) {

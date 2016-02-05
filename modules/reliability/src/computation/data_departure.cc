@@ -68,7 +68,7 @@ void data_departure::init_first_departure_info(
   auto const& train_category =
       categories[light_conn._full_con->con_info->family]->name;
   train_info_.first_departure_distribution_ =
-      &s_t_distributions.get_start_distribution(train_category);
+      &s_t_distributions.get_start_distribution(train_category).second.get();
   assert(!train_info_.first_departure_distribution_->empty());
 }
 

@@ -29,7 +29,7 @@ Offset<routing::RoutingResponse> convert_routing_response(
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  return CreateRoutingResponse(b, b.CreateVector(connections));
+  return CreateRoutingResponse(b, 0, b.CreateVector(connections));
 }
 
 namespace rating_converter {
@@ -186,20 +186,48 @@ module::msg_ptr to_reliability_rating_response(
   return module::make_msg(b);
 }
 
+std::pair<std::time_t, std::time_t> get_scheduled_times(
+    journey const& journey) {
+  auto const& first_transport =
+      std::find_if(journey.transports.begin(), journey.transports.end(),
+                   [&](journey::transport const& t) {
+                     return t.type == journey::transport::PublicTransport;
+                   });
+  auto const& last_transport =
+      std::find_if(journey.transports.rbegin(), journey.transports.rend(),
+                   [&](journey::transport const& t) {
+                     return t.type == journey::transport::PublicTransport;
+                   });
+  auto const scheduled_departure =
+      first_transport != journey.transports.end()
+          ? journey.stops[first_transport->from].departure.schedule_timestamp
+          : journey.stops.front()
+                .departure
+                .schedule_timestamp /* transport consists of a walk */;
+  auto const scheduled_arrival =
+      last_transport != journey.transports.rend()
+          ? journey.stops[last_transport->to].arrival.schedule_timestamp
+          : journey.stops.back()
+                .arrival.schedule_timestamp /* transport consists of a walk */;
+
+  return std::make_pair(scheduled_departure, scheduled_arrival);
+}
+
 Offset<ConnectionGraph> to_connection_graph(
     FlatBufferBuilder& b, search::connection_graph const& cg) {
   std::vector<Offset<Stop>> stops;
-
   for (auto const& stop : cg.stops_) {
     std::vector<Offset<Alternative>> alternative_infos;
     for (auto const& alternative_info : stop.alternative_infos_) {
       auto const& journey = cg.journeys_.at(alternative_info.journey_index_);
+
+      auto const scheduled_times = get_scheduled_times(journey);
       auto dep_dist = rating_converter::convert(
           b, alternative_info.rating_.departure_distribution_,
-          journey.stops.front().departure.schedule_timestamp);
+          scheduled_times.first);
       auto arr_dist = rating_converter::convert(
           b, alternative_info.rating_.arrival_distribution_,
-          journey.stops.back().arrival.schedule_timestamp);
+          scheduled_times.second);
       auto rating = CreateAlternativeRating(b, dep_dist, arr_dist);
 
       alternative_infos.push_back(

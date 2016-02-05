@@ -1,3 +1,5 @@
+include "bikesharing/BikesharingRequest.fbs";
+include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "railviz/RailVizInit.fbs";
@@ -67,6 +69,8 @@ union MsgContent {
   motis.MotisSuccess,
   motis.HTTPRequest,
   motis.HTTPResponse,
+  motis.bikesharing.BikesharingRequest,
+  motis.bikesharing.BikesharingResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.railviz.RailVizInit,

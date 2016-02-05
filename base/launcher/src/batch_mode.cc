@@ -89,7 +89,7 @@ private:
       b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
       response = make_msg(b);
     }
-    response->msg_->mutate_id(id);
+    response->get()->mutate_id(id);
 
     out_ << strip_new_lines(response->to_json()) << "\n";
   }

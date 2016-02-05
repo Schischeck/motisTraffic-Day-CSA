@@ -32,12 +32,16 @@ struct locked_schedule {
 };
 
 struct module : public conf::configuration {
+  module() : context_(nullptr), locked_(false) {}
   virtual ~module() {}
 
   virtual std::string name() const = 0;
 
   virtual std::vector<MsgContent> subscriptions() const = 0;
   virtual void init(){};
+  virtual void init_async(callback cb) {
+    return cb({}, boost::system::error_code());
+  };
   virtual void on_msg(msg_ptr msg, sid session, callback cb) = 0;
   virtual void on_open(sid /* session */) {}
   virtual void on_close(sid /* session */) {}

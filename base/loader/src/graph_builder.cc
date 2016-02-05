@@ -6,10 +6,11 @@
 
 #include "parser/cstr.h"
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/category.h"
-
+#include "motis/core/common/constants.h"
 #include "motis/loader/wzr_loader.h"
 #include "motis/loader/util.h"
 #include "motis/loader/classes.h"
@@ -24,13 +25,20 @@ namespace motis {
 namespace loader {
 
 graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
-                             time_t from, time_t to, bool apply_rules)
+                             time_t from, time_t to, bool apply_rules,
+                             bool adjust_footpaths)
     : next_route_index_(-1),
       next_node_id_(-1),
       sched_(sched),
       first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
       last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
-      apply_rules_(apply_rules) {
+      apply_rules_(apply_rules),
+      adjust_footpaths_(adjust_footpaths) {
+  if (to <= from || schedule_interval->from() >= static_cast<uint64_t>(to) ||
+      schedule_interval->to() <= static_cast<uint64_t>(from)) {
+    throw std::runtime_error("schedule out of bounds");
+  }
+
   connections_.set_empty_key(nullptr);
   con_infos_.set_empty_key(nullptr);
   bitfields_.set_empty_key(nullptr);
@@ -364,11 +372,40 @@ light_connection graph_builder::section_to_connection(
 }
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
+  if (adjust_footpaths_) {
+    printf("adjust footpaths\n");
+  }
+
   for (auto const& footpath : *footpaths) {
-    auto from = stations_[footpath->from()];
-    auto to = stations_[footpath->to()];
-    next_node_id_ = from->add_foot_edge(
-        next_node_id_, make_foot_edge(from, to, footpath->duration()));
+    auto duration = footpath->duration();
+    auto from_node = stations_[footpath->from()];
+    auto to_node = stations_[footpath->to()];
+    auto const& from_station = *sched_.stations.at(from_node->_id);
+    auto const& to_station = *sched_.stations.at(to_node->_id);
+
+    if (adjust_footpaths_) {
+      uint32_t max_transfer_time =
+          std::max(from_station.transfer_time, to_station.transfer_time);
+
+      duration = std::max(max_transfer_time, footpath->duration());
+
+      auto const distance = get_distance(from_station, to_station) * 1000;
+      auto const max_distance_adjust = duration * 60 * WALK_SPEED;
+      auto const max_distance = 2 * duration * 60 * WALK_SPEED;
+
+      if (distance > max_distance) {
+        continue;
+      } else if (distance > max_distance_adjust) {
+        duration = std::round(distance / (60 * WALK_SPEED));
+      }
+
+      if (duration > 15) {
+        continue;
+      }
+    }
+
+    next_node_id_ = from_node->add_foot_edge(
+        next_node_id_, make_foot_edge(from_node, to_node, duration));
   }
 }
 
@@ -568,7 +605,8 @@ route_section graph_builder::add_route_section(
 }
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool unique_check, bool apply_rules) {
+                         bool unique_check, bool apply_rules,
+                         bool adjust_footpaths) {
   scoped_timer timer("building graph");
 
   schedule_ptr sched(new schedule());
@@ -577,7 +615,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_end_ = to;
 
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
-                        apply_rules);
+                        apply_rules, adjust_footpaths);
   builder.add_stations(serialized->stations());
   builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());

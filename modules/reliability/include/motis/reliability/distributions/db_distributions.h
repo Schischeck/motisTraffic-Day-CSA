@@ -25,14 +25,14 @@ struct db_distributions : start_and_travel_distributions {
                    unsigned int const max_expected_travel_time,
                    unsigned int const max_expected_departure_delay);
 
-  probability_distribution const& get_start_distribution(
+  std::pair<bool, probability_distribution_cref> get_start_distribution(
       std::string const& family) const override;
 
   /**
    * 'distributions' is a vector containing pairs
    * of departure-delay and probability-distribution.
    */
-  void get_travel_time_distributions(
+  bool get_travel_time_distributions(
       std::string const& family, unsigned int const travel_time,
       unsigned int const to_departure_delay,
       std::vector<probability_distribution_cref>& distributions) const override;

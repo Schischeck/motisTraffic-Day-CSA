@@ -1,7 +1,10 @@
 #include "motis/reliability/distributions/db_distributions.h"
 
+#include <fstream>
 #include <algorithm>
 #include <cassert>
+
+#include "motis/core/common/logging.h"
 
 namespace motis {
 namespace reliability {
@@ -10,6 +13,11 @@ db_distributions::db_distributions(
     std::string const root, unsigned int const max_expected_travel_time,
     unsigned int const max_expected_departure_delay)
     : empty_string_("") {
+  LOG(logging::info) << "Read distributions from " << root
+                     << " with a max-expected-travel-time of "
+                     << max_expected_travel_time
+                     << " and a max-expected-departure-delay of "
+                     << max_expected_departure_delay;
   std::vector<db_distributions_loader::resolved_mapping> distribution_mappings;
   db_distributions_loader::load_distributions(
       root, max_expected_travel_time, max_expected_departure_delay,
@@ -28,7 +36,10 @@ db_distributions::db_distributions(
                  std::get<db_distributions_loader::resolved_mapping_pos::
                               rm_distribution_id>(orig_mapping);
         });
-    assert(distribution_it != all_probability_distributions_.end());
+    if (distribution_it == all_probability_distributions_.end()) {
+      LOG(logging::error) << "Could not find distribution for mapping";
+      continue;
+    }
     distribution_mapping mapping(
         distribution_it->second,
         std::get<db_distributions_loader::resolved_mapping_pos::rm_travel_time>(
@@ -45,7 +56,7 @@ db_distributions::db_distributions(
   default_travel_time_distribution_.init_one_point(0, 1.0);
 }
 
-void db_distributions::get_travel_time_distributions(
+bool db_distributions::get_travel_time_distributions(
     std::string const& family, unsigned int const travel_time,
     unsigned int const to_departure_delay,
     std::vector<probability_distribution_cref>& distributions) const {
@@ -56,26 +67,32 @@ void db_distributions::get_travel_time_distributions(
     if (mappings_vector_it != distribution_mappings_.end()) {
       get_distributions(travel_time, to_departure_delay,
                         mappings_vector_it->second, distributions);
+      return distributions.size() == to_departure_delay + 1;
     }
   }
+  return false;
 }
 
-probability_distribution const& db_distributions::get_start_distribution(
-    std::string const& family) const {
+std::pair<bool, start_and_travel_distributions::probability_distribution_cref>
+db_distributions::get_start_distribution(std::string const& family) const {
   std::string const& distribution_class = get_distribution_class(family);
   if (distribution_class != empty_string_) {
     auto const it =
         class_to_probability_distributions_.find(distribution_class);
     if (it != class_to_probability_distributions_.end()) {
-      return it->second;
+      return std::make_pair(true, std::cref(it->second));
     }
   }
-  return default_start_distribution_;
+  return std::make_pair(false, std::cref(default_start_distribution_));
 }
 
 std::string const& db_distributions::get_distribution_class(
     std::string const& family) const {
-  auto const it = family_to_distribution_class_.find(family);
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
+  auto const it = family_to_distribution_class_.find(to_lower(family));
   if (it != family_to_distribution_class_.end()) {
     return it->second;
   }
@@ -109,18 +126,30 @@ void db_distributions::get_distributions(
 
   if (std::distance(mapping_begin, mapping_end) < 0 && travel_time == 0) {
     for (unsigned int i = 0; i <= to_departure_delay; i++) {
-      distributions.push_back(std::ref(default_travel_time_distribution_));
+      distributions.push_back(std::cref(default_travel_time_distribution_));
     }
     return;
   }
 
-  assert(std::distance(mapping_begin, mapping_end) >= 0);
-  assert(mapping_begin->travel_time_ == travel_time);
-  assert(mapping_end->travel_time_ == travel_time);
+  if (std::distance(mapping_begin, mapping_end) < 0 ||
+      mapping_begin->travel_time_ != travel_time ||
+      mapping_end->travel_time_ != travel_time) {
+    LOG(logging::error) << "Could not find distributions for travel-time "
+                        << travel_time << " and dep-delay "
+                        << to_departure_delay;
+    return;
+  }
 
   for (auto it = mapping_begin;
-       it != mapping_end && it->delay_ <= to_departure_delay; it++) {
-    distributions.push_back(std::ref(it->distribution_));
+       it != mapping_end && it->delay_ <= to_departure_delay; ++it) {
+    distributions.push_back(std::cref(it->distribution_));
+  }
+
+  if (distributions.empty()) {
+    LOG(logging::error) << "Could not find distributions for travel-time "
+                        << travel_time << " and dep-delay "
+                        << to_departure_delay;
+    return;
   }
 
   // If distributions for departure delays are required

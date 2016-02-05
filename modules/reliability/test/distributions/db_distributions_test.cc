@@ -5,11 +5,11 @@
 
 using namespace motis::reliability;
 
-TEST(reliability_start_distributions, db_distributions) {
+TEST(db_distributions, reliability_start_distributions) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
   {
-    auto const& pd = db_dists.get_start_distribution("RB");
+    auto const& pd = db_dists.get_start_distribution("RB").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 1);
     ASSERT_TRUE(equal(pd.sum(), 1.0));
@@ -17,7 +17,7 @@ TEST(reliability_start_distributions, db_distributions) {
     ASSERT_TRUE(equal(pd.probability_equal(1), 0.1));
   }
   {
-    auto const& pd = db_dists.get_start_distribution("ICE");
+    auto const& pd = db_dists.get_start_distribution("ICE").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 3);
     ASSERT_TRUE(equal(pd.sum(), 1.0));
@@ -26,21 +26,21 @@ TEST(reliability_start_distributions, db_distributions) {
     ASSERT_TRUE(equal(pd.probability_equal(2), 0.0));
     ASSERT_TRUE(equal(pd.probability_equal(3), 0.1));
   }
-  ASSERT_TRUE(&db_dists.get_start_distribution("RE") ==
-              &db_dists.get_start_distribution("RB"));
-  ASSERT_TRUE(&db_dists.get_start_distribution("IC") ==
-              &db_dists.get_start_distribution("ICE"));
-  ASSERT_FALSE(&db_dists.get_start_distribution("RE") ==
-               &db_dists.get_start_distribution("ICE"));
+  ASSERT_TRUE(&db_dists.get_start_distribution("RE").second.get() ==
+              &db_dists.get_start_distribution("RB").second.get());
+  ASSERT_TRUE(&db_dists.get_start_distribution("IC").second.get() ==
+              &db_dists.get_start_distribution("ICE").second.get());
+  ASSERT_FALSE(&db_dists.get_start_distribution("RE").second.get() ==
+               &db_dists.get_start_distribution("ICE").second.get());
   {
-    auto const& pd = db_dists.get_start_distribution("BUS");
+    auto const& pd = db_dists.get_start_distribution("BUS").second.get();
     ASSERT_TRUE(pd.first_minute() == 0);
     ASSERT_TRUE(pd.last_minute() == 0);
     ASSERT_TRUE(equal(pd.probability_equal(0), 1.0));
   }
 }
 
-TEST(reliability_travel_time_distributions_Unknown, db_distributions) {
+TEST(db_distributions, reliability_travel_time_distributions_Unknown) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
   std::vector<start_and_travel_distributions::probability_distribution_cref>
@@ -50,7 +50,7 @@ TEST(reliability_travel_time_distributions_Unknown, db_distributions) {
 }
 
 /* RV and to_departure_delay not covered by the original mapping */
-TEST(reliability_travel_time_distributions_RV, db_distributions) {
+TEST(db_distributions, reliability_travel_time_distributions_RV) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 
@@ -78,7 +78,7 @@ TEST(reliability_travel_time_distributions_RV, db_distributions) {
 }
 
 /* FV and to_departure_delay covered by the original mapping */
-TEST(reliability_travel_time_distributions_FV, db_distributions) {
+TEST(db_distributions, reliability_travel_time_distributions_FV) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 
@@ -142,7 +142,7 @@ TEST(reliability_travel_time_distributions_FV, db_distributions) {
 }
 
 /* travel time longer than the existing mappings */
-TEST(reliability_long_travel_time, db_distributions) {
+TEST(db_distributions, reliability_long_travel_time) {
   db_distributions db_dists("modules/reliability/resources/distributions/", 10,
                             10);
 
@@ -157,5 +157,24 @@ TEST(reliability_long_travel_time, db_distributions) {
   ASSERT_TRUE(distributions10.size() == distributions11.size());
   for (unsigned int i = 0; i < distributions10.size(); i++) {
     ASSERT_TRUE(&distributions10[i].get() == &distributions11[i].get());
+  }
+}
+
+/* test case insensitivity */
+TEST(db_distributions, case_insensitivity) {
+  db_distributions db_dists("modules/reliability/resources/distributions/", 10,
+                            10);
+
+  std::vector<start_and_travel_distributions::probability_distribution_cref>
+      distributions1;
+  db_dists.get_travel_time_distributions("RB", 10, 0, distributions1);
+
+  std::vector<start_and_travel_distributions::probability_distribution_cref>
+      distributions2;
+  db_dists.get_travel_time_distributions("rb", 11, 0, distributions2);
+
+  ASSERT_TRUE(distributions1.size() == distributions2.size());
+  for (unsigned int i = 0; i < distributions1.size(); i++) {
+    ASSERT_TRUE(&distributions1[i].get() == &distributions2[i].get());
   }
 }

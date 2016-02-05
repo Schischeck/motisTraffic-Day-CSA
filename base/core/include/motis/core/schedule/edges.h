@@ -7,22 +7,27 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
+#include "motis/core/common/constants.h"
 
 namespace motis {
 
 class node;
 
 struct edge_cost {
-  edge_cost(uint16_t time, light_connection const* c)
+  edge_cost() : time(INVALID_TIME) {}
+
+  edge_cost(duration time, light_connection const* c)
       : connection(c), time(time), price(0), transfer(false), slot(0) {}
 
-  edge_cost(uint16_t time, bool transfer = false, uint16_t price = 0,
+  edge_cost(duration time, bool transfer = false, uint16_t price = 0,
             uint8_t slot = 0)
       : connection(nullptr),
         time(time),
         price(price),
         transfer(transfer),
         slot(slot) {}
+
+  bool is_valid() const { return time != INVALID_TIME; }
 
   uint16_t operator[](int index) const {
     switch (index) {
@@ -33,19 +38,14 @@ struct edge_cost {
     }
   }
 
-  bool operator==(const edge_cost& o) const {
-    return o.time == time && o.price == price && o.transfer == transfer &&
-           o.slot == slot;
-  }
-
   light_connection const* connection;
-  uint16_t time;
+  duration time;
   uint16_t price;
   bool transfer;
   uint8_t slot;
 };
 
-const edge_cost NO_EDGE(-1);
+const edge_cost NO_EDGE = edge_cost();
 
 class edge {
 public:
@@ -111,14 +111,16 @@ public:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
-      case TIME_DEPENDENT_MUMO_EDGE:
-        if (start_time % 1440 >= 1260 ||
-            start_time % 1440 <= 180) { /* todo: read interval from edge */
+      case TIME_DEPENDENT_MUMO_EDGE: {
+        unsigned const start_time_mod = start_time % 1440;
+        if (start_time_mod >= LATE_TAXI_BEGIN_TIME ||
+            start_time_mod <= LATE_TAXI_END_TIME) {
           return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                            _m._foot_edge._price, _m._foot_edge._slot);
         } else {
           return NO_EDGE;
         }
+      }
       case HOTEL_EDGE: {
         return edge_cost(calc_duration_hotel_edge(start_time), false,
                          _m._hotel_edge._price, 0);

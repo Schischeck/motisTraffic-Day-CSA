@@ -171,6 +171,7 @@ using queue_type =
                         std::vector<distributions_container::container::node*>,
                         queue_element_cmp>;
 
+unsigned int num_processed = 0;
 unsigned int significant = 0;
 unsigned int not_significant = 0;
 unsigned int already_updated = 0;
@@ -240,9 +241,15 @@ void update_precomputed_distributions(
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::container& precomputed_distributions) {
   logging::scoped_timer time("updating distributions");
+  detail::num_processed = 0;
+  detail::significant = 0;
+  detail::not_significant = 0;
+  detail::already_updated = 0;
+  detail::errors = 0;
+
+  /* add all events with updates to the queue */
   detail::queue_type queue;
   std::set<distributions_container::container::node*> currently_processed;
-
   for (auto it = res->delay_infos()->begin(); it != res->delay_infos()->end();
        ++it) {
     if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
@@ -258,7 +265,8 @@ void update_precomputed_distributions(
     }
   }
 
-  unsigned int num_processed = 0;
+  /* process all events in the queue
+   * (each event adds event that depend on it into the queue) */
   context const c(sched, precomputed_distributions, s_t_distributions);
   while (!queue.empty()) {
     try {
@@ -266,21 +274,23 @@ void update_precomputed_distributions(
     } catch (std::exception& e) {
       LOG(logging::error) << e.what() << std::endl;
     }
-    ++num_processed;
+    ++detail::num_processed;
   }
 
-  auto to_percent = [num_processed](unsigned int c) -> float {
-    return ((c * 100.0) / (double)num_processed);
+  /* print statistics */
+  auto to_percent = [&](unsigned int c) -> float {
+    return ((c * 100.0) / (double)detail::num_processed);
   };
-  LOG(logging::info) << "Queue contained " << num_processed << " elements ("
-                     << std::fixed << std::setprecision(1)
-                     << to_percent(detail::significant)
-                     << "% significant updates, "
-                     << to_percent(detail::not_significant)
-                     << "% not significant updates, "
-                     << to_percent(detail::already_updated)
-                     << "% already updated, " << to_percent(detail::errors)
-                     << "% errors)";
+  std::stringstream sst;
+  sst << "Queue contained " << detail::num_processed << " elements";
+  if (detail::num_processed > 0) {
+    sst << "(" << std::fixed << std::setprecision(1)
+        << to_percent(detail::significant) << "% significant updates, "
+        << to_percent(detail::not_significant) << "% not significant updates, "
+        << to_percent(detail::already_updated) << "% already updated, "
+        << to_percent(detail::errors) << "% errors)";
+  }
+  LOG(logging::info) << sst.str();
 }
 
 }  // namespace realtime

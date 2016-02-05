@@ -81,16 +81,6 @@ inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
   return it;
 }
 
-template <typename K, typename V, typename CreateFun>
-V& get_or_create(std::map<K, V>& m, K const& key, CreateFun f) {
-  auto it = m.find(key);
-  if (it != end(m)) {
-    return it->second;
-  } else {
-    return m[key] = f();
-  }
-}
-
 template <typename TargetCollection, typename It, typename UnaryOperation>
 inline TargetCollection transform(It s, It e, UnaryOperation op) {
   TargetCollection c;

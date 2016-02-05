@@ -49,3 +49,6 @@
 [submodule "external_lib/snappy-cmake"]
 	path = external_lib/snappy-cmake
 	url = https://github.com/felixguendling/snappy-cmake.git
+[submodule "external_lib/leveldb"]
+	path = external_lib/leveldb
+	url = https://bitbucket.org/makielski/leveldb.git

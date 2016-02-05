@@ -41,8 +41,6 @@ template <typename T>
 using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
 
 int main(int argc, char** argv) {
-  message::init_parser();
-
   boost::asio::io_service ios;
   motis_instance instance(&ios);
   ws_server websocket(ios, instance);
@@ -51,7 +49,7 @@ int main(int argc, char** argv) {
 
   listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
-  dataset_settings dataset_opt("rohdaten", true, true, false, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
       loader::transform_to_vec(
@@ -119,7 +117,7 @@ int main(int argc, char** argv) {
           make_unique<shutdown_handler<socket_server>>(ios, tcp);
     }
   } catch (std::exception const& e) {
-    std::cout << "initialization error: " << e.what() << "\n";
+    std::cout << "\ninitialization error: " << e.what() << "\n";
     return 1;
   }
 

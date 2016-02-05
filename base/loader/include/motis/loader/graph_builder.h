@@ -86,7 +86,7 @@ typedef std::vector<std::vector<light_connection>> route_lcs;
 
 struct graph_builder {
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
-                time_t to, bool apply_rules);
+                time_t to, bool apply_rules, bool adjust_footpaths);
 
   void add_stations(
       flatbuffers::Vector<flatbuffers::Offset<Station>> const* stations);
@@ -180,13 +180,15 @@ struct graph_builder {
   schedule& sched_;
   int first_day_, last_day_;
   bool apply_rules_;
+  bool adjust_footpaths_;
 
   connection_info con_info_;
   connection con_;
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool check_unique, bool apply_rules);
+                         bool check_unique, bool apply_rules,
+                         bool adjust_footpaths);
 
 }  // namespace loader
 }  // namespace motis

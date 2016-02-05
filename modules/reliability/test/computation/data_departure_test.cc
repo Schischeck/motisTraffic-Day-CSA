@@ -161,7 +161,7 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
   ASSERT_EQ(light_connection.d_time, data.scheduled_departure_time_);
   ASSERT_TRUE(data.is_first_route_node_);
 
-  ASSERT_EQ(&s_t_distributions.get_start_distribution("dummy"),
+  ASSERT_EQ(&s_t_distributions.get_start_distribution("dummy").second.get(),
             data.train_info_.first_departure_distribution_);
 
   ASSERT_EQ(2, data.feeders_.size());
@@ -389,14 +389,17 @@ TEST_F(reliability_data_departure, check_start_distribution) {
     start_and_travel_test2_distributions() {
       distribution.init_one_point(0, 1.0);
     }
-    probability_distribution const& get_start_distribution(
+    std::pair<bool, probability_distribution_cref> get_start_distribution(
         std::string const& train_category) const override {
-      if (train_category == "ICE") return distribution;
-      return fail;
+      if (train_category == "ICE")
+        return std::make_pair(true, std::cref(distribution));
+      return std::make_pair(false, std::cref(fail));
     }
-    void get_travel_time_distributions(
+    bool get_travel_time_distributions(
         std::string const&, unsigned int const, unsigned int const,
-        std::vector<probability_distribution_cref>&) const override {}
+        std::vector<probability_distribution_cref>&) const override {
+      return false;
+    }
     probability_distribution distribution;
     probability_distribution fail;
   } s_t_distributions;

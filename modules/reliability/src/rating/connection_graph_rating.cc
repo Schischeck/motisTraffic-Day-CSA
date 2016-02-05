@@ -1,5 +1,6 @@
 #include "motis/reliability/rating/connection_graph_rating.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
@@ -22,6 +23,10 @@ namespace detail {
 interchange_info::interchange_info(connection_element const& arriving_element,
                                    connection_element const& departing_element,
                                    schedule const& sched) {
+  if (arriving_element.light_connection_->a_time >
+      departing_element.light_connection_->d_time) {
+    LOG(logging::error) << "unexpected arriving and departing element!";
+  }
   arrival_time_ = arriving_element.light_connection_->a_time;
   departure_time_ = departing_element.light_connection_->d_time;
   scheduled_arrival_time_ = arrival_time_;
@@ -105,6 +110,7 @@ probability_distribution scheduled_transfer_filter(
 probability_distribution compute_uncovered_arrival_distribution(
     probability_distribution const& arr_distribution,
     interchange_info const& ic_info) {
+  bool is_empty_distribution = true;
   std::vector<probability> values;
   for (int d = arr_distribution.first_minute();
        d <= arr_distribution.last_minute(); ++d) {
@@ -118,10 +124,13 @@ probability_distribution compute_uncovered_arrival_distribution(
     /* interchange was not possible */
     else {
       values.push_back(arr_distribution.probability_equal(d));
+      is_empty_distribution = false;
     }
   }
   probability_distribution pd;
-  pd.init(values, arr_distribution.first_minute());
+  if (!is_empty_distribution) {
+    pd.init(values, arr_distribution.first_minute());
+  }
   return pd;
 }
 
@@ -192,6 +201,7 @@ void rate_first_journey_in_cg(
   alternative.rating_.arrival_distribution_ =
       c_rating.public_transport_ratings_.back().arrival_distribution_;
 }
+
 void rate_alternative_in_cg(
     search::connection_graph_search::detail::context::conn_graph_context&
         cg_context,
@@ -223,7 +233,8 @@ void rate_alternative_in_cg(
   auto const filtered_arrival_distribution =
       scheduled_transfer_filter(cg_context, stop, last_element.second, ic_info);
 
-  /* rate departing alternative */
+  /* rate departing alternative
+   * note: this call modified the vector connection_elements */
   std::tie(alternative.rating_.departure_distribution_,
            alternative.rating_.arrival_distribution_) =
       rate(connection_elements, last_element.first,

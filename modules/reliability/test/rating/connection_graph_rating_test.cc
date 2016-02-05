@@ -236,8 +236,7 @@ TEST_F(reliability_connection_graph_rating,
   {
     probability_distribution arr_dist;
     arr_dist.init({1.0}, 1);
-    probability_distribution expected;
-    expected.init({0.0}, 1);
+    probability_distribution expected; /* empty distribution */
     ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
                             arr_dist, interchange_info(10, 11, 11, 12, true,
                                                        true, 1, 0)));
@@ -508,30 +507,20 @@ TEST_F(reliability_connection_graph_rating_foot,
     test_cb_called = true;
     ASSERT_EQ(cgs.size(), 1);
     auto const cg = *cgs.front();
-    ASSERT_EQ(3, cg.stops_.size());
-    ASSERT_EQ(2, cg.journeys_.size());
-    {
-      connection_rating expected_rating_journey0;
-      rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *reliability_context_);
-      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                    .departure_distribution_,
-                rating.departure_distribution_);
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                    .arrival_distribution_,
-                rating.arrival_distribution_);
-    }
-    {
-      ASSERT_EQ(1, cg.stops_[2].alternative_infos_.size());
-      ASSERT_EQ(journey::transport::Walk,
-                cg.journeys_.back().transports.front().type);
-      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-      ASSERT_EQ(
-          cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,
-          rating.departure_distribution_);
-      ASSERT_EQ(rating.departure_distribution_, rating.arrival_distribution_);
-    }
+    ASSERT_EQ(2, cg.stops_.size());
+    ASSERT_EQ(1, cg.journeys_.size());
+
+    connection_rating expected_rating_journey0;
+    rating::rate(expected_rating_journey0, cg.journeys_[0],
+                 *reliability_context_);
+    auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+    ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                  .departure_distribution_,
+              rating.departure_distribution_);
+    ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                  .arrival_distribution_,
+              rating.arrival_distribution_);
+
     ASSERT_EQ(1443435600, cg.journeys_.back().stops.back().arrival.timestamp);
 
     /* arrival distribution of the connection graph */

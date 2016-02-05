@@ -7,6 +7,8 @@
 
 #include "parser/csv.h"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/reliability/distributions/db_distributions.h"
 
 namespace motis {
@@ -35,6 +37,7 @@ void load_distributions(
   detail::load_distribution_mappings(
       root + "Mapping.csv", max_expected_travel_time,
       max_expected_departure_delay, distribution_mappings);
+
   detail::load_start_distributions(root + "StartDistributions.csv",
                                    class_to_probability_distributions);
 }
@@ -121,11 +124,21 @@ void store_probability(std::vector<EnteriesType> const& distributions_entries,
         (std::get<DelayMinutePos>(distributions_entries[entry_index]) -
          std::get<DelayMinutePos>(distributions_entries[entry_index - 1])) -
         1;
-    for (unsigned int i = 0; i < num_missing_enteries; i++)
+    for (unsigned int i = 0; i < num_missing_enteries; i++) {
       probabilities.push_back(0.0);
+    }
   }
-  probability const prob = std::stod(
-      std::get<DelayProbabilityPos>(distributions_entries[entry_index]));
+  probability prob = 0.0;
+  try {
+    prob = std::stod(
+        std::get<DelayProbabilityPos>(distributions_entries[entry_index]));
+  } catch (const std::exception&) {
+    LOG(logging::error)
+        << "Could not parse " << entry_index << ". probability string '"
+        << std::get<DelayProbabilityPos>(distributions_entries[entry_index])
+        << "' for delay '"
+        << std::get<DelayMinutePos>(distributions_entries[entry_index]) << "'";
+  }
   assert(smaller_equal(prob, 1.0));
   probabilities.push_back(prob);
 }
@@ -297,15 +310,30 @@ inline bool mapping_is_smaller(resolved_mapping const& a,
 
 void check_mapping(resolved_mapping const& current,
                    resolved_mapping const& next) {
+  auto print = [](resolved_mapping const& m) -> std::string {
+    std::stringstream sst;
+    sst << "c" << std::get<resolved_mapping_pos::rm_class>(m) << " id"
+        << std::get<resolved_mapping_pos::rm_distribution_id>(m) << " t"
+        << std::get<resolved_mapping_pos::rm_travel_time>(m) << " d"
+        << std::get<resolved_mapping_pos::rm_delay>(m);
+    return sst.str();
+  };
   if (std::get<resolved_mapping_pos::rm_class>(current) ==
       std::get<resolved_mapping_pos::rm_class>(next)) {
     if (std::get<resolved_mapping_pos::rm_travel_time>(current) ==
         std::get<resolved_mapping_pos::rm_travel_time>(next)) {
-      assert(std::get<resolved_mapping_pos::rm_delay>(current) + 1 ==
-             std::get<resolved_mapping_pos::rm_delay>(next));
+      if (std::get<resolved_mapping_pos::rm_delay>(current) + 1 !=
+          std::get<resolved_mapping_pos::rm_delay>(next)) {
+        LOG(logging::error) << "wrong mapping: current: " << print(current)
+                            << " next: " << print(next);
+        assert(false);
+      }
     } else {
-      assert(std::get<resolved_mapping_pos::rm_travel_time>(current) + 1 ==
-             std::get<resolved_mapping_pos::rm_travel_time>(next));
+      if (std::get<resolved_mapping_pos::rm_travel_time>(current) + 1 !=
+          std::get<resolved_mapping_pos::rm_travel_time>(next)) {
+        LOG(logging::error) << "wrong mapping";
+        assert(false);
+      }
     }
   }
 }
@@ -315,14 +343,18 @@ void check_mapping(resolved_mapping const& current,
 void load_distributions_classes(
     std::string const filepath,
     std::map<std::string, std::string>& family_to_distribution_class) {
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
+
   std::vector<classes_csv> classes_entries;
   parser::read_file<classes_csv, ';'>(filepath.c_str(), classes_entries,
                                       classes_columns);
-
   for (auto const& entry : classes_entries) {
     if (!std::get<classes_pos::c_distribution_class>(entry).empty()) {
-      family_to_distribution_class[std::get<classes_pos::c_family>(entry)] =
-          std::get<classes_pos::c_distribution_class>(entry);
+      family_to_distribution_class[to_lower(std::get<classes_pos::c_family>(
+          entry))] = std::get<classes_pos::c_distribution_class>(entry);
     }
   }
 }
@@ -356,7 +388,6 @@ void load_distribution_mappings(
   std::vector<mapping_int> parsed_mappings;
   parse_mappings(mapping_entries, max_expected_travel_time,
                  max_expected_departure_delay, parsed_mappings);
-
   resolve_mappings(parsed_mappings, resolved_mappings);
 
   std::sort(resolved_mappings.begin(), resolved_mappings.end(),

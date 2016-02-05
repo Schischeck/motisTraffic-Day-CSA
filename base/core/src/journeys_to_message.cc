@@ -86,7 +86,8 @@ Offset<routing::Connection> to_connection(flatbuffers::FlatBufferBuilder& b,
                           j.night_penalty);
 }
 
-msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
+msg_ptr journeys_to_message(std::vector<journey> const& journeys,
+                            int pareto_dijkstra_time) {
   MessageCreator b;
 
   std::vector<Offset<Connection>> connections;
@@ -94,9 +95,10 @@ msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
     connections.push_back(to_connection(b, j));
   }
 
-  b.CreateAndFinish(
-      MsgContent_RoutingResponse,
-      CreateRoutingResponse(b, b.CreateVector(connections)).Union());
+  b.CreateAndFinish(MsgContent_RoutingResponse,
+                    CreateRoutingResponse(b, pareto_dijkstra_time,
+                                          b.CreateVector(connections))
+                        .Union());
 
   return make_msg(b);
 }
