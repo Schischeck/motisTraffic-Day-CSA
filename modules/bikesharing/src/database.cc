@@ -29,6 +29,7 @@ struct database::database_impl {
 
     db_.reset(db);
   }
+  virtual ~database_impl() = default;
 
   virtual persistable_terminal get(std::string const& id) const {
     std::string value;

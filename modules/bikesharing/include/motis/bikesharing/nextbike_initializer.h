@@ -20,9 +20,9 @@ std::time_t nextbike_filename_to_timestamp(std::string const& filename);
 std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer);
 
 using dispatch_fun = std::function<void(module::msg_ptr, module::callback)>;
-void initialize_nextbike(database* db, dispatch_fun dispatch_fun,
-                         module::callback finished_cb,
-                         std::string const& nextbike_path);
+void initialize_nextbike(std::string const& nextbike_path, database& db,
+                         dispatch_fun dispatch_fun,
+                         module::callback finished_cb);
 
 }  // namespace bikesharing
 }  // namespace motis

@@ -1,4 +1,4 @@
-#include "motis/bikesharing/bikesharing_search.h"
+#include "motis/bikesharing/search.h"
 
 #include <vector>
 
@@ -68,14 +68,15 @@ struct bikesharing_search::impl {
     foreach_terminal_in_walk_dist(
         req->departure_lng(), req->departure_lat(),
         [&, this](std::string const& id, int walk_dur) {
-          auto const& term = load_terminal(ctx, id);
-          for (auto const& reachable_t : *term->get()->reachable()) {
-            auto other_t = load_terminal(ctx, reachable_t->id()->str());
+          auto const& from_t = load_terminal(ctx, id);
+          for (auto const& reachable_t : *from_t->get()->reachable()) {
+            auto to_t = load_terminal(ctx, reachable_t->id()->str());
 
-            for (auto const& station : *other_t->get()->attached()) {
-              auto a = get_availability(term->get(), begin, end, first_bucket);
+            for (auto const& station : *to_t->get()->attached()) {
+              auto a = get_availability(from_t->get(), begin, end, first_bucket,
+                                        req->availability_aggregator());
               bike_edge e{walk_dur + station->duration(),
-                          reachable_t->duration(), a, term, other_t};
+                          reachable_t->duration(), a, from_t, to_t};
               departures.emplace(id, e);
             }
           }
@@ -92,16 +93,17 @@ struct bikesharing_search::impl {
 
     std::multimap<std::string, bike_edge> arrivals;
     foreach_terminal_in_walk_dist(
-        req->departure_lng(), req->departure_lat(),
+        req->arrival_lng(), req->arrival_lat(),
         [&, this](std::string const& id, int walk_dur) {
-          auto const& term = load_terminal(ctx, id);
-          for (auto const& reachable_t : *term->get()->reachable()) {
-            auto other_t = load_terminal(ctx, reachable_t->id()->str());
+          auto const& to_t = load_terminal(ctx, id);
+          for (auto const& reachable_t : *to_t->get()->reachable()) {
+            auto from_t = load_terminal(ctx, reachable_t->id()->str());
 
-            for (auto const& station : *other_t->get()->attached()) {
-              auto a = get_availability(term->get(), begin, end, first_bucket);
+            for (auto const& station : *from_t->get()->attached()) {
+              auto a = get_availability(from_t->get(), begin, end, first_bucket,
+                                        req->availability_aggregator());
               bike_edge e{walk_dur + station->duration(),
-                          reachable_t->duration(), a, term, other_t};
+                          reachable_t->duration(), a, from_t, to_t};
               arrivals.emplace(id, e);
             }
           }
@@ -130,16 +132,27 @@ struct bikesharing_search::impl {
            }).get();
   }
 
-  std::vector<availability_bucket> get_availability(Terminal const* term,
-                                                    unsigned long begin,
-                                                    unsigned long end,
-                                                    size_t bucket) const {
+  std::vector<availability_bucket> get_availability(
+      Terminal const* term, unsigned long begin, unsigned long end,
+      size_t bucket, AvailabilityAggregator aggr) const {
     std::vector<availability_bucket> availability;
     for (auto t = begin; t < end; t += kSecondsPerHour) {
-      auto val = term->availability()->Get(bucket++)->minimum();
+      double val = get_availability(term->availability()->Get(bucket++), aggr);
       availability.push_back({t, t + kSecondsPerHour, val});
     }
     return availability;
+  }
+
+  double get_availability(Availability const* a,
+                          AvailabilityAggregator aggr) const {
+    switch (aggr) {
+      case AvailabilityAggregator_Average: return a->average();
+      case AvailabilityAggregator_Median: return a->median();
+      case AvailabilityAggregator_Minimum: return a->minimum();
+      case AvailabilityAggregator_Quantile90: return a->q90();
+      case AvailabilityAggregator_PercentReliable: return a->percent_reliable();
+      default: return 0.0;
+    }
   }
 
   Offset<Vector<Offset<BikesharingEdge>>> serialize_edges(

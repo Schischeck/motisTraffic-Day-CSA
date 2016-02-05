@@ -10,8 +10,10 @@ namespace error {
 enum error_code_t {
   ok = 0,
   not_implemented = 1,
-  database_error = 2,
-  terminal_not_found = 3,
+  not_initialized = 2,
+  database_error = 3,
+  terminal_not_found = 4,
+  search_failure = 5,
 };
 }  // namespace error
 
@@ -23,8 +25,10 @@ public:
     switch (ev) {
       case error::ok: return "bikesharing: no error";
       case error::not_implemented: return "bikesharing: not implemented";
+      case error::not_initialized: return "bikesharing: not initialized";
       case error::database_error: return "bikesharing: database error";
       case error::terminal_not_found: return "bikesharing: terminal not found";
+      case error::search_failure: return "bikesharing: search_failure";
       default: return "bikesharing: unkown error";
     }
   }

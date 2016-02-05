@@ -3,7 +3,7 @@
 namespace motis {
 
 constexpr auto WALK_SPEED = 1.5;  // m/s
-constexpr auto BIKE_SPEED = 15;  // m/s
+constexpr auto BIKE_SPEED = 15.0 * (1000.0 / 3600.0);  // m/s (15 km/h)
 
 constexpr auto MAX_WALK_TIME = 10 * 60; // s
 constexpr auto MAX_BIKE_TIME = 30 * 60; // s

@@ -22,6 +22,8 @@ add_library(motis-bikesharing STATIC
 )
 set_target_properties(motis-bikesharing PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-bikesharing 
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   motis-module 
   pugixml
   leveldb

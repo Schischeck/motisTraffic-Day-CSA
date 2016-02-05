@@ -113,9 +113,9 @@ void find_close_terminals(ctx_ptr ctx);
 void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec);
 void persist_terminals(ctx_ptr ctx);
 
-void initialize_nextbike(database& db, dispatch_fun dispatch_fun,
-                         module::callback finished_cb,
-                         std::string const& nextbike_path) {
+void initialize_nextbike(std::string const& nextbike_path, database& db,
+                         dispatch_fun dispatch_fun,
+                         module::callback finished_cb) {
   auto ctx = std::make_shared<context>(db, dispatch_fun, finished_cb);
   return initialize_nextbike(ctx, nextbike_path);
 }
@@ -215,8 +215,9 @@ msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
   for (auto const& merged : terminals) {
     c.push_back(CreateRequestCoordinates(b, merged.lat, merged.lng, radius));
   }
-  b.CreateAndFinish(MsgContent_IntermodalGeoIndexRequest,
-                    b.CreateVector(c).Union());
+  b.CreateAndFinish(
+      MsgContent_IntermodalGeoIndexRequest,
+      CreateIntermodalGeoIndexRequest(b, b.CreateVector(c)).Union());
   return make_msg(b);
 }
 
