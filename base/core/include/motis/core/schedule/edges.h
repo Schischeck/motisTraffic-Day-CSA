@@ -7,6 +7,7 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
+#include "motis/core/common/constants.h"
 
 namespace motis {
 
@@ -110,14 +111,16 @@ public:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
-      case TIME_DEPENDENT_MUMO_EDGE:
-        if (start_time % 1440 >= 1260 ||
-            start_time % 1440 <= 180) { /* todo: read interval from edge */
+      case TIME_DEPENDENT_MUMO_EDGE: {
+        unsigned const start_time_mod = start_time % 1440;
+        if (start_time_mod >= LATE_TAXI_BEGIN_TIME ||
+            start_time_mod <= LATE_TAXI_END_TIME) {
           return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                            _m._foot_edge._price, _m._foot_edge._slot);
         } else {
           return NO_EDGE;
         }
+      }
       case HOTEL_EDGE: {
         return edge_cost(calc_duration_hotel_edge(start_time), false,
                          _m._hotel_edge._price, 0);
