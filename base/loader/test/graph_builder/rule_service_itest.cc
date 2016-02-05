@@ -19,7 +19,8 @@ auto routing_request = R"(
     "path": [
       { "eva_nr": "0000002", "name": "" },
       { "eva_nr": "0000009", "name": "" }
-    ]
+    ],
+    additional_edges: []
   }
 }
 )";
