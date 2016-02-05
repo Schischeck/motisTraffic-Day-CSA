@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "motis/module/module.h"
+#include "motis/bikesharing/database.h"
+#include "motis/bikesharing/search.h"
 
 namespace motis {
 namespace bikesharing {
@@ -17,14 +19,19 @@ struct bikesharing : public motis::module::module {
   virtual bool empty_config() const override { return true; }
 
   virtual std::string name() const override { return "bikesharing"; }
-  virtual void init() override;
+  virtual void init_async(motis::module::callback) override;
+
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {};
+    return {MsgContent_BikesharingRequest};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
+  std::string database_path_;
   std::string nextbike_path_;
+
+  std::unique_ptr<database> database_;
+  std::unique_ptr<bikesharing_search> search_;
 };
 
 }  // namespace bikesharing

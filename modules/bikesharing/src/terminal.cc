@@ -61,12 +61,13 @@ availability compute_availability(std::vector<int>& dist) {
   return a;
 }
 
-std::vector<std::pair<terminal, hourly_availabilities>>
+std::pair<std::vector<terminal>, std::vector<hourly_availabilities>>
 snapshot_merger::merged() {
   LOG(info) << "merging " << snapshot_count_ << " snapshots of "
             << terminals_.size() << " terminals";
 
-  std::vector<std::pair<terminal, hourly_availabilities>> result;
+  std::vector<terminal> t;
+  std::vector<hourly_availabilities> a;
   for (auto& terminal : terminals_) {
     auto& id = terminal.first;
 
@@ -75,10 +76,11 @@ snapshot_merger::merged() {
       availabilities[i] = compute_availability(distributions_.at(id)[i]);
     }
 
-    result.emplace_back(terminal.second, availabilities);
+    t.push_back(terminal.second);
+    a.push_back(availabilities);
   }
 
-  return result;
+  return {t, a};
 }
 
 }  // namespace bikesharing

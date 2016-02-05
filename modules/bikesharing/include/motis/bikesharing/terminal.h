@@ -10,10 +10,8 @@
 namespace motis {
 namespace bikesharing {
 
-using terminal_id_t = int;
-
 struct terminal {
-  terminal_id_t uid;
+  std::string uid;
   double lat, lng;
   std::string name;
 };
@@ -24,10 +22,15 @@ struct terminal_snapshot : public terminal {
 
 struct availability {
   double average;
-  int median;
-  int minimum;
-  int q90;
+  double median;
+  double minimum;
+  double q90;
   double percent_reliable;
+};
+
+struct close_location {
+  std::string id;
+  int duration;
 };
 
 constexpr size_t kHoursPerDay = 24;
@@ -46,11 +49,11 @@ struct snapshot_merger {
   void add_snapshot(std::time_t timestamp,
                     std::vector<terminal_snapshot> const& snapshot);
 
-  std::vector<std::pair<terminal, hourly_availabilities>> merged();
+  std::pair<std::vector<terminal>, std::vector<hourly_availabilities>> merged();
 
   size_t snapshot_count_ = 0;
-  std::map<terminal_id_t, terminal> terminals_;
-  std::map<terminal_id_t, hourly_buckets> distributions_;
+  std::map<std::string, terminal> terminals_;
+  std::map<std::string, hourly_buckets> distributions_;
 };
 
 }  // namespace bikesharing
