@@ -211,7 +211,7 @@ public:
   schedule_station const MAINZ = {"Mainz", "3953754"};
 };
 
-TEST_F(reliability_late_connections, late_conn_req) {
+TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
   /* taxi-info: from-station, duration, price */
   std::vector<std::tuple<std::string, unsigned short, unsigned short>>
       taxi_infos;

@@ -2,6 +2,7 @@
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/journey/journey.h"
+#include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/core/schedule/connection.h"
@@ -139,7 +140,7 @@ TEST_F(reliability_public_transport2, rate) {
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
 
-  ASSERT_TRUE(journeys.size() == 1);
+  ASSERT_EQ(1, journeys.size());
   auto const elements = rating::connection_to_graph_data::get_elements(
       get_schedule(), journeys.front());
   ASSERT_TRUE(elements.size() == 2);

@@ -172,7 +172,7 @@ TEST_F(routing_late_connections, test_hotel_edges) {
   ASSERT_FALSE(hotel_edges[0].get_minimum_cost().transfer);
 }
 
-TEST_F(routing_late_connections, search) {
+TEST_F(routing_late_connections, DISABLED_search) {
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(LANGEN);
   hotel_infos.emplace_back(OFFENBACH);
@@ -267,7 +267,7 @@ TEST_F(routing_late_connections, taxi_not_allowed) {
   }
 }
 
-TEST_F(routing_hotel_foot, hotel_after_foot) {
+TEST_F(routing_hotel_foot, DISABLED_hotel_after_foot) {
   std::vector<taxi_info> taxi_infos;
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(NEUISENBURG);
@@ -284,7 +284,7 @@ TEST_F(routing_hotel_foot, hotel_after_foot) {
   ASSERT_EQ(journey::transport::Mumo, j.transports[2].type);
 }
 
-TEST_F(routing_hotel_foot, foot_after_hotel) {
+TEST_F(routing_hotel_foot, DISABLED_foot_after_hotel) {
   std::vector<taxi_info> taxi_infos;
   std::vector<hotel_info> hotel_infos;
   hotel_infos.emplace_back(LANGEN);
