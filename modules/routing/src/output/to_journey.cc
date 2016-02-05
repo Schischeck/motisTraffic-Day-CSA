@@ -101,7 +101,7 @@ std::vector<journey::transport> generate_journey_transports(
     std::vector<intermediate::transport> const& transports,
     schedule const& sched) {
   struct con_info_cmp {
-    bool operator()(connection_info const* a, connection_info const* b) {
+    bool operator()(connection_info const* a, connection_info const* b) const {
       auto train_nr_a = output_train_nr(a->train_nr, a->original_train_nr);
       auto train_nr_b = output_train_nr(b->train_nr, b->original_train_nr);
       return std::tie(a->line_identifier, a->family, train_nr_a, a->dir_) <
