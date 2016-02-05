@@ -1,8 +1,11 @@
 #include "motis/bootstrap/motis_instance.h"
 
 #include <algorithm>
+#include <atomic>
 #include <exception>
 #include <future>
+#include <thread>
+#include <chrono>
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/loader.h"
@@ -62,6 +65,22 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
     }
   }
 
+  std::atomic<bool> should_join{false};
+  std::thread ios_init_thread{[this, &should_join] {
+    while (!should_join) {
+      ios_.run();
+      ios_.reset();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }};
+  std::thread worker_init_thread{[this, &should_join] {
+    while (!should_join) {
+      thread_pool_.run();
+      thread_pool_.reset();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }};
+
   for (auto const& module : dispatcher::modules_) {
     std::promise<void> promise;
     callback cb = [&promise](msg_ptr, boost::system::error_code ec) {
@@ -73,13 +92,9 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       }
     };
     module->init_async(cb);
-    thread_pool_.run();
-    thread_pool_.reset();
 
-    auto future = promise.get_future();
-    future.wait();
     try {
-      future.get();
+      promise.get_future().get();
     } catch (std::exception const& e) {
       LOG(emrg) << "module " << module->name()
                 << ": unhandled init_async error: " << e.what();
@@ -90,6 +105,14 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
+
+  should_join = true;
+  ios_.stop();
+  thread_pool_.stop();
+  ios_init_thread.join();
+  worker_init_thread.join();
+
+  LOG(info) << "init modules finished";
 }
 
 void motis_instance::run() { thread_pool_.run(); }

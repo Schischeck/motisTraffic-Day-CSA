@@ -205,7 +205,7 @@ void persist_terminals(ctx_ptr ctx) {
   }
   ctx->db_.put(p);
   ctx->db_.put_summary(make_summary(ctx->terminals_));
-  ctx->finished_cb_({}, error::ok);
+  return ctx->finished_cb_({}, error::ok);
 }
 
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,

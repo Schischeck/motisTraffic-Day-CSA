@@ -10,6 +10,7 @@
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
 #include "motis/ris/database.h"
+#include "motis/ris/error.h"
 #include "motis/ris/risml_parser.h"
 #include "motis/ris/ris_message.h"
 #include "motis/ris/zip_reader.h"
@@ -114,7 +115,7 @@ std::time_t days_ago(long days) {
   return now - kTwentyFourHours * days;
 }
 
-void ris::init() {
+void ris::init_async(callback cb) {
   db_init();
   read_files_ = db_get_files();
 
@@ -126,10 +127,12 @@ void ris::init() {
     auto from = std::max(sync.sched().schedule_begin_, days_ago(1));
     auto to = sync.sched().schedule_end_;
 
-    dispatch(pack(db_get_messages(from, to)));
+    dispatch(pack(db_get_messages(from, to)), 0, cb);
 
     timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
     schedule_update(error_code());
+  } else {
+    return cb({}, error::ok);
   }
 }
 
@@ -151,13 +154,13 @@ void ris::on_msg(msg_ptr msg, sid, callback cb) {
 
 void ris::handle_forward_time(msg_ptr msg, callback cb) {
   if (mode_ != mode::SIMULATION) {
-    LOG(error) << "RIS received a fwd time msg (but is not in sim mode).";
+    LOG(logging::error) << "RIS got a fwd time msg (but is not in sim mode).";
     return cb({}, boost::system::error_code());
   }
 
   auto req = msg->content<RISForwardTimeRequest const*>();
   auto new_time = req->new_time();
-  dispatch(pack(db_get_messages(simulation_time_, new_time)));
+  dispatch(pack(db_get_messages(simulation_time_, new_time)), 0, cb);
   simulation_time_ = new_time;
   LOG(info) << "RIS forwarded time to " << new_time;
 
@@ -175,7 +178,7 @@ void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
         parsed_messages);
     dispatch(pack(parsed_messages));
   } catch (std::exception const& e) {
-    LOG(error) << "bad zip file: " << e.what();
+    LOG(logging::error) << "bad zip file: " << e.what();
     MessageCreator b;
     b.CreateAndFinish(
         MsgContent_HTTPResponse,
@@ -220,7 +223,7 @@ void ris::parse_zips() {
     try {
       parsed_messages = parse_xmls(read_zip_file(new_file));
     } catch (std::exception const& e) {
-      LOG(error) << "bad zip file: " << e.what();
+      LOG(logging::error) << "bad zip file: " << e.what();
     }
 
     db_put_messages(new_file, parsed_messages);
