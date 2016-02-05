@@ -9,7 +9,7 @@
 #include "motis/routing/routing.h"
 
 #include "motis/reliability/rating/simple_rating.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
@@ -50,14 +50,10 @@ public:
 /* Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
-  auto req_msg = flatbuffers_tools::to_routing_request(
+  auto req_msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 27),
-      (motis::time)(
-          11 * 60 +
-          27) /* regard interchange time at the beginning of the journey */,
+      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
       std::make_tuple(28, 9, 2015), false);
-
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
@@ -83,7 +79,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
   ASSERT_TRUE(equal(rating.ratings_elements_[1].ratings_[0].second, 0.995));
   ASSERT_TRUE(rating.ratings_elements_[1].ratings_[1].first ==
               rating_type::Interchange);
-  ASSERT_TRUE(equal(rating.ratings_elements_[1].ratings_[1].second, 1.0));
+  ASSERT_DOUBLE_EQ(1.0, rating.ratings_elements_[1].ratings_[1].second);
 
   ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995));
 }
@@ -92,7 +88,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Darmstadt to Giessen with RE_D_F_G (interchange in Giessen), and
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
-  auto req_msg = flatbuffers_tools::to_routing_request(
+  auto req_msg = flatbuffers::request_builder::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), false);

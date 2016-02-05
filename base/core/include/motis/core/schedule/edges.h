@@ -7,6 +7,7 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
+#include "motis/core/common/constants.h"
 
 namespace motis {
 
@@ -54,6 +55,8 @@ public:
     FOOT_EDGE,
     AFTER_TRAIN_FOOT_EDGE,
     MUMO_EDGE,
+    TIME_DEPENDENT_MUMO_EDGE,
+    HOTEL_EDGE,
     THROUGH_EDGE
   };
 
@@ -84,6 +87,16 @@ public:
     assert(_m._type != ROUTE_EDGE);
   }
 
+  /** hotel edge constructor. */
+  edge(node* station_node, uint16_t checkout_time, uint16_t min_stay_duration,
+       uint16_t price)
+      : _from(station_node), _to(station_node) {
+    _m._type = HOTEL_EDGE;
+    _m._hotel_edge._checkout_time = checkout_time;
+    _m._hotel_edge._min_stay_duration = min_stay_duration;
+    _m._hotel_edge._price = price;
+  }
+
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (_m._type) {
@@ -98,6 +111,20 @@ public:
       case FOOT_EDGE:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
+      case TIME_DEPENDENT_MUMO_EDGE: {
+        unsigned const start_time_mod = start_time % 1440;
+        if (start_time_mod >= LATE_TAXI_BEGIN_TIME ||
+            start_time_mod <= LATE_TAXI_END_TIME) {
+          return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
+                           _m._foot_edge._price, _m._foot_edge._slot);
+        } else {
+          return NO_EDGE;
+        }
+      }
+      case HOTEL_EDGE: {
+        return edge_cost(calc_duration_hotel_edge(start_time), false,
+                         _m._hotel_edge._price, 0);
+      }
 
       case THROUGH_EDGE: return edge_cost(0, false, 0, 0);
 
@@ -122,6 +149,10 @@ public:
       }
     } else if (_m._type == FOOT_EDGE || _m._type == AFTER_TRAIN_FOOT_EDGE) {
       return edge_cost(0, _m._foot_edge._transfer);
+    } else if (_m._type == HOTEL_EDGE) {
+      return edge_cost(0, false, _m._hotel_edge._price);
+    } else if (_m._type == MUMO_EDGE || _m._type == TIME_DEPENDENT_MUMO_EDGE) {
+      return edge_cost(0, false, _m._foot_edge._price);
     } else {
       return edge_cost(0);
     }
@@ -177,6 +208,8 @@ public:
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
+      case TIME_DEPENDENT_MUMO_EDGE: return "TIME_DEPENDENT_MUMO_EDGE";
+      case HOTEL_EDGE: return "HOTEL_EDGE";
       case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
     }
@@ -197,6 +230,8 @@ public:
       if (_type == ROUTE_EDGE) {
         _route_edge.init_empty();
         _route_edge = std::move(other._route_edge);
+      } else if (_type == HOTEL_EDGE) {
+        _hotel_edge = std::move(other._hotel_edge);
       } else {
         _foot_edge = std::move(other._foot_edge);
       }
@@ -207,6 +242,8 @@ public:
       if (_type == ROUTE_EDGE) {
         _route_edge.init_empty();
         _route_edge = other._route_edge;
+      } else if (_type == HOTEL_EDGE) {
+        _hotel_edge = std::move(other._hotel_edge);
       } else {
         _foot_edge.init_empty();
         _foot_edge = other._foot_edge;
@@ -218,6 +255,8 @@ public:
       if (_type == ROUTE_EDGE) {
         _route_edge.init_empty();
         _route_edge = std::move(other._route_edge);
+      } else if (_type == HOTEL_EDGE) {
+        _hotel_edge = std::move(other._hotel_edge);
       } else {
         _foot_edge.init_empty();
         _foot_edge = std::move(other._foot_edge);
@@ -231,6 +270,8 @@ public:
       if (_type == ROUTE_EDGE) {
         _route_edge.init_empty();
         _route_edge = other._route_edge;
+      } else if (_type == HOTEL_EDGE) {
+        _hotel_edge = std::move(other._hotel_edge);
       } else {
         _foot_edge.init_empty();
         _foot_edge = other._foot_edge;
@@ -273,7 +314,25 @@ public:
         _slot = 0;
       }
     } _foot_edge;
+
+    // TYPE = HOTEL_EDGE
+    struct {
+      uint8_t _type_padding;
+      uint16_t _checkout_time;
+      uint16_t _min_stay_duration;
+      uint16_t _price;
+    } _hotel_edge;
   } _m;
+
+private:
+  uint16_t calc_duration_hotel_edge(time const start_time) const {
+    uint16_t offset =
+        start_time % 1440 < _m._hotel_edge._checkout_time ? 0 : 1440;
+    return std::max(
+        _m._hotel_edge._min_stay_duration,
+        static_cast<uint16_t>((_m._hotel_edge._checkout_time + offset) -
+                              (start_time % 1440)));
+  }
 };
 
 /* convenience helper functions to generate the right edge type */
@@ -296,6 +355,19 @@ inline edge make_after_train_edge(node* from, node* to, uint16_t time_cost = 0,
 inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
                            uint16_t price = 0, uint8_t slot = 0) {
   return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
+}
+
+inline edge make_time_dependent_mumo_edge(node* from, node* to,
+                                          uint16_t time_cost = 0,
+                                          uint16_t price = 0,
+                                          uint8_t slot = 0) {
+  return edge(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
+              slot);
+}
+
+inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
+                            uint16_t min_stay_duration, uint16_t price) {
+  return edge(station_node, checkout_time, min_stay_duration, price);
 }
 
 inline edge make_invalid_edge(node* from, node* to) {

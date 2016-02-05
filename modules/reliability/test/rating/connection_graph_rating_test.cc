@@ -2,12 +2,11 @@
 
 #include "motis/core/common/date_util.h"
 
-#include "motis/reliability/probability_distribution.h"
-
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure_interchange.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_graph_rating.h"
@@ -18,11 +17,11 @@
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
 
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/interchange_data_for_tests.h"
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 
 namespace motis {
@@ -43,12 +42,14 @@ public:
                      probability_distribution const& arrival_distribution) {
     return calc_distributions(
         ic_data.arriving_light_conn_, ic_data.departing_light_conn_,
-        ic_data.departing_route_edge_, arrival_distribution);
+        *ic_data.arriving_route_edge_._to, ic_data.departing_route_edge_,
+        arrival_distribution);
   }
 
   std::pair<probability_distribution, probability_distribution>
   calc_distributions(light_connection const& arriving_light_conn,
                      light_connection const& departing_light_conn,
+                     node const& arriving_route_node,
                      edge const& departing_route_edge,
                      probability_distribution const& arrival_distribution) {
     probability_distribution dep_dist, arr_dist;
@@ -56,14 +57,20 @@ public:
     using namespace calc_arrival_distribution;
     interchange::compute_departure_distribution(
         data_departure_interchange(
-            true, *departing_route_edge._from, departing_light_conn,
-            arriving_light_conn, arrival_distribution, get_schedule(),
+            true, *departing_route_edge._from, arriving_route_node,
+            departing_light_conn, arriving_light_conn, arrival_distribution,
             get_reliability_module().precomputed_distributions(),
-            get_reliability_module().precomputed_distributions(),
-            get_reliability_module().s_t_distributions()),
+            get_reliability_module().precomputed_distributions().get_node(
+                distributions_container::to_container_key(
+                    *departing_route_edge._from, departing_light_conn,
+                    time_util::departure, get_schedule())),
+            context(get_schedule(),
+                    get_reliability_module().precomputed_distributions(),
+                    get_reliability_module().s_t_distributions())),
         dep_dist);
     compute_arrival_distribution(
-        data_arrival(departing_light_conn, dep_dist, get_schedule(),
+        data_arrival(*departing_route_edge._from, *departing_route_edge._to,
+                     departing_light_conn, dep_dist, get_schedule(),
                      get_reliability_module().s_t_distributions()),
         arr_dist);
     return std::make_pair(dep_dist, arr_dist);
@@ -131,6 +138,47 @@ TEST_F(reliability_connection_graph_rating, scheduled_transfer_filter) {
 }
 
 TEST_F(reliability_connection_graph_rating,
+       scheduled_transfer_filter_realtime) {
+  using namespace detail;
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1, 0.2}, -1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({0.0}, 1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({1.0}, 1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       true, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1, 0.2, 0.3}, -1);
+    ASSERT_EQ(expected, scheduled_transfer_filter(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       true, 1, 0)));
+  }
+}
+
+TEST_F(reliability_connection_graph_rating,
        compute_uncovered_arrival_distribution) {
   using namespace detail;
   probability_distribution arr_dist;
@@ -164,9 +212,49 @@ TEST_F(reliability_connection_graph_rating,
   }
 }
 
+TEST_F(reliability_connection_graph_rating,
+       compute_uncovered_arrival_distribution_realtime) {
+  using namespace detail;
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.3, 0.1}, 1);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected;
+    expected.init({1.0}, 1);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       false, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({1.0}, 1);
+    probability_distribution expected; /* empty distribution */
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, true,
+                                                       true, 1, 0)));
+  }
+  {
+    probability_distribution arr_dist;
+    arr_dist.init({0.1, 0.2, 0.3, 0.1}, -1); /* -1 ... 2*/
+    probability_distribution expected;
+    expected.init({0.1}, 2);
+    ASSERT_EQ(expected, compute_uncovered_arrival_distribution(
+                            arr_dist, interchange_info(10, 11, 11, 12, false,
+                                                       true, 1, 0)));
+  }
+}
+
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 1, 1);
@@ -225,7 +313,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
       std::make_tuple(19, 10, 2015), 3, 1);
@@ -285,6 +373,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 
       auto const dists =
           calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             *ic_data.arriving_route_edge_._to,
                              ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[1].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
@@ -309,6 +398,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 
       auto const dists =
           calc_distributions(ic_data.arriving_light_conn_, departing_lc,
+                             *ic_data.arriving_route_edge_._to,
                              ic_data.departing_route_edge_, filtered_arr_dist);
       auto const& rating = cg.stops_[2].alternative_infos_[2].rating_;
       ASSERT_EQ(dists.first, rating.departure_distribution_);
@@ -343,7 +433,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 /* rating of a cg with a foot-path */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
@@ -407,7 +497,7 @@ TEST_F(reliability_connection_graph_rating_foot,
 /* rating of a cg with a foot-path at the end of the journey */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
-  auto msg = flatbuffers_tools::to_connection_tree_request(
+  auto msg = flatbuffers::request_builder::to_connection_tree_request(
       LANGEN.name, LANGEN.eva, MESSE.name, MESSE.eva, (motis::time)(10 * 60),
       (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
   bool test_cb_called = false;
@@ -417,29 +507,20 @@ TEST_F(reliability_connection_graph_rating_foot,
     test_cb_called = true;
     ASSERT_EQ(cgs.size(), 1);
     auto const cg = *cgs.front();
-    ASSERT_EQ(3, cg.stops_.size());
-    ASSERT_EQ(2, cg.journeys_.size());
-    {
-      connection_rating expected_rating_journey0;
-      rating::rate(expected_rating_journey0, cg.journeys_[0],
-                   *reliability_context_);
-      auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
-                    .departure_distribution_,
-                rating.departure_distribution_);
-      ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
-                    .arrival_distribution_,
-                rating.arrival_distribution_);
-    }
-    {
-      ASSERT_EQ(1, cg.stops_[2].alternative_infos_.size());
-      ASSERT_TRUE(cg.journeys_.back().transports.front().walk);
-      auto const& rating = cg.stops_[2].alternative_infos_.front().rating_;
-      ASSERT_EQ(
-          cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_,
-          rating.departure_distribution_);
-      ASSERT_EQ(rating.departure_distribution_, rating.arrival_distribution_);
-    }
+    ASSERT_EQ(2, cg.stops_.size());
+    ASSERT_EQ(1, cg.journeys_.size());
+
+    connection_rating expected_rating_journey0;
+    rating::rate(expected_rating_journey0, cg.journeys_[0],
+                 *reliability_context_);
+    auto const& rating = cg.stops_[0].alternative_infos_.front().rating_;
+    ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.front()
+                  .departure_distribution_,
+              rating.departure_distribution_);
+    ASSERT_EQ(expected_rating_journey0.public_transport_ratings_.back()
+                  .arrival_distribution_,
+              rating.arrival_distribution_);
+
     ASSERT_EQ(1443435600, cg.journeys_.back().stops.back().arrival.timestamp);
 
     /* arrival distribution of the connection graph */

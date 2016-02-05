@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "motis/core/common/logging.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
@@ -69,6 +70,8 @@ std::pair<journey, journey> split_journey(journey const& j,
   j2.transfers = get_transfers(j2);
   j1.price = 0;
   j2.price = 0;
+  j1.night_penalty = 0;
+  j2.night_penalty = 0;
 
   assert(j1.transports.size() >= 1);
   assert(j1.stops.size() >= 2);
@@ -83,11 +86,32 @@ std::pair<journey, journey> split_journey(journey const& j,
   return std::make_pair(j1, j2);
 }
 
+bool no_public_transport_after_this_stop(journey const& j,
+                                         unsigned int const stop_idx) {
+  auto const& transport_it =
+      std::find_if(j.transports.begin(), j.transports.end(),
+                   [stop_idx](journey::transport const& t) {
+                     return t.from <= stop_idx && t.to > stop_idx;
+                   });
+  if (transport_it == j.transports.end()) {
+    LOG(logging::error) << "Transport not found!";
+    return true;
+  }
+
+  auto const& public_transport_it = std::find_if(
+      transport_it, j.transports.end(), [](journey::transport const& t) {
+        return t.type == journey::transport::PublicTransport;
+      });
+
+  return public_transport_it == j.transports.end();
+}
+
 void split_journey(std::vector<journey>& journeys) {
   auto const& stop =
       std::find_if(journeys.back().stops.begin(), journeys.back().stops.end(),
                    [](journey::stop const& s) { return s.interchange; });
-  if (stop == journeys.back().stops.end()) {
+  if (stop == journeys.back().stops.end() ||
+      no_public_transport_after_this_stop(journeys.back(), stop->index)) {
     return;
   }
   auto splitted_journey = split_journey(journeys.back(), stop->index);
@@ -135,6 +159,26 @@ std::vector<journey> split_journey(journey const& orig_journey) {
   return journeys;
 }
 
+journey move_early_walk(journey const& orig_j) {
+  journey j = orig_j;
+  if (j.transports.size() > 1 && j.stops.size() > 2) {
+    unsigned int const index_last_stop = j.stops.size() - 1;
+    for (auto const& tr : j.transports) {
+      if (tr.type == journey::transport::Walk && tr.to < index_last_stop) {
+        auto const buffer = j.stops[tr.to].departure.timestamp -
+                            j.stops[tr.to].arrival.timestamp;
+        if (buffer > 0) {
+          j.stops[tr.from].departure.timestamp += buffer;
+          j.stops[tr.from].departure.schedule_timestamp += buffer;
+          j.stops[tr.to].arrival.timestamp += buffer;
+          j.stops[tr.to].arrival.schedule_timestamp += buffer;
+        }
+      }
+    }
+  }
+  return j;
+}
+
 connection_graph::stop& get_stop(connection_graph& cg,
                                  unsigned int const first_stop_idx,
                                  unsigned int const stop_idx) {
@@ -149,8 +193,8 @@ connection_graph::stop& get_stop(connection_graph& cg,
 }  // namespace detail
 
 void add_base_journey(connection_graph& cg, journey const& base_journey) {
-  auto journeys =
-      detail::split_journey(detail::remove_dummy_stops(base_journey));
+  auto journeys = detail::split_journey(
+      detail::move_early_walk(detail::remove_dummy_stops(base_journey)));
 
   unsigned int stop_idx = connection_graph::stop::Index_departure_stop;
   for (auto const& j : journeys) {
@@ -183,7 +227,8 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
 void add_alternative_journey(connection_graph& cg,
                              unsigned int const first_stop_idx,
                              journey const& j) {
-  auto journeys = detail::split_journey(detail::remove_dummy_stops(j));
+  auto journeys = detail::split_journey(
+      detail::move_early_walk(detail::remove_dummy_stops(j)));
 
   /* todo:
    * call function: std::vector<unsigned int> add_journeys(cg, journeys);

@@ -19,4 +19,14 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 using std::make_unique;
 #endif
 
-} // namespace motis
+}  // namespace motis
+
+namespace std {
+template <typename T>
+ostream& operator<<(ostream& out, vector<T> const& v) {
+  for (auto const& el : v) {
+    out << el << " ";
+  }
+  return out;
+}
+}  // namespace std

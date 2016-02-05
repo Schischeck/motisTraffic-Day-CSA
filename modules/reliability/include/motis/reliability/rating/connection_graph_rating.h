@@ -10,14 +10,12 @@ namespace reliability {
 struct context;
 struct probability_distribution;
 struct start_and_travel_distributions;
-namespace distributions_container {
-struct precomputed_distributions_container;
-}
 namespace search {
 struct connection_graph;
 }
 namespace rating {
 struct connection_element;
+
 namespace cg {
 void rate_inserted_alternative(
     search::connection_graph_search::detail::context::conn_graph_context&,
@@ -34,10 +32,33 @@ struct interchange_info {
                    duration const transfer_time, duration const waiting_time)
       : scheduled_arrival_time_(scheduled_arrival_time),
         scheduled_departure_time_(scheduled_departure_time),
+        arrival_time_(scheduled_arrival_time),
+        departure_time_(scheduled_departure_time),
+        arrival_is_(false),
+        departure_is_(false),
         transfer_time_(transfer_time),
         waiting_time_(waiting_time) {}
+  /* for tests */
+  interchange_info(time const scheduled_arrival_time,
+                   time const scheduled_departure_time, time const arrival_time,
+                   time const departure_time, bool const arrival_is,
+                   bool const departure_is, duration const transfer_time,
+                   duration const waiting_time)
+      : scheduled_arrival_time_(scheduled_arrival_time),
+        scheduled_departure_time_(scheduled_departure_time),
+        arrival_time_(arrival_time),
+        departure_time_(departure_time),
+        arrival_is_(arrival_is),
+        departure_is_(departure_is),
+        transfer_time_(transfer_time),
+        waiting_time_(waiting_time) {}
+
   time scheduled_arrival_time_;
   time scheduled_departure_time_;
+  time arrival_time_;
+  time departure_time_;
+  bool arrival_is_;
+  bool departure_is_;
   duration transfer_time_;
   duration waiting_time_;
 };

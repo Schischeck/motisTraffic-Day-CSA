@@ -6,6 +6,7 @@
 #include "boost/date_time/local_time/local_time.hpp"
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/common/util.h"
 
 #define MODE "mode"
 #define MODULES "modules"
@@ -14,16 +15,6 @@
 #define MODE_TEST "test"
 #define BATCH_INPUT_FILE "batch_input_file"
 #define BATCH_OUTPUT_FILE "batch_output_file"
-
-namespace std {
-template <typename T>
-ostream& operator<<(ostream& out, vector<T> const& v) {
-  for (auto const& el : v) {
-    out << el << " ";
-  }
-  return out;
-}
-}  // namespace std
 
 namespace motis {
 namespace launcher {

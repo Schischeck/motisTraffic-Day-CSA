@@ -11,30 +11,20 @@ namespace reliability {
 struct probability_distribution;
 struct start_and_travel_distributions;
 
-namespace distributions_container {
-struct abstract_distributions_container;
-}
-
-namespace graph_accessor {
-struct feeder_info;
-}
-
 namespace calc_departure_distribution {
 
 /** arrival and departure at the same station (no walking) */
 struct data_departure_interchange : data_departure {
-  /* todo: use reliability::context */
   data_departure_interchange(
-      bool const is_first_route_node, node const& route_node,
+      bool const is_first_route_node, node const& departing_route_node,
+      node const& arriving_route_node,
       light_connection const& departing_light_conn,
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
-      schedule const& schedule,
-      distributions_container::abstract_distributions_container const&
-          train_distributions_container,
-      distributions_container::abstract_distributions_container const&
-          feeder_distributions_container,
-      start_and_travel_distributions const& s_t_distributions);
+      distributions_container::container const& distribution_preceding_train,
+      distributions_container::container::node const&
+          departing_distribution_node,
+      reliability::context const&);
 
   struct interchange_feeder_info {
     time scheduled_arrival_time_;
@@ -48,12 +38,11 @@ protected:
   /** constructor required by data_departure_interchange_walk */
   data_departure_interchange(
       node const& route_node, light_connection const& light_connection,
-      bool const is_first_route_node, schedule const& schedule,
-      distributions_container::abstract_distributions_container const&
-          train_distributions_container,
-      distributions_container::abstract_distributions_container const&
-          feeder_distributions_container,
-      start_and_travel_distributions const& s_t_distributions);
+      bool const is_first_route_node,
+      distributions_container::container const& preceding_arrival_distribution,
+      distributions_container::container::node const&
+          departing_distribution_node,
+      reliability::context const&);
 
   void init_interchange_feeder_info(
       time const scheduled_arrival_time,
@@ -67,15 +56,14 @@ protected:
 struct data_departure_interchange_walk : data_departure_interchange {
   data_departure_interchange_walk(
       bool const is_first_route_node, node const& departing_route_node,
-      node const& arrival_station, light_connection const& departing_light_conn,
+      node const& arriving_route_node,
+      light_connection const& departing_light_conn,
       light_connection const& arriving_light_conn,
       probability_distribution const& arrival_distribution,
-      schedule const& schedule,
-      distributions_container::abstract_distributions_container const&
-          train_distributions_container,
-      distributions_container::abstract_distributions_container const&
-          feeder_distributions_container,
-      start_and_travel_distributions const& s_t_distributions);
+      distributions_container::container const& preceding_arrival_distribution,
+      distributions_container::container::node const&
+          departing_distribution_node,
+      reliability::context const&);
 };
 
 }  // namespace calc_departure_distribution

@@ -6,6 +6,7 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+#include "motis/routing/additional_edges.h"
 #include "motis/core/common/util.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
@@ -127,9 +128,14 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto i_end =
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
+    auto const additional_edges =
+        create_additional_edges(req->additional_edges(), sched);
+
     search s(sched, *label_store_);
-    auto result = s.get_connections(path->at(0), path->at(1), i_begin, i_end,
-                                    req->type() != Type_PreTrip);
+    auto result = s.get_connections(
+        path->at(0), path->at(1), i_begin, i_end,
+        req->type() == Type_OnTrip || req->type() == Type_LateConnection,
+        additional_edges);
 
     LOG(info) << sched.stations[path->at(0)[0].station]->name << " to "
               << sched.stations[path->at(1)[0].station]->name << " "

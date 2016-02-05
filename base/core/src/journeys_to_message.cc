@@ -38,18 +38,30 @@ std::vector<Offset<MoveWrapper>> convert_moves(
 
   for (auto const& t : transports) {
     Range r(t.from, t.to);
-    if (t.walk) {
-      moves.push_back(
-          CreateMoveWrapper(b, Move_Walk, CreateWalk(b, &r).Union()));
-    } else {
-      moves.push_back(CreateMoveWrapper(
-          b, Move_Transport,
-          CreateTransport(b, &r, b.CreateString(t.category_name), t.category_id,
-                          t.clasz, t.train_nr,
-                          b.CreateString(t.line_identifier),
-                          b.CreateString(t.name), b.CreateString(t.provider),
-                          b.CreateString(t.direction), t.route_id)
-              .Union()));
+    switch (t.type) {
+      case journey::transport::Walk: {
+        moves.push_back(
+            CreateMoveWrapper(b, Move_Walk, CreateWalk(b, &r).Union()));
+        break;
+      }
+      case journey::transport::PublicTransport: {
+        moves.push_back(CreateMoveWrapper(
+            b, Move_Transport,
+            CreateTransport(b, &r, b.CreateString(t.category_name),
+                            t.category_id, t.clasz, t.train_nr,
+                            b.CreateString(t.line_identifier),
+                            b.CreateString(t.name), b.CreateString(t.provider),
+                            b.CreateString(t.direction), t.route_id)
+                .Union()));
+        break;
+      }
+      case journey::transport::Mumo: {
+        moves.push_back(CreateMoveWrapper(
+            b, Move_Mumo,
+            CreateMumo(b, &r, b.CreateString(t.mumo_type_name), t.mumo_price)
+                .Union()));
+        break;
+      }
     }
   }
 
@@ -70,7 +82,8 @@ Offset<routing::Connection> to_connection(flatbuffers::FlatBufferBuilder& b,
                                           journey const& j) {
   return CreateConnection(b, b.CreateVector(convert_stops(b, j.stops)),
                           b.CreateVector(convert_moves(b, j.transports)),
-                          b.CreateVector(convert_attributes(b, j.attributes)));
+                          b.CreateVector(convert_attributes(b, j.attributes)),
+                          j.night_penalty);
 }
 
 msg_ptr journeys_to_message(std::vector<journey> const& journeys,

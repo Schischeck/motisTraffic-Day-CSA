@@ -6,7 +6,7 @@
 #include "motis/module/module.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/search/cg_search_callback.h"
 
 namespace motis {

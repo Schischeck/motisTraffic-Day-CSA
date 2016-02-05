@@ -39,9 +39,21 @@ void remove_intersection(arrival& from, arrival& to) {
 search::search(schedule const& schedule, memory_manager& label_store)
     : _sched(schedule), _label_store(label_store) {}
 
-search_result search::get_connections(arrival from, arrival to,
-                                      time interval_start, time interval_end,
-                                      bool ontrip) {
+void add_additional_edge(
+    node const* n, edge e,
+    std::unordered_map<node const*, std::vector<edge>>& additional_edges) {
+  auto it = additional_edges.find(n);
+  if (it == end(additional_edges)) {
+    std::tie(it, std::ignore) =
+        additional_edges.emplace(n, std::vector<edge>());
+  }
+  it->second.emplace_back(e);
+}
+
+search_result search::get_connections(
+    arrival from, arrival to, time interval_start, time interval_end,
+    bool ontrip, std::vector<edge> const& query_additional_edges) {
+
   _label_store.reset();
   remove_intersection(from, to);
 
@@ -58,6 +70,10 @@ search_result search::get_connections(arrival from, arrival to,
   for (auto const& arr : from) {
     lb_graph_edges[arr.station].push_back(
         simple_edge(DUMMY_SOURCE_IDX, arr.time_cost));
+  }
+  for (auto const& e : query_additional_edges) {
+    lb_graph_edges[e._to->get_station()->_id].emplace_back(
+        e._from->get_station()->_id, e.get_minimum_cost());
   }
 
   // initialize lower bound graphs and
@@ -87,10 +103,8 @@ search_result search::get_connections(arrival from, arrival to,
 
       // generate labels at all route nodes
       // for all trains departing in the specified interval
-      generate_start_labels(
-          interval_start, interval_end, station, start_labels,
-          dummy_source_station,
-          s.time_cost + _sched.stations[s.station]->transfer_time, lb);
+      generate_start_labels(interval_start, interval_end, station, start_labels,
+                            dummy_source_station, s.time_cost, lb);
     }
   }
 
@@ -98,15 +112,14 @@ search_result search::get_connections(arrival from, arrival to,
   station_node* target = _sched.station_nodes[DUMMY_TARGET_IDX].get();
   for (auto const& arr : to) {
     station_node* arrival_station = _sched.station_nodes[arr.station].get();
+    add_additional_edge(arrival_station,
+                        make_mumo_edge(arrival_station, target, arr.time_cost,
+                                       arr.price, arr.slot),
+                        additional_edges);
+  }
 
-    auto it = additional_edges.find(arrival_station);
-    if (it == end(additional_edges)) {
-      std::tie(it, std::ignore) =
-          additional_edges.emplace(arrival_station, std::vector<edge>());
-    }
-
-    it->second.emplace_back(make_mumo_edge(arrival_station, target,
-                                           arr.time_cost, arr.price, arr.slot));
+  for (auto const& e : query_additional_edges) {
+    add_additional_edge(e._from, e, additional_edges);
   }
 
   pareto_dijkstra<my_label, lower_bounds> pd(

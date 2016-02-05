@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 namespace motis {
 namespace reliability {
@@ -31,13 +31,13 @@ struct start_and_travel_test_distributions : start_and_travel_distributions {
     init_travel_distributions(traveltime_probabilities, first_minute);
   }
 
-  probability_distribution const& get_start_distribution(
+  std::pair<bool, probability_distribution_cref> get_start_distribution(
       std::string const& family) const override {
     (void)family;
-    return start_distribution_;
+    return std::make_pair(true, std::cref(start_distribution_));
   }
 
-  void get_travel_time_distributions(std::string const& family,
+  bool get_travel_time_distributions(std::string const& family,
                                      unsigned int const travel_time,
                                      unsigned int const to_departure_delay,
                                      std::vector<probability_distribution_cref>&
@@ -47,6 +47,7 @@ struct start_and_travel_test_distributions : start_and_travel_distributions {
     for (unsigned int d = 0; d <= to_departure_delay; d++) {
       distributions.push_back(std::cref(travel_distribution_));
     }
+    return true;
   }
 
   probability_distribution start_distribution_;

@@ -15,7 +15,7 @@
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
@@ -77,7 +77,7 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
   auto const element_ice_s_e = detail::to_element(
       2, get_schedule(), STUTTGART.eva, ERLANGEN.eva,
       test_util::minutes_to_motis_time(11 * 60 + 32),
-      test_util::minutes_to_motis_time(12 * 60 + 32), first_route_node._route,
+      test_util::minutes_to_motis_time(12 * 60 + 32),
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_S_E, "");
 
@@ -103,7 +103,7 @@ TEST_F(reliability_connection_to_graph_data2, to_element2) {
   auto const element_ice_k_f_s = detail::to_element(
       3, get_schedule(), FRANKFURT.eva, STUTTGART.eva,
       test_util::minutes_to_motis_time(10 * 60 + 20),
-      test_util::minutes_to_motis_time(11 * 60 + 15), route_node._route,
+      test_util::minutes_to_motis_time(11 * 60 + 15),
       graph_accessor::find_family(get_schedule().categories, "ICE").second,
       ICE_K_F_S, "");
 
@@ -127,9 +127,9 @@ void test_element(connection_element const& expected,
 }
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
-  auto req_msg = flatbuffers_tools::to_routing_request(
+  auto req_msg = flatbuffers::request_builder::to_routing_request(
       STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 27), (motis::time)(11 * 60 + 27),
+      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
       std::make_tuple(28, 9, 2015), false);
   auto msg = test::send(motis_instance_, req_msg);
   ASSERT_TRUE(msg);
@@ -182,12 +182,12 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 }
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
-  auto req_msg = flatbuffers_tools::to_routing_request(
+  auto req_msg = flatbuffers::request_builder::to_routing_request(
       DARMSTADT.name, DARMSTADT.eva, MARBURG.name, MARBURG.eva,
       (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
       std::make_tuple(19, 10, 2015), false);
-
   auto msg = test::send(motis_instance_, req_msg);
+
   ASSERT_TRUE(msg);
   auto const journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
@@ -265,7 +265,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  * with a station-to-station walking at the beginning).
  */
 TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
-  auto req_msg = flatbuffers_tools::to_routing_request(
+  auto req_msg = flatbuffers::request_builder::to_routing_request(
       MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,
       (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
       std::make_tuple(19, 10, 2015), false);

@@ -68,7 +68,7 @@ public:
     target.station = to->index;
 
     return _search.get_connections({start}, {target}, departure_begin,
-                                   departure_begin + interval, true)
+                                   departure_begin + interval, true, {})
         .journeys;
   }
 
