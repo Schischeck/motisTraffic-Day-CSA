@@ -1,9 +1,12 @@
 #include "motis/bootstrap/motis_instance.h"
 
 #include <algorithm>
+#include <exception>
+#include <future>
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/loader.h"
+#include "motis/module/callbacks.h"
 
 #include "modules.h"
 
@@ -55,6 +58,35 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
     } catch (...) {
       LOG(emrg) << "module " << module->name()
                 << "unhandled unknown init error";
+      throw;
+    }
+  }
+
+  for (auto const& module : dispatcher::modules_) {
+    std::promise<void> promise;
+    callback cb = [&promise](msg_ptr, boost::system::error_code ec) {
+      if (ec) {
+        promise.set_exception(
+            std::make_exception_ptr(boost::system::system_error(ec)));
+      } else {
+        promise.set_value();
+      }
+    };
+    module->init_async(cb);
+    thread_pool_.run();
+    thread_pool_.reset();
+
+    auto future = promise.get_future();
+    future.wait();
+    try {
+      future.get();
+    } catch (std::exception const& e) {
+      LOG(emrg) << "module " << module->name()
+                << ": unhandled init_async error: " << e.what();
+      throw;
+    } catch (...) {
+      LOG(emrg) << "module " << module->name()
+                << "unhandled unknown init_async error";
       throw;
     }
   }

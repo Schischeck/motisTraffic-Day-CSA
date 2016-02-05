@@ -39,6 +39,9 @@ struct module : public conf::configuration {
 
   virtual std::vector<MsgContent> subscriptions() const = 0;
   virtual void init(){};
+  virtual void init_async(callback cb) {
+    return cb({}, boost::system::error_code());
+  };
   virtual void on_msg(msg_ptr msg, sid session, callback cb) = 0;
   virtual void on_open(sid /* session */) {}
   virtual void on_close(sid /* session */) {}
