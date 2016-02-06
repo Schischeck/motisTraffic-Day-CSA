@@ -155,7 +155,7 @@ add_subdirectory(base/eval)
 # Tests
 ################################
 configure_file (
-  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
+  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-test-files test/src/*.cc)

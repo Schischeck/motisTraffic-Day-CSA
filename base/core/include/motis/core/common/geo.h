@@ -56,7 +56,8 @@ inline double distance_in_m(spherical_point const& a,
 
 inline double distance_in_m(double a_lat, double a_lng, double b_lat,
                             double b_lng) {
-  return geo_detail::distance_in_m({a_lng, a_lat}, {b_lng, b_lat});
+  return geo_detail::distance_in_m(spherical_point(a_lng, a_lat),
+                                   spherical_point(b_lng, b_lat));
 }
 
 }  // namespace geo_detail

@@ -115,14 +115,18 @@ struct bikesharing_search::impl {
   template <typename F>
   void foreach_terminal_in_walk_dist(double lat, double lng, F func) const {
     spherical_point loc(lng, lat);
-    for (auto it =
-             rtree_.qbegin(bgi::intersects(generate_box(loc, MAX_WALK_DIST)) &&
-                           bgi::satisfies([&loc](value const& v) {
-                             return distance_in_m(v.first, loc) < MAX_WALK_DIST;
-                           }));
-         it != rtree_.qend(); ++it) {
-      int walk_dur = distance_in_m(it->first, loc) / WALK_SPEED;  // TODO osrm
-      func(terminal_ids_[it->second], walk_dur);
+
+    std::vector<value> result_n;
+    rtree_.query(bgi::intersects(generate_box(loc, MAX_WALK_DIST)) &&
+                     bgi::satisfies([&loc](const value& v) {
+                       return distance_in_m(v.first, loc) < MAX_WALK_DIST;
+                     }),
+                 std::back_inserter(result_n));
+
+    for (const auto& result : result_n) {
+      // TODO OSRM
+      int walk_dur = distance_in_m(result.first, loc) / WALK_SPEED;
+      func(terminal_ids_[result.second], walk_dur);
     }
   }
 

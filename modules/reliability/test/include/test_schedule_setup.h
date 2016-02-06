@@ -9,6 +9,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/loader.h"
 
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/context.h"
 
 namespace motis {
@@ -34,6 +35,21 @@ private:
 };
 
 class test_motis_setup : public ::testing::Test {
+public:
+  std::unique_ptr<bootstrap::motis_instance> motis_instance_;
+
+  schedule const& get_schedule() const { return *motis_instance_->schedule_; }
+  reliability& get_reliability_module() {
+    auto it = std::find_if(motis_instance_->modules_.begin(),
+                           motis_instance_->modules_.end(),
+                           [](std::unique_ptr<motis::module::module> const& m) {
+                             return m->name() == "reliability";
+                           });
+    return *((reliability*)it->get());
+  }
+
+  std::unique_ptr<motis::reliability::context> reliability_context_;
+
 protected:
   test_motis_setup(std::string schedule_path, std::string schedule_begin,
                    bool realtime = false)
@@ -55,21 +71,6 @@ protected:
             get_reliability_module().precomputed_distributions(),
             get_reliability_module().s_t_distributions()));
   }
-
-public:
-  std::unique_ptr<bootstrap::motis_instance> motis_instance_;
-
-  schedule const& get_schedule() const { return *motis_instance_->schedule_; }
-  reliability& get_reliability_module() {
-    auto it = std::find_if(motis_instance_->modules_.begin(),
-                           motis_instance_->modules_.end(),
-                           [](std::unique_ptr<motis::module::module> const& m) {
-                             return m->name() == "reliability";
-                           });
-    return *((reliability*)it->get());
-  }
-
-  std::unique_ptr<motis::reliability::context> reliability_context_;
 
 private:
   std::string schedule_path_, schedule_begin_;

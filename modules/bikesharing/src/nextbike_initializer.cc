@@ -180,15 +180,17 @@ void find_close_terminals(ctx_ptr ctx) {
     auto const& t = ctx->terminals_[i];
     spherical_point t_location(t.lng, t.lat);
 
+    std::vector<value> result_n;
+    rtree.query(bgi::intersects(generate_box(t_location, MAX_BIKE_DIST)) &&
+                    bgi::satisfies([&t_location](const value& v) {
+                      return distance_in_m(v.first, t_location) < MAX_BIKE_DIST;
+                    }),
+                std::back_inserter(result_n));
+
     std::vector<close_location> reachable_terminals;
-    for (auto it = rtree.qbegin(
-             bgi::intersects(generate_box(t_location, MAX_BIKE_DIST)) &&
-             bgi::satisfies([&t_location](value const& v) {
-               return distance_in_m(v.first, t_location) < MAX_BIKE_DIST;
-             }));
-         it != rtree.qend(); ++it) {
-      int dist = distance_in_m(it->first, t_location);
-      reachable_terminals.push_back({ctx->terminals_[it->second].uid, dist});
+    for (const auto& result : result_n) {
+      int dist = distance_in_m(result.first, t_location);
+      reachable_terminals.push_back({ctx->terminals_[result.second].uid, dist});
     }
     ctx->reachable_terminals_.push_back(reachable_terminals);
   }

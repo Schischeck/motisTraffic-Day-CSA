@@ -11,12 +11,12 @@ struct station_geo_index::impl {
 public:
   explicit impl(std::vector<station_ptr> const& stations)
       : stations_(stations) {
-        std::vector<value> values;
-        for (size_t i = 0; i < stations.size(); ++i) {
-          values.push_back({{stations[i]->length, stations[i]->width}, i});
-        }
-        rtree_ = quadratic_rtree{values};
-      }
+    std::vector<value> values;
+    for (size_t i = 0; i < stations.size(); ++i) {
+      values.push_back({{stations[i]->length, stations[i]->width}, i});
+    }
+    rtree_ = quadratic_rtree{values};
+  }
 
   std::vector<const station*> stations(double lat, double lng,
                                        double radius) const {

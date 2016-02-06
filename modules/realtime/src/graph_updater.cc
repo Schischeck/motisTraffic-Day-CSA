@@ -89,8 +89,8 @@ void graph_updater::perform_updates(std::vector<delay_info_update>& updates) {
       }
       LOG(info) << "searching all delay_infos for the train...";
       std::vector<delay_info*> dis;
-      for(auto const& di : _rts._delay_info_manager.delay_infos()) {
-        if(di->_schedule_event._train_nr == train_nr) {
+      for (auto const& di : _rts._delay_info_manager.delay_infos()) {
+        if (di->_schedule_event._train_nr == train_nr) {
           dis.push_back(di.get());
         }
       }
@@ -492,6 +492,9 @@ graph_train_info graph_updater::extract_route(const graph_train_info& gti) {
   assert(new_route_start != nullptr);
   add_incoming_edges(new_route_start);
 
+  if (_rts._schedule.route_index_to_first_route_node.size() <= new_route_id) {
+    _rts._schedule.route_index_to_first_route_node.resize(new_route_id + 1);
+  }
   _rts._schedule.route_index_to_first_route_node[new_route_id] =
       new_route_start;
 
@@ -798,6 +801,12 @@ void graph_updater::adjust_train(modified_train* mt,
   }
 
   mt->_current_start_event = current_start_event;
+
+  if (static_cast<int>(_rts._schedule.route_index_to_first_route_node.size()) <=
+      mt->_new_route_id) {
+    _rts._schedule.route_index_to_first_route_node.resize(mt->_new_route_id +
+                                                          1);
+  }
   _rts._schedule.route_index_to_first_route_node[mt->_new_route_id] =
       start_node;
   if (start_node != nullptr) {
