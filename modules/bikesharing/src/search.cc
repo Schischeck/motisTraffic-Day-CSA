@@ -18,7 +18,6 @@ constexpr unsigned long kSecondsPerHour = 3600;
 
 using availability_bucket = BikesharingAvailability;
 struct bikesharing_search::impl {
-
   struct bike_edge {
     int walk_duration;
     int bike_duration;
@@ -191,6 +190,7 @@ struct bikesharing_search::impl {
 
 bikesharing_search::bikesharing_search(database const& db)
     : impl_(new impl(db)) {}
+
 bikesharing_search::~bikesharing_search() = default;
 
 msg_ptr bikesharing_search::find_connections(

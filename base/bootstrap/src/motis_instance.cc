@@ -64,58 +64,6 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
-
-  std::atomic<bool> should_join{false};
-  std::thread ios_init_thread{[this, &should_join] {
-    while (!should_join) {
-      ios_.run();
-      ios_.reset();
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }};
-  std::thread worker_init_thread{[this, &should_join] {
-    while (!should_join) {
-      thread_pool_.run();
-      thread_pool_.reset();
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }};
-
-  for (auto const& module : dispatcher::modules_) {
-    std::promise<void> promise;
-    callback cb = [&promise](msg_ptr, boost::system::error_code ec) {
-      if (ec) {
-        promise.set_exception(
-            std::make_exception_ptr(boost::system::system_error(ec)));
-      } else {
-        promise.set_value();
-      }
-    };
-    module->init_async(cb);
-
-    try {
-      promise.get_future().get();
-    } catch (std::exception const& e) {
-      LOG(emrg) << "module " << module->name()
-                << ": unhandled init_async error: " << e.what();
-      throw;
-    } catch (...) {
-      LOG(emrg) << "module " << module->name()
-                << "unhandled unknown init_async error";
-      throw;
-    }
-  }
-
-  should_join = true;
-  ios_.stop();
-  thread_pool_.stop();
-  ios_init_thread.join();
-  worker_init_thread.join();
-
-  ios_.reset();
-  thread_pool_.reset();
-
-  LOG(info) << "init modules finished";
 }
 
 void motis_instance::run() { thread_pool_.run(); }

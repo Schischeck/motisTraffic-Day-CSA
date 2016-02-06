@@ -27,7 +27,7 @@ char const* xml_fixture = R"((
           name="Gottschedstraße/Bosestraße " spot="1" number="4013" bikes="3"
           terminal_type="unknown" bike_numbers="10042,10657,10512" />
       <place uid="128" lat="51.3371237726003" lng="12.37330377101898"
-          name="Burgplatz/Freifläche/Zaun" spot="1" number="4011" bikes="5+" 
+          name="Burgplatz/Freifläche/Zaun" spot="1" number="4011" bikes="5+"
           terminal_type="unknown" bike_numbers="10520,10452,10114,10349,10297" />
     </city>
   </country>
@@ -46,7 +46,7 @@ char const* xml_fixture = R"((
 </markers>
 ))";
 
-TEST(bikesharing_nextbike_initializer, parser_test) {
+TEST(bikesharing_nextbike_initializer, DISABLED_parser_test) {
   auto result = nextbike_parse_xml(parser::buffer{xml_fixture});
 
   ASSERT_EQ(2, result.size());
@@ -66,7 +66,7 @@ TEST(bikesharing_nextbike_initializer, parser_test) {
   EXPECT_EQ(5, r1.available_bikes);
 }
 
-TEST(bikesharing_nextbike_initializer, filename_to_timestamp) {
+TEST(bikesharing_nextbike_initializer, DISABLED_filename_to_timestamp) {
   std::string filename{"nextbike-1432133475.xml"};
   EXPECT_EQ(1432133475, nextbike_filename_to_timestamp(filename));
 }

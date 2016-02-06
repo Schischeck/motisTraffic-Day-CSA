@@ -64,8 +64,8 @@ void bikesharing::init_async(callback cb) {
 }
 
 void bikesharing::on_msg(msg_ptr msg, sid, callback cb) {
-  if (search_.get() == nullptr) {
-    cb({}, error::not_initialized);
+  if (!search_ || !database_) {
+    return cb({}, error::not_initialized);
   }
 
   auto content_type = msg->content_type();
