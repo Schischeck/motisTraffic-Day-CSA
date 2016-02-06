@@ -70,8 +70,8 @@ std::pair<journey, journey> split_journey(journey const& j,
   j2.transfers = get_transfers(j2);
   j1.price = 0;
   j2.price = 0;
-  j1.night_penalty = 0;
-  j2.night_penalty = 0;
+  // j1.night_penalty = 0; // TODO
+  // j2.night_penalty = 0; // TODO
 
   assert(j1.transports.size() >= 1);
   assert(j1.stops.size() >= 2);

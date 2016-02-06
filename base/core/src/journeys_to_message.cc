@@ -83,7 +83,7 @@ Offset<routing::Connection> to_connection(flatbuffers::FlatBufferBuilder& b,
   return CreateConnection(b, b.CreateVector(convert_stops(b, j.stops)),
                           b.CreateVector(convert_moves(b, j.transports)),
                           b.CreateVector(convert_attributes(b, j.attributes)),
-                          j.night_penalty);
+                          0);
 }
 
 msg_ptr journeys_to_message(std::vector<journey> const& journeys,

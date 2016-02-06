@@ -42,8 +42,7 @@ void print_journey(journey const& j, time_t const sched_begin,
   std::for_each(j.transports.begin(), j.transports.end(),
                 [&](journey::transport const& t) { db_cost += t.mumo_price; });
 
-  os << "Journey (" << j.duration << ", " << j.transfers << ", " << db_cost
-     << ", " << j.night_penalty << ")\n";
+  os << "Journey (" << j.duration << ", " << j.transfers << ", " << db_cost << ")\n";
   for (auto const& t : j.transports) {
     auto const& from = j.stops[t.from];
     auto const& to = j.stops[t.to];

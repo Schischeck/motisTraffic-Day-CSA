@@ -372,10 +372,6 @@ light_connection graph_builder::section_to_connection(
 }
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
-  if (adjust_footpaths_) {
-    printf("adjust footpaths\n");
-  }
-
   for (auto const& footpath : *footpaths) {
     auto duration = footpath->duration();
     auto from_node = stations_[footpath->from()];

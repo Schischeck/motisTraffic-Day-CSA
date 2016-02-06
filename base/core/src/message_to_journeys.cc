@@ -157,7 +157,6 @@ std::vector<journey> message_to_journeys(
 
     journey.duration = get_duration(journey);
     journey.transfers = get_transfers(journey);
-    journey.night_penalty = conn->night_penalty();
   }
   return journeys;
 }

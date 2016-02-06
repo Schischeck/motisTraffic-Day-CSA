@@ -51,7 +51,7 @@ struct journey {
   uint16_t get_duration() const;
   uint16_t get_transfers() const;
 
-  unsigned duration, transfers, price, night_penalty;
+  unsigned duration, transfers, price;
   std::vector<stop> stops;
   std::vector<transport> transports;
   std::vector<attribute> attributes;
