@@ -15,8 +15,8 @@ namespace bikesharing {
 constexpr auto kSummaryKey = "__summary";
 
 struct database::database_impl {
-
   database_impl() = default;
+
   database_impl(std::string const& path) {
     DB* db;
     Options options;
@@ -29,6 +29,7 @@ struct database::database_impl {
 
     db_.reset(db);
   }
+
   virtual ~database_impl() = default;
 
   virtual persistable_terminal get(std::string const& id) const {

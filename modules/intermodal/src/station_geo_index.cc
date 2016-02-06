@@ -13,7 +13,8 @@ public:
       : stations_(stations) {
     std::vector<value> values;
     for (size_t i = 0; i < stations.size(); ++i) {
-      values.push_back({{stations[i]->length, stations[i]->width}, i});
+      values.push_back(std::make_pair(
+          spherical_point(stations[i]->length, stations[i]->width), i));
     }
     rtree_ = quadratic_rtree{values};
   }
