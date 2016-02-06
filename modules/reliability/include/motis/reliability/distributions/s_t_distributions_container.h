@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "motis/reliability/distributions/db_distributions_loader.h"
 
