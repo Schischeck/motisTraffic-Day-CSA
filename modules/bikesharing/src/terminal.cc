@@ -1,5 +1,7 @@
 #include "motis/bikesharing/terminal.h"
 
+#include <numeric>
+
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/date_time/local_time_adjustor.hpp"
 #include "boost/date_time/local_timezone_defs.hpp"
