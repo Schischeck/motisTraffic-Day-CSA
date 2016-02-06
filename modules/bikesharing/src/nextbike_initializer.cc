@@ -172,7 +172,8 @@ void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec) {
 void find_close_terminals(ctx_ptr ctx) {
   std::vector<value> values;
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
-    values.push_back({{ctx->terminals_[i].lng, ctx->terminals_[i].lat}, i});
+    values.push_back(std::make_pair(
+        spherical_point(ctx->terminals_[i].lng, ctx->terminals_[i].lat), i));
   }
   bgi::rtree<value, bgi::quadratic<16>> rtree{values};
 

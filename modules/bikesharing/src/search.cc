@@ -41,7 +41,8 @@ struct bikesharing_search::impl {
     std::vector<value> rtree_values;
     for (size_t i = 0; i < locations->size(); ++i) {
       auto location = locations->Get(i);
-      rtree_values.push_back({{location->lat(), location->lng()}, i});
+      rtree_values.push_back(
+          std::make_pair(spherical_point(location->lat(), location->lng()), i));
       terminal_ids_.push_back(location->id()->str());
     }
     rtree_ = quadratic_rtree{rtree_values};
