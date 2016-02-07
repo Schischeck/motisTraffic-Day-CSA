@@ -119,59 +119,56 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
 
   Interval interval(to_unix_time(services.first_day),
                     to_unix_time(services.last_day));
+  auto output_services = fbb.CreateVector(transform_to_vec(
+      begin(trips), end(trips),
+      [&](std::pair<std::string const, std::unique_ptr<trip>> const& entry) {
+        auto const& t = entry.second;
+        auto const stop_seq = t->stops();
+        return CreateService(
+            fbb,
+            get_or_create(fbs_routes, stop_seq,
+                          [&]() {
+                            return CreateRoute(
+                                fbb,  //
+                                fbb.CreateVector(transform_to_vec(
+                                    begin(stop_seq), end(stop_seq),
+                                    [&](trip::stop_identity const& s) {
+                                      return get_or_create_stop(std::get<0>(s));
+                                    })),
+                                fbb.CreateVector(transform_to_vec(
+                                    begin(stop_seq), end(stop_seq),
+                                    [](trip::stop_identity const& s) {
+                                      return static_cast<uint8_t>(
+                                          std::get<1>(s) ? 1u : 0u);
+                                    })),
+                                fbb.CreateVector(transform_to_vec(
+                                    begin(stop_seq), end(stop_seq),
+                                    [](trip::stop_identity const& s) {
+                                      return static_cast<uint8_t>(
+                                          std::get<2>(s) ? 1u : 0u);
+                                    })));
+                          }),
+            fbb.CreateString(serialize_bitset(*t->service_)),
+            fbb.CreateVector(repeat_n(
+                CreateSection(
+                    fbb, get_or_create_category(t->route_->type_),
+                    get_or_create_provider(t->route_->agency_), 0,
+                    get_or_create_str(t->route_->short_name_),
+                    fbb.CreateVector(std::vector<Offset<Attribute>>()),
+                    CreateDirection(fbb, 0, get_or_create_str(t->headsign_))),
+                stop_seq.size() - 1)),
+            0,
+            fbb.CreateVector(std::accumulate(
+                begin(t->stop_times_), end(t->stop_times_), std::vector<int>(),
+                [](std::vector<int>& times,
+                   flat_map<stop_time>::entry_t const& st) {
+                  times.push_back(st.second.arr_.time_);
+                  times.push_back(st.second.dep_.time_);
+                  return times;
+                })));
+      }));
   fbb.Finish(CreateSchedule(
-      fbb, fbb.CreateVector(transform_to_vec(
-               begin(trips), end(trips),
-               [&](std::pair<std::string const, std::unique_ptr<trip>> const&
-                       entry) {
-                 auto const& t = entry.second;
-                 auto const stop_seq = t->stops();
-                 return CreateService(
-                     fbb,
-                     get_or_create(fbs_routes, stop_seq,
-                                   [&]() {
-                                     return CreateRoute(
-                                         fbb,  //
-                                         fbb.CreateVector(transform_to_vec(
-                                             begin(stop_seq), end(stop_seq),
-                                             [&](trip::stop_identity const& s) {
-                                               return get_or_create_stop(
-                                                   std::get<0>(s));
-                                             })),
-                                         fbb.CreateVector(transform_to_vec(
-                                             begin(stop_seq), end(stop_seq),
-                                             [](trip::stop_identity const& s) {
-                                               return static_cast<uint8_t>(
-                                                   std::get<1>(s) ? 1u : 0u);
-                                             })),
-                                         fbb.CreateVector(transform_to_vec(
-                                             begin(stop_seq), end(stop_seq),
-                                             [](trip::stop_identity const& s) {
-                                               return static_cast<uint8_t>(
-                                                   std::get<2>(s) ? 1u : 0u);
-                                             })));
-                                   }),
-                     fbb.CreateString(serialize_bitset(*t->service_)),
-                     fbb.CreateVector(repeat_n(
-                         CreateSection(
-                             fbb, get_or_create_category(t->route_->type_),
-                             get_or_create_provider(t->route_->agency_), 0,
-                             get_or_create_str(t->route_->short_name_),
-                             fbb.CreateVector(std::vector<Offset<Attribute>>()),
-                             CreateDirection(fbb, 0,
-                                             get_or_create_str(t->headsign_))),
-                         stop_seq.size() - 1)),
-                     0, fbb.CreateVector(std::accumulate(
-                            begin(t->stop_times_), end(t->stop_times_),
-                            std::vector<int>(),
-                            [](std::vector<int>& times,
-                               flat_map<stop_time>::entry_t const& st) {
-                              times.push_back(st.second.arr_.time_);
-                              times.push_back(st.second.dep_.time_);
-                              return times;
-                            })));
-               })),
-      fbb.CreateVector(values(fbs_stations)),
+      fbb, output_services, fbb.CreateVector(values(fbs_stations)),
       fbb.CreateVector(values(fbs_routes)), &interval,
       fbb.CreateVector(std::accumulate(
           begin(transfers), end(transfers), std::vector<Offset<Footpath>>(),
