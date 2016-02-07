@@ -66,7 +66,8 @@ var actionCreators = {
         path: [
           { name: s.from.name, eva_nr: s.from.eva || '' },
           { name: s.to.name, eva_nr: s.to.eva || '' }
-        ]
+        ],
+        additional_edges: []
       }
     })
     .then(response => {
