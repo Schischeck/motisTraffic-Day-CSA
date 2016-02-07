@@ -34,7 +34,7 @@ std::map<unsigned, std::string> route::s_types_ = {
   { 106, "Regional Rail" },
   { 107, "Tourist Railway" },
   { 108, "Rail Shuttle (Within Complex)" },
-  { 109, "" },
+  { 109, "S" },
   { 110, "Replacement Rail" },
   { 111, "Special Rail" },
   { 112, "Lorry Transport Rail" },
