@@ -47,18 +47,16 @@ void bikesharing::print(std::ostream& out) const {
       << "  " << NEXTBIKE_PATH << ": " << nextbike_path_;
 }
 
-void bikesharing::init_async(callback cb) {
+void bikesharing::init_async() {
   database_ = make_unique<database>(database_path_);
 
   auto dispatch_fun = [this](msg_ptr msg, callback cb) {
-    return dispatch(msg, 0ul, cb);
+    return dispatch(msg, 0, cb);
   };
-  auto finished = [this, cb](msg_ptr msg,
-                             boost::system::error_code ec) mutable {
+  auto finished = [this](msg_ptr, boost::system::error_code ec) mutable {
     if (!ec) {
       search_ = make_unique<bikesharing_search>(*database_);
     }
-    return cb(msg, ec);
   };
   initialize_nextbike(nextbike_path_, *database_, dispatch_fun, finished);
 }

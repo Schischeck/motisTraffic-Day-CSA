@@ -5,7 +5,9 @@
 namespace motis {
 namespace module {
 
-dispatcher::dispatcher(boost::asio::io_service& ios) : ios_(ios) {}
+dispatcher::dispatcher(boost::asio::io_service* ios) : ios_(ios) {}
+
+void dispatcher::set_io_service(boost::asio::io_service* ios) { ios_ = ios; }
 
 void dispatcher::set_send_fun(send_fun send) { send_fun_ = send; }
 
@@ -30,7 +32,7 @@ void dispatcher::on_msg(msg_ptr msg, sid session, callback cb, bool locked) {
     namespace p = std::placeholders;
     auto wrapped_cb = std::bind(&dispatcher::on_msg_finish, this, processor, cb,
                                 p::_1, p::_2);
-    return processor->on_msg_(msg, session, ios_.wrap(wrapped_cb), locked);
+    return processor->on_msg_(msg, session, ios_->wrap(wrapped_cb), locked);
   }
 }
 

@@ -19,7 +19,7 @@ struct bikesharing : public motis::module::module {
   virtual bool empty_config() const override { return true; }
 
   virtual std::string name() const override { return "bikesharing"; }
-  virtual void init_async(motis::module::callback) override;
+  virtual void init_async() override;
 
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_BikesharingRequest};

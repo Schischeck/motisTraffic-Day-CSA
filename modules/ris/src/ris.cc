@@ -115,7 +115,7 @@ std::time_t days_ago(long days) {
   return now - kTwentyFourHours * days;
 }
 
-void ris::init_async(callback cb) {
+void ris::init_async() {
   db_init();
   read_files_ = db_get_files();
 
@@ -127,12 +127,10 @@ void ris::init_async(callback cb) {
     auto from = std::max(sync.sched().schedule_begin_, days_ago(1));
     auto to = sync.sched().schedule_end_;
 
-    dispatch(pack(db_get_messages(from, to)), 0, cb);
+    dispatch(pack(db_get_messages(from, to)));
 
     timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
     schedule_update(error_code());
-  } else {
-    return cb({}, error::ok);
   }
 }
 
