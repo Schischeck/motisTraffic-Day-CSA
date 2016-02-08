@@ -190,10 +190,10 @@ TEST_F(reliability_calc_departure_distribution2,
 
   ASSERT_EQ(0, departure_distribution.first_minute());
   ASSERT_EQ(1, departure_distribution.last_minute());
-  ASSERT_DOUBLE_EQ(.9 * .7,
-                   departure_distribution.probability_equal(0));  // 10:20
-  ASSERT_DOUBLE_EQ(.1 * .9,
-                   departure_distribution.probability_equal(1));  // 10:21
+  ASSERT_TRUE(equal(.9 * .7,
+                    departure_distribution.probability_equal(0)));  // 10:20
+  ASSERT_TRUE(equal(.1 * .9,
+                    departure_distribution.probability_equal(1)));  // 10:21
 }
 
 // first route node, waiting for ic-feeder and other feeder

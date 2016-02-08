@@ -117,15 +117,12 @@ public:
 };
 
 TEST_F(reliability_realtime_cg, reliable_routing_request) {
-  {
-    auto req_msg = flatbuffers::request_builder::to_reliable_routing_request(
-        DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-        (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-        std::make_tuple(19, 10, 2015), 1);
-
-    auto msg = test::send(motis_instance_, req_msg);
-    test_scheduled_cg(msg);
-  }
+  test_scheduled_cg(test::send(
+      motis_instance_,
+      flatbuffers::request_builder::to_reliable_routing_request(
+          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+          (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+          std::make_tuple(19, 10, 2015), 1)));
 
   test::send(motis_instance_,
              realtime::get_delay_message(
@@ -144,16 +141,13 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
                  LANGEN.eva, RE_L_F, 1445238900 /* 2015-10-19 07:15:00 GMT */,
                  1445238960 /* 2015-10-19 07:16:00 GMT */,
                  ris::EventType_Departure, ris::DelayType_Forecast));
-  {
-    auto req_msg = flatbuffers::request_builder::to_reliable_routing_request(
-        DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-        (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-        std::make_tuple(19, 10, 2015), 1);
 
-    auto msg = test::send(motis_instance_, req_msg);
-    std::cout << msg->to_json() << std::endl;
-    test_realtime_cg(msg);
-  }
+  test_realtime_cg(test::send(
+      motis_instance_,
+      flatbuffers::request_builder::to_reliable_routing_request(
+          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+          (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
+          std::make_tuple(19, 10, 2015), 1)));
 }
 
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
@@ -196,7 +190,6 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
   auto res = msg->content<ReliableRoutingResponse const*>();
   ASSERT_EQ(1, res->connection_graphs()->size());
   auto cg = *res->connection_graphs()->begin();
-  std::cout << msg->to_json() << std::endl;
 
   ASSERT_EQ(1445238540, cg->arrival_distribution()->begin_time());
   ASSERT_EQ(4, cg->arrival_distribution()->distribution()->size());

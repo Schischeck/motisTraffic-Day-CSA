@@ -159,13 +159,13 @@ TEST_F(reliability_test_rating, rating_request) {
   ASSERT_NE(response->ratings(), nullptr);
   ASSERT_EQ(response->ratings()->size(), 1);
   auto const& rating = response->ratings()->begin();
-  ASSERT_DOUBLE_EQ(rating->connection_rating(), 1.0);
+  ASSERT_TRUE(equal(rating->connection_rating(), 1.0));
   auto const& rating_elements = *rating->rating_elements();
   ASSERT_EQ(rating_elements.size(), 2);
-  ASSERT_DOUBLE_EQ(rating_elements[0]->dep_distribution()->sum(), 1.0);
-  ASSERT_DOUBLE_EQ(rating_elements[0]->arr_distribution()->sum(), 1.0);
-  ASSERT_DOUBLE_EQ(rating_elements[1]->dep_distribution()->sum(), 1.0);
-  ASSERT_DOUBLE_EQ(rating_elements[1]->arr_distribution()->sum(), 1.0);
+  ASSERT_TRUE(equal(rating_elements[0]->dep_distribution()->sum(), 1.0));
+  ASSERT_TRUE(equal(rating_elements[0]->arr_distribution()->sum(), 1.0));
+  ASSERT_TRUE(equal(rating_elements[1]->dep_distribution()->sum(), 1.0));
+  ASSERT_TRUE(equal(rating_elements[1]->arr_distribution()->sum(), 1.0));
   ASSERT_NE((*rating->rating_elements())[0]->range(), nullptr);
   ASSERT_NE((*rating->rating_elements())[1]->range(), nullptr);
 

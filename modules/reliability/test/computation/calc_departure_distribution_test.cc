@@ -371,8 +371,9 @@ TEST_F(reliability_calc_departure_distribution,
       equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
             1.0));
 
-  ASSERT_DOUBLE_EQ(0.8, departure_independent_from_feeders(
-                            data.feeders_, data.scheduled_departure_time_ + 1));
+  ASSERT_TRUE(
+      equal(0.8, departure_independent_from_feeders(
+                     data.feeders_, data.scheduled_departure_time_ + 1)));
 
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
