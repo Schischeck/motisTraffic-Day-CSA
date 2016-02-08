@@ -13,10 +13,8 @@ target_link_libraries(motis-reliability
   motis-core
 )
 
-set(MOTIS_CXX_FLAGS_EVAL "${MOTIS_CXX_FLAGS} -DUSE_DB_DISTRIBUTINS")
-
 add_executable(motis-reliability-eval EXCLUDE_FROM_ALL eval/main.cc ${motis-reliability-files})
-set_target_properties(motis-reliability-eval PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS_EVAL})
+set_target_properties(motis-reliability-eval PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-reliability-eval 
   ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_SYSTEM_LIBRARY}
