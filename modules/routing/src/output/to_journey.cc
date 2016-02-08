@@ -83,6 +83,13 @@ journey::transport generate_journey_transport(
         }
         break;
 
+      case category::LINE:
+        if (!line_identifier.empty()) {
+          name = line_identifier;
+          break;
+        }
+      // fall-through
+
       case category::CATEGORY_AND_LINE:
         name = cat_name + " " + line_identifier;
         break;

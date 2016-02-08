@@ -13,7 +13,8 @@ struct category {
     NOTHING,
     PROVIDER_AND_TRAIN_NUM,
     PROVIDER,
-    CATEGORY_AND_LINE
+    CATEGORY_AND_LINE,
+    LINE
   };
 
   category(std::string name, uint8_t output_rule)
