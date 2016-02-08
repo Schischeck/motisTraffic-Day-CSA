@@ -65,7 +65,7 @@ struct context {
   };
   std::map<journey_cache_key, journey> journey_cache;
 
-  module::locked_schedule synced_sched_;
+  synced_schedule<RO> synced_sched_;
   motis::reliability::context reliability_context_;
 };
 

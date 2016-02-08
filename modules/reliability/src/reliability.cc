@@ -93,7 +93,7 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
 
 void reliability::init() {
   auto lock = synced_sched();
-  schedule& sched = lock.sched();
+  auto& sched = lock.sched();
   precomputed_distributions_ =
       std::unique_ptr<distributions_container::container>(
           new distributions_container::container);
@@ -173,7 +173,7 @@ void reliability::handle_realtime_update(
             << " delay infos";
 
   auto lock = synced_sched();
-  schedule& sched = lock.sched();
+  auto& sched = lock.sched();
   realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
                                              *precomputed_distributions_);
   return cb({}, error::ok);
@@ -186,7 +186,7 @@ void reliability::handle_routing_response(msg_ptr msg,
     return cb(nullptr, e);
   }
   auto lock = synced_sched();
-  schedule& schedule = lock.sched();
+  auto& schedule = lock.sched();
   auto res = msg->content<routing::RoutingResponse const*>();
   std::vector<rating::connection_rating> ratings(res->connections()->size());
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
@@ -227,7 +227,7 @@ void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
   auto res = msg->content<routing::RoutingResponse const*>();
   auto const journeys = message_to_journeys(res);
   auto lock = synced_sched();
-  schedule& sched = lock.sched();
+  auto& sched = lock.sched();
   std::cout << "\n\n\nJourneys found:\n\n";
   for (auto const& j : journeys) {
     print_journey(j, sched.schedule_begin_, std::cout);

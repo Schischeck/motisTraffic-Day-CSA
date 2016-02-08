@@ -22,8 +22,7 @@ namespace bootstrap {
 
 motis_instance::motis_instance()
     : dispatcher(&thread_pool_),
-      dispatch_fun_(
-          std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3, p::_4)),
+      dispatch_fun_(std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3)),
       modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {
@@ -70,6 +69,7 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
   }
 
   ios_->run();
+  ios_->reset();
 }
 
 void motis_instance::run() { thread_pool_.run(); }

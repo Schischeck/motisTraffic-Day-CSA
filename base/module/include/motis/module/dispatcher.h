@@ -16,7 +16,6 @@ struct dispatcher : public receiver {
     msg_ptr msg;
     sid session;
     callback cb;
-    bool locked;
   };
 
   dispatcher(boost::asio::io_service* ios);
@@ -31,7 +30,7 @@ struct dispatcher : public receiver {
   void set_send_fun(send_fun);
   void send(msg_ptr msg, sid session);
 
-  void on_msg(msg_ptr msg, sid session, callback cb, bool locked) override;
+  void on_msg(msg_ptr msg, sid session, callback cb) override;
   void on_open(sid session) override;
   void on_close(sid session) override;
 

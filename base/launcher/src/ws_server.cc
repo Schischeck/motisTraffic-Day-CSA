@@ -152,8 +152,7 @@ struct ws_server::ws_server_impl {
             } else {
               send_success(session, req_msg->id());
             }
-          },
-          false);
+          });
     } catch (boost::system::system_error const& e) {
       send_error(e.code(), session, req_msg->id());
     } catch (...) {

@@ -23,7 +23,7 @@ struct ris : public motis::module::module {
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 
-  void init_async() override;
+  virtual void init_async() override;
   std::string name() const override { return "ris"; }
   std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RISForwardTimeRequest, MsgContent_HTTPRequest};

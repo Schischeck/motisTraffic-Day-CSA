@@ -17,13 +17,13 @@ void dispatcher::send(msg_ptr msg, sid session) {
   }
 }
 
-void dispatcher::on_msg(msg_ptr msg, sid session, callback cb, bool locked) {
+void dispatcher::on_msg(msg_ptr msg, sid session, callback cb) {
   auto module_it = subscriptions_.find(msg->content_type());
   if (module_it == end(subscriptions_)) {
     return cb({}, error::no_module_capable_of_handling);
   }
   if (module_it->second.empty()) {
-    held_back_msgs_.push_back({msg, session, cb, locked});
+    held_back_msgs_.push_back({msg, session, cb});
     return;
   } else {
     auto processor = module_it->second.back();
@@ -32,7 +32,7 @@ void dispatcher::on_msg(msg_ptr msg, sid session, callback cb, bool locked) {
     namespace p = std::placeholders;
     auto wrapped_cb = std::bind(&dispatcher::on_msg_finish, this, processor, cb,
                                 p::_1, p::_2);
-    return processor->on_msg_(msg, session, ios_->wrap(wrapped_cb), locked);
+    return processor->on_msg_(msg, session, ios_->wrap(wrapped_cb));
   }
 }
 
@@ -77,7 +77,7 @@ void dispatcher::reschedule_held_back_msgs() {
   auto held_back_msgs_copy = held_back_msgs_;
   held_back_msgs_.clear();
   for (auto const& m : held_back_msgs_copy) {
-    on_msg(m.msg, m.session, m.cb, m.locked);
+    on_msg(m.msg, m.session, m.cb);
   }
 }
 

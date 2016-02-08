@@ -54,9 +54,7 @@ struct reliability : public motis::module::module {
   void send_message(motis::module::msg_ptr msg, motis::module::sid session,
                     motis::module::callback cb);
 
-  motis::module::locked_schedule synced_sched() {
-    return module::synced_sched<RO>();
-  }
+  synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
   bool read_distributions_;
   std::vector<std::string> distributions_folders_;
