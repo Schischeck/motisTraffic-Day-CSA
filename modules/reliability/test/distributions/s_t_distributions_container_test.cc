@@ -26,7 +26,7 @@ TEST(s_t_distributions_container, start_distributions) {
     auto const& pd = start_dist.second.get();
     ASSERT_EQ(0, pd.first_minute());
     ASSERT_EQ(0, pd.last_minute());
-    ASSERT_DOUBLE_EQ(1.0, pd.probability_equal(0));
+    ASSERT_TRUE(equal(1.0, pd.probability_equal(0)));
   }
   {
     auto const start_dist = distributions.get_start_distribution("bus");
@@ -34,8 +34,8 @@ TEST(s_t_distributions_container, start_distributions) {
     auto const& pd = start_dist.second.get();
     ASSERT_EQ(0, pd.first_minute());
     ASSERT_EQ(1, pd.last_minute());
-    ASSERT_DOUBLE_EQ(0.62, pd.probability_equal(0));
-    ASSERT_DOUBLE_EQ(0.38, pd.probability_equal(1));
+    ASSERT_TRUE(equal(0.62, pd.probability_equal(0)));
+    ASSERT_TRUE(equal(0.38, pd.probability_equal(1)));
   }
   {
     auto const start_dist = distributions.get_start_distribution("RB");
@@ -69,9 +69,9 @@ TEST(s_t_distributions_container, travel_time_distributions) {
     for (auto const& pd : tt_dists) {
       ASSERT_EQ(0, pd.get().first_minute());
       ASSERT_EQ(2, pd.get().last_minute());
-      ASSERT_DOUBLE_EQ(0.5, pd.get().probability_equal(0));
-      ASSERT_DOUBLE_EQ(0.4, pd.get().probability_equal(1));
-      ASSERT_DOUBLE_EQ(0.1, pd.get().probability_equal(2));
+      ASSERT_TRUE(equal(0.5, pd.get().probability_equal(0)));
+      ASSERT_TRUE(equal(0.4, pd.get().probability_equal(1)));
+      ASSERT_TRUE(equal(0.1, pd.get().probability_equal(2)));
     }
   }
   {
@@ -84,6 +84,6 @@ TEST(s_t_distributions_container, travel_time_distributions) {
     auto const& pd = tt_dists[7].get();
     ASSERT_EQ(-3, pd.first_minute());
     ASSERT_EQ(-3, pd.last_minute());
-    ASSERT_DOUBLE_EQ(1.0, pd.probability_equal(-3));
+    ASSERT_TRUE(equal(1.0, pd.probability_equal(-3)));
   }
 }

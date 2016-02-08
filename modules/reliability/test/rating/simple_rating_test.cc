@@ -79,7 +79,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
   ASSERT_TRUE(equal(rating.ratings_elements_[1].ratings_[0].second, 0.995));
   ASSERT_TRUE(rating.ratings_elements_[1].ratings_[1].first ==
               rating_type::Interchange);
-  ASSERT_DOUBLE_EQ(1.0, rating.ratings_elements_[1].ratings_[1].second);
+  ASSERT_TRUE(equal(1.0, rating.ratings_elements_[1].ratings_[1].second));
 
   ASSERT_TRUE(equal(rating.connection_rating_, 0.995 * 0.995));
 }

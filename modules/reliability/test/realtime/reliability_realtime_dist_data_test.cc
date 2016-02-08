@@ -54,8 +54,8 @@ public:
     ASSERT_TRUE(equal(start_distribution.sum(), 1.0));
     ASSERT_EQ(0, start_distribution.first_minute());
     ASSERT_EQ(1, start_distribution.last_minute());
-    ASSERT_DOUBLE_EQ(0.8, start_distribution.probability_equal(0));
-    ASSERT_DOUBLE_EQ(0.2, start_distribution.probability_equal(1));
+    ASSERT_TRUE(equal(0.8, start_distribution.probability_equal(0)));
+    ASSERT_TRUE(equal(0.2, start_distribution.probability_equal(1)));
 
     ASSERT_EQ(is_message, data.is_message_.received_);
     if (is_message) {
@@ -67,7 +67,7 @@ public:
           data.is_message_.current_time_ - data.scheduled_departure_time_;
       ASSERT_EQ(delay, pd.first_minute());
       ASSERT_EQ(delay, pd.last_minute());
-      ASSERT_DOUBLE_EQ(1.0, pd.probability_equal(delay));
+      ASSERT_TRUE(equal(1.0, pd.probability_equal(delay)));
     }
   }
 
@@ -117,7 +117,7 @@ public:
           data.is_message_.current_time_ - data.scheduled_arrival_time_;
       ASSERT_EQ(delay, pd.first_minute());
       ASSERT_EQ(delay, pd.last_minute());
-      ASSERT_DOUBLE_EQ(1.0, pd.probability_equal(delay));
+      ASSERT_TRUE(equal(1.0, pd.probability_equal(delay)));
     }
   }
 
@@ -171,7 +171,7 @@ public:
           data.is_message_.current_time_ - data.scheduled_departure_time_;
       ASSERT_EQ(delay, pd.first_minute());
       ASSERT_EQ(delay, pd.last_minute());
-      ASSERT_DOUBLE_EQ(1.0, pd.probability_equal(delay));
+      ASSERT_TRUE(equal(1.0, pd.probability_equal(delay)));
     }
   }
 };
