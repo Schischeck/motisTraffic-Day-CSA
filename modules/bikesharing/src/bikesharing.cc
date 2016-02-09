@@ -56,6 +56,8 @@ void bikesharing::init_async() {
   auto finished = [this](msg_ptr, boost::system::error_code ec) mutable {
     if (!ec) {
       search_ = make_unique<bikesharing_search>(*database_);
+    } else {
+      throw boost::system::system_error(ec);
     }
   };
   initialize_nextbike(nextbike_path_, *database_, dispatch_fun, finished);
