@@ -137,7 +137,7 @@ module::msg_ptr to_routing_request(std::string const& from_name,
                                    time_t interval_begin, time_t interval_end,
                                    bool const ontrip) {
   return detail::request_builder(ontrip ? routing::Type::Type_OnTrip
-                                : routing::Type::Type_PreTrip)
+                                        : routing::Type::Type_PreTrip)
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(interval_begin, interval_end)
@@ -150,7 +150,7 @@ module::msg_ptr to_routing_request(
     motis::time interval_begin, motis::time interval_end,
     std::tuple<int, int, int> ddmmyyyy, bool const ontrip) {
   return detail::request_builder(ontrip ? routing::Type::Type_OnTrip
-                                : routing::Type::Type_PreTrip)
+                                        : routing::Type::Type_PreTrip)
       .add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(ddmmyyyy, interval_begin, interval_end)
@@ -276,6 +276,21 @@ module::msg_ptr to_routing_late_connections_message(
   }
 
   return builder.build_routing_request();
+}
+
+module::msg_ptr to_bikesharing_request(double const departure_lat,
+                                       double const departure_lng,
+                                       double const arrival_lat,
+                                       double const arrival_lng,
+                                       time_t window_begin, time_t window_end) {
+  module::MessageCreator fb;
+  fb.CreateAndFinish(
+      MsgContent_BikesharingRequest,
+      bikesharing::CreateBikesharingRequest(
+          fb, departure_lat, departure_lng, arrival_lat, arrival_lng,
+          window_begin, window_end, bikesharing::AvailabilityAggregator_Average)
+          .Union());
+  return module::make_msg(fb);
 }
 
 }  // namespace request_builder

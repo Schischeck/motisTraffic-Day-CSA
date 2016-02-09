@@ -37,6 +37,7 @@ private:
 class test_motis_setup : public ::testing::Test {
 public:
   std::unique_ptr<bootstrap::motis_instance> motis_instance_;
+  std::unique_ptr<motis::reliability::context> reliability_context_;
 
   schedule const& get_schedule() const { return *motis_instance_->schedule_; }
   reliability& get_reliability_module() {
@@ -48,23 +49,34 @@ public:
     return *((reliability*)it->get());
   }
 
-  std::unique_ptr<motis::reliability::context> reliability_context_;
-
 protected:
-  test_motis_setup(std::string schedule_path, std::string schedule_begin,
-                   bool realtime = false)
+  explicit test_motis_setup(std::string schedule_path,
+                            std::string schedule_begin, bool realtime = false,
+                            bool bikesharing = false,
+                            std::string bikesharing_path = "")
       : schedule_path_(schedule_path),
         schedule_begin_(schedule_begin),
-        realtime_(realtime) {}
+        realtime_(realtime),
+        bikesharing_(bikesharing),
+        bikesharing_path_(bikesharing_path) {}
 
   virtual void SetUp() override {
     std::vector<std::string> modules = {"reliability", "routing"};
+    std::vector<std::string> modules_cmdline_opt;
     if (realtime_) {
-      modules.push_back("realtime");
       modules.push_back("connectionchecker");
+      modules.push_back("realtime");
+      modules.push_back("ris");
     }
-    motis_instance_ =
-        test::launch_motis(schedule_path_, schedule_begin_, modules);
+    if (bikesharing_) {
+      modules.push_back("bikesharing");
+      modules.push_back("intermodal");
+      modules_cmdline_opt.push_back("--bikesharing.nextbike_path=" +
+                                    bikesharing_path_);
+      modules_cmdline_opt.push_back("--bikesharing.database_path=:memory:");
+    }
+    motis_instance_ = test::launch_motis(schedule_path_, schedule_begin_,
+                                         modules, modules_cmdline_opt);
     reliability_context_ = std::unique_ptr<motis::reliability::context>(
         new motis::reliability::context(
             get_schedule(),
@@ -75,6 +87,8 @@ protected:
 private:
   std::string schedule_path_, schedule_begin_;
   bool realtime_;
+  bool bikesharing_;
+  std::string bikesharing_path_;
 };
 
 struct schedule_station {
