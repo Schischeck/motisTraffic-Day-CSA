@@ -19,6 +19,7 @@
 #define UPDATE_INTERVAL "ris.update_interval"
 #define ZIP_FOLDER "ris.zip_folder"
 #define MAX_DAYS "ris.max_days"
+#define SIMULATION_START_TIME "ris.simulation_start_time"
 
 #define MODE_LIVE "default"
 #define MODE_SIMULATION "simulation"
@@ -74,10 +75,11 @@ msg_ptr pack(std::vector<T> const& messages) {
 }
 
 ris::ris()
-    : mode_(mode::LIVE),
+    : mode_(mode::SIMULATION),
       update_interval_(10),
       zip_folder_("ris"),
       max_days_(-1),
+      simulation_start_time_(0),
       simulation_time_(0) {}
 
 po::options_description ris::desc() {
@@ -97,7 +99,10 @@ po::options_description ris::desc() {
        "folder containing RISML ZIPs")
       (MAX_DAYS,
        po::value<int>(&max_days_)->default_value(max_days_),
-       "periodically delete messages older than n days (-1 = infinite)");
+       "periodically delete messages older than n days (-1 = infinite)")
+      (SIMULATION_START_TIME,
+       po::value<std::time_t>(&simulation_start_time_)->default_value(simulation_start_time_),
+       "'forward' the simulation clock (expects Unix timestamp)");
   // clang-format on
   return desc;
 }
@@ -106,7 +111,8 @@ void ris::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode_ << "\n"
       << "  " << UPDATE_INTERVAL << ": " << update_interval_ << "\n"
       << "  " << ZIP_FOLDER << ": " << zip_folder_ << "\n"
-      << "  " << MAX_DAYS << ": " << max_days_;
+      << "  " << MAX_DAYS << ": " << max_days_ << "\n"
+      << "  " << SIMULATION_START_TIME << ": " << simulation_start_time_;
 }
 
 std::time_t days_ago(long days) {
@@ -131,6 +137,10 @@ void ris::init_async() {
 
     timer_ = make_unique<boost::asio::deadline_timer>(get_thread_pool());
     schedule_update(error_code());
+  }
+
+  if (mode_ == mode::SIMULATION) {
+    forward_time(simulation_start_time_);
   }
 }
 
@@ -157,12 +167,15 @@ void ris::handle_forward_time(msg_ptr msg, callback cb) {
   }
 
   auto req = msg->content<RISForwardTimeRequest const*>();
-  auto new_time = req->new_time();
-  dispatch(pack(db_get_messages(simulation_time_, new_time)), 0, cb);
-  simulation_time_ = new_time;
-  LOG(info) << "RIS forwarded time to " << new_time;
+  forward_time(req->new_time());
 
   return cb({}, boost::system::error_code());
+}
+
+void ris::forward_time(std::time_t new_time) {
+  dispatch(pack(db_get_messages(simulation_time_, new_time)));
+  simulation_time_ = new_time;
+  LOG(info) << "RIS forwarded time to " << new_time;
 }
 
 void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {
