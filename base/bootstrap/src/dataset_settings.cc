@@ -5,6 +5,7 @@
 #define DATASET "dataset.path"
 #define WRITE_SERIALIZED "dataset.write_serialized"
 #define APPLY_RULES "dataset.apply_rules"
+#define ADJUST_FOOTPATHS "dataset.adjust_footpaths"
 #define UNIQUE_CHECK "dataset.unique_check"
 #define SCHEDULE_BEGIN "dataset.begin"
 #define NUM_DAYS "dataset.num_days"
@@ -16,10 +17,11 @@ namespace po = boost::program_options;
 
 dataset_settings::dataset_settings(std::string default_dataset,
                                    bool write_serialized, bool apply_rules,
-                                   bool unique_check,
+                                   bool adjust_footpaths, bool unique_check,
                                    std::string schedule_begin, int num_days)
     : loader_options(default_dataset, write_serialized, apply_rules,
-                     unique_check, schedule_begin, num_days) {}
+                     adjust_footpaths, unique_check, schedule_begin, num_days) {
+}
 
 po::options_description dataset_settings::desc() {
   po::options_description desc("Dataset Settings");
@@ -37,6 +39,9 @@ po::options_description dataset_settings::desc() {
       (APPLY_RULES,
        po::value<bool>(&apply_rules)->default_value(apply_rules),
        "Apply special rules (through-services, merge-split-services)")
+      (ADJUST_FOOTPATHS,
+       po::value<bool>(&adjust_footpaths)->default_value(adjust_footpaths),
+       "Remove footpaths if they do not fit an assumed average speed")
       (SCHEDULE_BEGIN,
        po::value<std::string>(&schedule_begin)->default_value(schedule_begin),
        "schedule interval begin (TODAY or YYYYMMDD)")

@@ -6,13 +6,13 @@
 
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/graph_accessor.h"
 
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
 
@@ -52,7 +52,8 @@ TEST_F(reliability_data_arrival, initialize) {
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
   auto const& second_route_node = *first_route_edge->_to;
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+                    light_connection, dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(
       schedule_->stations[second_route_node._station_node->_id]->eva_nr ==
@@ -62,8 +63,8 @@ TEST_F(reliability_data_arrival, initialize) {
   ASSERT_TRUE(light_connection.a_time ==
               test_util::minutes_to_motis_time(6 * 60 + 5));
 
-  ASSERT_TRUE(data.departure_info_.scheduled_departure_time_ ==
-              light_connection.d_time);
+  ASSERT_EQ(light_connection.d_time,
+            data.departure_info_.scheduled_departure_time_);
   ASSERT_TRUE(&data.departure_info_.distribution_ == &dep_dist);
 
   ASSERT_TRUE(data.scheduled_arrival_time_ == light_connection.a_time);
@@ -83,11 +84,11 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
     start_and_travel_test2_distributions() {
       distribution_.init_one_point(0, 1.0);
     }
-    probability_distribution const& get_start_distribution(
+    std::pair<bool, probability_distribution_cref> get_start_distribution(
         std::string const&) const override {
-      return distribution_;
+      return std::make_pair(true, std::cref(distribution_));
     }
-    void get_travel_time_distributions(
+    bool get_travel_time_distributions(
         std::string const& family, unsigned int const travel_time,
         unsigned int const to_departure_delay,
         std::vector<probability_distribution_cref>& distributions)
@@ -96,7 +97,9 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
         for (unsigned int d = 0; d <= to_departure_delay; d++) {
           distributions.push_back(std::cref(distribution_));
         }
+        return true;
       }
+      return false;
     }
     probability_distribution distribution_;
   } s_t_distributions;
@@ -113,7 +116,8 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
   // get the second light connection
   auto const& light_connection = route_edge->_m._route_edge._conns[1];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(*route_edge->_from, *route_edge->_to, light_connection,
+                    dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);
   ASSERT_TRUE(&data.travel_distributions_[0].get() ==

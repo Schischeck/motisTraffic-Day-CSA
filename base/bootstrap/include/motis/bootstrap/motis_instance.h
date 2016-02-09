@@ -17,7 +17,7 @@ namespace motis {
 namespace bootstrap {
 
 struct motis_instance : public motis::module::dispatcher {
-  motis_instance(boost::asio::io_service* ios = nullptr);
+  motis_instance();
 
   motis_instance(motis_instance const&) = delete;
   motis_instance(motis_instance&&) = delete;

@@ -5,14 +5,14 @@
 #include "motis/core/common/date_util.h"
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/graph_accessor.h"
 
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 
 namespace motis {
@@ -68,7 +68,8 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+                    light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -98,7 +99,8 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution2) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+                    light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);
@@ -128,7 +130,8 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution3) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
 
-  data_arrival data(light_connection, dep_dist, *schedule_, s_t_distributions);
+  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+                    light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
   compute_arrival_distribution(data, arrival_distribution);

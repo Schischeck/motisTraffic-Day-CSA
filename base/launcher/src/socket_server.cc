@@ -31,7 +31,7 @@ struct socket_server::impl {
                        &buf_);
     auto req_msg = make_msg((void*)buf_.data(), buf_.size());
     receiver_.on_msg(req_msg, 0, std::bind(&impl::reply, this, req_msg->id(),
-                                           cb, p::_1, p::_2), false);
+                                           cb, p::_1, p::_2));
   }
 
   void reply(int id, net::handler_cb_fun cb, msg_ptr res,

@@ -348,9 +348,7 @@ void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
   MessageCreator b;
   auto delay_infos = rts_->_delay_info_manager.get_delay_info_delta();
   pack_delay_infos(b, delay_infos);
-  dispatch(make_msg(b));
-
-  return cb({}, error::ok);
+  return dispatch(make_msg(b), 0, cb);
 }
 
 }  // namespace realtime

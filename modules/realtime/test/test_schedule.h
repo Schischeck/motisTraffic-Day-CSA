@@ -40,11 +40,11 @@ struct transport {
 class test_schedule : public ::testing::Test {
 public:
   test_schedule()
-      : _schedule(
-            motis::loader::load_schedule({"modules/realtime/test/test-schedule",
-                                          true, false, true, "20150126", 21})),
+      : _schedule(motis::loader::load_schedule(
+            {"modules/realtime/test/test-schedule", true, false, true, false,
+             "20150126", 21})),
         _rts(*_schedule),
-        _label_store((size_t)32 * 1042 * 1024),
+        _label_store((size_t)10 * 1024),
         _search(*_schedule, _label_store) {
     for (const auto& s : _schedule->stations) {
       _station_map[s->name] = s.get();
@@ -68,7 +68,7 @@ public:
     target.station = to->index;
 
     return _search.get_connections({start}, {target}, departure_begin,
-                                   departure_begin + interval, true)
+                                   departure_begin + interval, true, {})
         .journeys;
   }
 

@@ -5,7 +5,7 @@
 
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/start_and_travel_distributions.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 
 namespace motis {
 struct light_connection;
@@ -16,10 +16,11 @@ namespace reliability {
 struct probability_distribution;
 namespace calc_arrival_distribution {
 /**
- * struct storing all data necessary for calculating an arrival distribution.
+ * struct storing all data necessary to calculate an arrival distribution.
  */
 struct data_arrival {
-  data_arrival(light_connection const& light_connection,
+  data_arrival(node const& departure_node, node const& arrival_node,
+               light_connection const& light_connection,
                probability_distribution const& departure_distribution,
                schedule const& schedule,
                start_and_travel_distributions const& s_t_distributions);
@@ -35,7 +36,7 @@ struct data_arrival {
     time const scheduled_departure_time_;
   } departure_info_;
 
-  time const scheduled_arrival_time_;
+  time scheduled_arrival_time_;
 
   std::vector<start_and_travel_distributions::probability_distribution_cref>
       travel_distributions_;
@@ -44,11 +45,16 @@ struct data_arrival {
   int left_bound_;
   int right_bound_;
 
+  struct {
+    bool received_;
+    time current_time_;
+  } is_message_;
+
 private:
-  void init_travel_info(
-      light_connection const& light_connection,
-      start_and_travel_distributions const& s_t_distributions,
-      std::vector<std::unique_ptr<category>> const& categories);
+  void init_arrival_time(node const&, light_connection const&, schedule const&);
+  void init_travel_info(light_connection const& light_connection,
+                        start_and_travel_distributions const&,
+                        std::vector<std::unique_ptr<category>> const&);
 };
 
 }  // namespace calc_arrival_distribution {

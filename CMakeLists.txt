@@ -82,7 +82,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # for osrm-backend
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
@@ -155,7 +155,7 @@ add_subdirectory(base/eval)
 # Tests
 ################################
 configure_file (
-  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in 
+  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-test-files test/src/*.cc)

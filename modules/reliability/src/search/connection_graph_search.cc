@@ -3,10 +3,13 @@
 #include <limits>
 #include <memory>
 
+#include "motis/core/common/logging.h"
+
+#include "motis/core/journey/journey_util.h"
+#include "motis/core/journey/message_to_journeys.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
-
-#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
@@ -76,7 +79,7 @@ void build_cg(std::shared_ptr<context> c,
   } else {
     return build_result(context::conn_graph_context::CG_completed, c);
   }
-  std::cout << "\nbuild_cg: unexpected case" << std::endl;
+  LOG(logging::error) << "build_cg: unexpected case";
   /* unexpected case */
   return build_result(context::conn_graph_context::CG_failed, c);
 }
@@ -145,20 +148,24 @@ void handle_base_response(motis::module::msg_ptr msg,
                           boost::system::error_code e,
                           std::shared_ptr<context> context) {
   if (e) {
+    LOG(logging::error) << "routing module replied: " << e.message();
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
   auto journeys =
       message_to_journeys(msg->content<routing::RoutingResponse const*>());
   if (journeys.empty()) {
+    LOG(logging::error) << "List of journeys from routing module is empty";
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
-  try {
-    for (auto const& j : journeys) {
+  for (auto const& j : journeys) {
+    try {
       init_connection_graph_from_base_journey(*context, j);
+    } catch (std::exception& e) {
+      LOG(logging::error) << e.what();
     }
-  } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+  }
+  if (context->connection_graphs_.empty()) {
     return build_result(context::conn_graph_context::CG_base_failed, context);
   }
 
@@ -184,7 +191,7 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
     rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
                                           c->reliability_context_);
   } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+    LOG(logging::error) << e.what();
     return build_result(context::conn_graph_context::CG_failed, c);
   }
 
@@ -199,27 +206,28 @@ void handle_alternative_response(motis::module::msg_ptr msg,
                                  unsigned int const conn_graph_idx,
                                  unsigned int const stop_idx,
                                  context::journey_cache_key const cache_key) {
-  if (e) {
-    return build_result(context::conn_graph_context::CG_failed, c);
-  }
   auto& cg_context = c->connection_graphs_.at(conn_graph_idx);
   assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
   auto& stop_state = cg_context.stop_states_.at(stop_idx);
 
-  auto journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
-  /* note: this method ignores journeys that are
-   * corrupt because the state machine in journey.cc
-   * can not handle walks at the beginning of journeys
-   * (such journeys are found in the on-trip search).
-   * This filtering is not necessary as soon as the state
-   * machine in journey.cc works correctly. */
-  auto filtered = tools::remove_invalid_journeys(journeys);
-  if (filtered.size() != journeys.size()) {
-    std::cout << "\nInvalid alternatives for cg " << conn_graph_idx
-              << " at stop " << stop_idx << std::endl;
+  std::vector<journey> filtered;
+  if (e) {
+    LOG(logging::error) << "Routing failed: " << e.message();
+  } else {
+    auto journeys =
+        message_to_journeys(msg->content<routing::RoutingResponse const*>());
+    /* note: this method ignores journeys that are
+     * corrupt because the state machine in journey.cc
+     * can not handle walks at the beginning of journeys
+     * (such journeys are found in the on-trip search).
+     * This filtering is not necessary as soon as the state
+     * machine in journey.cc works correctly. */
+    filtered = tools::remove_invalid_journeys(journeys);
+    if (filtered.size() != journeys.size()) {
+      LOG(logging::error) << "Invalid alternatives for cg " << conn_graph_idx
+                          << " at stop " << stop_idx;
+    }
   }
-
   if (filtered.empty()) {
     stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
     if (tools::complete(cg_context)) {
@@ -263,10 +271,10 @@ void search_cgs(ReliableRoutingRequest const* request,
                 std::shared_ptr<connection_graph_optimizer const> optimizer,
                 callback cb) {
   rel.send_message(
-      flatbuffers_tools::to_flatbuffers_message(request->request()), session,
-      std::bind(
-          &detail::handle_base_response, p::_1, p::_2,
-          std::make_shared<detail::context>(rel, session, cb, optimizer)));
+      flatbuffers::request_builder::to_flatbuffers_message(request->request()),
+      session, std::bind(&detail::handle_base_response, p::_1, p::_2,
+                         std::make_shared<detail::context>(rel, session, cb,
+                                                           optimizer)));
 }
 
 }  // namespace connection_graph_search

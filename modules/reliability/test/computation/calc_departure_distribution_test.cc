@@ -9,14 +9,15 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/graph_accessor.h"
 
-#include "../include/precomputed_distributions_test_container.h"
 #include "../include/start_and_travel_test_distributions.h"
+#include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
 
@@ -30,6 +31,7 @@ public:
   reliability_calc_departure_distribution()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
+  std::string DARMSTADT = "4219971";
   /* train numbers */
   short const IC_DA_H = 1;
   short const IC_FR_DA = 2;
@@ -94,7 +96,8 @@ TEST_F(reliability_calc_departure_distribution,
 
 // first route node
 TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
-  distributions_container::precomputed_distributions_container dummy(0);
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -105,8 +108,9 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  data_departure data(first_route_node, first_light_conn, true, *schedule_,
-                      dummy, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, dummy,
+                      dummy_node,
+                      context(*schedule_, dummy, s_t_distributions));
   train_arrived(data);
 
   ASSERT_TRUE(equal(train_arrived(data), 0.6));
@@ -114,8 +118,10 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
 
 // preceding arrival
 TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
-  precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
-                                                               -1);
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
+  distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
+                                                              -1);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Hanau of train ICE_HA_W_HE
@@ -129,9 +135,9 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
       graph_accessor::get_departing_route_edge(*second_route_node);
   auto const& light_connection = route_edge->_m._route_edge._conns[0];
 
-  data_departure data(*second_route_node, light_connection, false, *schedule_,
-                      train_distributions, train_distributions,
-                      s_t_distributions);
+  data_departure data(*second_route_node, light_connection, false,
+                      train_distributions, dummy_node,
+                      context(*schedule_, dummy, s_t_distributions));
   train_arrived(data);
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
@@ -296,7 +302,8 @@ TEST_F(reliability_calc_departure_distribution, had_to_wait_for_feeders2) {
 // first route node without feeders
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution1) {
-  distributions_container::precomputed_distributions_container dummy(0);
+  distributions_container::container dummy;
+  distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Frankfurt of train ICE_FR_DA_H
@@ -307,8 +314,9 @@ TEST_F(reliability_calc_departure_distribution,
       graph_accessor::get_departing_route_edge(first_route_node);
   auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
 
-  data_departure data(first_route_node, first_light_conn, true, *schedule_,
-                      dummy, dummy, s_t_distributions);
+  data_departure data(first_route_node, first_light_conn, true, dummy,
+                      dummy_node,
+                      context(*schedule_, dummy, s_t_distributions));
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 
@@ -322,8 +330,7 @@ TEST_F(reliability_calc_departure_distribution,
 // first route node with feeders
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution2) {
-  precomputed_distributions_test_container train_distributions(
-      {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1);
+  distributions_container::container dummy;
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train IC_DA_H
@@ -335,6 +342,11 @@ TEST_F(reliability_calc_departure_distribution,
   // light connection d07:00 a07:28
   auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
 
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, first_route_node, light_connection,
+      {0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1}, -1, *schedule_);
+
   /* Scheduled departure time: 07:00
    * First Feeder:
    *   feeder-arrival-time: 06:54, lfa: 06:58, transfer-time: 5
@@ -342,9 +354,9 @@ TEST_F(reliability_calc_departure_distribution,
    *   06:57=0.1, 06:58=0.1, 06:59=0.1
    * The second feeder has no influence on this departure
    */
-  data_departure data(first_route_node, light_connection, true, *schedule_,
-                      train_distributions, train_distributions,
-                      s_t_distributions);
+  data_departure data(
+      first_route_node, light_connection, true, dummy, distribution_node,
+      context(*schedule_, feeder_distributions, s_t_distributions));
 
   ASSERT_TRUE(
       equal(train_arrives_at_time(data, data.scheduled_departure_time_), 0.6));
@@ -359,9 +371,9 @@ TEST_F(reliability_calc_departure_distribution,
       equal(train_arrives_before_time(data, data.scheduled_departure_time_ + 2),
             1.0));
 
-  ASSERT_TRUE(equal(departure_independent_from_feeders(
-                        data.feeders_, data.scheduled_departure_time_ + 1),
-                    0.8));
+  ASSERT_TRUE(
+      equal(0.8, departure_independent_from_feeders(
+                     data.feeders_, data.scheduled_departure_time_ + 1)));
 
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
@@ -382,8 +394,10 @@ TEST_F(reliability_calc_departure_distribution,
 // route node with preceding arrival and without feeders
 TEST_F(reliability_calc_departure_distribution,
        compute_departure_distribution3) {
-  precomputed_distributions_test_container train_distributions({0.1, 0.7, 0.2},
-                                                               -1);
+  distributions_container::container dummy_container;
+  distributions_container::container::node dummy_node;
+  distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
+                                                              -1);
   start_and_travel_test_distributions dummy({1.0});
 
   // route node at Hanau of train ICE_HA_W_HE
@@ -401,8 +415,9 @@ TEST_F(reliability_calc_departure_distribution,
    * preceding-arrival-time: 10:32 min-standing: 2
    * preceding-arrival-distribution: 10:31=0.1, 10:32=0.7, 10:33=0.2
    * no feeders. */
-  data_departure data(*second_route_node, light_connection, false, *schedule_,
-                      train_distributions, train_distributions, dummy);
+  data_departure data(*second_route_node, light_connection, false,
+                      train_distributions, dummy_node,
+                      context(*schedule_, dummy_container, dummy));
 
   ASSERT_TRUE(equal(train_arrived(data), 0.8));
   ASSERT_TRUE(
@@ -440,8 +455,7 @@ TEST_F(reliability_calc_departure_distribution,
   for (unsigned int i = 0; i < 29; i++) {
     values.push_back(0.033);
   }
-
-  precomputed_distributions_test_container train_distributions(values, 0);
+  distributions_container::test_container train_distributions(values, 0);
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   // route node at Darmstadt of train ICE_FR_DA_H
@@ -453,6 +467,11 @@ TEST_F(reliability_calc_departure_distribution,
       graph_accessor::get_departing_route_edge(route_node)
           ->_m._route_edge._conns[0];
 
+  distributions_container::container feeder_distributions;
+  auto const& distribution_node = init_feeders_and_get_distribution_node(
+      feeder_distributions, route_node, light_connection, values, 0,
+      *schedule_);
+
   /* scheduled-departure-time: 06:11 largest-delay: 3
    * preceding-arrival-time: 06:05 min-standing: 2
    * preceding-arrival-distribution: 06:05=0.043, 06:06=0.033, ..., 06:34=0.033
@@ -463,9 +482,10 @@ TEST_F(reliability_calc_departure_distribution,
    * feeder-arrival-time: 05:56 lfa: 06:09 transfer-time: 5
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
-  data_departure data(route_node, light_connection, false, *schedule_,
-                      train_distributions, train_distributions,
-                      s_t_distributions);
+  data_departure data(
+      route_node, light_connection, false, train_distributions,
+      distribution_node,
+      context(*schedule_, feeder_distributions, s_t_distributions));
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(
@@ -508,32 +528,32 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:07 * (feeder2 < 06:07 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 7))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 7))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:07 * (feeder1 < 06:07 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 7))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 7))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:07 * feeder2 = 06:07
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 7))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 7)));
 
     ASSERT_TRUE(equal(
@@ -568,32 +588,32 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:08 * (feeder2 < 06:08 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 8))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 8))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:08 * (feeder1 < 06:08 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 8))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 8))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:08 * feeder2 = 06:08
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 8))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 8)));
 
     ASSERT_TRUE(equal(
@@ -628,32 +648,32 @@ TEST_F(reliability_calc_departure_distribution,
     // feeder1 = 06:09 * (feeder2 < 06:09 + feeder2 > 06:09)
     probability const prob_feeder1 =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 9))) *
         (data.feeders_[1].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))) +
          data.feeders_[1].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[1].arrival_time_,
+             timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder2 = 06:09 * (feeder1 < 06:09 + feeder1 > 06:09)
     probability const prob_feeder2 =
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 9))) *
         (data.feeders_[0].distribution_.probability_smaller(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))) +
          data.feeders_[0].distribution_.probability_greater(
-             timestamp_to_delay(data.feeders_[0].arrival_time_,
+             timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                 test_util::minutes_to_motis_time(6 * 60 + 9))));
     // feeder1 = 06:09 * feeder2 = 06:09
     probability const prob_both_feeders =
         data.feeders_[0].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[0].arrival_time_,
+            timestamp_to_delay(data.feeders_[0].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 9))) *
         data.feeders_[1].distribution_.probability_equal(
-            timestamp_to_delay(data.feeders_[1].arrival_time_,
+            timestamp_to_delay(data.feeders_[1].scheduled_arrival_time_,
                                test_util::minutes_to_motis_time(6 * 60 + 9)));
 
     ASSERT_TRUE(equal(

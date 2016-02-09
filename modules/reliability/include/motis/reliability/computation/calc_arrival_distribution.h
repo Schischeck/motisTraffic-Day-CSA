@@ -5,7 +5,7 @@
 
 #include "motis/core/schedule/time.h"
 
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 
 namespace motis {
 namespace reliability {
@@ -13,9 +13,8 @@ namespace calc_arrival_distribution {
 
 struct data_arrival;
 
-void compute_arrival_distribution(
-    data_arrival const& data,
-    probability_distribution& arrival_distribution);
+void compute_arrival_distribution(data_arrival const&,
+                                  probability_distribution&);
 
 namespace detail {
 /**

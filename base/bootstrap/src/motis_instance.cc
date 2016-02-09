@@ -1,9 +1,15 @@
 #include "motis/bootstrap/motis_instance.h"
 
 #include <algorithm>
+#include <atomic>
+#include <exception>
+#include <future>
+#include <thread>
+#include <chrono>
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/loader.h"
+#include "motis/module/callbacks.h"
 
 #include "modules.h"
 
@@ -14,10 +20,9 @@ namespace p = std::placeholders;
 namespace motis {
 namespace bootstrap {
 
-motis_instance::motis_instance(boost::asio::io_service* ios)
-    : dispatcher(ios ? *ios : thread_pool_),
-      dispatch_fun_(
-          std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3, p::_4)),
+motis_instance::motis_instance()
+    : dispatcher(&thread_pool_),
+      dispatch_fun_(std::bind(&dispatcher::on_msg, this, p::_1, p::_2, p::_3)),
       modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {
@@ -34,7 +39,7 @@ void motis_instance::init_schedule(
 }
 
 void motis_instance::init_modules(std::vector<std::string> const& modules) {
-  module_context_ = {schedule_.get(), &ios_, &thread_pool_, &send_fun_,
+  module_context_ = {schedule_.get(), ios_, &thread_pool_, &send_fun_,
                      &dispatch_fun_};
 
   for (auto const& module : modules_) {
@@ -58,6 +63,13 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
+
+  for (auto module : dispatcher::modules_) {
+    module->init_async();
+  }
+
+  ios_->run();
+  ios_->reset();
 }
 
 void motis_instance::run() { thread_pool_.run(); }

@@ -50,27 +50,30 @@ struct interchange_data_for_tests {
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
             tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
-    EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
-                    ->eva_nr == interchange_station_eva);
-    EXPECT_TRUE(
-        schedule.stations[arriving_route_edge_._from->_station_node->_id]
-            ->eva_nr == previous_station_eva);
-    EXPECT_TRUE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                    ->eva_nr == interchange_station_eva);
-    EXPECT_TRUE(
-        schedule.stations[departing_route_edge_._from->_station_node->_id]
-            ->eva_nr == interchange_station_eva);
-    EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
-                    ->eva_nr == next_station_eva);
+    EXPECT_EQ(interchange_station_eva,
+              schedule.stations[tail_node_departing_train_._station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(previous_station_eva,
+              schedule.stations[arriving_route_edge_._from->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(interchange_station_eva,
+              schedule.stations[arriving_route_edge_._to->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(interchange_station_eva,
+              schedule.stations[departing_route_edge_._from->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(next_station_eva,
+              schedule.stations[departing_route_edge_._to->_station_node->_id]
+                  ->eva_nr);
 
-    EXPECT_TRUE(arriving_light_conn_.d_time ==
-                test_util::minutes_to_motis_time(arriving_train_dep));
-    EXPECT_TRUE(arriving_light_conn_.a_time ==
-                test_util::minutes_to_motis_time(arriving_train_arr));
-    EXPECT_TRUE(departing_light_conn_.d_time ==
-                test_util::minutes_to_motis_time(departing_train_dep));
-    EXPECT_TRUE(departing_light_conn_.a_time ==
-                test_util::minutes_to_motis_time(departing_train_arr));
+    EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_dep),
+              arriving_light_conn_.d_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_arr),
+              arriving_light_conn_.a_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_dep),
+              departing_light_conn_.d_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_arr),
+              departing_light_conn_.a_time);
   }
 
   /* interchange with walking */
@@ -91,27 +94,30 @@ struct interchange_data_for_tests {
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
             tail_node_departing_train_)),
         departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
-    EXPECT_TRUE(schedule.stations[tail_node_departing_train_._station_node->_id]
-                    ->eva_nr == end_walking_eva);
-    EXPECT_TRUE(
-        schedule.stations[arriving_route_edge_._from->_station_node->_id]
-            ->eva_nr == previous_station_eva);
-    EXPECT_TRUE(schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                    ->eva_nr == begin_walking_eva);
-    EXPECT_TRUE(
-        schedule.stations[departing_route_edge_._from->_station_node->_id]
-            ->eva_nr == end_walking_eva);
-    EXPECT_TRUE(schedule.stations[departing_route_edge_._to->_station_node->_id]
-                    ->eva_nr == next_station_eva);
+    EXPECT_EQ(end_walking_eva,
+              schedule.stations[tail_node_departing_train_._station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(previous_station_eva,
+              schedule.stations[arriving_route_edge_._from->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(begin_walking_eva,
+              schedule.stations[arriving_route_edge_._to->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(end_walking_eva,
+              schedule.stations[departing_route_edge_._from->_station_node->_id]
+                  ->eva_nr);
+    EXPECT_EQ(next_station_eva,
+              schedule.stations[departing_route_edge_._to->_station_node->_id]
+                  ->eva_nr);
 
-    EXPECT_TRUE(arriving_light_conn_.d_time ==
-                test_util::minutes_to_motis_time(arriving_train_dep));
-    EXPECT_TRUE(arriving_light_conn_.a_time ==
-                test_util::minutes_to_motis_time(arriving_train_arr));
-    EXPECT_TRUE(departing_light_conn_.d_time ==
-                test_util::minutes_to_motis_time(departing_train_dep));
-    EXPECT_TRUE(departing_light_conn_.a_time ==
-                test_util::minutes_to_motis_time(departing_train_arr));
+    EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_dep),
+              arriving_light_conn_.d_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_arr),
+              arriving_light_conn_.a_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_dep),
+              departing_light_conn_.d_time);
+    EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_arr),
+              departing_light_conn_.a_time);
   }
 
   edge const& arriving_route_edge_;

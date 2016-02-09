@@ -7,7 +7,7 @@
 namespace motis {
 namespace bikesharing {
 
-TEST(bikesharing_terminal, timestamp_to_bucket) {
+TEST(bikesharing_terminal, DISABLED_timestamp_to_bucket) {
   // sunday = 0
   size_t bucket = 3 * kHoursPerDay + 10;
 

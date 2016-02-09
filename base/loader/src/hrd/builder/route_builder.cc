@@ -1,5 +1,6 @@
 #include "motis/loader/hrd/builder/route_builder.h"
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/loader/util.h"
 
 using namespace parser;

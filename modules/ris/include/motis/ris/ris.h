@@ -23,7 +23,7 @@ struct ris : public motis::module::module {
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 
-  void init() override;
+  virtual void init_async() override;
   std::string name() const override { return "ris"; }
   std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RISForwardTimeRequest, MsgContent_HTTPRequest};
@@ -43,10 +43,13 @@ private:
   void parse_zips();
   std::vector<std::string> get_new_files();
 
+  void forward_time(std::time_t new_time);
+
   mode mode_;
   int update_interval_;
   std::string zip_folder_;
   int max_days_;
+  std::time_t simulation_start_time_;
 
   std::time_t simulation_time_;
   std::unique_ptr<boost::asio::deadline_timer> timer_;

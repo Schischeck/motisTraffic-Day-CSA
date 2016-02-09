@@ -49,7 +49,8 @@ public:
   search(schedule const& schedule, memory_manager& label_store);
 
   search_result get_connections(arrival from, arrival to, time interval_start,
-                                time interval_end, bool ontrip);
+                                time interval_end, bool ontrip,
+                                std::vector<edge> const& additional_edges);
 
   void generate_ontrip_start_labels(station_node const* start_station,
                                     time const start_time,

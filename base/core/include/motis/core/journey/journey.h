@@ -11,7 +11,7 @@ struct journey {
 
   struct transport {
     unsigned from, to;
-    bool walk;
+    enum transport_type { PublicTransport, Walk, Mumo } type;
     std::string name;
     std::string category_name;
     unsigned category_id;
@@ -23,6 +23,9 @@ struct journey {
     std::string direction;
     std::string provider;
     unsigned route_id;
+
+    std::string mumo_type_name;
+    unsigned mumo_price;
   };
 
   struct stop {

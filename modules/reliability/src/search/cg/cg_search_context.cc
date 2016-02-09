@@ -8,7 +8,7 @@
 #include "motis/core/schedule/synced_schedule.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_search.h"

@@ -5,13 +5,40 @@ table StationPathElement {
   eva_nr : string;
 }
 
-enum Type : byte { PreTrip, OnTrip }
+enum Type : byte { PreTrip, OnTrip, LateConnection }
 enum Direction : byte { Forward, Backward }
 
 // Uses unix timestamps.
 struct Interval {
   begin:ulong;
   end:ulong;
+}
+
+table MumoEdge {
+  from_station_eva:string;
+  to_station_eva:string;
+  duration:ushort;
+  price:ushort;
+}
+
+// valid_from and valid_to are minutes after midnight
+table TimeDependentMumoEdge {
+  edge:MumoEdge;
+  valid_from:ushort;
+  valid_to:ushort;
+}
+
+table HotelEdge {
+  station_eva:string;
+  earliest_checkout_time:ushort;
+  min_stay_duration:ushort;
+  price:ushort;
+}
+
+union AdditionalEdge { MumoEdge, TimeDependentMumoEdge, HotelEdge }
+
+table AdditionalEdgeWrapper {
+  additional_edge:AdditionalEdge;
 }
 
 // JSON Example:
@@ -52,4 +79,5 @@ table RoutingRequest {
   type:Type = PreTrip;
   direction:Direction = Forward;
   path:[StationPathElement];
+  additional_edges:[AdditionalEdgeWrapper];
 }

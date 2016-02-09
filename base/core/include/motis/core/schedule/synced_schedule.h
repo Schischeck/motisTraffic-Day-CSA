@@ -4,24 +4,23 @@
 
 namespace motis {
 
-enum schedule_access { RO, RW, RE };
+enum schedule_access { RO, RW };
 
-struct synced_schedule {
-  synced_schedule(schedule& s, schedule_access access,
-                  std::function<void()> on_destruct)
-      : s_(s),
-        on_destruct_(on_destruct),
-        lock_(access != RE ? new synchronization::lock(s.sync, access == RW)
-                           : nullptr) {}
+template <schedule_access A>
+struct synced_schedule {};
 
-  virtual ~synced_schedule() { on_destruct_(); }
+template <>
+struct synced_schedule<RO> {
+  synced_schedule(schedule& s) : s_(s) {}
+  schedule const& sched() const { return s_; }
+  schedule const& s_;
+};
 
+template <>
+struct synced_schedule<RW> {
+  synced_schedule(schedule& s) : s_(s) {}
   schedule& sched() { return s_; }
-
-private:
   schedule& s_;
-  std::function<void()> on_destruct_;
-  std::unique_ptr<synchronization::lock> lock_;
 };
 
 }  // namespace motis

@@ -1,16 +1,18 @@
 #include "motis/reliability/rating/connection_graph_rating.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/distributions_container.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
-#include "motis/reliability/probability_distribution.h"
-#include "motis/reliability/start_and_travel_distributions.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 #include "motis/reliability/rating/public_transport.h"
+#include "motis/reliability/realtime/time_util.h"
 #include "motis/reliability/search/connection_graph.h"
 
 namespace motis {
@@ -21,20 +23,59 @@ namespace detail {
 interchange_info::interchange_info(connection_element const& arriving_element,
                                    connection_element const& departing_element,
                                    schedule const& sched) {
-  scheduled_arrival_time_ = arriving_element.light_connection_->a_time;
-  scheduled_departure_time_ = departing_element.light_connection_->d_time;
+  if (arriving_element.light_connection_->a_time >
+      departing_element.light_connection_->d_time) {
+    LOG(logging::error) << "unexpected arriving and departing element!";
+  }
+  arrival_time_ = arriving_element.light_connection_->a_time;
+  departure_time_ = departing_element.light_connection_->d_time;
+  scheduled_arrival_time_ = arrival_time_;
+  scheduled_departure_time_ = departure_time_;
+  arrival_is_ = false;
+  departure_is_ = false;
+  {
+    auto const it = sched.graph_to_delay_info.find(graph_event(
+        arriving_element.to_->get_station()->_id,
+        arriving_element.light_connection_->_full_con->con_info->train_nr,
+        false, arriving_element.light_connection_->a_time,
+        arriving_element.to_->_route));
+    if (it != sched.graph_to_delay_info.end()) {
+      arrival_is_ = it->second->_reason == timestamp_reason::IS;
+      scheduled_arrival_time_ = it->second->_schedule_event._schedule_time;
+    }
+  }
+  {
+    auto const it = sched.graph_to_delay_info.find(graph_event(
+        departing_element.from_->get_station()->_id,
+        departing_element.light_connection_->_full_con->con_info->train_nr,
+        true, departing_element.light_connection_->d_time,
+        departing_element.from_->_route));
+    if (it != sched.graph_to_delay_info.end()) {
+      departure_is_ = it->second->_reason == timestamp_reason::IS;
+      scheduled_departure_time_ = it->second->_schedule_event._schedule_time;
+    }
+  }
+
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);
-  waiting_time_ = graph_accessor::get_waiting_time(
+
+  int const max_waiting = (int)graph_accessor::get_waiting_time(
       sched.waiting_time_rules_, *arriving_element.light_connection_,
       *departing_element.light_connection_);
+  int const departure_delay = departure_time_ - scheduled_departure_time_;
+
+  waiting_time_ = (!departure_is_ && departure_delay < (int)max_waiting)
+                      ? max_waiting - departure_delay
+                      : 0;
 }
 
 probability_distribution scheduled_transfer_filter(
     probability_distribution const& arrival_distribution,
     interchange_info const& ic_info) {
   int const latest_arrival_delay =
-      ((ic_info.scheduled_departure_time_ + ic_info.waiting_time_) -
+      ((ic_info.departure_is_
+            ? ic_info.departure_time_
+            : ic_info.scheduled_departure_time_ + ic_info.waiting_time_) -
        ic_info.transfer_time_) -
       ic_info.scheduled_arrival_time_;
   std::vector<probability> values;
@@ -69,21 +110,27 @@ probability_distribution scheduled_transfer_filter(
 probability_distribution compute_uncovered_arrival_distribution(
     probability_distribution const& arr_distribution,
     interchange_info const& ic_info) {
+  bool is_empty_distribution = true;
   std::vector<probability> values;
   for (int d = arr_distribution.first_minute();
        d <= arr_distribution.last_minute(); ++d) {
     /* interchange was possible */
     if (ic_info.scheduled_arrival_time_ + d + ic_info.transfer_time_ <=
-        ic_info.scheduled_departure_time_ + ic_info.waiting_time_) {
+        (ic_info.departure_is_
+             ? ic_info.departure_time_
+             : ic_info.scheduled_departure_time_ + ic_info.waiting_time_)) {
       values.push_back(0.0);
     }
     /* interchange was not possible */
     else {
       values.push_back(arr_distribution.probability_equal(d));
+      is_empty_distribution = false;
     }
   }
   probability_distribution pd;
-  pd.init(values, arr_distribution.first_minute());
+  if (!is_empty_distribution) {
+    pd.init(values, arr_distribution.first_minute());
+  }
   return pd;
 }
 
@@ -154,6 +201,7 @@ void rate_first_journey_in_cg(
   alternative.rating_.arrival_distribution_ =
       c_rating.public_transport_ratings_.back().arrival_distribution_;
 }
+
 void rate_alternative_in_cg(
     search::connection_graph_search::detail::context::conn_graph_context&
         cg_context,
@@ -167,7 +215,8 @@ void rate_alternative_in_cg(
 
   /* alternative to the destination consisting of a walk */
   if (alternative_journey.transports.size() == 1 &&
-      alternative_journey.transports.front().walk) {
+      alternative_journey.transports.front().type !=
+          journey::transport::PublicTransport) {
     alternative.rating_.departure_distribution_ = last_element.second;
     alternative.rating_.arrival_distribution_ = last_element.second;
     cg_context.stop_states_.at(stop.index_)
@@ -184,7 +233,8 @@ void rate_alternative_in_cg(
   auto const filtered_arrival_distribution =
       scheduled_transfer_filter(cg_context, stop, last_element.second, ic_info);
 
-  /* rate departing alternative */
+  /* rate departing alternative
+   * note: this call modified the vector connection_elements */
   std::tie(alternative.rating_.departure_distribution_,
            alternative.rating_.arrival_distribution_) =
       rate(connection_elements, last_element.first,

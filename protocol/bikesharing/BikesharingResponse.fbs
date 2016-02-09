@@ -1,0 +1,30 @@
+namespace motis.bikesharing;
+
+struct BikesharingAvailability {
+  begin: ulong; // inclusive
+  end: ulong;  // exclusive
+  value: double;
+}
+
+table BikesharingTerminal {
+  id: string;
+  lat: double;
+  lng: double;
+  name: string;
+}
+
+// if departure: loc -(walk)> from -(bike)> to -(walk)> eva
+// if arrival: eva -(walk)> from -(bike)> to -(walk)> loc
+table BikesharingEdge {
+  from: BikesharingTerminal;
+  to: BikesharingTerminal;
+  availability: [BikesharingAvailability];
+  eva_nr:string;
+  walk_duration: ulong; // sum of the two walks
+  bike_duration: ulong;
+}
+
+table BikesharingResponse {
+  departure_edges: [BikesharingEdge];
+  arrival_edges: [BikesharingEdge];
+}

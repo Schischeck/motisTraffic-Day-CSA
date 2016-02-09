@@ -50,7 +50,13 @@ table Walk {
   range:Range;
 }
 
-union Move { Transport, Walk }
+table Mumo {
+  range:Range;
+  name:string;
+  price:uint;
+}
+
+union Move { Transport, Walk, Mumo }
 
 // JSON example (walk)
 // --
@@ -101,6 +107,7 @@ table Connection {
   stops:[Stop];
   transports:[MoveWrapper];
   attributes:[Attribute];
+  night_penalty:ushort;
 }
 
 table RoutingResponse {

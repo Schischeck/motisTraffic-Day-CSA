@@ -6,7 +6,7 @@
 #include "motis/module/module.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/probability_distribution.h"
+#include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/search/cg_search_callback.h"
 
 namespace motis {
@@ -65,7 +65,7 @@ struct context {
   };
   std::map<journey_cache_key, journey> journey_cache;
 
-  module::locked_schedule synced_sched_;
+  synced_schedule<RO> synced_sched_;
   motis::reliability::context reliability_context_;
 };
 

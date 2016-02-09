@@ -9,6 +9,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/loader.h"
 
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/context.h"
 
 namespace motis {
@@ -22,7 +23,7 @@ protected:
 
   virtual void SetUp() override {
     schedule_ = loader::load_schedule(
-        {schedule_path_, false, true, false, schedule_begin_, 2});
+        {schedule_path_, false, true, false, false, schedule_begin_, 2});
   }
 
 public:
@@ -34,21 +35,6 @@ private:
 };
 
 class test_motis_setup : public ::testing::Test {
-protected:
-  test_motis_setup(std::string schedule_path, std::string schedule_begin)
-      : schedule_path_(schedule_path), schedule_begin_(schedule_begin) {}
-
-  virtual void SetUp() override {
-    std::vector<std::string> modules = {"reliability", "routing"};
-    motis_instance_ =
-        test::launch_motis(schedule_path_, schedule_begin_, modules);
-    reliability_context_ = std::unique_ptr<motis::reliability::context>(
-        new motis::reliability::context(
-            get_schedule(),
-            get_reliability_module().precomputed_distributions(),
-            get_reliability_module().s_t_distributions()));
-  }
-
 public:
   std::unique_ptr<bootstrap::motis_instance> motis_instance_;
 
@@ -64,8 +50,31 @@ public:
 
   std::unique_ptr<motis::reliability::context> reliability_context_;
 
+protected:
+  test_motis_setup(std::string schedule_path, std::string schedule_begin,
+                   bool realtime = false)
+      : schedule_path_(schedule_path),
+        schedule_begin_(schedule_begin),
+        realtime_(realtime) {}
+
+  virtual void SetUp() override {
+    std::vector<std::string> modules = {"reliability", "routing"};
+    if (realtime_) {
+      modules.push_back("realtime");
+      modules.push_back("connectionchecker");
+    }
+    motis_instance_ =
+        test::launch_motis(schedule_path_, schedule_begin_, modules);
+    reliability_context_ = std::unique_ptr<motis::reliability::context>(
+        new motis::reliability::context(
+            get_schedule(),
+            get_reliability_module().precomputed_distributions(),
+            get_reliability_module().s_t_distributions()));
+  }
+
 private:
   std::string schedule_path_, schedule_begin_;
+  bool realtime_;
 };
 
 struct schedule_station {

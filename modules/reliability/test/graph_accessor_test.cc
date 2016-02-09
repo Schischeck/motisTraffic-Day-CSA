@@ -60,9 +60,7 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
   auto const first_route_node = get_first_route_node(*schedule_, ICE_FR_DA_H);
   ASSERT_EQ(schedule_->stations[first_route_node->_station_node->_id]->eva_nr,
             FRANKFURT);
-
   auto const first_route_edge = get_departing_route_edge(*first_route_node);
-
   {
     auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
     ASSERT_EQ(first_light_conn.d_time,
@@ -78,11 +76,12 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
         get_departing_route_edge(*second_route_node)->_m._route_edge._conns[0];
     ASSERT_EQ(second_light_conn.d_time,
               test_util::minutes_to_motis_time(6 * 60 + 11));
-    auto const& previous_light_conn =
-        get_previous_light_connection(*second_route_node, second_light_conn);
+    auto const& previous_light_conn = get_previous_light_connection(
+        graph_accessor::get_arriving_route_edge(*second_route_node)
+            ->_m._route_edge._conns,
+        second_light_conn.d_time);
 
-    ASSERT_EQ(previous_light_conn.first, &first_light_conn);
-    ASSERT_EQ(previous_light_conn.second, 0);
+    ASSERT_EQ(&previous_light_conn, &first_light_conn);
   }
   {
     auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
@@ -99,197 +98,47 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
         get_departing_route_edge(*second_route_node)->_m._route_edge._conns[1];
     ASSERT_EQ(second_light_conn.d_time,
               test_util::minutes_to_motis_time(7 * 60 + 11));
-    auto const& previous_light_conn =
-        get_previous_light_connection(*second_route_node, second_light_conn);
+    auto const& previous_light_conn = get_previous_light_connection(
+        graph_accessor::get_arriving_route_edge(*second_route_node)
+            ->_m._route_edge._conns,
+        second_light_conn.d_time);
 
-    ASSERT_EQ(previous_light_conn.first, &first_light_conn);
-    ASSERT_EQ(previous_light_conn.second, 1);
+    ASSERT_EQ(&previous_light_conn, &first_light_conn);
   }
 }
 
-TEST_F(reliability_graph_accessor, get_feeder_time_interval) {
-  bool success;
-  motis::time time_begin, time_end;
+TEST_F(reliability_graph_accessor, get_previous_light_connection2) {
+  array<light_connection> arriving_connections;
+  arriving_connections.emplace_back(10, 20, nullptr);
+  arriving_connections.emplace_back(15, 25, nullptr);
+  arriving_connections.emplace_back(15, 30, nullptr);
+  arriving_connections.emplace_back(20, 30, nullptr);
+  arriving_connections.emplace_back(40, 50, nullptr);
 
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(0, 5, 30);
-  ASSERT_FALSE(success);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(5, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 0);
-  ASSERT_EQ(time_end, 0);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(6, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 0);
-  ASSERT_EQ(time_end, 1);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(29, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 0);
-  ASSERT_EQ(time_end, 24);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(30, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 0);
-  ASSERT_EQ(time_end, 25);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(31, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 1);
-  ASSERT_EQ(time_end, 26);
-
-  std::tie(success, time_begin, time_end) =
-      get_feeder_time_interval(2000, 5, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 1970);
-  ASSERT_EQ(time_end, 1995);
-
-  std::tie(success, time_begin, time_end) =
-      get_feeder_time_interval(31, 31, 30);
-  ASSERT_FALSE(success);
-
-  /* at least one minute difference between feeder arrival time
-   * and train departure time */
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(50, 0, 30);
-  ASSERT_TRUE(success);
-  ASSERT_EQ(time_begin, 20);
-  ASSERT_EQ(time_end, 49);
-
-  std::tie(success, time_begin, time_end) = get_feeder_time_interval(0, 0, 1);
-  ASSERT_FALSE(success);
-}
-
-TEST_F(reliability_graph_accessor, get_feeders) {
-  // route node at Frankfurt of train ICE_FR_DA_H
-  auto& first_route_node = *get_first_route_node(*schedule_, ICE_FR_DA_H);
-  // route edge from Frankfurt to Darmstadt
-  auto const first_route_edge = get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
-  auto const feeders_of_first_route_node = get_all_potential_feeders(
-      first_route_node, first_light_conn,
-      schedule_->stations[first_route_node._station_node->_id]->transfer_time);
-
-  ASSERT_EQ(schedule_->stations[first_route_node._station_node->_id]->eva_nr,
-            FRANKFURT);
   ASSERT_EQ(
-      schedule_->stations[first_route_edge->_to->_station_node->_id]->eva_nr,
-      DARMSTADT);
-  ASSERT_EQ(first_light_conn.d_time,
-            test_util::minutes_to_motis_time(5 * 60 + 55));
-  ASSERT_EQ(first_light_conn.a_time,
-            test_util::minutes_to_motis_time(6 * 60 + 5));
-  ASSERT_EQ(feeders_of_first_route_node.size(), 0);
-
-  // route node at Darmstadt
-  auto& second_route_node = *first_route_edge->_to;
-  // route edge from Darmstadt to Heidelberg
-  auto& second_route_edge = *get_departing_route_edge(second_route_node);
-  auto const& second_light_conn = second_route_edge._m._route_edge._conns[0];
-  auto all_potential_feeders = get_all_potential_feeders(
-      second_route_node, second_light_conn,
-      schedule_->stations[second_route_node._station_node->_id]->transfer_time);
-
-  ASSERT_EQ(second_light_conn.d_time,
-            test_util::minutes_to_motis_time(6 * 60 + 11));
-  ASSERT_EQ(all_potential_feeders.size(), 3);
-  std::sort(begin(all_potential_feeders), end(all_potential_feeders),
-            [](std::unique_ptr<feeder_info> const& lhs,
-               std::unique_ptr<feeder_info> const& rhs) {
-              return lhs->light_conn_.a_time < rhs->light_conn_.a_time;
-            });
-
-  for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
-    auto const waiting_time = get_waiting_time(
-        schedule_->waiting_time_rules_, feeder_light_conn, second_light_conn);
-    switch (i) {
-      case 0: {
-        // IC_FH_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FH_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(5 * 60 + 41));
-        ASSERT_EQ(waiting_time, 3);
-        break;
-      }
-      case 1: {
-        // RE_MA_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, RE_MA_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(5 * 60 + 52));
-        ASSERT_EQ(waiting_time, 0);
-        break;
-      }
-      case 2: {
-        // IC_FH_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FH_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(5 * 60 + 56));
-        ASSERT_EQ(waiting_time, 3);
-        break;
-      }
-    }
-  }
-}
-
-TEST_F(reliability_graph_accessor, get_feeders_first_departure) {
-  // route node at Darmstadt of train IC_DA_H
-  auto& first_route_node = *get_first_route_node(*schedule_, IC_DA_H);
-  // route edge from Darmstadt to Heidelberg
-  auto const first_route_edge = get_departing_route_edge(first_route_node);
-  // journey 07:00 --> 07:28
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[1];
-  auto all_potential_feeders = get_all_potential_feeders(
-      first_route_node, first_light_conn,
-      schedule_->stations[first_route_node._station_node->_id]->transfer_time);
-
-  std::sort(begin(all_potential_feeders), end(all_potential_feeders),
-            [](std::unique_ptr<feeder_info> const& lhs,
-               std::unique_ptr<feeder_info> const& rhs) {
-              return lhs->light_conn_.a_time < rhs->light_conn_.a_time;
-            });
-
-  ASSERT_EQ(schedule_->stations[first_route_node._station_node->_id]->eva_nr,
-            DARMSTADT);
+      &arriving_connections[0],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 20));
   ASSERT_EQ(
-      schedule_->stations[first_route_edge->_to->_station_node->_id]->eva_nr,
-      HEIDELBERG);
-  ASSERT_EQ(first_light_conn.d_time, test_util::minutes_to_motis_time(7 * 60));
-  ASSERT_EQ(first_light_conn.a_time,
-            test_util::minutes_to_motis_time(7 * 60 + 28));
-  ASSERT_EQ(all_potential_feeders.size(), 3);
-
-  for (unsigned int i = 0; i < 3; ++i) {
-    auto const& feeder_light_conn = all_potential_feeders[i]->light_conn_;
-    auto const waiting_time = get_waiting_time(
-        schedule_->waiting_time_rules_, feeder_light_conn, first_light_conn);
-    switch (i) {
-      case 0: {
-        // IC_FH_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FH_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(6 * 60 + 41));
-        ASSERT_EQ(waiting_time, 3);
-        break;
-      }
-      case 1: {
-        // RE_MA_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, RE_MA_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(6 * 60 + 52));
-        ASSERT_EQ(waiting_time, 0);
-        break;
-      }
-      case 2: {
-        // IC_FR_DA
-        ASSERT_EQ(feeder_light_conn._full_con->con_info->train_nr, IC_FR_DA);
-        ASSERT_EQ(feeder_light_conn.a_time,
-                  test_util::minutes_to_motis_time(6 * 60 + 54));
-        ASSERT_EQ(waiting_time, 3);
-        break;
-      }
-    }
-  }
+      &arriving_connections[0],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 24));
+  ASSERT_EQ(
+      &arriving_connections[1],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 25));
+  ASSERT_EQ(
+      &arriving_connections[1],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 29));
+  ASSERT_EQ(
+      &arriving_connections[3],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 30));
+  ASSERT_EQ(
+      &arriving_connections[3],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 31));
+  ASSERT_EQ(
+      &arriving_connections[4],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 50));
+  ASSERT_EQ(
+      &arriving_connections[4],
+      &graph_accessor::get_previous_light_connection(arriving_connections, 51));
 }
 
 TEST_F(reliability_graph_accessor, get_first_route_node) {
@@ -304,55 +153,59 @@ TEST_F(reliability_graph_accessor, get_light_connection) {
   edge route_edge;
   route_edge._m._type = edge::ROUTE_EDGE;
 
-  light_connection lc1(10);
   connection fc1;
   connection_info ci1;
   ci1.train_nr = 1;
   ci1.family = 1;
   fc1.con_info = &ci1;
-  lc1._full_con = &fc1;
+  light_connection lc1(10, 11, &fc1);
   route_edge._m._route_edge._conns.push_back(lc1);
 
-  light_connection lc2(20);
   connection fc2;
   connection_info ci2;
   ci2.train_nr = 2;
   ci2.family = 3;
   fc2.con_info = &ci2;
-  lc2._full_con = &fc2;
+  light_connection lc2(20, 21, &fc2);
   route_edge._m._route_edge._conns.push_back(lc2);
 
-  light_connection lc3(20);
   connection fc3;
   connection_info ci3;
   ci3.train_nr = 3;
   ci3.family = 2;
   fc3.con_info = &ci3;
-  lc3._full_con = &fc3;
+  light_connection lc3(20, 22, &fc3);
   route_edge._m._route_edge._conns.push_back(lc3);
 
-  light_connection lc4(20);
   connection fc4;
   connection_info ci4;
   ci4.train_nr = 2;
   ci4.family = 2;
+  ci4.line_identifier = "1";
   fc4.con_info = &ci4;
-  lc4._full_con = &fc4;
+  light_connection lc4(20, 23, &fc4);
   route_edge._m._route_edge._conns.push_back(lc4);
 
-  light_connection lc5(20);
   connection fc5;
   connection_info ci5;
   ci5.train_nr = 2;
   ci5.family = 2;
   fc5.con_info = &ci5;
-  lc5._full_con = &fc5;
+  light_connection lc5(20, 24, &fc5);
   route_edge._m._route_edge._conns.push_back(lc5);
 
-  auto lc = find_light_connection(route_edge, 20, 2, 2, "");
-  // index 3 is lc4
-  ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[3]);
-  ASSERT_EQ(lc.second, 3);
+  {
+    auto lc = find_light_connection(route_edge, 20, true, 2, 2, "1");
+    // index 3 is lc4
+    ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[3]);
+    ASSERT_EQ(lc.second, 3);
+  }
+  {
+    auto lc = find_light_connection(route_edge, 22, false, 2, 3, "");
+    // index 3 is lc4
+    ASSERT_EQ(lc.first, &route_edge._m._route_edge._conns[2]);
+    ASSERT_EQ(lc.second, 2);
+  }
 }
 
 TEST_F(reliability_graph_accessor3, walking_duration) {

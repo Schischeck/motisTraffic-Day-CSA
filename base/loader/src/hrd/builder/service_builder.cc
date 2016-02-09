@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
 

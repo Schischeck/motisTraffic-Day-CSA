@@ -1,5 +1,5 @@
 #include "motis/reliability/search/cg_search_context.h"
-#include "motis/reliability/tools/flatbuffers_tools.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 namespace motis {
 namespace reliability {
@@ -62,7 +62,7 @@ to_routing_request(connection_graph& conn_graph,
   auto const arrival_station =
       conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
 
-  auto msg = flatbuffers_tools::to_routing_request(
+  auto msg = flatbuffers::request_builder::to_routing_request(
       stop_station.first, stop_station.second, arrival_station.first,
       arrival_station.second, time_begin, time_end, true);
   return std::make_pair(msg, detail::context::journey_cache_key(

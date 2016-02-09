@@ -42,14 +42,14 @@ using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
 
 int main(int argc, char** argv) {
   boost::asio::io_service ios;
-  motis_instance instance(&ios);
+  motis_instance instance;
   ws_server websocket(ios, instance);
   http_server http(ios, instance);
   socket_server tcp(ios, instance);
 
   listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
-  dataset_settings dataset_opt("rohdaten", true, true, false, "TODAY", 2);
+  dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
       launcher_settings::SERVER,
       loader::transform_to_vec(
@@ -94,6 +94,7 @@ int main(int argc, char** argv) {
   try {
     instance.init_schedule(dataset_opt);
     instance.init_modules(launcher_opt.modules);
+    instance.set_io_service(&ios);
 
     if (listener_opt.listen_ws) {
       instance.set_send_fun([&websocket](msg_ptr msg, sid session) {

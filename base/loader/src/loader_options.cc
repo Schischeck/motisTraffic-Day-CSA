@@ -10,12 +10,13 @@ namespace loader {
 
 loader_options::loader_options(std::string default_dataset,
                                bool write_serialized, bool apply_rules,
-                               bool unique_check, std::string schedule_begin,
-                               int num_days)
+                               bool adjust_footpaths, bool unique_check,
+                               std::string schedule_begin, int num_days)
     : dataset(std::move(default_dataset)),
       write_serialized(write_serialized),
       unique_check(unique_check),
       apply_rules(apply_rules),
+      adjust_footpaths(adjust_footpaths),
       schedule_begin(schedule_begin),
       num_days(num_days) {}
 
