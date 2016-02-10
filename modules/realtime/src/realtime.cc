@@ -9,6 +9,7 @@
 
 #include "motis/protocol/RISMessage_generated.h"
 
+#include "motis/module/error.h"
 #include "motis/core/common/logging.h"
 #include "motis/realtime/error.h"
 #include "motis/realtime/handler/addition_handler.h"
@@ -348,7 +349,13 @@ void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
   MessageCreator b;
   auto delay_infos = rts_->_delay_info_manager.get_delay_info_delta();
   pack_delay_infos(b, delay_infos);
-  return dispatch(make_msg(b), 0, cb);
+  dispatch(make_msg(b), 0, [cb](msg_ptr msg, boost::system::error_code ec) {
+    if (ec == motis::module::error::no_module_capable_of_handling) {
+      return cb({}, error::ok);
+    } else {
+      return cb(msg, ec);
+    }
+  });
 }
 
 }  // namespace realtime
