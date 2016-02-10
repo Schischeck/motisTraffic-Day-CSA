@@ -66,6 +66,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_3 = find_edge(dep_edges, "1", "3");
     ASSERT_NE(nullptr, e_1_3);
+    EXPECT_EQ(std::string("8000068"), e_1_3->eva_nr()->str());
     ASSERT_EQ(2, e_1_3->availability()->size());
 
     auto e_1_a0 = e_1_3->availability()->Get(0);
@@ -80,10 +81,12 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_4 = find_edge(dep_edges, "1", "4");
     ASSERT_NE(nullptr, e_1_4);
+    EXPECT_EQ(std::string("8000068"), e_1_4->eva_nr()->str());
     ASSERT_EQ(2, e_1_4->availability()->size());
 
     auto e_2_3 = find_edge(dep_edges, "2", "3");
     ASSERT_NE(nullptr, e_2_3);
+    EXPECT_EQ(std::string("8000068"), e_2_3->eva_nr()->str());
     ASSERT_EQ(2, e_2_3->availability()->size());
 
     auto e_2_a0 = e_2_3->availability()->Get(0);
@@ -98,6 +101,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_2_4 = find_edge(dep_edges, "2", "4");
     ASSERT_NE(nullptr, e_2_4);
+    EXPECT_EQ(std::string("8000068"), e_2_4->eva_nr()->str());
     ASSERT_EQ(2, e_2_4->availability()->size());
   }
 
@@ -110,6 +114,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_3 = find_edge(arr_edges, "7", "5");
     ASSERT_NE(nullptr, e_1_3);
+    EXPECT_EQ(std::string("8000105"), e_1_3->eva_nr()->str());
     ASSERT_EQ(26, e_1_3->availability()->size());
 
     auto e_1_a0 = e_1_3->availability()->Get(0);
@@ -124,10 +129,12 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_4 = find_edge(arr_edges, "7", "6");
     ASSERT_NE(nullptr, e_1_4);
+    EXPECT_EQ(std::string("8000105"), e_1_4->eva_nr()->str());
     ASSERT_EQ(26, e_1_4->availability()->size());
 
     auto e_2_3 = find_edge(arr_edges, "8", "5");
     ASSERT_NE(nullptr, e_2_3);
+    EXPECT_EQ(std::string("8000105"), e_2_3->eva_nr()->str());
     ASSERT_EQ(26, e_2_3->availability()->size());
 
     auto e_2_a0 = e_2_3->availability()->Get(0);
@@ -142,6 +149,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_2_4 = find_edge(arr_edges, "8", "6");
     ASSERT_NE(nullptr, e_2_4);
+    EXPECT_EQ(std::string("8000105"), e_2_4->eva_nr()->str());
     ASSERT_EQ(26, e_2_4->availability()->size());
   }
 }
