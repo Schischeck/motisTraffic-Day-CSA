@@ -5,6 +5,7 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/schedule/edge_access.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/lookup/error.h"
@@ -43,28 +44,6 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
   return cb({}, error::not_implemented);
 }
 
-template <typename F>
-void foreach_departure_event_in(edge const& edge, time begin, time end, F fun) {
-  if (edge.type() != edge::ROUTE_EDGE) {
-    return;
-  }
-
-  auto const& conns = edge._m._route_edge._conns;
-  if (conns.size() == 0) {
-    return;
-  }
-
-  auto lb = std::lower_bound(std::begin(conns), std::end(conns),
-                             light_connection(begin));
-  auto ub = std::upper_bound(std::begin(conns), std::end(conns),
-                             light_connection(end));
-
-  // TODO only one binary search
-  for (auto it = lb; it != ub; std::advance(it, 1)) {
-    fun(*it);
-  }
-}
-
 station_node* find_station_node(schedule const& sched,
                                 std::string const& eva_nr) {
   auto it = sched.eva_to_station.find(eva_nr);
@@ -87,45 +66,61 @@ void lookup::lookup_station_events(LookupStationEventsRequest const* req,
   MessageCreator b;
   std::vector<Offset<Event>> events;
   for (auto const& route_node : station_node->get_route_nodes()) {
-    // TODO incomming edges
+    for (auto const& edge : route_node->_incoming_edges) {
+      foreach_arrival_in(*edge, begin, end, [&](light_connection const& lcon) {
+        auto const& info = *lcon._full_con->con_info;
+        auto a_time = motis_to_unixtime(sched_begin, lcon.a_time);
+
+        events.push_back(
+            CreateEvent(b, EventType_Arrival, info.train_nr, a_time));
+      });
+    }
 
     for (auto const& edge : route_node->_edges) {
-      foreach_departure_event_in(
-          edge, begin, end, [&](light_connection const& lcon) {
-            auto const& info = *lcon._full_con->con_info;
-            auto d_time = motis_to_unixtime(sched_begin, lcon.d_time);
+      foreach_departure_in(edge, begin, end, [&](light_connection const& lcon) {
+        auto const& info = *lcon._full_con->con_info;
+        auto d_time = motis_to_unixtime(sched_begin, lcon.d_time);
 
-            events.push_back(
-                CreateEvent(b, EventType_Departure, info.train_nr, d_time));
-          });
+        events.push_back(
+            CreateEvent(b, EventType_Departure, info.train_nr, d_time));
+      });
     }
   };
 
   b.CreateAndFinish(
       MsgContent_LookupStationEventsResponse,
       CreateLookupStationEventsResponse(b, b.CreateVector(events)).Union());
-
   return cb(make_msg(b), error::ok);
 }
 
 std::pair<int, int> get_route_id_and_position(station_node const* node,
                                               uint32_t train_nr, time t,
                                               bool is_departure) {
-  if (!is_departure) {
-    throw boost::system::system_error(error::not_implemented);
-  }
-
-  for (auto const& rn : node->get_route_nodes()) {
-    for (auto const& e : rn->_edges) {
-      if (e.type() != edge::ROUTE_EDGE) {
-        continue;
+  if (is_departure) {
+    for (auto const& rn : node->get_route_nodes()) {
+      for (auto const& e : rn->_edges) {
+        if (e.type() != edge::ROUTE_EDGE) {
+          continue;
+        }
+        auto c = e.get_connection(t);
+        if (c == nullptr || c->_full_con->con_info->train_nr != train_nr) {
+          continue;
+        }
+        return {rn->_route, std::distance(begin(e._m._route_edge._conns), c)};
       }
-      auto conn = e.get_connection(t);
-      if (conn == nullptr || conn->_full_con->con_info->train_nr != train_nr) {
-        continue;
+    }
+  } else {
+    for (auto const& rn : node->get_route_nodes()) {
+      for (auto const& e : rn->_incoming_edges) {
+        if (e->type() != edge::ROUTE_EDGE) {
+          continue;
+        }
+        auto c = e->get_connection_reverse(t);
+        if (c == nullptr || c->_full_con->con_info->train_nr != train_nr) {
+          continue;
+        }
+        return {rn->_route, std::distance(begin(e->_m._route_edge._conns), c)};
       }
-
-      return {rn->_route, std::distance(begin(e._m._route_edge._conns), conn)};
     }
   }
 
@@ -151,7 +146,8 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
   auto t = unix_to_motistime(sched_begin, req->time());
 
   auto route =
-      get_route_id_and_position(station_node, req->train_nr(), t, true);
+      get_route_id_and_position(station_node, req->train_nr(), t,
+                                req->event_type() == EventType_Departure);
 
   int i = 0;
   journey j;
