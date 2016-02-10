@@ -6,6 +6,6 @@ table LookupTrainRequest {
   eva_nr: string;
   train_nr: uint;
   line_identifier: string; // TODO
-  event_type: EventType; // TODO currently only departure supported
+  event_type: EventType;
   time: ulong;
 }
