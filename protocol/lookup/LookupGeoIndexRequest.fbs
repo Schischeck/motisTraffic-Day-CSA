@@ -1,4 +1,4 @@
-namespace motis.intermodal;
+namespace motis.lookup;
 
 table RequestCoordinates {
   lat: double;
@@ -9,7 +9,7 @@ table RequestCoordinates {
 // JSON example:
 // --
 // {
-//   "content_type": "IntermodalGeoIndexRequest",
+//   "content_type": "LookupGeoIndexRequest",
 //   "content": {
 //     "coordinates": [
 //       {
@@ -25,6 +25,6 @@ table RequestCoordinates {
 //     ]
 //   }
 // }
-table IntermodalGeoIndexRequest {
+table LookupGeoIndexRequest {
   coordinates: [RequestCoordinates];
 }

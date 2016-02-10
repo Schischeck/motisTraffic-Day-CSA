@@ -1,4 +1,4 @@
-namespace motis.intermodal;
+namespace motis.lookup;
 
 table Station {
   name: string;
@@ -11,6 +11,6 @@ table StationList {
   stations: [Station];
 }
 
-table IntermodalGeoIndexResponse {
+table LookupGeoIndexResponse {
   coordinates: [StationList];
 }

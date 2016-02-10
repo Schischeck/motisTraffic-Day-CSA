@@ -2,6 +2,8 @@ include "bikesharing/BikesharingRequest.fbs";
 include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
+include "lookup/LookupGeoIndexRequest.fbs";
+include "lookup/LookupGeoIndexResponse.fbs";
 include "lookup/LookupStationEventsRequest.fbs";
 include "lookup/LookupStationEventsResponse.fbs";
 include "lookup/LookupTrainRequest.fbs";
@@ -37,8 +39,7 @@ include "realtime/RealtimeDelayInfoRequest.fbs";
 include "realtime/RealtimeDelayInfoResponse.fbs";
 include "intermodal/IntermodalRoutingRequest.fbs";
 include "intermodal/IntermodalRoutingResponse.fbs";
-include "intermodal/IntermodalGeoIndexRequest.fbs";
-include "intermodal/IntermodalGeoIndexResponse.fbs";
+
 include "HTTPMessage.fbs";
 
 namespace motis;
@@ -77,6 +78,8 @@ union MsgContent {
   motis.bikesharing.BikesharingResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
+  motis.lookup.LookupGeoIndexRequest,
+  motis.lookup.LookupGeoIndexResponse,
   motis.lookup.LookupStationEventsRequest,
   motis.lookup.LookupStationEventsResponse,
   motis.lookup.LookupTrainRequest,
@@ -108,8 +111,6 @@ union MsgContent {
   motis.realtime.RealtimeDelayInfoResponse,
   motis.intermodal.IntermodalRoutingRequest,
   motis.intermodal.IntermodalRoutingResponse,
-  motis.intermodal.IntermodalGeoIndexRequest,
-  motis.intermodal.IntermodalGeoIndexResponse
 }
 
 table Message {

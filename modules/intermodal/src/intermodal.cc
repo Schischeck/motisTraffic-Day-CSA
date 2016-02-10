@@ -29,7 +29,10 @@ constexpr T identity(T&& v) {
 
 struct intermodal::impl {
   explicit impl(std::vector<station_ptr> const& stations)
-      : station_index_(stations) {}
+      : station_index_(stations) {
+    static_assert(false,
+                  "TODO remove this geo index since it has moved to lookup");
+  }
 
   std::vector<std::vector<coordinate>> reachable(coordinate const& pos) const {
     auto const station_to_coordinates = [](station const* s) {

@@ -5,18 +5,49 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/core/schedule/edge_access.h"
+#include "motis/core/common/util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/schedule/edge_access.h"
+#include "motis/loader/util.h"
 #include "motis/lookup/error.h"
+#include "motis/lookup/station_geo_index.h"
 #include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
 namespace po = boost::program_options;
+using motis::loader::transform_to_vec;
 
 namespace motis {
 namespace lookup {
+
+struct coordinate {
+  double lat, lng;
+};
+
+template <typename T>
+constexpr T identity(T&& v) {
+  return std::forward<T>(v);
+}
+
+struct lookup::impl {
+  explicit impl(std::vector<station_ptr> const& stations)
+      : station_index_(stations) {}
+
+  template <typename F>
+  std::vector<typename std::result_of<F(station const*)>::type> close_stations(
+      double const lat, double const lng, double const radius,
+      F func = identity) const {
+    auto stations = station_index_.stations(lat, lng, radius);
+    return transform_to_vec(begin(stations), end(stations), func);
+  }
+
+  station_geo_index station_index_;
+};
+
+lookup::lookup() = default;
+lookup::~lookup() = default;
 
 po::options_description lookup::desc() {
   po::options_description desc("lookup Module");
@@ -25,23 +56,31 @@ po::options_description lookup::desc() {
 
 void lookup::print(std::ostream&) const {}
 
-void lookup::init() {}
+void lookup::init() {
+  impl_ = make_unique<impl>(synced_sched<RO>().sched().stations);
+}
 
 void lookup::on_msg(msg_ptr msg, sid, callback cb) {
   try {
     auto type = msg->content_type();
-    if (type == MsgContent_LookupStationEventsRequest) {
-      auto req = msg->content<LookupStationEventsRequest const*>();
-      return lookup_station_events(req, cb);
-    } else if (type == MsgContent_LookupTrainRequest) {
-      auto req = msg->content<LookupTrainRequest const*>();
-      return lookup_train(req, cb);
+    switch (type) {
+      case MsgContent_LookupGeoIndexRequest: {
+        auto req = msg->content<LookupGeoIndexRequest const*>();
+        return lookup_station(req, cb);
+      }
+      case MsgContent_LookupStationEventsRequest: {
+        auto req = msg->content<LookupStationEventsRequest const*>();
+        return lookup_station_events(req, cb);
+      }
+      case MsgContent_LookupTrainRequest: {
+        auto req = msg->content<LookupTrainRequest const*>();
+        return lookup_train(req, cb);
+      }
+      default: return cb({}, error::not_implemented);
     }
   } catch (boost::system::system_error const& e) {
     return cb({}, e.code());
   }
-
-  return cb({}, error::not_implemented);
 }
 
 station_node* find_station_node(schedule const& sched,
@@ -210,6 +249,27 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
   b.CreateAndFinish(MsgContent_LookupTrainResponse,
                     CreateLookupTrainResponse(b, to_connection(b, j)).Union());
   cb(make_msg(b), error::ok);
+}
+
+void lookup::lookup_station(LookupGeoIndexRequest const* req, callback cb) {
+  MessageCreator fbb;
+  auto const storeStation = [&fbb](station const* s) {
+    return CreateStation(fbb, fbb.CreateString(s->name),
+                         fbb.CreateString(s->eva_nr), s->width, s->length);
+  };
+
+  std::vector<Offset<StationList>> list;
+  for (auto const& c : *req->coordinates()) {
+    list.push_back(CreateStationList(
+        fbb, fbb.CreateVector(impl_->close_stations(
+                 c->lat(), c->lng(), c->radius(), storeStation))));
+  }
+
+  fbb.CreateAndFinish(
+      MsgContent_LookupGeoIndexResponse,
+      CreateLookupGeoIndexResponse(fbb, fbb.CreateVector(list)).Union());
+
+  return cb(make_msg(fbb), error::ok);
 }
 
 }  // namespace lookup
