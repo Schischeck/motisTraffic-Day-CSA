@@ -1,5 +1,8 @@
 #include "motis/ris/ris.h"
 
+#include <ctime>
+#include <functional>
+
 #include "boost/algorithm/string/predicate.hpp"
 #include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
@@ -139,8 +142,11 @@ void ris::init_async() {
     schedule_update(error_code());
   }
 
-  if (mode_ == mode::SIMULATION) {
-    forward_time(simulation_start_time_);
+  std::cout << "simulation_start_time" << simulation_start_time_ << "-"
+            << std::endl;
+  if (mode_ == mode::SIMULATION && simulation_start_time_ != 0) {
+    forward_time(simulation_start_time_,
+                 [](msg_ptr, boost::system::error_code) {});
   }
 }
 
@@ -167,15 +173,67 @@ void ris::handle_forward_time(msg_ptr msg, callback cb) {
   }
 
   auto req = msg->content<RISForwardTimeRequest const*>();
-  forward_time(req->new_time());
-
-  return cb({}, boost::system::error_code());
+  return forward_time(req->new_time(), cb);
 }
 
-void ris::forward_time(std::time_t new_time) {
-  dispatch(pack(db_get_messages(simulation_time_, new_time)));
-  simulation_time_ = new_time;
-  LOG(info) << "RIS forwarded time to " << new_time;
+void ris::forward_time(std::time_t end_time, callback finished_cb) {
+  auto start_time =
+      (simulation_time_ == 0) ? db_get_forward_start_time() : simulation_time_;
+  if (start_time == kDBInvalidTimestamp) {
+    finished_cb({}, error::ok);
+  }
+
+  struct processor {
+    void process(std::shared_ptr<processor> self,
+                 boost::system::error_code ec) {
+      if (ec) {
+        module->simulation_time_ = curr_time;
+        LOG(info) << "RIS forwarding failed " << ec.message();
+        return finished_cb({}, ec);
+      }
+
+      curr_time = next_time;
+      next_time = std::min(curr_time + 3600, end_time);
+      if (next_time == curr_time) {
+        module->simulation_time_ = curr_time;
+        LOG(info) << "RIS forwarded time to " << to_string(curr_time);
+        return finished_cb({}, error::ok);
+      }
+
+      LOG(info) << "RIS forwarding time to " << to_string(next_time);
+      namespace p = std::placeholders;
+
+      manual_timer t{"database io"};
+      auto packed_msgs = pack(db_get_messages(curr_time, next_time));
+      t.stop_and_print();
+
+      return module->dispatch(packed_msgs, 0,
+                             std::bind(&processor::process, this, self, p::_2));
+    };
+
+    std::string to_string(std::time_t time) const {
+      char buf[sizeof "2011-10-08t07:07:09z-0430"];
+      strftime(buf, sizeof buf, "%FT%TZ%z", gmtime(&time));
+      return buf;
+    }
+
+    std::time_t start_time, end_time;
+    std::time_t curr_time, next_time;
+
+    ris* module;
+
+    callback finished_cb;
+  };
+
+  auto proc = std::make_shared<processor>();
+  proc->start_time = start_time;
+  proc->end_time = end_time;
+  proc->curr_time = start_time;
+  proc->next_time = start_time;
+  proc->finished_cb = finished_cb;
+  proc->module = this;
+
+  proc->process(proc, error::ok);
 }
 
 void ris::handle_zipfile_upload(msg_ptr msg, callback cb) {

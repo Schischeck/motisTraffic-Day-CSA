@@ -35,9 +35,15 @@ CREATE TABLE IF NOT EXISTS ris_message (
 );
 )sql";
 
-constexpr char const* kCreateIdxMessage = R"sql(
+constexpr char const* kCreateFullIdxMessage = R"sql(
 CREATE INDEX IF NOT EXISTS ris_message_idx ON ris_message (
   scheduled ASC,
+  timestamp ASC
+);
+)sql";
+
+constexpr char const* kCreateTimestampIdxMessage = R"sql(
+CREATE INDEX IF NOT EXISTS ris_message_timestamp_idx ON ris_message (
   timestamp ASC
 );
 )sql";
@@ -65,7 +71,7 @@ db_ptr default_db() {
 void db_init(db_ptr const& db) {
   db->execute(db::kCreateTabFile);
   db->execute(db::kCreateTabMessage);
-  db->execute(db::kCreateIdxMessage);
+  db->execute(db::kCreateFullIdxMessage);
 }
 
 std::set<std::string> db_get_files(db_ptr const& db) {
@@ -101,6 +107,17 @@ void db_put_messages(std::string const& filename,
   }
 
   db->commit_transaction();
+}
+
+std::time_t db_get_forward_start_time(db_ptr const& db) {
+  db::ris_message::ris_message m;
+  auto result = (*db)(select(min(m.timestamp)).from(m).where(true));
+
+  if (result.empty() || result.front().min.is_null()) {
+    return kDBInvalidTimestamp;
+  }
+
+  return result.front().min - 1;
 }
 
 std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from,

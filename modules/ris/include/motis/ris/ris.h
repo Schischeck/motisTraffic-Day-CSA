@@ -28,9 +28,9 @@ struct ris : public motis::module::module {
   std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RISForwardTimeRequest, MsgContent_HTTPRequest};
   }
+
   void on_msg(motis::module::msg_ptr, motis::module::sid,
               motis::module::callback) override;
-
   void handle_forward_time(motis::module::msg_ptr msg,
                            motis::module::callback cb);
   void handle_zipfile_upload(motis::module::msg_ptr msg,
@@ -43,7 +43,7 @@ private:
   void parse_zips();
   std::vector<std::string> get_new_files();
 
-  void forward_time(std::time_t new_time);
+  void forward_time(std::time_t new_time, motis::module::callback finished_cb);
 
   mode mode_;
   int update_interval_;
