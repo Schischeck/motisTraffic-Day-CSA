@@ -1,6 +1,6 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/reliability/tools/hotels.h"
+#include "motis/reliability/intermodal/hotels.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -244,7 +244,7 @@ module::msg_ptr to_reliable_late_connections_request(
 /* convert routing::RoutingRequest to Offset<RoutingRequest> */
 module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const* request,
-    std::vector<hotels::hotel_info> const& hotel_infos) {
+    std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
   detail::request_builder builder(request);
   builder.type_ = Type::Type_LateConnection;
@@ -276,21 +276,6 @@ module::msg_ptr to_routing_late_connections_message(
   }
 
   return builder.build_routing_request();
-}
-
-module::msg_ptr to_bikesharing_request(double const departure_lat,
-                                       double const departure_lng,
-                                       double const arrival_lat,
-                                       double const arrival_lng,
-                                       time_t window_begin, time_t window_end) {
-  module::MessageCreator fb;
-  fb.CreateAndFinish(
-      MsgContent_BikesharingRequest,
-      bikesharing::CreateBikesharingRequest(
-          fb, departure_lat, departure_lng, arrival_lat, arrival_lng,
-          window_begin, window_end, bikesharing::AvailabilityAggregator_Average)
-          .Union());
-  return module::make_msg(fb);
 }
 
 }  // namespace request_builder

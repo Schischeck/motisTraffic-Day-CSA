@@ -8,8 +8,10 @@
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
 namespace hotels {
 struct hotel_info;
+}
 }
 namespace flatbuffers {
 namespace request_builder {
@@ -64,14 +66,7 @@ module::msg_ptr to_reliable_late_connections_request(
 
 module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const*,
-    std::vector<hotels::hotel_info> const& hotel_infos);
-
-module::msg_ptr to_bikesharing_request(double const departure_lat,
-                                       double const departure_lng,
-                                       double const arrival_lat,
-                                       double const arrival_lng,
-                                       std::time_t window_begin,
-                                       std::time_t window_end);
+    std::vector<intermodal::hotels::hotel_info> const& hotel_infos);
 
 }  // namespace request_builder
 }  // namespace flatbuffers

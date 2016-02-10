@@ -5,6 +5,7 @@
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
 namespace hotels {
 struct hotel_info {
   hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
@@ -23,5 +24,6 @@ struct hotel_info {
 std::vector<hotel_info> parse_hotels(std::string const file_path);
 
 }  // namespace hotels
+}  // namespace intermodal
 }  // namespace reliability
 }  // namespace motis

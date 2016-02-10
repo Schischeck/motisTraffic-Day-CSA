@@ -1,9 +1,10 @@
-#include "motis/reliability/tools/hotels.h"
+#include "motis/reliability/intermodal/hotels.h"
 
 #include "parser/csv.h"
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
 namespace hotels {
 
 std::vector<hotel_info> parse_hotels(std::string const file_path) {
@@ -23,5 +24,6 @@ std::vector<hotel_info> parse_hotels(std::string const file_path) {
 }
 
 }  // namespace hotels
+}  // namespace intermodal
 }  // namespace reliability
 }  // namespace motis
