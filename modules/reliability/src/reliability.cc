@@ -17,8 +17,7 @@
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
-#include "motis/reliability/rating/connection_rating.h"
-#include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/realtime/realtime_update.h"
 #include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
@@ -183,34 +182,20 @@ void reliability::handle_realtime_update(
 void reliability::handle_routing_response(msg_ptr msg,
                                           boost::system::error_code e,
                                           callback cb) {
-  if (e) {
-    return cb(nullptr, e);
-  }
-  auto lock = synced_sched();
-  auto& schedule = lock.sched();
-  auto res = msg->content<routing::RoutingResponse const*>();
-  std::vector<rating::connection_rating> ratings(res->connections()->size());
-  std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
-      res->connections()->size());
-  unsigned int rating_index = 0;
-  auto const journeys = message_to_journeys(res);
-  try {
-    for (auto const& j : journeys) {
-      rating::rate(
-          ratings[rating_index], j,
-          context(schedule, *precomputed_distributions_, *s_t_distributions_));
-      rating::simple_rating::rate(simple_ratings[rating_index], j, schedule,
-                                  *s_t_distributions_);
-      ++rating_index;
+  if (!e) {
+    auto lock = synced_sched();
+    auto res = msg->content<routing::RoutingResponse const*>();
+    try {
+      return cb(rating::rate_routing_response(
+                    *res, ::motis::reliability::context(
+                              lock.sched(), *precomputed_distributions_,
+                              *s_t_distributions_)),
+                error::ok);
+    } catch (std::exception& e) {
+      std::cout << e.what() << std::endl;
     }
-  } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
-    return cb(nullptr, error::failure);
   }
-
-  cb(flatbuffers::response_builder::to_reliability_rating_response(
-         res, ratings, simple_ratings, true /* short output */),
-     error::ok);
+  return cb(nullptr, e != nullptr ? e : error::failure);
 }
 
 void reliability::handle_connection_graph_result(
