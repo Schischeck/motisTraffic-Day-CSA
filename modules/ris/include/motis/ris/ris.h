@@ -43,10 +43,13 @@ private:
   void parse_zips();
   std::vector<std::string> get_new_files();
 
+  void forward_time(std::time_t new_time);
+
   mode mode_;
   int update_interval_;
   std::string zip_folder_;
   int max_days_;
+  std::time_t simulation_start_time_;
 
   std::time_t simulation_time_;
   std::unique_ptr<boost::asio::deadline_timer> timer_;

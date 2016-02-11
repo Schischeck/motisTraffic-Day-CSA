@@ -13,10 +13,15 @@ table BikesharingTerminal {
   name: string;
 }
 
+// if departure: loc -(walk)> from -(bike)> to -(walk)> eva
+// if arrival: eva -(walk)> from -(bike)> to -(walk)> loc
 table BikesharingEdge {
   from: BikesharingTerminal;
   to: BikesharingTerminal;
   availability: [BikesharingAvailability];
+  eva_nr:string;
+  walk_duration: ulong; // sum of the two walks
+  bike_duration: ulong;
 }
 
 table BikesharingResponse {

@@ -25,6 +25,8 @@ struct bikesharing_search::impl {
 
     persistable_terminal* from;
     persistable_terminal* to;
+
+    std::string eva_nr;
   };
 
   struct context {
@@ -73,11 +75,16 @@ struct bikesharing_search::impl {
             auto to_t = load_terminal(ctx, reachable_t->id()->str());
 
             for (auto const& station : *to_t->get()->attached()) {
-              auto a = get_availability(from_t->get(), begin, end, first_bucket,
-                                        req->availability_aggregator());
-              bike_edge e{walk_dur + station->duration(),
-                          reachable_t->duration(), a, from_t, to_t};
-              departures.emplace(id, e);
+              auto availability =
+                  get_availability(from_t->get(), begin, end, first_bucket,
+                                   req->availability_aggregator());
+              bike_edge edge{walk_dur + station->duration(),
+                             reachable_t->duration(),
+                             availability,
+                             from_t,
+                             to_t,
+                             station->id()->str()};
+              departures.emplace(id, edge);
             }
           }
         });
@@ -100,11 +107,16 @@ struct bikesharing_search::impl {
             auto from_t = load_terminal(ctx, reachable_t->id()->str());
 
             for (auto const& station : *from_t->get()->attached()) {
-              auto a = get_availability(from_t->get(), begin, end, first_bucket,
-                                        req->availability_aggregator());
-              bike_edge e{walk_dur + station->duration(),
-                          reachable_t->duration(), a, from_t, to_t};
-              arrivals.emplace(id, e);
+              auto availability =
+                  get_availability(from_t->get(), begin, end, first_bucket,
+                                   req->availability_aggregator());
+              bike_edge edge{walk_dur + station->duration(),
+                             reachable_t->duration(),
+                             availability,
+                             from_t,
+                             to_t,
+                             station->id()->str()};
+              arrivals.emplace(id, edge);
             }
           }
         });
@@ -168,7 +180,9 @@ struct bikesharing_search::impl {
       auto to = serialize_terminal(ctx, edge.to);
 
       stored.push_back(CreateBikesharingEdge(
-          ctx.b, from, to, ctx.b.CreateVectorOfStructs(edge.availability)));
+          ctx.b, from, to, ctx.b.CreateVectorOfStructs(edge.availability),
+          ctx.b.CreateString(edge.eva_nr), edge.walk_duration,
+          edge.bike_duration));
     }
     return ctx.b.CreateVector(stored);
   }
