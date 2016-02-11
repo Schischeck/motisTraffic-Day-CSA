@@ -206,6 +206,10 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
       d_stop.lat = station->lat();
       d_stop.lng = station->lng();
 
+      journey::stop::event_info arr;
+      arr.valid = false;
+      d_stop.arrival = arr;
+
       j.stops.push_back(d_stop);
     }
 
@@ -244,6 +248,11 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     route_node = route_edge->get_destination();
     route_edge = get_outgoing_route_edge(route_node);
   }
+
+  journey::stop::event_info dep;
+  dep.valid = false;
+  j.stops.back().departure = dep;
+
 
   MessageCreator b;
   b.CreateAndFinish(MsgContent_LookupTrainResponse,
