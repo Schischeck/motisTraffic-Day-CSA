@@ -36,13 +36,6 @@ struct reliability : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-  void handle_routing_request(
-      motis::reliability::ReliableRoutingRequest const* req,
-      motis::module::sid session_id, motis::module::callback cb);
-  void handle_realtime_update(
-      motis::realtime::RealtimeDelayInfoResponse const* update,
-      motis::module::callback cb);
-
   distributions_container::container const& precomputed_distributions() const {
     return *precomputed_distributions_;
   }
@@ -64,6 +57,12 @@ private:
   std::unique_ptr<distributions_container::container>
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
+
+  void handle_realtime_update(motis::realtime::RealtimeDelayInfoResponse const*,
+                              motis::module::callback);
+
+  void handle_routing_request(ReliableRoutingRequest const*, motis::module::sid,
+                              motis::module::callback);
 
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,

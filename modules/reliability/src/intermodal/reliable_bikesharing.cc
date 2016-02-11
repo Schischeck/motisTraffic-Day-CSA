@@ -35,7 +35,6 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
                           std::string(edge->to()->name()->c_str()))});
     }
   }
-
   return infos;
 }
 

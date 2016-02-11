@@ -5,14 +5,14 @@ namespace motis.reliability;
 table RatingReq { }
 
 table ReliableSearchReq {
-  min_departure_diff:short;
+  min_departure_diff: short;
 }
 
 table LateConnectionReq { }
 
 table ConnectionTreeReq {
-  num_alternatives_at_each_stop:short;
-  min_departure_diff:short;
+  num_alternatives_at_each_stop: short;
+  min_departure_diff: short;
 }
 
 union RequestOptions {
@@ -23,16 +23,10 @@ union RequestOptions {
 }
 
 table RequestOptionsWrapper {
-  request_options:RequestOptions;
-}
-
-struct IndividualModes {
-  bikesharing:bool;
-  taxi:bool;
+  request_options: RequestOptions;
 }
 
 table ReliableRoutingRequest {
-  request:motis.routing.RoutingRequest;
-  request_type:RequestOptionsWrapper;
-  individual_modes:IndividualModes;
+  request: motis.routing.RoutingRequest;
+  request_type: RequestOptionsWrapper;
 }

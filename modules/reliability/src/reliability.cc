@@ -208,18 +208,9 @@ void reliability::handle_connection_graph_result(
 }
 
 void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
-                                                boost::system::error_code,
+                                                boost::system::error_code e,
                                                 motis::module::callback cb) {
-  auto res = msg->content<routing::RoutingResponse const*>();
-  auto const journeys = message_to_journeys(res);
-  auto lock = synced_sched();
-  auto& sched = lock.sched();
-  std::cout << "\n\n\nJourneys found:\n\n";
-  for (auto const& j : journeys) {
-    print_journey(j, sched.schedule_begin_, std::cout);
-    std::cout << std::endl;
-  }
-  return cb(msg, error::ok);
+  return cb(msg, e);
 }
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {

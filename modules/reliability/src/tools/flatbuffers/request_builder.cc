@@ -75,7 +75,8 @@ msg_ptr request_builder::build_routing_request() {
   return module::make_msg(b_);
 }
 
-msg_ptr request_builder::build_reliable_search_request(short const min_dep_diff) {
+msg_ptr request_builder::build_reliable_search_request(
+    short const min_dep_diff) {
   auto opts = reliability::CreateRequestOptionsWrapper(
       b_, reliability::RequestOptions_ReliableSearchReq,
       reliability::CreateReliableSearchReq(b_, min_dep_diff).Union());
@@ -108,10 +109,9 @@ msg_ptr request_builder::build_connection_tree_request(
 
 msg_ptr request_builder::build_reliable_request(
     Offset<RequestOptionsWrapper> const& options) {
-  IndividualModes modes(false, false);
   b_.CreateAndFinish(MsgContent_ReliableRoutingRequest,
                      reliability::CreateReliableRoutingRequest(
-                         b_, create_routing_request(), options, &modes)
+                         b_, create_routing_request(), options)
                          .Union());
   return module::make_msg(b_);
 }
