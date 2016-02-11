@@ -1,8 +1,19 @@
 namespace motis.routing;
 
 table StationPathElement {
-  name : string;
-  eva_nr : string;
+  name:string;
+  eva_nr:string;
+}
+
+table CoordinatesPathElement {
+  lat:double;
+  lon:double;
+}
+
+union LocationPathElement { StationPathElement, CoordinatesPathElement }
+
+table LocationPathElementWrapper {
+  element: LocationPathElement;
 }
 
 enum Type : byte { PreTrip, OnTrip, LateConnection }
@@ -78,6 +89,6 @@ table RoutingRequest {
   interval:Interval;
   type:Type = PreTrip;
   direction:Direction = Forward;
-  path:[StationPathElement];
+  path:[LocationPathElementWrapper];
   additional_edges:[AdditionalEdgeWrapper];
 }

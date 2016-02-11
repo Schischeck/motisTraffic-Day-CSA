@@ -46,9 +46,9 @@ void handle_bikesharing_response(
   }
   auto const* response =
       msg->content<::motis::bikesharing::BikesharingResponse const*>();
-  return cb(std::make_pair(
+  return cb(bikesharing_infos{
       to_bikesharing_infos(response->departure_edges(), aggregator),
-      to_bikesharing_infos(response->arrival_edges(), aggregator)));
+      to_bikesharing_infos(response->arrival_edges(), aggregator)});
 }
 }  // namespace detail
 
@@ -73,6 +73,26 @@ module::msg_ptr to_bikesharing_request(
                          arrival_lng, window_begin, window_end, aggregator)
                          .Union());
   return module::make_msg(fb);
+}
+
+module::msg_ptr to_bikesharing_request(
+    routing::RoutingRequest const* req,
+    motis::bikesharing::AvailabilityAggregator aggregator) {
+  if (req->path()->size() != 2 ||
+      req->path()->Get(0)->element_type() !=
+          routing::LocationPathElement_CoordinatesPathElement ||
+      req->path()->Get(1)->element_type() !=
+          routing::LocationPathElement_CoordinatesPathElement) {
+    throw boost::system::system_error(boost::system::error_code());
+  }
+  auto start = reinterpret_cast<routing::CoordinatesPathElement const*>(
+      req->path()->Get(0)->element());
+  auto destination = reinterpret_cast<routing::CoordinatesPathElement const*>(
+      req->path()->Get(0)->element());
+
+  return to_bikesharing_request(start->lat(), start->lon(), destination->lat(),
+                                destination->lon(), req->interval()->begin(),
+                                req->interval()->end(), aggregator);
 }
 
 }  // namespace bikesharing

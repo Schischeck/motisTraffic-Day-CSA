@@ -26,7 +26,13 @@ table RequestOptionsWrapper {
   request_options: RequestOptions;
 }
 
+struct IndividualModes {
+  bikesharing: bool;
+  taxi: bool;
+}
+
 table ReliableRoutingRequest {
   request: motis.routing.RoutingRequest;
   request_type: RequestOptionsWrapper;
+  individual_modes: IndividualModes;
 }

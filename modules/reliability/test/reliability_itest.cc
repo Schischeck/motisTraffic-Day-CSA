@@ -155,6 +155,7 @@ TEST_F(reliability_test_rating, rating_request) {
                                    (motis::time)(11 * 60 + 32))
                      .build_rating_request();
   auto msg = test::send(motis_instance_, req_msg);
+  ASSERT_NE(nullptr, msg);
 
   auto response = msg->content<ReliabilityRatingResponse const*>();
   ASSERT_EQ(1, response->response()->connections()->size());

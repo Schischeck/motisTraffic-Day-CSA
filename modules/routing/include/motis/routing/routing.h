@@ -27,7 +27,7 @@ struct routing : public motis::module::module {
 private:
   typedef std::function<void(arrival, boost::system::error_code)> path_el_cb;
 
-  void read_path_element(StationPathElement const* el, path_el_cb);
+  void read_path_element(LocationPathElementWrapper const* el, path_el_cb);
 
   void handle_station_guess(motis::module::msg_ptr, boost::system::error_code,
                             path_el_cb);

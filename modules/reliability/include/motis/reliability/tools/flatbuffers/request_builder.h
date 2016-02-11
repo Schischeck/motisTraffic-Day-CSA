@@ -22,6 +22,8 @@ struct request_builder {
 
   request_builder& add_station(std::string const& name, std::string const& eva);
 
+  request_builder& add_coordinates(double const& lat, double const& lon);
+
   request_builder& set_interval(std::time_t const begin, std::time_t const end);
 
   request_builder& set_interval(std::tuple<int, int, int> const ddmmyyyy,
@@ -46,7 +48,7 @@ struct request_builder {
   module::MessageCreator b_;
   routing::Type type_;
   routing::Direction direction_;
-  std::vector<::flatbuffers::Offset<routing::StationPathElement>> stations_;
+  std::vector<::flatbuffers::Offset<routing::LocationPathElementWrapper>> path_;
   std::time_t interval_begin_, interval_end_;
   std::vector<::flatbuffers::Offset<routing::AdditionalEdgeWrapper>>
       additional_edges_;

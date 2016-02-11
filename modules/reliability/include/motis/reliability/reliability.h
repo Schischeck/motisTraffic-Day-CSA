@@ -19,6 +19,11 @@ namespace reliability {
 namespace search {
 struct connection_graph;
 }
+namespace intermodal {
+namespace bikesharing {
+struct bikesharing_infos;
+}
+}
 
 struct reliability : public motis::module::module {
   reliability();
@@ -61,8 +66,14 @@ private:
   void handle_realtime_update(motis::realtime::RealtimeDelayInfoResponse const*,
                               motis::module::callback);
 
-  void handle_routing_request(ReliableRoutingRequest const*, motis::module::sid,
-                              motis::module::callback);
+  void handle_routing_request(motis::reliability::ReliableRoutingRequest const*,
+                              motis::module::sid, motis::module::callback);
+
+  void handle_routing_request_helper(
+      ReliableRoutingRequest const*,
+      motis::reliability::intermodal::bikesharing::bikesharing_infos
+          bikesharing_infos,
+      motis::module::sid, motis::module::callback);
 
   void handle_routing_response(motis::module::msg_ptr,
                                boost::system::error_code,
@@ -71,10 +82,6 @@ private:
   void handle_connection_graph_result(
       std::vector<std::shared_ptr<search::connection_graph> > const,
       motis::module::callback cb);
-
-  void handle_late_connection_result(motis::module::msg_ptr,
-                                     boost::system::error_code,
-                                     motis::module::callback);
 };
 }  // namespace reliability
 }  // namespace motis

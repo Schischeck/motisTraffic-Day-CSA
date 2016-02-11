@@ -38,8 +38,7 @@ TEST_F(reliability_bikesharing, test_request) {
   ASSERT_EQ(4, response->arrival_edges()->size());
 }
 
-void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
-                                      std::vector<bikesharing_info>> infos,
+void test_bikesharing_infos(bikesharing_infos infos,
                             std::shared_ptr<bool> test_cb_called) {
   *test_cb_called = true;
 
@@ -50,12 +49,12 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
              (a.station_eva_ == b.station_eva_ && a.duration_ < b.duration_);
     });
   };
-  sort(infos.first);
-  sort(infos.second);
+  sort(infos.at_start_);
+  sort(infos.at_destination_);
 
-  ASSERT_EQ(4, infos.first.size());
+  ASSERT_EQ(4, infos.at_start_.size());
   {
-    auto const& info = infos.first[0];
+    auto const& info = infos.at_start_[0];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(34, info.duration_);
     ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
@@ -65,7 +64,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.first[1];
+    auto const& info = infos.at_start_[1];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(36, info.duration_);
     ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
@@ -75,7 +74,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.first[2];
+    auto const& info = infos.at_start_[2];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(38, info.duration_);
     ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
@@ -85,7 +84,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.first[3];
+    auto const& info = infos.at_start_[3];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(40, info.duration_);
     ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
@@ -95,9 +94,9 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
 
-  ASSERT_EQ(4, infos.second.size());
+  ASSERT_EQ(4, infos.at_destination_.size());
   {
-    auto const& info = infos.second[0];
+    auto const& info = infos.at_destination_[0];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(44, info.duration_);
     ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
@@ -107,7 +106,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.second[1];
+    auto const& info = infos.at_destination_[1];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(45, info.duration_);
     ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
@@ -117,7 +116,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.second[2];
+    auto const& info = infos.at_destination_[2];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(49, info.duration_);
     ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);
@@ -127,7 +126,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.second[3];
+    auto const& info = infos.at_destination_[3];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(50, info.duration_);
     ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);

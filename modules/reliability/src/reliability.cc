@@ -17,6 +17,7 @@
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/realtime/realtime_update.h"
 #include "motis/reliability/search/cg_optimizer.h"
@@ -126,6 +127,53 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
 
 void reliability::handle_routing_request(ReliableRoutingRequest const* req,
                                          sid session_id, callback cb) {
+  typedef std::function<void(void)> individual_modes_cb_type;
+
+  std::pair<bool,
+            motis::reliability::intermodal::bikesharing::bikesharing_infos>
+      bikesharing_infos;
+  bikesharing_infos.first = false;
+  auto bikesharing_cb = [&](
+      motis::reliability::intermodal::bikesharing::bikesharing_infos const
+          infos,
+      individual_modes_cb_type cb) {
+    bikesharing_infos.first = true;
+    bikesharing_infos.second = infos;
+    return cb();
+  };
+
+  auto iv_completed = [&]() -> bool { return bikesharing_infos.first; };
+  individual_modes_cb_type individual_modes_cb = [&]() {
+    if (!iv_completed()) {
+      return;
+    }
+    return handle_routing_request_helper(req, bikesharing_infos.second,
+                                         session_id, cb);
+  };
+
+  if (req->individual_modes()->taxi() == 1) {
+    return cb({}, error::not_implemented);
+  }
+
+  if (req->individual_modes()->bikesharing() == 1) {
+    motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
+        motis::reliability::intermodal::bikesharing::to_bikesharing_request(
+            req->request(), motis::bikesharing::AvailabilityAggregator_Average),
+        std::make_shared<
+            motis::reliability::intermodal::bikesharing::average_aggregator>(4),
+        *this, session_id,
+        std::bind(bikesharing_cb, std::placeholders::_1, individual_modes_cb));
+  } else {
+    bikesharing_infos.first = true;
+    return individual_modes_cb();
+  }
+}
+
+void reliability::handle_routing_request_helper(
+    ReliableRoutingRequest const* req,
+    motis::reliability::intermodal::bikesharing::bikesharing_infos
+        bikesharing_infos,
+    sid session_id, callback cb) {
   switch (req->request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
       return dispatch(
@@ -157,10 +205,7 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
                     cb));
     }
     case RequestOptions_LateConnectionReq: {
-      return search::late_connections::search(
-          req, *this, session_id,
-          std::bind(&reliability::handle_late_connection_result, this, p::_1,
-                    p::_2, cb));
+      return search::late_connections::search(req, *this, session_id, cb);
     }
     default: break;
   }
@@ -205,12 +250,6 @@ void reliability::handle_connection_graph_result(
   std::ofstream os("CG.json");
   os << res->to_json() << std::endl;
   return cb(res, error::ok);
-}
-
-void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
-                                                boost::system::error_code e,
-                                                motis::module::callback cb) {
-  return cb(msg, e);
 }
 
 void reliability::send_message(msg_ptr msg, sid session, callback cb) {

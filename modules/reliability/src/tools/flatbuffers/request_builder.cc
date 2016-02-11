@@ -29,15 +29,35 @@ request_builder::request_builder(routing::RoutingRequest const* request)
     : request_builder(request->type(), request->direction()) {
   set_interval(request->interval()->begin(), request->interval()->end());
   for (auto const& e : *request->path()) {
-    add_station(e->name() ? e->name()->c_str() : "",
-                e->eva_nr() ? e->eva_nr()->c_str() : "");
+    if (e->element_type() == routing::LocationPathElement_StationPathElement) {
+      auto st =
+          reinterpret_cast<routing::StationPathElement const*>(e->element());
+      add_station(st->name() ? st->name()->c_str() : "",
+                  st->eva_nr() ? st->eva_nr()->c_str() : "");
+    } else if (e->element_type() ==
+               routing::LocationPathElement_CoordinatesPathElement) {
+      auto c = reinterpret_cast<routing::CoordinatesPathElement const*>(
+          e->element());
+      add_coordinates(c->lat(), c->lon());
+    }
   }
 }
 
 request_builder& request_builder::add_station(std::string const& name,
                                               std::string const& eva) {
-  stations_.push_back(routing::CreateStationPathElement(
-      b_, b_.CreateString(name), b_.CreateString(eva)));
+  path_.push_back(routing::CreateLocationPathElementWrapper(
+      b_, routing::LocationPathElement_StationPathElement,
+      routing::CreateStationPathElement(b_, b_.CreateString(name),
+                                        b_.CreateString(eva))
+          .Union()));
+  return *this;
+}
+
+request_builder& request_builder::add_coordinates(double const& lat,
+                                                  double const& lon) {
+  path_.push_back(routing::CreateLocationPathElementWrapper(
+      b_, routing::LocationPathElement_CoordinatesPathElement,
+      routing::CreateCoordinatesPathElement(b_, lat, lon).Union()));
   return *this;
 }
 
@@ -65,7 +85,7 @@ request_builder& request_builder::add_additional_edge(
 Offset<routing::RoutingRequest> request_builder::create_routing_request() {
   routing::Interval interval(interval_begin_, interval_end_);
   return routing::CreateRoutingRequest(b_, &interval, type_, direction_,
-                                       b_.CreateVector(stations_),
+                                       b_.CreateVector(path_),
                                        b_.CreateVector(additional_edges_));
 }
 
@@ -109,9 +129,10 @@ msg_ptr request_builder::build_connection_tree_request(
 
 msg_ptr request_builder::build_reliable_request(
     Offset<RequestOptionsWrapper> const& options) {
+  IndividualModes modes(0, 0);
   b_.CreateAndFinish(MsgContent_ReliableRoutingRequest,
                      reliability::CreateReliableRoutingRequest(
-                         b_, create_routing_request(), options)
+                         b_, create_routing_request(), options, &modes)
                          .Union());
   return module::make_msg(b_);
 }

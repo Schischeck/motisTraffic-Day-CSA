@@ -168,6 +168,7 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1);
   auto msg = test::send(motis_instance_, req_msg);
+  ASSERT_NE(nullptr, msg);
 
   auto res = msg->content<ReliableRoutingResponse const*>();
   ASSERT_EQ(1, res->connection_graphs()->size());
@@ -193,7 +194,7 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1);
   auto msg = test::send(motis_instance_, req_msg);
-
+  ASSERT_NE(nullptr, msg);
   auto res = msg->content<ReliableRoutingResponse const*>();
   ASSERT_EQ(1, res->connection_graphs()->size());
   auto cg = *res->connection_graphs()->begin();

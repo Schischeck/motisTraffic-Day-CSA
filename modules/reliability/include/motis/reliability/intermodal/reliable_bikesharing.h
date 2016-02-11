@@ -12,6 +12,9 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 
 namespace motis {
+namespace routing {
+struct RoutingRequest;
+}
 namespace reliability {
 struct reliability;
 namespace intermodal {
@@ -45,10 +48,11 @@ struct bikesharing_info {
   std::pair<std::string, std::string> bikesharing_stations_;
 };
 
-/* bikesharing at departure (first) and at arrival (second) */
-typedef std::function<void(std::pair<std::vector<bikesharing_info>,
-                                     std::vector<bikesharing_info>> const)>
-    callback;
+struct bikesharing_infos {
+  std::vector<bikesharing_info> at_start_;
+  std::vector<bikesharing_info> at_destination_;
+};
+typedef std::function<void(bikesharing_infos const)> callback;
 
 /* retrieves reliable bikesharing infos */
 void retrieve_bikesharing_infos(module::msg_ptr request,
@@ -61,6 +65,9 @@ module::msg_ptr to_bikesharing_request(
     double const arrival_lat, double const arrival_lng,
     std::time_t window_begin, std::time_t window_end,
     motis::bikesharing::AvailabilityAggregator);
+
+module::msg_ptr to_bikesharing_request(
+    routing::RoutingRequest const*, motis::bikesharing::AvailabilityAggregator);
 
 }  // namespace bikesharing
 }  // namespace intermodal
