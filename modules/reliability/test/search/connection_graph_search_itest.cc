@@ -122,10 +122,12 @@ public:
 };
 
 TEST_F(reliability_connection_graph_search, reliable_routing_request) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(DARMSTADT.name, DARMSTADT.eva)
+                 .add_station(FRANKFURT.name, FRANKFURT.eva)
+                 .set_interval(std::make_tuple(19, 10, 2015),
+                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .build_connection_tree_request(3, 1);
   auto test_cb_called = std::make_shared<bool>(false);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              get_reliability_module(), 0,
@@ -139,10 +141,12 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request) {
 /* optimize connection graph alternatives depending on distributions! */
 TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
-  auto msg = flatbuffers::request_builder::to_reliable_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(DARMSTADT.name, DARMSTADT.eva)
+                 .add_station(FRANKFURT.name, FRANKFURT.eva)
+                 .set_interval(std::make_tuple(19, 10, 2015),
+                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .build_reliable_search_request(1);
   auto test_cb_called = std::make_shared<bool>(false);
   search_cgs(msg->content<ReliableRoutingRequest const*>(),
              get_reliability_module(), 0,
@@ -156,10 +160,12 @@ TEST_F(reliability_connection_graph_search,
 /* search for alternatives at stops not necessary
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(DARMSTADT.name, DARMSTADT.eva)
+                 .add_station(FRANKFURT.name, FRANKFURT.eva)
+                 .set_interval(std::make_tuple(19, 10, 2015),
+                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .build_connection_tree_request(1, 1);
 
   bool test_cb_called = false;
 

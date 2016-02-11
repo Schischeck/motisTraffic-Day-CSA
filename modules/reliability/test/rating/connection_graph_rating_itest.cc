@@ -254,10 +254,12 @@ TEST_F(reliability_connection_graph_rating,
 
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(DARMSTADT.name, DARMSTADT.eva)
+                 .add_station(FRANKFURT.name, FRANKFURT.eva)
+                 .set_interval(std::make_tuple(19, 10, 2015),
+                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .build_connection_tree_request(1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -313,10 +315,12 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(DARMSTADT.name, DARMSTADT.eva)
+                 .add_station(FRANKFURT.name, FRANKFURT.eva)
+                 .set_interval(std::make_tuple(19, 10, 2015),
+                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .build_connection_tree_request(3, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -433,9 +437,12 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 /* rating of a cg with a foot-path */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(LANGEN.name, LANGEN.eva)
+                 .add_station(WEST.name, WEST.eva)
+                 .set_interval(std::make_tuple(28, 9, 2015),
+                               (motis::time)(10 * 60), (motis::time)(10 * 60))
+                 .build_connection_tree_request(1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](
@@ -497,9 +504,12 @@ TEST_F(reliability_connection_graph_rating_foot,
 /* rating of a cg with a foot-path at the end of the journey */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
-  auto msg = flatbuffers::request_builder::to_connection_tree_request(
-      LANGEN.name, LANGEN.eva, MESSE.name, MESSE.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60), std::make_tuple(28, 9, 2015), 1, 1);
+  auto msg = flatbuffers::request_builder::request_builder()
+                 .add_station(LANGEN.name, LANGEN.eva)
+                 .add_station(MESSE.name, MESSE.eva)
+                 .set_interval(std::make_tuple(28, 9, 2015),
+                               (motis::time)(10 * 60), (motis::time)(10 * 60))
+                 .build_connection_tree_request(1, 1);
   bool test_cb_called = false;
 
   auto test_cb = [&](

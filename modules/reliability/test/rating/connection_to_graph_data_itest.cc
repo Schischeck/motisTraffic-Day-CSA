@@ -127,10 +127,15 @@ void test_element(connection_element const& expected,
 }
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
-      std::make_tuple(28, 9, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(STUTTGART.name, STUTTGART.eva)
+          .add_station(KASSEL.name, KASSEL.eva)
+          .set_interval(std::make_tuple(28, 9, 2015),
+                        (motis::time)(11 * 60 + 32),
+                        (motis::time)(11 * 60 + 32))
+          .build_routing_request();
+
   auto msg = test::send(motis_instance_, req_msg);
   ASSERT_TRUE(msg);
   auto const journeys =
@@ -182,10 +187,14 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 }
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, MARBURG.name, MARBURG.eva,
-      (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5),
-      std::make_tuple(19, 10, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(MARBURG.name, MARBURG.eva)
+          .set_interval(std::make_tuple(19, 10, 2015),
+                        (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5))
+          .build_routing_request();
+
   auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_TRUE(msg);
@@ -265,10 +274,14 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  * with a station-to-station walking at the beginning).
  */
 TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      MANNHEIM.name, MANNHEIM.eva, HAUPTWACHE.name, HAUPTWACHE.eva,
-      (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11),
-      std::make_tuple(19, 10, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(MANNHEIM.name, MANNHEIM.eva)
+          .add_station(HAUPTWACHE.name, HAUPTWACHE.eva)
+          .set_interval(std::make_tuple(19, 10, 2015),
+                        (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11))
+          .build_routing_request();
+
   auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_TRUE(msg);

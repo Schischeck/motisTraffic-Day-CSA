@@ -18,10 +18,9 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
         ::motis::bikesharing::BikesharingEdge>> const* edges,
     std::shared_ptr<availability_aggregator const> aggregator) {
   std::vector<bikesharing_info> infos;
-  for (auto edge = edges->begin(); edge != edges->end(); ++edge) {
+  for (auto edge : *edges) {
     std::vector<std::pair<time_t, time_t>> availability_intervals;
-    for (auto rating = edge->availability()->begin();
-         rating != edge->availability()->end(); ++rating) {
+    for (auto rating : *edge->availability()) {
       if (aggregator->is_reliable(rating->value())) {
         availability_intervals.emplace_back((time_t)rating->begin(),
                                             (time_t)rating->end());

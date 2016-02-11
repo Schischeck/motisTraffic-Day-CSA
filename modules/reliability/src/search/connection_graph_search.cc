@@ -271,7 +271,8 @@ void search_cgs(ReliableRoutingRequest const* request,
                 std::shared_ptr<connection_graph_optimizer const> optimizer,
                 callback cb) {
   rel.send_message(
-      flatbuffers::request_builder::to_flatbuffers_message(request->request()),
+      flatbuffers::request_builder::request_builder(request->request())
+          .build_routing_request(),
       session, std::bind(&detail::handle_base_response, p::_1, p::_2,
                          std::make_shared<detail::context>(rel, session, cb,
                                                            optimizer)));

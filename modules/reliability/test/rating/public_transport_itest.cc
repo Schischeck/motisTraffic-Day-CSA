@@ -131,10 +131,14 @@ std::vector<rating::rating_element> compute_test_ratings1(
 }
 
 TEST_F(reliability_public_transport2, rate) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
-      std::make_tuple(28, 9, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(STUTTGART.name, STUTTGART.eva)
+          .add_station(KASSEL.name, KASSEL.eva)
+          .set_interval(std::make_tuple(28, 9, 2015),
+                        (motis::time)(11 * 60 + 32),
+                        (motis::time)(11 * 60 + 32))
+          .build_routing_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
@@ -298,10 +302,13 @@ std::vector<rating::rating_element> compute_test_ratings2(
 }
 
 TEST_F(reliability_public_transport5, rate2) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(MANNHEIM.name, MANNHEIM.eva)
+          .add_station(MARBURG.name, MARBURG.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_routing_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
@@ -391,9 +398,13 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 }
 
 TEST_F(reliability_public_transport3, rate_foot) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      LANGEN.name, LANGEN.eva, WEST.name, WEST.eva, (motis::time)(10 * 60),
-      (motis::time)(10 * 60 + 1), std::make_tuple(28, 9, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(LANGEN.name, LANGEN.eva)
+          .add_station(WEST.name, WEST.eva)
+          .set_interval(std::make_tuple(28, 9, 2015), (motis::time)(10 * 60),
+                        (motis::time)(10 * 60 + 1))
+          .build_routing_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =

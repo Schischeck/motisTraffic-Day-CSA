@@ -50,10 +50,14 @@ public:
 /* Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
-      std::make_tuple(28, 9, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(STUTTGART.name, STUTTGART.eva)
+          .add_station(KASSEL.name, KASSEL.eva)
+          .set_interval(std::make_tuple(28, 9, 2015),
+                        (motis::time)(11 * 60 + 32),
+                        (motis::time)(11 * 60 + 32))
+          .build_routing_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =
@@ -88,10 +92,13 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Darmstadt to Giessen with RE_D_F_G (interchange in Giessen), and
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
-  auto req_msg = flatbuffers::request_builder::to_routing_request(
-      MANNHEIM.name, MANNHEIM.eva, MARBURG.name, MARBURG.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), false);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+          .add_station(MANNHEIM.name, MANNHEIM.eva)
+          .add_station(MARBURG.name, MARBURG.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_routing_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto const journeys =

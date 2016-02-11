@@ -52,21 +52,22 @@ inline std::pair<module::msg_ptr, detail::context::journey_cache_key>
 to_routing_request(connection_graph& conn_graph,
                    connection_graph::stop const& stop,
                    duration const min_departure_diff) {
-  auto const time_begin = latest_departing_alternative(conn_graph, stop)
-                              .stops.front()
-                              .departure.timestamp +
-                          min_departure_diff * 60;
-  auto const time_end = time_begin;
-
+  auto const ontrip_time = latest_departing_alternative(conn_graph, stop)
+                               .stops.front()
+                               .departure.timestamp +
+                           min_departure_diff * 60;
   auto const stop_station = conn_graph.station_info(stop.index_);
   auto const arrival_station =
       conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
-
-  auto msg = flatbuffers::request_builder::to_routing_request(
-      stop_station.first, stop_station.second, arrival_station.first,
-      arrival_station.second, time_begin, time_end, true);
-  return std::make_pair(msg, detail::context::journey_cache_key(
-                                 stop_station.second, time_begin, time_end));
+  auto msg =
+      flatbuffers::request_builder::request_builder(routing::Type::Type_OnTrip)
+          .add_station(stop_station.first, stop_station.second)
+          .add_station(arrival_station.first, arrival_station.second)
+          .set_interval(ontrip_time, ontrip_time)
+          .build_routing_request();
+  return std::make_pair(
+      msg, detail::context::journey_cache_key(stop_station.second, ontrip_time,
+                                              ontrip_time));
 }
 
 inline journey const& select_alternative(std::vector<journey> const& journeys) {

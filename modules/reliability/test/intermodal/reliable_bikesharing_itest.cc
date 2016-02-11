@@ -55,7 +55,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
 
   ASSERT_EQ(4, infos.first.size());
   {
-    auto const& info = infos.first.front();
+    auto const& info = infos.first[0];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(34, info.duration_);
     ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
@@ -65,7 +65,27 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.first.back();
+    auto const& info = infos.first[1];
+    ASSERT_EQ("8000068", info.station_eva_);
+    ASSERT_EQ(36, info.duration_);
+    ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
+    ASSERT_EQ("Darmstadt HBF East", info.bikesharing_stations_.second);
+    ASSERT_EQ(1, info.availability_intervals_.size());
+    ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
+    ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
+  }
+  {
+    auto const& info = infos.first[2];
+    ASSERT_EQ("8000068", info.station_eva_);
+    ASSERT_EQ(38, info.duration_);
+    ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
+    ASSERT_EQ("Darmstadt HBF West", info.bikesharing_stations_.second);
+    ASSERT_EQ(1, info.availability_intervals_.size());
+    ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
+    ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
+  }
+  {
+    auto const& info = infos.first[3];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(40, info.duration_);
     ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
@@ -77,7 +97,7 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
 
   ASSERT_EQ(4, infos.second.size());
   {
-    auto const& info = infos.second.front();
+    auto const& info = infos.second[0];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(44, info.duration_);
     ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
@@ -87,7 +107,27 @@ void test_bikesharing_infos(std::pair<std::vector<bikesharing_info>,
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
   }
   {
-    auto const& info = infos.second.back();
+    auto const& info = infos.second[1];
+    ASSERT_EQ("8000105", info.station_eva_);
+    ASSERT_EQ(45, info.duration_);
+    ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
+    ASSERT_EQ("FFM Westend 2", info.bikesharing_stations_.second);
+    ASSERT_EQ(1, info.availability_intervals_.size());
+    ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
+    ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
+  }
+  {
+    auto const& info = infos.second[2];
+    ASSERT_EQ("8000105", info.station_eva_);
+    ASSERT_EQ(49, info.duration_);
+    ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);
+    ASSERT_EQ("FFM Westend 1", info.bikesharing_stations_.second);
+    ASSERT_EQ(1, info.availability_intervals_.size());
+    ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
+    ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
+  }
+  {
+    auto const& info = infos.second[3];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(50, info.duration_);
     ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);

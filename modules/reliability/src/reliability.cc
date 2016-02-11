@@ -130,7 +130,8 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
   switch (req->request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
       return dispatch(
-          flatbuffers::request_builder::to_flatbuffers_message(req->request()),
+          flatbuffers::request_builder::request_builder(req->request())
+              .build_routing_request(),
           session_id, std::bind(&reliability::handle_routing_response, this,
                                 p::_1, p::_2, cb));
     }

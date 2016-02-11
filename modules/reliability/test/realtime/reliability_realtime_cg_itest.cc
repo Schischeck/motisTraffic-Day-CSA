@@ -119,10 +119,12 @@ public:
 TEST_F(reliability_realtime_cg, reliable_routing_request) {
   test_scheduled_cg(test::send(
       motis_instance_,
-      flatbuffers::request_builder::to_reliable_routing_request(
-          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-          (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-          std::make_tuple(19, 10, 2015), 1)));
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_reliable_search_request(1)));
 
   test::send(motis_instance_,
              realtime::get_delay_message(
@@ -144,10 +146,12 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 
   test_realtime_cg(test::send(
       motis_instance_,
-      flatbuffers::request_builder::to_reliable_routing_request(
-          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-          (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-          std::make_tuple(19, 10, 2015), 1)));
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_reliable_search_request(1)));
 }
 
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
@@ -156,12 +160,13 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
                  LANGEN.eva, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
                  1445238660 /* 2015-10-19 07:11:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Is));
-
-  auto req_msg = flatbuffers::request_builder::to_reliable_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, LANGEN.name, LANGEN.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1);
-
+  auto req_msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(LANGEN.name, LANGEN.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_reliable_search_request(1);
   auto msg = test::send(motis_instance_, req_msg);
 
   auto res = msg->content<ReliableRoutingResponse const*>();
@@ -180,11 +185,13 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
                  1445238660 /* 2015-10-19 07:11:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Forecast));
 
-  auto req_msg = flatbuffers::request_builder::to_reliable_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, LANGEN.name, LANGEN.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1);
-
+  auto req_msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(LANGEN.name, LANGEN.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_reliable_search_request(1);
   auto msg = test::send(motis_instance_, req_msg);
 
   auto res = msg->content<ReliableRoutingResponse const*>();

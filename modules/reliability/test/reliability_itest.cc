@@ -147,10 +147,13 @@ public:
 };
 
 TEST_F(reliability_test_rating, rating_request) {
-  auto req_msg = flatbuffers::request_builder::to_rating_request(
-      STUTTGART.name, STUTTGART.eva, KASSEL.name, KASSEL.eva,
-      (motis::time)(11 * 60 + 32), (motis::time)(11 * 60 + 32),
-      std::make_tuple(28, 9, 2015));
+  auto req_msg = flatbuffers::request_builder::request_builder()
+                     .add_station(STUTTGART.name, STUTTGART.eva)
+                     .add_station(KASSEL.name, KASSEL.eva)
+                     .set_interval(std::make_tuple(28, 9, 2015),
+                                   (motis::time)(11 * 60 + 32),
+                                   (motis::time)(11 * 60 + 32))
+                     .build_rating_request();
   auto msg = test::send(motis_instance_, req_msg);
 
   auto response = msg->content<ReliabilityRatingResponse const*>();
@@ -181,19 +184,25 @@ TEST_F(reliability_test_rating, rating_request) {
 }
 
 TEST_F(reliability_test_cg, connection_tree) {
-  auto req_msg = flatbuffers::request_builder::to_connection_tree_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 3, 1);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_connection_tree_request(3, 1);
   auto msg = test::send(motis_instance_, req_msg);
   test_cg(msg);
 }
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
-  auto req_msg = flatbuffers::request_builder::to_reliable_routing_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(7 * 60), (motis::time)(7 * 60 + 1),
-      std::make_tuple(19, 10, 2015), 1);
+  auto req_msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
+                        (motis::time)(7 * 60 + 1))
+          .build_reliable_search_request(1);
   auto msg = test::send(motis_instance_, req_msg);
   test_cg(msg);
 }
@@ -211,17 +220,46 @@ public:
   schedule_station const MAINZ = {"Mainz", "3953754"};
 };
 
+/* taxi-info: from-station, duration, price */
+using taxi_info = std::tuple<std::string, unsigned short, unsigned short>;
+
+module::msg_ptr to_reliable_late_connections_request(
+    std::string const& from_name, std::string const& from_eva,
+    std::string const& to_name, std::string const& to_eva,
+    motis::time interval_begin, motis::time interval_end,
+    std::tuple<int, int, int> ddmmyyyy,
+    std::vector<taxi_info> const& taxi_infos) {
+  using namespace routing;
+  flatbuffers::request_builder::request_builder builder;
+  builder.add_station(from_name, from_eva)
+      .add_station(to_name, to_eva)
+      .set_interval(ddmmyyyy, interval_begin, interval_end);
+
+  auto& b = builder.b_;
+  for (auto const& info : taxi_infos) {
+    builder.add_additional_edge(CreateAdditionalEdgeWrapper(
+        b, AdditionalEdge_TimeDependentMumoEdge,
+        CreateTimeDependentMumoEdge(
+            b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
+                              b.CreateString("-2") /* to dummy target */,
+                              std::get<1>(info), std::get<2>(info)),
+            21 * 60, 3 * 60)
+            .Union()));
+  }
+
+  return builder.build_late_connection_cequest();
+}
+
 TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
   /* taxi-info: from-station, duration, price */
   std::vector<std::tuple<std::string, unsigned short, unsigned short>>
       taxi_infos;
   taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
 
-  auto req_msg =
-      flatbuffers::request_builder::to_reliable_late_connections_request(
-          DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-          (motis::time)(23 * 60 + 50), (motis::time)(1500),
-          std::make_tuple(19, 10, 2015), taxi_infos);
+  auto req_msg = to_reliable_late_connections_request(
+      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      (motis::time)(23 * 60 + 50), (motis::time)(1500),
+      std::make_tuple(19, 10, 2015), taxi_infos);
   auto msg = test::send(motis_instance_, req_msg);
 
   ASSERT_NE(nullptr, msg);
