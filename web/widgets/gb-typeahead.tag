@@ -97,6 +97,7 @@
             this.lastInput = input;
             this.proposals = proposals;
             this.show();
+            this.update();
           });
         }
     }

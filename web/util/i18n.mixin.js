@@ -9,7 +9,8 @@ riot.mixin('i18n', {
         'Time': 'Uhrzeit',
         'Transports at the Start': 'Verkehrsmittel am Start',
         'Transports at the Destination': 'Verkehrsmittel am Ziel',
-        'Show results of the last search': 'Ergebnisse der letzten Suche anzeigen'
+        'Show results of the last search': 'Ergebnisse der letzten Suche anzeigen',
+        'An error occured.': 'Es ist ein Fehler aufgetreten.'
       },
       en: {
       }

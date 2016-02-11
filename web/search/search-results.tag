@@ -4,7 +4,9 @@
       <gb-spinner />
     </div>
 
-    <div if={!queryMatchesResponse && !state().result.loading}
+    <div if={!queryMatchesResponse &&
+             !state().result.loading &&
+             !state().result.error}
          class="search-button-box">
       <gb-button btn-onclick={requestSearch}
                  color="PRIMARY_COLOR" size="large">
@@ -22,6 +24,13 @@
           <i18n>Show results of the last search</i18n>
         </span>
       </gb-button>
+    </div>
+
+    <div if={state().result.error && !state().result.loading}>
+      <div class="error icon"></div>
+      <p style="text-align: center; color: #aaa; font-weight: bold">
+        <i18n>An error occured.</i18n>
+      </p>
     </div>
 
     <timeline if={queryMatchesResponse &&
@@ -60,6 +69,22 @@
     margin-top: 20px;
     padding: 20px;
     text-align: center;
+  }
+
+  .error:before {
+    content: "\E001";
+    width: 100%;
+    height: 100%;
+    font-size: 5.0em;
+    text-align: center;
+    display: block;
+    line-height: 100px;
+    color: #bbb;
+  }
+
+  .error {
+    padding-top: 30px;
+    width: 100%;
   }
   </style>
 
