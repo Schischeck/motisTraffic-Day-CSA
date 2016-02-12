@@ -26,10 +26,13 @@
       </gb-button>
     </div>
 
-    <div if={state().result.error && !state().result.loading}>
+    <div if={(state().result.error ||
+              (queryMatchesResponse && state().result.response.length === 0)) &&
+             !state().result.loading}>
       <div class="error icon"></div>
       <p style="text-align: center; color: #aaa; font-weight: bold">
-        <i18n>An error occured.</i18n>
+        <i18n if={state().result.error}>An error occured.</i18n>
+        <i18n if={!state().result.error}>No connections found.</i18n>
       </p>
     </div>
 
