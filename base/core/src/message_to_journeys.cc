@@ -25,8 +25,8 @@ journey::stop to_stop(routing::Stop const& stop, unsigned int const index,
   s.index = index;
   s.eva_no = stop.eva_nr()->c_str();
   s.interchange = (bool)stop.interchange();
-  s.lat = 0.0;
-  s.lng = 0.0;
+  s.lat = stop.lat();
+  s.lng = stop.lng();
   s.name = stop.name()->c_str();
   s.arrival = to_event_info(*stop.arrival(), index != 0);
   s.departure = to_event_info(*stop.departure(), index + 1 != num_stops);

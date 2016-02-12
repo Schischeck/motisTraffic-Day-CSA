@@ -23,6 +23,8 @@ table EventInfo {
 table Stop {
   eva_nr:string;
   name:string;
+  lat: double;
+  lng: double;
   arrival:EventInfo;
   departure:EventInfo;
   interchange:bool;
