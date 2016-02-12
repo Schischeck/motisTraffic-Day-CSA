@@ -87,7 +87,7 @@ function search(state, action) {
       break
 
     case type.RESET_QUERY_TO_LAST:
-      state.query = state.result.request
+      state.query = JSON.parse(JSON.stringify(state.result.request))
       break
 
     case type.SELECT_CONNECTION:
