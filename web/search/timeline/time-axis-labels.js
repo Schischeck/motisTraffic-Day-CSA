@@ -4,7 +4,7 @@ SVG.TimeAxisLabels = SVG.invent({
   extend: {
     draw: function(timelineSettings) {
       var t = new Date(timelineSettings.start.getTime());
-      for (var cut = 0; cut <= timelineSettings.totalCuts; cut++) {
+      for (var cut = 0; cut < timelineSettings.totalCuts; cut++) {
         this.add(this.put(new SVG.Text)
                      .text(formatTime(t))
                      .attr({'font-family': 'Verdana,sans-serif'})

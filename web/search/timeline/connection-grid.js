@@ -54,7 +54,7 @@ SVG.ConnectionGrid = SVG.invent({
 
     drawTimeline: function(height, timelineSettings) {
       var t = new Date(timelineSettings.start.getTime()), x;
-      for (var cut = 0; cut <= timelineSettings.totalCuts; cut++) {
+      for (var cut = 0; cut < timelineSettings.totalCuts; cut++) {
         x = timelineSettings.timeToXIntercept(t);
         this.add(this.put(new SVG.Line)
                      .plot(x, 0, x, height - 10)
