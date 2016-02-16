@@ -15,6 +15,16 @@ namespace po = boost::program_options;
 namespace motis {
 namespace guesser {
 
+std::string trim(std::string const& s) {
+  auto first = s.find_first_not_of(' ');
+  auto last = s.find_last_not_of(' ');
+  if (first == last) {
+    return "";
+  } else {
+    return s.substr(first, (last - first + 1));
+  }
+}
+
 po::options_description guesser::desc() {
   po::options_description desc("Guesser Module");
   return desc;
@@ -75,7 +85,7 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
 
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
-       guesser_->guess(req->input()->str(), req->guess_count())) {
+       guesser_->guess(trim(req->input()->str()), req->guess_count())) {
     auto const& station = *sync.sched().stations[station_indices_[guess]];
     guesses.emplace_back(CreateStation(
         b, b.CreateString(station.name), b.CreateString(station.eva_nr),

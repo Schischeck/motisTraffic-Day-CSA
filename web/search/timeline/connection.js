@@ -23,7 +23,7 @@ SVG.Connection = SVG.invent({
 
         const newLength = el.len - c.CIRCLE_WIDTH;
         const adjustedLength = Math.max(newLength, c.MIN_LENGTH);
-        const offset = c.MIN_LENGTH - newLength;
+        const offset = Math.max(0, c.MIN_LENGTH - newLength);
 
         const moveGroup = this.put(new SVG.Move)
                               .draw(adjustedLength, el.label, el.color)
@@ -39,7 +39,7 @@ SVG.Connection = SVG.invent({
       });
 
       const lastEl = elements[elements.length - 1];
-      const arrivalCircleX = lastEl.x + lastEl.len + totalOffset + lastCorrection;
+      const arrivalCircleX = lastEl.x + lastEl.len + totalOffset;
       this.add(this.put(new SVG.Circle)
                    .move(arrivalCircleX, c.THICKNESS / 2)
                    .fill('#666')

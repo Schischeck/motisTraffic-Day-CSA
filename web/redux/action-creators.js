@@ -70,16 +70,14 @@ var actionCreators = {
         additional_edges: []
       }
     })
-    .then(response => {
-      dispatch({
-        type: type.RECEIVE_ROUTING,
-        payload: {
-          request: s,
-          response: response.content.connections
-        }
-      });
-    })
-    .catch(err => console.error('routing not possible: ', err));
+    .then(response => dispatch({
+      type: type.RECEIVE_ROUTING,
+      payload: {
+        request: s,
+        response: response.content.connections
+      }
+    }))
+    .catch(err => dispatch({ type: type.RECEIVE_ROUTING_ERROR }));
   },
 
   resetQueryToLast: function() {
