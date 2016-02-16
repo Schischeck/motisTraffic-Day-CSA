@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "motis/module/module.h"
+#include "motis/lookup/station_geo_index.h"
 
 #include "motis/protocol/Message_generated.h"
 
@@ -20,7 +21,8 @@ struct lookup : public motis::module::module {
   virtual std::string name() const override { return "lookup"; }
   virtual void init() override;
   virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_LookupGeoIndexRequest,
+    return {MsgContent_LookupGeoStationRequest,
+            MsgContent_LookupBatchGeoStationRequest,
             MsgContent_LookupStationEventsRequest,
             MsgContent_LookupTrainRequest};
   }
@@ -28,13 +30,16 @@ struct lookup : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-  void lookup_station(LookupGeoIndexRequest const*, motis::module::callback);
+  void lookup_station(LookupGeoStationRequest const*,
+                      motis::module::callback) const;
+  void lookup_stations(LookupBatchGeoStationRequest const*,
+                       motis::module::callback) const;
+
   void lookup_station_events(LookupStationEventsRequest const*,
                              motis::module::callback);
   void lookup_train(LookupTrainRequest const*, motis::module::callback);
 
-  struct impl;
-  std::unique_ptr<impl> impl_;
+  std::unique_ptr<station_geo_index> geo_index_;
 };
 
 }  // namespace lookup

@@ -22,30 +22,6 @@ using motis::loader::transform_to_vec;
 namespace motis {
 namespace lookup {
 
-struct coordinate {
-  double lat, lng;
-};
-
-template <typename T>
-constexpr T identity(T&& v) {
-  return std::forward<T>(v);
-}
-
-struct lookup::impl {
-  explicit impl(std::vector<station_ptr> const& stations)
-      : station_index_(stations) {}
-
-  template <typename F>
-  std::vector<typename std::result_of<F(station const*)>::type> close_stations(
-      double const lat, double const lng, double const radius,
-      F func = identity) const {
-    auto stations = station_index_.stations(lat, lng, radius);
-    return transform_to_vec(begin(stations), end(stations), func);
-  }
-
-  station_geo_index station_index_;
-};
-
 lookup::lookup() = default;
 lookup::~lookup() = default;
 
@@ -57,16 +33,21 @@ po::options_description lookup::desc() {
 void lookup::print(std::ostream&) const {}
 
 void lookup::init() {
-  impl_ = make_unique<impl>(synced_sched<RO>().sched().stations);
+  auto lock = synced_sched<RO>();
+  geo_index_ = make_unique<station_geo_index>(lock.sched().stations);
 }
 
 void lookup::on_msg(msg_ptr msg, sid, callback cb) {
   try {
     auto type = msg->content_type();
     switch (type) {
-      case MsgContent_LookupGeoIndexRequest: {
-        auto req = msg->content<LookupGeoIndexRequest const*>();
+      case MsgContent_LookupGeoStationRequest: {
+        auto req = msg->content<LookupGeoStationRequest const*>();
         return lookup_station(req, cb);
+      }
+      case MsgContent_LookupBatchGeoStationRequest: {
+        auto req = msg->content<LookupBatchGeoStationRequest const*>();
+        return lookup_stations(req, cb);
       }
       case MsgContent_LookupStationEventsRequest: {
         auto req = msg->content<LookupStationEventsRequest const*>();
@@ -81,6 +62,28 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
   } catch (boost::system::system_error const& e) {
     return cb({}, e.code());
   }
+}
+
+void lookup::lookup_station(LookupGeoStationRequest const* req,
+                            callback cb) const {
+  MessageCreator fbb;
+  auto response = geo_index_->stations(fbb, req);
+  fbb.CreateAndFinish(MsgContent_LookupGeoStationResponse, response.Union());
+  return cb(make_msg(fbb), error::ok);
+}
+
+void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
+                             motis::module::callback cb) const {
+  MessageCreator fbb;
+  std::vector<Offset<LookupGeoStationResponse>> responses;
+  for (auto const& request : *req->requests()) {
+    responses.push_back(geo_index_->stations(fbb, request));
+  }
+  fbb.CreateAndFinish(
+      MsgContent_LookupBatchGeoStationResponse,
+      CreateLookupBatchGeoStationResponse(fbb, fbb.CreateVector(responses))
+          .Union());
+  return cb(make_msg(fbb), error::ok);
 }
 
 station_node* find_station_node(schedule const& sched,
@@ -219,7 +222,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     dep.valid = true;
     dep.timestamp = d_time;
     dep.schedule_timestamp = d_time;
-    dep.platform = std::to_string(lcon._full_con->d_platform);
+    dep.platform = std::to_string(lcon._full_con->d_platform);  // TODO
 
     j.stops.back().departure = dep;
 
@@ -240,7 +243,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     arr.valid = true;
     arr.timestamp = a_time;
     arr.schedule_timestamp = a_time;
-    arr.platform = std::to_string(lcon._full_con->d_platform);
+    arr.platform = std::to_string(lcon._full_con->d_platform);  // TODO
     a_stop.arrival = arr;
 
     j.stops.push_back(a_stop);
@@ -253,32 +256,10 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
   dep.valid = false;
   j.stops.back().departure = dep;
 
-
   MessageCreator b;
   b.CreateAndFinish(MsgContent_LookupTrainResponse,
                     CreateLookupTrainResponse(b, to_connection(b, j)).Union());
   cb(make_msg(b), error::ok);
-}
-
-void lookup::lookup_station(LookupGeoIndexRequest const* req, callback cb) {
-  MessageCreator fbb;
-  auto const storeStation = [&fbb](station const* s) {
-    return CreateStation(fbb, fbb.CreateString(s->name),
-                         fbb.CreateString(s->eva_nr), s->width, s->length);
-  };
-
-  std::vector<Offset<StationList>> list;
-  for (auto const& c : *req->coordinates()) {
-    list.push_back(CreateStationList(
-        fbb, fbb.CreateVector(impl_->close_stations(
-                 c->lat(), c->lng(), c->radius(), storeStation))));
-  }
-
-  fbb.CreateAndFinish(
-      MsgContent_LookupGeoIndexResponse,
-      CreateLookupGeoIndexResponse(fbb, fbb.CreateVector(list)).Union());
-
-  return cb(make_msg(fbb), error::ok);
 }
 
 }  // namespace lookup

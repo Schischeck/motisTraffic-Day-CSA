@@ -47,7 +47,7 @@ BikesharingEdge const* find_edge(V const* vec, std::string const& from,
 
 TEST(bikesharing_nextbike_itest, integration_test) {
   auto instance = launch_motis("modules/bikesharing/test_resources/schedule",
-                               "20150112", {"bikesharing", "intermodal"},
+                               "20150112", {"bikesharing", "lookup"},
                                {"--bikesharing.nextbike_path=modules/"
                                 "bikesharing/test_resources/nextbike",
                                 "--bikesharing.database_path=:memory:"});

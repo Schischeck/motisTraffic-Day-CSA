@@ -125,7 +125,7 @@ TEST(ris_database, basic) {
   EXPECT_EQ(std::basic_string<uint8_t>{1}, result3[0]);
   EXPECT_EQ(std::basic_string<uint8_t>{0}, result3[1]);
 
-  EXPECT_EQ(9, db_get_earliest_timestamp_after(0, db));
+  EXPECT_EQ(9, db_get_forward_start_time(db));
 }
 
 TEST(ris_database, cleanup) {

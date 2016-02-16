@@ -1,6 +1,0 @@
-namespace motis.intermodal;
-
-table IntermodalRoutingRequest {
-  lat : double;
-  lng : double;
-}

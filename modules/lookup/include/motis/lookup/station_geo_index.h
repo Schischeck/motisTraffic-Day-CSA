@@ -5,6 +5,8 @@
 
 #include "motis/core/schedule/station.h"
 
+#include "motis/protocol/Message_generated.h"
+
 namespace motis {
 namespace lookup {
 
@@ -15,6 +17,9 @@ public:
 
   std::vector<const station*> stations(double lat, double lng,
                                        double radius) const;
+
+  flatbuffers::Offset<LookupGeoStationResponse> stations(
+      flatbuffers::FlatBufferBuilder&, LookupGeoStationRequest const*) const;
 
 private:
   struct impl;
