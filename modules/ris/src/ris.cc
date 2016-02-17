@@ -3,8 +3,6 @@
 #include <ctime>
 #include <functional>
 
-#include "boost/algorithm/string/predicate.hpp"
-#include "boost/filesystem.hpp"
 #include "boost/program_options.hpp"
 
 #include "websocketpp/common/md5.hpp"
@@ -12,6 +10,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
 #include "motis/loader/util.h"
+#include "motis/ris/detail/find_new_files.h"
 #include "motis/ris/database.h"
 #include "motis/ris/error.h"
 #include "motis/ris/risml_parser.h"
@@ -28,13 +27,12 @@
 #define MODE_SIMULATION "simulation"
 
 using boost::system::error_code;
-namespace fs = boost::filesystem;
-using fs::directory_iterator;
 using websocketpp::md5::md5_hash_hex;
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
 using namespace motis::loader;
+using namespace motis::ris::detail;
 
 namespace motis {
 namespace ris {
@@ -152,7 +150,7 @@ void ris::init_async() {
 
 void ris::fill_database() {
   scoped_timer timer("RISML load database");
-  auto new_files = get_new_files();
+  auto new_files = find_new_files(zip_folder_, &read_files_);
   for (auto const& new_file : new_files) {
     db_put_messages(new_file, parse_xmls(read_zip_file(new_file)));
   }
@@ -277,7 +275,7 @@ void ris::schedule_update(error_code e) {
 }
 
 void ris::parse_zips() {
-  auto new_files = get_new_files();
+  auto new_files = find_new_files(zip_folder_, &read_files_);
   if (new_files.size() == 0) {
     return;
   }
@@ -295,33 +293,12 @@ void ris::parse_zips() {
       LOG(logging::error) << "bad zip file: " << e.what();
     }
 
+    // always mark the file as read to prevent re-read in the next update cycle
+    read_files_.insert(new_file);
     db_put_messages(new_file, parsed_messages);
+
     dispatch(pack(parsed_messages));
   }
-}
-
-std::vector<std::string> ris::get_new_files() {
-  fs::path path(zip_folder_);
-
-  std::vector<std::string> new_files;
-  if (fs::exists(path) && fs::is_directory(path)) {
-    for (auto it = directory_iterator(path); it != directory_iterator(); ++it) {
-      if (!fs::is_regular_file(it->status())) {
-        continue;
-      }
-
-      auto filename = it->path().string();
-      if (!boost::algorithm::iends_with(filename, ".zip")) {
-        continue;
-      }
-
-      if (read_files_.insert(filename).second) {
-        new_files.push_back(filename);
-      }
-    }
-  }
-
-  return new_files;
 }
 
 }  // namespace ris

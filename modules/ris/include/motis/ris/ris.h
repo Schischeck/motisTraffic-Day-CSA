@@ -41,7 +41,6 @@ private:
 
   void schedule_update(boost::system::error_code e);
   void parse_zips();
-  std::vector<std::string> get_new_files();
 
   void forward_time(std::time_t new_time, motis::module::callback finished_cb);
 

@@ -72,6 +72,7 @@ void db_init(db_ptr const& db) {
   db->execute(db::kCreateTabFile);
   db->execute(db::kCreateTabMessage);
   db->execute(db::kCreateFullIdxMessage);
+  db->execute(db::kCreateTimestampIdxMessage);
 }
 
 std::set<std::string> db_get_files(db_ptr const& db) {
