@@ -15,7 +15,7 @@ void foreach_departure_in(edge const& edge, time begin, time end, F fun) {
   auto it = std::lower_bound(std::begin(conns), std::end(conns),
                              light_connection(begin));
   for (; it != std::end(conns) && it->d_time < end; ++it) {
-    fun(*it);
+    fun(it);
   }
 }
 
@@ -31,7 +31,7 @@ void foreach_arrival_in(edge const& edge, time begin, time end, F fun) {
                                return lcon.a_time < t;
                              });
   for (; it != std::end(conns) && it->a_time < end; ++it) {
-    fun(*it);
+    fun(it);
   }
 }
 

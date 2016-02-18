@@ -2,15 +2,25 @@ include "lookup/LookupCommon.fbs";
 
 namespace motis.lookup;
 
-table Event {
-  type:EventType;
-  train_nr:uint;
-  graph_time:ulong; // TODO consistent time naming
+table IdEvent {
+  eva_nr: string;
+  type: EventType;
+  train_nr: uint;
+  line_id: string;
+  schedule_time: ulong;  
+}
 
-  // TODO
-  // scheduled_time:ushort;
+table StationEvent {
+  id: IdEvent;
+
+  type: EventType;
+  train_nr: uint;
+  line_id: string;
+
+  time: ulong;
+  schedule_time: ulong;
 }
 
 table LookupStationEventsResponse {
-  events: [Event];
+  events: [StationEvent];
 }

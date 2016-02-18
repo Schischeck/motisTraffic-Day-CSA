@@ -8,10 +8,11 @@
 #include "motis/core/common/util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
-#include "motis/core/schedule/edge_access.h"
 #include "motis/loader/util.h"
 #include "motis/lookup/error.h"
+#include "motis/lookup/lookup_station_events.h"
 #include "motis/lookup/station_geo_index.h"
+#include "motis/lookup/util.h"
 #include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
@@ -86,49 +87,11 @@ void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
   return cb(make_msg(fbb), error::ok);
 }
 
-station_node* find_station_node(schedule const& sched,
-                                std::string const& eva_nr) {
-  auto it = sched.eva_to_station.find(eva_nr);
-  if (it == end(sched.eva_to_station)) {
-    throw boost::system::system_error(error::station_not_found);
-  }
-  return sched.station_nodes[it->second->index].get();
-}
-
 void lookup::lookup_station_events(LookupStationEventsRequest const* req,
                                    callback cb) {
-  auto lock = synced_sched<schedule_access::RO>();
-  auto const& schedule = lock.sched();
-  auto sched_begin = lock.sched().schedule_begin_;
-
-  auto station_node = find_station_node(schedule, req->eva_nr()->str());
-  auto begin = unix_to_motistime(sched_begin, req->begin());
-  auto end = unix_to_motistime(sched_begin, req->end());
-
   MessageCreator b;
-  std::vector<Offset<Event>> events;
-  for (auto const& route_node : station_node->get_route_nodes()) {
-    for (auto const& edge : route_node->_incoming_edges) {
-      foreach_arrival_in(*edge, begin, end, [&](light_connection const& lcon) {
-        auto const& info = *lcon._full_con->con_info;
-        auto a_time = motis_to_unixtime(sched_begin, lcon.a_time);
-
-        events.push_back(
-            CreateEvent(b, EventType_Arrival, info.train_nr, a_time));
-      });
-    }
-
-    for (auto const& edge : route_node->_edges) {
-      foreach_departure_in(edge, begin, end, [&](light_connection const& lcon) {
-        auto const& info = *lcon._full_con->con_info;
-        auto d_time = motis_to_unixtime(sched_begin, lcon.d_time);
-
-        events.push_back(
-            CreateEvent(b, EventType_Departure, info.train_nr, d_time));
-      });
-    }
-  };
-
+  auto lock = synced_sched<schedule_access::RO>();
+  auto events = motis::lookup::lookup_station_events(b, lock.sched(), req);
   b.CreateAndFinish(
       MsgContent_LookupStationEventsResponse,
       CreateLookupStationEventsResponse(b, b.CreateVector(events)).Union());
@@ -167,16 +130,6 @@ std::pair<int, int> get_route_id_and_position(station_node const* node,
   }
 
   throw boost::system::system_error(error::route_not_found);
-}
-
-// simple case -> each route node has one route edge (no merge split)
-edge* get_outgoing_route_edge(node* node) {
-  for (auto& edge : node->_edges) {
-    if (edge.type() == edge::ROUTE_EDGE) {
-      return &edge;
-    }
-  }
-  return nullptr;
 }
 
 void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {

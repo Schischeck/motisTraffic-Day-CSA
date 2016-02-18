@@ -12,6 +12,7 @@ enum error_code_t {
   not_implemented = 1,
   station_not_found = 2,
   route_not_found = 3,
+  id_event_not_found = 3,
   failure = 127
 };
 }  // namespace error
@@ -26,18 +27,19 @@ public:
       case error::not_implemented: return "lookup: not implemented";
       case error::station_not_found: return "lookup: station not found";
       case error::route_not_found: return "lookup: route not found";
+      case error::route_not_found: return "lookup: id event not found";
       default: return "lookup: unkown error";
     }
   }
 };
 
-const boost::system::error_category& error_category() {
+inline const boost::system::error_category& error_category() {
   static error_category_impl instance;
   return instance;
 }
 
 namespace error {
-boost::system::error_code make_error_code(error_code_t e) noexcept {
+inline boost::system::error_code make_error_code(error_code_t e) noexcept {
   return boost::system::error_code(static_cast<int>(e), error_category());
 }
 }  // namespace error
