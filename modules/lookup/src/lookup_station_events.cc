@@ -53,6 +53,8 @@ std::vector<Offset<StationEvent>> lookup_station_events(
   auto begin = unix_to_motistime(sched, req->begin());
   auto end = unix_to_motistime(sched, req->end());
 
+  // TODO include events with schedule_time in the interval (but time outside)
+
   std::vector<Offset<StationEvent>> events;
   for (auto const& route_node : station_node->get_route_nodes()) {
     auto const& route_id = route_node->_route;
@@ -94,6 +96,8 @@ std::vector<Offset<StationEvent>> lookup_station_events(
       });
     }
   };
+
+  // TODO sort events (requires private member access in FlatBufferBuilder)
 
   return events;
 }

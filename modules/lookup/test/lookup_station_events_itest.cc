@@ -81,16 +81,17 @@ TEST(lookup, finds_station_events) {
     auto resp = msg->content<LookupStationEventsResponse const*>();
     ASSERT_EQ(3, resp->events()->size());
 
-    // arrivals, then departures
-    // order depends on the implementation
+    auto find_event = [resp](std::time_t schedule_time) -> StationEvent const* {
+      for (auto const& e : *resp->events()) {
+        if (e->schedule_time() == schedule_time) {
+          return e;
+        }
+      }
+      return nullptr;
+    };
 
-    // two arrivals
-    auto e0 = resp->events()->Get(0);
-    auto e1 = resp->events()->Get(1);
-    if(e0->train_nr() != 2292) {
-        std::swap(e0, e1);
-    }
-
+    auto e0 = find_event(1448372400);
+    ASSERT_NE(nullptr, e0);
     EXPECT_EQ(EventType_Arrival, e0->type());
     EXPECT_EQ(2292, e0->train_nr());
     EXPECT_EQ(std::string("381"), e0->line_id()->str());
@@ -104,6 +105,8 @@ TEST(lookup, finds_station_events) {
     EXPECT_EQ(std::string("381"), ie0->line_id()->str());
     EXPECT_EQ(1448366700, ie0->schedule_time());
 
+    auto e1 = find_event(1448373840);
+    ASSERT_NE(nullptr, e0);
     EXPECT_EQ(EventType_Arrival, e1->type());
     EXPECT_EQ(628, e1->train_nr());
     EXPECT_EQ(std::string(""), e1->line_id()->str());
@@ -117,8 +120,8 @@ TEST(lookup, finds_station_events) {
     EXPECT_EQ(std::string(""), ie1->line_id()->str());
     EXPECT_EQ(1448362440, ie1->schedule_time());
 
-    // only one departure
-    auto e2 = resp->events()->Get(2);
+    auto e2 = find_event(1448374200);
+    ASSERT_NE(nullptr, e0);
     EXPECT_EQ(EventType_Departure, e2->type());
     EXPECT_EQ(628, e2->train_nr());
     EXPECT_EQ(std::string(""), e2->line_id()->str());
