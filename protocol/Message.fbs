@@ -6,8 +6,8 @@ include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
 include "lookup/LookupStationEventsRequest.fbs";
 include "lookup/LookupStationEventsResponse.fbs";
-include "lookup/LookupTrainRequest.fbs";
-include "lookup/LookupTrainResponse.fbs";
+include "lookup/LookupIdTrainRequest.fbs";
+include "lookup/LookupIdTrainResponse.fbs";
 include "railviz/RailVizInit.fbs";
 include "railviz/RailVizAlltraReq.fbs";
 include "railviz/RailVizAlltraRes.fbs";
@@ -82,8 +82,8 @@ union MsgContent {
   motis.lookup.LookupBatchGeoStationResponse,
   motis.lookup.LookupStationEventsRequest,
   motis.lookup.LookupStationEventsResponse,
-  motis.lookup.LookupTrainRequest,
-  motis.lookup.LookupTrainResponse,
+  motis.lookup.LookupIdTrainRequest,
+  motis.lookup.LookupIdTrainResponse,
   motis.railviz.RailVizInit,
   motis.railviz.RailVizAlltraReq,
   motis.railviz.RailVizAlltraRes,

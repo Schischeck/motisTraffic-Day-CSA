@@ -1,3 +1,11 @@
 namespace motis.lookup;
 
 enum EventType : bool {Arrival, Departure}
+
+table IdEvent {
+  eva_nr: string;
+  type: EventType;
+  train_nr: uint;
+  line_id: string;
+  schedule_time: ulong;
+}

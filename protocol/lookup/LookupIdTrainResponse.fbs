@@ -2,6 +2,6 @@ include "routing/RoutingResponse.fbs";
 
 namespace motis.lookup;
 
-table LookupTrainResponse {
+table LookupIdTrainResponse {
   train: motis.routing.Connection;
 }

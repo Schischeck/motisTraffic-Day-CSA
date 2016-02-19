@@ -24,7 +24,7 @@ struct lookup : public motis::module::module {
     return {MsgContent_LookupGeoStationRequest,
             MsgContent_LookupBatchGeoStationRequest,
             MsgContent_LookupStationEventsRequest,
-            MsgContent_LookupTrainRequest};
+            MsgContent_LookupIdTrainRequest};
   }
 
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
@@ -37,7 +37,8 @@ struct lookup : public motis::module::module {
 
   void lookup_station_events(LookupStationEventsRequest const*,
                              motis::module::callback);
-  void lookup_train(LookupTrainRequest const*, motis::module::callback);
+
+  void lookup_id_train(LookupIdTrainRequest const*, motis::module::callback);
 
   std::unique_ptr<station_geo_index> geo_index_;
 };

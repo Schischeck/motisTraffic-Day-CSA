@@ -42,7 +42,7 @@ constexpr auto kFrankfurtRequest = R""(
   }}
 )"";
 
-TEST(lookup, finds_station_events) {
+TEST(lookup, station_events) {
   auto instance = launch_motis(kSimpleRealtimePath, kSimpleRealtimeDate,
                                {"lookup", "realtime"});
   send(instance, get_simple_realtime_ris_message());

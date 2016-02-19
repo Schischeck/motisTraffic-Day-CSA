@@ -1,24 +1,16 @@
 #include "motis/lookup/lookup.h"
 
-#include <iostream>
-#include <numeric>
-
 #include "boost/program_options.hpp"
 
 #include "motis/core/common/util.h"
-#include "motis/core/journey/journey.h"
-#include "motis/core/journey/journeys_to_message.h"
-#include "motis/loader/util.h"
 #include "motis/lookup/error.h"
+#include "motis/lookup/lookup_id_train.h"
 #include "motis/lookup/lookup_station_events.h"
 #include "motis/lookup/station_geo_index.h"
-#include "motis/lookup/util.h"
-#include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
 namespace po = boost::program_options;
-using motis::loader::transform_to_vec;
 
 namespace motis {
 namespace lookup {
@@ -54,9 +46,9 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
         auto req = msg->content<LookupStationEventsRequest const*>();
         return lookup_station_events(req, cb);
       }
-      case MsgContent_LookupTrainRequest: {
-        auto req = msg->content<LookupTrainRequest const*>();
-        return lookup_train(req, cb);
+      case MsgContent_LookupIdTrainRequest: {
+        auto req = msg->content<LookupIdTrainRequest const*>();
+        return lookup_id_train(req, cb);
       }
       default: return cb({}, error::not_implemented);
     }
@@ -67,24 +59,24 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
 
 void lookup::lookup_station(LookupGeoStationRequest const* req,
                             callback cb) const {
-  MessageCreator fbb;
-  auto response = geo_index_->stations(fbb, req);
-  fbb.CreateAndFinish(MsgContent_LookupGeoStationResponse, response.Union());
-  return cb(make_msg(fbb), error::ok);
+  MessageCreator b;
+  auto response = geo_index_->stations(b, req);
+  b.CreateAndFinish(MsgContent_LookupGeoStationResponse, response.Union());
+  return cb(make_msg(b), error::ok);
 }
 
 void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
                              motis::module::callback cb) const {
-  MessageCreator fbb;
+  MessageCreator b;
   std::vector<Offset<LookupGeoStationResponse>> responses;
   for (auto const& request : *req->requests()) {
-    responses.push_back(geo_index_->stations(fbb, request));
+    responses.push_back(geo_index_->stations(b, request));
   }
-  fbb.CreateAndFinish(
+  b.CreateAndFinish(
       MsgContent_LookupBatchGeoStationResponse,
-      CreateLookupBatchGeoStationResponse(fbb, fbb.CreateVector(responses))
+      CreateLookupBatchGeoStationResponse(b, b.CreateVector(responses))
           .Union());
-  return cb(make_msg(fbb), error::ok);
+  return cb(make_msg(b), error::ok);
 }
 
 void lookup::lookup_station_events(LookupStationEventsRequest const* req,
@@ -98,120 +90,13 @@ void lookup::lookup_station_events(LookupStationEventsRequest const* req,
   return cb(make_msg(b), error::ok);
 }
 
-std::pair<int, int> get_route_id_and_position(station_node const* node,
-                                              uint32_t train_nr, time t,
-                                              bool is_departure) {
-  if (is_departure) {
-    for (auto const& rn : node->get_route_nodes()) {
-      for (auto const& e : rn->_edges) {
-        if (e.type() != edge::ROUTE_EDGE) {
-          continue;
-        }
-        auto c = e.get_connection(t);
-        if (c == nullptr || c->_full_con->con_info->train_nr != train_nr) {
-          continue;
-        }
-        return {rn->_route, std::distance(begin(e._m._route_edge._conns), c)};
-      }
-    }
-  } else {
-    for (auto const& rn : node->get_route_nodes()) {
-      for (auto const& e : rn->_incoming_edges) {
-        if (e->type() != edge::ROUTE_EDGE) {
-          continue;
-        }
-        auto c = e->get_connection_reverse(t);
-        if (c == nullptr || c->_full_con->con_info->train_nr != train_nr) {
-          continue;
-        }
-        return {rn->_route, std::distance(begin(e->_m._route_edge._conns), c)};
-      }
-    }
-  }
-
-  throw boost::system::system_error(error::route_not_found);
-}
-
-void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
-  auto lock = synced_sched<schedule_access::RO>();
-  auto const& schedule = lock.sched();
-
-  auto station_node = get_station_node(schedule, req->eva_nr()->str());
-  auto t = unix_to_motistime(schedule, req->time());
-
-  auto route =
-      get_route_id_and_position(station_node, req->train_nr(), t,
-                                req->event_type() == EventType_Departure);
-
-  int i = 0;
-  journey j;
-
-  auto* route_node = schedule.route_index_to_first_route_node[route.first];
-  auto* route_edge = find_outgoing_route_edge(route_node);
-  while (route_edge != nullptr) {
-    auto const& lcon = route_edge->_m._route_edge._conns[route.second];
-    auto const& station = schedule.stations[route_node->get_station()->_id];
-
-    if (j.stops.empty()) {
-      journey::stop d_stop;
-      d_stop.index = i++;
-      d_stop.interchange = false;
-      d_stop.eva_no = station->eva_nr;
-      d_stop.name = station->name;
-      d_stop.lat = station->lat();
-      d_stop.lng = station->lng();
-
-      journey::stop::event_info arr;
-      arr.valid = false;
-      d_stop.arrival = arr;
-
-      j.stops.push_back(d_stop);
-    }
-
-    std::time_t d_time = motis_to_unixtime(schedule, lcon.d_time);
-
-    journey::stop::event_info dep;
-    dep.valid = true;
-    dep.timestamp = d_time;
-    dep.schedule_timestamp = d_time;
-    dep.platform = std::to_string(lcon._full_con->d_platform);  // TODO
-
-    j.stops.back().departure = dep;
-
-    auto const& next_station =
-        schedule.stations[route_edge->get_destination()->get_station()->_id];
-
-    journey::stop a_stop;
-    a_stop.index = i++;
-    a_stop.interchange = false;
-    a_stop.eva_no = next_station->eva_nr;
-    a_stop.name = next_station->name;
-    a_stop.lat = next_station->lat();
-    a_stop.lng = next_station->lng();
-
-    std::time_t a_time = motis_to_unixtime(schedule, lcon.a_time);
-
-    journey::stop::event_info arr;
-    arr.valid = true;
-    arr.timestamp = a_time;
-    arr.schedule_timestamp = a_time;
-    arr.platform = std::to_string(lcon._full_con->d_platform);  // TODO
-    a_stop.arrival = arr;
-
-    j.stops.push_back(a_stop);
-
-    route_node = route_edge->get_destination();
-    route_edge = find_outgoing_route_edge(route_node);
-  }
-
-  journey::stop::event_info dep;
-  dep.valid = false;
-  j.stops.back().departure = dep;
-
+void lookup::lookup_id_train(LookupIdTrainRequest const* req, callback cb) {
   MessageCreator b;
-  b.CreateAndFinish(MsgContent_LookupTrainResponse,
-                    CreateLookupTrainResponse(b, to_connection(b, j)).Union());
-  cb(make_msg(b), error::ok);
+  auto lock = synced_sched<schedule_access::RO>();
+  auto train = motis::lookup::lookup_id_train(b, lock.sched(), req->id_event());
+  b.CreateAndFinish(MsgContent_LookupIdTrainResponse,
+                    CreateLookupIdTrainResponse(b, train).Union());
+  return cb(make_msg(b), error::ok);
 }
 
 }  // namespace lookup

@@ -8,18 +8,6 @@ using namespace flatbuffers;
 namespace motis {
 namespace lookup {
 
-time get_schedule_time(schedule const& sched, unsigned station_index,
-                       uint32_t const train_nr, bool const is_departure,
-                       time const t, int const route_id) {
-  graph_event evt{station_index, train_nr, is_departure, t, route_id};
-  auto it = sched.graph_to_delay_info.find(evt);
-  if (it != end(sched.graph_to_delay_info)) {
-    return it->second->_schedule_event._schedule_time;
-  } else {
-    return t;
-  }
-}
-
 Offset<IdEvent> make_id_event(FlatBufferBuilder& fbb, schedule const& sched,
                               int const& route_id, int const& position) {
   auto const& route_node = sched.route_index_to_first_route_node[route_id];
