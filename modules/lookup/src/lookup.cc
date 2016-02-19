@@ -135,10 +135,9 @@ std::pair<int, int> get_route_id_and_position(station_node const* node,
 void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
   auto lock = synced_sched<schedule_access::RO>();
   auto const& schedule = lock.sched();
-  auto sched_begin = lock.sched().schedule_begin_;
 
-  auto station_node = find_station_node(schedule, req->eva_nr()->str());
-  auto t = unix_to_motistime(sched_begin, req->time());
+  auto station_node = get_station_node(schedule, req->eva_nr()->str());
+  auto t = unix_to_motistime(schedule, req->time());
 
   auto route =
       get_route_id_and_position(station_node, req->train_nr(), t,
@@ -148,7 +147,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
   journey j;
 
   auto* route_node = schedule.route_index_to_first_route_node[route.first];
-  auto* route_edge = get_outgoing_route_edge(route_node);
+  auto* route_edge = find_outgoing_route_edge(route_node);
   while (route_edge != nullptr) {
     auto const& lcon = route_edge->_m._route_edge._conns[route.second];
     auto const& station = schedule.stations[route_node->get_station()->_id];
@@ -169,7 +168,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
       j.stops.push_back(d_stop);
     }
 
-    std::time_t d_time = motis_to_unixtime(sched_begin, lcon.d_time);
+    std::time_t d_time = motis_to_unixtime(schedule, lcon.d_time);
 
     journey::stop::event_info dep;
     dep.valid = true;
@@ -190,7 +189,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     a_stop.lat = next_station->lat();
     a_stop.lng = next_station->lng();
 
-    std::time_t a_time = motis_to_unixtime(sched_begin, lcon.a_time);
+    std::time_t a_time = motis_to_unixtime(schedule, lcon.a_time);
 
     journey::stop::event_info arr;
     arr.valid = true;
@@ -202,7 +201,7 @@ void lookup::lookup_train(LookupTrainRequest const* req, callback cb) {
     j.stops.push_back(a_stop);
 
     route_node = route_edge->get_destination();
-    route_edge = get_outgoing_route_edge(route_node);
+    route_edge = find_outgoing_route_edge(route_node);
   }
 
   journey::stop::event_info dep;

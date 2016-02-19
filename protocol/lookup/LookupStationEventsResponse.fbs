@@ -11,7 +11,7 @@ table IdEvent {
 }
 
 table StationEvent {
-  id: IdEvent;
+  id_event: IdEvent;
 
   type: EventType;
   train_nr: uint;

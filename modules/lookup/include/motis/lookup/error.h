@@ -10,9 +10,10 @@ namespace error {
 enum error_code_t {
   ok = 0,
   not_implemented = 1,
-  station_not_found = 2,
-  route_not_found = 3,
-  id_event_not_found = 3,
+  not_in_period = 2,
+  station_not_found = 3,
+  route_not_found = 4,
+  route_edge_not_found = 5,
   failure = 127
 };
 }  // namespace error
@@ -25,9 +26,10 @@ public:
     switch (ev) {
       case error::ok: return "lookup: no error";
       case error::not_implemented: return "lookup: not implemented";
+      case error::not_in_period: return "lookup: not in schedule period";
       case error::station_not_found: return "lookup: station not found";
       case error::route_not_found: return "lookup: route not found";
-      case error::route_not_found: return "lookup: id event not found";
+      case error::route_edge_not_found: return "lookup: route edge not found";
       default: return "lookup: unkown error";
     }
   }
