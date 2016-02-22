@@ -25,9 +25,11 @@ std::pair<int, int> get_route_id_and_position(station_node const* node,
           continue;
         }
         auto c = e.get_connection(t);
+        if (c == nullptr) {
+          continue;
+        }
         auto info = c->_full_con->con_info;
-        if (c == nullptr || info->train_nr != train_nr ||
-            info->line_identifier != line_id) {
+        if (info->train_nr != train_nr || info->line_identifier != line_id) {
           continue;
         }
         return {rn->_route, std::distance(begin(e._m._route_edge._conns), c)};
@@ -40,9 +42,11 @@ std::pair<int, int> get_route_id_and_position(station_node const* node,
           continue;
         }
         auto c = e->get_connection_reverse(t);
+        if (c == nullptr) {
+          continue;
+        }
         auto info = c->_full_con->con_info;
-        if (c == nullptr || info->train_nr != train_nr ||
-            info->line_identifier != line_id) {
+        if (info->train_nr != train_nr || info->line_identifier != line_id) {
           continue;
         }
         return {rn->_route, std::distance(begin(e->_m._route_edge._conns), c)};
