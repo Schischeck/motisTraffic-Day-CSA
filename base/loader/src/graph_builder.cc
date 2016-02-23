@@ -624,7 +624,9 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
                         apply_rules, adjust_footpaths);
   builder.add_stations(serialized->stations());
-  builder.link_meta_stations(serialized->meta_stations());
+  if(serialized->meta_stations() != nullptr) {
+    builder.link_meta_stations(serialized->meta_stations());
+  }
   builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());
 
