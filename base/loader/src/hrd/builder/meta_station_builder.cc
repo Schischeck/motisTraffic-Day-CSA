@@ -1,5 +1,7 @@
 #include "motis/loader/hrd/builder/meta_station_builder.h"
 
+#include <iostream>
+
 namespace motis {
 namespace loader {
 namespace hrd {
@@ -15,10 +17,20 @@ Offset<Vector<Offset<MetaStation>>> create_meta_stations(
     std::vector<Offset<Station>> fbs_equivalent;
     for (auto const& e : m.equivalent) {
       auto it = fbs_stations.find(e);
+      if (it == end(fbs_stations)) {
+        continue;
+      }
       fbs_equivalent.push_back(it->second);
     }
 
+    if (fbs_equivalent.size() == 0) {
+      continue;
+    }
+
     auto it = fbs_stations.find(m.eva);
+    if (it == end(fbs_stations)) {
+      continue;
+    }
     fbs_meta_stations.push_back(
         CreateMetaStation(fbb, it->second, fbb.CreateVector(fbs_equivalent)));
   }

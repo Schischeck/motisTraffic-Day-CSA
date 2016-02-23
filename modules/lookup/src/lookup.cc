@@ -55,6 +55,10 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
         auto req = msg->content<LookupMetaStationRequest const*>();
         return lookup_meta_station(req, cb);
       }
+      case MsgContent_LookupBatchMetaStationRequest: {
+        auto req = msg->content<LookupBatchMetaStationRequest const*>();
+        return lookup_batch_meta_station(req, cb);
+      }
       default: return cb({}, error::not_implemented);
     }
   } catch (boost::system::system_error const& e) {
