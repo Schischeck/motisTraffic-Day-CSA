@@ -11,3 +11,7 @@ namespace motis.lookup;
 table LookupMetaStationRequest {
   eva_nr: string;
 }
+
+table LookupBatchMetaStationRequest {
+  requests: [LookupMetaStationRequest];
+}

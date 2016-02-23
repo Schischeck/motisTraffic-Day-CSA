@@ -41,7 +41,7 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
       }
       case MsgContent_LookupBatchGeoStationRequest: {
         auto req = msg->content<LookupBatchGeoStationRequest const*>();
-        return lookup_stations(req, cb);
+        return lookup_batch_station(req, cb);
       }
       case MsgContent_LookupStationEventsRequest: {
         auto req = msg->content<LookupStationEventsRequest const*>();
@@ -70,8 +70,8 @@ void lookup::lookup_station(LookupGeoStationRequest const* req,
   return cb(make_msg(b), error::ok);
 }
 
-void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
-                             motis::module::callback cb) const {
+void lookup::lookup_batch_station(LookupBatchGeoStationRequest const* req,
+                                  motis::module::callback cb) const {
   MessageCreator b;
   std::vector<Offset<LookupGeoStationResponse>> responses;
   for (auto const& request : *req->requests()) {
@@ -108,10 +108,23 @@ void lookup::lookup_meta_station(LookupMetaStationRequest const* req,
                                  callback cb) {
   MessageCreator b;
   auto lock = synced_sched<schedule_access::RO>();
-  auto stations = motis::lookup::lookup_meta_station(b, lock.sched(), req);
+  auto res = motis::lookup::lookup_meta_station(b, lock.sched(), req);
+  b.CreateAndFinish(MsgContent_LookupMetaStationResponse, res.Union());
+  return cb(make_msg(b), error::ok);
+}
+
+void lookup::lookup_batch_meta_station(LookupBatchMetaStationRequest const* req,
+                                       callback cb) {
+  MessageCreator b;
+  auto lock = synced_sched<schedule_access::RO>();
+  std::vector<Offset<LookupMetaStationResponse>> responses;
+  for (auto const& r : *req->requests()) {
+    responses.push_back(motis::lookup::lookup_meta_station(b, lock.sched(), r));
+  }
   b.CreateAndFinish(
-      MsgContent_LookupMetaStationResponse,
-      CreateLookupMetaStationResponse(b, b.CreateVector(stations)).Union());
+      MsgContent_LookupBatchMetaStationResponse,
+      CreateLookupBatchMetaStationResponse(b, b.CreateVector(responses))
+          .Union());
   return cb(make_msg(b), error::ok);
 }
 

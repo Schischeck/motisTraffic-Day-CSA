@@ -5,3 +5,7 @@ namespace motis.lookup;
 table LookupMetaStationResponse {
   equivalent: [Station];
 }
+
+table LookupBatchMetaStationResponse {
+  responses: [LookupMetaStationResponse];
+}

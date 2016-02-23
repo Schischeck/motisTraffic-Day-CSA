@@ -86,6 +86,8 @@ union MsgContent {
   motis.lookup.LookupStationEventsResponse,
   motis.lookup.LookupMetaStationRequest,
   motis.lookup.LookupMetaStationResponse,
+  motis.lookup.LookupBatchMetaStationRequest,
+  motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
   motis.railviz.RailVizInit,

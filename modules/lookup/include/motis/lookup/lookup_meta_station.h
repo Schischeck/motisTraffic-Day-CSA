@@ -8,7 +8,7 @@
 namespace motis {
 namespace lookup {
 
-std::vector<flatbuffers::Offset<Station>> lookup_meta_station(
+flatbuffers::Offset<LookupMetaStationResponse> lookup_meta_station(
     flatbuffers::FlatBufferBuilder&, schedule const&,
     LookupMetaStationRequest const*);
 

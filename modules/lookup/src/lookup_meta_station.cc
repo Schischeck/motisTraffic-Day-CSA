@@ -7,7 +7,7 @@ using namespace flatbuffers;
 namespace motis {
 namespace lookup {
 
-std::vector<Offset<Station>> lookup_meta_station(
+Offset<LookupMetaStationResponse> lookup_meta_station(
     FlatBufferBuilder& fbb, schedule const& sched,
     LookupMetaStationRequest const* req) {
   std::vector<Offset<Station>> equivalent;
@@ -17,7 +17,7 @@ std::vector<Offset<Station>> lookup_meta_station(
     equivalent.push_back(create_station(fbb, *e));
   }
 
-  return equivalent;
+  return CreateLookupMetaStationResponse(fbb, fbb.CreateVector(equivalent));
 }
 
 }  // namespace lookup
