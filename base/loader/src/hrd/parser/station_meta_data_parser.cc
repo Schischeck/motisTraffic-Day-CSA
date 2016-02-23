@@ -91,15 +91,30 @@ int station_meta_data::get_station_change_time(int eva_num) const {
 
 void parse_and_add_hrd_footpaths(
     loaded_file const& metabhf_file,
-    std::set<station_meta_data::footpath>& footpaths) {
+    std::set<station_meta_data::footpath>& footpaths,
+    std::set<station_meta_data::meta_station>& meta_stations) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
-    if (line.length() < 19 || line[0] == '%' || line[0] == '*' ||
-        line[7] == ':') {
+    if (line.length() < 19 || line[0] == '%' || line[0] == '*') {
       return;
     }
-    footpaths.insert({parse<int>(line.substr(0, size(7))),
-                      parse<int>(line.substr(8, size(7))),
-                      parse<int>(line.substr(16, size(3)))});
+
+    if (line[7] == ':') {  // equivalent stations
+      int eva = parse<int>(line.substr(0, size(7)));
+      std::vector<int> equivalent;
+      for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
+        int e = parse<int>(token);
+        if (e != 0) {
+          equivalent.push_back(e);
+        }
+      });
+      if (equivalent.size() > 0) {
+        meta_stations.insert({eva, equivalent});
+      }
+    } else {  // footpaths
+      footpaths.insert({parse<int>(line.substr(0, size(7))),
+                        parse<int>(line.substr(8, size(7))),
+                        parse<int>(line.substr(16, size(3)))});
+    }
   });
 }
 
@@ -132,8 +147,10 @@ void parse_station_meta_data(loaded_file const& infotext_file,
       }
     }
   }
-  parse_and_add_hrd_footpaths(metabhf_file, metas.footpaths_);
-  parse_and_add_hrd_footpaths(metabhf_zusatz_file, metas.footpaths_);
+  parse_and_add_hrd_footpaths(metabhf_file, metas.footpaths_,
+                              metas.meta_stations_);
+  parse_and_add_hrd_footpaths(metabhf_zusatz_file, metas.footpaths_,
+                              metas.meta_stations_);
 }
 
 const char* station_meta_data::MINCT = R"(AA;;7;4

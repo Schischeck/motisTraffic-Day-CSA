@@ -9,3 +9,10 @@ table IdEvent {
   line_id: string;
   schedule_time: ulong;
 }
+
+table Station {
+  eva_nr: string;
+  name: string;
+  lat: double;
+  lng: double;
+}

@@ -4,6 +4,8 @@
 #include "motis/core/schedule/time.h"
 #include "motis/lookup/error.h"
 
+#include "motis/protocol/Message_generated.h"
+
 // naming: find_xyz returns nullptr on miss
 // naming: get_xyz throws on miss
 
@@ -30,15 +32,20 @@ inline time get_schedule_time(schedule const& sched, unsigned station_index,
   }
 }
 
-// TODO actually this should in schedule_access.h somewhere in core
-//      but what about the error?
-inline station_node* get_station_node(schedule const& sched,
-                                      std::string const& eva_nr) {
+inline station* get_station(schedule const& sched, std::string const& eva_nr) {
   auto it = sched.eva_to_station.find(eva_nr);
   if (it == end(sched.eva_to_station)) {
     throw boost::system::system_error(error::station_not_found);
   }
-  return sched.station_nodes[it->second->index].get();
+  return it->second;
+}
+
+// TODO actually this should in schedule_access.h somewhere in core
+//      but what about the error?
+inline station_node* get_station_node(schedule const& sched,
+                                      std::string const& eva_nr) {
+  auto index = get_station(sched, eva_nr)->index;
+  return sched.station_nodes[index].get();
 }
 
 // simple case -> each route node has one route edge (no merge split)
@@ -57,6 +64,12 @@ inline edge* get_outgoing_route_edge(node* node) {
     throw boost::system::system_error(error::route_edge_not_found);
   }
   return res;
+}
+
+inline flatbuffers::Offset<Station> create_station(
+    flatbuffers::FlatBufferBuilder& fbb, station const& s) {
+  return CreateStation(fbb, fbb.CreateString(s.eva_nr),
+                       fbb.CreateString(s.name), s.lat(), s.lng());
 }
 
 }  // namespace lookup

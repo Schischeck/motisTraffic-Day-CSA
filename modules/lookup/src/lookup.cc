@@ -6,6 +6,7 @@
 #include "motis/lookup/error.h"
 #include "motis/lookup/lookup_id_train.h"
 #include "motis/lookup/lookup_station_events.h"
+#include "motis/lookup/lookup_meta_station.h"
 #include "motis/lookup/station_geo_index.h"
 
 using namespace flatbuffers;
@@ -49,6 +50,10 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
       case MsgContent_LookupIdTrainRequest: {
         auto req = msg->content<LookupIdTrainRequest const*>();
         return lookup_id_train(req, cb);
+      }
+      case MsgContent_LookupMetaStationRequest: {
+        auto req = msg->content<LookupMetaStationRequest const*>();
+        return lookup_meta_station(req, cb);
       }
       default: return cb({}, error::not_implemented);
     }
@@ -96,6 +101,17 @@ void lookup::lookup_id_train(LookupIdTrainRequest const* req, callback cb) {
   auto train = motis::lookup::lookup_id_train(b, lock.sched(), req->id_event());
   b.CreateAndFinish(MsgContent_LookupIdTrainResponse,
                     CreateLookupIdTrainResponse(b, train).Union());
+  return cb(make_msg(b), error::ok);
+}
+
+void lookup::lookup_meta_station(LookupMetaStationRequest const* req,
+                                 callback cb) {
+  MessageCreator b;
+  auto lock = synced_sched<schedule_access::RO>();
+  auto stations = motis::lookup::lookup_meta_station(b, lock.sched(), req);
+  b.CreateAndFinish(
+      MsgContent_LookupMetaStationResponse,
+      CreateLookupMetaStationResponse(b, b.CreateVector(stations)).Union());
   return cb(make_msg(b), error::ok);
 }
 

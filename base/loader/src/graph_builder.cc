@@ -101,6 +101,17 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
   next_node_id_ = sched_.stations.size();
 }
 
+void graph_builder::link_meta_stations(
+    Vector<Offset<MetaStation>> const* meta_stations) {
+  for (auto const& meta : *meta_stations) {
+    auto station = sched_.eva_to_station.find(meta->station()->id()->str());
+    for (auto const& fbs_equivalent : *meta->equivalent()) {
+      auto equivalent = sched_.eva_to_station.find(fbs_equivalent->id()->str());
+      station->second->equivalent.push_back(equivalent->second);
+    }
+  }
+}
+
 timezone const* graph_builder::get_or_create_timezone(
     Timezone const* input_timez) {
   return get_or_create(timezones_, input_timez, [&]() {
@@ -613,6 +624,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
                         apply_rules, adjust_footpaths);
   builder.add_stations(serialized->stations());
+  builder.link_meta_stations(serialized->meta_stations());
   builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());
 
