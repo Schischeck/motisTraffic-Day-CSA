@@ -16,6 +16,7 @@
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/waiting_time_rules.h"
+#include "motis/core/schedule/service_id.h"
 
 namespace motis {
 
@@ -54,7 +55,9 @@ struct schedule {
   std::vector<std::unique_ptr<provider>> providers;
   std::vector<std::unique_ptr<std::string>> directions;
   std::vector<std::unique_ptr<timezone>> timezones;
-  std::vector<std::unique_ptr<std::string>> origin_services;
+
+  std::vector<std::unique_ptr<service>> services;
+  hash_map<primary_service_id, service const*> service_id_to_route;
 
   std::vector<std::unique_ptr<delay_info>> delay_infos;
   hash_map<schedule_event, delay_info*> schedule_to_delay_info;

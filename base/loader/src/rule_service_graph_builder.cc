@@ -349,7 +349,7 @@ void rule_service_graph_builder::add_rule_services(
   }
 
   for (auto const& rule_service : *rule_services) {
-    auto traffic_days = gb_.get_or_create_bitfield(
+    auto const& traffic_days = gb_.get_or_create_bitfield(
         rule_service->rules()->Get(0)->service1()->traffic_days());
 
     auto offset = calculate_offset(rule_service);
