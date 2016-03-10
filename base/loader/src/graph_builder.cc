@@ -120,6 +120,52 @@ timezone const* graph_builder::get_or_create_timezone(
   });
 }
 
+station_node* graph_builder::get_station_node(Station const* station) const {
+  auto it = stations_.find(station);
+  verify(it != end(stations_), "station not found");
+  return it->second;
+}
+
+full_trip_id graph_builder::get_service_primary_id(Service const* s,
+                                                   int day_idx) const {
+  auto const& stops = s->route()->stations();
+  auto const dep_station_idx = get_station_node(stops->Get(0))->_id;
+  auto const arr_station_idx =
+      get_station_node(stops->Get(stops->size() - 1))->_id;
+
+  auto const dep_tz = sched_.stations[dep_station_idx]->timez;
+  auto const dep_time = dep_tz->to_motis_time(day_idx, s->times()->Get(1));
+
+  auto const arr_tz = sched_.stations[arr_station_idx]->timez;
+  auto const arr_time =
+      arr_tz->to_motis_time(day_idx, s->times()->Get(s->times()->size() - 2));
+
+  auto const train_nr = s->sections()->Get(0)->train_nr();
+  auto const line_id_ptr = s->sections()->Get(0)->line_id();
+  auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
+
+  full_trip_id id;
+  id.primary = primary_trip_id(dep_station_idx, train_nr, dep_time);
+  id.secondary =
+      secondary_trip_id(std::move(line_id), arr_station_idx, arr_time, false);
+  return id;
+}
+
+trip* graph_builder::register_service(Service const* s, int day_idx) {
+  sched_.services_mem.emplace_back(
+      new trip(get_service_primary_id(s, day_idx)));
+  auto stored = sched_.services_mem.back().get();
+  auto i = sched_.services.insert(std::make_pair(stored->id.primary, stored));
+  if (i.second) {
+    auto next = i.first->second;
+    while (next->next != nullptr) {
+      next = next->next;
+    }
+    next->next = stored;
+  }
+  return stored;
+}
+
 void graph_builder::add_services(Vector<Offset<Service>> const* services) {
   std::vector<Service const*> sorted(services->size());
   std::copy(std::begin(*services), std::end(*services), begin(sorted));
@@ -178,11 +224,12 @@ void graph_builder::add_route_services(
       time prev_arr = 0;
       bool adjusted = false;
       std::vector<light_connection> lcons;
+      auto t = register_service(s, day);
       for (int section_idx = 0;
            section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
-        lcons.push_back(section_to_connection({{participant{s, section_idx}}},
-                                              day, prev_arr, adjusted));
+        lcons.push_back(section_to_connection(
+            {{participant{s, t, section_idx}}}, day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 

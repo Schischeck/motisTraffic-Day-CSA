@@ -56,8 +56,8 @@ struct schedule {
   std::vector<std::unique_ptr<std::string>> directions;
   std::vector<std::unique_ptr<timezone>> timezones;
 
-  std::vector<std::unique_ptr<service>> services;
-  hash_map<primary_service_id, service const*> service_id_to_route;
+  hash_map<primary_trip_id, trip*> services;
+  std::vector<std::unique_ptr<trip>> services_mem;
 
   std::vector<std::unique_ptr<delay_info>> delay_infos;
   hash_map<schedule_event, delay_info*> schedule_to_delay_info;

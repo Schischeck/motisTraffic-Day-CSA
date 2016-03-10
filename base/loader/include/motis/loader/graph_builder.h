@@ -60,10 +60,10 @@ struct route_section {
 };
 
 struct participant {
-  participant() : service(nullptr), section_idx(0) {}
+  participant() : service(nullptr), trp(nullptr), section_idx(0) {}
 
-  participant(Service const* service, int section_idx)
-      : service(service), section_idx(section_idx) {}
+  participant(Service const* service, trip const* trp, int section_idx)
+      : service(service), trp(trp), section_idx(section_idx) {}
 
   friend bool operator<(participant const& lhs, participant const& rhs) {
     return lhs.service > rhs.service;
@@ -78,6 +78,7 @@ struct participant {
   }
 
   Service const* service;
+  trip const* trp;
   int section_idx;
 };
 
@@ -161,40 +162,11 @@ struct graph_builder {
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
       route_section prev_section, route_section next_section);
 
-  static std::pair<service, std::vector<primary_service_id>>
-  get_service_id_events(Service const* s) {
-    std::pair<service, std::vector<primary_service_id>> ret;
+  station_node* get_station_node(Station const* station) const;
 
-    auto const& stops = s->route()->stations();
-    auto first_station_id = stations_[stops->Get(0)]->_id;
-    auto last_station_id = stations_[stops->Get(stops->size() - 1)]->_id;
+  full_trip_id get_service_primary_id(Service const* s, int day_idx) const;
 
-    auto line_id_ptr = s->sections()->Get(0)->line_id();
-    auto line_id = line_id_ptr ? line_id_ptr->str() : "";
-
-    auto const& traffic_days = get_or_create_bitfield(s->traffic_days());
-
-    for (int i = 0; i < s->sections()->size(); ++i) {
-      if (i != 0 &&
-          s->sections()->Get(i - 1)->train_nr() ==
-              s->sections()->Get(i)->train_nr()) {
-        continue;
-      }
-
-      auto station_id = i == 0 ? first_station_id
-                               : stations_[s->route()->stations()->Get(i)]->_id;
-      auto const& tz = sched_.stations[station_id]->timez;
-      for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
-        if (!traffic_days.test(day_idx)) {
-          continue;
-        }
-
-        tz->to_motis_time(day_idx, s->times()->Get(i * 2 + 1));
-      }
-    }
-
-    return ret;
-  }
+  trip* register_service(Service const* s, int day_idx);
 
   unsigned duplicate_count_;
   unsigned next_route_index_;

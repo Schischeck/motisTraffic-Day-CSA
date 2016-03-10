@@ -9,23 +9,23 @@
 
 namespace motis {
 
-struct primary_service_id {
-  primary_service_id() = default;
-  primary_service_id(uint32_t station_id, uint32_t train_nr, motis::time time)
-      : station_id(station_id), time(time), train_nr(train_nr) {}
+struct primary_trip_id {
+  primary_trip_id() = default;
+  primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
+      : station_id(station_id), train_nr(train_nr), time(time) {}
 
   uint64_t station_id : 31;
   uint64_t train_nr : 17;
   uint64_t time : 16;
 
-  friend bool operator<(primary_service_id const& lhs,
-                        primary_service_id const& rhs) {
+  friend bool operator<(primary_trip_id const& lhs,
+                        primary_trip_id const& rhs) {
     return *reinterpret_cast<uint64_t const*>(&lhs) <
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 
-  friend bool operator==(primary_service_id const& lhs,
-                         primary_service_id const& rhs) {
+  friend bool operator==(primary_trip_id const& lhs,
+                         primary_trip_id const& rhs) {
     return *reinterpret_cast<uint64_t const*>(&lhs) ==
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
@@ -35,8 +35,8 @@ struct primary_service_id {
 
 namespace std {
 template <>
-struct hash<motis::primary_service_id> {
-  std::size_t operator()(motis::primary_service_id const& e) const {
+struct hash<motis::primary_trip_id> {
+  std::size_t operator()(motis::primary_trip_id const& e) const {
     return *reinterpret_cast<uint64_t const*>(&e);
   }
 };
@@ -44,44 +44,48 @@ struct hash<motis::primary_service_id> {
 
 namespace motis {
 
-struct secondary_service_id {
-  secondary_service_id() = default;
-  secondary_service_id(uint32_t line_id, uint32_t target_station_id,
-                       uint16_t target_time, uint32_t is_arrival)
-      : line_id(line_id),
+struct secondary_trip_id {
+  secondary_trip_id() = default;
+  secondary_trip_id(std::string line_id, uint32_t target_station_id,
+                    uint16_t target_time, bool is_arrival)
+      : line_id(std::move(line_id)),
         target_station_id(target_station_id),
         target_time(target_time),
         is_arrival(is_arrival) {}
 
-  uint64_t line_id : 25;
-  uint64_t target_station_id : 22;
+  std::string line_id;
+  uint64_t target_station_id : 31;
   uint64_t target_time : 16;
   uint64_t is_arrival : 1;
 
-  friend bool operator<(secondary_service_id const& lhs,
-                        secondary_service_id const& rhs) {
+  friend bool operator<(secondary_trip_id const& lhs,
+                        secondary_trip_id const& rhs) {
     return *reinterpret_cast<uint64_t const*>(&lhs) <
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 
-  friend bool operator==(secondary_service_id const& lhs,
-                         secondary_service_id const& rhs) {
+  friend bool operator==(secondary_trip_id const& lhs,
+                         secondary_trip_id const& rhs) {
     return *reinterpret_cast<uint64_t const*>(&lhs) ==
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 };
 
-struct full_service_id {
-  primary_service_id primary;
-  secondary_service_id secondary;
+struct full_trip_id {
+  primary_trip_id primary;
+  secondary_trip_id secondary;
 };
 
-struct service {
-  full_service_id id;
-  edge* edge;
-  size_t light_connection_index;
+struct trip {
+  trip() : first_route_edge(nullptr), next(nullptr) {}
+  trip(full_trip_id id)
+      : id(std::move(id)), first_route_edge(nullptr), next(nullptr) {}
 
-  service const* next;
+  full_trip_id id;
+  edge* first_route_edge;
+  size_t lcon_idx;
+
+  trip* next;
 };
 
 }  // namespace motis

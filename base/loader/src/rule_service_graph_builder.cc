@@ -153,7 +153,8 @@ struct rule_service_section_builder {
                        }) == end(section_participants);
 
       if (not_already_added) {
-        section_participants.emplace_back(service, service_section_idx);
+        section_participants.emplace_back(service, nullptr,
+                                          service_section_idx);
       }
     }
   }

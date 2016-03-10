@@ -18,7 +18,7 @@ po::options_description intermodal::desc() {
   return desc;
 }
 
-void intermodal::on_msg(msg_ptr msg, sid, callback cb) {
+void intermodal::on_msg(msg_ptr, sid, callback cb) {
   return cb({}, error::not_implemented);
 }
 
