@@ -11,6 +11,8 @@
 
 namespace motis {
 
+constexpr auto kMaxValidTrainNr = 99999;
+
 enum {
   MOTIS_ICE = 0,
   MOTIS_IC = 1,
