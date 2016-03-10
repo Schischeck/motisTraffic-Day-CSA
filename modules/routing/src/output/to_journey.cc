@@ -11,7 +11,7 @@ namespace routing {
 namespace output {
 
 int output_train_nr(uint32_t const& train_nr, uint32_t original_train_nr) {
-  return train_nr <= 999999 ? train_nr : original_train_nr;
+  return train_nr <= kMaxValidTrainNr ? train_nr : original_train_nr;
 }
 
 journey::transport generate_journey_transport(
