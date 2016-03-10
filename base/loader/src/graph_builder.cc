@@ -152,10 +152,9 @@ full_trip_id graph_builder::get_service_primary_id(Service const* s,
 }
 
 trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.services_mem.emplace_back(
-      new trip(get_service_primary_id(s, day_idx)));
-  auto stored = sched_.services_mem.back().get();
-  auto i = sched_.services.insert(std::make_pair(stored->id.primary, stored));
+  sched_.trips_mem.emplace_back(new trip(get_service_primary_id(s, day_idx)));
+  auto stored = sched_.trips_mem.back().get();
+  auto i = sched_.trips.insert(std::make_pair(stored->id.primary, stored));
   if (i.second) {
     auto next = i.first->second;
     while (next->next != nullptr) {
