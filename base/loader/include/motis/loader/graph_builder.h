@@ -60,10 +60,10 @@ struct route_section {
 };
 
 struct participant {
-  participant() : service(nullptr), trp(nullptr), section_idx(0) {}
+  participant() : service(nullptr), section_idx(0) {}
 
-  participant(Service const* service, trip const* trp, int section_idx)
-      : service(service), trp(trp), section_idx(section_idx) {}
+  participant(Service const* service, int section_idx)
+      : service(service), section_idx(section_idx) {}
 
   friend bool operator<(participant const& lhs, participant const& rhs) {
     return lhs.service > rhs.service;
@@ -78,7 +78,6 @@ struct participant {
   }
 
   Service const* service;
-  trip const* trp;
   int section_idx;
 };
 
@@ -117,9 +116,11 @@ struct graph_builder {
                                                  connection_info* merged_with);
 
   connection_info* get_or_create_connection_info(
+      std::array<trip*, 16> const& trips,
       std::array<participant, 16> const& services, int dep_day_index);
 
   light_connection section_to_connection(
+      std::array<trip*, 16> const& trips,
       std::array<participant, 16> const& services, int day, time prev_arr,
       bool& adjusted);
 
@@ -164,7 +165,7 @@ struct graph_builder {
 
   station_node* get_station_node(Station const* station) const;
 
-  full_trip_id get_service_primary_id(Service const* s, int day_idx) const;
+  full_trip_id get_full_trip_id(Service const* s, int day_idx) const;
 
   trip* register_service(Service const* s, int day_idx);
 

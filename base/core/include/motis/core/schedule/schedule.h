@@ -16,7 +16,7 @@
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/waiting_time_rules.h"
-#include "motis/core/schedule/service_id.h"
+#include "motis/core/schedule/trip.h"
 
 namespace motis {
 
@@ -30,6 +30,7 @@ struct schedule {
 
     schedule_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME});
     graph_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME, i});
+    trips.set_empty_key(primary_trip_id(0, 0, 0));
     graph_to_delay_info.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
   }
   virtual ~schedule() {}

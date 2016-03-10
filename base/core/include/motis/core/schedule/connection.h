@@ -11,6 +11,8 @@
 
 namespace motis {
 
+class edge;
+
 constexpr auto kMaxValidTrainNr = 99999;
 
 enum {

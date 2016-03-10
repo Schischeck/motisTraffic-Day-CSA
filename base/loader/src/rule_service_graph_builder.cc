@@ -153,8 +153,7 @@ struct rule_service_section_builder {
                        }) == end(section_participants);
 
       if (not_already_added) {
-        section_participants.emplace_back(service, nullptr,
-                                          service_section_idx);
+        section_participants.emplace_back(service, service_section_idx);
       }
     }
   }
@@ -248,12 +247,14 @@ struct rule_service_route_builder {
     std::array<participant, 16> services;
     std::copy(begin(participants), end(participants), begin(services));
 
+    std::array<trip*, 16> trips;
+
     std::vector<light_connection> lcons;
     bool adjusted = false;
     for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
       if (traffic_days_.test(day_idx)) {
         lcons.push_back(
-            gb_.section_to_connection(services, day_idx, 0, adjusted));
+            gb_.section_to_connection(trips, services, day_idx, 0, adjusted));
       }
     }
     return lcons;

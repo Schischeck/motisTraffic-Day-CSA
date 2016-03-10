@@ -126,19 +126,19 @@ station_node* graph_builder::get_station_node(Station const* station) const {
   return it->second;
 }
 
-full_trip_id graph_builder::get_service_primary_id(Service const* s,
-                                                   int day_idx) const {
+full_trip_id graph_builder::get_full_trip_id(Service const* s,
+                                             int day_idx) const {
   auto const& stops = s->route()->stations();
   auto const dep_station_idx = get_station_node(stops->Get(0))->_id;
   auto const arr_station_idx =
       get_station_node(stops->Get(stops->size() - 1))->_id;
 
   auto const dep_tz = sched_.stations[dep_station_idx]->timez;
-  auto const dep_time = dep_tz->to_motis_time(day_idx, s->times()->Get(1));
+  auto const dep_time = get_event_time(day_idx, s->times()->Get(1), dep_tz);
 
   auto const arr_tz = sched_.stations[arr_station_idx]->timez;
   auto const arr_time =
-      arr_tz->to_motis_time(day_idx, s->times()->Get(s->times()->size() - 2));
+      get_event_time(day_idx, s->times()->Get(s->times()->size() - 2), arr_tz);
 
   auto const train_nr = s->sections()->Get(0)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
@@ -152,7 +152,7 @@ full_trip_id graph_builder::get_service_primary_id(Service const* s,
 }
 
 trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.trips_mem.emplace_back(new trip(get_service_primary_id(s, day_idx)));
+  sched_.trips_mem.emplace_back(new trip(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trips_mem.back().get();
   auto i = sched_.trips.insert(std::make_pair(stored->id.primary, stored));
   if (i.second) {
@@ -227,8 +227,9 @@ void graph_builder::add_route_services(
       for (int section_idx = 0;
            section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
-        lcons.push_back(section_to_connection(
-            {{participant{s, t, section_idx}}}, day, prev_arr, adjusted));
+        lcons.push_back(section_to_connection({{nullptr}},
+                                              {{participant{s, section_idx}}},
+                                              day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 
@@ -332,22 +333,31 @@ connection_info* graph_builder::get_or_create_connection_info(
 }
 
 connection_info* graph_builder::get_or_create_connection_info(
+    std::array<trip*, 16> const& trips,
     std::array<participant, 16> const& services, int dep_day_index) {
-  int parallel_services = 0;
   connection_info* prev_con_info = nullptr;
-  for (auto const& s : services) {
-    if (s.service == nullptr) {
+
+  for (unsigned i = 0; i < services.size(); ++i) {
+    //    verify((trips[i] == nullptr && services[i].service == nullptr) ||
+    //               (trips[i] != nullptr && services[i].service != nullptr),
+    //           "trips.length != services.length");
+
+    if (services[i].service == nullptr) {
       return prev_con_info;
     }
-    ++parallel_services;
+
+    auto const& s = services[i];
+    auto const& t = trips[i];
     prev_con_info =
         get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
                                       dep_day_index, prev_con_info);
   }
+
   return prev_con_info;
 }
 
 light_connection graph_builder::section_to_connection(
+    std::array<trip*, 16> const& trips,
     std::array<participant, 16> const& services, int day, time prev_arr,
     bool& adjusted) {
   auto const& ref = services[0].service;
@@ -397,7 +407,7 @@ light_connection graph_builder::section_to_connection(
   con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
   con_.d_platform = get_or_create_platform(dep_day_index, dep_platf);
   con_.a_platform = get_or_create_platform(arr_day_index, arr_platf);
-  con_.con_info = get_or_create_connection_info(services, dep_day_index);
+  con_.con_info = get_or_create_connection_info(trips, services, dep_day_index);
 
   // Build light connection.
   time dep_motis_time, arr_motis_time;
