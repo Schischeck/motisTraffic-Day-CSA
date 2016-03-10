@@ -11,8 +11,8 @@ namespace motis {
 
 struct primary_service_id {
   primary_service_id() = default;
-  primary_service_id(uint32_t station_id, uint32_t train_nr, motis::time time)
-      : station_id(station_id), time(time), train_nr(train_nr) {}
+  primary_service_id(uint32_t station_id, motis::time time, uint32_t train_nr)
+      : station_id(station_id), train_nr(train_nr), time(time) {}
 
   uint64_t station_id : 31;
   uint64_t train_nr : 17;
@@ -78,7 +78,7 @@ struct full_service_id {
 
 struct service {
   full_service_id id;
-  edge* edge;
+  edge* first_route_edge;
   size_t light_connection_index;
 
   service const* next;
