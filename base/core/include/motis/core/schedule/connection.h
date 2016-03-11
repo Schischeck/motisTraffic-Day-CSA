@@ -123,8 +123,6 @@ struct light_connection {
 
   connection const* _full_con;
   time d_time, a_time;
-
-  enum : uint32_t { INVALID_CON_ID = 0xffffffff };
 };
 
 }  // namespace motis

@@ -1,7 +1,7 @@
 namespace motis.ris;
 
 // ----------------------------------------------------------------------------
-// Train centered Messages
+// Common
 // ----------------------------------------------------------------------------
 enum EventType : bool {Arrival, Departure}
 enum StationIdType : byte {Context, EVA, DS100}
@@ -11,10 +11,21 @@ table Event {
   stationId: string; // optional
   
   trainIndex: uint;
+  lineId: string;
   type: EventType;
   scheduledTime: ulong;
 }
 
+// table IdEvent {
+//   event: Event;
+
+//   targetStationIdType: StationIdType;
+//   targetStationId: string; // optional
+// }
+
+// ----------------------------------------------------------------------------
+// Train centered Messages
+// ----------------------------------------------------------------------------
 table CancelMessage {
   events: [Event] (required);
 }

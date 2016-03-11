@@ -64,7 +64,7 @@ std::pair<StationIdType, Offset<String>> inline parse_station(
     auto const& eva_attribute = station_node.attribute("EvaNr");
     if (!eva_attribute.empty()) {
       std::string eva_string(eva_attribute.value());
-      if(eva_string.size() == 6) {
+      if (eva_string.size() == 6) {
         eva_string.insert(0, 1, '0');
       }
 
@@ -95,6 +95,8 @@ void inline foreach_event(
   for (auto const& train : msg.select_nodes(train_selector)) {
     auto const& t_node = train.node();
     auto train_index = t_node.attribute("Nr").as_uint();
+    auto line_id = t_node.attribute("Linie").value();
+    auto line_id_offset = fbb.CreateString(line_id);
 
     for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
@@ -107,7 +109,7 @@ void inline foreach_event(
       auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
 
       auto event = CreateEvent(fbb, station.first, station.second, train_index,
-                               *event_type, scheduled);
+                               line_id_offset, *event_type, scheduled);
       func(event, e_node, t_node);
     }
   }
@@ -132,10 +134,13 @@ boost::optional<Offset<Event>> inline parse_standalone_event(
 
   auto station = parse_station(fbb, e_node);
   auto train_index = child_attr(e_node, "Zug", "Nr").as_uint();
+  auto line_id = child_attr(e_node, "Zug", "Linie").value();
+  auto line_id_offset = fbb.CreateString(line_id);
+
   auto scheduled = parse_time(child_attr(e_node, "Zeit", "Soll").value());
 
   return CreateEvent(fbb, station.first, station.second, train_index,
-                     *event_type, scheduled);
+                     line_id_offset, *event_type, scheduled);
 }
 
 }  // detail

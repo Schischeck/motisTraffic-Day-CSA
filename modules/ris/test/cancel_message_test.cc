@@ -63,19 +63,19 @@ TEST(ris_cancel_message, message_1) {
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
 
-  // evt 0
-  EXPECT_EQ(99655, events->Get(0)->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(0)->stationIdType());
-  EXPECT_EQ(std::string("0680414"), events->Get(0)->stationId()->c_str());
-  EXPECT_EQ(1444197240, events->Get(0)->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(0)->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(99655, e0->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, e0->stationIdType());
+  EXPECT_STREQ("0680414", e0->stationId()->c_str());
+  EXPECT_EQ(1444197240, e0->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e0->type());
 
-  // evt 1
-  EXPECT_EQ(99655, events->Get(1)->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(1)->stationIdType());
-  EXPECT_EQ(std::string("0680414"), events->Get(1)->stationId()->c_str());
-  EXPECT_EQ(1444197240, events->Get(1)->scheduledTime());
-  EXPECT_EQ(EventType_Departure, events->Get(1)->type());
+  auto e1 = events->Get(1);
+  EXPECT_EQ(99655, e1->trainIndex());
+  EXPECT_EQ(StationIdType_EVA, e1->stationIdType());
+  EXPECT_STREQ("0680414", e1->stationId()->c_str());
+  EXPECT_EQ(1444197240, e1->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e1->type());
 }
 
 // clang-format off
@@ -135,26 +135,29 @@ TEST(ris_ausfall_message, message_2) {
   auto events = inner_msg->events();
   ASSERT_EQ(3, events->size());
 
-  // evt 0
-  EXPECT_EQ(31126, events->Get(0)->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(0)->stationIdType());
-  EXPECT_EQ(std::string("0730985"), events->Get(0)->stationId()->c_str());
-  EXPECT_EQ(1444228500, events->Get(0)->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(0)->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(StationIdType_EVA, e0->stationIdType());
+  EXPECT_STREQ("0730985", e0->stationId()->c_str());
+  EXPECT_EQ(31126, e0->trainIndex());
+  EXPECT_STREQ("M21", e0->lineId()->c_str());
+  EXPECT_EQ(1444228500, e0->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e0->type());
 
-  // evt 1
-  EXPECT_EQ(31126, events->Get(1)->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(1)->stationIdType());
-  EXPECT_EQ(std::string("0730985"), events->Get(1)->stationId()->c_str());
-  EXPECT_EQ(1444228500, events->Get(1)->scheduledTime());
-  EXPECT_EQ(EventType_Departure, events->Get(1)->type());
+  auto e1 = events->Get(1);
+  EXPECT_EQ(StationIdType_EVA, e1->stationIdType());
+  EXPECT_STREQ("0730985", e1->stationId()->c_str());
+  EXPECT_EQ(31126, e1->trainIndex());
+  EXPECT_STREQ("M21", e1->lineId()->c_str());
+  EXPECT_EQ(1444228500, e1->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e1->type());
 
-  // evt 2
-  EXPECT_EQ(31126, events->Get(2)->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(2)->stationIdType());
-  EXPECT_EQ(std::string("0730993"), events->Get(2)->stationId()->c_str());
-  EXPECT_EQ(1444228560, events->Get(2)->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(2)->type());
+  auto e2 = events->Get(2);
+  EXPECT_EQ(StationIdType_EVA, e2->stationIdType());
+  EXPECT_STREQ("0730993", e2->stationId()->c_str());
+  EXPECT_EQ(31126, e2->trainIndex());
+  EXPECT_STREQ("M21", e2->lineId()->c_str());
+  EXPECT_EQ(1444228560, e2->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e2->type());
 }
 
 }  // namespace ris

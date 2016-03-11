@@ -59,9 +59,10 @@ TEST(ris_connection_decision_message, message_1) {
       reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(75, from->trainIndex());
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_EQ(std::string("8000107"), from->stationId()->c_str());
+  EXPECT_STREQ("8000107", from->stationId()->c_str());
+  EXPECT_EQ(75, from->trainIndex());
+  EXPECT_STREQ("", from->lineId()->c_str());
   EXPECT_EQ(1444227000, from->scheduledTime());
   EXPECT_EQ(EventType_Arrival, from->type());
 
@@ -69,9 +70,10 @@ TEST(ris_connection_decision_message, message_1) {
   ASSERT_EQ(1, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(87488, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_EQ("", e0->base()->stationId()->str());
+  EXPECT_STREQ("", e0->base()->stationId()->c_str());
+  EXPECT_EQ(87488, e0->base()->trainIndex());
+  EXPECT_STREQ("", e0->base()->lineId()->c_str());
   EXPECT_EQ(1444229100, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
@@ -85,7 +87,7 @@ char const* connection_decision_fixture_2 = "<?xml version=\"1.0\" encoding=\"is
   <Nachricht>\
    <Anschluss>\
     <ZE Typ=\"An\">\
-     <Zug Nr=\"1004\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\"/>\
+     <Zug Nr=\"1004\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\" Linie=\"1337\"/>\
      <Bf Code=\"NN\" EvaNr=\"8000284\" Name=\"N<FC>\rnberg Hbf\"/>\
      <Zeit Soll=\"20151007162800\" Prog=\"20151007163000\"/>\
      <Service Id=\"85904967\" IdZNr=\"1004\" IdZGattung=\"ICE\" IdBf=\"MH\" \
@@ -95,7 +97,7 @@ IdZGattungInt=\"ICE\" SourceZNr=\"EFZ\"/>\
      <ListAnschl>\
       <Anschl Status=\"Gehalten\">\
        <ZE Typ=\"Ab\">\
-        <Zug Nr=\"584\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\"/>\
+        <Zug Nr=\"584\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\" Linie=\"FOO\"/>\
         <Zeit Soll=\"20151007163400\"/>\
         <Service Id=\"85691162\" IdZNr=\"584\" IdZGattung=\"ICE\" IdBf=\"MH\" \
 IdBfEvaNr=\"8000261\" IdZeit=\"20151007152000\" ZielBfCode=\"AL\" \
@@ -130,9 +132,10 @@ TEST(ris_connection_decision_message, message_2) {
       reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(1004, from->trainIndex());
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_EQ(std::string("8000284"), from->stationId()->c_str());
+  EXPECT_STREQ("8000284", from->stationId()->c_str());
+  EXPECT_EQ(1004, from->trainIndex());
+  EXPECT_STREQ("1337", from->lineId()->c_str());
   EXPECT_EQ(1444228080, from->scheduledTime());
   EXPECT_EQ(EventType_Arrival, from->type());
 
@@ -140,9 +143,10 @@ TEST(ris_connection_decision_message, message_2) {
   ASSERT_EQ(1, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(584, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_EQ("", e0->base()->stationId()->str());
+  EXPECT_STREQ("", e0->base()->stationId()->c_str());
+  EXPECT_EQ(584, e0->base()->trainIndex());
+  EXPECT_STREQ("FOO", e0->base()->lineId()->c_str());
   EXPECT_EQ(1444228440, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 

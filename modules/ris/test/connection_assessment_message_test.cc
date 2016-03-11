@@ -24,7 +24,7 @@ IdZeit=\"20151007052500\" SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000430\" Zielzeit=\"2
             <ListZug/>\
           </Service>\
           <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007055000\"/>\
-          <Zug Gattung=\"S\" GattungInt=\"DPN\" Nr=\"90708\" Verwaltung=\"M2\">\
+          <Zug Gattung=\"S\" GattungInt=\"DPN\" Nr=\"90708\" Verwaltung=\"M2\" Linie=\"42\">\
             <ListZE/>\
           </Zug>\
         </ZE>\
@@ -36,7 +36,7 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
       <ListZug/>\
     </Service>\
     <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007054400\"/>\
-    <Zug Gattung=\"S\" GattungInt=\"s\" Nr=\"30815\" Verwaltung=\"03\">\
+    <Zug Gattung=\"S\" GattungInt=\"s\" Nr=\"30815\" Verwaltung=\"03\" Linie=\"23\">\
       <ListZE/>\
     </Zug>\
   </ZE>\
@@ -60,9 +60,10 @@ TEST(ris_connection_assessment_message, message_1) {
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(30815, from->trainIndex());
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_EQ(std::string("8001585"), from->stationId()->c_str());
+  EXPECT_STREQ("8001585", from->stationId()->c_str());
+  EXPECT_EQ(30815, from->trainIndex());
+  EXPECT_STREQ("23", from->lineId()->c_str());
   EXPECT_EQ(1444189440, from->scheduledTime());
   EXPECT_EQ(EventType_Arrival, from->type());
 
@@ -70,9 +71,10 @@ TEST(ris_connection_assessment_message, message_1) {
   ASSERT_EQ(1, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(90708, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
-  EXPECT_EQ(std::string("8001585"), e0->base()->stationId()->c_str());
+  EXPECT_STREQ("8001585", e0->base()->stationId()->c_str());
+  EXPECT_EQ(90708, e0->base()->trainIndex());
+  EXPECT_STREQ("42", e0->base()->lineId()->c_str());
   EXPECT_EQ(1444189800, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
@@ -151,9 +153,10 @@ TEST(ris_connection_assessment_message, message_2) {
   auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(8239, from->trainIndex());
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_EQ(std::string("8000261"), from->stationId()->c_str());
+  EXPECT_STREQ("8000261", from->stationId()->c_str());
+  EXPECT_EQ(8239, from->trainIndex());
+  EXPECT_STREQ("", from->lineId()->c_str());
   EXPECT_EQ(1444169280, from->scheduledTime());
   EXPECT_EQ(EventType_Arrival, from->type());
 
@@ -161,18 +164,20 @@ TEST(ris_connection_assessment_message, message_2) {
   ASSERT_EQ(2, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(8326, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
-  EXPECT_EQ(std::string("8098263"), e0->base()->stationId()->c_str());
+  EXPECT_STREQ("8098263", e0->base()->stationId()->c_str());
+  EXPECT_EQ(8326, e0->base()->trainIndex());
+  EXPECT_STREQ("", e0->base()->lineId()->c_str());
   EXPECT_EQ(1444169940, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(4, e0->assessment());
 
   auto e1 = to->Get(1);
-  EXPECT_EQ(8426, e1->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, e1->base()->stationIdType());
-  EXPECT_EQ(std::string("8098263"), e1->base()->stationId()->c_str());
+  EXPECT_STREQ("8098263", e1->base()->stationId()->c_str());
+  EXPECT_EQ(8426, e1->base()->trainIndex());
+  EXPECT_STREQ("", e1->base()->lineId()->c_str());
   EXPECT_EQ(1444170060, e1->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e1->base()->type());
 
