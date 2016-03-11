@@ -3,9 +3,14 @@ namespace motis.lookup;
 enum EventType : bool {Arrival, Departure}
 
 table IdEvent {
+  // primary
   eva_nr: string;
-  type: EventType;
   train_nr: uint;
+  time: long;
+
+  // secondary
+  target_eva_nr: string;
+  target_time: long;
+  type: EventType;
   line_id: string;
-  schedule_time: ulong;
 }

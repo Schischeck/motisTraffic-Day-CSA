@@ -10,14 +10,6 @@
 namespace motis {
 namespace lookup {
 
-inline std::time_t motis_to_unixtime(schedule const& schedule, time t) {
-  return motis::motis_to_unixtime(schedule.schedule_begin_, t);
-}
-
-inline time unix_to_motistime(schedule const& schedule, std::time_t t) {
-  return motis::unix_to_motistime(schedule.schedule_begin_, t);
-}
-
 inline time get_schedule_time(schedule const& sched, unsigned station_index,
                               uint32_t const train_nr, bool const is_departure,
                               time const t, int const route_id) {

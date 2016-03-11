@@ -13,6 +13,6 @@ namespace motis.lookup;
 
 table LookupStationEventsRequest {
   eva_nr: string;
-  begin:ulong;  // inclusive
-  end:ulong;  // exclusive (to-the-minute accuracy!)
+  begin:long;  // inclusive
+  end:long;  // exclusive (to-the-minute accuracy!)
 }

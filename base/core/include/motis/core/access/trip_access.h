@@ -11,11 +11,12 @@
 namespace motis {
 
 inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
+                            uint32_t const train_nr,
                             std::time_t const timestamp,
-                            uint32_t const train_nr, std::string const& line_id,
                             std::string const& target_eva_nr,
                             std::time_t const target_timestamp,
-                            bool const is_arrival) {
+                            bool const is_arrival,
+                            std::string const& line_id) {
   auto station_id = get_station(sched, eva_nr)->index;
   auto motis_time = unix_to_motistime(sched, timestamp);
 
