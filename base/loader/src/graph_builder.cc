@@ -134,11 +134,12 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s,
       get_station_node(stops->Get(stops->size() - 1))->_id;
 
   auto const dep_tz = sched_.stations[dep_station_idx]->timez;
-  auto const dep_time = get_event_time(day_idx, s->times()->Get(1), dep_tz);
+  auto const dep_time =
+      get_event_time(day_idx - first_day_, s->times()->Get(1), dep_tz);
 
   auto const arr_tz = sched_.stations[arr_station_idx]->timez;
-  auto const arr_time =
-      get_event_time(day_idx, s->times()->Get(s->times()->size() - 2), arr_tz);
+  auto const arr_time = get_event_time(
+      day_idx - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
 
   auto const train_nr = s->sections()->Get(0)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
@@ -581,21 +582,21 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
-  auto route_nodes = make_unique<route>();
+  auto route_sections = make_unique<route>();
 
   route_section last_route_section;
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
-    route_nodes->push_back(add_route_section(
+    route_sections->push_back(add_route_section(
         route_index, lcons[i],  //
         stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
         stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
         last_route_section, route_section()));
-    last_route_section = route_nodes->back();
+    last_route_section = route_sections->back();
   }
 
-  return route_nodes;
+  return route_sections;
 }
 
 node* graph_builder::build_route_node(int route_index, Station const* station,
@@ -646,6 +647,10 @@ route_section graph_builder::add_route_section(
   section.outgoing_route_edge_index = section.from_route_node->_edges.size();
   section.from_route_node->_edges.push_back(make_route_edge(
       section.from_route_node, section.to_route_node, connections));
+
+  //  if (!prev_section.is_valid()) {
+  //    for (int lcon_idx = 0; lcon_idx <
+  //    section.from_route_node->_edges.back()) }
 
   return section;
 }
