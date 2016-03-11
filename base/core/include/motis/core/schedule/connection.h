@@ -11,7 +11,7 @@
 
 namespace motis {
 
-class edge;
+struct trip;
 
 constexpr auto kMaxValidTrainNr = 99999;
 
@@ -49,6 +49,7 @@ struct connection_info {
         family(0),
         train_nr(0),
         original_train_nr(0),
+        trp(nullptr),
         merged_with(nullptr) {}
 
   bool operator==(connection_info const& o) const {
@@ -64,6 +65,7 @@ struct connection_info {
   uint32_t family;
   uint32_t train_nr;
   uint32_t original_train_nr;
+  trip* trp;
   connection_info* merged_with;
 };
 

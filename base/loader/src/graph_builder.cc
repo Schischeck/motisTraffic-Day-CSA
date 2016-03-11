@@ -147,21 +147,14 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s,
   full_trip_id id;
   id.primary = primary_trip_id(dep_station_idx, train_nr, dep_time);
   id.secondary =
-      secondary_trip_id(std::move(line_id), arr_station_idx, arr_time, false);
+      secondary_trip_id(arr_station_idx, arr_time, false, std::move(line_id));
   return id;
 }
 
 trip* graph_builder::register_service(Service const* s, int day_idx) {
   sched_.trips_mem.emplace_back(new trip(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trips_mem.back().get();
-  auto i = sched_.trips.insert(std::make_pair(stored->id.primary, stored));
-  if (i.second) {
-    auto next = i.first->second;
-    while (next->next != nullptr) {
-      next = next->next;
-    }
-    next->next = stored;
-  }
+  sched_.trips[stored->id.primary].push_back(stored);
   return stored;
 }
 
@@ -227,9 +220,8 @@ void graph_builder::add_route_services(
       for (int section_idx = 0;
            section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
-        lcons.push_back(section_to_connection({{nullptr}},
-                                              {{participant{s, section_idx}}},
-                                              day, prev_arr, adjusted));
+        lcons.push_back(section_to_connection(
+            {{t}}, {{participant{s, section_idx}}}, day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 
@@ -315,13 +307,15 @@ void graph_builder::add_to_routes(
 }
 
 connection_info* graph_builder::get_or_create_connection_info(
-    Section const* section, int dep_day_index, connection_info* merged_with) {
+    Section const* section, trip* trp, int dep_day_index,
+    connection_info* merged_with) {
   con_info_.line_identifier =
       section->line_id() ? section->line_id()->str() : "";
   con_info_.train_nr = section->train_nr();
   con_info_.family = get_or_create_category_index(section->category());
   con_info_.dir_ = get_or_create_direction(section->direction());
   con_info_.provider_ = get_or_create_provider(section->provider());
+  con_info_.trp = trp;
   con_info_.merged_with = merged_with;
   read_attributes(dep_day_index, section->attributes(), con_info_.attributes);
 
@@ -338,9 +332,9 @@ connection_info* graph_builder::get_or_create_connection_info(
   connection_info* prev_con_info = nullptr;
 
   for (unsigned i = 0; i < services.size(); ++i) {
-    //    verify((trips[i] == nullptr && services[i].service == nullptr) ||
-    //               (trips[i] != nullptr && services[i].service != nullptr),
-    //           "trips.length != services.length");
+    verify((trips[i] == nullptr && services[i].service == nullptr) ||
+               (trips[i] != nullptr && services[i].service != nullptr),
+           "trips.length != services.length");
 
     if (services[i].service == nullptr) {
       return prev_con_info;
@@ -350,7 +344,7 @@ connection_info* graph_builder::get_or_create_connection_info(
     auto const& t = trips[i];
     prev_con_info =
         get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
-                                      dep_day_index, prev_con_info);
+                                      t, dep_day_index, prev_con_info);
   }
 
   return prev_con_info;

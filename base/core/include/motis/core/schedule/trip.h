@@ -46,28 +46,28 @@ namespace motis {
 
 struct secondary_trip_id {
   secondary_trip_id() = default;
-  secondary_trip_id(std::string line_id, uint32_t target_station_id,
-                    uint16_t target_time, bool is_arrival)
-      : line_id(std::move(line_id)),
-        target_station_id(target_station_id),
+  secondary_trip_id(uint32_t target_station_id, uint16_t target_time,
+                    bool is_arrival, std::string line_id)
+      : target_station_id(target_station_id),
         target_time(target_time),
-        is_arrival(is_arrival) {}
+        is_arrival(is_arrival),
+        line_id(std::move(line_id)) {}
 
-  std::string line_id;
   uint64_t target_station_id : 31;
   uint64_t target_time : 16;
   uint64_t is_arrival : 1;
+  std::string line_id;
 
   friend bool operator<(secondary_trip_id const& lhs,
                         secondary_trip_id const& rhs) {
-    return *reinterpret_cast<uint64_t const*>(&lhs) <
-           *reinterpret_cast<uint64_t const*>(&rhs);
+    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id) <
+           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id);
   }
 
   friend bool operator==(secondary_trip_id const& lhs,
                          secondary_trip_id const& rhs) {
-    return *reinterpret_cast<uint64_t const*>(&lhs) ==
-           *reinterpret_cast<uint64_t const*>(&rhs);
+    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id) ==
+           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id);
   }
 };
 
@@ -77,15 +77,12 @@ struct full_trip_id {
 };
 
 struct trip {
-  trip() : first_route_edge(nullptr), next(nullptr) {}
-  trip(full_trip_id id)
-      : id(std::move(id)), first_route_edge(nullptr), next(nullptr) {}
+  trip() : first_route_edge(nullptr) {}
+  trip(full_trip_id id) : id(std::move(id)), first_route_edge(nullptr) {}
 
   full_trip_id id;
   edge* first_route_edge;
   size_t lcon_idx;
-
-  trip* next;
 };
 
 }  // namespace motis

@@ -93,6 +93,12 @@ struct graph_builder {
 
   timezone const* get_or_create_timezone(Timezone const* input_timez);
 
+  station_node* get_station_node(Station const* station) const;
+
+  full_trip_id get_full_trip_id(Service const* s, int day_idx) const;
+
+  trip* register_service(Service const* s, int day_idx);
+
   void add_services(
       flatbuffers::Vector<flatbuffers::Offset<Service>> const* services);
 
@@ -112,7 +118,7 @@ struct graph_builder {
       std::vector<light_connection> const& sections);
 
   connection_info* get_or_create_connection_info(Section const* section,
-                                                 int dep_day_index,
+                                                 trip* trp, int dep_day_index,
                                                  connection_info* merged_with);
 
   connection_info* get_or_create_connection_info(
@@ -162,12 +168,6 @@ struct graph_builder {
       Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
       route_section prev_section, route_section next_section);
-
-  station_node* get_station_node(Station const* station) const;
-
-  full_trip_id get_full_trip_id(Service const* s, int day_idx) const;
-
-  trip* register_service(Service const* s, int day_idx);
 
   unsigned duplicate_count_;
   unsigned next_route_index_;

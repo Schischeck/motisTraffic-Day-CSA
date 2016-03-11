@@ -10,6 +10,7 @@
 
 #include "motis/loader/util.h"
 #include "motis/loader/duplicate_checker.h"
+#include "motis/core/common/get_or_create.h"
 
 namespace motis {
 namespace loader {
@@ -239,6 +240,23 @@ struct rule_service_route_builder {
     }
   }
 
+  std::array<trip*, 16> get_or_create_trips(
+      std::array<participant, 16> const& services, int day_idx) {
+    std::array<trip*, 16> trips;
+    std::transform(begin(services), end(services), begin(trips),
+                   [this, day_idx](participant const& p) -> trip* {
+                     if (p.service == nullptr) {
+                       return nullptr;
+                     } else {
+                       return get_or_create(
+                           trips_, std::make_pair(p.service, day_idx), [&]() {
+                             return gb_.register_service(p.service, day_idx);
+                           });
+                     }
+                   });
+    return trips;
+  }
+
   std::vector<light_connection> build_connections(
       service_section const& section) {
     auto participants = section.second;
@@ -247,14 +265,13 @@ struct rule_service_route_builder {
     std::array<participant, 16> services;
     std::copy(begin(participants), end(participants), begin(services));
 
-    std::array<trip*, 16> trips;
-
     std::vector<light_connection> lcons;
     bool adjusted = false;
     for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
       if (traffic_days_.test(day_idx)) {
         lcons.push_back(
-            gb_.section_to_connection(trips, services, day_idx, 0, adjusted));
+            gb_.section_to_connection(get_or_create_trips(services, day_idx),
+                                      services, day_idx, 0, adjusted));
       }
     }
     return lcons;
@@ -338,6 +355,7 @@ struct rule_service_route_builder {
   bitfield const& traffic_days_;
   int first_day_, last_day_;
   std::map<Service const*, std::vector<service_section*>>& sections_;
+  std::map<std::pair<Service const*, int /* day index */>, trip*> trips_;
   unsigned route_id_;
 };
 
