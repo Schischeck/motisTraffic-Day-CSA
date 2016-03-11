@@ -38,6 +38,7 @@ struct connection_info {
       hash_combine(seed, c.line_identifier);
       hash_combine(seed, c.family);
       hash_combine(seed, c.train_nr);
+      hash_combine(seed, c.trp);
       hash_combine(seed, c.merged_with);
       return seed;
     }
@@ -55,7 +56,7 @@ struct connection_info {
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
            line_identifier == o.line_identifier && attributes == o.attributes &&
-           merged_with == o.merged_with;
+           trp == o.trp && merged_with == o.merged_with;
   }
 
   std::vector<attribute const*> attributes;

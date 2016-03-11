@@ -95,7 +95,8 @@ struct graph_builder {
 
   station_node* get_station_node(Station const* station) const;
 
-  full_trip_id get_full_trip_id(Service const* s, int day_idx) const;
+  full_trip_id get_full_trip_id(Service const* s, int day,
+                                int section_idx = 0) const;
 
   trip* register_service(Service const* s, int day_idx);
 

@@ -126,20 +126,20 @@ station_node* graph_builder::get_station_node(Station const* station) const {
   return it->second;
 }
 
-full_trip_id graph_builder::get_full_trip_id(Service const* s,
-                                             int day_idx) const {
+full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
+                                             int section_idx) const {
   auto const& stops = s->route()->stations();
-  auto const dep_station_idx = get_station_node(stops->Get(0))->_id;
+  auto const dep_station_idx = get_station_node(stops->Get(section_idx))->_id;
   auto const arr_station_idx =
       get_station_node(stops->Get(stops->size() - 1))->_id;
 
   auto const dep_tz = sched_.stations[dep_station_idx]->timez;
-  auto const dep_time =
-      get_event_time(day_idx - first_day_, s->times()->Get(1), dep_tz);
+  auto const dep_time = get_event_time(
+      day - first_day_, s->times()->Get(section_idx * 2 + 1), dep_tz);
 
   auto const arr_tz = sched_.stations[arr_station_idx]->timez;
   auto const arr_time = get_event_time(
-      day_idx - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
+      day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
 
   auto const train_nr = s->sections()->Get(0)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
@@ -152,10 +152,20 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s,
   return id;
 }
 
-trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.trips_mem.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+trip* graph_builder::register_service(Service const* s, int day) {
+  sched_.trips_mem.emplace_back(new trip(get_full_trip_id(s, day)));
   auto stored = sched_.trips_mem.back().get();
   sched_.trips[stored->id.primary].push_back(stored);
+
+  for (unsigned i = 1; i < s->sections()->size(); ++i) {
+    auto curr_section = s->sections()->Get(i);
+    auto prev_section = s->sections()->Get(i - 1);
+
+    if (curr_section->train_nr() != prev_section->train_nr()) {
+      sched_.trips[get_full_trip_id(s, day, i).primary].push_back(stored);
+    }
+  }
+
   return stored;
 }
 

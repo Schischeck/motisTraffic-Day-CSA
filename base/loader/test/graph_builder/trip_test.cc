@@ -62,7 +62,6 @@ TEST_F(loader_trip, simple) {
 
   auto const& conns = trp->first_route_edge->_m._route_edge._conns;
   ASSERT_TRUE(trp->lcon_idx < conns.size());
-
   EXPECT_EQ(t.motis(10), conns[trp->lcon_idx].d_time);
   EXPECT_EQ(t.motis(11), conns[trp->lcon_idx].a_time);
 }
@@ -80,17 +79,17 @@ TEST_F(loader_trip, collision) {
   ASSERT_NE(trp0, trp1);
 }
 
-// TEST_F(loader_trip, rename) {
-//   time_helper t(sched_->schedule_begin_);
-//   auto trp0 = get_trip(*sched_, "0000001", t.unix(20), 3, "", "0000003",
-//                        t.unix(22), false);
-//   auto trp1 = get_trip(*sched_, "0000002", t.unix(21), 4, "", "0000003",
-//                        t.unix(22), false);
+TEST_F(loader_trip, rename) {
+  time_helper t(sched_->schedule_begin_);
+  auto trp0 = get_trip(*sched_, "0000001", t.unix(20), 3, "", "0000003",
+                       t.unix(22), false);
+  auto trp1 = get_trip(*sched_, "0000002", t.unix(21), 4, "", "0000003",
+                       t.unix(22), false);
 
-//   ASSERT_NE(nullptr, trp0);
-//   ASSERT_NE(nullptr, trp1);
-//   ASSERT_EQ(trp0, trp1);
-// }
+  ASSERT_NE(nullptr, trp0);
+  ASSERT_NE(nullptr, trp1);
+  ASSERT_EQ(trp0, trp1);
+}
 
 }  // loader
 }  // motis
