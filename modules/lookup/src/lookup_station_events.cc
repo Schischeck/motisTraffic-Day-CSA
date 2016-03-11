@@ -1,6 +1,6 @@
 #include "motis/lookup/lookup_station_events.h"
 
-#include "motis/core/schedule/edge_access.h"
+#include "motis/core/access/edge_access.h"
 #include "motis/lookup/util.h"
 
 using namespace flatbuffers;
