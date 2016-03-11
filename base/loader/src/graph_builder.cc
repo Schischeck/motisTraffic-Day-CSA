@@ -648,9 +648,13 @@ route_section graph_builder::add_route_section(
   section.from_route_node->_edges.push_back(make_route_edge(
       section.from_route_node, section.to_route_node, connections));
 
-  //  if (!prev_section.is_valid()) {
-  //    for (int lcon_idx = 0; lcon_idx <
-  //    section.from_route_node->_edges.back()) }
+  if (!prev_section.is_valid()) {
+    for (unsigned lcon_idx = 0; lcon_idx < connections.size(); ++lcon_idx) {
+      auto& trp = *connections[lcon_idx]._full_con->con_info->trp;
+      trp.first_route_edge = &section.from_route_node->_edges.back();
+      trp.lcon_idx = lcon_idx;
+    }
+  }
 
   return section;
 }
