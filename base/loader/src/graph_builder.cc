@@ -141,7 +141,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
   auto const arr_time = get_event_time(
       day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
 
-  auto const train_nr = s->sections()->Get(0)->train_nr();
+  auto const train_nr = s->sections()->Get(section_idx)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
   auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
 
