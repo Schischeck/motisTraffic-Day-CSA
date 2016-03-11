@@ -35,14 +35,14 @@ public:
 TEST_F(loader_trip, none) {
   time_helper t(sched_->schedule_begin_);
 
-  ASSERT_ANY_THROW(get_trip(*sched_, "1234567", t.unix(1), 31337, "", "7654321",
-                            t.unix(2), true));
+  ASSERT_ANY_THROW(get_trip(*sched_, "1234567", 31337, t.unix(1), "7654321",
+                            t.unix(2), true, ""));
 }
 
 TEST_F(loader_trip, simple) {
   time_helper t(sched_->schedule_begin_);
-  auto trp = get_trip(*sched_, "0000001", t.unix(10), 1, "", "0000003",
-                      t.unix(12), false);
+  auto trp = get_trip(*sched_, "0000001", 1, t.unix(10), "0000003", t.unix(12),
+                      false, "");
   ASSERT_NE(nullptr, trp);
 
   auto const& primary = trp->id.primary;
@@ -70,10 +70,10 @@ TEST_F(loader_trip, simple) {
 TEST_F(loader_trip, collision) {
   time_helper t(sched_->schedule_begin_);
 
-  auto trp0 = get_trip(*sched_, "0000004", t.unix(10), 2, "foo", "0000005",
-                       t.unix(11), false);
-  auto trp1 = get_trip(*sched_, "0000004", t.unix(10), 2, "bar", "0000005",
-                       t.unix(11), false);
+  auto trp0 = get_trip(*sched_, "0000004", 2, t.unix(10), "0000005", t.unix(11),
+                       false, "foo");
+  auto trp1 = get_trip(*sched_, "0000004", 2, t.unix(10), "0000005", t.unix(11),
+                       false, "bar");
 
   ASSERT_NE(nullptr, trp0);
   ASSERT_NE(nullptr, trp1);
@@ -82,10 +82,10 @@ TEST_F(loader_trip, collision) {
 
 // TEST_F(loader_trip, rename) {
 //   time_helper t(sched_->schedule_begin_);
-//   auto trp0 = get_trip(*sched_, "0000001", t.unix(20), 3, "", "0000003",
-//                        t.unix(22), false);
-//   auto trp1 = get_trip(*sched_, "0000002", t.unix(21), 4, "", "0000003",
-//                        t.unix(22), false);
+//   auto trp0 = get_trip(*sched_, "0000001", 3, t.unix(20), "0000003",
+//                        t.unix(22), false, "");
+//   auto trp1 = get_trip(*sched_, "0000002", 4, t.unix(21), "0000003",
+//                        t.unix(22), false, "");
 
 //   ASSERT_NE(nullptr, trp0);
 //   ASSERT_NE(nullptr, trp1);
