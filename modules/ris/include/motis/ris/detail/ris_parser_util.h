@@ -9,6 +9,8 @@
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
+#include "motis/ris/detail/parse_station.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 
 using namespace flatbuffers;
@@ -40,44 +42,22 @@ std::time_t inline parse_time(cstr const& raw) {
   return std::mktime(&time_struct);
 }
 
-boost::optional<EventType> inline parse_event_type(cstr const& raw) {
+boost::optional<EventType> inline parse_type(
+    cstr const& raw,
+    boost::optional<EventType> const default_value = boost::none) {
   static const std::map<cstr, EventType> map({{"Start", EventType_Departure},
                                               {"Ab", EventType_Departure},
                                               {"An", EventType_Arrival},
                                               {"Ziel", EventType_Arrival}});
   auto it = map.find(raw);
   if (it == end(map)) {
-    return boost::none;
+    return default_value;
   }
   return it->second;
 }
 
 xml_attribute child_attr(xml_node const& n, char const* e, char const* a) {
   return n.child(e).attribute(a);
-}
-
-std::pair<StationIdType, Offset<String>> inline parse_station(
-    FlatBufferBuilder& fbb, xml_node const& e_node) {
-  std::pair<StationIdType, Offset<String>> station{StationIdType_Context, 0};
-  auto const& station_node = e_node.child("Bf");
-  if (station_node) {
-    auto const& eva_attribute = station_node.attribute("EvaNr");
-    if (!eva_attribute.empty()) {
-      std::string eva_string(eva_attribute.value());
-      if (eva_string.size() == 6) {
-        eva_string.insert(0, 1, '0');
-      }
-
-      station.first = StationIdType_EVA;
-      station.second = fbb.CreateString(eva_string);
-    } else {
-      station.first = StationIdType_DS100;
-      station.second = fbb.CreateString(station_node.attribute("Code").value());
-    }
-  } else {
-    station.second = fbb.CreateString("");
-  }
-  return station;
 }
 
 std::time_t inline parse_target_time(xml_node const& node) {
@@ -100,7 +80,7 @@ void inline foreach_event(
 
     for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
-      auto event_type = parse_event_type(e_node.attribute("Typ").value());
+      auto event_type = parse_type(e_node.attribute("Typ").value());
       if (event_type == boost::none) {
         continue;
       }
@@ -127,7 +107,7 @@ Offset<AdditionalEvent> parse_additional_event(FlatBufferBuilder& fbb,
 
 boost::optional<Offset<Event>> inline parse_standalone_event(
     FlatBufferBuilder& fbb, xml_node const& e_node) {
-  auto event_type = parse_event_type(e_node.attribute("Typ").value());
+  auto event_type = parse_type(e_node.attribute("Typ").value());
   if (event_type == boost::none) {
     return boost::none;
   }
@@ -141,6 +121,24 @@ boost::optional<Offset<Event>> inline parse_standalone_event(
 
   return CreateEvent(fbb, station.first, station.second, train_index,
                      line_id_offset, *event_type, scheduled);
+}
+
+Offset<TripId> inline parse_trip_id(
+    FlatBufferBuilder& fbb, xml_node const& msg,
+    char const* service_selector = "./Service") {
+  auto const& node = msg.select_node(service_selector).node();
+
+  auto station = parse_station(fbb, node, "IdBfEvaNr", "IdBf");
+  auto train_nr = node.attribute("IdZNr").as_uint();
+  auto line_id = node.attribute("IdLinie").value();
+  auto type = parse_type(node.attribute("IdTyp").value(), EventType_Departure);
+  auto timestamp = parse_time(node.attribute("IdZeit").value());
+  auto base = CreateEvent(fbb, station.first, station.second, train_nr,
+                          fbb.CreateString(line_id), *type, timestamp);
+
+  auto t_station = parse_station(fbb, node, "ZielBfEvaNr", "ZielBfCode");
+  auto t_time = parse_time(node.attribute("Zielzeit").value());
+  return CreateTripId(fbb, base, t_station.first, t_station.second, t_time);
 }
 
 }  // detail

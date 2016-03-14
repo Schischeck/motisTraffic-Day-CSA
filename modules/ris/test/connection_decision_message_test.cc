@@ -58,6 +58,19 @@ TEST(ris_connection_decision_message, message_1) {
   auto inner_msg =
       reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
+  auto from_id = inner_msg->fromTripId();
+  EXPECT_EQ(StationIdType_EVA, from_id->base()->stationIdType());
+  EXPECT_STREQ("8002553", from_id->base()->stationId()->c_str());
+
+  EXPECT_EQ(75, from_id->base()->trainIndex());
+  EXPECT_STREQ("", from_id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, from_id->base()->type());
+  EXPECT_EQ(1444205340, from_id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, from_id->targetStationIdType());
+  EXPECT_STREQ("8503000", from_id->targetStationId()->c_str());
+  EXPECT_EQ(1444233600, from_id->targetScheduledTime());
+
   auto from = inner_msg->from();
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
   EXPECT_STREQ("8000107", from->stationId()->c_str());
@@ -78,6 +91,19 @@ TEST(ris_connection_decision_message, message_1) {
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(false, e0->hold());
+
+  auto e0_id = e0->tripId();
+  EXPECT_EQ(StationIdType_EVA, e0_id->base()->stationIdType());
+  EXPECT_STREQ("8000107", e0_id->base()->stationId()->c_str());
+
+  EXPECT_EQ(87488, e0_id->base()->trainIndex());
+  EXPECT_STREQ("", e0_id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, e0_id->base()->type());
+  EXPECT_EQ(1444229100, e0_id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, e0_id->targetStationIdType());
+  EXPECT_STREQ("8700031", e0_id->targetStationId()->c_str());
+  EXPECT_EQ(1444231800, e0_id->targetScheduledTime());
 }
 
 // clang-format off

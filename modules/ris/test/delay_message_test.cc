@@ -42,6 +42,19 @@ TEST(ris_delay_message, ist_message_1) {
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("8004204", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(8329, id->base()->trainIndex());
+  EXPECT_STREQ("3", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444167840, id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("8002980", id->targetStationId()->c_str());
+  EXPECT_EQ(1444172760, id->targetScheduledTime());
+
   EXPECT_EQ(DelayType_Is, inner_msg->type());
 
   auto events = inner_msg->events();
@@ -184,7 +197,10 @@ TEST(ris_delay_message, ist_message_3) {
 std::string type_fixture(std::string type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket TOut=\"12345678901234\"><ListNachricht><Nachricht>\
-<Ist><Service Zielzeit=\"12345678901234\">\
+<Ist><Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
+IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
+ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
+IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
 <ListZug><Zug><ListZE><ZE Typ=\"") + type_string + "\" >\
 <Bf/><Zeit Soll=\"12345678901234\" Ist=\"12345678901234\"/></ZE></ListZE>\
 </Zug></ListZug></Service></Ist><ListQuelle>\
@@ -193,6 +209,9 @@ std::string type_fixture(std::string type_string) {
 // clang-format on
 
 EventType get_type(std::vector<ris_message> const& messages) {
+  if (messages.size() == 0) {
+    throw std::runtime_error("messages empty");
+  }
   auto content = GetMessage(messages[0].data())->content();
   auto delay_message = reinterpret_cast<DelayMessage const*>(content);
   return delay_message->events()->Get(0)->base()->type();
@@ -312,7 +331,7 @@ TEST(ris_delay_message, ist_prog_message_2) {
   auto e0 = events->Get(0);
   EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
   EXPECT_STREQ("8005106", e0->base()->stationId()->c_str());
-  
+
   EXPECT_EQ(37616, e0->base()->trainIndex());
   EXPECT_STREQ("1", e0->base()->lineId()->c_str());
   EXPECT_EQ(1444169640, e0->base()->scheduledTime());

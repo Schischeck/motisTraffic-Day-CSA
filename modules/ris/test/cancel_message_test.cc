@@ -60,6 +60,19 @@ TEST(ris_cancel_message, message_1) {
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<CancelMessage const*>(outer_msg->content());
 
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("0460711", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(99655, id->base()->trainIndex());
+  EXPECT_STREQ("818", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444195800, id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("0683407", id->targetStationId()->c_str());
+  EXPECT_EQ(1444197420, id->targetScheduledTime());
+
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
 

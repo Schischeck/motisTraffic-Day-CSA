@@ -20,7 +20,8 @@ char const* connection_assessment_fixture_1 = "<?xml version=\"1.0\" encoding=\"
           <Bf EvaNr=\"8001585\"/>\
           <Service Id=\"85751154\" IdBfEvaNr=\"8004005\" IdTyp=\"Ab\" \
 IdVerwaltung=\"M2\" IdZGattung=\"S\" IdZGattungInt=\"DPN\" IdZNr=\"90708\" \
-IdZeit=\"20151007052500\" SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000430\" Zielzeit=\"20151007061600\">\
+IdZeit=\"20151007052500\" SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000430\" \
+Zielzeit=\"20151007061600\" IdLinie=\"42\">\
             <ListZug/>\
           </Service>\
           <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007055000\"/>\
@@ -32,7 +33,7 @@ IdZeit=\"20151007052500\" SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000430\" Zielzeit=\"2
     </ListAnschl>\
     <Service Id=\"86090468\" IdBfEvaNr=\"8000253\" IdTyp=\"An\" IdVerwaltung=\"03\" \
 IdZGattung=\"S\" IdZGattungInt=\"s\" IdZNr=\"30815\" IdZeit=\"20151007051400\" \
-SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\">\
+SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\" IdLinie=\"23\">\
       <ListZug/>\
     </Service>\
     <Zeit Ist=\"\" Prog=\"\" Soll=\"20151007054400\"/>\
@@ -56,8 +57,23 @@ TEST(ris_connection_assessment_message, message_1) {
   EXPECT_EQ(1444193880, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
-  ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
+  ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,
+            outer_msg->content_type());
+  auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(
+      outer_msg->content());
+
+  auto from_id = inner_msg->fromTripId();
+  EXPECT_EQ(StationIdType_EVA, from_id->base()->stationIdType());
+  EXPECT_STREQ("8000253", from_id->base()->stationId()->c_str());
+
+  EXPECT_EQ(30815, from_id->base()->trainIndex());
+  EXPECT_STREQ("23", from_id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Arrival, from_id->base()->type());
+  EXPECT_EQ(1444187640, from_id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, from_id->targetStationIdType());
+  EXPECT_STREQ("8000142", from_id->targetStationId()->c_str());
+  EXPECT_EQ(1444193880, from_id->targetScheduledTime());
 
   auto from = inner_msg->from();
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());
@@ -79,8 +95,20 @@ TEST(ris_connection_assessment_message, message_1) {
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(2, e0->assessment());
-}
 
+  auto e0_id = e0->tripId();
+  EXPECT_EQ(StationIdType_EVA, e0_id->base()->stationIdType());
+  EXPECT_STREQ("8004005", e0_id->base()->stationId()->c_str());
+
+  EXPECT_EQ(90708, e0_id->base()->trainIndex());
+  EXPECT_STREQ("42", e0_id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, e0_id->base()->type());
+  EXPECT_EQ(1444188300, e0_id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, e0_id->targetStationIdType());
+  EXPECT_STREQ("8000430", e0_id->targetStationId()->c_str());
+  EXPECT_EQ(1444191360, e0_id->targetScheduledTime());
+}
 
 // clang-format off
 char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -149,8 +177,10 @@ TEST(ris_connection_assessment_message, message_2) {
   EXPECT_EQ(1444172700, message.scheduled);
 
   auto outer_msg = GetMessage(message.data());
-  ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(outer_msg->content());
+  ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,
+            outer_msg->content_type());
+  auto inner_msg = reinterpret_cast<ConnectionAssessmentMessage const*>(
+      outer_msg->content());
 
   auto from = inner_msg->from();
   EXPECT_EQ(StationIdType_EVA, from->stationIdType());

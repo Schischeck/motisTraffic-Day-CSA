@@ -57,6 +57,19 @@ TEST(ris_addition_message, message_1) {
   auto inner_msg =
       reinterpret_cast<AdditionMessage const*>(outer_msg->content());
 
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("8000298", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(2941, id->base()->trainIndex());
+  EXPECT_STREQ("", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444206000, id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("8003330", id->targetStationId()->c_str());
+  EXPECT_EQ(1444235100, id->targetScheduledTime());
+
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
 

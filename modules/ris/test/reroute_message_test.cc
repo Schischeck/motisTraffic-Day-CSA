@@ -51,7 +51,21 @@ TEST(ris_reroute_message, message_1) {
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("8000156", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(2318, id->base()->trainIndex());
+  EXPECT_STREQ("", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444321500, id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("8000080", id->targetStationId()->c_str());
+  EXPECT_EQ(1444335660, id->targetScheduledTime());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(4, cancelled_events->size());
@@ -90,10 +104,9 @@ TEST(ris_reroute_message, message_1) {
 
   EXPECT_STREQ("IC", ne1->base()->trainCategory()->c_str());
   EXPECT_STREQ("6", ne1->base()->track()->c_str());
-  
+
   EXPECT_EQ(RerouteStatus_UmlNeu, ne1->status());
 }
-
 
 // clang-format off
 char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -141,7 +154,8 @@ TEST(ris_reroute_message, message_only_new) {
 
   auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(0, cancelled_events->size());
@@ -155,7 +169,6 @@ TEST(ris_reroute_message, message_only_new) {
   auto ne1 = new_events->Get(1);
   EXPECT_STREQ("2", ne1->base()->base()->lineId()->c_str());
 }
-
 
 // clang-format off
 char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -203,7 +216,8 @@ TEST(ris_reroute_message, message_only_cancel) {
 
   auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(2, cancelled_events->size());
