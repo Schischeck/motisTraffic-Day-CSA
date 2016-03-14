@@ -36,20 +36,24 @@ parsed_msg_t parse_delay_msg(FlatBufferBuilder& fbb, xml_node const& msg,
     auto updated = parse_time(child_attr(e_node, "Zeit", attr_name).value());
     events.push_back(CreateUpdatedEvent(fbb, event, updated));
   });
+  auto trip_id = parse_trip_id(fbb, msg);
   return {parse_target_time(msg),
           CreateMessage(
               fbb, MessageUnion_DelayMessage,
-              CreateDelayMessage(fbb, type, fbb.CreateVector(events)).Union())};
+              CreateDelayMessage(fbb, trip_id, type, fbb.CreateVector(events))
+                  .Union())};
 }
 
 parsed_msg_t parse_cancel_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
   std::vector<Offset<Event>> events;
   foreach_event(fbb, msg, [&](Offset<Event> const& event, xml_node const&,
                               xml_node const&) { events.push_back(event); });
-  return {parse_target_time(msg),
-          CreateMessage(
-              fbb, MessageUnion_CancelMessage,
-              CreateCancelMessage(fbb, fbb.CreateVector(events)).Union())};
+  auto trip_id = parse_trip_id(fbb, msg);
+  return {
+      parse_target_time(msg),
+      CreateMessage(
+          fbb, MessageUnion_CancelMessage,
+          CreateCancelMessage(fbb, trip_id, fbb.CreateVector(events)).Union())};
 }
 
 parsed_msg_t parse_addition_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
@@ -58,10 +62,12 @@ parsed_msg_t parse_addition_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
                               xml_node const& e_node, xml_node const& t_node) {
     events.push_back(parse_additional_event(fbb, event, e_node, t_node));
   });
+  auto trip_id = parse_trip_id(fbb, msg);
   return {parse_target_time(msg),
           CreateMessage(
               fbb, MessageUnion_AdditionMessage,
-              CreateAdditionMessage(fbb, fbb.CreateVector(events)).Union())};
+              CreateAdditionMessage(fbb, trip_id, fbb.CreateVector(events))
+                  .Union())};
 }
 
 parsed_msg_t parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
@@ -83,12 +89,13 @@ parsed_msg_t parse_reroute_msg(FlatBufferBuilder& fbb, xml_node const& msg) {
       },
       "./Service/ListUml/Uml/ListZug/Zug");
 
+  auto trip_id = parse_trip_id(fbb, msg);
   return {parse_target_time(msg),
-          CreateMessage(
-              fbb, MessageUnion_RerouteMessage,
-              CreateRerouteMessage(fbb, fbb.CreateVector(cancelled_events),
-                                   fbb.CreateVector(new_events))
-                  .Union())};
+          CreateMessage(fbb, MessageUnion_RerouteMessage,
+                        CreateRerouteMessage(fbb, trip_id,
+                                             fbb.CreateVector(cancelled_events),
+                                             fbb.CreateVector(new_events))
+                            .Union())};
 }
 
 parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
@@ -98,6 +105,7 @@ parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
   if (from == boost::none) {
     throw std::runtime_error("bad from event in RIS conn decision");
   }
+  auto from_trip_id = parse_trip_id(fbb, from_e_node);
   auto target_time = parse_target_time(from_e_node);
 
   std::vector<Offset<ConnectionDecision>> decisions;
@@ -108,25 +116,24 @@ parsed_msg_t parse_conn_decision_msg(FlatBufferBuilder& fbb,
     if (to == boost::none) {
       continue;
     }
+    auto to_trip_id = parse_trip_id(fbb, to_e_node);
 
     auto hold = cstr(connection_node.attribute("Status").value()) == "Gehalten";
-    decisions.push_back(CreateConnectionDecision(fbb, *to, hold));
+    decisions.push_back(CreateConnectionDecision(fbb, to_trip_id, *to, hold));
 
-    auto to_target_time = parse_target_time(to_e_node);
-    if (to_target_time > target_time) {
-      target_time = to_target_time;
-    }
+    target_time = std::max(target_time, parse_target_time(to_e_node));
   }
 
   if (decisions.empty()) {
     throw std::runtime_error("zero valid to events in RIS conn decision");
   }
 
-  return {target_time,
-          CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
-                        CreateConnectionDecisionMessage(
-                            fbb, *from, fbb.CreateVector(decisions))
-                            .Union())};
+  return {
+      target_time,
+      CreateMessage(fbb, MessageUnion_ConnectionDecisionMessage,
+                    CreateConnectionDecisionMessage(fbb, from_trip_id, *from,
+                                                    fbb.CreateVector(decisions))
+                        .Union())};
 }
 
 parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
@@ -136,6 +143,7 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
   if (from == boost::none) {
     throw std::runtime_error("bad from event in RIS conn assessment");
   }
+  auto from_trip_id = parse_trip_id(fbb, from_e_node);
   auto target_time = parse_target_time(from_e_node);
 
   std::vector<Offset<ConnectionAssessment>> assessments;
@@ -146,14 +154,12 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
     if (to == boost::none) {
       continue;
     }
+    auto to_trip_id = parse_trip_id(fbb, to_e_node);
 
-    auto assessment = connection_node.attribute("Bewertung").as_int();
-    assessments.push_back(CreateConnectionAssessment(fbb, *to, assessment));
+    auto a = connection_node.attribute("Bewertung").as_int();
+    assessments.push_back(CreateConnectionAssessment(fbb, to_trip_id, *to, a));
 
-    auto to_target_time = parse_target_time(to_e_node);
-    if (to_target_time > target_time) {
-      target_time = to_target_time;
-    }
+    target_time = std::max(target_time, parse_target_time(to_e_node));
   }
 
   if (assessments.empty()) {
@@ -163,7 +169,7 @@ parsed_msg_t parse_conn_assessment_msg(FlatBufferBuilder& fbb,
   return {target_time,
           CreateMessage(fbb, MessageUnion_ConnectionAssessmentMessage,
                         CreateConnectionAssessmentMessage(
-                            fbb, *from, fbb.CreateVector(assessments))
+                            fbb, from_trip_id, *from, fbb.CreateVector(assessments))
                             .Union())};
 }
 
