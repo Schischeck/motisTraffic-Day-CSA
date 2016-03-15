@@ -10,7 +10,7 @@ namespace motis {
 namespace access {
 
 class trip_iterator
-    : public std::iterator<std::random_access_iterator_tag, trip_segment, int> {
+    : public std::iterator<std::random_access_iterator_tag, trip_section, int> {
 public:
   trip_iterator(trip const* t, int const i) : trip_(t), index_(i) {}
 
@@ -22,9 +22,9 @@ public:
     index_ -= rhs;
     return *this;
   }
-  trip_segment operator*() { return {trip_, index_}; }
-  trip_segment operator->() { return {trip_, index_}; }
-  trip_segment operator[](int rhs) { return {trip_, index_}; }
+  trip_section operator*() { return {trip_, index_}; }
+  trip_section operator->() { return {trip_, index_}; }
+  trip_section operator[](int rhs) { return {trip_, index_}; }
 
   trip_iterator& operator++() {
     ++index_;
