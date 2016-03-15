@@ -152,9 +152,15 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
   return id;
 }
 
-trip* graph_builder::register_service(Service const* s, int day) {
-  sched_.trips_mem.emplace_back(new trip(get_full_trip_id(s, day)));
-  auto stored = sched_.trips_mem.back().get();
+merged_trips_idx graph_builder::create_merged_trips(Service const* s,
+                                                    int day_idx) {
+  return push_mem(sched_.merged_trips,
+                  std::vector<trip*>({register_service(s, day_idx)}));
+}
+
+trip* graph_builder::register_service(Service const* s, int day_idx) {
+  sched_.trip_mem.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+  auto stored = sched_.trip_mem.back().get();
   sched_.trips[stored->id.primary].push_back(stored);
 
   for (unsigned i = 1; i < s->sections()->size(); ++i) {
@@ -162,7 +168,7 @@ trip* graph_builder::register_service(Service const* s, int day) {
     auto prev_section = s->sections()->Get(i - 1);
 
     if (curr_section->train_nr() != prev_section->train_nr()) {
-      sched_.trips[get_full_trip_id(s, day, i).primary].push_back(stored);
+      sched_.trips[get_full_trip_id(s, day_idx, i).primary].push_back(stored);
     }
   }
 
@@ -227,12 +233,12 @@ void graph_builder::add_route_services(
       time prev_arr = 0;
       bool adjusted = false;
       std::vector<light_connection> lcons;
-      auto t = register_service(s, day);
+      auto t = create_merged_trips(s, day);
       for (int section_idx = 0;
            section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
         lcons.push_back(section_to_connection(
-            {{t}}, {{participant{s, section_idx}}}, day, prev_arr, adjusted));
+            t, {{participant{s, section_idx}}}, day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 
@@ -247,6 +253,7 @@ void graph_builder::add_route_services(
 
     auto r = create_route(services[0]->route(), route, ++next_route_index_);
     index_first_route_node(*r);
+    write_trip_info(*r);
   }
 }
 
@@ -318,15 +325,13 @@ void graph_builder::add_to_routes(
 }
 
 connection_info* graph_builder::get_or_create_connection_info(
-    Section const* section, trip* trp, int dep_day_index,
-    connection_info* merged_with) {
+    Section const* section, int dep_day_index, connection_info* merged_with) {
   con_info_.line_identifier =
       section->line_id() ? section->line_id()->str() : "";
   con_info_.train_nr = section->train_nr();
   con_info_.family = get_or_create_category_index(section->category());
   con_info_.dir_ = get_or_create_direction(section->direction());
   con_info_.provider_ = get_or_create_provider(section->provider());
-  con_info_.trp = trp;
   con_info_.merged_with = merged_with;
   read_attributes(dep_day_index, section->attributes(), con_info_.attributes);
 
@@ -338,33 +343,26 @@ connection_info* graph_builder::get_or_create_connection_info(
 }
 
 connection_info* graph_builder::get_or_create_connection_info(
-    std::array<trip*, 16> const& trips,
     std::array<participant, 16> const& services, int dep_day_index) {
   connection_info* prev_con_info = nullptr;
 
   for (unsigned i = 0; i < services.size(); ++i) {
-    verify((trips[i] == nullptr && services[i].service == nullptr) ||
-               (trips[i] != nullptr && services[i].service != nullptr),
-           "trips.length != services.length");
-
     if (services[i].service == nullptr) {
       return prev_con_info;
     }
 
     auto const& s = services[i];
-    auto const& t = trips[i];
     prev_con_info =
         get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
-                                      t, dep_day_index, prev_con_info);
+                                      dep_day_index, prev_con_info);
   }
 
   return prev_con_info;
 }
 
 light_connection graph_builder::section_to_connection(
-    std::array<trip*, 16> const& trips,
-    std::array<participant, 16> const& services, int day, time prev_arr,
-    bool& adjusted) {
+    merged_trips_idx trips, std::array<participant, 16> const& services,
+    int day, time prev_arr, bool& adjusted) {
   auto const& ref = services[0].service;
   auto const& section_idx = services[0].section_idx;
 
@@ -412,7 +410,7 @@ light_connection graph_builder::section_to_connection(
   con_.price = get_distance(from, to) * get_price_per_km(con_.clasz);
   con_.d_platform = get_or_create_platform(dep_day_index, dep_platf);
   con_.a_platform = get_or_create_platform(arr_day_index, arr_platf);
-  con_.con_info = get_or_create_connection_info(trips, services, dep_day_index);
+  con_.con_info = get_or_create_connection_info(services, dep_day_index);
 
   // Build light connection.
   time dep_motis_time, arr_motis_time;
@@ -429,7 +427,7 @@ light_connection graph_builder::section_to_connection(
       set_get_or_create(connections_, &con_, [&]() {
         sched_.full_connections.emplace_back(make_unique<connection>(con_));
         return sched_.full_connections.back().get();
-      }));
+      }), trips);
 }
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
@@ -586,6 +584,21 @@ int graph_builder::get_or_create_platform(
   }
 }
 
+void graph_builder::write_trip_info(route& r) {
+  auto const edges = transform_to_vec(
+      all(r), [](route_section& s) { return s.get_route_edge(); });
+
+  sched_.trip_edges.emplace_back(new std::vector<edge*>(edges));
+  auto edges_ptr = sched_.trip_edges.back().get();
+
+  auto& lcons = edges_ptr->front()->_m._route_edge._conns;
+  for (unsigned lcon_idx = 0; lcon_idx < lcons.size(); ++lcon_idx) {
+    auto trp = sched_.merged_trips[lcons[lcon_idx].trips]->front();
+    trp->edges = edges_ptr;
+    trp->lcon_idx = lcon_idx;
+  }
+}
+
 std::unique_ptr<route> graph_builder::create_route(Route const* r,
                                                    route_lcs const& lcons,
                                                    unsigned route_index) {
@@ -658,14 +671,6 @@ route_section graph_builder::add_route_section(
   section.from_route_node->_edges.push_back(make_route_edge(
       section.from_route_node, section.to_route_node, connections));
 
-  if (!prev_section.is_valid()) {
-    for (unsigned lcon_idx = 0; lcon_idx < connections.size(); ++lcon_idx) {
-      auto& trp = *connections[lcon_idx]._full_con->con_info->trp;
-      trp.first_route_edge = &section.from_route_node->_edges.back();
-      trp.lcon_idx = lcon_idx;
-    }
-  }
-
   return section;
 }
 
@@ -706,6 +711,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
     LOG(info) << "removed " << dup_checker.get_duplicate_count()
               << " duplicate events";
   }
+
+  LOG(info) << sched->connection_infos.size() << " connection infos";
 
   return sched;
 }

@@ -8,10 +8,9 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/trip_idx.h"
 
 namespace motis {
-
-struct trip;
 
 constexpr auto kMaxValidTrainNr = 99999;
 
@@ -38,7 +37,6 @@ struct connection_info {
       hash_combine(seed, c.line_identifier);
       hash_combine(seed, c.family);
       hash_combine(seed, c.train_nr);
-      hash_combine(seed, c.trp);
       hash_combine(seed, c.merged_with);
       return seed;
     }
@@ -50,13 +48,12 @@ struct connection_info {
         family(0),
         train_nr(0),
         original_train_nr(0),
-        trp(nullptr),
         merged_with(nullptr) {}
 
   bool operator==(connection_info const& o) const {
     return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
            line_identifier == o.line_identifier && attributes == o.attributes &&
-           trp == o.trp && merged_with == o.merged_with;
+           merged_with == o.merged_with;
   }
 
   std::vector<attribute const*> attributes;
@@ -66,7 +63,6 @@ struct connection_info {
   uint32_t family;
   uint32_t train_nr;
   uint32_t original_train_nr;
-  trip* trp;
   connection_info* merged_with;
 };
 
@@ -110,8 +106,10 @@ struct light_connection {
 
   explicit light_connection(time d_time) : d_time(d_time) {}
 
-  light_connection(time d_time, time a_time, connection const* full_con)
-      : _full_con(full_con), d_time(d_time), a_time(a_time) {}
+  light_connection(time d_time, time a_time,
+                   connection const* full_con = nullptr,
+                   merged_trips_idx trips = 0)
+      : _full_con(full_con), d_time(d_time), a_time(a_time), trips(trips) {}
 
   unsigned travel_time() const { return a_time - d_time; }
 
@@ -124,6 +122,7 @@ struct light_connection {
 
   connection const* _full_con;
   time d_time, a_time;
+  merged_trips_idx trips;
 };
 
 }  // namespace motis

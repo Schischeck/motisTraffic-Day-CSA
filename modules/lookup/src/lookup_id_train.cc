@@ -20,7 +20,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
   int i = 0;
   journey j;
 
-  auto* route_edge = trp->first_route_edge;
+  auto* route_edge = trp->edges->front();
   auto* route_node = route_edge->_from;
   while (route_edge != nullptr) {
     auto const& lcon = route_edge->_m._route_edge._conns[trp->lcon_idx];
