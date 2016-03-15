@@ -17,7 +17,7 @@ public:
   int index() const { return index_; }
 
   light_connection const& lcon() const {
-    return edge_->_m._route_edge._conns[index_];
+    return edge_->_m._route_edge._conns[trip_->lcon_idx];
   }
 
 private:

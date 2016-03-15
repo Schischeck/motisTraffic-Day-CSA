@@ -62,19 +62,20 @@ TEST_F(loader_trip, simple) {
   EXPECT_EQ(false, secondary.is_arrival);
 
   ASSERT_EQ(2, trp->edges->size());
-  for(auto const& sec : *trp) {
-    if(sec.index() == 0) {
-      auto lcon = sec.lcon();
-      EXPECT_EQ(t.motis(10), lcon.d_time);
-      EXPECT_EQ(t.motis(11), lcon.a_time);
+  for (auto const& sec : *trp) {
+    auto const& lcon = sec.lcon();
+    switch (sec.index()) {
+      case 0:
+        EXPECT_EQ(t.motis(10), lcon.d_time);
+        EXPECT_EQ(t.motis(11), lcon.a_time);
+        break;
 
-    } else if(sec.index() == 1) {
-      auto lcon = sec.lcon();
-      EXPECT_EQ(t.motis(11), lcon.d_time);
-      EXPECT_EQ(t.motis(12), lcon.a_time);
+      case 1:
+        EXPECT_EQ(t.motis(11), lcon.d_time);
+        EXPECT_EQ(t.motis(12), lcon.a_time);
+        break;
 
-    } else {
-      FAIL() << "section index out of bounds";
+      default: FAIL() << "section index out of bounds";
     }
   }
 }
