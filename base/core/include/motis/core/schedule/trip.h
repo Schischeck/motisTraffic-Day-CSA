@@ -72,17 +72,28 @@ struct secondary_trip_id {
 };
 
 struct full_trip_id {
+  friend bool operator<(full_trip_id const& lhs, full_trip_id const& rhs) {
+    return std::tie(lhs.primary, lhs.secondary) <
+           std::tie(rhs.primary, rhs.secondary);
+  }
+
+  friend bool operator==(full_trip_id const& lhs, full_trip_id const& rhs) {
+    return std::tie(lhs.primary, lhs.secondary) ==
+           std::tie(rhs.primary, rhs.secondary);
+  }
+
   primary_trip_id primary;
   secondary_trip_id secondary;
 };
 
 struct trip {
-  trip() : first_route_edge(nullptr) {}
-  trip(full_trip_id id) : id(std::move(id)), first_route_edge(nullptr) {}
+  trip(full_trip_id id) : id(std::move(id)), edges(nullptr), lcon_idx(0) {}
 
   full_trip_id id;
-  edge* first_route_edge;
+  std::vector<edge*> const* edges;
   size_t lcon_idx;
 };
+
+using trips = std::vector<trip*>;
 
 }  // namespace motis
