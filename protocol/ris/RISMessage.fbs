@@ -1,7 +1,7 @@
 namespace motis.ris;
 
 // ----------------------------------------------------------------------------
-// Train centered Messages
+// Common
 // ----------------------------------------------------------------------------
 enum EventType : bool {Arrival, Departure}
 enum StationIdType : byte {Context, EVA, DS100}
@@ -11,11 +11,24 @@ table Event {
   stationId: string; // optional
   
   trainIndex: uint;
+  lineId: string;
   type: EventType;
   scheduledTime: ulong;
 }
 
+table TripId {
+  base: Event;
+
+  targetStationIdType: StationIdType;
+  targetStationId: string;
+  targetScheduledTime: ulong;
+}
+
+// ----------------------------------------------------------------------------
+// Train centered Messages
+// ----------------------------------------------------------------------------
 table CancelMessage {
+  tripId: TripId;
   events: [Event] (required);
 }
 
@@ -25,7 +38,8 @@ table UpdatedEvent {
 }
 
 enum DelayType : bool {Is, Forecast} // Ist and IstProg
-table DelayMessage { 
+table DelayMessage {
+  tripId: TripId;
   type: DelayType;
   events: [UpdatedEvent] (required);
 }
@@ -37,6 +51,7 @@ table AdditionalEvent {
 }
 
 table AdditionMessage {
+  tripId: TripId;
   events: [AdditionalEvent];
 }
 
@@ -47,6 +62,7 @@ table ReroutedEvent {
 }
 
 table RerouteMessage {
+  tripId: TripId;
   cancelledEvents: [Event] (required);
   newEvents: [ReroutedEvent] (required);
 }
@@ -55,21 +71,25 @@ table RerouteMessage {
 // Connection Event Messages
 // ----------------------------------------------------------------------------
 table ConnectionDecision {
+  tripId: TripId;
   base: Event (required);
   hold: bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
+  fromTripId: TripId;
   from: Event (required);
   to: [ConnectionDecision] (required);
 }
 
 table ConnectionAssessment {
+  tripId: TripId;
   base: Event (required);
   assessment: int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
+  fromTripId: TripId;
   from: Event (required);
   to: [ConnectionAssessment] (required);
 }
