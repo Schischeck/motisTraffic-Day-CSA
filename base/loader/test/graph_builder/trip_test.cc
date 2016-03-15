@@ -57,13 +57,22 @@ TEST_F(loader_trip, simple) {
   EXPECT_EQ(t.motis(12), secondary.target_time);
   EXPECT_EQ(false, secondary.is_arrival);
 
-  ASSERT_NE(nullptr, trp->first_route_edge);
-  ASSERT_EQ(edge::ROUTE_EDGE, trp->first_route_edge->type());
+  ASSERT_EQ(2, trp->edges->size());
+  for(auto const& sec : *trp) {
+    if(sec->index() == 0) {
+      auto lcon = sec->lcon();
+      EXPECT_EQ(t.motis(10), lcon.d_time);
+      EXPECT_EQ(t.motis(11), lcon.a_time);
 
-  auto const& conns = trp->first_route_edge->_m._route_edge._conns;
-  ASSERT_TRUE(trp->lcon_idx < conns.size());
-  EXPECT_EQ(t.motis(10), conns[trp->lcon_idx].d_time);
-  EXPECT_EQ(t.motis(11), conns[trp->lcon_idx].a_time);
+    } else if(sec->index() == 1) {
+      auto lcon = sec->lcon();
+      EXPECT_EQ(t.motis(11), lcon.d_time);
+      EXPECT_EQ(t.motis(12), lcon.a_time);
+
+    } else {
+      FAIL() << "section index out of bounds";
+    }
+  }
 }
 
 TEST_F(loader_trip, collision) {

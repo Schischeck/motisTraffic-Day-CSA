@@ -1,0 +1,30 @@
+#pragma once
+
+#include "motis/core/schedule/trip.h"
+#include "motis/core/schedule/edge.h"
+
+namespace motis {
+namespace access {
+
+class trip_segment {
+public:
+  trip_segment(trip const* t, int const index)
+      : trip_(t), index_(index), edge_(t->edges->at(index)) {
+    assert(edge_->type() == edge::ROUTE_EDGE);
+    assert(index < edge_->_m._route_edge._conns.size())
+  }
+
+  int index() const { return index_; }
+
+  light_connection const& lcon() const {
+    return edge_->_m._route_edge._conns[index_];
+  }
+
+private:
+  trip const* trip_;
+  int index_;
+  edge const* edge_;
+};
+
+}  // namespace access
+}  // namespace motis
