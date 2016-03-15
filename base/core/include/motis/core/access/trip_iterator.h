@@ -4,7 +4,7 @@
 #include <tuple>
 
 #include "motis/core/schedule/trip.h"
-#include "motis/core/access/trip_access.h"
+#include "motis/core/access/trip_section.h"
 
 namespace motis {
 namespace access {
@@ -24,7 +24,7 @@ public:
   }
   trip_section operator*() { return {trip_, index_}; }
   trip_section operator->() { return {trip_, index_}; }
-  trip_section operator[](int rhs) { return {trip_, index_}; }
+  trip_section operator[](int rhs) { return {trip_, rhs}; }
 
   trip_iterator& operator++() {
     ++index_;
@@ -82,8 +82,11 @@ private:
   int index_;
 };
 
-trip_iterator begin(trip const& t) { return {&t, 0}; }
-trip_iterator end(trip const& t) { return {&t, t.path->size()}; }
-
 }  // namespace access
+
+access::trip_iterator begin(trip const& t) { return {&t, 0}; }
+access::trip_iterator end(trip const& t) {
+  return {&t, static_cast<int>(t.edges->size())};
+}
+
 }  // namespace motis

@@ -4,6 +4,10 @@
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/core/access/trip_iterator.h"
+#include "motis/core/access/trip_section.h"
+
+using namespace motis::access;
 
 namespace motis {
 namespace loader {
@@ -59,13 +63,13 @@ TEST_F(loader_trip, simple) {
 
   ASSERT_EQ(2, trp->edges->size());
   for(auto const& sec : *trp) {
-    if(sec->index() == 0) {
-      auto lcon = sec->lcon();
+    if(sec.index() == 0) {
+      auto lcon = sec.lcon();
       EXPECT_EQ(t.motis(10), lcon.d_time);
       EXPECT_EQ(t.motis(11), lcon.a_time);
 
-    } else if(sec->index() == 1) {
-      auto lcon = sec->lcon();
+    } else if(sec.index() == 1) {
+      auto lcon = sec.lcon();
       EXPECT_EQ(t.motis(11), lcon.d_time);
       EXPECT_EQ(t.motis(12), lcon.a_time);
 
