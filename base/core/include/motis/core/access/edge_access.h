@@ -35,7 +35,7 @@ void foreach_arrival_in(edge const& edge, time begin, time end, F fun) {
   }
 }
 
-light_connection const& get_lcon(edge const* e, size_t const index) {
+inline light_connection const& get_lcon(edge const* e, size_t const index) {
   assert(e->type() == edge::ROUTE_EDGE);
   assert(index < e->_m._route_edge._conns.size());
   return e->_m._route_edge._conns[index];
