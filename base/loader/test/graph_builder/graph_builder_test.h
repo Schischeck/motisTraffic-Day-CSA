@@ -25,9 +25,10 @@ protected:
       std::tuple<light_connection const*, node const*, node const*>>
   get_connections(node const* first_route_node, time departure_time);
 
-  std::time_t unix_time(int hhmm, int day_idx = 0) {
+  std::time_t unix_time(int hhmm, int day_idx = 0,
+                        int timezone_offset = kDefaultTimezoneOffset) {
     return motis_to_unixtime(sched_->schedule_begin_,
-                             motis_time(hhmm, day_idx));
+                             motis_time(hhmm, day_idx, timezone_offset));
   }
 
   motis::time motis_time(int hhmm, int day_idx = 0,

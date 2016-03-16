@@ -134,11 +134,11 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
       get_station_node(stops->Get(stops->size() - 1))->_id;
 
   auto const dep_tz = sched_.stations[dep_station_idx]->timez;
-  auto const dep_time = get_event_time(
+  auto const dep_time = get_adjusted_event_time(
       day - first_day_, s->times()->Get(section_idx * 2 + 1), dep_tz);
 
   auto const arr_tz = sched_.stations[arr_station_idx]->timez;
-  auto const arr_time = get_event_time(
+  auto const arr_time = get_adjusted_event_time(
       day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
 
   auto const train_nr = s->sections()->Get(section_idx)->train_nr();

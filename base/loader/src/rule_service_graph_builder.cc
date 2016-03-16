@@ -231,6 +231,9 @@ struct rule_service_route_builder {
   void build_routes() {
     for (auto& entry : sections_) {
       build_route(entry.first, entry.second);
+    }
+
+    for (auto& entry : sections_) {
       write_trip_info(entry.first, entry.second);
     }
   }
