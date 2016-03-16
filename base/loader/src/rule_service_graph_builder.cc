@@ -258,12 +258,14 @@ struct rule_service_route_builder {
       std::array<participant, 16> const& services, int day_idx) {
     auto k = get_services_key(services, day_idx);
     return get_or_create(trips_, k, [&]() {
-      return push_mem(gb_.sched_.merged_trips,
-                      transform_to_vec(all(k.services), [&](Service const* s) {
-                        return get_or_create(
-                            single_trips_, std::make_pair(s, day_idx),
-                            [&]() { return gb_.register_service(s, day_idx); });
-                      }));
+      return push_mem(
+          gb_.sched_.merged_trips,
+          transform_to_vec(
+              begin(k.services), end(k.services), [&](Service const* s) {
+                return get_or_create(
+                    single_trips_, std::make_pair(s, day_idx),
+                    [&]() { return gb_.register_service(s, day_idx); });
+              }));
     });
   }
 
@@ -331,9 +333,10 @@ struct rule_service_route_builder {
   void write_trip_info(Service const* s,
                        std::vector<service_section*> const& sections) {
     push_mem(gb_.sched_.trip_edges,
-             transform_to_vec(all(sections), [](service_section* section) {
-               return section->first.get_route_edge();
-             }));
+             transform_to_vec(begin(sections), end(sections),
+                              [](service_section* section) {
+                                return section->first.get_route_edge();
+                              }));
     auto edges = gb_.sched_.trip_edges.back().get();
 
     int lcon_idx = 0;

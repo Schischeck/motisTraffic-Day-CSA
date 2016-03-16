@@ -586,7 +586,7 @@ int graph_builder::get_or_create_platform(
 
 void graph_builder::write_trip_info(route& r) {
   auto const edges = transform_to_vec(
-      all(r), [](route_section& s) { return s.get_route_edge(); });
+      begin(r), end(r), [](route_section& s) { return s.get_route_edge(); });
 
   sched_.trip_edges.emplace_back(new std::vector<edge*>(edges));
   auto edges_ptr = sched_.trip_edges.back().get();
