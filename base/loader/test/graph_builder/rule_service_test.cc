@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/access/trip_access.h"
 
 #include "./graph_builder_test.h"
 
@@ -127,6 +128,8 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_3) {
   EXPECT_TRUE(train_nrs.find(2) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(3) != end(train_nrs));
 }
+
+TEST_F(service_rules_graph_builder_test_virt, trip_1) {}
 
 }  // loader
 }  // motis

@@ -1,12 +1,12 @@
 #include "gtest/gtest.h"
 
-#include "./graph_builder_test.h"
-
 #include <tuple>
 
 #include "motis/core/common/date_util.h"
 
 #include "motis/loader/util.h"
+
+#include "./graph_builder_test.h"
 
 namespace motis {
 namespace loader {
@@ -26,10 +26,6 @@ void test_events(
   EXPECT_EQ(expected_arr, std::get<0>(c)->a_time);
 }
 
-time exp_time(int day_idx, int hhmm, int offset) {
-  return (day_idx + SCHEDULE_OFFSET_MINUTES) + hhmm_to_min(hhmm) - offset;
-}
-
 TEST_F(loader_graph_builder_east_to_west_test, event_times) {
   // Get route starting at Moskva Belorusskaja
   auto node_it = std::find_if(
@@ -39,10 +35,10 @@ TEST_F(loader_graph_builder_east_to_west_test, event_times) {
       });
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(23, cs.size());
-  test_events(cs.at(0), exp_time(0, 1630, 180), exp_time(0, 1901, 180));
+  test_events(cs[0], motis_time(1630, 0, 180), motis_time(1901, 0, 180));
   // GMT+3 -> GMT+1 (season time)
-  test_events(cs.at(8), exp_time(0, 3106, 180), exp_time(0, 3018, 120));
-  test_events(cs.at(22), exp_time(0, 5306, 120), exp_time(0, 5716, 120));
+  test_events(cs[8], motis_time(3106, 0, 180), motis_time(3018, 0, 120));
+  test_events(cs[22], motis_time(5306, 0, 120), motis_time(5716, 0, 120));
 }
 
 class loader_graph_builder_season_valid : public loader_graph_builder_test {
@@ -64,10 +60,10 @@ TEST_F(loader_graph_builder_season_valid, event_times) {
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(38, cs.size());
 
-  test_events(cs.at(0), exp_time(0, 53, 60), exp_time(0, 55, 60));
+  test_events(cs[0], motis_time(53, 0, 60), motis_time(55, 0, 60));
   // +1 -> +2
-  test_events(cs.at(20), exp_time(0, 158, 60), exp_time(0, 300, 120));
-  test_events(cs.at(37), exp_time(0, 344, 120), exp_time(0, 347, 120));
+  test_events(cs[20], motis_time(158, 0, 60), motis_time(300, 0, 120));
+  test_events(cs[37], motis_time(344, 0, 120), motis_time(347, 0, 120));
 }
 
 class loader_graph_builder_season_invalid : public loader_graph_builder_test {
@@ -89,9 +85,9 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(10, cs.size());
 
-  test_events(cs.at(0), exp_time(0, 108, 60), exp_time(0, 111, 60));
+  test_events(cs[0], motis_time(108, 0, 60), motis_time(111, 0, 60));
   // +1 -> +2
-  test_events(cs.at(9), exp_time(0, 154, 60), exp_time(0, 204, 120 - 60));
+  test_events(cs[9], motis_time(154, 0, 60), motis_time(204, 0, 120 - 60));
 }
 
 }  // loader

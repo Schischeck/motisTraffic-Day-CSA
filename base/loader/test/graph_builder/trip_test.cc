@@ -1,32 +1,16 @@
 #include "gtest/gtest.h"
 
-#include "./graph_builder_test.h"
-
 #include "motis/core/common/date_util.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_section.h"
 
+#include "./graph_builder_test.h"
+
 using namespace motis::access;
 
 namespace motis {
 namespace loader {
-
-struct time_helper {
-  time_helper(std::time_t const schedule_begin, int const timezone_offset = -60)
-      : schedule_begin_(schedule_begin), timezone_offset_(timezone_offset) {}
-
-  std::time_t unix(int h, int m = 0) {
-    return motis_to_unixtime(schedule_begin_, motis(h, m));
-  }
-
-  motis::time motis(int h, int m = 0) {
-    return SCHEDULE_OFFSET_MINUTES + h * 60 + m + timezone_offset_;
-  }
-
-  std::time_t schedule_begin_;
-  int timezone_offset_;  // in minutes
-};
 
 class loader_trip : public loader_graph_builder_test {
 public:
@@ -37,16 +21,13 @@ public:
 };
 
 TEST_F(loader_trip, none) {
-  time_helper t(sched_->schedule_begin_);
-
-  ASSERT_ANY_THROW(get_trip(*sched_, "1234567", 31337, t.unix(1), "7654321",
-                            t.unix(2), true, ""));
+  ASSERT_ANY_THROW(get_trip(*sched_, "1234567", 31337, unix_time(100),
+                            "7654321", unix_time(200), true, ""));
 }
 
 TEST_F(loader_trip, simple) {
-  time_helper t(sched_->schedule_begin_);
-  auto trp = get_trip(*sched_, "0000001", 1, t.unix(10), "0000003", t.unix(12),
-                      false, "");
+  auto trp = get_trip(*sched_, "0000001", 1, unix_time(1000), "0000003",
+                      unix_time(1200), false, "");
   ASSERT_NE(nullptr, trp);
 
   auto const& primary = trp->id.primary;
@@ -54,11 +35,11 @@ TEST_F(loader_trip, simple) {
 
   EXPECT_EQ("0000001", sched_->stations[primary.station_id]->eva_nr);
   EXPECT_EQ(1, primary.train_nr);
-  EXPECT_EQ(t.motis(10), primary.time);
+  EXPECT_EQ(motis_time(1000), primary.time);
 
   EXPECT_EQ("", secondary.line_id);
   EXPECT_EQ("0000003", sched_->stations[secondary.target_station_id]->eva_nr);
-  EXPECT_EQ(t.motis(12), secondary.target_time);
+  EXPECT_EQ(motis_time(1200), secondary.target_time);
   EXPECT_EQ(false, secondary.is_arrival);
 
   ASSERT_EQ(2, trp->edges->size());
@@ -66,13 +47,13 @@ TEST_F(loader_trip, simple) {
     auto const& lcon = sec.lcon();
     switch (sec.index()) {
       case 0:
-        EXPECT_EQ(t.motis(10), lcon.d_time);
-        EXPECT_EQ(t.motis(11), lcon.a_time);
+        EXPECT_EQ(motis_time(1000), lcon.d_time);
+        EXPECT_EQ(motis_time(1100), lcon.a_time);
         break;
 
       case 1:
-        EXPECT_EQ(t.motis(11), lcon.d_time);
-        EXPECT_EQ(t.motis(12), lcon.a_time);
+        EXPECT_EQ(motis_time(1100), lcon.d_time);
+        EXPECT_EQ(motis_time(1200), lcon.a_time);
         break;
 
       default: FAIL() << "section index out of bounds";
@@ -81,12 +62,10 @@ TEST_F(loader_trip, simple) {
 }
 
 TEST_F(loader_trip, collision) {
-  time_helper t(sched_->schedule_begin_);
-
-  auto trp0 = get_trip(*sched_, "0000004", 2, t.unix(10), "0000005", t.unix(11),
-                       false, "foo");
-  auto trp1 = get_trip(*sched_, "0000004", 2, t.unix(10), "0000005", t.unix(11),
-                       false, "bar");
+  auto trp0 = get_trip(*sched_, "0000004", 2, unix_time(1000), "0000005",
+                       unix_time(1100), false, "foo");
+  auto trp1 = get_trip(*sched_, "0000004", 2, unix_time(1000), "0000005",
+                       unix_time(1100), false, "bar");
 
   ASSERT_NE(nullptr, trp0);
   ASSERT_NE(nullptr, trp1);
@@ -94,11 +73,10 @@ TEST_F(loader_trip, collision) {
 }
 
 TEST_F(loader_trip, rename) {
-  time_helper t(sched_->schedule_begin_);
-  auto trp0 = get_trip(*sched_, "0000001", 3, t.unix(20), "0000003", t.unix(22),
-                       false, "");
-  auto trp1 = get_trip(*sched_, "0000002", 4, t.unix(21), "0000003", t.unix(22),
-                       false, "");
+  auto trp0 = get_trip(*sched_, "0000001", 3, unix_time(2000), "0000003",
+                       unix_time(2200), false, "");
+  auto trp1 = get_trip(*sched_, "0000002", 4, unix_time(2100), "0000003",
+                       unix_time(2200), false, "");
 
   ASSERT_NE(nullptr, trp0);
   ASSERT_NE(nullptr, trp1);
