@@ -64,15 +64,25 @@ TEST_F(loader_trip, simple) {
   ASSERT_EQ(2, trp->edges->size());
   for (auto const& sec : *trp) {
     auto const& lcon = sec.lcon();
+    auto const& info = sec.info(*sched_);
+    auto const& from = sec.from_station(*sched_);
+    auto const& to = sec.to_station(*sched_);
+
     switch (sec.index()) {
       case 0:
         EXPECT_EQ(t.motis(10), lcon.d_time);
         EXPECT_EQ(t.motis(11), lcon.a_time);
+        EXPECT_EQ("0000001", from.eva_nr);
+        EXPECT_EQ("0000002", to.eva_nr);
+        EXPECT_EQ(1, info.train_nr);
         break;
 
       case 1:
         EXPECT_EQ(t.motis(11), lcon.d_time);
         EXPECT_EQ(t.motis(12), lcon.a_time);
+        EXPECT_EQ("0000002", from.eva_nr);
+        EXPECT_EQ("0000003", to.eva_nr);
+        EXPECT_EQ(1, info.train_nr);
         break;
 
       default: FAIL() << "section index out of bounds";
