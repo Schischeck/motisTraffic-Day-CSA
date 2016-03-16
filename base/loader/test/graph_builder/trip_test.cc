@@ -6,6 +6,7 @@
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_section.h"
+#include "motis/core/access/trip_stop.h"
 
 using namespace motis::access;
 
@@ -62,7 +63,7 @@ TEST_F(loader_trip, simple) {
   EXPECT_EQ(false, secondary.is_arrival);
 
   ASSERT_EQ(2, trp->edges->size());
-  for (auto const& sec : *trp) {
+  for (auto const& sec : sections(trp)) {
     auto const& lcon = sec.lcon();
     auto const& info = sec.info(*sched_);
     auto const& from = sec.from_station(*sched_);
@@ -86,6 +87,36 @@ TEST_F(loader_trip, simple) {
         break;
 
       default: FAIL() << "section index out of bounds";
+    }
+  }
+
+  for (auto const& stop : stops(trp)) {
+    auto const& station = stop.get_station(*sched_);
+    switch (stop.index()) {
+      case 0:
+        EXPECT_EQ("0000001", station.eva_nr);
+        ASSERT_FALSE(stop.has_arrival());
+        ASSERT_TRUE(stop.has_departure());
+        EXPECT_EQ(t.motis(10), stop.dep_lcon().d_time);
+
+        break;
+
+      case 1:
+        EXPECT_EQ("0000002", station.eva_nr);
+        ASSERT_TRUE(stop.has_arrival());
+        ASSERT_TRUE(stop.has_departure());
+        EXPECT_EQ(t.motis(11), stop.arr_lcon().a_time);
+        EXPECT_EQ(t.motis(11), stop.dep_lcon().d_time);
+        break;
+
+      case 2:
+        EXPECT_EQ("0000003", station.eva_nr);
+        ASSERT_TRUE(stop.has_arrival());
+        ASSERT_FALSE(stop.has_departure());
+        EXPECT_EQ(t.motis(12), stop.arr_lcon().a_time);
+        break;
+
+      default: FAIL() << "stop index out of bounds";
     }
   }
 }
