@@ -4,6 +4,7 @@
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_section.h"
+#include "motis/core/access/trip_stop.h"
 
 #include "./graph_builder_test.h"
 
@@ -43,20 +44,60 @@ TEST_F(loader_trip, simple) {
   EXPECT_EQ(false, secondary.is_arrival);
 
   ASSERT_EQ(2, trp->edges->size());
-  for (auto const& sec : *trp) {
+  for (auto const& sec : sections(trp)) {
     auto const& lcon = sec.lcon();
+    auto const& info = sec.info(*sched_);
+    auto const& from = sec.from_station(*sched_);
+    auto const& to = sec.to_station(*sched_);
+
     switch (sec.index()) {
       case 0:
         EXPECT_EQ(motis_time(1000), lcon.d_time);
         EXPECT_EQ(motis_time(1100), lcon.a_time);
+        EXPECT_EQ("0000001", from.eva_nr);
+        EXPECT_EQ("0000002", to.eva_nr);
+        EXPECT_EQ(1, info.train_nr);
         break;
 
       case 1:
         EXPECT_EQ(motis_time(1100), lcon.d_time);
         EXPECT_EQ(motis_time(1200), lcon.a_time);
+        EXPECT_EQ("0000002", from.eva_nr);
+        EXPECT_EQ("0000003", to.eva_nr);
+        EXPECT_EQ(1, info.train_nr);
         break;
 
       default: FAIL() << "section index out of bounds";
+    }
+  }
+
+  for (auto const& stop : stops(trp)) {
+    auto const& station = stop.get_station(*sched_);
+    switch (stop.index()) {
+      case 0:
+        EXPECT_EQ("0000001", station.eva_nr);
+        ASSERT_FALSE(stop.has_arrival());
+        ASSERT_TRUE(stop.has_departure());
+        EXPECT_EQ(motis_time(1000), stop.dep_lcon().d_time);
+
+        break;
+
+      case 1:
+        EXPECT_EQ("0000002", station.eva_nr);
+        ASSERT_TRUE(stop.has_arrival());
+        ASSERT_TRUE(stop.has_departure());
+        EXPECT_EQ(motis_time(1100), stop.arr_lcon().a_time);
+        EXPECT_EQ(motis_time(1100), stop.dep_lcon().d_time);
+        break;
+
+      case 2:
+        EXPECT_EQ("0000003", station.eva_nr);
+        ASSERT_TRUE(stop.has_arrival());
+        ASSERT_FALSE(stop.has_departure());
+        EXPECT_EQ(motis_time(1200), stop.arr_lcon().a_time);
+        break;
+
+      default: FAIL() << "stop index out of bounds";
     }
   }
 }
