@@ -11,8 +11,7 @@ enum error_code_t {
   ok = 0,
   not_implemented = 1,
   station_not_found = 2,
-  service_not_found = 3,
-  
+  service_not_found = 3
 };
 }  // namespace error
 
