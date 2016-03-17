@@ -25,7 +25,7 @@ constexpr auto kIdTrainICERequest = R""(
 }
 )"";
 
-TEST(lookup, id_train) {
+TEST(lookup, DISABLED_id_train) {
   auto instance = launch_motis(kSimpleRealtimePath, kSimpleRealtimeDate,
                                {"lookup", "realtime"});
   send(instance, get_simple_realtime_ris_message());
