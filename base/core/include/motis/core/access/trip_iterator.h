@@ -26,7 +26,6 @@ public:
   }
 
   T operator*() { return {trip_, index_}; }
-  T operator->() { return {trip_, index_}; }
   T operator[](int rhs) { return {trip_, rhs}; }
 
   trip_iterator<T>& operator++() {

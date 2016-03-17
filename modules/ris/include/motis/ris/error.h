@@ -9,8 +9,8 @@ namespace ris {
 namespace error {
 enum error_code_t {
   ok = 0,
-
-  not_implemented = 1
+  not_implemented = 1,
+  unexpected_message = 2
 };
 }  // namespace error
 
@@ -22,18 +22,19 @@ public:
     switch (ev) {
       case error::ok: return "ris: no error";
       case error::not_implemented: return "ris: not implemented";
+      case error::unexpected_message: return "ris: unexpected msg (in mode)";
       default: return "ris: unkown error";
     }
   }
 };
 
-const boost::system::error_category& error_category() {
+inline const boost::system::error_category& error_category() {
   static error_category_impl instance;
   return instance;
 }
 
 namespace error {
-boost::system::error_code make_error_code(error_code_t e) noexcept {
+inline boost::system::error_code make_error_code(error_code_t e) noexcept {
   return boost::system::error_code(static_cast<int>(e), error_category());
 }
 }  // namespace error

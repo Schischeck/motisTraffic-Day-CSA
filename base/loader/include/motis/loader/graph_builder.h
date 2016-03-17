@@ -20,8 +20,6 @@
 
 #include "motis/schedule-format/Schedule_generated.h"
 
-#define all(collection) begin(collection), end(collection)
-
 namespace motis {
 namespace loader {
 

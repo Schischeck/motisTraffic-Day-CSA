@@ -166,23 +166,23 @@ TEST_F(loader_graph_builder_multiple_ice, route_nodes) {
       EXPECT_EQ("8011102",
                 stations[get<2>(connections[7])->get_station()->_id]->eva_nr);
 
-      EXPECT_EQ(19 * 60 + 3 + MTO, get<0>(connections[0])->d_time);
-      EXPECT_EQ(20 * 60 + MTO, get<0>(connections[1])->d_time);
-      EXPECT_EQ(21 * 60 + 55 + MTO, get<0>(connections[2])->d_time);
-      EXPECT_EQ(22 * 60 + 34 + MTO, get<0>(connections[3])->d_time);
-      EXPECT_EQ(23 * 60 + 18 + MTO, get<0>(connections[4])->d_time);
-      EXPECT_EQ(23 * 60 + 49 + MTO, get<0>(connections[5])->d_time);
-      EXPECT_EQ(24 * 60 + 25 + MTO, get<0>(connections[6])->d_time);
-      EXPECT_EQ(24 * 60 + 33 + MTO, get<0>(connections[7])->d_time);
+      EXPECT_EQ(motis_time(1903), get<0>(connections[0])->d_time);
+      EXPECT_EQ(motis_time(2000), get<0>(connections[1])->d_time);
+      EXPECT_EQ(motis_time(2155), get<0>(connections[2])->d_time);
+      EXPECT_EQ(motis_time(2234), get<0>(connections[3])->d_time);
+      EXPECT_EQ(motis_time(2318), get<0>(connections[4])->d_time);
+      EXPECT_EQ(motis_time(2349), get<0>(connections[5])->d_time);
+      EXPECT_EQ(motis_time(2425), get<0>(connections[6])->d_time);
+      EXPECT_EQ(motis_time(2433), get<0>(connections[7])->d_time);
 
-      EXPECT_EQ(19 * 60 + 58 + MTO, get<0>(connections[0])->a_time);
-      EXPECT_EQ(21 * 60 + 53 + MTO, get<0>(connections[1])->a_time);
-      EXPECT_EQ(22 * 60 + 32 + MTO, get<0>(connections[2])->a_time);
-      EXPECT_EQ(23 * 60 + 8 + MTO, get<0>(connections[3])->a_time);
-      EXPECT_EQ(23 * 60 + 47 + MTO, get<0>(connections[4])->a_time);
-      EXPECT_EQ(24 * 60 + 23 + MTO, get<0>(connections[5])->a_time);
-      EXPECT_EQ(24 * 60 + 30 + MTO, get<0>(connections[6])->a_time);
-      EXPECT_EQ(24 * 60 + 38 + MTO, get<0>(connections[7])->a_time);
+      EXPECT_EQ(motis_time(1958), get<0>(connections[0])->a_time);
+      EXPECT_EQ(motis_time(2153), get<0>(connections[1])->a_time);
+      EXPECT_EQ(motis_time(2232), get<0>(connections[2])->a_time);
+      EXPECT_EQ(motis_time(2308), get<0>(connections[3])->a_time);
+      EXPECT_EQ(motis_time(2347), get<0>(connections[4])->a_time);
+      EXPECT_EQ(motis_time(2423), get<0>(connections[5])->a_time);
+      EXPECT_EQ(motis_time(2430), get<0>(connections[6])->a_time);
+      EXPECT_EQ(motis_time(2438), get<0>(connections[7])->a_time);
 
       ASSERT_TRUE(std::all_of(
           begin(connections), end(connections),

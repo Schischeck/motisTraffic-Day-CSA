@@ -5,6 +5,8 @@
 namespace motis {
 namespace loader {
 
+constexpr auto kAdjust = 60;
+
 timezone create_timezone(int general_offset, int season_offset,
                          int day_idx_schedule_first_day,
                          int day_idx_schedule_last_day,
@@ -14,6 +16,8 @@ timezone create_timezone(int general_offset, int season_offset,
                          int minutes_after_midnight_season_end);
 
 time get_event_time(int day_idx, int local_time, timezone const* tz);
+
+time get_adjusted_event_time(int day_idx, int local_time, timezone const* tz);
 
 std::pair<time, time> get_event_times(int day_idx,  //
                                       int prev_arr_motis_time,

@@ -5,6 +5,7 @@
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 #include "../hrd/test_spec_test.h"
 
@@ -22,8 +23,8 @@ void loader_graph_builder_test::SetUp() {
   hrd::hrd_parser parser;
 
   const auto schedule_path = hrd::SCHEDULES / schedule_name_;
-  if(!parser.applicable(schedule_path)) {
-    for(auto const& file : parser.missing_files(schedule_path)) {
+  if (!parser.applicable(schedule_path)) {
+    for (auto const& file : parser.missing_files(schedule_path)) {
       std::cout << "- " << file << std::endl;
     }
     FAIL() << "HRD parser not applicable!";
