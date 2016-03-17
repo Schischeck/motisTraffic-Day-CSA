@@ -35,7 +35,7 @@ void rt::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
   auto lock = synced_sched<schedule_access::RW>();
 
-  handler::context ctx{lock.sched()};  // TODO
+  handler::context ctx{lock.sched(), {}};  // TODO
   unsigned long exceptions = 0;
 
   for (auto const& holder : *req->messages()) {
@@ -77,9 +77,12 @@ void rt::on_msg(msg_ptr msg, sid, callback cb) {
   }
 
   std::cout << "\ntotal: " << req->messages()->size()
+            << "\nlookups: " << ctx.stats.trip_lookups
             << "\nds1100: " << ctx.stats.ds100
             << "\nfound: " << ctx.stats.found_trips
             << "\nmissed primary: " << ctx.stats.missed_primary
+            << " (no train_nr didnt help " << ctx.stats.no_train_nr_didnt_help
+            << " / pair miss " << ctx.stats.station_train_nr_miss << ")"
             << "\nmissed secondary: " << ctx.stats.missed_secondary
             << "\nexceptions: " << exceptions << std::endl;
   return cb({}, error::ok);

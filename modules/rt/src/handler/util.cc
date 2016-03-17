@@ -13,6 +13,8 @@ namespace rt {
 namespace handler {
 
 trip const* get_trip(context& ctx, TripId const* id) {
+  ++ctx.stats.trip_lookups;
+
   if (id->base()->stationIdType() != StationIdType_EVA ||
       id->targetStationIdType() != StationIdType_EVA) {
     ++ctx.stats.ds100;
@@ -28,8 +30,28 @@ trip const* get_trip(context& ctx, TripId const* id) {
 
   auto map_it = sched.trips.find({station_id, train_nr, motis_time});
   if (map_it == end(sched.trips)) {
-
     ++ctx.stats.missed_primary;
+
+    // second try: ris may contain artificial train numbers
+    map_it = sched.trips.find({station_id, 0, motis_time});
+  }
+
+  if (map_it == end(sched.trips)) {
+    ++ctx.stats.no_train_nr_didnt_help;
+
+    for (auto const& trip : sched.trip_mem) {
+      if (trip->id.primary.station_id == station_id &&
+          trip->id.primary.train_nr == train_nr) {
+        return nullptr;
+      }
+    }
+    ++ctx.stats.station_train_nr_miss;
+
+    auto t = id->base()->scheduledTime();
+    if (eva_nr[0] == '8' && eva_nr[1] == '0') {
+      std::cout << "fail" << eva_nr << " " << train_nr << " " << t << std::endl;
+    }
+
     return nullptr;  // TODO
   }
 

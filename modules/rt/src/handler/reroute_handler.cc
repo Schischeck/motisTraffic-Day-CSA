@@ -12,8 +12,6 @@ namespace handler {
 
 void handle_reroute(context& ctx, RerouteMessage const* msg) {
   auto trip = get_trip(ctx, msg->tripId());
-
-
 }
 
 }  // namespace handler

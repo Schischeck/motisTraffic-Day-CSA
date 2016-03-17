@@ -12,7 +12,6 @@ namespace handler {
 
 void handle_addition(context& ctx, AdditionMessage const* msg) {
   auto trip = get_trip(ctx, msg->tripId());
-
 }
 
 }  // namespace handler
