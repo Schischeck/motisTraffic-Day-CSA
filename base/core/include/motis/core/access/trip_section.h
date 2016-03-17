@@ -1,8 +1,10 @@
 #pragma once
 
 #include "motis/core/access/edge_access.h"
-#include "motis/core/schedule/trip.h"
+#include "motis/core/access/connection_access.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/trip.h"
 
 namespace motis {
 namespace access {
@@ -21,20 +23,7 @@ public:
   connection const& fcon() const { return *lcon()._full_con; }
 
   connection_info const& info(schedule const& sched) const {
-    auto const& trips = *sched.merged_trips[lcon().trips];
-    if (trips.size() == 1) {
-      return *fcon().con_info;
-    }
-
-    auto const it = std::find(begin(trips), end(trips), trip_);
-    assert(it != end(trips));
-    auto const pos = std::distance(begin(trips), it);
-
-    auto info = fcon().con_info;
-    for (int i = 0; i < pos; ++i) {
-      info = info->merged_with;
-    }
-    return *info;
+    return get_connection_info(sched, lcon(), trip_);
   }
 
   station const& from_station(schedule const& sched) const {
