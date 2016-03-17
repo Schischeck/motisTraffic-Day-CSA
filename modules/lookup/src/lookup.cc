@@ -93,7 +93,7 @@ void lookup::lookup_station_events(LookupStationEventsRequest const* req,
 void lookup::lookup_id_train(LookupIdTrainRequest const* req, callback cb) {
   MessageCreator b;
   auto lock = synced_sched<schedule_access::RO>();
-  auto train = motis::lookup::lookup_id_train(b, lock.sched(), req->id_event());
+  auto train = motis::lookup::lookup_id_train(b, lock.sched(), req->trip_id());
   b.CreateAndFinish(MsgContent_LookupIdTrainResponse,
                     CreateLookupIdTrainResponse(b, train).Union());
   return cb(make_msg(b), error::ok);

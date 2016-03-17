@@ -14,7 +14,7 @@ constexpr auto kIdTrainICERequest = R""(
 { 
   "content_type": "LookupIdTrainRequest",
   "content": { 
-    "id_event": {
+    "trip_id": {
       "eva_nr": "8000261", 
       "type": "Departure",
       "train_nr": 628,

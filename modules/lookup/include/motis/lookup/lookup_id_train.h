@@ -9,7 +9,7 @@ namespace motis {
 namespace lookup {
 
 flatbuffers::Offset<routing::Connection> lookup_id_train(
-    flatbuffers::FlatBufferBuilder&, schedule const&, IdEvent const*);
+    flatbuffers::FlatBufferBuilder&, schedule const&, TripId const*);
 
 }  // namespace lookup
 }  // namespace motis

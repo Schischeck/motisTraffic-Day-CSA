@@ -2,7 +2,7 @@ namespace motis.lookup;
 
 enum EventType : bool {Arrival, Departure}
 
-table IdEvent {
+table TripId {
   // primary
   eva_nr: string;
   train_nr: uint;
