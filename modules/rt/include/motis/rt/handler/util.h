@@ -1,16 +1,16 @@
 #pragma once
 
 namespace motis {
+struct trip;
+
 namespace ris {
-struct AdditionMessage;
-}  // namespace ris
+struct TripId;
+} // namespace ris
 
 namespace rt {
 namespace handler {
 
-struct context;
-
-void handle_addition(context&, motis::ris::AdditionMessage const*);
+trip const* get_trip(context&, motis::ris::TripId const*);
 
 }  // namespace handler
 }  // namespace rt

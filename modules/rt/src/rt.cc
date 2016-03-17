@@ -14,6 +14,7 @@
 #include "motis/rt/handler/context.h"
 #include "motis/rt/handler/delay_handler.h"
 #include "motis/rt/handler/reroute_handler.h"
+#include "motis/rt/error.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -32,42 +33,56 @@ po::options_description rt::desc() {
 
 void rt::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
-  // auto sched = synced_sched<schedule_access::RW>();
+  auto lock = synced_sched<schedule_access::RW>();
 
-  handler::context ctx;
+  handler::context ctx{lock.sched()};  // TODO
+  unsigned long exceptions = 0;
 
   for (auto const& holder : *req->messages()) {
     auto const& nested = holder->message_nested_root();
     auto const& msg = nested->content();
 
-    // rts_->_stats._counters.messages.increment();
-    switch (nested->content_type()) {
-      case MessageUnion_DelayMessage:
-        handle_delay(reinterpret_cast<DelayMessage const*>(msg), ctx);
-        break;
-      case MessageUnion_CancelMessage:
-        handle_cancel(reinterpret_cast<CancelMessage const*>(msg), ctx);
-        break;
-      case MessageUnion_AdditionMessage:
-        handle_addition(reinterpret_cast<AdditionMessage const*>(msg), ctx);
-        break;
-      case MessageUnion_RerouteMessage:
-        handle_reroute(reinterpret_cast<RerouteMessage const*>(msg), ctx);
-        break;
-      case MessageUnion_ConnectionDecisionMessage:
-        handle_connection_decision(
-            reinterpret_cast<ConnectionDecisionMessage const*>(msg), ctx);
-        break;
-      case MessageUnion_ConnectionAssessmentMessage:
-        handle_connection_assessment(
-            reinterpret_cast<ConnectionAssessmentMessage const*>(msg), ctx);
-        break;
-      default:
-        // rts_->_stats._counters.unknown.increment();
-        // rts_->_stats._counters.unknown.ignore();
-        break;
-    };
+    try {
+      // rts_->_stats._counters.messages.increment();
+      switch (nested->content_type()) {
+        case MessageUnion_DelayMessage:
+          handle_delay(ctx, reinterpret_cast<DelayMessage const*>(msg));
+          break;
+        case MessageUnion_CancelMessage:
+          handle_cancel(ctx, reinterpret_cast<CancelMessage const*>(msg));
+          break;
+        case MessageUnion_AdditionMessage:
+          handle_addition(ctx, reinterpret_cast<AdditionMessage const*>(msg));
+          break;
+        case MessageUnion_RerouteMessage:
+          handle_reroute(ctx, reinterpret_cast<RerouteMessage const*>(msg));
+          break;
+        case MessageUnion_ConnectionDecisionMessage:
+          handle_connection_decision(
+              ctx, reinterpret_cast<ConnectionDecisionMessage const*>(msg));
+          break;
+        case MessageUnion_ConnectionAssessmentMessage:
+          handle_connection_assessment(
+              ctx, reinterpret_cast<ConnectionAssessmentMessage const*>(msg));
+          break;
+        default:
+          // rts_->_stats._counters.unknown.increment();
+          // rts_->_stats._counters.unknown.ignore();
+          break;
+      }
+    } catch (...) {
+      // TODO
+      ++exceptions;
+    }
   }
+
+  std::cout << "\ntotal: " << req->messages()->size()
+            << "\nds1100: " << ctx.stats.ds100
+            << "\nfound: " << ctx.stats.found_trips
+            << "\nmissed primary: " << ctx.stats.missed_primary
+            << "\nmissed secondary: " << ctx.stats.missed_secondary
+            << "\nexceptions: " << exceptions << std::endl;
+  return cb({}, error::ok);
 }
 
 }  // namespace rt

@@ -10,8 +10,8 @@ namespace handler {
 
 struct context;
 
-void handle_connection_assessment(
-    motis::ris::ConnectionAssessmentMessage const*, context&);
+void handle_connection_assessment(context&, 
+    motis::ris::ConnectionAssessmentMessage const*);
 
 }  // namespace handler
 }  // namespace rt

@@ -10,7 +10,7 @@ namespace handler {
 
 struct context;
 
-void handle_cancel(motis::ris::CancelMessage const*, context&);
+void handle_cancel(context&, motis::ris::CancelMessage const*);
 
 }  // namespace handler
 }  // namespace rt

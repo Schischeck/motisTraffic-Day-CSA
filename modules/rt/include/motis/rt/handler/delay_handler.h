@@ -10,7 +10,7 @@ namespace handler {
 
 struct context;
 
-void handle_delay(motis::ris::DelayMessage const*, context&);
+void handle_delay(context&, motis::ris::DelayMessage const*);
 
 }  // namespace handler
 }  // namespace rt
