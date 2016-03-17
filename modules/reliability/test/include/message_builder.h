@@ -5,6 +5,17 @@
 namespace motis {
 namespace reliability {
 namespace realtime {
+
+// TODO line_ids and trip_ids are stubs right now
+inline ::flatbuffers::Offset<ris::TripId> stub_id(
+    ::flatbuffers::FlatBufferBuilder& fbb) {
+  using namespace ris;
+  return CreateTripId(
+      fbb, CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(""), 0,
+                       fbb.CreateString(""), EventType_Departure, 0),
+      StationIdType_EVA, fbb.CreateString(""), 0);
+}
+
 inline module::msg_ptr get_delay_message(std::string const& station,
                                          unsigned const train_nr,
                                          time_t const scheduled_time,
@@ -21,6 +32,7 @@ inline module::msg_ptr get_delay_message(std::string const& station,
             StationIdType_EVA,
             fbb.CreateString(station),
             train_nr,
+            fbb.CreateString("TODO"),
             event_type,
             scheduled_time
           ),
@@ -29,7 +41,8 @@ inline module::msg_ptr get_delay_message(std::string const& station,
   // clang-format on
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,
-      CreateDelayMessage(fbb, delayType, fbb.CreateVector(events)).Union()));
+      CreateDelayMessage(fbb, stub_id(fbb), delayType, fbb.CreateVector(events))
+          .Union()));
 
   module::MessageCreator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
@@ -51,13 +64,14 @@ inline module::msg_ptr get_cancel_message(std::vector<event> const& events) {
   FlatBufferBuilder fbb;
   std::vector<Offset<Event>> o_events;
   for (auto const& e : events) {
-    o_events.push_back(CreateEvent(fbb, StationIdType_EVA,
-                                   fbb.CreateString(e.station), e.train_nr,
-                                   e.event_type, e.scheduled_time));
+    o_events.push_back(CreateEvent(
+        fbb, StationIdType_EVA, fbb.CreateString(e.station), e.train_nr,
+        fbb.CreateString("TODO"), e.event_type, e.scheduled_time));
   }
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_CancelMessage,
-      CreateCancelMessage(fbb, fbb.CreateVector(o_events)).Union()));
+      CreateCancelMessage(fbb, stub_id(fbb), fbb.CreateVector(o_events))
+          .Union()));
 
   module::MessageCreator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
@@ -87,9 +101,9 @@ inline module::msg_ptr get_reroute_message(
   FlatBufferBuilder fbb;
   std::vector<Offset<Event>> o_cancelled_events;
   for (auto const& e : cancelled_events) {
-    o_cancelled_events.push_back(
-        CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(e.station),
-                    e.train_nr, e.event_type, e.scheduled_time));
+    o_cancelled_events.push_back(CreateEvent(
+        fbb, StationIdType_EVA, fbb.CreateString(e.station), e.train_nr,
+        fbb.CreateString("TODO"), e.event_type, e.scheduled_time));
   }
 
   std::vector<Offset<ReroutedEvent>> o_rerouted_events;
@@ -98,16 +112,18 @@ inline module::msg_ptr get_reroute_message(
         fbb, CreateAdditionalEvent(
                  fbb, CreateEvent(fbb, StationIdType_EVA,
                                   fbb.CreateString(e.station), e.train_nr,
-                                  e.event_type, e.scheduled_time),
+                                  fbb.CreateString("TODO"), e.event_type,
+                                  e.scheduled_time),
                  fbb.CreateString(e.category), fbb.CreateString(e.track)),
         RerouteStatus_UmlNeu));
   }
 
-  fbb.Finish(CreateMessage(
-      fbb, MessageUnion_RerouteMessage,
-      CreateRerouteMessage(fbb, fbb.CreateVector(o_cancelled_events),
-                           fbb.CreateVector(o_rerouted_events))
-          .Union()));
+  fbb.Finish(
+      CreateMessage(fbb, MessageUnion_RerouteMessage,
+                    CreateRerouteMessage(fbb, stub_id(fbb),
+                                         fbb.CreateVector(o_cancelled_events),
+                                         fbb.CreateVector(o_rerouted_events))
+                        .Union()));
 
   module::MessageCreator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(

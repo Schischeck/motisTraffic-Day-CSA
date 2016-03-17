@@ -13,7 +13,7 @@ namespace motis {
 namespace lookup {
 
 Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
-                                   schedule const& sched, IdEvent const* e) {
+                                   schedule const& sched, TripId const* e) {
   auto trp = get_trip(sched, e->eva_nr()->str(), e->train_nr(), e->time(),
                       e->target_eva_nr()->str(), e->target_time(),
                       e->type() == EventType_Arrival, e->line_id()->str());

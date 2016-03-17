@@ -3,7 +3,7 @@ include "lookup/LookupCommon.fbs";
 namespace motis.lookup;
 
 table StationEvent {
-  id_event: IdEvent;
+  trip_id: [TripId];
 
   type: EventType;
   train_nr: uint;
