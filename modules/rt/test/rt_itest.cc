@@ -24,7 +24,7 @@ TEST(rt, rename_at_first_stop) {
                            return m->name() == "rt";
                          });
   ASSERT_NE(it, end(instance->modules_));
-  EXPECT_EQ(1, static_cast<rt*>(it->get())->successful_trip_lookups);
+  EXPECT_EQ(3, static_cast<rt*>(it->get())->successful_trip_lookups);
 }
 
 }  // namespace rt
