@@ -60,13 +60,14 @@ struct hrd_service {
 
   hrd_service(parser_info origin, int num_repetitions, int interval,
               std::vector<stop> stops, std::vector<section> sections,
-              bitfield traffic_days)
+              bitfield traffic_days, int initial_train_num)
       : origin_(std::move(origin)),
         num_repetitions_(num_repetitions),
         interval_(interval),
         stops_(std::move(stops)),
         sections_(std::move(sections)),
-        traffic_days_(std::move(traffic_days)) {}
+        traffic_days_(std::move(traffic_days)),
+        initial_train_num_(initial_train_num) {}
 
   explicit hrd_service(specification const& spec);
 
@@ -98,6 +99,7 @@ struct hrd_service {
   std::vector<stop> stops_;
   std::vector<section> sections_;
   bitfield traffic_days_;
+  int initial_train_num_;
 };
 
 }  // hrd

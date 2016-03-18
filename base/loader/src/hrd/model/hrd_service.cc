@@ -27,6 +27,10 @@ hrd_service::stop parse_stop(cstr stop) {
        stop[36] != '-'}};
 }
 
+int initial_train_num(specification const& spec) {
+  return parse<int>(spec.internal_service.substr(3, size(5)));
+}
+
 inline cstr stop_train_num(cstr const& stop) {
   return stop.substr(43, size(5)).trim();
 }
@@ -39,10 +43,8 @@ hrd_service::section parse_initial_section(specification const& spec) {
   auto const first_stop = spec.stops.front();
   auto const train_num = stop_train_num(first_stop);
   auto const admin = stop_admin(first_stop);
-
   return hrd_service::section(
-      train_num.empty() ? parse<int>(spec.internal_service.substr(3, size(5)))
-                        : parse<int>(train_num),
+      train_num.empty() ? initial_train_num(spec) : parse<int>(train_num),
       admin.empty() ? spec.internal_service.substr(9, size(6)) : admin);
 }
 
@@ -111,7 +113,8 @@ hrd_service::hrd_service(specification const& spec)
       sections_(std::accumulate(
           std::next(begin(spec.stops)),
           std::next(begin(spec.stops), spec.stops.size() - 1),
-          std::vector<section>({parse_initial_section(spec)}), parse_section)) {
+          std::vector<section>({parse_initial_section(spec)}), parse_section)),
+      initial_train_num_(initial_train_num(spec)) {
   parse_range(spec.attributes, attribute_parse_info, stops_, sections_,
               &section::attributes, [](cstr line, range const&) {
                 return attribute{parse<int>(line.substr(22, size(6))),

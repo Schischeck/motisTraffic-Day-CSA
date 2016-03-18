@@ -24,7 +24,7 @@ hrd_service create_repetition(hrd_service const& origin, int repetition) {
                              update_event(s.arr, origin.interval_, repetition),
                              update_event(s.dep, origin.interval_, repetition)};
                        }),
-      origin.sections_, origin.traffic_days_};
+      origin.sections_, origin.traffic_days_, origin.initial_train_num_};
 }
 
 void expand_repetitions(std::vector<hrd_service>& services) {
