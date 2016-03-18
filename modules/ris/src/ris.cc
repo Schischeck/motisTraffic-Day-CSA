@@ -3,17 +3,19 @@
 #include "motis/core/common/util.h"
 #include "motis/ris/mode/live_mode.h"
 #include "motis/ris/mode/simulation_mode.h"
+#include "motis/ris/mode/test_mode.h"
 
 #define MODE "ris.mode"
 #define UPDATE_INTERVAL "ris.update_interval"
-#define ZIP_FOLDER "ris.zip_folder"
+#define INPUT_FOLDER "ris.input_folder"
 #define MAX_DAYS "ris.max_days"
 
 #define SIM_INIT_START "ris.sim_init_start"
 #define SIM_INIT_END "ris.sim_init_end"
 
-#define MODE_LIVE "default"
+#define MODE_LIVE "live"
 #define MODE_SIMULATION "simulation"
+#define MODE_TEST "test"
 
 using namespace motis::module;
 using namespace motis::ris::mode;
@@ -29,6 +31,8 @@ std::istream& operator>>(std::istream& in, mode_t& mode) {
     mode = mode_t::LIVE;
   } else if (token == MODE_SIMULATION) {
     mode = mode_t::SIMULATION;
+  } else if (token == MODE_TEST) {
+    mode = mode_t::TEST;
   } else {
     throw std::runtime_error("unknown mode of operation in ris module.");
   }
@@ -39,6 +43,7 @@ std::ostream& operator<<(std::ostream& out, mode_t const& mode) {
   switch (mode) {
     case mode_t::LIVE: out << MODE_LIVE; break;
     case mode_t::SIMULATION: out << MODE_SIMULATION; break;
+    case mode_t::TEST: out << MODE_TEST; break;
     default: out << "unknown"; break;
   }
   return out;
@@ -47,7 +52,7 @@ std::ostream& operator<<(std::ostream& out, mode_t const& mode) {
 ris::ris()
     : mode_(mode_t::SIMULATION),
       update_interval_(10),
-      zip_folder_("ris"),
+      input_folder_("ris"),
       max_days_(-1),
       sim_init_start_(0),
       sim_init_end_(0) {}
@@ -60,12 +65,14 @@ po::options_description ris::desc() {
        po::value<mode_t>(&mode_)->default_value(mode_),
        "Mode of operation. Valid choices:\n"
        MODE_LIVE " = production style operation\n"
-       MODE_SIMULATION " = init db with fs, fwd via msg")
+       MODE_SIMULATION " = init db with fs, fwd via msg\n"
+       MODE_TEST " = init with a folder of xml files\n"
+      )
       (UPDATE_INTERVAL,
        po::value<int>(&update_interval_)->default_value(update_interval_),
        "update interval in seconds")
-      (ZIP_FOLDER,
-       po::value<std::string>(&zip_folder_)->default_value(zip_folder_),
+      (INPUT_FOLDER,
+       po::value<std::string>(&input_folder_)->default_value(input_folder_),
        "folder containing RISML ZIPs")
       (MAX_DAYS,
        po::value<int>(&max_days_)->default_value(max_days_),
@@ -83,7 +90,7 @@ po::options_description ris::desc() {
 void ris::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode_ << "\n"
       << "  " << UPDATE_INTERVAL << ": " << update_interval_ << "\n"
-      << "  " << ZIP_FOLDER << ": " << zip_folder_ << "\n"
+      << "  " << INPUT_FOLDER << ": " << input_folder_ << "\n"
       << "  " << MAX_DAYS << ": " << max_days_ << "\n"
       << "  " << SIM_INIT_START << ": " << sim_init_start_ << "\n"
       << "  " << SIM_INIT_END << ": " << sim_init_end_;
@@ -96,6 +103,9 @@ void ris::init() {
       break;
     case mode_t::SIMULATION:
       active_mode_ = make_unique<simulation_mode>(this);
+      break;
+    case mode_t::TEST:
+      active_mode_ = make_unique<test_mode>(this);
       break;
     default: assert(false);
   }

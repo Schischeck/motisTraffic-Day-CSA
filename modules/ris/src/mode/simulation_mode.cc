@@ -24,6 +24,8 @@ std::string to_string(std::time_t const time) {
 void simulation_mode::init_async() {
   base_mode::init_async();
 
+  // TODO verify simulation logic (times etc.)
+
   LOG(info) << "RIS starting in SIMULATION mode.";
   auto start_time = (module_->sim_init_start_ == 0)
                         ? db_get_forward_start_time()

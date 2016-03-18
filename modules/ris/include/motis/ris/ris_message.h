@@ -26,6 +26,9 @@ struct ris_message : typed_flatbuffer<Message> {
         scheduled(scheduled),
         timestamp(timestamp) {}
 
+  ris_message(ris_message&&) = default;
+  ris_message& operator=(ris_message&&) = default;
+
   std::time_t scheduled;
   std::time_t timestamp;
 };

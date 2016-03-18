@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 
 namespace motis {
 namespace ris {
-enum class mode_t : bool { LIVE, SIMULATION };
+enum class mode_t { LIVE, SIMULATION, TEST };
 
 struct ris : public motis::module::module {
   ris();
@@ -46,7 +46,7 @@ struct ris : public motis::module::module {
   // config
   mode_t mode_;
   int update_interval_;
-  std::string zip_folder_;
+  std::string input_folder_;
   int max_days_;
 
   std::time_t sim_init_start_;

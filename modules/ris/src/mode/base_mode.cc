@@ -20,10 +20,10 @@ void base_mode::init_async() {
   read_files_ = db_get_files();
 
   scoped_timer timer("RIS parsing RISML into database");
-  auto new_files = find_new_files(module_->zip_folder_, &read_files_);
+  auto new_files = find_new_files(module_->input_folder_, ".zip", read_files_);
 
   int c = 0;
-  for (auto const& new_file : new_files) { // TODO parallelize this loop
+  for (auto const& new_file : new_files) {  // TODO parallelize this loop
     if (++c % 100 == 0) {
       LOG(info) << "RIS parsing " << c << "/" << new_files.size() << std::endl;
     }

@@ -93,7 +93,7 @@ void live_mode::on_msg(msg_ptr msg, sid, callback cb) {
 }
 
 void live_mode::parse_zips() {
-  auto new_files = find_new_files(module_->zip_folder_, &read_files_);
+  auto new_files = find_new_files(module_->input_folder_, ".zip", read_files_);
   if (new_files.size() == 0) {
     return;
   }
