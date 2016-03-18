@@ -7,15 +7,12 @@ using namespace motis::test;
 namespace motis {
 namespace rt {
 
-TEST(rt, itest) {
-
-  auto instance = launch_motis("modules/rt/test_resources/magic", "20160128",
-                               {"ris", "rt"},{
-                                "--ris.zip_folder=modules/rt/test_resources/magic/ris",
-                                "--ris.sim_init_start=1454108400",
-                                "--ris.sim_init_end=1454108400",
-                               });
-
+TEST(rt, rename_at_first_stop) {
+  auto instance =
+      launch_motis("modules/rt/test_resources/rename_at_first_stop", "20160128",
+                   {"ris", "rt"}, {"--ris.mode=test",
+                                   "--ris.input_folder=modules/rt/"
+                                   "test_resources/rename_at_first_stop/ris"});
 }
 
 }  // namespace rt
