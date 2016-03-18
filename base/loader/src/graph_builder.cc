@@ -173,9 +173,9 @@ trip* graph_builder::register_service(Service const* s, int day_idx) {
   }
 
   if (s->initial_train_nr() != stored->id.primary.train_nr) {
-    auto id = get_full_trip_id(s, day_idx, 0).primary;
-    id.train_nr = s->initial_train_nr();
-    sched_.trips[id].push_back(stored);
+    auto primary = stored->id.primary;
+    primary.train_nr = s->initial_train_nr();
+    sched_.trips[primary].push_back(stored);
   }
 
   return stored;
