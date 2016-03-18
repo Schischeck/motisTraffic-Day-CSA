@@ -35,14 +35,14 @@ po::options_description rt::desc() {
 void rt::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
   auto lock = synced_sched<schedule_access::RW>();
-  auto const& sched = lock.sched();
 
-  std::cout << "\n--" << std::endl;
-  for (auto const& trip : sched.trip_mem) {
-    std::cout << sched.stations[trip->id.primary.station_id]->eva_nr << " "
-              << trip->id.primary.train_nr << " "
-              << motis_to_unixtime(sched, trip->id.primary.time) << std::endl;
-  }
+  // auto const& sched = lock.sched();
+  // std::cout << "\n--" << std::endl;
+  // for (auto const& trip : sched.trip_mem) {
+  //   std::cout << sched.stations[trip->id.primary.station_id]->eva_nr << " "
+  //             << trip->id.primary.train_nr << " "
+  //             << motis_to_unixtime(sched, trip->id.primary.time) << std::endl;
+  // }
 
   handler::context ctx{lock.sched(), {}};  // TODO
   unsigned long exceptions = 0;

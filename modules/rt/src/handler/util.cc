@@ -68,6 +68,8 @@ trip const* get_trip(context& ctx, TripId const* id) {
            target_motis_time == s.target_time && is_arrival == s.is_arrival;
   });
 
+  // TODO Anschlussbewertungen sometimes a wrong event type in the departure event
+
   if (vec_it == end(vec)) {
     ++ctx.stats.missed_secondary;
 

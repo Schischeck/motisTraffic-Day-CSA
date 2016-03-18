@@ -20,7 +20,7 @@ struct statistics {
 };
 
 struct context {
-  schedule const& sched;
+  schedule& sched;
   statistics stats;
 };
 
