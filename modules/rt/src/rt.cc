@@ -94,6 +94,9 @@ void rt::on_msg(msg_ptr msg, sid, callback cb) {
             << " / pair miss " << ctx.stats.station_train_nr_miss << ")"
             << "\nmissed secondary: " << ctx.stats.missed_secondary
             << "\nexceptions: " << exceptions << std::endl;
+
+  successful_trip_lookups += ctx.stats.found_trips;
+
   return cb({}, error::ok);
 }
 

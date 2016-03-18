@@ -19,12 +19,14 @@ struct rt : public motis::module::module {
   virtual void print(std::ostream&) const override {}
 
   virtual std::string name() const override { return "rt"; }
-  virtual void init() override {};
+  virtual void init() override {}
   virtual std::vector<MsgContent> subscriptions() const override {
     return {MsgContent_RISBatch};
   }
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
+
+  int successful_trip_lookups = 0;
 };
 
 }  // namespace rt
