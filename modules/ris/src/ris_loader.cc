@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
   db->execute("DROP INDEX IF EXISTS ris_message_timestamp_idx.ris_message;");
 
   auto known_files = db_get_files(db);
-  auto new_files = find_new_files(s.input, ".zip", &known_files);
+  auto new_files = find_new_files(s.input, ".zip", known_files);
 
   LOG(info) << known_files.size() << " files already in the db, sparsing " 
             << new_files.size() << " new zip files";
