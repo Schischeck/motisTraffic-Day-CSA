@@ -81,67 +81,60 @@ TEST(lookup, station_events) {
     auto msg = send(instance, make_msg(kFrankfurtRequest));
     ASSERT_EQ(MsgContent_LookupStationEventsResponse, msg->content_type());
     auto resp = msg->content<LookupStationEventsResponse const*>();
+
     ASSERT_EQ(3, resp->events()->size());
+    for (auto e : *resp->events()) {
+      ASSERT_NE(nullptr, e);
+      auto tids = e->trip_id();
+      ASSERT_EQ(1, tids->size());
+      auto tid = tids->Get(0);
 
-    auto find_event = [resp](std::time_t schedule_time) -> StationEvent const* {
-      for (auto const& e : *resp->events()) {
-        if (e->schedule_time() == schedule_time) {
-          return e;
-        }
+      switch (e->schedule_time()) {
+        case 1448372400:
+          EXPECT_EQ(EventType_Arrival, e->type());
+          EXPECT_EQ(2292, e->train_nr());
+          EXPECT_EQ(std::string("381"), e->line_id()->str());
+          EXPECT_EQ(1448372400, e->time());
+          EXPECT_EQ(1448372400, e->schedule_time());
+
+          EXPECT_EQ(std::string("8000096"), tid->eva_nr()->str());
+          EXPECT_EQ(EventType_Departure, tid->type());
+          EXPECT_EQ(2292, tid->train_nr());
+          EXPECT_EQ(std::string("381"), tid->line_id()->str());
+          EXPECT_EQ(1448366700, tid->time());
+          break;
+
+        case 1448373840:
+          EXPECT_EQ(EventType_Arrival, e->type());
+          EXPECT_EQ(628, e->train_nr());
+          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ(1448373900, e->time());
+          EXPECT_EQ(1448373840, e->schedule_time());
+
+          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ(EventType_Departure, tid->type());
+          EXPECT_EQ(628, tid->train_nr());
+          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ(1448362440, tid->time());
+          break;
+
+        case 1448374200:
+          EXPECT_EQ(EventType_Departure, e->type());
+          EXPECT_EQ(628, e->train_nr());
+          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ(1448374200, e->time());
+          EXPECT_EQ(1448374200, e->schedule_time());
+
+          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ(EventType_Departure, tid->type());
+          EXPECT_EQ(628, tid->train_nr());
+          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ(1448362440, tid->time());
+          break;
+
+        default: FAIL() << "unexpected event"; break;
       }
-      return nullptr;
-    };
-
-    auto e0 = find_event(1448372400);
-    ASSERT_NE(nullptr, e0);
-    EXPECT_EQ(EventType_Arrival, e0->type());
-    EXPECT_EQ(2292, e0->train_nr());
-    EXPECT_EQ(std::string("381"), e0->line_id()->str());
-    EXPECT_EQ(1448372400, e0->time());
-    EXPECT_EQ(1448372400, e0->schedule_time());
-
-    auto tids0 = e0->trip_id();
-    ASSERT_EQ(1, tids0->size());
-    auto tid0 = tids0->Get(0);
-    EXPECT_EQ(std::string("8000096"), tid0->eva_nr()->str());
-    EXPECT_EQ(EventType_Departure, tid0->type());
-    EXPECT_EQ(2292, tid0->train_nr());
-    EXPECT_EQ(std::string("381"), tid0->line_id()->str());
-    EXPECT_EQ(1448366700, tid0->time());
-
-    auto e1 = find_event(1448373840);
-    ASSERT_NE(nullptr, e0);
-    EXPECT_EQ(EventType_Arrival, e1->type());
-    EXPECT_EQ(628, e1->train_nr());
-    EXPECT_EQ(std::string(""), e1->line_id()->str());
-    EXPECT_EQ(1448373900, e1->time());
-    EXPECT_EQ(1448373840, e1->schedule_time());
-
-    auto tids1 = e1->trip_id();
-    ASSERT_EQ(1, tids1->size());
-    auto tid1 = tids1->Get(0);
-    EXPECT_EQ(std::string("8000261"), tid1->eva_nr()->str());
-    EXPECT_EQ(EventType_Departure, tid1->type());
-    EXPECT_EQ(628, tid1->train_nr());
-    EXPECT_EQ(std::string(""), tid1->line_id()->str());
-    EXPECT_EQ(1448362440, tid1->time());
-
-    auto e2 = find_event(1448374200);
-    ASSERT_NE(nullptr, e0);
-    EXPECT_EQ(EventType_Departure, e2->type());
-    EXPECT_EQ(628, e2->train_nr());
-    EXPECT_EQ(std::string(""), e2->line_id()->str());
-    EXPECT_EQ(1448374200, e2->time());
-    EXPECT_EQ(1448374200, e2->schedule_time());
-
-    auto tids2 = e2->trip_id();
-    ASSERT_EQ(1, tids2->size());
-    auto tid2 = tids2->Get(0);
-    EXPECT_EQ(std::string("8000261"), tid2->eva_nr()->str());
-    EXPECT_EQ(EventType_Departure, tid2->type());
-    EXPECT_EQ(628, tid2->train_nr());
-    EXPECT_EQ(std::string(""), tid2->line_id()->str());
-    EXPECT_EQ(1448362440, tid2->time());
+    }
   }
 }
 
