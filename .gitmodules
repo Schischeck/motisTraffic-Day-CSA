@@ -52,3 +52,6 @@
 [submodule "external_lib/leveldb"]
 	path = external_lib/leveldb
 	url = https://bitbucket.org/makielski/leveldb.git
+[submodule "external_lib/ctx"]
+	path = external_lib/ctx
+	url = https://github.com/felixguendling/ctx.git
