@@ -1,5 +1,6 @@
 #include "motis/ris/database.h"
 
+#include "snappy.h"
 #include "sqlite3.h"
 #include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
@@ -103,7 +104,10 @@ void db_put_messages(std::string const& filename,
   for (auto const& msg : msgs) {
     insert.params.scheduled = msg.scheduled;
     insert.params.timestamp = msg.timestamp;
-    insert.params.msg = {msg.data(), msg.size()};
+
+    std::string b;
+    snappy::Compress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);
+    insert.params.msg = {reinterpret_cast<uint8_t const*>(b.data()), b.size()};
     (*db)(insert);
   }
 
@@ -132,7 +136,12 @@ std::vector<std::basic_string<uint8_t>> db_get_messages(std::time_t from,
                  .from(m)
                  .where(m.scheduled > from and m.scheduled <= to)
                  .order_by(m.timestamp.asc()))) {
-    result.push_back(row.msg);
+
+    std::basic_string<uint8_t> msg = row.msg;
+    std::string b;
+    snappy::Uncompress(reinterpret_cast<char const*>(msg.data()), msg.size(),
+                       &b);
+    result.emplace_back(reinterpret_cast<uint8_t const*>(b.data()), b.size());
   }
 
   return result;

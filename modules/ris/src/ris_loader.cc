@@ -128,7 +128,7 @@ using namespace motis::ris;
 
 int main(int argc, char** argv) {
   LOG(info) << "Standalone RIS Loader\n";
-  settings s{"ris", "ris.sqlite"};
+  settings s{"ris", "ris.sqlite3"};
 
   try {
     conf::options_parser parser({&s});

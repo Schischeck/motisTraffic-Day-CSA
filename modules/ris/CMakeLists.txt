@@ -12,6 +12,7 @@ add_library(motis-ris STATIC ${motis-ris-files})
 set_target_properties(motis-ris PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-ris
   motis-module
+  snappy
   pugixml
   sqlpp11-connector-sqlite3
   sqlite
