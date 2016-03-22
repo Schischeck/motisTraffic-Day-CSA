@@ -49,8 +49,7 @@ struct ris : public motis::module::module {
   std::string input_folder_;
   int max_days_;
 
-  std::time_t sim_init_start_;
-  std::time_t sim_init_end_;
+  std::time_t sim_init_time_;
 
 private:
   std::unique_ptr<mode::base_mode> active_mode_;

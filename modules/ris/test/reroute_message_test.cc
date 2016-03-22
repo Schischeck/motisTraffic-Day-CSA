@@ -3,12 +3,13 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 using namespace parser;
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -47,7 +48,8 @@ TEST(ris_reroute_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168874, message.timestamp);
-  EXPECT_EQ(1444335660, message.scheduled);
+  EXPECT_EQ(1444321500, message.earliest);
+  EXPECT_EQ(1444335660, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
@@ -232,5 +234,6 @@ TEST(ris_reroute_message, message_only_cancel) {
   ASSERT_EQ(0, new_events->size());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

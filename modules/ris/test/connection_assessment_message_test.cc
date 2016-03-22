@@ -3,10 +3,11 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 char const* connection_assessment_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -54,7 +55,8 @@ TEST(ris_connection_assessment_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444187918, message.timestamp);
-  EXPECT_EQ(1444193880, message.scheduled);
+  EXPECT_EQ(1444187640, message.earliest);
+  EXPECT_EQ(1444193880, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,
@@ -174,7 +176,8 @@ TEST(ris_connection_assessment_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168788, message.timestamp);
-  EXPECT_EQ(1444172700, message.scheduled);
+  EXPECT_EQ(1444167120, message.earliest);
+  EXPECT_EQ(1444172700, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,
@@ -214,5 +217,6 @@ TEST(ris_connection_assessment_message, message_2) {
   EXPECT_EQ(3, e1->assessment());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

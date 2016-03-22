@@ -3,10 +3,11 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 constexpr auto ist_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -36,7 +37,7 @@ TEST(ris_delay_message, ist_message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168774, message.timestamp);
-  EXPECT_EQ(1444172760, message.scheduled);
+  EXPECT_EQ(1444172760, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -96,7 +97,7 @@ TEST(ris_delay_message, ist_message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168802, message.timestamp);
-  EXPECT_EQ(1444173360, message.scheduled);
+  EXPECT_EQ(1444173360, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -161,7 +162,8 @@ TEST(ris_delay_message, ist_message_3) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1447690200, message.timestamp);
-  EXPECT_EQ(1447693200, message.scheduled);
+  EXPECT_EQ(1447688700, message.earliest);
+  EXPECT_EQ(1447693200, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -267,7 +269,8 @@ TEST(ris_delay_message, ist_prog_message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168783, message.timestamp);
-  EXPECT_EQ(1444169100, message.scheduled);
+  EXPECT_EQ(1444166580, message.earliest);
+  EXPECT_EQ(1444169100, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -317,7 +320,8 @@ TEST(ris_delay_message, ist_prog_message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168800, message.timestamp);
-  EXPECT_EQ(1444169940, message.scheduled);
+  EXPECT_EQ(1444165800, message.earliest);
+  EXPECT_EQ(1444169940, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -359,5 +363,6 @@ TEST(ris_delay_message, ist_prog_message_2) {
   EXPECT_EQ(1444170120, e2->updatedTime());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

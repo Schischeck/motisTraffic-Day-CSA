@@ -12,7 +12,7 @@
 #include "motis/ris/database.h"
 #include "motis/ris/error.h"
 #include "motis/ris/ris.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
 
 using boost::system::system_error;
@@ -22,6 +22,7 @@ using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
 using namespace motis::ris::detail;
+using namespace motis::ris::risml;
 
 namespace motis {
 namespace ris {

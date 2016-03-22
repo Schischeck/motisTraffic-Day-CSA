@@ -25,15 +25,17 @@ void simulation_mode::init_async() {
   base_mode::init_async();
 
   // TODO verify simulation logic (times etc.)
-
+  // TODO apply this logic to the live mode
   LOG(info) << "RIS starting in SIMULATION mode.";
-  auto start_time = (module_->sim_init_start_ == 0)
-                        ? db_get_forward_start_time()
-                        : module_->sim_init_start_;
+  auto lock = module_->synced_sched2();
+  auto from = lock.sched().schedule_begin_;
+  auto to = lock.sched().schedule_end_;
+
+  auto start_time = db_get_forward_start_time(from, to);
   if (start_time == kDBInvalidTimestamp) {
     return;
   }
-  forward_time(start_time, module_->sim_init_end_,
+  forward_time(start_time, module_->sim_init_time_,
                [this](msg_ptr, boost::system::error_code) {
                  LOG(info) << "RIS forwarding done, SIMULATION time is now: "
                            << to_string(simulation_time_);

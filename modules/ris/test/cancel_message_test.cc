@@ -3,10 +3,11 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 char const* cancel_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -54,7 +55,8 @@ TEST(ris_cancel_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444194395, message.timestamp);
-  EXPECT_EQ(1444197420, message.scheduled);
+  EXPECT_EQ(1444195800, message.earliest);
+  EXPECT_EQ(1444197420, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
@@ -139,7 +141,8 @@ TEST(ris_ausfall_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444227300, message.timestamp);
-  EXPECT_EQ(1444228560, message.scheduled);
+  EXPECT_EQ(1444226100, message.earliest);
+  EXPECT_EQ(1444228560, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
@@ -173,5 +176,6 @@ TEST(ris_ausfall_message, message_2) {
   EXPECT_EQ(EventType_Arrival, e2->type());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

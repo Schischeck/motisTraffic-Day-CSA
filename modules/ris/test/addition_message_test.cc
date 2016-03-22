@@ -3,10 +3,11 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 char const* addition_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -50,7 +51,8 @@ TEST(ris_addition_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444169425, message.timestamp);
-  EXPECT_EQ(1444235100, message.scheduled);
+  EXPECT_EQ(1444206000, message.earliest);
+  EXPECT_EQ(1444235100, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
@@ -158,7 +160,8 @@ TEST(ris_addition_message, message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444185492, message.timestamp);
-  EXPECT_EQ(1444316640, message.scheduled);
+  EXPECT_EQ(1444308480, message.earliest);
+  EXPECT_EQ(1444316640, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
@@ -213,5 +216,6 @@ TEST(ris_addition_message, message_2) {
   EXPECT_STREQ("9", e3->track()->c_str());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

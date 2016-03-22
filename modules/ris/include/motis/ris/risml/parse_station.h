@@ -12,7 +12,7 @@ using namespace pugi;
 
 namespace motis {
 namespace ris {
-namespace detail {
+namespace risml {
 
 std::pair<StationIdType, Offset<String>> inline parse_station(
     FlatBufferBuilder& fbb, xml_node const& station_node,
@@ -46,6 +46,6 @@ std::pair<StationIdType, Offset<String>> inline parse_station(
   return parse_station(fbb, station_node, "EvaNr", "Code");
 }
 
-}  // detail
+}  // risml
 }  // namespace ris
 }  // namespace motis

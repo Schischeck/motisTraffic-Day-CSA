@@ -10,8 +10,7 @@
 #define INPUT_FOLDER "ris.input_folder"
 #define MAX_DAYS "ris.max_days"
 
-#define SIM_INIT_START "ris.sim_init_start"
-#define SIM_INIT_END "ris.sim_init_end"
+#define SIM_INIT_TIME "ris.sim_init_time"
 
 #define MODE_LIVE "live"
 #define MODE_SIMULATION "simulation"
@@ -54,8 +53,7 @@ ris::ris()
       update_interval_(10),
       input_folder_("ris"),
       max_days_(-1),
-      sim_init_start_(0),
-      sim_init_end_(0) {}
+      sim_init_time_(0) {}
 
 po::options_description ris::desc() {
   po::options_description desc("RIS Module");
@@ -77,11 +75,8 @@ po::options_description ris::desc() {
       (MAX_DAYS,
        po::value<int>(&max_days_)->default_value(max_days_),
        "periodically delete messages older than n days (-1 = infinite)")
-      (SIM_INIT_START,
-       po::value<std::time_t>(&sim_init_start_)->default_value(sim_init_start_),
-       "lower bound simulation clock init")
-      (SIM_INIT_END,
-       po::value<std::time_t>(&sim_init_end_)->default_value(sim_init_end_),
+      (SIM_INIT_TIME,
+       po::value<std::time_t>(&sim_init_time_)->default_value(sim_init_time_),
        "'forward' the simulation clock (expects Unix timestamp)");
   // clang-format on
   return desc;
@@ -92,8 +87,7 @@ void ris::print(std::ostream& out) const {
       << "  " << UPDATE_INTERVAL << ": " << update_interval_ << "\n"
       << "  " << INPUT_FOLDER << ": " << input_folder_ << "\n"
       << "  " << MAX_DAYS << ": " << max_days_ << "\n"
-      << "  " << SIM_INIT_START << ": " << sim_init_start_ << "\n"
-      << "  " << SIM_INIT_END << ": " << sim_init_end_;
+      << "  " << SIM_INIT_TIME << ": " << sim_init_time_;
 }
 
 void ris::init() {
