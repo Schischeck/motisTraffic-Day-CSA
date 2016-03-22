@@ -27,10 +27,13 @@ void handle_addition(context& ctx, AdditionMessage const* msg) {
     return;
   }
 
+
   auto eva_nr = id->base()->stationId()->str();
   auto station_id = get_station(ctx.sched, eva_nr)->index;
   auto train_nr = id->base()->trainIndex();
   auto motis_time = unix_to_motistime(ctx.sched, id->base()->scheduledTime());
+  
+  std::cout << "addition" << eva_nr << " " << train_nr << " " << id->base()->scheduledTime() << std::endl;
 
   auto target_eva_nr = id->targetStationId()->str();
   auto target_station_id = get_station(ctx.sched, target_eva_nr)->index;

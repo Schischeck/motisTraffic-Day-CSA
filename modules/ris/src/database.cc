@@ -37,18 +37,13 @@ CREATE TABLE IF NOT EXISTS ris_message (
 );
 )sql";
 
-// constexpr char const* kCreateFullIdxMessage = R"sql(
-// CREATE INDEX IF NOT EXISTS ris_message_idx ON ris_message (
-//   scheduled ASC,
-//   timestamp ASC
-// );
-// )sql";
-
-// constexpr char const* kCreateTimestampIdxMessage = R"sql(
-// CREATE INDEX IF NOT EXISTS ris_message_timestamp_idx ON ris_message (
-//   timestamp ASC
-// );
-// )sql";
+constexpr char const* kCreateFullIdxMessage = R"sql(
+CREATE INDEX IF NOT EXISTS ris_message_idx ON ris_message (
+  timestamp ASC,
+  latest DESC,
+  earliest ASC
+);
+)sql";
 
 // clang-format off
 SQLPP_DECLARE_TABLE(
@@ -74,8 +69,7 @@ db_ptr default_db() {
 void db_init(db_ptr const& db) {
   db->execute(db::kCreateTabFile);
   db->execute(db::kCreateTabMessage);
-  // db->execute(db::kCreateFullIdxMessage);
-  // db->execute(db::kCreateTimestampIdxMessage);
+  db->execute(db::kCreateFullIdxMessage);
 }
 
 std::set<std::string> db_get_files(db_ptr const& db) {
@@ -134,6 +128,7 @@ std::time_t db_get_forward_start_time(std::time_t from, std::time_t to,
 
 using blob = std::basic_string<uint8_t>;
 std::vector<blob> db_get_messages(std::time_t from, std::time_t to,
+                                  std::time_t batch_from, std::time_t batch_to,
                                   db_ptr const& db) {
   std::vector<blob> result;
 
@@ -141,7 +136,7 @@ std::vector<blob> db_get_messages(std::time_t from, std::time_t to,
   for (auto const& row :
        (*db)(select(m.msg)
                  .from(m)
-                 .where(m.timestamp > from and m.timestamp <= to and
+                 .where(m.timestamp > batch_from and m.timestamp <= batch_to and
                         m.latest >= from and m.earliest <= to)
                  .order_by(m.timestamp.asc()))) {
 

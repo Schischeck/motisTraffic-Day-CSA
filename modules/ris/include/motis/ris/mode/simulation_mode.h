@@ -16,8 +16,8 @@ struct simulation_mode : public base_mode {
                       motis::module::callback) override;
 
 private:
-  void forward_time(std::time_t const, std::time_t const,
-                    motis::module::callback);
+  void forward_time(std::time_t const, std::time_t const, std::time_t const,
+                    std::time_t const, motis::module::callback);
 
   std::time_t simulation_time_;
 };

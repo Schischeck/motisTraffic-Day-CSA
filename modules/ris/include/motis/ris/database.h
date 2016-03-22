@@ -32,7 +32,8 @@ std::time_t db_get_forward_start_time(std::time_t from, std::time_t to,
                                       db_ptr const& db = default_db());
 
 std::vector<std::basic_string<uint8_t>> db_get_messages(
-    std::time_t from, std::time_t to, db_ptr const& db = default_db());
+    std::time_t from, std::time_t to, std::time_t batch_from,
+    std::time_t batch_to, db_ptr const& db = default_db());
 
 void db_clean_messages(std::time_t threshold, db_ptr const& db = default_db());
 

@@ -13,4 +13,12 @@ inline time unix_to_motistime(schedule const& sched, std::time_t t) {
   return motis::unix_to_motistime(sched.schedule_begin_, t);
 }
 
+inline std::time_t external_schedule_begin(schedule const& sched) {
+  return sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60;
+}
+
+inline std::time_t external_schedule_end(schedule const& sched) {
+  return sched.schedule_end_ + SCHEDULE_OFFSET_MINUTES * 60;
+}
+
 }  // namespace motis

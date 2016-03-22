@@ -42,7 +42,8 @@ void live_mode::init_async() {
   auto from = std::max(sync.sched().schedule_begin_, days_ago(1));
   auto to = sync.sched().schedule_end_;
 
-  module_->dispatch2(pack_msgs(db_get_messages(from, to)));
+  // TODO
+  // module_->dispatch2(pack_msgs(db_get_messages(from, to)));
 
   timer_ =
       make_unique<boost::asio::deadline_timer>(module_->get_thread_pool2());
