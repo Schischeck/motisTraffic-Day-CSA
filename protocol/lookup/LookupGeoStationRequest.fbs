@@ -5,11 +5,11 @@ namespace motis.lookup;
 // {
 //   "content_type": "LookupGeoStationRequest",
 //   "content": {
-//    lat: 49.8774869,
-//    lng: 8.6546632,
-//    radius: 456.78
-//  }
-//}
+//     "lat": 49.8774869,
+//     "lng": 8.6546632,
+//     "radius": 456.78
+//   }
+// }
 table LookupGeoStationRequest {
   lat: double;
   lng: double;
