@@ -52,6 +52,7 @@ TEST(ris_delay_message, ist_message_1) {
   EXPECT_EQ(EventType_Departure, id->base()->type());
   EXPECT_EQ(1444167840, id->base()->scheduledTime());
 
+  EXPECT_EQ(TripType_Schedule, id->tripType());
   EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
   EXPECT_STREQ("8002980", id->targetStationId()->c_str());
   EXPECT_EQ(1444172760, id->targetScheduledTime());
@@ -129,7 +130,7 @@ char const* ist_fixture_3 = "<?xml version=\"1.0\"?>\
         <Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
 IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
 ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
-IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
+IdVerwaltung=\"07\" SourceZNr=\"EFZ\" RegSta=\"Sonderzug\">\
           <ListZug>\
             <Zug Nr=\"59622\" Gattung=\"RB\" GattungInt=\"RB\" Name=\"RB 59622\" Verwaltung=\"07\">\
               <ListZE>\
@@ -170,6 +171,9 @@ TEST(ris_delay_message, ist_message_3) {
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
 
   EXPECT_EQ(DelayType_Is, inner_msg->type());
+
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(TripType_Additional, id->tripType());
 
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());

@@ -7,6 +7,7 @@
 
 #include "motis/module/module.h"
 #include "motis/protocol/Message_generated.h"
+#include "motis/rt/handler/statistics.h"
 
 namespace motis {
 namespace rt {
@@ -26,7 +27,7 @@ struct rt : public motis::module::module {
   virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
                       motis::module::callback) override;
 
-  int successful_trip_lookups = 0;
+  handler::statistics last_run_stats_;
 };
 
 }  // namespace rt

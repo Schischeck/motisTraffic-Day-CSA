@@ -24,7 +24,27 @@ TEST(rt, rename_at_first_stop) {
                            return m->name() == "rt";
                          });
   ASSERT_NE(it, end(instance->modules_));
-  EXPECT_EQ(3, static_cast<rt*>(it->get())->successful_trip_lookups);
+  auto stats = static_cast<rt*>(it->get())->last_run_stats_;
+
+  EXPECT_EQ(1, stats.delay.trips_.found);
+  EXPECT_EQ(2, stats.assessment.trips_.found);
+}
+
+TEST(rt, secondary_trip_id) {
+  auto instance =
+      launch_motis("modules/rt/test_resources/secondary_trip_id", "20160128",
+                   {"ris", "rt"}, {"--ris.mode=test",
+                                   "--ris.input_folder=modules/rt/"
+                                   "test_resources/secondary_trip_id/ris"});
+
+  auto it = std::find_if(begin(instance->modules_), end(instance->modules_),
+                         [](std::unique_ptr<motis::module::module> const& m) {
+                           return m->name() == "rt";
+                         });
+  ASSERT_NE(it, end(instance->modules_));
+  auto stats = static_cast<rt*>(it->get())->last_run_stats_;
+
+  EXPECT_EQ(2, stats.assessment.trips_.found);
 }
 
 }  // namespace rt

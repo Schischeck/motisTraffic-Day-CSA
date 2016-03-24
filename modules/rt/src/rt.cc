@@ -36,12 +36,15 @@ void rt::on_msg(msg_ptr msg, sid, callback cb) {
   auto req = msg->content<motis::ris::RISBatch const*>();
   auto lock = synced_sched<schedule_access::RW>();
 
+  std::cout << "\n" << std::endl;
+
   // auto const& sched = lock.sched();
   // std::cout << "\n--" << std::endl;
   // for (auto const& trip : sched.trip_mem) {
   //   std::cout << sched.stations[trip->id.primary.station_id]->eva_nr << " "
   //             << trip->id.primary.train_nr << " "
-  //             << motis_to_unixtime(sched, trip->id.primary.time) << std::endl;
+  //             << motis_to_unixtime(sched, trip->id.primary.time) <<
+  //             std::endl;
   // }
 
   handler::context ctx{lock.sched(), {}};  // TODO
@@ -85,17 +88,11 @@ void rt::on_msg(msg_ptr msg, sid, callback cb) {
     }
   }
 
-  std::cout << "\ntotal: " << req->messages()->size()
-            << "\nlookups: " << ctx.stats.trip_lookups
-            << "\nds1100: " << ctx.stats.ds100
-            << "\nfound: " << ctx.stats.found_trips
-            << "\nmissed primary: " << ctx.stats.missed_primary
-            << " (no train_nr didnt help " << ctx.stats.no_train_nr_didnt_help
-            << " / pair miss " << ctx.stats.station_train_nr_miss << ")"
-            << "\nmissed secondary: " << ctx.stats.missed_secondary
-            << "\nexceptions: " << exceptions << std::endl;
+  std::cout << "messages: " << req->messages()->size()
+            << ", exceptions: " << exceptions << std::endl;
+  std::cout << ctx.stats << std::endl;
 
-  successful_trip_lookups += ctx.stats.found_trips;
+  last_run_stats_ = ctx.stats;
 
   return cb({}, error::ok);
 }

@@ -16,8 +16,10 @@ table Event {
   scheduledTime: ulong;
 }
 
+enum TripType : bool {Schedule, Additional}
 table TripId {
   base: Event;
+  tripType: TripType;
 
   targetStationIdType: StationIdType;
   targetStationId: string;

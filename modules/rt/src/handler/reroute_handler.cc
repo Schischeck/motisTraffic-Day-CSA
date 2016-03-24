@@ -11,7 +11,8 @@ namespace rt {
 namespace handler {
 
 void handle_reroute(context& ctx, RerouteMessage const* msg) {
-  auto trip = get_trip(ctx, msg->tripId());
+  ctx.stats.reroute.inc();
+  auto trip = get_trip(ctx.sched, msg->tripId(), ctx.stats.reroute);
 }
 
 }  // namespace handler

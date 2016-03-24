@@ -32,6 +32,9 @@ void simulation_mode::init_async() {
   auto from = external_schedule_begin(lock.sched());
   auto to = external_schedule_end(lock.sched());
 
+  LOG(debug) << "using interval " << to_string(from) << " - " << to_string(to)
+             << " (" << from << " - " << to << ")";
+
   auto start_time = db_get_forward_start_time(from, to);
   if (start_time == kDBInvalidTimestamp) {
     return;

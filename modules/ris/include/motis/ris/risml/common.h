@@ -134,14 +134,19 @@ Offset<TripId> inline parse_trip_id(
   auto station = parse_station(ctx.b, node, "IdBfEvaNr", "IdBf");
   auto train_nr = node.attribute("IdZNr").as_uint();
   auto line_id = node.attribute("IdLinie").value();
-  auto type = parse_type(node.attribute("IdTyp").value(), EventType_Departure);
+  auto evt_t = parse_type(node.attribute("IdTyp").value(), EventType_Departure);
   auto timestamp = parse_schedule_time(ctx, node.attribute("IdZeit").value());
   auto base = CreateEvent(ctx.b, station.first, station.second, train_nr,
-                          ctx.b.CreateString(line_id), *type, timestamp);
+                          ctx.b.CreateString(line_id), *evt_t, timestamp);
+
+  std::string reg_sta(node.attribute("RegSta").value());
+  auto trip_type = (reg_sta == "" || reg_sta == "Plan") ? TripType_Schedule
+                                                        : TripType_Additional;
 
   auto t_station = parse_station(ctx.b, node, "ZielBfEvaNr", "ZielBfCode");
   auto t_time = parse_schedule_time(ctx, node.attribute("Zielzeit").value());
-  return CreateTripId(ctx.b, base, t_station.first, t_station.second, t_time);
+  return CreateTripId(ctx.b, base, trip_type, t_station.first, t_station.second,
+                      t_time);
 }
 
 }  // risml

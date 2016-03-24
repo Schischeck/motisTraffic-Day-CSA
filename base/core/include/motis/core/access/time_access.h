@@ -18,7 +18,7 @@ inline std::time_t external_schedule_begin(schedule const& sched) {
 }
 
 inline std::time_t external_schedule_end(schedule const& sched) {
-  return sched.schedule_end_ + SCHEDULE_OFFSET_MINUTES * 60;
+  return sched.schedule_end_;
 }
 
 }  // namespace motis
