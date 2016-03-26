@@ -1,5 +1,6 @@
 build-gcc-5:
   script:
+    - "echo $CI_BUILD_ID"
     - "git submodule update --init --recursive"
     - "mkdir -p build-gcc-5"
     - "cd build-gcc-5"
@@ -10,6 +11,7 @@ build-gcc-5:
 
 build-clang-3.8:
   script:
+    - "echo $CI_BUILD_ID"
     - "git submodule update --init --recursive"
     - "mkdir -p build-clang-3.8"
     - "cd build-clang-3.8"
