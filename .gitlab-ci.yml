@@ -1,21 +1,42 @@
+stages:
+  - build
+  - sanitize
+
+variables:
+  - ASAN_SYMBOLIZER_PATH: "/usr/bin/llvm-symbolizer"
+
 build-gcc-5:
+  stage: build
   script:
-    - "echo $CI_BUILD_ID"
     - "git submodule update --init --recursive"
     - "mkdir -p build-gcc-5"
     - "cd build-gcc-5"
     - "BOOST_ROOT=/opt/boost_1_60_0-gcc-5 cmake -DCMAKE_BUILD_TYPE=Release -DBoost_ADDITIONAL_VERSIONS=\"1.60 1.60.0\" -DNO_SSL=true .."
     - "make -j8 motis-test motis-itest motis"
+    - "./motis --mode test --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice --dataset.begin 20151111 --dataset.write_serialized false --listen.ws false"
     - "./motis-test"
     - "./motis-itest"
 
 build-clang-3.8:
+  stage: build
   script:
-    - "echo $CI_BUILD_ID"
     - "git submodule update --init --recursive"
     - "mkdir -p build-clang-3.8"
     - "cd build-clang-3.8"
     - "BOOST_ROOT=/opt/boost_1_60_0-clang-3.8 CXX=clang++-3.8 CC=clang-3.8 cmake -DCMAKE_BUILD_TYPE=Release -DBoost_ADDITIONAL_VERSIONS=\"1.60 1.60.0\" -DNO_SSL=true .."
     - "make -j8 motis-test motis-itest motis"
+    - "./motis --mode test --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice --dataset.begin 20151111 --dataset.write_serialized false --listen.ws false"
+    - "./motis-test"
+    - "./motis-itest"
+
+asan:
+  stage: sanitize
+  script:
+    - "git submodule update --init --recursive"
+    - "mkdir -p build-asan"
+    - "cd build-gcc-5"
+    - "CXXFLAGS=\"-fsanitize=address -fno-omit-frame-pointer\" BOOST_ROOT=/opt/boost_1_60_0-clang-3.8 CXX=clang++-3.8 CC=clang-3.8 cmake -DCMAKE_BUILD_TYPE=Debug -DBoost_ADDITIONAL_VERSIONS=\"1.60 1.60.0\" -DNO_SSL=true .."
+    - "make -j8 motis-test motis-itest motis"
+    - "./motis --mode test --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice --dataset.begin 20151111 --dataset.write_serialized false --listen.ws false"
     - "./motis-test"
     - "./motis-itest"
