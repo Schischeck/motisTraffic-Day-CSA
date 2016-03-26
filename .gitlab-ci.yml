@@ -37,3 +37,24 @@ clang-3.8-debug-asan:
               --listen.ws false
     - ./motis-test
     - ./motis-itest
+    
+
+# Clang 3.8 debug with thread sanitizer
+clang-3.8-debug-tsan:
+  script:
+    - export CXXFLAGS="-fsanitize=thread -fno-omit-frame-pointer"
+    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
+    - export CXX=clang++-3.8
+    - export CC=clang-3.8
+    - git submodule update --init --recursive
+    - mkdir -p build-tsan
+    - cd build-tsan
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
+    - make -j8 motis-test motis-itest motis
+    - ./motis --mode test
+              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+              --dataset.begin 20151111
+              --dataset.write_serialized false
+              --listen.ws false
+    - ./motis-test
+    - ./motis-itest
