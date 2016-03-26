@@ -1,8 +1,8 @@
 variables:
   ASAN_SYMBOLIZER_PATH: "/usr/bin/llvm-symbolizer"
 
-# GCC 5 production build + tests
-build-gcc-5:
+# GCC 5 production
+gcc-5-release:
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
     - git submodule update --init --recursive
@@ -18,8 +18,8 @@ build-gcc-5:
     - ./motis-test
     - ./motis-itest
 
-# GCC 5 address sanitizer debug build + tests
-build-clang-3.8:
+# Clang 3.8 debug with address sanitizer
+clang-3.8-debug-asan:
   script:
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
