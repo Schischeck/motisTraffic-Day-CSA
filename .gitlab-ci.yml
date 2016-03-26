@@ -1,0 +1,22 @@
+variables:
+  BOOST_ROOT: "/opt/boost"
+
+build-gcc-5:
+  script:
+    - "git submodule update --init --recursive"
+    - "mkdir -p build-gcc-5"
+    - "cd build-gcc-5"
+    - "cmake -DCMAKE_BUILD_TYPE=Release -D_boost_TEST_VERSIONS=1.60 -DNO_SSL=true .."
+    - "make -j8 motis-test motis-itest motis"
+    - "./motis-test"
+    - "./motis-itest"
+
+build-clang-3.8:
+  script:
+    - "git submodule update --init --recursive"
+    - "mkdir -p build-clang-3.8"
+    - "cd build-clang-3.8"
+    - "CXX=clang++-3.8 CC=clang-3.8 cmake -DCMAKE_BUILD_TYPE=Release -D_boost_TEST_VERSIONS=1.60 -DNO_SSL=true .."
+    - "make -j8 motis-test motis-itest motis"
+    - "./motis-test"
+    - "./motis-itest"
