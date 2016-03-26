@@ -3,7 +3,7 @@ stages:
   - sanitize
 
 variables:
-  - ASAN_SYMBOLIZER_PATH: "/usr/bin/llvm-symbolizer"
+  ASAN_SYMBOLIZER_PATH: "/usr/bin/llvm-symbolizer"
 
 build-gcc-5:
   stage: build
