@@ -58,3 +58,23 @@ clang-3.8-debug-tsan:
               --listen.ws false
     - ./motis-test
     - ./motis-itest
+    
+# GCC 5 debug valgrind
+gcc-5-debug-valgrind:
+  script:
+    - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
+    - git submodule update --init --recursive
+    - mkdir -p build-gcc-5-valgrind
+    - cd build-gcc-5-valgrind
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
+    - make -j8 motis-test motis-itest motis
+    - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
+      ./motis --mode test
+              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+              --dataset.begin 20151111
+              --dataset.write_serialized false
+              --listen.ws false
+    - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
+      ./motis-test
+    - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
+      ./motis-itest
