@@ -34,7 +34,7 @@ asan:
   script:
     - "git submodule update --init --recursive"
     - "mkdir -p build-asan"
-    - "cd build-gcc-5"
+    - "cd build-asan"
     - "CXXFLAGS=\"-fsanitize=address -fno-omit-frame-pointer\" BOOST_ROOT=/opt/boost_1_60_0-clang-3.8 CXX=clang++-3.8 CC=clang-3.8 cmake -DCMAKE_BUILD_TYPE=Debug -DBoost_ADDITIONAL_VERSIONS=\"1.60 1.60.0\" -DNO_SSL=true .."
     - "make -j8 motis-test motis-itest motis"
     - "./motis --mode test --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice --dataset.begin 20151111 --dataset.write_serialized false --listen.ws false"
