@@ -33,15 +33,15 @@
 	url = git@git.motis-project.de:lib/sqlpp11-connector-sqlite3.git
 [submodule "external_lib/sqlpp11"]
 	path = external_lib/sqlpp11
-	url = hgit@git.motis-project.de:lib/sqlpp11.git
+	url = git@git.motis-project.de:lib/sqlpp11.git
 [submodule "external_lib/sqlite"]
 	path = external_lib/sqlite
 	url = git@git.motis-project.de:lib/sqlite.git
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
 	url = git@git.motis-project.de:lib/miniz.git
-[submodule "external_lib/snappy"]
-	path = external_lib/snappy
+[submodule "external_lib/snappy-cmake"]
+	path = external_lib/snappy-cmake
 	url = git@git.motis-project.de:lib/snappy.git
 [submodule "external_lib/leveldb"]
 	path = external_lib/leveldb
