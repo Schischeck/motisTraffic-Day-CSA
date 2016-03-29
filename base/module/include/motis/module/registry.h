@@ -3,6 +3,7 @@
 #include <map>
 
 #include "module/container.h"
+#include "module/operation.h"
 
 namespace motis {
 namespace module {

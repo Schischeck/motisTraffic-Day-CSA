@@ -11,7 +11,7 @@ namespace module {
 
 struct operation {
   std::string name_;
-  std::function<future(msg_ptr const&)> fn_;
+  std::function<msg_ptr(msg_ptr const&)> fn_;
   std::vector<std::string> required_containers_;
   std::vector<std::string> required_operations_;
 };
