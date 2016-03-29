@@ -146,8 +146,7 @@ int main(int argc, char** argv) {
   if (launcher_opt.mode == launcher_settings::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
-    timer->async_wait(
-        [&websocket](boost::system::error_code) { websocket.stop(); });
+    timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
   } else if (launcher_opt.mode == launcher_settings::BATCH) {
     inject_queries(ios, instance, launcher_opt.batch_input_file,
                    launcher_opt.batch_output_file);
