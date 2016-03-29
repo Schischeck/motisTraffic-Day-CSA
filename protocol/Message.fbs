@@ -108,7 +108,46 @@ union MsgContent {
   motis.realtime.RealtimeDelayInfoRequest,
   motis.realtime.RealtimeDelayInfoResponse,
   motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse,
+  motis.routing.RoutingResponse
+}
+
+// Destination Examples:
+//
+// Request departure+arrival table for a station
+// {
+//   "type": "Module",
+//   "target": "/lookup/station/8000068/2016-03-02T16:47",
+//   "method": "GET"
+// }
+//
+// Store a user connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection",
+//   "method": "POST"
+// }
+//
+// Get alternatives for stored connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection/123456/alternatives",
+//   "method": "GET"
+// }
+//
+// 
+//
+enum DestinationType : byte { Module, Topic }
+enum Method : byte {
+  GET,    // Queries without body (e.g. train run lookup)
+  POST,   // Queries with body (more complex, e.g. routing)
+  PUT,    // Create a new resource (save a connection)
+  DELETE  // Delete a new resource (remove a saved connection)
+}
+
+table Destination {
+  type: DestinationType;
+  target: string;
+  method: Method;
 }
 
 table Message {

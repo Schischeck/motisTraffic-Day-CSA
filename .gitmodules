@@ -54,4 +54,4 @@
 	url = https://bitbucket.org/makielski/leveldb.git
 [submodule "external_lib/ctx"]
 	path = external_lib/ctx
-	url = https://github.com/felixguendling/ctx.git
+	url = https://git.motis-project.de/lib/ctx.git
