@@ -45,7 +45,7 @@ foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
 endforeach()
 
 if (NOT MSVC)
-  set(MOTIS_CXX_FLAGS "-std=c++11 -Wall -Wextra")
+  set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
   endif()
