@@ -18,11 +18,12 @@
 #include "motis/core/common/logging.h"
 #include "motis/ris/detail/find_new_files.h"
 #include "motis/ris/database.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
 
 using namespace motis::logging;
 using namespace motis::ris::detail;
+using namespace motis::ris::risml;
 namespace po = boost::program_options;
 namespace sql = sqlpp::sqlite3;
 
@@ -128,7 +129,7 @@ using namespace motis::ris;
 
 int main(int argc, char** argv) {
   LOG(info) << "Standalone RIS Loader\n";
-  settings s{"ris", "ris.sqlite"};
+  settings s{"ris", "ris.sqlite3"};
 
   try {
     conf::options_parser parser({&s});
@@ -158,7 +159,7 @@ int main(int argc, char** argv) {
   db->execute("DROP INDEX IF EXISTS ris_message_timestamp_idx.ris_message;");
 
   auto known_files = db_get_files(db);
-  auto new_files = find_new_files(s.input, &known_files);
+  auto new_files = find_new_files(s.input, ".zip", known_files);
 
   LOG(info) << known_files.size() << " files already in the db, sparsing " 
             << new_files.size() << " new zip files";

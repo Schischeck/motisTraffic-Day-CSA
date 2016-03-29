@@ -16,6 +16,7 @@
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/waiting_time_rules.h"
+#include "motis/core/schedule/trip.h"
 
 namespace motis {
 
@@ -29,6 +30,7 @@ struct schedule {
 
     schedule_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME});
     graph_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME, i});
+    trips.set_empty_key(primary_trip_id(0, 0, 0));
     graph_to_delay_info.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
   }
   virtual ~schedule() {}
@@ -54,7 +56,11 @@ struct schedule {
   std::vector<std::unique_ptr<provider>> providers;
   std::vector<std::unique_ptr<std::string>> directions;
   std::vector<std::unique_ptr<timezone>> timezones;
-  std::vector<std::unique_ptr<std::string>> origin_services;
+
+  hash_map<primary_trip_id, std::vector<trip*>> trips;
+  std::vector<std::unique_ptr<trip>> trip_mem;
+  std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges;
+  std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips;
 
   std::vector<std::unique_ptr<delay_info>> delay_infos;
   hash_map<schedule_event, delay_info*> schedule_to_delay_info;

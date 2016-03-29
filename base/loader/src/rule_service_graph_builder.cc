@@ -6,8 +6,9 @@
 #include <queue>
 #include <algorithm>
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/core/schedule/price.h"
-
+#include "motis/core/schedule/trip.h"
 #include "motis/loader/util.h"
 #include "motis/loader/duplicate_checker.h"
 
@@ -231,12 +232,44 @@ struct rule_service_route_builder {
     for (auto& entry : sections_) {
       build_route(entry.first, entry.second);
     }
+
+    for (auto& entry : sections_) {
+      write_trip_info(entry.first, entry.second);
+    }
   }
 
   void adjust_times() {
     for (auto& entry : sections_) {
       lcon_time_adjuster().adjust_times(entry.second[0]->first.from_route_node);
     }
+  }
+
+  static services_key get_services_key(
+      std::array<participant, 16> const& services, int day_idx) {
+    services_key k;
+    k.day_idx = day_idx;
+    for (auto const& s : services) {
+      if (s.service == nullptr) {
+        break;
+      }
+      k.services.insert(s.service);
+    }
+    return k;
+  }
+
+  merged_trips_idx get_or_create_trips(
+      std::array<participant, 16> const& services, int day_idx) {
+    auto k = get_services_key(services, day_idx);
+    return get_or_create(trips_, k, [&]() {
+      return push_mem(
+          gb_.sched_.merged_trips,
+          transform_to_vec(
+              begin(k.services), end(k.services), [&](Service const* s) {
+                return get_or_create(
+                    single_trips_, std::make_pair(s, day_idx),
+                    [&]() { return gb_.register_service(s, day_idx); });
+              }));
+    });
   }
 
   std::vector<light_connection> build_connections(
@@ -252,7 +285,8 @@ struct rule_service_route_builder {
     for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
       if (traffic_days_.test(day_idx)) {
         lcons.push_back(
-            gb_.section_to_connection(services, day_idx, 0, adjusted));
+            gb_.section_to_connection(get_or_create_trips(services, day_idx),
+                                      services, day_idx, 0, adjusted));
       }
     }
     return lcons;
@@ -294,7 +328,28 @@ struct rule_service_route_builder {
           stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
           stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
           prev_section, next_section);
+
       assert(sections[section_idx]->first.is_valid());
+    }
+  }
+
+  void write_trip_info(Service const* s,
+                       std::vector<service_section*> const& sections) {
+    push_mem(gb_.sched_.trip_edges,
+             transform_to_vec(begin(sections), end(sections),
+                              [](service_section* section) {
+                                return section->first.get_route_edge();
+                              }));
+    auto edges = gb_.sched_.trip_edges.back().get();
+
+    int lcon_idx = 0;
+    for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
+      if (traffic_days_.test(day_idx)) {
+        auto trp = single_trips_.at(std::make_pair(s, day_idx));
+        trp->edges = edges;
+        trp->lcon_idx = lcon_idx;
+        ++lcon_idx;
+      }
     }
   }
 
@@ -336,6 +391,8 @@ struct rule_service_route_builder {
   bitfield const& traffic_days_;
   int first_day_, last_day_;
   std::map<Service const*, std::vector<service_section*>>& sections_;
+  std::map<std::pair<Service const*, int>, trip*> single_trips_;
+  std::map<services_key, merged_trips_idx> trips_;
   unsigned route_id_;
 };
 
@@ -349,7 +406,7 @@ void rule_service_graph_builder::add_rule_services(
   }
 
   for (auto const& rule_service : *rule_services) {
-    auto traffic_days = gb_.get_or_create_bitfield(
+    auto const& traffic_days = gb_.get_or_create_bitfield(
         rule_service->rules()->Get(0)->service1()->traffic_days());
 
     auto offset = calculate_offset(rule_service);

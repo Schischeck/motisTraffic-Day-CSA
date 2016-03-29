@@ -8,8 +8,11 @@
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/trip_idx.h"
 
 namespace motis {
+
+constexpr auto kMaxValidTrainNr = 99999;
 
 enum {
   MOTIS_ICE = 0,
@@ -103,8 +106,10 @@ struct light_connection {
 
   explicit light_connection(time d_time) : d_time(d_time) {}
 
-  light_connection(time d_time, time a_time, connection const* full_con)
-      : _full_con(full_con), d_time(d_time), a_time(a_time) {}
+  light_connection(time d_time, time a_time,
+                   connection const* full_con = nullptr,
+                   merged_trips_idx trips = 0)
+      : _full_con(full_con), d_time(d_time), a_time(a_time), trips(trips) {}
 
   unsigned travel_time() const { return a_time - d_time; }
 
@@ -117,8 +122,7 @@ struct light_connection {
 
   connection const* _full_con;
   time d_time, a_time;
-
-  enum : uint32_t { INVALID_CON_ID = 0xffffffff };
+  merged_trips_idx trips;
 };
 
 }  // namespace motis

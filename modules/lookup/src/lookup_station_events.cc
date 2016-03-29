@@ -1,6 +1,7 @@
 #include "motis/lookup/lookup_station_events.h"
 
-#include "motis/core/schedule/edge_access.h"
+#include "motis/core/access/edge_access.h"
+#include "motis/core/access/time_access.h"
 #include "motis/lookup/util.h"
 
 using namespace flatbuffers;
@@ -8,23 +9,28 @@ using namespace flatbuffers;
 namespace motis {
 namespace lookup {
 
-Offset<IdEvent> make_id_event(FlatBufferBuilder& fbb, schedule const& sched,
-                              int const& route_id, int const& position) {
-  auto const& route_node = sched.route_index_to_first_route_node[route_id];
-  auto const& station_index = route_node->get_station()->_id;
-  auto const& station = sched.stations[station_index];
+std::vector<Offset<TripId>> make_trip_ids(FlatBufferBuilder& fbb,
+                                          schedule const& sched,
+                                          light_connection const* lcon) {
+  std::vector<Offset<TripId>> trip_ids;
+  for (auto const& trp : *sched.merged_trips[lcon->trips]) {
+    auto const& pri = trp->id.primary;
+    auto const& eva_nr = sched.stations[pri.station_id]->eva_nr;
+    auto const& train_nr = pri.train_nr;
+    auto const& timestamp = motis_to_unixtime(sched, pri.time);
 
-  auto const& route_edge = get_outgoing_route_edge(route_node);
-  auto const& lcon = route_edge->_m._route_edge._conns[position];
-  auto const& info = lcon._full_con->con_info;
+    auto const& sec = trp->id.secondary;
+    auto const& target_eva_nr = sched.stations[sec.target_station_id]->eva_nr;
+    auto const& target_timestamp = motis_to_unixtime(sched, sec.target_time);
+    auto const& type = sec.is_arrival ? EventType_Arrival : EventType_Departure;
+    auto const& line_id = sec.line_id;
 
-  auto d_time = get_schedule_time(sched, station_index, info->train_nr, true,
-                                  lcon.d_time, route_id);
-
-  return CreateIdEvent(fbb, fbb.CreateString(station->eva_nr),
-                       EventType_Departure, info->train_nr,
-                       fbb.CreateString(info->line_identifier),
-                       motis_to_unixtime(sched, d_time));
+    trip_ids.push_back(CreateTripId(fbb, fbb.CreateString(eva_nr), train_nr,
+                                    timestamp, fbb.CreateString(target_eva_nr),
+                                    target_timestamp, type,
+                                    fbb.CreateString(line_id)));
+  }
+  return trip_ids;
 }
 
 std::vector<Offset<StationEvent>> lookup_station_events(
@@ -49,27 +55,24 @@ std::vector<Offset<StationEvent>> lookup_station_events(
 
     for (auto const& edge : route_node->_incoming_edges) {
       foreach_arrival_in(*edge, begin, end, [&](light_connection const* lcon) {
-        auto const* lcon_begin = edge->_m._route_edge._conns.begin();
-        auto pos = std::distance(lcon_begin, lcon);
-        auto id_event = make_id_event(fbb, sched, route_id, pos);
+        auto trip_ids = make_trip_ids(fbb, sched, lcon);
 
         auto const& info = lcon->_full_con->con_info;
         auto const& a_time = lcon->a_time;
         auto schedule_a_time = get_schedule_time(
             sched, station_index, info->train_nr, false, a_time, route_id);
 
-        events.push_back(
-            CreateStationEvent(fbb, id_event, EventType_Arrival, info->train_nr,
-                               fbb.CreateString(info->line_identifier),
-                               motis_to_unixtime(sched, a_time),
-                               motis_to_unixtime(sched, schedule_a_time)));
+        events.push_back(CreateStationEvent(
+            fbb, fbb.CreateVector(trip_ids), EventType_Arrival, info->train_nr,
+            fbb.CreateString(info->line_identifier),
+            motis_to_unixtime(sched, a_time),
+            motis_to_unixtime(sched, schedule_a_time)));
       });
     }
 
     for (auto const& edge : route_node->_edges) {
       foreach_departure_in(edge, begin, end, [&](light_connection const* lcon) {
-        auto pos = std::distance(edge._m._route_edge._conns.begin(), lcon);
-        auto id_event = make_id_event(fbb, sched, route_id, pos);
+        auto trip_ids = make_trip_ids(fbb, sched, lcon);
 
         auto const& info = lcon->_full_con->con_info;
         auto const& d_time = lcon->d_time;
@@ -77,16 +80,13 @@ std::vector<Offset<StationEvent>> lookup_station_events(
             sched, station_index, info->train_nr, true, d_time, route_id);
 
         events.push_back(CreateStationEvent(
-            fbb, id_event, EventType_Departure, info->train_nr,
-            fbb.CreateString(info->line_identifier),
+            fbb, fbb.CreateVector(trip_ids), EventType_Departure,
+            info->train_nr, fbb.CreateString(info->line_identifier),
             motis_to_unixtime(sched, d_time),
             motis_to_unixtime(sched, schedule_d_time)));
       });
     }
   };
-
-  // TODO sort events (requires private member access in FlatBufferBuilder)
-
   return events;
 }
 

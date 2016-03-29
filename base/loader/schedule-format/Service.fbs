@@ -18,4 +18,5 @@ table Service {
   route_key : uint (key);
   debug : ServiceDebugInfo;
   rule_participant: bool = false;
+  initial_train_nr: int;
 }

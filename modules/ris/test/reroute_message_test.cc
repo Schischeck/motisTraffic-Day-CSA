@@ -3,12 +3,13 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 using namespace parser;
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
 char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -47,19 +48,35 @@ TEST(ris_reroute_message, message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168874, message.timestamp);
-  EXPECT_EQ(1444335660, message.scheduled);
+  EXPECT_EQ(1444321500, message.earliest);
+  EXPECT_EQ(1444335660, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("8000156", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(2318, id->base()->trainIndex());
+  EXPECT_STREQ("", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444321500, id->base()->scheduledTime());
+
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("8000080", id->targetStationId()->c_str());
+  EXPECT_EQ(1444335660, id->targetScheduledTime());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(4, cancelled_events->size());
 
   auto ce0 = cancelled_events->Get(0);
-  EXPECT_EQ(2318, ce0->trainIndex());
   EXPECT_EQ(StationIdType_EVA, ce0->stationIdType());
-  EXPECT_EQ(std::string("8000098"), ce0->stationId()->c_str());
+  EXPECT_STREQ("8000098", ce0->stationId()->c_str());
+  EXPECT_EQ(2318, ce0->trainIndex());
+  EXPECT_STREQ("", ce0->lineId()->c_str());
   EXPECT_EQ(1444334220, ce0->scheduledTime());
   EXPECT_EQ(EventType_Arrival, ce0->type());
 
@@ -67,30 +84,31 @@ TEST(ris_reroute_message, message_1) {
   ASSERT_EQ(2, new_events->size());
 
   auto ne0 = new_events->Get(0);
-  EXPECT_EQ(2318, ne0->base()->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, ne0->base()->base()->stationIdType());
-  EXPECT_EQ(std::string("8000118"), ne0->base()->base()->stationId()->c_str());
+  EXPECT_STREQ("8000118", ne0->base()->base()->stationId()->c_str());
+  EXPECT_EQ(2318, ne0->base()->base()->trainIndex());
+  EXPECT_STREQ("", ne0->base()->base()->lineId()->c_str());
   EXPECT_EQ(1444334340, ne0->base()->base()->scheduledTime());
   EXPECT_EQ(EventType_Arrival, ne0->base()->base()->type());
 
-  EXPECT_EQ(std::string("IC"), ne0->base()->trainCategory()->c_str());
-  EXPECT_EQ(std::string("6"), ne0->base()->track()->c_str());
+  EXPECT_STREQ("IC", ne0->base()->trainCategory()->c_str());
+  EXPECT_STREQ("6", ne0->base()->track()->c_str());
 
   EXPECT_EQ(RerouteStatus_UmlNeu, ne0->status());
 
   auto ne1 = new_events->Get(1);
-  EXPECT_EQ(2318, ne1->base()->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, ne1->base()->base()->stationIdType());
-  EXPECT_EQ(std::string("8000118"), ne1->base()->base()->stationId()->c_str());
+  EXPECT_STREQ("8000118", ne1->base()->base()->stationId()->c_str());
+  EXPECT_EQ(2318, ne1->base()->base()->trainIndex());
+  EXPECT_STREQ("", ne1->base()->base()->lineId()->c_str());
   EXPECT_EQ(1444334460, ne1->base()->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, ne1->base()->base()->type());
 
-  EXPECT_EQ(std::string("IC"), ne1->base()->trainCategory()->c_str());
-  EXPECT_EQ(std::string("6"), ne1->base()->track()->c_str());
-  
+  EXPECT_STREQ("IC", ne1->base()->trainCategory()->c_str());
+  EXPECT_STREQ("6", ne1->base()->track()->c_str());
+
   EXPECT_EQ(RerouteStatus_UmlNeu, ne1->status());
 }
-
 
 // clang-format off
 char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -138,15 +156,21 @@ TEST(ris_reroute_message, message_only_new) {
 
   auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(0, cancelled_events->size());
 
   auto new_events = inner_msg->newEvents();
   ASSERT_EQ(2, new_events->size());
-}
 
+  auto ne0 = new_events->Get(0);
+  EXPECT_STREQ("2", ne0->base()->base()->lineId()->c_str());
+
+  auto ne1 = new_events->Get(1);
+  EXPECT_STREQ("2", ne1->base()->base()->lineId()->c_str());
+}
 
 // clang-format off
 char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
@@ -194,14 +218,22 @@ TEST(ris_reroute_message, message_only_cancel) {
 
   auto outer_msg = GetMessage(messages[0].data());
   ASSERT_EQ(MessageUnion_RerouteMessage, outer_msg->content_type());
-  auto inner_msg = reinterpret_cast<RerouteMessage const*>(outer_msg->content());
+  auto inner_msg =
+      reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
   auto cancelled_events = inner_msg->cancelledEvents();
   ASSERT_EQ(2, cancelled_events->size());
+
+  auto ce0 = cancelled_events->Get(0);
+  EXPECT_STREQ("2", ce0->lineId()->c_str());
+
+  auto ce1 = cancelled_events->Get(1);
+  EXPECT_STREQ("2", ce1->lineId()->c_str());
 
   auto new_events = inner_msg->newEvents();
   ASSERT_EQ(0, new_events->size());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

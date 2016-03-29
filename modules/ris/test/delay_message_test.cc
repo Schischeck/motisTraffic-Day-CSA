@@ -3,13 +3,14 @@
 #include "include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
-#include "motis/ris/risml_parser.h"
+#include "motis/ris/risml/risml_parser.h"
 
 namespace motis {
 namespace ris {
+namespace risml {
 
 // clang-format off
-char const* ist_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
+constexpr auto ist_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151006235934781\" KNr=\"123863714\">\
 <ListNachricht><Nachricht><Ist>\
 <Service Id=\"85713913\" IdZNr=\"8329\" IdZGattung=\"S\" IdBf=\"MMAM\" \
@@ -36,25 +37,41 @@ TEST(ris_delay_message, ist_message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168774, message.timestamp);
-  EXPECT_EQ(1444172760, message.scheduled);
+  EXPECT_EQ(1444172760, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<DelayMessage const*>(outer_msg->content());
+
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
+  EXPECT_STREQ("8004204", id->base()->stationId()->c_str());
+
+  EXPECT_EQ(8329, id->base()->trainIndex());
+  EXPECT_STREQ("3", id->base()->lineId()->c_str());
+  EXPECT_EQ(EventType_Departure, id->base()->type());
+  EXPECT_EQ(1444167840, id->base()->scheduledTime());
+
+  EXPECT_EQ(TripType_Schedule, id->tripType());
+  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
+  EXPECT_STREQ("8002980", id->targetStationId()->c_str());
+  EXPECT_EQ(1444172760, id->targetScheduledTime());
 
   EXPECT_EQ(DelayType_Is, inner_msg->type());
 
   auto events = inner_msg->events();
   ASSERT_EQ(1, events->size());
 
-  EXPECT_EQ(8329, events->Get(0)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(0)->base()->stationIdType());
-  EXPECT_EQ(std::string("8004667"),
-            events->Get(0)->base()->stationId()->c_str());
-  EXPECT_EQ(1444168740, events->Get(0)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Departure, events->Get(0)->base()->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
+  EXPECT_STREQ("8004667", e0->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444168740, events->Get(0)->updatedTime());
+  EXPECT_EQ(8329, e0->base()->trainIndex());
+  EXPECT_STREQ("3", e0->base()->lineId()->c_str());
+  EXPECT_EQ(1444168740, e0->base()->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e0->base()->type());
+
+  EXPECT_EQ(1444168740, e0->updatedTime());
 }
 
 // clang-format off
@@ -81,7 +98,7 @@ TEST(ris_delay_message, ist_message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168802, message.timestamp);
-  EXPECT_EQ(1444173360, message.scheduled);
+  EXPECT_EQ(1444173360, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -92,13 +109,16 @@ TEST(ris_delay_message, ist_message_2) {
   auto events = inner_msg->events();
   ASSERT_EQ(1, events->size());
 
-  EXPECT_EQ(60418, events->Get(0)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_DS100, events->Get(0)->base()->stationIdType());
-  EXPECT_EQ(std::string("MNFG"), events->Get(0)->base()->stationId()->c_str());
-  EXPECT_EQ(1444168080, events->Get(0)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Departure, events->Get(0)->base()->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(StationIdType_DS100, e0->base()->stationIdType());
+  EXPECT_STREQ("MNFG", e0->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444168740, events->Get(0)->updatedTime());
+  EXPECT_EQ(60418, e0->base()->trainIndex());
+  EXPECT_STREQ("", e0->base()->lineId()->c_str());
+  EXPECT_EQ(1444168080, e0->base()->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e0->base()->type());
+
+  EXPECT_EQ(1444168740, e0->updatedTime());
 }
 
 // clang-format off
@@ -110,7 +130,7 @@ char const* ist_fixture_3 = "<?xml version=\"1.0\"?>\
         <Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
 IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
 ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
-IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
+IdVerwaltung=\"07\" SourceZNr=\"EFZ\" RegSta=\"Sonderzug\">\
           <ListZug>\
             <Zug Nr=\"59622\" Gattung=\"RB\" GattungInt=\"RB\" Name=\"RB 59622\" Verwaltung=\"07\">\
               <ListZE>\
@@ -143,7 +163,8 @@ TEST(ris_delay_message, ist_message_3) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1447690200, message.timestamp);
-  EXPECT_EQ(1447693200, message.scheduled);
+  EXPECT_EQ(1447688700, message.earliest);
+  EXPECT_EQ(1447693200, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -151,21 +172,28 @@ TEST(ris_delay_message, ist_message_3) {
 
   EXPECT_EQ(DelayType_Is, inner_msg->type());
 
+  auto id = inner_msg->tripId();
+  EXPECT_EQ(TripType_Additional, id->tripType());
+
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
 
   auto const& e0 = events->Get(0);
-  EXPECT_EQ(59622, e0->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
-  EXPECT_EQ(std::string("8005672"), e0->base()->stationId()->c_str());
+  EXPECT_STREQ("8005672", e0->base()->stationId()->c_str());
+
+  EXPECT_EQ(59622, e0->base()->trainIndex());
+  EXPECT_STREQ("", e0->base()->lineId()->c_str());
   EXPECT_EQ(1447690080, e0->base()->scheduledTime());
   EXPECT_EQ(EventType_Arrival, e0->base()->type());
   EXPECT_EQ(1447690140, e0->updatedTime());
 
   auto const& e1 = events->Get(1);
-  EXPECT_EQ(59622, e1->base()->trainIndex());
   EXPECT_EQ(StationIdType_EVA, e1->base()->stationIdType());
-  EXPECT_EQ(std::string("8005672"), e1->base()->stationId()->c_str());
+  EXPECT_STREQ("8005672", e1->base()->stationId()->c_str());
+
+  EXPECT_EQ(59622, e1->base()->trainIndex());
+  EXPECT_STREQ("", e1->base()->lineId()->c_str());
   EXPECT_EQ(1447690140, e1->base()->scheduledTime());
   EXPECT_EQ(EventType_Departure, e1->base()->type());
   EXPECT_EQ(1447690140, e1->updatedTime());
@@ -175,7 +203,10 @@ TEST(ris_delay_message, ist_message_3) {
 std::string type_fixture(std::string type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket TOut=\"12345678901234\"><ListNachricht><Nachricht>\
-<Ist><Service Zielzeit=\"12345678901234\">\
+<Ist><Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
+IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
+ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
+IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
 <ListZug><Zug><ListZE><ZE Typ=\"") + type_string + "\" >\
 <Bf/><Zeit Soll=\"12345678901234\" Ist=\"12345678901234\"/></ZE></ListZE>\
 </Zug></ListZug></Service></Ist><ListQuelle>\
@@ -184,10 +215,12 @@ std::string type_fixture(std::string type_string) {
 // clang-format on
 
 EventType get_type(std::vector<ris_message> const& messages) {
+  if (messages.size() == 0) {
+    throw std::runtime_error("messages empty");
+  }
   auto content = GetMessage(messages[0].data())->content();
   auto delay_message = reinterpret_cast<DelayMessage const*>(content);
   return delay_message->events()->Get(0)->base()->type();
-
 }
 
 TEST(ris_delay_message, train_event_type) {
@@ -240,7 +273,8 @@ TEST(ris_delay_message, ist_prog_message_1) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168783, message.timestamp);
-  EXPECT_EQ(1444169100, message.scheduled);
+  EXPECT_EQ(1444166580, message.earliest);
+  EXPECT_EQ(1444169100, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -251,14 +285,15 @@ TEST(ris_delay_message, ist_prog_message_1) {
   auto events = inner_msg->events();
   ASSERT_EQ(1, events->size());
 
-  EXPECT_EQ(21839, events->Get(0)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(0)->base()->stationIdType());
-  EXPECT_EQ(std::string("8000058"),
-            events->Get(0)->base()->stationId()->c_str());
-  EXPECT_EQ(1444169100, events->Get(0)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(0)->base()->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
+  EXPECT_STREQ("8000058", e0->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444169160, events->Get(0)->updatedTime());
+  EXPECT_EQ(21839, e0->base()->trainIndex());
+  EXPECT_EQ(1444169100, e0->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+
+  EXPECT_EQ(1444169160, e0->updatedTime());
 }
 
 // clang-format off
@@ -289,7 +324,8 @@ TEST(ris_delay_message, ist_prog_message_2) {
 
   auto const& message = messages[0];
   EXPECT_EQ(1444168800, message.timestamp);
-  EXPECT_EQ(1444169940, message.scheduled);
+  EXPECT_EQ(1444165800, message.earliest);
+  EXPECT_EQ(1444169940, message.latest);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -300,36 +336,37 @@ TEST(ris_delay_message, ist_prog_message_2) {
   auto events = inner_msg->events();
   ASSERT_EQ(3, events->size());
 
-  // evt 0
-  EXPECT_EQ(37616, events->Get(0)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(0)->base()->stationIdType());
-  EXPECT_EQ(std::string("8005106"),
-            events->Get(0)->base()->stationId()->c_str());
-  EXPECT_EQ(1444169640, events->Get(0)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(0)->base()->type());
+  auto e0 = events->Get(0);
+  EXPECT_EQ(StationIdType_EVA, e0->base()->stationIdType());
+  EXPECT_STREQ("8005106", e0->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444169880, events->Get(0)->updatedTime());
+  EXPECT_EQ(37616, e0->base()->trainIndex());
+  EXPECT_STREQ("1", e0->base()->lineId()->c_str());
+  EXPECT_EQ(1444169640, e0->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+  EXPECT_EQ(1444169880, e0->updatedTime());
 
-  // evt 1
-  EXPECT_EQ(37616, events->Get(1)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(1)->base()->stationIdType());
-  EXPECT_EQ(std::string("8005106"),
-            events->Get(1)->base()->stationId()->c_str());
-  EXPECT_EQ(1444169640, events->Get(1)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Departure, events->Get(1)->base()->type());
+  auto e1 = events->Get(1);
+  EXPECT_EQ(StationIdType_EVA, e1->base()->stationIdType());
+  EXPECT_STREQ("8005106", e1->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444169880, events->Get(1)->updatedTime());
+  EXPECT_EQ(37616, e1->base()->trainIndex());
+  EXPECT_STREQ("1", e1->base()->lineId()->c_str());
+  EXPECT_EQ(1444169640, e1->base()->scheduledTime());
+  EXPECT_EQ(EventType_Departure, e1->base()->type());
+  EXPECT_EQ(1444169880, e1->updatedTime());
 
-  // evt 2
-  EXPECT_EQ(37616, events->Get(2)->base()->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, events->Get(2)->base()->stationIdType());
-  EXPECT_EQ(std::string("8006236"),
-            events->Get(2)->base()->stationId()->c_str());
-  EXPECT_EQ(1444169940, events->Get(2)->base()->scheduledTime());
-  EXPECT_EQ(EventType_Arrival, events->Get(2)->base()->type());
+  auto e2 = events->Get(2);
+  EXPECT_EQ(StationIdType_EVA, e2->base()->stationIdType());
+  EXPECT_STREQ("8006236", e2->base()->stationId()->c_str());
 
-  EXPECT_EQ(1444170120, events->Get(2)->updatedTime());
+  EXPECT_EQ(37616, e2->base()->trainIndex());
+  EXPECT_STREQ("1", e2->base()->lineId()->c_str());
+  EXPECT_EQ(1444169940, e2->base()->scheduledTime());
+  EXPECT_EQ(EventType_Arrival, e2->base()->type());
+  EXPECT_EQ(1444170120, e2->updatedTime());
 }
 
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

@@ -13,20 +13,26 @@ namespace motis {
 namespace ris {
 
 struct ris_message : typed_flatbuffer<Message> {
-  ris_message(std::time_t scheduled, std::time_t timestamp,
+  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
               flatbuffers::FlatBufferBuilder&& fbb)
       : typed_flatbuffer(std::move(fbb)),
-        scheduled(scheduled),
+        earliest(earliest),
+        latest(latest),
         timestamp(timestamp) {}
 
   // testing w/o flatbuffers
-  ris_message(std::time_t scheduled, std::time_t timestamp, size_t buffer_size,
-              std::unique_ptr<uint8_t, std::function<void(uint8_t*)>>&& buffer)
+  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
+              size_t buffer_size, flatbuffers::unique_ptr_t&& buffer)
       : typed_flatbuffer(buffer_size, std::move(buffer)),
-        scheduled(scheduled),
+        earliest(earliest),
+        latest(latest),
         timestamp(timestamp) {}
 
-  std::time_t scheduled;
+  ris_message(ris_message&&) = default;
+  ris_message& operator=(ris_message&&) = default;
+
+  std::time_t earliest;
+  std::time_t latest;
   std::time_t timestamp;
 };
 
