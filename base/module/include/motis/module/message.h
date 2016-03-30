@@ -15,8 +15,11 @@ namespace module {
 
 class MessageCreator : public flatbuffers::FlatBufferBuilder {
 public:
-  void CreateAndFinish(MsgContent type, flatbuffers::Offset<void> content) {
-    Finish(CreateMessage(*this, type, content, 1));
+  void CreateAndFinish(MsgContent type, flatbuffers::Offset<void> content,
+                       std::string const& target = "") {
+    Finish(CreateMessage(*this, CreateDestination(*this, DestinationType_Module,
+                                                  CreateString(target)),
+                         type, content, 1));
   }
 };
 

@@ -69,7 +69,7 @@ endif()
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
-find_package(Boost COMPONENTS system filesystem regex program_options thread REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options thread context REQUIRED)
 find_package(Threads)
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -112,6 +112,7 @@ add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
 
 
 ################################

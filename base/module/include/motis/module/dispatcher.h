@@ -1,21 +1,32 @@
 #pragma once
 
-#include "ctx/scheduler.h"
+#include "ctx/ctx.h"
 
+#include "motis/module/registry.h"
 #include "motis/module/ctx_data.h"
 #include "motis/module/future.h"
+#include "motis/module/error.h"
 
 namespace motis {
 namespace module {
 
 struct dispatcher {
-  future req(msg_ptr const& req) { return scheduler_.post(); }
+  dispatcher(boost::asio::io_service& ios, registry const& reg)
+      : scheduler_(ios), registry_(reg) {}
 
-  future req_with_fresh_snapshot(msg_ptr const& req) {
-    return scheduler_.post();
+  future req(msg_ptr const& req, ctx_data const& data, ctx::op_id id) {
+    try {
+      auto target = req->get()->destination()->target()->str();
+      auto& op = registry_.operations_.at(target);
+      id.name = op.name_.c_str();
+      return scheduler_.post(data, std::bind(op.fn_, req), id);
+    } catch (std::out_of_range const&) {
+      throw boost::system::system_error(error::target_not_found);
+    }
   }
 
   ctx::scheduler<ctx_data> scheduler_;
+  registry const& registry_;
 };
 
 }  // namespace module
