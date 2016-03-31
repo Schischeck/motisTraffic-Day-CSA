@@ -36,12 +36,15 @@ auto guess = [](msg_ptr const&) {
       MsgContent_StationGuesserResponse,
       motis::guesser::CreateStationGuesserResponse(
           b, b.CreateVector(
-                 std::vector<flatbuffers::Offset<motis::guesser::Station>>()))
+                 std::vector<flatbuffers::Offset<motis::guesser::Station>>(
+                     {motis::guesser::CreateStation(
+                         b, b.CreateString("Darmstadt Hbf"),
+                         b.CreateString("8600068"), 0, 0)})))
           .Union());
   return make_msg(b);
 };
 
-auto route = [](msg_ptr const&) {
+auto route = [](msg_ptr const&) -> msg_ptr {
   MessageCreator b;
   b.CreateAndFinish(
       MsgContent_StationGuesserRequest,
@@ -49,7 +52,6 @@ auto route = [](msg_ptr const&) {
           .Union(),
       "/guesser");
   auto station = motis_call(make_msg(b));
-  printf("%s\n", station->val()->to_json().c_str());
 
   b.CreateAndFinish(
       MsgContent_RoutingResponse,
@@ -61,23 +63,24 @@ auto route = [](msg_ptr const&) {
   return make_msg(b);
 };
 
-auto input = []() {
-  auto response = motis_call(make_msg(query));
-  printf("%s\n", response->val()->to_json().c_str());
-};
-
 TEST(module_op, launch) {
   boost::asio::io_service ios;
   registry r;
   dispatcher d(ios, r);
 
-  r.operations_["/guesser"].fn_ = guess;
-  r.operations_["/routing"].fn_ = route;
+  r.register_op("/guesser", guess);
+  r.register_op("/routing", route);
+
+  msg_ptr result;
 
   d.scheduler_.enqueue(
       ctx_data(&d, std::make_shared<snapshot>(),
                std::make_shared<std::map<std::string, std::string>>()),
-      input, ctx::op_id(CTX_LOCATION));
+      [&]() { result = motis_call(make_msg(query))->val(); },
+      ctx::op_id(CTX_LOCATION));
 
   ios.run();
+
+  ASSERT_TRUE(result);
+  ASSERT_EQ(MsgContent_RoutingResponse, result->content_type());
 }

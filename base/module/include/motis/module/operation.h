@@ -10,10 +10,11 @@ namespace motis {
 namespace module {
 
 struct operation {
-  std::function<msg_ptr(msg_ptr const&)> fn_;
-  std::vector<std::string> required_containers_;
-  std::vector<std::string> required_operations_;
+  operation(std::string name, std::function<msg_ptr(msg_ptr const&)> fn)
+      : name_(std::move(name)), fn_(std::move(fn)) {}
+
   std::string name_;
+  std::function<msg_ptr(msg_ptr const&)> fn_;
 };
 
 }  // namespace module
