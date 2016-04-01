@@ -41,8 +41,6 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       continue;
     }
 
-    add_module(module.get());
-
     try {
       module->schedule_ = schedule_.get();
     } catch (std::exception const& e) {
