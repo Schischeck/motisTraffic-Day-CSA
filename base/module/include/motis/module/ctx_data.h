@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ctx/operation.h"
+#include "ctx/ctx.h"
 
 #include "motis/module/container.h"
 
@@ -12,7 +12,9 @@ struct dispatcher;
 using env_table = std::shared_ptr<std::map<std::string, std::string>>;
 
 struct ctx_data {
-  ctx_data(dispatcher* d, std::shared_ptr<snapshot> s, env_table e)
+  ctx_data(dispatcher* d,
+           std::shared_ptr<snapshot> s = std::make_shared<snapshot>(),
+           env_table e = env_table())
       : dispatcher_(d), snapshot_(std::move(s)), env_(std::move(e)) {}
 
   dispatcher* dispatcher_;

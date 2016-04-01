@@ -16,10 +16,9 @@ struct dispatcher {
 
   future req(msg_ptr const& req, ctx_data const& data, ctx::op_id id) {
     try {
-      auto target = req->get()->destination()->target()->str();
-      auto& op = registry_.operations_.at(target);
-      id.name = op.name_.c_str();
-      return scheduler_.post(data, std::bind(op.fn_, req), id);
+      id.name = req->get()->destination()->target()->str();
+      return scheduler_.post(
+          data, std::bind(registry_.operations_.at(id.name), req), id);
     } catch (std::out_of_range const&) {
       throw boost::system::system_error(error::target_not_found);
     }

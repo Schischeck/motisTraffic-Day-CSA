@@ -5,6 +5,7 @@
 #include "motis/module/dispatcher.h"
 #include "motis/module/message.h"
 #include "motis/module/motis_call.h"
+#include "motis/module/controller.h"
 
 using namespace motis;
 using namespace motis::module;
@@ -36,7 +37,7 @@ auto guess = [](msg_ptr const&) {
       MsgContent_StationGuesserResponse,
       motis::guesser::CreateStationGuesserResponse(
           b, b.CreateVector(
-                 std::vector<flatbuffers::Offset<motis::guesser::Station>>(
+                 std::vector<flatbuffers::Offset<motis::guesser::Station> >(
                      {motis::guesser::CreateStation(
                          b, b.CreateString("Darmstadt Hbf"),
                          b.CreateString("8600068"), 0, 0)})))
@@ -58,28 +59,17 @@ auto route = [](msg_ptr const&) -> msg_ptr {
       motis::routing::CreateRoutingResponse(
           b, 0,
           b.CreateVector(
-              std::vector<flatbuffers::Offset<motis::routing::Connection>>()))
+              std::vector<flatbuffers::Offset<motis::routing::Connection> >()))
           .Union());
   return make_msg(b);
 };
 
 TEST(module_op, launch) {
-  boost::asio::io_service ios;
-  registry r;
-  dispatcher d(ios, r);
+  controller c;
+  c.register_op("/guesser", guess);
+  c.register_op("/routing", route);
 
-  r.register_op("/guesser", guess);
-  r.register_op("/routing", route);
-
-  msg_ptr result;
-
-  d.scheduler_.enqueue(
-      ctx_data(&d, std::make_shared<snapshot>(),
-               std::make_shared<std::map<std::string, std::string>>()),
-      [&]() { result = motis_call(make_msg(query))->val(); },
-      ctx::op_id(CTX_LOCATION));
-
-  ios.run();
+  auto result = c.run([]() { return motis_call(make_msg(query))->val(); });
 
   ASSERT_TRUE(result);
   ASSERT_EQ(MsgContent_RoutingResponse, result->content_type());
