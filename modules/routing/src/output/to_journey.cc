@@ -2,17 +2,12 @@
 
 #include <string>
 
-#include "boost/lexical_cast.hpp"
-
+#include "motis/core/access/service_access.h"
 #include "motis/routing/output/interval_map.h"
 
 namespace motis {
 namespace routing {
 namespace output {
-
-int output_train_nr(uint32_t const& train_nr, uint32_t original_train_nr) {
-  return train_nr <= kMaxValidTrainNr ? train_nr : original_train_nr;
-}
 
 journey::transport generate_journey_transport(
     unsigned int from, unsigned int to, connection_info const* con_info,
@@ -32,7 +27,6 @@ journey::transport generate_journey_transport(
     type = journey::transport::Walk;
   } else {
     type = journey::transport::PublicTransport;
-    std::string print_train_nr;
 
     cat_id = con_info->family;
     cat_name = sched.categories[con_info->family]->name;
@@ -43,13 +37,6 @@ journey::transport generate_journey_transport(
     line_identifier = con_info->line_identifier;
 
     train_nr = output_train_nr(con_info->train_nr, con_info->original_train_nr);
-    if (train_nr != 0) {
-      print_train_nr = boost::lexical_cast<std::string>(train_nr);
-    } else if (train_nr == 0 && !line_identifier.empty()) {
-      print_train_nr = line_identifier;
-    } else {
-      print_train_nr = "";
-    }
 
     if (con_info->dir_ != nullptr) {
       direction = *con_info->dir_;
@@ -59,41 +46,7 @@ journey::transport generate_journey_transport(
       provider = con_info->provider_->full_name;
     }
 
-    switch (sched.categories[con_info->family]->output_rule) {
-      case category::CATEGORY_AND_TRAIN_NUM:
-        name = cat_name + " " + print_train_nr;
-        break;
-
-      case category::CATEGORY: name = cat_name; break;
-
-      case category::TRAIN_NUM: name = print_train_nr; break;
-
-      case category::NOTHING: break;
-
-      case category::PROVIDER_AND_TRAIN_NUM:
-        if (con_info->provider_ != nullptr) {
-          name = con_info->provider_->short_name + " ";
-        }
-        name += print_train_nr;
-        break;
-
-      case category::PROVIDER:
-        if (con_info->provider_ != nullptr) {
-          name = con_info->provider_->short_name;
-        }
-        break;
-
-      case category::LINE:
-        if (!line_identifier.empty()) {
-          name = line_identifier;
-          break;
-        }
-      // fall-through
-
-      case category::CATEGORY_AND_LINE:
-        name = cat_name + " " + line_identifier;
-        break;
-    }
+    name = get_service_name(sched, con_info);
   }
 
   return {from,     to,       type /* TODO: mumo */,

@@ -11,6 +11,10 @@ table StationEvent {
 
   time: ulong;
   schedule_time: ulong;
+
+  direction: string;
+  service_name: string;
+  track: string;
 }
 
 table LookupStationEventsResponse {
