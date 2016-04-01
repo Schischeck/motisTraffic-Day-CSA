@@ -41,7 +41,6 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       continue;
     }
 
-    dispatcher::modules_.push_back(module.get());
     add_module(module.get());
 
     try {
@@ -56,16 +55,7 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
-
-  for (auto module : dispatcher::modules_) {
-    module->init_async();
-  }
-
-  ios_->run();
-  ios_->reset();
 }
-
-void motis_instance::run() { thread_pool_.run(); }
 
 }  // namespace bootstrap
 }  // namespace motis

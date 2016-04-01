@@ -28,8 +28,6 @@ struct motis_instance : public motis::module::controller {
   void init_schedule(motis::loader::loader_options const& dataset_opt);
   void init_modules(std::vector<std::string> const& modules);
 
-  void run();
-
   schedule_ptr schedule_;
   std::vector<std::unique_ptr<motis::module::module>> modules_;
 };

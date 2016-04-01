@@ -2,7 +2,6 @@
 
 #include <map>
 
-#include "motis/module/container.h"
 #include "motis/module/message.h"
 
 namespace motis {
@@ -16,7 +15,6 @@ struct registry {
   }
 
   std::map<std::string, std::function<msg_ptr(msg_ptr const&)>> operations_;
-  snapshot containers_;
 };
 
 }  // namespace module

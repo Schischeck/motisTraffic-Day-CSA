@@ -2,8 +2,6 @@
 
 #include "ctx/ctx.h"
 
-#include "motis/module/container.h"
-
 namespace motis {
 namespace module {
 
@@ -12,13 +10,10 @@ struct dispatcher;
 using env_table = std::shared_ptr<std::map<std::string, std::string>>;
 
 struct ctx_data {
-  ctx_data(dispatcher* d,
-           std::shared_ptr<snapshot> s = std::make_shared<snapshot>(),
-           env_table e = env_table())
-      : dispatcher_(d), snapshot_(std::move(s)), env_(std::move(e)) {}
+  ctx_data(dispatcher* d, env_table e = env_table())
+      : dispatcher_(d), env_(std::move(e)) {}
 
   dispatcher* dispatcher_;
-  std::shared_ptr<snapshot> snapshot_;
   env_table env_;
 
   void transition(ctx::transition, ctx::op_id, ctx::op_id) {}
