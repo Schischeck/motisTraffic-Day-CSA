@@ -12,6 +12,6 @@ namespace risml {
 
 std::vector<ris_message> parse_xmls(std::vector<parser::buffer>&& xml_strings);
 
-} // namespace risml
-} // namespace ris
-} // namespace motis
+}  // namespace risml
+}  // namespace ris
+}  // namespace motis

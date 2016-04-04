@@ -60,52 +60,34 @@ TEST(ris_connection_decision_message, message_1) {
   auto inner_msg =
       reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
-  auto from_id = inner_msg->fromTripId();
-  EXPECT_EQ(StationIdType_EVA, from_id->base()->stationIdType());
-  EXPECT_STREQ("8002553", from_id->base()->stationId()->c_str());
-
-  EXPECT_EQ(75, from_id->base()->trainIndex());
-  EXPECT_STREQ("", from_id->base()->lineId()->c_str());
-  EXPECT_EQ(EventType_Departure, from_id->base()->type());
-  EXPECT_EQ(1444205340, from_id->base()->scheduledTime());
-
-  EXPECT_EQ(StationIdType_EVA, from_id->targetStationIdType());
-  EXPECT_STREQ("8503000", from_id->targetStationId()->c_str());
-  EXPECT_EQ(1444233600, from_id->targetScheduledTime());
+  auto from_id = inner_msg->from_trip_id();
+  EXPECT_STREQ("8002553", from_id->station_id()->c_str());
+  EXPECT_EQ(75, from_id->service_num());
+  EXPECT_EQ(1444205340, from_id->schedule_time());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_STREQ("8000107", from->stationId()->c_str());
-  EXPECT_EQ(75, from->trainIndex());
-  EXPECT_STREQ("", from->lineId()->c_str());
-  EXPECT_EQ(1444227000, from->scheduledTime());
+  EXPECT_STREQ("8000107", from->station_id()->c_str());
+  EXPECT_EQ(75, from->service_num());
+  EXPECT_STREQ("", from->line_id()->c_str());
+  EXPECT_EQ(1444227000, from->schedule_time());
   EXPECT_EQ(EventType_Arrival, from->type());
 
   auto to = inner_msg->to();
   ASSERT_EQ(1, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_STREQ("", e0->base()->stationId()->c_str());
-  EXPECT_EQ(87488, e0->base()->trainIndex());
-  EXPECT_STREQ("", e0->base()->lineId()->c_str());
-  EXPECT_EQ(1444229100, e0->base()->scheduledTime());
+  EXPECT_STREQ("", e0->base()->station_id()->c_str());
+  EXPECT_EQ(87488, e0->base()->service_num());
+  EXPECT_STREQ("", e0->base()->line_id()->c_str());
+  EXPECT_EQ(1444229100, e0->base()->schedule_time());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(false, e0->hold());
 
-  auto e0_id = e0->tripId();
-  EXPECT_EQ(StationIdType_EVA, e0_id->base()->stationIdType());
-  EXPECT_STREQ("8000107", e0_id->base()->stationId()->c_str());
-
-  EXPECT_EQ(87488, e0_id->base()->trainIndex());
-  EXPECT_STREQ("", e0_id->base()->lineId()->c_str());
-  EXPECT_EQ(EventType_Departure, e0_id->base()->type());
-  EXPECT_EQ(1444229100, e0_id->base()->scheduledTime());
-
-  EXPECT_EQ(StationIdType_EVA, e0_id->targetStationIdType());
-  EXPECT_STREQ("8700031", e0_id->targetStationId()->c_str());
-  EXPECT_EQ(1444231800, e0_id->targetScheduledTime());
+  auto e0_id = e0->trip_id();
+  EXPECT_STREQ("8000107", e0_id->station_id()->c_str());
+  EXPECT_EQ(87488, e0_id->service_num());
+  EXPECT_EQ(1444229100, e0_id->schedule_time());
 }
 
 // clang-format off
@@ -161,22 +143,20 @@ TEST(ris_connection_decision_message, message_2) {
       reinterpret_cast<ConnectionDecisionMessage const*>(outer_msg->content());
 
   auto from = inner_msg->from();
-  EXPECT_EQ(StationIdType_EVA, from->stationIdType());
-  EXPECT_STREQ("8000284", from->stationId()->c_str());
-  EXPECT_EQ(1004, from->trainIndex());
-  EXPECT_STREQ("1337", from->lineId()->c_str());
-  EXPECT_EQ(1444228080, from->scheduledTime());
+  EXPECT_STREQ("8000284", from->station_id()->c_str());
+  EXPECT_EQ(1004, from->service_num());
+  EXPECT_STREQ("1337", from->line_id()->c_str());
+  EXPECT_EQ(1444228080, from->schedule_time());
   EXPECT_EQ(EventType_Arrival, from->type());
 
   auto to = inner_msg->to();
   ASSERT_EQ(1, to->size());
 
   auto e0 = to->Get(0);
-  EXPECT_EQ(StationIdType_Context, e0->base()->stationIdType());
-  EXPECT_STREQ("", e0->base()->stationId()->c_str());
-  EXPECT_EQ(584, e0->base()->trainIndex());
-  EXPECT_STREQ("FOO", e0->base()->lineId()->c_str());
-  EXPECT_EQ(1444228440, e0->base()->scheduledTime());
+  EXPECT_STREQ("", e0->base()->station_id()->c_str());
+  EXPECT_EQ(584, e0->base()->service_num());
+  EXPECT_STREQ("FOO", e0->base()->line_id()->c_str());
+  EXPECT_EQ(1444228440, e0->base()->schedule_time());
   EXPECT_EQ(EventType_Departure, e0->base()->type());
 
   EXPECT_EQ(true, e0->hold());

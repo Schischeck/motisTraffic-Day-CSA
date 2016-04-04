@@ -4,56 +4,51 @@ namespace motis.ris;
 // Common
 // ----------------------------------------------------------------------------
 enum EventType : bool {Arrival, Departure}
-enum StationIdType : byte {Context, EVA, DS100}
 table Event {
-  // if stationIdType is Context, station Id is not set
-  stationIdType: StationIdType;
-  stationId: string; // optional
-  
-  trainIndex: uint;
-  lineId: string;
+  station_id: string;
+  service_num: uint;
+  line_id: string;
   type: EventType;
-  scheduledTime: ulong;
+  schedule_time: ulong;
 }
 
 enum TripType : bool {Schedule, Additional}
 table TripId {
-  base: Event;
-  tripType: TripType;
+  station_id: string;
+  service_num: uint;
+  schedule_time: ulong;
 
-  targetStationIdType: StationIdType;
-  targetStationId: string;
-  targetScheduledTime: ulong;
+  trip_type: TripType;
 }
 
 // ----------------------------------------------------------------------------
 // Train centered Messages
 // ----------------------------------------------------------------------------
 table CancelMessage {
-  tripId: TripId;
+  trip_id: TripId;
   events: [Event] (required);
 }
 
 table UpdatedEvent {
   base: Event;
-  updatedTime: ulong;
+  updated_time: ulong;
 }
 
 enum DelayType : bool {Is, Forecast} // Ist and IstProg
 table DelayMessage {
-  tripId: TripId;
+  trip_id: TripId;
   type: DelayType;
   events: [UpdatedEvent] (required);
 }
 
 table AdditionalEvent {
   base: Event;
-  trainCategory: string (required);
+  category: string (required);
   track: string;  // optional
 }
 
 table AdditionMessage {
-  tripId: TripId;
+  trip_id: TripId;
   events: [AdditionalEvent];
 }
 
@@ -64,34 +59,34 @@ table ReroutedEvent {
 }
 
 table RerouteMessage {
-  tripId: TripId;
-  cancelledEvents: [Event] (required);
-  newEvents: [ReroutedEvent] (required);
+  trip_id: TripId;
+  cancelled_events: [Event] (required);
+  new_events: [ReroutedEvent] (required);
 }
 
 // ----------------------------------------------------------------------------
 // Connection Event Messages
 // ----------------------------------------------------------------------------
 table ConnectionDecision {
-  tripId: TripId;
+  trip_id: TripId;
   base: Event (required);
   hold: bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
-  fromTripId: TripId;
+  from_trip_id: TripId;
   from: Event (required);
   to: [ConnectionDecision] (required);
 }
 
 table ConnectionAssessment {
-  tripId: TripId;
+  trip_id: TripId;
   base: Event (required);
   assessment: int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
-  fromTripId: TripId;
+  from_trip_id: TripId;
   from: Event (required);
   to: [ConnectionAssessment] (required);
 }

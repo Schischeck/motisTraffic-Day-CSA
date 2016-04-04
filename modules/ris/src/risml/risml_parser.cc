@@ -12,6 +12,10 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/ris/risml/common.h"
+#include "motis/ris/risml/parse_event.h"
+#include "motis/ris/risml/parse_station.h"
+#include "motis/ris/risml/parse_time.h"
+#include "motis/ris/risml/parse_type.h"
 
 using namespace std::placeholders;
 using namespace flatbuffers;
@@ -22,6 +26,53 @@ using namespace motis::logging;
 namespace motis {
 namespace ris {
 namespace risml {
+
+template <typename F>
+void inline foreach_event(
+    context& ctx, xml_node const& msg, F func,
+    char const* train_selector = "./Service/ListZug/Zug") {
+  for (auto const& train : msg.select_nodes(train_selector)) {
+    auto const& t_node = train.node();
+    auto service_num = t_node.attribute("Nr").as_uint();
+    auto line_id = t_node.attribute("Linie").value();
+    auto line_id_offset = ctx.b.CreateString(line_id);
+
+    for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
+      auto const& e_node = train_event.node();
+      auto event_type = parse_type(e_node.attribute("Typ").value());
+      if (event_type == boost::none) {
+        continue;
+      }
+
+      auto station_id = parse_station(ctx.b, e_node);
+      auto schedule_time =
+          parse_schedule_time(ctx, child_attr(e_node, "Zeit", "Soll").value());
+
+      auto event = CreateEvent(ctx.b, station_id, service_num, line_id_offset,
+                               *event_type, schedule_time);
+      func(event, e_node, t_node);
+    }
+  }
+}
+
+Offset<TripId> inline parse_trip_id(
+    context& ctx, xml_node const& msg,
+    char const* service_selector = "./Service") {
+  auto const& node = msg.select_node(service_selector).node();
+
+  auto station_id = parse_station(ctx.b, node, "IdBfEvaNr");
+  auto service_num = node.attribute("IdZNr").as_uint();
+  auto schedule_time =
+      parse_schedule_time(ctx, node.attribute("IdZeit").value());
+
+  std::string reg_sta(node.attribute("RegSta").value());
+  auto trip_type = (reg_sta == "" || reg_sta == "Plan") ? TripType_Schedule
+                                                        : TripType_Additional;
+  // desired side-effect: update temporal bounds
+  parse_schedule_time(ctx, node.attribute("Zielzeit").value());
+
+  return CreateTripId(ctx.b, station_id, service_num, schedule_time, trip_type);
+}
 
 using parser_func_t = std::function<Offset<Message>(context&, xml_node const&)>;
 

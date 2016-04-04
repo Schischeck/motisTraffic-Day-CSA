@@ -12,7 +12,7 @@ namespace handler {
 
 void handle_delay(context& ctx, DelayMessage const* msg) {
   ctx.stats.delay.inc();
-  auto trip = get_trip(ctx.sched, msg->tripId(), ctx.stats.delay);
+  get_trip(ctx.sched, msg->trip_id(), ctx.stats.delay);
 }
 
 }  // namespace handler

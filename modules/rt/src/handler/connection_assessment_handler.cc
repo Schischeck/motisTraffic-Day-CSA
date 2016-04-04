@@ -14,10 +14,10 @@ void handle_connection_assessment(context& ctx,
                                   ConnectionAssessmentMessage const* msg) {
   ctx.stats.assessment.inc();
 
-  auto trip = get_trip(ctx.sched, msg->fromTripId(), ctx.stats.assessment);
+  get_trip(ctx.sched, msg->from_trip_id(), ctx.stats.assessment);
 
   for (auto const& to : *msg->to()) {
-    auto trip2 = get_trip(ctx.sched, to->tripId(), ctx.stats.assessment);
+    get_trip(ctx.sched, to->trip_id(), ctx.stats.assessment);
   }
 }
 

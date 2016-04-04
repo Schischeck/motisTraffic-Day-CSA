@@ -8,7 +8,11 @@ namespace motis {
 namespace ris {
 namespace risml {
 
-std::time_t parse_time(parser::cstr const& raw);
+struct context;
+
+std::time_t parse_time(parser::cstr const&);
+
+std::time_t parse_schedule_time(context&, parser::cstr const&);
 
 }  // risml
 }  // namespace ris

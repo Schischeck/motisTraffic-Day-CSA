@@ -56,55 +56,44 @@ TEST(ris_reroute_message, message_1) {
   auto inner_msg =
       reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
-  auto id = inner_msg->tripId();
-  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
-  EXPECT_STREQ("8000156", id->base()->stationId()->c_str());
+  auto id = inner_msg->trip_id();
+  EXPECT_STREQ("8000156", id->station_id()->c_str());
+  EXPECT_EQ(2318, id->service_num());
+  EXPECT_EQ(1444321500, id->schedule_time());
 
-  EXPECT_EQ(2318, id->base()->trainIndex());
-  EXPECT_STREQ("", id->base()->lineId()->c_str());
-  EXPECT_EQ(EventType_Departure, id->base()->type());
-  EXPECT_EQ(1444321500, id->base()->scheduledTime());
-
-  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
-  EXPECT_STREQ("8000080", id->targetStationId()->c_str());
-  EXPECT_EQ(1444335660, id->targetScheduledTime());
-
-  auto cancelled_events = inner_msg->cancelledEvents();
+  auto cancelled_events = inner_msg->cancelled_events();
   ASSERT_EQ(4, cancelled_events->size());
 
   auto ce0 = cancelled_events->Get(0);
-  EXPECT_EQ(StationIdType_EVA, ce0->stationIdType());
-  EXPECT_STREQ("8000098", ce0->stationId()->c_str());
-  EXPECT_EQ(2318, ce0->trainIndex());
-  EXPECT_STREQ("", ce0->lineId()->c_str());
-  EXPECT_EQ(1444334220, ce0->scheduledTime());
+  EXPECT_STREQ("8000098", ce0->station_id()->c_str());
+  EXPECT_EQ(2318, ce0->service_num());
+  EXPECT_STREQ("", ce0->line_id()->c_str());
+  EXPECT_EQ(1444334220, ce0->schedule_time());
   EXPECT_EQ(EventType_Arrival, ce0->type());
 
-  auto new_events = inner_msg->newEvents();
+  auto new_events = inner_msg->new_events();
   ASSERT_EQ(2, new_events->size());
 
   auto ne0 = new_events->Get(0);
-  EXPECT_EQ(StationIdType_EVA, ne0->base()->base()->stationIdType());
-  EXPECT_STREQ("8000118", ne0->base()->base()->stationId()->c_str());
-  EXPECT_EQ(2318, ne0->base()->base()->trainIndex());
-  EXPECT_STREQ("", ne0->base()->base()->lineId()->c_str());
-  EXPECT_EQ(1444334340, ne0->base()->base()->scheduledTime());
+  EXPECT_STREQ("8000118", ne0->base()->base()->station_id()->c_str());
+  EXPECT_EQ(2318, ne0->base()->base()->service_num());
+  EXPECT_STREQ("", ne0->base()->base()->line_id()->c_str());
+  EXPECT_EQ(1444334340, ne0->base()->base()->schedule_time());
   EXPECT_EQ(EventType_Arrival, ne0->base()->base()->type());
 
-  EXPECT_STREQ("IC", ne0->base()->trainCategory()->c_str());
+  EXPECT_STREQ("IC", ne0->base()->category()->c_str());
   EXPECT_STREQ("6", ne0->base()->track()->c_str());
 
   EXPECT_EQ(RerouteStatus_UmlNeu, ne0->status());
 
   auto ne1 = new_events->Get(1);
-  EXPECT_EQ(StationIdType_EVA, ne1->base()->base()->stationIdType());
-  EXPECT_STREQ("8000118", ne1->base()->base()->stationId()->c_str());
-  EXPECT_EQ(2318, ne1->base()->base()->trainIndex());
-  EXPECT_STREQ("", ne1->base()->base()->lineId()->c_str());
-  EXPECT_EQ(1444334460, ne1->base()->base()->scheduledTime());
+  EXPECT_STREQ("8000118", ne1->base()->base()->station_id()->c_str());
+  EXPECT_EQ(2318, ne1->base()->base()->service_num());
+  EXPECT_STREQ("", ne1->base()->base()->line_id()->c_str());
+  EXPECT_EQ(1444334460, ne1->base()->base()->schedule_time());
   EXPECT_EQ(EventType_Departure, ne1->base()->base()->type());
 
-  EXPECT_STREQ("IC", ne1->base()->trainCategory()->c_str());
+  EXPECT_STREQ("IC", ne1->base()->category()->c_str());
   EXPECT_STREQ("6", ne1->base()->track()->c_str());
 
   EXPECT_EQ(RerouteStatus_UmlNeu, ne1->status());
@@ -159,17 +148,17 @@ TEST(ris_reroute_message, message_only_new) {
   auto inner_msg =
       reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
-  auto cancelled_events = inner_msg->cancelledEvents();
+  auto cancelled_events = inner_msg->cancelled_events();
   ASSERT_EQ(0, cancelled_events->size());
 
-  auto new_events = inner_msg->newEvents();
+  auto new_events = inner_msg->new_events();
   ASSERT_EQ(2, new_events->size());
 
   auto ne0 = new_events->Get(0);
-  EXPECT_STREQ("2", ne0->base()->base()->lineId()->c_str());
+  EXPECT_STREQ("2", ne0->base()->base()->line_id()->c_str());
 
   auto ne1 = new_events->Get(1);
-  EXPECT_STREQ("2", ne1->base()->base()->lineId()->c_str());
+  EXPECT_STREQ("2", ne1->base()->base()->line_id()->c_str());
 }
 
 // clang-format off
@@ -221,16 +210,16 @@ TEST(ris_reroute_message, message_only_cancel) {
   auto inner_msg =
       reinterpret_cast<RerouteMessage const*>(outer_msg->content());
 
-  auto cancelled_events = inner_msg->cancelledEvents();
+  auto cancelled_events = inner_msg->cancelled_events();
   ASSERT_EQ(2, cancelled_events->size());
 
   auto ce0 = cancelled_events->Get(0);
-  EXPECT_STREQ("2", ce0->lineId()->c_str());
+  EXPECT_STREQ("2", ce0->line_id()->c_str());
 
   auto ce1 = cancelled_events->Get(1);
-  EXPECT_STREQ("2", ce1->lineId()->c_str());
+  EXPECT_STREQ("2", ce1->line_id()->c_str());
 
-  auto new_events = inner_msg->newEvents();
+  auto new_events = inner_msg->new_events();
   ASSERT_EQ(0, new_events->size());
 }
 
