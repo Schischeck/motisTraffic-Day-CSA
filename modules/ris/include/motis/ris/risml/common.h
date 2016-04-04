@@ -6,11 +6,9 @@
 
 #include "pugixml.hpp"
 
-#include "parser/arg_parser.h"
-#include "parser/cstr.h"
-
 #include "motis/ris/risml/context.h"
 #include "motis/ris/risml/parse_station.h"
+#include "motis/ris/risml/parse_time.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 
@@ -21,27 +19,6 @@ using namespace parser;
 namespace motis {
 namespace ris {
 namespace risml {
-
-std::time_t inline parse_time(cstr const& raw) {
-  // format YYYYMMDDhhmmssfff (fff = millis)
-  if (raw.length() < 14) {
-    throw std::runtime_error("bad time format (length < 14)");
-  }
-
-  std::tm time_struct;
-  time_struct.tm_year = parse<int>(raw.substr(0, size(4))) - 1900;
-  time_struct.tm_mon = parse<int>(raw.substr(4, size(2))) - 1;
-  time_struct.tm_mday = parse<int>(raw.substr(6, size(2)));
-
-  time_struct.tm_hour = parse<int>(raw.substr(8, size(2)));
-  time_struct.tm_min = parse<int>(raw.substr(10, size(2)));
-  time_struct.tm_sec = parse<int>(raw.substr(12, size(2)));
-  time_struct.tm_wday = -1;
-  time_struct.tm_yday = -1;
-  time_struct.tm_isdst = -1;
-
-  return std::mktime(&time_struct);
-}
 
 std::time_t inline parse_schedule_time(context& ctx, cstr const& raw) {
   auto t = parse_time(raw);

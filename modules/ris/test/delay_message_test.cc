@@ -202,13 +202,13 @@ TEST(ris_delay_message, ist_message_3) {
 // clang-format off
 std::string type_fixture(std::string type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket TOut=\"12345678901234\"><ListNachricht><Nachricht>\
+<Paket TOut=\"20151116180000\"><ListNachricht><Nachricht>\
 <Ist><Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
 IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
 ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
 IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
 <ListZug><Zug><ListZE><ZE Typ=\"") + type_string + "\" >\
-<Bf/><Zeit Soll=\"12345678901234\" Ist=\"12345678901234\"/></ZE></ListZE>\
+<Bf/><Zeit Soll=\"20151116180000\" Ist=\"20151116180000\"/></ZE></ListZE>\
 </Zug></ListZug></Service></Ist><ListQuelle>\
 </ListQuelle></Nachricht></ListNachricht></Paket>";
 }
