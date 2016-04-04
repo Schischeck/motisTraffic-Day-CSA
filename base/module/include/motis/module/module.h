@@ -19,8 +19,13 @@ namespace module {
 struct module : public conf::configuration {
   virtual ~module() {}
 
+  void set_context(motis::schedule& schedule, boost::asio::io_service& ios) {
+    schedule_ = &schedule;
+    ios_ = &ios;
+  }
+
   virtual std::string name() const = 0;
-  virtual void init(registry& reg) {}
+  virtual void init(registry&) {}
 
 protected:
   template <schedule_access A>
@@ -30,6 +35,7 @@ protected:
 
 private:
   motis::schedule* schedule_;
+  boost::asio::io_service* ios_;
 };
 
 }  // namespace module

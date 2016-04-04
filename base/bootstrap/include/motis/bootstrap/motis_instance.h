@@ -8,7 +8,7 @@
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/module/module.h"
-#include "motis/module/dispatcher.h"
+#include "motis/module/controller.h"
 #include "motis/loader/loader_options.h"
 #include "modules.h"
 

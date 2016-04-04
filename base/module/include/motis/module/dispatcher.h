@@ -14,11 +14,11 @@ struct dispatcher {
   dispatcher(boost::asio::io_service& ios, registry const& reg)
       : scheduler_(ios), registry_(reg) {}
 
-  future req(msg_ptr const& req, ctx_data const& data, ctx::op_id id) {
+  future req(msg_ptr const& msg, ctx_data const& data, ctx::op_id id) {
     try {
-      id.name = req->get()->destination()->target()->str();
+      id.name = msg->get()->destination()->target()->str();
       return scheduler_.post(
-          data, std::bind(registry_.operations_.at(id.name), req), id);
+          data, std::bind(registry_.operations_.at(id.name), msg), id);
     } catch (std::out_of_range const&) {
       throw boost::system::system_error(error::target_not_found);
     }

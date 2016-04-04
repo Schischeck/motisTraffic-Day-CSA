@@ -42,7 +42,7 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
     }
 
     try {
-      module->schedule_ = schedule_.get();
+      module->set_context(*schedule_, ios_);
     } catch (std::exception const& e) {
       LOG(emrg) << "module " << module->name()
                 << ": unhandled init error: " << e.what();

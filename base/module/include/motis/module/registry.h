@@ -8,13 +8,15 @@ namespace motis {
 namespace module {
 
 struct registry {
-  void register_op(std::string name, std::function<msg_ptr(msg_ptr)> fn) {
+  using op = std::function<msg_ptr(msg_ptr const&)>;
+
+  void register_op(std::string const& name, op fn) {
     if (!operations_.emplace(name, std::move(fn)).second) {
       throw std::runtime_error("target already registered");
     }
   }
 
-  std::map<std::string, std::function<msg_ptr(msg_ptr const&)>> operations_;
+  std::map<std::string, op> operations_;
 };
 
 }  // namespace module
