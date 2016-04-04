@@ -1,51 +1,31 @@
 #pragma once
 
-#include <map>
+#include "ctx/ctx.h"
 
-#include "boost/asio/io_service.hpp"
-
-#include "motis/module/module.h"
-#include "motis/module/receiver.h"
-#include "motis/module/callbacks.h"
+#include "motis/module/registry.h"
+#include "motis/module/ctx_data.h"
+#include "motis/module/future.h"
+#include "motis/module/error.h"
 
 namespace motis {
 namespace module {
 
-struct dispatcher : public receiver {
-  struct held_back_msg {
-    msg_ptr msg;
-    sid session;
-    callback cb;
-  };
+struct dispatcher {
+  dispatcher(boost::asio::io_service& ios, registry const& reg)
+      : scheduler_(ios), registry_(reg) {}
 
-  dispatcher(boost::asio::io_service* ios);
+  future req(msg_ptr const& msg, ctx_data const& data, ctx::op_id id) {
+    try {
+      id.name = msg->get()->destination()->target()->str();
+      return scheduler_.post(
+          data, std::bind(registry_.operations_.at(id.name), msg), id);
+    } catch (std::out_of_range const&) {
+      throw boost::system::system_error(error::target_not_found);
+    }
+  }
 
-  dispatcher(dispatcher const&) = delete;
-  dispatcher(dispatcher&&) = delete;
-
-  dispatcher& operator=(dispatcher const&) = delete;
-  dispatcher& operator=(dispatcher&&) = delete;
-
-  void set_io_service(boost::asio::io_service*);
-  void set_send_fun(send_fun);
-  void send(msg_ptr msg, sid session);
-
-  void on_msg(msg_ptr msg, sid session, callback cb) override;
-  void on_open(sid session) override;
-  void on_close(sid session) override;
-
-  void remove_module(module* m);
-  void add_module(module* m);
-
-  void on_msg_finish(module* m, callback cb, msg_ptr res,
-                     boost::system::error_code ec);
-  void reschedule_held_back_msgs();
-
-  boost::asio::io_service* ios_;
-  send_fun send_fun_;
-  std::vector<module*> modules_;
-  std::map<MsgContent, std::vector<module*>> subscriptions_;
-  std::vector<held_back_msg> held_back_msgs_;
+  ctx::scheduler<ctx_data> scheduler_;
+  registry const& registry_;
 };
 
 }  // namespace module

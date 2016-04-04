@@ -108,10 +108,37 @@ union MsgContent {
   motis.realtime.RealtimeDelayInfoRequest,
   motis.realtime.RealtimeDelayInfoResponse,
   motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse,
+  motis.routing.RoutingResponse
+}
+
+// Destination Examples:
+//
+// Request departure+arrival table for a station
+// {
+//   "type": "Module",
+//   "target": "/lookup/station/8000068/2016-03-02T16:47",
+// }
+//
+// Store a user connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection",
+// }
+//
+// Get alternatives for stored connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection/123456/alternatives",
+// }
+enum DestinationType : byte { Module, Topic }
+
+table Destination {
+  type: DestinationType;
+  target: string;
 }
 
 table Message {
+  destination: Destination;
   content:MsgContent;
   id:int = 0;
 }
