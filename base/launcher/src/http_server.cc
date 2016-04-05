@@ -52,7 +52,7 @@ struct http_server::impl {
           content_type_header_it->value.find("application/json") !=
               std::string::npos) {
         return receiver_.on_msg(
-            make_msg(req.content), 0,
+            make_msg(req.content),
             std::bind(&impl::on_response, this, cb, p::_1, p::_2));
       } else {
         MessageCreator fbb;
@@ -70,7 +70,7 @@ struct http_server::impl {
                               fbb.CreateString(req.content))
                 .Union());
         return receiver_.on_msg(
-            make_msg(fbb), 0,
+            make_msg(fbb),
             std::bind(&impl::on_response, this, cb, p::_1, p::_2));
       }
     } catch (boost::system::system_error const& e) {

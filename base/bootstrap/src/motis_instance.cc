@@ -19,7 +19,8 @@ namespace p = std::placeholders;
 namespace motis {
 namespace bootstrap {
 
-motis_instance::motis_instance() : modules_(build_modules()) {}
+motis_instance::motis_instance(boost::asio::io_service& ios)
+    : controller(ios), modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {
   std::vector<motis::module::module*> m;
@@ -43,6 +44,7 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
 
     try {
       module->set_context(*schedule_, ios_);
+      module->init(registry_);
     } catch (std::exception const& e) {
       LOG(emrg) << "module " << module->name()
                 << ": unhandled init error: " << e.what();
