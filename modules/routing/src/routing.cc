@@ -34,7 +34,7 @@ std::vector<arrival> get_arrivals(
   for (auto const& el : *path) {
     std::string station_id;
 
-    if (el->eva_nr() != 0) {
+    if (el->eva_nr()->Length() != 0) {
       station_id = el->eva_nr()->str();
     } else {
       MessageCreator b;
@@ -77,7 +77,12 @@ po::options_description routing::desc() {
   return desc;
 }
 
+void routing::print(std::ostream& out) const {
+  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << label_bytes_;
+}
+
 void routing::init(motis::module::registry& reg) {
+  label_store_ = make_unique<memory_manager>(label_bytes_);
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 

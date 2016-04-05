@@ -24,6 +24,8 @@ using namespace motis::module;
 namespace motis {
 namespace launcher {
 
+using sid = unsigned;
+
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios, receiver& receiver)
       : receiver_(receiver), ios_(ios), next_sid_(0) {
@@ -87,7 +89,6 @@ struct ws_server::ws_server_impl {
   sid add_session(connection_hdl& hdl) {
     sid_con_map_.insert({next_sid_, hdl});
     con_sid_map_.insert({hdl, next_sid_});
-    receiver_.on_open((next_sid_));
     return next_sid_++;
   }
 
@@ -112,7 +113,6 @@ struct ws_server::ws_server_impl {
     }
 
     sid_con_map_.erase(sid_it);
-    receiver_.on_close(sid);
   }
 
   void on_msg(connection_hdl hdl, asio_ws_server::message_ptr msg,
@@ -142,17 +142,16 @@ struct ws_server::ws_server_impl {
     }
 
     try {
-      receiver_.on_msg(
-          req_msg, session,
-          [this, session, req_msg](msg_ptr res, boost::system::error_code ec) {
-            if (ec) {
-              send_error(ec, session, req_msg->id());
-            } else if (res) {
-              send(res, session, req_msg->id());
-            } else {
-              send_success(session, req_msg->id());
-            }
-          });
+      receiver_.on_msg(req_msg, [this, session, req_msg](
+                                    msg_ptr res, boost::system::error_code ec) {
+        if (ec) {
+          send_error(ec, session, req_msg->id());
+        } else if (res) {
+          send(res, session, req_msg->id());
+        } else {
+          send_success(session, req_msg->id());
+        }
+      });
     } catch (boost::system::system_error const& e) {
       send_error(e.code(), session, req_msg->id());
     } catch (...) {
