@@ -17,9 +17,10 @@ struct controller : public dispatcher, public registry {
   template <typename Fn>
   auto run(Fn f) -> decltype(f()) {
     decltype(f()) result;
-    scheduler_.enqueue(ctx_data(this), [&]() { result = f(); },
+    scheduler_.enqueue(ctx_data(this, sched_), [&]() { result = f(); },
                        ctx::op_id(CTX_LOCATION));
     ios_.run();
+    ios_.reset();
     return result;
   }
 

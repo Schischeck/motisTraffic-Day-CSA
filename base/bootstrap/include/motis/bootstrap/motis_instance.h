@@ -16,7 +16,7 @@ namespace motis {
 namespace bootstrap {
 
 struct motis_instance : public motis::module::controller {
-  motis_instance(boost::asio::io_service& ios);
+  motis_instance(boost::asio::io_service&);
 
   motis_instance(motis_instance const&) = delete;
   motis_instance(motis_instance&&) = delete;

@@ -3,6 +3,9 @@
 #include "ctx/ctx.h"
 
 namespace motis {
+
+struct schedule;
+
 namespace module {
 
 struct dispatcher;
@@ -10,10 +13,11 @@ struct dispatcher;
 using env_table = std::shared_ptr<std::map<std::string, std::string>>;
 
 struct ctx_data {
-  ctx_data(dispatcher* d, env_table e = env_table())
-      : dispatcher_(d), env_(std::move(e)) {}
+  ctx_data(dispatcher* d, schedule* sched, env_table e = env_table())
+      : dispatcher_(d), sched_(sched), env_(std::move(e)) {}
 
   dispatcher* dispatcher_;
+  schedule* sched_;
   env_table env_;
 
   void transition(ctx::transition, ctx::op_id, ctx::op_id) {}

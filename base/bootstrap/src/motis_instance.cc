@@ -33,6 +33,7 @@ std::vector<motis::module::module*> motis_instance::modules() const {
 void motis_instance::init_schedule(
     motis::loader::loader_options const& dataset_opt) {
   schedule_ = loader::load_schedule(dataset_opt);
+  sched_ = schedule_.get();
 }
 
 void motis_instance::init_modules(std::vector<std::string> const& modules) {

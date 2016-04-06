@@ -10,6 +10,7 @@
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/error.h"
 #include "motis/module/motis_call.h"
+#include "motis/module/get_schedule.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/search.h"
@@ -27,7 +28,6 @@ namespace motis {
 namespace routing {
 
 std::vector<arrival> get_arrivals(
-    schedule const& sched,
     fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
   std::vector<arrival> arrivals;
 
@@ -53,8 +53,8 @@ std::vector<arrival> get_arrivals(
       station_id = guesses->Get(0)->eva()->str();
     }
 
-    auto it = sched.eva_to_station.find(station_id);
-    if (it == end(sched.eva_to_station)) {
+    auto it = get_schedule().eva_to_station.find(station_id);
+    if (it == end(get_schedule().eva_to_station)) {
       throw boost::system::system_error(error::given_eva_not_available);
     }
     arrivals.push_back({arrival_part(it->second->index)});
@@ -88,19 +88,17 @@ void routing::init(motis::module::registry& reg) {
 
 msg_ptr routing::route(msg_ptr const& msg) {
   auto req = msg->content<RoutingRequest const*>();
-  auto lock = synced_sched<RO>();
-  auto const& sched = lock.sched();
-
   if (req->path()->Length() < 2) {
     throw boost::system::system_error(error::path_length_too_short);
   }
 
+  auto& sched = get_schedule();
   if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
       req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
     throw boost::system::system_error(error::journey_date_not_in_schedule);
   }
 
-  auto arrivals = get_arrivals(sched, req->path());
+  auto arrivals = get_arrivals(req->path());
 
   auto i_begin =
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
