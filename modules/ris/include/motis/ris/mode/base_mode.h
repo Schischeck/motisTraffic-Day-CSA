@@ -1,25 +1,32 @@
 #pragma once
 
 #include <set>
+#include <string>
 
-#include "motis/module/module.h"
+#include "motis/ris/database.h"
 
 namespace motis {
+namespace module {
+
+struct registry;
+
+} // namespace module
+
 namespace ris {
-struct ris;
+struct config;
 
 namespace mode {
 
 struct base_mode {  // hint: strategy pattern ;)
+  base_mode(config* conf) : conf_(conf) {}
+  virtual ~base_mode() = default;
 
-  base_mode(ris* module) : module_(module) {}
-
+  virtual void init(motis::module::registry&);
   virtual void init_async();
-  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
-                      motis::module::callback) = 0;
 
 protected:
-  ris* module_;
+  db_ptr db_;
+  config* conf_;
   std::set<std::string> read_files_;
 };
 

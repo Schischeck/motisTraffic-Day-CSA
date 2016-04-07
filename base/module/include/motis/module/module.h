@@ -6,7 +6,7 @@
 #include "boost/asio/io_service.hpp"
 #include "boost/asio/strand.hpp"
 
-#include "conf/configuration.h"
+#include "conf/simple_config.h"
 
 #include "motis/core/schedule/synced_schedule.h"
 
@@ -16,7 +16,12 @@
 namespace motis {
 namespace module {
 
-struct module : public conf::configuration {
+struct module : public conf::simple_config {
+
+  module() = default;
+  module(std::string const name, std::string const prefix)
+      : simple_config(name, prefix) {}
+
   virtual ~module() {}
 
   void set_context(motis::schedule& schedule, boost::asio::io_service& ios) {
