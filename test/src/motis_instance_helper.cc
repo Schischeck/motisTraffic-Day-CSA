@@ -15,19 +15,27 @@ using boost::system::error_code;
 namespace motis {
 namespace test {
 
-void test_instance::call(std::string const& t) {
-  MessageCreator fbb;
-  fbb.CreateAndFinish(MsgContent_MotisNoMessage,
-                      CreateMotisNoMessage(fbb).Union(), t);
-
+msg_ptr test_instance::call(msg_ptr const& msg) {
+  msg_ptr response;
   error_code ec;
-  motis->on_msg(make_msg(fbb), [&](msg_ptr, error_code e) { ec = e; });
-  ios.reset();
+  motis->on_msg(msg, [&](msg_ptr r, error_code e) {
+    response = r;
+    ec = e;
+  });
   ios.run();
+  ios.reset();
 
   if (ec) {
     throw boost::system::system_error(ec);
   }
+  return response;
+}
+
+msg_ptr test_instance::call(std::string const& t) {
+  MessageCreator fbb;
+  fbb.CreateAndFinish(MsgContent_MotisNoMessage,
+                      CreateMotisNoMessage(fbb).Union(), t);
+  return call(make_msg(fbb));
 }
 
 test_instance_ptr launch_motis(

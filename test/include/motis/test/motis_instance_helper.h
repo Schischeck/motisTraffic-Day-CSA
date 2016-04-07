@@ -18,7 +18,8 @@ struct test_instance {
     motis->subscribe(topic, std::forward<F>(fn));
   }
 
-  void call(std::string const& target);
+  motis::module::msg_ptr call(std::string const& target);
+  motis::module::msg_ptr call(motis::module::msg_ptr const& msg);
 
   boost::asio::io_service ios;
   std::unique_ptr<motis::bootstrap::motis_instance> motis;
@@ -30,6 +31,11 @@ test_instance_ptr launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
     std::vector<std::string> const& modules,
     std::vector<std::string> const& modules_cmdline_opt = {});
+
+inline std::function<void(motis::module::msg_ptr const&)> msg_sink(
+    std::vector<motis::module::msg_ptr>* vec) {
+  return [vec](motis::module::msg_ptr const& m) { vec->push_back(m); };
+}
 
 }  // namespace test
 }  // namespace motis

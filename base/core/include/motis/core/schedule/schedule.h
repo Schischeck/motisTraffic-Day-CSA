@@ -25,6 +25,7 @@ struct connection_info;
 
 struct schedule {
   schedule() {
+    system_time = 0;
     constexpr auto i = std::numeric_limits<int32_t>::max();
     constexpr auto iu = std::numeric_limits<uint32_t>::max();
 
@@ -66,6 +67,7 @@ struct schedule {
   std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges;
   std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips;
 
+  std::time_t system_time;
   std::vector<std::unique_ptr<delay_info>> delay_infos;
   hash_map<schedule_event, delay_info*> schedule_to_delay_info;
   hash_map<graph_event, delay_info*> graph_to_delay_info;

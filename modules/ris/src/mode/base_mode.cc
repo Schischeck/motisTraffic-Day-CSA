@@ -51,6 +51,10 @@ void base_mode::init_async() {
   }
 }
 
+void base_mode::forward(std::time_t const new_time) {
+
+}
+
 }  // namespace mode
 }  // namespace ris
 }  // namespace motis

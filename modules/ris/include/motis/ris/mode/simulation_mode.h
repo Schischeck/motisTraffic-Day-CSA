@@ -1,25 +1,35 @@
 #pragma once
 
-#include "motis/module/module.h"
+#include "motis/module/message.h"
+#include "motis/module/registry.h"
+#include "motis/ris/ris.h"
 #include "motis/ris/mode/base_mode.h"
 
 namespace motis {
 namespace ris {
 namespace mode {
 
-struct simulation_mode : public base_mode {
+struct simulation_mode final : public base_mode {
+  simulation_mode(config* conf) : base_mode(conf) {}
 
-  simulation_mode(ris* module) : base_mode(module), simulation_time_(0) {}
+  void init(motis::module::registry& r) override {
+    base_mode::init(r);
+    r.register_op("/ris/forward", [this](motis::module::msg_ptr const& msg) {
+      handle_forward_request(msg);
+    });
+  }
 
-  virtual void init_async() override;
-  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
-                      motis::module::callback) override;
+  void init_async() override {
+    base_mode::init_async();
+    forward(conf_->sim_init_time_);
+  }
 
-private:
-  void forward_time(std::time_t const, std::time_t const, std::time_t const,
-                    std::time_t const, motis::module::callback);
+  void handle_forward_request(motis::module::msg_ptr const& msg) {
+    // msg->ensure_type(MsgContent_RISForwardTimeRequest);
 
-  std::time_t simulation_time_;
+    auto req = msg->content<RISForwardTimeRequest const*>();
+    forward(req->new_time());
+  }
 };
 
 }  // namespace mode

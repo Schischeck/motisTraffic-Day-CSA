@@ -5,7 +5,7 @@
 #include "conf/simple_config_param.h"
 
 // #include "motis/ris/mode/live_mode.h"
-// #include "motis/ris/mode/simulation_mode.h"
+#include "motis/ris/mode/simulation_mode.h"
 #include "motis/ris/mode/test_mode.h"
 
 #define MODE_LIVE "live"
@@ -69,7 +69,7 @@ void ris::init(registry& r) {
       // active_mode_ = std::make_unique<live_mode>(conf_);
       break;
     case mode_t::SIMULATION:
-      // active_mode_ = std::make_unique<simulation_mode>(conf_);
+      active_mode_ = std::make_unique<simulation_mode>(&conf_);
       break;
     case mode_t::TEST:
       active_mode_ = std::make_unique<test_mode>(&conf_);

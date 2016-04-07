@@ -25,8 +25,11 @@ struct base_mode {  // hint: strategy pattern ;)
   virtual void init_async();
 
 protected:
+  void forward(std::time_t const);
+
   db_ptr db_;
   config* conf_;
+
   std::set<std::string> read_files_;
 };
 
