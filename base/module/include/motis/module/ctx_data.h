@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <map>
+#include <string>
+
 #include "ctx/ctx.h"
 
 namespace motis {

@@ -7,6 +7,7 @@ namespace motis {
 namespace module {
 
 namespace error {
+
 enum error_code_t {
   ok = 0,
 
@@ -16,6 +17,7 @@ enum error_code_t {
   unknown_error = 4,
   unexpected_message_type = 5
 };
+
 }  // namespace error
 
 class error_category_impl : public boost::system::error_category {
@@ -45,6 +47,7 @@ namespace error {
 inline boost::system::error_code make_error_code(error_code_t e) noexcept {
   return boost::system::error_code(static_cast<int>(e), error_category());
 }
+
 }  // namespace error
 
 }  // namespace module
