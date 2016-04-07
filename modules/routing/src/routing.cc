@@ -23,6 +23,7 @@ namespace po = boost::program_options;
 namespace fbs = flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
+using namespace motis::guesser;
 
 namespace motis {
 namespace routing {
@@ -44,9 +45,7 @@ std::vector<arrival> get_arrivals(
                             .Union(),
                         "/guesser");
       auto msg = motis_call(make_msg(b))->val();
-      auto guesses =
-          msg->content<motis::guesser::StationGuesserResponse const*>()
-              ->guesses();
+      auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
       if (guesses->size() == 0) {
         throw boost::system::system_error(error::no_guess_for_station);
       }
@@ -87,7 +86,7 @@ void routing::init(motis::module::registry& reg) {
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
-  auto req = msg->content<RoutingRequest const*>();
+  auto req = motis_content(RoutingRequest, msg);
   if (req->path()->Length() < 2) {
     throw boost::system::system_error(error::path_length_too_short);
   }

@@ -1,6 +1,13 @@
 #pragma once
 
+#include "ctx/ctx.h"
+
+#include "motis/module/ctx_data.h"
+
 namespace motis {
+
+struct schedule;
+
 namespace module {
 
 inline schedule& get_schedule() {

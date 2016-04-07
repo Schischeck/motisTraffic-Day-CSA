@@ -79,8 +79,7 @@ void guesser::init(motis::module::registry& reg) {
 }
 
 msg_ptr guesser::guess(msg_ptr const& msg) {
-  auto req = msg->content<StationGuesserRequest const*>();
-
+  auto req = motis_content(StationGuesserRequest, msg);
   auto sync = synced_sched<schedule_access::RO>();
 
   MessageCreator b;
