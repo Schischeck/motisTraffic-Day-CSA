@@ -11,7 +11,7 @@ using callback = std::function<void(msg_ptr, boost::system::error_code)>;
 
 struct receiver {
   virtual ~receiver() {}
-  virtual void on_msg(msg_ptr, callback) = 0;
+  virtual void on_msg(msg_ptr const&, callback const&) = 0;
 };
 
 }  // namespace module

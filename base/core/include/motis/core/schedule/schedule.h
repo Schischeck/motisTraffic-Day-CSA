@@ -33,7 +33,11 @@ struct schedule {
     trips.set_empty_key(primary_trip_id(0, 0, 0));
     graph_to_delay_info.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
   }
+
   virtual ~schedule() {}
+
+  schedule(schedule const&) = delete;
+  schedule& operator=(schedule const&) = delete;
 
   std::time_t schedule_begin_, schedule_end_;
   std::vector<station_ptr> stations;

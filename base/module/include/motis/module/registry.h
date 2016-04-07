@@ -16,7 +16,13 @@ struct registry {
     }
   }
 
+  void subscribe(std::string const& topic, op fn) {
+    topic_subscriptions_[topic].emplace_back(std::move(fn));
+  }
+
+  schedule* sched_;
   std::map<std::string, op> operations_;
+  std::map<std::string, std::vector<op>> topic_subscriptions_;
 };
 
 }  // namespace module
