@@ -6,6 +6,9 @@
 #include "motis/module/dispatcher.h"
 
 namespace motis {
+
+struct schedule;
+
 namespace module {
 
 inline schedule& get_schedule() {

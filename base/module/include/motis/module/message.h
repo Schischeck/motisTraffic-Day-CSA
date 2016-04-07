@@ -6,6 +6,8 @@
 
 #include "motis/core/common/typed_flatbuffer.h"
 
+#include "motis/module/error.h"
+
 namespace flatbuffers {
 class Parser;
 }
@@ -31,13 +33,6 @@ struct message : public typed_flatbuffer<Message> {
 
   int id() const { return get()->id(); }
 
-  template <typename T>
-  T content() {
-    return reinterpret_cast<T>(get()->content());
-  }
-
-  MsgContent content_type() const { return get()->content_type(); }
-
   std::string to_json() const;
 };
 
@@ -46,6 +41,17 @@ typedef std::shared_ptr<message> msg_ptr;
 msg_ptr make_msg(std::string const& json);
 msg_ptr make_msg(MessageCreator& builder);
 msg_ptr make_msg(void* buf, size_t len);
+
+template <typename T>
+inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
+  if (msg->get()->content_type() != content_type) {
+    throw boost::system::system_error(error::unexpected_message_type);
+  }
+  return reinterpret_cast<T const*>(msg->get()->content());
+}
+
+#define motis_content(content_type, msg) \
+  motis_content_<content_type>(msg, MsgContent_##content_type)
 
 }  // namespace module
 }  // namespace motis

@@ -91,8 +91,8 @@ struct http_server::impl {
     reply rep = reply::stock_reply(reply::internal_server_error);
     try {
       if (!ec && msg) {
-        if (msg->content_type() == MsgContent_HTTPResponse) {
-          auto http_res = msg->content<HTTPResponse const*>();
+        if (msg->get()->content_type() == MsgContent_HTTPResponse) {
+          auto http_res = motis_content(HTTPResponse, msg);
           rep.status = http_res->status() == HTTPStatus_OK
                            ? reply::ok
                            : reply::internal_server_error;

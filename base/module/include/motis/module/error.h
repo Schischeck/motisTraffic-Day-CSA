@@ -13,7 +13,8 @@ enum error_code_t {
   unable_to_parse_msg = 1,
   malformed_msg = 2,
   target_not_found = 3,
-  unknown_error = 4
+  unknown_error = 4,
+  unexpected_message_type = 5
 };
 }  // namespace error
 
@@ -27,6 +28,8 @@ public:
       case error::unable_to_parse_msg: return "module: unable to parse message";
       case error::malformed_msg: return "module: malformed message";
       case error::target_not_found: return "module: target not found";
+      case error::unexpected_message_type:
+        return "module: unexpected message type";
       case error::unknown_error:
       default: return "module: unkown error";
     }
