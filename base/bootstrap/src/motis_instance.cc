@@ -19,8 +19,7 @@ namespace p = std::placeholders;
 namespace motis {
 namespace bootstrap {
 
-motis_instance::motis_instance(boost::asio::io_service& ios)
-    : controller(ios), modules_(build_modules()) {}
+motis_instance::motis_instance() : modules_(build_modules()) {}
 
 std::vector<motis::module::module*> motis_instance::modules() const {
   std::vector<motis::module::module*> m;
