@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include <memory>
 
 #include "boost/filesystem.hpp"
@@ -51,13 +52,13 @@ int main(int argc, char** argv) {
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
-      launcher_settings::SERVER,
+      launcher_settings::motis_mode_t::SERVER,
       loader::transform_to_vec(
           begin(instance.modules_), end(instance.modules_),
           [](std::unique_ptr<motis::module::module> const& m) {
             return m->name();
           }),
-      "queries.txt", "responses.txt");
+      "queries.txt", "responses.txt", std::thread::hardware_concurrency());
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
                                              &launcher_opt};
@@ -119,7 +120,7 @@ int main(int argc, char** argv) {
   }
 
   boost::asio::io_service::work ios_work(ios);
-  std::vector<boost::thread> threads(1);
+  std::vector<boost::thread> threads(launcher_opt.num_threads);
 
   auto run = [&ios]() {
     start:
@@ -139,11 +140,11 @@ int main(int argc, char** argv) {
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
-  if (launcher_opt.mode == launcher_settings::TEST) {
+  if (launcher_opt.mode == launcher_settings::motis_mode_t::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
     timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
-  } else if (launcher_opt.mode == launcher_settings::BATCH) {
+  } else if (launcher_opt.mode == launcher_settings::motis_mode_t::BATCH) {
     inject_queries(ios, instance, launcher_opt.batch_input_file,
                    launcher_opt.batch_output_file);
   }
