@@ -65,8 +65,7 @@ auto route = [](msg_ptr const&) -> msg_ptr {
 };
 
 TEST(module_op, launch) {
-  boost::asio::io_service ios;
-  controller c(ios);
+  controller c;
   c.register_op("/guesser", guess);
   c.register_op("/routing", route);
 

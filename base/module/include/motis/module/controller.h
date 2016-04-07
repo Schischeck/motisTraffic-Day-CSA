@@ -11,8 +11,7 @@ namespace motis {
 namespace module {
 
 struct controller : public dispatcher, public registry {
-  controller(boost::asio::io_service& ios)
-      : dispatcher(ios, *this), ios_(ios) {}
+  controller() : dispatcher(ios_, *this) {}
 
   template <typename Fn>
   auto run(Fn f) -> decltype(f()) {
@@ -24,7 +23,7 @@ struct controller : public dispatcher, public registry {
     return result;
   }
 
-  boost::asio::io_service& ios_;
+  boost::asio::io_service ios_;
 };
 
 }  // namespace module
