@@ -19,16 +19,22 @@ namespace detail {
 
 #define DATABASE_URL "file:ris_forward_batched?mode=memory&cache=shared"
 
-TEST(ris_forward_batched, forwarder) {
-  auto motis = launch_motis(
-      kSchedulePath, kScheduleDate, {"ris"},
-      {"--ris.input_folder=NOT_EXISTING", "--ris.database_file=" DATABASE_URL});
+class ris_forward_batched : public ::testing::Test {
+protected:
+  ris_forward_batched()
+      : motis_(launch_motis(kSchedulePath, kScheduleDate, {"ris"},
+                            {"--ris.input_folder=NOT_EXISTING",
+                             "--ris.database_file=" DATABASE_URL})) {}
+public:
+  bootstrap::motis_instance_ptr motis_;
+};
 
+TEST_F(ris_forward_batched, forwarder) {
   std::vector<msg_ptr> msgs;
-  subscribe(motis, "/ris/messages", msg_sink(&msgs));
-  call(motis, "/ris/init");
+  subscribe(motis_, "/ris/messages", msg_sink(&msgs));
+  call(motis_, "/ris/init");
 
-  motis->run([&] {
+  motis_->run([&] {
     sqlpp::sqlite3::connection_config conf;
     conf.path_to_database = DATABASE_URL;
     conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
