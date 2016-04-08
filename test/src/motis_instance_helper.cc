@@ -4,26 +4,24 @@
 
 #include "conf/options_parser.h"
 
-#include "motis/bootstrap/motis_instance.h"
 #include "motis/module/message.h"
 
 using namespace motis::module;
-
-using motis::bootstrap::motis_instance;
+using namespace motis::bootstrap;
 using boost::system::error_code;
 
 namespace motis {
 namespace test {
 
-msg_ptr test_instance::call(msg_ptr const& msg) {
+msg_ptr call(motis_instance_ptr const& instance, msg_ptr const& msg) {
   msg_ptr response;
   error_code ec;
-  motis->on_msg(msg, [&](msg_ptr r, error_code e) {
+  instance->on_msg(msg, [&](msg_ptr r, error_code e) {
     response = r;
     ec = e;
   });
-  ios.run();
-  ios.reset();
+  instance->ios_.run();
+  instance->ios_.reset();
 
   if (ec) {
     throw boost::system::system_error(ec);
@@ -31,22 +29,21 @@ msg_ptr test_instance::call(msg_ptr const& msg) {
   return response;
 }
 
-msg_ptr test_instance::call(std::string const& t) {
+msg_ptr call(motis_instance_ptr const& instance, std::string const& t) {
   MessageCreator fbb;
   fbb.CreateAndFinish(MsgContent_MotisNoMessage,
                       CreateMotisNoMessage(fbb).Union(), t);
-  return call(make_msg(fbb));
+  return call(instance, make_msg(fbb));
 }
 
-test_instance_ptr launch_motis(
+motis_instance_ptr launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
     std::vector<std::string> const& modules,
     std::vector<std::string> const& modules_cmdline_opt) {
-  auto instance = std::make_unique<test_instance>();
-  instance->motis = std::make_unique<motis_instance>(instance->ios);
+  auto instance = std::make_unique<motis_instance>();
 
   std::vector<conf::configuration*> confs;
-  for (auto const& module : instance->motis->modules()) {
+  for (auto const& module : instance->modules()) {
     confs.push_back(module);
   }
 
@@ -56,9 +53,9 @@ test_instance_ptr launch_motis(
   opt.push_back("--routing.label_store_size=32000");
   parser.read_command_line_args(opt);
 
-  instance->motis->init_schedule(
+  instance->init_schedule(
       {dataset, false, true, false, true, schedule_begin, 2});
-  instance->motis->init_modules(modules);
+  instance->init_modules(modules);
 
   return instance;
 }

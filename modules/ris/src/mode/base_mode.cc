@@ -29,7 +29,7 @@ void base_mode::init(registry& r) {
 
 void base_mode::init_async() {
   sqlpp::sqlite3::connection_config conf;
-  conf.path_to_database = "ris.sqlite3";
+  conf.path_to_database = conf_->database_file_;
   conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
   conf.debug = false;
 
@@ -47,11 +47,11 @@ void base_mode::init_async() {
     }
 
     auto parsed = parse_xmls(read_zip_file(new_file));
-    db_put_messages(new_file, std::move(parsed), db_);
+    db_put_messages(db_, new_file, std::move(parsed));
   }
 }
 
-void base_mode::forward(std::time_t const new_time) {
+void base_mode::forward(std::time_t const) {
 
 }
 

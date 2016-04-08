@@ -51,7 +51,7 @@ inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
 }
 
 #define motis_content(content_type, msg) \
-  motis_content_<content_type>(msg, MsgContent_##content_type)
+  motis::module::motis_content_<content_type>(msg, MsgContent_##content_type)
 
 }  // namespace module
 }  // namespace motis

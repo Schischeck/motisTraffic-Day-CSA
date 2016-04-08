@@ -25,9 +25,7 @@ struct simulation_mode final : public base_mode {
   }
 
   void handle_forward_request(motis::module::msg_ptr const& msg) {
-    // msg->ensure_type(MsgContent_RISForwardTimeRequest);
-
-    auto req = msg->content<RISForwardTimeRequest const*>();
+    auto req = motis_content(RISForwardTimeRequest, msg);
     forward(req->new_time());
   }
 };

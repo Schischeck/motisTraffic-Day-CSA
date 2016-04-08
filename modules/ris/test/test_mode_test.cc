@@ -18,13 +18,11 @@ TEST(ris_test_mode, simple) {
   auto motis = launch_motis(kSchedulePath, kScheduleDate, {"ris"},
                             {"--ris.mode=test", kRisFolderArg});
   std::vector<msg_ptr> msgs;
-  motis->subscribe("/ris/messages", msg_sink(&msgs));
-  motis->call("/ris/init");
+  subscribe(motis, "/ris/messages", msg_sink(&msgs));
+  call(motis, "/ris/init");
 
   ASSERT_EQ(1, msgs.size());
-  ASSERT_EQ(MsgContent_RISBatch, msgs[0]->content_type());
-
-  auto batch = msgs[0]->content<RISBatch const*>();
+  auto batch = motis_content(RISBatch, msgs[0]);
   ASSERT_EQ(2, batch->messages()->size());
 }
 

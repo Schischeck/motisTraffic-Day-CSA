@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "include/helper.h"
+#include "../include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"

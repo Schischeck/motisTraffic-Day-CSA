@@ -17,17 +17,18 @@ namespace motis {
 namespace ris {
 namespace detail {
 
-#define DATABASE_URL "file:ris?mode=memory&cache=shared"
+#define DATABASE_URL "file:ris_forward_batched?mode=memory&cache=shared"
 
 TEST(ris_forward_batched, forwarder) {
   auto motis = launch_motis(
       kSchedulePath, kScheduleDate, {"ris"},
       {"--ris.input_folder=NOT_EXISTING", "--ris.database_file=" DATABASE_URL});
-  std::vector<msg_ptr> msgs;
-  motis->subscribe("/ris/messages", msg_sink(&msgs));
-  motis->call("/ris/init");
 
-  motis->motis->run([&] {
+  std::vector<msg_ptr> msgs;
+  subscribe(motis, "/ris/messages", msg_sink(&msgs));
+  call(motis, "/ris/init");
+
+  motis->run([&] {
     sqlpp::sqlite3::connection_config conf;
     conf.path_to_database = DATABASE_URL;
     conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
