@@ -17,10 +17,12 @@ namespace motis {
 namespace module {
 
 struct module : public conf::simple_config {
+  module(std::string name, std::string prefix)
+      : simple_config(std::move(name), std::move(prefix)),
+        schedule_(nullptr),
+        ios_(nullptr) {}
 
-  module() = default;
-  module(std::string const name, std::string const prefix)
-      : simple_config(name, prefix) {}
+  module() : module("", "") {}
 
   virtual ~module() {}
 
