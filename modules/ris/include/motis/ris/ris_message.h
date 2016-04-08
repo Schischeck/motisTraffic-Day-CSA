@@ -22,12 +22,6 @@ struct ris_message : typed_flatbuffer<Message> {
 
   // testing w/o flatbuffers
   ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
-              size_t buffer_size, flatbuffers::unique_ptr_t&& buffer)
-      : typed_flatbuffer(buffer_size, std::move(buffer)),
-        earliest(earliest),
-        latest(latest),
-        timestamp(timestamp) {}
-  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
               std::string const& msg)
       : typed_flatbuffer(msg),
         earliest(earliest),

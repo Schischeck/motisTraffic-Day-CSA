@@ -30,10 +30,7 @@ msg_ptr call(motis_instance_ptr const& instance, msg_ptr const& msg) {
 }
 
 msg_ptr call(motis_instance_ptr const& instance, std::string const& t) {
-  MessageCreator fbb;
-  fbb.CreateAndFinish(MsgContent_MotisNoMessage,
-                      CreateMotisNoMessage(fbb).Union(), t);
-  return call(instance, make_msg(fbb));
+  return call(instance, make_no_msg(t));
 }
 
 motis_instance_ptr launch_motis(

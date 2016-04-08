@@ -74,19 +74,11 @@ private:
     msg_ptr response;
 
     if (ec) {
-      MessageCreator b;
-      b.CreateAndFinish(
-          MsgContent_MotisError,
-          CreateMotisError(b, ec.value(), b.CreateString(ec.category().name()),
-                           b.CreateString(ec.message()))
-              .Union());
-      response = make_msg(b);
+      response = make_error_msg(ec);
     } else if (res) {
       response = res;
     } else {
-      MessageCreator b;
-      b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
-      response = make_msg(b);
+      response = make_success_msg();
     }
     response->get()->mutate_id(id);
 

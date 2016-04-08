@@ -13,13 +13,6 @@ namespace module {
 using op = std::function<msg_ptr(msg_ptr const&)>;
 
 namespace detail {
-
-inline msg_ptr make_success_msg() {
-  MessageCreator b;
-  b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
-  return make_msg(b);
-}
-
 // void fn(void)
 template <typename Fn>
 inline auto wrap_op(Fn fn) ->

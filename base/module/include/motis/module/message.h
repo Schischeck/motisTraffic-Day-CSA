@@ -42,6 +42,10 @@ msg_ptr make_msg(std::string const& json);
 msg_ptr make_msg(MessageCreator& builder);
 msg_ptr make_msg(void* buf, size_t len);
 
+msg_ptr make_no_msg(std::string const& target = "");
+msg_ptr make_success_msg();
+msg_ptr make_error_msg(boost::system::error_code const&);
+
 template <typename T>
 inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
   if (msg->get()->content_type() != content_type) {

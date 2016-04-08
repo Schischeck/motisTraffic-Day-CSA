@@ -85,5 +85,28 @@ msg_ptr make_msg(void* buf, size_t len) {
   return msg;
 }
 
+msg_ptr make_no_msg(std::string const& target) {
+  MessageCreator b;
+  b.CreateAndFinish(MsgContent_MotisNoMessage, CreateMotisNoMessage(b).Union(),
+                    target);
+  return make_msg(b);
+}
+
+msg_ptr make_success_msg() {
+  MessageCreator b;
+  b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
+  return make_msg(b);
+}
+
+msg_ptr make_error_msg(boost::system::error_code const& ec) {
+  MessageCreator b;
+  b.CreateAndFinish(
+      MsgContent_MotisError,
+      CreateMotisError(b, ec.value(), b.CreateString(ec.category().name()),
+                       b.CreateString(ec.message()))
+          .Union());
+  return make_msg(b);
+}
+
 }  // namespace module
 }  // namespace motis
