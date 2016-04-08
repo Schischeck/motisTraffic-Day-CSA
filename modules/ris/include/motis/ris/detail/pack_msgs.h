@@ -18,7 +18,8 @@ motis::module::msg_ptr pack_msgs(std::vector<T> const& messages) {
   }
 
   b.CreateAndFinish(MsgContent_RISBatch,
-                    CreateRISBatch(b, b.CreateVector(message_offsets)).Union());
+                    CreateRISBatch(b, b.CreateVector(message_offsets)).Union(),
+                    "/ris/messages");
   return make_msg(b);
 }
 

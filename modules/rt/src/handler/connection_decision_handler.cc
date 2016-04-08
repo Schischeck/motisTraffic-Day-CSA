@@ -14,10 +14,10 @@ void handle_connection_decision(context& ctx,
                                 ConnectionDecisionMessage const* msg) {
   ctx.stats.decision.inc();
 
-  auto trip = get_trip(ctx.sched, msg->fromTripId(), ctx.stats.decision);
+  get_trip(ctx.sched, msg->from_trip_id(), ctx.stats.decision);
 
   for (auto const& to : *msg->to()) {
-    auto trip2 = get_trip(ctx.sched, to->tripId(), ctx.stats.decision);
+    get_trip(ctx.sched, to->trip_id(), ctx.stats.decision);
   }
 }
 

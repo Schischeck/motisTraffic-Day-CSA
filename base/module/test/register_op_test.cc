@@ -9,6 +9,7 @@
 
 using namespace motis;
 using namespace motis::module;
+using namespace motis::routing;
 
 auto query = R"({
   "destination": {
@@ -72,5 +73,5 @@ TEST(module_op, launch) {
   auto result = c.run([]() { return motis_call(make_msg(query))->val(); });
 
   ASSERT_TRUE(result);
-  ASSERT_EQ(MsgContent_RoutingResponse, result->content_type());
+  motis_content(RoutingResponse, result);
 }

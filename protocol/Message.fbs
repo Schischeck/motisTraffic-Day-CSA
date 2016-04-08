@@ -67,7 +67,18 @@ table MotisError {
 table MotisSuccess {
 }
 
+// JSON example:
+// --
+// {
+//   "content_type": "MotisNoMessage",
+//   "content": {
+//   }
+// }
+table MotisNoMessage {
+}
+
 union MsgContent {
+  motis.MotisNoMessage,
   motis.MotisError,
   motis.MotisSuccess,
   motis.HTTPRequest,

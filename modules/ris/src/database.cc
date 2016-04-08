@@ -58,14 +58,6 @@ SQLPP_DECLARE_TABLE(
 
 }  // namespace db
 
-db_ptr default_db() {
-  sql::connection_config conf;
-  conf.path_to_database = "ris.sqlite3";
-  conf.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-  conf.debug = false;
-  return db_ptr(new sql::connection(conf));
-}
-
 void db_init(db_ptr const& db) {
   db->execute(db::kCreateTabFile);
   db->execute(db::kCreateTabMessage);
@@ -83,8 +75,8 @@ std::set<std::string> db_get_files(db_ptr const& db) {
   return result;
 }
 
-void db_put_messages(std::string const& filename,
-                     std::vector<ris_message> const& msgs, db_ptr const& db) {
+void db_put_messages(db_ptr const& db, std::string const& filename,
+                     std::vector<ris_message> const& msgs) {
   db->start_transaction();
 
   db::ris_file::ris_file f;
@@ -112,8 +104,8 @@ void db_put_messages(std::string const& filename,
   db->commit_transaction();
 }
 
-std::time_t db_get_forward_start_time(std::time_t from, std::time_t to,
-                                      db_ptr const& db) {
+std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
+                                      std::time_t to) {
   db::ris_message::ris_message m;
   auto result = (*db)(select(min(m.timestamp))
                           .from(m)
@@ -127,9 +119,9 @@ std::time_t db_get_forward_start_time(std::time_t from, std::time_t to,
 }
 
 using blob = std::basic_string<uint8_t>;
-std::vector<blob> db_get_messages(std::time_t from, std::time_t to,
-                                  std::time_t batch_from, std::time_t batch_to,
-                                  db_ptr const& db) {
+std::vector<blob> db_get_messages(db_ptr const& db, std::time_t from,
+                                  std::time_t to, std::time_t batch_from,
+                                  std::time_t batch_to) {
   std::vector<blob> result;
 
   db::ris_message::ris_message m;
@@ -150,7 +142,9 @@ std::vector<blob> db_get_messages(std::time_t from, std::time_t to,
   return result;
 }
 
-void db_clean_messages(std::time_t threshold, db_ptr const& db) {
+void db_clean_messages(db_ptr const& db, std::time_t threshold) {
+// TODO 
+
   db::ris_message::ris_message m;
   (*db)(remove_from(m).where(m.latest < threshold));
 }

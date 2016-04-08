@@ -18,24 +18,21 @@ using db_ptr = std::unique_ptr<sqlpp::sqlite3::connection>;
 
 constexpr auto kDBInvalidTimestamp = std::numeric_limits<std::time_t>::max();
 
-db_ptr default_db();
+void db_init(db_ptr const& db);
 
-void db_init(db_ptr const& db = default_db());
+void db_put_messages(db_ptr const& db, std::string const& filename,
+                     std::vector<ris_message> const& msgs);
 
-void db_put_messages(std::string const& filename,
-                     std::vector<ris_message> const& msgs,
-                     db_ptr const& db = default_db());
+std::set<std::string> db_get_files(db_ptr const& db);
 
-std::set<std::string> db_get_files(db_ptr const& db = default_db());
+std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
+                                      std::time_t to);
 
-std::time_t db_get_forward_start_time(std::time_t from, std::time_t to,
-                                      db_ptr const& db = default_db());
+std::vector<std::basic_string<uint8_t>> db_get_messages(db_ptr const& db,
+    std::time_t schedule_begin, std::time_t schedule_end,
+    std::time_t batch_from, std::time_t batch_to);
 
-std::vector<std::basic_string<uint8_t>> db_get_messages(
-    std::time_t from, std::time_t to, std::time_t batch_from,
-    std::time_t batch_to, db_ptr const& db = default_db());
-
-void db_clean_messages(std::time_t threshold, db_ptr const& db = default_db());
+void db_clean_messages(db_ptr const& db, std::time_t threshold);
 
 }  // namespace ris
 }  // namespace motis

@@ -12,7 +12,7 @@ namespace handler {
 
 void handle_reroute(context& ctx, RerouteMessage const* msg) {
   ctx.stats.reroute.inc();
-  auto trip = get_trip(ctx.sched, msg->tripId(), ctx.stats.reroute);
+  get_trip(ctx.sched, msg->trip_id(), ctx.stats.reroute);
 }
 
 }  // namespace handler

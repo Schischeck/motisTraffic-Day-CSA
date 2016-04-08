@@ -51,8 +51,8 @@ struct scoped_timer final {
 };
 
 struct manual_timer final {
-  manual_timer(char const* name)
-      : _name(name), _start(std::chrono::steady_clock::now()) {
+  manual_timer(std::string name)
+      : _name(std::move(name)), _start(std::chrono::steady_clock::now()) {
     LOG(info) << "[" << _name << "] starting";
   }
 
@@ -64,7 +64,7 @@ struct manual_timer final {
               << " (" << t << "ms)";
   }
 
-  const char* _name;
+  std::string _name;
   std::chrono::time_point<std::chrono::steady_clock> _start;
 };
 

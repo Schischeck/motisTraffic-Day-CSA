@@ -14,8 +14,7 @@ namespace handler {
 
 void handle_cancel(context& ctx, CancelMessage const* msg) {
   ctx.stats.canceled.inc();
-  auto trip = get_trip(ctx.sched, msg->tripId(), ctx.stats.canceled);
-
+  get_trip(ctx.sched, msg->trip_id(), ctx.stats.canceled);
 }
 
 }  // namespace handler

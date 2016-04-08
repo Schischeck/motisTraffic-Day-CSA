@@ -27,6 +27,12 @@ struct ris_message : typed_flatbuffer<Message> {
         earliest(earliest),
         latest(latest),
         timestamp(timestamp) {}
+  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
+              std::string const& msg)
+      : typed_flatbuffer(msg),
+        earliest(earliest),
+        latest(latest),
+        timestamp(timestamp) {}
 
   ris_message(ris_message&&) = default;
   ris_message& operator=(ris_message&&) = default;

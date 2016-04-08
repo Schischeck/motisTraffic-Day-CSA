@@ -164,16 +164,16 @@ file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-base-test-files base/module/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
-#  ${motis-test-files}
-#  ${motis-modules-test-files}
+  ${motis-test-files}
+  ${motis-modules-test-files}
   ${motis-base-test-files}
 )
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
-#  ${module-targets}
-#  motis-bootstrap
-#  motis-core
-#  motis-loader
+  ${module-targets}
+  motis-bootstrap
+  motis-core
+  motis-loader
   motis-module
   conf
   ${Boost_LIBRARIES}

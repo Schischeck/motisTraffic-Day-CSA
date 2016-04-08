@@ -3,9 +3,9 @@
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/module/motis_publish.h"
 #include "motis/ris/detail/find_new_files.h"
 #include "motis/ris/detail/pack_msgs.h"
-#include "motis/ris/error.h"
 #include "motis/ris/ris.h"
 #include "motis/ris/ris_message.h"
 #include "motis/ris/risml/risml_parser.h"
@@ -20,12 +20,11 @@ namespace ris {
 namespace mode {
 
 void test_mode::init_async() {
-  auto files = find_new_files(module_->input_folder_, ".xml", {});
+  auto files = find_new_files(conf_->input_folder_, ".xml", {});
   std::sort(begin(files), end(files));
 
   std::vector<ris_message> parsed_messages;
-  auto str = "RISML parse " + std::to_string(files.size()) + " xmls";
-  manual_timer timer(str.c_str());
+  manual_timer timer("RISML parse " + std::to_string(files.size()) + " xmls");
   for (auto const& xml_file : files) {
     std::vector<parser::buffer> bufs;
     bufs.emplace_back(parser::file(xml_file.c_str(), "r").content());
@@ -35,11 +34,7 @@ void test_mode::init_async() {
   }
   timer.stop_and_print();
 
-  module_->dispatch2(pack_msgs(parsed_messages));
-}
-
-void test_mode::on_msg(msg_ptr, sid, callback cb) {
-  return cb({}, error::unexpected_message);
+  motis_publish(pack_msgs(parsed_messages));
 }
 
 }  // namespace mode

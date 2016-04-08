@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "include/helper.h"
+#include "../include/helper.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
@@ -62,34 +62,24 @@ TEST(ris_cancel_message, message_1) {
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
   auto inner_msg = reinterpret_cast<CancelMessage const*>(outer_msg->content());
 
-  auto id = inner_msg->tripId();
-  EXPECT_EQ(StationIdType_EVA, id->base()->stationIdType());
-  EXPECT_STREQ("0460711", id->base()->stationId()->c_str());
-
-  EXPECT_EQ(99655, id->base()->trainIndex());
-  EXPECT_STREQ("818", id->base()->lineId()->c_str());
-  EXPECT_EQ(EventType_Departure, id->base()->type());
-  EXPECT_EQ(1444195800, id->base()->scheduledTime());
-
-  EXPECT_EQ(StationIdType_EVA, id->targetStationIdType());
-  EXPECT_STREQ("0683407", id->targetStationId()->c_str());
-  EXPECT_EQ(1444197420, id->targetScheduledTime());
+  auto id = inner_msg->trip_id();
+  EXPECT_STREQ("0460711", id->station_id()->c_str());
+  EXPECT_EQ(99655, id->service_num());
+  EXPECT_EQ(1444195800, id->schedule_time());
 
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());
 
   auto e0 = events->Get(0);
-  EXPECT_EQ(99655, e0->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, e0->stationIdType());
-  EXPECT_STREQ("0680414", e0->stationId()->c_str());
-  EXPECT_EQ(1444197240, e0->scheduledTime());
+  EXPECT_EQ(99655, e0->service_num());
+  EXPECT_STREQ("0680414", e0->station_id()->c_str());
+  EXPECT_EQ(1444197240, e0->schedule_time());
   EXPECT_EQ(EventType_Arrival, e0->type());
 
   auto e1 = events->Get(1);
-  EXPECT_EQ(99655, e1->trainIndex());
-  EXPECT_EQ(StationIdType_EVA, e1->stationIdType());
-  EXPECT_STREQ("0680414", e1->stationId()->c_str());
-  EXPECT_EQ(1444197240, e1->scheduledTime());
+  EXPECT_EQ(99655, e1->service_num());
+  EXPECT_STREQ("0680414", e1->station_id()->c_str());
+  EXPECT_EQ(1444197240, e1->schedule_time());
   EXPECT_EQ(EventType_Departure, e1->type());
 }
 
@@ -152,27 +142,24 @@ TEST(ris_ausfall_message, message_2) {
   ASSERT_EQ(3, events->size());
 
   auto e0 = events->Get(0);
-  EXPECT_EQ(StationIdType_EVA, e0->stationIdType());
-  EXPECT_STREQ("0730985", e0->stationId()->c_str());
-  EXPECT_EQ(31126, e0->trainIndex());
-  EXPECT_STREQ("M21", e0->lineId()->c_str());
-  EXPECT_EQ(1444228500, e0->scheduledTime());
+  EXPECT_STREQ("0730985", e0->station_id()->c_str());
+  EXPECT_EQ(31126, e0->service_num());
+  EXPECT_STREQ("M21", e0->line_id()->c_str());
+  EXPECT_EQ(1444228500, e0->schedule_time());
   EXPECT_EQ(EventType_Arrival, e0->type());
 
   auto e1 = events->Get(1);
-  EXPECT_EQ(StationIdType_EVA, e1->stationIdType());
-  EXPECT_STREQ("0730985", e1->stationId()->c_str());
-  EXPECT_EQ(31126, e1->trainIndex());
-  EXPECT_STREQ("M21", e1->lineId()->c_str());
-  EXPECT_EQ(1444228500, e1->scheduledTime());
+  EXPECT_STREQ("0730985", e1->station_id()->c_str());
+  EXPECT_EQ(31126, e1->service_num());
+  EXPECT_STREQ("M21", e1->line_id()->c_str());
+  EXPECT_EQ(1444228500, e1->schedule_time());
   EXPECT_EQ(EventType_Departure, e1->type());
 
   auto e2 = events->Get(2);
-  EXPECT_EQ(StationIdType_EVA, e2->stationIdType());
-  EXPECT_STREQ("0730993", e2->stationId()->c_str());
-  EXPECT_EQ(31126, e2->trainIndex());
-  EXPECT_STREQ("M21", e2->lineId()->c_str());
-  EXPECT_EQ(1444228560, e2->scheduledTime());
+  EXPECT_STREQ("0730993", e2->station_id()->c_str());
+  EXPECT_EQ(31126, e2->service_num());
+  EXPECT_STREQ("M21", e2->line_id()->c_str());
+  EXPECT_EQ(1444228560, e2->schedule_time());
   EXPECT_EQ(EventType_Arrival, e2->type());
 }
 

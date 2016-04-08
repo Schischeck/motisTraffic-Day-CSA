@@ -19,10 +19,7 @@ struct motis_instance : public motis::module::controller {
   motis_instance();
 
   motis_instance(motis_instance const&) = delete;
-  motis_instance(motis_instance&&) = delete;
-
   motis_instance& operator=(motis_instance const&) = delete;
-  motis_instance& operator=(motis_instance&&) = delete;
 
   std::vector<motis::module::module*> modules() const;
   void init_schedule(motis::loader::loader_options const& dataset_opt);
@@ -31,6 +28,8 @@ struct motis_instance : public motis::module::controller {
   schedule_ptr schedule_;
   std::vector<std::unique_ptr<motis::module::module>> modules_;
 };
+
+using motis_instance_ptr = std::unique_ptr<motis_instance>;
 
 }  // namespace bootstrap
 }  // namespace motis
