@@ -2,7 +2,7 @@
 
 #include <numeric>
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_stop.h"

@@ -7,6 +7,7 @@
 #include "parser/util.h"
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/model/range.h"
 

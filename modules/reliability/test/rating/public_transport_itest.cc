@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"

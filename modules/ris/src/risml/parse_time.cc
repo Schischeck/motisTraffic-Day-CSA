@@ -8,7 +8,7 @@
 
 #include "parser/arg_parser.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 #include "motis/ris/risml/common.h"
 
 using namespace parser;

@@ -4,6 +4,7 @@
 
 #include "parser/arg_parser.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
 

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/computation/calc_arrival_distribution.h"

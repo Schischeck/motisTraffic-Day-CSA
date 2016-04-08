@@ -4,7 +4,7 @@
 #include "parser/arg_parser.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 using namespace flatbuffers;
 using namespace parser;

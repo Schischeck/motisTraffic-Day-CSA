@@ -24,7 +24,7 @@ namespace ris {
 namespace mode {
 
 void base_mode::init(registry& r) {
-  r.register_op("/ris/init", [this]{ init_async(); });
+  r.register_op("/ris/init", [this] { init_async(); });
 }
 
 void base_mode::init_async() {
@@ -51,8 +51,19 @@ void base_mode::init_async() {
   }
 }
 
-void base_mode::forward(std::time_t const) {
+void base_mode::forward(std::time_t const new_time) {
+  auto sched = const_cast<schedule&>(get_schedule());  // XXX ouch
+  auto const sched_begin = external_schedule_begin(sched);
+  auto const sched_end = external_schedule_end(sched);
 
+  if (sched.system_time_ == 0) {
+    forward_batched(sched_begin, sched_end, new_time, db_);
+  } else {
+    forward_batched(sched_begin, sched_end, sched.system_time_, new_time, db_);
+  }
+
+  sched.system_time_ = new_time;
+  motis_publish(make_no_msg("/ris/new_system_time"));
 }
 
 }  // namespace mode

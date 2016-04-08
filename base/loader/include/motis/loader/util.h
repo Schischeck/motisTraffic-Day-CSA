@@ -109,8 +109,6 @@ inline int yyyymmdd_day(int yyyymmdd) { return yyyymmdd % 100; }
 
 parser::buffer load_file(boost::filesystem::path const&);
 
-int hhmm_to_min(int hhmm);
-
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 

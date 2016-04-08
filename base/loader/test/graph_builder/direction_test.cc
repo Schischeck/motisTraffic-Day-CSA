@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "./graph_builder_test.h"
 

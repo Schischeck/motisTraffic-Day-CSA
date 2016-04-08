@@ -4,7 +4,7 @@
 
 #include "boost/filesystem.hpp"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/common/get_or_create.h"
 #include "motis/loader/gtfs/files.h"
 #include "motis/loader/util.h"
