@@ -14,6 +14,9 @@ public:
         memory_buffer_((unsigned char*)operator new(size_)),
         next_position_(memory_buffer_.get()) {}
 
+  memory_manager(memory_manager const&) = delete;
+  memory_manager& operator=(memory_manager const&) = delete;
+
   void reset() { next_position_ = memory_buffer_.get(); }
 
   template <typename T>

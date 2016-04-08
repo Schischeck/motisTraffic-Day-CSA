@@ -144,6 +144,7 @@
 
   this.guessStation = input => new Promise(resolve => {
     server.send({
+      destination: { type: 'Module', target: '/guesser' },
       content_type: 'StationGuesserRequest',
       content: { input, guess_count: 6 }
     })

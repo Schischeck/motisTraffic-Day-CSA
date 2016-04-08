@@ -46,3 +46,6 @@
 [submodule "external_lib/leveldb"]
 	path = external_lib/leveldb
 	url = git@git.motis-project.de:lib/leveldb.git
+[submodule "external_lib/ctx"]
+	path = external_lib/ctx
+	url = git@git.motis-project.de:lib/ctx.git
