@@ -18,7 +18,7 @@ constexpr auto kBikesharingRequest = R""(
     // close to campus darmstadt
     "departure_lat": 49.8776114,
     "departure_lng": 8.6571044,
-    
+
     // close to campus ffm
     "arrival_lat": 50.1273104,
     "arrival_lng": 8.6669383,

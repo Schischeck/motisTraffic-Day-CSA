@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace motis {
 
@@ -23,11 +24,18 @@ using std::make_unique;
 }  // namespace motis
 
 namespace std {
+
 template <typename T>
 ostream& operator<<(ostream& out, vector<T> const& v) {
-  for (auto const& el : v) {
-    out << el << " ";
+  auto it = begin(v);
+  while (it != end(v)) {
+    if (it != begin(v)) {
+      out << " ";
+    }
+    out << *it;
+    ++it;
   }
   return out;
 }
+
 }  // namespace std

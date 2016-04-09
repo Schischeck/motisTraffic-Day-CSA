@@ -120,6 +120,67 @@ timezone const* graph_builder::get_or_create_timezone(
   });
 }
 
+station_node* graph_builder::get_station_node(Station const* station) const {
+  auto it = stations_.find(station);
+  verify(it != end(stations_), "station not found");
+  return it->second;
+}
+
+full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
+                                             int section_idx) const {
+  auto const& stops = s->route()->stations();
+  auto const dep_station_idx = get_station_node(stops->Get(section_idx))->_id;
+  auto const arr_station_idx =
+      get_station_node(stops->Get(stops->size() - 1))->_id;
+
+  auto const dep_tz = sched_.stations[dep_station_idx]->timez;
+  auto const dep_time = get_adjusted_event_time(
+      day - first_day_, s->times()->Get(section_idx * 2 + 1), dep_tz);
+
+  auto const arr_tz = sched_.stations[arr_station_idx]->timez;
+  auto const arr_time = get_adjusted_event_time(
+      day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
+
+  auto const train_nr = s->sections()->Get(section_idx)->train_nr();
+  auto const line_id_ptr = s->sections()->Get(0)->line_id();
+  auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
+
+  full_trip_id id;
+  id.primary = primary_trip_id(dep_station_idx, train_nr, dep_time);
+  id.secondary =
+      secondary_trip_id(arr_station_idx, arr_time, false, std::move(line_id));
+  return id;
+}
+
+merged_trips_idx graph_builder::create_merged_trips(Service const* s,
+                                                    int day_idx) {
+  return push_mem(sched_.merged_trips,
+                  std::vector<trip*>({register_service(s, day_idx)}));
+}
+
+trip* graph_builder::register_service(Service const* s, int day_idx) {
+  sched_.trip_mem.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+  auto stored = sched_.trip_mem.back().get();
+  sched_.trips[stored->id.primary].push_back(stored);
+
+  for (unsigned i = 1; i < s->sections()->size(); ++i) {
+    auto curr_section = s->sections()->Get(i);
+    auto prev_section = s->sections()->Get(i - 1);
+
+    if (curr_section->train_nr() != prev_section->train_nr()) {
+      sched_.trips[get_full_trip_id(s, day_idx, i).primary].push_back(stored);
+    }
+  }
+
+  if (s->initial_train_nr() != stored->id.primary.train_nr) {
+    auto primary = stored->id.primary;
+    primary.train_nr = s->initial_train_nr();
+    sched_.trips[primary].push_back(stored);
+  }
+
+  return stored;
+}
+
 void graph_builder::add_services(Vector<Offset<Service>> const* services) {
   std::vector<Service const*> sorted(services->size());
   std::copy(std::begin(*services), std::end(*services), begin(sorted));
@@ -178,11 +239,12 @@ void graph_builder::add_route_services(
       time prev_arr = 0;
       bool adjusted = false;
       std::vector<light_connection> lcons;
+      auto t = create_merged_trips(s, day);
       for (int section_idx = 0;
            section_idx < static_cast<int>(s->sections()->size());
            ++section_idx) {
-        lcons.push_back(section_to_connection({{participant{s, section_idx}}},
-                                              day, prev_arr, adjusted));
+        lcons.push_back(section_to_connection(
+            t, {{participant{s, section_idx}}}, day, prev_arr, adjusted));
         prev_arr = lcons.back().a_time;
       }
 
@@ -197,6 +259,7 @@ void graph_builder::add_route_services(
 
     auto r = create_route(services[0]->route(), route, ++next_route_index_);
     index_first_route_node(*r);
+    write_trip_info(*r);
   }
 }
 
@@ -287,23 +350,25 @@ connection_info* graph_builder::get_or_create_connection_info(
 
 connection_info* graph_builder::get_or_create_connection_info(
     std::array<participant, 16> const& services, int dep_day_index) {
-  int parallel_services = 0;
   connection_info* prev_con_info = nullptr;
-  for (auto const& s : services) {
-    if (s.service == nullptr) {
+
+  for (unsigned i = 0; i < services.size(); ++i) {
+    if (services[i].service == nullptr) {
       return prev_con_info;
     }
-    ++parallel_services;
+
+    auto const& s = services[i];
     prev_con_info =
         get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
                                       dep_day_index, prev_con_info);
   }
+
   return prev_con_info;
 }
 
 light_connection graph_builder::section_to_connection(
-    std::array<participant, 16> const& services, int day, time prev_arr,
-    bool& adjusted) {
+    merged_trips_idx trips, std::array<participant, 16> const& services,
+    int day, time prev_arr, bool& adjusted) {
   auto const& ref = services[0].service;
   auto const& section_idx = services[0].section_idx;
 
@@ -368,7 +433,7 @@ light_connection graph_builder::section_to_connection(
       set_get_or_create(connections_, &con_, [&]() {
         sched_.full_connections.emplace_back(make_unique<connection>(con_));
         return sched_.full_connections.back().get();
-      }));
+      }), trips);
 }
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
@@ -525,27 +590,42 @@ int graph_builder::get_or_create_platform(
   }
 }
 
+void graph_builder::write_trip_info(route& r) {
+  auto const edges = transform_to_vec(
+      begin(r), end(r), [](route_section& s) { return s.get_route_edge(); });
+
+  sched_.trip_edges.emplace_back(new std::vector<edge*>(edges));
+  auto edges_ptr = sched_.trip_edges.back().get();
+
+  auto& lcons = edges_ptr->front()->_m._route_edge._conns;
+  for (unsigned lcon_idx = 0; lcon_idx < lcons.size(); ++lcon_idx) {
+    auto trp = sched_.merged_trips[lcons[lcon_idx].trips]->front();
+    trp->edges = edges_ptr;
+    trp->lcon_idx = lcon_idx;
+  }
+}
+
 std::unique_ptr<route> graph_builder::create_route(Route const* r,
                                                    route_lcs const& lcons,
                                                    unsigned route_index) {
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
-  auto route_nodes = make_unique<route>();
+  auto route_sections = make_unique<route>();
 
   route_section last_route_section;
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
-    route_nodes->push_back(add_route_section(
+    route_sections->push_back(add_route_section(
         route_index, lcons[i],  //
         stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
         stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
         last_route_section, route_section()));
-    last_route_section = route_nodes->back();
+    last_route_section = route_sections->back();
   }
 
-  return route_nodes;
+  return route_sections;
 }
 
 node* graph_builder::build_route_node(int route_index, Station const* station,
@@ -613,8 +693,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   graph_builder builder(*sched.get(), serialized->interval(), from, to,
                         apply_rules, adjust_footpaths);
   builder.add_stations(serialized->stations());
-  builder.add_services(serialized->services());
   builder.add_footpaths(serialized->footpaths());
+  builder.add_services(serialized->services());
 
   if (apply_rules) {
     scoped_timer timer("rule services");
@@ -637,6 +717,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
     LOG(info) << "removed " << dup_checker.get_duplicate_count()
               << " duplicate events";
   }
+
+  LOG(info) << sched->connection_infos.size() << " connection infos";
 
   return sched;
 }

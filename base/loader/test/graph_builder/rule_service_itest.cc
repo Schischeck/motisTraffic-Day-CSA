@@ -1,13 +1,18 @@
 #include "gtest/gtest.h"
 
-#include "motis/test/motis_instance_helper.h"
 #include "../hrd/test_spec_test.h"
+#include "motis/test/motis_instance_helper.h"
 
 using namespace motis::test;
 using namespace motis::module;
+using motis::routing::RoutingResponse;
 
 auto routing_request = R"(
 {
+  "destination": {
+    "type": "Module",
+    "target": "/routing"
+  },
   "content_type": "RoutingRequest",
   "content": {
     "interval": {
@@ -32,16 +37,12 @@ TEST(loader_graph_builder_rule_service, search) {
   auto instance = launch_motis((hrd::SCHEDULES / "mss-ts").generic_string(),
                                "20151124", {"routing"});
 
-  auto res = send(instance, make_msg(routing_request));
-  ASSERT_EQ(MsgContent_RoutingResponse, res->content_type());
-
-  auto const& connections =
-      res->content<routing::RoutingResponse const*>()->connections();
+  auto res = call(instance, make_msg(routing_request));
+  auto connections = motis_content(RoutingResponse, res)->connections();
 
   ASSERT_EQ(1, connections->size());
   for (unsigned i = 0; i < connections->Get(0)->stops()->size() - 2; ++i) {
-    auto stop = connections->Get(0)->stops()->Get(i);
-    EXPECT_FALSE(stop->interchange() ? true : false);
+    EXPECT_FALSE(connections->Get(0)->stops()->Get(i)->interchange());
   }
 }
 

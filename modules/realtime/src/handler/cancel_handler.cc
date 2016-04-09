@@ -17,7 +17,7 @@ void motis::realtime::handler::handle_cancel(
     rt_msg.events_.emplace_back(
         ris_event_to_schedule_event(*ris_event, ctx._schedule));
   }
-  rt_msg.train_nr_ = ris_msg->events()->Get(0)->trainIndex();
+  rt_msg.train_nr_ = ris_msg->events()->Get(0)->service_num();
 
   ctx._message_handler.handle_canceled_train(rt_msg);
 }

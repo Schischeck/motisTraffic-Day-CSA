@@ -4,20 +4,40 @@
 
 #include "conf/options_parser.h"
 
-#include "motis/bootstrap/motis_instance.h"
-#include "motis/core/common/util.h"
 #include "motis/module/message.h"
 
-using motis::bootstrap::motis_instance;
+using namespace motis::module;
+using namespace motis::bootstrap;
+using boost::system::error_code;
 
 namespace motis {
 namespace test {
 
-std::unique_ptr<motis_instance> launch_motis(
+msg_ptr call(motis_instance_ptr const& instance, msg_ptr const& msg) {
+  msg_ptr response;
+  error_code ec;
+  instance->on_msg(msg, [&](msg_ptr r, error_code e) {
+    response = r;
+    ec = e;
+  });
+  instance->ios_.run();
+  instance->ios_.reset();
+
+  if (ec) {
+    throw boost::system::system_error(ec);
+  }
+  return response;
+}
+
+msg_ptr call(motis_instance_ptr const& instance, std::string const& t) {
+  return call(instance, make_no_msg(t));
+}
+
+motis_instance_ptr launch_motis(
     std::string const& dataset, std::string const& schedule_begin,
     std::vector<std::string> const& modules,
     std::vector<std::string> const& modules_cmdline_opt) {
-  auto instance = make_unique<motis_instance>();
+  auto instance = std::make_unique<motis_instance>();
 
   std::vector<conf::configuration*> confs;
   for (auto const& module : instance->modules()) {
@@ -35,25 +55,6 @@ std::unique_ptr<motis_instance> launch_motis(
   instance->init_modules(modules);
 
   return instance;
-}
-
-module::msg_ptr send(std::unique_ptr<motis_instance> const& instance,
-                     module::msg_ptr request) {
-  module::msg_ptr response;
-  boost::system::error_code ec;
-  instance->on_msg(request, 0,
-                   [&](module::msg_ptr r, boost::system::error_code e) {
-                     ec = e;
-                     response = r;
-                   });
-  instance->thread_pool_.reset();
-  instance->thread_pool_.run();
-
-  if (ec) {
-    throw boost::system::system_error(ec);
-  }
-
-  return response;
 }
 
 }  // namespace test

@@ -69,7 +69,7 @@ endif()
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
-find_package(Boost COMPONENTS system filesystem regex program_options thread REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options thread context REQUIRED)
 find_package(Threads)
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -98,6 +98,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
+include_directories(${CMAKE_SOURCE_DIR}/external_lib/ctx/include)
 
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
@@ -111,6 +112,7 @@ add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -133,6 +135,18 @@ string(REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
+list(REMOVE_ITEM modules
+  "bikesharing"
+  "connectionchecker"
+  "intermodal"
+  "lookup"
+  "railviz"
+  "realtime"
+  "reliability"
+  "ris"
+  "rt"
+)
+
 set(module-targets "")
 set(module-test-files "")
 foreach(module ${all-modules})
@@ -164,7 +178,8 @@ file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-test-files}
   ${motis-modules-test-files}
-  ${motis-base-test-files})
+  ${motis-base-test-files}
+)
 set_target_properties(motis-test PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-test
   ${module-targets}

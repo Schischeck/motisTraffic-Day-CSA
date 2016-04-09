@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <array>
+#include <set>
 
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
@@ -81,6 +82,37 @@ struct participant {
   int section_idx;
 };
 
+struct services_key {
+  services_key() = default;
+
+  services_key(Service const* service, int day_idx)
+      : services({service}), day_idx(day_idx) {}
+
+  services_key(std::set<Service const*> services, int day_idx)
+      : services(std::move(services)), day_idx(day_idx) {}
+
+  friend bool operator<(services_key const& lhs, services_key const& rhs) {
+    return std::tie(lhs.services, lhs.day_idx) <
+           std::tie(rhs.services, rhs.day_idx);
+  }
+
+  friend bool operator==(services_key const& lhs, services_key const& rhs) {
+    return std::tie(lhs.services, lhs.day_idx) ==
+           std::tie(rhs.services, rhs.day_idx);
+  }
+
+  std::set<Service const*> services;
+  int day_idx;
+};
+
+template <typename T, typename... Args>
+inline std::size_t push_mem(std::vector<std::unique_ptr<T>>& elements,
+                            Args... args) {
+  auto idx = elements.size();
+  elements.emplace_back(new T(args...));
+  return idx;
+}
+
 typedef std::vector<route_section> route;
 typedef std::vector<std::vector<light_connection>> route_lcs;
 
@@ -92,6 +124,15 @@ struct graph_builder {
       flatbuffers::Vector<flatbuffers::Offset<Station>> const* stations);
 
   timezone const* get_or_create_timezone(Timezone const* input_timez);
+
+  station_node* get_station_node(Station const* station) const;
+
+  full_trip_id get_full_trip_id(Service const* s, int day,
+                                int section_idx = 0) const;
+
+  merged_trips_idx create_merged_trips(Service const* s, int day_idx);
+
+  trip* register_service(Service const* s, int day_idx);
 
   void add_services(
       flatbuffers::Vector<flatbuffers::Offset<Service>> const* services);
@@ -119,8 +160,8 @@ struct graph_builder {
       std::array<participant, 16> const& services, int dep_day_index);
 
   light_connection section_to_connection(
-      std::array<participant, 16> const& services, int day, time prev_arr,
-      bool& adjusted);
+      merged_trips_idx trips, std::array<participant, 16> const& services,
+      int day, time prev_arr, bool& adjusted);
 
   void add_footpaths(
       flatbuffers::Vector<flatbuffers::Offset<Footpath>> const* footpaths);
@@ -148,6 +189,8 @@ struct graph_builder {
   int get_or_create_platform(
       int day,
       flatbuffers::Vector<flatbuffers::Offset<Platform>> const* platforms);
+
+  void write_trip_info(route&);
 
   std::unique_ptr<route> create_route(Route const* r, route_lcs const& lcons,
                                       unsigned route_index);

@@ -53,4 +53,5 @@ struct timezone {
   int const general_offset_;
   season const season_;
 };
-}
+
+}  // namespace motis

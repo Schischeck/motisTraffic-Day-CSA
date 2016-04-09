@@ -1,51 +1,66 @@
 #pragma once
 
-#include <map>
+#include "ctx/ctx.h"
 
-#include "boost/asio/io_service.hpp"
-
-#include "motis/module/module.h"
+#include "motis/module/registry.h"
 #include "motis/module/receiver.h"
-#include "motis/module/callbacks.h"
+#include "motis/module/ctx_data.h"
+#include "motis/module/future.h"
+#include "motis/module/error.h"
 
 namespace motis {
 namespace module {
 
 struct dispatcher : public receiver {
-  struct held_back_msg {
-    msg_ptr msg;
-    sid session;
-    callback cb;
-  };
+  dispatcher(boost::asio::io_service& ios, registry& reg)
+      : scheduler_(ios), registry_(reg) {}
 
-  dispatcher(boost::asio::io_service* ios);
+  std::vector<future> publish(msg_ptr const& msg, ctx_data const& data,
+                              ctx::op_id id) {
+    id.name = msg->get()->destination()->target()->str();
+    std::vector<future> futures;
+    auto it = registry_.topic_subscriptions_.find(id.name);
+    if (it != end(registry_.topic_subscriptions_)) {
+      for (auto& subscriber : it->second) {
+        futures.emplace_back(
+            scheduler_.post(data, std::bind(subscriber, msg), id));
+      }
+    }
+    return futures;
+  }
 
-  dispatcher(dispatcher const&) = delete;
-  dispatcher(dispatcher&&) = delete;
+  future req(msg_ptr const& msg, ctx_data const& data, ctx::op_id id) {
+    try {
+      id.name = msg->get()->destination()->target()->str();
+      return scheduler_.post(
+          data, std::bind(registry_.operations_.at(id.name), msg), id);
+    } catch (std::out_of_range const&) {
+      throw boost::system::system_error(error::target_not_found);
+    }
+  }
 
-  dispatcher& operator=(dispatcher const&) = delete;
-  dispatcher& operator=(dispatcher&&) = delete;
+  void on_msg(msg_ptr const& msg, callback const& cb) override {
+    ctx::op_id id;
+    id.created_at = "dispatcher::on_msg";
+    id.parent_index = 0;
+    id.name = msg->get()->destination()->target()->str();
+    return scheduler_.enqueue(
+        ctx_data(this, registry_.sched_), [this, id, cb, msg]() {
+          try {
+            return cb(registry_.operations_.at(id.name)(msg),
+                      boost::system::error_code());
+          } catch (boost::system::system_error const& e) {
+            return cb(nullptr, e.code());
+          } catch (std::out_of_range const&) {
+            return cb(nullptr, error::target_not_found);
+          } catch (...) {
+            return cb(nullptr, error::unknown_error);
+          }
+        }, id);
+  }
 
-  void set_io_service(boost::asio::io_service*);
-  void set_send_fun(send_fun);
-  void send(msg_ptr msg, sid session);
-
-  void on_msg(msg_ptr msg, sid session, callback cb) override;
-  void on_open(sid session) override;
-  void on_close(sid session) override;
-
-  void remove_module(module* m);
-  void add_module(module* m);
-
-  void on_msg_finish(module* m, callback cb, msg_ptr res,
-                     boost::system::error_code ec);
-  void reschedule_held_back_msgs();
-
-  boost::asio::io_service* ios_;
-  send_fun send_fun_;
-  std::vector<module*> modules_;
-  std::map<MsgContent, std::vector<module*>> subscriptions_;
-  std::vector<held_back_msg> held_back_msgs_;
+  ctx::scheduler<ctx_data> scheduler_;
+  registry& registry_;
 };
 
 }  // namespace module
