@@ -1,4 +1,4 @@
-Checks:          '*,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg'
+Checks:          '*,-llvm-header-guard,-readability-named-parameter,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
 User:            root
@@ -238,7 +238,7 @@ CheckOptions:
   - key:             readability-identifier-naming.ProtectedMethodPrefix
     value:           ''
   - key:             readability-identifier-naming.ProtectedMethodSuffix
-    value:           '_'
+    value:           ''
   - key:             readability-identifier-naming.PublicMemberCase
     value:           lower_case
   - key:             readability-identifier-naming.PublicMemberPrefix
