@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
+
+if (MOTIS_LINT)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
 ################################
@@ -217,3 +223,16 @@ target_link_libraries(motis-itest
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-itest gtest gtest_main)
+
+################################
+# Lint (clang-tidy)
+################################
+if(MOTIS_LINT)
+  add_custom_target(lint
+    /usr/bin/python ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py "^${CMAKE_CURRENT_SOURCE_DIR}(base/)|(modules/)|(test/)"
+    COMMENT "Running clang-tidy"
+    VERBATIM
+  )
+  add_dependencies(lint motis motis-test motis-itest) 
+endif()
+

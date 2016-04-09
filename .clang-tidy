@@ -1,4 +1,4 @@
-Checks:          '*,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast'
+Checks:          '*,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
 User:            root
