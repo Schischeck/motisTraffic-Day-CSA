@@ -39,6 +39,6 @@ void expand_repetitions(std::vector<hrd_service>& services) {
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

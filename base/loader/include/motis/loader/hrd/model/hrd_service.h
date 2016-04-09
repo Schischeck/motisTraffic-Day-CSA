@@ -4,9 +4,9 @@
 
 #include "parser/cstr.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/hrd/model/specification.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/gtfs/stop_time.h"
 #include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/stop_time.h"
 
 #include "./resources.h"
 
@@ -67,6 +67,6 @@ TEST(loader_gtfs_route, read_stop_times_example_data) {
   EXPECT_TRUE(stop.dep_.in_out_allowed_);
 }
 
-}  // gtfs
-}  // loader
-}  // motis
+}  // namespace gtfs
+}  // namespace loader
+}  // namespace motis

@@ -1,10 +1,10 @@
 #include "motis/loader/loader.h"
 
-#include <memory>
-#include <vector>
 #include <fstream>
 #include <istream>
+#include <memory>
 #include <ostream>
+#include <vector>
 
 #include "boost/filesystem.hpp"
 

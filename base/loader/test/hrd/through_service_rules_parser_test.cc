@@ -4,9 +4,9 @@
 
 #include "motis/schedule-format/RuleService_generated.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/hrd/parser/through_services_parser.h"
+#include "motis/loader/util.h"
 
 #include "./test_spec_test.h"
 
@@ -50,6 +50,6 @@ TEST(loader_hrd_ts, multiple_rules) {
   ASSERT_EQ(it_1->second[0].get(), it_2->second[0].get());
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

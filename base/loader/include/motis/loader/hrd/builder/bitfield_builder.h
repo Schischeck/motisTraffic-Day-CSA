@@ -25,8 +25,8 @@ struct bitfield_builder {
 
   std::map<int, bitfield> const hrd_bitfields_;
   google::dense_hash_map<bitfield, flatbuffers::Offset<flatbuffers::String>,
-                         std::hash<bitfield>,
-                         std::equal_to<bitfield>> fbs_bitfields_;
+                         std::hash<bitfield>, std::equal_to<bitfield>>
+      fbs_bitfields_;
   std::map<int, flatbuffers::Offset<flatbuffers::String>> fbs_bf_lookup_;
 };
 

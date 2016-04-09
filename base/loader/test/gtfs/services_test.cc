@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/gtfs/calendar_date.h"
 #include "motis/loader/gtfs/calendar.h"
-#include "motis/loader/gtfs/services.h"
+#include "motis/loader/gtfs/calendar_date.h"
 #include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/services.h"
 
 #include "./resources.h"
 

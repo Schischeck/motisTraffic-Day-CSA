@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cassert>
-#include <bitset>
 #include <algorithm>
+#include <bitset>
 
 #include "parser/cstr.h"
 

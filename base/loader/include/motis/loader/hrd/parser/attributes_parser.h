@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cinttypes>
-#include <string>
 #include <map>
+#include <string>
 
 #include "motis/loader/loaded_file.h"
 

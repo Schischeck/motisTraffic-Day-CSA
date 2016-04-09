@@ -2,8 +2,8 @@
 
 #include "boost/filesystem/path.hpp"
 
-#include "parser/cstr.h"
 #include "parser/buffer.h"
+#include "parser/cstr.h"
 
 #include "motis/loader/util.h"
 

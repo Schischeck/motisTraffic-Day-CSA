@@ -1,7 +1,7 @@
 #include "motis/loader/gtfs/trip.h"
 
-#include <tuple>
 #include <algorithm>
+#include <tuple>
 
 #include "parser/csv.h"
 

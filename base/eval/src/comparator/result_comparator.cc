@@ -1,6 +1,6 @@
-#include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <vector>
 
 #include "motis/module/message.h"
@@ -201,16 +201,9 @@ int main(int argc, char* argv[]) {
     auto res2 = make_msg(line2);
     auto q = make_msg(lineq);
 
-    if (res1->content_type() != MsgContent_RoutingResponse ||
-        res2->content_type() != MsgContent_RoutingResponse ||
-        q->content_type() != MsgContent_RoutingRequest) {
-      printf("invalid content_type(s)? skipping!\n");
-      continue;
-    }
-
-    if (printDifferences(response(res1->content<RoutingResponse const*>()),
-                         response(res2->content<RoutingResponse const*>()),
-                         q->content<RoutingRequest const*>(), lineCount,
+    if (printDifferences(response(motis_content(RoutingResponse, res1)),
+                         response(motis_content(RoutingResponse, res2)),
+                         motis_content(RoutingRequest, q), lineCount,
                          q->id())) {
       ++matches;
     } else {

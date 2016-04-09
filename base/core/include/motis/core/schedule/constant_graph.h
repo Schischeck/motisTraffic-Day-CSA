@@ -1,10 +1,10 @@
 #pragma once
 
-#include <queue>
-#include <vector>
-#include <unordered_map>
 #include <array>
 #include <functional>
+#include <queue>
+#include <unordered_map>
+#include <vector>
 
 #include "motis/core/schedule/nodes.h"
 

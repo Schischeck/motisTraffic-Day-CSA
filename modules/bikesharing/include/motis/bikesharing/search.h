@@ -1,7 +1,7 @@
 #pragma once
 
-#include "motis/bikesharing/database.h"
 #include "motis/module/message.h"
+#include "motis/bikesharing/database.h"
 
 namespace motis {
 namespace bikesharing {

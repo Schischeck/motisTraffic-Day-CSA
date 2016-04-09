@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "motis/bootstrap/motis_instance.h"
 #include "motis/module/message.h"
+#include "motis/bootstrap/motis_instance.h"
 
 namespace motis {
 namespace test {

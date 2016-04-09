@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/timezones_parser.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -128,6 +128,6 @@ TEST_F(loader_timezones_synthetic, timezone_interval) {
   test_timezone_entry(tz_.find(9999999), 60, {{120, 0, 6, 120, 180}});
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

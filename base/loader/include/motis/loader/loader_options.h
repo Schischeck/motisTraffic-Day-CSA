@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ctime>
-#include <utility>
 #include <string>
+#include <utility>
 
 namespace motis {
 namespace loader {

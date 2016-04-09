@@ -1,7 +1,7 @@
 #include "motis/loader/hrd/parser/through_services_parser.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
@@ -109,6 +109,6 @@ void parse_through_service_rules(loaded_file const& file,
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

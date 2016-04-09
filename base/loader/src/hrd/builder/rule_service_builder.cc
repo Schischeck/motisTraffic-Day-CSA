@@ -10,8 +10,8 @@
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/model/rules_graph.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -174,6 +174,6 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

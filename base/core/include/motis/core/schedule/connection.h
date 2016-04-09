@@ -1,13 +1,13 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 #include "motis/core/common/hash_helper.h"
-#include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip_idx.h"
 
 namespace motis {

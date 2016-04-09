@@ -15,8 +15,8 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"
-#include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/schedule/trip.h"
+#include "motis/core/schedule/waiting_time_rules.h"
 
 namespace motis {
 

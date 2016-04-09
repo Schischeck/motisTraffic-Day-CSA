@@ -48,6 +48,6 @@ Offset<String> bitfield_builder::get_or_create_bitfield(
   return fbs_bitfields_it->second;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

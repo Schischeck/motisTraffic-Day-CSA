@@ -52,7 +52,8 @@ private:
       all_probability_distributions_;
   // TODO: enable access in constant time (a vector for each travel time)
   std::map<std::string, /* distribution class */
-           std::vector<distribution_mapping>> distribution_mappings_;
+           std::vector<distribution_mapping>>
+      distribution_mappings_;
   std::map<std::string, probability_distribution>
       class_to_probability_distributions_;
 

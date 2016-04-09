@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cassert>
-#include <vector>
 #include <algorithm>
+#include <vector>
 
-#include "motis/core/schedule/time.h"
-#include "motis/core/schedule/connection.h"
 #include "motis/core/common/array.h"
 #include "motis/core/common/constants.h"
+#include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/time.h"
 
 namespace motis {
 

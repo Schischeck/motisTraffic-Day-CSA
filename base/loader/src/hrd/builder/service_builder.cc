@@ -3,8 +3,8 @@
 #include <sstream>
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 #if defined(_WIN32) && defined(CreateService)
 #undef CreateService
@@ -125,6 +125,6 @@ Offset<Service> service_builder::create_service(
   return fbs_services_.back();
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

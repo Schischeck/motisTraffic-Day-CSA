@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
 #include <iostream>
+#include <string>
 
+#include "motis/core/schedule/schedule.h"
 #include "motis/core/access/error.h"
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
-#include "motis/core/schedule/schedule.h"
 
 namespace motis {
 

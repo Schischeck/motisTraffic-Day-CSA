@@ -4,8 +4,8 @@
 
 #include "parser/arg_parser.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -64,6 +64,6 @@ timezones parse_timezones(loaded_file const& timezones_file,
   return tz;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -12,7 +12,9 @@ enum error_code_t { ok = 0, not_implemented = 1, failure = 2 };
 
 class error_category_impl : public boost::system::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::connectionchecker"; }
+  virtual const char* name() const noexcept {
+    return "motis::connectionchecker";
+  }
 
   virtual std::string message(int ev) const noexcept {
     switch (ev) {

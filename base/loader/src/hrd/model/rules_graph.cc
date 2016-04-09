@@ -74,6 +74,6 @@ std::pair<std::set<rule_node*>, bitfield> rule_node::max_component() {
   return max;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

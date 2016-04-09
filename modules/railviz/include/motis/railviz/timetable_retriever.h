@@ -1,26 +1,27 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <set>
 #include <unordered_map>
 #include <utility>
-#include <algorithm>
 
-#include "motis/core/schedule/schedule.h"
-#include "motis/core/schedule/nodes.h"
-#include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/nodes.h"
+#include "motis/core/schedule/schedule.h"
 
 namespace motis {
 namespace railviz {
 
 typedef std::tuple<light_connection const*, station_node const*,
-                   station_node const*, station_node const*, bool,
-                   unsigned int> timetable_entry;
+                   station_node const*, station_node const*, bool, unsigned int>
+    timetable_entry;
 typedef std::vector<timetable_entry> timetable;
 
 typedef std::tuple<station_node const*, motis::node const*,
-                   light_connection const*> route_entry;
+                   light_connection const*>
+    route_entry;
 typedef std::vector<route_entry> route;
 
 struct timetable_retriever {

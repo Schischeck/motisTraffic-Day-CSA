@@ -46,6 +46,6 @@ TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
   ASSERT_TRUE(catched);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

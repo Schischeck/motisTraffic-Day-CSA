@@ -2,8 +2,8 @@
 
 #include <ostream>
 
-#include "boost/lexical_cast.hpp"
 #include "boost/date_time/local_time/local_time.hpp"
+#include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/common/util.h"

@@ -3,9 +3,9 @@
 #include "ctx/ctx.h"
 
 #include "motis/module/ctx_data.h"
-#include "motis/module/message.h"
 #include "motis/module/dispatcher.h"
 #include "motis/module/future.h"
+#include "motis/module/message.h"
 
 namespace motis {
 namespace module {

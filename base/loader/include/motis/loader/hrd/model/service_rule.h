@@ -2,11 +2,11 @@
 
 #include <cinttypes>
 #include <map>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/bitfield.h"
+#include "motis/loader/hrd/model/hrd_service.h"
 
 namespace motis {
 namespace loader {

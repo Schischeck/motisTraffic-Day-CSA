@@ -1,6 +1,6 @@
 #include <cinttypes>
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "gtest/gtest.h"
 
@@ -142,6 +142,6 @@ TEST(loader_hrd_fbs_services, directions_and_providers) {
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

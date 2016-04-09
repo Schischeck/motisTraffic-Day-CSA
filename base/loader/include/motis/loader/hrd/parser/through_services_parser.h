@@ -3,8 +3,8 @@
 #include <cinttypes>
 #include <vector>
 
-#include "motis/loader/loaded_file.h"
 #include "motis/loader/hrd/model/service_rule.h"
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {

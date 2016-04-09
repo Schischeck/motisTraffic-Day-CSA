@@ -1,12 +1,12 @@
 #pragma once
 
-#include <queue>
 #include <list>
 #include <ostream>
+#include <queue>
 #include <unordered_map>
 
-#include "motis/routing/statistics.h"
 #include "motis/routing/memory_manager.h"
+#include "motis/routing/statistics.h"
 
 namespace motis {
 namespace routing {

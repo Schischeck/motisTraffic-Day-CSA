@@ -1,7 +1,7 @@
 #include "motis/loader/loader_options.h"
 
-#include "boost/lexical_cast.hpp"
 #include "boost/date_time/local_time/local_time.hpp"
+#include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/date_util.h"
 

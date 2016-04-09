@@ -6,17 +6,17 @@
 
 #include "motis/core/common/date_util.h"
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/gtfs/files.h"
-#include "motis/loader/util.h"
 #include "motis/loader/gtfs/agency.h"
-#include "motis/loader/gtfs/stop.h"
-#include "motis/loader/gtfs/route.h"
 #include "motis/loader/gtfs/calendar.h"
 #include "motis/loader/gtfs/calendar_date.h"
-#include "motis/loader/gtfs/trip.h"
-#include "motis/loader/gtfs/transfers.h"
-#include "motis/loader/gtfs/stop_time.h"
+#include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/route.h"
 #include "motis/loader/gtfs/services.h"
+#include "motis/loader/gtfs/stop.h"
+#include "motis/loader/gtfs/stop_time.h"
+#include "motis/loader/gtfs/transfers.h"
+#include "motis/loader/gtfs/trip.h"
+#include "motis/loader/util.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace flatbuffers;
@@ -184,6 +184,6 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
       fbb.CreateVector(std::vector<Offset<RuleService>>())));
 }
 
-}  // gtfs
-}  // loader
-}  // motis
+}  // namespace gtfs
+}  // namespace loader
+}  // namespace motis

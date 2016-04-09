@@ -1,11 +1,11 @@
 #include "motis/launcher/batch_mode.h"
 
-#include <memory>
-#include <functional>
 #include <algorithm>
-#include <istream>
-#include <ostream>
 #include <fstream>
+#include <functional>
+#include <istream>
+#include <memory>
+#include <ostream>
 
 #include "motis/module/message.h"
 

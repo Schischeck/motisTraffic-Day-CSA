@@ -5,8 +5,8 @@
 
 #include "parser/cstr.h"
 
-#include "motis/loader/loaded_file.h"
 #include "motis/loader/gtfs/stop.h"
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {

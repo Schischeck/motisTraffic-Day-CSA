@@ -1,9 +1,9 @@
 #ifndef IMOTIS_EVAL_QUANTILE_H_
 #define IMOTIS_EVAL_QUANTILE_H_
 
+#include <cmath>
 #include <algorithm>
 #include <type_traits>
-#include <cmath>
 
 namespace motis {
 namespace eval {

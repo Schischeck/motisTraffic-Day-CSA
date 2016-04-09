@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
 #include <bitset>
+#include <map>
 
 #include "parser/cstr.h"
 

@@ -1,25 +1,25 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
-#include "motis/core/journey/journey.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/journey/journey.h"
 
-#include "motis/routing/lower_bounds.h"
-#include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/arrival.h"
-#include "motis/routing/statistics.h"
-#include "motis/routing/label/label.h"
-#include "motis/routing/label/initializer.h"
-#include "motis/routing/label/updater.h"
-#include "motis/routing/label/filter.h"
 #include "motis/routing/label/comparator.h"
-#include "motis/routing/label/dominance.h"
-#include "motis/routing/label/tie_breakers.h"
 #include "motis/routing/label/criteria/transfers.h"
 #include "motis/routing/label/criteria/travel_time.h"
+#include "motis/routing/label/dominance.h"
+#include "motis/routing/label/filter.h"
+#include "motis/routing/label/initializer.h"
+#include "motis/routing/label/label.h"
+#include "motis/routing/label/tie_breakers.h"
+#include "motis/routing/label/updater.h"
+#include "motis/routing/lower_bounds.h"
+#include "motis/routing/pareto_dijkstra.h"
+#include "motis/routing/statistics.h"
 
 namespace motis {
 
@@ -42,7 +42,8 @@ typedef label<
     filter<travel_time_filter, transfers_filter, waiting_time_filter>,
     dominance<default_tb, travel_time_dominance, transfers_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>> my_label;
+    comparator<travel_time_dominance, transfers_dominance>>
+    my_label;
 
 class search {
 public:

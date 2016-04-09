@@ -1,8 +1,8 @@
 #include "motis/launcher/ws_server.h"
 
+#include <functional>
 #include <limits>
 #include <memory>
-#include <functional>
 
 #include "boost/system/system_error.hpp"
 

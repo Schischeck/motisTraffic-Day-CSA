@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 

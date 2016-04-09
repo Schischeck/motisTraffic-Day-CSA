@@ -185,5 +185,5 @@ TEST_F(service_rules_graph_builder_test_virt, trip_2) {
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

@@ -67,5 +67,5 @@ waiting_time_rules load_waiting_time_rules(
   return rules;
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

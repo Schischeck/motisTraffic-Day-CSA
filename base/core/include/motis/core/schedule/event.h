@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cassert>
-#include <ostream>
 #include <iostream>
+#include <ostream>
 
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/time.h"

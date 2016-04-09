@@ -3,8 +3,8 @@
 #include "parser/util.h"
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -56,6 +56,6 @@ Offset<Attribute> attribute_builder::get_or_create_attribute(
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

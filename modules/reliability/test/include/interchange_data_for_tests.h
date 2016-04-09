@@ -59,9 +59,10 @@ struct interchange_data_for_tests {
     EXPECT_EQ(interchange_station_eva,
               schedule.stations[arriving_route_edge_._to->_station_node->_id]
                   ->eva_nr);
-    EXPECT_EQ(interchange_station_eva,
-              schedule.stations[departing_route_edge_._from->_station_node->_id]
-                  ->eva_nr);
+    EXPECT_EQ(
+        interchange_station_eva,
+        schedule.stations[departing_route_edge_._from->_station_node->_id]
+            ->eva_nr);
     EXPECT_EQ(next_station_eva,
               schedule.stations[departing_route_edge_._to->_station_node->_id]
                   ->eva_nr);
@@ -103,9 +104,10 @@ struct interchange_data_for_tests {
     EXPECT_EQ(begin_walking_eva,
               schedule.stations[arriving_route_edge_._to->_station_node->_id]
                   ->eva_nr);
-    EXPECT_EQ(end_walking_eva,
-              schedule.stations[departing_route_edge_._from->_station_node->_id]
-                  ->eva_nr);
+    EXPECT_EQ(
+        end_walking_eva,
+        schedule.stations[departing_route_edge_._from->_station_node->_id]
+            ->eva_nr);
     EXPECT_EQ(next_station_eva,
               schedule.stations[departing_route_edge_._to->_station_node->_id]
                   ->eva_nr);

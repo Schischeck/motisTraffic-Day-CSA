@@ -1,5 +1,7 @@
 #pragma once
 
+#include "motis/core/schedule/edges.h"
+
 namespace motis {
 namespace routing {
 

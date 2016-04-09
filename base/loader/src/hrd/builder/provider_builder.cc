@@ -1,8 +1,8 @@
 #include "motis/loader/hrd/builder/provider_builder.h"
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -30,6 +30,6 @@ Offset<Provider> provider_builder::get_or_create_provider(
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

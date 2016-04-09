@@ -23,6 +23,6 @@ Offset<Vector<Offset<Footpath>>> create_footpaths(
   return fbb.CreateVector(fbs_footpaths);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

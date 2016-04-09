@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
-#include <utility>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 #include "motis/core/schedule/delay_info.h"
-#include "motis/realtime/modified_train.h"
 #include "motis/realtime/delay_info_manager.h"
+#include "motis/realtime/modified_train.h"
 
 namespace motis {
 namespace realtime {

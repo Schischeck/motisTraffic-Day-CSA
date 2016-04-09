@@ -1,8 +1,8 @@
 #pragma once
 
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "boost/icl/interval_set.hpp"
 

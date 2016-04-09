@@ -31,6 +31,6 @@ response::response(RoutingResponse const* r)
             return std::make_tuple(travel_time(c), transfers(c), price(c));
           })) {}
 
-}  // comparator
-}  // eval
-}  // motis
+}  // namespace comparator
+}  // namespace eval
+}  // namespace motis

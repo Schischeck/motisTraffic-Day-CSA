@@ -1,10 +1,10 @@
 #pragma once
 
-#include "motis/core/access/edge_access.h"
-#include "motis/core/access/connection_access.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/trip.h"
+#include "motis/core/access/connection_access.h"
+#include "motis/core/access/edge_access.h"
 
 namespace motis {
 namespace access {

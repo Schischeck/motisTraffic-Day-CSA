@@ -1,22 +1,22 @@
 #include "motis/loader/graph_builder.h"
 
 #include <cassert>
-#include <functional>
 #include <algorithm>
+#include <functional>
 
 #include "parser/cstr.h"
 
+#include "motis/core/common/constants.h"
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/schedule/price.h"
 #include "motis/core/schedule/category.h"
-#include "motis/core/common/constants.h"
-#include "motis/loader/wzr_loader.h"
-#include "motis/loader/util.h"
+#include "motis/core/schedule/price.h"
 #include "motis/loader/classes.h"
-#include "motis/loader/timezone_util.h"
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/rule_service_graph_builder.h"
+#include "motis/loader/timezone_util.h"
+#include "motis/loader/util.h"
+#include "motis/loader/wzr_loader.h"
 
 using namespace motis::logging;
 using namespace flatbuffers;
@@ -430,10 +430,13 @@ light_connection graph_builder::section_to_connection(
 
   return light_connection(
       dep_motis_time, arr_motis_time,
-      set_get_or_create(connections_, &con_, [&]() {
-        sched_.full_connections.emplace_back(make_unique<connection>(con_));
-        return sched_.full_connections.back().get();
-      }), trips);
+      set_get_or_create(connections_, &con_,
+                        [&]() {
+                          sched_.full_connections.emplace_back(
+                              make_unique<connection>(con_));
+                          return sched_.full_connections.back().get();
+                        }),
+      trips);
 }
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
@@ -723,5 +726,5 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   return sched;
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

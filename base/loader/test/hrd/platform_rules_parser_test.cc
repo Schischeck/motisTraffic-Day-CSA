@@ -4,14 +4,14 @@
 
 #include "gtest/gtest.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/files.h"
-#include "motis/loader/hrd/parser/platform_rules_parser.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/platform_rules_parser.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 using namespace parser;
@@ -110,6 +110,6 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
   ASSERT_TRUE(catched);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

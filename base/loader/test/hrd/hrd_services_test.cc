@@ -1,6 +1,6 @@
 #include <cinttypes>
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "gtest/gtest.h"
 
@@ -180,6 +180,6 @@ TEST(loader_hrd_hrd_services, time_prefixes) {
       });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

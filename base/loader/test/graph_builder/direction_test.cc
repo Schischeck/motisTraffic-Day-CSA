@@ -59,5 +59,5 @@ TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

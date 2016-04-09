@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include "motis/module/message.h"
@@ -53,12 +53,7 @@ int main(int argc, char* argv[]) {
     std::getline(in, line);
 
     auto res_msg = make_msg(line);
-    if (res_msg->content_type() != MsgContent_RoutingResponse) {
-      printf("invalid content_type(s)? skipping!\n");
-      continue;
-    }
-
-    response res(res_msg->content<RoutingResponse const*>());
+    response res(motis_content(RoutingResponse, res_msg));
 
     if (res.maxLabelQuit) {
       ++maxLabelQuit;

@@ -1,13 +1,13 @@
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 
 #include <cinttypes>
-#include <string>
-#include <vector>
 #include <array>
 #include <functional>
+#include <string>
+#include <vector>
 
-#include "parser/csv.h"
 #include "parser/cstr.h"
+#include "parser/csv.h"
 #include "parser/util.h"
 
 namespace motis {
@@ -899,6 +899,6 @@ XASB;;8;4
 XSS;;3;-
 XTCH;;7;3)";
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

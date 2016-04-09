@@ -2,10 +2,10 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 #include "motis/loader/hrd/parser/stations_parser.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -102,6 +102,6 @@ TEST(loader_hrd_stations_parser, parse_stations) {
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

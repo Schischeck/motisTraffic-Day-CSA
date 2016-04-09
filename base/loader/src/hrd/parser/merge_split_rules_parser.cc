@@ -3,8 +3,8 @@
 #include <set>
 #include <vector>
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
@@ -176,6 +176,6 @@ void parse_merge_split_service_rules(
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

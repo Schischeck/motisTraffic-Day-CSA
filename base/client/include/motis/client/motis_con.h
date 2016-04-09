@@ -15,7 +15,8 @@ namespace client {
 class motis_con : public net::tcp, boost::asio::coroutine {
 public:
   typedef std::function<void(net::tcp::tcp_ptr, std::string,
-                             boost::system::error_code)> callback;
+                             boost::system::error_code)>
+      callback;
 
   motis_con(boost::asio::io_service& ios, std::string host, std::string port,
             boost::posix_time::time_duration timeout);
