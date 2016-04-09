@@ -8,10 +8,11 @@
 
 #include "parser/file.h"
 
+#include "motis/core/common/logging.h"
 #include "motis/bikesharing/error.h"
 #include "motis/bikesharing/nextbike_initializer.h"
-#include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
+#include "motis/bikesharing/database.h"
+#include "motis/bikesharing/search.h"
 
 #define DATABASE_PATH "bikesharing.database_path"
 #define NEXTBIKE_PATH "bikesharing.nextbike_path"
@@ -27,6 +28,8 @@ namespace bikesharing {
 
 bikesharing::bikesharing()
     : database_path_("bikesharing"), nextbike_path_("") {}
+
+bikesharing::~bikesharing() {}
 
 po::options_description bikesharing::desc() {
   po::options_description desc("bikesharing Module");
@@ -48,14 +51,14 @@ void bikesharing::print(std::ostream& out) const {
 }
 
 void bikesharing::init_async() {
-  database_ = make_unique<database>(database_path_);
+  database_ = std::make_unique<database>(database_path_);
 
   auto dispatch_fun = [this](msg_ptr msg, callback cb) {
     return dispatch(msg, 0, cb);
   };
   auto finished = [this](msg_ptr, boost::system::error_code ec) mutable {
     if (!ec) {
-      search_ = make_unique<bikesharing_search>(*database_);
+      search_ = std::make_unique<bikesharing_search>(*database_);
     } else {
       throw boost::system::system_error(ec);
     }

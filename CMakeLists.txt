@@ -131,7 +131,7 @@ add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
 list(REMOVE_ITEM all-modules ".DS_Store")
-string (REPLACE ";" " " modules-option "${all-modules}")
+string(REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")

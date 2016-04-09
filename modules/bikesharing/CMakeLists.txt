@@ -11,14 +11,14 @@ compile_flatbuffers_schema_to_cpp(
   "--everything-required"
   ${bikesharing-dbschema-dir}
   ${generated-headers-dir}
-  generated-headers
+  generated-bikesharing-dbschema-headers
   ${bikesharing-dbschema-files}
 )
 
 file(GLOB_RECURSE motis-bikesharing-files src/*.cc)
 add_library(motis-bikesharing STATIC 
   ${motis-bikesharing-files}
-  ${generated-headers}
+  ${generated-bikesharing-dbschema-headers}
 )
 set_target_properties(motis-bikesharing PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-bikesharing 

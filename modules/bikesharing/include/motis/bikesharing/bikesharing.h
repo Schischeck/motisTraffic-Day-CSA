@@ -4,15 +4,16 @@
 #include <vector>
 
 #include "motis/module/module.h"
-#include "motis/bikesharing/database.h"
-#include "motis/bikesharing/search.h"
 
 namespace motis {
 namespace bikesharing {
 
+struct database;
+struct bikesharing_search;
+
 struct bikesharing : public motis::module::module {
   bikesharing();
-  virtual ~bikesharing() {}
+  ~bikesharing();
 
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
