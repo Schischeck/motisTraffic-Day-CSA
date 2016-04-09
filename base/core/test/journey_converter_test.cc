@@ -7,6 +7,7 @@
 #include "motis/core/schedule/category.h"
 
 using namespace motis;
+using routing::RoutingResponse;
 
 journey create_journey1() {
   journey j;
@@ -201,8 +202,7 @@ TEST(core_convert_journey, journey_message_journey) {
   original_journeys.push_back(create_journey2());
 
   auto msg = journeys_to_message(original_journeys);
-  auto journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
 
   ASSERT_TRUE(journeys.size() == 2);
 

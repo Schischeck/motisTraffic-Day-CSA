@@ -162,7 +162,7 @@ configure_file (
 )
 file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
-file(GLOB_RECURSE motis-base-test-files base/module/*_test.cc)
+file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-test-files}
   ${motis-modules-test-files}
