@@ -135,6 +135,18 @@ string (REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
+list(REMOVE_ITEM modules
+  "bikesharing"
+  "connectionchecker"
+  "intermodal"
+  "lookup"
+  "railviz"
+  "realtime"
+  "reliability"
+  "ris"
+  "rt"
+)
+
 set(module-targets "")
 set(module-test-files "")
 foreach(module ${all-modules})
