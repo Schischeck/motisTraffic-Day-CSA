@@ -25,47 +25,49 @@ inline std::ostream& operator<<(std::ostream& os, const timestamp_reason& r) {
 }
 
 struct delay_info {
-  explicit delay_info(struct schedule_event schedule_event, int32_t route_id = -1)
-      : _schedule_event(schedule_event),
-        _route_id(route_id),
-        _forecast_time(motis::INVALID_TIME),
-        _current_time(schedule_event._schedule_time),
-        _canceled(false),
-        _reason(timestamp_reason::SCHEDULE) {}
+  explicit delay_info(struct schedule_event schedule_event,
+                      int32_t route_id = -1)
+      : schedule_event_(schedule_event),
+        route_id_(route_id),
+        forecast_time_(motis::INVALID_TIME),
+        current_time_(schedule_event.schedule_time_),
+        canceled_(false),
+        reason_(timestamp_reason::SCHEDULE) {}
 
   inline bool delayed() const {
-    return _current_time != _schedule_event._schedule_time;
+    return current_time_ != schedule_event_.schedule_time_;
   }
-  inline bool canceled() const { return _canceled; }
 
-  inline schedule_event sched_ev() const { return _schedule_event; }
+  inline bool canceled() const { return canceled_; }
+
+  inline schedule_event sched_ev() const { return schedule_event_; }
 
   inline graph_event graph_ev() const {
-    return graph_event(_schedule_event._station_index,
-                       _schedule_event._train_nr, _schedule_event._departure,
-                       _current_time, _route_id);
+    return graph_event(schedule_event_.station_index_,
+                       schedule_event_.train_nr_, schedule_event_.departure_,
+                       current_time_, route_id_);
   }
 
   bool operator==(const delay_info& other) const {
-    return _schedule_event == other._schedule_event;
+    return schedule_event_ == other.schedule_event_;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const delay_info& di) {
-    os << "<event=" << di._schedule_event << ", route_id=" << di._route_id
-       << ", fc=" << motis::format_time(di._forecast_time)
-       << ", ct=" << motis::format_time(di._current_time)
-       << ", reason=" << di._reason << (di.canceled() ? ", CANCELED" : "")
+    os << "<event=" << di.schedule_event_ << ", route_id=" << di.route_id_
+       << ", fc=" << motis::format_time(di.forecast_time_)
+       << ", ct=" << motis::format_time(di.current_time_)
+       << ", reason=" << di.reason_ << (di.canceled() ? ", CANCELED" : "")
        << ">";
     return os;
   }
 
-  struct schedule_event _schedule_event;
-  int32_t _route_id;
+  struct schedule_event schedule_event_;
+  int32_t route_id_;
 
-  motis::time _forecast_time;
-  motis::time _current_time;
-  bool _canceled;
-  timestamp_reason _reason;
+  motis::time forecast_time_;
+  motis::time current_time_;
+  bool canceled_;
+  timestamp_reason reason_;
 };
 
 }  // namespace motis

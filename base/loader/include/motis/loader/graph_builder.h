@@ -25,84 +25,84 @@ namespace loader {
 
 struct route_section {
   route_section()
-      : from_route_node(nullptr),
-        to_route_node(nullptr),
-        outgoing_route_edge_index(-1) {}
+      : from_route_node_(nullptr),
+        to_route_node_(nullptr),
+        outgoing_route_edge_index_(-1) {}
 
   route_section(node* from, node* to, int edge_idx)
-      : from_route_node(from),
-        to_route_node(to),
-        outgoing_route_edge_index(edge_idx) {
-    assert(from_route_node == nullptr || from_route_node->is_route_node());
-    assert(to_route_node == nullptr || to_route_node->is_route_node());
+      : from_route_node_(from),
+        to_route_node_(to),
+        outgoing_route_edge_index_(edge_idx) {
+    assert(from_route_node_ == nullptr || from_route_node_->is_route_node());
+    assert(to_route_node_ == nullptr || to_route_node_->is_route_node());
   }
 
   bool is_valid() const {
-    return from_route_node != nullptr && to_route_node != nullptr &&
-           outgoing_route_edge_index != -1;
+    return from_route_node_ != nullptr && to_route_node_ != nullptr &&
+           outgoing_route_edge_index_ != -1;
   }
 
   edge* get_route_edge() {
-    if (outgoing_route_edge_index == -1) {
+    if (outgoing_route_edge_index_ == -1) {
       return nullptr;
     }
 
-    assert(outgoing_route_edge_index >= 0);
-    assert(static_cast<unsigned>(outgoing_route_edge_index) <
-           from_route_node->_edges.size());
-    assert(from_route_node->_edges[outgoing_route_edge_index].type() ==
+    assert(outgoing_route_edge_index_ >= 0);
+    assert(static_cast<unsigned>(outgoing_route_edge_index_) <
+           from_route_node_->edges_.size());
+    assert(from_route_node_->edges_[outgoing_route_edge_index_].type() ==
            edge::ROUTE_EDGE);
-    return &from_route_node->_edges[outgoing_route_edge_index];
+    return &from_route_node_->edges_[outgoing_route_edge_index_];
   }
 
-  node* from_route_node;
-  node* to_route_node;
-  int outgoing_route_edge_index;
+  node* from_route_node_;
+  node* to_route_node_;
+  int outgoing_route_edge_index_;
 };
 
 struct participant {
-  participant() : service(nullptr), section_idx(0) {}
+  participant() : service_(nullptr), section_idx_(0) {}
 
   participant(Service const* service, int section_idx)
-      : service(service), section_idx(section_idx) {}
+      : service_(service), section_idx_(section_idx) {}
 
   friend bool operator<(participant const& lhs, participant const& rhs) {
-    return lhs.service > rhs.service;
+    return lhs.service_ > rhs.service_;
   }
 
   friend bool operator>(participant const& lhs, participant const& rhs) {
-    return lhs.service < rhs.service;
+    return lhs.service_ < rhs.service_;
   }
 
   friend bool operator==(participant const& lhs, participant const& rhs) {
-    return lhs.service == rhs.service;
+    return lhs.service_ == rhs.service_;
   }
 
-  Service const* service;
-  int section_idx;
+  Service const* service_;
+  int section_idx_;
 };
 
 struct services_key {
   services_key() = default;
 
   services_key(Service const* service, int day_idx)
-      : services({service}), day_idx(day_idx) {}
+      : services_({service}), day_idx_(day_idx) {}
 
   services_key(std::set<Service const*> services, int day_idx)
-      : services(std::move(services)), day_idx(day_idx) {}
+      : services_(std::move(services)), day_idx_(day_idx) {}
 
   friend bool operator<(services_key const& lhs, services_key const& rhs) {
-    return std::tie(lhs.services, lhs.day_idx) <
-           std::tie(rhs.services, rhs.day_idx);
+    return std::tie(lhs.services_, lhs.day_idx_) <
+           std::tie(rhs.services_, rhs.day_idx_);
   }
 
   friend bool operator==(services_key const& lhs, services_key const& rhs) {
-    return std::tie(lhs.services, lhs.day_idx) ==
-           std::tie(rhs.services, rhs.day_idx);
+    return std::tie(lhs.services_, lhs.day_idx_) ==
+           std::tie(rhs.services_, rhs.day_idx_);
   }
 
-  std::set<Service const*> services;
-  int day_idx;
+  std::set<Service const*> services_;
+  int day_idx_;
 };
 
 template <typename T, typename... Args>

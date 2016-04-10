@@ -42,8 +42,8 @@ TEST(loader_hrd_attributes, invalid_line) {
     parse_attributes(f);
   } catch (parser_error const& e) {
     catched = true;
-    ASSERT_STREQ(ATTRIBUTES_FILE_OLD, e.filename);
-    ASSERT_TRUE(e.line_number == 1);
+    ASSERT_STREQ(ATTRIBUTES_FILE_OLD, e.filename_);
+    ASSERT_TRUE(e.line_number_ == 1);
   }
 
   ASSERT_TRUE(catched);

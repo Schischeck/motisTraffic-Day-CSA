@@ -35,7 +35,7 @@ void parse_station_names(loaded_file const& file,
       name.len = std::distance(begin(name), it);
     }
 
-    stations[eva_num].name = std::string(name.str, name.len);
+    stations[eva_num].name_ = std::string(name.str, name.len);
   });
 }
 
@@ -52,8 +52,8 @@ void parse_station_coordinates(loaded_file const& file,
     auto eva_num = parse<int>(line.substr(0, size(7)));
     auto& station = stations[eva_num];
 
-    station.lng = parse<double>(line.substr(8, size(10)).trim());
-    station.lat = parse<double>(line.substr(19, size(10)).trim());
+    station.lng_ = parse<double>(line.substr(8, size(10)).trim());
+    station.lat_ = parse<double>(line.substr(19, size(10)).trim());
   });
 }
 
@@ -61,7 +61,7 @@ void set_change_times(station_meta_data const& metas,
                       std::map<int, intermediate_station>& stations) {
   scoped_timer timer("set station change times");
   for (auto& station_entry : stations) {
-    station_entry.second.change_time =
+    station_entry.second.change_time_ =
         metas.get_station_change_time(station_entry.first);
   }
 }
@@ -71,7 +71,7 @@ void set_ds100(station_meta_data const& metas,
   for (auto const& ds100 : metas.ds100_to_eva_num_) {
     auto it = stations.find(ds100.second);
     if (it != end(stations)) {
-      it->second.ds100.push_back(ds100.first.to_str());
+      it->second.ds100_.push_back(ds100.first.to_str());
     }
   }
 }

@@ -21,11 +21,11 @@ constexpr int DUMMY_TARGET_IDX = 1;
 class node {
 public:
   node(station_node* station_node, int node_id)
-      : _station_node(station_node), _route(-1), _id(node_id) {}
+      : station_node_(station_node), route_(-1), id_(node_id) {}
 
-  bool is_station_node() const { return _station_node == nullptr; }
+  bool is_station_node() const { return station_node_ == nullptr; }
 
-  bool is_route_node() const { return _route != -1; }
+  bool is_route_node() const { return route_ != -1; }
 
   bool is_foot_node() const { return !is_station_node() && !is_route_node(); }
 
@@ -40,7 +40,7 @@ public:
   }
 
   station_node* as_station_node() {
-    if (_station_node == nullptr) {
+    if (station_node_ == nullptr) {
       return reinterpret_cast<station_node*>(this);
     } else {
       return nullptr;
@@ -48,7 +48,7 @@ public:
   }
 
   station_node const* as_station_node() const {
-    if (_station_node == nullptr) {
+    if (station_node_ == nullptr) {
       return reinterpret_cast<station_node const*>(this);
     } else {
       return nullptr;
@@ -56,48 +56,49 @@ public:
   }
 
   station_node* get_station() {
-    if (_station_node == nullptr) {
+    if (station_node_ == nullptr) {
       return reinterpret_cast<station_node*>(this);
     } else {
-      return _station_node;
+      return station_node_;
     }
   }
 
   station_node const* get_station() const {
-    if (_station_node == nullptr) {
+    if (station_node_ == nullptr) {
       return reinterpret_cast<station_node const*>(this);
     } else {
-      return _station_node;
+      return station_node_;
     }
   }
 
-  array<edge> _edges;
-  array<edge*> _incoming_edges;
-  station_node* _station_node;
-  int32_t _route;
-  uint32_t _id;
+  array<edge> edges_;
+  array<edge*> incoming_edges_;
+  station_node* station_node_;
+  int32_t route_;
+  uint32_t id_;
 };
 
 class station_node : public node {
 public:
-  station_node(int node_id) : node(nullptr, node_id), _foot_node(nullptr) {}
+  explicit station_node(int node_id)
+      : node(nullptr, node_id), foot_node_(nullptr) {}
 
   ~station_node() {
     for (auto& route_node : get_route_nodes()) {
       delete route_node;
     }
 
-    if (_foot_node != nullptr) {
-      delete _foot_node;
+    if (foot_node_ != nullptr) {
+      delete foot_node_;
     }
   }
 
   std::vector<node const*> get_route_nodes() const {
     std::vector<node const*> route_nodes;
 
-    for (auto& edge : _edges) {
-      if (edge._to->is_route_node()) {
-        route_nodes.emplace_back(edge._to);
+    for (auto& edge : edges_) {
+      if (edge.to_->is_route_node()) {
+        route_nodes.emplace_back(edge.to_);
       }
     }
 
@@ -107,9 +108,9 @@ public:
   std::vector<node*> get_route_nodes() {
     std::vector<node*> route_nodes;
 
-    for (auto& edge : _edges) {
-      if (edge._to->is_route_node()) {
-        route_nodes.emplace_back(edge._to);
+    for (auto& edge : edges_) {
+      if (edge.to_->is_route_node()) {
+        route_nodes.emplace_back(edge.to_);
       }
     }
 
@@ -117,29 +118,29 @@ public:
   }
 
   int add_foot_edge(int node_id, edge fe) {
-    if (_foot_node == nullptr) {
-      _foot_node = new node(this, node_id++);
+    if (foot_node_ == nullptr) {
+      foot_node_ = new node(this, node_id++);
       for (auto& route_node : get_route_nodes()) {
         // check whether it is allowed to transfer at the route-node
         // we do this by checking, whether it has an edge to the station
-        for (auto const& edge : route_node->_edges) {
+        for (auto const& edge : route_node->edges_) {
           if (edge.get_destination() == this) {
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
-            route_node->_edges.push_back(
-                make_after_train_edge(route_node, _foot_node, 0, true));
+            route_node->edges_.push_back(
+                make_after_train_edge(route_node, foot_node_, 0, true));
             break;
           }
         }
       }
-      _edges.emplace_back(make_foot_edge(this, _foot_node));
+      edges_.emplace_back(make_foot_edge(this, foot_node_));
     }
-    _foot_node->_edges.emplace_back(std::move(fe));
+    foot_node_->edges_.emplace_back(std::move(fe));
     return node_id;
   }
 
-  node* _foot_node;
+  node* foot_node_;
 };
 
 typedef std::unique_ptr<station_node> station_node_ptr;

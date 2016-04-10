@@ -16,12 +16,12 @@ inline int output_train_nr(uint32_t const& train_nr,
 
 inline std::string get_service_name(schedule const& sched,
                                     connection_info const* info) {
-  auto const& cat_name = sched.categories[info->family]->name;
-  auto const& line_identifier = info->line_identifier;
+  auto const& cat_name = sched.categories_[info->family_]->name_;
+  auto const& line_identifier = info->line_identifier_;
 
   std::string print_train_nr;
   auto const& train_nr =
-      output_train_nr(info->train_nr, info->original_train_nr);
+      output_train_nr(info->train_nr_, info->original_train_nr_);
   if (train_nr != 0) {
     print_train_nr = boost::lexical_cast<std::string>(train_nr);
   } else if (train_nr == 0 && !line_identifier.empty()) {
@@ -31,7 +31,7 @@ inline std::string get_service_name(schedule const& sched,
   }
 
   std::string name;
-  switch (sched.categories[info->family]->output_rule) {
+  switch (sched.categories_[info->family_]->output_rule_) {
     case category::CATEGORY_AND_TRAIN_NUM:
       name = cat_name + " " + print_train_nr;
       break;
@@ -44,14 +44,14 @@ inline std::string get_service_name(schedule const& sched,
 
     case category::PROVIDER_AND_TRAIN_NUM:
       if (info->provider_ != nullptr) {
-        name = info->provider_->short_name + " ";
+        name = info->provider_->short_name_ + " ";
       }
       name += print_train_nr;
       break;
 
     case category::PROVIDER:
       if (info->provider_ != nullptr) {
-        name = info->provider_->short_name;
+        name = info->provider_->short_name_;
       }
       break;
 

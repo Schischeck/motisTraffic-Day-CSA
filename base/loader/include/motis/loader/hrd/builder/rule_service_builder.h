@@ -32,7 +32,7 @@ struct rule_service_builder {
 
   std::vector<std::unique_ptr<hrd_service>> origin_services_;
   std::vector<rule_service> rule_services_;
-  std::vector<flatbuffers::Offset<RuleService>> fbs_rule_services;
+  std::vector<flatbuffers::Offset<RuleService>> fbs_rule_services_;
 
 private:
   service_rules input_rules_;

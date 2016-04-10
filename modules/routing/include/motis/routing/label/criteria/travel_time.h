@@ -11,15 +11,15 @@ struct travel_time_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
     l.travel_time_ = l.now_ - l.start_;
-    l.travel_time_lb_ = l.travel_time_ + lb.travel_time[l.node_->_id];
+    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.node_->id_];
   }
 };
 
 struct travel_time_updater {
   template <typename Label, typename LowerBounds>
   static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
-    l.travel_time_ += ec.time;
-    l.travel_time_lb_ = l.travel_time_ + lb.travel_time[l.node_->_id];
+    l.travel_time_ += ec.time_;
+    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.node_->id_];
   }
 };
 
@@ -80,7 +80,7 @@ struct waiting_time_filter {
   template <typename Label>
   static bool is_filtered(Label const& l) {
     auto const& c = l.connection_;
-    unsigned con_time = c != nullptr ? c->a_time - c->d_time : 0;
+    unsigned con_time = c != nullptr ? c->a_time_ - c->d_time_ : 0;
     return l.travel_time_ - l.pred_->travel_time_ - con_time > 200;
   }
 };

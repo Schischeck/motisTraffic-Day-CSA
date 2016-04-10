@@ -8,41 +8,42 @@ namespace loader {
 namespace hrd {
 
 struct service_resolvent {
-  explicit service_resolvent(hrd_service* origin) : service(nullptr), origin(origin) {}
+  explicit service_resolvent(hrd_service* origin)
+      : service_(nullptr), origin_(origin) {}
 
   service_resolvent(std::unique_ptr<hrd_service> service, hrd_service* origin)
-      : service(std::move(service)), origin(origin) {}
+      : service_(std::move(service)), origin_(origin) {}
 
   friend bool operator<(service_resolvent const& rhs,
                         service_resolvent const& lhs) {
-    return rhs.origin < lhs.origin;
+    return rhs.origin_ < lhs.origin_;
   }
 
   friend bool operator==(service_resolvent const& rhs,
                          service_resolvent const& lhs) {
-    return rhs.origin == lhs.origin;
+    return rhs.origin_ == lhs.origin_;
   }
 
-  std::unique_ptr<hrd_service> service;
-  hrd_service* origin;
+  std::unique_ptr<hrd_service> service_;
+  hrd_service* origin_;
 };
 
 struct service_rule_resolvent {
   service_rule_resolvent(resolved_rule_info rule_info, hrd_service* s1,
                          hrd_service* s2)
-      : rule_info(std::move(rule_info)), s1(s1), s2(s2) {}
+      : rule_info_(std::move(rule_info)), s1_(s1), s2_(s2) {}
 
-  resolved_rule_info rule_info;
-  hrd_service* s1;
-  hrd_service* s2;
+  resolved_rule_info rule_info_;
+  hrd_service* s1_;
+  hrd_service* s2_;
 };
 
 struct rule_service {
   rule_service(std::vector<service_rule_resolvent> rules,
                std::set<service_resolvent> services)
-      : rules(std::move(rules)), services(std::move(services)) {}
-  std::vector<service_rule_resolvent> rules;
-  std::set<service_resolvent> services;
+      : rules_(std::move(rules)), services_(std::move(services)) {}
+  std::vector<service_rule_resolvent> rules_;
+  std::set<service_resolvent> services_;
 };
 
 }  // namespace hrd

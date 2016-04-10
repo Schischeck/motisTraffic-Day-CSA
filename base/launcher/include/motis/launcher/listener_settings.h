@@ -22,11 +22,11 @@ public:
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 
-  bool listen_ws, listen_http, listen_tcp;
-  std::string ws_host, ws_port;
-  std::string http_host, http_port;
-  std::string tcp_host, tcp_port;
-  std::string api_key;
+  bool listen_ws_, listen_http_, listen_tcp_;
+  std::string ws_host_, ws_port_;
+  std::string http_host_, http_port_;
+  std::string tcp_host_, tcp_port_;
+  std::string api_key_;
 };
 
 }  // namespace launcher

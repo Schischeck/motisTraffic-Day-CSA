@@ -20,10 +20,10 @@ public:
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 
-  motis_mode_t mode;
-  std::vector<std::string> modules;
-  std::string batch_input_file, batch_output_file;
-  int num_threads;
+  motis_mode_t mode_;
+  std::vector<std::string> modules_;
+  std::string batch_input_file_, batch_output_file_;
+  int num_threads_;
 };
 
 }  // namespace launcher

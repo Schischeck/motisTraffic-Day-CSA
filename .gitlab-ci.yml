@@ -9,7 +9,7 @@ gcc-5-release:
     - mkdir -p build-gcc-5
     - cd build-gcc-5
     - cmake -DCMAKE_BUILD_TYPE=Release -DNO_SSL=true ..
-    - make -j8 motis-test motis-itest motis motis-eval
+    - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -29,7 +29,7 @@ clang-3.8-debug-asan:
     - mkdir -p build-asan
     - cd build-asan
     - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
-    - make -j8 motis-test motis-itest motis motis-eval
+    - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -50,7 +50,7 @@ clang-3.8-debug-tsan:
     - mkdir -p build-tsan
     - cd build-tsan
     - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
-    - make -j8 motis-test motis-itest motis motis-eval
+    - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -67,7 +67,7 @@ gcc-5-debug-valgrind:
     - mkdir -p build-gcc-5-valgrind
     - cd build-gcc-5-valgrind
     - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
-    - make -j8 motis-test motis-itest motis motis-eval
+    - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice

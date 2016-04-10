@@ -14,7 +14,7 @@ struct range {
         parser::cstr from_eva_or_idx, parser::cstr to_eva_or_idx,
         parser::cstr from_hhmm_or_idx, parser::cstr to_hhmm_or_idx);
 
-  int from_idx, to_idx;
+  int from_idx_, to_idx_;
 };
 
 }  // namespace hrd

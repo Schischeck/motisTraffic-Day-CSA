@@ -18,37 +18,37 @@ public:
   friend graph_loader;
 
   int waiting_time_category(const std::string& train_category) const {
-    auto it = _category_map.find(train_category);
-    if (it == end(_category_map)) {
-      return default_group;
+    auto it = category_map_.find(train_category);
+    if (it == end(category_map_)) {
+      return default_group_;
     } else {
       return it->second;
     }
   }
 
   inline int waiting_time_category(int family) const {
-    return _family_to_wtr_category[family];
+    return family_to_wtr_category_[family];
   }
 
   inline int waiting_time(int connecting_category, int feeder_category) const {
-    return _waiting_time_matrix[connecting_category][feeder_category];
+    return waiting_time_matrix_[connecting_category][feeder_category];
   }
 
   inline bool waits_for_other_trains(int connecting_category) const {
-    return _waits_for_other_trains[connecting_category];
+    return waits_for_other_trains_[connecting_category];
   }
 
   inline bool other_trains_wait_for(int feeder_category) const {
-    return _other_trains_wait_for[feeder_category];
+    return other_trains_wait_for_[feeder_category];
   }
 
-  int default_group;
+  int default_group_;
 
-  std::unordered_map<std::string, int> _category_map;
-  std::vector<int> _family_to_wtr_category;
-  flat_matrix<duration> _waiting_time_matrix;
-  std::vector<bool> _waits_for_other_trains;
-  std::vector<bool> _other_trains_wait_for;
+  std::unordered_map<std::string, int> category_map_;
+  std::vector<int> family_to_wtr_category_;
+  flat_matrix<duration> waiting_time_matrix_;
+  std::vector<bool> waits_for_other_trains_;
+  std::vector<bool> other_trains_wait_for_;
 };
 
 }  // namespace motis

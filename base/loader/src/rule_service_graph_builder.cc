@@ -150,7 +150,7 @@ struct rule_service_section_builder {
       auto not_already_added =
           std::find_if(begin(section_participants), end(section_participants),
                        [&service](participant const& p) {
-                         return p.service == service;
+                         return p.service_ == service;
                        }) == end(section_participants);
 
       if (not_already_added) {
@@ -167,17 +167,17 @@ struct rule_service_section_builder {
 
 struct lcon_time_adjuster {
   static void adjust(edge* prev_edge, edge* e) {
-    auto& prev_lcons = prev_edge->_m._route_edge._conns;
-    auto& curr_lcons = e->_m._route_edge._conns;
+    auto& prev_lcons = prev_edge->m_.route_edge_.conns_;
+    auto& curr_lcons = e->m_.route_edge_.conns_;
 
     for (int lcon_idx = 0; lcon_idx < static_cast<int>(prev_lcons.size());
          ++lcon_idx) {
       auto& prev_lcon = prev_lcons[lcon_idx];
       auto& curr_lcon = curr_lcons[lcon_idx];
 
-      auto& last_arr = prev_lcon.a_time;
-      auto& curr_dep = curr_lcon.d_time;
-      auto& curr_arr = curr_lcon.a_time;
+      auto& last_arr = prev_lcon.a_time_;
+      auto& curr_dep = curr_lcon.d_time_;
+      auto& curr_arr = curr_lcon.a_time_;
 
       if (last_arr > curr_dep) {
         curr_dep += 60;
@@ -192,7 +192,7 @@ struct lcon_time_adjuster {
   }
 
   void process_following_route_edges(edge* e) {
-    for (auto& following : e->_to->_edges) {
+    for (auto& following : e->to_->edges_) {
       if (!following.empty()) {
         adjust(e, &following);
         queue_.emplace(&following);
@@ -201,7 +201,7 @@ struct lcon_time_adjuster {
   }
 
   void adjust_times(node* first_route_node) {
-    for (auto& following : first_route_node->_edges) {
+    for (auto& following : first_route_node->edges_) {
       queue_.emplace(&following);
     }
 
@@ -240,19 +240,20 @@ struct rule_service_route_builder {
 
   void adjust_times() {
     for (auto& entry : sections_) {
-      lcon_time_adjuster().adjust_times(entry.second[0]->first.from_route_node);
+      lcon_time_adjuster().adjust_times(
+          entry.second[0]->first.from_route_node_);
     }
   }
 
   static services_key get_services_key(
       std::array<participant, 16> const& services, int day_idx) {
     services_key k;
-    k.day_idx = day_idx;
+    k.day_idx_ = day_idx;
     for (auto const& s : services) {
-      if (s.service == nullptr) {
+      if (s.service_ == nullptr) {
         break;
       }
-      k.services.insert(s.service);
+      k.services_.insert(s.service_);
     }
     return k;
   }
@@ -262,9 +263,9 @@ struct rule_service_route_builder {
     auto k = get_services_key(services, day_idx);
     return get_or_create(trips_, k, [&]() {
       return push_mem(
-          gb_.sched_.merged_trips,
+          gb_.sched_.merged_trips_,
           transform_to_vec(
-              begin(k.services), end(k.services), [&](Service const* s) {
+              begin(k.services_), end(k.services_), [&](Service const* s) {
                 return get_or_create(
                     single_trips_, std::make_pair(s, day_idx),
                     [&]() { return gb_.register_service(s, day_idx); });
@@ -298,7 +299,7 @@ struct rule_service_route_builder {
                         [](service_section* ss) { return ss == nullptr; }));
     assert(std::all_of(
         begin(sections), end(sections), [&s, &sections](service_section* ss) {
-          auto is_curr = [&s](participant const& p) { return p.service == s; };
+          auto is_curr = [&s](participant const& p) { return p.service_ == s; };
           auto contains_curr = std::find_if(begin(ss->second), end(ss->second),
                                             is_curr) != end(ss->second);
           return contains_curr;
@@ -335,19 +336,19 @@ struct rule_service_route_builder {
 
   void write_trip_info(Service const* s,
                        std::vector<service_section*> const& sections) {
-    push_mem(gb_.sched_.trip_edges,
+    push_mem(gb_.sched_.trip_edges_,
              transform_to_vec(begin(sections), end(sections),
                               [](service_section* section) {
                                 return section->first.get_route_edge();
                               }));
-    auto edges = gb_.sched_.trip_edges.back().get();
+    auto edges = gb_.sched_.trip_edges_.back().get();
 
     int lcon_idx = 0;
     for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
       if (traffic_days_.test(day_idx)) {
         auto trp = single_trips_.at(std::make_pair(s, day_idx));
-        trp->edges = edges;
-        trp->lcon_idx = lcon_idx;
+        trp->edges_ = edges;
+        trp->lcon_idx_ = lcon_idx;
         ++lcon_idx;
       }
     }
@@ -364,7 +365,7 @@ struct rule_service_route_builder {
   node* get_through_route_node(Service const* service, Station const* station,
                                bool source) {
     auto get_node = [source](service_section const* s) {
-      return source ? s->first.to_route_node : s->first.from_route_node;
+      return source ? s->first.to_route_node_ : s->first.from_route_node_;
     };
 
     auto station_it = gb_.stations_.find(station);
@@ -384,7 +385,7 @@ struct rule_service_route_builder {
   void connect_route_nodes(Rule const* r) {
     auto s1_node = get_through_route_node(r->service1(), r->from(), true);
     auto s2_node = get_through_route_node(r->service2(), r->from(), false);
-    s1_node->_edges.push_back(make_through_edge(s1_node, s2_node));
+    s1_node->edges_.push_back(make_through_edge(s1_node, s2_node));
   }
 
   graph_builder& gb_;

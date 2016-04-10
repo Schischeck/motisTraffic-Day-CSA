@@ -14,9 +14,9 @@ namespace hrd {
 
 constexpr int TIME_NOT_SET = -1;
 struct platform_rule {
-  flatbuffers::Offset<flatbuffers::String> platform_name;
-  int bitfield_num;
-  int time;
+  flatbuffers::Offset<flatbuffers::String> platform_name_;
+  int bitfield_num_;
+  int time_;
 };
 
 typedef std::tuple<int, int, uint64_t> platform_rule_key;

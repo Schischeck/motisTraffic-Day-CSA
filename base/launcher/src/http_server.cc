@@ -55,8 +55,8 @@ struct http_server::impl {
             make_msg(req.content),
             std::bind(&impl::on_response, this, cb, p::_1, p::_2));
       } else {
-        MessageCreator fbb;
-        fbb.CreateAndFinish(
+        message_creator fbb;
+        fbb.create_and_finish(
             MsgContent_HTTPRequest,
             CreateHTTPRequest(fbb, translate_method_string(req.method),
                               fbb.CreateString(req.uri),

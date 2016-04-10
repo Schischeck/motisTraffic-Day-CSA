@@ -91,8 +91,8 @@ public:
                      return Cost(p.first, p.second);
                    });
 
-    MessageCreator fbb;
-    fbb.CreateAndFinish(
+    message_creator fbb;
+    fbb.create_and_finish(
         MsgContent_OSRMRoutingResponse,
         CreateOSRMRoutingResponse(fbb, fbb.CreateVectorOfStructs(costs))
             .Union());

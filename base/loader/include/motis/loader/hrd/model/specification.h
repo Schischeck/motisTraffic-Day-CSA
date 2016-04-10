@@ -16,7 +16,7 @@ struct specification {
       : filename_(UNKNOWN_FILE),
         line_number_from_(BEFORE_FIRST_LINE),
         line_number_to_(BEFORE_FIRST_LINE),
-        internal_service(nullptr, 0) {}
+        internal_service_(nullptr, 0) {}
 
   bool is_empty() const;
 
@@ -31,13 +31,13 @@ struct specification {
   char const* filename_;
   int line_number_from_;
   int line_number_to_;
-  parser::cstr internal_service;
-  std::vector<parser::cstr> traffic_days;
-  std::vector<parser::cstr> categories;
-  std::vector<parser::cstr> line_information;
-  std::vector<parser::cstr> attributes;
-  std::vector<parser::cstr> directions;
-  std::vector<parser::cstr> stops;
+  parser::cstr internal_service_;
+  std::vector<parser::cstr> traffic_days_;
+  std::vector<parser::cstr> categories_;
+  std::vector<parser::cstr> line_information_;
+  std::vector<parser::cstr> attributes_;
+  std::vector<parser::cstr> directions_;
+  std::vector<parser::cstr> stops_;
 };
 
 }  // namespace hrd

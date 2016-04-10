@@ -21,19 +21,19 @@ namespace hrd {
 struct stop_restrictions {
   friend bool operator<(stop_restrictions const& lhs,
                         stop_restrictions const& rhs) {
-    if (rhs.eva_num < lhs.eva_num) {
+    if (rhs.eva_num_ < lhs.eva_num_) {
       return true;
-    } else if (rhs.eva_num > lhs.eva_num) {
+    } else if (rhs.eva_num_ > lhs.eva_num_) {
       return false;
     }
-    if (rhs.entering_allowed < lhs.entering_allowed) {
+    if (rhs.entering_allowed_ < lhs.entering_allowed_) {
       return true;
-    } else if (rhs.entering_allowed > lhs.entering_allowed) {
+    } else if (rhs.entering_allowed_ > lhs.entering_allowed_) {
       return false;
     }
-    if (rhs.leaving_allowed < lhs.leaving_allowed) {
+    if (rhs.leaving_allowed_ < lhs.leaving_allowed_) {
       return true;
-    } else if (rhs.entering_allowed > lhs.entering_allowed) {
+    } else if (rhs.entering_allowed_ > lhs.entering_allowed_) {
       return false;
     }
     return false;
@@ -41,14 +41,14 @@ struct stop_restrictions {
 
   friend bool operator==(stop_restrictions const& lhs,
                          stop_restrictions const& rhs) {
-    return lhs.eva_num == rhs.eva_num &&
-           lhs.entering_allowed == rhs.entering_allowed &&
-           lhs.leaving_allowed == rhs.leaving_allowed;
+    return lhs.eva_num_ == rhs.eva_num_ &&
+           lhs.entering_allowed_ == rhs.entering_allowed_ &&
+           lhs.leaving_allowed_ == rhs.leaving_allowed_;
   }
 
-  int eva_num;
-  bool entering_allowed;
-  bool leaving_allowed;
+  int eva_num_;
+  bool entering_allowed_;
+  bool leaving_allowed_;
 };
 
 struct route_builder {

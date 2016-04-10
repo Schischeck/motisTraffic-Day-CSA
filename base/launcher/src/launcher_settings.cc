@@ -44,7 +44,6 @@ std::ostream& operator<<(std::ostream& out,
     case launcher_settings::motis_mode_t::BATCH: out << MODE_BATCH; break;
     case launcher_settings::motis_mode_t::SERVER: out << MODE_SERVER; break;
     case launcher_settings::motis_mode_t::TEST: out << MODE_TEST; break;
-    default: out << "unknown"; break;
   }
   return out;
 }
@@ -54,43 +53,43 @@ launcher_settings::launcher_settings(motis_mode_t m,
                                      std::string batch_input_file,
                                      std::string batch_output_file,
                                      int num_threads)
-    : mode(m),
-      modules(std::move(modules)),
-      batch_input_file(std::move(batch_input_file)),
-      batch_output_file(std::move(batch_output_file)),
-      num_threads(num_threads) {}
+    : mode_(m),
+      modules_(std::move(modules)),
+      batch_input_file_(std::move(batch_input_file)),
+      batch_output_file_(std::move(batch_output_file)),
+      num_threads_(num_threads) {}
 
 po::options_description launcher_settings::desc() {
   po::options_description desc("Launcher Settings");
   // clang-format off
   desc.add_options()
       (MODE,
-       po::value<motis_mode_t>(&mode)->default_value(mode),
+       po::value<motis_mode_t>(&mode_)->default_value(mode_),
        "Mode of operation:\n"
        MODE_BATCH " = inject batch file\n"
        MODE_SERVER " = network server\n"
        MODE_TEST " = exit after 1s")
-      (MODULES, po::value<std::vector<std::string>>(&modules)
-           ->default_value(modules)->multitoken(),
+      (MODULES, po::value<std::vector<std::string>>(&modules_)
+           ->default_value(modules_)->multitoken(),
        "List of modules to load")
       (BATCH_INPUT_FILE,
-       po::value<std::string>(&batch_input_file)
-           ->default_value(batch_input_file))
+       po::value<std::string>(&batch_input_file_)
+           ->default_value(batch_input_file_))
       (BATCH_OUTPUT_FILE,
-       po::value<std::string>(&batch_output_file)
-           ->default_value(batch_output_file))
+       po::value<std::string>(&batch_output_file_)
+           ->default_value(batch_output_file_))
       (NUM_THREADS,
-       po::value<int>(&num_threads)->default_value(num_threads));
+       po::value<int>(&num_threads_)->default_value(num_threads_));
   // clang-format on
   return desc;
 }
 
 void launcher_settings::print(std::ostream& out) const {
-  out << "  " << MODE << ": " << mode << "\n"
-      << "  " << MODULES << ": " << modules << "\n"
-      << "  " << BATCH_INPUT_FILE << ": " << batch_input_file << "\n"
-      << "  " << BATCH_OUTPUT_FILE << ": " << batch_output_file << "\n"
-      << "  " << NUM_THREADS << ": " << num_threads;
+  out << "  " << MODE << ": " << mode_ << "\n"
+      << "  " << MODULES << ": " << modules_ << "\n"
+      << "  " << BATCH_INPUT_FILE << ": " << batch_input_file_ << "\n"
+      << "  " << BATCH_OUTPUT_FILE << ": " << batch_output_file_ << "\n"
+      << "  " << NUM_THREADS << ": " << num_threads_;
 }
 
 }  // namespace launcher

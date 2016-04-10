@@ -13,17 +13,17 @@ struct transfers_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
     l.transfers_ = 0;
-    l.transfers_lb_ = lb.transfers[l.node_->_id];
+    l.transfers_lb_ = lb.transfers_[l.node_->id_];
   }
 };
 
 struct transfers_updater {
   template <typename Label, typename LowerBounds>
   static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
-    if (ec.transfer) {
+    if (ec.transfer_) {
       ++l.transfers_;
     }
-    l.transfers_lb_ = l.transfers_ + lb.transfers[l.node_->_id];
+    l.transfers_lb_ = l.transfers_ + lb.transfers_[l.node_->id_];
   }
 };
 

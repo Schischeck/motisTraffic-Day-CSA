@@ -17,16 +17,17 @@ bitfield all = create_uniform_bitfield<BIT_COUNT>('1');
 bitfield none = create_uniform_bitfield<BIT_COUNT>('0');
 
 struct split_info {
-  bitfield traffic_days;
-  int from_section_idx, to_section_idx;
+  bitfield traffic_days_;
+  int from_section_idx_, to_section_idx_;
 };
 
 struct splitter {
-  explicit splitter(std::vector<bitfield>  sections) : sections_(std::move(sections)) {}
+  explicit splitter(std::vector<bitfield> sections)
+      : sections_(std::move(sections)) {}
 
   void check_and_remember(int start, int pos, bitfield const& b) {
     for (auto const& w : written_) {
-      verify((b & w.traffic_days) == none, "invalid bitfields");
+      verify((b & w.traffic_days_) == none, "invalid bitfields");
     }
     written_.push_back({b, start, pos - 1});
   }
@@ -73,7 +74,7 @@ std::vector<split_info> split(hrd_service const& s,
                               std::map<int, bitfield> const& bitfields) {
   std::vector<bitfield> section_bitfields;
   for (auto const& section : s.sections_) {
-    auto it = bitfields.find(section.traffic_days[0]);
+    auto it = bitfields.find(section.traffic_days_[0]);
     verify(it != end(bitfields), "bitfield not found");
     section_bitfields.push_back(it->second);
   }
@@ -82,20 +83,20 @@ std::vector<split_info> split(hrd_service const& s,
 
 hrd_service new_service_from_split(split_info const& s,
                                    hrd_service const& origin) {
-  auto number_of_stops = s.to_section_idx - s.from_section_idx + 2;
+  auto number_of_stops = s.to_section_idx_ - s.from_section_idx_ + 2;
   std::vector<hrd_service::stop> stops(number_of_stops);
-  std::copy(std::next(begin(origin.stops_), s.from_section_idx),
-            std::next(begin(origin.stops_), s.to_section_idx + 2),
+  std::copy(std::next(begin(origin.stops_), s.from_section_idx_),
+            std::next(begin(origin.stops_), s.to_section_idx_ + 2),
             begin(stops));
 
-  auto number_of_sections = s.to_section_idx - s.from_section_idx + 1;
+  auto number_of_sections = s.to_section_idx_ - s.from_section_idx_ + 1;
   std::vector<hrd_service::section> sections(number_of_sections);
-  std::copy(std::next(begin(origin.sections_), s.from_section_idx),
-            std::next(begin(origin.sections_), s.to_section_idx + 1),
+  std::copy(std::next(begin(origin.sections_), s.from_section_idx_),
+            std::next(begin(origin.sections_), s.to_section_idx_ + 1),
             begin(sections));
 
   return hrd_service(origin.origin_, origin.num_repetitions_, origin.interval_,
-                     stops, sections, s.traffic_days,
+                     stops, sections, s.traffic_days_,
                      origin.initial_train_num_);
 }
 

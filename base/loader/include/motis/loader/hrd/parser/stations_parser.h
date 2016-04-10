@@ -11,10 +11,10 @@ namespace loader {
 namespace hrd {
 
 struct intermediate_station {
-  std::string name;
-  int change_time;
-  double lng, lat;
-  std::vector<std::string> ds100;
+  std::string name_;
+  int change_time_;
+  double lng_, lat_;
+  std::vector<std::string> ds100_;
 };
 
 std::map<int, intermediate_station> parse_stations(

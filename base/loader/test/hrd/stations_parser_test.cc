@@ -60,7 +60,7 @@ TEST(loader_hrd_stations_parser, meta_data) {
     ASSERT_EQ(7, metas.get_station_change_time(8000068));
     ASSERT_EQ(8, metas.get_station_change_time(8000105));
 
-    ASSERT_EQ(3, metas.footpaths_.find({8003935, 651301, -1})->duration);
+    ASSERT_EQ(3, metas.footpaths_.find({8003935, 651301, -1})->duration_);
   } catch (parser_error const& pe) {
     pe.print_what();
     ASSERT_TRUE(false);
@@ -68,7 +68,6 @@ TEST(loader_hrd_stations_parser, meta_data) {
 }
 
 TEST(loader_hrd_stations_parser, parse_stations) {
-
   try {
     station_meta_data metas;
     parse_station_meta_data({"infotext.101", infotext},
@@ -83,19 +82,20 @@ TEST(loader_hrd_stations_parser, parse_stations) {
     ASSERT_TRUE(it != end(stations));
 
     auto station = it->second;
-    ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name.c_str());
-    ASSERT_TRUE(std::abs(station.lng - 8.679296) <= 0.001);
-    ASSERT_TRUE(std::abs(station.lat - 50.113963) <= 0.001);
-    ASSERT_EQ(2, station.change_time);
+    ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name_.c_str());
+    ASSERT_TRUE(std::abs(station.lng_ - 8.679296) <= 0.001);
+    ASSERT_TRUE(std::abs(station.lat_ - 50.113963) <= 0.001);
+    ASSERT_EQ(2, station.change_time_);
 
     it = stations.find(100002);
     ASSERT_TRUE(it != end(stations));
 
     station = it->second;
-    ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main", station.name.c_str());
-    ASSERT_TRUE(std::abs(station.lng - 8.681793) <= 0.001);
-    ASSERT_TRUE(std::abs(station.lat - 50.110902) <= 0.001);
-    ASSERT_EQ(2, station.change_time);
+    ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main",
+                 station.name_.c_str());
+    ASSERT_TRUE(std::abs(station.lng_ - 8.681793) <= 0.001);
+    ASSERT_TRUE(std::abs(station.lat_ - 50.110902) <= 0.001);
+    ASSERT_EQ(2, station.change_time_);
   } catch (parser_error const& pe) {
     pe.print_what();
     ASSERT_TRUE(false);

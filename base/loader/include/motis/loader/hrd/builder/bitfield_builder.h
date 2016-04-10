@@ -13,7 +13,7 @@ namespace loader {
 namespace hrd {
 
 struct bitfield_builder {
-  static constexpr int NO_BITFIELD_NUM = -1;
+  static constexpr int no_bitfield_num_ = -1;
 
   explicit bitfield_builder(std::map<int, bitfield>);
 
@@ -21,7 +21,7 @@ struct bitfield_builder {
       int bitfield_num, flatbuffers::FlatBufferBuilder&);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      bitfield const&, flatbuffers::FlatBufferBuilder&, int = NO_BITFIELD_NUM);
+      bitfield const&, flatbuffers::FlatBufferBuilder&, int = no_bitfield_num_);
 
   std::map<int, bitfield> const hrd_bitfields_;
   google::dense_hash_map<bitfield, flatbuffers::Offset<flatbuffers::String>,

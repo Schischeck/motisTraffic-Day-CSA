@@ -117,8 +117,8 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
     return get_or_create(fbs_strings, s, [&]() { return fbb.CreateString(s); });
   };
 
-  Interval interval(to_unix_time(services.first_day),
-                    to_unix_time(services.last_day));
+  Interval interval(to_unix_time(services.first_day_),
+                    to_unix_time(services.last_day_));
   auto output_services = fbb.CreateVector(transform_to_vec(
       begin(trips), end(trips),
       [&](std::pair<std::string const, std::unique_ptr<trip>> const& entry) {

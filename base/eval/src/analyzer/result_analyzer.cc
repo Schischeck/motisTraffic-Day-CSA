@@ -13,20 +13,20 @@ using namespace motis::eval;
 
 struct response {
   explicit response(RoutingResponse const* r)
-      : labelsUntilFirst(0),
-        labelsAfterLast(0),
-        labelsCreated(0),
-        time(r->pareto_dijkstra_timing()),
-        startLabels(0),
-        conCount(r->connections()->size()) {}
+      : labels_until_first_(0),
+        labels_after_last_(0),
+        labels_created_(0),
+        time_(r->pareto_dijkstra_timing()),
+        start_labels_(0),
+        con_count_(r->connections()->size()) {}
 
-  unsigned labelsUntilFirst;
-  unsigned labelsAfterLast;
-  unsigned labelsCreated;
-  unsigned time;
-  unsigned startLabels;
-  unsigned conCount;
-  bool maxLabelQuit;
+  unsigned labels_until_first_;
+  unsigned labels_after_last_;
+  unsigned labels_created_;
+  unsigned time_;
+  unsigned start_labels_;
+  unsigned con_count_;
+  bool max_label_quit_;
 };
 
 int main(int argc, char* argv[]) {
@@ -40,14 +40,14 @@ int main(int argc, char* argv[]) {
   std::ifstream in(argv[1]);
   std::string line;
 
-  unsigned maxLabelQuit = 0;
+  unsigned max_label_quit = 0;
   unsigned sum = 0;
   unsigned count = 0;
-  unsigned noConCount = 0;
-  unsigned labelsPoppedUntilFirstResult = 0;
-  unsigned labelsPoppedAfterLastResult = 0;
-  uint64_t noLabelsCreated = 0;
-  unsigned startLabels = 0;
+  unsigned no_con_count = 0;
+  unsigned labels_popped_until_first_result = 0;
+  unsigned labels_popped_after_last_result = 0;
+  uint64_t no_labels_created = 0;
+  unsigned start_labels = 0;
 
   while (in.peek() != EOF && !in.eof()) {
     std::getline(in, line);
@@ -55,65 +55,67 @@ int main(int argc, char* argv[]) {
     auto res_msg = make_msg(line);
     response res(motis_content(RoutingResponse, res_msg));
 
-    if (res.maxLabelQuit) {
-      ++maxLabelQuit;
+    if (res.max_label_quit_) {
+      ++max_label_quit;
     }
 
-    if (res.conCount == 0) {
-      ++noConCount;
+    if (res.con_count_ == 0) {
+      ++no_con_count;
       continue;
     }
 
     responses.push_back(res);
-    labelsPoppedUntilFirstResult += res.labelsUntilFirst;
-    labelsPoppedAfterLastResult += res.labelsAfterLast;
-    noLabelsCreated += res.labelsCreated;
-    sum += res.time;
-    startLabels += res.startLabels;
+    labels_popped_until_first_result += res.labels_until_first_;
+    labels_popped_after_last_result += res.labels_after_last_;
+    no_labels_created += res.labels_created_;
+    sum += res.time_;
+    start_labels += res.start_labels_;
     ++count;
   }
 
   if (responses.empty()) {
     std::cout << "no responses found\n";
-    std::cout << "responses with no connection = " << noConCount << "\n";
+    std::cout << "responses with no connection = " << no_con_count << "\n";
     return 0;
   }
 
   std::cout << "   total count: " << count << "\n"
-            << "       no conn: " << noConCount << "\n"
-            << "max label quit: " << maxLabelQuit << "\n"
+            << "       no conn: " << no_con_count << "\n"
+            << "max label quit: " << max_label_quit << "\n"
             << "\n\n";
 
   std::cout << "    average core routing time [ms]: "
             << sum / static_cast<double>(count) << "\n"
             << "90 quantile core routing time [ms]: "
-            << quantile(&response::time, responses, 0.9f) << "\n"
+            << quantile(&response::time_, responses, 0.9f) << "\n"
             << "80 quantile core routing time [ms]: "
-            << quantile(&response::time, responses, 0.8f) << "\n\n";
+            << quantile(&response::time_, responses, 0.8f) << "\n\n";
 
   std::cout << "    average number of start labels: "
-            << startLabels / static_cast<double>(count) << "\n"
+            << start_labels / static_cast<double>(count) << "\n"
             << "90 quantile number of start labels: "
-            << quantile(&response::startLabels, responses, 0.9f) << "\n"
+            << quantile(&response::start_labels_, responses, 0.9f) << "\n"
             << "80 quantile number of start labels: "
-            << quantile(&response::startLabels, responses, 0.8f) << "\n\n";
+            << quantile(&response::start_labels_, responses, 0.8f) << "\n\n";
 
   std::cout << "    average number of labels created: "
-            << noLabelsCreated / static_cast<double>(count) << "\n"
+            << no_labels_created / static_cast<double>(count) << "\n"
             << "90 quantile number of labels created: "
-            << quantile(&response::labelsCreated, responses, 0.9f) << "\n"
+            << quantile(&response::labels_created_, responses, 0.9f) << "\n"
             << "80 quantile number of labels created: "
-            << quantile(&response::labelsCreated, responses, 0.8f) << "\n\n";
+            << quantile(&response::labels_created_, responses, 0.8f) << "\n\n";
 
   std::cout << "avg labels popped:\n";
   std::cout << "\tuntil first result: "
-            << labelsPoppedUntilFirstResult / static_cast<double>(count) << " ("
-            << labelsPoppedUntilFirstResult /
-                   static_cast<double>(noLabelsCreated)
+            << labels_popped_until_first_result / static_cast<double>(count)
+            << " ("
+            << labels_popped_until_first_result /
+                   static_cast<double>(no_labels_created)
             << ")\n";
   std::cout << "\t after last result: "
-            << labelsPoppedAfterLastResult / static_cast<double>(count) << " ("
-            << labelsPoppedAfterLastResult /
-                   static_cast<double>(noLabelsCreated)
+            << labels_popped_after_last_result / static_cast<double>(count)
+            << " ("
+            << labels_popped_after_last_result /
+                   static_cast<double>(no_labels_created)
             << ")\n";
 }

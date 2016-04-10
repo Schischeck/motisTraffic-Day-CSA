@@ -13,9 +13,9 @@ namespace loader {
 namespace hrd {
 
 struct resolved_rule_info {
-  bitfield traffic_days;
-  int eva_num_1, eva_num_2;
-  uint8_t type;
+  bitfield traffic_days_;
+  int eva_num_1_, eva_num_2_;
+  uint8_t type_;
 };
 
 typedef std::tuple<hrd_service*, hrd_service*, resolved_rule_info>

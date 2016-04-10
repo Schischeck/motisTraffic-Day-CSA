@@ -12,31 +12,31 @@ namespace access {
 class trip_section {
 public:
   trip_section(trip const* t, int const index)
-      : trip_(t), index_(index), edge_(t->edges->at(index)) {}
+      : trip_(t), index_(index), edge_(t->edges_->at(index)) {}
 
   int index() const { return index_; }
 
   light_connection const& lcon() const {
-    return get_lcon(edge_, trip_->lcon_idx);
+    return get_lcon(edge_, trip_->lcon_idx_);
   }
 
-  connection const& fcon() const { return *lcon()._full_con; }
+  connection const& fcon() const { return *lcon().full_con_; }
 
   connection_info const& info(schedule const& sched) const {
     return get_connection_info(sched, lcon(), trip_);
   }
 
   station const& from_station(schedule const& sched) const {
-    return get_station(sched, edge_->_from);
+    return get_station(sched, edge_->from_);
   }
 
   station const& to_station(schedule const& sched) const {
-    return get_station(sched, edge_->_to);
+    return get_station(sched, edge_->to_);
   }
 
 private:
   station const& get_station(schedule const& sched, node const* n) const {
-    return *sched.stations[n->get_station()->_id];
+    return *sched.stations_[n->get_station()->id_];
   }
 
   trip const* trip_;

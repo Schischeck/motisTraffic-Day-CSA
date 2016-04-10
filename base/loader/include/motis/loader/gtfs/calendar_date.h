@@ -13,8 +13,8 @@ namespace loader {
 namespace gtfs {
 
 struct date {
-  enum { ADD, REMOVE } type;
-  boost::gregorian::date day;
+  enum { ADD, REMOVE } type_;
+  boost::gregorian::date day_;
 };
 
 std::map<std::string, std::vector<date>> read_calendar_date(loaded_file);

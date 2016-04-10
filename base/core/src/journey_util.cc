@@ -1,6 +1,7 @@
 #include "motis/core/journey/journey_util.h"
 
 #include <algorithm>
+#include <numeric>
 
 #include "motis/core/schedule/time.h"
 #include "motis/core/journey/journey.h"
@@ -8,16 +9,16 @@
 namespace motis {
 
 uint16_t get_duration(journey const& journey) {
-  if (journey.stops.size() > 0) {
-    return (journey.stops.back().arrival.timestamp -
-            journey.stops.front().departure.timestamp) /
+  if (journey.stops_.size() > 0) {
+    return (journey.stops_.back().arrival_.timestamp_ -
+            journey.stops_.front().departure_.timestamp_) /
            60;
   }
   return 0;
 }
 uint16_t get_transfers(journey const& journey) {
-  return std::count_if(journey.stops.begin(), journey.stops.end(),
-                       [](journey::stop const& s) { return s.interchange; });
+  return std::count_if(begin(journey.stops_), end(journey.stops_),
+                       [](journey::stop const& s) { return s.interchange_; });
 }
 
 void print_journey(journey const& j, time_t const sched_begin,
@@ -26,30 +27,30 @@ void print_journey(journey const& j, time_t const sched_begin,
     return format_time(unix_to_motistime(sched_begin, t));
   };
   auto to_str = [&](journey::transport const& t) -> std::string {
-    switch (t.type) {
-      case journey::transport::PublicTransport: return t.name;
+    switch (t.type_) {
+      case journey::transport::PublicTransport: return t.name_;
       case journey::transport::Walk: return "Walk";
       case journey::transport::Mumo: {
         std::stringstream sst;
-        sst << t.mumo_type_name << "," << t.mumo_price;
+        sst << t.mumo_type_name_ << "," << t.mumo_price_;
         return sst.str();
       }
     }
     return "unknown";
   };
 
-  unsigned int db_cost = 0;
-  std::for_each(j.transports.begin(), j.transports.end(),
-                [&](journey::transport const& t) { db_cost += t.mumo_price; });
+  auto db_cost =
+      std::accumulate(begin(j.transports_), end(j.transports_), 0u,
+                      [](auto&& acc, auto&& t) { return acc + t.mumo_price_; });
 
-  os << "Journey (" << j.duration << ", " << j.transfers << ", " << db_cost
+  os << "Journey (" << j.duration_ << ", " << j.transfers_ << ", " << db_cost
      << ")\n";
-  for (auto const& t : j.transports) {
-    auto const& from = j.stops[t.from];
-    auto const& to = j.stops[t.to];
-    os << from.name << " " << format(from.departure.timestamp) << " --"
-       << to_str(t) << "-> " << format(to.arrival.timestamp) << " " << to.name
-       << std::endl;
+  for (auto const& t : j.transports_) {
+    auto const& from = j.stops_[t.from_];
+    auto const& to = j.stops_[t.to_];
+    os << from.name_ << " " << format(from.departure_.timestamp_) << " --"
+       << to_str(t) << "-> " << format(to.arrival_.timestamp_) << " "
+       << to.name_ << std::endl;
   }
 }
 

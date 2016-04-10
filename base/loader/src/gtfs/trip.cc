@@ -27,7 +27,7 @@ trip_map read_trips(loaded_file file, route_map const& routes,
         get<trip_id>(t).to_str(),
         make_unique<trip>(
             routes.at(get<route_id>(t).to_str()).get(),
-            services.traffic_days.at(get<service_id>(t).to_str()).get(),
+            services.traffic_days_.at(get<service_id>(t).to_str()).get(),
             get<trip_headsign>(t).to_str()));
   }
   return trips;

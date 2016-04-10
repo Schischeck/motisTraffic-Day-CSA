@@ -30,8 +30,8 @@ Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
 Offset<Attribute> attribute_builder::get_or_create_attribute(
     hrd_service::attribute const& attr, bitfield_builder& bb,
     flatbuffers::FlatBufferBuilder& fbb) {
-  auto const attr_info_key = raw_to_int<uint16_t>(attr.code);
-  auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num);
+  auto const attr_info_key = raw_to_int<uint16_t>(attr.code_);
+  auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num_);
 
   return get_or_create(fbs_attributes_, attr_key, [&]() {
     auto const attr_info =
@@ -39,10 +39,10 @@ Offset<Attribute> attribute_builder::get_or_create_attribute(
           auto const stamm_attributes_it = hrd_attributes_.find(attr_info_key);
           verify(stamm_attributes_it != end(hrd_attributes_),
                  "attribute with code %.*s not found\n",
-                 (int)attr.code.length(), attr.code.c_str());
+                 (int)attr.code_.length(), attr.code_.c_str());
 
           auto const fbs_attribute_info = CreateAttributeInfo(
-              fbb, to_fbs_string(fbb, attr.code),
+              fbb, to_fbs_string(fbb, attr.code_),
               to_fbs_string(fbb, stamm_attributes_it->second, ENCODING));
 
           fbs_attribute_infos_[attr_info_key] = fbs_attribute_info;
@@ -50,7 +50,7 @@ Offset<Attribute> attribute_builder::get_or_create_attribute(
         });
 
     auto const fbs_attribute = CreateAttribute(
-        fbb, attr_info, bb.get_or_create_bitfield(attr.bitfield_num, fbb));
+        fbb, attr_info, bb.get_or_create_bitfield(attr.bitfield_num_, fbb));
     fbs_attributes_[attr_key] = fbs_attribute;
     return fbs_attribute;
   });

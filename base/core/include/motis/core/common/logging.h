@@ -34,38 +34,38 @@ inline std::string time() {
 
 struct scoped_timer final {
   explicit scoped_timer(char const* name)
-      : _name(name), _start(std::chrono::steady_clock::now()) {
-    LOG(info) << "[" << _name << "] starting";
+      : name_(name), start_(std::chrono::steady_clock::now()) {
+    LOG(info) << "[" << name_ << "] starting";
   }
 
   ~scoped_timer() {
     using namespace std::chrono;
     auto stop = steady_clock::now();
-    double t = duration_cast<microseconds>(stop - _start).count() / 1000.0;
-    LOG(info) << "[" << _name << "] finished"
+    double t = duration_cast<microseconds>(stop - start_).count() / 1000.0;
+    LOG(info) << "[" << name_ << "] finished"
               << " (" << t << "ms)";
   }
 
-  const char* _name;
-  std::chrono::time_point<std::chrono::steady_clock> _start;
+  const char* name_;
+  std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
 struct manual_timer final {
   explicit manual_timer(std::string name)
-      : _name(std::move(name)), _start(std::chrono::steady_clock::now()) {
-    LOG(info) << "[" << _name << "] starting";
+      : name_(std::move(name)), start_(std::chrono::steady_clock::now()) {
+    LOG(info) << "[" << name_ << "] starting";
   }
 
   void stop_and_print() {
     using namespace std::chrono;
     auto stop = steady_clock::now();
-    double t = duration_cast<microseconds>(stop - _start).count() / 1000.0;
-    LOG(info) << "[" << _name << "] finished"
+    double t = duration_cast<microseconds>(stop - start_).count() / 1000.0;
+    LOG(info) << "[" << name_ << "] finished"
               << " (" << t << "ms)";
   }
 
-  std::string _name;
-  std::chrono::time_point<std::chrono::steady_clock> _start;
+  std::string name_;
+  std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
 }  // namespace logging

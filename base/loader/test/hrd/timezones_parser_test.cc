@@ -101,18 +101,18 @@ public:
 void test_timezone_entry(
     timezone_entry const* tze, int expected_general_gmt_offset,
     boost::optional<season_entry> const& expected_season_entry = {}) {
-  ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset);
+  ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset_);
   if (expected_season_entry) {
-    ASSERT_TRUE(tze->season);
+    ASSERT_TRUE(tze->season_);
     auto const& expected = *expected_season_entry;
-    auto const& actual = *(tze->season);
-    ASSERT_EQ(expected.gmt_offset, actual.gmt_offset);
-    ASSERT_EQ(expected.first_day_idx, actual.first_day_idx);
-    ASSERT_EQ(expected.last_day_idx, actual.last_day_idx);
-    ASSERT_EQ(expected.season_begin_time, actual.season_begin_time);
-    ASSERT_EQ(expected.season_end_time, actual.season_end_time);
+    auto const& actual = *(tze->season_);
+    ASSERT_EQ(expected.gmt_offset_, actual.gmt_offset_);
+    ASSERT_EQ(expected.first_day_idx_, actual.first_day_idx_);
+    ASSERT_EQ(expected.last_day_idx_, actual.last_day_idx_);
+    ASSERT_EQ(expected.season_begin_time_, actual.season_begin_time_);
+    ASSERT_EQ(expected.season_end_time_, actual.season_end_time_);
   } else {
-    ASSERT_FALSE(tze->season);
+    ASSERT_FALSE(tze->season_);
   }
 }
 

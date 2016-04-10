@@ -41,7 +41,7 @@ Offset<String> bitfield_builder::get_or_create_bitfield(
     std::tie(fbs_bitfields_it, std::ignore) =
         fbs_bitfields_.insert(std::make_pair(b, serialized));
 
-    if (bitfield_num != NO_BITFIELD_NUM) {
+    if (bitfield_num != no_bitfield_num_) {
       fbs_bf_lookup_.insert(std::make_pair(bitfield_num, serialized));
     }
   }

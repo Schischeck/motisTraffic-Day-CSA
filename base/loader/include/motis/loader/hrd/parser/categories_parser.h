@@ -15,14 +15,13 @@ namespace hrd {
 struct category {
   category() = default;
   category(std::string name, CategoryOutputRule output_rule)
-      : name(std::move(name)), output_rule(output_rule) {}
+      : name_(std::move(name)), output_rule_(output_rule) {}
 
-  std::string name;
-  CategoryOutputRule output_rule;
+  std::string name_;
+  CategoryOutputRule output_rule_;
 };
 
-std::map<uint32_t, category> parse_categories(
-    loaded_file const& file);
+std::map<uint32_t, category> parse_categories(loaded_file const& file);
 
 }  // namespace hrd
 }  // namespace loader

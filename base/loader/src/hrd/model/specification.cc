@@ -11,26 +11,26 @@ namespace loader {
 namespace hrd {
 
 bool specification::is_empty() const {
-  return internal_service.str == nullptr || internal_service.len == 0;
+  return internal_service_.str == nullptr || internal_service_.len == 0;
 }
 
 bool specification::valid() const {
-  return ignore() || (!categories.empty() && stops.size() >= 2 &&
-                      !traffic_days.empty() && !is_empty());
+  return ignore() || (!categories_.empty() && stops_.size() >= 2 &&
+                      !traffic_days_.empty() && !is_empty());
 }
 
 bool specification::ignore() const {
-  return !is_empty() && !internal_service.starts_with("*Z");
+  return !is_empty() && !internal_service_.starts_with("*Z");
 }
 
 void specification::reset() {
-  internal_service = cstr(nullptr, 0);
-  traffic_days.clear();
-  categories.clear();
-  line_information.clear();
-  attributes.clear();
-  directions.clear();
-  stops.clear();
+  internal_service_ = cstr(nullptr, 0);
+  traffic_days_.clear();
+  categories_.clear();
+  line_information_.clear();
+  attributes_.clear();
+  directions_.clear();
+  stops_.clear();
 }
 
 bool specification::read_line(cstr line, char const* filename,
@@ -40,7 +40,7 @@ bool specification::read_line(cstr line, char const* filename,
   }
 
   if (std::isdigit(line[0])) {
-    stops.push_back(line);
+    stops_.push_back(line);
     return false;
   }
 
@@ -61,25 +61,25 @@ bool specification::read_line(cstr line, char const* filename,
       } else if (is_empty()) {
         filename_ = filename;
         line_number_from_ = line_number;
-        internal_service = line;
+        internal_service_ = line;
       } else {
         return true;
       }
       break;
     case 'A':
       if (line.starts_with("*A VE")) {
-        traffic_days.push_back(line);
+        traffic_days_.push_back(line);
       } else {  // *A based on HRD format version 5.00.8
-        attributes.push_back(line);
+        attributes_.push_back(line);
       }
       break;
     case 'G':
       if (!line.starts_with("*GR")) {
-        categories.push_back(line);
+        categories_.push_back(line);
       }
       break;
-    case 'L': line_information.push_back(line); break;
-    case 'R': directions.push_back(line); break;
+    case 'L': line_information_.push_back(line); break;
+    case 'R': directions_.push_back(line); break;
   }
 
   return false;

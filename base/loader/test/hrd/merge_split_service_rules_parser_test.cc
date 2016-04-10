@@ -28,20 +28,20 @@ TEST(loader_hrd_ms, multiple_rules) {
 
   ASSERT_EQ(2, it_1->second.size());
   auto rule_info = it_1->second[0]->rule_info();
-  ASSERT_EQ(8000267, rule_info.eva_num_1);
-  ASSERT_EQ(8000228, rule_info.eva_num_2);
+  ASSERT_EQ(8000267, rule_info.eva_num_1_);
+  ASSERT_EQ(8000228, rule_info.eva_num_2_);
   auto it_b = hrd_bitfields.find(17524);
   ASSERT_TRUE(it_b != end(hrd_bitfields));
-  ASSERT_EQ(it_b->second, rule_info.traffic_days);
-  ASSERT_EQ(RuleType_MERGE_SPLIT, rule_info.type);
+  ASSERT_EQ(it_b->second, rule_info.traffic_days_);
+  ASSERT_EQ(RuleType_MERGE_SPLIT, rule_info.type_);
 
   rule_info = it_1->second[1]->rule_info();
-  ASSERT_EQ(8002924, rule_info.eva_num_1);
-  ASSERT_EQ(8003887, rule_info.eva_num_2);
+  ASSERT_EQ(8002924, rule_info.eva_num_1_);
+  ASSERT_EQ(8003887, rule_info.eva_num_2_);
   it_b = hrd_bitfields.find(37793);
   ASSERT_TRUE(it_b != end(hrd_bitfields));
-  ASSERT_EQ(it_b->second, rule_info.traffic_days);
-  ASSERT_EQ(RuleType_MERGE_SPLIT, rule_info.type);
+  ASSERT_EQ(it_b->second, rule_info.traffic_days_);
+  ASSERT_EQ(RuleType_MERGE_SPLIT, rule_info.type_);
 
   auto it_2 = rs.find(
       std::make_pair<int, uint64_t>(3040, raw_to_int<uint64_t>("07____")));

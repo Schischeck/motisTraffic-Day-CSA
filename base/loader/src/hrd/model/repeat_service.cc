@@ -8,23 +8,23 @@ namespace hrd {
 
 hrd_service::event update_event(hrd_service::event const& origin, int interval,
                                 int repetition) {
-  auto const new_time = origin.time != hrd_service::NOT_SET
-                            ? origin.time + (interval * repetition)
+  auto const new_time = origin.time_ != hrd_service::NOT_SET
+                            ? origin.time_ + (interval * repetition)
                             : hrd_service::NOT_SET;
-  return {new_time, origin.in_out_allowed};
+  return {new_time, origin.in_out_allowed_};
 }
 
 hrd_service create_repetition(hrd_service const& origin, int repetition) {
-  return {
-      origin.origin_, 0, 0,
-      transform_to_vec(begin(origin.stops_), end(origin.stops_),
-                       [&origin, &repetition](hrd_service::stop const& s) {
-                         return hrd_service::stop{
-                             s.eva_num,
-                             update_event(s.arr, origin.interval_, repetition),
-                             update_event(s.dep, origin.interval_, repetition)};
-                       }),
-      origin.sections_, origin.traffic_days_, origin.initial_train_num_};
+  return {origin.origin_, 0, 0,
+          transform_to_vec(
+              begin(origin.stops_), end(origin.stops_),
+              [&origin, &repetition](hrd_service::stop const& s) {
+                return hrd_service::stop{
+                    s.eva_num_,
+                    update_event(s.arr_, origin.interval_, repetition),
+                    update_event(s.dep_, origin.interval_, repetition)};
+              }),
+          origin.sections_, origin.traffic_days_, origin.initial_train_num_};
 }
 
 void expand_repetitions(std::vector<hrd_service>& services) {

@@ -40,24 +40,24 @@ void print_empty() {
 
 bool print_differences(response const& r1, response const& r2,
                        RoutingRequest const*, int line, int id) {
-  if (r1.connections == r2.connections) {
+  if (r1.connections_ == r2.connections_) {
     return true;
   }
 
   std::cout << "ERROR [line = " << line << ", id = " << id << "] ";
-  if (r1.connections.size() != r2.connections.size()) {
-    std::cout << "#con1 = " << r1.connections.size() << ", "
-              << "#con2 = " << r2.connections.size() << " ";
+  if (r1.connections_.size() != r2.connections_.size()) {
+    std::cout << "#con1 = " << r1.connections_.size() << ", "
+              << "#con2 = " << r2.connections_.size() << " ";
   } else {
-    std::cout << "#con = " << r1.connections.size() << " ";
+    std::cout << "#con = " << r1.connections_.size() << " ";
   }
 
-  auto end1 = end(r1.connections);
-  auto end2 = end(r2.connections);
+  auto end1 = end(r1.connections_);
+  auto end2 = end(r2.connections_);
   {
     std::cout << "\n";
-    auto it1 = begin(r1.connections);
-    auto it2 = begin(r2.connections);
+    auto it1 = begin(r1.connections_);
+    auto it2 = begin(r2.connections_);
     int i = 0;
     while (true) {
       bool stop1 = false, stop2 = false;
@@ -91,13 +91,13 @@ bool print_differences(response const& r1, response const& r2,
     std::cout << "\n";
   }
 
-  std::vector<bool> matches1(r1.connections.size()),
-      matches2(r2.connections.size());
+  std::vector<bool> matches1(r1.connections_.size()),
+      matches2(r2.connections_.size());
   bool con1_dominates = false, con2_dominates = false;
   unsigned con_count1 = 0;
-  for (auto it1 = begin(r1.connections); it1 != end1; ++it1, ++con_count1) {
+  for (auto it1 = begin(r1.connections_); it1 != end1; ++it1, ++con_count1) {
     unsigned con_count2 = 0;
-    for (auto it2 = begin(r2.connections); it2 != end2; ++it2, ++con_count2) {
+    for (auto it2 = begin(r2.connections_); it2 != end2; ++it2, ++con_count2) {
       if (*it1 == *it2) {
         matches1[con_count1] = true;
         matches2[con_count2] = true;
@@ -222,9 +222,9 @@ int main(int argc, char* argv[]) {
       ++mismatches;
       failed_queries << lineq << "\n";
       write_file(line1,
-                "fail_responses/" + std::to_string(line_count) + "_1.xml");
+                 "fail_responses/" + std::to_string(line_count) + "_1.xml");
       write_file(line2,
-                "fail_responses/" + std::to_string(line_count) + "_2.xml");
+                 "fail_responses/" + std::to_string(line_count) + "_2.xml");
       write_file(lineq, "fail_queries/" + std::to_string(line_count) + ".xml");
     }
 

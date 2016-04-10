@@ -27,7 +27,7 @@ using namespace motis::routing;
 class generator_settings : public conf::configuration {
 public:
   generator_settings(int query_count, std::string target_file)
-      : query_count(query_count), target_file(std::move(target_file)) {}
+      : query_count_(query_count), target_file_(std::move(target_file)) {}
 
   ~generator_settings() override = default;
 
@@ -36,22 +36,22 @@ public:
     // clang-format off
     desc.add_options()
       (QUERY_COUNT,
-          po::value<int>(&query_count)->default_value(query_count),
+          po::value<int>(&query_count_)->default_value(query_count_),
           "number of queries to generate")
       (TARGET_FILE,
-          po::value<std::string>(&target_file)->default_value(target_file),
+          po::value<std::string>(&target_file_)->default_value(target_file_),
           "file to write generated queries to");
     // clang-format on
     return desc;
   }
 
   void print(std::ostream& out) const override {
-    out << "  " << QUERY_COUNT << ": " << query_count << "\n"
-        << "  " << TARGET_FILE << ": " << target_file;
+    out << "  " << QUERY_COUNT << ": " << query_count_ << "\n"
+        << "  " << TARGET_FILE << ": " << target_file_;
   }
 
-  int query_count;
-  std::string target_file;
+  int query_count_;
+  std::string target_file_;
 };
 
 struct search_interval_generator {
@@ -68,7 +68,7 @@ struct search_interval_generator {
 private:
   static std::discrete_distribution<int> generate_distribution(time_t begin,
                                                                time_t end) {
-    auto constexpr kTwoHours = 2 * 3600;
+    auto constexpr k_two_hours = 2 * 3600;
     static const int prob[] = {
         0,  // 01: 00:00 - 01:00
         0,  // 02: 01:00 - 02:00
@@ -96,7 +96,7 @@ private:
         0  // 24: 23:00 - 24:00
     };
     std::vector<int> v;
-    for (time_t t = begin, hour = 0; t < end - kTwoHours; t += 3600, ++hour) {
+    for (time_t t = begin, hour = 0; t < end - k_two_hours; t += 3600, ++hour) {
       int h = hour % 24;
       v.push_back(prob[h]);
     }
@@ -129,7 +129,7 @@ static It rand_in(It begin, It end) {
 
 std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
-  MessageCreator fbb;
+  message_creator fbb;
   Interval interval(interval_start, interval_end);
 
   std::vector<Offset<StationPathElement>> path;
@@ -137,7 +137,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                                           fbb.CreateString(from_eva)));
   path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
                                           fbb.CreateString(to_eva)));
-  fbb.CreateAndFinish(
+  fbb.create_and_finish(
       MsgContent_RoutingRequest,
       CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
                            fbb.CreateVector(path))
@@ -152,12 +152,12 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
 
 bool has_events(edge const& e, motis::time from, motis::time to) {
   auto con = e.get_connection(from);
-  return con != nullptr && con->d_time <= to;
+  return con != nullptr && con->d_time_ <= to;
 }
 
 bool has_events(station_node const& s, motis::time from, motis::time to) {
   for (auto const& r : s.get_route_nodes()) {
-    for (auto const& e : r->_edges) {
+    for (auto const& e : r->edges_) {
       if (!e.empty() && has_events(e, from, to)) {
         return true;
       }
@@ -168,8 +168,8 @@ bool has_events(station_node const& s, motis::time from, motis::time to) {
 
 std::string random_station_id(schedule const& sched, time_t interval_start,
                               time_t interval_end) {
-  auto first = std::next(begin(sched.station_nodes), 2);
-  auto last = end(sched.station_nodes);
+  auto first = std::next(begin(sched.station_nodes_), 2);
+  auto last = end(sched.station_nodes_);
 
   auto motis_interval_start =
       unix_to_motistime(sched.schedule_begin_, interval_start);
@@ -180,7 +180,7 @@ std::string random_station_id(schedule const& sched, time_t interval_start,
   do {
     s = rand_in(first, last)->get();
   } while (!has_events(*s, motis_interval_start, motis_interval_end));
-  return sched.stations[s->_id]->eva_nr;
+  return sched.stations_[s->id_]->eva_nr_;
 }
 
 std::pair<std::string, std::string> random_station_ids(schedule const& sched,
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  std::ofstream out(generator_opt.target_file);
+  std::ofstream out(generator_opt.target_file_);
 
   motis_instance instance;
   instance.init_schedule(dataset_opt);
@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
       sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
       sched.schedule_end_);
 
-  for (int i = 1; i <= generator_opt.query_count; ++i) {
+  for (int i = 1; i <= generator_opt.query_count_; ++i) {
     auto interval = interval_gen.random_interval();
     auto evas = random_station_ids(sched, interval.first, interval.second);
     out << query(i, interval.first, interval.second, evas.first, evas.second)

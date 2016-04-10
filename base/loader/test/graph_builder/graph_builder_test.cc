@@ -45,9 +45,9 @@ void loader_graph_builder_test::SetUp() {
 
 edge const* loader_graph_builder_test::get_route_edge(node const* route_node) {
   auto it =
-      std::find_if(begin(route_node->_edges), end(route_node->_edges),
+      std::find_if(begin(route_node->edges_), end(route_node->edges_),
                    [](edge const& e) { return e.type() == edge::ROUTE_EDGE; });
-  if (it == end(route_node->_edges)) {
+  if (it == end(route_node->edges_)) {
     return nullptr;
   } else {
     return &(*it);
@@ -63,9 +63,9 @@ loader_graph_builder_test::get_connections(node const* first_route_node,
   while ((route_edge = get_route_edge(route_node)) != nullptr) {
     auto const* con = route_edge->get_connection(departure_time);
     if (con != nullptr) {
-      cons.emplace_back(con, route_node, route_edge->_to);
-      route_node = route_edge->_to;
-      departure_time = std::get<0>(cons.back())->a_time;
+      cons.emplace_back(con, route_node, route_edge->to_);
+      route_node = route_edge->to_;
+      departure_time = std::get<0>(cons.back())->a_time_;
     } else {
       break;
     }

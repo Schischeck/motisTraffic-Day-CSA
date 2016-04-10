@@ -50,13 +50,13 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_1) {
   std::fill(begin(all_days_bit_str), end(all_days_bit_str), '1');
   std::bitset<BIT_COUNT> all_days(all_days_bit_str);
 
-  ASSERT_TRUE(rule_set[0].bitfield_num == 0);
-  ASSERT_TRUE(rule_set[0].time == TIME_NOT_SET);
+  ASSERT_TRUE(rule_set[0].bitfield_num_ == 0);
+  ASSERT_TRUE(rule_set[0].time_ == TIME_NOT_SET);
 
   // TODO(Felix Guendling)
   // ASSERT_TRUE(cstr(to_string(rule_set[1].platform_name, b).c_str()) == "5");
-  ASSERT_TRUE(rule_set[1].bitfield_num == 1);
-  ASSERT_TRUE(rule_set[1].time == TIME_NOT_SET);
+  ASSERT_TRUE(rule_set[1].bitfield_num_ == 1);
+  ASSERT_TRUE(rule_set[1].time_ == TIME_NOT_SET);
 }
 
 TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
@@ -83,8 +83,8 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_2) {
   // 800000 00001 80____ 1A       0130 000001->[...01111 == (0xFF)]
   // TODO(Felix Guendling)
   // ASSERT_TRUE(cstr(to_string(rule_set[0].platform_name, b).c_str()) == "1A");
-  ASSERT_TRUE(rule_set[0].bitfield_num == 1);
-  ASSERT_TRUE(rule_set[0].time == 90);
+  ASSERT_TRUE(rule_set[0].bitfield_num_ == 1);
+  ASSERT_TRUE(rule_set[0].time_ == 90);
 }
 
 TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
@@ -102,8 +102,8 @@ TEST(loader_hrd_platform_rules, parse_platform_rules_line_too_short) {
     auto bitfields = parse_bitfields(f);
     auto plf_rules = parse_platform_rules(platform_rules_file, b);
   } catch (parser_error const& e) {
-    ASSERT_TRUE(e.line_number == 2);
-    ASSERT_STREQ(PLATFORMS_FILE, e.filename);
+    ASSERT_TRUE(e.line_number_ == 2);
+    ASSERT_STREQ(PLATFORMS_FILE, e.filename_);
     catched = true;
   }
   ASSERT_TRUE(catched);

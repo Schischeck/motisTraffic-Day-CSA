@@ -37,8 +37,8 @@ struct label : public Data {
     l = *this;
     l.pred_ = this;
     l.node_ = e.get_destination();
-    l.connection_ = ec.connection;
-    l.now_ += ec.time;
+    l.connection_ = ec.connection_;
+    l.now_ += ec.time_;
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
   }

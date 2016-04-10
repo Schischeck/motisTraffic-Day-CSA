@@ -46,9 +46,9 @@ provider_info read_provider_names(cstr line, char const* filename,
   verify(short_name != -1 && long_name != -1 && full_name != -1,
          "provider line format mismatch in %s:%d", filename, line_number);
 
-  info.short_name = parse_name(line.substr(short_name + 3));
-  info.long_name = parse_name(line.substr(long_name + 3));
-  info.full_name = parse_name(line.substr(full_name + 3));
+  info.short_name_ = parse_name(line.substr(short_name + 3));
+  info.long_name_ = parse_name(line.substr(long_name + 3));
+  info.full_name_ = parse_name(line.substr(full_name + 3));
 
   return info;
 }

@@ -212,7 +212,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
                      fbb.CreateVector(values(stb.fbs_stations_)),
                      fbb.CreateVector(values(rb.routes_)), &interval,
                      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
-                     fbb.CreateVector(rsb.fbs_rule_services)));
+                     fbb.CreateVector(rsb.fbs_rule_services_)));
 }
 
 }  // namespace hrd

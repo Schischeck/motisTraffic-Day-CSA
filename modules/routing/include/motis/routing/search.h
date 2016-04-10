@@ -30,9 +30,9 @@ namespace routing {
 struct search_result {
   search_result() = default;
   search_result(statistics stats, std::vector<journey> journeys)
-      : stats(std::move(stats)), journeys(std::move(journeys)) {}
-  statistics stats;
-  std::vector<journey> journeys;
+      : stats_(std::move(stats)), journeys_(std::move(journeys)) {}
+  statistics stats_;
+  std::vector<journey> journeys_;
 };
 
 typedef label<
@@ -49,9 +49,9 @@ class search {
 public:
   search(schedule const& schedule, memory_manager& label_store);
 
-  search_result get_connections(arrival from, arrival to, time interval_start,
-                                time interval_end, bool ontrip,
-                                std::vector<edge> const& query_additional_edges);
+  search_result get_connections(
+      arrival from, arrival to, time interval_start, time interval_end,
+      bool ontrip, std::vector<edge> const& query_additional_edges);
 
   void generate_ontrip_start_labels(station_node const* start_station_node,
                                     time const start_time,
@@ -71,8 +71,8 @@ public:
                              station_node const* real_start, int time_off,
                              lower_bounds&);
 
-  schedule const& _sched;
-  memory_manager& _label_store;
+  schedule const& sched_;
+  memory_manager& label_store_;
 };
 
 }  // namespace routing
