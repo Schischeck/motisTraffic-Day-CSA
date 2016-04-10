@@ -35,7 +35,7 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
                      std::vector<std::shared_ptr<service_rule>>& rules) {
   for (auto& r : rules) {
     int info = r->applies(*s.first);
-    if (info) {
+    if (info != 0) {
       if (s.first->num_repetitions_ == 0) {
         r->add(get_or_create(origin_services, s), info);
       } else {
@@ -150,7 +150,7 @@ void create_rule_service(
   std::vector<Offset<Rule>> fbb_rules;
   for (auto const& r : rs.rules) {
     fbb_rules.push_back(CreateRule(
-        fbb, (RuleType)r.rule_info.type, services.at(r.s1), services.at(r.s2),
+        fbb, static_cast<RuleType>(r.rule_info.type), services.at(r.s1), services.at(r.s2),
         sb.get_or_create_station(r.rule_info.eva_num_1, fbb),
         sb.get_or_create_station(r.rule_info.eva_num_2, fbb)));
   }
@@ -165,7 +165,7 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     if (s->traffic_days_.any()) {
-      sbf(std::cref(*s.get()), std::ref(fbb));
+      sbf(std::cref(*s), std::ref(fbb));
     }
   }
   LOG(info) << "#rule services: " << rule_services_.size();

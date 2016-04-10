@@ -17,7 +17,7 @@ protected:
                             std::time_t schedule_begin,
                             std::time_t schedule_end);
 
-  virtual void SetUp();
+  void SetUp() override;
 
   static edge const* get_route_edge(node const* route_node);
 

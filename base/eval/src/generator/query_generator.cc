@@ -15,7 +15,6 @@
 #include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
-namespace pt = boost::posix_time;
 using namespace flatbuffers;
 using namespace motis;
 using namespace motis::bootstrap;
@@ -28,11 +27,11 @@ using namespace motis::routing;
 class generator_settings : public conf::configuration {
 public:
   generator_settings(int query_count, std::string target_file)
-      : query_count(query_count), target_file(target_file) {}
+      : query_count(query_count), target_file(std::move(target_file)) {}
 
-  virtual ~generator_settings() {}
+  ~generator_settings() override = default;
 
-  virtual boost::program_options::options_description desc() override {
+  boost::program_options::options_description desc() override {
     po::options_description desc("Generator Settings");
     // clang-format off
     desc.add_options()
@@ -46,7 +45,7 @@ public:
     return desc;
   }
 
-  virtual void print(std::ostream& out) const override {
+  void print(std::ostream& out) const override {
     out << "  " << QUERY_COUNT << ": " << query_count << "\n"
         << "  " << TARGET_FILE << ": " << target_file;
   }

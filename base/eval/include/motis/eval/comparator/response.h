@@ -38,7 +38,7 @@ inline bool dominates(std::tuple<Criteria...> const& c1,
 }
 
 struct response {
-  response(routing::RoutingResponse const* r);
+  explicit response(routing::RoutingResponse const* r);
   std::vector<connection> connections;
 };
 

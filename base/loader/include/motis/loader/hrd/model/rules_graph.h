@@ -13,11 +13,11 @@ namespace hrd {
 struct rule_node;
 
 struct node {
-  virtual ~node() {}
+  virtual ~node() = default;
 };
 
 struct service_node : public node {
-  service_node(hrd_service*);
+  explicit service_node(hrd_service*);
 
   std::vector<rule_node*> rule_nodes_;
   hrd_service* service_;

@@ -7,16 +7,17 @@ namespace routing {
 
 std::vector<edge> create_additional_edges(
     flatbuffers::Vector<flatbuffers::Offset<AdditionalEdgeWrapper>> const*
-        additional_edge_infos,
+        edge_wrappers,
     schedule const& sched) {
   std::vector<edge> additional_edges;
   std::for_each(
-      additional_edge_infos->begin(), additional_edge_infos->end(),
+      edge_wrappers->begin(), edge_wrappers->end(),
       [&](AdditionalEdgeWrapper const* additional_edge) {
         /* mumo */
         switch (additional_edge->additional_edge_type()) {
           case AdditionalEdge_MumoEdge: {
-            auto info = (MumoEdge const*)additional_edge->additional_edge();
+            auto info = reinterpret_cast<MumoEdge const*>(
+                additional_edge->additional_edge());
             auto from_station_node =
                 sched.eva_to_station.find(info->from_station_eva()->c_str());
             auto to_station_node =
@@ -31,8 +32,8 @@ std::vector<edge> create_additional_edges(
             break;
           }
           case AdditionalEdge_TimeDependentMumoEdge: {
-            auto info = (TimeDependentMumoEdge const*)
-                            additional_edge->additional_edge();
+            auto info = reinterpret_cast<TimeDependentMumoEdge const*>(
+                additional_edge->additional_edge());
             auto from_station_node = sched.eva_to_station.find(
                 info->edge()->from_station_eva()->c_str());
             auto to_station_node = sched.eva_to_station.find(
@@ -50,7 +51,8 @@ std::vector<edge> create_additional_edges(
           }
           /* hotel edges */
           case AdditionalEdge_HotelEdge: {
-            auto info = (HotelEdge const*)additional_edge->additional_edge();
+            auto info = reinterpret_cast<HotelEdge const*>(
+                additional_edge->additional_edge());
             auto const station_node =
                 sched.eva_to_station.find(info->station_eva()->c_str());
             if (station_node != sched.eva_to_station.end()) {

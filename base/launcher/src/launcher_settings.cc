@@ -56,8 +56,8 @@ launcher_settings::launcher_settings(motis_mode_t m,
                                      int num_threads)
     : mode(m),
       modules(std::move(modules)),
-      batch_input_file(batch_input_file),
-      batch_output_file(batch_output_file),
+      batch_input_file(std::move(batch_input_file)),
+      batch_output_file(std::move(batch_output_file)),
       num_threads(num_threads) {}
 
 po::options_description launcher_settings::desc() {

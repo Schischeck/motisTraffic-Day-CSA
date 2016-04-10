@@ -232,7 +232,7 @@ struct graph_builder {
 };
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool check_unique, bool apply_rules,
+                         bool unique_check, bool apply_rules,
                          bool adjust_footpaths);
 
 }  // namespace loader

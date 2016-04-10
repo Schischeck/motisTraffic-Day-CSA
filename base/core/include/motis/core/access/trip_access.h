@@ -41,4 +41,4 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
   return *vec_it;
 }
 
-}  // motis
+}  // namespace motis

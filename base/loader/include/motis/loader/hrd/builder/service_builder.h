@@ -21,7 +21,7 @@ namespace loader {
 namespace hrd {
 
 struct service_builder {
-  service_builder(platform_rules);
+  explicit service_builder(platform_rules);
 
   flatbuffers::Offset<Service> create_service(
       hrd_service const&, route_builder&, station_builder&, category_builder&,

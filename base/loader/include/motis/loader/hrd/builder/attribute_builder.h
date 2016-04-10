@@ -14,7 +14,7 @@ namespace loader {
 namespace hrd {
 
 struct attribute_builder {
-  attribute_builder(std::map<uint16_t, std::string> hrd_attributes);
+  explicit attribute_builder(std::map<uint16_t, std::string> hrd_attributes);
 
   flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attribute>>>
   create_attributes(std::vector<hrd_service::attribute> const&,

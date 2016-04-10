@@ -12,7 +12,7 @@ using namespace motis::routing;
 using namespace motis::eval;
 
 struct response {
-  response(RoutingResponse const* r)
+  explicit response(RoutingResponse const* r)
       : labelsUntilFirst(0),
         labelsAfterLast(0),
         labelsCreated(0),

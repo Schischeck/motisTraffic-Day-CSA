@@ -31,10 +31,10 @@ using namespace motis::logging;
 
 class rule_services_test : public ::testing::Test {
 protected:
-  rule_services_test(std::string schedule_name)
+  explicit rule_services_test(std::string schedule_name)
       : schedule_name_(std::move(schedule_name)) {}
 
-  virtual void SetUp() {
+  void SetUp() override {
     path const root = SCHEDULES / schedule_name_;
     path const stamm = root / "stamm";
     path const fahrten = root / "fahrten";
@@ -66,7 +66,7 @@ protected:
     rsb_.origin_services_.erase(
         std::remove_if(begin(rsb_.origin_services_), end(rsb_.origin_services_),
                        [](std::unique_ptr<hrd_service> const& service_ptr) {
-                         return service_ptr.get()->traffic_days_.none();
+                         return service_ptr->traffic_days_.none();
                        }),
         end(rsb_.origin_services_));
   }

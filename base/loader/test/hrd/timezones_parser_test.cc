@@ -73,7 +73,7 @@ protected:
   loader_timezones_test(char const* zeitvs, char const* eckdaten)
       : zeitvs_(zeitvs), eckdaten_(eckdaten) {}
 
-  virtual void SetUp() {
+  void SetUp() override {
     data_.emplace_back("zeitvs.101", zeitvs_);
     data_.emplace_back("eckdaten.101", eckdaten_);
     tz_ = parse_timezones(data_[0], data_[1]);

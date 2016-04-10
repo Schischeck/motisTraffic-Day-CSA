@@ -12,9 +12,9 @@ struct hrd_parser : public format_parser {
   bool applicable(boost::filesystem::path const& path) override;
 
   std::vector<std::string> missing_files(
-      boost::filesystem::path const& path) const override;
+      boost::filesystem::path const& hrd_root) const override;
 
-  void parse(boost::filesystem::path const& path,
+  void parse(boost::filesystem::path const& hrd_root,
              flatbuffers::FlatBufferBuilder&) override;
 };
 

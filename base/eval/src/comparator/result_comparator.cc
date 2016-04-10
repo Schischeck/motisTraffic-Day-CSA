@@ -13,13 +13,14 @@ using namespace motis::module;
 using namespace motis::eval::comparator;
 
 template <typename T>
-char getRelationSymbol(T const& u1, T const& u2) {
-  if (u1 == u2)
+char get_relation_symbol(T const& u1, T const& u2) {
+  if (u1 == u2) {
     return '=';
-  else if (u1 < u2)
+  } else if (u1 < u2) {
     return '<';
-  else
+  } else {
     return '>';
+  }
 }
 
 void print(connection const& con) {
@@ -31,14 +32,14 @@ void print(connection const& con) {
             << std::setw(5) << price;
 }
 
-void printEmpty() {
+void print_empty() {
   std::cout << std::setw(5) << "-"
             << "\t" << std::setw(5) << "-"
             << "\t" << std::setw(5) << "-";
 }
 
-bool printDifferences(response const& r1, response const& r2,
-                      RoutingRequest const*, int line, int id) {
+bool print_differences(response const& r1, response const& r2,
+                       RoutingRequest const*, int line, int id) {
   if (r1.connections == r2.connections) {
     return true;
   }
@@ -67,7 +68,7 @@ bool printDifferences(response const& r1, response const& r2,
         print(*it1);
         ++it1;
       } else {
-        printEmpty();
+        print_empty();
         stop1 = true;
       }
 
@@ -77,7 +78,7 @@ bool printDifferences(response const& r1, response const& r2,
         print(*it2);
         ++it2;
       } else {
-        printEmpty();
+        print_empty();
         stop2 = true;
       }
 
@@ -92,31 +93,31 @@ bool printDifferences(response const& r1, response const& r2,
 
   std::vector<bool> matches1(r1.connections.size()),
       matches2(r2.connections.size());
-  bool con1Dominates = false, con2Dominates = false;
-  unsigned conCount1 = 0;
-  for (auto it1 = begin(r1.connections); it1 != end1; ++it1, ++conCount1) {
-    unsigned conCount2 = 0;
-    for (auto it2 = begin(r2.connections); it2 != end2; ++it2, ++conCount2) {
+  bool con1_dominates = false, con2_dominates = false;
+  unsigned con_count1 = 0;
+  for (auto it1 = begin(r1.connections); it1 != end1; ++it1, ++con_count1) {
+    unsigned con_count2 = 0;
+    for (auto it2 = begin(r2.connections); it2 != end2; ++it2, ++con_count2) {
       if (*it1 == *it2) {
-        matches1[conCount1] = true;
-        matches2[conCount2] = true;
+        matches1[con_count1] = true;
+        matches2[con_count2] = true;
         continue;
       }
 
-      std::string dominationInfo;
+      std::string domination_info;
       if (dominates(*it1, *it2)) {
-        dominationInfo = "\tFIRST DOMINATES \t";
-        con1Dominates = true;
+        domination_info = "\tFIRST DOMINATES \t";
+        con1_dominates = true;
       } else if (dominates(*it2, *it1)) {
-        dominationInfo = "\tSECOND DOMINATES\t";
-        con2Dominates = true;
+        domination_info = "\tSECOND DOMINATES\t";
+        con2_dominates = true;
       } else {
-        dominationInfo = "\tNO DOMINATION   \t";
+        domination_info = "\tNO DOMINATION   \t";
         continue;
       }
 
-      std::cout << "  " << std::setw(2) << conCount1 << " vs " << std::setw(2)
-                << conCount2 << dominationInfo;
+      std::cout << "  " << std::setw(2) << con_count1 << " vs " << std::setw(2)
+                << con_count2 << domination_info;
 
       int duration1, transfers1, price1, duration2, transfers2, price2;
 
@@ -124,22 +125,26 @@ bool printDifferences(response const& r1, response const& r2,
       std::tie(duration2, transfers2, price2) = *it2;
 
       std::cout << "  ";
-      if (duration1 != duration2)
-        std::cout << "{ DURATIONS[" << conCount1 << ", " << conCount2
+      if (duration1 != duration2) {
+        std::cout << "{ DURATIONS[" << con_count1 << ", " << con_count2
                   << "]: " << duration1 << " "
-                  << getRelationSymbol(duration1, duration2) << " " << duration2
-                  << " } ";
+                  << get_relation_symbol(duration1, duration2) << " "
+                  << duration2 << " } ";
+      }
 
-      if (transfers1 != transfers2)
-        std::cout << "{ TRANSFERS[" << conCount1 << ", " << conCount2
+      if (transfers1 != transfers2) {
+        std::cout << "{ TRANSFERS[" << con_count1 << ", " << con_count2
                   << "]: " << transfers1 << " "
-                  << getRelationSymbol(transfers1, transfers2) << " "
+                  << get_relation_symbol(transfers1, transfers2) << " "
                   << transfers2 << " } ";
+      }
 
-      if (price1 != price2)
-        std::cout << "{ PRICES[" << conCount1 << ", " << conCount2
-                  << "]: " << price1 << " " << getRelationSymbol(price1, price2)
-                  << " " << price2 << " }";
+      if (price1 != price2) {
+        std::cout << "{ PRICES[" << con_count1 << ", " << con_count2
+                  << "]: " << price1 << " "
+                  << get_relation_symbol(price1, price2) << " " << price2
+                  << " }";
+      }
 
       std::cout << "\n";
     }
@@ -147,33 +152,40 @@ bool printDifferences(response const& r1, response const& r2,
 
   std::cout << "\n  -> connections in FIRST with no match in SECOND: ";
   bool match1 = false;
-  for (unsigned i = 0; i < matches1.size(); i++)
+  for (unsigned i = 0; i < matches1.size(); i++) {
     if (!matches1[i]) {
       std::cout << i << " ";
       match1 = true;
     }
-  if (!match1) std::cout << "-";
+  }
+  if (!match1) {
+    std::cout << "-";
+  }
 
   std::cout << "\n  -> connections in SECOND with no match in FIRST: ";
   bool match2 = false;
-  for (unsigned i = 0; i < matches2.size(); i++)
+  for (unsigned i = 0; i < matches2.size(); i++) {
     if (!matches2[i]) {
       std::cout << i << " ";
       match2 = true;
     }
-  if (!match2) std::cout << "-";
+  }
+  if (!match2) {
+    std::cout << "-";
+  }
 
-  if (con1Dominates && !con2Dominates)
+  if (con1_dominates && !con2_dominates) {
     std::cout << "\n  -> total domination by FIRST\n\n\n";
-  else if (con2Dominates && !con1Dominates)
+  } else if (con2_dominates && !con1_dominates) {
     std::cout << "\n  -> total domination by SECOND\n\n\n";
-  else
+  } else {
     std::cout << "\n  -> no total domination\n\n\n";
+  }
 
   return false;
 }
 
-void writeFile(std::string const& content, std::string const& filename) {
+void write_file(std::string const& content, std::string const& filename) {
   std::ofstream out(filename);
   out << content << "\n";
 }
@@ -186,9 +198,9 @@ int main(int argc, char* argv[]) {
   }
 
   unsigned matches = 0, mismatches = 0;
-  unsigned lineCount = 0;
+  unsigned line_count = 0;
   std::ifstream in1(argv[1]), in2(argv[2]), inq(argv[3]);
-  std::ofstream failedQueries("failed_queries.txt");
+  std::ofstream failed_queries("failed_queries.txt");
   std::string line1, line2, lineq;
 
   while (in1.peek() != EOF && !in1.eof() && in2.peek() != EOF && !in2.eof() &&
@@ -201,22 +213,22 @@ int main(int argc, char* argv[]) {
     auto res2 = make_msg(line2);
     auto q = make_msg(lineq);
 
-    if (printDifferences(response(motis_content(RoutingResponse, res1)),
-                         response(motis_content(RoutingResponse, res2)),
-                         motis_content(RoutingRequest, q), lineCount,
-                         q->id())) {
+    if (print_differences(response(motis_content(RoutingResponse, res1)),
+                          response(motis_content(RoutingResponse, res2)),
+                          motis_content(RoutingRequest, q), line_count,
+                          q->id())) {
       ++matches;
     } else {
       ++mismatches;
-      failedQueries << lineq << "\n";
-      writeFile(line1,
-                "fail_responses/" + std::to_string(lineCount) + "_1.xml");
-      writeFile(line2,
-                "fail_responses/" + std::to_string(lineCount) + "_2.xml");
-      writeFile(lineq, "fail_queries/" + std::to_string(lineCount) + ".xml");
+      failed_queries << lineq << "\n";
+      write_file(line1,
+                "fail_responses/" + std::to_string(line_count) + "_1.xml");
+      write_file(line2,
+                "fail_responses/" + std::to_string(line_count) + "_2.xml");
+      write_file(lineq, "fail_queries/" + std::to_string(line_count) + ".xml");
     }
 
-    ++lineCount;
+    ++line_count;
   }
 
   std::cout << "\nStatistics:\n"

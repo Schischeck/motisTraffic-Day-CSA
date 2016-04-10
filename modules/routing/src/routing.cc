@@ -114,7 +114,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
             << "(" << format_time(i_begin) << ", " << format_time(i_end)
             << ") -> " << result.journeys.size() << " connections found";
 
-  // TODO connection checker annotion
+  // TODO(Felix Guendling) connection checker annotion
   return journeys_to_message(result.journeys, result.stats.pareto_dijkstra);
 }
 

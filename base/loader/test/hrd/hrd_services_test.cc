@@ -11,7 +11,6 @@
 #include "./test_spec_test.h"
 
 using namespace parser;
-namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {

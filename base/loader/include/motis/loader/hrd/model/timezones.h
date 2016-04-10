@@ -31,7 +31,7 @@ struct season_entry {
 
 struct timezone_entry {
   timezone_entry(int general_gmt_offset, boost::optional<season_entry> season)
-      : general_gmt_offset(general_gmt_offset), season(season) {}
+      : general_gmt_offset(general_gmt_offset), season(std::move(season)) {}
   int const general_gmt_offset;  // in minutes
   boost::optional<season_entry> season;
 };

@@ -24,13 +24,13 @@ std::unique_ptr<Parser> init_parser() {
   for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {
       message_symbol_index = i;
-    } else if (!parser->Parse((const char*)symbols[i], nullptr, filenames[i])) {
+    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {
       printf("error: %s\n", parser->error_.c_str());
       throw std::runtime_error("flatbuffer protocol definitions parser error");
     }
   }
   if (message_symbol_index == -1 ||
-      !parser->Parse((const char*)symbols[message_symbol_index])) {
+      !parser->Parse(symbols[message_symbol_index])) {
     printf("error: %s\n", parser->error_.c_str());
     throw std::runtime_error("flatbuffer protocol definitions parser error");
   }

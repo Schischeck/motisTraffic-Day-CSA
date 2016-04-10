@@ -22,8 +22,8 @@ typedef std::tuple<hrd_service*, hrd_service*, resolved_rule_info>
     service_combination;
 
 struct service_rule {
-  service_rule(bitfield const& mask) : mask_(mask) {}
-  virtual ~service_rule() {}
+  explicit service_rule(bitfield const& mask) : mask_(mask) {}
+  virtual ~service_rule() = default;
   virtual int applies(hrd_service const&) const = 0;
   virtual void add(hrd_service*, int info) = 0;
   virtual std::vector<service_combination> service_combinations() const = 0;

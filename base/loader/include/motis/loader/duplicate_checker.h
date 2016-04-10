@@ -8,7 +8,7 @@ namespace motis {
 namespace loader {
 
 struct duplicate_checker {
-  duplicate_checker(schedule&);
+  explicit duplicate_checker(schedule&);
 
   void remove_duplicates();
   void remove_duplicates(station_node*);

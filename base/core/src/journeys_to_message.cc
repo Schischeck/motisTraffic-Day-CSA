@@ -26,7 +26,7 @@ std::vector<Offset<Stop>> convert_stops(
         b.CreateString(stop.departure.platform));
     buf_stops.push_back(CreateStop(b, b.CreateString(stop.eva_no),
                                    b.CreateString(stop.name), stop.lat,
-                                   stop.lng, arr, dep, stop.interchange));
+                                   stop.lng, arr, dep, static_cast<uint8_t>(stop.interchange)));
   }
 
   return buf_stops;

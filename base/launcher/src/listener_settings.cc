@@ -29,13 +29,13 @@ listener_settings::listener_settings(bool listen_ws, bool listen_http,
     : listen_ws(listen_ws),
       listen_http(listen_http),
       listen_tcp(listen_tcp),
-      ws_host(ws_host),
-      ws_port(ws_port),
-      http_host(http_host),
-      http_port(http_port),
-      tcp_host(tcp_host),
-      tcp_port(tcp_port),
-      api_key(api_key) {}
+      ws_host(std::move(ws_host)),
+      ws_port(std::move(ws_port)),
+      http_host(std::move(http_host)),
+      http_port(std::move(http_port)),
+      tcp_host(std::move(tcp_host)),
+      tcp_port(std::move(tcp_port)),
+      api_key(std::move(api_key)) {}
 
 boost::program_options::options_description listener_settings::desc() {
   po::options_description desc("Listener Options");

@@ -62,7 +62,7 @@ loader_graph_builder_test::get_connections(node const* first_route_node,
   node const* route_node = first_route_node;
   while ((route_edge = get_route_edge(route_node)) != nullptr) {
     auto const* con = route_edge->get_connection(departure_time);
-    if (con) {
+    if (con != nullptr) {
       cons.emplace_back(con, route_node, route_edge->_to);
       route_node = route_edge->_to;
       departure_time = std::get<0>(cons.back())->a_time;

@@ -220,45 +220,45 @@ TEST(core_convert_journey, journey_message_journey) {
     for (unsigned int s = 0; s < o.stops.size(); ++s) {
       auto const& os = o.stops[s];
       auto const& js = j.stops[s];
-      ASSERT_TRUE(os.eva_no == js.eva_no);
-      ASSERT_TRUE(os.index == js.index);
-      ASSERT_TRUE(os.interchange == js.interchange);
-      ASSERT_TRUE(os.lat == js.lat);
-      ASSERT_TRUE(os.lng == js.lng);
-      ASSERT_TRUE(os.name == js.name);
-      ASSERT_TRUE(os.arrival.platform == js.arrival.platform);
-      ASSERT_TRUE(os.arrival.timestamp == js.arrival.timestamp);
-      ASSERT_TRUE(os.arrival.valid == js.arrival.valid);
-      ASSERT_TRUE(os.departure.platform == js.departure.platform);
-      ASSERT_TRUE(os.departure.timestamp == js.departure.timestamp);
-      ASSERT_TRUE(os.departure.valid == js.departure.valid);
+      ASSERT_EQ(os.eva_no, js.eva_no);
+      ASSERT_EQ(os.index, js.index);
+      ASSERT_EQ(os.interchange, js.interchange);
+      ASSERT_EQ(os.lat, js.lat);
+      ASSERT_EQ(os.lng, js.lng);
+      ASSERT_EQ(os.name, js.name);
+      ASSERT_EQ(os.arrival.platform, js.arrival.platform);
+      ASSERT_EQ(os.arrival.timestamp, js.arrival.timestamp);
+      ASSERT_EQ(os.arrival.valid, js.arrival.valid);
+      ASSERT_EQ(os.departure.platform, js.departure.platform);
+      ASSERT_EQ(os.departure.timestamp, js.departure.timestamp);
+      ASSERT_EQ(os.departure.valid, js.departure.valid);
     }
 
     for (unsigned int t = 0; t < o.transports.size(); ++t) {
       auto const& ot = o.transports[t];
       auto const& jt = j.transports[t];
-      ASSERT_TRUE(ot.category_id == jt.category_id);
-      ASSERT_TRUE(ot.category_name == jt.category_name);
-      ASSERT_TRUE(ot.direction == jt.direction);
-      ASSERT_TRUE(ot.duration == jt.duration);
-      ASSERT_TRUE(ot.from == jt.from);
-      ASSERT_TRUE(ot.line_identifier == jt.line_identifier);
-      ASSERT_TRUE(ot.name == jt.name);
-      ASSERT_TRUE(ot.provider == jt.provider);
-      ASSERT_TRUE(ot.slot == jt.slot);
-      ASSERT_TRUE(ot.to == jt.to);
-      ASSERT_TRUE(ot.train_nr == jt.train_nr);
-      ASSERT_TRUE(ot.type == jt.type);
-      ASSERT_TRUE(ot.route_id == jt.route_id);
+      ASSERT_EQ(ot.category_id, jt.category_id);
+      ASSERT_EQ(ot.category_name, jt.category_name);
+      ASSERT_EQ(ot.direction, jt.direction);
+      ASSERT_EQ(ot.duration, jt.duration);
+      ASSERT_EQ(ot.from, jt.from);
+      ASSERT_EQ(ot.line_identifier, jt.line_identifier);
+      ASSERT_EQ(ot.name, jt.name);
+      ASSERT_EQ(ot.provider, jt.provider);
+      ASSERT_EQ(ot.slot, jt.slot);
+      ASSERT_EQ(ot.to, jt.to);
+      ASSERT_EQ(ot.train_nr, jt.train_nr);
+      ASSERT_EQ(ot.type, jt.type);
+      ASSERT_EQ(ot.route_id, jt.route_id);
     }
 
     for (unsigned int a = 0; a < o.attributes.size(); ++a) {
       auto const& oa = o.attributes[a];
       auto const& ja = j.attributes[a];
-      ASSERT_TRUE(oa.code == ja.code);
-      ASSERT_TRUE(oa.from == ja.from);
-      ASSERT_TRUE(oa.to == ja.to);
-      ASSERT_TRUE(oa.text == ja.text);
+      ASSERT_EQ(oa.code, ja.code);
+      ASSERT_EQ(oa.from, ja.from);
+      ASSERT_EQ(oa.to, ja.to);
+      ASSERT_EQ(oa.text, ja.text);
     }
   }
 }

@@ -30,7 +30,7 @@ namespace routing {
 struct search_result {
   search_result() = default;
   search_result(statistics stats, std::vector<journey> journeys)
-      : stats(stats), journeys(std::move(journeys)) {}
+      : stats(std::move(stats)), journeys(std::move(journeys)) {}
   statistics stats;
   std::vector<journey> journeys;
 };
@@ -51,12 +51,12 @@ public:
 
   search_result get_connections(arrival from, arrival to, time interval_start,
                                 time interval_end, bool ontrip,
-                                std::vector<edge> const& additional_edges);
+                                std::vector<edge> const& query_additional_edges);
 
-  void generate_ontrip_start_labels(station_node const* start_station,
+  void generate_ontrip_start_labels(station_node const* start_station_node,
                                     time const start_time,
                                     std::vector<my_label*>& start_labels,
-                                    lower_bounds& context);
+                                    lower_bounds& lower_bounds);
 
   void generate_start_labels(time const from, time const to,
                              station_node const* start_station_node,

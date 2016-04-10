@@ -18,12 +18,12 @@ struct ts_rule : public service_rule {
   ts_rule(service_id id_1, service_id id_2, int eva_num, bitfield const& mask)
       : service_rule(mask), id_1_(id_1), id_2_(id_2), eva_num_(eva_num) {}
 
-  virtual ~ts_rule() {}
+  ~ts_rule() override = default;
 
   int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
-      return false;
+      return 0;
     }
 
     // Assuming s is service (1): Check last stop.

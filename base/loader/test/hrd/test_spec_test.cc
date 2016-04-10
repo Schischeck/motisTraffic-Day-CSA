@@ -8,7 +8,6 @@ namespace loader {
 namespace hrd {
 
 using namespace flatbuffers;
-namespace fs = boost::filesystem;
 
 std::vector<specification> test_spec::get_specs() {
   std::vector<specification> specs;

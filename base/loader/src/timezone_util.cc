@@ -50,7 +50,7 @@ timezone create_timezone(int general_offset, int season_offset,
 }
 
 time get_event_time(int day_idx, int local_time, timezone const* tz) {
-  return tz ? tz->to_motis_time(day_idx, local_time)
+  return tz != nullptr ? tz->to_motis_time(day_idx, local_time)
             : to_motis_time(day_idx, local_time);
 }
 

@@ -19,7 +19,7 @@ public:
 };
 
 TEST_F(loader_graph_builder_never_meet, routes) {
-  ASSERT_EQ(3, sched_.get()->route_index_to_first_route_node.size());
+  ASSERT_EQ(3, sched_->route_index_to_first_route_node.size());
 
   auto node_it = begin(sched_->route_index_to_first_route_node);
   auto connections = get_connections(*node_it, 0);
@@ -64,7 +64,7 @@ public:
 };
 
 TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
-  ASSERT_EQ(5, sched_.get()->route_index_to_first_route_node.size());
+  ASSERT_EQ(5, sched_->route_index_to_first_route_node.size());
 
   auto train_num_zero_count = 0;
   auto train_num_one_count = 0;

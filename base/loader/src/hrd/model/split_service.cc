@@ -22,7 +22,7 @@ struct split_info {
 };
 
 struct splitter {
-  splitter(std::vector<bitfield> const& sections) : sections_(sections) {}
+  explicit splitter(std::vector<bitfield>  sections) : sections_(std::move(sections)) {}
 
   void check_and_remember(int start, int pos, bitfield const& b) {
     for (auto const& w : written_) {

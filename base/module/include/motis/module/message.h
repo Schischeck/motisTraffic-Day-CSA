@@ -10,7 +10,7 @@
 
 namespace flatbuffers {
 class Parser;
-}
+} // namespace flatbuffers
 
 namespace motis {
 namespace module {

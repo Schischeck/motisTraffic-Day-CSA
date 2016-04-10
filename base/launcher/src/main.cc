@@ -135,8 +135,8 @@ int main(int argc, char** argv) {
       }
   };
 
-  for (unsigned i = 0; i < threads.size(); ++i) {
-    threads[i] = boost::thread(run);
+  for (auto& t : threads) {
+    t = boost::thread(run);
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;

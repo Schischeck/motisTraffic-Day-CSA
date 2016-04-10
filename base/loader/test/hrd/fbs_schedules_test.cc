@@ -11,7 +11,6 @@
 
 using namespace parser;
 using namespace flatbuffers;
-namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {

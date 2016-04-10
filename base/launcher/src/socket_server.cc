@@ -62,7 +62,7 @@ private:
 socket_server::socket_server(boost::asio::io_service& ios, receiver& recvr)
     : impl_(new impl(ios, recvr)) {}
 
-socket_server::~socket_server() {}
+socket_server::~socket_server() = default;
 
 void socket_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);

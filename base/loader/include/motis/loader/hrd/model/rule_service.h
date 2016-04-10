@@ -8,7 +8,7 @@ namespace loader {
 namespace hrd {
 
 struct service_resolvent {
-  service_resolvent(hrd_service* origin) : service(nullptr), origin(origin) {}
+  explicit service_resolvent(hrd_service* origin) : service(nullptr), origin(origin) {}
 
   service_resolvent(std::unique_ptr<hrd_service> service, hrd_service* origin)
       : service(std::move(service)), origin(origin) {}

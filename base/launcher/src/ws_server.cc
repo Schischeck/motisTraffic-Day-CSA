@@ -163,7 +163,7 @@ struct ws_server::ws_server_impl {
   std::map<connection_hdl, sid, std::owner_less<connection_hdl>> con_sid_map_;
 };
 
-ws_server::~ws_server() {}
+ws_server::~ws_server() = default;
 
 ws_server::ws_server(boost::asio::io_service& ios,
                      motis::module::receiver& receiver)
@@ -179,8 +179,8 @@ void ws_server::listen(std::string const& host, std::string const& port) {
 
 void ws_server::stop() { impl_->stop(); }
 
-void ws_server::send(msg_ptr const& msg, sid s) {
-  impl_->send(msg, s, std::numeric_limits<int>::max());
+void ws_server::send(msg_ptr const& msg, sid session) {
+  impl_->send(msg, session, std::numeric_limits<int>::max());
 }
 
 }  // namespace launcher

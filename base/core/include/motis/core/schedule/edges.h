@@ -19,7 +19,7 @@ struct edge_cost {
   edge_cost(duration time, light_connection const* c)
       : connection(c), time(time), price(0), transfer(false), slot(0) {}
 
-  edge_cost(duration time, bool transfer = false, uint16_t price = 0,
+  explicit edge_cost(duration time, bool transfer = false, uint16_t price = 0,
             uint8_t slot = 0)
       : connection(nullptr),
         time(time),

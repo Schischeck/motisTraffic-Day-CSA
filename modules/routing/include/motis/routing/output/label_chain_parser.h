@@ -121,7 +121,7 @@ parse_label_chain(Label const* terminal_label) {
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            (unsigned int)++station_index, current->node_->get_station()->_id,
+            static_cast<unsigned int>(++station_index), current->node_->get_station()->_id,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->_full_con->a_platform,
             MOTIS_UNKNOWN_TRACK,
@@ -130,7 +130,7 @@ parse_label_chain(Label const* terminal_label) {
                                                : last_con->a_time,
             current->now_, last_con != nullptr);
 
-        transports.emplace_back(station_index, (unsigned int)station_index + 1,
+        transports.emplace_back(station_index, static_cast<unsigned int>(station_index) + 1,
                                 (*std::next(it))->now_ - current->now_, -1, 0);
 
         walk_arrival = (*std::next(it))->now_;
@@ -140,8 +140,8 @@ parse_label_chain(Label const* terminal_label) {
 
       case IN_CONNECTION: {
         if (current->connection_) {
-          transports.emplace_back((unsigned int)station_index,
-                                  (unsigned int)station_index + 1,
+          transports.emplace_back(static_cast<unsigned int>(station_index),
+                                  static_cast<unsigned int>(station_index) + 1,
                                   current->connection_, current->node_->_route);
         }
 
@@ -156,7 +156,7 @@ parse_label_chain(Label const* terminal_label) {
           }
 
           stops.emplace_back(
-              (unsigned int)++station_index, current->node_->get_station()->_id,
+              static_cast<unsigned int>(++station_index), current->node_->get_station()->_id,
               current->connection_->_full_con->a_platform,
               succ->connection_->_full_con->d_platform,
               current->connection_->a_time, succ->connection_->d_time, false);

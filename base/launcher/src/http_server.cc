@@ -125,7 +125,7 @@ private:
 http_server::http_server(boost::asio::io_service& ios, receiver& recvr)
     : impl_(new impl(ios, recvr)) {}
 
-http_server::~http_server() {}
+http_server::~http_server() = default;
 
 void http_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);

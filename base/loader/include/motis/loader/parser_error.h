@@ -11,7 +11,7 @@ struct parser_error : public std::exception {
         filename(filename_copy.c_str()),
         line_number(line_number) {}
 
-  char const* what() const noexcept { return "parser_error"; }
+  char const* what() const noexcept override { return "parser_error"; }
 
   void print_what() const noexcept {
     printf("%s:%s:%d\n", what(), filename, line_number);

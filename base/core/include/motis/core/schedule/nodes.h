@@ -30,40 +30,45 @@ public:
   bool is_foot_node() const { return !is_station_node() && !is_route_node(); }
 
   char const* type_str() const {
-    if (is_station_node())
+    if (is_station_node()) {
       return "STATION_NODE";
-    else if (is_route_node())
+    } else if (is_route_node()) {
       return "ROUTE_NODE";
-    else
+    } else {
       return "FOOT_NODE";
+    }
   }
 
   station_node* as_station_node() {
-    if (_station_node == nullptr)
+    if (_station_node == nullptr) {
       return reinterpret_cast<station_node*>(this);
-    else
+    } else {
       return nullptr;
+    }
   }
 
   station_node const* as_station_node() const {
-    if (_station_node == nullptr)
+    if (_station_node == nullptr) {
       return reinterpret_cast<station_node const*>(this);
-    else
+    } else {
       return nullptr;
+    }
   }
 
   station_node* get_station() {
-    if (_station_node == nullptr)
+    if (_station_node == nullptr) {
       return reinterpret_cast<station_node*>(this);
-    else
+    } else {
       return _station_node;
+    }
   }
 
   station_node const* get_station() const {
-    if (_station_node == nullptr)
+    if (_station_node == nullptr) {
       return reinterpret_cast<station_node const*>(this);
-    else
+    } else {
       return _station_node;
+    }
   }
 
   array<edge> _edges;

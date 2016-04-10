@@ -14,7 +14,6 @@
 
 using namespace motis::module;
 using namespace motis::logging;
-namespace p = std::placeholders;
 
 namespace motis {
 namespace bootstrap {

@@ -87,7 +87,7 @@ struct full_trip_id {
 };
 
 struct trip {
-  trip(full_trip_id id) : id(std::move(id)), edges(nullptr), lcon_idx(0) {}
+  explicit trip(full_trip_id id) : id(std::move(id)), edges(nullptr), lcon_idx(0) {}
 
   full_trip_id id;
   std::vector<edge*> const* edges;

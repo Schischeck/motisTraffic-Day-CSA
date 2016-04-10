@@ -17,10 +17,10 @@ public:
                     std::string tcp_host, std::string tcp_port,
                     std::string api_key);
 
-  virtual ~listener_settings() {}
+  ~listener_settings() override = default;
 
-  virtual boost::program_options::options_description desc() override;
-  virtual void print(std::ostream& out) const override;
+  boost::program_options::options_description desc() override;
+  void print(std::ostream& out) const override;
 
   bool listen_ws, listen_http, listen_tcp;
   std::string ws_host, ws_port;

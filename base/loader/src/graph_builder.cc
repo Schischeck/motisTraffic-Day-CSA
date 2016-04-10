@@ -352,12 +352,12 @@ connection_info* graph_builder::get_or_create_connection_info(
     std::array<participant, 16> const& services, int dep_day_index) {
   connection_info* prev_con_info = nullptr;
 
-  for (unsigned i = 0; i < services.size(); ++i) {
-    if (services[i].service == nullptr) {
+  for (auto service : services) {
+    if (service.service == nullptr) {
       return prev_con_info;
     }
 
-    auto const& s = services[i];
+    auto const& s = service;
     prev_con_info =
         get_or_create_connection_info(s.service->sections()->Get(s.section_idx),
                                       dep_day_index, prev_con_info);
@@ -693,7 +693,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
-  graph_builder builder(*sched.get(), serialized->interval(), from, to,
+  graph_builder builder(*sched, serialized->interval(), from, to,
                         apply_rules, adjust_footpaths);
   builder.add_stations(serialized->stations());
   builder.add_footpaths(serialized->footpaths());

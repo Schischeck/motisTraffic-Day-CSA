@@ -24,7 +24,7 @@ journey::stop to_stop(routing::Stop const& stop, unsigned int const index,
   journey::stop s;
   s.index = index;
   s.eva_no = stop.eva_nr()->c_str();
-  s.interchange = (bool)stop.interchange();
+  s.interchange = static_cast<bool>(stop.interchange());
   s.lat = stop.lat();
   s.lng = stop.lng();
   s.name = stop.name()->c_str();
@@ -108,39 +108,36 @@ uint16_t get_move_duration(
 std::vector<journey> message_to_journeys(
     routing::RoutingResponse const* response) {
   std::vector<journey> journeys;
-  for (auto conn = response->connections()->begin();
-       conn != response->connections()->end(); ++conn) {
+  for (auto conn : *response->connections()) {
     journeys.emplace_back();
     auto& journey = journeys.back();
 
     /* stops */
     unsigned int stop_index = 0;
-    for (auto stop = conn->stops()->begin(); stop != conn->stops()->end();
-         ++stop, ++stop_index) {
+    for (auto stop : *conn->stops()) {
       journey.stops.push_back(
-          to_stop(**stop, stop_index, conn->stops()->size()));
+          to_stop(*stop, stop_index++, conn->stops()->size()));
     }
 
     /* transports */
-    for (auto transport = conn->transports()->begin();
-         transport != conn->transports()->end(); ++transport) {
-      auto const move = *transport;
+    for (auto move : *conn->transports()) {
       switch (move->move_type()) {
         case routing::Move_Walk: {
-          auto walk = (routing::Walk const*)move->move();
+          auto walk = reinterpret_cast<routing::Walk const*>(move->move());
           journey.transports.push_back(to_transport(
               *walk, get_move_duration(*walk->range(), *conn->stops())));
           break;
         }
         case routing::Move_Transport: {
-          auto transport = (routing::Transport const*)move->move();
+          auto transport =
+              reinterpret_cast<routing::Transport const*>(move->move());
           journey.transports.push_back(to_transport(
               *transport,
               get_move_duration(*transport->range(), *conn->stops())));
           break;
         }
         case routing::Move_Mumo: {
-          auto mumo = (routing::Mumo const*)move->move();
+          auto mumo = reinterpret_cast<routing::Mumo const*>(move->move());
           journey.transports.push_back(to_transport(
               *mumo, get_move_duration(*mumo->range(), *conn->stops())));
           break;
@@ -150,9 +147,8 @@ std::vector<journey> message_to_journeys(
     }
 
     /* attributes */
-    for (auto attribute = conn->attributes()->begin();
-         attribute != conn->attributes()->end(); ++attribute) {
-      journey.attributes.push_back(to_attribute(**attribute));
+    for (auto attribute : *conn->attributes()) {
+      journey.attributes.push_back(to_attribute(*attribute));
     }
 
     journey.duration = get_duration(journey);

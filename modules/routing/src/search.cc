@@ -2,25 +2,25 @@
 
 #include <cassert>
 #include <ctime>
-#include <iostream>
-#include <string>
 #include <algorithm>
+#include <iostream>
+#include <iterator>
 #include <list>
 #include <set>
 #include <stdexcept>
-#include <iterator>
+#include <string>
 #include <unordered_map>
 
 #include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
-#include "motis/core/schedule/edges.h"
 #include "motis/routing/lower_bounds.h"
-#include "motis/routing/pareto_dijkstra.h"
 #include "motis/routing/output/labels_to_journey.h"
+#include "motis/routing/pareto_dijkstra.h"
 
 namespace motis {
 namespace routing {
@@ -65,11 +65,11 @@ search_result search::get_connections(
   std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
   for (auto const& arr : to) {
     lb_graph_edges[DUMMY_TARGET_IDX].push_back(
-        simple_edge(arr.station, arr.time_cost));
+        simple_edge(arr.station, edge_cost(arr.time_cost)));
   }
   for (auto const& arr : from) {
     lb_graph_edges[arr.station].push_back(
-        simple_edge(DUMMY_SOURCE_IDX, arr.time_cost));
+        simple_edge(DUMMY_SOURCE_IDX, edge_cost(arr.time_cost)));
   }
   for (auto const& e : query_additional_edges) {
     lb_graph_edges[e._to->get_station()->_id].emplace_back(
@@ -197,7 +197,7 @@ void search::generate_start_labels(time const from, time const to,
       auto route_node_label = new (_label_store.create<my_label>())
           my_label(route_node, station_node_label, t, lower_bounds);
 
-      // TODO
+      // TODO(Felix Guendling):
       // if (route_node_label->_travel_time[1] !=
       //     std::numeric_limits<uint16_t>::max()) {
       start_labels.push_back(route_node_label);

@@ -18,7 +18,7 @@ struct timezone {
         season_({INVALID_TIME, INVALID_TIME, INVALID_TIME}) {}
 
   timezone(int general_offset, season s)
-      : general_offset_(general_offset), season_(s) {}
+      : general_offset_(general_offset), season_(std::move(s)) {}
 
   inline time to_motis_time(int day_idx, int minutes_after_midnight) const {
     auto const minutes_after_schedule_begin =

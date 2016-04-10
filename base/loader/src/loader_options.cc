@@ -17,7 +17,7 @@ loader_options::loader_options(std::string default_dataset,
       unique_check(unique_check),
       apply_rules(apply_rules),
       adjust_footpaths(adjust_footpaths),
-      schedule_begin(schedule_begin),
+      schedule_begin(std::move(schedule_begin)),
       num_days(num_days) {}
 
 std::pair<std::time_t, std::time_t> loader_options::interval() const {

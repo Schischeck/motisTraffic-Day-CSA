@@ -15,7 +15,7 @@ namespace hrd {
 struct bitfield_builder {
   static constexpr int NO_BITFIELD_NUM = -1;
 
-  bitfield_builder(std::map<int, bitfield>);
+  explicit bitfield_builder(std::map<int, bitfield>);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
       int bitfield_num, flatbuffers::FlatBufferBuilder&);

@@ -26,12 +26,12 @@ struct mss_rule : public service_rule {
         eva_num_begin_(eva_num_begin),
         eva_num_end_(eva_num_end) {}
 
-  virtual ~mss_rule() {}
+  ~mss_rule() override = default;
 
   int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
-      return false;
+      return 0;
     }
 
     // Check if first and last stop of the common part are contained with the
@@ -56,7 +56,7 @@ struct mss_rule : public service_rule {
         end_found = true;
       }
     }
-    return begin_found && end_found;
+    return static_cast<int>(begin_found && end_found);
   }
 
   void add(hrd_service* s, int /* info */) override {

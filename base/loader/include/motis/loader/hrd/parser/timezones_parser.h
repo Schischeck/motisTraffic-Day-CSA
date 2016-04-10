@@ -9,6 +9,6 @@ namespace hrd {
 
 timezones parse_timezones(loaded_file const&, loaded_file const&);
 
-}  // hrd
-}  // loader
-}  // motis
+} // namespace hrd
+} // namespace loader
+} // namespace motis
