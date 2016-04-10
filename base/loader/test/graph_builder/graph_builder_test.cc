@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/graph_builder.h"
+#include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
 
@@ -73,5 +73,5 @@ loader_graph_builder_test::get_connections(node const* first_route_node,
   return cons;
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

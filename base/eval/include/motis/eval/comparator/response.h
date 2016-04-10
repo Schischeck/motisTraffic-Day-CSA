@@ -42,6 +42,6 @@ struct response {
   std::vector<connection> connections;
 };
 
-}  // comparator
-}  // eval
-}  // motis
+}  // namespace comparator
+}  // namespace eval
+}  // namespace motis

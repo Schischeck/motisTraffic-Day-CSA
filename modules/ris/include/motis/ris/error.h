@@ -7,11 +7,7 @@ namespace motis {
 namespace ris {
 
 namespace error {
-enum error_code_t {
-  ok = 0,
-  not_implemented = 1,
-  unexpected_message = 2
-};
+enum error_code_t { ok = 0, not_implemented = 1, unexpected_message = 2 };
 }  // namespace error
 
 class error_category_impl : public boost::system::error_category {

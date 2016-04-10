@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-#include "motis/loader/gtfs/trip.h"
 #include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/trip.h"
 
 #include "./resources.h"
 
@@ -64,6 +64,6 @@ TEST(loader_gtfs_trip, read_trips_berlin_data) {
   EXPECT_EQ("Golzow (PM), Schule", trips["3"]->headsign_);
 }
 
-}  // gtfs
-}  // loader
-}  // motis
+}  // namespace gtfs
+}  // namespace loader
+}  // namespace motis

@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/hrd/model/hrd_service.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
 
 namespace motis {
 namespace loader {

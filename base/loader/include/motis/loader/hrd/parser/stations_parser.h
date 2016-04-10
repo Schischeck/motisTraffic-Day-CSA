@@ -2,8 +2,8 @@
 
 #include <map>
 
-#include "motis/loader/loaded_file.h"
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
+#include "motis/loader/loaded_file.h"
 #include "motis/schedule-format/Station_generated.h"
 
 namespace motis {
@@ -21,6 +21,6 @@ std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
     loaded_file const& station_coordinates_file, station_meta_data const&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -2,8 +2,8 @@
 
 #include <functional>
 
-#include "net/http/server/server.hpp"
 #include "net/http/server/query_router.hpp"
+#include "net/http/server/server.hpp"
 
 #include "motis/module/message.h"
 #include "motis/loader/util.h"

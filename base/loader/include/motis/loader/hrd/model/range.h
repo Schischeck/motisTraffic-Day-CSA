@@ -17,6 +17,6 @@ struct range {
   int from_idx, to_idx;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

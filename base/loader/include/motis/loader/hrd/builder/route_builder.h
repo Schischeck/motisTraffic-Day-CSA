@@ -8,11 +8,11 @@
 
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "motis/loader/hrd/builder/provider_builder.h"
-#include "motis/loader/hrd/builder/station_builder.h"
 #include "motis/loader/hrd/builder/rule_service_builder.h"
+#include "motis/loader/hrd/builder/station_builder.h"
+#include "motis/loader/hrd/model/hrd_service.h"
 
 namespace motis {
 namespace loader {
@@ -59,6 +59,6 @@ struct route_builder {
   std::map<std::vector<stop_restrictions>, flatbuffers::Offset<Route>> routes_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

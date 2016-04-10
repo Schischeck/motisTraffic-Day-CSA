@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <ctime>
-#include <cstring>
 #include <chrono>
+#include <cstring>
+#include <ctime>
 #include <iostream>
+#include <string>
 
 #define FILE_NAME \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

@@ -11,7 +11,7 @@ using hash_map = google::dense_hash_map<Key, Value, Hash, Eq>;
 template <typename Key, typename Value, typename Hash, typename Eq,
           typename CreateFun>
 auto map_get_or_create(hash_map<Key, Value, Hash, Eq>& m, Key const& key,
-                       CreateFun f) -> decltype(m.find(key)->second) & {
+                       CreateFun f) -> decltype(m.find(key)->second)& {
   auto it = m.find(key);
   if (it != m.end()) {
     return it->second;

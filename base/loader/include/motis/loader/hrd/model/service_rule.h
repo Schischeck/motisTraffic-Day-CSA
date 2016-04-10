@@ -2,11 +2,11 @@
 
 #include <cinttypes>
 #include <map>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/bitfield.h"
+#include "motis/loader/hrd/model/hrd_service.h"
 
 namespace motis {
 namespace loader {
@@ -39,6 +39,6 @@ typedef std::pair<int, uint64_t> service_id;  // (train_num, admin)
 typedef std::map<service_id, std::vector<std::shared_ptr<service_rule>>>
     service_rules;
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -6,8 +6,8 @@
 
 #include "parser/util.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/builder/bitfield_builder.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -107,6 +107,6 @@ void expand_traffic_days(hrd_service const& service,
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -23,6 +23,6 @@ struct category_builder {
   std::map<uint32_t, flatbuffers::Offset<Category>> fbs_categories_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

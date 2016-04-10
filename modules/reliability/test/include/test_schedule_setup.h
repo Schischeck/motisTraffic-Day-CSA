@@ -9,8 +9,8 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/reliability.h"
 #include "motis/reliability/context.h"
+#include "motis/reliability/reliability.h"
 
 namespace motis {
 namespace reliability {

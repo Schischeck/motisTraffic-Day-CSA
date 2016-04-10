@@ -20,6 +20,6 @@ struct provider_builder {
   std::map<uint64_t, flatbuffers::Offset<Provider>> fbs_providers_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

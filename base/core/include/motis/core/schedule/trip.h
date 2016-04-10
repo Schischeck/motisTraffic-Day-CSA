@@ -2,8 +2,8 @@
 
 #include <cinttypes>
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "motis/core/schedule/edges.h"
 

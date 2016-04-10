@@ -30,6 +30,6 @@ struct attribute_builder {
       fbs_attributes_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

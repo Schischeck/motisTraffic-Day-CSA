@@ -16,9 +16,9 @@ namespace hrd {
 void verify_line_format(cstr line, char const* filename, int line_number) {
   // Verify that the provider number has 5 digits.
   auto provider_number = line.substr(0, size(5));
-  verify(std::all_of(begin(provider_number), end(provider_number), [](char c) {
-    return std::isdigit(c);
-  }), "provider line format mismatch in %s:%d", filename, line_number);
+  verify(std::all_of(begin(provider_number), end(provider_number),
+                     [](char c) { return std::isdigit(c); }),
+         "provider line format mismatch in %s:%d", filename, line_number);
 
   verify(line[6] == 'K' || line[6] == ':',
          "provider line format mismatch in %s:%d", filename, line_number);
@@ -78,6 +78,6 @@ std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
   return providers;
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -1,14 +1,14 @@
 #include "motis/loader/hrd/model/hrd_service.h"
 
-#include <tuple>
 #include <algorithm>
 #include <numeric>
+#include <tuple>
 
-#include "parser/util.h"
 #include "parser/arg_parser.h"
+#include "parser/util.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/model/range.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 
@@ -172,6 +172,6 @@ void hrd_service::verify_service() const {
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/trip.h"
 #include "motis/core/access/connection_access.h"
 #include "motis/core/access/edge_access.h"
-#include "motis/core/schedule/trip.h"
-#include "motis/core/schedule/edges.h"
 
 namespace motis {
 namespace access {

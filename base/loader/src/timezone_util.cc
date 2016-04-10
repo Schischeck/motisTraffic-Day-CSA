@@ -112,5 +112,5 @@ std::pair<time, time> get_event_times(int day_idx,  //
   return std::make_pair(dep_motis_time, arr_motis_time);
 }
 
-}  // namspace loader
+}  // namespace loader
 }  // namespace motis

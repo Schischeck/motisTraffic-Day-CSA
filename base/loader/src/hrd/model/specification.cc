@@ -85,6 +85,6 @@ bool specification::read_line(cstr line, char const* filename,
   return false;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

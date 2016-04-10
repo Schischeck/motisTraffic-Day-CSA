@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cassert>
-#include <bitset>
 #include <algorithm>
+#include <bitset>
 
 #include "parser/cstr.h"
 
@@ -48,5 +48,5 @@ inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
   return std::bitset<BitCount>(std::string(str.str, str.len));
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
+#include "motis/core/schedule/category.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
-#include "motis/core/schedule/category.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 

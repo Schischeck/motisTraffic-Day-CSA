@@ -3,9 +3,9 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/parser/attributes_parser.h"
+#include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
 
 using namespace parser;
@@ -54,6 +54,6 @@ TEST(loader_hrd_attributes, ignore_output_rules) {
   ASSERT_TRUE(parse_attributes(f).size() == 0);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

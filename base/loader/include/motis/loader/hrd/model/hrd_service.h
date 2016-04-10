@@ -4,9 +4,9 @@
 
 #include "parser/cstr.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/bitfield.h"
 #include "motis/loader/hrd/model/specification.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -102,6 +102,6 @@ struct hrd_service {
   int initial_train_num_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

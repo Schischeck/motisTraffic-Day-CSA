@@ -2,12 +2,12 @@
 
 #include <cassert>
 #include <cinttypes>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <ostream>
-#include <type_traits>
 #include <string>
+#include <type_traits>
 
 namespace motis {
 
@@ -148,7 +148,7 @@ struct array final {
   inline bool empty() const { return size() == 0; }
 
   array& operator=(std::string const& str) {
-    return * this = array(str.c_str());
+    return *this = array(str.c_str());
   }
 
   template <typename It>

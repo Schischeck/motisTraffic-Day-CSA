@@ -1,20 +1,20 @@
 #pragma once
 
 #include <ctime>
-#include <vector>
-#include <map>
 #include <array>
+#include <map>
 #include <set>
+#include <vector>
 
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
-#include "motis/core/common/hash_helper.h"
-#include "motis/core/schedule/schedule.h"
-#include "motis/core/schedule/provider.h"
-#include "motis/core/schedule/timezone.h"
+#include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/nodes.h"
-#include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/schedule.h"
+#include "motis/core/schedule/timezone.h"
 
 #include "motis/loader/bitfield.h"
 
@@ -216,9 +216,11 @@ struct graph_builder {
   hash_map<flatbuffers::String const*, bitfield> bitfields_;
   hash_set<connection_info*,
            deep_ptr_hash<connection_info::hash, connection_info>,
-           deep_ptr_eq<connection_info>> con_infos_;
+           deep_ptr_eq<connection_info>>
+      con_infos_;
   hash_set<connection*, deep_ptr_hash<connection::hash, connection>,
-           deep_ptr_eq<connection>> connections_;
+           deep_ptr_eq<connection>>
+      connections_;
   unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;

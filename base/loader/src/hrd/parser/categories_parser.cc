@@ -1,11 +1,11 @@
 #include "motis/loader/hrd/parser/categories_parser.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace motis::logging;
@@ -37,6 +37,6 @@ std::map<uint32_t, category> parse_categories(loaded_file const& file) {
   return categories;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

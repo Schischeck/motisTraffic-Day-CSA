@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
-#include <climits>
 #include <cinttypes>
+#include <climits>
 
-#include "motis/core/schedule/time.h"
 #include "motis/core/common/date_util.h"
+#include "motis/core/schedule/time.h"
 
 #include "./graph_builder_test.h"
 
@@ -87,5 +87,5 @@ TEST_F(loader_graph_builder_duplicates_check, duplicate_count) {
   EXPECT_EQ(3, duplicate_count);
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

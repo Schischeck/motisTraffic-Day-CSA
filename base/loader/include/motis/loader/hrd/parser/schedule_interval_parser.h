@@ -14,6 +14,6 @@ Interval parse_interval(loaded_file const&);
 
 boost::gregorian::date get_first_schedule_date(loaded_file const& lf);
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace loader
+}  // namespace motis
+}  // namespace hrd

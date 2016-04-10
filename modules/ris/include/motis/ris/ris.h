@@ -11,7 +11,7 @@ namespace mode {
 
 struct base_mode;
 
-} // namespace mode;
+}  // namespace mode;
 
 enum class mode_t { LIVE, SIMULATION, TEST };
 
@@ -29,7 +29,7 @@ struct config {
   std::time_t sim_init_time_;
 };
 
-struct ris final  : public motis::module::module {
+struct ris final : public motis::module::module {
   ris();
   ~ris();
 

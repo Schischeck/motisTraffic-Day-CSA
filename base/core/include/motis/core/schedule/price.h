@@ -1,7 +1,7 @@
 #pragma once
 
-#include "motis/core/schedule/station.h"
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/station.h"
 
 #ifndef M_PI
 #define M_PI (3.14159265359)

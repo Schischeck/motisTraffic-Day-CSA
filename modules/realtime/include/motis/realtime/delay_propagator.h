@@ -1,10 +1,10 @@
 #pragma once
 
-#include <set>
-#include <vector>
 #include <functional>
 #include <map>
+#include <set>
 #include <unordered_map>
+#include <vector>
 
 #include "boost/operators.hpp"
 

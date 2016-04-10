@@ -15,6 +15,6 @@ using namespace parser;
 std::map<uint64_t, std::string> parse_directions(
     loaded_file const& directions_file);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

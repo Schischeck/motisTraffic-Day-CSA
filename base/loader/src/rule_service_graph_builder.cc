@@ -1,16 +1,16 @@
 #include "motis/loader/rule_service_graph_builder.h"
 
+#include <algorithm>
 #include <map>
+#include <queue>
 #include <set>
 #include <vector>
-#include <queue>
-#include <algorithm>
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/trip.h"
-#include "motis/loader/util.h"
 #include "motis/loader/duplicate_checker.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -429,5 +429,5 @@ void rule_service_graph_builder::add_rule_services(
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

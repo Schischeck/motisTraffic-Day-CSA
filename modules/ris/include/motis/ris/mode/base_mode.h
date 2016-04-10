@@ -10,7 +10,7 @@ namespace module {
 
 struct registry;
 
-} // namespace module
+}  // namespace module
 
 namespace ris {
 struct config;

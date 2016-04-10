@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <random>
 
 #include "boost/program_options.hpp"
@@ -10,9 +10,9 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/schedule/time.h"
-#include "motis/bootstrap/motis_instance.h"
-#include "motis/bootstrap/dataset_settings.h"
 #include "motis/module/message.h"
+#include "motis/bootstrap/dataset_settings.h"
+#include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
 namespace pt = boost::posix_time;
@@ -220,8 +220,7 @@ int main(int argc, char** argv) {
 
   std::ofstream out(generator_opt.target_file);
 
-  boost::asio::io_service ios;
-  motis_instance instance(&ios);
+  motis_instance instance;
   instance.init_schedule(dataset_opt);
 
   auto const& sched = *instance.schedule_;

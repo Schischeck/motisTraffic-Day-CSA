@@ -74,7 +74,8 @@ parse_label_chain(Label const* terminal_label) {
   } while ((c = c->pred_));
 
   std::pair<std::vector<intermediate::stop>,
-            std::vector<intermediate::transport>> ret;
+            std::vector<intermediate::transport>>
+      ret;
   auto& stops = ret.first;
   auto& transports = ret.second;
 

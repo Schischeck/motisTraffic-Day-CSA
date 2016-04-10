@@ -90,5 +90,5 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
   test_events(cs[9], motis_time(154, 0, 60), motis_time(204, 0, 120 - 60));
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

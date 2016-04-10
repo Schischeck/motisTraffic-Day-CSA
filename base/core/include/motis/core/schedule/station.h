@@ -1,9 +1,9 @@
 #pragma once
 
-#include <memory>
 #include <cmath>
-#include <string>
 #include <array>
+#include <memory>
+#include <string>
 
 #include "motis/core/schedule/timezone.h"
 
@@ -31,7 +31,6 @@ public:
         arr_class_events({{0}}),
         dep_class_events({{0}}),
         timez(nullptr) {}
-
 
   double lat() const { return width; }
   double lng() const { return length; }

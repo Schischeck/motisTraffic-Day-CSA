@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "parser/util.h"
 #include "parser/arg_parser.h"
+#include "parser/util.h"
 
 #include "motis/loader/util.h"
 
@@ -63,6 +63,6 @@ range::range(std::vector<hrd_service::stop> const& stops, cstr from_eva_or_idx,
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

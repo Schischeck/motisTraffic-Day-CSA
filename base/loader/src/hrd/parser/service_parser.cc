@@ -6,10 +6,10 @@
 #include "parser/util.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
-#include "motis/loader/hrd/model/split_service.h"
 #include "motis/loader/hrd/model/repeat_service.h"
+#include "motis/loader/hrd/model/split_service.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -80,6 +80,6 @@ void for_each_service(loaded_file const& file,
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -3,10 +3,10 @@
 #include <numeric>
 
 #include "motis/core/journey/journey.h"
-#include "motis/routing/output/stop.h"
-#include "motis/routing/output/transport.h"
 #include "motis/routing/output/label_chain_parser.h"
+#include "motis/routing/output/stop.h"
 #include "motis/routing/output/to_journey.h"
+#include "motis/routing/output/transport.h"
 
 namespace motis {
 

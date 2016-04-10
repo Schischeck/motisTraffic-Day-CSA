@@ -1,18 +1,18 @@
 #pragma once
 
-#include <set>
-#include <memory>
-#include <map>
-#include <vector>
 #include <functional>
+#include <map>
+#include <memory>
+#include <set>
+#include <vector>
 
 #include "motis/schedule-format/RuleService_generated.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/hrd/model/hrd_service.h"
-#include "motis/loader/hrd/model/service_rule.h"
-#include "motis/loader/hrd/model/rule_service.h"
 #include "motis/loader/hrd/builder/station_builder.h"
+#include "motis/loader/hrd/model/hrd_service.h"
+#include "motis/loader/hrd/model/rule_service.h"
+#include "motis/loader/hrd/model/service_rule.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -25,7 +25,8 @@ struct rule_service_builder {
   bool add_service(hrd_service const&);
   void resolve_rule_services();
   typedef std::function<flatbuffers::Offset<Service>(
-      hrd_service const&, flatbuffers::FlatBufferBuilder&)> service_builder_fun;
+      hrd_service const&, flatbuffers::FlatBufferBuilder&)>
+      service_builder_fun;
   void create_rule_services(service_builder_fun, station_builder&,
                             flatbuffers::FlatBufferBuilder&);
 
@@ -37,6 +38,6 @@ private:
   service_rules input_rules_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

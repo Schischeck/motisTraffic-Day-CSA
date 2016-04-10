@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/providers_parser.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -41,6 +41,6 @@ TEST(loader_hrd_providers, simple) {
   EXPECT_EQ("agilis", fourth.full_name);
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

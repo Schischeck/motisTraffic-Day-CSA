@@ -1,7 +1,7 @@
 #include "motis/loader/gtfs/transfers.h"
 
-#include <tuple>
 #include <algorithm>
+#include <tuple>
 
 #include "parser/csv.h"
 

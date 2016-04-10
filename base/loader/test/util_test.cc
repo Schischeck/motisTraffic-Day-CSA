@@ -1,13 +1,14 @@
-#include <cstring>
 #include <cinttypes>
+#include <cstring>
 #include <functional>
 
 #include "gtest/gtest.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
-#include "motis/loader/util.h"
+#include "parser/cstr.h"
+
 #include "motis/loader/bitfield.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 
@@ -76,6 +77,6 @@ TEST(loader_util, find_nth_not_found_empty_vec) {
   ASSERT_TRUE(it == end(ints));
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

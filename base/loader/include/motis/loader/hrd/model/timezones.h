@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <map>
 #include <memory>
+#include <vector>
 
 #include "boost/optional.hpp"
 
@@ -51,6 +51,6 @@ struct timezones {
   std::vector<std::unique_ptr<timezone_entry>> timezone_entries_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

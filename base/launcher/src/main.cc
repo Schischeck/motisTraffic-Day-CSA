@@ -1,11 +1,11 @@
 #include <iostream>
-#include <thread>
 #include <memory>
+#include <thread>
 
-#include "boost/filesystem.hpp"
-#include "boost/asio/io_service.hpp"
 #include "boost/asio/deadline_timer.hpp"
+#include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
+#include "boost/filesystem.hpp"
 #include "boost/thread.hpp"
 
 #include "net/http/server/shutdown_handler.hpp"
@@ -20,15 +20,15 @@
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
 
-#include "motis/launcher/ws_server.h"
-#include "motis/launcher/http_server.h"
-#include "motis/launcher/socket_server.h"
-#include "motis/launcher/listener_settings.h"
-#include "motis/launcher/launcher_settings.h"
 #include "motis/launcher/batch_mode.h"
+#include "motis/launcher/http_server.h"
+#include "motis/launcher/launcher_settings.h"
+#include "motis/launcher/listener_settings.h"
+#include "motis/launcher/socket_server.h"
+#include "motis/launcher/ws_server.h"
 
-#include "version.h"
 #include "modules.h"
+#include "version.h"
 
 using namespace motis::bootstrap;
 using namespace motis::launcher;

@@ -45,6 +45,6 @@ struct rule_service {
   std::set<service_resolvent> services;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

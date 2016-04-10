@@ -1,8 +1,8 @@
 #pragma once
 
 #include <bitset>
-#include <string>
 #include <map>
+#include <string>
 
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 

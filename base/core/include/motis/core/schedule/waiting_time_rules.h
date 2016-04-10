@@ -1,9 +1,9 @@
 #pragma once
 
+#include <bitset>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <bitset>
 
 #include "motis/core/common/flat_matrix.h"
 #include "motis/core/schedule/time.h"

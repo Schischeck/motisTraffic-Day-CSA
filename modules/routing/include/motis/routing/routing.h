@@ -2,8 +2,8 @@
 
 #include "motis/module/module.h"
 
-#include "motis/routing/memory_manager.h"
 #include "motis/routing/arrival.h"
+#include "motis/routing/memory_manager.h"
 
 namespace motis {
 namespace routing {

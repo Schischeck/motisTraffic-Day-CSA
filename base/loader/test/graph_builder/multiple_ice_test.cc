@@ -260,5 +260,5 @@ TEST_F(loader_graph_builder_multiple_ice, route_nodes) {
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

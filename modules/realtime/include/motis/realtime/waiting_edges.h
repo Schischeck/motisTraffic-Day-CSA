@@ -1,17 +1,17 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <memory>
-#include <utility>
 #include <ostream>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "boost/functional/hash.hpp"
 
-#include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_helper.h"
+#include "motis/core/common/hash_map.h"
 
 #include "motis/core/schedule/event.h"
 #include "motis/core/schedule/schedule.h"

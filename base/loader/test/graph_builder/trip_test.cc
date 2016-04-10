@@ -124,5 +124,5 @@ TEST_F(loader_trip, rename) {
   ASSERT_EQ(trp0, trp1);
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

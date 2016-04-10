@@ -25,6 +25,6 @@ std::vector<hrd_service> test_spec::get_hrd_services() {
   return services;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis
