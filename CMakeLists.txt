@@ -242,3 +242,27 @@ if(MOTIS_LINT)
   add_dependencies(lint motis motis-test motis-itest)
 endif()
 
+
+################################
+# Lint (oclint)
+################################
+if(MOTIS_LINT)
+  add_custom_target(oclint
+    find
+      ./modules/routing/ ./modules/guesser/ ./modules/osrm/ ./base/
+      -type f
+      -name "*.cc"
+      ! -name "*test*"
+      -print0
+      |
+      xargs
+        -0
+        oclint
+          -enable-global-analysis
+          -p ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running oclint"
+    VERBATIM
+  )
+  add_dependencies(lint motis motis-test motis-itest)
+endif()
