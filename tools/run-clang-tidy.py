@@ -101,10 +101,9 @@ def run_tidy(args, tmpdir, build_path, queue):
     (stdout, stderr) = subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     print stdout
     print stderr
-    if re.search("(error)|(warning):", stdout):
+    if args.exit_on_error and not args.fix and re.search("(error)|(warning):", stdout):
       print "FOUND ERROR OR WARNING"
-      if not args.fix:
-        kill_self(args)
+      kill_self(args)
     queue.task_done()
 
 def kill_self(args):
@@ -143,7 +142,10 @@ def main():
                       'after applying fixes')
   parser.add_argument('-p', dest='build_path',
                       help='Path used to read a compile command database.')
+  parser.add_argument('-exit-on-error', action='store_true', help='Stop linting immediately if error or warnings are found')
   args = parser.parse_args()
+
+  print args
 
   db_path = 'compile_commands.json'
 
