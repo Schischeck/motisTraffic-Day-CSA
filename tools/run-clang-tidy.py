@@ -18,7 +18,7 @@ Runs clang-tidy over all files in a compilation database. Requires clang-tidy
 and clang-apply-replacements in $PATH.
 
 Example invocations.
-- Run clang-tidy on all files in the current working directory with a default
+-o Run clang-tidy on all files in the current working directory with a default
   set of checks and show warnings in the cpp files and all project headers.
     run-clang-tidy.py $PWD
 
@@ -98,8 +98,21 @@ def run_tidy(args, tmpdir, build_path, queue):
     invocation = get_tidy_invocation(name, args.clang_tidy_binary, args.checks,
                                      tmpdir, build_path, args.header_filter)
     sys.stdout.write(' '.join(invocation) + '\n')
-    subprocess.call(invocation)
+    (stdout, stderr) = subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    print stdout
+    print stderr
+    if re.search("(error)|(warning):", stdout):
+      print "FOUND ERROR OR WARNING"
+      if not args.fix:
+        kill_self(args)
     queue.task_done()
+
+def kill_self(args):
+  # This is a sad hack. Unfortunately subprocess goes
+  # bonkers with ctrl-c and we start forking merrily.
+  if args.fix:
+   shutil.rmtree(tmpdir)
+  os.kill(0, 9)
 
 
 def main():
@@ -184,12 +197,8 @@ def main():
     queue.join()
 
   except KeyboardInterrupt:
-    # This is a sad hack. Unfortunately subprocess goes
-    # bonkers with ctrl-c and we start forking merrily.
     print '\nCtrl-C detected, goodbye.'
-    if args.fix:
-      shutil.rmtree(tmpdir)
-    os.kill(0, 9)
+    kill_self(args)
 
   if args.fix:
     print 'Applying fixes ...'
