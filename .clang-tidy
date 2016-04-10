@@ -1,4 +1,4 @@
-#Checks:          '*,-llvm-include-order,-clang-analyzer-alpha.unix.PthreadLock,-llvm-header-guard,-readability-named-parameter,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg'
+Checks:          '*,-llvm-include-order,-clang-analyzer-alpha.unix.PthreadLock,-llvm-header-guard,-readability-named-parameter,-clang-analyzer-alpha.deadcode.UnreachableCode,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
 User:            root
