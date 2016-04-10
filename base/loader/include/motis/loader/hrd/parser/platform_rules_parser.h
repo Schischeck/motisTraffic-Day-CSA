@@ -25,6 +25,6 @@ typedef std::map<platform_rule_key, std::vector<platform_rule>> platform_rules;
 platform_rules parse_platform_rules(loaded_file const&,
                                     flatbuffers::FlatBufferBuilder& b);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

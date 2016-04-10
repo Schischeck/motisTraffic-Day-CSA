@@ -23,6 +23,6 @@ struct direction_builder {
   std::map<uint64_t, flatbuffers::Offset<Direction>> fbs_directions_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

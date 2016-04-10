@@ -48,5 +48,5 @@ inline std::bitset<BitCount> deserialize_bitset(parser::cstr str) {
   return std::bitset<BitCount>(std::string(str.str, str.len));
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

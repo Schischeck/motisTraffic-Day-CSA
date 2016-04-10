@@ -33,6 +33,6 @@ void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_zusatz_file,
                              station_meta_data&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

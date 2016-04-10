@@ -39,6 +39,6 @@ typedef std::pair<int, uint64_t> service_id;  // (train_num, admin)
 typedef std::map<service_id, std::vector<std::shared_ptr<service_rule>>>
     service_rules;
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

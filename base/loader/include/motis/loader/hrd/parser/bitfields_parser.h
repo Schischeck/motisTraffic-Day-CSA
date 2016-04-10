@@ -19,6 +19,6 @@ bitfield hex_str_to_bitset(parser::cstr hex, char const* filename,
 
 std::map<int, bitfield> parse_bitfields(loaded_file const&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

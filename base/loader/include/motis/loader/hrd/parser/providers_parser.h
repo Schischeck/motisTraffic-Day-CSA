@@ -17,6 +17,6 @@ struct provider_info {
 
 std::map<uint64_t, provider_info> parse_providers(loaded_file const&);
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace loader
+}  // namespace motis
+}  // namespace hrd

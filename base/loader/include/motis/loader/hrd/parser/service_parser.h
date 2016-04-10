@@ -19,6 +19,6 @@ void parse_specification(loaded_file const&,
 void for_each_service(loaded_file const&, std::map<int, bitfield> const&,
                       std::function<void(hrd_service const&)>);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -26,5 +26,5 @@ std::pair<time, time> get_event_times(int day_idx,  //
                                       timezone const* tz_dep,
                                       timezone const* tz_arr, bool& adjusted);
 
-}  // namspace loader
+}  // namespace loader
 }  // namespace motis

@@ -34,6 +34,6 @@ struct service_builder {
   std::map<char const*, flatbuffers::Offset<flatbuffers::String>> filenames_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

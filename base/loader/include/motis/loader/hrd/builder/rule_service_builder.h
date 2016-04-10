@@ -38,6 +38,6 @@ private:
   service_rules input_rules_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

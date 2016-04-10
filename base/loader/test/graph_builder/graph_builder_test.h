@@ -42,5 +42,5 @@ protected:
   std::time_t schedule_begin_, schedule_end_;
 };
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

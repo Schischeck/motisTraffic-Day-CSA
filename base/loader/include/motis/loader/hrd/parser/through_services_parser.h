@@ -14,6 +14,6 @@ void parse_through_service_rules(loaded_file const&,
                                  std::map<int, bitfield> const&,
                                  service_rules&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

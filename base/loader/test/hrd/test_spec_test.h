@@ -27,6 +27,6 @@ struct test_spec {
   loaded_file lf_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

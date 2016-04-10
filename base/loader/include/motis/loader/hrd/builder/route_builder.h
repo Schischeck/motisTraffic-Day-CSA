@@ -59,6 +59,6 @@ struct route_builder {
   std::map<std::vector<stop_restrictions>, flatbuffers::Offset<Route>> routes_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

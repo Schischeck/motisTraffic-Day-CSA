@@ -41,6 +41,6 @@ struct rules_graph {
   std::vector<rule_node*> rule_nodes_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

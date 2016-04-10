@@ -102,6 +102,6 @@ struct hrd_service {
   int initial_train_num_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

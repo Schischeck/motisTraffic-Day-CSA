@@ -30,6 +30,6 @@ struct bitfield_builder {
   std::map<int, flatbuffers::Offset<flatbuffers::String>> fbs_bf_lookup_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -16,6 +16,6 @@ create_footpaths(std::set<station_meta_data::footpath> const&,
                  std::map<int, flatbuffers::Offset<Station>> const&,
                  flatbuffers::FlatBufferBuilder&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

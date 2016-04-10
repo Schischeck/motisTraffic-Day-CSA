@@ -40,6 +40,6 @@ struct specification {
   std::vector<parser::cstr> stops;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis
