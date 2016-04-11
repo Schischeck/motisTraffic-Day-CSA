@@ -85,6 +85,7 @@ clang-tidy:
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
     - export CXX=clang++-3.8
     - export CC=clang-3.8
+    - git submodule update --init --recursive
     - mkdir build-clang-tidy
     - cd build-clang-tidy
     - cmake -DNO_SSL=true ..
