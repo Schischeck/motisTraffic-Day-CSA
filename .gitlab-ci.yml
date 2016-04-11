@@ -88,5 +88,5 @@ clang-tidy:
     - git submodule update --init --recursive
     - mkdir build-clang-tidy
     - cd build-clang-tidy
-    - cmake -DNO_SSL=true ..
+    - cmake -DNO_SSL=true -DMOTIS_LINT=true ..
     - make -j8 lint
