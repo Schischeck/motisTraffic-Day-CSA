@@ -32,11 +32,11 @@ struct synchronization {
     lock(lock const&) = delete;
     lock& operator=(lock&) = delete;
 
-    lock(lock&& o) : s_(o.s_), write_(o.write_), active_(true) {
+    lock(lock&& o) noexcept : s_(o.s_), write_(o.write_), active_(true) {
       o.active_ = false;
     }
 
-    lock& operator=(lock&& o) {
+    lock& operator=(lock&& o) noexcept {
       s_ = o.s_;
       write_ = o.write_;
       active_ = o.active_;

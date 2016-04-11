@@ -22,8 +22,7 @@ TEST(loader_hrd_ts, multiple_rules) {
   parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs);
 
   ASSERT_EQ(4, rs.size());
-  auto it_1 = rs.find(
-      std::make_pair<int, uint64_t>(3040, raw_to_int<uint64_t>("07____")));
+  auto it_1 = rs.find(std::make_pair(3040, raw_to_int<uint64_t>("07____")));
   ASSERT_TRUE(it_1 != end(rs));
 
   ASSERT_EQ(2, it_1->second.size());
@@ -43,8 +42,7 @@ TEST(loader_hrd_ts, multiple_rules) {
   ASSERT_EQ(it_b->second, rule_info.traffic_days_);
   ASSERT_EQ(RuleType_THROUGH, rule_info.type_);
 
-  auto it_2 = rs.find(
-      std::make_pair<int, uint64_t>(3056, raw_to_int<uint64_t>("07____")));
+  auto it_2 = rs.find(std::make_pair(3056, raw_to_int<uint64_t>("07____")));
   ASSERT_TRUE(it_2 != end(rs));
   ASSERT_EQ(2, it_2->second.size());
   ASSERT_EQ(it_1->second[0].get(), it_2->second[0].get());

@@ -57,7 +57,7 @@ std::vector<std::string> gtfs_parser::missing_files(
     fs::path const& path) const {
   std::vector<std::string> files;
   if (!fs::is_directory(path)) {
-    files.push_back((path).string().c_str());
+    files.push_back(path.string());
   }
 
   std::copy_if(

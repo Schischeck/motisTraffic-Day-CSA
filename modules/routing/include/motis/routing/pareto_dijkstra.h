@@ -44,7 +44,7 @@ public:
     stats_.start_label_count_ = queue_.size();
     stats_.labels_created_ = label_store_.used_size();
 
-    while (!queue_.empty() || equals_.size() != 0) {
+    while (!queue_.empty() || !equals_.empty()) {
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
@@ -54,7 +54,7 @@ public:
 
       // get best label
       Label* label;
-      if (equals_.size() > 0) {
+      if (!equals_.empty()) {
         label = equals_.back();
         equals_.pop_back();
         stats_.labels_equals_popped_++;

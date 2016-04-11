@@ -98,7 +98,7 @@ private:
     std::vector<int> v;
     for (time_t t = begin, hour = 0; t < end - k_two_hours; t += 3600, ++hour) {
       int h = hour % 24;
-      v.push_back(prob[h]);
+      v.push_back(prob[h]);  // NOLINT
     }
     return std::discrete_distribution<int>(std::begin(v), std::end(v));
   }
@@ -112,7 +112,7 @@ private:
 
 static int rand_in(int start, int end) {
   static bool initialized = false;
-  static std::mt19937 rng;
+  static std::mt19937 rng;  // NOLINT
   if (!initialized) {
     initialized = true;
     rng.seed(std::time(nullptr));

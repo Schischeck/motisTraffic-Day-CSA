@@ -100,7 +100,7 @@ public:
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (m_.type_) {
-      case ROUTE_EDGE: return getroute_edge__cost(start_time);
+      case ROUTE_EDGE: return get_route_edge_cost(start_time);
 
       case AFTER_TRAINfoot_edge_:
         if (last_con == nullptr) {
@@ -122,7 +122,7 @@ public:
         }
       }
       case HOTEL_EDGE: {
-        return edge_cost(calc_durationhotel_edge_(start_time), false,
+        return edge_cost(calc_duration_hotel_edge(start_time), false,
                          m_.hotel_edge_.price_, 0);
       }
 
@@ -185,17 +185,15 @@ public:
     return (it == m_.route_edge_.conns_.rend()) ? nullptr : &*it;
   }
 
-  light_connection* get_connection(time const start_time) {
-    return const_cast<light_connection*>(
-        static_cast<const edge*>(this)->get_connection(start_time));
+  light_connection const* get_connection(time const start_time) {
+    return static_cast<const edge*>(this)->get_connection(start_time);
   }
 
-  light_connection* get_connection_reverse(time const start_time) {
-    return const_cast<light_connection*>(
-        static_cast<const edge*>(this)->get_connection_reverse(start_time));
+  light_connection const* get_connection_reverse(time const start_time) {
+    return static_cast<const edge*>(this)->get_connection_reverse(start_time);
   }
 
-  edge_cost getroute_edge__cost(time const start_time) const {
+  edge_cost get_route_edge_cost(time const start_time) const {
     light_connection const* c = get_connection(start_time);
     return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time_ - start_time, c);
   }
@@ -230,7 +228,7 @@ public:
   union edge_details {
     edge_details() { std::memset(this, 0, sizeof(*this)); }
 
-    edge_details(edge_details&& other) {
+    edge_details(edge_details&& other) noexcept {
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();
@@ -255,7 +253,7 @@ public:
       }
     }
 
-    edge_details& operator=(edge_details&& other) {
+    edge_details& operator=(edge_details&& other) noexcept {
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();
@@ -332,7 +330,7 @@ public:
   } m_;
 
 private:
-  uint16_t calc_durationhotel_edge_(time const start_time) const {
+  uint16_t calc_duration_hotel_edge(time const start_time) const {
     uint16_t offset =
         start_time % 1440 < m_.hotel_edge_.checkout_time_ ? 0 : 1440;
     return std::max(

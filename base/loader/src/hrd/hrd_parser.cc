@@ -95,7 +95,7 @@ std::vector<std::string> hrd_parser::missing_files(
   std::vector<std::string> missing_files;
   auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
   if (!fs::is_directory(schedule_data_root)) {
-    missing_files.push_back(schedule_data_root.string().c_str());
+    missing_files.push_back(schedule_data_root.string());
   }
   auto const core_data_root = hrd_root / CORE_DATA;
   for (auto const& alternatives : required_files) {

@@ -42,7 +42,10 @@ int main(int argc, char* argv[]) {
     std::string buf;
     snappy::Uncompress(static_cast<char const*>(response.data()),
                        response.size(), &buf);
-    printf("%s\n", make_msg((void*)buf.data(), buf.size())->to_json().c_str());
+    printf("%s\n",
+           make_msg(reinterpret_cast<void const*>(buf.data()), buf.size())
+               ->to_json()
+               .c_str());
   });
 
   ios.run();

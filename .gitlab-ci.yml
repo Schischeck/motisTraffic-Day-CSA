@@ -78,3 +78,12 @@ gcc-5-debug-valgrind:
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-itest
+
+# Clang-Tidy
+clang-tidy:
+  script:
+    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
+    - export CXX=clang++-3.8
+    - export CC=clang-3.8
+    - cmake -DNO_SSL=true ..
+    - make -j8 lint
