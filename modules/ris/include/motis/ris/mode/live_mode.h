@@ -11,12 +11,10 @@ namespace ris {
 namespace mode {
 
 struct live_mode : public base_mode {
-
-  live_mode(ris* module) : base_mode(module) {}
+  live_mode(config* conf) : base_mode(conf) {}
 
   virtual void init_async() override;
-  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
-                      motis::module::callback) override;
+  virtual void on_msg(motis::module::msg_ptr const&) override;
 
 private:
   void schedule_update(boost::system::error_code e);

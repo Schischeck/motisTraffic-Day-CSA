@@ -10,7 +10,7 @@ namespace error {
 enum error_code_t {
   ok = 0,
   not_implemented = 1,
-  unexpected_message = 2
+  bad_zip_file = 2
 };
 }  // namespace error
 
@@ -22,7 +22,7 @@ public:
     switch (ev) {
       case error::ok: return "ris: no error";
       case error::not_implemented: return "ris: not implemented";
-      case error::unexpected_message: return "ris: unexpected msg (in mode)";
+      case error::bad_zip_file: return "ris: bad zip file";
       default: return "ris: unkown error";
     }
   }

@@ -26,6 +26,7 @@ struct base_mode {  // hint: strategy pattern ;)
 
 protected:
   void forward(std::time_t const);
+  void system_time_changed() const;
 
   db_ptr db_;
   config* conf_;

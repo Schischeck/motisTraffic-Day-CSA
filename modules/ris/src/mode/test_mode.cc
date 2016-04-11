@@ -1,5 +1,8 @@
 #include "motis/ris/mode/test_mode.h"
 
+#include <algorithm>
+
+#include "ctx/future.h"
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
@@ -34,7 +37,13 @@ void test_mode::init_async() {
   }
   timer.stop_and_print();
 
-  motis_publish(pack_msgs(parsed_messages));
+  ctx::await_all(motis_publish(pack_msgs(parsed_messages)));
+
+  auto new_time = std::max(begin(parsed_messages), end(parsed_messages),
+                           [](ris_message const& lhs, ris_message const& rhs) {
+                             return lhs.timestamp < rhs.timestamp;
+                           });
+  system_time_changed(new_time);
 }
 
 }  // namespace mode

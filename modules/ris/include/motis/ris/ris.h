@@ -3,6 +3,8 @@
 #include <ctime>
 #include <string>
 
+#include "conf/holder.h"
+
 #include "motis/module/module.h"
 
 namespace motis {
@@ -26,7 +28,7 @@ struct config {
   int max_days_;
 
   // simulation mode
-  std::time_t sim_init_time_;
+  conf::holder<std::time_t> sim_init_time_;
 };
 
 struct ris final  : public motis::module::module {
