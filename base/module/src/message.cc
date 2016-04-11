@@ -22,15 +22,15 @@ std::unique_ptr<Parser> init_parser() {
   auto parser = make_unique<Parser>();
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
-    if (strcmp(filenames[i], "Message.fbs") == 0) {
+    if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT
       message_symbol_index = i;
-    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {
+    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {  // NOLINT
       printf("error: %s\n", parser->error_.c_str());
       throw std::runtime_error("flatbuffer protocol definitions parser error");
     }
   }
   if (message_symbol_index == -1 ||
-      !parser->Parse(symbols[message_symbol_index])) {
+      !parser->Parse(symbols[message_symbol_index])) {  // NOLINT
     printf("error: %s\n", parser->error_.c_str());
     throw std::runtime_error("flatbuffer protocol definitions parser error");
   }

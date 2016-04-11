@@ -19,7 +19,7 @@ struct parser_info {
 };
 
 struct hrd_service {
-  static constexpr auto NOT_SET = -1;
+  static const constexpr auto NOT_SET = -1;  // NOLINT
 
   struct event {
     int time_;

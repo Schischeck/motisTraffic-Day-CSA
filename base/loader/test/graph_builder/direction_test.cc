@@ -31,7 +31,7 @@ TEST_F(loader_direction_services_graph_builder_test, direction_station) {
   for (int i = 0; i < 12; ++i) {
     auto con_info = std::get<0>(connections[i])->full_con_->con_info_;
     ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());
+    ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());  // NOLINT
   }
 
   for (unsigned i = 12; i < connections.size(); ++i) {
@@ -55,7 +55,8 @@ TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   for (auto const& e : connections) {
     auto con_info = std::get<0>(e)->full_con_->con_info_;
     ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki", con_info->dir_->c_str());
+    ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki",
+                 con_info->dir_->c_str());  // NOLINT
   }
 }
 
