@@ -35,7 +35,7 @@ struct dispatcher : public receiver {
       return scheduler_.post(
           data, std::bind(registry_.operations_.at(id.name), msg), id);
     } catch (std::out_of_range const&) {
-      throw boost::system::system_error(error::target_not_found);
+      throw std::system_error(error::target_not_found);
     }
   }
 
@@ -49,8 +49,8 @@ struct dispatcher : public receiver {
                                 try {
                                   return cb(
                                       registry_.operations_.at(id.name)(msg),
-                                      boost::system::error_code());
-                                } catch (boost::system::system_error const& e) {
+                                      std::error_code());
+                                } catch (std::system_error const& e) {
                                   return cb(nullptr, e.code());
                                 } catch (std::out_of_range const&) {
                                   return cb(nullptr, error::target_not_found);

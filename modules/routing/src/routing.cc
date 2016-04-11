@@ -47,7 +47,7 @@ std::vector<arrival> get_arrivals(
       auto msg = motis_call(make_msg(b))->val();
       auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
       if (guesses->size() == 0) {
-        throw boost::system::system_error(error::no_guess_for_station);
+        throw std::system_error(error::no_guess_for_station);
       }
       station_id = guesses->Get(0)->eva()->str();
     }
@@ -55,7 +55,7 @@ std::vector<arrival> get_arrivals(
     auto const& eva_to_station = get_schedule().eva_to_station_;
     auto it = eva_to_station.find(station_id);
     if (it == end(eva_to_station)) {
-      throw boost::system::system_error(error::given_eva_not_available);
+      throw std::system_error(error::given_eva_not_available);
     }
     arrivals.push_back({arrival_part(it->second->index_)});
   }
@@ -89,13 +89,13 @@ void routing::init(motis::module::registry& reg) {
 msg_ptr routing::route(msg_ptr const& msg) {
   auto req = motis_content(RoutingRequest, msg);
   if (req->path()->Length() < 2) {
-    throw boost::system::system_error(error::path_length_too_short);
+    throw std::system_error(error::path_length_too_short);
   }
 
   auto& sched = get_schedule();
   if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
       req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
-    throw boost::system::system_error(error::journey_date_not_in_schedule);
+    throw std::system_error(error::journey_date_not_in_schedule);
   }
 
   auto arrivals = get_arrivals(req->path());

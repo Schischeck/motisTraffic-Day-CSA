@@ -21,7 +21,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
 
   auto map_it = sched.trips_.find({station_id, train_nr, motis_time});
   if (map_it == end(sched.trips_)) {
-    throw boost::system::system_error(access::error::service_not_found);
+    throw std::system_error(access::error::service_not_found);
   }
 
   auto target_station_id = get_station(sched, target_eva_nr)->index_;
@@ -35,7 +35,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
   });
 
   if (vec_it == end(vec)) {
-    throw boost::system::system_error(access::error::service_not_found);
+    throw std::system_error(access::error::service_not_found);
   }
 
   return *vec_it;

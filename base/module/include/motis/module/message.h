@@ -40,12 +40,12 @@ msg_ptr make_msg(void const* buf, size_t len);
 
 msg_ptr make_no_msg(std::string const& target = "");
 msg_ptr make_success_msg();
-msg_ptr make_error_msg(boost::system::error_code const&);
+msg_ptr make_error_msg(std::error_code const&);
 
 template <typename T>
 inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
   if (msg->get()->content_type() != content_type) {
-    throw boost::system::system_error(error::unexpected_message_type);
+    throw std::system_error(error::unexpected_message_type);
   }
   return reinterpret_cast<T const*>(msg->get()->content());
 }

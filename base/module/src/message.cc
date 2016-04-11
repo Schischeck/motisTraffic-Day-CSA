@@ -52,13 +52,13 @@ msg_ptr make_msg(std::string const& json) {
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
     LOG(motis::logging::error) << "parse error: " << parser->error_;
-    throw boost::system::system_error(error::unable_to_parse_msg);
+    throw std::system_error(error::unable_to_parse_msg);
   }
 
   flatbuffers::Verifier verifier(parser->builder_.GetBufferPointer(),
                                  parser->builder_.GetSize());
   if (!VerifyMessageBuffer(verifier)) {
-    throw boost::system::system_error(error::malformed_msg);
+    throw std::system_error(error::malformed_msg);
   }
   auto size = parser->builder_.GetSize();
   auto buffer = parser->builder_.ReleaseBufferPointer();
@@ -79,7 +79,7 @@ msg_ptr make_msg(void const* buf, size_t len) {
 
   flatbuffers::Verifier verifier(msg->data(), msg->size());
   if (!VerifyMessageBuffer(verifier)) {
-    throw boost::system::system_error(error::malformed_msg);
+    throw std::system_error(error::malformed_msg);
   }
 
   return msg;
@@ -98,7 +98,7 @@ msg_ptr make_success_msg() {
   return make_msg(b);
 }
 
-msg_ptr make_error_msg(boost::system::error_code const& ec) {
+msg_ptr make_error_msg(std::error_code const& ec) {
   message_creator b;
   b.create_and_finish(
       MsgContent_MotisError,
