@@ -3,8 +3,8 @@
 #include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace motis::logging;
@@ -33,6 +33,6 @@ std::map<uint16_t, std::string> parse_attributes(loaded_file const& file) {
   return attributes;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

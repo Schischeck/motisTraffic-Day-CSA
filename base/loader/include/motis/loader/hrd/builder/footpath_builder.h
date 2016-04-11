@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 
@@ -16,6 +16,6 @@ create_footpaths(std::set<station_meta_data::footpath> const&,
                  std::map<int, flatbuffers::Offset<Station>> const&,
                  flatbuffers::FlatBufferBuilder&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

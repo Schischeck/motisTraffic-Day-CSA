@@ -6,10 +6,10 @@
 #include "parser/util.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
-#include "motis/loader/hrd/model/split_service.h"
 #include "motis/loader/hrd/model/repeat_service.h"
+#include "motis/loader/hrd/model/split_service.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -72,14 +72,14 @@ void for_each_service(loaded_file const& file,
     try {
       expand_and_consume(hrd_service(spec), bitfields, consumer);
     } catch (parser_error const& e) {
-      LOG(error) << "skipping bad service at " << e.filename << ":"
-                 << e.line_number;
+      LOG(error) << "skipping bad service at " << e.filename_ << ":"
+                 << e.line_number_;
     } catch (std::runtime_error const& e) {
       LOG(error) << "skipping bad service: " << e.what();
     }
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

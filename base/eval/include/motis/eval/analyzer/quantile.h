@@ -1,23 +1,23 @@
 #ifndef IMOTIS_EVAL_QUANTILE_H_
 #define IMOTIS_EVAL_QUANTILE_H_
 
+#include <cmath>
 #include <algorithm>
 #include <type_traits>
-#include <cmath>
 
 namespace motis {
 namespace eval {
 
 // From http://stackoverflow.com/a/10642935
 template <typename T>
-struct MemberTypeHelper;
+struct member_type_helper;
 template <typename R, typename T>
-struct MemberTypeHelper<R(T::*)> {
-  typedef R Type;
-  typedef T ParentType;
+struct member_type_helper<R(T::*)> {
+  using type = R;
+  using parent_type = T;
 };
 template <typename T>
-struct MemberType : public MemberTypeHelper<T> {};
+struct member_type : public member_type_helper<T> {};
 
 template <typename Attr, typename It>
 It quantile_it(Attr attr, It begin, It end, double q) {
@@ -30,13 +30,13 @@ It quantile_it(Attr attr, It begin, It end, double q) {
 }
 
 template <typename Attr, typename It>
-typename MemberType<Attr>::Type quantile(Attr attr, It begin, It end,
-                                         double q) {
+typename member_type<Attr>::type quantile(Attr attr, It begin, It end,
+                                          double q) {
   return *(quantile_it(attr, begin, end, q)).*attr;
 }
 
 template <typename Attr, typename Col>
-typename MemberType<Attr>::Type quantile(Attr attr, Col col, double q) {
+typename member_type<Attr>::type quantile(Attr attr, Col col, double q) {
   return quantile(attr, std::begin(col), std::end(col), q);
 }
 

@@ -2,12 +2,12 @@
 
 #include <cassert>
 #include <cinttypes>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <ostream>
-#include <type_traits>
 #include <string>
+#include <type_traits>
 
 namespace motis {
 
@@ -28,64 +28,63 @@ struct array final {
   typedef TemplateSizeType size_type;
 
   explicit array(TemplateSizeType size = 0)
-      : _el(nullptr),
-        _used_size(0),
-        _self_allocated(false),
-        _allocated_size(0) {
+      : el_(nullptr),
+        used_size_(0),
+        self_allocated_(false),
+        allocated_size_(0) {
     resize(size);
   }
 
   explicit array(const char* str)
-      : _el(nullptr),
-        _used_size(0),
-        _self_allocated(false),
-        _allocated_size(0) {
+      : el_(nullptr),
+        used_size_(0),
+        self_allocated_(false),
+        allocated_size_(0) {
     auto length = std::strlen(str) + 1;
     reserve(length);
-    std::memcpy(_el, str, length);
-    _used_size = length;
+    std::memcpy(el_, str, length);
+    used_size_ = length;
   }
 
   template <typename It>
   array(It begin_it, It end_it)
-      : _el(nullptr),
-        _used_size(0),
-        _self_allocated(false),
-        _allocated_size(0) {
+      : el_(nullptr),
+        used_size_(0),
+        self_allocated_(false),
+        allocated_size_(0) {
     set(begin_it, end_it);
   }
 
-  array(array&& arr)
-      : _el(arr._el),
-        _used_size(arr._used_size),
-        _self_allocated(arr._self_allocated),
-        _allocated_size(arr._allocated_size) {
-    arr._el = nullptr;
-    arr._used_size = 0;
-    arr._self_allocated = false;
-    arr._allocated_size = 0;
+  array(array&& arr) noexcept : el_(arr.el_),
+                                used_size_(arr.used_size_),
+                                self_allocated_(arr.self_allocated_),
+                                allocated_size_(arr.allocated_size_) {
+    arr.el_ = nullptr;
+    arr.used_size_ = 0;
+    arr.self_allocated_ = false;
+    arr.allocated_size_ = 0;
   }
 
   array(array const& arr)
-      : _el(nullptr),
-        _used_size(0),
-        _self_allocated(false),
-        _allocated_size(0) {
+      : el_(nullptr),
+        used_size_(0),
+        self_allocated_(false),
+        allocated_size_(0) {
     set(std::begin(arr), std::end(arr));
   }
 
-  array& operator=(array&& arr) {
+  array& operator=(array&& arr) noexcept {
     deallocate();
 
-    _el = arr._el;
-    _used_size = arr._used_size;
-    _self_allocated = arr._self_allocated;
-    _allocated_size = arr._allocated_size;
+    el_ = arr.el_;
+    used_size_ = arr.used_size_;
+    self_allocated_ = arr.self_allocated_;
+    allocated_size_ = arr.allocated_size_;
 
-    arr._el = nullptr;
-    arr._used_size = 0;
-    arr._self_allocated = false;
-    arr._allocated_size = 0;
+    arr.el_ = nullptr;
+    arr.used_size_ = 0;
+    arr.self_allocated_ = false;
+    arr.allocated_size_ = 0;
 
     return *this;
   }
@@ -98,7 +97,7 @@ struct array final {
   ~array() { deallocate(); }
 
   void deallocate() {
-    if (!_self_allocated || _el == nullptr) {
+    if (!self_allocated_ || el_ == nullptr) {
       return;
     }
 
@@ -106,28 +105,28 @@ struct array final {
       el.~T();
     }
 
-    std::free(_el);
-    _el = nullptr;
-    _used_size = 0;
-    _allocated_size = 0;
-    _self_allocated = 0;
+    std::free(el_);
+    el_ = nullptr;
+    used_size_ = 0;
+    allocated_size_ = 0;
+    self_allocated_ = 0;
   }
 
-  T const* begin() const { return _el; }
-  T const* end() const { return _el + _used_size; }
-  T* begin() { return _el; }
-  T* end() { return _el + _used_size; }
+  T const* begin() const { return el_; }
+  T const* end() const { return el_ + used_size_; }  // NOLINT
+  T* begin() { return el_; }
+  T* end() { return el_ + used_size_; }  // NOLINT
 
   std::reverse_iterator<T const*> rbegin() const {
-    return std::reverse_iterator<T*>(_el + size());
+    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
   }
   std::reverse_iterator<T const*> rend() const {
-    return std::reverse_iterator<T*>(_el);
+    return std::reverse_iterator<T*>(el_);
   }
   std::reverse_iterator<T*> rbegin() {
-    return std::reverse_iterator<T*>(_el + size());
+    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
   }
-  std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(_el); }
+  std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(el_); }
 
   friend T const* begin(array const& a) { return a.begin(); }
   friend T const* end(array const& a) { return a.end(); }
@@ -135,20 +134,20 @@ struct array final {
   friend T* begin(array& a) { return a.begin(); }
   friend T* end(array& a) { return a.end(); }
 
-  inline T const& operator[](int index) const { return _el[index]; }
-  inline T& operator[](int index) { return _el[index]; }
+  inline T const& operator[](int index) const { return el_[index]; }
+  inline T& operator[](int index) { return el_[index]; }
 
-  T const& back() const { return _el[_used_size - 1]; }
-  T& back() { return _el[_used_size - 1]; }
+  T const& back() const { return el_[used_size_ - 1]; }
+  T& back() { return el_[used_size_ - 1]; }
 
-  T& front() { return _el[0]; }
-  T const& front() const { return _el[0]; }
+  T& front() { return el_[0]; }
+  T const& front() const { return el_[0]; }
 
-  inline TemplateSizeType size() const { return _used_size; }
+  inline TemplateSizeType size() const { return used_size_; }
   inline bool empty() const { return size() == 0; }
 
   array& operator=(std::string const& str) {
-    return * this = array(str.c_str());
+    return *this = array(str.c_str());
   }
 
   template <typename It>
@@ -157,36 +156,36 @@ struct array final {
     reserve(range_size);
 
     auto copy_source = begin_it;
-    auto copy_target = _el;
+    auto copy_target = el_;
     for (; copy_source != end_it; ++copy_source, ++copy_target) {
       new (copy_target) T(*copy_source);
     }
 
-    _used_size = range_size;
+    used_size_ = range_size;
   }
 
   void push_back(T const& el) {
-    reserve(_used_size + 1);
-    new (_el + _used_size) T(el);
-    ++_used_size;
+    reserve(used_size_ + 1);
+    new (el_ + used_size_) T(el);
+    ++used_size_;
   }
 
   template <typename... Args>
   void emplace_back(Args&&... el) {
-    reserve(_used_size + 1);
-    new (_el + _used_size) T(std::forward<Args>(el)...);
-    ++_used_size;
+    reserve(used_size_ + 1);
+    new (el_ + used_size_) T(std::forward<Args>(el)...);
+    ++used_size_;
   }
 
   void resize(size_type size) {
     reserve(size);
-    _used_size = size;
+    used_size_ = size;
   }
 
   void reserve(TemplateSizeType new_size) {
-    new_size = std::max(_allocated_size, new_size);
+    new_size = std::max(allocated_size_, new_size);
 
-    if (_allocated_size >= new_size) {
+    if (allocated_size_ >= new_size) {
       return;
     }
 
@@ -207,18 +206,18 @@ struct array final {
           el.~T();
         }
       } catch (...) {
-        assert(false && "don't throw in the destructor or move constructor");
+        assert(false);
       }
     }
 
-    auto free_me = _el;
-    _el = mem_buf;
-    if (_self_allocated) {
+    auto free_me = el_;
+    el_ = mem_buf;
+    if (self_allocated_) {
       std::free(free_me);
     }
 
-    _self_allocated = true;
-    _allocated_size = next_size;
+    self_allocated_ = true;
+    allocated_size_ = next_size;
   }
 
   T* erase(T* pos) {
@@ -228,54 +227,54 @@ struct array final {
       pos = pos + 1;
     }
     pos->~T();
-    --_used_size;
+    --used_size_;
     return end();
   }
 
-  std::string to_string() const { return std::string(_el); }
+  std::string to_string() const { return std::string(el_); }
 
   operator std::string() const { return to_string(); }
 
 #ifdef USE_STANDARD_LAYOUT
-  T* _el;
-  TemplateSizeType _used_size;
-  TemplateSizeType _allocated_size;
-  bool _self_allocated;
+  T* el_;
+  TemplateSizeType used_size_;
+  TemplateSizeType allocated_size_;
+  bool self_allocated_;
 #else
-  T* _el;
-  TemplateSizeType _used_size;
-  bool _self_allocated : 1;
-  TemplateSizeType _allocated_size : 31;
+  T* el_;
+  TemplateSizeType used_size_;
+  bool self_allocated_ : 1;
+  TemplateSizeType allocated_size_ : 31;
 #endif
 };
 
 template <typename T>
-struct offset_array_view {
-  offset_array_view(array<T>& arr, char* base)
-      : _arr(arr), _abs_el(reinterpret_cast<T*>(base + _arr._el._offset)) {}
+struct offsetarr_ay_view {
+  offsetarr_ay_view(array<T>& arr, char* base)
+      : arr_(arr), abs_el_(reinterpret_cast<T*>(base + arr_.el_._offset)) {}
 
-  T const* begin() const { return _abs_el; }
-  T const* end() const { return _abs_el + _arr._used_size; }
+  T const* begin() const { return abs_el_; }
+  T const* end() const { return abs_el_ + arr_.used_size_; }
 
-  T* begin() { return _abs_el; }
-  T* end() { return _abs_el + _arr._used_size; }
+  T* begin() { return abs_el_; }
+  T* end() { return abs_el_ + arr_.used_size_; }
 
-  inline T const& operator[](int index) const { return _abs_el[index]; }
-  inline T& operator[](int index) { return _abs_el[index]; }
+  inline T const& operator[](int index) const { return abs_el_[index]; }
+  inline T& operator[](int index) { return abs_el_[index]; }
 
-  T const& back() const { return _abs_el[_arr._used_size - 1]; }
-  T& back() { return _abs_el[_arr._used_size - 1]; }
+  T const& back() const { return abs_el_[arr_.used_size_ - 1]; }
+  T& back() { return abs_el_[arr_.used_size_ - 1]; }
 
-  T& front() { return _abs_el[0]; }
-  T const& front() const { return _abs_el[0]; }
+  T& front() { return abs_el_[0]; }
+  T const& front() const { return abs_el_[0]; }
 
-  array<T>& _arr;
-  T* _abs_el;
+  array<T>& arr_;
+  T* abs_el_;
 };
 
 template <typename T>
-offset_array_view<T> make_offset_array_view(array<T>& arr, char* base) {
-  return offset_array_view<T>(arr, base);
+offsetarr_ay_view<T> make_offsetarr_ay_view(array<T>& arr, char* base) {
+  return offsetarr_ay_view<T>(arr, base);
 }
 
 template <typename T>
@@ -317,22 +316,22 @@ inline bool operator>=(array<T> const& a, array<T> const& b) {
 }
 
 typedef array<char> string;
-typedef offset_array_view<char> offset_string;
+typedef offsetarr_ay_view<char> offset_string;
 
 inline std::ostream& operator<<(std::ostream& out, string const& a) {
-  return out << a._el;
+  return out << a.el_;
 }
 
 inline std::ostream& operator<<(std::ostream& out, offset_string const& a) {
-  return out << a._abs_el;
+  return out << a.abs_el_;
 }
 
 inline std::string operator+(std::string& str, string const& a) {
-  return str + a._el;
+  return str + a.el_;
 }
 
 inline std::string& operator+=(std::string& str, string const& a) {
-  return str += a._el;
+  return str += a.el_;
 }
 
 inline void getline(std::istream& in, string& s, char delim) {

@@ -5,6 +5,7 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/module/get_schedule.h"
 #include "motis/loader/util.h"
 #include "motis/protocol/Message_generated.h"
 
@@ -34,31 +35,30 @@ po::options_description guesser::desc() {
 void guesser::print(std::ostream&) const {}
 
 void guesser::init(motis::module::registry& reg) {
-  auto sync = synced_sched<schedule_access::RO>();
+  auto& sched = synced_sched<RO>().sched();
 
   std::set<std::string> station_names;
   station_indices_ = std::accumulate(
-      begin(sync.sched().stations), end(sync.sched().stations),
-      std::vector<unsigned>(),
+      begin(sched.stations_), end(sched.stations_), std::vector<unsigned>(),
       [&station_names](std::vector<unsigned>& indices, station_ptr const& s) {
-        auto total_events = std::accumulate(begin(s->dep_class_events),
-                                            end(s->dep_class_events), 0) +
-                            std::accumulate(begin(s->arr_class_events),
-                                            end(s->arr_class_events), 0);
-        if (total_events != 0 && station_names.insert(s->name).second) {
-          indices.push_back(s->index);
+        auto total_events = std::accumulate(begin(s->dep_class_events_),
+                                            end(s->dep_class_events_), 0) +
+                            std::accumulate(begin(s->arr_class_events_),
+                                            end(s->arr_class_events_), 0);
+        if (total_events != 0 && station_names.insert(s->name_).second) {
+          indices.push_back(s->index_);
         }
         return indices;
       });
 
   auto stations = loader::transform_to_vec(
       begin(station_indices_), end(station_indices_), [&](unsigned i) {
-        auto const& s = *sync.sched().stations[i];
+        auto const& s = *sched.stations_[i];
         double factor = 0;
-        for (unsigned i = 0; i < s.dep_class_events.size(); ++i) {
-          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events[i];
+        for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {
+          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_.at(i);
         }
-        return std::make_pair(s.name, factor);
+        return std::make_pair(s.name_, factor);
       });
 
   if (!stations.empty()) {
@@ -74,26 +74,24 @@ void guesser::init(motis::module::registry& reg) {
     }
   }
 
-  guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(stations));
+  guesser_ = std::make_unique<guess::guesser>(stations);
   reg.register_op("/guesser", std::bind(&guesser::guess, this, p::_1));
 }
 
 msg_ptr guesser::guess(msg_ptr const& msg) {
   auto req = motis_content(StationGuesserRequest, msg);
-  auto sync = synced_sched<schedule_access::RO>();
 
-  MessageCreator b;
-
+  message_creator b;
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
        guesser_->guess(trim(req->input()->str()), req->guess_count())) {
-    auto const& station = *sync.sched().stations[station_indices_[guess]];
+    auto const& station = *get_schedule().stations_[station_indices_[guess]];
     guesses.emplace_back(CreateStation(
-        b, b.CreateString(station.name), b.CreateString(station.eva_nr),
-        station.index, station.width, station.length));
+        b, b.CreateString(station.name_), b.CreateString(station.eva_nr_),
+        station.index_, station.width_, station.length_));
   }
 
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_StationGuesserResponse,
       CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union());
 

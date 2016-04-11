@@ -22,15 +22,15 @@ std::unique_ptr<Parser> init_parser() {
   auto parser = make_unique<Parser>();
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
-    if (strcmp(filenames[i], "Message.fbs") == 0) {
+    if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT
       message_symbol_index = i;
-    } else if (!parser->Parse((const char*)symbols[i], nullptr, filenames[i])) {
+    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {  // NOLINT
       printf("error: %s\n", parser->error_.c_str());
       throw std::runtime_error("flatbuffer protocol definitions parser error");
     }
   }
   if (message_symbol_index == -1 ||
-      !parser->Parse((const char*)symbols[message_symbol_index])) {
+      !parser->Parse(symbols[message_symbol_index])) {  // NOLINT
     printf("error: %s\n", parser->error_.c_str());
     throw std::runtime_error("flatbuffer protocol definitions parser error");
   }
@@ -67,14 +67,14 @@ msg_ptr make_msg(std::string const& json) {
   return std::make_shared<message>(size, std::move(buffer));
 }
 
-msg_ptr make_msg(MessageCreator& builder) {
+msg_ptr make_msg(message_creator& builder) {
   auto len = builder.GetSize();
   auto mem = builder.ReleaseBufferPointer();
   builder.Clear();
   return std::make_shared<message>(len, std::move(mem));
 }
 
-msg_ptr make_msg(void* buf, size_t len) {
+msg_ptr make_msg(void const* buf, size_t len) {
   auto msg = std::make_shared<message>(len, buf);
 
   flatbuffers::Verifier verifier(msg->data(), msg->size());
@@ -86,21 +86,21 @@ msg_ptr make_msg(void* buf, size_t len) {
 }
 
 msg_ptr make_no_msg(std::string const& target) {
-  MessageCreator b;
-  b.CreateAndFinish(MsgContent_MotisNoMessage, CreateMotisNoMessage(b).Union(),
-                    target);
+  message_creator b;
+  b.create_and_finish(MsgContent_MotisNoMessage,
+                      CreateMotisNoMessage(b).Union(), target);
   return make_msg(b);
 }
 
 msg_ptr make_success_msg() {
-  MessageCreator b;
-  b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
+  message_creator b;
+  b.create_and_finish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
   return make_msg(b);
 }
 
 msg_ptr make_error_msg(boost::system::error_code const& ec) {
-  MessageCreator b;
-  b.CreateAndFinish(
+  message_creator b;
+  b.create_and_finish(
       MsgContent_MotisError,
       CreateMotisError(b, ec.value(), b.CreateString(ec.category().name()),
                        b.CreateString(ec.message()))

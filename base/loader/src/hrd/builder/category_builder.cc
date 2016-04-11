@@ -3,8 +3,8 @@
 #include "parser/util.h"
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -24,11 +24,11 @@ Offset<Category> category_builder::get_or_create_category(
          (int)category_str.length(), category_str.c_str());
 
   return get_or_create(fbs_categories_, category_key, [&]() {
-    return CreateCategory(fbb, to_fbs_string(fbb, it->second.name, ENCODING),
-                          it->second.output_rule);
+    return CreateCategory(fbb, to_fbs_string(fbb, it->second.name_, ENCODING),
+                          it->second.output_rule_);
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

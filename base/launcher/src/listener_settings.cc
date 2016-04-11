@@ -26,66 +26,66 @@ listener_settings::listener_settings(bool listen_ws, bool listen_http,
                                      std::string http_port,
                                      std::string tcp_host, std::string tcp_port,
                                      std::string api_key)
-    : listen_ws(listen_ws),
-      listen_http(listen_http),
-      listen_tcp(listen_tcp),
-      ws_host(ws_host),
-      ws_port(ws_port),
-      http_host(http_host),
-      http_port(http_port),
-      tcp_host(tcp_host),
-      tcp_port(tcp_port),
-      api_key(api_key) {}
+    : listen_ws_(listen_ws),
+      listen_http_(listen_http),
+      listen_tcp_(listen_tcp),
+      ws_host_(std::move(ws_host)),
+      ws_port_(std::move(ws_port)),
+      http_host_(std::move(http_host)),
+      http_port_(std::move(http_port)),
+      tcp_host_(std::move(tcp_host)),
+      tcp_port_(std::move(tcp_port)),
+      api_key_(std::move(api_key)) {}
 
 boost::program_options::options_description listener_settings::desc() {
   po::options_description desc("Listener Options");
   // clang-format off
   desc.add_options()
       (LISTEN_WS,
-       po::value<bool>(&listen_ws)->default_value(listen_ws),
+       po::value<bool>(&listen_ws_)->default_value(listen_ws_),
        "enable websocket listener")
       (LISTEN_HTTP,
-       po::value<bool>(&listen_http)->default_value(listen_http),
+       po::value<bool>(&listen_http_)->default_value(listen_http_),
        "enable http listener")
       (LISTEN_TCP,
-       po::value<bool>(&listen_tcp)->default_value(listen_tcp),
+       po::value<bool>(&listen_tcp_)->default_value(listen_tcp_),
        "enable tcp listener")
       (WS_HOST,
-       po::value<std::string>(&ws_host)->default_value(ws_host),
+       po::value<std::string>(&ws_host_)->default_value(ws_host_),
        "websocket listener host")
       (WS_PORT,
-       po::value<std::string>(&ws_port)->default_value(ws_port),
+       po::value<std::string>(&ws_port_)->default_value(ws_port_),
        "websocket listener port")
       (HTTP_HOST,
-       po::value<std::string>(&http_host)->default_value(http_host),
+       po::value<std::string>(&http_host_)->default_value(http_host_),
        "http listener host")
       (HTTP_PORT,
-       po::value<std::string>(&http_port)->default_value(http_port),
+       po::value<std::string>(&http_port_)->default_value(http_port_),
        "http listener port")
       (TCP_HOST,
-       po::value<std::string>(&tcp_host)->default_value(tcp_host),
+       po::value<std::string>(&tcp_host_)->default_value(tcp_host_),
        "tcp listener host")
       (TCP_PORT,
-       po::value<std::string>(&tcp_port)->default_value(tcp_port),
+       po::value<std::string>(&tcp_port_)->default_value(tcp_port_),
        "tcp listener port")
       (API_KEY,
-       po::value<std::string>(&api_key)->default_value(api_key),
+       po::value<std::string>(&api_key_)->default_value(api_key_),
        "API key for requests, leave empty to skip auth");
   // clang-format on
   return desc;
 }
 
 void listener_settings::print(std::ostream& out) const {
-  out << "  " << LISTEN_WS << ": " << listen_ws << "\n"
-      << "  " << LISTEN_HTTP << ": " << listen_http << "\n"
-      << "  " << LISTEN_TCP << ": " << listen_tcp << "\n"
-      << "  " << WS_HOST << ": " << ws_host << "\n"
-      << "  " << WS_PORT << ": " << ws_port << "\n"
-      << "  " << HTTP_HOST << ": " << http_host << "\n"
-      << "  " << HTTP_PORT << ": " << http_port << "\n"
-      << "  " << TCP_HOST << ": " << tcp_host << "\n"
-      << "  " << TCP_PORT << ": " << tcp_port << "\n"
-      << "  " << API_KEY << ": " << api_key << "\n";
+  out << "  " << LISTEN_WS << ": " << listen_ws_ << "\n"
+      << "  " << LISTEN_HTTP << ": " << listen_http_ << "\n"
+      << "  " << LISTEN_TCP << ": " << listen_tcp_ << "\n"
+      << "  " << WS_HOST << ": " << ws_host_ << "\n"
+      << "  " << WS_PORT << ": " << ws_port_ << "\n"
+      << "  " << HTTP_HOST << ": " << http_host_ << "\n"
+      << "  " << HTTP_PORT << ": " << http_port_ << "\n"
+      << "  " << TCP_HOST << ": " << tcp_host_ << "\n"
+      << "  " << TCP_PORT << ": " << tcp_port_ << "\n"
+      << "  " << API_KEY << ": " << api_key_;
 }
 
 }  // namespace launcher

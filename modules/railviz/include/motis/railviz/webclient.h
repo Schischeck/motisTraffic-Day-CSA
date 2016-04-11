@@ -8,7 +8,7 @@ namespace motis {
 namespace railviz {
 
 class webclient {
- public:
+public:
   webclient(unsigned int id) : id(id), time(0), bounds({{0, 0}, {0, 0}}) {}
 
   unsigned int id;

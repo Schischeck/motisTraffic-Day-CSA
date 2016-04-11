@@ -89,10 +89,10 @@ protected:
 struct sections {
   using iterator = trip_iterator<trip_section>;
 
-  sections(trip const* t) : t_(t) {}
+  explicit sections(trip const* t) : t_(t) {}
 
   iterator begin() const { return {t_, 0}; }
-  iterator end() const { return {t_, static_cast<int>(t_->edges->size())}; }
+  iterator end() const { return {t_, static_cast<int>(t_->edges_->size())}; }
 
   friend iterator begin(sections const& s) { return s.begin(); }
   friend iterator end(sections const& s) { return s.end(); }
@@ -103,10 +103,10 @@ struct sections {
 struct stops {
   using iterator = trip_iterator<trip_stop>;
 
-  stops(trip const* t) : t_(t) {}
+  explicit stops(trip const* t) : t_(t) {}
 
   iterator begin() const { return {t_, 0}; }
-  iterator end() const { return {t_, static_cast<int>(t_->edges->size()) + 1}; }
+  iterator end() const { return {t_, static_cast<int>(t_->edges_->size()) + 1}; }
 
   friend iterator begin(stops const& s) { return s.begin(); }
   friend iterator end(stops const& s) { return s.end(); }

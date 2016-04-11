@@ -18,8 +18,8 @@ namespace loader {
 std::set<int> get_service_numbers(connection_info const* con) {
   std::set<int> service_numbers;
   while (con != nullptr) {
-    service_numbers.insert(con->train_nr);
-    con = con->merged_with;
+    service_numbers.insert(con->train_nr_);
+    con = con->merged_with_;
   }
   return service_numbers;
 }
@@ -35,8 +35,8 @@ public:
   std::pair<bool, std::vector<edge const*>> path_exists(std::string const& from,
                                                         std::string const& to) {
     return path_exists(
-        sched_->station_nodes[sched_->eva_to_station.at(from)->index].get(),
-        sched_->station_nodes[sched_->eva_to_station.at(to)->index].get());
+        sched_->station_nodes_[sched_->eva_to_station_.at(from)->index_].get(),
+        sched_->station_nodes_[sched_->eva_to_station_.at(to)->index_].get());
   }
 
   std::pair<bool, std::vector<edge const*>> path_exists(
@@ -50,7 +50,7 @@ public:
                      ? from->get_station()->get_route_nodes()
                      : std::vector<node const*>({from});
     for (auto const& n : nodes) {
-      for (auto const& e : n->_edges) {
+      for (auto const& e : n->edges_) {
         if (e.empty() && e.type() != edge::THROUGH_EDGE) {
           continue;
         }
@@ -74,7 +74,7 @@ public:
         begin(stops), end(stops),
         std::back_insert_iterator<std::vector<std::string>>(stop_evas),
         [this](trip_stop const& stop) {
-          return stop.get_station(*sched_).eva_nr;
+          return stop.get_station(*sched_).eva_nr_;
         });
     return stop_evas;
   }
@@ -113,7 +113,7 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_1) {
 
   ASSERT_FALSE(e->empty());
   auto train_nrs =
-      get_service_numbers(e->_m._route_edge._conns[0]._full_con->con_info);
+      get_service_numbers(e->m_.route_edge_.conns_[0].full_con_->con_info_);
   EXPECT_TRUE(train_nrs.find(1) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(2) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(3) != end(train_nrs));
@@ -127,7 +127,7 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_2) {
 
   ASSERT_FALSE(e->empty());
   auto train_nrs =
-      get_service_numbers(e->_m._route_edge._conns[0]._full_con->con_info);
+      get_service_numbers(e->m_.route_edge_.conns_[0].full_con_->con_info_);
   EXPECT_TRUE(train_nrs.find(1) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(2) != end(train_nrs));
 }
@@ -140,7 +140,7 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_3) {
 
   ASSERT_FALSE(e->empty());
   auto train_nrs =
-      get_service_numbers(e->_m._route_edge._conns[0]._full_con->con_info);
+      get_service_numbers(e->m_.route_edge_.conns_[0].full_con_->con_info_);
 
   EXPECT_TRUE(train_nrs.find(2) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(3) != end(train_nrs));
@@ -160,7 +160,7 @@ TEST_F(service_rules_graph_builder_test_virt, trip_1) {
   auto sections = access::sections(trp1);
   int i = 0;
   for (auto it = begin(sections); it != end(sections); ++it, ++i) {
-    auto train_nr = (*it).info(*sched_).train_nr;
+    auto train_nr = (*it).info(*sched_).train_nr_;
     switch (i) {
       case 3: EXPECT_EQ(5, train_nr); break;
       default: EXPECT_EQ(1, train_nr);
@@ -174,16 +174,16 @@ TEST_F(service_rules_graph_builder_test_virt, trip_2) {
 
   auto sections = access::sections(trp);
   auto sec2 = *std::next(begin(sections));
-  auto const& merged_trips = *sched_->merged_trips[sec2.lcon().trips];
+  auto const& merged_trips = *sched_->merged_trips_[sec2.lcon().trips_];
   EXPECT_EQ(3, merged_trips.size());
 
-  auto con_info = sec2.lcon()._full_con->con_info;
+  auto con_info = sec2.lcon().full_con_->con_info_;
   for (unsigned i = 0; i < merged_trips.size();
-       ++i, con_info = con_info->merged_with) {
+       ++i, con_info = con_info->merged_with_) {
     ASSERT_TRUE(con_info != nullptr);
-    EXPECT_EQ(merged_trips[i]->id.primary.train_nr, con_info->train_nr);
+    EXPECT_EQ(merged_trips[i]->id_.primary_.train_nr_, con_info->train_nr_);
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

@@ -28,37 +28,37 @@ po::options_description dataset_settings::desc() {
   // clang-format off
   desc.add_options()
       (DATASET,
-       po::value<std::string>(&dataset)->default_value(dataset),
+       po::value<std::string>(&dataset_)->default_value(dataset_),
        "MOTIS Dataset root")
       (WRITE_SERIALIZED,
-       po::value<bool>(&write_serialized)->default_value(write_serialized),
+       po::value<bool>(&write_serialized_)->default_value(write_serialized_),
        "Ignore serialized dataset")
       (UNIQUE_CHECK,
-       po::value<bool>(&unique_check)->default_value(unique_check),
+       po::value<bool>(&unique_check_)->default_value(unique_check_),
        "Check for duplicates and don't integrate them")
       (APPLY_RULES,
-       po::value<bool>(&apply_rules)->default_value(apply_rules),
+       po::value<bool>(&apply_rules_)->default_value(apply_rules_),
        "Apply special rules (through-services, merge-split-services)")
       (ADJUST_FOOTPATHS,
-       po::value<bool>(&adjust_footpaths)->default_value(adjust_footpaths),
+       po::value<bool>(&adjust_footpaths_)->default_value(adjust_footpaths_),
        "Remove footpaths if they do not fit an assumed average speed")
       (SCHEDULE_BEGIN,
-       po::value<std::string>(&schedule_begin)->default_value(schedule_begin),
+       po::value<std::string>(&schedule_begin_)->default_value(schedule_begin_),
        "schedule interval begin (TODAY or YYYYMMDD)")
       (NUM_DAYS,
-       po::value<int>(&num_days)->default_value(num_days),
+       po::value<int>(&num_days_)->default_value(num_days_),
        "number of days");
   // clang-format on
   return desc;
 }
 
 void dataset_settings::print(std::ostream& out) const {
-  out << "  " << DATASET << ": " << dataset << "\n"
-      << "  " << WRITE_SERIALIZED << ": " << write_serialized << "\n"
-      << "  " << UNIQUE_CHECK << ": " << unique_check << "\n"
-      << "  " << APPLY_RULES << ": " << apply_rules << "\n"
-      << "  " << SCHEDULE_BEGIN << ": " << schedule_begin << "\n"
-      << "  " << NUM_DAYS << ": " << num_days;
+  out << "  " << DATASET << ": " << dataset_ << "\n"
+      << "  " << WRITE_SERIALIZED << ": " << write_serialized_ << "\n"
+      << "  " << UNIQUE_CHECK << ": " << unique_check_ << "\n"
+      << "  " << APPLY_RULES << ": " << apply_rules_ << "\n"
+      << "  " << SCHEDULE_BEGIN << ": " << schedule_begin_ << "\n"
+      << "  " << NUM_DAYS << ": " << num_days_;
 }
 
 }  // namespace bootstrap

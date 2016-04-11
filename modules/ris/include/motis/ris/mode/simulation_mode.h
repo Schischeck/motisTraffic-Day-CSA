@@ -2,8 +2,8 @@
 
 #include "motis/module/message.h"
 #include "motis/module/registry.h"
-#include "motis/ris/ris.h"
 #include "motis/ris/mode/base_mode.h"
+#include "motis/ris/ris.h"
 
 namespace motis {
 namespace ris {

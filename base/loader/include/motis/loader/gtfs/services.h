@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
 #include "boost/date_time/gregorian/gregorian.hpp"
@@ -15,8 +15,8 @@ namespace loader {
 namespace gtfs {
 
 struct services {
-  boost::gregorian::date first_day, last_day;
-  std::map<std::string, std::unique_ptr<bitfield>> traffic_days;
+  boost::gregorian::date first_day_, last_day_;
+  std::map<std::string, std::unique_ptr<bitfield>> traffic_days_;
 };
 
 services traffic_days(std::map<std::string, calendar> const&,

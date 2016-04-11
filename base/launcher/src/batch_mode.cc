@@ -1,11 +1,11 @@
 #include "motis/launcher/batch_mode.h"
 
-#include <memory>
-#include <functional>
 #include <algorithm>
-#include <istream>
-#include <ostream>
 #include <fstream>
+#include <functional>
+#include <istream>
+#include <memory>
+#include <ostream>
 
 #include "motis/module/message.h"
 
@@ -40,7 +40,9 @@ public:
   void start() {
     auto self = shared_from_this();
     ios_.post([this, self]() {
-      for (int i = 0; i < 10; ++i) inject_msg(self);
+      for (int i = 0; i < 10; ++i) {
+        inject_msg(self);
+      }
     });
   }
 

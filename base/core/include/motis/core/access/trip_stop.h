@@ -1,9 +1,9 @@
 #pragma once
 
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/trip.h"
 #include "motis/core/access/connection_access.h"
 #include "motis/core/access/edge_access.h"
-#include "motis/core/schedule/trip.h"
-#include "motis/core/schedule/edges.h"
 
 namespace motis {
 namespace access {
@@ -11,10 +11,10 @@ namespace access {
 class trip_stop {
 public:
   trip_stop(trip const* t, int const index) : trip_(t), index_(index) {
-    if (index == static_cast<int>(trip_->edges->size())) {
-      node_ = trip_->edges->back()->_to;
+    if (index == static_cast<int>(trip_->edges_->size())) {
+      node_ = trip_->edges_->back()->to_;
     } else {
-      node_ = trip_->edges->at(index)->_from;
+      node_ = trip_->edges_->at(index)->from_;
     }
     assert(node_->is_route_node());
   }
@@ -23,15 +23,15 @@ public:
 
   bool has_arrival() const { return index_ > 0; }
   bool has_departure() const {
-    return index_ < static_cast<int>(trip_->edges->size());
+    return index_ < static_cast<int>(trip_->edges_->size());
   }
 
   light_connection const& arr_lcon() const {
-    return get_lcon(trip_->edges->at(index_ - 1), trip_->lcon_idx);
+    return get_lcon(trip_->edges_->at(index_ - 1), trip_->lcon_idx_);
   }
 
   light_connection const& dep_lcon() const {
-    return get_lcon(trip_->edges->at(index_), trip_->lcon_idx);
+    return get_lcon(trip_->edges_->at(index_), trip_->lcon_idx_);
   }
 
   connection_info const& arr_info(schedule const& sched) const {
@@ -43,7 +43,7 @@ public:
   }
 
   station const& get_station(schedule const& sched) const {
-    return *sched.stations[node_->get_station()->_id];
+    return *sched.stations_[node_->get_station()->id_];
   }
 
 private:

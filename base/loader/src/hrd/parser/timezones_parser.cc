@@ -4,8 +4,8 @@
 
 #include "parser/arg_parser.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -33,12 +33,12 @@ timezones parse_timezones(loaded_file const& timezones_file,
   for_each_line(timezones_file.content(), [&](cstr line) {
     if (line.length() == 15) {
       auto first_valid_eva_number = eva_number(line.substr(8, size(7)));
-      auto it = tz.eva_to_tze.find(first_valid_eva_number);
-      verify(it != end(tz.eva_to_tze),
+      auto it = tz.eva_to_tze_.find(first_valid_eva_number);
+      verify(it != end(tz.eva_to_tze_),
              "missing timezone information for eva number: %d",
              first_valid_eva_number);
 
-      tz.eva_to_tze[eva_number(line.substr(0, size(7)))] = it->second;
+      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] = it->second;
       return;
     }
 
@@ -56,7 +56,7 @@ timezones parse_timezones(loaded_file const& timezones_file,
       tz.timezone_entries_.push_back(make_unique<timezone_entry>(
           distance_to_midnight(line.substr(8, size(5))), opt_season_entry));
 
-      tz.eva_to_tze[eva_number(line.substr(0, size(7)))] =
+      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] =
           tz.timezone_entries_.back().get();
     }
   });
@@ -64,6 +64,6 @@ timezones parse_timezones(loaded_file const& timezones_file,
   return tz;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

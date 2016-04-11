@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <string>
-#include <utility>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "motis/core/schedule/delay_info.h"
 #include "motis/core/schedule/event.h"

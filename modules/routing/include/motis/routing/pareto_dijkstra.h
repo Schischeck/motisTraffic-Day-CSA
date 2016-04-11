@@ -1,12 +1,12 @@
 #pragma once
 
-#include <queue>
 #include <list>
 #include <ostream>
+#include <queue>
 #include <unordered_map>
 
-#include "motis/routing/statistics.h"
 #include "motis/routing/memory_manager.h"
+#include "motis/routing/statistics.h"
 
 namespace motis {
 namespace routing {
@@ -23,96 +23,98 @@ public:
     }
   };
 
-  pareto_dijkstra(int node_count, station_node const* goal,
-                  std::vector<Label*> const& start_labels,
-                  std::unordered_map<node const*, std::vector<edge>> const&
-                      additional_edges,
-                  LowerBounds& lower_bounds, memory_manager& label_store)
-      : _goal(goal),
-        _node_labels(node_count),
-        _queue(begin(start_labels), end(start_labels)),
-        _additional_edges(additional_edges),
-        _lower_bounds(lower_bounds),
-        _label_store(label_store),
-        _max_labels(label_store.size() / sizeof(Label)) {
+  pareto_dijkstra(
+      int node_count, station_node const* goal,
+      std::vector<Label*> const& start_labels,
+      std::unordered_map<node const*, std::vector<edge>> additional_edges,
+      LowerBounds& lower_bounds, memory_manager& label_store)
+      : goal_(goal),
+        node_labels_(node_count),
+        queue_(begin(start_labels), end(start_labels)),
+        additional_edges_(std::move(additional_edges)),
+        lower_bounds_(lower_bounds),
+        label_store_(label_store),
+        max_labels_(label_store.size() / sizeof(Label)) {
     for (auto const& start_label : start_labels) {
-      _node_labels[start_label->node_->_id].emplace_back(start_label);
+      node_labels_[start_label->node_->id_].emplace_back(start_label);
     }
   }
 
   std::vector<Label*>& search() {
-    _stats.start_label_count = _queue.size();
-    _stats.labels_created = _label_store.used_size();
+    stats_.start_label_count_ = queue_.size();
+    stats_.labels_created_ = label_store_.used_size();
 
-    while (!_queue.empty() || _equals.size() != 0) {
-      if ((_stats.labels_created > (_max_labels / 2) && _results.empty()) ||
-          _stats.labels_created > _max_labels) {
-        _stats.max_label_quit = true;
+    while (!queue_.empty() || !equals_.empty()) {
+      if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
+          stats_.labels_created_ > max_labels_) {
+        stats_.max_label_quit_ = true;
         filter_results();
-        return _results;
+        return results_;
       }
 
       // get best label
       Label* label;
-      if (_equals.size() > 0) {
-        label = _equals.back();
-        _equals.pop_back();
-        _stats.labels_equals_popped++;
+      if (!equals_.empty()) {
+        label = equals_.back();
+        equals_.pop_back();
+        stats_.labels_equals_popped_++;
       } else {
-        label = _queue.top();
-        _stats.priority_queue_max_size =
-            std::max(_stats.priority_queue_max_size, (int)_queue.size());
-        _queue.pop();
-        _stats.labels_popped++;
-        _stats.labels_popped_after_last_result++;
+        label = queue_.top();
+        stats_.priority_queue_max_size_ = std::max(
+            stats_.priority_queue_max_size_, static_cast<int>(queue_.size()));
+        queue_.pop();
+        stats_.labels_popped_++;
+        stats_.labels_popped_after_last_result_++;
       }
 
       // is label already made obsolete
       if (label->dominated_) {
-        _stats.labels_dominated_by_later_labels++;
+        stats_.labels_dominated_by_later_labels_++;
         continue;
       }
 
       if (dominated_by_results(label)) {
-        _stats.labels_dominated_by_results++;
+        stats_.labels_dominated_by_results_++;
         continue;
       }
 
-      if (_goal == label->node_->_station_node) continue;
+      if (goal_ == label->node_->station_node_) {
+        continue;
+      }
 
-      auto it = _additional_edges.find(label->node_);
-      if (it != std::end(_additional_edges)) {
+      auto it = additional_edges_.find(label->node_);
+      if (it != std::end(additional_edges_)) {
         for (auto const& additional_edge : it->second) {
           create_new_label(label, additional_edge);
         }
       }
 
-      for (auto const& edge : label->node_->_edges) {
+      for (auto const& edge : label->node_->edges_) {
         create_new_label(label, edge);
       }
     }
 
     filter_results();
-    return _results;
+    return results_;
   }
 
-  statistics get_statistics() const { return _stats; };
+  statistics get_statistics() const { return stats_; };
 
 private:
   void create_new_label(Label* l, edge const& edge) {
     Label blank;
-    bool created = l->create_label(blank, edge, _lower_bounds);
+    bool created = l->create_label(blank, edge, lower_bounds_);
     if (!created) {
       return;
     }
 
-    auto new_label = new (_label_store.create<Label>()) Label(blank);
-    ++_stats.labels_created;
+    auto new_label = new (label_store_.create<Label>()) Label(blank);
+    ++stats_.labels_created_;
 
-    if (edge.get_destination() == _goal) {
+    if (edge.get_destination() == goal_) {
       add_result(new_label);
-      if (_stats.labels_popped_until_first_result == -1) {
-        _stats.labels_popped_until_first_result = _stats.labels_popped;
+      if (stats_.labels_popped_until_first_result_ == -1) {
+        stats_.labels_popped_until_first_result_ = stats_.labels_popped_;
       }
       return;
     }
@@ -124,36 +126,36 @@ private:
         // if the new_label is as good as label we don't have to push it into
         // the queue
         if (!FORWARDING || l < new_label) {
-          _queue.push(new_label);
+          queue_.push(new_label);
         } else {
-          _equals.push_back(new_label);
+          equals_.push_back(new_label);
         }
       } else {
-        _stats.labels_dominated_by_former_labels++;
+        stats_.labels_dominated_by_former_labels_++;
       }
     } else {
-      _stats.labels_dominated_by_results++;
+      stats_.labels_dominated_by_results_++;
     }
   }
 
   bool add_result(Label* terminal_label) {
-    for (auto it = _results.begin(); it != _results.end();) {
+    for (auto it = results_.begin(); it != results_.end();) {
       Label* o = *it;
       if (terminal_label->dominates(*o)) {
-        it = _results.erase(it);
+        it = results_.erase(it);
       } else if (o->dominates(*terminal_label)) {
         return false;
       } else {
         ++it;
       }
     }
-    _results.push_back(terminal_label);
-    _stats.labels_popped_after_last_result = 0;
+    results_.push_back(terminal_label);
+    stats_.labels_popped_after_last_result_ = 0;
     return true;
   }
 
   bool add_label_to_node(Label* new_label, node const* dest) {
-    auto& dest_labels = _node_labels[dest->_id];
+    auto& dest_labels = node_labels_[dest->id_];
     for (auto it = dest_labels.begin(); it != dest_labels.end();) {
       Label* o = *it;
       if (o->dominates(*new_label)) {
@@ -175,7 +177,7 @@ private:
   }
 
   bool dominated_by_results(Label* label) {
-    for (auto const& result : _results) {
+    for (auto const& result : results_) {
       if (result->dominates(*label)) {
         return true;
       }
@@ -185,33 +187,33 @@ private:
 
   void filter_results() {
     bool restart = false;
-    for (auto it = std::begin(_results); it != std::end(_results);
-         it = restart ? std::begin(_results) : std::next(it)) {
+    for (auto it = std::begin(results_); it != std::end(results_);
+         it = restart ? std::begin(results_) : std::next(it)) {
       restart = false;
-      std::size_t size_before = _results.size();
-      _results.erase(
-          std::remove_if(std::begin(_results), std::end(_results),
+      std::size_t size_before = results_.size();
+      results_.erase(
+          std::remove_if(std::begin(results_), std::end(results_),
                          [it](Label const* l) {
                            return l == (*it) ? false
                                              : (*it)->dominates_post_search(*l);
                          }),
-          std::end(_results));
-      if (_results.size() != size_before) {
+          std::end(results_));
+      if (results_.size() != size_before) {
         restart = true;
       }
     }
   }
 
-  station_node const* _goal;
-  std::vector<std::vector<Label*>> _node_labels;
-  std::priority_queue<Label*, std::vector<Label*>, compare_labels> _queue;
-  std::vector<Label*> _equals;
-  std::unordered_map<node const*, std::vector<edge>> _additional_edges;
-  std::vector<Label*> _results;
-  LowerBounds& _lower_bounds;
-  memory_manager& _label_store;
-  statistics _stats;
-  std::size_t _max_labels;
+  station_node const* goal_;
+  std::vector<std::vector<Label*>> node_labels_;
+  std::priority_queue<Label*, std::vector<Label*>, compare_labels> queue_;
+  std::vector<Label*> equals_;
+  std::unordered_map<node const*, std::vector<edge>> additional_edges_;
+  std::vector<Label*> results_;
+  LowerBounds& lower_bounds_;
+  memory_manager& label_store_;
+  statistics stats_;
+  std::size_t max_labels_;
 };
 
 }  // namespace routing

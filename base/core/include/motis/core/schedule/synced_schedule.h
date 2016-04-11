@@ -11,14 +11,14 @@ struct synced_schedule {};
 
 template <>
 struct synced_schedule<RO> {
-  synced_schedule(schedule& s) : s_(s) {}
+  explicit synced_schedule(schedule& s) : s_(s) {}
   schedule const& sched() const { return s_; }
   schedule const& s_;
 };
 
 template <>
 struct synced_schedule<RW> {
-  synced_schedule(schedule& s) : s_(s) {}
+  explicit synced_schedule(schedule& s) : s_(s) {}
   schedule& sched() { return s_; }
   schedule& s_;
 };

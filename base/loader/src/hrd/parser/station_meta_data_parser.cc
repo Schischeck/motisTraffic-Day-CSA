@@ -1,13 +1,13 @@
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 
 #include <cinttypes>
-#include <string>
-#include <vector>
 #include <array>
 #include <functional>
+#include <string>
+#include <vector>
 
-#include "parser/csv.h"
 #include "parser/cstr.h"
+#include "parser/csv.h"
 #include "parser/util.h"
 
 namespace motis {
@@ -64,14 +64,14 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
 typedef std::tuple<cstr, cstr, int, int> minct;
 void load_minct(std::vector<minct>& records) {
-  loaded_file minct_file{"minct.csv", station_meta_data::MINCT};
+  loaded_file minct_file{"minct.csv", station_meta_data::minct_};
   std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;
   column_map[1] = 1;
   column_map[2] = 2;
   column_map[3] = 3;
-  cstr minct_content(station_meta_data::MINCT);
+  cstr minct_content(station_meta_data::minct_);
   auto rows = detail::read_rows<minct, ';'>(minct_content, column_map);
   read(records, rows);
 }
@@ -136,7 +136,7 @@ void parse_station_meta_data(loaded_file const& infotext_file,
   parse_and_add_hrd_footpaths(metabhf_zusatz_file, metas.footpaths_);
 }
 
-const char* station_meta_data::MINCT = R"(AA;;7;4
+const char* station_meta_data::minct_ = R"(AA;;7;4
 ABCH;;6;3
 ABG;;5;4
 ABLZ;;5;3
@@ -899,6 +899,6 @@ XASB;;8;4
 XSS;;3;-
 XTCH;;7;3)";
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

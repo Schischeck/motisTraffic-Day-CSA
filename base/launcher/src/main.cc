@@ -1,11 +1,11 @@
 #include <iostream>
-#include <thread>
 #include <memory>
+#include <thread>
 
-#include "boost/filesystem.hpp"
-#include "boost/asio/io_service.hpp"
 #include "boost/asio/deadline_timer.hpp"
+#include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
+#include "boost/filesystem.hpp"
 #include "boost/thread.hpp"
 
 #include "net/http/server/shutdown_handler.hpp"
@@ -20,15 +20,15 @@
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
 
-#include "motis/launcher/ws_server.h"
-#include "motis/launcher/http_server.h"
-#include "motis/launcher/socket_server.h"
-#include "motis/launcher/listener_settings.h"
-#include "motis/launcher/launcher_settings.h"
 #include "motis/launcher/batch_mode.h"
+#include "motis/launcher/http_server.h"
+#include "motis/launcher/launcher_settings.h"
+#include "motis/launcher/listener_settings.h"
+#include "motis/launcher/socket_server.h"
+#include "motis/launcher/ws_server.h"
 
-#include "version.h"
 #include "modules.h"
+#include "version.h"
 
 using namespace motis::bootstrap;
 using namespace motis::launcher;
@@ -94,23 +94,23 @@ int main(int argc, char** argv) {
   shutd_hdr_ptr<socket_server> tcp_shutdown_handler;
   try {
     instance.init_schedule(dataset_opt);
-    instance.init_modules(launcher_opt.modules);
+    instance.init_modules(launcher_opt.modules_);
 
-    if (listener_opt.listen_ws) {
-      websocket.set_api_key(listener_opt.api_key);
-      websocket.listen(listener_opt.ws_host, listener_opt.ws_port);
+    if (listener_opt.listen_ws_) {
+      websocket.set_api_key(listener_opt.api_key_);
+      websocket.listen(listener_opt.ws_host_, listener_opt.ws_port_);
       websocket_shutdown_handler =
           make_unique<shutdown_handler<ws_server>>(ios, websocket);
     }
 
-    if (listener_opt.listen_http) {
-      http.listen(listener_opt.http_host, listener_opt.http_port);
+    if (listener_opt.listen_http_) {
+      http.listen(listener_opt.http_host_, listener_opt.http_port_);
       http_shutdown_handler =
           make_unique<shutdown_handler<http_server>>(ios, http);
     }
 
-    if (listener_opt.listen_tcp) {
-      tcp.listen(listener_opt.tcp_host, listener_opt.tcp_port);
+    if (listener_opt.listen_tcp_) {
+      tcp.listen(listener_opt.tcp_host_, listener_opt.tcp_port_);
       tcp_shutdown_handler =
           make_unique<shutdown_handler<socket_server>>(ios, tcp);
     }
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
   }
 
   boost::asio::io_service::work ios_work(ios);
-  std::vector<boost::thread> threads(launcher_opt.num_threads);
+  std::vector<boost::thread> threads(launcher_opt.num_threads_);
 
   auto run = [&ios]() {
     start:
@@ -135,18 +135,18 @@ int main(int argc, char** argv) {
       }
   };
 
-  for (unsigned i = 0; i < threads.size(); ++i) {
-    threads[i] = boost::thread(run);
+  for (auto& t : threads) {
+    t = boost::thread(run);
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
-  if (launcher_opt.mode == launcher_settings::motis_mode_t::TEST) {
+  if (launcher_opt.mode_ == launcher_settings::motis_mode_t::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
     timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
-  } else if (launcher_opt.mode == launcher_settings::motis_mode_t::BATCH) {
-    inject_queries(ios, instance, launcher_opt.batch_input_file,
-                   launcher_opt.batch_output_file);
+  } else if (launcher_opt.mode_ == launcher_settings::motis_mode_t::BATCH) {
+    inject_queries(ios, instance, launcher_opt.batch_input_file_,
+                   launcher_opt.batch_output_file_);
   }
 
   std::for_each(begin(threads), end(threads),

@@ -7,7 +7,7 @@ namespace rt {
 namespace handler {
 
 struct trip_counter {
- friend std::ostream& operator<<(std::ostream&, trip_counter const&);
+  friend std::ostream& operator<<(std::ostream&, trip_counter const&);
 
   uint64_t total = 0;
   uint64_t found = 0;
@@ -26,7 +26,8 @@ struct trip_counter {
 struct message_counter {
 public:
   message_counter(std::string title) : title_(std::move(title)), count_(0) {}
-  // message_message_counter(std::string title, uint64_t total, uint64_t ignored)
+  // message_message_counter(std::string title, uint64_t total, uint64_t
+  // ignored)
   //     : _title(title), _total(total), _ignored(ignored) {}
 
   inline void inc() { ++count_; }
@@ -48,7 +49,6 @@ public:
 
 struct statistics {
   friend std::ostream& operator<<(std::ostream&, statistics const&);
-
 
   message_counter delay{"delay"};
   message_counter additional{"additional"};

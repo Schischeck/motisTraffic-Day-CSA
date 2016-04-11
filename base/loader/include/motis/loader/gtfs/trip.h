@@ -3,11 +3,11 @@
 #include <map>
 #include <string>
 
-#include "motis/loader/loaded_file.h"
-#include "motis/loader/gtfs/stop.h"
+#include "motis/loader/gtfs/flat_map.h"
 #include "motis/loader/gtfs/route.h"
 #include "motis/loader/gtfs/services.h"
-#include "motis/loader/gtfs/flat_map.h"
+#include "motis/loader/gtfs/stop.h"
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {

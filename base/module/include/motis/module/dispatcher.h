@@ -2,11 +2,11 @@
 
 #include "ctx/ctx.h"
 
-#include "motis/module/registry.h"
-#include "motis/module/receiver.h"
 #include "motis/module/ctx_data.h"
-#include "motis/module/future.h"
 #include "motis/module/error.h"
+#include "motis/module/future.h"
+#include "motis/module/receiver.h"
+#include "motis/module/registry.h"
 
 namespace motis {
 namespace module {
@@ -44,19 +44,21 @@ struct dispatcher : public receiver {
     id.created_at = "dispatcher::on_msg";
     id.parent_index = 0;
     id.name = msg->get()->destination()->target()->str();
-    return scheduler_.enqueue(
-        ctx_data(this, registry_.sched_), [this, id, cb, msg]() {
-          try {
-            return cb(registry_.operations_.at(id.name)(msg),
-                      boost::system::error_code());
-          } catch (boost::system::system_error const& e) {
-            return cb(nullptr, e.code());
-          } catch (std::out_of_range const&) {
-            return cb(nullptr, error::target_not_found);
-          } catch (...) {
-            return cb(nullptr, error::unknown_error);
-          }
-        }, id);
+    return scheduler_.enqueue(ctx_data(this, registry_.sched_),
+                              [this, id, cb, msg]() {
+                                try {
+                                  return cb(
+                                      registry_.operations_.at(id.name)(msg),
+                                      boost::system::error_code());
+                                } catch (boost::system::system_error const& e) {
+                                  return cb(nullptr, e.code());
+                                } catch (std::out_of_range const&) {
+                                  return cb(nullptr, error::target_not_found);
+                                } catch (...) {
+                                  return cb(nullptr, error::unknown_error);
+                                }
+                              },
+                              id);
   }
 
   ctx::scheduler<ctx_data> scheduler_;

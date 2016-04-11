@@ -17,9 +17,9 @@ enum error_code_t {
 
 class error_category_impl : public boost::system::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::access"; }
+  const char* name() const noexcept override { return "motis::access"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "access: no error";
       case error::not_implemented: return "access: not implemented";

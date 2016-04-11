@@ -1,12 +1,12 @@
 #pragma once
 
-#include <sstream>
 #include <set>
+#include <sstream>
 
 #include "motis/module/module.h"
+#include "motis/railviz/realtime_response.h"
 #include "motis/railviz/timetable_retriever.h"
 #include "motis/railviz/webclient.h"
-#include "motis/railviz/realtime_response.h"
 
 namespace motis {
 namespace railviz {
@@ -66,7 +66,8 @@ private:
   callback make_route_at_time_realtime_callback(const route&, callback);
 
   typedef std::function<void(motis::module::msg_ptr, webclient&,
-                             motis::module::callback)> op;
+                             motis::module::callback)>
+      op;
 
   std::time_t schedule_begin_;
   std::map<MsgContent, op> ops_;

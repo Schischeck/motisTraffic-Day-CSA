@@ -1,13 +1,13 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 #include "motis/core/common/hash_helper.h"
-#include "motis/core/schedule/time.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/provider.h"
+#include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip_idx.h"
 
 namespace motis {
@@ -31,13 +31,13 @@ struct connection_info {
   struct hash {
     std::size_t operator()(connection_info const& c) const {
       std::size_t seed = 0;
-      for (auto const& attr : c.attributes) {
+      for (auto const& attr : c.attributes_) {
         hash_combine(seed, attr);
       }
-      hash_combine(seed, c.line_identifier);
-      hash_combine(seed, c.family);
-      hash_combine(seed, c.train_nr);
-      hash_combine(seed, c.merged_with);
+      hash_combine(seed, c.line_identifier_);
+      hash_combine(seed, c.family_);
+      hash_combine(seed, c.train_nr_);
+      hash_combine(seed, c.merged_with_);
       return seed;
     }
   };
@@ -45,45 +45,49 @@ struct connection_info {
   connection_info()
       : dir_(nullptr),
         provider_(nullptr),
-        family(0),
-        train_nr(0),
-        original_train_nr(0),
-        merged_with(nullptr) {}
+        family_(0),
+        train_nr_(0),
+        original_train_nr_(0),
+        merged_with_(nullptr) {}
 
   bool operator==(connection_info const& o) const {
-    return train_nr == o.train_nr && family == o.family && dir_ == o.dir_ &&
-           line_identifier == o.line_identifier && attributes == o.attributes &&
-           merged_with == o.merged_with;
+    return train_nr_ == o.train_nr_ && family_ == o.family_ && dir_ == o.dir_ &&
+           line_identifier_ == o.line_identifier_ &&
+           attributes_ == o.attributes_ && merged_with_ == o.merged_with_;
   }
 
-  std::vector<attribute const*> attributes;
-  std::string line_identifier;
+  std::vector<attribute const*> attributes_;
+  std::string line_identifier_;
   std::string const* dir_;
   provider const* provider_;
-  uint32_t family;
-  uint32_t train_nr;
-  uint32_t original_train_nr;
-  connection_info* merged_with;
+  uint32_t family_;
+  uint32_t train_nr_;
+  uint32_t original_train_nr_;
+  connection_info* merged_with_;
 };
 
 struct connection {
   struct hash {
     std::size_t operator()(connection const& c) const {
       std::size_t seed = 0;
-      hash_combine(seed, c.con_info);
-      hash_combine(seed, c.price);
-      hash_combine(seed, c.d_platform);
-      hash_combine(seed, c.a_platform);
-      hash_combine(seed, c.clasz);
+      hash_combine(seed, c.con_info_);
+      hash_combine(seed, c.price_);
+      hash_combine(seed, c.d_platform_);
+      hash_combine(seed, c.a_platform_);
+      hash_combine(seed, c.clasz_);
       return seed;
     }
   };
 
   connection()
-      : con_info(nullptr), price(0), d_platform(0), a_platform(0), clasz(0) {}
+      : con_info_(nullptr),
+        price_(0),
+        d_platform_(0),
+        a_platform_(0),
+        clasz_(0) {}
 
   bool operator==(connection const& o) const {
-    return clasz == o.clasz && price == o.price && con_info == o.con_info;
+    return clasz_ == o.clasz_ && price_ == o.price_ && con_info_ == o.con_info_;
   }
 
   bool operator<(connection const& o) const {
@@ -92,37 +96,39 @@ struct connection {
 
   std::tuple<uint8_t, uint16_t, uint16_t, uint16_t, connection_info const*>
   as_tuple() const {
-    return std::make_tuple(clasz, d_platform, a_platform, price, con_info);
+    return std::make_tuple(clasz_, d_platform_, a_platform_, price_, con_info_);
   }
 
-  connection_info const* con_info;
-  uint16_t price;
-  uint16_t d_platform, a_platform;
-  uint8_t clasz;
+  connection_info const* con_info_;
+  uint16_t price_;
+  uint16_t d_platform_, a_platform_;
+  uint8_t clasz_;
 };
 
 struct light_connection {
   light_connection() = default;
 
-  explicit light_connection(time d_time) : d_time(d_time) {}
+  explicit light_connection(time d_time) : d_time_(d_time) {}
 
   light_connection(time d_time, time a_time,
                    connection const* full_con = nullptr,
                    merged_trips_idx trips = 0)
-      : _full_con(full_con), d_time(d_time), a_time(a_time), trips(trips) {}
+      : full_con_(full_con), d_time_(d_time), a_time_(a_time), trips_(trips) {}
 
-  unsigned travel_time() const { return a_time - d_time; }
+  unsigned travel_time() const { return a_time_ - d_time_; }
 
-  bool operator<(light_connection const& o) const { return d_time < o.d_time; }
-
-  bool operator==(light_connection const& o) const {
-    return d_time == o.d_time && a_time == o.a_time &&
-           *_full_con == *o._full_con;
+  bool operator<(light_connection const& o) const {
+    return d_time_ < o.d_time_;
   }
 
-  connection const* _full_con;
-  time d_time, a_time;
-  merged_trips_idx trips;
+  bool operator==(light_connection const& o) const {
+    return d_time_ == o.d_time_ && a_time_ == o.a_time_ &&
+           *full_con_ == *o.full_con_;
+  }
+
+  connection const* full_con_;
+  time d_time_, a_time_;
+  merged_trips_idx trips_;
 };
 
 }  // namespace motis

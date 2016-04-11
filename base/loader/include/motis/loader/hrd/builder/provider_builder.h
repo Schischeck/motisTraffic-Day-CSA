@@ -11,7 +11,7 @@ namespace loader {
 namespace hrd {
 
 struct provider_builder {
-  provider_builder(std::map<uint64_t, provider_info>);
+  explicit provider_builder(std::map<uint64_t, provider_info>);
 
   flatbuffers::Offset<Provider> get_or_create_provider(
       uint64_t, flatbuffers::FlatBufferBuilder&);
@@ -20,6 +20,6 @@ struct provider_builder {
   std::map<uint64_t, flatbuffers::Offset<Provider>> fbs_providers_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

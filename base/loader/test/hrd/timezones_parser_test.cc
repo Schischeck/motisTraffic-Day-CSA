@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/timezones_parser.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -73,7 +73,7 @@ protected:
   loader_timezones_test(char const* zeitvs, char const* eckdaten)
       : zeitvs_(zeitvs), eckdaten_(eckdaten) {}
 
-  virtual void SetUp() {
+  void SetUp() override {
     data_.emplace_back("zeitvs.101", zeitvs_);
     data_.emplace_back("eckdaten.101", eckdaten_);
     tz_ = parse_timezones(data_[0], data_[1]);
@@ -101,18 +101,18 @@ public:
 void test_timezone_entry(
     timezone_entry const* tze, int expected_general_gmt_offset,
     boost::optional<season_entry> const& expected_season_entry = {}) {
-  ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset);
+  ASSERT_EQ(expected_general_gmt_offset, tze->general_gmt_offset_);
   if (expected_season_entry) {
-    ASSERT_TRUE(tze->season);
+    ASSERT_TRUE(tze->season_);
     auto const& expected = *expected_season_entry;
-    auto const& actual = *(tze->season);
-    ASSERT_EQ(expected.gmt_offset, actual.gmt_offset);
-    ASSERT_EQ(expected.first_day_idx, actual.first_day_idx);
-    ASSERT_EQ(expected.last_day_idx, actual.last_day_idx);
-    ASSERT_EQ(expected.season_begin_time, actual.season_begin_time);
-    ASSERT_EQ(expected.season_end_time, actual.season_end_time);
+    auto const& actual = *(tze->season_);
+    ASSERT_EQ(expected.gmt_offset_, actual.gmt_offset_);
+    ASSERT_EQ(expected.first_day_idx_, actual.first_day_idx_);
+    ASSERT_EQ(expected.last_day_idx_, actual.last_day_idx_);
+    ASSERT_EQ(expected.season_begin_time_, actual.season_begin_time_);
+    ASSERT_EQ(expected.season_end_time_, actual.season_end_time_);
   } else {
-    ASSERT_FALSE(tze->season);
+    ASSERT_FALSE(tze->season_);
   }
 }
 
@@ -128,6 +128,6 @@ TEST_F(loader_timezones_synthetic, timezone_interval) {
   test_timezone_entry(tz_.find(9999999), 60, {{120, 0, 6, 120, 180}});
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

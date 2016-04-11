@@ -1,7 +1,7 @@
 #include "motis/loader/util.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 using namespace flatbuffers;
 using namespace parser;

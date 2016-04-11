@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cmath>
 #include <cinttypes>
-#include <string>
-#include <bitset>
+#include <cmath>
 #include <algorithm>
-#include <memory>
+#include <bitset>
 #include <map>
+#include <memory>
+#include <string>
 
 #include "boost/filesystem.hpp"
 

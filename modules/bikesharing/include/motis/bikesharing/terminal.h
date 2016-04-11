@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include <ctime>
+#include <array>
 #include <map>
 #include <string>
 #include <utility>

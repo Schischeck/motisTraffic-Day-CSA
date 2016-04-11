@@ -3,9 +3,9 @@
 #include "parser/util.h"
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/model/hrd_service.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -44,6 +44,6 @@ Offset<Direction> direction_builder::get_or_create_direction(
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

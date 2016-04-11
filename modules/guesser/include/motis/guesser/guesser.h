@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "guess/guesser.h"
@@ -10,11 +11,11 @@ namespace motis {
 namespace guesser {
 
 struct guesser : public motis::module::module {
-  virtual std::string name() const override { return "guesser"; }
+  std::string name() const override { return "guesser"; }
 
-  virtual boost::program_options::options_description desc() override;
-  virtual void print(std::ostream& out) const override;
-  virtual bool empty_config() const override { return true; }
+  boost::program_options::options_description desc() override;
+  void print(std::ostream& out) const override;
+  bool empty_config() const override { return true; }
 
   void init(motis::module::registry&) override;
 

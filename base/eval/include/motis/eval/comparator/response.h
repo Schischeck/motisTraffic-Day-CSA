@@ -9,7 +9,7 @@ namespace eval {
 namespace comparator {
 
 typedef std::tuple<unsigned, unsigned, unsigned> connection;
-enum connectionAccessors { DURATION, TRANSFERS, PRICE };
+enum connection_accessors { DURATION, TRANSFERS, PRICE };
 
 template <std::size_t Index, typename... Tp>
 inline typename std::enable_if<Index == sizeof...(Tp), bool>::type dominates(
@@ -38,10 +38,10 @@ inline bool dominates(std::tuple<Criteria...> const& c1,
 }
 
 struct response {
-  response(routing::RoutingResponse const* r);
-  std::vector<connection> connections;
+  explicit response(routing::RoutingResponse const* r);
+  std::vector<connection> connections_;
 };
 
-}  // comparator
-}  // eval
-}  // motis
+}  // namespace comparator
+}  // namespace eval
+}  // namespace motis

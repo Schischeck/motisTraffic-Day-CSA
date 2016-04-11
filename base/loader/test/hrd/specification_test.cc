@@ -12,7 +12,6 @@
 
 using namespace parser;
 using namespace flatbuffers;
-namespace fs = boost::filesystem;
 
 namespace motis {
 namespace loader {
@@ -28,11 +27,11 @@ TEST(loader_hrd_specification, parse_specification) {
   auto& spec = specs[0];
   ASSERT_TRUE(!spec.is_empty());
   ASSERT_TRUE(spec.valid());
-  ASSERT_TRUE(!spec.internal_service.empty());
-  ASSERT_TRUE(spec.traffic_days.size() == 1);
-  ASSERT_TRUE(spec.categories.size() == 1);
-  ASSERT_TRUE(spec.attributes.size() == 3);
-  ASSERT_TRUE(spec.stops.size() == 6);
+  ASSERT_TRUE(!spec.internal_service_.empty());
+  ASSERT_TRUE(spec.traffic_days_.size() == 1);
+  ASSERT_TRUE(spec.categories_.size() == 1);
+  ASSERT_TRUE(spec.attributes_.size() == 3);
+  ASSERT_TRUE(spec.stops_.size() == 6);
 }
 
 TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
@@ -46,6 +45,6 @@ TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
   ASSERT_TRUE(catched);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

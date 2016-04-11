@@ -6,7 +6,7 @@ namespace motis {
 
 template <typename T>
 struct typed_flatbuffer {
-  typed_flatbuffer(flatbuffers::FlatBufferBuilder&& fbb)
+  explicit typed_flatbuffer(flatbuffers::FlatBufferBuilder&& fbb)
       : buffer_size_(fbb.GetSize()), buffer_(fbb.ReleaseBufferPointer()) {}
 
   typed_flatbuffer(size_t buffer_size, flatbuffers::unique_ptr_t buffer)
@@ -20,13 +20,13 @@ struct typed_flatbuffer {
     std::memcpy(buffer_.get(), buffer, buffer_size_);
   }
 
-  typed_flatbuffer(std::string const& s)
+  explicit typed_flatbuffer(std::string const& s)
       : typed_flatbuffer(s.size(), s.data()) {}
 
-  typed_flatbuffer(typed_flatbuffer&&) = default;
-  typed_flatbuffer& operator=(typed_flatbuffer&&) = default;
+  typed_flatbuffer(typed_flatbuffer&&) = default;  // NOLINT
+  typed_flatbuffer& operator=(typed_flatbuffer&&) = default;  // NOLINT
 
-  virtual ~typed_flatbuffer() {}
+  virtual ~typed_flatbuffer() = default;
 
   uint8_t const* data() const { return buffer_.get(); }
   size_t size() const { return buffer_size_; }

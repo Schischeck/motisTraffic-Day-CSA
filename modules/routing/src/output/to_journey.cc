@@ -28,33 +28,34 @@ journey::transport generate_journey_transport(
   } else {
     type = journey::transport::PublicTransport;
 
-    cat_id = con_info->family;
-    cat_name = sched.categories[con_info->family]->name;
+    cat_id = con_info->family_;
+    cat_name = sched.categories_[con_info->family_]->name_;
 
-    auto clasz_it = sched.classes.find(cat_name);
-    clasz = clasz_it == end(sched.classes) ? 9 : clasz_it->second;
+    auto clasz_it = sched.classes_.find(cat_name);
+    clasz = clasz_it == end(sched.classes_) ? 9 : clasz_it->second;
 
-    line_identifier = con_info->line_identifier;
+    line_identifier = con_info->line_identifier_;
 
-    train_nr = output_train_nr(con_info->train_nr, con_info->original_train_nr);
+    train_nr =
+        output_train_nr(con_info->train_nr_, con_info->original_train_nr_);
 
     if (con_info->dir_ != nullptr) {
       direction = *con_info->dir_;
     }
 
     if (con_info->provider_ != nullptr) {
-      provider = con_info->provider_->full_name;
+      provider = con_info->provider_->full_name_;
     }
 
     name = get_service_name(sched, con_info);
   }
 
-  return {from,     to,       type /* TODO: mumo */,
+  return {from,     to,       type /* TODO(Mohammad Keyhani) mumo */,
           name,     cat_name, cat_id,
           clasz,    train_nr, line_identifier,
           duration, slot,     direction,
-          provider, route_id, "" /* TODO mumo-type-name */,
-          0 /* TODO mumo-price */};
+          provider, route_id, "" /* TODO(Mohammad Keyhani) mumo-type-name */,
+          0 /* TODO(Mohammad Keyhani) mumo-price */};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -62,10 +63,10 @@ std::vector<journey::transport> generate_journey_transports(
     schedule const& sched) {
   struct con_info_cmp {
     bool operator()(connection_info const* a, connection_info const* b) const {
-      auto train_nr_a = output_train_nr(a->train_nr, a->original_train_nr);
-      auto train_nr_b = output_train_nr(b->train_nr, b->original_train_nr);
-      return std::tie(a->line_identifier, a->family, train_nr_a, a->dir_) <
-             std::tie(b->line_identifier, b->family, train_nr_b, b->dir_);
+      auto train_nr_a = output_train_nr(a->train_nr_, a->original_train_nr_);
+      auto train_nr_b = output_train_nr(b->train_nr_, b->original_train_nr_);
+      return std::tie(a->line_identifier_, a->family_, train_nr_a, a->dir_) <
+             std::tie(b->line_identifier_, b->family_, train_nr_b, b->dir_);
     }
   };
 
@@ -73,29 +74,29 @@ std::vector<journey::transport> generate_journey_transports(
   std::vector<journey::transport> journey_transports;
   interval_map<connection_info const*, con_info_cmp> intervals;
   for (auto const& t : transports) {
-    if (t.con) {
-      auto con_info = t.con->_full_con->con_info;
+    if (t.con_) {
+      auto con_info = t.con_->full_con_->con_info_;
       while (con_info) {
-        intervals.add_entry(con_info, t.from, t.to);
-        route_ids.emplace(con_info, t.route_id);
-        con_info = con_info->merged_with;
+        intervals.add_entry(con_info, t.from_, t.to_);
+        route_ids.emplace(con_info, t.route_id_);
+        con_info = con_info->merged_with_;
       }
     } else {
       journey_transports.push_back(generate_journey_transport(
-          t.from, t.to, nullptr, sched, t.duration, t.slot));
+          t.from_, t.to_, nullptr, sched, t.duration_, t.slot_));
     }
   }
 
   for (auto const& t : intervals.get_attribute_ranges()) {
     for (auto const& range : t.second) {
       journey_transports.push_back(generate_journey_transport(
-          range.from, range.to, t.first, sched, route_ids.at(t.first)));
+          range.from_, range.to_, t.first, sched, route_ids.at(t.first)));
     }
   }
 
   std::sort(begin(journey_transports), end(journey_transports),
             [](journey::transport const& lhs, journey::transport const& rhs) {
-              return lhs.from < rhs.from;
+              return lhs.from_ < rhs.from_;
             });
 
   return journey_transports;
@@ -106,27 +107,28 @@ std::vector<journey::stop> generate_journey_stops(
   std::vector<journey::stop> journey_stops;
   for (auto const& stop : stops) {
     journey_stops.push_back(
-        {stop.index, stop.interchange, sched.stations[stop.station_id]->name,
-         sched.stations[stop.station_id]->eva_nr,
-         sched.stations[stop.station_id]->width,
-         sched.stations[stop.station_id]->length,
-         stop.a_time != INVALID_TIME
+        {stop.index_, stop.interchange_,
+         sched.stations_[stop.station_id_]->name_,
+         sched.stations_[stop.station_id_]->eva_nr_,
+         sched.stations_[stop.station_id_]->width_,
+         sched.stations_[stop.station_id_]->length_,
+         stop.a_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,
-                                                   stop.a_time),
+                                                   stop.a_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
-                                             stop.a_time),
-                                         sched.tracks[stop.a_platform]}
+                                             stop.a_time_),
+                                         sched.tracks_[stop.a_platform_]}
              : journey::stop::event_info{false, 0, 0, ""},
-         stop.d_time != INVALID_TIME
+         stop.d_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,
-                                                   stop.d_time),
+                                                   stop.d_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
-                                             stop.d_time),
-                                         sched.tracks[stop.d_platform]}
+                                             stop.d_time_),
+                                         sched.tracks_[stop.d_platform_]}
              : journey::stop::event_info{false, 0, 0, ""}});
   }
   return journey_stops;
@@ -136,12 +138,12 @@ std::vector<journey::attribute> generate_journey_attributes(
     std::vector<intermediate::transport> const& transports) {
   interval_map<attribute const*> attributes;
   for (auto const& transport : transports) {
-    if (transport.con == nullptr) {
+    if (transport.con_ == nullptr) {
       continue;
     } else {
       for (auto const& attribute :
-           transport.con->_full_con->con_info->attributes) {
-        attributes.add_entry(attribute, transport.from, transport.to);
+           transport.con_->full_con_->con_info_->attributes_) {
+        attributes.add_entry(attribute, transport.from_, transport.to_);
       }
     }
   }
@@ -150,12 +152,12 @@ std::vector<journey::attribute> generate_journey_attributes(
   for (auto const& attribute_range : attributes.get_attribute_ranges()) {
     auto const& attribute = attribute_range.first;
     auto const& attribute_ranges = attribute_range.second;
-    auto const& code = attribute->_code;
-    auto const& text = attribute->_str;
+    auto const& code = attribute->code_;
+    auto const& text = attribute->str_;
 
     for (auto const& range : attribute_ranges) {
-      journey_attributes.push_back({static_cast<unsigned>(range.from),
-                                    static_cast<unsigned>(range.to), code,
+      journey_attributes.push_back({static_cast<unsigned>(range.from_),
+                                    static_cast<unsigned>(range.to_), code,
                                     text});
     }
   }

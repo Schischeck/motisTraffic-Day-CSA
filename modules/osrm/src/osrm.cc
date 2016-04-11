@@ -28,12 +28,12 @@ namespace osrm {
 
 struct osrm::impl {
 public:
-  typedef InternalDataFacade<QueryEdge::EdgeData> DataFacadeImpl;
-  typedef BaseDataFacade<QueryEdge::EdgeData> MyDataFacade;
-  typedef MultiTargetPlugin<MyDataFacade, true> MultiTarget;
-  typedef MultiTargetPlugin<MyDataFacade, false> MultiSource;
+  typedef InternalDataFacade<QueryEdge::EdgeData> data_facade_impl;
+  typedef BaseDataFacade<QueryEdge::EdgeData> my_data_facade;
+  typedef MultiTargetPlugin<my_data_facade, true> multi_target;
+  typedef MultiTargetPlugin<my_data_facade, false> multi_source;
 
-  impl(std::string const& path) {
+  explicit impl(std::string const& path) {
     std::string ip_address;
     int ip_port, requested_thread_num;
     bool use_shared_memory = false, trial = false;
@@ -54,9 +54,9 @@ public:
       return;
     }
 
-    query_data_facade_.reset(new DataFacadeImpl(server_paths));
-    multi_target_.reset(new MultiTarget(query_data_facade_.get()));
-    multi_source_.reset(new MultiSource(query_data_facade_.get()));
+    query_data_facade_.reset(new data_facade_impl(server_paths));
+    multi_target_.reset(new multi_target(query_data_facade_.get()));
+    multi_source_.reset(new multi_source(query_data_facade_.get()));
   }
 
   msg_ptr route(OSRMRoutingRequest const* req) {
@@ -91,21 +91,21 @@ public:
                      return Cost(p.first, p.second);
                    });
 
-    MessageCreator fbb;
-    fbb.CreateAndFinish(
+    message_creator fbb;
+    fbb.create_and_finish(
         MsgContent_OSRMRoutingResponse,
         CreateOSRMRoutingResponse(fbb, fbb.CreateVectorOfStructs(costs))
             .Union());
     return make_msg(fbb);
   }
 
-  std::unique_ptr<DataFacadeImpl> query_data_facade_;
-  std::unique_ptr<MultiTarget> multi_target_;
-  std::unique_ptr<MultiSource> multi_source_;
+  std::unique_ptr<data_facade_impl> query_data_facade_;
+  std::unique_ptr<multi_target> multi_target_;
+  std::unique_ptr<multi_source> multi_source_;
 };
 
 osrm::osrm() {}
-osrm::~osrm() {}
+osrm::~osrm() = default;
 
 po::options_description osrm::desc() {
   po::options_description desc("OSRM Module");
