@@ -22,16 +22,16 @@ public:
 void test_events(
     std::tuple<light_connection const*, node const*, node const*> c,
     time expected_dep, time expected_arr) {
-  EXPECT_EQ(expected_dep, std::get<0>(c)->d_time);
-  EXPECT_EQ(expected_arr, std::get<0>(c)->a_time);
+  EXPECT_EQ(expected_dep, std::get<0>(c)->d_time_);
+  EXPECT_EQ(expected_arr, std::get<0>(c)->a_time_);
 }
 
 TEST_F(loader_graph_builder_east_to_west_test, event_times) {
   // Get route starting at Moskva Belorusskaja
   auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "2000058";
+      begin(sched_->route_index_to_first_route_node_),
+      end(sched_->route_index_to_first_route_node_), [&](node const* n) {
+        return sched_->stations_[n->get_station()->id_]->eva_nr_ == "2000058";
       });
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(23, cs.size());
@@ -51,11 +51,11 @@ public:
 TEST_F(loader_graph_builder_season_valid, event_times) {
   // Get route starting at Dortmund Hbf
   auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000080";
+      begin(sched_->route_index_to_first_route_node_),
+      end(sched_->route_index_to_first_route_node_), [&](node const* n) {
+        return sched_->stations_[n->get_station()->id_]->eva_nr_ == "8000080";
       });
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node_));
 
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(38, cs.size());
@@ -76,11 +76,11 @@ public:
 TEST_F(loader_graph_builder_season_invalid, event_times) {
   // Get route starting at Muenster(Westf)Hbf
   auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000263";
+      begin(sched_->route_index_to_first_route_node_),
+      end(sched_->route_index_to_first_route_node_), [&](node const* n) {
+        return sched_->stations_[n->get_station()->id_]->eva_nr_ == "8000263";
       });
-  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node));
+  ASSERT_TRUE(node_it != end(sched_->route_index_to_first_route_node_));
 
   auto cs = get_connections(*node_it, 0);
   ASSERT_EQ(10, cs.size());
@@ -90,5 +90,5 @@ TEST_F(loader_graph_builder_season_invalid, event_times) {
   test_events(cs[9], motis_time(154, 0, 60), motis_time(204, 0, 120 - 60));
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

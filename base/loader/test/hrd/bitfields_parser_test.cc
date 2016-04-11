@@ -2,9 +2,9 @@
 
 #include "parser/cstr.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 
@@ -74,6 +74,6 @@ TEST(loader_hrd_bitfields, hex_str_to_bitset_valid_period_2) {
               hex_str_to_bitset("C218", "file.101", 1));
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

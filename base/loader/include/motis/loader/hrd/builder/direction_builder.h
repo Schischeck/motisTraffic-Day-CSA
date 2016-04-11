@@ -13,7 +13,7 @@ namespace loader {
 namespace hrd {
 
 struct direction_builder {
-  direction_builder(std::map<uint64_t, std::string>);
+  explicit direction_builder(std::map<uint64_t, std::string>);
 
   flatbuffers::Offset<Direction> get_or_create_direction(
       std::vector<std::pair<uint64_t, int>> const&, station_builder&,
@@ -23,6 +23,6 @@ struct direction_builder {
   std::map<uint64_t, flatbuffers::Offset<Direction>> fbs_directions_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

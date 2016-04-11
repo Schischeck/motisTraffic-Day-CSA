@@ -1,24 +1,24 @@
 #pragma once
 
-#include <vector>
+#include <iostream>
+#include <memory>
 #include <string>
 #include <tuple>
-#include <memory>
 #include <unordered_map>
-#include <iostream>
+#include <vector>
 
 #include "gtest/gtest.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/time.h"
-#include "motis/core/common/date_time_util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/loader/loader.h"
-#include "motis/routing/search.h"
-#include "motis/routing/arrival.h"
-#include "motis/realtime/realtime_schedule.h"
 #include "motis/realtime/messages.h"
+#include "motis/realtime/realtime_schedule.h"
+#include "motis/routing/arrival.h"
+#include "motis/routing/search.h"
 
 namespace motis {
 namespace realtime {
@@ -67,8 +67,9 @@ public:
     motis::arrival_part target;
     target.station = to->index;
 
-    return _search.get_connections({start}, {target}, departure_begin,
-                                   departure_begin + interval, true, {})
+    return _search
+        .get_connections({start}, {target}, departure_begin,
+                         departure_begin + interval, true, {})
         .journeys;
   }
 

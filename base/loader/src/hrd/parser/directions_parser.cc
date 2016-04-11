@@ -1,7 +1,7 @@
 #include "motis/loader/hrd/parser/directions_parser.h"
 
-#include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -21,6 +21,6 @@ std::map<uint64_t, std::string> parse_directions(loaded_file const& file) {
   return directions;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

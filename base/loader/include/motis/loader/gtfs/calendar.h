@@ -1,8 +1,8 @@
 #pragma once
 
 #include <bitset>
-#include <string>
 #include <map>
+#include <string>
 
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 
@@ -13,8 +13,8 @@ namespace loader {
 namespace gtfs {
 
 struct calendar {
-  std::bitset<7> week_days;
-  boost::gregorian::date first_day, last_day;
+  std::bitset<7> week_days_;
+  boost::gregorian::date first_day_, last_day_;
 };
 
 std::map<std::string, calendar> read_calendar(loaded_file);

@@ -3,9 +3,9 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/parser/attributes_parser.h"
+#include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
 
 using namespace parser;
@@ -42,8 +42,8 @@ TEST(loader_hrd_attributes, invalid_line) {
     parse_attributes(f);
   } catch (parser_error const& e) {
     catched = true;
-    ASSERT_STREQ(ATTRIBUTES_FILE_OLD, e.filename);
-    ASSERT_TRUE(e.line_number == 1);
+    ASSERT_STREQ(ATTRIBUTES_FILE_OLD, e.filename_);
+    ASSERT_TRUE(e.line_number_ == 1);
   }
 
   ASSERT_TRUE(catched);
@@ -54,6 +54,6 @@ TEST(loader_hrd_attributes, ignore_output_rules) {
   ASSERT_TRUE(parse_attributes(f).size() == 0);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

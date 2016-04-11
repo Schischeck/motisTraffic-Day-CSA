@@ -1,7 +1,7 @@
 #include "motis/loader/hrd/parser/through_services_parser.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
@@ -18,20 +18,20 @@ struct ts_rule : public service_rule {
   ts_rule(service_id id_1, service_id id_2, int eva_num, bitfield const& mask)
       : service_rule(mask), id_1_(id_1), id_2_(id_2), eva_num_(eva_num) {}
 
-  virtual ~ts_rule() {}
+  ~ts_rule() override = default;
 
   int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
-      return false;
+      return 0;
     }
 
     // Assuming s is service (1): Check last stop.
     auto last_stop = s.stops_.back();
     auto last_section = s.sections_.back();
-    if (last_stop.eva_num == eva_num_ &&
-        last_section.train_num == id_1_.first &&
-        raw_to_int<uint64_t>(last_section.admin) == id_1_.second) {
+    if (last_stop.eva_num_ == eva_num_ &&
+        last_section.train_num_ == id_1_.first &&
+        raw_to_int<uint64_t>(last_section.admin_) == id_1_.second) {
       return 1;
     }
 
@@ -41,8 +41,8 @@ struct ts_rule : public service_rule {
       auto from_stop = s.stops_[section_idx];
       auto section = s.sections_[section_idx];
 
-      if (from_stop.eva_num == eva_num_ && section.train_num == id_2_.first &&
-          raw_to_int<uint64_t>(section.admin) == id_2_.second) {
+      if (from_stop.eva_num_ == eva_num_ && section.train_num_ == id_2_.first &&
+          raw_to_int<uint64_t>(section.admin_) == id_2_.second) {
         return 2;
       }
     }
@@ -109,6 +109,6 @@ void parse_through_service_rules(loaded_file const& file,
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

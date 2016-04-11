@@ -9,15 +9,15 @@
 #include "motis/module/error.h"
 
 namespace flatbuffers {
-class Parser;
-}
+class parser;
+} // namespace flatbuffers
 
 namespace motis {
 namespace module {
 
-class MessageCreator : public flatbuffers::FlatBufferBuilder {
+class message_creator : public flatbuffers::FlatBufferBuilder {
 public:
-  void CreateAndFinish(MsgContent type, flatbuffers::Offset<void> content,
+  void create_and_finish(MsgContent type, flatbuffers::Offset<void> content,
                        std::string const& target = "") {
     Finish(CreateMessage(*this, CreateDestination(*this, DestinationType_Module,
                                                   CreateString(target)),
@@ -39,7 +39,7 @@ struct message : public typed_flatbuffer<Message> {
 typedef std::shared_ptr<message> msg_ptr;
 
 msg_ptr make_msg(std::string const& json);
-msg_ptr make_msg(MessageCreator& builder);
+msg_ptr make_msg(message_creator& builder);
 msg_ptr make_msg(void* buf, size_t len);
 
 msg_ptr make_no_msg(std::string const& target = "");

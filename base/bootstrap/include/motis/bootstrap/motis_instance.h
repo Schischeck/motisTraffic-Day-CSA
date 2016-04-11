@@ -1,14 +1,14 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "boost/asio/io_service.hpp"
 
 #include "motis/core/schedule/schedule.h"
-#include "motis/module/module.h"
 #include "motis/module/controller.h"
+#include "motis/module/module.h"
 #include "motis/loader/loader_options.h"
 #include "modules.h"
 

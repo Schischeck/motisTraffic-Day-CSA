@@ -3,8 +3,8 @@
 #include <set>
 #include <vector>
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/util.h"
@@ -26,12 +26,12 @@ struct mss_rule : public service_rule {
         eva_num_begin_(eva_num_begin),
         eva_num_end_(eva_num_end) {}
 
-  virtual ~mss_rule() {}
+  ~mss_rule() override = default;
 
   int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {
-      return false;
+      return 0;
     }
 
     // Check if first and last stop of the common part are contained with the
@@ -43,20 +43,20 @@ struct mss_rule : public service_rule {
       auto const& section = s.sections_[section_idx];
       auto const& from_stop = s.stops_[section_idx];
       auto const& to_stop = s.stops_[section_idx + 1];
-      auto service_id = std::make_pair(section.train_num,
-                                       raw_to_int<uint64_t>(section.admin));
+      auto service_id = std::make_pair(section.train_num_,
+                                       raw_to_int<uint64_t>(section.admin_));
 
       if (service_id != id_1_ && service_id != id_2_) {
         continue;
       }
-      if (!end_found && from_stop.eva_num == eva_num_begin_) {
+      if (!end_found && from_stop.eva_num_ == eva_num_begin_) {
         begin_found = true;
       }
-      if (begin_found && to_stop.eva_num == eva_num_end_) {
+      if (begin_found && to_stop.eva_num_ == eva_num_end_) {
         end_found = true;
       }
     }
-    return begin_found && end_found;
+    return static_cast<int>(begin_found && end_found);
   }
 
   void add(hrd_service* s, int /* info */) override {
@@ -68,9 +68,9 @@ struct mss_rule : public service_rule {
       hrd_service::event hrd_service::stop::*ev) const {
     auto stop_it = std::find_if(
         begin(s->stops_), end(s->stops_),
-        [&](hrd_service::stop const& st) { return st.eva_num == eva_num; });
+        [&](hrd_service::stop const& st) { return st.eva_num_ == eva_num; });
     verify(stop_it != end(s->stops_), "merge/split stop not found");
-    return std::make_pair(((*stop_it).*ev).time,
+    return std::make_pair(((*stop_it).*ev).time_,
                           std::distance(begin(s->stops_), stop_it));
   }
 
@@ -78,9 +78,9 @@ struct mss_rule : public service_rule {
                            int mss_begin, int mss_end) const {
     int merge_time_s1, merge_time_s2, merge_idx_s1, merge_idx_s2;
     std::tie(merge_time_s1, merge_idx_s1) =
-        get_event_time(s1, mss_begin, &hrd_service::stop::dep);
+        get_event_time(s1, mss_begin, &hrd_service::stop::dep_);
     std::tie(merge_time_s2, merge_idx_s2) =
-        get_event_time(s2, mss_begin, &hrd_service::stop::dep);
+        get_event_time(s2, mss_begin, &hrd_service::stop::dep_);
 
     if (merge_time_s1 != merge_time_s2) {
       return false;
@@ -88,9 +88,9 @@ struct mss_rule : public service_rule {
 
     int split_time_s1, split_time_s2, split_idx_s1, split_idx_s2;
     std::tie(split_time_s1, split_idx_s1) =
-        get_event_time(s1, mss_end, &hrd_service::stop::arr);
+        get_event_time(s1, mss_end, &hrd_service::stop::arr_);
     std::tie(split_time_s2, split_idx_s2) =
-        get_event_time(s2, mss_end, &hrd_service::stop::arr);
+        get_event_time(s2, mss_end, &hrd_service::stop::arr_);
 
     if (split_time_s1 != split_time_s2 ||
         split_idx_s1 - merge_idx_s1 != split_idx_s2 - merge_idx_s2) {
@@ -102,9 +102,9 @@ struct mss_rule : public service_rule {
     for (int i = 0; i < stop_count; ++i) {
       auto const& stop_s1 = s1->stops_[merge_idx_s1 + i];
       auto const& stop_s2 = s2->stops_[merge_idx_s2 + i];
-      if (stop_s1.eva_num != stop_s2.eva_num ||
-          (i != 0 && stop_s1.arr.time != stop_s2.arr.time) ||
-          (i != stop_count - 1 && stop_s1.dep.time != stop_s2.dep.time)) {
+      if (stop_s1.eva_num_ != stop_s2.eva_num_ ||
+          (i != 0 && stop_s1.arr_.time_ != stop_s2.arr_.time_) ||
+          (i != stop_count - 1 && stop_s1.dep_.time_ != stop_s2.dep_.time_)) {
         return false;
       }
     }
@@ -176,6 +176,6 @@ void parse_merge_split_service_rules(
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

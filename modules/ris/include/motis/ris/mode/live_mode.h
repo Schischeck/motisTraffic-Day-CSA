@@ -1,7 +1,7 @@
 #pragma once
 
-#include "boost/system/error_code.hpp"
 #include "boost/asio/deadline_timer.hpp"
+#include "boost/system/error_code.hpp"
 
 #include "motis/module/module.h"
 #include "motis/ris/mode/base_mode.h"

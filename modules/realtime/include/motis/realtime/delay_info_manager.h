@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
-#include <unordered_map>
-#include <ostream>
 #include <memory>
+#include <ostream>
+#include <unordered_map>
+#include <vector>
 
 #include "boost/functional/hash.hpp"
 #include "boost/operators.hpp"
@@ -63,13 +63,13 @@ public:
   delay_info_manager(realtime_schedule& rts) : _rts(rts) {
     constexpr auto inv_u = std::numeric_limits<uint32_t>::max();
     _buffered_map.set_empty_key({inv_u, inv_u, true, INVALID_TIME});
-    _buffered_map.set_deleted_key({inv_u-1, inv_u, true, INVALID_TIME});
+    _buffered_map.set_deleted_key({inv_u - 1, inv_u, true, INVALID_TIME});
   }
 
   std::vector<std::unique_ptr<delay_info>> const& delay_infos() const;
   delay_info* get_delay_info(const schedule_event& event_id) const;
   delay_info* get_delay_info(const graph_event& event_id) const;
-  
+
   delay_info* get_buffered_delay_info(const schedule_event& event_id) const;
   motis::time current_time(const schedule_event& event_id) const;
 

@@ -10,6 +10,6 @@ namespace hrd {
 
 void expand_repetitions(std::vector<hrd_service>&);
 
-}  // hrd
-}  // loader
-}  // motis
+} // namespace hrd
+} // namespace loader
+} // namespace motis

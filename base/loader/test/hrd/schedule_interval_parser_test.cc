@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parser/schedule_interval_parser.h"
 
 namespace motis {
 namespace loader {
@@ -17,6 +17,6 @@ TEST(loader_hrd_interval, simple_interval) {
   EXPECT_EQ(1449878400, interval.to());
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -1,8 +1,8 @@
 #include "motis/loader/hrd/builder/provider_builder.h"
 
 #include "motis/core/common/get_or_create.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -22,14 +22,14 @@ Offset<Provider> provider_builder::get_or_create_provider(
     if (it == end(hrd_providers_)) {
       return 0;
     } else {
-      return CreateProvider(fbb,
-                            to_fbs_string(fbb, it->second.short_name, ENCODING),
-                            to_fbs_string(fbb, it->second.long_name, ENCODING),
-                            to_fbs_string(fbb, it->second.full_name, ENCODING));
+      return CreateProvider(
+          fbb, to_fbs_string(fbb, it->second.short_name_, ENCODING),
+          to_fbs_string(fbb, it->second.long_name_, ENCODING),
+          to_fbs_string(fbb, it->second.full_name_, ENCODING));
     }
   });
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

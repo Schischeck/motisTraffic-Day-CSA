@@ -2,19 +2,19 @@
 
 #include "motis/module/module.h"
 
-#include "motis/routing/memory_manager.h"
 #include "motis/routing/arrival.h"
+#include "motis/routing/memory_manager.h"
 
 namespace motis {
 namespace routing {
 
 struct routing : public motis::module::module {
   routing();
-  virtual std::string name() const override { return "routing"; }
+  std::string name() const override { return "routing"; }
 
-  virtual boost::program_options::options_description desc() override;
-  virtual void print(std::ostream& out) const override;
-  virtual bool empty_config() const override { return false; }
+  boost::program_options::options_description desc() override;
+  void print(std::ostream& out) const override;
+  bool empty_config() const override { return false; }
 
   void init(motis::module::registry&) override;
 

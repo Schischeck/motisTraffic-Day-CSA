@@ -1,10 +1,10 @@
 #include "motis/loader/loader.h"
 
-#include <memory>
-#include <vector>
 #include <fstream>
 #include <istream>
+#include <memory>
 #include <ostream>
+#include <vector>
 
 #include "boost/filesystem.hpp"
 
@@ -39,30 +39,30 @@ schedule_ptr load_schedule(loader_options const& opt) {
 
   time_t from, to;
   std::tie(from, to) = opt.interval();
-  auto binary_schedule_file = fs::path(opt.dataset) / SCHEDULE_FILE;
+  auto binary_schedule_file = fs::path(opt.dataset_) / SCHEDULE_FILE;
 
   if (fs::is_regular_file(binary_schedule_file)) {
     auto buf = file(binary_schedule_file.string().c_str(), "r").content();
-    return build_graph(GetSchedule(buf.buf_), from, to, opt.unique_check,
-                       opt.apply_rules, opt.adjust_footpaths);
+    return build_graph(GetSchedule(buf.buf_), from, to, opt.unique_check_,
+                       opt.apply_rules_, opt.adjust_footpaths_);
   } else {
     for (auto const& parser : parsers()) {
-      if (parser->applicable(opt.dataset)) {
+      if (parser->applicable(opt.dataset_)) {
         FlatBufferBuilder builder;
-        parser->parse(opt.dataset, builder);
-        if (opt.write_serialized) {
+        parser->parse(opt.dataset_, builder);
+        if (opt.write_serialized_) {
           parser::file(binary_schedule_file.string().c_str(), "w+")
               .write(builder.GetBufferPointer(), builder.GetSize());
         }
         return build_graph(GetSchedule(builder.GetBufferPointer()), from, to,
-                           opt.unique_check, opt.apply_rules,
-                           opt.adjust_footpaths);
+                           opt.unique_check_, opt.apply_rules_,
+                           opt.adjust_footpaths_);
       }
     }
 
     for (auto const& parser : parsers()) {
       std::cout << "missing files:\n";
-      for (auto const& file : parser->missing_files(opt.dataset)) {
+      for (auto const& file : parser->missing_files(opt.dataset_)) {
         std::cout << "  " << file << "\n";
       }
     }

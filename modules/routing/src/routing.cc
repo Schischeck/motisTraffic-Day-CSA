@@ -4,17 +4,17 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/program_options.hpp"
 
-#include "motis/core/common/util.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/common/util.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/error.h"
-#include "motis/module/motis_call.h"
 #include "motis/module/get_schedule.h"
+#include "motis/module/motis_call.h"
 
 #include "motis/routing/additional_edges.h"
-#include "motis/routing/search.h"
 #include "motis/routing/error.h"
+#include "motis/routing/search.h"
 
 #define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
@@ -38,12 +38,12 @@ std::vector<arrival> get_arrivals(
     if (el->eva_nr()->Length() != 0) {
       station_id = el->eva_nr()->str();
     } else {
-      MessageCreator b;
-      b.CreateAndFinish(MsgContent_StationGuesserRequest,
-                        motis::guesser::CreateStationGuesserRequest(
-                            b, 1, b.CreateString(el->name()->str()))
-                            .Union(),
-                        "/guesser");
+      message_creator b;
+      b.create_and_finish(MsgContent_StationGuesserRequest,
+                          motis::guesser::CreateStationGuesserRequest(
+                              b, 1, b.CreateString(el->name()->str()))
+                              .Union(),
+                          "/guesser");
       auto msg = motis_call(make_msg(b))->val();
       auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
       if (guesses->size() == 0) {
@@ -52,11 +52,12 @@ std::vector<arrival> get_arrivals(
       station_id = guesses->Get(0)->eva()->str();
     }
 
-    auto it = get_schedule().eva_to_station.find(station_id);
-    if (it == end(get_schedule().eva_to_station)) {
+    auto const& eva_to_station = get_schedule().eva_to_station_;
+    auto it = eva_to_station.find(station_id);
+    if (it == end(eva_to_station)) {
       throw boost::system::system_error(error::given_eva_not_available);
     }
-    arrivals.push_back({arrival_part(it->second->index)});
+    arrivals.push_back({arrival_part(it->second->index_)});
   }
 
   return arrivals;
@@ -109,13 +110,13 @@ msg_ptr routing::route(msg_ptr const& msg) {
       req->type() == Type_OnTrip || req->type() == Type_LateConnection,
       create_additional_edges(req->additional_edges(), sched));
 
-  LOG(info) << sched.stations[arrivals[0][0].station]->name << " to "
-            << sched.stations[arrivals[1][0].station]->name << " "
+  LOG(info) << sched.stations_[arrivals[0][0].station_]->name_ << " to "
+            << sched.stations_[arrivals[1][0].station_]->name_ << " "
             << "(" << format_time(i_begin) << ", " << format_time(i_end)
-            << ") -> " << result.journeys.size() << " connections found";
+            << ") -> " << result.journeys_.size() << " connections found";
 
-  // TODO connection checker annotion
-  return journeys_to_message(result.journeys, result.stats.pareto_dijkstra);
+  // TODO(Felix Guendling) connection checker annotion
+  return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
 }
 
 }  // namespace routing

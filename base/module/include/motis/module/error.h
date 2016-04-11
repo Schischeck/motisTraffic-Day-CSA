@@ -22,9 +22,9 @@ enum error_code_t {
 
 class error_category_impl : public boost::system::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::module"; }
+  const char* name() const noexcept override { return "motis::module"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "module: no error";
       case error::unable_to_parse_msg: return "module: unable to parse message";

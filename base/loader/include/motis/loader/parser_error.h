@@ -7,19 +7,19 @@ namespace loader {
 
 struct parser_error : public std::exception {
   parser_error(char const* filename, int line_number)
-      : filename_copy(filename),
-        filename(filename_copy.c_str()),
-        line_number(line_number) {}
+      : filename_copy_(filename),
+        filename_(filename_copy_.c_str()),
+        line_number_(line_number) {}
 
-  char const* what() const noexcept { return "parser_error"; }
+  char const* what() const noexcept override { return "parser_error"; }
 
   void print_what() const noexcept {
-    printf("%s:%s:%d\n", what(), filename, line_number);
+    printf("%s:%s:%d\n", what(), filename_, line_number_);
   }
 
-  std::string filename_copy;
-  char const* filename;
-  int line_number;
+  std::string filename_copy_;
+  char const* filename_;
+  int line_number_;
 };
 
 }  // namespace loader

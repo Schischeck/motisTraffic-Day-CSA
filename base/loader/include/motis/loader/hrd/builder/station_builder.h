@@ -23,6 +23,6 @@ struct station_builder {
   std::map<timezone_entry const*, flatbuffers::Offset<Timezone>> fbs_timezones_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

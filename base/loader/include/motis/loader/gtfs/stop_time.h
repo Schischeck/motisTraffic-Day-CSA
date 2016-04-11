@@ -3,8 +3,8 @@
 #include <map>
 #include <string>
 
-#include "motis/loader/loaded_file.h"
 #include "motis/loader/gtfs/trip.h"
+#include "motis/loader/loaded_file.h"
 
 namespace motis {
 namespace loader {

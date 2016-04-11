@@ -14,4 +14,4 @@ V& get_or_create(std::map<K, V>& m, K const& key, CreateFun f) {
   }
 }
 
-} // namespace motis
+}  // namespace motis

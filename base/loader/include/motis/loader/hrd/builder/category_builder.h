@@ -14,7 +14,7 @@ namespace loader {
 namespace hrd {
 
 struct category_builder {
-  category_builder(std::map<uint32_t, category> hrd_categories);
+  explicit category_builder(std::map<uint32_t, category> hrd_categories);
 
   flatbuffers::Offset<Category> get_or_create_category(
       parser::cstr, flatbuffers::FlatBufferBuilder&);
@@ -23,6 +23,6 @@ struct category_builder {
   std::map<uint32_t, flatbuffers::Offset<Category>> fbs_categories_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

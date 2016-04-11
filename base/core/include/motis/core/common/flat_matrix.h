@@ -34,7 +34,7 @@ struct flat_matrix {
 
   flat_matrix() = default;
 
-  flat_matrix(int column_count)
+  explicit flat_matrix(int column_count)
       : column_count_(column_count), entries_(column_count * column_count) {}
 
   row operator[](int row_index) { return {*this, row_index}; }

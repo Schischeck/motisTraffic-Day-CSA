@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "motis/module/callbacks.h"
 #include "motis/bikesharing/database.h"
 #include "motis/bikesharing/terminal.h"
-#include "motis/module/callbacks.h"
 
 #include "parser/buffer.h"
 

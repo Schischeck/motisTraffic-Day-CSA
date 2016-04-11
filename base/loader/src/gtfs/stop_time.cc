@@ -1,10 +1,10 @@
 #include "motis/loader/gtfs/stop_time.h"
 
-#include <tuple>
 #include <algorithm>
+#include <tuple>
 
-#include "parser/csv.h"
 #include "parser/arg_parser.h"
+#include "parser/csv.h"
 
 #include "motis/loader/util.h"
 

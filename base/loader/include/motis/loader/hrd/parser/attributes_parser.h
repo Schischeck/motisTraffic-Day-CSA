@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cinttypes>
-#include <string>
 #include <map>
+#include <string>
 
 #include "motis/loader/loaded_file.h"
 
@@ -12,6 +12,6 @@ namespace hrd {
 
 std::map<uint16_t, std::string> parse_attributes(loaded_file const&);
 
-}  // hrd
-}  // loader
-}  // motis
+} // namespace hrd
+} // namespace loader
+} // namespace motis

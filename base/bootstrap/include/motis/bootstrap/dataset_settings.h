@@ -17,13 +17,13 @@ class dataset_settings : public conf::configuration,
                          public motis::loader::loader_options {
 public:
   dataset_settings(std::string default_dataset, bool write_serialized,
-                   bool unique_check, bool apply_rules, bool adjust_footpaths,
+                   bool apply_rules, bool adjust_footpaths, bool unique_check,
                    std::string schedule_begin, int num_days);
 
-  virtual ~dataset_settings() {}
+  ~dataset_settings() override = default;
 
-  virtual boost::program_options::options_description desc() override;
-  virtual void print(std::ostream& out) const override;
+  boost::program_options::options_description desc() override;
+  void print(std::ostream& out) const override;
 };
 
 }  // namespace bootstrap

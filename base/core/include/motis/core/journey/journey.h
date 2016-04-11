@@ -10,51 +10,51 @@ struct journey {
   journey() = default;
 
   struct transport {
-    unsigned from, to;
-    enum transport_type { PublicTransport, Walk, Mumo } type;
-    std::string name;
-    std::string category_name;
-    unsigned category_id;
-    unsigned clasz;
-    unsigned train_nr;
-    std::string line_identifier;
-    unsigned duration;
-    int slot;
-    std::string direction;
-    std::string provider;
-    unsigned route_id;
+    unsigned from_, to_;
+    enum transport_type { PublicTransport, Walk, Mumo } type_;
+    std::string name_;
+    std::string category_name_;
+    unsigned category_id_;
+    unsigned clasz_;
+    unsigned train_nr_;
+    std::string line_identifier_;
+    unsigned duration_;
+    int slot_;
+    std::string direction_;
+    std::string provider_;
+    unsigned route_id_;
 
-    std::string mumo_type_name;
-    unsigned mumo_price;
+    std::string mumo_type_name_;
+    unsigned mumo_price_;
   };
 
   struct stop {
-    unsigned index;
-    bool interchange;
-    std::string name;
-    std::string eva_no;
-    double lat, lng;
+    unsigned index_;
+    bool interchange_;
+    std::string name_;
+    std::string eva_no_;
+    double lat_, lng_;
     struct event_info {
-      bool valid;
-      std::time_t timestamp;
-      std::time_t schedule_timestamp;
-      std::string platform;
-    } arrival, departure;
+      bool valid_;
+      std::time_t timestamp_;
+      std::time_t schedule_timestamp_;
+      std::string platform_;
+    } arrival_, departure_;
   };
 
   struct attribute {
-    unsigned from, to;
-    std::string code;
-    std::string text;
+    unsigned from_, to_;
+    std::string code_;
+    std::string text_;
   };
 
   uint16_t get_duration() const;
   uint16_t get_transfers() const;
 
-  unsigned duration, transfers, price;
-  std::vector<stop> stops;
-  std::vector<transport> transports;
-  std::vector<attribute> attributes;
+  unsigned duration_, transfers_, price_;
+  std::vector<stop> stops_;
+  std::vector<transport> transports_;
+  std::vector<attribute> attributes_;
 };
 
 }  // namespace motis

@@ -1,15 +1,15 @@
 #pragma once
 
 #include "motis/module/module.h"
-#include "motis/railviz/timetable_retriever.h"
 #include "motis/protocol/Message_generated.h"
 #include "motis/protocol/RealtimeTrainInfoResponse_generated.h"
+#include "motis/railviz/timetable_retriever.h"
 
 namespace motis {
 namespace railviz {
 
 class realtime_response {
- public:
+public:
   realtime_response(motis::module::msg_ptr msg);
 
   std::pair<unsigned int, unsigned int> delay(const light_connection&,
@@ -23,7 +23,7 @@ class realtime_response {
   const motis::station_node* next_station_node(const motis::node& node_,
                                                unsigned int route_id) const;
 
- private:
+private:
   unsigned int delay_batch(const light_connection&, const station_node&,
                            bool departure, unsigned int route_id) const;
   unsigned int delay_single(const motis::realtime::RealtimeTrainInfoResponse&,

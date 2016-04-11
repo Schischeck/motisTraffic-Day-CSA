@@ -85,6 +85,8 @@ Ordering/Groups (separated by empty lines):
   - System includes: #include <iostream>
   - Library includes: #include "boost/..."
   - Own includes: #include "motis/..."
+  - Use forward-declarations instead of includes where possible.
+    This improves build times and hides details.
 
 
 # Programming

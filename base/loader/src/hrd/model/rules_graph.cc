@@ -14,7 +14,7 @@ hrd_service* resolve(bitfield const& upper_traffic_days, hrd_service* origin,
     std::tie(resolved_it, std::ignore) =
         resolved_services.emplace(std::move(resolved), origin);
   }
-  return resolved_it->service.get();
+  return resolved_it->service_.get();
 }
 
 void rule_node::resolve_services(
@@ -39,7 +39,7 @@ rule_node::rule_node(service_node* s1, service_node* s2,
       s2_(s2),
       rule_(rule_info),
       traffic_days_(s1->service_->traffic_days_ & s2->service_->traffic_days_ &
-                    rule_info.traffic_days) {}
+                    rule_info.traffic_days_) {}
 
 std::pair<std::set<rule_node*>, bitfield> rule_node::max_component() {
   std::pair<std::set<rule_node*>, bitfield> max;
@@ -74,6 +74,6 @@ std::pair<std::set<rule_node*>, bitfield> rule_node::max_component() {
   return max;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

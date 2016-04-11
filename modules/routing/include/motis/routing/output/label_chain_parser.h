@@ -74,7 +74,8 @@ parse_label_chain(Label const* terminal_label) {
   } while ((c = c->pred_));
 
   std::pair<std::vector<intermediate::stop>,
-            std::vector<intermediate::transport>> ret;
+            std::vector<intermediate::transport>>
+      ret;
   auto& stops = ret.first;
   auto& transports = ret.second;
 
@@ -94,8 +95,8 @@ parse_label_chain(Label const* terminal_label) {
         time a_time = walk_arrival;
         time d_time = INVALID_TIME;
         if (a_time == INVALID_TIME && last_con != nullptr) {
-          a_platform = last_con->_full_con->a_platform;
-          a_time = last_con->a_time;
+          a_platform = last_con->full_con_->a_platform_;
+          a_time = last_con->a_time_;
         }
 
         walk_arrival = INVALID_TIME;
@@ -104,12 +105,12 @@ parse_label_chain(Label const* terminal_label) {
         auto s2 = std::next(it, 2);
         if (s1 != end(labels) && s2 != end(labels) &&
             (*s2)->connection_ != nullptr) {
-          d_platform = (*s2)->connection_->_full_con->d_platform;
-          d_time = (*s2)->connection_->d_time;
+          d_platform = (*s2)->connection_->full_con_->d_platform_;
+          d_time = (*s2)->connection_->d_time_;
         }
 
-        stops.emplace_back((unsigned int)++station_index,
-                           current->node_->get_station()->_id, a_platform,
+        stops.emplace_back(static_cast<unsigned int>(++station_index),
+                           current->node_->get_station()->id_, a_platform,
                            d_platform, a_time, d_time,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
@@ -120,16 +121,18 @@ parse_label_chain(Label const* terminal_label) {
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            (unsigned int)++station_index, current->node_->get_station()->_id,
+            static_cast<unsigned int>(++station_index),
+            current->node_->get_station()->id_,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
-                                : last_con->_full_con->a_platform,
+                                : last_con->full_con_->a_platform_,
             MOTIS_UNKNOWN_TRACK,
             stops.empty() ? INVALID_TIME : (last_con == nullptr)
                                                ? current->now_
-                                               : last_con->a_time,
+                                               : last_con->a_time_,
             current->now_, last_con != nullptr);
 
-        transports.emplace_back(station_index, (unsigned int)station_index + 1,
+        transports.emplace_back(station_index,
+                                static_cast<unsigned int>(station_index) + 1,
                                 (*std::next(it))->now_ - current->now_, -1, 0);
 
         walk_arrival = (*std::next(it))->now_;
@@ -139,9 +142,9 @@ parse_label_chain(Label const* terminal_label) {
 
       case IN_CONNECTION: {
         if (current->connection_) {
-          transports.emplace_back((unsigned int)station_index,
-                                  (unsigned int)station_index + 1,
-                                  current->connection_, current->node_->_route);
+          transports.emplace_back(static_cast<unsigned int>(station_index),
+                                  static_cast<unsigned int>(station_index) + 1,
+                                  current->connection_, current->node_->route_);
         }
 
         // do not collect the last connection route node.
@@ -154,11 +157,12 @@ parse_label_chain(Label const* terminal_label) {
             succ = *std::next(it, 2);
           }
 
-          stops.emplace_back(
-              (unsigned int)++station_index, current->node_->get_station()->_id,
-              current->connection_->_full_con->a_platform,
-              succ->connection_->_full_con->d_platform,
-              current->connection_->a_time, succ->connection_->d_time, false);
+          stops.emplace_back(static_cast<unsigned int>(++station_index),
+                             current->node_->get_station()->id_,
+                             current->connection_->full_con_->a_platform_,
+                             succ->connection_->full_con_->d_platform_,
+                             current->connection_->a_time_,
+                             succ->connection_->d_time_, false);
         }
 
         last_con = current->connection_;

@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
+
+if (MOTIS_LINT)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
 ################################
@@ -131,10 +137,22 @@ add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
 list(REMOVE_ITEM all-modules ".DS_Store")
-string (REPLACE ";" " " modules-option "${all-modules}")
+string(REPLACE ";" " " modules-option "${all-modules}")
 set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
+list(REMOVE_ITEM modules
+  "bikesharing"
+  "connectionchecker"
+  "intermodal"
+  "lookup"
+  "railviz"
+  "realtime"
+  "reliability"
+  "ris"
+  "rt"
+)
+
 set(module-targets "")
 set(module-test-files "")
 foreach(module ${all-modules})
@@ -162,7 +180,7 @@ configure_file (
 )
 file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
-file(GLOB_RECURSE motis-base-test-files base/module/*_test.cc)
+file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-test-files}
   ${motis-modules-test-files}
@@ -205,3 +223,46 @@ target_link_libraries(motis-itest
   ${Boost_LIBRARIES}
 )
 target_link_libraries(motis-itest gtest gtest_main)
+
+################################
+# Lint (clang-tidy)
+################################
+if(MOTIS_LINT)
+  add_custom_target(lint
+    /usr/bin/python
+      ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
+        -exit-on-error
+        -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}(base/)|(modules/)|(test/)"
+        "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
+        "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"
+        "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
+    COMMENT "Running clang-tidy"
+    VERBATIM
+  )
+  add_dependencies(lint motis motis-test motis-itest)
+endif()
+
+
+################################
+# Lint (oclint)
+################################
+if(MOTIS_LINT)
+  add_custom_target(oclint
+    find
+      ./modules/routing/ ./modules/guesser/ ./modules/osrm/ ./base/
+      -type f
+      -name "*.cc"
+      ! -name "*test*"
+      -print0
+      |
+      xargs
+        -0
+        oclint
+          -enable-global-analysis
+          -p ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running oclint"
+    VERBATIM
+  )
+  add_dependencies(lint motis motis-test motis-itest)
+endif()

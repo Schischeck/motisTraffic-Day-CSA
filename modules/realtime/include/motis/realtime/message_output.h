@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ctime>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include "motis/core/schedule/delay_info.h"
 #include "motis/realtime/messages.h"
@@ -30,17 +30,12 @@ private:
 
   int reason_number(timestamp_reason reason) {
     switch (reason) {
-      case timestamp_reason::SCHEDULE:
-        return 0;
-      case timestamp_reason::FORECAST:
-        return 1;
+      case timestamp_reason::SCHEDULE: return 0;
+      case timestamp_reason::FORECAST: return 1;
       case timestamp_reason::IS:
-      case timestamp_reason::REPAIR:
-        return 2;
-      case timestamp_reason::PROPAGATION:
-        return 3;
-      default:
-        return 0;
+      case timestamp_reason::REPAIR: return 2;
+      case timestamp_reason::PROPAGATION: return 3;
+      default: return 0;
     }
   }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "motis/realtime/messages.h"
 

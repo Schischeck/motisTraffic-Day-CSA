@@ -1,8 +1,8 @@
 #pragma once
 
+#include <climits>
 #include <memory>
 #include <vector>
-#include <climits>
 
 #include <utility>  // std::pair, std::make_pair
 

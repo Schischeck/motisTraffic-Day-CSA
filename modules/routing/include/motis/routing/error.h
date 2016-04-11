@@ -19,9 +19,9 @@ enum error_code_t {
 
 class error_category_impl : public boost::system::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::routing"; }
+  const char* name() const noexcept override { return "motis::routing"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "routing: no error";
       case error::no_guess_for_station:
@@ -37,13 +37,13 @@ public:
   }
 };
 
-const boost::system::error_category& error_category() {
+inline const boost::system::error_category& error_category() {
   static error_category_impl instance;
   return instance;
 }
 
 namespace error {
-boost::system::error_code make_error_code(error_code_t e) noexcept {
+inline boost::system::error_code make_error_code(error_code_t e) noexcept {
   return boost::system::error_code(static_cast<int>(e), error_category());
 }
 }  // namespace error

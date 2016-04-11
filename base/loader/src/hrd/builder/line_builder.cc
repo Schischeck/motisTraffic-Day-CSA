@@ -20,6 +20,6 @@ Offset<String> line_builder::get_or_create_line(
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

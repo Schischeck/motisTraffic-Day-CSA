@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/access/time_access.h"
+#include "motis/core/access/time_access.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/util.h"
 
@@ -16,7 +16,7 @@ protected:
                             std::time_t schedule_begin,
                             std::time_t schedule_end);
 
-  virtual void SetUp();
+  void SetUp() override;
 
   static edge const* get_route_edge(node const* route_node);
 
@@ -26,7 +26,7 @@ protected:
 
   std::time_t unix_time(int hhmm, int day_idx = 0,
                                int timezone_offset = kDefaultTimezoneOffset) {
-    return unix_time(sched_, hhmm, day_idx, timezone_offset);
+    return motis::unix_time(*sched_, hhmm, day_idx, timezone_offset);
   }
 
   schedule_ptr sched_;
@@ -34,5 +34,5 @@ protected:
   std::time_t schedule_begin_, schedule_end_;
 };
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

@@ -13,23 +13,23 @@ namespace loader {
 namespace hrd {
 
 struct bitfield_builder {
-  static constexpr int NO_BITFIELD_NUM = -1;
+  static constexpr int no_bitfield_num_ = -1;
 
-  bitfield_builder(std::map<int, bitfield>);
+  explicit bitfield_builder(std::map<int, bitfield>);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
       int bitfield_num, flatbuffers::FlatBufferBuilder&);
 
   flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      bitfield const&, flatbuffers::FlatBufferBuilder&, int = NO_BITFIELD_NUM);
+      bitfield const&, flatbuffers::FlatBufferBuilder&, int = no_bitfield_num_);
 
   std::map<int, bitfield> const hrd_bitfields_;
   google::dense_hash_map<bitfield, flatbuffers::Offset<flatbuffers::String>,
-                         std::hash<bitfield>,
-                         std::equal_to<bitfield>> fbs_bitfields_;
+                         std::hash<bitfield>, std::equal_to<bitfield>>
+      fbs_bitfields_;
   std::map<int, flatbuffers::Offset<flatbuffers::String>> fbs_bf_lookup_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

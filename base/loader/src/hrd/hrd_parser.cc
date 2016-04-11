@@ -4,22 +4,6 @@
 
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
-#include "motis/loader/hrd/files.h"
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
-#include "motis/loader/hrd/parser/directions_parser.h"
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
-#include "motis/loader/hrd/parser/stations_parser.h"
-#include "motis/loader/hrd/parser/categories_parser.h"
-#include "motis/loader/hrd/parser/attributes_parser.h"
-#include "motis/loader/hrd/parser/bitfields_parser.h"
-#include "motis/loader/hrd/parser/platform_rules_parser.h"
-#include "motis/loader/hrd/parser/providers_parser.h"
-#include "motis/loader/hrd/parser/service_parser.h"
-#include "motis/loader/hrd/parser/through_services_parser.h"
-#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
-#include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/hrd/builder/attribute_builder.h"
 #include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "motis/loader/hrd/builder/category_builder.h"
@@ -31,6 +15,22 @@
 #include "motis/loader/hrd/builder/rule_service_builder.h"
 #include "motis/loader/hrd/builder/service_builder.h"
 #include "motis/loader/hrd/builder/station_builder.h"
+#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parser/attributes_parser.h"
+#include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/hrd/parser/categories_parser.h"
+#include "motis/loader/hrd/parser/directions_parser.h"
+#include "motis/loader/hrd/parser/merge_split_rules_parser.h"
+#include "motis/loader/hrd/parser/platform_rules_parser.h"
+#include "motis/loader/hrd/parser/providers_parser.h"
+#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/service_parser.h"
+#include "motis/loader/hrd/parser/stations_parser.h"
+#include "motis/loader/hrd/parser/through_services_parser.h"
+#include "motis/loader/hrd/parser/timezones_parser.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -200,9 +200,11 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
 
   // compute and build rule services
   rsb.resolve_rule_services();
-  rsb.create_rule_services([&](hrd_service const& s, FlatBufferBuilder& fbb) {
-    return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, true);
-  }, stb, fbb);
+  rsb.create_rule_services(
+      [&](hrd_service const& s, FlatBufferBuilder& fbb) {
+        return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, true);
+      },
+      stb, fbb);
 
   auto interval = parse_interval(basic_data_file);
   fbb.Finish(
@@ -210,9 +212,9 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
                      fbb.CreateVector(values(stb.fbs_stations_)),
                      fbb.CreateVector(values(rb.routes_)), &interval,
                      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
-                     fbb.CreateVector(rsb.fbs_rule_services)));
+                     fbb.CreateVector(rsb.fbs_rule_services_)));
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

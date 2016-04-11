@@ -1,14 +1,13 @@
 #pragma once
 
-#include <vector>
-#include <utility>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "motis/core/common/hash_map.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/event.h"
 #include "motis/core/schedule/nodes.h"
-
 
 namespace motis {
 namespace realtime {
