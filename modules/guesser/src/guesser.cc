@@ -35,7 +35,7 @@ po::options_description guesser::desc() {
 void guesser::print(std::ostream&) const {}
 
 void guesser::init(motis::module::registry& reg) {
-  auto& sched = get_schedule();
+  auto& sched = synced_sched<RO>().sched();
 
   std::set<std::string> station_names;
   station_indices_ = std::accumulate(
