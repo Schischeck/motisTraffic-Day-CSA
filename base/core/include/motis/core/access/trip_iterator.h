@@ -106,7 +106,9 @@ struct stops {
   explicit stops(trip const* t) : t_(t) {}
 
   iterator begin() const { return {t_, 0}; }
-  iterator end() const { return {t_, static_cast<int>(t_->edges_->size()) + 1}; }
+  iterator end() const {
+    return {t_, static_cast<int>(t_->edges_->size()) + 1};
+  }
 
   friend iterator begin(stops const& s) { return s.begin(); }
   friend iterator end(stops const& s) { return s.end(); }

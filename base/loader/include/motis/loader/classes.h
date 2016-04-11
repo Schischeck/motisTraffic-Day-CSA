@@ -72,5 +72,5 @@ inline std::map<std::string, int> class_mapping() {
   // clang-format on
 }
 
-} // namespace loader
-} // namespace motis
+}  // namespace loader
+}  // namespace motis

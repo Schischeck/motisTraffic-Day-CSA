@@ -20,7 +20,8 @@ namespace hrd {
 
 struct rule_service_builder {
   rule_service_builder() = default;
-  explicit rule_service_builder(service_rules rs) : input_rules_(std::move(rs)) {}
+  explicit rule_service_builder(service_rules rs)
+      : input_rules_(std::move(rs)) {}
 
   bool add_service(hrd_service const&);
   void resolve_rule_services();

@@ -12,6 +12,6 @@ namespace hrd {
 
 std::map<uint16_t, std::string> parse_attributes(loaded_file const&);
 
-} // namespace hrd
-} // namespace loader
-} // namespace motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

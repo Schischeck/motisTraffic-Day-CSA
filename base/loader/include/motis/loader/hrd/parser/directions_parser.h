@@ -12,8 +12,7 @@ namespace hrd {
 
 using namespace parser;
 
-std::map<uint64_t, std::string> parse_directions(
-    loaded_file const& file);
+std::map<uint64_t, std::string> parse_directions(loaded_file const& file);
 
 }  // namespace hrd
 }  // namespace loader
