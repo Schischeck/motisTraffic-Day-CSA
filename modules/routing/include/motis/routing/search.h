@@ -29,8 +29,9 @@ namespace routing {
 
 struct search_result {
   search_result() = default;
-  search_result(statistics stats, std::vector<journey> journeys)
-      : stats_(std::move(stats)), journeys_(std::move(journeys)) {}
+  search_result(statistics stats, std::vector<journey> journeys)  // NOLINT
+      : stats_(stats),
+        journeys_(std::move(journeys)) {}  // NOLINT
   statistics stats_;
   std::vector<journey> journeys_;
 };

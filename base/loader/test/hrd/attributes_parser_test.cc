@@ -51,7 +51,7 @@ TEST(loader_hrd_attributes, invalid_line) {
 
 TEST(loader_hrd_attributes, ignore_output_rules) {
   loaded_file f = {ATTRIBUTES_FILE_OLD, "# ,  ,  ,"};
-  ASSERT_TRUE(parse_attributes(f).size() == 0);
+  ASSERT_TRUE(parse_attributes(f).empty());
 }
 
 }  // namespace hrd

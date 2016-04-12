@@ -22,15 +22,15 @@ std::unique_ptr<Parser> init_parser() {
   auto parser = make_unique<Parser>();
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
-    if (strcmp(filenames[i], "Message.fbs") == 0) {
+    if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT
       message_symbol_index = i;
-    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {
+    } else if (!parser->Parse(symbols[i], nullptr, filenames[i])) {  // NOLINT
       printf("error: %s\n", parser->error_.c_str());
       throw std::runtime_error("flatbuffer protocol definitions parser error");
     }
   }
   if (message_symbol_index == -1 ||
-      !parser->Parse(symbols[message_symbol_index])) {
+      !parser->Parse(symbols[message_symbol_index])) {  // NOLINT
     printf("error: %s\n", parser->error_.c_str());
     throw std::runtime_error("flatbuffer protocol definitions parser error");
   }
@@ -52,13 +52,13 @@ msg_ptr make_msg(std::string const& json) {
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
     LOG(motis::logging::error) << "parse error: " << parser->error_;
-    throw boost::system::system_error(error::unable_to_parse_msg);
+    throw std::system_error(error::unable_to_parse_msg);
   }
 
   flatbuffers::Verifier verifier(parser->builder_.GetBufferPointer(),
                                  parser->builder_.GetSize());
   if (!VerifyMessageBuffer(verifier)) {
-    throw boost::system::system_error(error::malformed_msg);
+    throw std::system_error(error::malformed_msg);
   }
   auto size = parser->builder_.GetSize();
   auto buffer = parser->builder_.ReleaseBufferPointer();
@@ -74,12 +74,12 @@ msg_ptr make_msg(message_creator& builder) {
   return std::make_shared<message>(len, std::move(mem));
 }
 
-msg_ptr make_msg(void* buf, size_t len) {
+msg_ptr make_msg(void const* buf, size_t len) {
   auto msg = std::make_shared<message>(len, buf);
 
   flatbuffers::Verifier verifier(msg->data(), msg->size());
   if (!VerifyMessageBuffer(verifier)) {
-    throw boost::system::system_error(error::malformed_msg);
+    throw std::system_error(error::malformed_msg);
   }
 
   return msg;
@@ -98,7 +98,7 @@ msg_ptr make_success_msg() {
   return make_msg(b);
 }
 
-msg_ptr make_error_msg(boost::system::error_code const& ec) {
+msg_ptr make_error_msg(std::error_code const& ec) {
   message_creator b;
   b.create_and_finish(
       MsgContent_MotisError,

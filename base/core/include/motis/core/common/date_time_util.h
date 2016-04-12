@@ -8,7 +8,7 @@
 namespace motis {
 
 inline std::time_t to_unix_time(boost::posix_time::ptime const& t) {
-  static boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
+  boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
   return (t - epoch).total_seconds();
 }
 

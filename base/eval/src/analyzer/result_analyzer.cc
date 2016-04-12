@@ -18,7 +18,8 @@ struct response {
         labels_created_(0),
         time_(r->pareto_dijkstra_timing()),
         start_labels_(0),
-        con_count_(r->connections()->size()) {}
+        con_count_(r->connections()->size()),
+        max_label_quit_(false) {}
 
   unsigned labels_until_first_;
   unsigned labels_after_last_;

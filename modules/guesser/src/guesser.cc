@@ -35,7 +35,7 @@ po::options_description guesser::desc() {
 void guesser::print(std::ostream&) const {}
 
 void guesser::init(motis::module::registry& reg) {
-  auto& sched = get_schedule();
+  auto& sched = synced_sched<RO>().sched();
 
   std::set<std::string> station_names;
   station_indices_ = std::accumulate(
@@ -56,7 +56,7 @@ void guesser::init(motis::module::registry& reg) {
         auto const& s = *sched.stations_[i];
         double factor = 0;
         for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {
-          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_[i];
+          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_.at(i);
         }
         return std::make_pair(s.name_, factor);
       });
@@ -74,7 +74,7 @@ void guesser::init(motis::module::registry& reg) {
     }
   }
 
-  guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(stations));
+  guesser_ = std::make_unique<guess::guesser>(stations);
   reg.register_op("/guesser", std::bind(&guesser::guess, this, p::_1));
 }
 

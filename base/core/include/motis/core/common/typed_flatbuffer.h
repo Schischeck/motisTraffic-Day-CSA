@@ -23,8 +23,8 @@ struct typed_flatbuffer {
   explicit typed_flatbuffer(std::string const& s)
       : typed_flatbuffer(s.size(), s.data()) {}
 
-  typed_flatbuffer(typed_flatbuffer&&) = default;
-  typed_flatbuffer& operator=(typed_flatbuffer&&) = default;
+  typed_flatbuffer(typed_flatbuffer&&) = default;  // NOLINT
+  typed_flatbuffer& operator=(typed_flatbuffer&&) = default;  // NOLINT
 
   virtual ~typed_flatbuffer() = default;
 

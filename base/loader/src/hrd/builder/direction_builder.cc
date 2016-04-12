@@ -33,7 +33,7 @@ Offset<Direction> direction_builder::get_or_create_direction(
         }
         case hrd_service::DIRECTION_CODE: {
           auto it = hrd_directions_.find(direction_key.first);
-          verify(it != end(hrd_directions_), "missing direction info: %llu",
+          verify(it != end(hrd_directions_), "missing direction info: %lu",
                  direction_key.first);
           return CreateDirection(fbb, 0,
                                  to_fbs_string(fbb, it->second, ENCODING));

@@ -7,7 +7,7 @@ namespace motis {
 struct journey;
 
 namespace routing {
-struct RoutingResponse;
+struct RoutingResponse;  // NOLINT
 }  // namespace routing
 
 std::vector<journey> message_to_journeys(routing::RoutingResponse const*);

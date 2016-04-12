@@ -1,7 +1,7 @@
 #pragma once
 
-#include "boost/system/system_error.hpp"
-#include "boost/type_traits.hpp"
+#include <system_error>
+#include <type_traits>
 
 namespace motis {
 namespace routing {
@@ -9,7 +9,6 @@ namespace routing {
 namespace error {
 enum error_code_t {
   ok = 0,
-
   no_guess_for_station = 1,
   given_eva_not_available = 2,
   path_length_too_short = 3,
@@ -17,7 +16,7 @@ enum error_code_t {
 };
 }  // namespace error
 
-class error_category_impl : public boost::system::error_category {
+class error_category_impl : public std::error_category {
 public:
   const char* name() const noexcept override { return "motis::routing"; }
 
@@ -37,26 +36,24 @@ public:
   }
 };
 
-inline const boost::system::error_category& error_category() {
+inline const std::error_category& error_category() {
   static error_category_impl instance;
   return instance;
 }
 
 namespace error {
-inline boost::system::error_code make_error_code(error_code_t e) noexcept {
-  return boost::system::error_code(static_cast<int>(e), error_category());
+inline std::error_code make_error_code(error_code_t e) noexcept {
+  return std::error_code(static_cast<int>(e), error_category());
 }
 }  // namespace error
 
 }  // namespace routing
 }  // namespace motis
 
-namespace boost {
-namespace system {
+namespace std {
 
 template <>
 struct is_error_code_enum<motis::routing::error::error_code_t>
-    : public boost::true_type {};
+    : public std::true_type {};
 
-}  // namespace system
-}  // namespace boost
+}  // namespace std

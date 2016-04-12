@@ -12,6 +12,6 @@ namespace hrd {
 void expand_traffic_days(hrd_service const&, std::map<int, bitfield> const&,
                          std::vector<hrd_service>&);
 
-} // namespace hrd
-} // namespace loader
-} // namespace motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

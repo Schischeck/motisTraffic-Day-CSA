@@ -16,7 +16,10 @@ namespace hrd {
 
 struct ts_rule : public service_rule {
   ts_rule(service_id id_1, service_id id_2, int eva_num, bitfield const& mask)
-      : service_rule(mask), id_1_(id_1), id_2_(id_2), eva_num_(eva_num) {}
+      : service_rule(mask),
+        id_1_(std::move(id_1)),
+        id_2_(std::move(id_2)),
+        eva_num_(eva_num) {}
 
   ~ts_rule() override = default;
 

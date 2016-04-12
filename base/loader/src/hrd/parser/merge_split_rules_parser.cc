@@ -21,8 +21,8 @@ struct mss_rule : public service_rule {
   mss_rule(service_id id_1, service_id id_2, int eva_num_begin, int eva_num_end,
            bitfield const& mask)
       : service_rule(mask),
-        id_1_(id_1),
-        id_2_(id_2),
+        id_1_(std::move(id_1)),
+        id_2_(std::move(id_2)),
         eva_num_begin_(eva_num_begin),
         eva_num_end_(eva_num_end) {}
 

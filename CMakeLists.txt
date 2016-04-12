@@ -239,7 +239,7 @@ if(MOTIS_LINT)
     COMMENT "Running clang-tidy"
     VERBATIM
   )
-  add_dependencies(lint motis motis-test motis-itest)
+  add_dependencies(lint motis motis-test motis-itest motis-eval motis-cli)
 endif()
 
 

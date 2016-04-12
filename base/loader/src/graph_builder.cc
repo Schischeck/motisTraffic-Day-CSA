@@ -147,8 +147,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
-  id.secondary_ =
-      secondary_trip_id(arr_station_idx, arr_time, false, std::move(line_id));
+  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, false, line_id);
   return id;
 }
 
@@ -425,8 +424,8 @@ light_connection graph_builder::section_to_connection(
                       from.timez_, to.timez_, adjusted);
 
   // Count events.
-  ++from.dep_class_events_[con_.clasz_];
-  ++to.arr_class_events_[con_.clasz_];
+  ++from.dep_class_events_.at(con_.clasz_);
+  ++to.arr_class_events_.at(con_.clasz_);
 
   return light_connection(
       dep_motis_time, arr_motis_time,
