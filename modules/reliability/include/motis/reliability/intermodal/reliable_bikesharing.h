@@ -45,7 +45,7 @@ struct bikesharing_info {
   unsigned int duration_;
   /* right-open intervals */
   std::vector<std::pair<time_t, time_t>> availability_intervals_;
-  std::pair<std::string, std::string> bikesharing_stations_;
+  std::string from_bike_station_, to_bike_station_;
 };
 
 struct bikesharing_infos {

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <string>
 
 #include "boost/program_options.hpp"
@@ -127,27 +128,29 @@ void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
 
 void reliability::handle_routing_request(ReliableRoutingRequest const* req,
                                          sid session_id, callback cb) {
-  typedef std::function<void(void)> individual_modes_cb_type;
+  using individual_modes_cb_type = std::function<void(void)>;
+  using bs_type =
+      motis::reliability::intermodal::bikesharing::bikesharing_infos;
 
-  std::pair<bool,
-            motis::reliability::intermodal::bikesharing::bikesharing_infos>
-      bikesharing_infos;
-  bikesharing_infos.first = false;
-  auto bikesharing_cb = [&](
-      motis::reliability::intermodal::bikesharing::bikesharing_infos const
-          infos,
-      individual_modes_cb_type cb) {
-    bikesharing_infos.first = true;
-    bikesharing_infos.second = infos;
+  auto bikesharing_infos = std::make_shared<std::pair<bool, bs_type>>();
+  bikesharing_infos->first = false;
+  auto bikesharing_cb = [=](bs_type const infos, individual_modes_cb_type cb) {
+    bikesharing_infos->first = true;
+    bikesharing_infos->second = infos;
+    std::cout << "\ninfos: " << infos.at_start_.size() << " "
+              << infos.at_destination_.size() << std::endl;
     return cb();
   };
 
-  auto iv_completed = [&]() -> bool { return bikesharing_infos.first; };
-  individual_modes_cb_type individual_modes_cb = [&]() {
+  auto iv_completed = [=]() -> bool { return bikesharing_infos->first; };
+  individual_modes_cb_type individual_modes_cb = [=]() {
     if (!iv_completed()) {
       return;
     }
-    return handle_routing_request_helper(req, bikesharing_infos.second,
+    std::cout << "\nbikesharing_infos: "
+              << bikesharing_infos->second.at_start_.size() << " "
+              << bikesharing_infos->second.at_destination_.size() << std::endl;
+    return handle_routing_request_helper(req, bikesharing_infos->second,
                                          session_id, cb);
   };
 
@@ -164,7 +167,7 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
         *this, session_id,
         std::bind(bikesharing_cb, std::placeholders::_1, individual_modes_cb));
   } else {
-    bikesharing_infos.first = true;
+    bikesharing_infos->first = true;
     return individual_modes_cb();
   }
 }
@@ -176,8 +179,10 @@ void reliability::handle_routing_request_helper(
     sid session_id, callback cb) {
   switch (req->request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
+      auto const schedule_begin = synced_sched().sched().schedule_begin_;
       return dispatch(
           flatbuffers::request_builder::request_builder(req->request())
+              .add_additional_edges(bikesharing_infos, schedule_begin)
               .build_routing_request(),
           session_id, std::bind(&reliability::handle_routing_response, this,
                                 p::_1, p::_2, cb));

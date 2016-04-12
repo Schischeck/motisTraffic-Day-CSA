@@ -30,9 +30,8 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
       infos.push_back(
           {std::string(edge->eva_nr()->c_str()),
            (unsigned int)((edge->bike_duration() + edge->walk_duration()) / 60),
-           availability_intervals,
-           std::make_pair(std::string(edge->from()->name()->c_str()),
-                          std::string(edge->to()->name()->c_str()))});
+           availability_intervals, std::string(edge->from()->name()->c_str()),
+           std::string(edge->to()->name()->c_str())});
     }
   }
   return infos;
@@ -88,7 +87,7 @@ module::msg_ptr to_bikesharing_request(
   auto start = reinterpret_cast<routing::CoordinatesPathElement const*>(
       req->path()->Get(0)->element());
   auto destination = reinterpret_cast<routing::CoordinatesPathElement const*>(
-      req->path()->Get(0)->element());
+      req->path()->Get(1)->element());
 
   return to_bikesharing_request(start->lat(), start->lon(), destination->lat(),
                                 destination->lon(), req->interval()->begin(),

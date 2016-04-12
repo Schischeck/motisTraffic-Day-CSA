@@ -6,6 +6,8 @@
 
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
+
 #include "../include/test_schedule_setup.h"
 
 namespace motis {
@@ -57,8 +59,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_start_[0];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(34, info.duration_);
-    ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
-    ASSERT_EQ("Darmstadt HBF East", info.bikesharing_stations_.second);
+    ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
+    ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -67,8 +69,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_start_[1];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(36, info.duration_);
-    ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
-    ASSERT_EQ("Darmstadt HBF East", info.bikesharing_stations_.second);
+    ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
+    ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -77,8 +79,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_start_[2];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(38, info.duration_);
-    ASSERT_EQ("Darmstadt Algo", info.bikesharing_stations_.first);
-    ASSERT_EQ("Darmstadt HBF West", info.bikesharing_stations_.second);
+    ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
+    ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -87,8 +89,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_start_[3];
     ASSERT_EQ("8000068", info.station_eva_);
     ASSERT_EQ(40, info.duration_);
-    ASSERT_EQ("Darmstadt Mensa", info.bikesharing_stations_.first);
-    ASSERT_EQ("Darmstadt HBF West", info.bikesharing_stations_.second);
+    ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
+    ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -99,8 +101,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_destination_[0];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(44, info.duration_);
-    ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
-    ASSERT_EQ("FFM Westend 1", info.bikesharing_stations_.second);
+    ASSERT_EQ("FFM HBF North", info.from_bike_station_);
+    ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -109,8 +111,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_destination_[1];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(45, info.duration_);
-    ASSERT_EQ("FFM HBF North", info.bikesharing_stations_.first);
-    ASSERT_EQ("FFM Westend 2", info.bikesharing_stations_.second);
+    ASSERT_EQ("FFM HBF North", info.from_bike_station_);
+    ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -119,8 +121,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_destination_[2];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(49, info.duration_);
-    ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);
-    ASSERT_EQ("FFM Westend 1", info.bikesharing_stations_.second);
+    ASSERT_EQ("FFM HBF South", info.from_bike_station_);
+    ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -129,8 +131,8 @@ void test_bikesharing_infos(bikesharing_infos infos,
     auto const& info = infos.at_destination_[3];
     ASSERT_EQ("8000105", info.station_eva_);
     ASSERT_EQ(50, info.duration_);
-    ASSERT_EQ("FFM HBF South", info.bikesharing_stations_.first);
-    ASSERT_EQ("FFM Westend 2", info.bikesharing_stations_.second);
+    ASSERT_EQ("FFM HBF South", info.from_bike_station_);
+    ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
     ASSERT_EQ(1454601600, info.availability_intervals_.front().first);
     ASSERT_EQ(1454605200, info.availability_intervals_.front().second);
@@ -150,6 +152,22 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
                 test_cb_called));
   motis_instance_->run();
   ASSERT_TRUE(*test_cb_called);
+}
+
+TEST_F(reliability_bikesharing, rating_request) {
+  ::motis::reliability::flatbuffers::request_builder::request_builder b;
+
+  // departure close to campus darmstadt
+  // arrival close to campus ffm
+  auto req_msg = b.add_coordinates(49.8776114, 8.6571044)
+                     .add_coordinates(50.1273104, 8.6669383)
+                     .set_interval(1421337600, /* 15 Jan 2015 16:00:00 GMT */
+                                   1421344800 /* 15 Jan 2015 18:00:00 GMT */)
+                     .build_rating_request(true);
+  auto msg = test::send(motis_instance_, req_msg);
+  ASSERT_NE(nullptr, msg);
+  auto response = msg->content<ReliableRoutingResponse const*>();
+  std::cout << msg->to_json() << std::endl;
 }
 
 }  // namespace bikesharing

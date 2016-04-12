@@ -10,6 +10,11 @@
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
+namespace bikesharing {
+struct bikesharing_infos;
+}
+}
 namespace flatbuffers {
 namespace request_builder {
 
@@ -32,13 +37,18 @@ struct request_builder {
   request_builder& add_additional_edge(
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
 
+  request_builder& add_additional_edges(
+      motis::reliability::intermodal::bikesharing::bikesharing_infos const&,
+      time_t const& schedule_begin);
+
   ::flatbuffers::Offset<routing::RoutingRequest> create_routing_request();
 
   module::msg_ptr build_routing_request();
 
-  module::msg_ptr build_reliable_search_request(short const min_dep_diff);
+  module::msg_ptr build_reliable_search_request(short const min_dep_diff,
+                                                bool const bikesharing = false);
 
-  module::msg_ptr build_rating_request();
+  module::msg_ptr build_rating_request(bool const bikesharing = false);
 
   module::msg_ptr build_late_connection_cequest();
 
@@ -55,7 +65,8 @@ struct request_builder {
 
 private:
   module::msg_ptr build_reliable_request(
-      ::flatbuffers::Offset<RequestOptionsWrapper> const&);
+      ::flatbuffers::Offset<RequestOptionsWrapper> const&,
+      bool const bikesharing = false);
 };
 
 }  // namespace request_builder

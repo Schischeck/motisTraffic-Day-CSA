@@ -2,6 +2,8 @@
 
 #include "motis/core/common/date_util.h"
 
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
+
 using namespace flatbuffers;
 using namespace motis::module;
 
@@ -82,6 +84,40 @@ request_builder& request_builder::add_additional_edge(
   return *this;
 }
 
+request_builder& request_builder::add_additional_edges(
+    motis::reliability::intermodal::bikesharing::bikesharing_infos const& infos,
+    time_t const& schedule_begin) {
+  std::cout << "\nrequest infos: " << infos.at_start_.size() << " "
+            << infos.at_destination_.size() << std::endl;
+  std::cout << "schedule_begin: " << schedule_begin << std::flush;
+  auto create_edge = [&](
+      motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
+      std::string const tail_station, std::string const head_station) {
+    using namespace routing;
+    for (auto const& interval : info.availability_intervals_) {
+      std::cout << "[" << interval.first << ", " << interval.second << "] "
+                << std::flush;
+      additional_edges_.push_back(CreateAdditionalEdgeWrapper(
+          b_, AdditionalEdge_TimeDependentMumoEdge,
+          CreateTimeDependentMumoEdge(
+              b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
+                                 b_.CreateString(head_station), info.duration_,
+                                 0 /* todo */),
+              unix_to_motistime(schedule_begin, interval.first),
+              unix_to_motistime(schedule_begin, interval.second))
+              .Union()));
+    }
+  };
+
+  for (auto const& info : infos.at_start_) {
+    create_edge(info, "-1", info.station_eva_);
+  }
+  for (auto const& info : infos.at_destination_) {
+    create_edge(info, info.station_eva_, "-2");
+  }
+  return *this;
+}
+
 Offset<routing::RoutingRequest> request_builder::create_routing_request() {
   routing::Interval interval(interval_begin_, interval_end_);
   return routing::CreateRoutingRequest(b_, &interval, type_, direction_,
@@ -95,44 +131,41 @@ msg_ptr request_builder::build_routing_request() {
   return module::make_msg(b_);
 }
 
-msg_ptr request_builder::build_reliable_search_request(
-    short const min_dep_diff) {
-  auto opts = reliability::CreateRequestOptionsWrapper(
-      b_, reliability::RequestOptions_ReliableSearchReq,
-      reliability::CreateReliableSearchReq(b_, min_dep_diff).Union());
-  return build_reliable_request(opts);
+msg_ptr request_builder::build_reliable_search_request(short const min_dep_diff,
+                                                       bool const bikesharing) {
+  auto opts = CreateRequestOptionsWrapper(
+      b_, RequestOptions_ReliableSearchReq,
+      CreateReliableSearchReq(b_, min_dep_diff).Union());
+  return build_reliable_request(opts, bikesharing);
 }
 
-msg_ptr request_builder::build_rating_request() {
-  auto opts = reliability::CreateRequestOptionsWrapper(
-      b_, reliability::RequestOptions_RatingReq,
-      reliability::CreateRatingReq(b_).Union());
-  return build_reliable_request(opts);
+msg_ptr request_builder::build_rating_request(bool const bikesharing) {
+  auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_RatingReq,
+                                          CreateRatingReq(b_).Union());
+  return build_reliable_request(opts, bikesharing);
 }
 
 msg_ptr request_builder::build_late_connection_cequest() {
-  auto opts = reliability::CreateRequestOptionsWrapper(
-      b_, reliability::RequestOptions_LateConnectionReq,
-      reliability::CreateLateConnectionReq(b_).Union());
+  auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_LateConnectionReq,
+                                          CreateLateConnectionReq(b_).Union());
   return build_reliable_request(opts);
 }
 
 msg_ptr request_builder::build_connection_tree_request(
     short const num_alternatives_at_stop, short const min_dep_diff) {
-  auto opts = reliability::CreateRequestOptionsWrapper(
-      b_, reliability::RequestOptions_ConnectionTreeReq,
-      reliability::CreateConnectionTreeReq(b_, num_alternatives_at_stop,
-                                           min_dep_diff)
+  auto opts = CreateRequestOptionsWrapper(
+      b_, RequestOptions_ConnectionTreeReq,
+      CreateConnectionTreeReq(b_, num_alternatives_at_stop, min_dep_diff)
           .Union());
   return build_reliable_request(opts);
 }
 
 msg_ptr request_builder::build_reliable_request(
-    Offset<RequestOptionsWrapper> const& options) {
-  IndividualModes modes(0, 0);
+    Offset<RequestOptionsWrapper> const& options, bool const bikesharing) {
+  IndividualModes modes(bikesharing, 0);
   b_.CreateAndFinish(MsgContent_ReliableRoutingRequest,
-                     reliability::CreateReliableRoutingRequest(
-                         b_, create_routing_request(), options, &modes)
+                     CreateReliableRoutingRequest(b_, create_routing_request(),
+                                                  options, &modes)
                          .Union());
   return module::make_msg(b_);
 }
