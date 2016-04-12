@@ -1,10 +1,10 @@
 #include "motis/ris/risml/parse_time.h"
 
+#include "boost/date_time/c_local_time_adjustor.hpp"
 #include "boost/date_time/gregorian/gregorian_types.hpp"
-#include "boost/date_time/posix_time/posix_time_types.hpp"
 #include "boost/date_time/local_time_adjustor.hpp"
 #include "boost/date_time/local_timezone_defs.hpp"
-#include "boost/date_time/c_local_time_adjustor.hpp"
+#include "boost/date_time/posix_time/posix_time_types.hpp"
 
 #include "parser/arg_parser.h"
 
@@ -46,8 +46,8 @@ std::time_t parse_time(cstr const& raw) {
 
 std::time_t parse_schedule_time(context& ctx, cstr const& raw) {
   auto t = parse_time(raw);
-  ctx.earliest = std::min(ctx.earliest, t);
-  ctx.latest = std::max(ctx.latest, t);
+  ctx.earliest_ = std::min(ctx.earliest_, t);
+  ctx.latest_ = std::max(ctx.latest_, t);
   return t;
 }
 

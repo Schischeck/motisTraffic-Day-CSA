@@ -36,8 +36,8 @@ TEST(ris_delay_message, ist_message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444168774, message.timestamp);
-  EXPECT_EQ(1444172760, message.latest);
+  EXPECT_EQ(1444168774, message.timestamp_);
+  EXPECT_EQ(1444172760, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -88,8 +88,8 @@ TEST(ris_delay_message, ist_message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444168802, message.timestamp);
-  EXPECT_EQ(1444173360, message.latest);
+  EXPECT_EQ(1444168802, message.timestamp_);
+  EXPECT_EQ(1444173360, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -152,9 +152,9 @@ TEST(ris_delay_message, ist_message_3) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1447690200, message.timestamp);
-  EXPECT_EQ(1447688700, message.earliest);
-  EXPECT_EQ(1447693200, message.latest);
+  EXPECT_EQ(1447690200, message.timestamp_);
+  EXPECT_EQ(1447688700, message.earliest_);
+  EXPECT_EQ(1447693200, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -260,9 +260,9 @@ TEST(ris_delay_message, ist_prog_message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444168783, message.timestamp);
-  EXPECT_EQ(1444166580, message.earliest);
-  EXPECT_EQ(1444169100, message.latest);
+  EXPECT_EQ(1444168783, message.timestamp_);
+  EXPECT_EQ(1444166580, message.earliest_);
+  EXPECT_EQ(1444169100, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());
@@ -310,9 +310,9 @@ TEST(ris_delay_message, ist_prog_message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444168800, message.timestamp);
-  EXPECT_EQ(1444165800, message.earliest);
-  EXPECT_EQ(1444169940, message.latest);
+  EXPECT_EQ(1444168800, message.timestamp_);
+  EXPECT_EQ(1444165800, message.earliest_);
+  EXPECT_EQ(1444169940, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_DelayMessage, outer_msg->content_type());

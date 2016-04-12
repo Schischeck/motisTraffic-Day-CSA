@@ -54,9 +54,9 @@ TEST(ris_connection_assessment_message, message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444187918, message.timestamp);
-  EXPECT_EQ(1444187640, message.earliest);
-  EXPECT_EQ(1444193880, message.latest);
+  EXPECT_EQ(1444187918, message.timestamp_);
+  EXPECT_EQ(1444187640, message.earliest_);
+  EXPECT_EQ(1444193880, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,
@@ -157,9 +157,9 @@ TEST(ris_connection_assessment_message, message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444168788, message.timestamp);
-  EXPECT_EQ(1444167120, message.earliest);
-  EXPECT_EQ(1444172700, message.latest);
+  EXPECT_EQ(1444168788, message.timestamp_);
+  EXPECT_EQ(1444167120, message.earliest_);
+  EXPECT_EQ(1444172700, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionAssessmentMessage,

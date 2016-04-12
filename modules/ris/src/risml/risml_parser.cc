@@ -35,7 +35,7 @@ void inline foreach_event(
     auto const& t_node = train.node();
     auto service_num = t_node.attribute("Nr").as_uint();
     auto line_id = t_node.attribute("Linie").value();
-    auto line_id_offset = ctx.b.CreateString(line_id);
+    auto line_id_offset = ctx.b_.CreateString(line_id);
 
     for (auto const& train_event : t_node.select_nodes("./ListZE/ZE")) {
       auto const& e_node = train_event.node();
@@ -44,11 +44,11 @@ void inline foreach_event(
         continue;
       }
 
-      auto station_id = parse_station(ctx.b, e_node);
+      auto station_id = parse_station(ctx.b_, e_node);
       auto schedule_time =
           parse_schedule_time(ctx, child_attr(e_node, "Zeit", "Soll").value());
 
-      auto event = CreateEvent(ctx.b, station_id, service_num, line_id_offset,
+      auto event = CreateEvent(ctx.b_, station_id, service_num, line_id_offset,
                                *event_type, schedule_time);
       func(event, e_node, t_node);
     }
@@ -60,7 +60,7 @@ Offset<TripId> inline parse_trip_id(
     char const* service_selector = "./Service") {
   auto const& node = msg.select_node(service_selector).node();
 
-  auto station_id = parse_station(ctx.b, node, "IdBfEvaNr");
+  auto station_id = parse_station(ctx.b_, node, "IdBfEvaNr");
   auto service_num = node.attribute("IdZNr").as_uint();
   auto schedule_time =
       parse_schedule_time(ctx, node.attribute("IdZeit").value());
@@ -71,7 +71,8 @@ Offset<TripId> inline parse_trip_id(
   // desired side-effect: update temporal bounds
   parse_schedule_time(ctx, node.attribute("Zielzeit").value());
 
-  return CreateTripId(ctx.b, station_id, service_num, schedule_time, trip_type);
+  return CreateTripId(ctx.b_, station_id, service_num, schedule_time,
+                      trip_type);
 }
 
 using parser_func_t = std::function<Offset<Message>(context&, xml_node const&)>;
@@ -83,12 +84,12 @@ Offset<Message> parse_delay_msg(context& ctx, xml_node const& msg,
                               xml_node const& e_node, xml_node const&) {
     auto attr_name = (type == DelayType_Is) ? "Ist" : "Prog";
     auto updated = parse_time(child_attr(e_node, "Zeit", attr_name).value());
-    events.push_back(CreateUpdatedEvent(ctx.b, event, updated));
+    events.push_back(CreateUpdatedEvent(ctx.b_, event, updated));
   });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b, MessageUnion_DelayMessage,
-      CreateDelayMessage(ctx.b, trip_id, type, ctx.b.CreateVector(events))
+      ctx.b_, MessageUnion_DelayMessage,
+      CreateDelayMessage(ctx.b_, trip_id, type, ctx.b_.CreateVector(events))
           .Union());
 }
 
@@ -98,20 +99,21 @@ Offset<Message> parse_cancel_msg(context& ctx, xml_node const& msg) {
                               xml_node const&) { events.push_back(event); });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b, MessageUnion_CancelMessage,
-      CreateCancelMessage(ctx.b, trip_id, ctx.b.CreateVector(events)).Union());
+      ctx.b_, MessageUnion_CancelMessage,
+      CreateCancelMessage(ctx.b_, trip_id, ctx.b_.CreateVector(events))
+          .Union());
 }
 
 Offset<Message> parse_addition_msg(context& ctx, xml_node const& msg) {
   std::vector<Offset<AdditionalEvent>> events;
   foreach_event(ctx, msg, [&](Offset<Event> const& event,
                               xml_node const& e_node, xml_node const& t_node) {
-    events.push_back(parse_additional_event(ctx.b, event, e_node, t_node));
+    events.push_back(parse_additional_event(ctx.b_, event, e_node, t_node));
   });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b, MessageUnion_AdditionMessage,
-      CreateAdditionMessage(ctx.b, trip_id, ctx.b.CreateVector(events))
+      ctx.b_, MessageUnion_AdditionMessage,
+      CreateAdditionMessage(ctx.b_, trip_id, ctx.b_.CreateVector(events))
           .Union());
 }
 
@@ -126,19 +128,20 @@ Offset<Message> parse_reroute_msg(context& ctx, xml_node const& msg) {
       ctx, msg,
       [&](Offset<Event> const& event, xml_node const& e_node,
           xml_node const& t_node) {
-        auto additional = parse_additional_event(ctx.b, event, e_node, t_node);
+        auto additional = parse_additional_event(ctx.b_, event, e_node, t_node);
         cstr status_str = e_node.attribute("RegSta").value();
         auto status = (status_str == "Normal") ? RerouteStatus_Normal
                                                : RerouteStatus_UmlNeu;
-        new_events.push_back(CreateReroutedEvent(ctx.b, additional, status));
+        new_events.push_back(CreateReroutedEvent(ctx.b_, additional, status));
       },
       "./Service/ListUml/Uml/ListZug/Zug");
 
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b, MessageUnion_RerouteMessage,
-      CreateRerouteMessage(ctx.b, trip_id, ctx.b.CreateVector(cancelled_events),
-                           ctx.b.CreateVector(new_events))
+      ctx.b_, MessageUnion_RerouteMessage,
+      CreateRerouteMessage(ctx.b_, trip_id,
+                           ctx.b_.CreateVector(cancelled_events),
+                           ctx.b_.CreateVector(new_events))
           .Union());
 }
 
@@ -161,7 +164,8 @@ Offset<Message> parse_conn_decision_msg(context& ctx, xml_node const& msg) {
     auto to_trip_id = parse_trip_id(ctx, to_e_node);
 
     auto hold = cstr(connection_node.attribute("Status").value()) == "Gehalten";
-    decisions.push_back(CreateConnectionDecision(ctx.b, to_trip_id, *to, hold));
+    decisions.push_back(
+        CreateConnectionDecision(ctx.b_, to_trip_id, *to, hold));
   }
 
   if (decisions.empty()) {
@@ -169,9 +173,9 @@ Offset<Message> parse_conn_decision_msg(context& ctx, xml_node const& msg) {
   }
 
   return CreateMessage(
-      ctx.b, MessageUnion_ConnectionDecisionMessage,
-      CreateConnectionDecisionMessage(ctx.b, from_trip_id, *from,
-                                      ctx.b.CreateVector(decisions))
+      ctx.b_, MessageUnion_ConnectionDecisionMessage,
+      CreateConnectionDecisionMessage(ctx.b_, from_trip_id, *from,
+                                      ctx.b_.CreateVector(decisions))
           .Union());
 }
 
@@ -195,7 +199,7 @@ Offset<Message> parse_conn_assessment_msg(context& ctx, xml_node const& msg) {
 
     auto a = connection_node.attribute("Bewertung").as_int();
     assessments.push_back(
-        CreateConnectionAssessment(ctx.b, to_trip_id, *to, a));
+        CreateConnectionAssessment(ctx.b_, to_trip_id, *to, a));
   }
 
   if (assessments.empty()) {
@@ -203,9 +207,9 @@ Offset<Message> parse_conn_assessment_msg(context& ctx, xml_node const& msg) {
   }
 
   return CreateMessage(
-      ctx.b, MessageUnion_ConnectionAssessmentMessage,
-      CreateConnectionAssessmentMessage(ctx.b, from_trip_id, *from,
-                                        ctx.b.CreateVector(assessments))
+      ctx.b_, MessageUnion_ConnectionAssessmentMessage,
+      CreateConnectionAssessmentMessage(ctx.b_, from_trip_id, *from,
+                                        ctx.b_.CreateVector(assessments))
           .Union());
 }
 
@@ -228,8 +232,8 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
   }
 
   context ctx;
-  ctx.b.Finish(it->second(ctx, payload));
-  return {{ctx.earliest, ctx.latest, t_out, std::move(ctx.b)}};
+  ctx.b_.Finish(it->second(ctx, payload));
+  return {{ctx.earliest_, ctx.latest_, t_out, std::move(ctx.b_)}};
 }
 
 std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
@@ -257,12 +261,13 @@ std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
     }
   }
 
-  std::sort(
-      begin(parsed_messages), end(parsed_messages),
-      [](ris_message const& lhs, ris_message const& rhs) {
-        return std::tie(lhs.timestamp, lhs.earliest, lhs.latest, *lhs.buffer_) <
-               std::tie(rhs.timestamp, rhs.earliest, rhs.latest, *rhs.buffer_);
-      });
+  std::sort(begin(parsed_messages), end(parsed_messages),
+            [](ris_message const& lhs, ris_message const& rhs) {
+              return std::tie(lhs.timestamp_, lhs.earliest_, lhs.latest_,
+                              *lhs.buffer_) <
+                     std::tie(rhs.timestamp_, rhs.earliest_, rhs.latest_,
+                              *rhs.buffer_);
+            });
 
   return parsed_messages;
 }

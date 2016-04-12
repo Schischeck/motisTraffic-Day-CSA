@@ -12,10 +12,9 @@ namespace ris {
 namespace risml {
 
 struct context {
-
   context()
-      : earliest(std::numeric_limits<std::time_t>::max()),
-        latest(std::numeric_limits<std::time_t>::min()) {}
+      : earliest_(std::numeric_limits<std::time_t>::max()),
+        latest_(std::numeric_limits<std::time_t>::min()) {}
 
   flatbuffers::FlatBufferBuilder b_;
   std::time_t earliest_, latest_;

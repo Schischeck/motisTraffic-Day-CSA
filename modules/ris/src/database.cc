@@ -89,9 +89,9 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
                          m.msg = parameter(m.msg)));
   // clang-format on
   for (auto const& msg : msgs) {
-    insert.params.earliest = msg.earliest;
-    insert.params.latest = msg.latest;
-    insert.params.timestamp = msg.timestamp;
+    insert.params.earliest = msg.earliest_;
+    insert.params.latest = msg.latest_;
+    insert.params.timestamp = msg.timestamp_;
 
     std::string b;
     snappy::Compress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);

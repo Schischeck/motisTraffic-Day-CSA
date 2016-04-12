@@ -37,11 +37,10 @@ SQLPP_DECLARE_TABLE(
 // clang-format on
 }  // namespace db
 
-std::mt19937 rnd(0);
-std::uniform_int_distribution<uint8_t> dist(
-    std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
-
 std::basic_string<uint8_t> random_string(size_t size) {
+  std::mt19937 rnd(0);
+  std::uniform_int_distribution<uint8_t> dist(
+      std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
   std::basic_string<uint8_t> str;
   for (size_t i = 0; i < size; ++i) {
     str += dist(rnd);

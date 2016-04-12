@@ -17,9 +17,9 @@ inline std::time_t max_timestamp(std::vector<ris_message> const& msgs) {
   }
   return std::max_element(begin(msgs), end(msgs),
                           [](ris_message const& lhs, ris_message const& rhs) {
-                            return lhs.timestamp < rhs.timestamp;
+                            return lhs.timestamp_ < rhs.timestamp_;
                           })
-      ->timestamp;
+      ->timestamp_;
 }
 
 inline std::time_t max_timestamp(

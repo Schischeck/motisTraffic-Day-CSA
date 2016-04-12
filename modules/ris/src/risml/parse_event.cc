@@ -29,15 +29,15 @@ boost::optional<Offset<Event>> parse_standalone_event(context& ctx,
     return boost::none;
   }
 
-  auto station = parse_station(ctx.b, e_node);
+  auto station = parse_station(ctx.b_, e_node);
   auto service_num = child_attr(e_node, "Zug", "Nr").as_uint();
   auto line_id = child_attr(e_node, "Zug", "Linie").value();
-  auto line_id_offset = ctx.b.CreateString(line_id);
+  auto line_id_offset = ctx.b_.CreateString(line_id);
 
   auto schedule_time =
       parse_schedule_time(ctx, child_attr(e_node, "Zeit", "Soll").value());
 
-  return CreateEvent(ctx.b, station, service_num, line_id_offset, *event_type,
+  return CreateEvent(ctx.b_, station, service_num, line_id_offset, *event_type,
                      schedule_time);
 }
 
