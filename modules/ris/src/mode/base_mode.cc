@@ -1,5 +1,6 @@
 #include "motis/ris/mode/base_mode.h"
 
+#include <atomic>
 #include <memory>
 
 #include "sqlpp11/sqlite3/connection.h"
@@ -7,6 +8,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/access/time_access.h"
 #include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_parallel_for.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/module/module.h"
 
@@ -44,15 +46,22 @@ void base_mode::init_async() {
   scoped_timer timer("RIS parsing RISML zip files into database");
   auto new_files = find_new_files(conf_->input_folder_, ".zip", read_files_);
 
-  int c = 0;
-  for (auto const& new_file : new_files) {  // TODO parallelize this loop
-    if (++c % 100 == 0) {
-      LOG(info) << "RIS parsing " << c << "/" << new_files.size() << std::endl;
+  std::mutex m;
+  std::atomic_size_t count{0};
+  motis_parallel_for(new_files, [&](std::string const& new_file) {
+    auto c = count.fetch_add(1);
+    if (c % 100 == 0) {
+      LOG(info) << "RIS parsing " << c << "/" << new_files.size();
     }
 
-    auto parsed = parse_xmls(read_zip_file(new_file));
-    db_put_messages(db_, new_file, std::move(parsed));
-  }
+    try {
+      auto parsed = parse_xmls(read_zip_file(new_file));
+      std::lock_guard<std::mutex> lock(m);
+      db_put_messages(db_, new_file, std::move(parsed));
+    } catch (std::exception const& e) {
+      LOG(crit) << "bad zip file: " << e.what() << " (" << new_file << ")";
+    }
+  });
 }
 
 void base_mode::forward(std::time_t const new_time) {
