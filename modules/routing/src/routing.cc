@@ -8,9 +8,9 @@
 #include "motis/core/common/timing.h"
 #include "motis/core/common/util.h"
 #include "motis/core/journey/journeys_to_message.h"
+#include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_call.h"
 #include "motis/module/error.h"
-#include "motis/module/get_schedule.h"
-#include "motis/module/motis_call.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
