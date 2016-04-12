@@ -32,7 +32,7 @@ CheckOptions:
   - key:             llvm-namespace-comment.ShortNamespaceLines
     value:           '1'
   - key:             llvm-namespace-comment.SpacesBeforeComments
-    value:           '1'
+    value:           '2'
   - key:             misc-assert-side-effect.AssertMacros
     value:           assert
   - key:             misc-assert-side-effect.CheckFunctionCalls
