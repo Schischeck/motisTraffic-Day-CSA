@@ -6,8 +6,9 @@
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/module/motis_publish.h"
+#include "motis/module/context/motis_publish.h"
 #include "motis/ris/detail/find_new_files.h"
+#include "motis/ris/detail/max_timestamp.h"
 #include "motis/ris/detail/pack_msgs.h"
 #include "motis/ris/ris.h"
 #include "motis/ris/ris_message.h"
@@ -23,27 +24,27 @@ namespace ris {
 namespace mode {
 
 void test_mode::init_async() {
-  auto files = find_new_files(conf_->input_folder_, ".xml", {});
-  std::sort(begin(files), end(files));
+  system_time_forward(0, [&] {
+    auto files = find_new_files(conf_->input_folder_, ".xml", {});
+    std::sort(begin(files), end(files));
 
-  std::vector<ris_message> parsed_messages;
-  manual_timer timer("RISML parse " + std::to_string(files.size()) + " xmls");
-  for (auto const& xml_file : files) {
-    std::vector<parser::buffer> bufs;
-    bufs.emplace_back(parser::file(xml_file.c_str(), "r").content());
-    for (auto&& msg : parse_xmls(std::move(bufs))) {
-      parsed_messages.emplace_back(std::move(msg));
+    std::vector<ris_message> parsed_messages;
+    manual_timer timer("RISML parse " + std::to_string(files.size()) + " xmls");
+    for (auto const& xml_file : files) {
+      std::vector<parser::buffer> bufs;
+      bufs.emplace_back(parser::file(xml_file.c_str(), "r").content());
+      for (auto&& msg : parse_xmls(std::move(bufs))) {
+        parsed_messages.emplace_back(std::move(msg));
+      }
     }
-  }
-  timer.stop_and_print();
+    timer.stop_and_print();
 
-  ctx::await_all(motis_publish(pack_msgs(parsed_messages)));
-
-  auto new_time = std::max(begin(parsed_messages), end(parsed_messages),
-                           [](ris_message const& lhs, ris_message const& rhs) {
-                             return lhs.timestamp < rhs.timestamp;
-                           });
-  system_time_changed(new_time);
+    if (parsed_messages.size() != 0) {
+      ctx::await_all(motis_publish(pack_msgs(parsed_messages)));
+      return max_timestamp(parsed_messages);
+    }
+    return 0l;
+  });
 }
 
 }  // namespace mode

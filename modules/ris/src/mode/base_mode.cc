@@ -4,11 +4,11 @@
 
 #include "sqlpp11/sqlite3/connection.h"
 
-#include "motis/core/access/time_access.h"
 #include "motis/core/common/logging.h"
-#include "motis/module/get_schedule.h"
+#include "motis/core/access/time_access.h"
+#include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_publish.h"
 #include "motis/module/module.h"
-#include "motis/module/motis_publish.h"
 
 #include "motis/ris/database.h"
 #include "motis/ris/detail/find_new_files.h"
@@ -57,21 +57,17 @@ void base_mode::init_async() {
 
 void base_mode::forward(std::time_t const new_time) {
   auto& sched = get_schedule();
+  auto const now = sched.system_time_;
   auto const sched_begin = external_schedule_begin(sched);
   auto const sched_end = external_schedule_end(sched);
 
-  if (sched.system_time == 0) {
-    forward_batched(sched_begin, sched_end, new_time, db_);
-  } else {
-    forward_batched(sched_begin, sched_end, sched.system_time, new_time, db_);
-  }
-
-  system_time_changed(new_time);
-}
-
-void system_time_changed() const {
-  const_cast<schedule&>(get_schedule()).system_time = new_time;  // XXX ouch
-  motis_publish(make_no_msg("/ris/system_time_changed"));
+  system_time_forward(new_time, [&] {
+    if (now == 0) {
+      return forward_batched(sched_begin, sched_end, new_time, db_);
+    } else {
+      return forward_batched(sched_begin, sched_end, now, new_time, db_);
+    }
+  });
 }
 
 }  // namespace mode

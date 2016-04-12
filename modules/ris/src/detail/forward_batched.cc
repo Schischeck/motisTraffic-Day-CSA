@@ -1,10 +1,14 @@
 #include "motis/ris/detail/forward_batched.h"
 
+#include <algorithm>
+
 #include "ctx/future.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/module/motis_publish.h"
+#include "motis/module/context/motis_publish.h"
+#include "motis/ris/detail/max_timestamp.h"
 #include "motis/ris/detail/pack_msgs.h"
+#include "motis/ris/ris_message.h"
 
 using namespace motis::logging;
 using namespace motis::module;
@@ -35,20 +39,23 @@ void batched(I start, I end, I interval, Fn fn) {
   }
 }
 
-void forward_batched(std::time_t const sched_begin, std::time_t const sched_end,
-                     std::time_t const end_time, db_ptr const& db) {
+std::time_t forward_batched(std::time_t const sched_begin,
+                            std::time_t const sched_end,
+                            std::time_t const end_time, db_ptr const& db) {
   auto start_time = db_get_forward_start_time(db, sched_begin, sched_end);
   if (start_time == kDBInvalidTimestamp) {
-    return;
+    return 0l;
   }
 
   // first timestamp is excluded in db query
-  forward_batched(sched_begin, sched_end, start_time, end_time, db);
+  return forward_batched(sched_begin, sched_end, start_time, end_time, db);
 }
 
-void forward_batched(std::time_t const sched_begin, std::time_t const sched_end,
-                     std::time_t const start_time, std::time_t const end_time,
-                     db_ptr const& db) {
+std::time_t forward_batched(std::time_t const sched_begin,
+                            std::time_t const sched_end,
+                            std::time_t const start_time,
+                            std::time_t const end_time, db_ptr const& db) {
+  std::time_t timestamp = 0;
   std::vector<future> futures;
   batched<std::time_t>(
       start_time, end_time, kForwardBatchedInterval,
@@ -58,6 +65,7 @@ void forward_batched(std::time_t const sched_begin, std::time_t const sched_end,
         t.stop_and_print();
 
         if (msgs.size() > 0) {
+          timestamp = std::max(timestamp, max_timestamp(msgs));
           ctx::await_all(futures);
           LOG(info) << "RIS forwarding time to " << to_string(next);
           futures = motis_publish(pack_msgs(msgs));
@@ -66,6 +74,8 @@ void forward_batched(std::time_t const sched_begin, std::time_t const sched_end,
 
   ctx::await_all(futures);
   LOG(info) << "RIS forwarded time to " << to_string(end_time);
+
+  return timestamp;
 }
 
 }  // namespace detail

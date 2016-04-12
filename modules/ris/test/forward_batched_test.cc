@@ -3,8 +3,8 @@
 #include "./include/helper.h"
 
 #include "motis/core/access/time_access.h"
+#include "motis/module/context/get_schedule.h"
 #include "motis/module/message.h"
-#include "motis/module/get_schedule.h"
 #include "motis/ris/detail/forward_batched.h"
 
 #include "motis/test/motis_instance_helper.h"
@@ -72,7 +72,9 @@ TEST_F(ris_forward_batched, no_msg) {
       .add_entry(unix_time(1200, -1), unix_time(1300, -1), unix_time(1100, -1))
       .add_entry(unix_time(1200, 2), unix_time(1300, 2), unix_time(1100, 2))
       .finish_packet(db_);
-  motis_->run([&] { forward_batched(sched_begin_, sched_end_, end, db_); });
+  motis_->run([&] {
+    ASSERT_EQ(0, forward_batched(sched_begin_, sched_end_, end, db_));
+  });
   ASSERT_EQ(0, msgs_.size());
 }
 
@@ -82,7 +84,10 @@ TEST_F(ris_forward_batched, one_msg) {
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1100), "before")
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1300), "after")
       .finish_packet(db_);
-  motis_->run([&] { forward_batched(sched_begin_, sched_end_, end, db_); });
+  motis_->run([&] {
+    ASSERT_EQ(unix_time(1100),
+              forward_batched(sched_begin_, sched_end_, end, db_));
+  });
 
   ASSERT_EQ(1, msgs_.size());
   auto batch = motis_content(RISBatch, msgs_[0]);
@@ -97,7 +102,10 @@ TEST_F(ris_forward_batched, one_batch) {
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1001), "a")
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1000), "b")
       .finish_packet(db_);
-  motis_->run([&] { forward_batched(sched_begin_, sched_end_, t1, db_); });
+  motis_->run([&] {
+    ASSERT_EQ(unix_time(1001),
+              forward_batched(sched_begin_, sched_end_, t1, db_));
+  });
   {
     ASSERT_EQ(1, msgs_.size());
     auto batch = motis_content(RISBatch, msgs_[0]);
@@ -115,7 +123,10 @@ TEST_F(ris_forward_batched, one_batch) {
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1400), "i")
       .add_entry(unix_time(1400), unix_time(1500), unix_time(1400) + 1, "j")
       .finish_packet(db_);
-  motis_->run([&] { forward_batched(sched_begin_, sched_end_, t1, db_); });
+  motis_->run([&] {
+    ASSERT_EQ(unix_time(1200),
+              forward_batched(sched_begin_, sched_end_, t1, db_));
+  });
   {
     ASSERT_EQ(3, msgs_.size());
     auto batch1 = motis_content(RISBatch, msgs_[0]);
@@ -136,7 +147,10 @@ TEST_F(ris_forward_batched, one_batch) {
   }
 
   auto t2 = unix_time(1400);
-  motis_->run([&] { forward_batched(sched_begin_, sched_end_, t1, t2, db_); });
+  motis_->run([&] {
+    ASSERT_EQ(unix_time(1400),
+              forward_batched(sched_begin_, sched_end_, t1, t2, db_));
+  });
   {
     ASSERT_EQ(2, msgs_.size());
     auto batch1 = motis_content(RISBatch, msgs_[0]);

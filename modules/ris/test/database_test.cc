@@ -5,9 +5,9 @@
 #include <string>
 
 #include "sqlite3.h"
-#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
+#include "sqlpp11/sqlpp11.h"
 
 #include "include/helper.h"
 
@@ -129,19 +129,25 @@ TEST(ris_database, sorted) {
 
   auto result = db_get_messages(db, 0, 99, 0, 99);
   ASSERT_EQ(2, result.size());
-  EXPECT_STREQ("twelve", blob_to_cstr(result[0]));
-  EXPECT_STREQ("thirteen", blob_to_cstr(result[1]));
+  EXPECT_EQ(12, result[0].first);
+  EXPECT_STREQ("twelve", blob_to_cstr(result[0].second));
+  EXPECT_EQ(13, result[1].first);
+  EXPECT_STREQ("thirteen", blob_to_cstr(result[1].second));
 
   util.add_entry(25, 30, 8, "eight")
       .add_entry(20, 20, 5, "five")
       .finish_packet(db);
 
   auto result2 = db_get_messages(db, 0, 99, 0, 99);
-  ASSERT_EQ(2, result.size());
-  EXPECT_STREQ("five", blob_to_cstr(result2[0]));
-  EXPECT_STREQ("eight", blob_to_cstr(result2[1]));
-  EXPECT_STREQ("twelve", blob_to_cstr(result2[2]));
-  EXPECT_STREQ("thirteen", blob_to_cstr(result2[3]));
+  ASSERT_EQ(4, result2.size());
+  EXPECT_EQ(5, result2[0].first);
+  EXPECT_STREQ("five", blob_to_cstr(result2[0].second));
+  EXPECT_EQ(8, result2[1].first);
+  EXPECT_STREQ("eight", blob_to_cstr(result2[1].second));
+  EXPECT_EQ(12, result2[2].first);
+  EXPECT_STREQ("twelve", blob_to_cstr(result2[2].second));
+  EXPECT_EQ(13, result2[3].first);
+  EXPECT_STREQ("thirteen", blob_to_cstr(result2[3].second));
 }
 
 TEST(ris_database, forward) {

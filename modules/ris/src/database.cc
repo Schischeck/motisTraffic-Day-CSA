@@ -2,9 +2,9 @@
 
 #include "snappy.h"
 #include "sqlite3.h"
-#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
+#include "sqlpp11/sqlpp11.h"
 
 #include "motis/ris/ris_message.h"
 
@@ -118,15 +118,14 @@ std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
   return result.front().min - 1;
 }
 
-using blob = std::basic_string<uint8_t>;
-std::vector<blob> db_get_messages(db_ptr const& db, std::time_t from,
-                                  std::time_t to, std::time_t batch_from,
-                                  std::time_t batch_to) {
-  std::vector<blob> result;
+std::vector<std::pair<std::time_t, blob>> db_get_messages(
+    db_ptr const& db, std::time_t from, std::time_t to, std::time_t batch_from,
+    std::time_t batch_to) {
+  std::vector<std::pair<std::time_t, blob>> result;
 
   db::ris_message::ris_message m;
   for (auto const& row :
-       (*db)(select(m.msg)
+       (*db)(select(m.msg, m.timestamp)
                  .from(m)
                  .where(m.timestamp > batch_from and m.timestamp <= batch_to and
                         m.latest >= from and m.earliest <= to)
@@ -136,14 +135,16 @@ std::vector<blob> db_get_messages(db_ptr const& db, std::time_t from,
     std::string b;
     snappy::Uncompress(reinterpret_cast<char const*>(msg.data()), msg.size(),
                        &b);
-    result.emplace_back(reinterpret_cast<uint8_t const*>(b.data()), b.size());
+    result.emplace_back(
+        row.timestamp,
+        blob(reinterpret_cast<uint8_t const*>(b.data()), b.size()));
   }
 
   return result;
 }
 
 void db_clean_messages(db_ptr const& db, std::time_t threshold) {
-// TODO 
+  // TODO
 
   db::ris_message::ris_message m;
   (*db)(remove_from(m).where(m.latest < threshold));

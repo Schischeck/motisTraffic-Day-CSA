@@ -9,6 +9,8 @@
 
 #include "sqlpp11/sqlite3/connection.h"
 
+#include "motis/ris/blob.h"
+
 namespace motis {
 namespace ris {
 
@@ -28,7 +30,7 @@ std::set<std::string> db_get_files(db_ptr const& db);
 std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
                                       std::time_t to);
 
-std::vector<std::basic_string<uint8_t>> db_get_messages(
+std::vector<std::pair<std::time_t, blob>> db_get_messages(
     db_ptr const& db, std::time_t schedule_begin, std::time_t schedule_end,
     std::time_t batch_from, std::time_t batch_to);
 
