@@ -81,7 +81,7 @@ public:
     }
 
     if (!distances) {
-      throw boost::system::system_error(error::no_routing_response);
+      throw std::system_error(error::no_routing_response);
     }
 
     std::vector<Cost> costs;
@@ -129,7 +129,7 @@ void osrm::init(motis::module::registry& reg) {
 
   reg.register_op("/osrm", [this](msg_ptr const& msg) {
     if (!impl_) {
-      throw boost::system::system_error(error::not_initialized);
+      throw std::system_error(error::not_initialized);
     }
     return impl_->route(motis_content(OSRMRoutingRequest, msg));
   });

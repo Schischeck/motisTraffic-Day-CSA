@@ -1,6 +1,7 @@
 #include "motis/launcher/http_server.h"
 
 #include <functional>
+#include <system_error>
 
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
@@ -73,7 +74,7 @@ struct http_server::impl {
             make_msg(fbb),
             std::bind(&impl::on_response, this, cb, p::_1, p::_2));
       }
-    } catch (boost::system::system_error const& e) {
+    } catch (std::system_error const& e) {
       reply rep = reply::stock_reply(reply::internal_server_error);
       rep.content = e.code().message();
       return cb(rep);
@@ -87,7 +88,7 @@ struct http_server::impl {
   }
 
   void on_response(net::http::server::callback cb, msg_ptr msg,
-                   boost::system::error_code ec) {
+                   std::error_code ec) {
     reply rep = reply::stock_reply(reply::internal_server_error);
     try {
       if (!ec && msg) {
