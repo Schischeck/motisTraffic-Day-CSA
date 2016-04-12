@@ -59,7 +59,6 @@ void live_mode::schedule_update(error_code e) {
   });
 
   parse_zips();
-  // db_clean_messages(); TODO
 }
 
 void live_mode::handle_upload(msg_ptr const& msg) {

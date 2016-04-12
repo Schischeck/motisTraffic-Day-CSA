@@ -169,23 +169,5 @@ TEST(ris_database, forward) {
             db_get_forward_start_time(db, 21, 50));  // none
 }
 
-// TODO
-// TEST(ris_database, cleanup) {
-//   auto db = test_db();
-
-//   std::vector<ris_message> m;
-//   m.emplace_back(8, 8, 10, 1, std::unique_ptr<uint8_t>{new uint8_t(1)});
-//   db_put_messages("foo", m, db);
-
-//   db_clean_messages(9, db);
-
-//   auto files = db_get_files(db);
-//   ASSERT_EQ(1, files.size());
-//   EXPECT_EQ(std::string("foo"), *begin(files));
-
-//   auto found_result = db_get_messages(0, 99, 0, 99, db);
-//   ASSERT_EQ(0, found_result.size());
-// }
-
 }  // namespace ris
 }  // namespace motis

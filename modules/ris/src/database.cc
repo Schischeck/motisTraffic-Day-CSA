@@ -143,12 +143,5 @@ std::vector<std::pair<std::time_t, blob>> db_get_messages(
   return result;
 }
 
-void db_clean_messages(db_ptr const& db, std::time_t threshold) {
-  // TODO
-
-  db::ris_message::ris_message m;
-  (*db)(remove_from(m).where(m.latest < threshold));
-}
-
 }  // namespace ris
 }  // namespace motis

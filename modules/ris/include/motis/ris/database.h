@@ -34,7 +34,7 @@ std::vector<std::pair<std::time_t, blob>> db_get_messages(
     db_ptr const& db, std::time_t schedule_begin, std::time_t schedule_end,
     std::time_t batch_from, std::time_t batch_to);
 
-void db_clean_messages(db_ptr const& db, std::time_t threshold);
+void db_housekeeping(db_ptr const& db, std::time_t threshold);
 
 }  // namespace ris
 }  // namespace motis

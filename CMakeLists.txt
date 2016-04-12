@@ -149,7 +149,6 @@ list(REMOVE_ITEM modules
   "railviz"
   "realtime"
   "reliability"
-  "ris"
   "rt"
 )
 
