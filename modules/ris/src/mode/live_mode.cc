@@ -81,7 +81,7 @@ void live_mode::handle_upload(msg_ptr const& msg) {
     });
   } catch (std::exception const& e) {
     LOG(logging::error) << "bad zip file: " << e.what();
-    throw boost::system::system_error(error::bad_zip_file);
+    throw std::system_error(error::bad_zip_file);
   }
 }
 
