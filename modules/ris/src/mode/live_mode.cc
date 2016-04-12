@@ -72,7 +72,7 @@ void live_mode::handle_upload(msg_ptr const& msg) {
           reinterpret_cast<unsigned char const*>(buf.data()), buf.size());
       db_put_messages(db_, hash, parsed_messages);
 
-      if (parsed_messages.size() > 0) {
+      if (!parsed_messages.empty()) {
         ctx::await_all(motis_publish(pack_msgs(parsed_messages)));
         return max_timestamp(parsed_messages);
       }
@@ -106,7 +106,7 @@ void live_mode::parse_zips() {
       read_files_.insert(new_file);
       db_put_messages(db_, new_file, msgs);
 
-      if (msgs.size() > 0) {
+      if (!msgs.empty()) {
         timestamp = std::max(timestamp, max_timestamp(msgs));
         ctx::await_all(futures);
         futures = motis_publish(pack_msgs(msgs));

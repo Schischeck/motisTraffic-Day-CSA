@@ -13,7 +13,7 @@ namespace mode {
 
 struct base_mode;
 
-}  // namespace mode;
+}  // namespace mode
 
 enum class mode_t { LIVE, SIMULATION, TEST };
 
@@ -33,7 +33,7 @@ struct config {
 
 struct ris final : public motis::module::module {
   ris();
-  ~ris();
+  ~ris() override;
 
   std::string name() const override { return "ris"; }
   void init(motis::module::registry&) override;

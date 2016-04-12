@@ -41,6 +41,6 @@ boost::optional<Offset<Event>> parse_standalone_event(context& ctx,
                      schedule_time);
 }
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

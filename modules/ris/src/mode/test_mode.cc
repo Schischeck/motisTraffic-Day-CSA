@@ -39,7 +39,7 @@ void test_mode::init_async() {
     }
     timer.stop_and_print();
 
-    if (parsed_messages.size() != 0) {
+    if (!parsed_messages.empty()) {
       ctx::await_all(motis_publish(pack_msgs(parsed_messages)));
       return max_timestamp(parsed_messages);
     }

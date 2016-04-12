@@ -8,8 +8,6 @@
 
 #include "motis/ris/ris_message.h"
 
-namespace sql = sqlpp::sqlite3;
-
 namespace motis {
 namespace ris {
 
@@ -104,12 +102,14 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
   db->commit_transaction();
 }
 
-std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
-                                      std::time_t to) {
+std::time_t db_get_forward_start_time(db_ptr const& db,
+                                      std::time_t schedule_begin,
+                                      std::time_t schedule_end) {
   db::ris_message::ris_message m;
-  auto result = (*db)(select(min(m.timestamp))
-                          .from(m)
-                          .where(m.latest >= from and m.earliest <= to));
+  auto result = (*db)(
+      select(min(m.timestamp))
+          .from(m)
+          .where(m.latest >= schedule_begin and m.earliest <= schedule_end));
 
   if (result.empty() || result.front().min.is_null()) {
     return kDBInvalidTimestamp;
@@ -119,17 +119,17 @@ std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
 }
 
 std::vector<std::pair<std::time_t, blob>> db_get_messages(
-    db_ptr const& db, std::time_t from, std::time_t to, std::time_t batch_from,
-    std::time_t batch_to) {
+    db_ptr const& db, std::time_t schedule_begin, std::time_t schedule_end,
+    std::time_t batch_from, std::time_t batch_to) {
   std::vector<std::pair<std::time_t, blob>> result;
 
   db::ris_message::ris_message m;
-  for (auto const& row :
-       (*db)(select(m.msg, m.timestamp)
-                 .from(m)
-                 .where(m.timestamp > batch_from and m.timestamp <= batch_to and
-                        m.latest >= from and m.earliest <= to)
-                 .order_by(m.timestamp.asc()))) {
+  for (auto const& row : (*db)(
+           select(m.msg, m.timestamp)
+               .from(m)
+               .where(m.timestamp > batch_from and m.timestamp <= batch_to and
+                      m.latest >= schedule_begin and m.earliest <= schedule_end)
+               .order_by(m.timestamp.asc()))) {
 
     blob msg = row.msg;
     std::string b;

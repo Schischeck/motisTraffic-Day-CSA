@@ -51,6 +51,6 @@ std::time_t parse_schedule_time(context& ctx, cstr const& raw) {
   return t;
 }
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

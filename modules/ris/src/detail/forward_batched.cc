@@ -64,7 +64,7 @@ std::time_t forward_batched(std::time_t const sched_begin,
         auto msgs = db_get_messages(db, sched_begin, sched_end, curr, next);
         t.stop_and_print();
 
-        if (msgs.size() > 0) {
+        if (!msgs.empty()) {
           timestamp = std::max(timestamp, max_timestamp(msgs));
           ctx::await_all(futures);
           LOG(info) << "RIS forwarding time to " << to_string(next);

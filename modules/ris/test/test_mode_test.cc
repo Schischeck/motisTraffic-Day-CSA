@@ -32,6 +32,6 @@ TEST(ris_test_mode, simple) {
   ASSERT_EQ(1, time_changed.size());
 }
 
-}  // mode
-}  // ris
-}  // motis
+}  // namespace mode
+}  // namespace ris
+}  // namespace motis

@@ -203,7 +203,7 @@ IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
 // clang-format on
 
 EventType get_type(std::vector<ris_message> const& messages) {
-  if (messages.size() == 0) {
+  if (messages.empty()) {
     throw std::runtime_error("messages empty");
   }
   auto content = GetMessage(messages[0].data())->content();

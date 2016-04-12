@@ -165,6 +165,6 @@ TEST_F(ris_forward_batched, one_batch) {
   }
 }
 
-}  // detail
-}  // ris
-}  // motis
+}  // namespace detail
+}  // namespace ris
+}  // namespace motis

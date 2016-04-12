@@ -11,7 +11,7 @@ namespace ris {
 namespace mode {
 
 struct live_mode : public base_mode {
-  live_mode(config* conf) : base_mode(conf) {}
+  explicit live_mode(config* conf) : base_mode(conf) {}
 
   void init(motis::module::registry&) override;
   void init_async() override;

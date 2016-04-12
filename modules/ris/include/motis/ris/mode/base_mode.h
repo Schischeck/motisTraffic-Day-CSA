@@ -24,7 +24,7 @@ struct ris_message;
 namespace mode {
 
 struct base_mode {  // hint: strategy pattern ;)
-  base_mode(config* conf) : conf_(conf) {}
+  explicit base_mode(config* conf) : conf_(conf) {}
   virtual ~base_mode() = default;
 
   virtual void init(motis::module::registry&);

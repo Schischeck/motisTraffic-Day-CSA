@@ -12,7 +12,7 @@ namespace ris {
 namespace detail {
 
 inline std::time_t max_timestamp(std::vector<ris_message> const& msgs) {
-  if (msgs.size() == 0) {
+  if (msgs.empty()) {
     return 0;
   }
   return std::max_element(begin(msgs), end(msgs),
@@ -24,7 +24,7 @@ inline std::time_t max_timestamp(std::vector<ris_message> const& msgs) {
 
 inline std::time_t max_timestamp(
     std::vector<std::pair<std::time_t, blob>> const& msgs) {
-  if (msgs.size() == 0) {
+  if (msgs.empty()) {
     return 0;
   }
   return std::max_element(begin(msgs), end(msgs),

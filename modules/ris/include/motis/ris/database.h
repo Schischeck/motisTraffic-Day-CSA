@@ -27,8 +27,9 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
 
 std::set<std::string> db_get_files(db_ptr const& db);
 
-std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
-                                      std::time_t to);
+std::time_t db_get_forward_start_time(db_ptr const& db,
+                                      std::time_t schedule_begin,
+                                      std::time_t schedule_end);
 
 std::vector<std::pair<std::time_t, blob>> db_get_messages(
     db_ptr const& db, std::time_t schedule_begin, std::time_t schedule_end,

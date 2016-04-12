@@ -12,9 +12,9 @@ enum error_code_t { ok = 0, bad_zip_file = 2 };
 
 class error_category_impl : public std::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::ris"; }
+  const char* name() const noexcept override { return "motis::ris"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "ris: no error";
       case error::bad_zip_file: return "ris: bad zip file";
