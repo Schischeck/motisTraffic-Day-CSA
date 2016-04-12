@@ -30,7 +30,7 @@ struct bikesharing_search::impl {
   };
 
   struct context {
-    MessageCreator b;
+    message_creator b;
     std::map<std::string, std::unique_ptr<persistable_terminal>> terminals;
     std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets;
   };
@@ -54,7 +54,7 @@ struct bikesharing_search::impl {
     auto const departures = find_departures(ctx, req);
     auto const arrivals = find_arrivals(ctx, req);
 
-    ctx.b.CreateAndFinish(
+    ctx.b.create_and_finish(
         MsgContent_BikesharingResponse,
         CreateBikesharingResponse(ctx.b, departures, arrivals).Union());
     return make_msg(ctx.b);

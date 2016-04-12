@@ -212,13 +212,13 @@ void persist_terminals(ctx_ptr ctx) {
 
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
                                  double radius) {
-  MessageCreator b;
+  message_creator b;
   std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
     c.push_back(
         CreateLookupGeoStationRequest(b, merged.lat, merged.lng, radius));
   }
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_LookupBatchGeoStationRequest,
       CreateLookupBatchGeoStationRequest(b, b.CreateVector(c)).Union());
   return make_msg(b);

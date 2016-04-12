@@ -59,10 +59,10 @@ inline msg_ptr get_simple_realtime_ris_message() {
       CreateDelayMessage(fbb, trip_id, DelayType_Is, fbb.CreateVector(events))
           .Union()));
 
-  MessageCreator mc;
+  message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
-  mc.CreateAndFinish(MsgContent_RISBatch,
+  mc.create_and_finish(MsgContent_RISBatch,
                      CreateRISBatch(mc, mc.CreateVector(messages)).Union());
   return make_msg(mc);
 }
