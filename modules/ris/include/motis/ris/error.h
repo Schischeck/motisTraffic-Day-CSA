@@ -7,7 +7,7 @@ namespace motis {
 namespace ris {
 
 namespace error {
-enum error_code_t { ok = 0, bad_zip_file = 2 };
+enum error_code_t { ok = 0, bad_zip_file = 1 };
 }  // namespace error
 
 class error_category_impl : public std::error_category {
