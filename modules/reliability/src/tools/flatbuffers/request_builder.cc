@@ -71,7 +71,7 @@ struct request_builder {
   }
 
   msg_ptr build_routing_request() {
-    b_.CreateAndFinish(MsgContent_RoutingRequest,
+    b_.create_and_finish(MsgContent_RoutingRequest,
                        create_routing_request().Union());
     return module::make_msg(b_);
   }
@@ -108,14 +108,14 @@ struct request_builder {
   }
 
   msg_ptr build_reliable_request(Offset<RequestOptionsWrapper> const& options) {
-    b_.CreateAndFinish(MsgContent_ReliableRoutingRequest,
+    b_.create_and_finish(MsgContent_ReliableRoutingRequest,
                        reliability::CreateReliableRoutingRequest(
                            b_, create_routing_request(), options)
                            .Union());
     return module::make_msg(b_);
   }
 
-  module::MessageCreator b_;
+  module::message_creator b_;
   routing::Type type_;
   routing::Direction direction_;
   std::vector<Offset<routing::StationPathElement>> stations_;

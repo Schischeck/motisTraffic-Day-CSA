@@ -171,7 +171,7 @@ module::msg_ptr to_reliability_rating_response(
         orig_simple_ratings,
     bool const short_output) {
   assert(orig_routing_response->connections()->size() == orig_ratings.size());
-  module::MessageCreator b;
+  module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
   auto const routing_response =
       convert_routing_response(b, orig_routing_response);
@@ -179,7 +179,7 @@ module::msg_ptr to_reliability_rating_response(
       b, orig_ratings, *orig_routing_response->connections(), short_output);
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
-  b.CreateAndFinish(MsgContent_ReliabilityRatingResponse,
+  b.create_and_finish(MsgContent_ReliabilityRatingResponse,
                     CreateReliabilityRatingResponse(
                         b, routing_response, conn_ratings, simple_ratings)
                         .Union());
@@ -251,13 +251,13 @@ Offset<ConnectionGraph> to_connection_graph(
 
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const& cgs) {
-  module::MessageCreator b;
+  module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
   std::vector<Offset<ConnectionGraph>> connection_graphs;
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
-  b.CreateAndFinish(MsgContent_ReliableRoutingResponse,
+  b.create_and_finish(MsgContent_ReliableRoutingResponse,
                     reliability::CreateReliableRoutingResponse(
                         b, b.CreateVector(connection_graphs))
                         .Union());

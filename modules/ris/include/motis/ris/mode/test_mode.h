@@ -8,7 +8,7 @@ namespace ris {
 namespace mode {
 
 struct test_mode final : public base_mode {
-  test_mode(config* conf) : base_mode(conf) {}
+  explicit test_mode(config* conf) : base_mode(conf) {}
 
   void init_async() override;
 };

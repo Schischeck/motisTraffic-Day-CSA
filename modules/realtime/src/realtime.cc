@@ -198,8 +198,8 @@ void realtime::get_train_info(msg_ptr msg, callback cb) {
   auto req = msg->content<RealtimeTrainInfoRequest const*>();
 
   try {
-    MessageCreator b;
-    b.CreateAndFinish(MsgContent_RealtimeTrainInfoResponse,
+    message_creator b;
+    b.create_and_finish(MsgContent_RealtimeTrainInfoResponse,
                       build_train_info_response(b, rts_.get(), req).Union());
     return cb(make_msg(b), error::ok);
   } catch (boost::system::system_error const& e) {
@@ -211,7 +211,7 @@ void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
   auto sched = synced_sched<schedule_access::RO>();
   auto requests = msg->content<RealtimeTrainInfoBatchRequest const*>();
 
-  MessageCreator b;
+  message_creator b;
   std::vector<Offset<RealtimeTrainInfoResponse>> responses;
 
   try {
@@ -222,7 +222,7 @@ void realtime::get_batch_train_info(msg_ptr msg, callback cb) {
     return cb({}, e.code());
   }
 
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_RealtimeTrainInfoBatchResponse,
       CreateRealtimeTrainInfoBatchResponse(b, b.CreateVector(responses))
           .Union());
@@ -245,7 +245,7 @@ InternalTimestampReason encode_internal_reason(timestamp_reason reason) {
   return InternalTimestampReason_Propagation;
 }
 
-void pack_delay_infos(MessageCreator& fbb, std::vector<delay_info*>& dis) {
+void pack_delay_infos(message_creator& fbb, std::vector<delay_info*>& dis) {
   std::sort(std::begin(dis), std::end(dis), [](delay_info* a, delay_info* b) {
     const auto& ae = a->_schedule_event;
     const auto& be = b->_schedule_event;
@@ -271,7 +271,7 @@ void pack_delay_infos(MessageCreator& fbb, std::vector<delay_info*>& dis) {
     delay_infos.push_back(dib.Finish());
   }
 
-  fbb.CreateAndFinish(
+  fbb.create_and_finish(
       MsgContent_RealtimeDelayInfoResponse,
       CreateRealtimeDelayInfoResponse(fbb, fbb.CreateVector(delay_infos))
           .Union());
@@ -286,7 +286,7 @@ void realtime::get_delay_infos(msg_ptr, callback cb) {
     delay_infos.push_back(di.get());
   }
 
-  MessageCreator b;
+  message_creator b;
   pack_delay_infos(b, delay_infos);
   cb(make_msg(b), error::ok);
 }
@@ -346,7 +346,7 @@ void realtime::handle_ris_msgs(msg_ptr msg, callback cb) {
     run_stats.write_csv(f, /*start_time*/ 0, /*end_time*/ 0);
   }
 
-  MessageCreator b;
+  message_creator b;
   auto delay_infos = rts_->_delay_info_manager.get_delay_info_delta();
   pack_delay_infos(b, delay_infos);
   dispatch(make_msg(b), 0, [cb](msg_ptr msg, boost::system::error_code ec) {

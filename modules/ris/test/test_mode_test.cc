@@ -19,13 +19,19 @@ TEST(ris_test_mode, simple) {
                             {"--ris.mode=test", kRisFolderArg});
   std::vector<msg_ptr> msgs;
   subscribe(motis, "/ris/messages", msg_sink(&msgs));
+
+  std::vector<msg_ptr> time_changed;
+  subscribe(motis, "/ris/system_time_changed", msg_sink(&time_changed));
+
   call(motis, "/ris/init");
 
   ASSERT_EQ(1, msgs.size());
   auto batch = motis_content(RISBatch, msgs[0]);
   ASSERT_EQ(2, batch->messages()->size());
+
+  ASSERT_EQ(1, time_changed.size());
 }
 
-}  // mode
-}  // ris
-}  // motis
+}  // namespace mode
+}  // namespace ris
+}  // namespace motis

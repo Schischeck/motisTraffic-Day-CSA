@@ -5,7 +5,7 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/module/get_schedule.h"
+#include "motis/module/context/get_schedule.h"
 #include "motis/loader/util.h"
 #include "motis/protocol/Message_generated.h"
 

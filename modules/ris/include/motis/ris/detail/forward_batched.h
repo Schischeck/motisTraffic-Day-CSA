@@ -8,11 +8,16 @@ namespace motis {
 namespace ris {
 namespace detail {
 
-void forward_batched(std::time_t const schedule_begin,
-                     std::time_t const schedule_end,
-                     std::time_t const start_time,  //
-                     std::time_t const end_time,  //
-                     db_ptr const& database);
+constexpr auto kForwardBatchedInterval = 3600l;
+
+std::time_t forward_batched(std::time_t const sched_begin,
+                            std::time_t const sched_end,
+                            std::time_t const end_time, db_ptr const& db);
+
+std::time_t forward_batched(std::time_t const sched_begin,
+                            std::time_t const sched_end,
+                            std::time_t const start_time,
+                            std::time_t const end_time, db_ptr const& db);
 
 }  // namespace detail
 }  // namespace ris

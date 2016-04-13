@@ -5,9 +5,9 @@
 #include <string>
 
 #include "sqlite3.h"
-#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
+#include "sqlpp11/sqlpp11.h"
 
 #include "include/helper.h"
 
@@ -37,11 +37,10 @@ SQLPP_DECLARE_TABLE(
 // clang-format on
 }  // namespace db
 
-std::mt19937 rnd(0);
-std::uniform_int_distribution<uint8_t> dist(
-    std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
-
 std::basic_string<uint8_t> random_string(size_t size) {
+  std::mt19937 rnd(0);
+  std::uniform_int_distribution<uint8_t> dist(
+      std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
   std::basic_string<uint8_t> str;
   for (size_t i = 0; i < size; ++i) {
     str += dist(rnd);
@@ -129,19 +128,25 @@ TEST(ris_database, sorted) {
 
   auto result = db_get_messages(db, 0, 99, 0, 99);
   ASSERT_EQ(2, result.size());
-  EXPECT_STREQ("twelve", blob_to_cstr(result[0]));
-  EXPECT_STREQ("thirteen", blob_to_cstr(result[1]));
+  EXPECT_EQ(12, result[0].first);
+  EXPECT_STREQ("twelve", blob_to_cstr(result[0].second));
+  EXPECT_EQ(13, result[1].first);
+  EXPECT_STREQ("thirteen", blob_to_cstr(result[1].second));
 
   util.add_entry(25, 30, 8, "eight")
       .add_entry(20, 20, 5, "five")
       .finish_packet(db);
 
   auto result2 = db_get_messages(db, 0, 99, 0, 99);
-  ASSERT_EQ(2, result.size());
-  EXPECT_STREQ("five", blob_to_cstr(result2[0]));
-  EXPECT_STREQ("eight", blob_to_cstr(result2[1]));
-  EXPECT_STREQ("twelve", blob_to_cstr(result2[2]));
-  EXPECT_STREQ("thirteen", blob_to_cstr(result2[3]));
+  ASSERT_EQ(4, result2.size());
+  EXPECT_EQ(5, result2[0].first);
+  EXPECT_STREQ("five", blob_to_cstr(result2[0].second));
+  EXPECT_EQ(8, result2[1].first);
+  EXPECT_STREQ("eight", blob_to_cstr(result2[1].second));
+  EXPECT_EQ(12, result2[2].first);
+  EXPECT_STREQ("twelve", blob_to_cstr(result2[2].second));
+  EXPECT_EQ(13, result2[3].first);
+  EXPECT_STREQ("thirteen", blob_to_cstr(result2[3].second));
 }
 
 TEST(ris_database, forward) {
@@ -162,24 +167,6 @@ TEST(ris_database, forward) {
   EXPECT_EQ(kDBInvalidTimestamp,
             db_get_forward_start_time(db, 21, 50));  // none
 }
-
-// TODO
-// TEST(ris_database, cleanup) {
-//   auto db = test_db();
-
-//   std::vector<ris_message> m;
-//   m.emplace_back(8, 8, 10, 1, std::unique_ptr<uint8_t>{new uint8_t(1)});
-//   db_put_messages("foo", m, db);
-
-//   db_clean_messages(9, db);
-
-//   auto files = db_get_files(db);
-//   ASSERT_EQ(1, files.size());
-//   EXPECT_EQ(std::string("foo"), *begin(files));
-
-//   auto found_result = db_get_messages(0, 99, 0, 99, db);
-//   ASSERT_EQ(0, found_result.size());
-// }
 
 }  // namespace ris
 }  // namespace motis

@@ -5,6 +5,7 @@
 #include "parser/arg_parser.h"
 #include "parser/util.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/loader/util.h"
 
 using namespace parser;

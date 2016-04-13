@@ -59,20 +59,20 @@ void lookup::on_msg(msg_ptr msg, sid, callback cb) {
 
 void lookup::lookup_station(LookupGeoStationRequest const* req,
                             callback cb) const {
-  MessageCreator b;
+  message_creator b;
   auto response = geo_index_->stations(b, req);
-  b.CreateAndFinish(MsgContent_LookupGeoStationResponse, response.Union());
+  b.create_and_finish(MsgContent_LookupGeoStationResponse, response.Union());
   return cb(make_msg(b), error::ok);
 }
 
 void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
                              motis::module::callback cb) const {
-  MessageCreator b;
+  message_creator b;
   std::vector<Offset<LookupGeoStationResponse>> responses;
   for (auto const& request : *req->requests()) {
     responses.push_back(geo_index_->stations(b, request));
   }
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_LookupBatchGeoStationResponse,
       CreateLookupBatchGeoStationResponse(b, b.CreateVector(responses))
           .Union());
@@ -81,20 +81,20 @@ void lookup::lookup_stations(LookupBatchGeoStationRequest const* req,
 
 void lookup::lookup_station_events(LookupStationEventsRequest const* req,
                                    callback cb) {
-  MessageCreator b;
+  message_creator b;
   auto lock = synced_sched<schedule_access::RO>();
   auto events = motis::lookup::lookup_station_events(b, lock.sched(), req);
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_LookupStationEventsResponse,
       CreateLookupStationEventsResponse(b, b.CreateVector(events)).Union());
   return cb(make_msg(b), error::ok);
 }
 
 void lookup::lookup_id_train(LookupIdTrainRequest const* req, callback cb) {
-  MessageCreator b;
+  message_creator b;
   auto lock = synced_sched<schedule_access::RO>();
   auto train = motis::lookup::lookup_id_train(b, lock.sched(), req->trip_id());
-  b.CreateAndFinish(MsgContent_LookupIdTrainResponse,
+  b.create_and_finish(MsgContent_LookupIdTrainResponse,
                     CreateLookupIdTrainResponse(b, train).Union());
   return cb(make_msg(b), error::ok);
 }
