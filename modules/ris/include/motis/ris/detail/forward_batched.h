@@ -8,7 +8,7 @@ namespace motis {
 namespace ris {
 namespace detail {
 
-constexpr auto kForwardBatchedInterval = 3600;
+constexpr auto kForwardBatchedInterval = 3600l;
 
 std::time_t forward_batched(std::time_t const sched_begin,
                             std::time_t const sched_end,
