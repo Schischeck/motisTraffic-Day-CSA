@@ -87,16 +87,11 @@ request_builder& request_builder::add_additional_edge(
 request_builder& request_builder::add_additional_edges(
     motis::reliability::intermodal::bikesharing::bikesharing_infos const& infos,
     time_t const& schedule_begin) {
-  std::cout << "\nrequest infos: " << infos.at_start_.size() << " "
-            << infos.at_destination_.size() << std::endl;
-  std::cout << "schedule_begin: " << schedule_begin << std::flush;
   auto create_edge = [&](
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
       std::string const tail_station, std::string const head_station) {
     using namespace routing;
     for (auto const& interval : info.availability_intervals_) {
-      std::cout << "[" << interval.first << ", " << interval.second << "] "
-                << std::flush;
       additional_edges_.push_back(CreateAdditionalEdgeWrapper(
           b_, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(

@@ -137,8 +137,6 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
   auto bikesharing_cb = [=](bs_type const infos, individual_modes_cb_type cb) {
     bikesharing_infos->first = true;
     bikesharing_infos->second = infos;
-    std::cout << "\ninfos: " << infos.at_start_.size() << " "
-              << infos.at_destination_.size() << std::endl;
     return cb();
   };
 
@@ -147,9 +145,6 @@ void reliability::handle_routing_request(ReliableRoutingRequest const* req,
     if (!iv_completed()) {
       return;
     }
-    std::cout << "\nbikesharing_infos: "
-              << bikesharing_infos->second.at_start_.size() << " "
-              << bikesharing_infos->second.at_destination_.size() << std::endl;
     return handle_routing_request_helper(req, bikesharing_infos->second,
                                          session_id, cb);
   };
