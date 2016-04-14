@@ -48,8 +48,8 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
   auto const type = is_dep ? EventType_Departure : EventType_Arrival;
 
   auto const& time = is_dep ? lcon->d_time_ : lcon->a_time_;
-  auto const sched_time = get_schedule_time(sched, station_index, info.train_nr_,
-                                            is_dep, time, route_id);
+  auto const sched_time = get_schedule_time(
+      sched, station_index, info.train_nr_, is_dep, time, route_id);
 
   std::string dir;
   if (info.dir_ != nullptr) {
@@ -60,7 +60,8 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
     dir = sched.stations_[trp->id_.secondary_.target_station_id_]->name_;
   }
 
-  auto const& track = sched.tracks_[is_dep ? fcon.d_platform_ : fcon.a_platform_];
+  auto const& track =
+      sched.tracks_[is_dep ? fcon.d_platform_ : fcon.a_platform_];
   auto const& service_name = get_service_name(sched, &info);
 
   return CreateStationEvent(
@@ -75,7 +76,7 @@ std::vector<Offset<StationEvent>> lookup_station_events(
     LookupStationEventsRequest const* req) {
   if (sched.schedule_begin_ > req->end() ||
       sched.schedule_end_ < req->begin()) {
-    throw boost::system::system_error(error::not_in_period);
+    throw std::system_error(error::not_in_period);
   }
 
   auto station_node = get_station_node(sched, req->eva_nr()->str());
@@ -84,9 +85,10 @@ std::vector<Offset<StationEvent>> lookup_station_events(
   auto begin = unix_to_motistime(sched, req->begin());
   auto end = unix_to_motistime(sched, req->end());
 
-  // TODO include events with schedule_time in the interval (but time outside)
-  // TODO filter (departures and arrivals)
-  // TODO sort by time
+  // TODO(sebastian) include events with schedule_time in the interval (but time
+  // outside)
+  // TODO(sebastian) filter (departures and arrivals)
+  // TODO(sebastian) sort by time
 
   std::vector<Offset<StationEvent>> events;
   for (auto const& route_node : station_node->get_route_nodes()) {

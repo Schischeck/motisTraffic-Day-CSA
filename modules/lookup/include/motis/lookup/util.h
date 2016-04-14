@@ -22,13 +22,13 @@ inline time get_schedule_time(schedule const& sched, unsigned station_index,
   }
 }
 
-// TODO actually this should in schedule_access.h somewhere in core
+// TODO(sebastian) actually this should in schedule_access.h somewhere in core
 //      but what about the error?
 inline station_node* get_station_node(schedule const& sched,
                                       std::string const& eva_nr) {
   auto it = sched.eva_to_station_.find(eva_nr);
   if (it == end(sched.eva_to_station_)) {
-    throw boost::system::system_error(error::station_not_found);
+    throw std::system_error(error::station_not_found);
   }
   return sched.station_nodes_[it->second->index_].get();
 }
@@ -46,7 +46,7 @@ inline edge* find_outgoing_route_edge(node* node) {
 inline edge* get_outgoing_route_edge(node* node) {
   auto res = find_outgoing_route_edge(node);
   if (res == nullptr) {
-    throw boost::system::system_error(error::route_edge_not_found);
+    throw std::system_error(error::route_edge_not_found);
   }
   return res;
 }

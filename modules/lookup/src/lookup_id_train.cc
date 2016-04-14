@@ -67,7 +67,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
     j.stops_.push_back(stop);
   }
 
-  // TODO write transport (using the section based iterator)
+  // TODO(sebastian) write transport (using the section based iterator)
   return to_connection(fbb, j);
 }
 

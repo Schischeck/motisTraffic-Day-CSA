@@ -32,6 +32,8 @@ constexpr auto kIdTrainICERequest = R""(
 }
 )"";
 
+// TODO(sebastian) re-enable when working realtime module is available
+
 // TEST(lookup, DISABLED_id_train) {
 //   auto instance = launch_motis(kSimpleRealtimePath, kSimpleRealtimeDate,
 //                                {"lookup", "realtime"});
