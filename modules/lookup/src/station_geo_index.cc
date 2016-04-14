@@ -24,7 +24,7 @@ public:
     std::vector<value> values;
     for (size_t i = 0; i < stations.size(); ++i) {
       values.push_back(std::make_pair(
-          spherical_point(stations[i]->length, stations[i]->width), i));
+          spherical_point(stations[i]->length_, stations[i]->width_), i));
     }
     rtree_ = quadratic_rtree{values};
   }
@@ -52,8 +52,8 @@ public:
       FlatBufferBuilder& fbb, LookupGeoStationRequest const* req) const {
     std::vector<Offset<Station>> list;
     for (auto const& station : stations(req->lat(), req->lng(), req->radius())) {
-      list.push_back(CreateStation(fbb, fbb.CreateString(station->eva_nr),
-                                   fbb.CreateString(station->name),
+      list.push_back(CreateStation(fbb, fbb.CreateString(station->eva_nr_),
+                                   fbb.CreateString(station->name_),
                                    station->lat(), station->lng()));
     }
     return CreateLookupGeoStationResponse(fbb, fbb.CreateVector(list));

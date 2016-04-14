@@ -145,7 +145,6 @@ list(REMOVE_ITEM modules
   "bikesharing"
   "connectionchecker"
   "intermodal"
-  "lookup"
   "railviz"
   "realtime"
   "reliability"
