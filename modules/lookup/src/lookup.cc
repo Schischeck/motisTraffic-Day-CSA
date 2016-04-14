@@ -16,7 +16,7 @@ lookup::lookup() : module("Lookup", "lookup") {}
 lookup::~lookup() = default;
 
 void lookup::init(registry& r) {
-  auto& sched = get_schedule();
+  auto& sched = synced_sched<RO>().sched();
   geo_index_ = std::make_unique<station_geo_index>(sched.stations_);
 
   r.register_op("/lookup/geo_station",

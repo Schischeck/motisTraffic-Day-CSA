@@ -16,11 +16,12 @@ struct lookup final : public motis::module::module {
   std::string name() const override { return "lookup"; }
   void init(motis::module::registry&) override;
 
- private:
+private:
   motis::module::msg_ptr lookup_station(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr lookup_stations(motis::module::msg_ptr const&) const;
 
-  motis::module::msg_ptr lookup_station_events(motis::module::msg_ptr const&) const;
+  motis::module::msg_ptr lookup_station_events(
+      motis::module::msg_ptr const&) const;
 
   motis::module::msg_ptr lookup_id_train(motis::module::msg_ptr const&) const;
 
