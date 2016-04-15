@@ -55,6 +55,10 @@ struct http_server::impl {
         return receiver_.on_msg(
             make_msg(req.content),
             std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+      } else if (req.method == "GET") {
+        return receiver_.on_msg(
+            make_no_msg(req.uri),
+            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
       } else {
         message_creator fbb;
         fbb.create_and_finish(
