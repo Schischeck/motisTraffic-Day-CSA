@@ -42,7 +42,7 @@ public:
 
   std::vector<Label*>& search() {
     _stats.start_label_count = _queue.size();
-    _stats.labels_created = _label_store.used_size();
+    _stats.labels_created = _label_store.used_size() / sizeof(Label);
 
     while (!_queue.empty() || _equals.size() != 0) {
       if ((_stats.labels_created > (_max_labels / 2) && _results.empty()) ||
