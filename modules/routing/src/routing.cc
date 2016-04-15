@@ -1,12 +1,9 @@
 #include "motis/routing/routing.h"
 
-#include <iostream>
-
 #include "boost/program_options.hpp"
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include "motis/routing/additional_edges.h"
 #include "motis/core/common/util.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
@@ -15,6 +12,8 @@
 
 #include "motis/protocol/StationGuesserRequest_generated.h"
 
+#include "motis/routing/additional_edges.h"
+#include "motis/routing/query_to_arrivals.h"
 #include "motis/routing/search.h"
 #include "motis/routing/error.h"
 
@@ -69,8 +68,17 @@ void routing::read_path_element(LocationPathElementWrapper const* el,
         return cb({arrival_part(station_it->second->index)}, error::ok);
       }
     }
+  } else if (el->element_type() == LocationPathElement_CoordinatesPathElement) {
+    auto coordinates_element = (CoordinatesPathElement const*)el->element();
+    auto lock = synced_sched<RO>();
+    auto station_it = lock.sched().eva_to_station.find(
+        coordinates_element->is_source() == 1 ? "-1" : "-2");
+    if (station_it == end(lock.sched().eva_to_station)) {
+      return cb({}, error::given_eva_not_available);
+    } else {
+      return cb({arrival_part(station_it->second->index)}, error::ok);
+    }
   }
-  /* coordinates-path-element */
   return cb({}, error::ok);
 }
 
@@ -134,12 +142,19 @@ void routing::on_msg(msg_ptr msg, sid, callback cb) {
     auto i_end =
         unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
-    auto const additional_edges =
-        create_additional_edges(req->additional_edges(), sched);
+    auto const additional_edges = create_additional_edges(
+        req->additional_edges(),
+        req->type() == Type_OnTrip || req->type() == Type_LateConnection,
+        sched);
+
+    auto const arrivals = query_to_arrivals::create_arrivals(
+        path->at(0), path->at(1), req->additional_edges(),
+        req->type() == Type_OnTrip || req->type() == Type_LateConnection,
+        sched);
 
     search s(sched, *label_store_);
     auto result = s.get_connections(
-        path->at(0), path->at(1), i_begin, i_end,
+        arrivals.first, arrivals.second, i_begin, i_end,
         req->type() == Type_OnTrip || req->type() == Type_LateConnection,
         additional_edges);
 

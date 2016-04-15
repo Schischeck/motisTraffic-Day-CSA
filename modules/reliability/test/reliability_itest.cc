@@ -244,7 +244,7 @@ module::msg_ptr to_reliable_late_connections_request(
             b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
                               b.CreateString("-2") /* to dummy target */,
                               std::get<1>(info), std::get<2>(info)),
-            21 * 60, 3 * 60)
+            21 * 60, 3 * 60, 1)
             .Union()));
   }
 

@@ -10,6 +10,6 @@ struct schedule;
 namespace routing {
 std::vector<edge> create_additional_edges(
     flatbuffers::Vector<flatbuffers::Offset<AdditionalEdgeWrapper>> const*,
-    schedule const&);
+    bool const is_ontrip, schedule const&);
 }
 }

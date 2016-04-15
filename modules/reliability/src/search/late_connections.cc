@@ -1,5 +1,7 @@
 #include "motis/reliability/search/late_connections.h"
 
+#include "motis/core/common/constants.h"
+
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/intermodal/hotels.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
@@ -18,12 +20,14 @@ module::msg_ptr to_routing_late_connections_message(
   builder.type_ = Type::Type_LateConnection;
 
   auto& b = builder.b_;
+  /* Create taxi-edges */
   for (auto const& e : *request->additional_edges()) {
     if (e->additional_edge_type() != AdditionalEdge_TimeDependentMumoEdge) {
       continue;
     }
     auto const* mumo =
         static_cast<TimeDependentMumoEdge const*>(e->additional_edge());
+    /* TODO(Mohammad Keyhani) ask intermodal modul for taxi-edges */
     builder.add_additional_edge(CreateAdditionalEdgeWrapper(
         b, AdditionalEdge_TimeDependentMumoEdge,
         CreateTimeDependentMumoEdge(
@@ -31,7 +35,7 @@ module::msg_ptr to_routing_late_connections_message(
                    b, b.CreateString(mumo->edge()->from_station_eva()->c_str()),
                    b.CreateString(mumo->edge()->to_station_eva()->c_str()),
                    mumo->edge()->duration(), mumo->edge()->price()),
-            21 * 60, 3 * 60)
+            LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME, 1)
             .Union()));
   }
   for (auto const& hotel : hotel_infos) {

@@ -100,11 +100,11 @@ search_result search::get_connections(
         _sched.station_nodes[DUMMY_SOURCE_IDX].get();
     for (const auto& s : from) {
       station_node const* station = _sched.station_nodes[s.station].get();
-
       // generate labels at all route nodes
       // for all trains departing in the specified interval
-      generate_start_labels(interval_start, interval_end, station, start_labels,
-                            dummy_source_station, s.time_cost, lb);
+      generate_start_labels(s.interval_start(interval_start), interval_end,
+                            station, start_labels, dummy_source_station,
+                            s.time_cost, lb);
     }
   }
 

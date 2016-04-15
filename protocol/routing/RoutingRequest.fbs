@@ -8,6 +8,7 @@ table StationPathElement {
 table CoordinatesPathElement {
   lat:double;
   lon:double;
+  is_source:bool;
 }
 
 union LocationPathElement { StationPathElement, CoordinatesPathElement }
@@ -32,11 +33,14 @@ table MumoEdge {
   price:ushort;
 }
 
-// valid_from and valid_to are minutes after midnight
+// If periodical_validity is true, valid_from and valid_to
+// are minutes after midnight (valid on everyday).
+// Otherwise, valid_from and valid_to are unix timestamps.
 table TimeDependentMumoEdge {
   edge:MumoEdge;
-  valid_from:ushort;
-  valid_to:ushort;
+  valid_from:ulong;
+  valid_to:ulong;
+  periodical_validity:bool;
 }
 
 table HotelEdge {

@@ -174,10 +174,9 @@ void reliability::handle_routing_request_helper(
     sid session_id, callback cb) {
   switch (req->request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
-      auto const schedule_begin = synced_sched().sched().schedule_begin_;
       return dispatch(
           flatbuffers::request_builder::request_builder(req->request())
-              .add_additional_edges(bikesharing_infos, schedule_begin)
+              .add_additional_edges(bikesharing_infos)
               .build_routing_request(),
           session_id, std::bind(&reliability::handle_routing_response, this,
                                 p::_1, p::_2, cb));

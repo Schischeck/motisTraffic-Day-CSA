@@ -40,7 +40,7 @@ request_builder::request_builder(routing::RoutingRequest const* request)
                routing::LocationPathElement_CoordinatesPathElement) {
       auto c = reinterpret_cast<routing::CoordinatesPathElement const*>(
           e->element());
-      add_coordinates(c->lat(), c->lon());
+      add_coordinates(c->lat(), c->lon(), c->is_source());
     }
   }
 }
@@ -56,10 +56,11 @@ request_builder& request_builder::add_station(std::string const& name,
 }
 
 request_builder& request_builder::add_coordinates(double const& lat,
-                                                  double const& lon) {
+                                                  double const& lon,
+                                                  bool const is_source) {
   path_.push_back(routing::CreateLocationPathElementWrapper(
       b_, routing::LocationPathElement_CoordinatesPathElement,
-      routing::CreateCoordinatesPathElement(b_, lat, lon).Union()));
+      routing::CreateCoordinatesPathElement(b_, lat, lon, is_source).Union()));
   return *this;
 }
 
@@ -85,8 +86,8 @@ request_builder& request_builder::add_additional_edge(
 }
 
 request_builder& request_builder::add_additional_edges(
-    motis::reliability::intermodal::bikesharing::bikesharing_infos const& infos,
-    time_t const& schedule_begin) {
+    motis::reliability::intermodal::bikesharing::bikesharing_infos const&
+        infos) {
   auto create_edge = [&](
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
       std::string const tail_station, std::string const head_station) {
@@ -97,9 +98,8 @@ request_builder& request_builder::add_additional_edges(
           CreateTimeDependentMumoEdge(
               b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
                                  b_.CreateString(head_station), info.duration_,
-                                 0 /* todo */),
-              unix_to_motistime(schedule_begin, interval.first),
-              unix_to_motistime(schedule_begin, interval.second))
+                                 0 /* TODO(Mohammad Keyhani) slots */),
+              interval.first, interval.second, 0)
               .Union()));
     }
   };

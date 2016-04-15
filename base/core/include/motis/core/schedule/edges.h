@@ -112,14 +112,7 @@ public:
         return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
                          _m._foot_edge._price, _m._foot_edge._slot);
       case TIME_DEPENDENT_MUMO_EDGE: {
-        unsigned const start_time_mod = start_time % 1440;
-        if (start_time_mod >= LATE_TAXI_BEGIN_TIME ||
-            start_time_mod <= LATE_TAXI_END_TIME) {
-          return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
-                           _m._foot_edge._price, _m._foot_edge._slot);
-        } else {
-          return NO_EDGE;
-        }
+        return edge_cost_for_time_dependent_mumo(start_time);
       }
       case HOTEL_EDGE: {
         return edge_cost(calc_duration_hotel_edge(start_time), false,
@@ -307,6 +300,12 @@ public:
       // slot for mumo edge
       uint8_t _slot;
 
+      // for time-dependent mumo edge
+      uint16_t _valid_from, _valid_to;
+      // if true, _valid_from and _valid_to are values in [0, 1439]
+      // (valid on everyday).
+      bool _periodical_validity;
+
       void init_empty() {
         _time_cost = 0;
         _price = 0;
@@ -333,6 +332,17 @@ private:
         static_cast<uint16_t>((_m._hotel_edge._checkout_time + offset) -
                               (start_time % 1440)));
   }
+
+  edge_cost edge_cost_for_time_dependent_mumo(time const start_time) const {
+    auto const t =
+        _m._foot_edge._periodical_validity ? start_time % 1440 : start_time;
+    if (t >= _m._foot_edge._valid_from && t <= _m._foot_edge._valid_to) {
+      return edge_cost(_m._foot_edge._time_cost, _m._foot_edge._transfer,
+                       _m._foot_edge._price, _m._foot_edge._slot);
+    } else {
+      return NO_EDGE;
+    }
+  }
 };
 
 /* convenience helper functions to generate the right edge type */
@@ -357,12 +367,16 @@ inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
   return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
 }
 
-inline edge make_time_dependent_mumo_edge(node* from, node* to,
-                                          uint16_t time_cost = 0,
-                                          uint16_t price = 0,
-                                          uint8_t slot = 0) {
-  return edge(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
-              slot);
+inline edge make_time_dependent_mumo_edge(
+    node* from, node* to, uint16_t valid_from, uint16_t valid_to,
+    bool periodical_validity, uint16_t time_cost = 0, uint16_t price = 0,
+    uint8_t slot = 0) {
+  edge e(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
+         slot);
+  e._m._foot_edge._valid_from = valid_from;
+  e._m._foot_edge._valid_to = valid_to;
+  e._m._foot_edge._periodical_validity = periodical_validity;
+  return e;
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,

@@ -27,7 +27,8 @@ struct request_builder {
 
   request_builder& add_station(std::string const& name, std::string const& eva);
 
-  request_builder& add_coordinates(double const& lat, double const& lon);
+  request_builder& add_coordinates(double const& lat, double const& lon,
+                                   bool const is_source);
 
   request_builder& set_interval(std::time_t const begin, std::time_t const end);
 
@@ -38,8 +39,7 @@ struct request_builder {
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
 
   request_builder& add_additional_edges(
-      motis::reliability::intermodal::bikesharing::bikesharing_infos const&,
-      time_t const& schedule_begin);
+      motis::reliability::intermodal::bikesharing::bikesharing_infos const&);
 
   ::flatbuffers::Offset<routing::RoutingRequest> create_routing_request();
 
