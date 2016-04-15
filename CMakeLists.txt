@@ -126,12 +126,14 @@ add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
 ################################
 include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
+include_directories(${CMAKE_SOURCE_DIR}/base/db/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/client/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
+add_subdirectory(base/db EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
 add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
