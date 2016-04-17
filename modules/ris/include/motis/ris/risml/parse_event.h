@@ -19,6 +19,6 @@ flatbuffers::Offset<AdditionalEvent> parse_additional_event(
 boost::optional<flatbuffers::Offset<Event>> parse_standalone_event(
     context&, pugi::xml_node const& e_node);
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

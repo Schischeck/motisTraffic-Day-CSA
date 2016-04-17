@@ -10,7 +10,7 @@ namespace ris {
 namespace mode {
 
 struct simulation_mode final : public base_mode {
-  simulation_mode(config* conf) : base_mode(conf) {}
+  explicit simulation_mode(config* conf) : base_mode(conf) {}
 
   void init(motis::module::registry& r) override {
     base_mode::init(r);

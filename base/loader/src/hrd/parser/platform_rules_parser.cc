@@ -3,6 +3,7 @@
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/parser_error.h"

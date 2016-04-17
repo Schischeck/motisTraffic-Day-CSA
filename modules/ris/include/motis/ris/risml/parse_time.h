@@ -14,6 +14,6 @@ std::time_t parse_time(parser::cstr const&);
 
 std::time_t parse_schedule_time(context&, parser::cstr const&);
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

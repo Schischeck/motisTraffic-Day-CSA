@@ -1,6 +1,6 @@
 #include "./graph_builder_test.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 using std::get;
 

@@ -16,14 +16,6 @@ std::string pad_to_7_digits(int eva_num) {
   return s.str();
 }
 
-int hhmm_to_min(int hhmm) {
-  if (hhmm < 0) {
-    return hhmm;
-  } else {
-    return (hhmm / 100) * 60 + (hhmm % 100);
-  }
-}
-
 void write_schedule(FlatBufferBuilder& b, fs::path const& path) {
   file f(path.string().c_str(), "w+");
   f.write(b.GetBufferPointer(), b.GetSize());

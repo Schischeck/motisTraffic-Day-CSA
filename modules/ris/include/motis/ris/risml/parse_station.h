@@ -31,6 +31,6 @@ flatbuffers::Offset<flatbuffers::String> inline parse_station(
   return parse_station(fbb, station_node, "EvaNr");
 }
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

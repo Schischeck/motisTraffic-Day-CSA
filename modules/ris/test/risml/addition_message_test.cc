@@ -50,9 +50,9 @@ TEST(ris_addition_message, message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444169425, message.timestamp);
-  EXPECT_EQ(1444206000, message.earliest);
-  EXPECT_EQ(1444235100, message.latest);
+  EXPECT_EQ(1444169425, message.timestamp_);
+  EXPECT_EQ(1444206000, message.earliest_);
+  EXPECT_EQ(1444235100, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());
@@ -149,9 +149,9 @@ TEST(ris_addition_message, message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444185492, message.timestamp);
-  EXPECT_EQ(1444308480, message.earliest);
-  EXPECT_EQ(1444316640, message.latest);
+  EXPECT_EQ(1444185492, message.timestamp_);
+  EXPECT_EQ(1444308480, message.earliest_);
+  EXPECT_EQ(1444316640, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_AdditionMessage, outer_msg->content_type());

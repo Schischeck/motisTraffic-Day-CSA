@@ -4,7 +4,7 @@
 
 #include "motis/module/module.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 namespace motis {
 namespace reliability {

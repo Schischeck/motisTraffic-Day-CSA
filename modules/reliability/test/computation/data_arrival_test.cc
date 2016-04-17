@@ -2,7 +2,7 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "motis/core/schedule/schedule.h"
 

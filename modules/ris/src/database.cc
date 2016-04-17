@@ -2,13 +2,11 @@
 
 #include "snappy.h"
 #include "sqlite3.h"
-#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
+#include "sqlpp11/sqlpp11.h"
 
 #include "motis/ris/ris_message.h"
-
-namespace sql = sqlpp::sqlite3;
 
 namespace motis {
 namespace ris {
@@ -91,9 +89,9 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
                          m.msg = parameter(m.msg)));
   // clang-format on
   for (auto const& msg : msgs) {
-    insert.params.earliest = msg.earliest;
-    insert.params.latest = msg.latest;
-    insert.params.timestamp = msg.timestamp;
+    insert.params.earliest = msg.earliest_;
+    insert.params.latest = msg.latest_;
+    insert.params.timestamp = msg.timestamp_;
 
     std::string b;
     snappy::Compress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);
@@ -104,12 +102,14 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
   db->commit_transaction();
 }
 
-std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
-                                      std::time_t to) {
+std::time_t db_get_forward_start_time(db_ptr const& db,
+                                      std::time_t schedule_begin,
+                                      std::time_t schedule_end) {
   db::ris_message::ris_message m;
-  auto result = (*db)(select(min(m.timestamp))
-                          .from(m)
-                          .where(m.latest >= from and m.earliest <= to));
+  auto result = (*db)(
+      select(min(m.timestamp))
+          .from(m)
+          .where(m.latest >= schedule_begin and m.earliest <= schedule_end));
 
   if (result.empty() || result.front().min.is_null()) {
     return kDBInvalidTimestamp;
@@ -118,35 +118,29 @@ std::time_t db_get_forward_start_time(db_ptr const& db, std::time_t from,
   return result.front().min - 1;
 }
 
-using blob = std::basic_string<uint8_t>;
-std::vector<blob> db_get_messages(db_ptr const& db, std::time_t from,
-                                  std::time_t to, std::time_t batch_from,
-                                  std::time_t batch_to) {
-  std::vector<blob> result;
+std::vector<std::pair<std::time_t, blob>> db_get_messages(
+    db_ptr const& db, std::time_t schedule_begin, std::time_t schedule_end,
+    std::time_t batch_from, std::time_t batch_to) {
+  std::vector<std::pair<std::time_t, blob>> result;
 
   db::ris_message::ris_message m;
-  for (auto const& row :
-       (*db)(select(m.msg)
-                 .from(m)
-                 .where(m.timestamp > batch_from and m.timestamp <= batch_to and
-                        m.latest >= from and m.earliest <= to)
-                 .order_by(m.timestamp.asc()))) {
+  for (auto const& row : (*db)(
+           select(m.msg, m.timestamp)
+               .from(m)
+               .where(m.timestamp > batch_from and m.timestamp <= batch_to and
+                      m.latest >= schedule_begin and m.earliest <= schedule_end)
+               .order_by(m.timestamp.asc()))) {
 
     blob msg = row.msg;
     std::string b;
     snappy::Uncompress(reinterpret_cast<char const*>(msg.data()), msg.size(),
                        &b);
-    result.emplace_back(reinterpret_cast<uint8_t const*>(b.data()), b.size());
+    result.emplace_back(
+        row.timestamp,
+        blob(reinterpret_cast<uint8_t const*>(b.data()), b.size()));
   }
 
   return result;
-}
-
-void db_clean_messages(db_ptr const& db, std::time_t threshold) {
-// TODO 
-
-  db::ris_message::ris_message m;
-  (*db)(remove_from(m).where(m.latest < threshold));
 }
 
 }  // namespace ris

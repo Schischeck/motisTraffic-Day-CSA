@@ -54,9 +54,9 @@ TEST(ris_cancel_message, message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444194395, message.timestamp);
-  EXPECT_EQ(1444195800, message.earliest);
-  EXPECT_EQ(1444197420, message.latest);
+  EXPECT_EQ(1444194395, message.timestamp_);
+  EXPECT_EQ(1444195800, message.earliest_);
+  EXPECT_EQ(1444197420, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());
@@ -130,9 +130,9 @@ TEST(ris_ausfall_message, message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444227300, message.timestamp);
-  EXPECT_EQ(1444226100, message.earliest);
-  EXPECT_EQ(1444228560, message.latest);
+  EXPECT_EQ(1444227300, message.timestamp_);
+  EXPECT_EQ(1444226100, message.earliest_);
+  EXPECT_EQ(1444228560, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_CancelMessage, outer_msg->content_type());

@@ -51,9 +51,9 @@ TEST(ris_connection_decision_message, message_1) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444227298, message.timestamp);
-  EXPECT_EQ(1444205340, message.earliest);
-  EXPECT_EQ(1444233600, message.latest);
+  EXPECT_EQ(1444227298, message.timestamp_);
+  EXPECT_EQ(1444205340, message.earliest_);
+  EXPECT_EQ(1444233600, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());
@@ -133,9 +133,9 @@ TEST(ris_connection_decision_message, message_2) {
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
-  EXPECT_EQ(1444227293, message.timestamp);
-  EXPECT_EQ(1444223760, message.earliest);
-  EXPECT_EQ(1444246920, message.latest);
+  EXPECT_EQ(1444227293, message.timestamp_);
+  EXPECT_EQ(1444223760, message.earliest_);
+  EXPECT_EQ(1444246920, message.latest_);
 
   auto outer_msg = GetMessage(message.data());
   ASSERT_EQ(MessageUnion_ConnectionDecisionMessage, outer_msg->content_type());

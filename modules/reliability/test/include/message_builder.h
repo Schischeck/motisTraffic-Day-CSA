@@ -44,10 +44,10 @@ inline module::msg_ptr get_delay_message(std::string const& station,
       CreateDelayMessage(fbb, stub_id(fbb), delayType, fbb.CreateVector(events))
           .Union()));
 
-  module::MessageCreator mc;
+  module::message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
-  mc.CreateAndFinish(MsgContent_RISBatch,
+  mc.create_and_finish(MsgContent_RISBatch,
                      CreateRISBatch(mc, mc.CreateVector(messages)).Union());
   return make_msg(mc);
 }
@@ -73,10 +73,10 @@ inline module::msg_ptr get_cancel_message(std::vector<event> const& events) {
       CreateCancelMessage(fbb, stub_id(fbb), fbb.CreateVector(o_events))
           .Union()));
 
-  module::MessageCreator mc;
+  module::message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
-  mc.CreateAndFinish(MsgContent_RISBatch,
+  mc.create_and_finish(MsgContent_RISBatch,
                      CreateRISBatch(mc, mc.CreateVector(messages)).Union());
   return make_msg(mc);
 }
@@ -125,10 +125,10 @@ inline module::msg_ptr get_reroute_message(
                                          fbb.CreateVector(o_rerouted_events))
                         .Union()));
 
-  module::MessageCreator mc;
+  module::message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
-  mc.CreateAndFinish(MsgContent_RISBatch,
+  mc.create_and_finish(MsgContent_RISBatch,
                      CreateRISBatch(mc, mc.CreateVector(messages)).Union());
   return make_msg(mc);
 }

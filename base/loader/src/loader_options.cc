@@ -2,7 +2,7 @@
 
 #include "boost/date_time/local_time/local_time.hpp"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 namespace motis {
 namespace loader {
