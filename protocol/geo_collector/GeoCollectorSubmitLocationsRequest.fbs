@@ -1,0 +1,28 @@
+namespace motis.geo_collector;
+
+// JSON example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/geo_collector/submit_locations",
+//   },
+//   "content_type": "GeoCollectorSubmitLocationsRequest",
+//   "content": {
+//     "participant": 1,
+//     "providers": [{
+//       "name": "gps",
+//       "locations": "time\tlat\tlng\tacc\n1460968218\t49.87\t8.65\t42\n1460968314\t49.87\t8.65\t23"
+//     }]
+//   }
+// }
+ 
+table GeoCollectorProvider {
+  name: string;
+  locations: string; // tsv
+}
+
+table GeoCollectorSubmitLocationsRequest {
+  participant: long;
+  providers: [GeoCollectorProvider];
+}
