@@ -1,0 +1,6 @@
+namespace motis.geo_collector;
+
+table GeoCollectorSignUpResponse {
+  id: long;
+  auth_token: string;
+}

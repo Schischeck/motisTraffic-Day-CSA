@@ -70,7 +70,7 @@ endif()
 
 
 ################################
-# 3rd Party (Boost, pthread)
+# 3rd Party (Boost, pthread, postgres)
 ################################
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
@@ -81,6 +81,8 @@ find_package(Threads)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
+find_package(PostgreSQL REQUIRED)
+include_directories(${PostgreSQL_INCLUDE_DIR})
 
 ################################
 # Contained Dependencies
@@ -94,6 +96,7 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
@@ -126,14 +129,12 @@ add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
 ################################
 include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/db/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
 include_directories(${CMAKE_SOURCE_DIR}/base/client/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
-add_subdirectory(base/db EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
 add_subdirectory(base/module EXCLUDE_FROM_ALL)
 

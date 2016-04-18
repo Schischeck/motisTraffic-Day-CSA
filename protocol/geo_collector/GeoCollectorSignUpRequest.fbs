@@ -1,0 +1,18 @@
+namespace motis.geo_collector;
+
+// JSON example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/geo_collector/sign_up",
+//   },
+//   "content_type": "GeoCollectorSignUpRequest",
+//   "content": {
+//     "device_type": "Nexus 5"
+//   }
+// }
+table GeoCollectorSignUpRequest {
+  device_type: string;
+  mac_address: string;
+}
