@@ -61,7 +61,7 @@ void live_mode::schedule_update(error_code e) {
   parse_zips();
 }
 
-void live_mode::handle_upload(msg_ptr const& msg) {
+msg_ptr live_mode::handle_upload(msg_ptr const& msg) {
   auto req = motis_content(HTTPRequest, msg);
   try {
     system_time_forward(std::time(nullptr), [&] {
@@ -82,6 +82,7 @@ void live_mode::handle_upload(msg_ptr const& msg) {
     LOG(logging::error) << "bad zip file: " << e.what();
     throw std::system_error(error::bad_zip_file);
   }
+  return nullptr;
 }
 
 void live_mode::parse_zips() {
