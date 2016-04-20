@@ -18,8 +18,6 @@ using namespace pgdb;
 namespace motis {
 namespace geo_collector {
 
-geo_collector::geo_collector() : module("GeoCollector", "geoc") {}
-
 constexpr char kCreateParticipants[] = R"sql(
 CREATE TABLE IF NOT EXISTS participants (
   id BIGSERIAL PRIMARY KEY,
@@ -93,8 +91,13 @@ constexpr char kInsertJourneys[] =
     "INSERT INTO journeys(document, participant_id) VALUES($1, $2);";
 using insert_journey = in_stmt<kInsertJourneys, std::string, long>;
 
+geo_collector::geo_collector() : module("GeoCollector", "geoc") {
+  string_param(conninfo_, "dbname=postgres", "conninfo",
+               "How to connect to a postgres database.");
+}
+
 void geo_collector::init(registry& r) {
-  connection_handle conn("dbname=postgres");
+  connection_handle conn(conninfo_);
   create_participants_table::exec(conn);
   create_locations_table::exec(conn);
   create_journeys_table::exec(conn);
@@ -110,7 +113,7 @@ void geo_collector::init(registry& r) {
 
 msg_ptr geo_collector::sign_up(msg_ptr const& msg) {
   auto req = motis_content(GeoCollectorSignUpRequest, msg);
-  connection_handle conn("dbname=postgres");
+  connection_handle conn(conninfo_);
 
   auto&& token = generate_auth_token();
   auto id = single_val<insert_participant>(
@@ -127,7 +130,7 @@ msg_ptr geo_collector::submit_measurements(msg_ptr const& msg) {
   auto req = motis_content(GeoCollectorSubmitMeasurementsRequest, msg);
   auto participant = req->participant();
 
-  connection_handle conn("dbname=postgres");
+  connection_handle conn(conninfo_);
   insert_location insert_loc(conn);
   insert_catchall insert_ca(conn);
 
@@ -167,7 +170,7 @@ msg_ptr geo_collector::submit_measurements(msg_ptr const& msg) {
 msg_ptr geo_collector::submit_journey(msg_ptr const& msg) {
   auto req = motis_content(GeoCollectorSubmitJourneyRequest, msg);
 
-  connection_handle conn("dbname=postgres");
+  connection_handle conn(conninfo_);
   insert_journey::exec(conn, req->journey()->str(), req->participant());
 
   return make_success_msg();
