@@ -8,15 +8,6 @@ using namespace flatbuffers;
 namespace motis {
 namespace lookup {
 
-struct coordinate {
-  double lat, lng;
-};
-
-template <typename T>
-constexpr T identity(T&& v) {
-  return std::forward<T>(v);
-}
-
 struct station_geo_index::impl {
 public:
   explicit impl(std::vector<station_ptr> const& stations)
@@ -24,7 +15,7 @@ public:
     std::vector<value> values;
     for (size_t i = 0; i < stations.size(); ++i) {
       values.push_back(std::make_pair(
-          spherical_point(stations[i]->length, stations[i]->width), i));
+          spherical_point(stations[i]->length_, stations[i]->width_), i));
     }
     rtree_ = quadratic_rtree{values};
   }
@@ -44,16 +35,16 @@ public:
     for (const auto& result : result_n) {
       vec.push_back(stations_[result.second].get());
     }
-
     return vec;
   }
 
   flatbuffers::Offset<LookupGeoStationResponse> stations(
       FlatBufferBuilder& fbb, LookupGeoStationRequest const* req) const {
     std::vector<Offset<Station>> list;
-    for (auto const& station : stations(req->lat(), req->lng(), req->radius())) {
-      list.push_back(CreateStation(fbb, fbb.CreateString(station->eva_nr),
-                                   fbb.CreateString(station->name),
+    for (auto const& station :
+         stations(req->lat(), req->lng(), req->radius())) {
+      list.push_back(CreateStation(fbb, fbb.CreateString(station->eva_nr_),
+                                   fbb.CreateString(station->name_),
                                    station->lat(), station->lng()));
     }
     return CreateLookupGeoStationResponse(fbb, fbb.CreateVector(list));
@@ -67,7 +58,7 @@ private:
 station_geo_index::station_geo_index(const std::vector<station_ptr>& stations)
     : impl_(new impl(stations)) {}
 
-station_geo_index::~station_geo_index() {}
+station_geo_index::~station_geo_index() = default;
 
 std::vector<const station*> station_geo_index::stations(double lat, double lng,
                                                         double radius) const {

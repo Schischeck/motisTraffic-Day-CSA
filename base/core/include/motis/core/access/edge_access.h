@@ -30,7 +30,7 @@ void foreach_arrival_in(edge const& edge, time begin, time end, F fun) {
                              [](light_connection const& lcon, time const& t) {
                                return lcon.a_time_ < t;
                              });
-  for (; it != std::end(conns) && it->a_time < end; ++it) {
+  for (; it != std::end(conns) && it->a_time_ < end; ++it) {
     fun(it);
   }
 }
