@@ -7,8 +7,9 @@ using namespace motis::ris;
 namespace motis {
 namespace test {
 namespace schedule {
+namespace simple_realtime {
 
-inline msg_ptr get_simple_realtime_ris_message() {
+msg_ptr get_ris_message() {
   FlatBufferBuilder fbb;
   // clang-format off
   std::vector<Offset<UpdatedEvent>> events{
@@ -51,6 +52,7 @@ inline msg_ptr get_simple_realtime_ris_message() {
   return make_msg(mc);
 }
 
+}  // namespace simple_realtime
 }  // namespace schedule
 }  // namespace test
 }  // namespace motis
