@@ -101,8 +101,10 @@ parse_label_chain(Label const* terminal_label) {
 
         walk_arrival = INVALID_TIME;
 
-		auto s1 = std::next(it, 1) == end(labels) ? nullptr : *std::next(it, 1);
-		auto s2 = s1 == nullptr || std::next(it, 2) == end(labels) ? nullptr : *std::next(it, 2);
+        auto s1 = std::next(it, 1) == end(labels) ? nullptr : *std::next(it, 1);
+        auto s2 = s1 == nullptr || std::next(it, 2) == end(labels)
+                      ? nullptr
+                      : *std::next(it, 2);
         if (s2 && s2->connection_ != nullptr) {
           d_platform = s2->connection_->full_con_->d_platform_;
           d_time = s2->connection_->d_time_;
