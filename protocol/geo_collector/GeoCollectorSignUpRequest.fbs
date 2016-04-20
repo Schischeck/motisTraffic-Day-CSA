@@ -10,10 +10,10 @@ namespace motis.geo_collector;
 //   "content_type": "GeoCollectorSignUpRequest",
 //   "content": {
 //     "device_type": "Nexus 5",
-//     "mac_address": "01:23:45:67:89:ab"
+//     "device_id": "0481839c07912ee1"
 //   }
 // }
 table GeoCollectorSignUpRequest {
   device_type: string;
-  mac_address: string;
+  device_id: string;
 }

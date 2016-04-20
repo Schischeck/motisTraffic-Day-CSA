@@ -1,0 +1,20 @@
+namespace motis.geo_collector;
+
+// JSON example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/geo_collector/submit_measurements",
+//   },
+//   "content_type": "GeoCollectorSubmitMeasurementsRequest",
+//   "content": {
+//     "participant": 1,
+//     "measurements": "*foo*"
+//   }
+// }
+
+table GeoCollectorSubmitMeasurementsRequest {
+  participant: long;
+  measurements: string;
+}
