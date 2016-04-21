@@ -23,7 +23,7 @@ Offset<Vector<Offset<MetaStation>>> create_meta_stations(
       fbs_equivalent.push_back(it->second);
     }
 
-    if (fbs_equivalent.size() == 0) {
+    if (fbs_equivalent.empty()) {
       continue;
     }
 
@@ -37,6 +37,6 @@ Offset<Vector<Offset<MetaStation>>> create_meta_stations(
   return fbb.CreateVector(fbs_meta_stations);
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

@@ -106,7 +106,7 @@ void parse_and_add(loaded_file const& metabhf_file,
           equivalent.push_back(e);
         }
       });
-      if (equivalent.size() > 0) {
+      if (!equivalent.empty()) {
         meta_stations.insert({eva, equivalent});
       }
     } else {  // footpaths
