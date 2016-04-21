@@ -5,7 +5,7 @@
 namespace motis {
 namespace loader {
 
-std::map<std::string, int> class_mapping() {
+inline std::map<std::string, int> class_mapping() {
   // clang-format off
   return {
     // high speed
@@ -72,5 +72,5 @@ std::map<std::string, int> class_mapping() {
   // clang-format on
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

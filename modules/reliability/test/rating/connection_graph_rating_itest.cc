@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"

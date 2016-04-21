@@ -1,7 +1,7 @@
 #pragma once
 
-#include "motis/core/schedule/station.h"
 #include "motis/core/schedule/connection.h"
+#include "motis/core/schedule/station.h"
 
 #ifndef M_PI
 #define M_PI (3.14159265359)
@@ -31,8 +31,8 @@ inline int get_price_per_km(int clasz) {
 }
 
 inline double get_distance(const station& s1, const station& s2) {
-  double lat1 = s1.width, long1 = s1.length;
-  double lat2 = s2.width, long2 = s2.length;
+  double lat1 = s1.width_, long1 = s1.length_;
+  double lat2 = s2.width_, long2 = s2.length_;
   double dlong = (long2 - long1) * d2r;
   double dlat = (lat2 - lat1) * d2r;
   double a = pow(sin(dlat / 2.0), 2) +

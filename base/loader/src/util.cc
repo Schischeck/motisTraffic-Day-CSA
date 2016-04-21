@@ -1,7 +1,7 @@
 #include "motis/loader/util.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 using namespace flatbuffers;
 using namespace parser;
@@ -14,14 +14,6 @@ std::string pad_to_7_digits(int eva_num) {
   std::stringstream s;
   s << std::setw(7) << std::setfill('0') << eva_num;
   return s.str();
-}
-
-int hhmm_to_min(int hhmm) {
-  if (hhmm < 0) {
-    return hhmm;
-  } else {
-    return (hhmm / 100) * 60 + (hhmm % 100);
-  }
 }
 
 void write_schedule(FlatBufferBuilder& b, fs::path const& path) {

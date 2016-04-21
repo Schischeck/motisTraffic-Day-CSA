@@ -1,6 +1,6 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
@@ -107,6 +107,7 @@ request_builder& request_builder::add_additional_edges(
   for (auto const& info : infos.at_start_) {
     create_edge(info, "-1", info.station_eva_);
   }
+
   for (auto const& info : infos.at_destination_) {
     create_edge(info, info.station_eva_, "-2");
   }
@@ -121,8 +122,8 @@ Offset<routing::RoutingRequest> request_builder::create_routing_request() {
 }
 
 msg_ptr request_builder::build_routing_request() {
-  b_.CreateAndFinish(MsgContent_RoutingRequest,
-                     create_routing_request().Union());
+  b_.create_and_finish(MsgContent_RoutingRequest,
+                       create_routing_request().Union());
   return module::make_msg(b_);
 }
 
@@ -158,10 +159,10 @@ msg_ptr request_builder::build_connection_tree_request(
 msg_ptr request_builder::build_reliable_request(
     Offset<RequestOptionsWrapper> const& options, bool const bikesharing) {
   IndividualModes modes(bikesharing, 0);
-  b_.CreateAndFinish(MsgContent_ReliableRoutingRequest,
-                     CreateReliableRoutingRequest(b_, create_routing_request(),
-                                                  options, &modes)
-                         .Union());
+  b_.create_and_finish(MsgContent_ReliableRoutingRequest,
+                       CreateReliableRoutingRequest(
+                           b_, create_routing_request(), options, &modes)
+                           .Union());
   return module::make_msg(b_);
 }
 

@@ -29,13 +29,13 @@ struct socket_server::impl {
   void receive(std::string const& request, net::handler_cb_fun cb) {
     snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
                        &buf_);
-    auto req_msg = make_msg((void*)buf_.data(), buf_.size());
+    auto req_msg =
+        make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
     receiver_.on_msg(req_msg, std::bind(&impl::reply, this, req_msg->id(), cb,
                                         p::_1, p::_2));
   }
 
-  void reply(int id, net::handler_cb_fun cb, msg_ptr res,
-             boost::system::error_code ec) {
+  void reply(int id, net::handler_cb_fun cb, msg_ptr res, std::error_code ec) {
     msg_ptr response;
 
     if (ec) {
@@ -62,7 +62,7 @@ private:
 socket_server::socket_server(boost::asio::io_service& ios, receiver& recvr)
     : impl_(new impl(ios, recvr)) {}
 
-socket_server::~socket_server() {}
+socket_server::~socket_server() = default;
 
 void socket_server::listen(std::string const& host, std::string const& port) {
   impl_->listen(host, port);

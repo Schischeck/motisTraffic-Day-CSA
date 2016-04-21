@@ -1,6 +1,6 @@
 #include "motis/test/motis_instance_helper.h"
 
-#include "boost/system/system_error.hpp"
+#include <system_error>
 
 #include "conf/options_parser.h"
 
@@ -8,15 +8,14 @@
 
 using namespace motis::module;
 using namespace motis::bootstrap;
-using boost::system::error_code;
 
 namespace motis {
 namespace test {
 
 msg_ptr call(motis_instance_ptr const& instance, msg_ptr const& msg) {
   msg_ptr response;
-  error_code ec;
-  instance->on_msg(msg, [&](msg_ptr r, error_code e) {
+  std::error_code ec;
+  instance->on_msg(msg, [&](msg_ptr r, std::error_code e) {
     response = r;
     ec = e;
   });
@@ -24,13 +23,13 @@ msg_ptr call(motis_instance_ptr const& instance, msg_ptr const& msg) {
   instance->ios_.reset();
 
   if (ec) {
-    throw boost::system::system_error(ec);
+    throw std::system_error(ec);
   }
   return response;
 }
 
-msg_ptr call(motis_instance_ptr const& instance, std::string const& t) {
-  return call(instance, make_no_msg(t));
+msg_ptr call(motis_instance_ptr const& instance, std::string const& target) {
+  return call(instance, make_no_msg(target));
 }
 
 motis_instance_ptr launch_motis(

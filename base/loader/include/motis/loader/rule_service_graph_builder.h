@@ -4,7 +4,7 @@ namespace motis {
 namespace loader {
 
 struct rule_service_graph_builder {
-  rule_service_graph_builder(graph_builder&);
+  explicit rule_service_graph_builder(graph_builder&);
 
   void add_rule_services(
       flatbuffers::Vector<flatbuffers::Offset<RuleService>> const*
@@ -17,5 +17,5 @@ private:
   std::map<Route const*, route const*> routes_;
 };
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

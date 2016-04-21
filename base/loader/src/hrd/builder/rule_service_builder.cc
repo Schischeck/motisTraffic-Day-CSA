@@ -10,8 +10,8 @@
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
 #include "motis/loader/hrd/model/rules_graph.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -35,14 +35,14 @@ void try_apply_rules(std::vector<std::unique_ptr<hrd_service>>& origin_services,
                      std::vector<std::shared_ptr<service_rule>>& rules) {
   for (auto& r : rules) {
     int info = r->applies(*s.first);
-    if (info) {
+    if (info != 0) {
       if (s.first->num_repetitions_ == 0) {
         r->add(get_or_create(origin_services, s), info);
       } else {
         LOG(warn) << "suspicious service rule participant: "
-                  << s.first->origin_.filename << " ["
-                  << s.first->origin_.line_number_from << ","
-                  << s.first->origin_.line_number_to << "]";
+                  << s.first->origin_.filename_ << " ["
+                  << s.first->origin_.line_number_from_ << ","
+                  << s.first->origin_.line_number_to_ << "]";
       }
     }
   }
@@ -142,17 +142,18 @@ void create_rule_service(
     std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
   std::map<hrd_service const*, Offset<Service>> services;
-  for (auto const& s : rs.services) {
-    auto const* service = s.service.get();
+  for (auto const& s : rs.services_) {
+    auto const* service = s.service_.get();
     services[service] = sbf(std::cref(*service), std::ref(fbb));
   }
 
   std::vector<Offset<Rule>> fbb_rules;
-  for (auto const& r : rs.rules) {
-    fbb_rules.push_back(CreateRule(
-        fbb, (RuleType)r.rule_info.type, services.at(r.s1), services.at(r.s2),
-        sb.get_or_create_station(r.rule_info.eva_num_1, fbb),
-        sb.get_or_create_station(r.rule_info.eva_num_2, fbb)));
+  for (auto const& r : rs.rules_) {
+    fbb_rules.push_back(
+        CreateRule(fbb, static_cast<RuleType>(r.rule_info_.type_),
+                   services.at(r.s1_), services.at(r.s2_),
+                   sb.get_or_create_station(r.rule_info_.eva_num_1_, fbb),
+                   sb.get_or_create_station(r.rule_info_.eva_num_2_, fbb)));
   }
   fbs_rule_services.push_back(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
@@ -165,15 +166,15 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     if (s->traffic_days_.any()) {
-      sbf(std::cref(*s.get()), std::ref(fbb));
+      sbf(std::cref(*s), std::ref(fbb));
     }
   }
   LOG(info) << "#rule services: " << rule_services_.size();
   for (auto const& rs : rule_services_) {
-    create_rule_service(rs, sbf, sb, fbs_rule_services, fbb);
+    create_rule_service(rs, sbf, sb, fbs_rule_services_, fbb);
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

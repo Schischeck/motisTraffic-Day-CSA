@@ -9,9 +9,9 @@ namespace routing {
 
 class memory_manager {
 public:
-  memory_manager(std::size_t size)
+  explicit memory_manager(std::size_t size)
       : size_(size),
-        memory_buffer_((unsigned char*)operator new(size_)),
+        memory_buffer_(reinterpret_cast<unsigned char*>(operator new(size_))),
         next_position_(memory_buffer_.get()) {}
 
   memory_manager(memory_manager const&) = delete;
@@ -22,7 +22,7 @@ public:
   template <typename T>
   T* create() {
     assert(next_position_ <= memory_buffer_.get() + size());
-    auto el = (T*)next_position_;
+    auto el = reinterpret_cast<T*>(next_position_);
     next_position_ += sizeof(T);
     return el;
   }

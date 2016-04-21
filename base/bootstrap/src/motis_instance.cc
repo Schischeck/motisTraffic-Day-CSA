@@ -1,11 +1,11 @@
 #include "motis/bootstrap/motis_instance.h"
 
+#include <chrono>
 #include <algorithm>
 #include <atomic>
 #include <exception>
 #include <future>
 #include <thread>
-#include <chrono>
 
 #include "motis/core/common/logging.h"
 #include "motis/loader/loader.h"
@@ -14,7 +14,6 @@
 
 using namespace motis::module;
 using namespace motis::logging;
-namespace p = std::placeholders;
 
 namespace motis {
 namespace bootstrap {

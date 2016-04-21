@@ -4,8 +4,8 @@
 
 #include "parser/buffer.h"
 
-#include "motis/ris/ris_message.h"
 #include "motis/ris/database.h"
+#include "motis/ris/ris_message.h"
 
 namespace motis {
 namespace ris {

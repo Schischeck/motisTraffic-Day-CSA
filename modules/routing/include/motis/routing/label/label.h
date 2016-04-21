@@ -1,5 +1,7 @@
 #pragma once
 
+#include "motis/routing/lower_bounds.h"
+
 namespace motis {
 namespace routing {
 
@@ -11,14 +13,14 @@ template <typename Data, typename Init, typename Updater, typename Filter,
 struct label : public Data {
   label() = default;
 
-  label(node const* n, label* pred, time now, lower_bounds& lower_bounds)
+  label(node const* n, label* pred, time now, lower_bounds& lb)
       : pred_(pred),
         node_(n),
         connection_(nullptr),
         start_(pred != nullptr ? pred->start_ : now),
         now_(now),
         dominated_(false) {
-    Init::init(*this, lower_bounds);
+    Init::init(*this, lb);
   }
 
   template <typename Edge, typename LowerBounds>
@@ -35,8 +37,8 @@ struct label : public Data {
     l = *this;
     l.pred_ = this;
     l.node_ = e.get_destination();
-    l.connection_ = ec.connection;
-    l.now_ += ec.time;
+    l.connection_ = ec.connection_;
+    l.now_ += ec.time_;
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
   }

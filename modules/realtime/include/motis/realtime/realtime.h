@@ -8,8 +8,8 @@
 #include "boost/asio/io_service.hpp"
 
 #include "motis/module/module.h"
-#include "motis/realtime/realtime_schedule.h"
 #include "motis/protocol/Message_generated.h"
+#include "motis/realtime/realtime_schedule.h"
 
 namespace motis {
 namespace realtime {

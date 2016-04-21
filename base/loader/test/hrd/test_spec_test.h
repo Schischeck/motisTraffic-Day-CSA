@@ -1,15 +1,15 @@
 #pragma once
 
-#include "parser/cstr.h"
 #include "parser/buffer.h"
+#include "parser/cstr.h"
 #include "parser/util.h"
 
 #include "boost/filesystem/path.hpp"
 
-#include "motis/loader/util.h"
-#include "motis/loader/loaded_file.h"
-#include "motis/loader/hrd/model/specification.h"
 #include "motis/loader/hrd/model/hrd_service.h"
+#include "motis/loader/hrd/model/specification.h"
+#include "motis/loader/loaded_file.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -27,6 +27,6 @@ struct test_spec {
   loaded_file lf_;
 };
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

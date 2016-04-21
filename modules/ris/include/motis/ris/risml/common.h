@@ -12,13 +12,12 @@ namespace ris {
 namespace risml {
 
 struct context {
-
   context()
-      : earliest(std::numeric_limits<std::time_t>::max()),
-        latest(std::numeric_limits<std::time_t>::min()) {}
+      : earliest_(std::numeric_limits<std::time_t>::max()),
+        latest_(std::numeric_limits<std::time_t>::min()) {}
 
-  flatbuffers::FlatBufferBuilder b;
-  std::time_t earliest, latest;
+  flatbuffers::FlatBufferBuilder b_;
+  std::time_t earliest_, latest_;
 };
 
 pugi::xml_attribute inline child_attr(pugi::xml_node const& n, char const* e,

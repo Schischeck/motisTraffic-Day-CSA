@@ -25,12 +25,12 @@ unsigned transfers(Connection const* c) {
 unsigned price(Connection const*) { return 0; }
 
 response::response(RoutingResponse const* r)
-    : connections(transform_to_vec(
+    : connections_(transform_to_vec(
           std::begin(*r->connections()), std::end(*r->connections()),
           [](Connection const* c) {
             return std::make_tuple(travel_time(c), transfers(c), price(c));
           })) {}
 
-}  // comparator
-}  // eval
-}  // motis
+}  // namespace comparator
+}  // namespace eval
+}  // namespace motis

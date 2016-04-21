@@ -4,9 +4,9 @@
 #include <string>
 #include <tuple>
 
-#include "motis/protocol/RoutingRequest_generated.h"
-
 #include "motis/module/module.h"
+
+#include "motis/protocol/RoutingRequest_generated.h"
 
 namespace motis {
 namespace reliability {
@@ -55,7 +55,7 @@ struct request_builder {
   module::msg_ptr build_connection_tree_request(
       short const num_alternatives_at_stop, short const min_dep_diff);
 
-  module::MessageCreator b_;
+  module::message_creator b_;
   routing::Type type_;
   routing::Direction direction_;
   std::vector<::flatbuffers::Offset<routing::LocationPathElementWrapper>> path_;

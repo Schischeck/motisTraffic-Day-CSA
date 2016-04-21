@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/gtfs/route.h"
 #include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/route.h"
 
 #include "./resources.h"
 

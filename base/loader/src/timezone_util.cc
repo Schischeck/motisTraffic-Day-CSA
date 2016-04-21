@@ -50,8 +50,8 @@ timezone create_timezone(int general_offset, int season_offset,
 }
 
 time get_event_time(int day_idx, int local_time, timezone const* tz) {
-  return tz ? tz->to_motis_time(day_idx, local_time)
-            : to_motis_time(day_idx, local_time);
+  return tz != nullptr ? tz->to_motis_time(day_idx, local_time)
+                       : to_motis_time(day_idx, local_time);
 }
 
 time get_adjusted_event_time(int day_idx, int local_time, timezone const* tz) {
@@ -72,6 +72,7 @@ std::pair<time, time> get_event_times(int day_idx,  //
                                       timezone const* tz_dep,
                                       timezone const* tz_arr, bool& adjusted) {
   auto const offset = adjusted ? kAdjust : 0;
+  auto const total_offset = offset + kAdjust;
   auto const prev_adjusted = adjusted;
 
   auto dep_motis_time =
@@ -81,30 +82,30 @@ std::pair<time, time> get_event_times(int day_idx,  //
 
   if (prev_arr_motis_time > dep_motis_time || dep_motis_time == INVALID_TIME) {
     dep_motis_time =
-        get_event_time(day_idx, curr_dep_local_time + offset + kAdjust, tz_dep);
+        get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
     arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + offset + kAdjust, tz_arr);
+        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 1]");
   }
 
   if (arr_motis_time == INVALID_TIME) {
     arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + offset + kAdjust, tz_arr);
+        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 2]");
   }
 
   if (dep_motis_time == INVALID_TIME) {
     dep_motis_time =
-        get_event_time(day_idx, curr_dep_local_time + offset + kAdjust, tz_dep);
+        get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 3]");
   }
 
   if (arr_motis_time < dep_motis_time) {
     arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + offset + kAdjust, tz_arr);
+        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 4]");
   }
@@ -112,5 +113,5 @@ std::pair<time, time> get_event_times(int day_idx,  //
   return std::make_pair(dep_motis_time, arr_motis_time);
 }
 
-}  // namspace loader
+}  // namespace loader
 }  // namespace motis

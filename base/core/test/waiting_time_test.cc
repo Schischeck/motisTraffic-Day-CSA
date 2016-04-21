@@ -3,7 +3,7 @@
 //#include "motis/loader/loader.h"
 //#include "motis/core/schedule/waiting_time_rules.h"
 
-// TODO new schedule required (Mohammad Keyhani)
+// TODO(Mohammad Keyhani) new schedule required
 // auto schedule = motis::load_schedule("../schedule/test", 0, 0);
 //
 // TEST(matrix, wzr) {

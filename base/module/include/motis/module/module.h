@@ -24,7 +24,7 @@ struct module : public conf::simple_config {
 
   module() : module("", "") {}
 
-  virtual ~module() {}
+  ~module() override = default;
 
   void set_context(motis::schedule& schedule, boost::asio::io_service& ios) {
     schedule_ = &schedule;

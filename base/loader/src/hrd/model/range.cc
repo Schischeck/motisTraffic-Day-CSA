@@ -2,9 +2,10 @@
 
 #include <cassert>
 
-#include "parser/util.h"
 #include "parser/arg_parser.h"
+#include "parser/util.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/loader/util.h"
 
 using namespace parser;
@@ -31,7 +32,7 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
     const auto n = is_index(hhmm_or_idx) ? parse_index(hhmm_or_idx) + 1 : 1;
     const auto it = find_nth(
         begin(stops), end(stops), n,
-        [&](hrd_service::stop const& s) { return s.eva_num == eva_num; });
+        [&](hrd_service::stop const& s) { return s.eva_num_ == eva_num; });
     verify(it != end(stops), "%dth occurrence of eva number %d not found", n,
            eva_num);
     return static_cast<int>(std::distance(begin(stops), it));
@@ -42,8 +43,8 @@ int get_index(std::vector<hrd_service::stop> const& stops, cstr eva_or_idx,
     const auto time = hhmm_to_min(parse<int>(hhmm_or_idx.substr(1)));
     const auto it =
         std::find_if(begin(stops), end(stops), [&](hrd_service::stop const& s) {
-          return s.eva_num == eva_num &&
-                 (is_departure_event ? s.dep.time : s.arr.time) == time;
+          return s.eva_num_ == eva_num &&
+                 (is_departure_event ? s.dep_.time_ : s.arr_.time_) == time;
         });
     verify(it != end(stops), "event with time %d at eva number %d not found",
            time, eva_num);
@@ -55,14 +56,14 @@ range::range(std::vector<hrd_service::stop> const& stops, cstr from_eva_or_idx,
              cstr to_eva_or_idx, cstr from_hhmm_or_idx, cstr to_hhmm_or_idx) {
   if (from_eva_or_idx.trim().empty() && to_eva_or_idx.trim().empty() &&
       from_hhmm_or_idx.trim().empty() && to_hhmm_or_idx.trim().empty()) {
-    from_idx = 0;
-    to_idx = stops.size() - 1;
+    from_idx_ = 0;
+    to_idx_ = stops.size() - 1;
   } else {
-    from_idx = get_index(stops, from_eva_or_idx, from_hhmm_or_idx, true);
-    to_idx = get_index(stops, to_eva_or_idx, to_hhmm_or_idx, false);
+    from_idx_ = get_index(stops, from_eva_or_idx, from_hhmm_or_idx, true);
+    to_idx_ = get_index(stops, to_eva_or_idx, to_hhmm_or_idx, false);
   }
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

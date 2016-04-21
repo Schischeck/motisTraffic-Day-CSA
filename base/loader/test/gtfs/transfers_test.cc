@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/gtfs/transfers.h"
 #include "motis/loader/gtfs/files.h"
+#include "motis/loader/gtfs/transfers.h"
 
 #include "./resources.h"
 

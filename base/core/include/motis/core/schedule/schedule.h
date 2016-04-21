@@ -15,8 +15,8 @@
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"
-#include "motis/core/schedule/waiting_time_rules.h"
 #include "motis/core/schedule/trip.h"
+#include "motis/core/schedule/waiting_time_rules.h"
 
 namespace motis {
 
@@ -24,53 +24,52 @@ struct connection;
 struct connection_info;
 
 struct schedule {
-  schedule() {
-    system_time = 0;
+  schedule() : system_time_(0), last_update_timestamp_(0) {
     constexpr auto i = std::numeric_limits<int32_t>::max();
     constexpr auto iu = std::numeric_limits<uint32_t>::max();
 
-    schedule_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME});
-    graph_to_delay_info.set_empty_key({iu, iu, true, INVALID_TIME, i});
-    trips.set_empty_key(primary_trip_id(0, 0, 0));
-    graph_to_delay_info.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
+    schedule_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME});
+    graph_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME, i});
+    trips_.set_empty_key(primary_trip_id(0, 0, 0));
+    graph_to_delay_info_.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
   }
 
-  virtual ~schedule() {}
+  virtual ~schedule() = default;
 
   schedule(schedule const&) = delete;
   schedule& operator=(schedule const&) = delete;
 
   std::time_t schedule_begin_, schedule_end_;
-  std::vector<station_ptr> stations;
-  std::map<std::string, station*> eva_to_station;
-  std::map<std::string, station*> ds100_to_station;
-  std::map<std::string, int> classes;
-  std::vector<std::string> tracks;
-  constant_graph lower_bounds;
-  unsigned node_count;
-  std::vector<station_node_ptr> station_nodes;
-  std::vector<node*> route_index_to_first_route_node;
-  std::unordered_map<uint32_t, std::vector<int32_t>> train_nr_to_routes;
+  std::vector<station_ptr> stations_;
+  std::map<std::string, station*> eva_to_station_;
+  std::map<std::string, station*> ds100_to_station_;
+  std::map<std::string, int> classes_;
+  std::vector<std::string> tracks_;
+  constant_graph lower_bounds_;
+  unsigned node_count_;
+  std::vector<station_node_ptr> station_nodes_;
+  std::vector<node*> route_index_to_first_route_node_;
+  std::unordered_map<uint32_t, std::vector<int32_t>> train_nr_to_routes_;
   waiting_time_rules waiting_time_rules_;
-  synchronization sync;
+  synchronization sync_;
 
-  std::vector<std::unique_ptr<connection>> full_connections;
-  std::vector<std::unique_ptr<connection_info>> connection_infos;
-  std::vector<std::unique_ptr<attribute>> attributes;
-  std::vector<std::unique_ptr<category>> categories;
-  std::vector<std::unique_ptr<provider>> providers;
-  std::vector<std::unique_ptr<std::string>> directions;
-  std::vector<std::unique_ptr<timezone>> timezones;
+  std::vector<std::unique_ptr<connection>> full_connections_;
+  std::vector<std::unique_ptr<connection_info>> connection_infos_;
+  std::vector<std::unique_ptr<attribute>> attributes_;
+  std::vector<std::unique_ptr<category>> categories_;
+  std::vector<std::unique_ptr<provider>> providers_;
+  std::vector<std::unique_ptr<std::string>> directions_;
+  std::vector<std::unique_ptr<timezone>> timezones_;
 
-  hash_map<primary_trip_id, std::vector<trip*>> trips;
-  std::vector<std::unique_ptr<trip>> trip_mem;
-  std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges;
-  std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips;
+  hash_map<primary_trip_id, std::vector<trip*>> trips_;
+  std::vector<std::unique_ptr<trip>> trip_mem_;
+  std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges_;
+  std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips_;
 
-  std::time_t system_time;
-  std::vector<std::unique_ptr<delay_info>> delay_infos;
-  hash_map<schedule_event, delay_info*> schedule_to_delay_info;
-  hash_map<graph_event, delay_info*> graph_to_delay_info;
+  std::time_t system_time_, last_update_timestamp_;
+  std::vector<std::unique_ptr<delay_info>> delay_infos_;
+  hash_map<schedule_event, delay_info*> schedule_to_delay_info_;
+  hash_map<graph_event, delay_info*> graph_to_delay_info_;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

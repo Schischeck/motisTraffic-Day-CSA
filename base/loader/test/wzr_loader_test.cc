@@ -1,6 +1,6 @@
+#include "motis/loader/wzr_loader.h"
 #include "motis/core/schedule/category.h"
 #include "motis/loader/util.h"
-#include "motis/loader/wzr_loader.h"
 
 #include "gtest/gtest.h"
 
@@ -64,5 +64,5 @@ TEST(loader_wzr, other_trains_wait_for_train_class) {
   ASSERT_TRUE(!waiting_time_rules.other_trains_wait_for(3));
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

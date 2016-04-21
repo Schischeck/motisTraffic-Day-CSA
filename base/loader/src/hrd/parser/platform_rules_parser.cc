@@ -1,12 +1,13 @@
 #include "motis/loader/hrd/parser/platform_rules_parser.h"
 
-#include "parser/cstr.h"
 #include "parser/arg_parser.h"
+#include "parser/cstr.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
-#include "motis/loader/parser_error.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
+#include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace flatbuffers;
@@ -52,6 +53,6 @@ platform_rules parse_platform_rules(loaded_file const& file,
   return prs;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

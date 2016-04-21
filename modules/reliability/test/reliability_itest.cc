@@ -6,7 +6,7 @@
 #include <streambuf>
 #include <vector>
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "motis/loader/loader.h"
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace motis {
 namespace loader {

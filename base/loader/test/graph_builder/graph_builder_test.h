@@ -4,12 +4,11 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/time_access.h"
 #include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
-
-constexpr auto kDefaultTimezoneOffset = 60;
 
 class loader_graph_builder_test : public ::testing::Test {
 protected:
@@ -17,7 +16,7 @@ protected:
                             std::time_t schedule_begin,
                             std::time_t schedule_end);
 
-  virtual void SetUp();
+  void SetUp() override;
 
   static edge const* get_route_edge(node const* route_node);
 
@@ -27,14 +26,7 @@ protected:
 
   std::time_t unix_time(int hhmm, int day_idx = 0,
                         int timezone_offset = kDefaultTimezoneOffset) {
-    return motis_to_unixtime(sched_->schedule_begin_,
-                             motis_time(hhmm, day_idx, timezone_offset));
-  }
-
-  motis::time motis_time(int hhmm, int day_idx = 0,
-                         int timezone_offset = kDefaultTimezoneOffset) {
-    return SCHEDULE_OFFSET_MINUTES + day_idx * MINUTES_A_DAY +
-           hhmm_to_min(hhmm) - timezone_offset;
+    return motis::unix_time(*sched_, hhmm, day_idx, timezone_offset);
   }
 
   schedule_ptr sched_;
@@ -42,5 +34,5 @@ protected:
   std::time_t schedule_begin_, schedule_end_;
 };
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

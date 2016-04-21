@@ -2,8 +2,8 @@
 
 #include "boost/filesystem/path.hpp"
 
-#include "parser/cstr.h"
 #include "parser/buffer.h"
+#include "parser/cstr.h"
 
 #include "motis/loader/util.h"
 
@@ -24,14 +24,14 @@ struct loaded_file {
 
   loaded_file(loaded_file const&) = delete;
 
-  loaded_file(loaded_file&& o) {
+  loaded_file(loaded_file&& o) noexcept {
     name_ = std::move(o.name_);
     buf_ = std::move(o.buf_);
   }
 
   loaded_file& operator=(loaded_file const&) = delete;
 
-  loaded_file& operator=(loaded_file&& o) {
+  loaded_file& operator=(loaded_file&& o) noexcept {
     name_ = std::move(o.name_);
     buf_ = std::move(o.buf_);
     return *this;

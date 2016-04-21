@@ -22,6 +22,6 @@ boost::optional<EventType> parse_type(
   return it->second;
 }
 
-}  // risml
+}  // namespace risml
 }  // namespace ris
 }  // namespace motis

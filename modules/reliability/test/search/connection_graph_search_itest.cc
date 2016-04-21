@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/search/connection_graph.h"

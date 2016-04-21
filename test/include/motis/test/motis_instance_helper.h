@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "motis/bootstrap/motis_instance.h"
 #include "motis/module/message.h"
+#include "motis/bootstrap/motis_instance.h"
 
 namespace motis {
 namespace test {
@@ -21,13 +21,17 @@ void subscribe(bootstrap::motis_instance_ptr const& instance,
   instance->subscribe(topic, std::forward<F>(func));
 }
 
-module::msg_ptr call(bootstrap::motis_instance_ptr const&, std::string const&);
+module::msg_ptr call(bootstrap::motis_instance_ptr const&,
+                     std::string const& target);
 module::msg_ptr call(bootstrap::motis_instance_ptr const&,
                      module::msg_ptr const&);
 
-inline std::function<void(module::msg_ptr const&)> msg_sink(
+inline std::function<module::msg_ptr(module::msg_ptr const&)> msg_sink(
     std::vector<module::msg_ptr>* vec) {
-  return [vec](module::msg_ptr const& m) { vec->push_back(m); };
+  return [vec](module::msg_ptr const& m) -> module::msg_ptr {
+    vec->push_back(m);
+    return nullptr;
+  };
 }
 
 }  // namespace test

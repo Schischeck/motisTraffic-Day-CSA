@@ -2,10 +2,10 @@
 
 #include "boost/asio/io_service.hpp"
 
+#include "motis/module/context/motis_call.h"
+#include "motis/module/controller.h"
 #include "motis/module/dispatcher.h"
 #include "motis/module/message.h"
-#include "motis/module/motis_call.h"
-#include "motis/module/controller.h"
 
 using namespace motis;
 using namespace motis::module;
@@ -33,8 +33,8 @@ auto query = R"({
 })";
 
 auto guess = [](msg_ptr const&) {
-  MessageCreator b;
-  b.CreateAndFinish(
+  message_creator b;
+  b.create_and_finish(
       MsgContent_StationGuesserResponse,
       motis::guesser::CreateStationGuesserResponse(
           b, b.CreateVector(
@@ -47,15 +47,15 @@ auto guess = [](msg_ptr const&) {
 };
 
 auto route = [](msg_ptr const&) -> msg_ptr {
-  MessageCreator b;
-  b.CreateAndFinish(
+  message_creator b;
+  b.create_and_finish(
       MsgContent_StationGuesserRequest,
       motis::guesser::CreateStationGuesserRequest(b, 1, b.CreateString("test"))
           .Union(),
       "/guesser");
   auto station = motis_call(make_msg(b));
 
-  b.CreateAndFinish(
+  b.create_and_finish(
       MsgContent_RoutingResponse,
       motis::routing::CreateRoutingResponse(
           b, 0,

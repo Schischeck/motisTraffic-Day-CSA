@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cmath>
 #include <cinttypes>
-#include <string>
-#include <bitset>
+#include <cmath>
 #include <algorithm>
-#include <memory>
+#include <bitset>
 #include <map>
+#include <memory>
+#include <string>
 
 #include "boost/filesystem.hpp"
 
@@ -108,8 +108,6 @@ inline int yyyymmdd_month(int yyyymmdd) { return (yyyymmdd % 10000) / 100; }
 inline int yyyymmdd_day(int yyyymmdd) { return yyyymmdd % 100; }
 
 parser::buffer load_file(boost::filesystem::path const&);
-
-int hhmm_to_min(int hhmm);
 
 void write_schedule(flatbuffers::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);

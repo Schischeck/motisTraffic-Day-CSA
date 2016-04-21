@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "../hrd/test_spec_test.h"
 #include "motis/test/motis_instance_helper.h"
+#include "../hrd/test_spec_test.h"
 
 using namespace motis::test;
 using namespace motis::module;

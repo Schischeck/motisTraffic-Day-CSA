@@ -1,13 +1,13 @@
 #pragma once
 
 #include <ctime>
-#include <string>
 #include <iostream>
+#include <string>
 
-#include "boost/lexical_cast.hpp"
-#include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/date_time/gregorian/gregorian.hpp"
 #include "boost/date_time/c_local_time_adjustor.hpp"
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/lexical_cast.hpp"
 
 class opt_time {
 public:

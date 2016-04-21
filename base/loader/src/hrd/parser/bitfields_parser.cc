@@ -1,15 +1,15 @@
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 
-#include <string>
 #include <algorithm>
+#include <string>
 
 #include "flatbuffers/util.h"
 
 #include "parser/arg_parser.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
 #include "motis/loader/parser_error.h"
+#include "motis/loader/util.h"
 
 using namespace parser;
 using namespace motis::logging;
@@ -68,6 +68,6 @@ std::map<int, bitfield> parse_bitfields(loaded_file const& f) {
   return bitfields;
 }
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

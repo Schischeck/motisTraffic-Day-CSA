@@ -1,10 +1,10 @@
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
 
-#include "parser/util.h"
 #include "parser/arg_parser.h"
+#include "parser/util.h"
 
+#include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/date_util.h"
 
 using namespace flatbuffers;
 using namespace parser;
@@ -60,6 +60,6 @@ boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
   return boost::gregorian::date(year, month, day);
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

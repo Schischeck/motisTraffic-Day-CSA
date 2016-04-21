@@ -2,9 +2,10 @@
 
 #include <memory>
 
+#include "conf/date_time.h"
 #include "conf/simple_config_param.h"
 
-// #include "motis/ris/mode/live_mode.h"
+#include "motis/ris/mode/live_mode.h"
 #include "motis/ris/mode/simulation_mode.h"
 #include "motis/ris/mode/test_mode.h"
 
@@ -57,7 +58,7 @@ ris::ris() : module("RIS Options", "ris") {
             "update interval in seconds");
   int_param(conf_.max_days_, -1, "max_days",
             "periodically delete messages older than n days (-1 = infinite)");
-  template_param(conf_.sim_init_time_, 0l, "sim_init_time",
+  template_param(conf_.sim_init_time_, {0l}, "sim_init_time",
                  "'forward' the simulation clock (expects Unix timestamp)");
 }
 
@@ -65,8 +66,8 @@ ris::~ris() = default;
 
 void ris::init(registry& r) {
   switch (conf_.mode_) {
-    case mode_t::LIVE:  //
-      // active_mode_ = std::make_unique<live_mode>(conf_);
+    case mode_t::LIVE:
+      active_mode_ = std::make_unique<live_mode>(&conf_);
       break;
     case mode_t::SIMULATION:
       active_mode_ = std::make_unique<simulation_mode>(&conf_);

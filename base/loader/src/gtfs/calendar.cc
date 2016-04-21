@@ -32,13 +32,13 @@ static const column_mapping<gtfs_calendar> calendar_columns = {
 
 std::bitset<7> traffic_week_days(gtfs_calendar const& c) {
   std::bitset<7> days;
-  days.set(0, get<sunday>(c) == 1 ? true : false);
-  days.set(1, get<monday>(c) == 1 ? true : false);
-  days.set(2, get<tuesday>(c) == 1 ? true : false);
-  days.set(3, get<wednesday>(c) == 1 ? true : false);
-  days.set(4, get<thursday>(c) == 1 ? true : false);
-  days.set(5, get<friday>(c) == 1 ? true : false);
-  days.set(6, get<saturday>(c) == 1 ? true : false);
+  days.set(0, get<sunday>(c) == 1);
+  days.set(1, get<monday>(c) == 1);
+  days.set(2, get<tuesday>(c) == 1);
+  days.set(3, get<wednesday>(c) == 1);
+  days.set(4, get<thursday>(c) == 1);
+  days.set(5, get<friday>(c) == 1);
+  days.set(6, get<saturday>(c) == 1);
   return days;
 }
 

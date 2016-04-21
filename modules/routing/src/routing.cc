@@ -4,18 +4,17 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/program_options.hpp"
 
-#include "motis/core/common/util.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/common/util.h"
 #include "motis/core/journey/journeys_to_message.h"
+#include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_call.h"
 #include "motis/module/error.h"
-#include "motis/module/motis_call.h"
-#include "motis/module/get_schedule.h"
 
 #include "motis/routing/additional_edges.h"
-#include "motis/routing/query_to_arrivals.h"
-#include "motis/routing/search.h"
 #include "motis/routing/error.h"
+#include "motis/routing/search.h"
 
 #define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
@@ -29,51 +28,38 @@ using namespace motis::guesser;
 namespace motis {
 namespace routing {
 
-std::string get_eva(StationPathElement const* el) {
-  if (el->eva_nr()->Length() != 0) {
-    return el->eva_nr()->str();
-  }
-  MessageCreator b;
-  b.CreateAndFinish(MsgContent_StationGuesserRequest,
-                    motis::guesser::CreateStationGuesserRequest(
-                        b, 1, b.CreateString(el->name()->str()))
-                        .Union(),
-                    "/guesser");
-  auto msg = motis_call(make_msg(b))->val();
-  auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
-  if (guesses->size() == 0) {
-    throw boost::system::system_error(error::no_guess_for_station);
-  }
-  return guesses->Get(0)->eva()->str();
-}
-
-std::string get_eva(CoordinatesPathElement const* el) {
-  return el->is_source() == 1 ? "-1" : "-2";
-}
-
 std::vector<arrival> get_arrivals(
-    fbs::Vector<fbs::Offset<LocationPathElementWrapper>> const* path) {
+    fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
   std::vector<arrival> arrivals;
+
   for (auto const& el : *path) {
     std::string station_id;
-    if (el->element_type() == LocationPathElement_StationPathElement) {
-      station_id =
-          get_eva(reinterpret_cast<StationPathElement const*>(el->element()));
-    } else if (el->element_type() ==
-               LocationPathElement_CoordinatesPathElement) {
-      station_id = get_eva(
-          reinterpret_cast<CoordinatesPathElement const*>(el->element()));
+
+    if (el->eva_nr()->Length() != 0) {
+      station_id = el->eva_nr()->str();
     } else {
-      throw boost::system::system_error(
-          error::unsupported_location_path_element);
+      message_creator b;
+      b.create_and_finish(MsgContent_StationGuesserRequest,
+                          motis::guesser::CreateStationGuesserRequest(
+                              b, 1, b.CreateString(el->name()->str()))
+                              .Union(),
+                          "/guesser");
+      auto msg = motis_call(make_msg(b))->val();
+      auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
+      if (guesses->size() == 0) {
+        throw std::system_error(error::no_guess_for_station);
+      }
+      station_id = guesses->Get(0)->eva()->str();
     }
 
-    auto it = get_schedule().eva_to_station.find(station_id);
-    if (it == end(get_schedule().eva_to_station)) {
-      throw boost::system::system_error(error::given_eva_not_available);
+    auto const& eva_to_station = get_schedule().eva_to_station_;
+    auto it = eva_to_station.find(station_id);
+    if (it == end(eva_to_station)) {
+      throw std::system_error(error::given_eva_not_available);
     }
-    arrivals.push_back({arrival_part(it->second->index)});
+    arrivals.push_back({arrival_part(it->second->index_)});
   }
+
   return arrivals;
 }
 
@@ -103,41 +89,34 @@ void routing::init(motis::module::registry& reg) {
 msg_ptr routing::route(msg_ptr const& msg) {
   auto req = motis_content(RoutingRequest, msg);
   if (req->path()->Length() < 2) {
-    throw boost::system::system_error(error::path_length_too_short);
+    throw std::system_error(error::path_length_too_short);
   }
 
   auto& sched = get_schedule();
   if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
       req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
-    throw boost::system::system_error(error::journey_date_not_in_schedule);
+    throw std::system_error(error::journey_date_not_in_schedule);
   }
 
-  auto const arrivals = get_arrivals(req->path());
-  auto const arrivals_pair = query_to_arrivals::create_arrivals(
-      arrivals[0], arrivals[1], req->additional_edges(),
-      req->type() == Type_OnTrip || req->type() == Type_LateConnection, sched);
+  auto arrivals = get_arrivals(req->path());
 
-  auto const i_begin =
+  auto i_begin =
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
-  auto const i_end =
-      unix_to_motistime(sched.schedule_begin_, req->interval()->end());
+  auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
   search s(sched, *label_store_);
   auto result = s.get_connections(
-      arrivals_pair.first, arrivals_pair.second, i_begin, i_end,
+      arrivals[0], arrivals[1], i_begin, i_end,
       req->type() == Type_OnTrip || req->type() == Type_LateConnection,
-      create_additional_edges(
-          req->additional_edges(),
-          req->type() == Type_OnTrip || req->type() == Type_LateConnection,
-          sched));
+      create_additional_edges(req->additional_edges(), sched));
 
-  LOG(info) << sched.stations[arrivals[0][0].station]->name << " to "
-            << sched.stations[arrivals[1][0].station]->name << " "
+  LOG(info) << sched.stations_[arrivals[0][0].station_]->name_ << " to "
+            << sched.stations_[arrivals[1][0].station_]->name_ << " "
             << "(" << format_time(i_begin) << ", " << format_time(i_end)
-            << ") -> " << result.journeys.size() << " connections found";
+            << ") -> " << result.journeys_.size() << " connections found";
 
-  // TODO connection checker annotation
-  return journeys_to_message(result.journeys, result.stats.pareto_dijkstra);
+  // TODO(Felix Guendling) connection checker annotion
+  return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
 }
 
 }  // namespace routing

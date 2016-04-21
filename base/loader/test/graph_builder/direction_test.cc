@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/date_util.h"
+#include "motis/core/common/date_time_util.h"
 
 #include "./graph_builder_test.h"
 
@@ -19,23 +19,23 @@ public:
 TEST_F(loader_direction_services_graph_builder_test, direction_station) {
   // Get route starting at Euskirchen
   auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "8000100";
+      begin(sched_->route_index_to_first_route_node_),
+      end(sched_->route_index_to_first_route_node_), [&](node const* n) {
+        return sched_->stations_[n->get_station()->id_]->eva_nr_ == "8000100";
       });
-  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
+  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node_));
 
   auto connections = get_connections(*node_it, 0);
   ASSERT_GE(connections.size(), 16);
 
   for (int i = 0; i < 12; ++i) {
-    auto con_info = std::get<0>(connections[i])->_full_con->con_info;
+    auto con_info = std::get<0>(connections[i])->full_con_->con_info_;
     ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());
+    ASSERT_STREQ("Kreuzberg(Ahr)", con_info->dir_->c_str());  // NOLINT
   }
 
   for (unsigned i = 12; i < connections.size(); ++i) {
-    auto con_info = std::get<0>(connections[i])->_full_con->con_info;
+    auto con_info = std::get<0>(connections[i])->full_con_->con_info_;
     ASSERT_TRUE(con_info->dir_ == nullptr);
   }
 }
@@ -43,21 +43,22 @@ TEST_F(loader_direction_services_graph_builder_test, direction_station) {
 TEST_F(loader_direction_services_graph_builder_test, direction_text) {
   // Get route starting at Wissmar Gewerbegebiet
   auto node_it = std::find_if(
-      begin(sched_->route_index_to_first_route_node),
-      end(sched_->route_index_to_first_route_node), [&](node const* n) {
-        return sched_->stations[n->get_station()->_id]->eva_nr == "0114965";
+      begin(sched_->route_index_to_first_route_node_),
+      end(sched_->route_index_to_first_route_node_), [&](node const* n) {
+        return sched_->stations_[n->get_station()->id_]->eva_nr_ == "0114965";
       });
-  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node));
+  ASSERT_FALSE(node_it == end(sched_->route_index_to_first_route_node_));
 
   auto connections = get_connections(*node_it, 0);
   ASSERT_GE(connections.size(), 27);
 
   for (auto const& e : connections) {
-    auto con_info = std::get<0>(e)->_full_con->con_info;
+    auto con_info = std::get<0>(e)->full_con_->con_info_;
     ASSERT_FALSE(con_info->dir_ == nullptr);
-    ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki", con_info->dir_->c_str());
+    ASSERT_STREQ("Krofdorf-Gleiberg Evangelische Ki",
+                 con_info->dir_->c_str());  // NOLINT
   }
 }
 
-}  // loader
-}  // motis
+}  // namespace loader
+}  // namespace motis

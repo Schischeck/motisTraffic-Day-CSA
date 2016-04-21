@@ -16,9 +16,9 @@ namespace hrd {
 void verify_line_format(cstr line, char const* filename, int line_number) {
   // Verify that the provider number has 5 digits.
   auto provider_number = line.substr(0, size(5));
-  verify(std::all_of(begin(provider_number), end(provider_number), [](char c) {
-    return std::isdigit(c);
-  }), "provider line format mismatch in %s:%d", filename, line_number);
+  verify(std::all_of(begin(provider_number), end(provider_number),
+                     [](char c) { return std::isdigit(c); }),
+         "provider line format mismatch in %s:%d", filename, line_number);
 
   verify(line[6] == 'K' || line[6] == ':',
          "provider line format mismatch in %s:%d", filename, line_number);
@@ -46,9 +46,9 @@ provider_info read_provider_names(cstr line, char const* filename,
   verify(short_name != -1 && long_name != -1 && full_name != -1,
          "provider line format mismatch in %s:%d", filename, line_number);
 
-  info.short_name = parse_name(line.substr(short_name + 3));
-  info.long_name = parse_name(line.substr(long_name + 3));
-  info.full_name = parse_name(line.substr(full_name + 3));
+  info.short_name_ = parse_name(line.substr(short_name + 3));
+  info.long_name_ = parse_name(line.substr(long_name + 3));
+  info.full_name_ = parse_name(line.substr(full_name + 3));
 
   return info;
 }
@@ -78,6 +78,6 @@ std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
   return providers;
 }
 
-}  // loader
-}  // motis
-}  // hrd
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

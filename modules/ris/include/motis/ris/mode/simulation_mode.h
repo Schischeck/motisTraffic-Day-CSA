@@ -2,21 +2,24 @@
 
 #include "motis/module/message.h"
 #include "motis/module/registry.h"
-#include "motis/ris/ris.h"
 #include "motis/ris/mode/base_mode.h"
+#include "motis/ris/ris.h"
 
 namespace motis {
 namespace ris {
 namespace mode {
 
 struct simulation_mode final : public base_mode {
-  simulation_mode(config* conf) : base_mode(conf) {}
+  explicit simulation_mode(config* conf) : base_mode(conf) {}
 
   void init(motis::module::registry& r) override {
     base_mode::init(r);
-    r.register_op("/ris/forward", [this](motis::module::msg_ptr const& msg) {
-      handle_forward_request(msg);
-    });
+    r.register_op(
+        "/ris/forward",
+        [this](motis::module::msg_ptr const& msg) -> motis::module::msg_ptr {
+          handle_forward_request(msg);
+          return nullptr;
+        });
   }
 
   void init_async() override {
