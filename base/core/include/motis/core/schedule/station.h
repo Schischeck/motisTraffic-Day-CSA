@@ -41,6 +41,7 @@ public:
   std::array<uint64_t, 10> arr_class_events_, dep_class_events_;
   std::string eva_nr_, name_;
   timezone const* timez_;
+  std::vector<station*> equivalent_;
 };
 
 typedef std::unique_ptr<station> station_ptr;

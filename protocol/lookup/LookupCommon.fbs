@@ -14,3 +14,10 @@ table TripId {
   type: EventType;
   line_id: string;
 }
+
+table Station {
+  eva_nr: string;
+  name: string;
+  lat: double;
+  lng: double;
+}

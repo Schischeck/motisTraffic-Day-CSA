@@ -1,6 +1,7 @@
 #include "motis/lookup/station_geo_index.h"
 
 #include "motis/core/common/geo.h"
+#include "motis/lookup/util.h"
 
 using namespace motis::geo_detail;
 using namespace flatbuffers;
@@ -41,11 +42,8 @@ public:
   flatbuffers::Offset<LookupGeoStationResponse> stations(
       FlatBufferBuilder& fbb, LookupGeoStationRequest const* req) const {
     std::vector<Offset<Station>> list;
-    for (auto const& station :
-         stations(req->lat(), req->lng(), req->radius())) {
-      list.push_back(CreateStation(fbb, fbb.CreateString(station->eva_nr_),
-                                   fbb.CreateString(station->name_),
-                                   station->lat(), station->lng()));
+    for (auto const& station : stations(req->lat(), req->lng(), req->radius())) {
+      list.push_back(create_station(fbb, *station));
     }
     return CreateLookupGeoStationResponse(fbb, fbb.CreateVector(list));
   }
