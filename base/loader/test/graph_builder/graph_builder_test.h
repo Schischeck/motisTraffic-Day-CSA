@@ -3,8 +3,8 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/core/access/time_access.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/time_access.h"
 #include "motis/loader/util.h"
 
 namespace motis {
@@ -25,7 +25,7 @@ protected:
   get_connections(node const* first_route_node, time departure_time);
 
   std::time_t unix_time(int hhmm, int day_idx = 0,
-                               int timezone_offset = kDefaultTimezoneOffset) {
+                        int timezone_offset = kDefaultTimezoneOffset) {
     return motis::unix_time(*sched_, hhmm, day_idx, timezone_offset);
   }
 

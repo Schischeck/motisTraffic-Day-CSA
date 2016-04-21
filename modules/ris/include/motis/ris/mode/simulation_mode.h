@@ -14,9 +14,12 @@ struct simulation_mode final : public base_mode {
 
   void init(motis::module::registry& r) override {
     base_mode::init(r);
-    r.register_op("/ris/forward", [this](motis::module::msg_ptr const& msg) {
-      handle_forward_request(msg);
-    });
+    r.register_op(
+        "/ris/forward",
+        [this](motis::module::msg_ptr const& msg) -> motis::module::msg_ptr {
+          handle_forward_request(msg);
+          return nullptr;
+        });
   }
 
   void init_async() override {
