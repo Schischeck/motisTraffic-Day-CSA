@@ -22,18 +22,8 @@ auto routing_request = R"(
     "type": "PreTrip",
     "direction": "Forward",
     "path": [
-      { "element_type": "StationPathElement",
-        "element": {
-          "eva_nr": "0000002",
-          "name": ""
-        }
-      }, // Würzburg
-      { "element_type": "StationPathElement",
-        "element": {
-          "eva_nr": "0000009",
-          "name": ""
-        }
-      } // Köln-Ehrenfeld
+      { "eva_nr": "0000002", "name": "" },
+      { "eva_nr": "0000009", "name": "" }
     ],
     additional_edges: []
   }
