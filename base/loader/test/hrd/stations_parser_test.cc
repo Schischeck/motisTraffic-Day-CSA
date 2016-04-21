@@ -27,6 +27,8 @@ constexpr char const* infotext = R"(%
 constexpr char const* footpaths_old = R"(%
 8003919 0721747 015
 8003935 0651301 003
+8089221: 0122662
+8089222: 8006552 8089222
 )";
 
 constexpr char const* footpaths_new = R"(%
@@ -96,6 +98,21 @@ TEST(loader_hrd_stations_parser, parse_stations) {
     ASSERT_TRUE(std::abs(station.lng_ - 8.681793) <= 0.001);
     ASSERT_TRUE(std::abs(station.lat_ - 50.110902) <= 0.001);
     ASSERT_EQ(2, station.change_time_);
+
+    auto const& meta_stations = metas.meta_stations_;
+    ASSERT_EQ(2, meta_stations.size());
+    for (auto const& meta_station : meta_stations) {
+      if (meta_station.eva_ == 8089221) {
+        ASSERT_EQ(1, meta_station.equivalent_.size());
+        EXPECT_EQ(0122662, meta_station.equivalent_[0]);
+      }
+
+      if (meta_station.eva_ == 8006552) {
+        ASSERT_EQ(2, meta_station.equivalent_.size());
+        EXPECT_EQ(8006552, meta_station.equivalent_[0]);
+        EXPECT_EQ(8089222, meta_station.equivalent_[1]);
+      }
+    }
   } catch (parser_error const& pe) {
     pe.print_what();
     ASSERT_TRUE(false);

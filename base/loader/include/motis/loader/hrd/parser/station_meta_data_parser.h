@@ -20,11 +20,20 @@ struct station_meta_data {
     int duration_;
   };
 
+  struct meta_station {
+    bool operator<(meta_station const& rh) const {
+      return eva_ < rh.eva_;
+    }
+    int eva_;
+    std::vector<int> equivalent_;
+  };
+
   int get_station_change_time(int eva_num) const;
 
   static const char* minct_;
   std::map<int, int> station_change_times_;
   std::set<footpath> footpaths_;
+  std::set<meta_station> meta_stations_;
   std::map<parser::cstr, int> ds100_to_eva_num_;
 };
 

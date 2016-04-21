@@ -2,6 +2,7 @@
 
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/service_access.h"
+#include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
 #include "motis/lookup/util.h"
 
