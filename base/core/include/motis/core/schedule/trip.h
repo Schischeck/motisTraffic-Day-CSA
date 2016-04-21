@@ -95,6 +95,4 @@ struct trip {
   size_t lcon_idx_;
 };
 
-using trips = std::vector<trip*>;
-
 }  // namespace motis

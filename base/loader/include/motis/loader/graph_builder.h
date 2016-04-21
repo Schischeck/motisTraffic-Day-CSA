@@ -169,6 +169,7 @@ struct graph_builder {
   void connect_reverse();
 
   void sort_connections();
+  void sort_trips();
 
   int node_count() const;
 
