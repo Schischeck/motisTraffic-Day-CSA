@@ -18,7 +18,7 @@ constexpr auto kBikesharingRequest = R""(
     // close to campus darmstadt
     "departure_lat": 49.8776114,
     "departure_lng": 8.6571044,
-    
+
     // close to campus ffm
     "arrival_lat": 50.1273104,
     "arrival_lng": 8.6669383,
@@ -47,7 +47,7 @@ BikesharingEdge const* find_edge(V const* vec, std::string const& from,
 
 TEST(bikesharing_nextbike_itest, integration_test) {
   auto instance = launch_motis("modules/bikesharing/test_resources/schedule",
-                               "20150112", {"bikesharing", "intermodal"},
+                               "20150112", {"bikesharing", "lookup"},
                                {"--bikesharing.nextbike_path=modules/"
                                 "bikesharing/test_resources/nextbike",
                                 "--bikesharing.database_path=:memory:"});

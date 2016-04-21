@@ -30,8 +30,8 @@ struct socket_server::impl {
     snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
                        &buf_);
     auto req_msg = make_msg((void*)buf_.data(), buf_.size());
-    receiver_.on_msg(req_msg, 0, std::bind(&impl::reply, this, req_msg->id(),
-                                           cb, p::_1, p::_2));
+    receiver_.on_msg(req_msg, std::bind(&impl::reply, this, req_msg->id(), cb,
+                                        p::_1, p::_2));
   }
 
   void reply(int id, net::handler_cb_fun cb, msg_ptr res,
@@ -39,19 +39,11 @@ struct socket_server::impl {
     msg_ptr response;
 
     if (ec) {
-      MessageCreator b;
-      b.CreateAndFinish(
-          MsgContent_MotisError,
-          CreateMotisError(b, ec.value(), b.CreateString(ec.category().name()),
-                           b.CreateString(ec.message()))
-              .Union());
-      response = make_msg(b);
+      response = make_error_msg(ec);
     } else if (res) {
       response = res;
     } else {
-      MessageCreator b;
-      b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
-      response = make_msg(b);
+      response = make_success_msg();
     }
     response->get()->mutate_id(id);
 

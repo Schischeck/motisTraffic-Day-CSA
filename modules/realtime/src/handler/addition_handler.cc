@@ -17,7 +17,7 @@ void motis::realtime::handler::handle_addition(
     rt_msg.events_.emplace_back(
         ris_event_to_schedule_event(*ris_event->base(), ctx._schedule));
   }
-  rt_msg.category_ = ris_msg->events()->Get(0)->trainCategory()->str();
+  rt_msg.category_ = ris_msg->events()->Get(0)->category()->str();
   rt_msg.train_nr_ = rt_msg.events_[0]._train_nr;
 
   ctx._message_handler.handle_additional_train(rt_msg);

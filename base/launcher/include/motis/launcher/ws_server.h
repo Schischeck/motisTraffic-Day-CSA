@@ -15,7 +15,7 @@ struct ws_server {
 
   void set_api_key(std::string const&);
 
-  void send(motis::module::msg_ptr const& msg, module::sid session);
+  void send(motis::module::msg_ptr const& msg, unsigned session);
 
   void listen(std::string const& host, std::string const& port);
   void stop();

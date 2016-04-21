@@ -28,7 +28,7 @@ void handle_delay(DelayMessage const* ris_msg, realtime_schedule& ctx) {
     auto reason = ris_msg->type() == DelayType_Is ? timestamp_reason::IS
                                                   : timestamp_reason::FORECAST;
     auto updated_time =
-        unix_to_motistime(sched.schedule_begin_, ris_evt->updatedTime());
+        unix_to_motistime(sched.schedule_begin_, ris_evt->updated_time());
 
     if (schedule_evt.valid() && updated_time != motis::INVALID_TIME) {
       handle_delay(ctx, schedule_evt, updated_time, reason);

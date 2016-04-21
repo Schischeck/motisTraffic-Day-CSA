@@ -1,16 +1,17 @@
 #pragma once
 
-#include "motis/module/callbacks.h"
+#include "boost/system/error_code.hpp"
+
+#include "motis/module/message.h"
 
 namespace motis {
 namespace module {
 
-class receiver {
-public:
+using callback = std::function<void(msg_ptr, boost::system::error_code)>;
+
+struct receiver {
   virtual ~receiver() {}
-  virtual void on_msg(msg_ptr msg, sid session, callback cb) = 0;
-  virtual void on_open(sid session) = 0;
-  virtual void on_close(sid session) = 0;
+  virtual void on_msg(msg_ptr const&, callback const&) = 0;
 };
 
 }  // namespace module

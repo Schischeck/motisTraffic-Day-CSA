@@ -1,0 +1,18 @@
+namespace motis.lookup;
+
+// JSON example
+// --
+// { 
+//   "content_type": "LookupStationEventsRequest",
+//   "content": {
+//     "eva_nr": "8000105",
+//     "begin": 1448371800,
+//     "end": 1448375400
+//   }
+// }
+
+table LookupStationEventsRequest {
+  eva_nr: string;
+  begin:long;  // inclusive
+  end:long;  // exclusive (to-the-minute accuracy!)
+}

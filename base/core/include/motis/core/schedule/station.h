@@ -32,6 +32,10 @@ public:
         dep_class_events({{0}}),
         timez(nullptr) {}
 
+
+  double lat() const { return width; }
+  double lng() const { return length; }
+
   unsigned index;
   double length, width;
   int transfer_time;

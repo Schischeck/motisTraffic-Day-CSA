@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include <memory>
 
 #include "boost/filesystem.hpp"
@@ -41,8 +42,8 @@ template <typename T>
 using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
 
 int main(int argc, char** argv) {
-  boost::asio::io_service ios;
   motis_instance instance;
+  auto& ios = instance.ios_;
   ws_server websocket(ios, instance);
   http_server http(ios, instance);
   socket_server tcp(ios, instance);
@@ -51,13 +52,13 @@ int main(int argc, char** argv) {
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
   launcher_settings launcher_opt(
-      launcher_settings::SERVER,
+      launcher_settings::motis_mode_t::SERVER,
       loader::transform_to_vec(
           begin(instance.modules_), end(instance.modules_),
           [](std::unique_ptr<motis::module::module> const& m) {
             return m->name();
           }),
-      "queries.txt", "responses.txt");
+      "queries.txt", "responses.txt", std::thread::hardware_concurrency());
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
                                              &launcher_opt};
@@ -94,12 +95,8 @@ int main(int argc, char** argv) {
   try {
     instance.init_schedule(dataset_opt);
     instance.init_modules(launcher_opt.modules);
-    instance.set_io_service(&ios);
 
     if (listener_opt.listen_ws) {
-      instance.set_send_fun([&websocket](msg_ptr msg, sid session) {
-        websocket.send(msg, session);
-      });
       websocket.set_api_key(listener_opt.api_key);
       websocket.listen(listener_opt.ws_host, listener_opt.ws_port);
       websocket_shutdown_handler =
@@ -122,13 +119,13 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  boost::asio::io_service::work tp_work(instance.thread_pool_), ios_work(ios);
-  std::vector<boost::thread> threads(8);
+  boost::asio::io_service::work ios_work(ios);
+  std::vector<boost::thread> threads(launcher_opt.num_threads);
 
-  auto run = [&]() {
+  auto run = [&ios]() {
     start:
       try {
-        instance.run();
+        ios.run();
       } catch (std::exception const& e) {
         LOG(emrg) << "unhandled error: " << e.what();
         goto start;
@@ -143,30 +140,15 @@ int main(int argc, char** argv) {
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
-  if (launcher_opt.mode == launcher_settings::TEST) {
+  if (launcher_opt.mode == launcher_settings::motis_mode_t::TEST) {
     timer = make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
-    timer->async_wait(
-        [&websocket](boost::system::error_code) { websocket.stop(); });
-  } else if (launcher_opt.mode == launcher_settings::BATCH) {
+    timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
+  } else if (launcher_opt.mode == launcher_settings::motis_mode_t::BATCH) {
     inject_queries(ios, instance, launcher_opt.batch_input_file,
                    launcher_opt.batch_output_file);
   }
 
-  auto run_server = [&ios]() {
-    start:
-      try {
-        ios.run();
-      } catch (std::exception const& e) {
-        LOG(emrg) << "unhandled error in I/O service: " << e.what();
-        goto start;
-      } catch (...) {
-        LOG(emrg) << "unhandled unknown error in I/O service";
-        goto start;
-      }
-  };
-  run_server();
-  instance.thread_pool_.stop();
   std::for_each(begin(threads), end(threads),
                 [](boost::thread& t) { t.join(); });
   LOG(info) << "shutdown";

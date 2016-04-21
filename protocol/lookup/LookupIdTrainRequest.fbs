@@ -1,0 +1,7 @@
+include "lookup/LookupCommon.fbs";
+
+namespace motis.lookup;
+
+table LookupIdTrainRequest {
+  trip_id: TripId;
+}

@@ -29,6 +29,10 @@
   this.getHeight = () => Math.max(230, this.opts.connections.length * 72.5) + 50
 
   this.drawTimeline = () => {
+    if (!this.opts.connections || this.opts.connections.length === 0) {
+      return;
+    }
+
     this.timeAxisLabels.clear();
     this.connections.clear();
 

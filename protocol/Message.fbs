@@ -2,6 +2,12 @@ include "bikesharing/BikesharingRequest.fbs";
 include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
+include "lookup/LookupGeoStationRequest.fbs";
+include "lookup/LookupGeoStationResponse.fbs";
+include "lookup/LookupStationEventsRequest.fbs";
+include "lookup/LookupStationEventsResponse.fbs";
+include "lookup/LookupIdTrainRequest.fbs";
+include "lookup/LookupIdTrainResponse.fbs";
 include "railviz/RailVizInit.fbs";
 include "railviz/RailVizAlltraReq.fbs";
 include "railviz/RailVizAlltraRes.fbs";
@@ -31,10 +37,7 @@ include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
 include "realtime/RealtimeDelayInfoRequest.fbs";
 include "realtime/RealtimeDelayInfoResponse.fbs";
-include "intermodal/IntermodalRoutingRequest.fbs";
-include "intermodal/IntermodalRoutingResponse.fbs";
-include "intermodal/IntermodalGeoIndexRequest.fbs";
-include "intermodal/IntermodalGeoIndexResponse.fbs";
+
 include "HTTPMessage.fbs";
 
 namespace motis;
@@ -64,7 +67,18 @@ table MotisError {
 table MotisSuccess {
 }
 
+// JSON example:
+// --
+// {
+//   "content_type": "MotisNoMessage",
+//   "content": {
+//   }
+// }
+table MotisNoMessage {
+}
+
 union MsgContent {
+  motis.MotisNoMessage,
   motis.MotisError,
   motis.MotisSuccess,
   motis.HTTPRequest,
@@ -73,6 +87,14 @@ union MsgContent {
   motis.bikesharing.BikesharingResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
+  motis.lookup.LookupGeoStationRequest,
+  motis.lookup.LookupGeoStationResponse,
+  motis.lookup.LookupBatchGeoStationRequest,
+  motis.lookup.LookupBatchGeoStationResponse,
+  motis.lookup.LookupStationEventsRequest,
+  motis.lookup.LookupStationEventsResponse,
+  motis.lookup.LookupIdTrainRequest,
+  motis.lookup.LookupIdTrainResponse,
   motis.railviz.RailVizInit,
   motis.railviz.RailVizAlltraReq,
   motis.railviz.RailVizAlltraRes,
@@ -88,8 +110,6 @@ union MsgContent {
   motis.reliability.ReliabilityRatingResponse,
   motis.ris.RISBatch,
   motis.ris.RISForwardTimeRequest,
-  motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse,
   motis.realtime.RealtimeTrainInfoRequest,
   motis.realtime.RealtimeTrainInfoResponse,
   motis.realtime.RealtimeTrainInfoBatchRequest,
@@ -98,13 +118,38 @@ union MsgContent {
   motis.realtime.RealtimeCurrentTimeResponse,
   motis.realtime.RealtimeDelayInfoRequest,
   motis.realtime.RealtimeDelayInfoResponse,
-  motis.intermodal.IntermodalRoutingRequest,
-  motis.intermodal.IntermodalRoutingResponse,
-  motis.intermodal.IntermodalGeoIndexRequest,
-  motis.intermodal.IntermodalGeoIndexResponse
+  motis.routing.RoutingRequest,
+  motis.routing.RoutingResponse
+}
+
+// Destination Examples:
+//
+// Request departure+arrival table for a station
+// {
+//   "type": "Module",
+//   "target": "/lookup/station/8000068/2016-03-02T16:47",
+// }
+//
+// Store a user connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection",
+// }
+//
+// Get alternatives for stored connection
+// {
+//   "type": "Module",
+//   "target": "/user/connection/123456/alternatives",
+// }
+enum DestinationType : byte { Module, Topic }
+
+table Destination {
+  type: DestinationType;
+  target: string;
 }
 
 table Message {
+  destination: Destination;
   content:MsgContent;
   id:int = 0;
 }

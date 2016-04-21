@@ -1,0 +1,16 @@
+namespace motis.lookup;
+
+table Station {
+  eva_nr: string;
+  name: string;
+  lat: double;
+  lng: double;
+}
+
+table LookupGeoStationResponse {
+  stations: [Station];
+}
+
+table LookupBatchGeoStationResponse {
+  responses: [LookupGeoStationResponse];
+}

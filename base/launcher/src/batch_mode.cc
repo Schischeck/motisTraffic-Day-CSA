@@ -58,9 +58,9 @@ private:
   void inject_msg(std::shared_ptr<query_injector>) {
     auto next = next_query();
     if (next) {
-      receiver_.on_msg(next, 0, std::bind(&query_injector::on_response, this,
-                                          shared_from_this(), ++next_query_id_,
-                                          p::_1, p::_2));
+      receiver_.on_msg(
+          next, std::bind(&query_injector::on_response, this,
+                          shared_from_this(), ++next_query_id_, p::_1, p::_2));
     }
   }
 
@@ -74,19 +74,11 @@ private:
     msg_ptr response;
 
     if (ec) {
-      MessageCreator b;
-      b.CreateAndFinish(
-          MsgContent_MotisError,
-          CreateMotisError(b, ec.value(), b.CreateString(ec.category().name()),
-                           b.CreateString(ec.message()))
-              .Union());
-      response = make_msg(b);
+      response = make_error_msg(ec);
     } else if (res) {
       response = res;
     } else {
-      MessageCreator b;
-      b.CreateAndFinish(MsgContent_MotisSuccess, CreateMotisSuccess(b).Union());
-      response = make_msg(b);
+      response = make_success_msg();
     }
     response->get()->mutate_id(id);
 

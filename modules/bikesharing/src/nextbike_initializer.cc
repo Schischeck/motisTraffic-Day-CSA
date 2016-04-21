@@ -21,7 +21,7 @@
 #include "motis/protocol/Message_generated.h"
 
 using namespace flatbuffers;
-using namespace motis::intermodal;
+using namespace motis::lookup;
 using namespace motis::geo_detail;
 using namespace motis::logging;
 using namespace motis::module;
@@ -154,13 +154,12 @@ void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec) {
 
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     auto const& t = ctx->terminals_[i];
-
-    auto const& content = msg->content<IntermodalGeoIndexResponse const*>();
-    auto const& found_stations = content->coordinates()->Get(i)->stations();
+    auto const& content = msg->content<LookupBatchGeoStationResponse const*>();
+    auto const& found_stations = content->responses()->Get(i)->stations();
     std::vector<close_location> attached_stations;
     for (auto const& station : *found_stations) {
       int dist = distance_in_m(t.lat, t.lng, station->lat(), station->lng());
-      attached_stations.push_back({station->eva()->str(), dist});
+      attached_stations.push_back({station->eva_nr()->str(), dist});
     }
 
     ctx->attached_stations_.push_back(attached_stations);
@@ -214,13 +213,14 @@ void persist_terminals(ctx_ptr ctx) {
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
                                  double radius) {
   MessageCreator b;
-  std::vector<Offset<intermodal::RequestCoordinates>> c;
+  std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
-    c.push_back(CreateRequestCoordinates(b, merged.lat, merged.lng, radius));
+    c.push_back(
+        CreateLookupGeoStationRequest(b, merged.lat, merged.lng, radius));
   }
   b.CreateAndFinish(
-      MsgContent_IntermodalGeoIndexRequest,
-      CreateIntermodalGeoIndexRequest(b, b.CreateVector(c)).Union());
+      MsgContent_LookupBatchGeoStationRequest,
+      CreateLookupBatchGeoStationRequest(b, b.CreateVector(c)).Union());
   return make_msg(b);
 }
 

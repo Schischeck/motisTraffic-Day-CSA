@@ -8,12 +8,23 @@
 #include "motis/loader/util.h"
 #include "motis/protocol/Message_generated.h"
 
+namespace p = std::placeholders;
+namespace po = boost::program_options;
 using namespace flatbuffers;
 using namespace motis::module;
-namespace po = boost::program_options;
 
 namespace motis {
 namespace guesser {
+
+std::string trim(std::string const& s) {
+  auto first = s.find_first_not_of(' ');
+  auto last = s.find_last_not_of(' ');
+  if (first == last) {
+    return "";
+  } else {
+    return s.substr(first, (last - first + 1));
+  }
+}
 
 po::options_description guesser::desc() {
   po::options_description desc("Guesser Module");
@@ -22,7 +33,7 @@ po::options_description guesser::desc() {
 
 void guesser::print(std::ostream&) const {}
 
-void guesser::init() {
+void guesser::init(motis::module::registry& reg) {
   auto sync = synced_sched<schedule_access::RO>();
 
   std::set<std::string> station_names;
@@ -64,18 +75,18 @@ void guesser::init() {
   }
 
   guesser_ = std::unique_ptr<guess::guesser>(new guess::guesser(stations));
+  reg.register_op("/guesser", std::bind(&guesser::guess, this, p::_1));
 }
 
-void guesser::on_msg(msg_ptr msg, sid, callback cb) {
-  auto req = msg->content<StationGuesserRequest const*>();
-
+msg_ptr guesser::guess(msg_ptr const& msg) {
+  auto req = motis_content(StationGuesserRequest, msg);
   auto sync = synced_sched<schedule_access::RO>();
 
   MessageCreator b;
 
   std::vector<Offset<Station>> guesses;
   for (auto const& guess :
-       guesser_->guess(req->input()->str(), req->guess_count())) {
+       guesser_->guess(trim(req->input()->str()), req->guess_count())) {
     auto const& station = *sync.sched().stations[station_indices_[guess]];
     guesses.emplace_back(CreateStation(
         b, b.CreateString(station.name), b.CreateString(station.eva_nr),
@@ -86,7 +97,7 @@ void guesser::on_msg(msg_ptr msg, sid, callback cb) {
       MsgContent_StationGuesserResponse,
       CreateStationGuesserResponse(b, b.CreateVector(guesses)).Union());
 
-  return cb(make_msg(b), boost::system::error_code());
+  return make_msg(b);
 }
 
 }  // namespace guesser

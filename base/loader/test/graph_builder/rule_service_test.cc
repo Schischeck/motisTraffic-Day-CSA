@@ -3,8 +3,14 @@
 #include <numeric>
 
 #include "motis/core/common/date_util.h"
+#include "motis/core/access/trip_access.h"
+#include "motis/core/access/trip_iterator.h"
+#include "motis/core/access/trip_stop.h"
+#include "motis/loader/timezone_util.h"
 
 #include "./graph_builder_test.h"
+
+using namespace motis::access;
 
 namespace motis {
 namespace loader {
@@ -59,6 +65,18 @@ public:
     }
 
     return std::make_pair(false, std::vector<edge const*>());
+  }
+
+  std::vector<std::string> path_evas(trip const* t) {
+    access::stops stops(t);
+    std::vector<std::string> stop_evas;
+    std::transform(
+        begin(stops), end(stops),
+        std::back_insert_iterator<std::vector<std::string>>(stop_evas),
+        [this](trip_stop const& stop) {
+          return stop.get_station(*sched_).eva_nr;
+        });
+    return stop_evas;
   }
 };
 
@@ -126,6 +144,45 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_3) {
 
   EXPECT_TRUE(train_nrs.find(2) != end(train_nrs));
   EXPECT_TRUE(train_nrs.find(3) != end(train_nrs));
+}
+
+TEST_F(service_rules_graph_builder_test_virt, trip_1) {
+  auto trp1 = get_trip(*sched_, "0000001", 1, unix_time(110, 0), "0000007",
+                       unix_time(600, 0, 120), false, "");
+  auto trp2 = get_trip(*sched_, "0000005", 5, unix_time(510, 0, 120), "0000007",
+                       unix_time(600, 0, 120), false, "");
+
+  EXPECT_EQ(trp1, trp2);
+  EXPECT_EQ(path_evas(trp1),
+            std::vector<std::string>(
+                {"0000001", "0000003", "0000004", "0000005", "0000007"}));
+
+  auto sections = access::sections(trp1);
+  int i = 0;
+  for (auto it = begin(sections); it != end(sections); ++it, ++i) {
+    auto train_nr = (*it).info(*sched_).train_nr;
+    switch (i) {
+      case 3: EXPECT_EQ(5, train_nr); break;
+      default: EXPECT_EQ(1, train_nr);
+    }
+  }
+}
+
+TEST_F(service_rules_graph_builder_test_virt, trip_2) {
+  auto trp = get_trip(*sched_, "0000002", 3, unix_time(210, 0, 60), "0000011",
+                      unix_time(800, 0, 120), false, "");
+
+  auto sections = access::sections(trp);
+  auto sec2 = *std::next(begin(sections));
+  auto const& merged_trips = *sched_->merged_trips[sec2.lcon().trips];
+  EXPECT_EQ(3, merged_trips.size());
+
+  auto con_info = sec2.lcon()._full_con->con_info;
+  for (unsigned i = 0; i < merged_trips.size();
+       ++i, con_info = con_info->merged_with) {
+    ASSERT_TRUE(con_info != nullptr);
+    EXPECT_EQ(merged_trips[i]->id.primary.train_nr, con_info->train_nr);
+  }
 }
 
 }  // loader

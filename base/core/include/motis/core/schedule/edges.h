@@ -183,6 +183,11 @@ public:
         static_cast<const edge*>(this)->get_connection(start_time));
   }
 
+  light_connection* get_connection_reverse(time const start_time) {
+    return const_cast<light_connection*>(
+        static_cast<const edge*>(this)->get_connection_reverse(start_time));
+  }
+
   edge_cost get_route_edge_cost(time const start_time) const {
     light_connection const* c = get_connection(start_time);
     return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time - start_time, c);

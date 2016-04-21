@@ -58,6 +58,10 @@ var actionCreators = {
     const begin = Math.round(queryDate.getTime() / 1000);
 
     server.send({
+      destination: {
+        type: 'Module',
+        target: '/routing'
+      },
       content_type: 'RoutingRequest',
       content: {
         interval: { begin: begin, end: begin + 7200 },
@@ -70,16 +74,14 @@ var actionCreators = {
         additional_edges: []
       }
     })
-    .then(response => {
-      dispatch({
-        type: type.RECEIVE_ROUTING,
-        payload: {
-          request: s,
-          response: response.content.connections
-        }
-      });
-    })
-    .catch(err => console.error('routing not possible: ', err));
+    .then(response => dispatch({
+      type: type.RECEIVE_ROUTING,
+      payload: {
+        request: s,
+        response: response.content.connections
+      }
+    }))
+    .catch(err => dispatch({ type: type.RECEIVE_ROUTING_ERROR }));
   },
 
   resetQueryToLast: function() {

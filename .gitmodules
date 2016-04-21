@@ -1,54 +1,51 @@
 [submodule "external_lib/conf"]
 	path = external_lib/conf
-	url = https://github.com/felixguendling/conf.git
+	url = git@git.motis-project.de:lib/conf.git
 [submodule "external_lib/net"]
 	path = external_lib/net
-	url = https://github.com/felixguendling/net.git
+	url = git@git.motis-project.de:lib/net.git
 [submodule "external_lib/websocketpp"]
 	path = external_lib/websocketpp
-	url = https://bitbucket.org/makielski/websocketpp.git
+	url = git@git.motis-project.de:lib/websocketpp.git
 [submodule "external_lib/flatbuffers"]
 	path = external_lib/flatbuffers
-	url = https://github.com/felixguendling/flatbuffers.git
+	url = git@git.motis-project.de:lib/flatbuffers.git
 [submodule "external_lib/guess"]
 	path = external_lib/guess
-	url = https://github.com/felixguendling/guess.git
+	url = git@git.motis-project.de:lib/guess.git
 [submodule "external_lib/parser"]
 	path = external_lib/parser
-	url = https://github.com/felixguendling/parser.git
+	url = git@git.motis-project.de:lib/parser.git
 [submodule "external_lib/googletest"]
 	path = external_lib/googletest
-	url = https://github.com/google/googletest.git
+	url = git@git.motis-project.de:lib/googletest.git
 [submodule "external_lib/sparsehash"]
 	path = external_lib/sparsehash
-	url = https://github.com/felixguendling/sparsehash.git
-[submodule "external_lib/libzip"]
-	path = external_lib/libzip
-	url = https://github.com/felixguendling/libzip.git
+	url = git@git.motis-project.de:lib/sparsehash.git
 [submodule "external_lib/pugixml"]
 	path = external_lib/pugixml
-	url = https://github.com/zeux/pugixml.git
+	url = git@git.motis-project.de:lib/pugixml.git
 [submodule "external_lib/osrm-backend"]
 	path = external_lib/osrm-backend
-	url = https://github.com/felixguendling/osrm-backend.git
+	url = git@git.motis-project.de:lib/osrm-backend.git
 [submodule "external_lib/sqlpp11-connector-sqlite3"]
 	path = external_lib/sqlpp11-connector-sqlite3
-	url = https://github.com/algotud/sqlpp11-connector-sqlite3.git
+	url = git@git.motis-project.de:lib/sqlpp11-connector-sqlite3.git
 [submodule "external_lib/sqlpp11"]
 	path = external_lib/sqlpp11
-	url = https://github.com/algotud/sqlpp11.git
+	url = git@git.motis-project.de:lib/sqlpp11.git
 [submodule "external_lib/sqlite"]
 	path = external_lib/sqlite
-	url = https://github.com/algotud/sqlite.git
-[submodule "external_lib/range-v3"]
-	path = external_lib/range-v3
-	url = https://github.com/ericniebler/range-v3.git
+	url = git@git.motis-project.de:lib/sqlite.git
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
-	url = https://github.com/richgel999/miniz.git
+	url = git@git.motis-project.de:lib/miniz.git
 [submodule "external_lib/snappy-cmake"]
 	path = external_lib/snappy-cmake
-	url = https://github.com/felixguendling/snappy-cmake.git
+	url = git@git.motis-project.de:lib/snappy.git
 [submodule "external_lib/leveldb"]
 	path = external_lib/leveldb
-	url = https://bitbucket.org/makielski/leveldb.git
+	url = git@git.motis-project.de:lib/leveldb.git
+[submodule "external_lib/ctx"]
+	path = external_lib/ctx
+	url = git@git.motis-project.de:lib/ctx.git

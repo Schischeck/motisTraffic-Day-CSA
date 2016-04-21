@@ -24,7 +24,8 @@ int main(int argc, char* argv[]) {
   auto req = make_msg(request);
 
   std::string buf;
-  snappy::Compress(static_cast<char const*>(req->buf_), req->len_, &buf);
+  snappy::Compress(reinterpret_cast<char const*>(req->data()), req->size(),
+                   &buf);
 
   std::string host = argv[1];
   std::string port = argv[2];

@@ -8,6 +8,7 @@ function storedState() {
   var state = JSON.parse(window.localStorage.getItem('motis-search'));
   if (state) {
     state.result.loading = false;
+    state.result.error = false;
   }
   return state;
 }
@@ -24,11 +25,16 @@ function search(state, action) {
               transports: { from: [], to: [] }
             },
             result: {
+              error: false,
               request: undefined,
               response: undefined,
               selectedConnection: undefined,
             }
           };
+
+  if (action.type !== type.RECEIVE_ROUTING_ERROR) {
+    state.result.error = false;
+  }
 
   var tmp;
   switch (action.type) {
@@ -62,6 +68,7 @@ function search(state, action) {
 
     case type.RECEIVE_ROUTING:
       state.result = {
+        error: false,
         loading: false,
         selectedConnection: undefined,
         response: action.payload.response,
@@ -69,8 +76,18 @@ function search(state, action) {
       }
       break
 
+    case type.RECEIVE_ROUTING_ERROR:
+      state.result = {
+        error: true,
+        loading: false,
+        selectedConnection: undefined,
+        response: undefined,
+        request: undefined
+      }
+      break
+
     case type.RESET_QUERY_TO_LAST:
-      state.query = state.result.request
+      state.query = JSON.parse(JSON.stringify(state.result.request))
       break
 
     case type.SELECT_CONNECTION:

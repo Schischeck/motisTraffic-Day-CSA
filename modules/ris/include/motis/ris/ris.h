@@ -1,59 +1,44 @@
 #pragma once
 
 #include <ctime>
-#include <set>
 #include <string>
-
-#include "boost/system/error_code.hpp"
-#include "boost/asio/deadline_timer.hpp"
 
 #include "motis/module/module.h"
 
-namespace po = boost::program_options;
-
 namespace motis {
 namespace ris {
+namespace mode {
 
-enum class mode : bool { LIVE, SIMULATION };
+struct base_mode;
 
-struct ris : public motis::module::module {
+} // namespace mode;
+
+enum class mode_t { LIVE, SIMULATION, TEST };
+
+struct config {
+  mode_t mode_;
+
+  std::string input_folder_;
+  std::string database_file_;
+
+  // live mode
+  int update_interval_;
+  int max_days_;
+
+  // simulation mode
+  std::time_t sim_init_time_;
+};
+
+struct ris final  : public motis::module::module {
   ris();
-  virtual ~ris() {}
+  ~ris();
 
-  boost::program_options::options_description desc() override;
-  void print(std::ostream& out) const override;
-
-  virtual void init_async() override;
   std::string name() const override { return "ris"; }
-  std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_RISForwardTimeRequest, MsgContent_HTTPRequest};
-  }
-  void on_msg(motis::module::msg_ptr, motis::module::sid,
-              motis::module::callback) override;
-
-  void handle_forward_time(motis::module::msg_ptr msg,
-                           motis::module::callback cb);
-  void handle_zipfile_upload(motis::module::msg_ptr msg,
-                             motis::module::callback cb);
+  void init(motis::module::registry&) override;
 
 private:
-  void fill_database();
-
-  void schedule_update(boost::system::error_code e);
-  void parse_zips();
-  std::vector<std::string> get_new_files();
-
-  void forward_time(std::time_t new_time);
-
-  mode mode_;
-  int update_interval_;
-  std::string zip_folder_;
-  int max_days_;
-  std::time_t simulation_start_time_;
-
-  std::time_t simulation_time_;
-  std::unique_ptr<boost::asio::deadline_timer> timer_;
-  std::set<std::string> read_files_;
+  config conf_;
+  std::unique_ptr<mode::base_mode> active_mode_;
 };
 
 }  // namespace ris

@@ -58,6 +58,9 @@ function ceilToScale(t, scale) {
 }
 
 const calculateTimelineSettings = function(cons, width) {
+  if (!cons || cons.length === 0) {
+    return undefined;
+  }
   const beginAndEnd = getBeginAndEnd(cons);
   const scale = getScale(beginAndEnd.begin, beginAndEnd.end);
   const begin = floorToScale(beginAndEnd.begin, scale);
