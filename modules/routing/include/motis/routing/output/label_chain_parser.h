@@ -35,7 +35,7 @@ state next_state(int s, Label const* c, Label const* n) {
     case PRE_CONNECTION: return IN_CONNECTION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        if (n->node_->is_station_node()) {
+        if (n != nullptr && n->node_->is_station_node()) {
           return WALK;
         } else if (c->node_->is_route_node()) {
           return IN_CONNECTION_THROUGH;
@@ -101,13 +101,12 @@ parse_label_chain(Label const* terminal_label) {
 
         walk_arrival = INVALID_TIME;
 
-        auto s1 = std::next(it, 1) == end(labels) ? nullptr : *std::next(it, 1);
-        auto s2 = s1 == nullptr || std::next(it, 2) == end(labels)
-                      ? nullptr
-                      : *std::next(it, 2);
-        if (s2 && s2->connection_ != nullptr) {
-          d_platform = s2->connection_->full_con_->d_platform_;
-          d_time = s2->connection_->d_time_;
+        auto s1 = std::next(it, 1);
+        auto s2 = std::next(it, 2);
+        if (s1 != end(labels) && s2 != end(labels) &&
+            (*s2)->connection_ != nullptr) {
+          d_platform = (*s2)->connection_->full_con_->d_platform_;
+          d_time = (*s2)->connection_->d_time_;
         }
 
         stops.emplace_back(static_cast<unsigned int>(++station_index),

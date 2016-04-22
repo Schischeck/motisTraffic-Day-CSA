@@ -7,6 +7,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/common/util.h"
+#include "motis/core/schedule/schedule.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
@@ -14,7 +15,9 @@
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
+#include "motis/routing/label/configs.h"
 #include "motis/routing/search.h"
+#include "motis/routing/start_label_gen.h"
 
 #define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
@@ -28,9 +31,10 @@ using namespace motis::guesser;
 namespace motis {
 namespace routing {
 
-std::vector<arrival> get_arrivals(
+std::vector<station_node*> get_arrivals(
     fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
-  std::vector<arrival> arrivals;
+  std::vector<station_node*> station_nodes;
+  auto const& sched = get_schedule();
 
   for (auto const& el : *path) {
     std::string station_id;
@@ -52,15 +56,15 @@ std::vector<arrival> get_arrivals(
       station_id = guesses->Get(0)->eva()->str();
     }
 
-    auto const& eva_to_station = get_schedule().eva_to_station_;
+    auto const& eva_to_station = sched.eva_to_station_;
     auto it = eva_to_station.find(station_id);
     if (it == end(eva_to_station)) {
       throw std::system_error(error::given_eva_not_available);
     }
-    arrivals.push_back({arrival_part(it->second->index_)});
+    station_nodes.push_back(sched.station_nodes_.at(it->second->index_).get());
   }
 
-  return arrivals;
+  return station_nodes;
 }
 
 routing::routing()
@@ -92,30 +96,20 @@ msg_ptr routing::route(msg_ptr const& msg) {
     throw std::system_error(error::path_length_too_short);
   }
 
-  auto& sched = get_schedule();
+  auto const& sched = get_schedule();
   if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
       req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
     throw std::system_error(error::journey_date_not_in_schedule);
   }
 
-  auto arrivals = get_arrivals(req->path());
-
+  auto path = get_arrivals(req->path());
   auto i_begin =
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
   auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
-  search s(sched, *label_store_);
-  auto result = s.get_connections(
-      arrivals[0], arrivals[1], i_begin, i_end,
-      req->type() == Type_OnTrip || req->type() == Type_LateConnection,
-      create_additional_edges(req->additional_edges(), sched));
-
-  LOG(info) << sched.stations_[arrivals[0][0].station_]->name_ << " to "
-            << sched.stations_[arrivals[1][0].station_]->name_ << " "
-            << "(" << format_time(i_begin) << ", " << format_time(i_end)
-            << ") -> " << result.journeys_.size() << " connections found";
-
-  // TODO(Felix Guendling) connection checker annotion
+  auto result = search<pretrip_gen<my_label>, my_label>::get_connections(
+      sched, *label_store_, path.at(0), path.at(1),
+      create_additional_edges(req->additional_edges(), sched), i_begin, i_end);
   return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
 }
 

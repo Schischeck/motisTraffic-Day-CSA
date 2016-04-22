@@ -48,6 +48,7 @@ public:
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
+        printf("max label quit\n");
         filter_results();
         return results_;
       }
@@ -78,7 +79,7 @@ public:
         continue;
       }
 
-      if (goal_ == label->node_->station_node_) {
+      if (label->node_ == goal_) {
         continue;
       }
 
@@ -112,6 +113,7 @@ private:
     ++stats_.labels_created_;
 
     if (edge.get_destination() == goal_) {
+      printf("adding result\n");
       add_result(new_label);
       if (stats_.labels_popped_until_first_result_ == -1) {
         stats_.labels_popped_until_first_result_ = stats_.labels_popped_;
