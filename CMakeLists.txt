@@ -96,6 +96,7 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_p
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
