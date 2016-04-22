@@ -30,7 +30,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
 
   auto const target_station_id = get_station(sched, target_eva_nr)->index_;
   auto const target_motis_time = unix_to_motistime(sched, target_timestamp);
-  for (; it->first == primary_id && it != end(sched.trips_); ++it) {
+  for (; it != end(sched.trips_) && it->first == primary_id; ++it) {
     auto const& s = it->second->id_.secondary_;
     if (line_id == s.line_id_ && target_station_id == s.target_station_id_ &&
         target_motis_time == s.target_time_ && is_arrival == s.is_arrival_) {
