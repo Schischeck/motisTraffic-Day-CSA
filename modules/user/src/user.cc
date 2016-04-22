@@ -1,5 +1,6 @@
 #include "motis/user/user.h"
 
+#include "pgdb_default_conn.h"
 #include "pgdb/pgdb.h"
 
 #include "motis/module/message.h"
@@ -24,7 +25,7 @@ using insert_user =
     prep_stmt<kInsertUser, std::tuple<std::string>, std::tuple<long>>;
 
 user::user() : module("User", "user") {
-  string_param(conninfo_, "dbname=postgres", "conninfo",
+  string_param(conninfo_, PGDB_DEFAULT_CONN, "conninfo",
                "How to connect to a postgres database.");
 }
 
