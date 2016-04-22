@@ -39,6 +39,7 @@ include "realtime/RealtimeCurrentTimeRequest.fbs";
 include "realtime/RealtimeCurrentTimeResponse.fbs";
 include "realtime/RealtimeDelayInfoRequest.fbs";
 include "realtime/RealtimeDelayInfoResponse.fbs";
+include "user/UserRegisterRequest.fbs";
 
 include "HTTPMessage.fbs";
 
@@ -125,7 +126,8 @@ union MsgContent {
   motis.realtime.RealtimeDelayInfoRequest,
   motis.realtime.RealtimeDelayInfoResponse,
   motis.routing.RoutingRequest,
-  motis.routing.RoutingResponse
+  motis.routing.RoutingResponse,
+  motis.user.UserRegisterRequest
 }
 
 // Destination Examples:
