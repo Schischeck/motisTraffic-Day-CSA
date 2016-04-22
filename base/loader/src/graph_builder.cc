@@ -172,21 +172,22 @@ merged_trips_idx graph_builder::create_merged_trips(Service const* s,
 trip* graph_builder::register_service(Service const* s, int day_idx) {
   sched_.trip_mem_.emplace_back(new trip(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trip_mem_.back().get();
-  sched_.trips_[stored->id_.primary_].push_back(stored);
+  sched_.trips_.emplace_back(stored->id_.primary_, stored);
 
   for (unsigned i = 1; i < s->sections()->size(); ++i) {
     auto curr_section = s->sections()->Get(i);
     auto prev_section = s->sections()->Get(i - 1);
 
     if (curr_section->train_nr() != prev_section->train_nr()) {
-      sched_.trips_[get_full_trip_id(s, day_idx, i).primary_].push_back(stored);
+      sched_.trips_.emplace_back(get_full_trip_id(s, day_idx, i).primary_,
+                                 stored);
     }
   }
 
   if (s->initial_train_nr() != stored->id_.primary_.train_nr_) {
     auto primary = stored->id_.primary_;
     primary.train_nr_ = s->initial_train_nr();
-    sched_.trips_[primary].push_back(stored);
+    sched_.trips_.emplace_back(primary, stored);
   }
 
   return stored;
@@ -502,11 +503,17 @@ void graph_builder::sort_connections() {
         if (edge.empty()) {
           continue;
         }
-        std::sort(begin(edge.m_.route_edge_.conns_),
-                  end(edge.m_.route_edge_.conns_));
+        if (!std::is_sorted(begin(edge.m_.route_edge_.conns_),
+                            end(edge.m_.route_edge_.conns_))) {
+          throw std::runtime_error("light connections not sorted");
+        }
       }
     }
   }
+}
+
+void graph_builder::sort_trips() {
+  std::sort(begin(sched_.trips_), end(sched_.trips_));
 }
 
 int graph_builder::node_count() const { return next_node_id_; }
@@ -721,6 +728,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   builder.connect_reverse();
   builder.sort_connections();
+  builder.sort_trips();
 
   sched->node_count_ = builder.node_count();
   sched->lower_bounds_ = constant_graph(sched->station_nodes_);
