@@ -1,0 +1,17 @@
+namespace motis.user;
+
+// JSON example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/user/register",
+//   },
+//   "content_type": "UserRegisterRequest",
+//   "content": {
+//     "name": "testuser"
+//   }
+// }
+table UserRegisterRequest {
+  name: string;
+}
