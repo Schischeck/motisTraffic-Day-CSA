@@ -215,7 +215,7 @@ public:
     switch (type()) {
       case ROUTE_EDGE: return "ROUTE_EDGE";
       case FOOT_EDGE: return "FOOT_EDGE";
-      case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAINfoot_edge_";
+      case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
       case TIME_DEPENDENT_MUMO_EDGE: return "TIME_DEPENDENT_MUMO_EDGE";
       case PERIODIC_MUMO_EDGE: return "PERIODIC_MUMO_EDGE";
