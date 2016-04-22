@@ -6,6 +6,8 @@
 
 #include "boost/tokenizer.hpp"
 
+#include "pgdb_default_conn.h"
+
 #include "pgdb/pgdb.h"
 
 #include "motis/module/message.h"
@@ -92,7 +94,7 @@ constexpr char kInsertJourneys[] =
 using insert_journey = in_stmt<kInsertJourneys, std::string, long>;
 
 geo_collector::geo_collector() : module("GeoCollector", "geoc") {
-  string_param(conninfo_, "dbname=postgres", "conninfo",
+  string_param(conninfo_, PGDB_DEFAULT_CONN, "conninfo",
                "How to connect to a postgres database.");
 }
 
