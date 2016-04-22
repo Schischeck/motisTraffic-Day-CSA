@@ -22,7 +22,7 @@ using create_users_table = void_stmt<kCreateUser>;
 constexpr char kInsertUser[] =
     "INSERT INTO users ( name ) VALUES ( $1 ) RETURNING id;";
 using insert_user =
-    prep_stmt<kInsertUser, std::tuple<std::string>, std::tuple<long>>;
+    prep_stmt<kInsertUser, std::tuple<std::string>, std::tuple<int64>>;
 
 user::user() : module("User", "user") {
   string_param(conninfo_, PGDB_DEFAULT_CONN, "conninfo",
