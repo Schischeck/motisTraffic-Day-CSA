@@ -86,7 +86,9 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 # Contained Dependencies
 ################################
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # for osrm-backend
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/expat/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libosmium/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
@@ -106,6 +108,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/ctx/include)
 
+add_subdirectory(external_lib/expat EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/leveldb EXCLUDE_FROM_ALL)
