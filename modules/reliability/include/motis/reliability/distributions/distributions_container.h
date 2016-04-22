@@ -136,10 +136,10 @@ inline container::key to_container_key(light_connection const& lc,
                                        time_util::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {
-  auto const& conn_info = *lc._full_con->con_info;
+  auto const& conn_info = *lc.full_con_->con_info_;
   return container::key(
-      conn_info.train_nr, sched.categories.at(conn_info.family)->name,
-      conn_info.line_identifier, station_idx, type, scheduled_event_time);
+      conn_info.train_nr_, sched.categories_.at(conn_info.family_)->name_,
+      conn_info.line_identifier_, station_idx, type, scheduled_event_time);
 }
 
 inline container::key to_container_key(node const& route_node,
@@ -147,7 +147,7 @@ inline container::key to_container_key(node const& route_node,
                                        time_util::event_type const type,
                                        schedule const& sched) {
   return to_container_key(
-      lc, route_node.get_station()->_id, type,
+      lc, route_node.get_station()->id_, type,
       time_util::get_scheduled_event_time(route_node, lc, type, sched), sched);
 };
 

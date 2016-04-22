@@ -2,8 +2,11 @@
 
 #include "motis/core/common/constants.h"
 
-#include "motis/reliability/reliability.h"
+#include "motis/module/context/motis_call.h"
+#include "motis/module/message.h"
+
 #include "motis/reliability/intermodal/hotels.h"
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 namespace motis {
@@ -51,12 +54,12 @@ module::msg_ptr to_routing_late_connections_message(
 }
 }
 
-void search(ReliableRoutingRequest const* req, reliability& rel,
-            motis::module::sid sid, motis::module::callback cb) {
-  rel.send_message(
-      detail::to_routing_late_connections_message(
-          req->request(), intermodal::hotels::parse_hotels(rel.hotels_file_)),
-      sid, cb);
+module::msg_ptr search(ReliableRoutingRequest const* req,
+                       std::string const& hotels_file) {
+  return motis_call(
+             detail::to_routing_late_connections_message(
+                 req->request(), intermodal::hotels::parse_hotels(hotels_file)))
+      ->val();
 }
 }
 }

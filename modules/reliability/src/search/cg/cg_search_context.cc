@@ -19,13 +19,9 @@ namespace search {
 namespace connection_graph_search {
 namespace detail {
 
-context::context(
-    motis::reliability::reliability& rel, motis::module::sid session,
-    motis::reliability::search::connection_graph_search::callback cb,
-    std::shared_ptr<connection_graph_optimizer const> optimizer)
+context::context(motis::reliability::reliability& rel,
+                 std::shared_ptr<connection_graph_optimizer const> optimizer)
     : reliability_(rel),
-      session_(session),
-      result_callback_(cb),
       optimizer_(optimizer),
       result_returned_(false),
       synced_sched_(reliability_.synced_sched()),

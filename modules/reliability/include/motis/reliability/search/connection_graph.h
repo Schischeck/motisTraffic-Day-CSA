@@ -46,8 +46,8 @@ struct connection_graph {
     }
     auto const& stop =
         journeys_[stops_.at(stop_idx).alternative_infos_.front().journey_index_]
-            .stops.front();
-    return std::make_pair(stop.name, stop.eva_no);
+            .stops_.front();
+    return std::make_pair(stop.name_, stop.eva_no_);
   }
 
 private:
@@ -59,8 +59,8 @@ private:
     });
     auto const& stop =
         journeys_.at(it->alternative_infos_.front().journey_index_)
-            .stops.back();
-    return std::make_pair(stop.name, stop.eva_no);
+            .stops_.back();
+    return std::make_pair(stop.name_, stop.eva_no_);
   }
 };
 

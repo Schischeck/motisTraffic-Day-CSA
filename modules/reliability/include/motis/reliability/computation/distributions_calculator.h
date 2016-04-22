@@ -22,10 +22,10 @@ namespace common {
 struct queue_element {
   struct queue_element_cmp {
     bool operator()(queue_element const& a, queue_element const& b) {
-      if (a.light_connection_->d_time == b.light_connection_->d_time) {
-        return a.from_->_id > b.from_->_id;
+      if (a.light_connection_->d_time_ == b.light_connection_->d_time_) {
+        return a.from_->id_ > b.from_->id_;
       }
-      return a.light_connection_->d_time > b.light_connection_->d_time;
+      return a.light_connection_->d_time_ > b.light_connection_->d_time_;
     }
   };
   queue_element(node const* from, node const* to,

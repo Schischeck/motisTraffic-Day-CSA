@@ -1,14 +1,15 @@
 #pragma once
 
-#include "motis/module/module.h"
+#include <string>
+
+#include "motis/module/message.h"
 
 namespace motis {
 namespace reliability {
-struct reliability;
 namespace search {
 namespace late_connections {
-void search(ReliableRoutingRequest const*, reliability&, motis::module::sid,
-            motis::module::callback);
+module::msg_ptr search(ReliableRoutingRequest const*,
+                       std::string const& hotels_file);
 }
 }
 }

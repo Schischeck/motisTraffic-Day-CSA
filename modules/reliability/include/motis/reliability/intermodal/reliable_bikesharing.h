@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "motis/module/sid.h"
 #include "motis/module/message.h"
 #include "motis/protocol/BikesharingRequest_generated.h"
 
@@ -57,8 +56,7 @@ typedef std::function<void(bikesharing_infos const)> callback;
 /* retrieves reliable bikesharing infos */
 void retrieve_bikesharing_infos(module::msg_ptr request,
                                 std::shared_ptr<availability_aggregator>,
-                                motis::reliability::reliability&, module::sid,
-                                callback);
+                                motis::reliability::reliability&);
 
 module::msg_ptr to_bikesharing_request(
     double const departure_lat, double const departure_lng,

@@ -23,36 +23,36 @@ namespace detail {
 interchange_info::interchange_info(connection_element const& arriving_element,
                                    connection_element const& departing_element,
                                    schedule const& sched) {
-  if (arriving_element.light_connection_->a_time >
-      departing_element.light_connection_->d_time) {
+  if (arriving_element.light_connection_->a_time_ >
+      departing_element.light_connection_->d_time_) {
     LOG(logging::error) << "unexpected arriving and departing element!";
   }
-  arrival_time_ = arriving_element.light_connection_->a_time;
-  departure_time_ = departing_element.light_connection_->d_time;
+  arrival_time_ = arriving_element.light_connection_->a_time_;
+  departure_time_ = departing_element.light_connection_->d_time_;
   scheduled_arrival_time_ = arrival_time_;
   scheduled_departure_time_ = departure_time_;
   arrival_is_ = false;
   departure_is_ = false;
   {
-    auto const it = sched.graph_to_delay_info.find(graph_event(
-        arriving_element.to_->get_station()->_id,
-        arriving_element.light_connection_->_full_con->con_info->train_nr,
-        false, arriving_element.light_connection_->a_time,
-        arriving_element.to_->_route));
-    if (it != sched.graph_to_delay_info.end()) {
-      arrival_is_ = it->second->_reason == timestamp_reason::IS;
-      scheduled_arrival_time_ = it->second->_schedule_event._schedule_time;
+    auto const it = sched.graph_to_delay_info_.find(graph_event(
+        arriving_element.to_->get_station()->id_,
+        arriving_element.light_connection_->full_con_->con_info_->train_nr_,
+        false, arriving_element.light_connection_->a_time_,
+        arriving_element.to_->route_));
+    if (it != sched.graph_to_delay_info_.end()) {
+      arrival_is_ = it->second->reason_ == timestamp_reason::IS;
+      scheduled_arrival_time_ = it->second->schedule_event_.schedule_time_;
     }
   }
   {
-    auto const it = sched.graph_to_delay_info.find(graph_event(
-        departing_element.from_->get_station()->_id,
-        departing_element.light_connection_->_full_con->con_info->train_nr,
-        true, departing_element.light_connection_->d_time,
-        departing_element.from_->_route));
-    if (it != sched.graph_to_delay_info.end()) {
-      departure_is_ = it->second->_reason == timestamp_reason::IS;
-      scheduled_departure_time_ = it->second->_schedule_event._schedule_time;
+    auto const it = sched.graph_to_delay_info_.find(graph_event(
+        departing_element.from_->get_station()->id_,
+        departing_element.light_connection_->full_con_->con_info_->train_nr_,
+        true, departing_element.light_connection_->d_time_,
+        departing_element.from_->route_));
+    if (it != sched.graph_to_delay_info_.end()) {
+      departure_is_ = it->second->reason_ == timestamp_reason::IS;
+      scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
     }
   }
 
@@ -214,8 +214,8 @@ void rate_alternative_in_cg(
       cg_context.cg_->journeys_.at(alternative.journey_index_);
 
   /* alternative to the destination consisting of a walk */
-  if (alternative_journey.transports.size() == 1 &&
-      alternative_journey.transports.front().type !=
+  if (alternative_journey.transports_.size() == 1 &&
+      alternative_journey.transports_.front().type_ !=
           journey::transport::PublicTransport) {
     alternative.rating_.departure_distribution_ = last_element.second;
     alternative.rating_.arrival_distribution_ = last_element.second;

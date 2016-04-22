@@ -25,9 +25,9 @@ data_departure::data_departure(
   init_departure_time(route_node, light_connection, context.schedule_);
   if (is_first_route_node) {
     init_first_departure_info(light_connection, context.s_t_distributions_,
-                              context.schedule_.categories);
+                              context.schedule_.categories_);
   } else {
-    init_preceding_arrival_info(route_node, light_connection.d_time,
+    init_preceding_arrival_info(route_node, light_connection.d_time_,
                                 distributions_preceding_arrival,
                                 context.schedule_);
   }
@@ -47,16 +47,16 @@ void data_departure::init_departure_time(node const& route_node,
                                          light_connection const& light_conn,
                                          schedule const& sched) {
   is_message_.received_ = false;
-  scheduled_departure_time_ = light_conn.d_time;
+  scheduled_departure_time_ = light_conn.d_time_;
 
-  auto it = sched.graph_to_delay_info.find(graph_event(
-      route_node.get_station()->_id, light_conn._full_con->con_info->train_nr,
-      true, light_conn.d_time, route_node._route));
-  if (it != sched.graph_to_delay_info.end()) {
-    scheduled_departure_time_ = it->second->_schedule_event._schedule_time;
-    if (it->second->_reason == timestamp_reason::IS) {
+  auto it = sched.graph_to_delay_info_.find(graph_event(
+      route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
+      true, light_conn.d_time_, route_node.route_));
+  if (it != sched.graph_to_delay_info_.end()) {
+    scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
+    if (it->second->reason_ == timestamp_reason::IS) {
       is_message_.received_ = true;
-      is_message_.current_time_ = it->second->_current_time;
+      is_message_.current_time_ = it->second->current_time_;
     }
   }
 }
@@ -66,7 +66,7 @@ void data_departure::init_first_departure_info(
     start_and_travel_distributions const& s_t_distributions,
     std::vector<std::unique_ptr<category>> const& categories) {
   auto const& train_category =
-      categories[light_conn._full_con->con_info->family]->name;
+      categories[light_conn.full_con_->con_info_->family_]->name_;
   train_info_.first_departure_distribution_ =
       &s_t_distributions.get_start_distribution(train_category).second.get();
   assert(!train_info_.first_departure_distribution_->empty());
@@ -79,7 +79,7 @@ void data_departure::init_preceding_arrival_info(
   auto const& arriving_light_conn =
       graph_accessor::get_previous_light_connection(
           graph_accessor::get_arriving_route_edge(route_node)
-              ->_m._route_edge._conns,
+              ->m_.route_edge_.conns_,
           departure_time);
 
   train_info_.preceding_arrival_info_.scheduled_arrival_time_ =
@@ -88,7 +88,7 @@ void data_departure::init_preceding_arrival_info(
   train_info_.preceding_arrival_info_.arrival_distribution_ =
       &distributions_container.get_distribution(
           distributions_container::to_container_key(
-              arriving_light_conn, route_node.get_station()->_id,
+              arriving_light_conn, route_node.get_station()->id_,
               time_util::arrival,
               train_info_.preceding_arrival_info_.scheduled_arrival_time_,
               sched));
@@ -110,10 +110,10 @@ void erase_preceding_arrival(
   auto const& arriving_light_conn =
       graph_accessor::get_previous_light_connection(
           graph_accessor::get_arriving_route_edge(route_node)
-              ->_m._route_edge._conns,
-          light_conn.d_time);
+              ->m_.route_edge_.conns_,
+          light_conn.d_time_);
   auto const preceding_arrival_key = distributions_container::to_container_key(
-      arriving_light_conn, route_node.get_station()->_id, time_util::arrival,
+      arriving_light_conn, route_node.get_station()->id_, time_util::arrival,
       preceding_arrival_time_scheduled, schedule);
 
   predecessors.erase(
@@ -142,11 +142,12 @@ void data_departure::init_feeder_info(
      */
     auto const waiting_time = graph_accessor::get_waiting_time(
         schedule.waiting_time_rules_,
-        graph_accessor::find_family(schedule.categories, feeder->key_.category_)
+        graph_accessor::find_family(schedule.categories_,
+                                    feeder->key_.category_)
             .second,
-        light_conn._full_con->con_info->family);
+        light_conn.full_con_->con_info_->family_);
     auto const transfer_time =
-        schedule.stations[feeder->key_.station_index_]->transfer_time;
+        schedule.stations_[feeder->key_.station_index_]->transfer_time_;
     time const latest_feasible_arrival =
         (scheduled_departure_time_ + waiting_time) - transfer_time;
 

@@ -2,16 +2,16 @@
 
 #include <fstream>
 
-#include "motis/core/schedule/schedule.h"
 #include "motis/core/common/logging.h"
+#include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/context.h"
-#include "motis/reliability/distributions/distributions_container.h"
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/context.h"
+#include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_to_graph_data.h"
 
 namespace motis {
@@ -24,13 +24,14 @@ void output_element(std::ostream& os, schedule const& schedule,
                     light_connection const& light_connection,
                     unsigned short const light_connection_idx,
                     bool const is_first_route_node) {
-  os << schedule.stations[from._station_node->_id]->name << "("
-     << schedule.stations[from._station_node->_id]->index << "," << from._id
-     << ") " << format_time(light_connection.d_time) << "--"
-     << schedule.categories[light_connection._full_con->con_info->family]->name
-     << light_connection._full_con->con_info->train_nr << "("
-     << light_connection_idx << ")->" << format_time(light_connection.a_time)
-     << " " << schedule.stations[to._station_node->_id]->name << "(" << to._id
+  os << schedule.stations_[from.station_node_->id_]->name_ << "("
+     << schedule.stations_[from.station_node_->id_]->index_ << "," << from.id_
+     << ") " << format_time(light_connection.d_time_) << "--"
+     << schedule.categories_[light_connection.full_con_->con_info_->family_]
+            ->name_
+     << light_connection.full_con_->con_info_->train_nr_ << "("
+     << light_connection_idx << ")->" << format_time(light_connection.a_time_)
+     << " " << schedule.stations_[to.station_node_->id_]->name_ << "(" << to.id_
      << ")"
      << " first=" << is_first_route_node << " " << &light_connection
      << std::endl;
@@ -84,31 +85,31 @@ std::vector<std::pair<node const*, light_connection const*>> get_feeders(
     node const& route_node, light_connection const& light_conn,
     schedule const& sched) {
   duration const transfer_time =
-      sched.stations.at(route_node.get_station()->_id)->transfer_time;
+      sched.stations_.at(route_node.get_station()->id_)->transfer_time_;
   bool success;
   time time_begin, time_end;
   std::tie(success, time_begin, time_end) = get_feeder_time_interval(
-      light_conn.d_time, transfer_time, FEEDER_THRESHOLD);
+      light_conn.d_time_, transfer_time, FEEDER_THRESHOLD);
   if (!success) {
     return {};
   }
   auto is_feeder = [&](light_connection const& feeder_light_conn) -> bool {
-    return feeder_light_conn.a_time >= time_begin &&
-           feeder_light_conn.a_time <= time_end &&
+    return feeder_light_conn.a_time_ >= time_begin &&
+           feeder_light_conn.a_time_ <= time_end &&
            graph_accessor::get_waiting_time(sched.waiting_time_rules_,
                                             feeder_light_conn, light_conn) > 0;
   };
 
   std::vector<std::pair<node const*, light_connection const*>> feeders;
-  for (auto const in_edge : route_node._station_node->_incoming_edges) {
-    auto const& feeder_route_node = *in_edge->_from;
+  for (auto const in_edge : route_node.station_node_->incoming_edges_) {
+    auto const& feeder_route_node = *in_edge->from_;
     auto const feeder_route_edge =
         graph_accessor::get_arriving_route_edge(feeder_route_node);
     if (feeder_route_edge == nullptr ||
-        feeder_route_node._id == route_node._id) {
+        feeder_route_node.id_ == route_node.id_) {
       continue;
     }
-    auto& all_connections = feeder_route_edge->_m._route_edge._conns;
+    auto& all_connections = feeder_route_edge->m_.route_edge_.conns_;
     for (unsigned int i = 0; i < all_connections.size(); i++) {
       auto const& feeder_light_conn = all_connections[i];
       if (is_feeder(feeder_light_conn)) {
@@ -151,8 +152,8 @@ void init_predecessors_and_successors(
         distributions_container.get_node_non_const(
             distributions_container::to_container_key(
                 *element.from_, graph_accessor::get_previous_light_connection(
-                                    route_edge->_m._route_edge._conns,
-                                    element.light_connection_->d_time),
+                                    route_edge->m_.route_edge_.conns_,
+                                    element.light_connection_->d_time_),
                 time_util::arrival, schedule));
     preceding_arrival_distribution_node.successors_.push_back(
         &departure_distribution_node);
@@ -167,9 +168,9 @@ bool is_pre_computed_route(schedule const& schedule,
   edge const* route_edge = nullptr;
   while ((route_edge = graph_accessor::get_departing_route_edge(*node)) !=
          nullptr) {
-    for (unsigned i = 0; i < route_edge->_m._route_edge._conns.size(); i++) {
+    for (unsigned i = 0; i < route_edge->m_.route_edge_.conns_.size(); i++) {
       auto const family =
-          route_edge->_m._route_edge._conns[i]._full_con->con_info->family;
+          route_edge->m_.route_edge_.conns_[i].full_con_->con_info_->family_;
       if (schedule.waiting_time_rules_.other_trains_wait_for(
               schedule.waiting_time_rules_.waiting_time_category(family)) ||
           /* trains which wait for other trains are added to the
@@ -181,7 +182,7 @@ bool is_pre_computed_route(schedule const& schedule,
         return true;
       }
     }
-    node = route_edge->_to;
+    node = route_edge->to_;
   }
   return false;
 }
@@ -196,10 +197,10 @@ void insert_all_light_connections(node const& tail_node,
       return;
     }
     for (unsigned short light_conn_idx = 0;
-         light_conn_idx < route_edge->_m._route_edge._conns.size();
+         light_conn_idx < route_edge->m_.route_edge_.conns_.size();
          ++light_conn_idx) {
-      auto& light_conn = route_edge->_m._route_edge._conns[light_conn_idx];
-      queue.emplace(&tail_node, route_edge->_to, &light_conn, light_conn_idx,
+      auto& light_conn = route_edge->m_.route_edge_.conns_[light_conn_idx];
+      queue.emplace(&tail_node, route_edge->to_, &light_conn, light_conn_idx,
                     IsFirstRouteNode);
     }
   }
@@ -257,7 +258,8 @@ void perform_precomputation(
   logging::scoped_timer time("computing distributions");
   common::queue_type queue;
 
-  for (auto const first_route_node : schedule.route_index_to_first_route_node) {
+  for (auto const first_route_node :
+       schedule.route_index_to_first_route_node_) {
     detail::insert_all_light_connections<true, true>(*first_route_node, queue,
                                                      schedule);
   }

@@ -123,7 +123,7 @@ Offset<routing::RoutingRequest> request_builder::create_routing_request() {
 
 msg_ptr request_builder::build_routing_request() {
   b_.create_and_finish(MsgContent_RoutingRequest,
-                       create_routing_request().Union());
+                       create_routing_request().Union(), "/routing");
   return module::make_msg(b_);
 }
 
@@ -162,7 +162,8 @@ msg_ptr request_builder::build_reliable_request(
   b_.create_and_finish(MsgContent_ReliableRoutingRequest,
                        CreateReliableRoutingRequest(
                            b_, create_routing_request(), options, &modes)
-                           .Union());
+                           .Union(),
+                       "/routing");
   return module::make_msg(b_);
 }
 

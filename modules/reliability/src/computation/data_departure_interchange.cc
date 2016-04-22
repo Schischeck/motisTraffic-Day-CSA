@@ -1,8 +1,8 @@
 #include "motis/reliability/computation/data_departure_interchange.h"
 
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/time_util.h"
 
 #include <cassert>
@@ -41,10 +41,10 @@ data_departure_interchange::data_departure_interchange(
                      is_first_route_node, context.schedule_) {
   if (is_first_route_node) {
     init_first_departure_info(departing_light_conn, context.s_t_distributions_,
-                              context.schedule_.categories);
+                              context.schedule_.categories_);
   } else {
     init_preceding_arrival_info(
-        departing_route_node, departing_light_conn.d_time,
+        departing_route_node, departing_light_conn.d_time_,
         distribution_preceding_train, context.schedule_);
   }
 

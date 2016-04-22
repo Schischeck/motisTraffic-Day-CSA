@@ -7,7 +7,6 @@
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/probability_distribution.h"
-#include "motis/reliability/search/cg_search_callback.h"
 
 namespace motis {
 struct journey;
@@ -43,27 +42,22 @@ struct context {
     std::map<unsigned int, stop_state> stop_states_;
   };
 
-  context(motis::reliability::reliability& rel, motis::module::sid session,
-          /*motis::reliability::search::connection_graph_search::*/ callback cb,
-          std::shared_ptr<connection_graph_optimizer const> optimizer);
+  context(motis::reliability::reliability&,
+          std::shared_ptr<connection_graph_optimizer const>);
 
   std::vector<conn_graph_context> connection_graphs_;
   motis::reliability::reliability& reliability_;
-  motis::module::sid session_;
-  callback result_callback_;
   std::shared_ptr<connection_graph_optimizer const> optimizer_;
   bool result_returned_;
 
   struct journey_cache_key {
-    journey_cache_key(std::string const& from_eva, time_t const& begin_time,
-                      time_t const& end_time)
-        : from_eva_(from_eva), begin_time_(begin_time), end_time_(end_time) {}
+    journey_cache_key(std::string const& from_eva, time_t const& ontrip_time)
+        : from_eva_(from_eva), ontrip_time_(ontrip_time) {}
     bool operator<(journey_cache_key const& right) const;
     std::string const from_eva_;
-    time_t const begin_time_;
-    time_t const end_time_;
+    time_t const ontrip_time_;
   };
-  std::map<journey_cache_key, journey> journey_cache;
+  std::map<journey_cache_key, journey> journey_cache_;
 
   synced_schedule<RO> synced_sched_;
   motis::reliability::context reliability_context_;

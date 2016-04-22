@@ -16,30 +16,16 @@
 
 namespace motis {
 namespace reliability {
-namespace search {
-struct connection_graph;
-}
-namespace intermodal {
-namespace bikesharing {
-struct bikesharing_infos;
-}
-}
 
 struct reliability : public motis::module::module {
   reliability();
-  void init() override;
 
+  virtual std::string name() const override { return "reliability"; }
   virtual boost::program_options::options_description desc() override;
   virtual void print(std::ostream& out) const override;
   virtual bool empty_config() const override { return false; }
 
-  virtual std::string name() const override { return "reliability"; }
-  virtual std::vector<MsgContent> subscriptions() const override {
-    return {MsgContent_ReliableRoutingRequest,
-            MsgContent_RealtimeDelayInfoResponse};
-  }
-  virtual void on_msg(motis::module::msg_ptr, motis::module::sid,
-                      motis::module::callback) override;
+  void init(motis::module::registry&) override;
 
   distributions_container::container const& precomputed_distributions() const {
     return *precomputed_distributions_;
@@ -49,39 +35,20 @@ struct reliability : public motis::module::module {
     return *s_t_distributions_;
   }
 
-  void send_message(motis::module::msg_ptr msg, motis::module::sid session,
-                    motis::module::callback cb);
-
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
-  bool read_distributions_;
-  std::vector<std::string> distributions_folders_;
-  std::string hotels_file_;
-
 private:
+  motis::module::msg_ptr routing_request(motis::module::msg_ptr const&);
+
+  motis::module::msg_ptr realtime_update(motis::module::msg_ptr const&);
+
   std::unique_ptr<distributions_container::container>
       precomputed_distributions_;
   std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
 
-  void handle_realtime_update(motis::realtime::RealtimeDelayInfoResponse const*,
-                              motis::module::callback);
-
-  void handle_routing_request(motis::reliability::ReliableRoutingRequest const*,
-                              motis::module::sid, motis::module::callback);
-
-  void handle_routing_request_helper(
-      ReliableRoutingRequest const*,
-      motis::reliability::intermodal::bikesharing::bikesharing_infos
-          bikesharing_infos,
-      motis::module::sid, motis::module::callback);
-
-  void handle_routing_response(motis::module::msg_ptr,
-                               boost::system::error_code,
-                               motis::module::callback);
-
-  void handle_connection_graph_result(
-      std::vector<std::shared_ptr<search::connection_graph> > const,
-      motis::module::callback cb);
-};
+  bool read_distributions_;
+  std::vector<std::string> distributions_folders_;
+  std::string hotels_file_;
+};  // struct reliability
 }  // namespace reliability
 }  // namespace motis

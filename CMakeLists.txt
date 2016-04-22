@@ -147,7 +147,6 @@ list(REMOVE_ITEM modules
   "intermodal"
   "railviz"
   "realtime"
-  "reliability"
   "rt"
 )
 
