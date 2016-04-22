@@ -1,11 +1,6 @@
-namespace motis.lookup;
+include "lookup/LookupCommon.fbs";
 
-table Station {
-  eva_nr: string;
-  name: string;
-  lat: double;
-  lng: double;
-}
+namespace motis.lookup;
 
 table LookupGeoStationResponse {
   stations: [Station];

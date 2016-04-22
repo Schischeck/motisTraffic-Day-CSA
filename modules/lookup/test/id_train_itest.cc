@@ -33,71 +33,69 @@ constexpr auto kIdTrainICERequest = R""(
 )"";
 
 // TODO(sebastian) re-enable when working realtime module is available
+TEST(lookup, DISABLED_id_train) {
+  auto motis =
+      launch_motis(kSchedulePath, kScheduleDate, {"lookup", "realtime"});
+  call(motis, get_ris_message());
 
-// TEST(lookup, DISABLED_id_train) {
-//   auto instance = launch_motis(kSimpleRealtimePath, kSimpleRealtimeDate,
-//                                {"lookup", "realtime"});
-//   send(instance, get_simple_realtime_ris_message());
+  auto msg = call(motis, make_msg(kIdTrainICERequest));
+  auto resp = motis_content(LookupIdTrainResponse, msg);
 
-//   auto msg = send(instance, make_msg(kIdTrainICERequest));
-//   ASSERT_EQ(MsgContent_LookupIdTrainResponse, msg->content_type());
-//   auto resp = msg->content<LookupIdTrainResponse const*>();
+  auto stops = resp->train()->stops();
+  ASSERT_EQ(12, stops->size());
 
-//   auto stops = resp->train()->stops();
-//   ASSERT_EQ(12, stops->size());
+  {
+    auto s = stops->Get(0);
+    EXPECT_EQ(std::string("8000261"), s->eva_nr()->str());
+    EXPECT_EQ(std::string("München Hbf"), s->name()->str());
+    EXPECT_DOUBLE_EQ(48.140232, s->lat());
+    EXPECT_DOUBLE_EQ(11.558335, s->lng());
 
-//   {
-//     auto s = stops->Get(0);
-//     EXPECT_EQ(std::string("8000261"), s->eva_nr()->str());
-//     EXPECT_EQ(std::string("München Hbf"), s->name()->str());
-//     EXPECT_DOUBLE_EQ(48.140232, s->lat());
-//     EXPECT_DOUBLE_EQ(11.558335, s->lng());
+    auto a = s->arrival();
+    EXPECT_EQ(0, a->schedule_time());
+    EXPECT_EQ(0, a->time());
+    EXPECT_EQ(std::string(""), a->platform()->str());
 
-//     auto a = s->arrival();
-//     EXPECT_EQ(0, a->schedule_time());
-//     EXPECT_EQ(0, a->time());
-//     EXPECT_EQ(std::string(""), a->platform()->str());
+    auto d = s->departure();
+    EXPECT_EQ(1448362440, d->schedule_time());
+    EXPECT_EQ(1448362440, d->time());
+    EXPECT_EQ(std::string("23"), d->platform()->str());
+  }
+  {
+    auto s = stops->Get(3);
+    EXPECT_EQ(std::string("8000010"), s->eva_nr()->str());
+    EXPECT_EQ(std::string("Aschaffenburg Hbf"), s->name()->str());
+    EXPECT_DOUBLE_EQ(49.980557, s->lat());
+    EXPECT_DOUBLE_EQ(9.143697, s->lng());
 
-//     auto d = s->departure();
-//     EXPECT_EQ(1448362440, d->schedule_time());
-//     EXPECT_EQ(1448362440, d->time());
-//     EXPECT_EQ(std::string("23"), d->platform()->str());
-//   }
-//   {
-//     auto s = stops->Get(3);
-//     EXPECT_EQ(std::string("8000010"), s->eva_nr()->str());
-//     EXPECT_EQ(std::string("Aschaffenburg Hbf"), s->name()->str());
-//     EXPECT_DOUBLE_EQ(49.980557, s->lat());
-//     EXPECT_DOUBLE_EQ(9.143697, s->lng());
+    auto a = s->arrival();
+    EXPECT_EQ(1448372040, a->schedule_time());
+    EXPECT_EQ(1448372040, a->time());
+    EXPECT_EQ(std::string("8"), a->platform()->str());
 
-//     auto a = s->arrival();
-//     EXPECT_EQ(1448372040, a->schedule_time());
-//     EXPECT_EQ(1448372040, a->time());
-//     EXPECT_EQ(std::string("8"), a->platform()->str());
+    auto d = s->departure();
+    EXPECT_EQ(1448372160, d->schedule_time());
+    EXPECT_EQ(1448372220, d->time());  // +1
+    EXPECT_EQ(std::string("8"), d->platform()->str());
+  }
+  {
+    auto s = stops->Get(11);
+    EXPECT_EQ(std::string("8000080"), s->eva_nr()->str());
+    EXPECT_EQ(std::string("Dortmund Hbf"), s->name()->str());
+    EXPECT_DOUBLE_EQ(51.517896, s->lat());
+    EXPECT_DOUBLE_EQ(7.459290, s->lng());
 
-//     auto d = s->departure();
-//     EXPECT_EQ(1448372160, d->schedule_time());
-//     EXPECT_EQ(1448372220, d->time()); // +1
-//     EXPECT_EQ(std::string("8"), d->platform()->str());
-//   }
-//   {
-//     auto s = stops->Get(11);
-//     EXPECT_EQ(std::string("8000080"), s->eva_nr()->str());
-//     EXPECT_EQ(std::string("Dortmund Hbf"), s->name()->str());
-//     EXPECT_DOUBLE_EQ(51.517896, s->lat());
-//     EXPECT_DOUBLE_EQ(7.459290, s->lng());
+    auto a = s->arrival();
+    EXPECT_EQ(1448382360, a->schedule_time());
+    EXPECT_EQ(1448382600, a->time());  // +4 (assuming min standing time = 2)
+    EXPECT_EQ(std::string(""), a->platform()->str());  // unknown
 
-//     auto a = s->arrival();
-//     EXPECT_EQ(1448382360, a->schedule_time());
-//     EXPECT_EQ(1448382600, a->time());  // +4 (assuming min standing time = 2)
-//     EXPECT_EQ(std::string(""), a->platform()->str());  // unknown
-
-//     auto d = s->departure();
-//     EXPECT_EQ(0, d->schedule_time());
-//     EXPECT_EQ(0, d->time());
-//     EXPECT_EQ(std::string(""), d->platform()->str());
-//   }
-// }
+    auto d = s->departure();
+    EXPECT_EQ(0, d->schedule_time());
+    EXPECT_EQ(0, d->time());
+    EXPECT_EQ(std::string(""), d->platform()->str());
+  }
+}
 
 TEST(lookup, id_train_no_realtime) {
   auto motis = launch_motis(kSchedulePath, kScheduleDate, {"lookup"});

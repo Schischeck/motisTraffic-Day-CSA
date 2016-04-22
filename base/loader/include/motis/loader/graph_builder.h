@@ -123,6 +123,10 @@ struct graph_builder {
   void add_stations(
       flatbuffers::Vector<flatbuffers::Offset<Station>> const* stations);
 
+  void link_meta_stations(
+      flatbuffers::Vector<flatbuffers::Offset<MetaStation>> const*
+          meta_stations);
+
   timezone const* get_or_create_timezone(Timezone const* input_timez);
 
   station_node* get_station_node(Station const* station) const;

@@ -7,7 +7,7 @@ namespace user {
 
 struct user : public motis::module::module {
   user();
-  ~user() = default;
+  ~user() override = default;
 
   std::string name() const override { return "user"; }
   void init(motis::module::registry&) override;

@@ -70,7 +70,7 @@ endif()
 
 
 ################################
-# 3rd Party (Boost, pthread, postgres)
+# 3rd Party (Boost, pthread)
 ################################
 if (MSVC)
   set(Boost_USE_STATIC_LIBS ON)
@@ -81,14 +81,14 @@ find_package(Threads)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
-find_package(PostgreSQL REQUIRED)
-include_directories(${PostgreSQL_INCLUDE_DIR})
 
 ################################
 # Contained Dependencies
 ################################
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # for osrm-backend
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/expat/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libosmium/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
@@ -97,6 +97,8 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
@@ -109,6 +111,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
 include_directories(${CMAKE_SOURCE_DIR}/external_lib/ctx/include)
 
+add_subdirectory(external_lib/expat EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/leveldb EXCLUDE_FROM_ALL)
@@ -122,6 +125,7 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/pgdb EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -232,7 +236,7 @@ if(MOTIS_LINT)
   add_custom_target(lint
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-        -exit-on-error
+        # -exit-on-error
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"

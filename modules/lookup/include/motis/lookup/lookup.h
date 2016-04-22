@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "motis/module/module.h"
-#include "motis/lookup/station_geo_index.h"
 
 namespace motis {
 namespace lookup {
@@ -24,6 +23,11 @@ private:
       motis::module::msg_ptr const&) const;
 
   motis::module::msg_ptr lookup_id_train(motis::module::msg_ptr const&) const;
+
+  motis::module::msg_ptr lookup_meta_station(
+      motis::module::msg_ptr const&) const;
+  motis::module::msg_ptr lookup_meta_stations(
+      motis::module::msg_ptr const&) const;
 
   std::unique_ptr<station_geo_index> geo_index_;
 };

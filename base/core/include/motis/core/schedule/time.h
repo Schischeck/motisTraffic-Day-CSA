@@ -13,8 +13,8 @@ namespace motis {
 using time = uint16_t;
 using duration = uint16_t;
 
-constexpr auto INVALID_TIME = USHRT_MAX;
-constexpr auto SCHEDULE_OFFSET_MINUTES = MINUTES_A_DAY * 5;
+constexpr time INVALID_TIME = USHRT_MAX;
+constexpr time SCHEDULE_OFFSET_MINUTES = MINUTES_A_DAY * 5;
 
 inline time to_motis_time(int minutes) {
   // plus four days, because the maximum journey duration is 4 days
