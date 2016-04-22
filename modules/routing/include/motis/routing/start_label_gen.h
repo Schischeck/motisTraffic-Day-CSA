@@ -11,8 +11,6 @@
 namespace motis {
 namespace routing {
 
-enum { START, END, VIA0, VIA1, VIA2, VIA3, VIA4, VIA5, VIA6, VIA7, VIA8, VIA9 };
-
 template <typename Label>
 struct pretrip_gen {
   static std::vector<Label*> generate(schedule const& sched,
@@ -22,7 +20,7 @@ struct pretrip_gen {
                                       time interval_begin, time interval_end) {
     std::vector<Label*> labels;
 
-    auto const start = sched.station_nodes_.at(START).get();
+    auto const start = sched.station_nodes_.at(0).get();
     if (from == start) {
       for (auto const& e : query_edges) {
         if (e.from_ != start) {
