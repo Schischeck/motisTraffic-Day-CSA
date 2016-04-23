@@ -273,7 +273,7 @@ endif()
 
 
 ################################
-# Lint (oclint)
+# clang-format check
 ################################
 add_custom_target(format-check
   find ./base ./modules ./test -type f -name "*.cc" -o -name "*.h" -print0
