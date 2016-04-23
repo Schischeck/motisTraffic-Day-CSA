@@ -90,3 +90,11 @@ clang-tidy:
     - cd build-clang-tidy
     - cmake -DNO_SSL=true -DMOTIS_LINT=true ..
     - make -j8 lint
+
+# Clang-Format
+clang-format:
+  script:
+    - mkdir build-clang-format
+    - cd build-clang-format
+    - cmake -DNO_SSL=true ..
+    - make format-check
