@@ -26,18 +26,11 @@ inline module::msg_ptr get_delay_message(std::string const& station,
   using namespace ris;
   FlatBufferBuilder fbb;
   // clang-format off
-    std::vector<Offset<UpdatedEvent>> events{
-      CreateUpdatedEvent(fbb,
-          CreateEvent(fbb,
-            StationIdType_EVA,
-            fbb.CreateString(station),
-            train_nr,
-            fbb.CreateString("TODO"),
-            event_type,
-            scheduled_time
-          ),
-          delayed_time
-      )};
+  std::vector<Offset<UpdatedEvent>> events{CreateUpdatedEvent(
+      fbb,
+      CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(station), train_nr,
+                  fbb.CreateString("TODO"), event_type, scheduled_time),
+      delayed_time)};
   // clang-format on
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,
