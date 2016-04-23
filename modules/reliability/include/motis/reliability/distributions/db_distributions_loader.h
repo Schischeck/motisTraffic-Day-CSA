@@ -29,7 +29,7 @@ void load_distributions(
     std::string root, unsigned int const max_expected_travel_time,
     unsigned int const max_expected_departure_delay,
     std::map<std::string, std::string>& family_to_distribution_class,
-    std::vector<std::pair<unsigned int, probability_distribution>>&
+    std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions,
     std::vector<resolved_mapping>& distribution_mappings,
     std::map<std::string, probability_distribution>&
@@ -44,7 +44,7 @@ void load_distributions_classes(
     std::map<std::string, std::string>& family_to_distribution_class);
 void load_distributions(
     std::string const filepath,
-    std::vector<std::pair<unsigned int, probability_distribution>>&
+    std::vector<std::pair<unsigned int, probability_distribution> >&
         probability_distributions);
 void load_distribution_mappings(
     std::string const filepath, unsigned int const max_expected_travel_time,

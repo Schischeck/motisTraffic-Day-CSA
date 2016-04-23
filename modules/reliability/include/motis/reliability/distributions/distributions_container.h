@@ -107,7 +107,7 @@ struct container {
   }
 
 private:
-  std::map<key, std::shared_ptr<node>> distributions_nodes_;
+  std::map<key, std::shared_ptr<node> > distributions_nodes_;
   std::shared_ptr<node> invalid_node_;
 };
 

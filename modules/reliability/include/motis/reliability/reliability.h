@@ -70,7 +70,7 @@ private:
                                motis::module::callback);
 
   void handle_connection_graph_result(
-      std::vector<std::shared_ptr<search::connection_graph>> const,
+      std::vector<std::shared_ptr<search::connection_graph> > const,
       motis::module::callback cb);
 
   void handle_late_connection_result(motis::module::msg_ptr,

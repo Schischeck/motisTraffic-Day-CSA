@@ -9,7 +9,7 @@ namespace search {
 struct connection_graph;
 namespace connection_graph_search {
 typedef std::function<void(
-    std::vector<std::shared_ptr<connection_graph>> const)>
+    std::vector<std::shared_ptr<connection_graph> > const)>
     callback;
 }
 }

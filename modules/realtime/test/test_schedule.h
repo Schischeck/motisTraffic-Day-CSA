@@ -141,7 +141,7 @@ public:
     ASSERT_TRUE(start_event.found());
     EXPECT_EQ(first_event, start_event);
 
-    std::vector<std::tuple<node*, schedule_event, schedule_event>> events =
+    std::vector<std::tuple<node*, schedule_event, schedule_event> > events =
         _rts.get_train_events(start_event);
 
     auto cts = stops.begin();
