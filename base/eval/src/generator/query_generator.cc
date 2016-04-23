@@ -133,6 +133,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   Interval interval(interval_start, interval_end);
 
   std::vector<Offset<StationPathElement>> path;
+  std::vector<Offset<AdditionalEdgeWrapper>> additional_edges;
   path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
                                           fbb.CreateString(from_eva)));
   path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
@@ -140,8 +141,10 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   fbb.create_and_finish(
       MsgContent_RoutingRequest,
       CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
-                           fbb.CreateVector(path))
-          .Union());
+                           fbb.CreateVector(path),
+                           fbb.CreateVector(additional_edges))
+          .Union(),
+      "/routing");
   auto msg = make_msg(fbb);
   msg->get()->mutate_id(id);
 
