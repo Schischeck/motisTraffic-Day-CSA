@@ -30,7 +30,6 @@ struct schedule {
 
     schedule_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME});
     graph_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME, i});
-    trips_.set_empty_key(primary_trip_id(0, 0, 0));
     graph_to_delay_info_.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
   }
 
@@ -61,7 +60,7 @@ struct schedule {
   std::vector<std::unique_ptr<std::string>> directions_;
   std::vector<std::unique_ptr<timezone>> timezones_;
 
-  hash_map<primary_trip_id, std::vector<trip*>> trips_;
+  std::vector<std::pair<primary_trip_id, trip*>> trips_;
   std::vector<std::unique_ptr<trip>> trip_mem_;
   std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges_;
   std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips_;
