@@ -96,5 +96,6 @@ clang-format:
   script:
     - mkdir build-clang-format
     - cd build-clang-format
+    - git submodule update --init --recursive
     - cmake -DNO_SSL=true ..
     - make format-check
