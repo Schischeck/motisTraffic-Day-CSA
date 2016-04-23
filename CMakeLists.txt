@@ -270,3 +270,17 @@ if(MOTIS_LINT)
   )
   add_dependencies(lint motis motis-test motis-itest)
 endif()
+
+
+################################
+# Lint (oclint)
+################################
+add_custom_target(format-check
+  find ./base ./modules ./test -type f -name "*.cc" -o -name "*.h" -print0
+  | xargs -0 clang-format -i
+  COMMAND
+  # ask git if any files have changes
+  ! git diff-index --quiet HEAD --;
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  VERBATIM
+)
