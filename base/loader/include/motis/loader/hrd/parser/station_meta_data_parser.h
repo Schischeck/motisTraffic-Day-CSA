@@ -21,9 +21,7 @@ struct station_meta_data {
   };
 
   struct meta_station {
-    bool operator<(meta_station const& rh) const {
-      return eva_ < rh.eva_;
-    }
+    bool operator<(meta_station const& rh) const { return eva_ < rh.eva_; }
     int eva_;
     std::vector<int> equivalent_;
   };

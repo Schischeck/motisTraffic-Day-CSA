@@ -127,9 +127,9 @@ parse_label_chain(Label const* terminal_label) {
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->full_con_->a_platform_,
             MOTIS_UNKNOWN_TRACK,
-            stops.empty() ? INVALID_TIME : (last_con == nullptr)
-                                               ? current->now_
-                                               : last_con->a_time_,
+            stops.empty()
+                ? INVALID_TIME
+                : (last_con == nullptr) ? current->now_ : last_con->a_time_,
             current->now_, last_con != nullptr);
 
         transports.emplace_back(station_index,

@@ -55,10 +55,11 @@ struct array final {
     set(begin_it, end_it);
   }
 
-  array(array&& arr) noexcept : el_(arr.el_),
-                                used_size_(arr.used_size_),
-                                self_allocated_(arr.self_allocated_),
-                                allocated_size_(arr.allocated_size_) {
+  array(array&& arr) noexcept
+      : el_(arr.el_),
+        used_size_(arr.used_size_),
+        self_allocated_(arr.self_allocated_),
+        allocated_size_(arr.allocated_size_) {
     arr.el_ = nullptr;
     arr.used_size_ = 0;
     arr.self_allocated_ = false;
