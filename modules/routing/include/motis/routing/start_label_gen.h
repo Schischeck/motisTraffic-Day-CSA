@@ -99,7 +99,7 @@ struct ontrip_gen {
                                       std::vector<edge> const&,
                                       time interval_begin,
                                       time /* interval_end */) {
-    return {mem.create<Label>(from, nullptr, interval_begin, 0, lbs)};
+    return {mem.create<Label>(from, nullptr, interval_begin, lbs)};
   }
 };
 

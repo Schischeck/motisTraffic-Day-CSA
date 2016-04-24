@@ -148,10 +148,27 @@ msg_ptr routing::route(msg_ptr const& msg) {
   auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
   mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
-  auto result = search<pretrip_gen<my_label>, my_label>::get_connections(
-      sched, mem.get(), path.at(0), path.at(1),
-      create_additional_edges(req->additional_edges(), sched), i_begin, i_end);
-  return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
+
+  search_query q = {sched,
+                    mem.get(),
+                    path.at(0),
+                    path.at(1),
+                    create_additional_edges(req->additional_edges(), sched),
+                    i_begin,
+                    i_end};
+
+  search_result res;
+  switch (req->type()) {
+    case Type_LateConnection:
+    case Type_OnTrip:
+      res = search<pretrip_gen<my_label>, my_label>::get_connections(q);
+      break;
+    case Type_PreTrip:
+      res = search<ontrip_gen<my_label>, my_label>::get_connections(q);
+      break;
+  }
+
+  return journeys_to_message(res.journeys_, res.stats_.pareto_dijkstra_);
 }
 
 }  // namespace routing
