@@ -49,7 +49,8 @@ state next_state(int s, Label const* c, Label const* n) {
       } else {
         return IN_CONNECTION;
       }
-    case WALK: return AT_STATION;
+    case WALK:
+      return n != nullptr && n->node_->is_station_node() ? WALK : AT_STATION;
   }
   return static_cast<state>(s);
 };
