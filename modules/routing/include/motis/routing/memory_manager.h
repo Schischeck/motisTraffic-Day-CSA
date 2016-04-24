@@ -7,7 +7,7 @@
 namespace motis {
 namespace routing {
 
-class memory_manager {
+struct memory_manager {
 public:
   explicit memory_manager(std::size_t size)
       : size_(size),

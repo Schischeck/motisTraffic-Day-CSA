@@ -16,6 +16,7 @@
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
 #include "motis/routing/label/configs.h"
+#include "motis/routing/memory_manager.h"
 #include "motis/routing/search.h"
 #include "motis/routing/start_label_gen.h"
 
@@ -30,6 +31,44 @@ using namespace motis::guesser;
 
 namespace motis {
 namespace routing {
+
+struct memory {
+  memory(std::size_t bytes) : in_use_(false), mem_(bytes) {}
+  bool in_use_;
+  memory_manager mem_;
+};
+
+struct mem_retriever {
+  mem_retriever(std::mutex& mutex,
+                std::vector<std::unique_ptr<memory>>& mem_pool,
+                std::size_t bytes)
+      : mutex_(mutex), memory_(retrieve(mem_pool, bytes)) {}
+
+  ~mem_retriever() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    memory_->in_use_ = false;
+  }
+
+  memory_manager& get() { return memory_->mem_; }
+
+private:
+  memory* retrieve(std::vector<std::unique_ptr<memory>>& mem_pool,
+                   std::size_t bytes) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = std::find_if(begin(mem_pool), end(mem_pool),
+                           [](auto&& m) { return !m->in_use_; });
+    if (it == end(mem_pool)) {
+      mem_pool.emplace_back(new memory(bytes));
+      mem_pool.back()->in_use_ = true;
+      return mem_pool.back().get();
+    }
+    it->get()->in_use_ = true;
+    return it->get();
+  }
+
+  std::mutex& mutex_;
+  memory* memory_;
+};
 
 std::vector<station_node*> get_arrivals(
     fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
@@ -70,6 +109,8 @@ std::vector<station_node*> get_arrivals(
 routing::routing()
     : label_bytes_(static_cast<uint64_t>(8) * 1024 * 1024 * 1024) {}
 
+routing::~routing() = default;
+
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
   // clang-format off
@@ -86,7 +127,6 @@ void routing::print(std::ostream& out) const {
 }
 
 void routing::init(motis::module::registry& reg) {
-  label_store_ = make_unique<memory_manager>(label_bytes_);
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 
@@ -107,8 +147,9 @@ msg_ptr routing::route(msg_ptr const& msg) {
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
   auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
+  mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
   auto result = search<pretrip_gen<my_label>, my_label>::get_connections(
-      sched, *label_store_, path.at(0), path.at(1),
+      sched, mem.get(), path.at(0), path.at(1),
       create_additional_edges(req->additional_edges(), sched), i_begin, i_end);
   return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
 }
