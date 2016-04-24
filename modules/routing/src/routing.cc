@@ -43,11 +43,11 @@ std::vector<station_node*> get_arrivals(
       station_id = el->eva_nr()->str();
     } else {
       message_creator b;
-      b.create_and_finish(MsgContent_StationGuesserRequest,
-                          motis::guesser::CreateStationGuesserRequest(
-                              b, 1, b.CreateString(el->name()->str()))
-                              .Union(),
-                          "/guesser");
+      b.create_and_finish(
+          MsgContent_StationGuesserRequest,
+          CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
+              .Union(),
+          "/guesser");
       auto msg = motis_call(make_msg(b))->val();
       auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
       if (guesses->size() == 0) {

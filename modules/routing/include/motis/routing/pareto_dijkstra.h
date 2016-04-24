@@ -34,7 +34,7 @@ public:
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
-        max_labels_(label_store.size() / sizeof(Label)) {
+        max_labels_(label_store.size() / sizeof(Label) - 1000) {
     for (auto const& start_label : start_labels) {
       node_labels_[start_label->node_->id_].emplace_back(start_label);
     }
@@ -48,7 +48,6 @@ public:
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
-        printf("max label quit\n");
         filter_results();
         return results_;
       }
@@ -109,11 +108,10 @@ private:
       return;
     }
 
-    auto new_label = new (label_store_.create<Label>()) Label(blank);
+    auto new_label = label_store_.create<Label>(blank);
     ++stats_.labels_created_;
 
     if (edge.get_destination() == goal_) {
-      printf("adding result\n");
       add_result(new_label);
       if (stats_.labels_popped_until_first_result_ == -1) {
         stats_.labels_popped_until_first_result_ = stats_.labels_popped_;

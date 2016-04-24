@@ -31,7 +31,6 @@ struct label : public Data {
 
     auto ec = e.get_edge_cost(now_, connection_);
     if (!ec.is_valid()) {
-      printf("edge invalid\n");
       return false;
     }
 

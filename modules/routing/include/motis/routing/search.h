@@ -28,6 +28,8 @@ struct search {
                                        station_node const* to,
                                        std::vector<edge> const& query_edges,
                                        time interval_begin, time interval_end) {
+    mem.reset();
+
     std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
     for (auto const& e : query_edges) {
       lb_graph_edges[e.to_->get_station()->id_].emplace_back(

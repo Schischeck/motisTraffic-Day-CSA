@@ -222,10 +222,10 @@ int main(int argc, char* argv[]) {
       ++mismatches;
       failed_queries << lineq << "\n";
       write_file(line1,
-                 "fail_responses/" + std::to_string(line_count) + "_1.xml");
+                 "fail_responses/" + std::to_string(line_count) + "_1.json");
       write_file(line2,
-                 "fail_responses/" + std::to_string(line_count) + "_2.xml");
-      write_file(lineq, "fail_queries/" + std::to_string(line_count) + ".xml");
+                 "fail_responses/" + std::to_string(line_count) + "_2.json");
+      write_file(lineq, "fail_queries/" + std::to_string(line_count) + ".json");
     }
 
     ++line_count;
