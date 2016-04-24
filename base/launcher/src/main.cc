@@ -41,9 +41,25 @@ using net::http::server::shutdown_handler;
 template <typename T>
 using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
 
+auto run(boost::asio::io_service& ios) {
+  return [&ios]() {
+    while (true) {
+      try {
+        ios.run();
+        break;
+      } catch (std::exception const& e) {
+        LOG(emrg) << "unhandled error: " << e.what();
+      } catch (...) {
+        LOG(emrg) << "unhandled unknown error";
+      }
+    }
+  };
+}
+
 int main(int argc, char** argv) {
   motis_instance instance;
-  auto& ios = instance.ios_;
+
+  boost::asio::io_service ios;
   ws_server websocket(ios, instance);
   http_server http(ios, instance);
   socket_server tcp(ios, instance);
@@ -119,24 +135,10 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  boost::asio::io_service::work ios_work(ios);
+  boost::asio::io_service::work work(instance.ios_);
   std::vector<boost::thread> threads(launcher_opt.num_threads_);
-
-  auto run = [&ios]() {
-    start:
-      try {
-        ios.run();
-      } catch (std::exception const& e) {
-        LOG(emrg) << "unhandled error: " << e.what();
-        goto start;
-      } catch (...) {
-        LOG(emrg) << "unhandled unknown error";
-        goto start;
-      }
-  };
-
   for (auto& t : threads) {
-    t = boost::thread(run);
+    t = boost::thread(run(instance.ios_));
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
@@ -149,6 +151,8 @@ int main(int argc, char** argv) {
                    launcher_opt.batch_output_file_);
   }
 
+  run(ios)();
+  instance.ios_.stop();
   std::for_each(begin(threads), end(threads),
                 [](boost::thread& t) { t.join(); });
   LOG(info) << "shutdown";
