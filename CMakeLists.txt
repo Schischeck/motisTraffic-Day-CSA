@@ -173,7 +173,6 @@ endforeach(module)
 add_subdirectory(base/bootstrap EXCLUDE_FROM_ALL)
 add_subdirectory(base/launcher)
 add_subdirectory(base/client)
-add_subdirectory(base/eval)
 
 
 ################################
@@ -269,5 +268,19 @@ if(MOTIS_LINT)
     COMMENT "Running oclint"
     VERBATIM
   )
-  add_dependencies(lint motis motis-test motis-itest)
+  add_dependencies(oclint motis motis-test motis-itest motis-eval motis-cli)
 endif()
+
+
+################################
+# clang-format check
+################################
+add_custom_target(format-check
+  find ./base ./modules ./test -type f -name "*.cc" -o -name "*.h" -print0
+  | xargs -0 clang-format -i
+  COMMAND
+  git status --porcelain | xargs -I {} -0 test -z \"{}\"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Checking source code formatting"
+  VERBATIM
+)

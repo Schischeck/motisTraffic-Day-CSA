@@ -33,7 +33,7 @@ HTTPMethod translate_method_string(std::string const& s) {
 
 struct http_server::impl {
   impl(boost::asio::io_service& ios, receiver& recvr)
-      : receiver_(recvr), server_(ios) {}
+      : ios_(ios), receiver_(recvr), server_(ios) {}
 
   void listen(std::string const& host, std::string const& port) {
     router_.route("*", ".*", std::ref(*this));
@@ -54,11 +54,11 @@ struct http_server::impl {
               std::string::npos) {
         return receiver_.on_msg(
             make_msg(req.content),
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
       } else if (req.method == "GET") {
         return receiver_.on_msg(
             make_no_msg(req.uri),
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
       } else {
         message_creator fbb;
         fbb.create_and_finish(
@@ -76,7 +76,7 @@ struct http_server::impl {
                 .Union());
         return receiver_.on_msg(
             make_msg(fbb),
-            std::bind(&impl::on_response, this, cb, p::_1, p::_2));
+            ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
       }
     } catch (std::system_error const& e) {
       reply rep = reply::stock_reply(reply::internal_server_error);
@@ -122,6 +122,7 @@ struct http_server::impl {
   }
 
 private:
+  boost::asio::io_service& ios_;
   receiver& receiver_;
   query_router router_;
   server server_;

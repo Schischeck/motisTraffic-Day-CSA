@@ -34,7 +34,7 @@ public:
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
-        max_labels_(label_store.size() / sizeof(Label)) {
+        max_labels_(label_store.size() / sizeof(Label) - 1000) {
     for (auto const& start_label : start_labels) {
       node_labels_[start_label->node_->id_].emplace_back(start_label);
     }
@@ -42,7 +42,7 @@ public:
 
   std::vector<Label*>& search() {
     stats_.start_label_count_ = queue_.size();
-    stats_.labels_created_ = label_store_.used_size();
+    stats_.labels_created_ = label_store_.used_size() / sizeof(Label);
 
     while (!queue_.empty() || !equals_.empty()) {
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
@@ -78,7 +78,7 @@ public:
         continue;
       }
 
-      if (goal_ == label->node_->station_node_) {
+      if (label->node_ == goal_) {
         continue;
       }
 
@@ -108,7 +108,7 @@ private:
       return;
     }
 
-    auto new_label = new (label_store_.create<Label>()) Label(blank);
+    auto new_label = label_store_.create<Label>(blank);
     ++stats_.labels_created_;
 
     if (edge.get_destination() == goal_) {

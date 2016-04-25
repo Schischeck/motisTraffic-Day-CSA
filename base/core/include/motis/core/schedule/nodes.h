@@ -15,8 +15,7 @@ class station_node;
 class node;
 class label;
 
-constexpr int DUMMY_SOURCE_IDX = 0;
-constexpr int DUMMY_TARGET_IDX = 1;
+enum class node_type { STATION_NODE, ROUTE_NODE, FOOT_NODE };
 
 class node {
 public:
@@ -24,10 +23,18 @@ public:
       : station_node_(station_node), route_(-1), id_(node_id) {}
 
   bool is_station_node() const { return station_node_ == nullptr; }
-
   bool is_route_node() const { return route_ != -1; }
-
   bool is_foot_node() const { return !is_station_node() && !is_route_node(); }
+
+  node_type type() const {
+    if (is_station_node()) {
+      return node_type::STATION_NODE;
+    } else if (is_route_node()) {
+      return node_type::ROUTE_NODE;
+    } else {
+      return node_type::FOOT_NODE;
+    }
+  }
 
   char const* type_str() const {
     if (is_station_node()) {

@@ -120,6 +120,8 @@ struct graph_builder {
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
                 time_t to, bool apply_rules, bool adjust_footpaths);
 
+  void add_dummy_node(std::string const& name);
+
   void add_stations(
       flatbuffers::Vector<flatbuffers::Offset<Station>> const* stations);
 
@@ -173,6 +175,7 @@ struct graph_builder {
   void connect_reverse();
 
   void sort_connections();
+  void sort_trips();
 
   int node_count() const;
 

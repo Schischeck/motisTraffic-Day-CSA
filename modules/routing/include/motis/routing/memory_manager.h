@@ -7,7 +7,7 @@
 namespace motis {
 namespace routing {
 
-class memory_manager {
+struct memory_manager {
 public:
   explicit memory_manager(std::size_t size)
       : size_(size),
@@ -19,12 +19,12 @@ public:
 
   void reset() { next_position_ = memory_buffer_.get(); }
 
-  template <typename T>
-  T* create() {
+  template <typename T, typename... Args>
+  T* create(Args&&... args) {
     assert(next_position_ <= memory_buffer_.get() + size());
     auto el = reinterpret_cast<T*>(next_position_);
     next_position_ += sizeof(T);
-    return el;
+    return new (el) T(std::forward<Args>(args)...);
   }
 
   std::size_t used_size() const {

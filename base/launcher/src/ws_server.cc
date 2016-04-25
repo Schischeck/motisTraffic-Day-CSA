@@ -134,20 +134,23 @@ struct ws_server::ws_server_impl {
     }
 
     try {
-      receiver_.on_msg(req_msg, [this, session, req_msg](
-                                    msg_ptr res, std::error_code ec) {
-        if (ec) {
-          send_error(ec, session, req_msg->id());
-        } else if (res) {
-          send(res, session, req_msg->id());
-        } else {
-          send_success(session, req_msg->id());
-        }
-      });
+      receiver_.on_msg(
+          req_msg, ios_.wrap(std::bind(&ws_server_impl::reply, this, session,
+                                       req_msg->id(), p::_1, p::_2)));
     } catch (std::system_error const& e) {
       send_error(e.code(), session, req_msg->id());
     } catch (...) {
       std::cout << "unknown error occured\n";
+    }
+  }
+
+  void reply(sid session, int req_id, msg_ptr res, std::error_code ec) {
+    if (ec) {
+      send_error(ec, session, req_id);
+    } else if (res) {
+      send(res, session, req_id);
+    } else {
+      send_success(session, req_id);
     }
   }
 
