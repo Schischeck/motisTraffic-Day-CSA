@@ -268,7 +268,7 @@ if(MOTIS_LINT)
     COMMENT "Running oclint"
     VERBATIM
   )
-  add_dependencies(lint motis motis-test motis-itest)
+  add_dependencies(oclint motis motis-test motis-itest motis-eval motis-cli)
 endif()
 
 

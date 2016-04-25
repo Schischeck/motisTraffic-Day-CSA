@@ -18,7 +18,7 @@ namespace launcher {
 
 struct socket_server::impl {
   impl(boost::asio::io_service& ios, receiver& recvr)
-      : receiver_(recvr), server_(net::make_server(ios)) {}
+      : ios_(ios), receiver_(recvr), server_(net::make_server(ios)) {}
 
   void listen(std::string const& host, std::string const& port) {
     server_->listen(host, port, std::bind(&impl::receive, this, p::_1, p::_2));
@@ -31,8 +31,9 @@ struct socket_server::impl {
                        &buf_);
     auto req_msg =
         make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
-    receiver_.on_msg(req_msg, std::bind(&impl::reply, this, req_msg->id(), cb,
-                                        p::_1, p::_2));
+    receiver_.on_msg(req_msg,
+                     ios_.wrap(std::bind(&impl::reply, this, req_msg->id(), cb,
+                                         p::_1, p::_2)));
   }
 
   void reply(int id, net::handler_cb_fun cb, msg_ptr res, std::error_code ec) {
@@ -54,6 +55,7 @@ struct socket_server::impl {
   }
 
 private:
+  boost::asio::io_service& ios_;
   std::string buf_;
   receiver& receiver_;
   std::shared_ptr<tcp_server> server_;

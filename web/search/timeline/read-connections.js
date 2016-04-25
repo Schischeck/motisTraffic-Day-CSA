@@ -19,16 +19,20 @@ function transports(con, from, to) {
 
 function readConnections(connections, skipWalks) {
   return connections.map(c => {
+    const walkSources = c.transports
+                         .filter(move => move.move_type === 'Walk')
+                         .map(walk => walk.move.range.from);
     const walkTargets = c.transports
-                         .filter(move => skipWalks ? true : move.move_type === 'Walk')
+                         .filter(move => move.move_type === 'Walk')
                          .map(walk => walk.move.range.to);
 
     const importantStops = c.stops
                             .map((stop, i) => new Object({ type: 'stop', stop, i }))
-                            .filter(el => el.i === 1 ||
-                                          el.i === c.stops.length - 2 ||
+                            .filter(el => el.i === 0 ||
+                                          el.i === c.stops.length - 1 ||
                                           el.stop.interchange ||
-                                          walkTargets.indexOf(el.i) !== -1)
+                                          walkTargets.indexOf(el.i) !== -1 ||
+                                          walkSources.indexOf(el.i) !== -1)
 
     const elements = [];
     var depStop, arrStop, transport;

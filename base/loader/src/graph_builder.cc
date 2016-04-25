@@ -46,27 +46,35 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
   duplicate_count_ = 0;
 }
 
-void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
-  // Add dummy source station.
-  auto dummy_source =
-      make_unique<station>(0, 0.0, 0.0, 0, "-1", "DUMMY", nullptr);
+void graph_builder::add_dummy_node(std::string const& name) {
+  auto dummy_source = make_unique<station>(0, 0.0, 0.0, 0, name, name, nullptr);
   sched_.eva_to_station_.insert(
       std::make_pair(dummy_source->eva_nr_, dummy_source.get()));
   sched_.stations_.emplace_back(std::move(dummy_source));
-  sched_.station_nodes_.emplace_back(make_unique<station_node>(0));
+  sched_.station_nodes_.emplace_back(
+      make_unique<station_node>(sched_.station_nodes_.size()));
+}
 
-  // Add dummy target stations.
-  auto dummy_target =
-      make_unique<station>(1, 0.0, 0.0, 0, "-2", "DUMMY", nullptr);
-  sched_.eva_to_station_.insert(
-      std::make_pair(dummy_target->eva_nr_, dummy_target.get()));
-  sched_.stations_.emplace_back(std::move(dummy_target));
-  sched_.station_nodes_.emplace_back(make_unique<station_node>(1));
+void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
+  // Add dummy stations.
+  add_dummy_node("START");
+  add_dummy_node("END");
+  add_dummy_node("VIA0");
+  add_dummy_node("VIA1");
+  add_dummy_node("VIA2");
+  add_dummy_node("VIA3");
+  add_dummy_node("VIA4");
+  add_dummy_node("VIA5");
+  add_dummy_node("VIA6");
+  add_dummy_node("VIA7");
+  add_dummy_node("VIA8");
+  add_dummy_node("VIA9");
 
   // Add schedule stations.
+  auto const dummy_station_count = sched_.station_nodes_.size();
   for (unsigned i = 0; i < stations->size(); ++i) {
     auto const& input_station = stations->Get(i);
-    auto const station_index = i + 2;
+    auto const station_index = i + dummy_station_count;
 
     // Create station node.
     auto node_ptr = make_unique<station_node>(station_index);
