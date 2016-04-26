@@ -11,6 +11,8 @@
 #include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
+#include "motis/test/motis_instance_helper.h"
+
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
 
@@ -58,10 +60,11 @@ TEST_F(reliability_simple_rating2, simple_rate) {
                         (motis::time)(11 * 60 + 32),
                         (motis::time)(11 * 60 + 32))
           .build_routing_request();
-  auto msg = test::send(motis_instance_, req_msg);
-
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_EQ(1, journeys.size());
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);
@@ -99,10 +102,11 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_routing_request();
-  auto msg = test::send(motis_instance_, req_msg);
-
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_EQ(1, journeys.size());
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);

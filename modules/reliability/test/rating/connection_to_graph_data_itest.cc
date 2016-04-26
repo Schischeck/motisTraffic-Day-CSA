@@ -72,19 +72,19 @@ TEST_F(reliability_connection_to_graph_data2, to_element) {
   // route edge from Stuttgart to Erlangen
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   auto const element_ice_s_e = detail::to_element(
       2, get_schedule(), STUTTGART.eva, ERLANGEN.eva,
       test_util::minutes_to_motis_time(11 * 60 + 32),
       test_util::minutes_to_motis_time(12 * 60 + 32),
-      graph_accessor::find_family(get_schedule().categories, "ICE").second,
+      graph_accessor::find_family(get_schedule().categories_, "ICE").second,
       ICE_S_E, "");
 
   ASSERT_TRUE(element_ice_s_e.departure_stop_idx_ == 2);
   ASSERT_TRUE(element_ice_s_e.arrival_stop_idx() == 3);
-  ASSERT_TRUE(element_ice_s_e.from_ == first_route_edge->_from);
-  ASSERT_TRUE(element_ice_s_e.to_ == first_route_edge->_to);
+  ASSERT_TRUE(element_ice_s_e.from_ == first_route_edge->from_);
+  ASSERT_TRUE(element_ice_s_e.to_ == first_route_edge->to_);
   ASSERT_TRUE(element_ice_s_e.is_first_route_node_);
   ASSERT_TRUE(element_ice_s_e.light_connection_ == &first_light_conn);
   ASSERT_TRUE(element_ice_s_e.light_connection_idx_ == 0);
@@ -95,22 +95,22 @@ TEST_F(reliability_connection_to_graph_data2, to_element2) {
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(get_schedule(), ICE_K_F_S))
-           ->_to;
+           ->to_;
   // route edge from Frankfurt to Stuttgart
   auto const route_edge = graph_accessor::get_departing_route_edge(route_node);
-  auto const& first_light_conn = route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = route_edge->m_.route_edge_.conns_[0];
 
   auto const element_ice_k_f_s = detail::to_element(
       3, get_schedule(), FRANKFURT.eva, STUTTGART.eva,
       test_util::minutes_to_motis_time(10 * 60 + 20),
       test_util::minutes_to_motis_time(11 * 60 + 15),
-      graph_accessor::find_family(get_schedule().categories, "ICE").second,
+      graph_accessor::find_family(get_schedule().categories_, "ICE").second,
       ICE_K_F_S, "");
 
   ASSERT_TRUE(element_ice_k_f_s.departure_stop_idx_ == 3);
   ASSERT_TRUE(element_ice_k_f_s.arrival_stop_idx() == 4);
-  ASSERT_TRUE(element_ice_k_f_s.from_ == route_edge->_from);
-  ASSERT_TRUE(element_ice_k_f_s.to_ == route_edge->_to);
+  ASSERT_TRUE(element_ice_k_f_s.from_ == route_edge->from_);
+  ASSERT_TRUE(element_ice_k_f_s.to_ == route_edge->to_);
   ASSERT_FALSE(element_ice_k_f_s.is_first_route_node_);
   ASSERT_TRUE(element_ice_k_f_s.light_connection_ == &first_light_conn);
   ASSERT_TRUE(element_ice_k_f_s.light_connection_idx_ == 0);
@@ -135,11 +135,11 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
                         (motis::time)(11 * 60 + 32),
                         (motis::time)(11 * 60 + 32))
           .build_routing_request();
-
-  auto msg = test::send(motis_instance_, req_msg);
-  ASSERT_TRUE(msg);
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_EQ(1, journeys.size());
 
   auto const elements = get_elements(get_schedule(), journeys.front());
@@ -151,16 +151,16 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
                 1);  // note: connections begin with a dummy walk
     ASSERT_TRUE(element.arrival_stop_idx() == 2);
     ASSERT_TRUE(
-        get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         STUTTGART.eva);
     ASSERT_TRUE(
-        get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
         ERLANGEN.eva);
-    ASSERT_TRUE(element.light_connection_->d_time ==
+    ASSERT_TRUE(element.light_connection_->d_time_ ==
                 test_util::minutes_to_motis_time(11 * 60 + 32));
-    ASSERT_TRUE(element.light_connection_->a_time ==
+    ASSERT_TRUE(element.light_connection_->a_time_ ==
                 test_util::minutes_to_motis_time(12 * 60 + 32));
-    ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+    ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                 ICE_S_E);
   }
   {
@@ -169,16 +169,16 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
     ASSERT_TRUE(element.departure_stop_idx_ == 2);
     ASSERT_TRUE(element.arrival_stop_idx() == 3);
     ASSERT_TRUE(
-        get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         ERLANGEN.eva);
     ASSERT_TRUE(
-        get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
         KASSEL.eva);
-    ASSERT_TRUE(element.light_connection_->d_time ==
+    ASSERT_TRUE(element.light_connection_->d_time_ ==
                 test_util::minutes_to_motis_time(12 * 60 + 45));
-    ASSERT_TRUE(element.light_connection_->a_time ==
+    ASSERT_TRUE(element.light_connection_->a_time_ ==
                 test_util::minutes_to_motis_time(14 * 60 + 15));
-    ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+    ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                 ICE_E_K);
   }
 
@@ -194,12 +194,11 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
           .set_interval(std::make_tuple(19, 10, 2015),
                         (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5))
           .build_routing_request();
-
-  auto msg = test::send(motis_instance_, req_msg);
-
-  ASSERT_TRUE(msg);
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_EQ(1, journeys.size());
 
   auto const elements = get_elements(get_schedule(), journeys.front());
@@ -211,34 +210,34 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       ASSERT_TRUE(element.departure_stop_idx_ ==
                   1);  // note: connections begin with a dummy walk
       ASSERT_TRUE(element.arrival_stop_idx() == 2);
+      ASSERT_TRUE(get_schedule()
+                      .stations_[element.from_->station_node_->id_]
+                      ->eva_nr_ == DARMSTADT.eva);
       ASSERT_TRUE(
-          get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
-          DARMSTADT.eva);
-      ASSERT_TRUE(
-          get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+          get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
           FRANKFURT.eva);
-      ASSERT_TRUE(element.light_connection_->d_time ==
+      ASSERT_TRUE(element.light_connection_->d_time_ ==
                   test_util::minutes_to_motis_time(8 * 60));
-      ASSERT_TRUE(element.light_connection_->a_time ==
+      ASSERT_TRUE(element.light_connection_->a_time_ ==
                   test_util::minutes_to_motis_time(8 * 60 + 20));
-      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+      ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                   RE_D_F_G);
     }
     {
       auto const element = elements[0][1];
       ASSERT_TRUE(element.departure_stop_idx_ == 2);
       ASSERT_TRUE(element.arrival_stop_idx() == 3);
+      ASSERT_TRUE(get_schedule()
+                      .stations_[element.from_->station_node_->id_]
+                      ->eva_nr_ == FRANKFURT.eva);
       ASSERT_TRUE(
-          get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
-          FRANKFURT.eva);
-      ASSERT_TRUE(
-          get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+          get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
           GIESSEN.eva);
-      ASSERT_TRUE(element.light_connection_->d_time ==
+      ASSERT_TRUE(element.light_connection_->d_time_ ==
                   test_util::minutes_to_motis_time(8 * 60 + 22));
-      ASSERT_TRUE(element.light_connection_->a_time ==
+      ASSERT_TRUE(element.light_connection_->a_time_ ==
                   test_util::minutes_to_motis_time(9 * 60));
-      ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+      ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                   RE_D_F_G);
     }
   }
@@ -248,16 +247,16 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
     ASSERT_TRUE(element.departure_stop_idx_ == 3);
     ASSERT_TRUE(element.arrival_stop_idx() == 4);
     ASSERT_TRUE(
-        get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         GIESSEN.eva);
     ASSERT_TRUE(
-        get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
         MARBURG.eva);
-    ASSERT_TRUE(element.light_connection_->d_time ==
+    ASSERT_TRUE(element.light_connection_->d_time_ ==
                 test_util::minutes_to_motis_time(9 * 60 + 10));
-    ASSERT_TRUE(element.light_connection_->a_time ==
+    ASSERT_TRUE(element.light_connection_->a_time_ ==
                 test_util::minutes_to_motis_time(9 * 60 + 40));
-    ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+    ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                 RE_G_M);
   }
 
@@ -281,12 +280,11 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
           .set_interval(std::make_tuple(19, 10, 2015),
                         (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11))
           .build_routing_request();
-
-  auto msg = test::send(motis_instance_, req_msg);
-
-  ASSERT_TRUE(msg);
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_EQ(1, journeys.size());
 
   auto const elements = get_elements(get_schedule(), journeys.front());
@@ -297,16 +295,16 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
     ASSERT_TRUE(element.departure_stop_idx_ == 1);
     ASSERT_TRUE(element.arrival_stop_idx() == 2);
     ASSERT_TRUE(
-        get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         MANNHEIM.eva);
     ASSERT_TRUE(
-        get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
         DARMSTADT.eva);
-    ASSERT_TRUE(element.light_connection_->d_time ==
+    ASSERT_TRUE(element.light_connection_->d_time_ ==
                 test_util::minutes_to_motis_time(8 * 60 + 10));
-    ASSERT_TRUE(element.light_connection_->a_time ==
+    ASSERT_TRUE(element.light_connection_->a_time_ ==
                 test_util::minutes_to_motis_time(8 * 60 + 40));
-    ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+    ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                 IC_M_D);
   }
   {
@@ -315,16 +313,16 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
     ASSERT_TRUE(element.departure_stop_idx_ == 3);
     ASSERT_TRUE(element.arrival_stop_idx() == 4);
     ASSERT_TRUE(
-        get_schedule().stations[element.from_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         TUD.eva);
     ASSERT_TRUE(
-        get_schedule().stations[element.to_->_station_node->_id]->eva_nr ==
+        get_schedule().stations_[element.to_->station_node_->id_]->eva_nr_ ==
         FRANKFURT.eva);
-    ASSERT_TRUE(element.light_connection_->d_time ==
+    ASSERT_TRUE(element.light_connection_->d_time_ ==
                 test_util::minutes_to_motis_time(8 * 60 + 45));
-    ASSERT_TRUE(element.light_connection_->a_time ==
+    ASSERT_TRUE(element.light_connection_->a_time_ ==
                 test_util::minutes_to_motis_time(9 * 60 + 15));
-    ASSERT_TRUE(element.light_connection_->_full_con->con_info->train_nr ==
+    ASSERT_TRUE(element.light_connection_->full_con_->con_info_->train_nr_ ==
                 RE_T_F);
   }
 

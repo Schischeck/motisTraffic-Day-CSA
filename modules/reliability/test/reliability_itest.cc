@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include <iostream>
-#include <string>
 #include <fstream>
+#include <iostream>
 #include <streambuf>
+#include <string>
 #include <vector>
 
 #include "motis/core/common/date_time_util.h"
@@ -14,9 +14,11 @@
 
 #include "motis/routing/routing.h"
 
-#include "motis/reliability/reliability.h"
 #include "motis/reliability/rating/connection_rating.h"
+#include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
+
+#include "motis/test/motis_instance_helper.h"
 
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
@@ -83,12 +85,7 @@ public:
     ASSERT_FLOAT_EQ(sum, rating->arrival_distribution()->sum());
   }
 
-  void test_cg(motis::module::msg_ptr msg) {
-    ASSERT_NE(nullptr, msg);
-
-    ASSERT_EQ(MsgContent_ReliableRoutingResponse, msg->content_type());
-    auto res = msg->content<ReliableRoutingResponse const*>();
-
+  void test_cg(ReliableRoutingResponse const* res) {
     ASSERT_EQ(1, res->connection_graphs()->size());
     auto cg = *res->connection_graphs()->begin();
     ASSERT_EQ(3, cg->stops()->size());
@@ -154,10 +151,9 @@ TEST_F(reliability_test_rating, rating_request) {
                                    (motis::time)(11 * 60 + 32),
                                    (motis::time)(11 * 60 + 32))
                      .build_rating_request();
-  auto msg = test::send(motis_instance_, req_msg);
-  ASSERT_NE(nullptr, msg);
+  auto const msg = test::call(motis_instance_, req_msg);
+  auto response = motis_content(ReliabilityRatingResponse, msg);
 
-  auto response = msg->content<ReliabilityRatingResponse const*>();
   ASSERT_EQ(1, response->response()->connections()->size());
 
   ASSERT_NE(response->ratings(), nullptr);
@@ -192,8 +188,8 @@ TEST_F(reliability_test_cg, connection_tree) {
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_connection_tree_request(3, 1);
-  auto msg = test::send(motis_instance_, req_msg);
-  test_cg(msg);
+  test_cg(motis_content(ReliableRoutingResponse,
+                        test::call(motis_instance_, req_msg)));
 }
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
@@ -204,8 +200,8 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1);
-  auto msg = test::send(motis_instance_, req_msg);
-  test_cg(msg);
+  test_cg(motis_content(ReliableRoutingResponse,
+                        test::call(motis_instance_, req_msg)));
 }
 
 class reliability_late_connections : public test_motis_setup {
@@ -240,11 +236,11 @@ module::msg_ptr to_reliable_late_connections_request(
   for (auto const& info : taxi_infos) {
     builder.add_additional_edge(CreateAdditionalEdgeWrapper(
         b, AdditionalEdge_TimeDependentMumoEdge,
-        CreateTimeDependentMumoEdge(
+        CreatePeriodicMumoEdge(
             b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
                               b.CreateString("-2") /* to dummy target */,
                               std::get<1>(info), std::get<2>(info)),
-            21 * 60, 3 * 60, 1)
+            21 * 60, 3 * 60)
             .Union()));
   }
 
@@ -261,10 +257,10 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
       (motis::time)(23 * 60 + 50), (motis::time)(1500),
       std::make_tuple(19, 10, 2015), taxi_infos);
-  auto msg = test::send(motis_instance_, req_msg);
 
-  ASSERT_NE(nullptr, msg);
-  auto response = msg->content<routing::RoutingResponse const*>();
+  using routing::RoutingResponse;
+  auto response =
+      motis_content(RoutingResponse, test::call(motis_instance_, req_msg));
 
   ASSERT_EQ(2, response->connections()->size());
   ASSERT_EQ(2, (*response->connections())[0]->transports()->size());

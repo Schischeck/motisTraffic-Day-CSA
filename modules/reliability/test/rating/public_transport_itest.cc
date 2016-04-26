@@ -28,6 +28,8 @@
 #include "motis/reliability/rating/public_transport.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
+#include "motis/test/motis_instance_helper.h"
+
 #include "../include/interchange_data_for_tests.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
@@ -95,20 +97,20 @@ std::vector<rating::rating_element> compute_test_ratings1(
   ratings.back().departure_distribution_ =
       precomputed_distributions.get_distribution(
           distributions_container::to_container_key(
-              *ic_data.arriving_route_edge_._from, ic_data.arriving_light_conn_,
+              *ic_data.arriving_route_edge_.from_, ic_data.arriving_light_conn_,
               time_util::departure, test_info.reliability_context_->schedule_));
   // arrival ICE_S_E in Erlangen
   ratings.back().arrival_distribution_ =
       precomputed_distributions.get_distribution(
           distributions_container::to_container_key(
-              *ic_data.arriving_route_edge_._to, ic_data.arriving_light_conn_,
+              *ic_data.arriving_route_edge_.to_, ic_data.arriving_light_conn_,
               time_util::arrival, test_info.reliability_context_->schedule_));
 
   // departure ICE_E_K in Erlangen
   ratings.emplace_back(2);
   calc_departure_distribution::data_departure_interchange dep_data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, ratings[0].arrival_distribution_,
       precomputed_distributions,
       precomputed_distributions.get_node(
@@ -122,7 +124,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
 
   // arrival ICE_E_K in Kassel
   calc_arrival_distribution::data_arrival arr_data(
-      *ic_data.departing_route_edge_._from, *ic_data.departing_route_edge_._to,
+      *ic_data.departing_route_edge_.from_, *ic_data.departing_route_edge_.to_,
       ic_data.departing_light_conn_, ratings.back().departure_distribution_,
       test_info.get_schedule(), s_t_distributions);
   calc_arrival_distribution::compute_arrival_distribution(
@@ -139,10 +141,10 @@ TEST_F(reliability_public_transport2, rate) {
                         (motis::time)(11 * 60 + 32),
                         (motis::time)(11 * 60 + 32))
           .build_routing_request();
-  auto msg = test::send(motis_instance_, req_msg);
-
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
 
   ASSERT_EQ(1, journeys.size());
   auto const elements = rating::connection_to_graph_data::get_elements(
@@ -180,8 +182,8 @@ std::vector<rating::rating_element> compute_test_ratings2(
   /* distributions for the first train (RE_M_B_D) */
   node const& node_m = *graph_accessor::get_first_route_node(
       test_info.get_schedule(), test_info.RE_M_B_D);
-  node const& node_b = *graph_accessor::get_departing_route_edge(node_m)->_to;
-  node const& node_d1 = *graph_accessor::get_departing_route_edge(node_b)->_to;
+  node const& node_b = *graph_accessor::get_departing_route_edge(node_m)->to_;
+  node const& node_d1 = *graph_accessor::get_departing_route_edge(node_b)->to_;
   {
     distributions_container::container ride_distributions;
     distributions_calculator::ride_distribution::detail::
@@ -192,14 +194,14 @@ std::vector<rating::rating_element> compute_test_ratings2(
         ride_distributions.get_distribution(
             distributions_container::to_container_key(
                 node_m, graph_accessor::get_departing_route_edge(node_m)
-                            ->_m._route_edge._conns.front(),
+                            ->m_.route_edge_.conns_.front(),
                 time_util::departure,
                 test_info.reliability_context_->schedule_));
     // arrival RE_M_B_D in Bensheim
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
         distributions_container::to_container_key(
             node_b, graph_accessor::get_departing_route_edge(node_m)
-                        ->_m._route_edge._conns.front(),
+                        ->m_.route_edge_.conns_.front(),
             time_util::arrival, test_info.reliability_context_->schedule_));
     ratings.emplace_back(2);
     // departure RE_M_B_D in Bensheim
@@ -207,14 +209,14 @@ std::vector<rating::rating_element> compute_test_ratings2(
         ride_distributions.get_distribution(
             distributions_container::to_container_key(
                 node_b, graph_accessor::get_departing_route_edge(node_b)
-                            ->_m._route_edge._conns.front(),
+                            ->m_.route_edge_.conns_.front(),
                 time_util::departure,
                 test_info.reliability_context_->schedule_));
     // arrival RE_M_B_D in Darmstadt
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
         distributions_container::to_container_key(
             node_d1, graph_accessor::get_departing_route_edge(node_b)
-                         ->_m._route_edge._conns.front(),
+                         ->m_.route_edge_.conns_.front(),
             time_util::arrival, test_info.reliability_context_->schedule_));
   }
 
@@ -224,9 +226,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
   auto const& node_d2 = *graph_accessor::get_first_route_node(
       test_info.get_schedule(), test_info.RE_D_F_G);
   auto const& edge_d_f = *graph_accessor::get_departing_route_edge(node_d2);
-  auto const& lc_d_f = edge_d_f._m._route_edge._conns[0];
+  auto const& lc_d_f = edge_d_f.m_.route_edge_.conns_[0];
   auto const& lc_b_d = graph_accessor::get_departing_route_edge(node_b)
-                           ->_m._route_edge._conns[0];
+                           ->m_.route_edge_.conns_[0];
   ratings.emplace_back(3);
   calc_departure_distribution::data_departure_interchange dep_data(
       true, node_d2, node_d1, lc_d_f, lc_b_d, ratings[1].arrival_distribution_,
@@ -240,9 +242,9 @@ std::vector<rating::rating_element> compute_test_ratings2(
       dep_data, ratings.back().departure_distribution_);
 
   // arrival RE_D_F_G in Frankfurt
-  auto const& node_f = *edge_d_f._to;
+  auto const& node_f = *edge_d_f.to_;
   calc_arrival_distribution::data_arrival arr_data(
-      *edge_d_f._from, *edge_d_f._to, lc_d_f,
+      *edge_d_f.from_, *edge_d_f.to_, lc_d_f,
       ratings.back().departure_distribution_, test_info.get_schedule(),
       c.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(
@@ -250,7 +252,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   // departure RE_D_F_G in Frankfurt
   auto const& edge_f_g = *graph_accessor::get_departing_route_edge(node_f);
-  auto const& lc_f_g = edge_f_g._m._route_edge._conns[0];
+  auto const& lc_f_g = edge_f_g.m_.route_edge_.conns_[0];
   ratings.emplace_back(4);
   calc_departure_distribution::data_departure dep_data_f(
       node_f, lc_f_g, false,
@@ -266,7 +268,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   // arrival RE_D_F_G in Giessen
   calc_arrival_distribution::data_arrival arr_data_g(
-      *edge_f_g._from, *edge_f_g._to, lc_f_g,
+      *edge_f_g.from_, *edge_f_g.to_, lc_f_g,
       ratings.back().departure_distribution_, test_info.get_schedule(),
       c.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(
@@ -278,10 +280,10 @@ std::vector<rating::rating_element> compute_test_ratings2(
   auto const& node_g = *graph_accessor::get_first_route_node(
       test_info.get_schedule(), test_info.RE_G_M);
   auto const& edge_g_m = *graph_accessor::get_departing_route_edge(node_g);
-  auto const& lc_g_m = edge_g_m._m._route_edge._conns[0];
+  auto const& lc_g_m = edge_g_m.m_.route_edge_.conns_[0];
   ratings.emplace_back(5);
   calc_departure_distribution::data_departure_interchange dep_data_g(
-      true, node_g, *edge_f_g._to, lc_g_m, lc_f_g,
+      true, node_g, *edge_f_g.to_, lc_g_m, lc_f_g,
       ratings[3].arrival_distribution_, c.precomputed_distributions_,
       c.precomputed_distributions_.get_node(
           distributions_container::to_container_key(
@@ -293,7 +295,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   // arrival RE_G_M in Marburg
   calc_arrival_distribution::data_arrival arr_data_m(
-      *edge_g_m._from, *edge_g_m._to, lc_g_m,
+      *edge_g_m.from_, *edge_g_m.to_, lc_g_m,
       ratings.back().departure_distribution_, test_info.get_schedule(),
       c.s_t_distributions_);
   calc_arrival_distribution::compute_arrival_distribution(
@@ -309,10 +311,11 @@ TEST_F(reliability_public_transport5, rate2) {
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_routing_request();
-  auto msg = test::send(motis_instance_, req_msg);
-
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_TRUE(journeys.size() == 1);
   auto const elements = rating::connection_to_graph_data::get_elements(
       get_schedule(), journeys.front());
@@ -362,20 +365,20 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   ratings.back().departure_distribution_ =
       precomputed_distributions.get_distribution(
           distributions_container::to_container_key(
-              *ic_data.arriving_route_edge_._from, ic_data.arriving_light_conn_,
+              *ic_data.arriving_route_edge_.from_, ic_data.arriving_light_conn_,
               time_util::departure, test_info.reliability_context_->schedule_));
   // arrival ICE_L_H in Frankfurt Hbf
   ratings.back().arrival_distribution_ =
       precomputed_distributions.get_distribution(
           distributions_container::to_container_key(
-              *ic_data.arriving_route_edge_._to, ic_data.arriving_light_conn_,
+              *ic_data.arriving_route_edge_.to_, ic_data.arriving_light_conn_,
               time_util::arrival, test_info.reliability_context_->schedule_));
 
   // departure S_M_W in Frankfurt Messe
   ratings.emplace_back(3);
   calc_departure_distribution::data_departure_interchange_walk dep_data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, ratings[0].arrival_distribution_,
       precomputed_distributions,
       precomputed_distributions.get_node(
@@ -389,7 +392,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 
   // arrival S_M_W in Frankfurt West
   calc_arrival_distribution::data_arrival arr_data(
-      *ic_data.departing_route_edge_._from, *ic_data.departing_route_edge_._to,
+      *ic_data.departing_route_edge_.from_, *ic_data.departing_route_edge_.to_,
       ic_data.departing_light_conn_, ratings.back().departure_distribution_,
       test_info.get_schedule(), s_t_distributions);
   calc_arrival_distribution::compute_arrival_distribution(
@@ -405,10 +408,11 @@ TEST_F(reliability_public_transport3, rate_foot) {
           .set_interval(std::make_tuple(28, 9, 2015), (motis::time)(10 * 60),
                         (motis::time)(10 * 60 + 1))
           .build_routing_request();
-  auto msg = test::send(motis_instance_, req_msg);
-
+  auto msg = test::call(motis_instance_, req_msg);
+  using routing::RoutingResponse;
   auto const journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
+      message_to_journeys(motis_content(RoutingResponse, msg));
+
   ASSERT_TRUE(journeys.size() == 1);
   auto const elements = rating::connection_to_graph_data::get_elements(
       get_schedule(), journeys.front());
