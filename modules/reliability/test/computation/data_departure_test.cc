@@ -48,7 +48,7 @@ TEST_F(reliability_data_departure, first_route_node_no_feeders) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
@@ -59,15 +59,15 @@ TEST_F(reliability_data_departure, first_route_node_no_feeders) {
                       context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(
-      schedule_->stations[first_route_node._station_node->_id]->eva_nr ==
+      schedule_->stations_[first_route_node.station_node_->id_]->eva_nr_ ==
       FRANKFURT);
-  ASSERT_TRUE(first_light_conn.d_time ==
+  ASSERT_TRUE(first_light_conn.d_time_ ==
               test_util::minutes_to_motis_time(5 * 60 + 55));
-  ASSERT_TRUE(first_light_conn.a_time ==
+  ASSERT_TRUE(first_light_conn.a_time_ ==
               test_util::minutes_to_motis_time(6 * 60 + 5));
-  ASSERT_TRUE(first_light_conn._full_con->con_info->train_nr == 5);
+  ASSERT_TRUE(first_light_conn.full_con_->con_info_->train_nr_ == 5);
 
-  ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time);
+  ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time_);
   ASSERT_TRUE(data.largest_delay() == 1);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
   ASSERT_TRUE(data.is_first_route_node_);
@@ -89,11 +89,11 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
       *graph_accessor::get_first_route_node(*schedule_, ICE_HA_W_HE);
   // route node at Wuerzburg
   auto second_route_node =
-      graph_accessor::get_departing_route_edge(first_route_node)->_to;
+      graph_accessor::get_departing_route_edge(first_route_node)->to_;
   // route edge from Wuerzburg to Heilbronn
   auto const route_edge =
       graph_accessor::get_departing_route_edge(*second_route_node);
-  auto const& light_connection = route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = route_edge->m_.route_edge_.conns_[0];
 
   distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
                                                               -1);
@@ -106,14 +106,14 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
                       context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(
-      schedule_->stations[second_route_node->_station_node->_id]->eva_nr ==
+      schedule_->stations_[second_route_node->station_node_->id_]->eva_nr_ ==
       WURZBURG);
-  ASSERT_TRUE(light_connection.d_time ==
+  ASSERT_TRUE(light_connection.d_time_ ==
               test_util::minutes_to_motis_time(10 * 60 + 34));
-  ASSERT_TRUE(light_connection.a_time ==
+  ASSERT_TRUE(light_connection.a_time_ ==
               test_util::minutes_to_motis_time(11 * 60 + 7));
 
-  ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time);
+  ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time_);
   ASSERT_TRUE(data.largest_delay() == 1);
   ASSERT_TRUE(!data.is_first_route_node_);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
@@ -136,7 +136,7 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
   // light connection d07:00 a07:28
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[1];
 
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   distributions_container::container dummy;
@@ -153,12 +153,12 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
       context(*schedule_, feeder_distributions, s_t_distributions));
 
   ASSERT_EQ(DARMSTADT,
-            schedule_->stations[first_route_node._station_node->_id]->eva_nr);
-  ASSERT_EQ(test_util::minutes_to_motis_time(7 * 60), light_connection.d_time);
+            schedule_->stations_[first_route_node.station_node_->id_]->eva_nr_);
+  ASSERT_EQ(test_util::minutes_to_motis_time(7 * 60), light_connection.d_time_);
   ASSERT_EQ(test_util::minutes_to_motis_time(7 * 60 + 28),
-            light_connection.a_time);
+            light_connection.a_time_);
 
-  ASSERT_EQ(light_connection.d_time, data.scheduled_departure_time_);
+  ASSERT_EQ(light_connection.d_time_, data.scheduled_departure_time_);
   ASSERT_TRUE(data.is_first_route_node_);
 
   ASSERT_EQ(&s_t_distributions.get_start_distribution("dummy").second.get(),
@@ -194,10 +194,10 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
-           ->_to;
+           ->to_;
   auto const& light_connection =
       graph_accessor::get_departing_route_edge(route_node)
-          ->_m._route_edge._conns[0];
+          ->m_.route_edge_.conns_[0];
 
   distributions_container::test_container train_distributions({0.1, 0.7, 0.2},
                                                               -1);
@@ -215,14 +215,14 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
       distribution_node,
       context(*schedule_, feeder_distributions, s_t_distributions));
 
-  ASSERT_TRUE(schedule_->stations[route_node._station_node->_id]->eva_nr ==
+  ASSERT_TRUE(schedule_->stations_[route_node.station_node_->id_]->eva_nr_ ==
               DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time ==
+  ASSERT_TRUE(light_connection.d_time_ ==
               test_util::minutes_to_motis_time(6 * 60 + 11));
-  ASSERT_TRUE(light_connection.a_time ==
+  ASSERT_TRUE(light_connection.a_time_ ==
               test_util::minutes_to_motis_time(6 * 60 + 45));
 
-  ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time);
+  ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time_);
   ASSERT_TRUE(data.largest_delay() == data.maximum_waiting_time_);
   ASSERT_TRUE(!data.is_first_route_node_);
 
@@ -259,7 +259,7 @@ TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
   // route edge from Karlsruhe to Stuttgart
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
@@ -270,15 +270,15 @@ TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
                       context(*schedule_, dummy, s_t_distributions));
 
   ASSERT_TRUE(
-      schedule_->stations[first_route_node._station_node->_id]->eva_nr ==
+      schedule_->stations_[first_route_node.station_node_->id_]->eva_nr_ ==
       KARLSRUHE);
-  ASSERT_TRUE(first_light_conn.d_time ==
+  ASSERT_TRUE(first_light_conn.d_time_ ==
               test_util::minutes_to_motis_time(13 * 60));
-  ASSERT_TRUE(first_light_conn.a_time ==
+  ASSERT_TRUE(first_light_conn.a_time_ ==
               test_util::minutes_to_motis_time(13 * 60 + 46));
-  ASSERT_TRUE(first_light_conn._full_con->con_info->train_nr == 8);
+  ASSERT_TRUE(first_light_conn.full_con_->con_info_->train_nr_ == 8);
 
-  ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time);
+  ASSERT_TRUE(data.scheduled_departure_time_ == first_light_conn.d_time_);
   ASSERT_TRUE(data.largest_delay() == 1);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
   ASSERT_TRUE(data.is_first_route_node_);
@@ -308,7 +308,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
-           ->_to;
+           ->to_;
 
   using namespace distributions_container;
 
@@ -327,21 +327,21 @@ TEST_F(reliability_data_departure, check_train_distributions) {
     distributions_container::container::key const key_;
   } train_distributions(to_container_key(
       route_node, graph_accessor::get_arriving_route_edge(route_node)
-                      ->_m._route_edge._conns[0],
+                      ->m_.route_edge_.conns_[0],
       time_util::arrival, *schedule_));
 
   /* route node at Darmstadt of train IC_FH_DA */
   auto const& last_route_node_IC_FH_DA =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, IC_FH_DA))
-           ->_to;
+           ->to_;
   auto const& route_edge_IC_FH_DA =
       *graph_accessor::get_arriving_route_edge(last_route_node_IC_FH_DA);
 
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   auto const& light_connection =
       graph_accessor::get_departing_route_edge(route_node)
-          ->_m._route_edge._conns[0];
+          ->m_.route_edge_.conns_[0];
 
   distributions_container::container feeder_distributions;
   auto const& distribution_node = init_feeders_and_get_distribution_node(
@@ -361,7 +361,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
            .get_distribution(/* IC_FH_DA arrival 05:41 */
                              to_container_key(
                                  last_route_node_IC_FH_DA,
-                                 route_edge_IC_FH_DA._m._route_edge._conns[0],
+                                 route_edge_IC_FH_DA.m_.route_edge_.conns_[0],
                                  time_util::arrival, *schedule_)),
       &data.feeders_[0].distribution_);
   ASSERT_EQ(
@@ -369,7 +369,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
            .get_distribution(/* IC_FH_DA arrival 05:56 */
                              to_container_key(
                                  last_route_node_IC_FH_DA,
-                                 route_edge_IC_FH_DA._m._route_edge._conns[1],
+                                 route_edge_IC_FH_DA.m_.route_edge_.conns_[1],
                                  time_util::arrival, *schedule_)),
       &data.feeders_[1].distribution_);
 }
@@ -381,7 +381,7 @@ TEST_F(reliability_data_departure, check_start_distribution) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
@@ -420,10 +420,10 @@ TEST_F(reliability_data_departure, check_largest_delay) {
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
-           ->_to;
+           ->to_;
   auto const& light_connection =
       graph_accessor::get_departing_route_edge(route_node)
-          ->_m._route_edge._conns[0];
+          ->m_.route_edge_.conns_[0];
 
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   std::vector<probability> values = {0.1, 0.1, 0.1, 0.1, 0.1,

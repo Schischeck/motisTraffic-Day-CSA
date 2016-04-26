@@ -25,10 +25,14 @@ struct request_builder {
 
   request_builder(routing::RoutingRequest const*);
 
+  // not for intermodal requests
   request_builder& add_station(std::string const& name, std::string const& eva);
 
-  request_builder& add_coordinates(double const& lat, double const& lon,
-                                   bool const is_source);
+  // for intermodal requests
+  request_builder& add_dep_coordinates(double const& lat, double const& lng);
+
+  // for intermodal requests
+  request_builder& add_arr_coordinates(double const& lat, double const& lng);
 
   request_builder& set_interval(std::time_t const begin, std::time_t const end);
 
@@ -58,10 +62,15 @@ struct request_builder {
   module::message_creator b_;
   routing::Type type_;
   routing::Direction direction_;
-  std::vector<::flatbuffers::Offset<routing::LocationPathElementWrapper>> path_;
+  std::vector<::flatbuffers::Offset<routing::StationPathElement>> path_;
   std::time_t interval_begin_, interval_end_;
   std::vector<::flatbuffers::Offset<routing::AdditionalEdgeWrapper>>
       additional_edges_;
+
+  bool is_intermodal_;
+  struct coordinates {
+    double lat_, lng_;
+  } dep_, arr_;
 
 private:
   module::msg_ptr build_reliable_request(

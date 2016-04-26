@@ -17,7 +17,8 @@ inline future motis_call_(msg_ptr const& msg, ctx::op_id id) {
   return data.dispatcher_->req(msg, data, id);
 }
 
-#define motis_call(msg) motis_call_(msg, ctx::op_id(CTX_LOCATION))
+#define motis_call(msg) \
+  motis::module::motis_call_(msg, ctx::op_id(CTX_LOCATION))
 
 }  // namespace module
 }  // namespace motis

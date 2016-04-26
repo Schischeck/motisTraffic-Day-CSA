@@ -2,6 +2,8 @@
 
 #include "motis/core/common/date_time_util.h"
 
+#include "motis/module/error.h"
+
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 using namespace flatbuffers;
@@ -23,44 +25,51 @@ time_t to_unix_time(std::tuple<int, int, int> ddmmyyyy, motis::time time) {
 
 request_builder::request_builder(routing::Type const type,
                                  routing::Direction const dir)
-    : type_(type), direction_(dir), interval_begin_(0), interval_end_(0) {
+    : type_(type),
+      direction_(dir),
+      interval_begin_(0),
+      interval_end_(0),
+      is_intermodal_(false) {
   b_.ForceDefaults(true); /* necessary to write indices 0 */
+  dep_.lat_ = 0.0;
+  dep_.lng_ = 0.0;
+  arr_.lat_ = 0.0;
+  arr_.lng_ = 0.0;
 }
 
 request_builder::request_builder(routing::RoutingRequest const* request)
     : request_builder(request->type(), request->direction()) {
   set_interval(request->interval()->begin(), request->interval()->end());
   for (auto const& e : *request->path()) {
-    if (e->element_type() == routing::LocationPathElement_StationPathElement) {
-      auto st =
-          reinterpret_cast<routing::StationPathElement const*>(e->element());
-      add_station(st->name() ? st->name()->c_str() : "",
-                  st->eva_nr() ? st->eva_nr()->c_str() : "");
-    } else if (e->element_type() ==
-               routing::LocationPathElement_CoordinatesPathElement) {
-      auto c = reinterpret_cast<routing::CoordinatesPathElement const*>(
-          e->element());
-      add_coordinates(c->lat(), c->lon(), c->is_source());
-    }
+    add_station(e->name() ? e->name()->c_str() : "",
+                e->eva_nr() ? e->eva_nr()->c_str() : "");
   }
 }
 
 request_builder& request_builder::add_station(std::string const& name,
                                               std::string const& eva) {
-  path_.push_back(routing::CreateLocationPathElementWrapper(
-      b_, routing::LocationPathElement_StationPathElement,
-      routing::CreateStationPathElement(b_, b_.CreateString(name),
-                                        b_.CreateString(eva))
-          .Union()));
+  if (is_intermodal_) {
+    throw std::system_error(error::malformed_msg);
+  }
+  path_.push_back(routing::CreateStationPathElement(b_, b_.CreateString(name),
+                                                    b_.CreateString(eva)));
   return *this;
 }
 
-request_builder& request_builder::add_coordinates(double const& lat,
-                                                  double const& lon,
-                                                  bool const is_source) {
-  path_.push_back(routing::CreateLocationPathElementWrapper(
-      b_, routing::LocationPathElement_CoordinatesPathElement,
-      routing::CreateCoordinatesPathElement(b_, lat, lon, is_source).Union()));
+request_builder& request_builder::add_dep_coordinates(double const& lat,
+                                                      double const& lng) {
+  is_intermodal_ = true;
+  dep_.lat_ = lat;
+  dep_.lng_ = lng;
+  return *this;
+}
+
+// for intermodal requests
+request_builder& request_builder::add_arr_coordinates(double const& lat,
+                                                      double const& lng) {
+  is_intermodal_ = true;
+  arr_.lat_ = lat;
+  arr_.lng_ = lng;
   return *this;
 }
 
@@ -88,6 +97,8 @@ request_builder& request_builder::add_additional_edge(
 request_builder& request_builder::add_additional_edges(
     motis::reliability::intermodal::bikesharing::bikesharing_infos const&
         infos) {
+  // TODO(Mohammad Keyhani) Peridic edges for taxi
+
   auto create_edge = [&](
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
       std::string const tail_station, std::string const head_station) {
@@ -98,18 +109,19 @@ request_builder& request_builder::add_additional_edges(
           CreateTimeDependentMumoEdge(
               b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
                                  b_.CreateString(head_station), info.duration_,
-                                 0 /* TODO(Mohammad Keyhani) slots */),
-              interval.first, interval.second, 0)
+                                 0 /* TODO(Mohammad Keyhani) price */,
+                                 0 /* TODO(Mohammad Keyhani) slot */),
+              interval.first, interval.second)
               .Union()));
     }
   };
 
   for (auto const& info : infos.at_start_) {
-    create_edge(info, "-1", info.station_eva_);
+    create_edge(info, "START", info.station_eva_);
   }
 
   for (auto const& info : infos.at_destination_) {
-    create_edge(info, info.station_eva_, "-2");
+    create_edge(info, info.station_eva_, "END");
   }
   return *this;
 }
@@ -159,11 +171,13 @@ msg_ptr request_builder::build_connection_tree_request(
 msg_ptr request_builder::build_reliable_request(
     Offset<RequestOptionsWrapper> const& options, bool const bikesharing) {
   IndividualModes modes(bikesharing, 0);
-  b_.create_and_finish(MsgContent_ReliableRoutingRequest,
-                       CreateReliableRoutingRequest(
-                           b_, create_routing_request(), options, &modes)
-                           .Union(),
-                       "/routing");
+  Coordinates dep(dep_.lat_, dep_.lng_), arr(arr_.lat_, arr_.lng_);
+  b_.create_and_finish(
+      MsgContent_ReliableRoutingRequest,
+      CreateReliableRoutingRequest(b_, create_routing_request(), is_intermodal_,
+                                   &dep, &arr, options, &modes)
+          .Union(),
+      "/routing");
   return module::make_msg(b_);
 }
 

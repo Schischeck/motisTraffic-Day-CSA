@@ -37,14 +37,14 @@ struct reliability : public motis::module::module {
 
   synced_schedule<RO> synced_sched() { return module::synced_sched<RO>(); }
 
+  std::unique_ptr<distributions_container::container>
+      precomputed_distributions_;
+  std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
+
 private:
   motis::module::msg_ptr routing_request(motis::module::msg_ptr const&);
 
   motis::module::msg_ptr realtime_update(motis::module::msg_ptr const&);
-
-  std::unique_ptr<distributions_container::container>
-      precomputed_distributions_;
-  std::unique_ptr<start_and_travel_distributions> s_t_distributions_;
 
   bool read_distributions_;
   std::vector<std::string> distributions_folders_;

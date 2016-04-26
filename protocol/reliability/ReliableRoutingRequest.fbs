@@ -31,8 +31,18 @@ struct IndividualModes {
   taxi: bool;
 }
 
+struct Coordinates {
+  lat: double = 0.0;
+  lng: double = 0.0;
+}
+
 table ReliableRoutingRequest {
   request: motis.routing.RoutingRequest;
+
+  is_intermodal: bool = false;
+  dep_coord: Coordinates;
+  arr_coord: Coordinates;
+
   request_type: RequestOptionsWrapper;
   individual_modes: IndividualModes;
 }

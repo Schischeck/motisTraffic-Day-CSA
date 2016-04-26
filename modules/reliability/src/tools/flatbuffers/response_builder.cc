@@ -4,9 +4,9 @@
 #include <tuple>
 #include <vector>
 
+#include "motis/core/schedule/time.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
-#include "motis/core/schedule/time.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
@@ -180,35 +180,37 @@ module::msg_ptr to_reliability_rating_response(
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
   b.create_and_finish(MsgContent_ReliabilityRatingResponse,
-                    CreateReliabilityRatingResponse(
-                        b, routing_response, conn_ratings, simple_ratings)
-                        .Union());
+                      CreateReliabilityRatingResponse(
+                          b, routing_response, conn_ratings, simple_ratings)
+                          .Union());
   return module::make_msg(b);
 }
 
 std::pair<std::time_t, std::time_t> get_scheduled_times(
     journey const& journey) {
   auto const& first_transport =
-      std::find_if(journey.transports.begin(), journey.transports.end(),
+      std::find_if(journey.transports_.begin(), journey.transports_.end(),
                    [&](journey::transport const& t) {
-                     return t.type == journey::transport::PublicTransport;
+                     return t.type_ == journey::transport::PublicTransport;
                    });
   auto const& last_transport =
-      std::find_if(journey.transports.rbegin(), journey.transports.rend(),
+      std::find_if(journey.transports_.rbegin(), journey.transports_.rend(),
                    [&](journey::transport const& t) {
-                     return t.type == journey::transport::PublicTransport;
+                     return t.type_ == journey::transport::PublicTransport;
                    });
   auto const scheduled_departure =
-      first_transport != journey.transports.end()
-          ? journey.stops[first_transport->from].departure.schedule_timestamp
-          : journey.stops.front()
-                .departure
-                .schedule_timestamp /* transport consists of a walk */;
+      first_transport != journey.transports_.end()
+          ? journey.stops_[first_transport->from_]
+                .departure_.schedule_timestamp_
+          : journey.stops_.front()
+                .departure_
+                .schedule_timestamp_ /* transport consists of a walk */;
   auto const scheduled_arrival =
-      last_transport != journey.transports.rend()
-          ? journey.stops[last_transport->to].arrival.schedule_timestamp
-          : journey.stops.back()
-                .arrival.schedule_timestamp /* transport consists of a walk */;
+      last_transport != journey.transports_.rend()
+          ? journey.stops_[last_transport->to_].arrival_.schedule_timestamp_
+          : journey.stops_.back()
+                .arrival_
+                .schedule_timestamp_ /* transport consists of a walk */;
 
   return std::make_pair(scheduled_departure, scheduled_arrival);
 }
@@ -258,9 +260,9 @@ module::msg_ptr to_reliable_routing_response(
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
-                    reliability::CreateReliableRoutingResponse(
-                        b, b.CreateVector(connection_graphs))
-                        .Union());
+                      reliability::CreateReliableRoutingResponse(
+                          b, b.CreateVector(connection_graphs))
+                          .Union());
   return module::make_msg(b);
 }
 

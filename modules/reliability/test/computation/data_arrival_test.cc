@@ -49,25 +49,25 @@ TEST_F(reliability_data_arrival, initialize) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
-  auto const& second_route_node = *first_route_edge->_to;
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
+  auto const& second_route_node = *first_route_edge->to_;
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(
-      schedule_->stations[second_route_node._station_node->_id]->eva_nr ==
+      schedule_->stations_[second_route_node.station_node_->id_]->eva_nr_ ==
       DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time ==
+  ASSERT_TRUE(light_connection.d_time_ ==
               test_util::minutes_to_motis_time(5 * 60 + 55));
-  ASSERT_TRUE(light_connection.a_time ==
+  ASSERT_TRUE(light_connection.a_time_ ==
               test_util::minutes_to_motis_time(6 * 60 + 5));
 
-  ASSERT_EQ(light_connection.d_time,
+  ASSERT_EQ(light_connection.d_time_,
             data.departure_info_.scheduled_departure_time_);
   ASSERT_TRUE(&data.departure_info_.distribution_ == &dep_dist);
 
-  ASSERT_TRUE(data.scheduled_arrival_time_ == light_connection.a_time);
+  ASSERT_TRUE(data.scheduled_arrival_time_ == light_connection.a_time_);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);
   ASSERT_TRUE(&data.travel_distributions_[0].get() ==
@@ -114,9 +114,9 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
   auto const route_edge =
       graph_accessor::get_departing_route_edge(departure_route_node);
   // get the second light connection
-  auto const& light_connection = route_edge->_m._route_edge._conns[1];
+  auto const& light_connection = route_edge->m_.route_edge_.conns_[1];
 
-  data_arrival data(*route_edge->_from, *route_edge->_to, light_connection,
+  data_arrival data(*route_edge->from_, *route_edge->to_, light_connection,
                     dep_dist, *schedule_, s_t_distributions);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);

@@ -32,13 +32,13 @@ module::msg_ptr to_routing_late_connections_message(
         static_cast<TimeDependentMumoEdge const*>(e->additional_edge());
     /* TODO(Mohammad Keyhani) ask intermodal modul for taxi-edges */
     builder.add_additional_edge(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_TimeDependentMumoEdge,
-        CreateTimeDependentMumoEdge(
+        b, AdditionalEdge_PeriodicMumoEdge,
+        CreatePeriodicMumoEdge(
             b, CreateMumoEdge(
                    b, b.CreateString(mumo->edge()->from_station_eva()->c_str()),
                    b.CreateString(mumo->edge()->to_station_eva()->c_str()),
                    mumo->edge()->duration(), mumo->edge()->price()),
-            LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME, 1)
+            LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME)
             .Union()));
   }
   for (auto const& hotel : hotel_infos) {

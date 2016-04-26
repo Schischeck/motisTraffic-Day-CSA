@@ -7,8 +7,6 @@
 namespace motis {
 
 struct journey {
-  journey() = default;
-
   struct transport {
     unsigned from_, to_;
     enum transport_type { PublicTransport, Walk, Mumo } type_;

@@ -15,7 +15,6 @@ namespace routing {
 struct RoutingRequest;
 }
 namespace reliability {
-struct reliability;
 namespace intermodal {
 namespace bikesharing {
 
@@ -54,18 +53,14 @@ struct bikesharing_infos {
 typedef std::function<void(bikesharing_infos const)> callback;
 
 /* retrieves reliable bikesharing infos */
-void retrieve_bikesharing_infos(module::msg_ptr request,
-                                std::shared_ptr<availability_aggregator>,
-                                motis::reliability::reliability&);
+bikesharing_infos retrieve_bikesharing_infos(
+    module::msg_ptr request, std::shared_ptr<availability_aggregator>);
 
 module::msg_ptr to_bikesharing_request(
     double const departure_lat, double const departure_lng,
     double const arrival_lat, double const arrival_lng,
     std::time_t window_begin, std::time_t window_end,
     motis::bikesharing::AvailabilityAggregator);
-
-module::msg_ptr to_bikesharing_request(
-    routing::RoutingRequest const*, motis::bikesharing::AvailabilityAggregator);
 
 }  // namespace bikesharing
 }  // namespace intermodal

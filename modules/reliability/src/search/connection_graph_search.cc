@@ -3,8 +3,7 @@
 #include <limits>
 #include <memory>
 
-#include "ctx/future.h"
-
+#include "motis/module/context/motis_call.h"
 #include "motis/module/context/motis_parallel_for.h"
 
 #include "motis/core/common/logging.h"
@@ -94,8 +93,7 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
 
 std::vector<journey> retrieve_base_journeys(
     ReliableRoutingRequest const* request) {
-  using namespace module;
-  using namespace routing;
+  using routing::RoutingResponse;
   auto routing_response =
       motis_call(
           flatbuffers::request_builder::request_builder(request->request())
@@ -109,7 +107,6 @@ void init_connection_graph_from_base_journey(context& context,
   context.connection_graphs_.emplace_back();
   auto& cg_context = context.connection_graphs_.back();
   cg_context.index_ = context.connection_graphs_.size() - 1;
-  cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
 
   connection_graph_builder::add_base_journey(*cg_context.cg_, base_journey);
   auto const stop_indices = insert_stop_states(cg_context);
@@ -135,15 +132,15 @@ std::vector<request_type> alternative_requests(context::conn_graph_context& cg,
     stop_state.second.state_ =
         context::conn_graph_context::stop_state::Stop_busy;
 
-    auto req = tools::to_routing_request(
+    auto const req = tools::to_routing_request(
         *cg.cg_, cg.cg_->stops_.at(stop_state.first), min_dep_diff);
     requests.push_back({stop_state.first, req.first, req.second});
   }
+  return requests;
 }
 
-journey retrieve_alternative(motis::module::msg_ptr request) {
-  using namespace module;
-  using namespace routing;
+journey retrieve_alternative(motis::module::msg_ptr const& request) {
+  using routing::RoutingResponse;
 
   std::vector<journey> journeys;
   try {
@@ -177,19 +174,23 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
   std::vector<ctx::future_ptr<module::ctx_data, future_return>>
       new_alternative_futures;
 
+  // TODO vector with active stops
+  // TODO mutex for cache
+
   do {
     auto const requests =
         alternative_requests(cg, c->optimizer_->min_departure_diff_);
 
     for (auto const& req : requests) {
       new_alternative_futures.emplace_back(
-          module::spawn_job(req, [&](request_type const& req) {
+          module::spawn_job(req, [&](request_type const& req) -> future_return {
             auto const cache_it = c->journey_cache_.find(req.cache_key_);
             bool const is_cached = cache_it != c->journey_cache_.end();
-            return {req.stop_id_,
-                    is_cached ? cache_it->second
-                              : retrieve_alternative(req.request_msg_),
-                    is_cached, req.cache_key_};
+            return future_return{req.stop_id_,
+                                 is_cached
+                                     ? cache_it->second
+                                     : retrieve_alternative(req.request_msg_),
+                                 is_cached, req.cache_key_};
           }));
     }
 
@@ -207,28 +208,22 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
 }  // namespace detail
 
 std::vector<std::shared_ptr<connection_graph>> search_cgs(
-    ReliableRoutingRequest const* request, motis::reliability::reliability& rel,
+    ReliableRoutingRequest const* request,
+    motis::reliability::context const& rel_context,
     std::shared_ptr<connection_graph_optimizer const> optimizer) {
-  auto c = std::make_shared<detail::context>(rel, optimizer);
+  auto c = std::make_shared<detail::context>(rel_context, optimizer);
 
   for (auto const& j : detail::retrieve_base_journeys(request)) {
     detail::init_connection_graph_from_base_journey(*c, j);
   }
 
   using namespace motis::module;
-  motis_parallel_for(
-      c->connection_graphs_,
-      [&](detail::context::conn_graph_context const& cg) {
-        motis_parallel_for(
-            cg.cg_->stops_,
-            std::bind(&detail::build_cg, std::placeholders::_1, cg, c));
-      });
+  motis_parallel_for(c->connection_graphs_,
+                     std::bind(&detail::build_cg, std::placeholders::_1, c));
 
   std::vector<std::shared_ptr<connection_graph>> cgs;
   for (auto const& cg_c : c->connection_graphs_) {
-    if (cg_c.cg_state_ == detail::context::conn_graph_context::CG_completed) {
-      cgs.push_back(cg_c.cg_);
-    }
+    cgs.push_back(cg_c.cg_);
   }
   return cgs;
 }

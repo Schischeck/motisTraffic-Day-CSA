@@ -143,6 +143,7 @@ bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
 }
 
 msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
+  using routing::RoutingResponse;
   auto routing_response =
       motis_call(flatbuffers::request_builder::request_builder(req->request())
                      .add_additional_edges(retrieve_individual_mode_infos(req))
@@ -150,7 +151,7 @@ msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
           ->val();
   auto lock = rel.synced_sched();
   return rating::rate_routing_response(
-      *reinterpret_cast<routing::RoutingResponse const*>(routing_response),
+      *motis_content(RoutingResponse, routing_response),
       ::motis::reliability::context(lock.sched(),
                                     *rel.precomputed_distributions_,
                                     *rel.s_t_distributions_));
@@ -159,8 +160,11 @@ msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
 msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
   auto req_info = reinterpret_cast<ReliableSearchReq const*>(
       req->request_type()->request_options());
+  auto lock = rel.synced_sched();
   auto const cgs = search::connection_graph_search::search_cgs(
-      req, rel,
+      req, ::motis::reliability::context(lock.sched(),
+                                         *rel.precomputed_distributions_,
+                                         *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::reliable_cg_optimizer>(
           req_info->min_departure_diff()));
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
@@ -169,8 +173,11 @@ msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
 msg_ptr connection_tree(ReliableRoutingRequest const* req, reliability& rel) {
   auto req_info =
       (ConnectionTreeReq const*)req->request_type()->request_options();
+  auto lock = rel.synced_sched();
   auto const cgs = search::connection_graph_search::search_cgs(
-      req, rel,
+      req, ::motis::reliability::context(lock.sched(),
+                                         *rel.precomputed_distributions_,
+                                         *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::simple_optimizer>(
           req_info->num_alternatives_at_each_stop(),
           req_info->min_departure_diff()));

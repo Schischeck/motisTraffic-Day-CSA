@@ -3,6 +3,8 @@
 #include "ctx/ctx.h"
 #include "ctx/parallel_for.h"
 
+#include "motis/module/ctx_data.h"
+
 namespace motis {
 namespace module {
 
@@ -10,11 +12,11 @@ namespace module {
   ctx::parallel_for<ctx_data>(vec, fn, ctx::op_id(CTX_LOCATION))
 
 template <typename T, typename Fn>
-void spawn_job(T elem, Fn func) {
+auto spawn_job(T elem, Fn func) {
   auto& op = ctx::current_op<ctx_data>();
   auto id = ctx::op_id(CTX_LOCATION);
   id.parent_index = op.id_.index;
-  op.sched_.post_void(op.data_, [&]() { func(elem); }, id);
+  return op.sched_.post(op.data_, [&]() { return func(elem); }, id);
 }
 
 }  // namespace module

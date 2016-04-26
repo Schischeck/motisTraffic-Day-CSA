@@ -24,8 +24,8 @@ std::vector<distribution_info> distributions_arriving_alternatives(
         pd.init(values, 0);
         distributions.emplace_back(
             cg.journeys_.at(alternative.journey_index_)
-                    .stops.back()
-                    .arrival.schedule_timestamp +
+                    .stops_.back()
+                    .arrival_.schedule_timestamp_ +
                 (alternative.rating_.arrival_distribution_.first_minute() * 60),
             pd);
       }

@@ -11,7 +11,6 @@
 namespace motis {
 struct journey;
 namespace reliability {
-struct reliability;
 namespace search {
 struct connection_graph;
 namespace connection_graph_search {
@@ -20,15 +19,10 @@ namespace detail {
 
 struct context {
   struct conn_graph_context {
-    conn_graph_context();
+    conn_graph_context()
+        : index_(0), cg_(std::make_shared<connection_graph>()) {}
     unsigned int index_;
     std::shared_ptr<connection_graph> cg_;
-    enum cg_state {
-      CG_in_progress,
-      CG_completed,
-      CG_base_failed,
-      CG_failed
-    } cg_state_;
 
     struct stop_state {
       enum state {
@@ -42,25 +36,27 @@ struct context {
     std::map<unsigned int, stop_state> stop_states_;
   };
 
-  context(motis::reliability::reliability&,
-          std::shared_ptr<connection_graph_optimizer const>);
+  context(motis::reliability::context const& rel_context,
+          std::shared_ptr<connection_graph_optimizer const> optimizer)
+      : reliability_context_(rel_context), optimizer_(optimizer) {}
+
+  motis::reliability::context reliability_context_;
 
   std::vector<conn_graph_context> connection_graphs_;
-  motis::reliability::reliability& reliability_;
   std::shared_ptr<connection_graph_optimizer const> optimizer_;
-  bool result_returned_;
 
   struct journey_cache_key {
+    journey_cache_key() = default;
     journey_cache_key(std::string const& from_eva, time_t const& ontrip_time)
         : from_eva_(from_eva), ontrip_time_(ontrip_time) {}
-    bool operator<(journey_cache_key const& right) const;
-    std::string const from_eva_;
-    time_t const ontrip_time_;
+    bool operator<(journey_cache_key const& right) const {
+      return from_eva_ < right.from_eva_ || (from_eva_ == right.from_eva_ &&
+                                             ontrip_time_ < right.ontrip_time_);
+    }
+    std::string from_eva_;
+    time_t ontrip_time_;
   };
   std::map<journey_cache_key, journey> journey_cache_;
-
-  synced_schedule<RO> synced_sched_;
-  motis::reliability::context reliability_context_;
 };
 
 }  // namespace detail

@@ -66,9 +66,9 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
@@ -97,9 +97,9 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution2) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
@@ -128,9 +128,9 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution3) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 

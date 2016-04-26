@@ -9,9 +9,9 @@
 
 #include "motis/loader/loader.h"
 
-#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/graph_accessor.h"
@@ -106,7 +106,7 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough1) {
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   data_departure data(first_route_node, first_light_conn, true, dummy,
                       dummy_node,
@@ -129,11 +129,11 @@ TEST_F(reliability_calc_departure_distribution, train_early_enough2) {
       *graph_accessor::get_first_route_node(*schedule_, ICE_HA_W_HE);
   // route node at Wuerzburg
   auto second_route_node =
-      graph_accessor::get_departing_route_edge(first_route_node)->_to;
+      graph_accessor::get_departing_route_edge(first_route_node)->to_;
   // route edge from Wuerzburg to Heilbronn
   auto const route_edge =
       graph_accessor::get_departing_route_edge(*second_route_node);
-  auto const& light_connection = route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = route_edge->m_.route_edge_.conns_[0];
 
   data_departure data(*second_route_node, light_connection, false,
                       train_distributions, dummy_node,
@@ -312,7 +312,7 @@ TEST_F(reliability_calc_departure_distribution,
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& first_light_conn = first_route_edge->_m._route_edge._conns[0];
+  auto const& first_light_conn = first_route_edge->m_.route_edge_.conns_[0];
 
   data_departure data(first_route_node, first_light_conn, true, dummy,
                       dummy_node,
@@ -340,7 +340,7 @@ TEST_F(reliability_calc_departure_distribution,
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
   // light connection d07:00 a07:28
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[1];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[1];
 
   distributions_container::container feeder_distributions;
   auto const& distribution_node = init_feeders_and_get_distribution_node(
@@ -405,11 +405,11 @@ TEST_F(reliability_calc_departure_distribution,
       *graph_accessor::get_first_route_node(*schedule_, ICE_HA_W_HE);
   // route node at Wuerzburg
   auto second_route_node =
-      graph_accessor::get_departing_route_edge(first_route_node)->_to;
+      graph_accessor::get_departing_route_edge(first_route_node)->to_;
   // route edge from Wuerzburg to Heilbronn
   auto const route_edge =
       graph_accessor::get_departing_route_edge(*second_route_node);
-  auto const& light_connection = route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = route_edge->m_.route_edge_.conns_[0];
 
   /* scheduled-departure-time: 10:34 largest-delay: 1 is-first-route-node: 0
    * preceding-arrival-time: 10:32 min-standing: 2
@@ -462,10 +462,10 @@ TEST_F(reliability_calc_departure_distribution,
   auto& route_node =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H))
-           ->_to;
+           ->to_;
   auto const& light_connection =
       graph_accessor::get_departing_route_edge(route_node)
-          ->_m._route_edge._conns[0];
+          ->m_.route_edge_.conns_[0];
 
   distributions_container::container feeder_distributions;
   auto const& distribution_node = init_feeders_and_get_distribution_node(

@@ -34,14 +34,6 @@ inline bool complete(detail::context::conn_graph_context const& cg) {
                                        stop_state::Stop_completed;
                       }) == cg.cg_->stops_.end();
 }
-inline bool complete(detail::context const& c) {
-  return std::find_if(
-             c.connection_graphs_.begin(), c.connection_graphs_.end(),
-             [&](detail::context::conn_graph_context const& cg) {
-               return cg.cg_state_ ==
-                      detail::context::conn_graph_context::CG_in_progress;
-             }) == c.connection_graphs_.end();
-}
 
 inline journey const& latest_departing_alternative(
     connection_graph const& conn_graph, connection_graph::stop const& stop) {

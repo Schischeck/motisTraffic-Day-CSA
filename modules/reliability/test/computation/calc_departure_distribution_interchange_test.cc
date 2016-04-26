@@ -93,7 +93,7 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.1, .7, .2}, -1);
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy, dummy_node,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -123,7 +123,7 @@ TEST_F(reliability_calc_departure_distribution2,
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy, dummy_node,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -148,10 +148,10 @@ TEST_F(reliability_calc_departure_distribution2,
   auto& tail_node_departing_train =
       *graph_accessor::get_departing_route_edge(
            *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
-           ->_to;
+           ->to_;
   ASSERT_EQ(FRANKFURT,
-            schedule_->stations[tail_node_departing_train._station_node->_id]
-                ->eva_nr);
+            schedule_->stations_[tail_node_departing_train.station_node_->id_]
+                ->eva_nr_);
   probability_distribution arrival_distribution;
   arrival_distribution.init({.4, .3, .2, .1}, 14);  // 10:14 - 10:17
 
@@ -174,7 +174,7 @@ TEST_F(reliability_calc_departure_distribution2,
       preceding_arrival_container(preceding_arr_dist);
 
   data_departure_interchange data(
-      false, tail_node_departing_train, *ic_data.arriving_route_edge_._to,
+      false, tail_node_departing_train, *ic_data.arriving_route_edge_.to_,
       ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
       arrival_distribution, preceding_arrival_container, distribution_node,
       context(*schedule_, precomputed, s_t_distributions));
@@ -218,7 +218,7 @@ TEST_F(reliability_calc_departure_distribution2,
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, precomputed,
       distribution_node, context(*schedule_, precomputed, s_t_distributions));
 

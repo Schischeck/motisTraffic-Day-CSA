@@ -13,13 +13,13 @@ void print_journey(journey const&, time_t const sched_begin, std::ostream&);
 
 template <typename Journey, typename F>
 void foreach_light_connection(Journey& journey, F func) {
-  for (auto& transport : journey.transports) {
-    if (transport.type != Journey::transport::PublicTransport) {
+  for (auto& transport : journey.transports_) {
+    if (transport.type_ != Journey::transport::PublicTransport) {
       continue;
     }
 
-    for (auto i = transport.from; i < transport.to; ++i) {
-      func(transport, journey.stops[i], journey.stops[i + 1]);
+    for (auto i = transport.from_; i < transport.to_; ++i) {
+      func(transport, journey.stops_[i], journey.stops_[i + 1]);
     }
   }
 }

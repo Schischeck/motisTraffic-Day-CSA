@@ -21,15 +21,15 @@ void correct_transports_and_attributes_indices(std::vector<T> const& orig,
                                                std::vector<T>& j2,
                                                unsigned int const stop_idx) {
   for (auto const& element : orig) {
-    if (element.from < stop_idx) {
+    if (element.from_ < stop_idx) {
       j1.push_back(element);
-      j1.back().to = std::min((unsigned int)j1.back().to, stop_idx);
+      j1.back().to_ = std::min((unsigned int)j1.back().to_, stop_idx);
     }
-    if (element.to > stop_idx) {
+    if (element.to_ > stop_idx) {
       j2.push_back(element);
-      j2.back().from =
-          std::max((unsigned int)j2.back().from, stop_idx) - stop_idx;
-      j2.back().to -= stop_idx;
+      j2.back().from_ =
+          std::max((unsigned int)j2.back().from_, stop_idx) - stop_idx;
+      j2.back().to_ -= stop_idx;
     }
   }
 }
@@ -37,51 +37,51 @@ void correct_transports_and_attributes_indices(std::vector<T> const& orig,
 /* split journey at a stop with interchange */
 std::pair<journey, journey> split_journey(journey const& j,
                                           unsigned int const stop_idx) {
-  assert(j.transports.size() >= 1);
-  assert(j.stops.size() > 2);
-  assert(j.stops.at(stop_idx).interchange);
+  assert(j.transports_.size() >= 1);
+  assert(j.stops_.size() > 2);
+  assert(j.stops_.at(stop_idx).interchange_);
   assert(stop_idx > 0);
-  assert(stop_idx + 1 < j.stops.size());
+  assert(stop_idx + 1 < j.stops_.size());
   journey j1;
   journey j2;
 
-  for (auto const& stop : j.stops) {
-    if (stop.index <= stop_idx) {
-      j1.stops.push_back(stop);
+  for (auto const& stop : j.stops_) {
+    if (stop.index_ <= stop_idx) {
+      j1.stops_.push_back(stop);
     }
-    if (stop.index >= stop_idx) {
-      j2.stops.push_back(stop);
-      j2.stops.back().index -= stop_idx;
+    if (stop.index_ >= stop_idx) {
+      j2.stops_.push_back(stop);
+      j2.stops_.back().index_ -= stop_idx;
     }
   }
-  j1.stops.back().interchange = false;
-  j1.stops.back().departure.valid = false;
-  j2.stops.front().interchange = false;
-  j2.stops.front().arrival.valid = false;
+  j1.stops_.back().interchange_ = false;
+  j1.stops_.back().departure_.valid_ = false;
+  j2.stops_.front().interchange_ = false;
+  j2.stops_.front().arrival_.valid_ = false;
 
-  correct_transports_and_attributes_indices(j.transports, j1.transports,
-                                            j2.transports, stop_idx);
-  correct_transports_and_attributes_indices(j.attributes, j1.attributes,
-                                            j2.attributes, stop_idx);
+  correct_transports_and_attributes_indices(j.transports_, j1.transports_,
+                                            j2.transports_, stop_idx);
+  correct_transports_and_attributes_indices(j.attributes_, j1.attributes_,
+                                            j2.attributes_, stop_idx);
 
-  j1.duration = get_duration(j1);
-  j2.duration = get_duration(j2);
-  j1.transfers = get_transfers(j1);
-  j2.transfers = get_transfers(j2);
-  j1.price = 0;
-  j2.price = 0;
+  j1.duration_ = get_duration(j1);
+  j2.duration_ = get_duration(j2);
+  j1.transfers_ = get_transfers(j1);
+  j2.transfers_ = get_transfers(j2);
+  j1.price_ = 0;
+  j2.price_ = 0;
   // j1.night_penalty = 0; // TODO
   // j2.night_penalty = 0; // TODO
 
-  assert(j1.transports.size() >= 1);
-  assert(j1.stops.size() >= 2);
-  assert(j2.transports.size() >= 1);
-  assert(j2.stops.size() >= 2);
-  assert(j1.stops.size() + j2.stops.size() == j.stops.size() + 1);
-  assert(!j1.stops.front().interchange);
-  assert(!j1.stops.back().interchange);
-  assert(!j2.stops.front().interchange);
-  assert(!j2.stops.back().interchange);
+  assert(j1.transports_.size() >= 1);
+  assert(j1.stops_.size() >= 2);
+  assert(j2.transports_.size() >= 1);
+  assert(j2.stops_.size() >= 2);
+  assert(j1.stops_.size() + j2.stops_.size() == j.stops_.size() + 1);
+  assert(!j1.stops_.front().interchange_);
+  assert(!j1.stops_.back().interchange_);
+  assert(!j2.stops_.front().interchange_);
+  assert(!j2.stops_.back().interchange_);
 
   return std::make_pair(j1, j2);
 }
@@ -89,32 +89,32 @@ std::pair<journey, journey> split_journey(journey const& j,
 bool no_public_transport_after_this_stop(journey const& j,
                                          unsigned int const stop_idx) {
   auto const& transport_it =
-      std::find_if(j.transports.begin(), j.transports.end(),
+      std::find_if(j.transports_.begin(), j.transports_.end(),
                    [stop_idx](journey::transport const& t) {
-                     return t.from <= stop_idx && t.to > stop_idx;
+                     return t.from_ <= stop_idx && t.to_ > stop_idx;
                    });
-  if (transport_it == j.transports.end()) {
+  if (transport_it == j.transports_.end()) {
     LOG(logging::error) << "Transport not found!";
     return true;
   }
 
   auto const& public_transport_it = std::find_if(
-      transport_it, j.transports.end(), [](journey::transport const& t) {
-        return t.type == journey::transport::PublicTransport;
+      transport_it, j.transports_.end(), [](journey::transport const& t) {
+        return t.type_ == journey::transport::PublicTransport;
       });
 
-  return public_transport_it == j.transports.end();
+  return public_transport_it == j.transports_.end();
 }
 
 void split_journey(std::vector<journey>& journeys) {
   auto const& stop =
-      std::find_if(journeys.back().stops.begin(), journeys.back().stops.end(),
-                   [](journey::stop const& s) { return s.interchange; });
-  if (stop == journeys.back().stops.end() ||
-      no_public_transport_after_this_stop(journeys.back(), stop->index)) {
+      std::find_if(journeys.back().stops_.begin(), journeys.back().stops_.end(),
+                   [](journey::stop const& s) { return s.interchange_; });
+  if (stop == journeys.back().stops_.end() ||
+      no_public_transport_after_this_stop(journeys.back(), stop->index_)) {
     return;
   }
-  auto splitted_journey = split_journey(journeys.back(), stop->index);
+  auto splitted_journey = split_journey(journeys.back(), stop->index_);
   journeys.pop_back();
   journeys.push_back(splitted_journey.first);
   journeys.push_back(splitted_journey.second);
@@ -122,33 +122,33 @@ void split_journey(std::vector<journey>& journeys) {
 }
 
 journey remove_dummy_stops(journey const& orig_journey) {
-  assert(orig_journey.transports.size() >= 1);
-  assert(orig_journey.stops.size() >= 2);
+  assert(orig_journey.transports_.size() >= 1);
+  assert(orig_journey.stops_.size() >= 2);
   journey j = orig_journey;
-  if (j.stops.front().name == "DUMMY") {
-    j.stops.erase(j.stops.begin());
-    j.stops.front().arrival.valid = false;
-    j.transports.erase(j.transports.begin());
-    for (auto& t : j.transports) {
-      --t.from;
-      --t.to;
+  if (j.stops_.front().name_ == "DUMMY") {
+    j.stops_.erase(j.stops_.begin());
+    j.stops_.front().arrival_.valid_ = false;
+    j.transports_.erase(j.transports_.begin());
+    for (auto& t : j.transports_) {
+      --t.from_;
+      --t.to_;
     }
-    for (auto& a : j.attributes) {
-      --a.from;
-      --a.to;
+    for (auto& a : j.attributes_) {
+      --a.from_;
+      --a.to_;
     }
-    for (auto& stop : j.stops) {
-      --stop.index;
+    for (auto& stop : j.stops_) {
+      --stop.index_;
     }
   }
-  if (j.stops.back().name == "DUMMY") {
-    j.stops.pop_back();
-    j.stops.back().departure.valid = false;
-    j.stops.back().interchange = false;
-    j.transports.pop_back();
+  if (j.stops_.back().name_ == "DUMMY") {
+    j.stops_.pop_back();
+    j.stops_.back().departure_.valid_ = false;
+    j.stops_.back().interchange_ = false;
+    j.transports_.pop_back();
   }
-  assert(j.transports.size() >= 1);
-  assert(j.stops.size() >= 2);
+  assert(j.transports_.size() >= 1);
+  assert(j.stops_.size() >= 2);
   return j;
 }
 
@@ -161,17 +161,17 @@ std::vector<journey> split_journey(journey const& orig_journey) {
 
 journey move_early_walk(journey const& orig_j) {
   journey j = orig_j;
-  if (j.transports.size() > 1 && j.stops.size() > 2) {
-    unsigned int const index_last_stop = j.stops.size() - 1;
-    for (auto const& tr : j.transports) {
-      if (tr.type == journey::transport::Walk && tr.to < index_last_stop) {
-        auto const buffer = j.stops[tr.to].departure.timestamp -
-                            j.stops[tr.to].arrival.timestamp;
+  if (j.transports_.size() > 1 && j.stops_.size() > 2) {
+    unsigned int const index_last_stop = j.stops_.size() - 1;
+    for (auto const& tr : j.transports_) {
+      if (tr.type_ == journey::transport::Walk && tr.to_ < index_last_stop) {
+        auto const buffer = j.stops_[tr.to_].departure_.timestamp_ -
+                            j.stops_[tr.to_].arrival_.timestamp_;
         if (buffer > 0) {
-          j.stops[tr.from].departure.timestamp += buffer;
-          j.stops[tr.from].departure.schedule_timestamp += buffer;
-          j.stops[tr.to].arrival.timestamp += buffer;
-          j.stops[tr.to].arrival.schedule_timestamp += buffer;
+          j.stops_[tr.from_].departure_.timestamp_ += buffer;
+          j.stops_[tr.from_].departure_.schedule_timestamp_ += buffer;
+          j.stops_[tr.to_].arrival_.timestamp_ += buffer;
+          j.stops_[tr.to_].arrival_.schedule_timestamp_ += buffer;
         }
       }
     }

@@ -4,7 +4,6 @@
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
-#include "motis/reliability/context.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution_interchange.h"
@@ -12,6 +11,7 @@
 #include "motis/reliability/computation/data_departure_interchange.h"
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/computation/ride_distributions_calculator.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/graph_accessor.h"
@@ -51,8 +51,8 @@ create_data_for_interchange(
     distributions_container::container::node const& departing_distribution_node,
     context const& context) {
   // interchange with walk
-  if (preceding_element.to_->_station_node->_id !=
-      element.from_->_station_node->_id) {
+  if (preceding_element.to_->station_node_->id_ !=
+      element.from_->station_node_->id_) {
     return std::unique_ptr<
         calc_departure_distribution::data_departure_interchange>(
         new calc_departure_distribution::data_departure_interchange_walk(
