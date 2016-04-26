@@ -62,7 +62,7 @@ services traffic_days(
   s.last_day_ = bound_date(base, false);
 
   for (auto const& base_calendar : base) {
-    s.traffic_days_[base_calendar.first] = make_unique<bitfield>(
+    s.traffic_days_[base_calendar.first] = std::make_unique<bitfield>(
         calendar_to_bitfield(s.first_day_, base_calendar.second));
   }
 
@@ -70,8 +70,8 @@ services traffic_days(
     for (auto const& day : exception.second) {
       auto bits = s.traffic_days_.find(exception.first);
       if (bits == end(s.traffic_days_)) {
-        std::tie(bits, std::ignore) =
-            s.traffic_days_.emplace(exception.first, make_unique<bitfield>());
+        std::tie(bits, std::ignore) = s.traffic_days_.emplace(
+            exception.first, std::make_unique<bitfield>());
       }
       add_exception(s.first_day_, day, *bits->second);
     }

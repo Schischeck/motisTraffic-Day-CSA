@@ -6,7 +6,6 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
-#include "motis/core/common/util.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"

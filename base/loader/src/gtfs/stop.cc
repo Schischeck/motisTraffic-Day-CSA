@@ -23,10 +23,10 @@ static const column_mapping<gtfs_stop> columns = {
 stop_map read_stops(loaded_file file) {
   stop_map stops;
   for (auto const& s : read<gtfs_stop>(file.content(), columns)) {
-    stops.emplace(
-        get<stop_id>(s).to_str(),
-        make_unique<stop>(get<stop_id>(s).to_str(), get<stop_name>(s).to_str(),
-                          get<stop_lat>(s), get<stop_lon>(s)));
+    stops.emplace(get<stop_id>(s).to_str(),
+                  std::make_unique<stop>(get<stop_id>(s).to_str(),
+                                         get<stop_name>(s).to_str(),
+                                         get<stop_lat>(s), get<stop_lon>(s)));
   }
   return stops;
 }

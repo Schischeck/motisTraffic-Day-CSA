@@ -23,10 +23,11 @@ static const column_mapping<gtfs_agency> columns = {
 agency_map read_agencies(loaded_file file) {
   agency_map agencies;
   for (auto const& a : read<gtfs_agency>(file.content(), columns)) {
-    agencies.emplace(get<agency_id>(a).to_str(),
-                     make_unique<agency>(get<agency_id>(a).to_str(),
-                                         get<agency_name>(a).to_str(),
-                                         get<agency_timezone>(a).to_str()));
+    agencies.emplace(
+        get<agency_id>(a).to_str(),
+        std::make_unique<agency>(get<agency_id>(a).to_str(),
+                                 get<agency_name>(a).to_str(),
+                                 get<agency_timezone>(a).to_str()));
   }
   return agencies;
 }
