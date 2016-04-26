@@ -2,6 +2,7 @@
 
 #include "motis/module/context/get_schedule.h"
 #include "motis/lookup/error.h"
+#include "motis/lookup/lookup_geo_station.h"
 #include "motis/lookup/lookup_id_train.h"
 #include "motis/lookup/lookup_meta_station.h"
 #include "motis/lookup/lookup_station_events.h"
@@ -20,6 +21,8 @@ void lookup::init(registry& r) {
   auto& sched = synced_sched<RO>().sched();
   geo_index_ = std::make_unique<station_geo_index>(sched.stations_);
 
+  r.register_op("/lookup/geo_station_id",
+                [this](msg_ptr const& m) { return lookup_station_id(m); });
   r.register_op("/lookup/geo_station",
                 [this](msg_ptr const& m) { return lookup_station(m); });
   r.register_op("/lookup/geo_station_batch",
@@ -34,11 +37,21 @@ void lookup::init(registry& r) {
                 [this](msg_ptr const& m) { return lookup_meta_stations(m); });
 }
 
+msg_ptr lookup::lookup_station_id(msg_ptr const& msg) const {
+  auto req = motis_content(LookupGeoStationIdRequest, msg);
+
+  message_creator b;
+  auto response = motis::lookup::lookup_geo_stations_id(b, *geo_index_,
+                                                        get_schedule(), req);
+  b.create_and_finish(MsgContent_LookupGeoStationResponse, response.Union());
+  return make_msg(b);
+}
+
 msg_ptr lookup::lookup_station(msg_ptr const& msg) const {
   auto req = motis_content(LookupGeoStationRequest, msg);
 
   message_creator b;
-  auto response = geo_index_->stations(b, req);
+  auto response = motis::lookup::lookup_geo_stations(b, *geo_index_, req);
   b.create_and_finish(MsgContent_LookupGeoStationResponse, response.Union());
   return make_msg(b);
 }
@@ -48,8 +61,9 @@ msg_ptr lookup::lookup_stations(msg_ptr const& msg) const {
 
   message_creator b;
   std::vector<Offset<LookupGeoStationResponse>> responses;
-  for (auto const& request : *req->requests()) {
-    responses.push_back(geo_index_->stations(b, request));
+  for (auto const& sub_req : *req->requests()) {
+    responses.push_back(
+        motis::lookup::lookup_geo_stations(b, *geo_index_, sub_req));
   }
   b.create_and_finish(
       MsgContent_LookupBatchGeoStationResponse,

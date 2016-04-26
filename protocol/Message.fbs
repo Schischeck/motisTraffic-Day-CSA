@@ -6,6 +6,7 @@ include "geo_collector/GeoCollectorSubmitJourneyRequest.fbs";
 include "geo_collector/GeoCollectorSubmitMeasurementsRequest.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
+include "lookup/LookupGeoStationIdRequest.fbs";
 include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
 include "lookup/LookupStationEventsRequest.fbs";
@@ -98,6 +99,7 @@ union MsgContent {
   motis.geo_collector.GeoCollectorSignUpResponse,
   motis.geo_collector.GeoCollectorSubmitJourneyRequest,
   motis.geo_collector.GeoCollectorSubmitMeasurementsRequest,
+  motis.lookup.LookupGeoStationIdRequest,
   motis.lookup.LookupGeoStationRequest,
   motis.lookup.LookupGeoStationResponse,
   motis.lookup.LookupBatchGeoStationRequest,
