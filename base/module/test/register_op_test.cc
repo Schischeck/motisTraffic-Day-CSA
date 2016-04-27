@@ -25,8 +25,8 @@ auto query = R"({
     "type": "PreTrip",
     "direction": "Forward",
     "path": [
-      { "eva_nr": "8000096", "name": "" },
-      { "eva_nr": "8000105", "name": "" }
+      { "id": "8000096", "name": "", "pos": {"lat": 0, "lng": 0} },
+      { "id": "8000105", "name": "", "pos": {"lat": 0, "lng": 0} }
     ],
     "additional_edges": []
   }
@@ -34,14 +34,13 @@ auto query = R"({
 
 auto guess = [](msg_ptr const&) {
   message_creator b;
+  auto const pos = Position(0, 0);
   b.create_and_finish(
       MsgContent_StationGuesserResponse,
       motis::guesser::CreateStationGuesserResponse(
-          b, b.CreateVector(
-                 std::vector<flatbuffers::Offset<motis::guesser::Station> >(
-                     {motis::guesser::CreateStation(
-                         b, b.CreateString("Darmstadt Hbf"),
-                         b.CreateString("8600068"), 0, 0)})))
+          b, b.CreateVector(std::vector<flatbuffers::Offset<Station> >(
+                 {CreateStation(b, b.CreateString("Darmstadt Hbf"),
+                                b.CreateString("8600068"), &pos)})))
           .Union());
   return make_msg(b);
 };
@@ -58,9 +57,7 @@ auto route = [](msg_ptr const&) -> msg_ptr {
   b.create_and_finish(
       MsgContent_RoutingResponse,
       motis::routing::CreateRoutingResponse(
-          b, 0,
-          b.CreateVector(
-              std::vector<flatbuffers::Offset<motis::routing::Connection> >()))
+          b, 0, b.CreateVector(std::vector<flatbuffers::Offset<Connection> >()))
           .Union());
   return make_msg(b);
 };

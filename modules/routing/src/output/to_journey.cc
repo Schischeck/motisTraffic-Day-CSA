@@ -50,11 +50,20 @@ journey::transport generate_journey_transport(
     name = get_service_name(sched, con_info);
   }
 
-  return {from,     to,       type /* TODO(Mohammad Keyhani) mumo */,
-          name,     cat_name, cat_id,
-          clasz,    train_nr, line_identifier,
-          duration, slot,     direction,
-          provider, route_id, "" /* TODO(Mohammad Keyhani) mumo-type-name */,
+  return {from,
+          to,
+          type /* TODO(Mohammad Keyhani) mumo */,
+          name,
+          cat_name,
+          cat_id,
+          clasz,
+          train_nr,
+          line_identifier,
+          duration,
+          slot,
+          direction,
+          provider,
+          "" /* TODO(Mohammad Keyhani) mumo-type-name */,
           0 /* TODO(Mohammad Keyhani) mumo-price */};
 }
 
@@ -106,12 +115,10 @@ std::vector<journey::stop> generate_journey_stops(
     std::vector<intermediate::stop> const& stops, schedule const& sched) {
   std::vector<journey::stop> journey_stops;
   for (auto const& stop : stops) {
+    auto const& station = *sched.stations_[stop.station_id_];
     journey_stops.push_back(
-        {stop.index_, stop.interchange_,
-         sched.stations_[stop.station_id_]->name_,
-         sched.stations_[stop.station_id_]->eva_nr_,
-         sched.stations_[stop.station_id_]->width_,
-         sched.stations_[stop.station_id_]->length_,
+        {stop.interchange_, station.name_, station.eva_nr_, station.width_,
+         station.length_,
          stop.a_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,

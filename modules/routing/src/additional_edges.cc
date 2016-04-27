@@ -33,8 +33,8 @@ std::vector<edge> create_additional_edges(
             get_station_node(sched, edge->from_station_eva()->str()),
             get_station_node(sched, edge->to_station_eva()->str()),
             edge->duration(), edge->price(), edge->slot(),
-            unix_to_motistime(sched.schedule_begin_, info->interval_begin()),
-            unix_to_motistime(sched.schedule_begin_, info->interval_end())));
+            unix_to_motistime(sched.schedule_begin_, info->interval()->begin()),
+            unix_to_motistime(sched.schedule_begin_, info->interval()->end())));
         break;
       }
 
@@ -46,7 +46,7 @@ std::vector<edge> create_additional_edges(
             get_station_node(sched, edge->from_station_eva()->str()),
             get_station_node(sched, edge->to_station_eva()->str()),
             edge->duration(), edge->price(), edge->slot(),
-            info->interval_begin(), info->interval_end()));
+            info->interval()->begin(), info->interval()->end()));
         break;
       }
 

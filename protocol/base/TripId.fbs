@@ -1,0 +1,16 @@
+namespace motis;
+
+enum EventType : byte {Arrival, Departure}
+
+table TripId {
+  // primary
+  station_id:string;
+  train_nr:uint;
+  time:long;
+
+  // secondary
+  target_station_id:string;
+  target_time:long;
+  type:EventType;
+  line_id:string;
+}

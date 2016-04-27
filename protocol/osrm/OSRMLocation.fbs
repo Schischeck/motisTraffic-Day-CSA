@@ -1,6 +1,0 @@
-namespace motis.osrm;
-
-struct OSRMLocation {
-  lat : double;
-  lng : double;
-}

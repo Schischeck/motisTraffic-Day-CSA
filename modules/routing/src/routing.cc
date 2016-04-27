@@ -70,15 +70,15 @@ private:
 };
 
 std::vector<station_node*> get_arrivals(
-    fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
+    fbs::Vector<fbs::Offset<Station>> const* path) {
   std::vector<station_node*> station_nodes;
   auto const& sched = get_schedule();
 
   for (auto const& el : *path) {
     std::string station_id;
 
-    if (el->eva_nr()->Length() != 0) {
-      station_id = el->eva_nr()->str();
+    if (el->id()->Length() != 0) {
+      station_id = el->id()->str();
     } else {
       message_creator b;
       b.create_and_finish(
@@ -91,7 +91,7 @@ std::vector<station_node*> get_arrivals(
       if (guesses->size() == 0) {
         throw std::system_error(error::no_guess_for_station);
       }
-      station_id = guesses->Get(0)->eva()->str();
+      station_id = guesses->Get(0)->id()->str();
     }
 
     auto const& eva_to_station = sched.eva_to_station_;
