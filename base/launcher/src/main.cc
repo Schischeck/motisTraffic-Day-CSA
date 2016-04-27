@@ -13,13 +13,9 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/util.h"
-
-#include "motis/loader/util.h"
-
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
-
+#include "motis/loader/util.h"
 #include "motis/launcher/batch_mode.h"
 #include "motis/launcher/http_server.h"
 #include "motis/launcher/launcher_settings.h"
@@ -116,19 +112,19 @@ int main(int argc, char** argv) {
       websocket.set_api_key(listener_opt.api_key_);
       websocket.listen(listener_opt.ws_host_, listener_opt.ws_port_);
       websocket_shutdown_handler =
-          make_unique<shutdown_handler<ws_server>>(ios, websocket);
+          std::make_unique<shutdown_handler<ws_server>>(ios, websocket);
     }
 
     if (listener_opt.listen_http_) {
       http.listen(listener_opt.http_host_, listener_opt.http_port_);
       http_shutdown_handler =
-          make_unique<shutdown_handler<http_server>>(ios, http);
+          std::make_unique<shutdown_handler<http_server>>(ios, http);
     }
 
     if (listener_opt.listen_tcp_) {
       tcp.listen(listener_opt.tcp_host_, listener_opt.tcp_port_);
       tcp_shutdown_handler =
-          make_unique<shutdown_handler<socket_server>>(ios, tcp);
+          std::make_unique<shutdown_handler<socket_server>>(ios, tcp);
     }
   } catch (std::exception const& e) {
     std::cout << "\ninitialization error: " << e.what() << "\n";
@@ -143,7 +139,7 @@ int main(int argc, char** argv) {
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
   if (launcher_opt.mode_ == launcher_settings::motis_mode_t::TEST) {
-    timer = make_unique<boost::asio::deadline_timer>(
+    timer = std::make_unique<boost::asio::deadline_timer>(
         ios, boost::posix_time::seconds(1));
     timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
   } else if (launcher_opt.mode_ == launcher_settings::motis_mode_t::BATCH) {

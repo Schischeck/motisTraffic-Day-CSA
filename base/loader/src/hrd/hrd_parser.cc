@@ -140,7 +140,7 @@ void parse_and_build_services(
 
   int count = 0;
   for (auto const& file : files) {
-    schedule_data.emplace_back(make_unique<loaded_file>(file));
+    schedule_data.emplace_back(std::make_unique<loaded_file>(file));
     LOG(info) << "parsing " << ++count << "/" << files.size() << " "
               << schedule_data.back()->name();
     for_each_service(*schedule_data.back(), bitfields, service_builder_fun);

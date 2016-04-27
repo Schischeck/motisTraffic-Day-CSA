@@ -12,7 +12,6 @@
 #include "osrm-backend/util/simple_logger.hpp"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/util.h"
 #include "motis/osrm/error.h"
 #include "motis/protocol/Message_generated.h"
 
@@ -124,7 +123,7 @@ void osrm::print(std::ostream& out) const {
 
 void osrm::init(motis::module::registry& reg) {
   if (!path_.empty()) {
-    impl_ = make_unique<osrm::impl>(path_);
+    impl_ = std::make_unique<osrm::impl>(path_);
   }
 
   reg.register_op("/osrm", [this](msg_ptr const& msg) {

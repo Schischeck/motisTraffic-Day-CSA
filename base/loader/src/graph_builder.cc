@@ -47,12 +47,13 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
 }
 
 void graph_builder::add_dummy_node(std::string const& name) {
-  auto dummy_source = make_unique<station>(0, 0.0, 0.0, 0, name, name, nullptr);
+  auto dummy_source =
+      std::make_unique<station>(0, 0.0, 0.0, 0, name, name, nullptr);
   sched_.eva_to_station_.insert(
       std::make_pair(dummy_source->eva_nr_, dummy_source.get()));
   sched_.stations_.emplace_back(std::move(dummy_source));
   sched_.station_nodes_.emplace_back(
-      make_unique<station_node>(sched_.station_nodes_.size()));
+      std::make_unique<station_node>(sched_.station_nodes_.size()));
 }
 
 void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
@@ -77,12 +78,12 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
     auto const station_index = i + dummy_station_count;
 
     // Create station node.
-    auto node_ptr = make_unique<station_node>(station_index);
+    auto node_ptr = std::make_unique<station_node>(station_index);
     stations_[input_station] = node_ptr.get();
     sched_.station_nodes_.emplace_back(std::move(node_ptr));
 
     // Create station object.
-    auto s = make_unique<station>();
+    auto s = std::make_unique<station>();
     s->index_ = station_index;
     s->name_ = input_station->name()->str();
     s->width_ = input_station->lat();
@@ -363,7 +364,7 @@ connection_info* graph_builder::get_or_create_connection_info(
 
   return set_get_or_create(con_infos_, &con_info_, [&]() {
     sched_.connection_infos_.emplace_back(
-        make_unique<connection_info>(con_info_));
+        std::make_unique<connection_info>(con_info_));
     return sched_.connection_infos_.back().get();
   });
 }
@@ -453,7 +454,7 @@ light_connection graph_builder::section_to_connection(
       set_get_or_create(connections_, &con_,
                         [&]() {
                           sched_.full_connections_.emplace_back(
-                              make_unique<connection>(con_));
+                              std::make_unique<connection>(con_));
                           return sched_.full_connections_.back().get();
                         }),
       trips);
@@ -546,7 +547,7 @@ void graph_builder::read_attributes(
     auto const attribute_info = attr->info();
     active_attributes.push_back(
         get_or_create(attributes_, attribute_info, [&]() {
-          auto new_attr = make_unique<attribute>();
+          auto new_attr = std::make_unique<attribute>();
           new_attr->code_ = attribute_info->code()->str();
           new_attr->str_ = attribute_info->text()->str();
           sched_.attributes_.emplace_back(std::move(new_attr));
@@ -564,7 +565,7 @@ std::string const* graph_builder::get_or_create_direction(
   } else /* direction text */ {
     return get_or_create(directions_, dir->text(), [&]() {
       sched_.directions_.emplace_back(
-          make_unique<std::string>(dir->text()->str()));
+          std::make_unique<std::string>(dir->text()->str()));
       return sched_.directions_.back().get();
     });
   }
@@ -575,7 +576,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
     return nullptr;
   } else {
     return get_or_create(providers_, p, [&]() {
-      sched_.providers_.emplace_back(make_unique<provider>(
+      sched_.providers_.emplace_back(std::make_unique<provider>(
           provider(p->short_name()->str(), p->long_name()->str(),
                    p->full_name()->str())));
       return sched_.providers_.back().get();
@@ -586,7 +587,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
 int graph_builder::get_or_create_category_index(Category const* c) {
   return get_or_create(categories_, c, [&]() {
     int index = sched_.categories_.size();
-    sched_.categories_.push_back(make_unique<category>(
+    sched_.categories_.push_back(std::make_unique<category>(
         category(c->name()->str(), static_cast<uint8_t>(c->output_rule()))));
     return index;
   });
@@ -640,7 +641,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
-  auto route_sections = make_unique<route>();
+  auto route_sections = std::make_unique<route>();
 
   route_section last_route_section;
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {

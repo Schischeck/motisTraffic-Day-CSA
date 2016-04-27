@@ -15,8 +15,6 @@
 #include "parser/cstr.h"
 #include "parser/file.h"
 
-#include "motis/core/common/util.h"
-
 namespace motis {
 namespace loader {
 

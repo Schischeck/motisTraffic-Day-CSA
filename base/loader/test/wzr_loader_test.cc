@@ -42,7 +42,7 @@ TEST(loader_wzr, matrix) {
 }
 
 TEST(loader_wzr, family_to_category_assignment) {
-  auto c = make_unique<category>(category{"IC", 0});
+  auto c = std::make_unique<category>(category{"IC", 0});
   std::vector<std::unique_ptr<category>> category_ptrs;
   category_ptrs.emplace_back(std::move(c));
 
