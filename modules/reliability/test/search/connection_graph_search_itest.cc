@@ -127,9 +127,11 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request) {
                  .set_interval(std::make_tuple(19, 10, 2015),
                                (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
                  .build_connection_tree_request(3, 1);
-  test_cg(search_cgs(
-      motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-      std::make_shared<connection_graph_search::simple_optimizer>(3, 1)));
+  test_cg(motis_instance_->run([&]() {
+    return search_cgs(
+        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
+  }));
 }
 
 /* optimize connection graph alternatives depending on distributions! */
@@ -141,9 +143,11 @@ TEST_F(reliability_connection_graph_search,
                  .set_interval(std::make_tuple(19, 10, 2015),
                                (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
                  .build_reliable_search_request(1);
-  test_cg(search_cgs(motis_content(ReliableRoutingRequest, msg),
-                     *reliability_context_,
-                     std::make_shared<reliable_cg_optimizer>(1)));
+  test_cg(motis_instance_->run([&]() {
+    return search_cgs(motis_content(ReliableRoutingRequest, msg),
+                      *reliability_context_,
+                      std::make_shared<reliable_cg_optimizer>(1));
+  }));
 }
 
 /* search for alternatives at stops_ not necessary
@@ -155,9 +159,11 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
                  .set_interval(std::make_tuple(19, 10, 2015),
                                (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
                  .build_connection_tree_request(1, 1);
-  auto const cgs = search_cgs(motis_content(ReliableRoutingRequest, msg),
-                              *reliability_context_,
-                              std::make_shared<simple_optimizer>(1, 1));
+  auto const cgs = motis_instance_->run([&]() {
+    return search_cgs(
+        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
+  });
 
   ASSERT_EQ(cgs.size(), 1);
   auto const cg = *cgs.front();

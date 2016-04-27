@@ -62,7 +62,8 @@ module::msg_ptr to_bikesharing_request(
                        motis::bikesharing::CreateBikesharingRequest(
                            fb, departure_lat, departure_lng, arrival_lat,
                            arrival_lng, window_begin, window_end, aggregator)
-                           .Union());
+                           .Union(),
+                       "/bikesharing");
   return module::make_msg(fb);
 }
 

@@ -93,12 +93,12 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
 
 std::vector<journey> retrieve_base_journeys(
     ReliableRoutingRequest const* request) {
-  using routing::RoutingResponse;
   auto routing_response =
       motis_call(
           flatbuffers::request_builder::request_builder(request->request())
               .build_routing_request())
           ->val();
+  using routing::RoutingResponse;
   return message_to_journeys(motis_content(RoutingResponse, routing_response));
 }
 
@@ -180,10 +180,13 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
   do {
     auto const requests =
         alternative_requests(cg, c->optimizer_->min_departure_diff_);
+    if (requests.empty()) {
+      break;
+    }
 
     for (auto const& req : requests) {
       new_alternative_futures.emplace_back(
-          module::spawn_job(req, [&](request_type const& req) -> future_return {
+          module::spawn_job(req, [=](request_type const& req) -> future_return {
             auto const cache_it = c->journey_cache_.find(req.cache_key_);
             bool const is_cached = cache_it != c->journey_cache_.end();
             return future_return{req.stop_id_,

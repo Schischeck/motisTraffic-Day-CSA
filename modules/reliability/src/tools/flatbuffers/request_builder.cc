@@ -177,7 +177,7 @@ msg_ptr request_builder::build_reliable_request(
       CreateReliableRoutingRequest(b_, create_routing_request(), is_intermodal_,
                                    &dep, &arr, options, &modes)
           .Union(),
-      "/routing");
+      "/reliability/route");
   return module::make_msg(b_);
 }
 

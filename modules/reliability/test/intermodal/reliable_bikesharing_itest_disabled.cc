@@ -51,12 +51,14 @@ TEST_F(reliability_bikesharing, test_request) {
 
 TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   auto aggregator = std::make_shared<average_aggregator>(4);
-  auto infos = retrieve_bikesharing_infos(
-      to_bikesharing_request(49.8776114, 8.6571044, 50.1273104, 8.6669383,
-                             1454602500, /* Thu, 04 Feb 2016 16:15:00 GMT */
-                             1454606100, /* Thu, 04 Feb 2016 17:15:00 GMT */
-                             aggregator->get_aggregator()),
-      aggregator);
+  auto infos = motis_instance_->run([&]() {
+    return retrieve_bikesharing_infos(
+        to_bikesharing_request(49.8776114, 8.6571044, 50.1273104, 8.6669383,
+                               1454602500, /* Thu, 04 Feb 2016 16:15:00 GMT */
+                               1454606100, /* Thu, 04 Feb 2016 17:15:00 GMT */
+                               aggregator->get_aggregator()),
+        aggregator);
+  });
 
   auto sort = [](std::vector<bikesharing_info>& infos) {
     std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,
