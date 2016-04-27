@@ -132,12 +132,13 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   message_creator fbb;
   Interval interval(interval_start, interval_end);
 
-  std::vector<Offset<StationPathElement>> path;
-  std::vector<Offset<AdditionalEdgeWrapper>> additional_edges;
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(from_eva)));
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(to_eva)));
+  auto const pos = Position(0, 0);
+  auto const path = std::vector<Offset<Station>>(
+      {CreateStation(fbb, fbb.CreateString(from_eva), fbb.CreateString(""),
+                     &pos),
+       CreateStation(fbb, fbb.CreateString(to_eva), fbb.CreateString(""),
+                     &pos)});
+  auto const additional_edges = std::vector<Offset<AdditionalEdgeWrapper>>();
   fbb.create_and_finish(
       MsgContent_RoutingRequest,
       CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,

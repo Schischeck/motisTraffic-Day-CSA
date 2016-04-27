@@ -11,15 +11,13 @@ using namespace motis::test::schedule::simple_realtime;
 namespace motis {
 namespace lookup {
 
-constexpr auto kEmptyMetaStationRequest = R""(
-{ 
+constexpr auto kEmptyMetaStationRequest = R""({
   "destination": { "type": "Module", "target": "/lookup/meta_station" },
   "content_type": "LookupMetaStationRequest",
   "content": { "station_id": "8000105" }}
 )"";
 
-constexpr auto kMetaStationRequest = R""(
-{ 
+constexpr auto kMetaStationRequest = R""({
   "destination": { "type": "Module", "target": "/lookup/meta_station" },
   "content_type": "LookupMetaStationRequest",
   "content": { "station_id": "8073368" }}
