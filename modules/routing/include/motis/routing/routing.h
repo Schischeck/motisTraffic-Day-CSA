@@ -23,6 +23,7 @@ struct routing : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr ontrip_train(motis::module::msg_ptr const&);
   motis::module::msg_ptr route(motis::module::msg_ptr const&);
 
   std::size_t label_bytes_;

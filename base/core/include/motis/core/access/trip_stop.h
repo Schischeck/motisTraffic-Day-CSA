@@ -46,6 +46,8 @@ public:
     return *sched.stations_[node_->get_station()->id_];
   }
 
+  node const* get_route_node() const { return node_; }
+
 private:
   trip const* trip_;
   int index_;

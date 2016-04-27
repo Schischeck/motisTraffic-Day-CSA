@@ -7,6 +7,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/trip_access.h"
+#include "motis/core/access/trip_iterator.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
@@ -106,7 +108,7 @@ std::vector<station_node*> get_arrivals(
 }
 
 routing::routing()
-    : label_bytes_(static_cast<uint64_t>(8) * 1024 * 1024 * 1024) {}
+    : label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
 
 routing::~routing() = default;
 
@@ -127,10 +129,30 @@ void routing::print(std::ostream& out) const {
 
 void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
+  reg.register_op("/routing/ontrip_train",
+                  std::bind(&routing::ontrip_train, this, p::_1));
+}
+
+msg_ptr routing::ontrip_train(msg_ptr const& msg) {
+  auto const& sched = get_schedule();
+  auto const req = motis_content(RoutingOntripTrainRequest, msg);
+  auto const arr_time = unix_to_motistime(sched, req->arrival_time());
+  auto const stops = access::stops(get_trip(sched, req->trip()));
+  auto stop_it = std::find_if(begin(stops), end(stops), [&](auto&& stop) {
+    return stop.get_station(sched).eva_nr_ == req->station_id()->c_str() &&
+           stop.arr_lcon().a_time_ == arr_time;
+  });
+  if (stop_it == end(stops)) {
+    throw std::system_error(error::event_not_found);
+  }
+
+  auto route_node = (*stop_it).get_route_node();
+
+  return nullptr;
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
-  auto req = motis_content(RoutingRequest, msg);
+  auto const req = motis_content(RoutingRequest, msg);
   if (req->path()->Length() < 2) {
     throw std::system_error(error::path_length_too_short);
   }
