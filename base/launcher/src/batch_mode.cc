@@ -61,8 +61,9 @@ private:
     auto next = next_query();
     if (next) {
       receiver_.on_msg(
-          next, std::bind(&query_injector::on_response, this,
-                          shared_from_this(), ++next_query_id_, p::_1, p::_2));
+          next, ios_.wrap(std::bind(&query_injector::on_response, this,
+                                    shared_from_this(), ++next_query_id_, p::_1,
+                                    p::_2)));
     }
   }
 

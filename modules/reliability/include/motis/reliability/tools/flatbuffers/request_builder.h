@@ -16,7 +16,6 @@ struct bikesharing_infos;
 }
 }
 namespace flatbuffers {
-namespace request_builder {
 
 struct request_builder {
   request_builder(
@@ -35,9 +34,6 @@ struct request_builder {
   request_builder& add_arr_coordinates(double const& lat, double const& lng);
 
   request_builder& set_interval(std::time_t const begin, std::time_t const end);
-
-  request_builder& set_interval(std::tuple<int, int, int> const ddmmyyyy,
-                                motis::time const begin, motis::time const end);
 
   request_builder& add_additional_edge(
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
@@ -78,7 +74,6 @@ private:
       bool const bikesharing = false);
 };
 
-}  // namespace request_builder
 }  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

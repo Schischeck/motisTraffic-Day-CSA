@@ -25,7 +25,7 @@ trip_map read_trips(loaded_file file, route_map const& routes,
   for (auto const& t : read<gtfs_trip>(file.content(), columns)) {
     trips.emplace(
         get<trip_id>(t).to_str(),
-        make_unique<trip>(
+        std::make_unique<trip>(
             routes.at(get<route_id>(t).to_str()).get(),
             services.traffic_days_.at(get<service_id>(t).to_str()).get(),
             get<trip_headsign>(t).to_str()));

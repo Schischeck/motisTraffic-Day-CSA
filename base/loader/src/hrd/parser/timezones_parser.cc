@@ -54,7 +54,7 @@ timezones parse_timezones(loaded_file const& timezones_file,
             distance_to_midnight(line.substr(43, size(4))));
       }
 
-      tz.timezone_entries_.push_back(make_unique<timezone_entry>(
+      tz.timezone_entries_.push_back(std::make_unique<timezone_entry>(
           distance_to_midnight(line.substr(8, size(5))), opt_season_entry));
 
       tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] =

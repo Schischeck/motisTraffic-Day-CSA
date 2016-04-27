@@ -3,7 +3,7 @@ namespace motis.ris;
 // ----------------------------------------------------------------------------
 // Common
 // ----------------------------------------------------------------------------
-enum EventType : bool {Arrival, Departure}
+enum EventType : byte {Arrival, Departure}
 table Event {
   station_id: string;
   service_num: uint;
@@ -12,7 +12,7 @@ table Event {
   schedule_time: ulong;
 }
 
-enum TripType : bool {Schedule, Additional}
+enum TripType : byte {Schedule, Additional}
 table TripId {
   station_id: string;
   service_num: uint;
@@ -34,7 +34,7 @@ table UpdatedEvent {
   updated_time: ulong;
 }
 
-enum DelayType : bool {Is, Forecast} // Ist and IstProg
+enum DelayType : byte {Is, Forecast} // Ist and IstProg
 table DelayMessage {
   trip_id: TripId;
   type: DelayType;
@@ -52,7 +52,7 @@ table AdditionMessage {
   events: [AdditionalEvent];
 }
 
-enum RerouteStatus : bool {Normal, UmlNeu}
+enum RerouteStatus : byte {Normal, UmlNeu}
 table ReroutedEvent {
   base: AdditionalEvent (required);
   status: RerouteStatus;

@@ -17,6 +17,7 @@
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
 
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "motis/module/context/motis_call.h"
@@ -260,8 +261,8 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   auto msg = flatbuffers::request_builder::request_builder()
                  .add_station(DARMSTADT.name, DARMSTADT.eva)
                  .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(std::make_tuple(19, 10, 2015),
-                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                               test_util::hhmm_to_unixtime(get_schedule(), 701))
                  .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -304,7 +305,8 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   probability_distribution exp_arr_dist;
   exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
   auto const cg_arr_dist = calc_arrival_distribution(cg);
-  ASSERT_EQ(1445239440, cg_arr_dist.first);
+  ASSERT_EQ(1445232240 /* 10/19/2015, 7:24:00 AM GMT+2:00 DST */,
+            cg_arr_dist.first);
   ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
 }
 
@@ -313,8 +315,8 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto msg = flatbuffers::request_builder::request_builder()
                  .add_station(DARMSTADT.name, DARMSTADT.eva)
                  .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(std::make_tuple(19, 10, 2015),
-                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
+                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                               test_util::hhmm_to_unixtime(get_schedule(), 701))
                  .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -417,19 +419,21 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
        0.0576, 0.0048, 0.0, 0.0, 0.0016, 0.0132, 0.0048, 0.0004},
       0);
   auto const cg_arr_dist = calc_arrival_distribution(cg);
-  ASSERT_EQ(1445239440, cg_arr_dist.first);
+  ASSERT_EQ(1445232240 /* 10/19/2015, 7:24:00 AM GMT+2:00 DST */,
+            cg_arr_dist.first);
   ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
 }
 
 /* rating of a cg with a foot-path */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
-  auto msg = flatbuffers::request_builder::request_builder()
-                 .add_station(LANGEN.name, LANGEN.eva)
-                 .add_station(WEST.name, WEST.eva)
-                 .set_interval(std::make_tuple(28, 9, 2015),
-                               (motis::time)(10 * 60), (motis::time)(10 * 60))
-                 .build_connection_tree_request(1, 1);
+  auto msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(LANGEN.name, LANGEN.eva)
+          .add_station(WEST.name, WEST.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -484,12 +488,13 @@ TEST_F(reliability_connection_graph_rating_foot,
 /* rating of a cg with a foot-path at the end of the journey */
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
-  auto msg = flatbuffers::request_builder::request_builder()
-                 .add_station(LANGEN.name, LANGEN.eva)
-                 .add_station(MESSE.name, MESSE.eva)
-                 .set_interval(std::make_tuple(28, 9, 2015),
-                               (motis::time)(10 * 60), (motis::time)(10 * 60))
-                 .build_connection_tree_request(1, 1);
+  auto msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(LANGEN.name, LANGEN.eva)
+          .add_station(MESSE.name, MESSE.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,

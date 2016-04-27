@@ -12,16 +12,6 @@ using namespace motis::module;
 namespace motis {
 namespace reliability {
 namespace flatbuffers {
-namespace request_builder {
-
-namespace detail {
-time_t to_unix_time(std::tuple<int, int, int> ddmmyyyy, motis::time time) {
-  return motis_to_unixtime(
-      motis::to_unix_time(std::get<2>(ddmmyyyy), std::get<1>(ddmmyyyy),
-                          std::get<0>(ddmmyyyy)),
-      time);
-}
-}
 
 request_builder::request_builder(routing::Type const type,
                                  routing::Direction const dir)
@@ -77,14 +67,6 @@ request_builder& request_builder::set_interval(std::time_t const begin,
                                                std::time_t const end) {
   interval_begin_ = begin;
   interval_end_ = end;
-  return *this;
-}
-
-request_builder& request_builder::set_interval(
-    std::tuple<int, int, int> const ddmmyyyy, motis::time const begin,
-    motis::time const end) {
-  interval_begin_ = detail::to_unix_time(ddmmyyyy, begin);
-  interval_end_ = detail::to_unix_time(ddmmyyyy, end);
   return *this;
 }
 
@@ -181,7 +163,6 @@ msg_ptr request_builder::build_reliable_request(
   return module::make_msg(b_);
 }
 
-}  // namespace request_builder
 }  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

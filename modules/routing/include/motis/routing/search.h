@@ -1,79 +1,83 @@
 #pragma once
 
-#include <memory>
-#include <string>
-#include <vector>
+#include <unordered_map>
 
-#include "motis/core/schedule/time.h"
-#include "motis/core/journey/journey.h"
-
-#include "motis/routing/arrival.h"
-#include "motis/routing/label/comparator.h"
-#include "motis/routing/label/criteria/transfers.h"
-#include "motis/routing/label/criteria/travel_time.h"
-#include "motis/routing/label/dominance.h"
-#include "motis/routing/label/filter.h"
-#include "motis/routing/label/initializer.h"
-#include "motis/routing/label/label.h"
-#include "motis/routing/label/tie_breakers.h"
-#include "motis/routing/label/updater.h"
+#include "motis/core/common/timing.h"
+#include "motis/core/schedule/schedule.h"
 #include "motis/routing/lower_bounds.h"
+#include "motis/routing/output/labels_to_journey.h"
 #include "motis/routing/pareto_dijkstra.h"
-#include "motis/routing/statistics.h"
 
 namespace motis {
-
-struct schedule;
-
 namespace routing {
+
+struct search_query {
+  schedule const& sched_;
+  memory_manager& mem_;
+  station_node const* from_;
+  station_node const* to_;
+  std::vector<edge> const& query_edges_;
+  time interval_begin_;
+  time interval_end_;
+};
 
 struct search_result {
   search_result() = default;
   search_result(statistics stats, std::vector<journey> journeys)  // NOLINT
       : stats_(stats),
-        journeys_(std::move(journeys)) {}  // NOLINT
+        journeys_(std::move(journeys)) {}
   statistics stats_;
   std::vector<journey> journeys_;
 };
 
-typedef label<
-    label_data<travel_time, transfers>,
-    initializer<travel_time_initializer, transfers_initializer>,
-    updater<travel_time_updater, transfers_updater>,
-    filter<travel_time_filter, transfers_filter, waiting_time_filter>,
-    dominance<default_tb, travel_time_dominance, transfers_dominance>,
-    dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>>
-    my_label;
+template <typename StartLabelGenerator, typename Label>
+struct search {
+  static search_result get_connections(search_query const& q) {
+    q.mem_.reset();
 
-class search {
-public:
-  search(schedule const& schedule, memory_manager& label_store);
+    std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
+    for (auto const& e : q.query_edges_) {
+      lb_graph_edges[e.to_->get_station()->id_].emplace_back(
+          e.from_->get_station()->id_, e.get_minimum_cost());
+    }
 
-  search_result get_connections(
-      arrival from, arrival to, time interval_start, time interval_end,
-      bool ontrip, std::vector<edge> const& query_additional_edges);
+    lower_bounds lbs(q.sched_.lower_bounds_, q.to_->id_, lb_graph_edges);
+    lbs.travel_time_.run();
+    lbs.transfers_.run();
 
-  void generate_ontrip_start_labels(station_node const* start_station_node,
-                                    time const start_time,
-                                    std::vector<my_label*>& start_labels,
-                                    lower_bounds& lower_bounds);
+    if (lbs.travel_time_[q.from_->id_] ==
+        std::numeric_limits<uint32_t>::max()) {
+      return search_result();
+    }
 
-  void generate_start_labels(time const from, time const to,
-                             station_node const* start_station_node,
-                             std::vector<my_label*>& indices,
-                             station_node const* real_start, int time_off,
-                             lower_bounds& lower_bounds);
+    std::unordered_map<node const*, std::vector<edge>> additional_edges;
+    for (auto const& e : q.query_edges_) {
+      additional_edges[e.from_].push_back(e);
+    }
 
-  void generate_start_labels(time const from, time const to,
-                             station_node const* start_station_node,
-                             node const* route_node,
-                             std::vector<my_label*>& start_labels,
-                             station_node const* real_start, int time_off,
-                             lower_bounds&);
+    pareto_dijkstra<my_label, lower_bounds> pd(
+        q.sched_.node_count_, q.to_,
+        StartLabelGenerator::generate(q.sched_, q.mem_, lbs, q.from_,
+                                      q.query_edges_, q.interval_begin_,
+                                      q.interval_end_),
+        additional_edges, lbs, q.mem_);
 
-  schedule const& sched_;
-  memory_manager& label_store_;
+    MOTIS_START_TIMING(pareto_dijkstra_timing);
+    auto& results = pd.search();
+    MOTIS_STOP_TIMING(pareto_dijkstra_timing);
+
+    auto stats = pd.get_statistics();
+    stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
+
+    std::vector<journey> journeys;
+    journeys.resize(results.size());
+    std::transform(begin(results), end(results), begin(journeys),
+                   [&q](my_label* label) {
+                     return output::labels_to_journey(label, q.sched_);
+                   });
+
+    return search_result(stats, journeys);
+  }
 };
 
 }  // namespace routing

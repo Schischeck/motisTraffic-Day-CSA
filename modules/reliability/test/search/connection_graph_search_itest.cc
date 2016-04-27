@@ -16,6 +16,7 @@
 
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -121,12 +122,13 @@ public:
 };
 
 TEST_F(reliability_connection_graph_search, reliable_routing_request) {
-  auto msg = flatbuffers::request_builder::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(std::make_tuple(19, 10, 2015),
-                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
-                 .build_connection_tree_request(3, 1);
+  auto msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .build_connection_tree_request(3, 1);
   test_cg(motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -137,12 +139,13 @@ TEST_F(reliability_connection_graph_search, reliable_routing_request) {
 /* optimize connection graph alternatives depending on distributions! */
 TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
-  auto msg = flatbuffers::request_builder::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(std::make_tuple(19, 10, 2015),
-                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
-                 .build_reliable_search_request(1);
+  auto msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .build_reliable_search_request(1);
   test_cg(motis_instance_->run([&]() {
     return search_cgs(motis_content(ReliableRoutingRequest, msg),
                       *reliability_context_,
@@ -153,12 +156,13 @@ TEST_F(reliability_connection_graph_search,
 /* search for alternatives at stops_ not necessary
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, reliable_routing_request2) {
-  auto msg = flatbuffers::request_builder::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(std::make_tuple(19, 10, 2015),
-                               (motis::time)(7 * 60), (motis::time)(7 * 60 + 1))
-                 .build_connection_tree_request(1, 1);
+  auto msg =
+      flatbuffers::request_builder::request_builder()
+          .add_station(DARMSTADT.name, DARMSTADT.eva)
+          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,

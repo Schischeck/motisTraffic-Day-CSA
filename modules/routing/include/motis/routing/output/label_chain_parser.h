@@ -20,7 +20,8 @@ enum state {
   IN_CONNECTION,
   PRE_WALK,
   WALK,
-  IN_CONNECTION_THROUGH
+  IN_CONNECTION_THROUGH,
+  IN_CONNECTION_THROUGH_SKIP
 };
 
 template <typename Label>
@@ -33,20 +34,23 @@ state next_state(int s, Label const* c, Label const* n) {
         return PRE_CONNECTION;
       }
     case PRE_CONNECTION: return IN_CONNECTION;
+    case IN_CONNECTION_THROUGH: return IN_CONNECTION;
+    case IN_CONNECTION_THROUGH_SKIP:
+      return c->node_->is_foot_node() ? WALK : AT_STATION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        if (n->node_->is_station_node()) {
-          return WALK;
-        } else if (c->node_->is_route_node()) {
-          return IN_CONNECTION_THROUGH;
-        } else {
-          return AT_STATION;
+        switch (c->node_->type()) {
+          case node_type::STATION_NODE: return AT_STATION;
+          case node_type::FOOT_NODE: return WALK;
+          case node_type::ROUTE_NODE:
+            return n->node_->is_route_node() ? IN_CONNECTION_THROUGH
+                                             : IN_CONNECTION_THROUGH_SKIP;
         }
       } else {
         return IN_CONNECTION;
       }
-    case IN_CONNECTION_THROUGH: return IN_CONNECTION;
-    case WALK: return AT_STATION;
+    case WALK:
+      return n != nullptr && n->node_->is_station_node() ? WALK : AT_STATION;
   }
   return static_cast<state>(s);
 };
@@ -101,13 +105,12 @@ parse_label_chain(Label const* terminal_label) {
 
         walk_arrival = INVALID_TIME;
 
-        auto s1 = std::next(it, 1) == end(labels) ? nullptr : *std::next(it, 1);
-        auto s2 = s1 == nullptr || std::next(it, 2) == end(labels)
-                      ? nullptr
-                      : *std::next(it, 2);
-        if (s2 && s2->connection_ != nullptr) {
-          d_platform = s2->connection_->full_con_->d_platform_;
-          d_time = s2->connection_->d_time_;
+        auto s1 = std::next(it, 1);
+        auto s2 = std::next(it, 2);
+        if (s1 != end(labels) && s2 != end(labels) &&
+            (*s2)->connection_ != nullptr) {
+          d_platform = (*s2)->connection_->full_con_->d_platform_;
+          d_time = (*s2)->connection_->d_time_;
         }
 
         stops.emplace_back(static_cast<unsigned int>(++station_index),
@@ -158,12 +161,16 @@ parse_label_chain(Label const* terminal_label) {
             succ = *std::next(it, 2);
           }
 
-          stops.emplace_back(static_cast<unsigned int>(++station_index),
-                             current->node_->get_station()->id_,
-                             current->connection_->full_con_->a_platform_,
-                             succ->connection_->full_con_->d_platform_,
-                             current->connection_->a_time_,
-                             succ->connection_->d_time_, false);
+          // through edge used but not the route edge after that
+          // (instead: went to station node using the leaving edge)
+          if (succ->connection_) {
+            stops.emplace_back(static_cast<unsigned int>(++station_index),
+                               current->node_->get_station()->id_,
+                               current->connection_->full_con_->a_platform_,
+                               succ->connection_->full_con_->d_platform_,
+                               current->connection_->a_time_,
+                               succ->connection_->d_time_, false);
+          }
         }
 
         last_con = current->connection_;

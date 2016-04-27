@@ -58,8 +58,8 @@ TEST_F(reliability_data_arrival, initialize) {
   ASSERT_TRUE(
       schedule_->stations_[second_route_node.station_node_->id_]->eva_nr_ ==
       DARMSTADT);
-  ASSERT_TRUE(light_connection.d_time_ ==
-              test_util::minutes_to_motis_time(5 * 60 + 55));
+  ASSERT_EQ(test_util::minutes_to_motis_time(5 * 60 + 55),
+            light_connection.d_time_);
   ASSERT_TRUE(light_connection.a_time_ ==
               test_util::minutes_to_motis_time(6 * 60 + 5));
 

@@ -137,9 +137,8 @@ TEST_F(reliability_public_transport2, rate) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(std::make_tuple(28, 9, 2015),
-                        (motis::time)(11 * 60 + 32),
-                        (motis::time)(11 * 60 + 32))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -308,8 +307,8 @@ TEST_F(reliability_public_transport5, rate2) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)
           .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
-                        (motis::time)(7 * 60 + 1))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                        test_util::hhmm_to_unixtime(get_schedule(), 701))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -405,18 +404,17 @@ TEST_F(reliability_public_transport3, rate_foot) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(LANGEN.name, LANGEN.eva)
           .add_station(WEST.name, WEST.eva)
-          .set_interval(std::make_tuple(28, 9, 2015), (motis::time)(10 * 60),
-                        (motis::time)(10 * 60 + 1))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1001))
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
-  auto const journeys =
-      message_to_journeys(motis_content(RoutingResponse, msg));
+  auto const journeys = message_to_journeys(
+      motis_content(RoutingResponse, test::call(motis_instance_, req_msg)));
 
-  ASSERT_TRUE(journeys.size() == 1);
+  ASSERT_EQ(1, journeys.size());
   auto const elements = rating::connection_to_graph_data::get_elements(
       get_schedule(), journeys.front());
-  ASSERT_TRUE(elements.size() == 2);
+  ASSERT_EQ(2, elements.size());
 
   start_and_travel_test_distributions s_t_distributions({0.8, 0.2},
                                                         {0.1, 0.8, 0.1}, -1);

@@ -46,35 +46,44 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
   duplicate_count_ = 0;
 }
 
-void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
-  // Add dummy source station.
+void graph_builder::add_dummy_node(std::string const& name) {
   auto dummy_source =
-      make_unique<station>(0, 0.0, 0.0, 0, "-1", "DUMMY", nullptr);
+      std::make_unique<station>(0, 0.0, 0.0, 0, name, name, nullptr);
   sched_.eva_to_station_.insert(
       std::make_pair(dummy_source->eva_nr_, dummy_source.get()));
   sched_.stations_.emplace_back(std::move(dummy_source));
-  sched_.station_nodes_.emplace_back(make_unique<station_node>(0));
+  sched_.station_nodes_.emplace_back(
+      std::make_unique<station_node>(sched_.station_nodes_.size()));
+}
 
-  // Add dummy target stations.
-  auto dummy_target =
-      make_unique<station>(1, 0.0, 0.0, 0, "-2", "DUMMY", nullptr);
-  sched_.eva_to_station_.insert(
-      std::make_pair(dummy_target->eva_nr_, dummy_target.get()));
-  sched_.stations_.emplace_back(std::move(dummy_target));
-  sched_.station_nodes_.emplace_back(make_unique<station_node>(1));
+void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
+  // Add dummy stations.
+  add_dummy_node("START");
+  add_dummy_node("END");
+  add_dummy_node("VIA0");
+  add_dummy_node("VIA1");
+  add_dummy_node("VIA2");
+  add_dummy_node("VIA3");
+  add_dummy_node("VIA4");
+  add_dummy_node("VIA5");
+  add_dummy_node("VIA6");
+  add_dummy_node("VIA7");
+  add_dummy_node("VIA8");
+  add_dummy_node("VIA9");
 
   // Add schedule stations.
+  auto const dummy_station_count = sched_.station_nodes_.size();
   for (unsigned i = 0; i < stations->size(); ++i) {
     auto const& input_station = stations->Get(i);
-    auto const station_index = i + 2;
+    auto const station_index = i + dummy_station_count;
 
     // Create station node.
-    auto node_ptr = make_unique<station_node>(station_index);
+    auto node_ptr = std::make_unique<station_node>(station_index);
     stations_[input_station] = node_ptr.get();
     sched_.station_nodes_.emplace_back(std::move(node_ptr));
 
     // Create station object.
-    auto s = make_unique<station>();
+    auto s = std::make_unique<station>();
     s->index_ = station_index;
     s->name_ = input_station->name()->str();
     s->width_ = input_station->lat();
@@ -99,6 +108,18 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
   // First regular node id:
   // first id after station node ids
   next_node_id_ = sched_.stations_.size();
+}
+
+void graph_builder::link_meta_stations(
+    Vector<Offset<MetaStation>> const* meta_stations) {
+  for (auto const& meta : *meta_stations) {
+    auto station = sched_.eva_to_station_.find(meta->station()->id()->str());
+    for (auto const& fbs_equivalent : *meta->equivalent()) {
+      auto equivalent =
+          sched_.eva_to_station_.find(fbs_equivalent->id()->str());
+      station->second->equivalent_.push_back(equivalent->second);
+    }
+  }
 }
 
 timezone const* graph_builder::get_or_create_timezone(
@@ -160,21 +181,22 @@ merged_trips_idx graph_builder::create_merged_trips(Service const* s,
 trip* graph_builder::register_service(Service const* s, int day_idx) {
   sched_.trip_mem_.emplace_back(new trip(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trip_mem_.back().get();
-  sched_.trips_[stored->id_.primary_].push_back(stored);
+  sched_.trips_.emplace_back(stored->id_.primary_, stored);
 
   for (unsigned i = 1; i < s->sections()->size(); ++i) {
     auto curr_section = s->sections()->Get(i);
     auto prev_section = s->sections()->Get(i - 1);
 
     if (curr_section->train_nr() != prev_section->train_nr()) {
-      sched_.trips_[get_full_trip_id(s, day_idx, i).primary_].push_back(stored);
+      sched_.trips_.emplace_back(get_full_trip_id(s, day_idx, i).primary_,
+                                 stored);
     }
   }
 
   if (s->initial_train_nr() != stored->id_.primary_.train_nr_) {
     auto primary = stored->id_.primary_;
     primary.train_nr_ = s->initial_train_nr();
-    sched_.trips_[primary].push_back(stored);
+    sched_.trips_.emplace_back(primary, stored);
   }
 
   return stored;
@@ -342,7 +364,7 @@ connection_info* graph_builder::get_or_create_connection_info(
 
   return set_get_or_create(con_infos_, &con_info_, [&]() {
     sched_.connection_infos_.emplace_back(
-        make_unique<connection_info>(con_info_));
+        std::make_unique<connection_info>(con_info_));
     return sched_.connection_infos_.back().get();
   });
 }
@@ -432,7 +454,7 @@ light_connection graph_builder::section_to_connection(
       set_get_or_create(connections_, &con_,
                         [&]() {
                           sched_.full_connections_.emplace_back(
-                              make_unique<connection>(con_));
+                              std::make_unique<connection>(con_));
                           return sched_.full_connections_.back().get();
                         }),
       trips);
@@ -490,11 +512,17 @@ void graph_builder::sort_connections() {
         if (edge.empty()) {
           continue;
         }
-        std::sort(begin(edge.m_.route_edge_.conns_),
-                  end(edge.m_.route_edge_.conns_));
+        if (!std::is_sorted(begin(edge.m_.route_edge_.conns_),
+                            end(edge.m_.route_edge_.conns_))) {
+          throw std::runtime_error("light connections not sorted");
+        }
       }
     }
   }
+}
+
+void graph_builder::sort_trips() {
+  std::sort(begin(sched_.trips_), end(sched_.trips_));
 }
 
 int graph_builder::node_count() const { return next_node_id_; }
@@ -519,7 +547,7 @@ void graph_builder::read_attributes(
     auto const attribute_info = attr->info();
     active_attributes.push_back(
         get_or_create(attributes_, attribute_info, [&]() {
-          auto new_attr = make_unique<attribute>();
+          auto new_attr = std::make_unique<attribute>();
           new_attr->code_ = attribute_info->code()->str();
           new_attr->str_ = attribute_info->text()->str();
           sched_.attributes_.emplace_back(std::move(new_attr));
@@ -537,7 +565,7 @@ std::string const* graph_builder::get_or_create_direction(
   } else /* direction text */ {
     return get_or_create(directions_, dir->text(), [&]() {
       sched_.directions_.emplace_back(
-          make_unique<std::string>(dir->text()->str()));
+          std::make_unique<std::string>(dir->text()->str()));
       return sched_.directions_.back().get();
     });
   }
@@ -548,7 +576,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
     return nullptr;
   } else {
     return get_or_create(providers_, p, [&]() {
-      sched_.providers_.emplace_back(make_unique<provider>(
+      sched_.providers_.emplace_back(std::make_unique<provider>(
           provider(p->short_name()->str(), p->long_name()->str(),
                    p->full_name()->str())));
       return sched_.providers_.back().get();
@@ -559,7 +587,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
 int graph_builder::get_or_create_category_index(Category const* c) {
   return get_or_create(categories_, c, [&]() {
     int index = sched_.categories_.size();
-    sched_.categories_.push_back(make_unique<category>(
+    sched_.categories_.push_back(std::make_unique<category>(
         category(c->name()->str(), static_cast<uint8_t>(c->output_rule()))));
     return index;
   });
@@ -613,7 +641,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   auto const& stops = r->stations();
   auto const& in_allowed = r->in_allowed();
   auto const& out_allowed = r->out_allowed();
-  auto route_sections = make_unique<route>();
+  auto route_sections = std::make_unique<route>();
 
   route_section last_route_section;
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
@@ -695,6 +723,9 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   graph_builder builder(*sched, serialized->interval(), from, to, apply_rules,
                         adjust_footpaths);
   builder.add_stations(serialized->stations());
+  if (serialized->meta_stations() != nullptr) {
+    builder.link_meta_stations(serialized->meta_stations());
+  }
   builder.add_footpaths(serialized->footpaths());
   builder.add_services(serialized->services());
 
@@ -706,6 +737,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   builder.connect_reverse();
   builder.sort_connections();
+  builder.sort_trips();
 
   sched->node_count_ = builder.node_count();
   sched->lower_bounds_ = constant_graph(sched->station_nodes_);

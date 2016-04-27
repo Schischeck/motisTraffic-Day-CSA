@@ -6,6 +6,7 @@ include "Attribute.fbs";
 include "Interval.fbs";
 include "Footpath.fbs";
 include "RuleService.fbs";
+include "MetaStation.fbs";
 
 namespace motis.loader;
 
@@ -16,6 +17,7 @@ table Schedule {
   interval: Interval;
   footpaths: [Footpath];
   rule_services: [RuleService];
+  meta_stations: [MetaStation];
 }
 
 root_type Schedule;

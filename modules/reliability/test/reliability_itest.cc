@@ -22,6 +22,7 @@
 
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
+#include "include/test_util.h"
 
 using namespace motis::module;
 
@@ -96,8 +97,10 @@ public:
       ASSERT_EQ(1, stop->alternatives()->size());
       ASSERT_EQ(0, stop->alternatives()->begin()->journey());
       ASSERT_EQ(2, stop->alternatives()->begin()->next_stop());
-      test_alternative_rating(stop->alternatives()->begin()->rating(),
-                              1445238000, 1445238540, 0.8, 0.08, 1.0);
+      test_alternative_rating(
+          stop->alternatives()->begin()->rating(),
+          1445230800 /* 10/19/2015, 7:00:00 AM GMT+2:00 DST */,
+          1445231340 /* 10/19/2015, 7:09:00 AM GMT+2:00 DST */, 0.8, 0.08, 1.0);
     }
     {
       auto const stop = (*cg->stops())[1];
@@ -112,47 +115,60 @@ public:
         auto const alternative = (*stop->alternatives())[0];
         ASSERT_EQ(1, alternative->journey());
         ASSERT_EQ(1, alternative->next_stop());
-        test_alternative_rating(stop->alternatives()->begin()->rating(),
-                                1445238900, 1445239440, 0.592, 0.0592, 0.74);
+        test_alternative_rating(
+            stop->alternatives()->begin()->rating(),
+            1445231700 /* 10/19/2015, 7:15:00 AM GMT+2:00 DST */,
+            1445232240 /* 10/19/2015, 7:24:00 AM GMT+2:00 DST */, 0.592, 0.0592,
+            0.74);
       }
       {
         auto const alternative = (*stop->alternatives())[1];
         ASSERT_EQ(2, alternative->journey());
         ASSERT_EQ(1, alternative->next_stop());
-        test_alternative_rating((*stop->alternatives())[1]->rating(),
-                                1445238960, 1445239980, 0.192, 0.0192, 0.24);
+        test_alternative_rating(
+            (*stop->alternatives())[1]->rating(),
+            1445231760 /* 10/19/2015, 7:16:00 AM GMT+2:00 DST */,
+            1445232780 /* 10/19/2015, 7:33:00 AM GMT+2:00 DST */, 0.192, 0.0192,
+            0.24);
       }
       {
         auto const alternative = (*stop->alternatives())[2];
         ASSERT_EQ(3, alternative->journey());
         ASSERT_EQ(1, alternative->next_stop());
-        test_alternative_rating((*stop->alternatives())[2]->rating(),
-                                1445239020, 1445240340, 0.016, 0.0016, 0.02);
+        test_alternative_rating(
+            (*stop->alternatives())[2]->rating(),
+            1445231820 /* 10/19/2015, 7:17:00 AM GMT+2:00 DST */,
+            1445233140 /* 10/19/2015, 7:39:00 AM GMT+2:00 DST */, 0.016, 0.0016,
+            0.02);
       }
     }
 
     ASSERT_EQ(4, cg->journeys()->size());
     test_journey((*cg->journeys())[0], "3333333", "2222222",
-                 1445238000 /* 07:00 */, 1445238600 /* 07:10 */, RE_D_L);
+                 1445230800 /* 10/19/2015, 7:00:00 AM GMT+2:00 DST */,
+                 1445231400 /* 10/19/2015, 7:10:00 AM GMT+2:00 DST */, RE_D_L);
     test_journey((*cg->journeys())[1], "2222222", "1111111",
-                 1445238900 /* 07:15 */, 1445239500 /* 07:25 */, RE_L_F);
+                 1445231700 /* 10/19/2015, 7:15:00 AM GMT+2:00 DST */,
+                 1445232300 /* 10/19/2015, 7:25:00 AM GMT+2:00 DST */, RE_L_F);
     test_journey((*cg->journeys())[2], "2222222", "1111111",
-                 1445238960 /* 07:16 */, 1445240040 /* 07:34 */, S_L_F);
+                 1445231760 /* 10/19/2015, 7:16:00 AM GMT+2:00 DST */,
+                 1445232840 /* 10/19/2015, 7:34:00 AM GMT+2:00 DST */, S_L_F);
     test_journey((*cg->journeys())[3], "2222222", "1111111",
-                 1445239020 /* 07:17 */, 1445240400 /* 07:40 */, IC_L_F);
+                 1445231820 /* 10/19/2015, 7:17:00 AM GMT+2:00 DST */,
+                 1445233200 /* 10/19/2015, 7:40:00 AM GMT+2:00 DST */, IC_L_F);
   }
 };
 
 TEST_F(reliability_test_rating, rating_request) {
-  auto req_msg = flatbuffers::request_builder::request_builder()
-                     .add_station(STUTTGART.name, STUTTGART.eva)
-                     .add_station(KASSEL.name, KASSEL.eva)
-                     .set_interval(std::make_tuple(28, 9, 2015),
-                                   (motis::time)(11 * 60 + 32),
-                                   (motis::time)(11 * 60 + 32))
-                     .build_rating_request();
-  auto const msg = test::call(motis_instance_, req_msg);
-  auto response = motis_content(ReliabilityRatingResponse, msg);
+  auto const req =
+      flatbuffers::request_builder::request_builder()
+          .add_station(STUTTGART.name, STUTTGART.eva)
+          .add_station(KASSEL.name, KASSEL.eva)
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .build_rating_request();
+  auto const res = test::call(motis_instance_, req);
+  auto const response = motis_content(ReliabilityRatingResponse, res);
 
   ASSERT_EQ(1, response->response()->connections()->size());
 
@@ -181,27 +197,27 @@ TEST_F(reliability_test_rating, rating_request) {
 }
 
 TEST_F(reliability_test_cg, connection_tree) {
-  auto req_msg =
+  auto const req =
       flatbuffers::request_builder::request_builder()
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
-                        (motis::time)(7 * 60 + 1))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                        test_util::hhmm_to_unixtime(get_schedule(), 701))
           .build_connection_tree_request(3, 1);
-  test_cg(motis_content(ReliableRoutingResponse,
-                        test::call(motis_instance_, req_msg)));
+  auto const res = test::call(motis_instance_, req);
+  test_cg(motis_content(ReliableRoutingResponse, res));
 }
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
-  auto req_msg =
+  auto const req =
       flatbuffers::request_builder::request_builder()
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
-                        (motis::time)(7 * 60 + 1))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                        test_util::hhmm_to_unixtime(get_schedule(), 701))
           .build_reliable_search_request(1);
-  test_cg(motis_content(ReliableRoutingResponse,
-                        test::call(motis_instance_, req_msg)));
+  auto const res = test::call(motis_instance_, req);
+  test_cg(motis_content(ReliableRoutingResponse, res));
 }
 
 class reliability_late_connections : public test_motis_setup {
@@ -223,14 +239,13 @@ using taxi_info = std::tuple<std::string, unsigned short, unsigned short>;
 module::msg_ptr to_reliable_late_connections_request(
     std::string const& from_name, std::string const& from_eva,
     std::string const& to_name, std::string const& to_eva,
-    motis::time interval_begin, motis::time interval_end,
-    std::tuple<int, int, int> ddmmyyyy,
+    std::time_t interval_begin, std::time_t interval_end,
     std::vector<taxi_info> const& taxi_infos) {
   using namespace routing;
   flatbuffers::request_builder::request_builder builder;
   builder.add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
-      .set_interval(ddmmyyyy, interval_begin, interval_end);
+      .set_interval(interval_begin, interval_end);
 
   auto& b = builder.b_;
   for (auto const& info : taxi_infos) {
@@ -243,7 +258,6 @@ module::msg_ptr to_reliable_late_connections_request(
             21 * 60, 3 * 60)
             .Union()));
   }
-
   return builder.build_late_connection_cequest();
 }
 
@@ -253,14 +267,13 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
       taxi_infos;
   taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
 
-  auto req_msg = to_reliable_late_connections_request(
+  auto const req = to_reliable_late_connections_request(
       DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
-      (motis::time)(23 * 60 + 50), (motis::time)(1500),
-      std::make_tuple(19, 10, 2015), taxi_infos);
-
+      test_util::hhmm_to_unixtime(get_schedule(), 2350),
+      test_util::hhmm_to_unixtime(get_schedule(), 100, 1), taxi_infos);
+  auto const res = test::call(motis_instance_, req);
   using routing::RoutingResponse;
-  auto response =
-      motis_content(RoutingResponse, test::call(motis_instance_, req_msg));
+  auto const response = motis_content(RoutingResponse, res);
 
   ASSERT_EQ(2, response->connections()->size());
   ASSERT_EQ(2, (*response->connections())[0]->transports()->size());

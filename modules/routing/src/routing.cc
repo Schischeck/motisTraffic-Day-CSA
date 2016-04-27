@@ -6,7 +6,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
-#include "motis/core/common/util.h"
+#include "motis/core/schedule/schedule.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
@@ -14,7 +14,10 @@
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
+#include "motis/routing/label/configs.h"
+#include "motis/routing/memory_manager.h"
 #include "motis/routing/search.h"
+#include "motis/routing/start_label_gen.h"
 
 #define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
 
@@ -28,9 +31,48 @@ using namespace motis::guesser;
 namespace motis {
 namespace routing {
 
-std::vector<arrival> get_arrivals(
+struct memory {
+  memory(std::size_t bytes) : in_use_(false), mem_(bytes) {}
+  bool in_use_;
+  memory_manager mem_;
+};
+
+struct mem_retriever {
+  mem_retriever(std::mutex& mutex,
+                std::vector<std::unique_ptr<memory>>& mem_pool,
+                std::size_t bytes)
+      : mutex_(mutex), memory_(retrieve(mem_pool, bytes)) {}
+
+  ~mem_retriever() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    memory_->in_use_ = false;
+  }
+
+  memory_manager& get() { return memory_->mem_; }
+
+private:
+  memory* retrieve(std::vector<std::unique_ptr<memory>>& mem_pool,
+                   std::size_t bytes) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = std::find_if(begin(mem_pool), end(mem_pool),
+                           [](auto&& m) { return !m->in_use_; });
+    if (it == end(mem_pool)) {
+      mem_pool.emplace_back(new memory(bytes));
+      mem_pool.back()->in_use_ = true;
+      return mem_pool.back().get();
+    }
+    it->get()->in_use_ = true;
+    return it->get();
+  }
+
+  std::mutex& mutex_;
+  memory* memory_;
+};
+
+std::vector<station_node*> get_arrivals(
     fbs::Vector<fbs::Offset<StationPathElement>> const* path) {
-  std::vector<arrival> arrivals;
+  std::vector<station_node*> station_nodes;
+  auto const& sched = get_schedule();
 
   for (auto const& el : *path) {
     std::string station_id;
@@ -39,11 +81,11 @@ std::vector<arrival> get_arrivals(
       station_id = el->eva_nr()->str();
     } else {
       message_creator b;
-      b.create_and_finish(MsgContent_StationGuesserRequest,
-                          motis::guesser::CreateStationGuesserRequest(
-                              b, 1, b.CreateString(el->name()->str()))
-                              .Union(),
-                          "/guesser");
+      b.create_and_finish(
+          MsgContent_StationGuesserRequest,
+          CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
+              .Union(),
+          "/guesser");
       auto msg = motis_call(make_msg(b))->val();
       auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
       if (guesses->size() == 0) {
@@ -52,19 +94,21 @@ std::vector<arrival> get_arrivals(
       station_id = guesses->Get(0)->eva()->str();
     }
 
-    auto const& eva_to_station = get_schedule().eva_to_station_;
+    auto const& eva_to_station = sched.eva_to_station_;
     auto it = eva_to_station.find(station_id);
     if (it == end(eva_to_station)) {
       throw std::system_error(error::given_eva_not_available);
     }
-    arrivals.push_back({arrival_part(it->second->index_)});
+    station_nodes.push_back(sched.station_nodes_.at(it->second->index_).get());
   }
 
-  return arrivals;
+  return station_nodes;
 }
 
 routing::routing()
     : label_bytes_(static_cast<uint64_t>(8) * 1024 * 1024 * 1024) {}
+
+routing::~routing() = default;
 
 po::options_description routing::desc() {
   po::options_description desc("Routing Module");
@@ -82,7 +126,6 @@ void routing::print(std::ostream& out) const {
 }
 
 void routing::init(motis::module::registry& reg) {
-  label_store_ = make_unique<memory_manager>(label_bytes_);
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 
@@ -92,31 +135,46 @@ msg_ptr routing::route(msg_ptr const& msg) {
     throw std::system_error(error::path_length_too_short);
   }
 
-  auto& sched = get_schedule();
+  auto const& sched = get_schedule();
   if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
       req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
     throw std::system_error(error::journey_date_not_in_schedule);
   }
 
-  auto arrivals = get_arrivals(req->path());
+  std::cout << "\nROUTING ["
+            << format_time(unix_to_motistime(sched.schedule_begin_,
+                                             req->interval()->begin()))
+            << "," << format_time(unix_to_motistime(sched.schedule_begin_,
+                                                    req->interval()->end()))
+            << "]" << std::endl;
 
+  auto path = get_arrivals(req->path());
   auto i_begin =
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
   auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
 
-  search s(sched, *label_store_);
-  auto result = s.get_connections(
-      arrivals[0], arrivals[1], i_begin, i_end,
-      req->type() == Type_OnTrip || req->type() == Type_LateConnection,
-      create_additional_edges(req->additional_edges(), sched));
+  mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
 
-  LOG(info) << sched.stations_[arrivals[0][0].station_]->name_ << " to "
-            << sched.stations_[arrivals[1][0].station_]->name_ << " "
-            << "(" << format_time(i_begin) << ", " << format_time(i_end)
-            << ") -> " << result.journeys_.size() << " connections found";
+  search_query q = {sched,
+                    mem.get(),
+                    path.at(0),
+                    path.at(1),
+                    create_additional_edges(req->additional_edges(), sched),
+                    i_begin,
+                    i_end};
 
-  // TODO(Felix Guendling) connection checker annotion
-  return journeys_to_message(result.journeys_, result.stats_.pareto_dijkstra_);
+  search_result res;
+  switch (req->type()) {
+    case Type_LateConnection:
+    case Type_OnTrip:
+      res = search<pretrip_gen<my_label>, my_label>::get_connections(q);
+      break;
+    case Type_PreTrip:
+      res = search<ontrip_gen<my_label>, my_label>::get_connections(q);
+      break;
+  }
+
+  return journeys_to_message(res.journeys_, res.stats_.pareto_dijkstra_);
 }
 
 }  // namespace routing

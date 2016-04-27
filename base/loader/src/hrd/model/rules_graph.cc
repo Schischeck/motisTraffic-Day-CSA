@@ -8,7 +8,7 @@ hrd_service* resolve(bitfield const& upper_traffic_days, hrd_service* origin,
                      std::set<service_resolvent>& resolved_services) {
   auto resolved_it = resolved_services.find(service_resolvent(origin));
   if (resolved_it == end(resolved_services)) {
-    auto resolved = make_unique<hrd_service>(*origin);
+    auto resolved = std::make_unique<hrd_service>(*origin);
     resolved->traffic_days_ &= upper_traffic_days;
     origin->traffic_days_ &= ~upper_traffic_days;
     std::tie(resolved_it, std::ignore) =

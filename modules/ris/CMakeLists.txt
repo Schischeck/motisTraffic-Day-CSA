@@ -23,7 +23,6 @@ add_executable(ris_loader EXCLUDE_FROM_ALL ${ris_loader-files})
 target_link_libraries(ris_loader
   conf
   motis-ris
-  ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_FILESYSTEM_LIBRARY}
 )
 set_target_properties(ris_loader PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

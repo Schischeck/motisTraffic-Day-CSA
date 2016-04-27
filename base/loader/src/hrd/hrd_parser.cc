@@ -10,6 +10,7 @@
 #include "motis/loader/hrd/builder/direction_builder.h"
 #include "motis/loader/hrd/builder/footpath_builder.h"
 #include "motis/loader/hrd/builder/line_builder.h"
+#include "motis/loader/hrd/builder/meta_station_builder.h"
 #include "motis/loader/hrd/builder/provider_builder.h"
 #include "motis/loader/hrd/builder/route_builder.h"
 #include "motis/loader/hrd/builder/rule_service_builder.h"
@@ -139,7 +140,7 @@ void parse_and_build_services(
 
   int count = 0;
   for (auto const& file : files) {
-    schedule_data.emplace_back(make_unique<loaded_file>(file));
+    schedule_data.emplace_back(std::make_unique<loaded_file>(file));
     LOG(info) << "parsing " << ++count << "/" << files.size() << " "
               << schedule_data.back()->name();
     for_each_service(*schedule_data.back(), bitfields, service_builder_fun);
@@ -207,12 +208,13 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
       stb, fbb);
 
   auto interval = parse_interval(basic_data_file);
-  fbb.Finish(
-      CreateSchedule(fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),
-                     fbb.CreateVector(values(stb.fbs_stations_)),
-                     fbb.CreateVector(values(rb.routes_)), &interval,
-                     create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
-                     fbb.CreateVector(rsb.fbs_rule_services_)));
+  fbb.Finish(CreateSchedule(
+      fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),
+      fbb.CreateVector(values(stb.fbs_stations_)),
+      fbb.CreateVector(values(rb.routes_)), &interval,
+      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
+      fbb.CreateVector(rsb.fbs_rule_services_),
+      create_meta_stations(metas.meta_stations_, stb.fbs_stations_, fbb)));
 }
 
 }  // namespace hrd

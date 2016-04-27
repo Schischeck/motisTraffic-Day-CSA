@@ -10,7 +10,7 @@
 
 #include "motis/reliability/graph_accessor.h"
 
-#include "../include/test_util.h"
+#include "test_util.h"
 
 namespace motis {
 namespace reliability {

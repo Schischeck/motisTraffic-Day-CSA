@@ -131,9 +131,8 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(std::make_tuple(28, 9, 2015),
-                        (motis::time)(11 * 60 + 32),
-                        (motis::time)(11 * 60 + 32))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -191,8 +190,8 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(std::make_tuple(19, 10, 2015),
-                        (motis::time)(7 * 60 + 55), (motis::time)(8 * 60 + 5))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 755),
+                        test_util::hhmm_to_unixtime(get_schedule(), 805))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -277,8 +276,8 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)
           .add_station(HAUPTWACHE.name, HAUPTWACHE.eva)
-          .set_interval(std::make_tuple(19, 10, 2015),
-                        (motis::time)(8 * 60 + 10), (motis::time)(8 * 60 + 11))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 810),
+                        test_util::hhmm_to_unixtime(get_schedule(), 811))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;

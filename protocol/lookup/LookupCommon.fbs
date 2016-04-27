@@ -1,6 +1,6 @@
 namespace motis.lookup;
 
-enum EventType : bool {Arrival, Departure}
+enum EventType : byte {Arrival, Departure}
 
 table TripId {
   // primary
@@ -13,4 +13,11 @@ table TripId {
   target_time: long;
   type: EventType;
   line_id: string;
+}
+
+table Station {
+  eva_nr: string;
+  name: string;
+  lat: double;
+  lng: double;
 }

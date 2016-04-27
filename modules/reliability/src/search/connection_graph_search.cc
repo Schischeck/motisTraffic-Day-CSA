@@ -7,12 +7,11 @@
 #include "motis/module/context/motis_parallel_for.h"
 
 #include "motis/core/common/logging.h"
-
-#include "motis/core/journey/journey_util.h"
-#include "motis/core/journey/message_to_journeys.h"
-
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/access/time_access.h"
+#include "motis/core/journey/journey_util.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
@@ -65,8 +64,12 @@ void check_stop_states(connection_graph_optimizer const& optimizer,
         stop_state.state_ =
             context::conn_graph_context::stop_state::Stop_completed;
         stop_completed = true;
+        std::cout << "\nSTOP " << idx << " completed with "
+                  << cg_context.cg_->stops_.at(idx).alternative_infos_.size()
+                  << " alternatives!" << std::endl;
       } else {
         stop_state.state_ = context::conn_graph_context::stop_state::Stop_idle;
+        std::cout << "\nSTOP " << idx << " is set to idle" << std::endl;
       }
     }
   }
@@ -185,6 +188,11 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
     }
 
     for (auto const& req : requests) {
+      std::cout << "\nREQ: " << req.cache_key_.from_eva_ << " "
+                << format_time(
+                       unix_to_motistime(c->reliability_context_.schedule_,
+                                         req.cache_key_.ontrip_time_))
+                << std::endl;
       new_alternative_futures.emplace_back(
           module::spawn_job(req, [=](request_type const& req) -> future_return {
             auto const cache_it = c->journey_cache_.find(req.cache_key_);
@@ -205,7 +213,19 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
     add_alternative(alternative.journey_, c, cg, alternative.stop_id_);
 
     new_alternative_futures.erase(new_alternative_futures.begin());
-  } while (!new_alternative_futures.empty());
+
+    /* TODO STOP wurde bearbeitet und wieder auf idle gesetzt.
+     * Es gibt aber keine Future mehr in dem Vector. Ein neues Future-Objekt
+     * wird erst in der nächsten Iteration erzeugt. Aber die While-Schliefe
+     * wird am Ende der aktuellen Iteration abgebrochen, da der Vektor leer ist!
+     * */
+  } while (
+      !new_alternative_futures.empty() ||
+      std::find_if(cg.stop_states_.begin(), cg.stop_states_.end(),
+                   [](auto const& s) {
+                     return s.second.state_ ==
+                            context::conn_graph_context::stop_state::Stop_idle;
+                   }) != cg.stop_states_.end());
 }
 
 }  // namespace detail
@@ -219,6 +239,9 @@ std::vector<std::shared_ptr<connection_graph>> search_cgs(
   for (auto const& j : detail::retrieve_base_journeys(request)) {
     detail::init_connection_graph_from_base_journey(*c, j);
   }
+
+  std::cout << "\nNum base journeys: " << c->connection_graphs_.size()
+            << std::endl;
 
   using namespace motis::module;
   motis_parallel_for(c->connection_graphs_,

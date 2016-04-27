@@ -53,8 +53,9 @@ public:
     INVALID_EDGE,
     ROUTE_EDGE,
     FOOT_EDGE,
-    AFTER_TRAINfoot_edge_,
+    AFTER_TRAIN_FOOT_EDGE,
     MUMO_EDGE,
+    PERIODIC_MUMO_EDGE,
     TIME_DEPENDENT_MUMO_EDGE,
     HOTEL_EDGE,
     THROUGH_EDGE
@@ -76,13 +77,16 @@ public:
 
   /** foot edge constructor. */
   edge(node* from, node* to, uint8_t type, uint16_t time_cost, uint16_t price,
-       bool transfer, uint8_t slot = 0)
+       bool transfer, uint8_t slot = 0, uint16_t interval_begin = 0,
+       uint16_t interval_end = 0)
       : from_(from), to_(to) {
     m_.type_ = type;
     m_.foot_edge_.time_cost_ = time_cost;
     m_.foot_edge_.price_ = price;
     m_.foot_edge_.transfer_ = transfer;
     m_.foot_edge_.slot_ = slot;
+    m_.foot_edge_.interval_begin_ = interval_begin;
+    m_.foot_edge_.interval_end_ = interval_end;
 
     assert(m_.type_ != ROUTE_EDGE);
   }
@@ -102,7 +106,7 @@ public:
     switch (m_.type_) {
       case ROUTE_EDGE: return get_route_edge_cost(start_time);
 
-      case AFTER_TRAINfoot_edge_:
+      case AFTER_TRAIN_FOOT_EDGE:
         if (last_con == nullptr) {
           return NO_EDGE;
         }
@@ -111,8 +115,17 @@ public:
       case FOOT_EDGE:
         return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
                          m_.foot_edge_.price_, m_.foot_edge_.slot_);
+      case PERIODIC_MUMO_EDGE:
+        start_time %= 1440;
+      /* no break */
       case TIME_DEPENDENT_MUMO_EDGE: {
-        return edge_cost_for_time_dependent_mumo(start_time);
+        if (start_time >= m_.foot_edge_.interval_begin_ ||
+            start_time <= m_.foot_edge_.interval_end_) {
+          return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
+                           m_.foot_edge_.price_, m_.foot_edge_.slot_);
+        } else {
+          return NO_EDGE;
+        }
       }
       case HOTEL_EDGE: {
         return edge_cost(calc_duration_hotel_edge(start_time), false,
@@ -140,7 +153,7 @@ public:
                 ->travel_time(),
             false, std::begin(m_.route_edge_.conns_)->full_con_->price_);
       }
-    } else if (m_.type_ == FOOT_EDGE || m_.type_ == AFTER_TRAINfoot_edge_) {
+    } else if (m_.type_ == FOOT_EDGE || m_.type_ == AFTER_TRAIN_FOOT_EDGE) {
       return edge_cost(0, m_.foot_edge_.transfer_);
     } else if (m_.type_ == HOTEL_EDGE) {
       return edge_cost(0, false, m_.hotel_edge_.price_);
@@ -202,9 +215,10 @@ public:
     switch (type()) {
       case ROUTE_EDGE: return "ROUTE_EDGE";
       case FOOT_EDGE: return "FOOT_EDGE";
-      case AFTER_TRAINfoot_edge_: return "AFTER_TRAINfoot_edge_";
+      case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
       case TIME_DEPENDENT_MUMO_EDGE: return "TIME_DEPENDENT_MUMO_EDGE";
+      case PERIODIC_MUMO_EDGE: return "PERIODIC_MUMO_EDGE";
       case HOTEL_EDGE: return "HOTEL_EDGE";
       case THROUGH_EDGE: return "THROUGH_EDGE";
       default: return "INVALID";
@@ -305,11 +319,9 @@ public:
       // slot for mumo edge
       uint8_t slot_;
 
-      // for time-dependent mumo edge
-      uint16_t valid_from_, valid_to_;
-      // if true, _valid_from and _valid_to are values in [0, 1439]
-      // (valid on everyday).
-      bool periodical_validity_;
+      // interval: time-dependent/periodic mumo edge
+      uint16_t interval_begin_;
+      uint16_t interval_end_;
 
       void init_empty() {
         time_cost_ = 0;
@@ -337,17 +349,6 @@ private:
         static_cast<uint16_t>((m_.hotel_edge_.checkout_time_ + offset) -
                               (start_time % 1440)));
   }
-
-  edge_cost edge_cost_for_time_dependent_mumo(time const start_time) const {
-    auto const t =
-        m_.foot_edge_.periodical_validity_ ? start_time % 1440 : start_time;
-    if (t >= m_.foot_edge_.valid_from_ && t <= m_.foot_edge_.valid_to_) {
-      return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
-                       m_.foot_edge_.price_, m_.foot_edge_.slot_);
-    } else {
-      return NO_EDGE;
-    }
-  }
 };
 
 /* convenience helper functions to generate the right edge type */
@@ -364,7 +365,7 @@ inline edge make_foot_edge(node* from, node* to, uint16_t time_cost = 0,
 
 inline edge make_after_train_edge(node* from, node* to, uint16_t time_cost = 0,
                                   bool transfer = false) {
-  return edge(from, to, edge::AFTER_TRAINfoot_edge_, time_cost, 0, transfer);
+  return edge(from, to, edge::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
 }
 
 inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
@@ -372,16 +373,20 @@ inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
   return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
 }
 
-inline edge make_time_dependent_mumo_edge(
-    node* from, node* to, uint16_t valid_from, uint16_t valid_to,
-    bool periodical_validity, uint16_t time_cost = 0, uint16_t price = 0,
-    uint8_t slot = 0) {
-  edge e(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
-         slot);
-  e.m_.foot_edge_.valid_from_ = valid_from;
-  e.m_.foot_edge_.valid_to_ = valid_to;
-  e.m_.foot_edge_.periodical_validity_ = periodical_validity;
-  return e;
+inline edge make_time_dependent_mumo_edge(node* from, node* to,
+                                          uint16_t time_cost, uint16_t price,
+                                          uint8_t slot, uint16_t interval_begin,
+                                          uint16_t interval_end) {
+  return edge(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
+              slot, interval_begin, interval_end);
+}
+
+inline edge make_periodic_mumo_edge(node* from, node* to, uint16_t time_cost,
+                                    uint16_t price, uint8_t slot,
+                                    uint16_t interval_begin,
+                                    uint16_t interval_end) {
+  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, false, slot,
+              interval_begin, interval_end);
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,

@@ -15,6 +15,7 @@
 
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
+#include "../include/test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -56,9 +57,8 @@ TEST_F(reliability_simple_rating2, simple_rate) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(std::make_tuple(28, 9, 2015),
-                        (motis::time)(11 * 60 + 32),
-                        (motis::time)(11 * 60 + 32))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -99,8 +99,8 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
       flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)
           .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
-                        (motis::time)(7 * 60 + 1))
+          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
+                        test_util::hhmm_to_unixtime(get_schedule(), 701))
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
