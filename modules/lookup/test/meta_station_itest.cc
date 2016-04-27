@@ -15,14 +15,14 @@ constexpr auto kEmptyMetaStationRequest = R""(
 { 
   "destination": { "type": "Module", "target": "/lookup/meta_station" },
   "content_type": "LookupMetaStationRequest",
-  "content": { "eva_nr": "8000105" }}
+  "content": { "station_id": "8000105" }}
 )"";
 
 constexpr auto kMetaStationRequest = R""(
 { 
   "destination": { "type": "Module", "target": "/lookup/meta_station" },
   "content_type": "LookupMetaStationRequest",
-  "content": { "eva_nr": "8073368" }}
+  "content": { "station_id": "8073368" }}
 )"";
 
 TEST(lookup, meta_station) {
@@ -37,11 +37,11 @@ TEST(lookup, meta_station) {
     auto resp = motis_content(LookupMetaStationResponse, msg);
     ASSERT_EQ(2, resp->equivalent()->size());
 
-    auto e0_eva = resp->equivalent()->Get(0)->eva_nr()->str();
-    EXPECT_EQ(std::string("8003368"), e0_eva);
+    auto e0_eva = resp->equivalent()->Get(0)->id()->str();
+    EXPECT_EQ("8003368", e0_eva);
 
-    auto e1_eva = resp->equivalent()->Get(1)->eva_nr()->str();
-    EXPECT_EQ(std::string("8073368"), e1_eva);
+    auto e1_eva = resp->equivalent()->Get(1)->id()->str();
+    EXPECT_EQ("8073368", e1_eva);
   }
 }
 

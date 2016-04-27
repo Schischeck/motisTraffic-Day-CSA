@@ -75,16 +75,16 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
 std::vector<Offset<StationEvent>> lookup_station_events(
     FlatBufferBuilder& fbb, schedule const& sched,
     LookupStationEventsRequest const* req) {
-  if (sched.schedule_begin_ > req->end() ||
-      sched.schedule_end_ < req->begin()) {
+  if (sched.schedule_begin_ > req->interval()->end() ||
+      sched.schedule_end_ < req->interval()->begin()) {
     throw std::system_error(error::not_in_period);
   }
 
-  auto station_node = get_station_node(sched, req->eva_nr()->str());
+  auto station_node = get_station_node(sched, req->station_id()->str());
   auto station_index = station_node->id_;
 
-  auto begin = unix_to_motistime(sched, req->begin());
-  auto end = unix_to_motistime(sched, req->end());
+  auto begin = unix_to_motistime(sched, req->interval()->begin());
+  auto end = unix_to_motistime(sched, req->interval()->end());
 
   // TODO(sebastian) include events with schedule_time in the interval (but time
   // outside)
