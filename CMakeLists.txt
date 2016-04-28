@@ -313,6 +313,7 @@ if (MOTIS_COV)
     COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o combined-test.info
     COMMAND lcov --remove combined-test.info "/usr*" -o combined-test.info
     COMMAND lcov --remove combined-test.info "/external_lib*" -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/test/*" -o combined-test.info
     COMMAND genhtml -o combined_coverage -t "motis-test + motis-itest" --num-spaces 4 combined-test.info
 
     # only motis-test
@@ -321,6 +322,7 @@ if (MOTIS_COV)
     COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-test.info
     COMMAND lcov --remove motis-test.info "/usr*" -o motis-test.info
     COMMAND lcov --remove motis-test.info "/external_lib*" -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/test/*" -o motis-test.info
     COMMAND genhtml -o motis-test_coverage -t "motis-test" --num-spaces 4 motis-test.info
 
     # only motis-itest
@@ -329,6 +331,7 @@ if (MOTIS_COV)
     COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-itest.info
     COMMAND lcov --remove motis-itest.info "/usr*" -o motis-itest.info
     COMMAND lcov --remove motis-itest.info "/external_lib*" -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/test/*" -o motis-itest.info
     COMMAND genhtml -o motis-itest_coverage -t "motis-itest" --num-spaces 4 motis-itest.info
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating coverage report"
