@@ -94,7 +94,7 @@ struct trip {
       for (unsigned i = 0; i < route_node_->edges_.size(); ++i) {
         if (&route_node_->edges_[i] == e) {
           outgoing_edge_idx_ = i;
-          break;
+          return;
         }
       }
       assert(false);
