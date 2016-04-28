@@ -55,7 +55,7 @@ void inline foreach_event(
   }
 }
 
-Offset<TripId> inline parse_trip_id(
+Offset<IdEvent> inline parse_trip_id(
     context& ctx, xml_node const& msg,
     char const* service_selector = "./Service") {
   auto const& node = msg.select_node(service_selector).node();
@@ -66,13 +66,14 @@ Offset<TripId> inline parse_trip_id(
       parse_schedule_time(ctx, node.attribute("IdZeit").value());
 
   std::string reg_sta(node.attribute("RegSta").value());
-  auto trip_type = (reg_sta == "" || reg_sta == "Plan") ? TripType_Schedule
-                                                        : TripType_Additional;
+  auto trip_type = (reg_sta == "" || reg_sta == "Plan")
+                       ? IdEventType_Schedule
+                       : IdEventType_Additional;
   // desired side-effect: update temporal bounds
   parse_schedule_time(ctx, node.attribute("Zielzeit").value());
 
-  return CreateTripId(ctx.b_, station_id, service_num, schedule_time,
-                      trip_type);
+  return CreateIdEvent(ctx.b_, station_id, service_num, schedule_time,
+                       trip_type);
 }
 
 using parser_func_t = std::function<Offset<Message>(context&, xml_node const&)>;

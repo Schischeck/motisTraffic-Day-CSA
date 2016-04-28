@@ -33,7 +33,7 @@ msg_ptr get_ris_message() {
         ),
       1448375400  // 2015-11-24 15:30:00 GMT+0100
     )};
-  auto trip_id = motis::ris::CreateTripId(fbb,
+  auto trip_id = motis::ris::CreateIdEvent(fbb,
         fbb.CreateString("8000261"),  // Muenchen Hbf
         628,
         1448362440);  // 2015-11-24 11:54:00 GMT+0100

@@ -7,8 +7,8 @@ enum Type : byte { PreTrip, OnTrip, LateConnection }
 enum Direction : byte { Forward, Backward }
 
 table MumoEdge {
-  from_station_eva:string;
-  to_station_eva:string;
+  from_station_id:string;
+  to_station_id:string;
   duration:ushort;
   price:ushort;
   slot:ushort;
@@ -26,7 +26,7 @@ table TimeDependentMumoEdge {
 }
 
 table HotelEdge {
-  station_eva:string;
+  station_id:string;
   earliest_checkout_time:ushort;
   min_stay_duration:ushort;
   price:ushort;
@@ -55,8 +55,8 @@ table AdditionalEdgeWrapper {
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": "8000096", "name": "" },
-//       { "eva_nr": "8000105", "name": "" }
+//       { "id": "8000096", "name": "", "pos": { "lat": 0, "lng": 0 } },
+//       { "id": "8000105", "name": "", "pos": { "lat": 0, "lng": 0 } }
 //     ],
 //     "additional_edges": []
 //   }
@@ -72,8 +72,8 @@ table AdditionalEdgeWrapper {
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": "", "name": "Stutt" },
-//       { "eva_nr": "", "name": "Darm" }
+//       { "id": "", "name": "Stutt", "pos": { "lat": 0, "lng": 0 } },
+//       { "id": "", "name": "Darm" , "pos": { "lat": 0, "lng": 0 } }
 //     ],
 //     "additional_edges": []
 //   }

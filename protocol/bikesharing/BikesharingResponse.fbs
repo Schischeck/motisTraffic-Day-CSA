@@ -14,13 +14,13 @@ table BikesharingTerminal {
   pos:motis.Position;
 }
 
-// if departure:loc --walk--> from --bike--> to --walk--> eva
-// if arrival:eva --walk--> from --bike--> to --walk--> loc
+// if departure:loc --walk--> from --bike--> to --walk--> station
+// if arrival:station --walk--> from --bike--> to --walk--> loc
 table BikesharingEdge {
   from:BikesharingTerminal;
   to:BikesharingTerminal;
   availability:[BikesharingAvailability];
-  eva_nr:string;
+  station_id:string;
   walk_duration:ulong; // sum of the two walks
   bike_duration:ulong;
 }
