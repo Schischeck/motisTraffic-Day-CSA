@@ -63,41 +63,8 @@ union Start {
   PretripStart
 }
 
-// JSON Example:
-// --
-// {
-//   "content_type": "RoutingRequest",
-//   "content": {
-//     "interval": {
-//       "begin": 1444896228,
-//       "end": 1444899228
-//     },
-//     "type": "PreTrip",
-//     "direction": "Forward",
-//     "path": [
-//       { "eva_nr": "8000096", "name": "" },
-//       { "eva_nr": "8000105", "name": "" }
-//     ],
-//     "additional_edges": []
-//   }
-// }
-//
-// {
-//   "content_type": "RoutingRequest",
-//   "content": {
-//     "interval": {
-//       "begin": 1413475200,
-//       "end": 1413478800
-//     },
-//     "type": "PreTrip",
-//     "direction": "Forward",
-//     "path": [
-//       { "eva_nr": "", "name": "Stutt" },
-//       { "eva_nr": "", "name": "Darm" }
-//     ],
-//     "additional_edges": []
-//   }
-// }
+// ----------------------------------------------------------------------------
+
 table RoutingRequest {
   start:Start;
   path:[motis.Station];
