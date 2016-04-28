@@ -145,7 +145,7 @@ bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
 msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
   using routing::RoutingResponse;
   auto routing_response =
-      motis_call(flatbuffers::request_builder::request_builder(req->request())
+      motis_call(flatbuffers::request_builder(req->request())
                      .add_additional_edges(retrieve_individual_mode_infos(req))
                      .build_routing_request())
           ->val();

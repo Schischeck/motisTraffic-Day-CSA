@@ -54,7 +54,7 @@ public:
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
   auto req_msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+      flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -72,10 +72,10 @@ TEST_F(reliability_simple_rating2, simple_rate) {
   simple_connection_rating rating;
   rate(rating, journeys.front(), get_schedule(), s_t_distributions);
   ASSERT_TRUE(rating.ratings_elements_.size() == 2);
-  ASSERT_EQ(1, rating.ratings_elements_[0].from_);
-  ASSERT_TRUE(rating.ratings_elements_[0].to_ == 2);
-  ASSERT_TRUE(rating.ratings_elements_[1].from_ == 2);
-  ASSERT_TRUE(rating.ratings_elements_[1].to_ == 3);
+  ASSERT_EQ(0, rating.ratings_elements_[0].from_);
+  ASSERT_TRUE(rating.ratings_elements_[0].to_ == 1);
+  ASSERT_TRUE(rating.ratings_elements_[1].from_ == 1);
+  ASSERT_TRUE(rating.ratings_elements_[1].to_ == 2);
   ASSERT_TRUE(rating.ratings_elements_[0].ratings_.size() == 1);
   ASSERT_TRUE(rating.ratings_elements_[0].ratings_[0].first ==
               rating_type::Cancellation);
@@ -96,7 +96,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
   auto req_msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+      flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)
           .add_station(MARBURG.name, MARBURG.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -116,16 +116,16 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
   ASSERT_TRUE(rating.ratings_elements_.size() == 3);
   {
     auto const& rating_element = rating.ratings_elements_[0];
-    ASSERT_TRUE(rating_element.from_ == 1);
-    ASSERT_TRUE(rating_element.to_ == 3);
+    ASSERT_TRUE(rating_element.from_ == 0);
+    ASSERT_TRUE(rating_element.to_ == 2);
     ASSERT_TRUE(rating_element.ratings_.size() == 1);
     ASSERT_TRUE(rating_element.ratings_[0].first == rating_type::Cancellation);
     ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));
   }
   {
     auto const& rating_element = rating.ratings_elements_[1];
-    ASSERT_TRUE(rating_element.from_ == 3);
-    ASSERT_TRUE(rating_element.to_ == 5);
+    ASSERT_TRUE(rating_element.from_ == 2);
+    ASSERT_TRUE(rating_element.to_ == 4);
     ASSERT_TRUE(rating_element.ratings_.size() == 2);
     ASSERT_TRUE(rating_element.ratings_[0].first == rating_type::Cancellation);
     ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));
@@ -134,8 +134,8 @@ TEST_F(reliability_simple_rating5, simple_rate2) {
   }
   {
     auto const& rating_element = rating.ratings_elements_[2];
-    ASSERT_TRUE(rating_element.from_ == 5);
-    ASSERT_TRUE(rating_element.to_ == 6);
+    ASSERT_TRUE(rating_element.from_ == 4);
+    ASSERT_TRUE(rating_element.to_ == 5);
     ASSERT_TRUE(rating_element.ratings_.size() == 2);
     ASSERT_TRUE(rating_element.ratings_[0].first == rating_type::Cancellation);
     ASSERT_TRUE(equal(rating_element.ratings_[0].second, 0.995));

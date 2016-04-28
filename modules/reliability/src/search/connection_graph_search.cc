@@ -55,7 +55,6 @@ std::vector<unsigned int> insert_stop_states(
 void check_stop_states(connection_graph_optimizer const& optimizer,
                        context::conn_graph_context& cg_context,
                        std::vector<unsigned int> const& stop_indices) {
-  bool stop_completed = false;
   for (auto const idx : stop_indices) {
     if (idx != connection_graph::stop::Index_departure_stop &&
         idx != connection_graph::stop::Index_arrival_stop) {
@@ -63,7 +62,6 @@ void check_stop_states(connection_graph_optimizer const& optimizer,
       if (optimizer.complete(cg_context.cg_->stops_.at(idx), stop_state)) {
         stop_state.state_ =
             context::conn_graph_context::stop_state::Stop_completed;
-        stop_completed = true;
         std::cout << "\nSTOP " << idx << " completed with "
                   << cg_context.cg_->stops_.at(idx).alternative_infos_.size()
                   << " alternatives!" << std::endl;
@@ -97,9 +95,8 @@ void add_alternative(journey const& j, std::shared_ptr<context> c,
 std::vector<journey> retrieve_base_journeys(
     ReliableRoutingRequest const* request) {
   auto routing_response =
-      motis_call(
-          flatbuffers::request_builder::request_builder(request->request())
-              .build_routing_request())
+      motis_call(flatbuffers::request_builder(request->request())
+                     .build_routing_request())
           ->val();
   using routing::RoutingResponse;
   return message_to_journeys(motis_content(RoutingResponse, routing_response));
@@ -123,9 +120,9 @@ struct request_type {
   module::msg_ptr request_msg_;
   context::journey_cache_key cache_key_;
 };
-std::vector<request_type> alternative_requests(context::conn_graph_context& cg,
-                                               duration const min_dep_diff) {
-  std::vector<request_type> requests;
+std::vector<std::shared_ptr<request_type>> alternative_requests(
+    context::conn_graph_context& cg, duration const min_dep_diff) {
+  std::vector<std::shared_ptr<request_type>> requests;
   for (auto& stop_state : cg.stop_states_) {
     if (stop_state.second.state_ !=
         context::conn_graph_context::stop_state::Stop_idle) {
@@ -137,7 +134,8 @@ std::vector<request_type> alternative_requests(context::conn_graph_context& cg,
 
     auto const req = tools::to_routing_request(
         *cg.cg_, cg.cg_->stops_.at(stop_state.first), min_dep_diff);
-    requests.push_back({stop_state.first, req.first, req.second});
+    requests.push_back(std::make_shared<request_type>(
+        request_type{stop_state.first, req.first, req.second}));
   }
   return requests;
 }
@@ -188,37 +186,31 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
     }
 
     for (auto const& req : requests) {
-      std::cout << "\nREQ: " << req.cache_key_.from_eva_ << " "
-                << format_time(
-                       unix_to_motistime(c->reliability_context_.schedule_,
-                                         req.cache_key_.ontrip_time_))
-                << std::endl;
-      new_alternative_futures.emplace_back(
-          module::spawn_job(req, [=](request_type const& req) -> future_return {
-            auto const cache_it = c->journey_cache_.find(req.cache_key_);
+      new_alternative_futures.emplace_back(module::spawn_job(
+          req, [=](std::shared_ptr<request_type> const& req) -> future_return {
+            auto const cache_it = c->journey_cache_.find(req->cache_key_);
             bool const is_cached = cache_it != c->journey_cache_.end();
-            return future_return{req.stop_id_,
+            return future_return{req->stop_id_,
                                  is_cached
                                      ? cache_it->second
-                                     : retrieve_alternative(req.request_msg_),
-                                 is_cached, req.cache_key_};
+                                     : retrieve_alternative(req->request_msg_),
+                                 is_cached, req->cache_key_};
           }));
     }
 
     auto const alternative = new_alternative_futures.front()->val();
-    if (!alternative.is_cached_) {
-      c->journey_cache_[alternative.cache_key_] = alternative.journey_;
+    if (alternative.journey_.stops_.empty()) {
+      cg.stop_states_.at(alternative.stop_id_).state_ =
+          context::conn_graph_context::stop_state::Stop_completed;
+      printf("\nStop %u set to completed since no alternative found",
+             alternative.stop_id_);
+    } else {
+      if (!alternative.is_cached_) {
+        c->journey_cache_[alternative.cache_key_] = alternative.journey_;
+      }
+      add_alternative(alternative.journey_, c, cg, alternative.stop_id_);
+      new_alternative_futures.erase(new_alternative_futures.begin());
     }
-
-    add_alternative(alternative.journey_, c, cg, alternative.stop_id_);
-
-    new_alternative_futures.erase(new_alternative_futures.begin());
-
-    /* TODO STOP wurde bearbeitet und wieder auf idle gesetzt.
-     * Es gibt aber keine Future mehr in dem Vector. Ein neues Future-Objekt
-     * wird erst in der nächsten Iteration erzeugt. Aber die While-Schliefe
-     * wird am Ende der aktuellen Iteration abgebrochen, da der Vektor leer ist!
-     * */
   } while (
       !new_alternative_futures.empty() ||
       std::find_if(cg.stop_states_.begin(), cg.stop_states_.end(),
@@ -238,6 +230,7 @@ std::vector<std::shared_ptr<connection_graph>> search_cgs(
 
   for (auto const& j : detail::retrieve_base_journeys(request)) {
     detail::init_connection_graph_from_base_journey(*c, j);
+    print_journey(j, rel_context.schedule_.schedule_begin_, std::cout);
   }
 
   std::cout << "\nNum base journeys: " << c->connection_graphs_.size()

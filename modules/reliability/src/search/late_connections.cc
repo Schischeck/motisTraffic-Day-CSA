@@ -19,7 +19,7 @@ module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const* request,
     std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
-  flatbuffers::request_builder::request_builder builder(request);
+  flatbuffers::request_builder builder(request);
   builder.type_ = Type::Type_LateConnection;
 
   auto& b = builder.b_;

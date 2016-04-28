@@ -161,7 +161,7 @@ public:
 
 TEST_F(reliability_test_rating, rating_request) {
   auto const req =
-      flatbuffers::request_builder::request_builder()
+      flatbuffers::request_builder()
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -198,7 +198,7 @@ TEST_F(reliability_test_rating, rating_request) {
 
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
-      flatbuffers::request_builder::request_builder()
+      flatbuffers::request_builder()
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(FRANKFURT.name, FRANKFURT.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -210,7 +210,7 @@ TEST_F(reliability_test_cg, connection_tree) {
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   auto const req =
-      flatbuffers::request_builder::request_builder()
+      flatbuffers::request_builder()
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(FRANKFURT.name, FRANKFURT.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -242,7 +242,7 @@ module::msg_ptr to_reliable_late_connections_request(
     std::time_t interval_begin, std::time_t interval_end,
     std::vector<taxi_info> const& taxi_infos) {
   using namespace routing;
-  flatbuffers::request_builder::request_builder builder;
+  flatbuffers::request_builder builder;
   builder.add_station(from_name, from_eva)
       .add_station(to_name, to_eva)
       .set_interval(interval_begin, interval_end);

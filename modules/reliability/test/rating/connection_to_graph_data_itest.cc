@@ -128,7 +128,7 @@ void test_element(connection_element const& expected,
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
   auto req_msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+      flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(STUTTGART.name, STUTTGART.eva)
           .add_station(KASSEL.name, KASSEL.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -146,9 +146,8 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
   {
     ASSERT_TRUE(elements[0].size() == 1);
     auto const element = elements[0][0];
-    ASSERT_TRUE(element.departure_stop_idx_ ==
-                1);  // note: connections begin with a dummy walk
-    ASSERT_TRUE(element.arrival_stop_idx() == 2);
+    ASSERT_EQ(0, element.departure_stop_idx_);
+    ASSERT_TRUE(element.arrival_stop_idx() == 1);
     ASSERT_TRUE(
         get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         STUTTGART.eva);
@@ -165,8 +164,8 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
   {
     ASSERT_TRUE(elements[1].size() == 1);
     auto const element = elements[1][0];
-    ASSERT_TRUE(element.departure_stop_idx_ == 2);
-    ASSERT_TRUE(element.arrival_stop_idx() == 3);
+    ASSERT_TRUE(element.departure_stop_idx_ == 1);
+    ASSERT_TRUE(element.arrival_stop_idx() == 2);
     ASSERT_TRUE(
         get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         ERLANGEN.eva);
@@ -187,7 +186,7 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   auto req_msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+      flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(DARMSTADT.name, DARMSTADT.eva)
           .add_station(MARBURG.name, MARBURG.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 755),
@@ -206,9 +205,8 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
     ASSERT_TRUE(elements.at(0).size() == 2);
     {
       auto const element = elements[0][0];
-      ASSERT_TRUE(element.departure_stop_idx_ ==
-                  1);  // note: connections begin with a dummy walk
-      ASSERT_TRUE(element.arrival_stop_idx() == 2);
+      ASSERT_EQ(0, element.departure_stop_idx_);
+      ASSERT_TRUE(element.arrival_stop_idx() == 1);
       ASSERT_TRUE(get_schedule()
                       .stations_[element.from_->station_node_->id_]
                       ->eva_nr_ == DARMSTADT.eva);
@@ -224,8 +222,8 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
     }
     {
       auto const element = elements[0][1];
-      ASSERT_TRUE(element.departure_stop_idx_ == 2);
-      ASSERT_TRUE(element.arrival_stop_idx() == 3);
+      ASSERT_TRUE(element.departure_stop_idx_ == 1);
+      ASSERT_TRUE(element.arrival_stop_idx() == 2);
       ASSERT_TRUE(get_schedule()
                       .stations_[element.from_->station_node_->id_]
                       ->eva_nr_ == FRANKFURT.eva);
@@ -243,8 +241,8 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   {
     ASSERT_TRUE(elements.at(1).size() == 1);
     auto const element = elements[1][0];
-    ASSERT_TRUE(element.departure_stop_idx_ == 3);
-    ASSERT_TRUE(element.arrival_stop_idx() == 4);
+    ASSERT_TRUE(element.departure_stop_idx_ == 2);
+    ASSERT_TRUE(element.arrival_stop_idx() == 3);
     ASSERT_TRUE(
         get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         GIESSEN.eva);
@@ -271,9 +269,9 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  * (Note: the routing-module does not deliver connections
  * with a station-to-station walking at the beginning).
  */
-TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
+TEST_F(reliability_connection_to_graph_data6, DISABLED_get_elements_foot) {
   auto req_msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_PreTrip)
+      flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)
           .add_station(HAUPTWACHE.name, HAUPTWACHE.eva)
           .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 810),
@@ -291,8 +289,8 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   {
     ASSERT_TRUE(elements[0].size() == 1);
     auto const element = elements[0][0];
-    ASSERT_TRUE(element.departure_stop_idx_ == 1);
-    ASSERT_TRUE(element.arrival_stop_idx() == 2);
+    ASSERT_TRUE(element.departure_stop_idx_ == 0);
+    ASSERT_TRUE(element.arrival_stop_idx() == 1);
     ASSERT_TRUE(
         get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         MANNHEIM.eva);
@@ -309,8 +307,8 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   {
     ASSERT_TRUE(elements[1].size() == 1);
     auto const element = elements[1][0];
-    ASSERT_TRUE(element.departure_stop_idx_ == 3);
-    ASSERT_TRUE(element.arrival_stop_idx() == 4);
+    ASSERT_TRUE(element.departure_stop_idx_ == 2);
+    ASSERT_TRUE(element.arrival_stop_idx() == 3);
     ASSERT_TRUE(
         get_schedule().stations_[element.from_->station_node_->id_]->eva_nr_ ==
         TUD.eva);

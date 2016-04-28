@@ -51,12 +51,11 @@ to_routing_request(connection_graph& conn_graph,
   auto const stop_station = conn_graph.station_info(stop.index_);
   auto const arrival_station =
       conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
-  auto msg =
-      flatbuffers::request_builder::request_builder(routing::Type::Type_OnTrip)
-          .add_station(stop_station.first, stop_station.second)
-          .add_station(arrival_station.first, arrival_station.second)
-          .set_interval(ontrip_time, ontrip_time)
-          .build_routing_request();
+  auto msg = flatbuffers::request_builder(routing::Type::Type_OnTrip)
+                 .add_station(stop_station.first, stop_station.second)
+                 .add_station(arrival_station.first, arrival_station.second)
+                 .set_interval(ontrip_time, ontrip_time)
+                 .build_routing_request();
   return std::make_pair(msg, detail::context::journey_cache_key(
                                  stop_station.second, ontrip_time));
 }
