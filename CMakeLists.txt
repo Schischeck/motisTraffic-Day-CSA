@@ -55,10 +55,10 @@ if (NOT MSVC)
   set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
-    if (MOTIS_COV)
-      set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage -g -O0")
-      set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-    endif()
+  endif()
+  if (MOTIS_COV)
+    set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage -g -O0")
+    set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
   endif()
 else()
   set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB")
@@ -295,10 +295,15 @@ add_custom_target(format-check
 # coverage report
 ################################
 if (MOTIS_COV)
+  set(LCOV_OPTS "")
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(LCOV_OPTS "--gcov-tool=${CMAKE_CURRENT_SOURCE_DIR}/tools/llvm-gcov.sh")
+  endif()
+
   add_custom_target(coverage
     lcov --base-directory . --directory . --zerocounters -q
     COMMAND ./motis-test
-    COMMAND lcov --base-directory . --directory . -c -o motis-test.info
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-test.info
     COMMAND lcov --remove motis-test.info "/usr*" -o motis-test.info
     COMMAND lcov --remove motis-test.info "/external_lib*" -o motis-test.info
     COMMAND rm -rf ./cov_report
