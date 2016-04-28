@@ -130,6 +130,7 @@ void routing::init(motis::module::registry& reg) {
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
+  printf("\nROUTE %s", msg->to_json().c_str());
   auto req = motis_content(RoutingRequest, msg);
   if (req->path()->Length() < 2) {
     throw std::system_error(error::path_length_too_short);
@@ -160,10 +161,10 @@ msg_ptr routing::route(msg_ptr const& msg) {
   switch (req->type()) {
     case Type_LateConnection:
     case Type_OnTrip:
-      res = search<pretrip_gen<my_label>, my_label>::get_connections(q);
+      res = search<ontrip_gen<my_label>, my_label>::get_connections(q);
       break;
     case Type_PreTrip:
-      res = search<ontrip_gen<my_label>, my_label>::get_connections(q);
+      res = search<pretrip_gen<my_label>, my_label>::get_connections(q);
       break;
   }
 
