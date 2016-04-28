@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(motis)
 
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
+option(MOTIS_COV "enable coverage (coverage) target" OFF)
 
 if (MOTIS_LINT)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -54,6 +55,10 @@ if (NOT MSVC)
   set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
+    if (MOTIS_COV)
+      set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage -g -O0")
+      set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    endif()
   endif()
 else()
   set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB")
@@ -284,3 +289,23 @@ add_custom_target(format-check
   COMMENT "Checking source code formatting"
   VERBATIM
 )
+
+
+################################
+# coverage report
+################################
+if (MOTIS_COV)
+  add_custom_target(coverage
+    lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-test
+    COMMAND lcov --base-directory . --directory . -c -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/usr*" -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/external_lib*" -o motis-test.info
+    COMMAND rm -rf ./cov_report
+    COMMAND genhtml -o cov_report -t "motis-test" --num-spaces 4 motis-test.info
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating coverage report"
+    VERBATIM
+  )
+  add_dependencies(coverage motis-test motis-itest)
+endif()
