@@ -1,11 +1,12 @@
 include "base/Interval.fbs";
 include "base/Station.fbs";
+include "base/TripId.fbs";
 
 namespace motis.routing;
 
-enum Type : byte { PreTrip, OnTrip, LateConnection }
-enum Direction : byte { Forward, Backward }
-
+// ----------------------------------------------------------------------------
+// Edges
+// ----------------------------------------------------------------------------
 table MumoEdge {
   from_station_eva:string;
   to_station_eva:string;
@@ -41,6 +42,25 @@ union AdditionalEdge {
 
 table AdditionalEdgeWrapper {
   additional_edge:AdditionalEdge;
+}
+
+// ----------------------------------------------------------------------------
+// Start
+// ----------------------------------------------------------------------------
+table OntripStart {
+  trip:TripId;
+  station_id:string;
+  arrival_time:long;
+}
+
+table PretripStart {
+  station_id:string;
+  interval:motis.Interval;
+}
+
+union Start {
+  OntripStart,
+  PretripStart
 }
 
 // JSON Example:
@@ -79,9 +99,7 @@ table AdditionalEdgeWrapper {
 //   }
 // }
 table RoutingRequest {
-  interval:motis.Interval;
-  type:Type = PreTrip;
-  direction:Direction = Forward;
+  start:Start;
   path:[motis.Station];
   additional_edges:[AdditionalEdgeWrapper];
 }

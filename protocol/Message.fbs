@@ -31,7 +31,6 @@ include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISBatch.fbs";
 include "ris/RISForwardTimeRequest.fbs";
-include "routing/RoutingOntripTrainRequest.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "realtime/RealtimeTrainInfoRequest.fbs";
@@ -127,7 +126,6 @@ union MsgContent {
   motis.realtime.RealtimeCurrentTimeResponse,
   motis.realtime.RealtimeDelayInfoRequest,
   motis.realtime.RealtimeDelayInfoResponse,
-  motis.routing.RoutingOntripTrainRequest,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse,
   motis.user.UserRegisterRequest
