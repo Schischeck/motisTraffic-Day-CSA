@@ -141,13 +141,6 @@ msg_ptr routing::route(msg_ptr const& msg) {
     throw std::system_error(error::journey_date_not_in_schedule);
   }
 
-  std::cout << "\nROUTING ["
-            << format_time(unix_to_motistime(sched.schedule_begin_,
-                                             req->interval()->begin()))
-            << "," << format_time(unix_to_motistime(sched.schedule_begin_,
-                                                    req->interval()->end()))
-            << "]" << std::endl;
-
   auto path = get_arrivals(req->path());
   auto i_begin =
       unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
