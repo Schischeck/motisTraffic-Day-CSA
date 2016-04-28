@@ -57,7 +57,7 @@ if (NOT MSVC)
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
   endif()
   if (MOTIS_COV)
-    set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage -g -O0")
+    set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage")
     set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
   endif()
 else()
@@ -301,13 +301,35 @@ if (MOTIS_COV)
   endif()
 
   add_custom_target(coverage
-    lcov --base-directory . --directory . --zerocounters -q
+    # clean previous files
+    rm -rf ./combined_coverage ./motis-test_coverage ./motis-itest_coverage
+    COMMAND rm -f combined-test.info motis-test.info motis-itest.info
+    COMMAND find . -name "*.gcda" -delete
+
+    # combined (motis-test + motis-itest)
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-test
+    COMMAND ./motis-itest
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/usr*" -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/external_lib*" -o combined-test.info
+    COMMAND genhtml -o combined_coverage -t "motis-test + motis-itest" --num-spaces 4 combined-test.info
+
+    # only motis-test
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
     COMMAND ./motis-test
     COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-test.info
     COMMAND lcov --remove motis-test.info "/usr*" -o motis-test.info
     COMMAND lcov --remove motis-test.info "/external_lib*" -o motis-test.info
-    COMMAND rm -rf ./cov_report
-    COMMAND genhtml -o cov_report -t "motis-test" --num-spaces 4 motis-test.info
+    COMMAND genhtml -o motis-test_coverage -t "motis-test" --num-spaces 4 motis-test.info
+
+    # only motis-itest
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-itest
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/usr*" -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/external_lib*" -o motis-itest.info
+    COMMAND genhtml -o motis-itest_coverage -t "motis-itest" --num-spaces 4 motis-itest.info
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating coverage report"
     VERBATIM
