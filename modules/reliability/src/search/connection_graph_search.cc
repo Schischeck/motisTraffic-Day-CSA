@@ -186,6 +186,12 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
     }
 
     for (auto const& req : requests) {
+      printf("\nREQ stop=%u eva=%s time=%s", req->stop_id_,
+             req->cache_key_.from_eva_.c_str(),
+             format_time(unix_to_motistime(
+                             c->reliability_context_.schedule_.schedule_begin_,
+                             req->cache_key_.ontrip_time_))
+                 .c_str());
       new_alternative_futures.emplace_back(module::spawn_job(
           req, [=](std::shared_ptr<request_type> const& req) -> future_return {
             auto const cache_it = c->journey_cache_.find(req->cache_key_);
