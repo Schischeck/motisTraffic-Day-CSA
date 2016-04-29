@@ -22,8 +22,8 @@ auto routing_request = R"(
     "type": "PreTrip",
     "direction": "Forward",
     "path": [
-      { "eva_nr": "0000002", "name": "" },
-      { "eva_nr": "0000009", "name": "" }
+      { "id": "0000002", "name": "", "pos": {"lat": 0, "lng": 0} },
+      { "id": "0000009", "name": "", "pos": {"lat": 0, "lng": 0} }
     ],
     "additional_edges": []
   }

@@ -1,3 +1,5 @@
+include "base/Position.fbs";
+
 namespace motis.lookup;
 
 // JSON example:
@@ -5,15 +7,16 @@ namespace motis.lookup;
 // {
 //   "content_type": "LookupGeoStationRequest",
 //   "content": {
-//     "lat": 49.8774869,
-//     "lng": 8.6546632,
+//     "pos": {
+//       "lat": 49.8774869,
+//       "lng": 8.6546632
+//     },
 //     "radius": 456.78
 //   }
 // }
 table LookupGeoStationRequest {
-  lat: double;
-  lng: double;
-  radius: double;
+  pos:Position;
+  radius:double;
 }
 
 // JSON example:
@@ -36,5 +39,5 @@ table LookupGeoStationRequest {
 //   }
 // }
 table LookupBatchGeoStationRequest {
-  requests: [LookupGeoStationRequest];
+  requests:[LookupGeoStationRequest];
 }

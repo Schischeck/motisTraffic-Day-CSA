@@ -1,19 +1,20 @@
+include "base/Position.fbs";
+include "base/Interval.fbs";
+
 namespace motis.bikesharing;
 
 // JSON example: see nextbike_itest.cc
-
-enum AvailabilityAggregator : ubyte
-  { Average, Median, Minimum, Quantile90, PercentReliable}
+enum AvailabilityAggregator : ubyte {
+  Average,
+  Median,
+  Minimum,
+  Quantile90,
+  PercentReliable
+}
 
 table BikesharingRequest {
-  departure_lat: double;
-  departure_lng: double;
-
-  arrival_lat: double;
-  arrival_lng: double;
-
-  window_begin: long;
-  window_end: long;
-
-  availability_aggregator: AvailabilityAggregator = Average;
+  dep:motis.Position;
+  arr:motis.Position;
+  interval:motis.Interval;
+  availability_aggregator:AvailabilityAggregator = Average;
 }

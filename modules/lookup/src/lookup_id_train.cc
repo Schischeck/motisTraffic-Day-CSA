@@ -15,17 +15,14 @@ namespace lookup {
 
 Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
                                    schedule const& sched, TripId const* t) {
-  auto trp = get_trip(sched, t->eva_nr()->str(), t->train_nr(), t->time(),
-                      t->target_eva_nr()->str(), t->target_time(),
+  auto trp = get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
+                      t->target_station_id()->str(), t->target_time(),
                       t->type() == EventType_Arrival, t->line_id()->str());
   auto route_id = trp->edges_->at(0).get_edge()->from_->route_;
 
-  int i = 0;
   journey j;
-
   for (auto const& s : access::stops(trp)) {
     journey::stop stop;
-    stop.index_ = i++;
     stop.interchange_ = false;
 
     auto station = s.get_station(sched);

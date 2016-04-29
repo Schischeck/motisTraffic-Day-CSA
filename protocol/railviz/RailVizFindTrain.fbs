@@ -1,5 +1,5 @@
 namespace motis.railviz;
 
 table RailVizFindTrain {
-  train_number : string;
+  train_number:string;
 }

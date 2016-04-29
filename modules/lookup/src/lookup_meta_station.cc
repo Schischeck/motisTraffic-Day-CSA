@@ -13,7 +13,7 @@ Offset<LookupMetaStationResponse> lookup_meta_station(
     LookupMetaStationRequest const* req) {
   std::vector<Offset<Station>> equivalent;
 
-  auto station = get_station(sched, req->eva_nr()->str());
+  auto station = get_station(sched, req->station_id()->str());
   for (auto const& e : station->equivalent_) {
     equivalent.push_back(create_station(fbb, *e));
   }

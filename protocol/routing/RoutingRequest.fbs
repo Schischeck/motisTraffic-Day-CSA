@@ -1,22 +1,14 @@
-namespace motis.routing;
+include "base/Interval.fbs";
+include "base/Station.fbs";
 
-table StationPathElement {
-  name : string;
-  eva_nr : string;
-}
+namespace motis.routing;
 
 enum Type : byte { PreTrip, OnTrip, LateConnection }
 enum Direction : byte { Forward, Backward }
 
-// Uses unix timestamps.
-struct Interval {
-  begin:ulong;
-  end:ulong;
-}
-
 table MumoEdge {
-  from_station_eva:string;
-  to_station_eva:string;
+  from_station_id:string;
+  to_station_id:string;
   duration:ushort;
   price:ushort;
   slot:ushort;
@@ -25,18 +17,16 @@ table MumoEdge {
 // valid_from and valid_to are minutes after midnight
 table PeriodicMumoEdge {
   edge:MumoEdge;
-  interval_begin:ushort;
-  interval_end:ushort;
+  interval:motis.Interval;
 }
 
 table TimeDependentMumoEdge {
   edge:MumoEdge;
-  interval_begin:ulong;
-  interval_end:ulong;
+  interval:motis.Interval;
 }
 
 table HotelEdge {
-  station_eva:string;
+  station_id:string;
   earliest_checkout_time:ushort;
   min_stay_duration:ushort;
   price:ushort;
@@ -65,8 +55,8 @@ table AdditionalEdgeWrapper {
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": "8000096", "name": "" },
-//       { "eva_nr": "8000105", "name": "" }
+//       { "id": "8000096", "name": "", "pos": { "lat": 0, "lng": 0 } },
+//       { "id": "8000105", "name": "", "pos": { "lat": 0, "lng": 0 } }
 //     ],
 //     "additional_edges": []
 //   }
@@ -82,16 +72,16 @@ table AdditionalEdgeWrapper {
 //     "type": "PreTrip",
 //     "direction": "Forward",
 //     "path": [
-//       { "eva_nr": "", "name": "Stutt" },
-//       { "eva_nr": "", "name": "Darm" }
+//       { "id": "", "name": "Stutt", "pos": { "lat": 0, "lng": 0 } },
+//       { "id": "", "name": "Darm" , "pos": { "lat": 0, "lng": 0 } }
 //     ],
 //     "additional_edges": []
 //   }
 // }
 table RoutingRequest {
-  interval:Interval;
+  interval:motis.Interval;
   type:Type = PreTrip;
   direction:Direction = Forward;
-  path:[StationPathElement];
+  path:[motis.Station];
   additional_edges:[AdditionalEdgeWrapper];
 }

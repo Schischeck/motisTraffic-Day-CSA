@@ -1,13 +1,7 @@
+include "base/Station.fbs";
+
 namespace motis.guesser;
 
-table Station {
-  name: string;
-  eva: string;
-  id: int;
-  lat: double;
-  lng: double;
-}
-
 table StationGuesserResponse {
-  guesses: [Station];
+  guesses:[motis.Station];
 }

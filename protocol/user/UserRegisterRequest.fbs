@@ -13,5 +13,5 @@ namespace motis.user;
 //   }
 // }
 table UserRegisterRequest {
-  name: string;
+  name:string;
 }

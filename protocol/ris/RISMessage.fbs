@@ -5,90 +5,90 @@ namespace motis.ris;
 // ----------------------------------------------------------------------------
 enum EventType : byte {Arrival, Departure}
 table Event {
-  station_id: string;
-  service_num: uint;
-  line_id: string;
-  type: EventType;
-  schedule_time: ulong;
+  station_id:string;
+  service_num:uint;
+  line_id:string;
+  type:EventType;
+  schedule_time:ulong;
 }
 
-enum TripType : byte {Schedule, Additional}
-table TripId {
-  station_id: string;
-  service_num: uint;
-  schedule_time: ulong;
+enum IdEventType : byte {Schedule, Additional}
 
-  trip_type: TripType;
+table IdEvent {
+  station_id:string;
+  service_num:uint;
+  schedule_time:ulong;
+  trip_type:IdEventType;
 }
 
 // ----------------------------------------------------------------------------
 // Train centered Messages
 // ----------------------------------------------------------------------------
 table CancelMessage {
-  trip_id: TripId;
-  events: [Event] (required);
+  trip_id:IdEvent;
+  events:[Event] (required);
 }
 
 table UpdatedEvent {
-  base: Event;
-  updated_time: ulong;
+  base:Event;
+  updated_time:ulong;
 }
 
 enum DelayType : byte {Is, Forecast} // Ist and IstProg
 table DelayMessage {
-  trip_id: TripId;
-  type: DelayType;
-  events: [UpdatedEvent] (required);
+  trip_id:IdEvent;
+  type:DelayType;
+  events:[UpdatedEvent] (required);
 }
 
 table AdditionalEvent {
-  base: Event;
-  category: string (required);
-  track: string;  // optional
+  base:Event;
+  category:string (required);
+  track:string;  // optional
 }
 
 table AdditionMessage {
-  trip_id: TripId;
-  events: [AdditionalEvent];
+  trip_id:IdEvent;
+  events:[AdditionalEvent];
 }
 
 enum RerouteStatus : byte {Normal, UmlNeu}
 table ReroutedEvent {
-  base: AdditionalEvent (required);
-  status: RerouteStatus;
+  base:AdditionalEvent (required);
+  status:RerouteStatus;
 }
 
 table RerouteMessage {
-  trip_id: TripId;
-  cancelled_events: [Event] (required);
-  new_events: [ReroutedEvent] (required);
+  trip_id:IdEvent;
+  cancelled_events:[Event] (required);
+  new_events:[ReroutedEvent] (required);
 }
 
 // ----------------------------------------------------------------------------
 // Connection Event Messages
 // ----------------------------------------------------------------------------
 table ConnectionDecision {
-  trip_id: TripId;
-  base: Event (required);
-  hold: bool;
+  trip_id:IdEvent;
+  base:Event (required);
+  hold:bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
-  from_trip_id: TripId;
-  from: Event (required);
-  to: [ConnectionDecision] (required);
+  from_trip_id:IdEvent;
+  from:Event (required);
+  to:[ConnectionDecision] (required);
 }
 
 table ConnectionAssessment {
-  trip_id: TripId;
-  base: Event (required);
-  assessment: int;
+  trip_id:IdEvent;
+  base:Event (required);
+  assessment:int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
-  from_trip_id: TripId;
-  from: Event (required);
-  to: [ConnectionAssessment] (required);
+  from_trip_id:IdEvent;
+  from:Event (required);
+  to:[ConnectionAssessment] (required);
 }
 
 // ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ union MessageUnion {
 }
 
 table Message {
-  content: MessageUnion (required);
+  content:MessageUnion (required);
 }
 
 root_type Message;
