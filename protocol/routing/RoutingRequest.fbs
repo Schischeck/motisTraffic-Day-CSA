@@ -8,8 +8,8 @@ namespace motis.routing;
 // Edges
 // ----------------------------------------------------------------------------
 table MumoEdge {
-  from_station_eva:string;
-  to_station_eva:string;
+  from_station_id:string;
+  to_station_id:string;
   duration:ushort;
   price:ushort;
   slot:ushort;
@@ -26,7 +26,7 @@ table TimeDependentMumoEdge {
 }
 
 table HotelEdge {
-  station_eva:string;
+  station_id:string;
   earliest_checkout_time:ushort;
   min_stay_duration:ushort;
   price:ushort;
