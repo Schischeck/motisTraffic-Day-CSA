@@ -5,6 +5,7 @@
 
 #include "motis/module/context/motis_call.h"
 #include "motis/module/context/motis_parallel_for.h"
+#include "motis/module/context/motis_spawn.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
@@ -137,15 +138,14 @@ struct alternative_futures {
                            c->reliability_context_.schedule_.schedule_begin_,
                            req->cache_key_.ontrip_time_))
                .c_str());
-    new_alternative_futures_.emplace_back(module::spawn_job(
-        req, [c](std::shared_ptr<request_type> req) -> future_return {
-          auto const cache_it = c->journey_cache_.find(req->cache_key_);
-          bool const is_cached = cache_it != c->journey_cache_.end();
-          return future_return{
-              req, is_cached ? cache_it->second
-                             : retrieve_alternative(req->request_msg_),
-              is_cached};
-        }));
+    new_alternative_futures_.emplace_back(module::spawn_job([req, c]() {
+      auto const cache_it = c->journey_cache_.find(req->cache_key_);
+      bool const is_cached = cache_it != c->journey_cache_.end();
+      return future_return{req,
+                           is_cached ? cache_it->second
+                                     : retrieve_alternative(req->request_msg_),
+                           is_cached};
+    }));
   };
 };
 
