@@ -62,7 +62,7 @@ struct schedule {
 
   std::vector<std::pair<primary_trip_id, trip*>> trips_;
   std::vector<std::unique_ptr<trip>> trip_mem_;
-  std::vector<std::unique_ptr<std::vector<edge*>>> trip_edges_;
+  std::vector<std::unique_ptr<std::vector<trip::route_edge>>> trip_edges_;
   std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips_;
 
   std::time_t system_time_, last_update_timestamp_;
