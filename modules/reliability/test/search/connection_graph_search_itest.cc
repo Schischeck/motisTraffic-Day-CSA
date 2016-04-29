@@ -249,8 +249,8 @@ TEST_F(reliability_connection_graph_search,
   auto msg = flatbuffers::request_builder()
                  .add_station(PFUNGSTADT.name, PFUNGSTADT.eva)
                  .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 640),
-                               test_util::hhmm_to_unixtime(get_schedule(), 640))
+                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 630),
+                               test_util::hhmm_to_unixtime(get_schedule(), 630))
                  .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(

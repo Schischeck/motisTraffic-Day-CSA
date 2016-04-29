@@ -25,15 +25,11 @@ struct context {
     std::shared_ptr<connection_graph> cg_;
 
     struct stop_state {
-      enum state {
-        Stop_idle,
-        Stop_busy,
-        Stop_completed,
-        Stop_Aborted
-      } state_ = Stop_idle;
       probability_distribution uncovered_arrival_distribution_;
     };
-    std::map<unsigned int, stop_state> stop_states_;
+
+    /* positions analogous to connection_graph::stops_ */
+    std::vector<stop_state> stop_states_;
   };
 
   context(motis::reliability::context const& rel_context,

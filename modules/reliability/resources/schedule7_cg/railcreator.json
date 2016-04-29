@@ -244,8 +244,8 @@
       ],
       "intervals": [
         {
-          "fromTime": "06:40:00.000",
-          "untilTime": "06:40:00.000",
+          "fromTime": "06:30:00.000",
+          "untilTime": "06:30:00.000",
           "interval": 1
         }
       ]
@@ -284,8 +284,8 @@
       ],
       "intervals": [
         {
-          "fromTime": "06:55:00.000",
-          "untilTime": "06:55:00.000",
+          "fromTime": "06:50:00.000",
+          "untilTime": "06:50:00.000",
           "interval": 1
         }
       ]

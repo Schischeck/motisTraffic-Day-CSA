@@ -206,7 +206,7 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
   throw std::system_error(error::not_implemented);
 }
 
-msg_ptr reliability::realtime_update(msg_ptr const& msg) {
+msg_ptr reliability::realtime_update(msg_ptr const&) {
   /* not implemented TODO(Mohammad Keyhani) */
   // auto lock = synced_sched();
   // auto& sched = lock.sched();
