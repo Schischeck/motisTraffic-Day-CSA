@@ -20,14 +20,21 @@ auto query = R"({
   "content": {
     "start_type": "PretripStart",
     "start": {
-      "station_id": "8000096",
+      "station": {
+        "name": "",
+        "id": "8000096"
+      },
       "interval": {
         "begin": 1444896228,
         "end": 1444899228
       }
     },
-    "path": [ "8000105" ],
-    "additional_edges": []
+    "destination": {
+      "name": "",
+      "id": "8000105"
+    },
+    "additional_edges": [],
+    "via": []
   }
 })";
 

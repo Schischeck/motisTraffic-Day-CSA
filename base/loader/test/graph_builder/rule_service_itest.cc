@@ -16,14 +16,21 @@ auto routing_request = R"({
   "content": {
     "start_type": "PretripStart",
     "start": {
-      "station_id": "0000002",
+      "station": {
+        "name": "",
+        "id": "0000002"
+      },
       "interval": {
         "begin": 1448323200,
         "end": 1448336800
       }
     },
-    "path": [ "0000009" ],
-    "additional_edges": []
+    "destination": {
+      "name": "",
+      "id": "0000009"
+    },
+    "additional_edges": [],
+    "via": []
   }
 })";
 

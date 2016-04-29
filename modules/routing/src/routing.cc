@@ -95,6 +95,35 @@ void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 
+station_node const* get_station_node(schedule const& sched,
+                                     InputStation const* el) {
+  std::string station_id;
+
+  if (el->id()->Length() != 0) {
+    station_id = el->id()->str();
+  } else {
+    message_creator b;
+    b.create_and_finish(
+        MsgContent_StationGuesserRequest,
+        CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
+            .Union(),
+        "/guesser");
+    auto const msg = motis_call(make_msg(b))->val();
+    auto const guesses = motis_content(StationGuesserResponse, msg)->guesses();
+    if (guesses->size() == 0) {
+      throw std::system_error(error::no_guess_for_station);
+    }
+    station_id = guesses->Get(0)->id()->str();
+  }
+
+  auto const& eva_to_station = sched.eva_to_station_;
+  auto const it = eva_to_station.find(station_id);
+  if (it == end(eva_to_station)) {
+    throw std::system_error(error::given_eva_not_available);
+  }
+  return sched.station_nodes_.at(it->second->index_).get();
+}
+
 node const* get_route_node(schedule const& sched, TripId const* trip,
                            station_node const* station, time arrival_time) {
   auto const stops = access::stops(get_trip(sched, trip));
@@ -112,14 +141,10 @@ node const* get_route_node(schedule const& sched, TripId const* trip,
 search_query get_query(schedule const& sched, RoutingRequest const* req) {
   search_query q;
 
-  if (req->path()->size() != 1) {
-    throw std::system_error(error::path_length_not_supported);
-  }
-
   switch (req->start_type()) {
     case Start_PretripStart: {
       auto start = reinterpret_cast<PretripStart const*>(req->start());
-      q.from_ = get_station_node(sched, start->station_id()->str());
+      q.from_ = get_station_node(sched, start->station());
       q.interval_begin_ = unix_to_motistime(sched, start->interval()->begin());
       q.interval_end_ = unix_to_motistime(sched, start->interval()->end());
       break;
@@ -127,7 +152,7 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 
     case Start_OntripStationStart: {
       auto start = reinterpret_cast<OntripStationStart const*>(req->start());
-      q.from_ = get_station_node(sched, start->station_id()->str());
+      q.from_ = get_station_node(sched, start->station());
       q.interval_begin_ = unix_to_motistime(sched, start->departure_time());
       q.interval_end_ = INVALID_TIME;
       break;
@@ -135,10 +160,9 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 
     case Start_OntripTrainStart: {
       auto start = reinterpret_cast<OntripTrainStart const*>(req->start());
-      q.from_ =
-          get_route_node(sched, start->trip(),
-                         get_station_node(sched, start->station_id()->str()),
-                         unix_to_motistime(sched, start->arrival_time()));
+      q.from_ = get_route_node(sched, start->trip(),
+                               get_station_node(sched, start->station()),
+                               unix_to_motistime(sched, start->arrival_time()));
       q.interval_begin_ = unix_to_motistime(sched, start->arrival_time());
       q.interval_end_ = INVALID_TIME;
       break;
@@ -148,7 +172,7 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
   }
 
   q.sched_ = &sched;
-  q.to_ = get_station_node(sched, req->path()->Get(0)->str());
+  q.to_ = get_station_node(sched, req->destination());
   q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
 
   return q;

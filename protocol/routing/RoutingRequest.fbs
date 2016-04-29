@@ -4,6 +4,12 @@ include "base/TripId.fbs";
 
 namespace motis.routing;
 
+table InputStation {
+  id:string;  // guessed from the name if empty
+  name:string;
+}
+
+
 // ----------------------------------------------------------------------------
 // Edges
 // ----------------------------------------------------------------------------
@@ -48,17 +54,17 @@ table AdditionalEdgeWrapper {
 // ----------------------------------------------------------------------------
 table OntripTrainStart {
   trip:TripId;
-  station_id:string;
+  station:InputStation;
   arrival_time:long;
 }
 
 table OntripStationStart {
-  station_id:string;
+  station:InputStation;
   departure_time:long;
 }
 
 table PretripStart {
-  station_id:string;
+  station:InputStation;
   interval:motis.Interval;
 }
 
@@ -69,9 +75,18 @@ union Start {
 }
 
 // ----------------------------------------------------------------------------
+// Via
+// ----------------------------------------------------------------------------
+table Via {
+  station:InputStation;
+  stay_duration:uint;
+}
+
+// ----------------------------------------------------------------------------
 
 table RoutingRequest {
   start:Start;
-  path:[string];  // station_ids
+  destination:InputStation;
   additional_edges:[AdditionalEdgeWrapper];
+  via:[Via];
 }
