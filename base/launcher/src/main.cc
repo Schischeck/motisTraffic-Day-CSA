@@ -98,9 +98,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  net::http::server::io_service_shutdown shutd(ios);
-  shutdown_handler<net::http::server::io_service_shutdown> shutdown(ios, shutd);
-
   shutd_hdr_ptr<ws_server> websocket_shutdown_handler;
   shutd_hdr_ptr<http_server> http_shutdown_handler;
   shutd_hdr_ptr<socket_server> tcp_shutdown_handler;
@@ -130,6 +127,9 @@ int main(int argc, char** argv) {
     std::cout << "\ninitialization error: " << e.what() << "\n";
     return 1;
   }
+
+  net::http::server::io_service_shutdown shutd(ios);
+  shutdown_handler<net::http::server::io_service_shutdown> shutdown(ios, shutd);
 
   boost::asio::io_service::work work(instance.ios_);
   std::vector<boost::thread> threads(launcher_opt.num_threads_);

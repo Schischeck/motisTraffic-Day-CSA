@@ -91,7 +91,7 @@ struct trip {
     route_edge() = default;
 
     explicit route_edge(edge const* e) : route_node_(e->from_) {
-      for (unsigned i = 0; i < route_node_->edges_.size(); ++i) {
+      for (std::size_t i = 0; i < route_node_->edges_.size(); ++i) {
         if (&route_node_->edges_[i] == e) {
           outgoing_edge_idx_ = i;
           return;
@@ -106,7 +106,7 @@ struct trip {
     }
 
     node const* route_node_;
-    int outgoing_edge_idx_;
+    std::size_t outgoing_edge_idx_;
   };
 
   explicit trip(full_trip_id id)
