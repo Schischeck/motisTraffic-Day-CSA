@@ -15,10 +15,9 @@ table MumoEdge {
   slot:ushort;
 }
 
-// valid_from and valid_to are minutes after midnight
 table PeriodicMumoEdge {
   edge:MumoEdge;
-  interval:motis.Interval;
+  interval:motis.Interval;  // minutes after midnight
 }
 
 table TimeDependentMumoEdge {
@@ -47,10 +46,15 @@ table AdditionalEdgeWrapper {
 // ----------------------------------------------------------------------------
 // Start
 // ----------------------------------------------------------------------------
-table OntripStart {
+table OntripTrainStart {
   trip:TripId;
   station_id:string;
   arrival_time:long;
+}
+
+table OntripStationStart {
+  station_id:string;
+  departure_time:long;
 }
 
 table PretripStart {
@@ -59,7 +63,8 @@ table PretripStart {
 }
 
 union Start {
-  OntripStart,
+  OntripTrainStart,
+  OntripStationStart,
   PretripStart
 }
 
