@@ -42,7 +42,8 @@ public:
   flatbuffers::Offset<LookupGeoStationResponse> stations(
       FlatBufferBuilder& fbb, LookupGeoStationRequest const* req) const {
     std::vector<Offset<Station>> list;
-    for (auto const& station : stations(req->lat(), req->lng(), req->radius())) {
+    for (auto const& station :
+         stations(req->pos()->lat(), req->pos()->lng(), req->radius())) {
       list.push_back(create_station(fbb, *station));
     }
     return CreateLookupGeoStationResponse(fbb, fbb.CreateVector(list));

@@ -44,8 +44,9 @@ inline edge* get_outgoing_route_edge(node* node) {
 
 inline flatbuffers::Offset<Station> create_station(
     flatbuffers::FlatBufferBuilder& fbb, station const& s) {
+  auto const pos = Position(s.lat(), s.lng());
   return CreateStation(fbb, fbb.CreateString(s.eva_nr_),
-                       fbb.CreateString(s.name_), s.lat(), s.lng());
+                       fbb.CreateString(s.name_), &pos);
 }
 
 }  // namespace lookup

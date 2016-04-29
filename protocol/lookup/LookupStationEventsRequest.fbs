@@ -1,18 +1,20 @@
+include "base/Interval.fbs";
+
 namespace motis.lookup;
 
 // JSON example
 // --
-// { 
+// {
 //   "content_type": "LookupStationEventsRequest",
 //   "content": {
-//     "eva_nr": "8000105",
-//     "begin": 1448371800,
-//     "end": 1448375400
+//     "station_id": "8000105",
+//     "interval": {
+//       "begin": 1448371800,
+//       "end": 1448375400
+//     }
 //   }
 // }
-
 table LookupStationEventsRequest {
-  eva_nr: string;
-  begin:long;  // inclusive
-  end:long;  // exclusive (to-the-minute accuracy!)
+  station_id:string;
+  interval:Interval;
 }

@@ -58,20 +58,17 @@ var actionCreators = {
     const begin = Math.round(queryDate.getTime() / 1000);
 
     server.send({
-      destination: {
-        type: 'Module',
-        target: '/routing'
-      },
+      destination: { type: 'Module', target: '/routing' },
       content_type: 'RoutingRequest',
       content: {
-        interval: { begin: begin, end: begin + 7200 },
-        type: 'PreTrip',
-        direction: 'Forward',
-        path: [
-          { name: s.from.name, eva_nr: s.from.eva || '' },
-          { name: s.to.name, eva_nr: s.to.eva || '' }
-        ],
-        additional_edges: []
+        start_type: 'PretripStart',
+        start: {
+          station: { name: s.from.name, id: s.from.eva || '' },
+          interval: { begin: begin, end: begin + 7200 }
+        },
+        destination: { name: s.to.name, id: s.to.eva || '' },
+        additional_edges: [],
+        via: []
       }
     })
     .then(response => dispatch({

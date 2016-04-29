@@ -1,11 +1,11 @@
-include "lookup/LookupCommon.fbs";
+include "base/Station.fbs";
 
 namespace motis.lookup;
 
 table LookupGeoStationResponse {
-  stations: [Station];
+  stations:[motis.Station];
 }
 
 table LookupBatchGeoStationResponse {
-  responses: [LookupGeoStationResponse];
+  responses:[LookupGeoStationResponse];
 }

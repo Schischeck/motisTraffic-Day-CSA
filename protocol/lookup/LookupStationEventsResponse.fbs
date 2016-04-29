@@ -1,22 +1,22 @@
-include "lookup/LookupCommon.fbs";
+include "base/TripId.fbs";
 
 namespace motis.lookup;
 
 table StationEvent {
-  trip_id: [TripId];
+  trip_id:[motis.TripId];
 
-  type: EventType;
-  train_nr: uint;
-  line_id: string;
+  type:EventType;
+  train_nr:uint;
+  line_id:string;
 
-  time: ulong;
-  schedule_time: ulong;
+  time:ulong;
+  schedule_time:ulong;
 
-  direction: string;
-  service_name: string;
-  track: string;
+  direction:string;
+  service_name:string;
+  track:string;
 }
 
 table LookupStationEventsResponse {
-  events: [StationEvent];
+  events:[StationEvent];
 }

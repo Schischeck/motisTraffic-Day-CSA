@@ -16,17 +16,19 @@ std::vector<Offset<Stop>> convert_stops(
   std::vector<Offset<Stop>> buf_stops;
 
   for (auto const& stop : stops) {
-    auto arr = CreateEventInfo(
+    auto const arr = CreateEventInfo(
         b, stop.arrival_.valid_ ? stop.arrival_.timestamp_ : 0,
         stop.arrival_.valid_ ? stop.arrival_.schedule_timestamp_ : 0,
         b.CreateString(stop.arrival_.platform_));
-    auto dep = CreateEventInfo(
+    auto const dep = CreateEventInfo(
         b, stop.departure_.valid_ ? stop.departure_.timestamp_ : 0,
         stop.departure_.valid_ ? stop.departure_.schedule_timestamp_ : 0,
         b.CreateString(stop.departure_.platform_));
-    buf_stops.push_back(CreateStop(
-        b, b.CreateString(stop.eva_no_), b.CreateString(stop.name_), stop.lat_,
-        stop.lng_, arr, dep, static_cast<uint8_t>(stop.interchange_)));
+    auto const pos = Position(stop.lat_, stop.lng_);
+    buf_stops.push_back(
+        CreateStop(b, CreateStation(b, b.CreateString(stop.eva_no_),
+                                    b.CreateString(stop.name_), &pos),
+                   arr, dep, static_cast<uint8_t>(stop.interchange_)));
   }
 
   return buf_stops;
@@ -51,7 +53,7 @@ std::vector<Offset<MoveWrapper>> convert_moves(
                 b, &r, b.CreateString(t.category_name_), t.category_id_,
                 t.clasz_, t.train_nr_, b.CreateString(t.line_identifier_),
                 b.CreateString(t.name_), b.CreateString(t.provider_),
-                b.CreateString(t.direction_), t.route_id_)
+                b.CreateString(t.direction_))
                 .Union()));
         break;
       }
@@ -78,8 +80,7 @@ std::vector<Offset<Attribute>> convert_attributes(
   return buf_attributes;
 }
 
-Offset<routing::Connection> to_connection(flatbuffers::FlatBufferBuilder& b,
-                                          journey const& j) {
+Offset<Connection> to_connection(FlatBufferBuilder& b, journey const& j) {
   return CreateConnection(b, b.CreateVector(convert_stops(b, j.stops_)),
                           b.CreateVector(convert_moves(b, j.transports_)),
                           b.CreateVector(convert_attributes(b, j.attributes_)),

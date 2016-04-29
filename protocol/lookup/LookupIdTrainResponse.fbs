@@ -1,7 +1,7 @@
-include "routing/RoutingResponse.fbs";
+include "base/Connection.fbs";
 
 namespace motis.lookup;
 
 table LookupIdTrainResponse {
-  train: motis.routing.Connection;
+  train:motis.Connection;
 }

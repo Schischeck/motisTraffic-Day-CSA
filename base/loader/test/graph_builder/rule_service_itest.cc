@@ -7,28 +7,32 @@ using namespace motis::test;
 using namespace motis::module;
 using motis::routing::RoutingResponse;
 
-auto routing_request = R"(
-{
+auto routing_request = R"({
   "destination": {
     "type": "Module",
     "target": "/routing"
   },
   "content_type": "RoutingRequest",
   "content": {
-    "interval": {
-      "begin": 1448323200,
-      "end": 1448336800
+    "start_type": "PretripStart",
+    "start": {
+      "station": {
+        "name": "",
+        "id": "0000002"
+      },
+      "interval": {
+        "begin": 1448323200,
+        "end": 1448336800
+      }
     },
-    "type": "PreTrip",
-    "direction": "Forward",
-    "path": [
-      { "eva_nr": "0000002", "name": "" },
-      { "eva_nr": "0000009", "name": "" }
-    ],
-    "additional_edges": []
+    "destination": {
+      "name": "",
+      "id": "0000009"
+    },
+    "additional_edges": [],
+    "via": []
   }
-}
-)";
+})";
 
 namespace motis {
 namespace loader {

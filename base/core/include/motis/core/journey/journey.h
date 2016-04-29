@@ -22,14 +22,12 @@ struct journey {
     int slot_;
     std::string direction_;
     std::string provider_;
-    unsigned route_id_;
 
     std::string mumo_type_name_;
     unsigned mumo_price_;
   };
 
   struct stop {
-    unsigned index_;
     bool interchange_;
     std::string name_;
     std::string eva_no_;

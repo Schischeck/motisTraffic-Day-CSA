@@ -10,7 +10,7 @@
 
 namespace motis {
 
-journey::stop::event_info to_event_info(routing::EventInfo const& event,
+journey::stop::event_info to_event_info(EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
   e.platform_ = event.platform()->c_str();
@@ -19,15 +19,14 @@ journey::stop::event_info to_event_info(routing::EventInfo const& event,
   e.valid_ = valid;
   return e;
 }
-journey::stop to_stop(routing::Stop const& stop, unsigned int const index,
+journey::stop to_stop(Stop const& stop, unsigned int const index,
                       unsigned int const num_stops) {
   journey::stop s;
-  s.index_ = index;
-  s.eva_no_ = stop.eva_nr()->c_str();
+  s.eva_no_ = stop.station()->id()->c_str();
   s.interchange_ = static_cast<bool>(stop.interchange());
-  s.lat_ = stop.lat();
-  s.lng_ = stop.lng();
-  s.name_ = stop.name()->c_str();
+  s.lat_ = stop.station()->pos()->lat();
+  s.lng_ = stop.station()->pos()->lng();
+  s.name_ = stop.station()->name()->c_str();
   s.arrival_ = to_event_info(*stop.arrival(), index != 0);
   s.departure_ = to_event_info(*stop.departure(), index + 1 != num_stops);
   return s;
@@ -43,14 +42,13 @@ journey::transport create_empty_transport() {
   t.mumo_type_name_ = "";
   t.name_ = "";
   t.provider_ = "";
-  t.route_id_ = 0;
   t.slot_ = 0;
   t.to_ = 0;
   t.train_nr_ = 0;
   t.type_ = journey::transport::PublicTransport;
   return t;
 }
-journey::transport to_transport(routing::Walk const& walk, uint16_t duration) {
+journey::transport to_transport(Walk const& walk, uint16_t duration) {
   auto t = create_empty_transport();
   t.type_ = journey::transport::Walk;
   t.duration_ = duration;
@@ -58,8 +56,7 @@ journey::transport to_transport(routing::Walk const& walk, uint16_t duration) {
   t.to_ = walk.range()->to();
   return t;
 }
-journey::transport to_transport(routing::Transport const& transport,
-                                uint16_t duration) {
+journey::transport to_transport(Transport const& transport, uint16_t duration) {
   auto t = create_empty_transport();
   t.duration_ = duration;
   t.from_ = transport.range()->from();
@@ -72,12 +69,11 @@ journey::transport to_transport(routing::Transport const& transport,
   t.line_identifier_ = transport.line_id()->c_str();
   t.name_ = transport.name()->c_str();
   t.provider_ = transport.provider()->c_str();
-  t.route_id_ = transport.route_id();
   t.slot_ = 0;
   t.train_nr_ = transport.train_nr();
   return t;
 }
-journey::transport to_transport(routing::Mumo const& mumo, uint16_t duration) {
+journey::transport to_transport(Mumo const& mumo, uint16_t duration) {
   auto t = create_empty_transport();
   t.type_ = journey::transport::Mumo;
   t.duration_ = duration;
@@ -88,7 +84,7 @@ journey::transport to_transport(routing::Mumo const& mumo, uint16_t duration) {
   return t;
 }
 
-journey::attribute to_attribute(routing::Attribute const& attribute) {
+journey::attribute to_attribute(Attribute const& attribute) {
   journey::attribute a;
   a.code_ = attribute.code()->c_str();
   a.from_ = attribute.from();
@@ -98,10 +94,10 @@ journey::attribute to_attribute(routing::Attribute const& attribute) {
 }
 
 uint16_t get_move_duration(
-    routing::Range const& range,
-    flatbuffers::Vector<flatbuffers::Offset<routing::Stop>> const& stops) {
-  routing::Stop const& from = *stops[range.from()];
-  routing::Stop const& to = *stops[range.to()];
+    Range const& range,
+    flatbuffers::Vector<flatbuffers::Offset<Stop>> const& stops) {
+  Stop const& from = *stops[range.from()];
+  Stop const& to = *stops[range.to()];
   return (to.arrival()->time() - from.departure()->time()) / 60;
 }
 
@@ -122,22 +118,21 @@ std::vector<journey> message_to_journeys(
     /* transports */
     for (auto move : *conn->transports()) {
       switch (move->move_type()) {
-        case routing::Move_Walk: {
-          auto walk = reinterpret_cast<routing::Walk const*>(move->move());
+        case Move_Walk: {
+          auto walk = reinterpret_cast<Walk const*>(move->move());
           journey.transports_.push_back(to_transport(
               *walk, get_move_duration(*walk->range(), *conn->stops())));
           break;
         }
-        case routing::Move_Transport: {
-          auto transport =
-              reinterpret_cast<routing::Transport const*>(move->move());
+        case Move_Transport: {
+          auto transport = reinterpret_cast<Transport const*>(move->move());
           journey.transports_.push_back(to_transport(
               *transport,
               get_move_duration(*transport->range(), *conn->stops())));
           break;
         }
-        case routing::Move_Mumo: {
-          auto mumo = reinterpret_cast<routing::Mumo const*>(move->move());
+        case Move_Mumo: {
+          auto mumo = reinterpret_cast<Mumo const*>(move->move());
           journey.transports_.push_back(to_transport(
               *mumo, get_move_duration(*mumo->range(), *conn->stops())));
           break;
