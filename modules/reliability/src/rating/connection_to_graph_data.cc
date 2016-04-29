@@ -23,11 +23,13 @@ std::vector<std::vector<connection_element>> get_elements(
 
   // TODO it would be more efficient to find the first route edge
   // and follow the route to get the succeeding elements
-  foreach_light_connection(journey, [&](journey::transport const& transport,
-                                        journey::stop const& tail_stop,
-                                        journey::stop const& head_stop) {
+  foreach_light_connection(journey, [&](unsigned const transport_idx,
+                                        unsigned const dep_stop_idx) {
+    auto const& transport = journey.transports_.at(transport_idx);
+    auto const& tail_stop = journey.stops_.at(dep_stop_idx);
+    auto const& head_stop = journey.stops_.at(dep_stop_idx + 1);
     auto const element = detail::to_element(
-        tail_stop.index_, sched, tail_stop.eva_no_, head_stop.eva_no_,
+        dep_stop_idx, sched, tail_stop.eva_no_, head_stop.eva_no_,
         unix_to_motistime(sched.schedule_begin_,
                           tail_stop.departure_.timestamp_),
         unix_to_motistime(sched.schedule_begin_, head_stop.arrival_.timestamp_),

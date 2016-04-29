@@ -269,7 +269,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  * (Note: the routing-module does not deliver connections
  * with a station-to-station walking at the beginning).
  */
-TEST_F(reliability_connection_to_graph_data6, DISABLED_get_elements_foot) {
+TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   auto req_msg =
       flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(MANNHEIM.name, MANNHEIM.eva)

@@ -399,7 +399,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   return ratings;
 }
 
-TEST_F(reliability_public_transport3, DISABLED_rate_foot) {
+TEST_F(reliability_public_transport3, rate_foot) {
   auto req_msg =
       flatbuffers::request_builder(routing::Type::Type_PreTrip)
           .add_station(LANGEN.name, LANGEN.eva)
