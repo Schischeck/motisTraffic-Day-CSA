@@ -5,7 +5,7 @@ namespace motis.user;
 // {
 //   "destination": {
 //     "type": "Module",
-//     "target": "/user/register",
+//     "target": "/user/register"
 //   },
 //   "content_type": "UserRegisterRequest",
 //   "content": {

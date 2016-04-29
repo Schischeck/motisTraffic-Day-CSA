@@ -12,7 +12,7 @@ namespace access {
 class trip_section {
 public:
   trip_section(trip const* t, int const index)
-      : trip_(t), index_(index), edge_(t->edges_->at(index)) {}
+      : trip_(t), index_(index), edge_(t->edges_->at(index).get_edge()) {}
 
   int index() const { return index_; }
 
