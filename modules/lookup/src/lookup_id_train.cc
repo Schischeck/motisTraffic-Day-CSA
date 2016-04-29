@@ -18,7 +18,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
   auto trp = get_trip(sched, t->eva_nr()->str(), t->train_nr(), t->time(),
                       t->target_eva_nr()->str(), t->target_time(),
                       t->type() == EventType_Arrival, t->line_id()->str());
-  auto route_id = trp->edges_->at(0)->from_->route_;
+  auto route_id = trp->edges_->at(0).get_edge()->from_->route_;
 
   int i = 0;
   journey j;

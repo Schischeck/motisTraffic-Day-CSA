@@ -47,13 +47,13 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
 }
 
 void graph_builder::add_dummy_node(std::string const& name) {
-  auto dummy_source =
-      std::make_unique<station>(0, 0.0, 0.0, 0, name, name, nullptr);
-  sched_.eva_to_station_.insert(
-      std::make_pair(dummy_source->eva_nr_, dummy_source.get()));
-  sched_.stations_.emplace_back(std::move(dummy_source));
+  auto const station_idx = sched_.station_nodes_.size();
+  auto s =
+      std::make_unique<station>(station_idx, 0.0, 0.0, 0, name, name, nullptr);
+  sched_.eva_to_station_.insert(std::make_pair(name, s.get()));
+  sched_.stations_.emplace_back(std::move(s));
   sched_.station_nodes_.emplace_back(
-      std::make_unique<station_node>(sched_.station_nodes_.size()));
+      std::make_unique<station_node>(station_idx));
 }
 
 void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
@@ -621,13 +621,14 @@ int graph_builder::get_or_create_platform(
 }
 
 void graph_builder::write_trip_info(route& r) {
-  auto const edges = transform_to_vec(
-      begin(r), end(r), [](route_section& s) { return s.get_route_edge(); });
+  auto const edges = transform_to_vec(begin(r), end(r), [](route_section& s) {
+    return trip::route_edge(s.get_route_edge());
+  });
 
-  sched_.trip_edges_.emplace_back(new std::vector<edge*>(edges));
+  sched_.trip_edges_.emplace_back(new std::vector<trip::route_edge>(edges));
   auto edges_ptr = sched_.trip_edges_.back().get();
 
-  auto& lcons = edges_ptr->front()->m_.route_edge_.conns_;
+  auto& lcons = edges_ptr->front().get_edge()->m_.route_edge_.conns_;
   for (unsigned lcon_idx = 0; lcon_idx < lcons.size(); ++lcon_idx) {
     auto trp = sched_.merged_trips_[lcons[lcon_idx].trips_]->front();
     trp->edges_ = edges_ptr;
@@ -726,8 +727,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   if (serialized->meta_stations() != nullptr) {
     builder.link_meta_stations(serialized->meta_stations());
   }
-  builder.add_footpaths(serialized->footpaths());
   builder.add_services(serialized->services());
+  builder.add_footpaths(serialized->footpaths());
 
   if (apply_rules) {
     scoped_timer timer("rule services");

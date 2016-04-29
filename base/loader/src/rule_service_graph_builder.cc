@@ -337,10 +337,10 @@ struct rule_service_route_builder {
   void write_trip_info(Service const* s,
                        std::vector<service_section*> const& sections) {
     push_mem(gb_.sched_.trip_edges_,
-             transform_to_vec(begin(sections), end(sections),
-                              [](service_section* section) {
-                                return section->first.get_route_edge();
-                              }));
+             transform_to_vec(
+                 begin(sections), end(sections), [](service_section* section) {
+                   return trip::route_edge(section->first.get_route_edge());
+                 }));
     auto edges = gb_.sched_.trip_edges_.back().get();
 
     int lcon_idx = 0;
