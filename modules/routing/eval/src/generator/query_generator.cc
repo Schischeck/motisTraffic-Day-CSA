@@ -130,19 +130,20 @@ static It rand_in(It begin, It end) {
 std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
   message_creator fbb;
-  Interval interval(interval_start, interval_end);
-
-  std::vector<Offset<StationPathElement>> path;
-  std::vector<Offset<AdditionalEdgeWrapper>> additional_edges;
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(from_eva)));
-  path.push_back(CreateStationPathElement(fbb, fbb.CreateString(""),
-                                          fbb.CreateString(to_eva)));
+  auto const interval = Interval(interval_start, interval_end);
+  auto const additional_edges = std::vector<Offset<AdditionalEdgeWrapper>>();
   fbb.create_and_finish(
       MsgContent_RoutingRequest,
-      CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
-                           fbb.CreateVector(path),
-                           fbb.CreateVector(additional_edges))
+      CreateRoutingRequest(
+          fbb, Start_PretripStart,
+          CreatePretripStart(fbb,
+                             CreateInputStation(fbb, fbb.CreateString(""),
+                                                fbb.CreateString(from_eva)),
+                             &interval)
+              .Union(),
+          CreateInputStation(fbb, fbb.CreateString(""),
+                             fbb.CreateString(to_eva)),
+          fbb.CreateVector(additional_edges))
           .Union(),
       "/routing");
   auto msg = make_msg(fbb);

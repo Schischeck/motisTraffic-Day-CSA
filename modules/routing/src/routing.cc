@@ -7,6 +7,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/trip_access.h"
+#include "motis/core/access/trip_iterator.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
@@ -69,44 +71,8 @@ private:
   memory* memory_;
 };
 
-std::vector<station_node*> get_arrivals(
-    fbs::Vector<fbs::Offset<Station>> const* path) {
-  std::vector<station_node*> station_nodes;
-  auto const& sched = get_schedule();
-
-  for (auto const& el : *path) {
-    std::string station_id;
-
-    if (el->id()->Length() != 0) {
-      station_id = el->id()->str();
-    } else {
-      message_creator b;
-      b.create_and_finish(
-          MsgContent_StationGuesserRequest,
-          CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
-              .Union(),
-          "/guesser");
-      auto msg = motis_call(make_msg(b))->val();
-      auto guesses = motis_content(StationGuesserResponse, msg)->guesses();
-      if (guesses->size() == 0) {
-        throw std::system_error(error::no_guess_for_station);
-      }
-      station_id = guesses->Get(0)->id()->str();
-    }
-
-    auto const& eva_to_station = sched.eva_to_station_;
-    auto it = eva_to_station.find(station_id);
-    if (it == end(eva_to_station)) {
-      throw std::system_error(error::given_eva_not_available);
-    }
-    station_nodes.push_back(sched.station_nodes_.at(it->second->index_).get());
-  }
-
-  return station_nodes;
-}
-
 routing::routing()
-    : label_bytes_(static_cast<uint64_t>(8) * 1024 * 1024 * 1024) {}
+    : label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
 
 routing::~routing() = default;
 
@@ -129,42 +95,110 @@ void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 
-msg_ptr routing::route(msg_ptr const& msg) {
-  auto req = motis_content(RoutingRequest, msg);
-  if (req->path()->Length() < 2) {
-    throw std::system_error(error::path_length_too_short);
+station_node const* get_station_node(schedule const& sched,
+                                     InputStation const* el) {
+  std::string station_id;
+
+  if (el->id()->Length() != 0) {
+    station_id = el->id()->str();
+  } else {
+    message_creator b;
+    b.create_and_finish(
+        MsgContent_StationGuesserRequest,
+        CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
+            .Union(),
+        "/guesser");
+    auto const msg = motis_call(make_msg(b))->val();
+    auto const guesses = motis_content(StationGuesserResponse, msg)->guesses();
+    if (guesses->size() == 0) {
+      throw std::system_error(error::no_guess_for_station);
+    }
+    station_id = guesses->Get(0)->id()->str();
   }
+
+  auto const& eva_to_station = sched.eva_to_station_;
+  auto const it = eva_to_station.find(station_id);
+  if (it == end(eva_to_station)) {
+    throw std::system_error(error::given_eva_not_available);
+  }
+  return sched.station_nodes_.at(it->second->index_).get();
+}
+
+node const* get_route_node(schedule const& sched, TripId const* trip,
+                           station_node const* station, time arrival_time) {
+  auto const stops = access::stops(get_trip(sched, trip));
+  auto const stop_it = std::find_if(
+      begin(stops), end(stops), [&](access::trip_stop const& stop) {
+        return stop.get_route_node()->station_node_ == station &&
+               stop.arr_lcon().a_time_ == arrival_time;
+      });
+  if (stop_it == end(stops)) {
+    throw std::system_error(error::event_not_found);
+  }
+  return (*stop_it).get_route_node();
+}
+
+search_query get_query(schedule const& sched, RoutingRequest const* req) {
+  search_query q;
+
+  switch (req->start_type()) {
+    case Start_PretripStart: {
+      auto start = reinterpret_cast<PretripStart const*>(req->start());
+      q.from_ = get_station_node(sched, start->station());
+      q.interval_begin_ = unix_to_motistime(sched, start->interval()->begin());
+      q.interval_end_ = unix_to_motistime(sched, start->interval()->end());
+      break;
+    }
+
+    case Start_OntripStationStart: {
+      auto start = reinterpret_cast<OntripStationStart const*>(req->start());
+      q.from_ = get_station_node(sched, start->station());
+      q.interval_begin_ = unix_to_motistime(sched, start->departure_time());
+      q.interval_end_ = INVALID_TIME;
+      break;
+    }
+
+    case Start_OntripTrainStart: {
+      auto start = reinterpret_cast<OntripTrainStart const*>(req->start());
+      q.from_ = get_route_node(sched, start->trip(),
+                               get_station_node(sched, start->station()),
+                               unix_to_motistime(sched, start->arrival_time()));
+      q.interval_begin_ = unix_to_motistime(sched, start->arrival_time());
+      q.interval_end_ = INVALID_TIME;
+      break;
+    }
+
+    case Start_NONE: assert(false);
+  }
+
+  q.sched_ = &sched;
+  q.to_ = get_station_node(sched, req->destination());
+  q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
+
+  return q;
+}
+
+msg_ptr routing::route(msg_ptr const& msg) {
+  auto const req = motis_content(RoutingRequest, msg);
 
   auto const& sched = get_schedule();
-  if (req->interval()->begin() < static_cast<unsigned>(sched.schedule_begin_) ||
-      req->interval()->end() >= static_cast<unsigned>(sched.schedule_end_)) {
-    throw std::system_error(error::journey_date_not_in_schedule);
-  }
-
-  auto path = get_arrivals(req->path());
-  auto i_begin =
-      unix_to_motistime(sched.schedule_begin_, req->interval()->begin());
-  auto i_end = unix_to_motistime(sched.schedule_begin_, req->interval()->end());
+  auto query = get_query(sched, req);
 
   mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
-
-  search_query q = {sched,
-                    mem.get(),
-                    path.at(0),
-                    path.at(1),
-                    create_additional_edges(req->additional_edges(), sched),
-                    i_begin,
-                    i_end};
+  query.mem_ = &mem.get();
 
   search_result res;
-  switch (req->type()) {
-    case Type_LateConnection:
-    case Type_OnTrip:
-      res = search<pretrip_gen<my_label>, my_label>::get_connections(q);
+  switch (req->start_type()) {
+    case Start_PretripStart:
+      res = search<pretrip_gen<my_label>, my_label>::get_connections(query);
       break;
-    case Type_PreTrip:
-      res = search<ontrip_gen<my_label>, my_label>::get_connections(q);
+
+    case Start_OntripStationStart:
+    case Start_OntripTrainStart:
+      res = search<ontrip_gen<my_label>, my_label>::get_connections(query);
       break;
+
+    case Start_NONE: assert(false);
   }
 
   return journeys_to_message(res.journeys_, res.stats_.pareto_dijkstra_);

@@ -1,23 +1,29 @@
 include "base/Interval.fbs";
 include "base/Station.fbs";
+include "base/TripId.fbs";
 
 namespace motis.routing;
 
-enum Type : byte { PreTrip, OnTrip, LateConnection }
-enum Direction : byte { Forward, Backward }
+table InputStation {
+  id:string;  // guessed from the name if empty
+  name:string;
+}
 
+
+// ----------------------------------------------------------------------------
+// Edges
+// ----------------------------------------------------------------------------
 table MumoEdge {
-  from_station_eva:string;
-  to_station_eva:string;
+  from_station_id:string;
+  to_station_id:string;
   duration:ushort;
   price:ushort;
   slot:ushort;
 }
 
-// valid_from and valid_to are minutes after midnight
 table PeriodicMumoEdge {
   edge:MumoEdge;
-  interval:motis.Interval;
+  interval:motis.Interval;  // minutes after midnight
 }
 
 table TimeDependentMumoEdge {
@@ -26,7 +32,7 @@ table TimeDependentMumoEdge {
 }
 
 table HotelEdge {
-  station_eva:string;
+  station_id:string;
   earliest_checkout_time:ushort;
   min_stay_duration:ushort;
   price:ushort;
@@ -43,45 +49,44 @@ table AdditionalEdgeWrapper {
   additional_edge:AdditionalEdge;
 }
 
-// JSON Example:
-// --
-// {
-//   "content_type": "RoutingRequest",
-//   "content": {
-//     "interval": {
-//       "begin": 1444896228,
-//       "end": 1444899228
-//     },
-//     "type": "PreTrip",
-//     "direction": "Forward",
-//     "path": [
-//       { "eva_nr": "8000096", "name": "" },
-//       { "eva_nr": "8000105", "name": "" }
-//     ],
-//     "additional_edges": []
-//   }
-// }
-//
-// {
-//   "content_type": "RoutingRequest",
-//   "content": {
-//     "interval": {
-//       "begin": 1413475200,
-//       "end": 1413478800
-//     },
-//     "type": "PreTrip",
-//     "direction": "Forward",
-//     "path": [
-//       { "eva_nr": "", "name": "Stutt" },
-//       { "eva_nr": "", "name": "Darm" }
-//     ],
-//     "additional_edges": []
-//   }
-// }
-table RoutingRequest {
+// ----------------------------------------------------------------------------
+// Start
+// ----------------------------------------------------------------------------
+table OntripTrainStart {
+  trip:TripId;
+  station:InputStation;
+  arrival_time:long;
+}
+
+table OntripStationStart {
+  station:InputStation;
+  departure_time:long;
+}
+
+table PretripStart {
+  station:InputStation;
   interval:motis.Interval;
-  type:Type = PreTrip;
-  direction:Direction = Forward;
-  path:[motis.Station];
+}
+
+union Start {
+  OntripTrainStart,
+  OntripStationStart,
+  PretripStart
+}
+
+// ----------------------------------------------------------------------------
+// Via
+// ----------------------------------------------------------------------------
+table Via {
+  station:InputStation;
+  stay_duration:uint;
+}
+
+// ----------------------------------------------------------------------------
+
+table RoutingRequest {
+  start:Start;
+  destination:InputStation;
   additional_edges:[AdditionalEdgeWrapper];
+  via:[Via];
 }

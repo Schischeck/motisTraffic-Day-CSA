@@ -11,8 +11,7 @@ namespace output {
 
 journey::transport generate_journey_transport(
     unsigned int from, unsigned int to, connection_info const* con_info,
-    schedule const& sched, unsigned int route_id = 0, duration duration = 0,
-    int slot = 0) {
+    schedule const& sched, duration duration = 0, int slot = 0) {
   journey::transport::transport_type type;
   std::string name;
   std::string cat_name;
@@ -79,7 +78,6 @@ std::vector<journey::transport> generate_journey_transports(
     }
   };
 
-  std::map<connection_info const*, int> route_ids;
   std::vector<journey::transport> journey_transports;
   interval_map<connection_info const*, con_info_cmp> intervals;
   for (auto const& t : transports) {
@@ -87,7 +85,6 @@ std::vector<journey::transport> generate_journey_transports(
       auto con_info = t.con_->full_con_->con_info_;
       while (con_info) {
         intervals.add_entry(con_info, t.from_, t.to_);
-        route_ids.emplace(con_info, t.route_id_);
         con_info = con_info->merged_with_;
       }
     } else {
@@ -98,8 +95,8 @@ std::vector<journey::transport> generate_journey_transports(
 
   for (auto const& t : intervals.get_attribute_ranges()) {
     for (auto const& range : t.second) {
-      journey_transports.push_back(generate_journey_transport(
-          range.from_, range.to_, t.first, sched, route_ids.at(t.first)));
+      journey_transports.push_back(
+          generate_journey_transport(range.from_, range.to_, t.first, sched));
     }
   }
 

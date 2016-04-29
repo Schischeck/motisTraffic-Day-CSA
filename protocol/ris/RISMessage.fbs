@@ -12,20 +12,20 @@ table Event {
   schedule_time:ulong;
 }
 
-enum TripType : byte {Schedule, Additional}
+enum IdEventType : byte {Schedule, Additional}
 
-table TripId {
+table IdEvent {
   station_id:string;
   service_num:uint;
   schedule_time:ulong;
-  trip_type:TripType;
+  trip_type:IdEventType;
 }
 
 // ----------------------------------------------------------------------------
 // Train centered Messages
 // ----------------------------------------------------------------------------
 table CancelMessage {
-  trip_id:TripId;
+  trip_id:IdEvent;
   events:[Event] (required);
 }
 
@@ -36,7 +36,7 @@ table UpdatedEvent {
 
 enum DelayType : byte {Is, Forecast} // Ist and IstProg
 table DelayMessage {
-  trip_id:TripId;
+  trip_id:IdEvent;
   type:DelayType;
   events:[UpdatedEvent] (required);
 }
@@ -48,7 +48,7 @@ table AdditionalEvent {
 }
 
 table AdditionMessage {
-  trip_id:TripId;
+  trip_id:IdEvent;
   events:[AdditionalEvent];
 }
 
@@ -59,7 +59,7 @@ table ReroutedEvent {
 }
 
 table RerouteMessage {
-  trip_id:TripId;
+  trip_id:IdEvent;
   cancelled_events:[Event] (required);
   new_events:[ReroutedEvent] (required);
 }
@@ -68,25 +68,25 @@ table RerouteMessage {
 // Connection Event Messages
 // ----------------------------------------------------------------------------
 table ConnectionDecision {
-  trip_id:TripId;
+  trip_id:IdEvent;
   base:Event (required);
   hold:bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
-  from_trip_id:TripId;
+  from_trip_id:IdEvent;
   from:Event (required);
   to:[ConnectionDecision] (required);
 }
 
 table ConnectionAssessment {
-  trip_id:TripId;
+  trip_id:IdEvent;
   base:Event (required);
   assessment:int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
-  from_trip_id:TripId;
+  from_trip_id:IdEvent;
   from:Event (required);
   to:[ConnectionAssessment] (required);
 }

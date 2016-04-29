@@ -47,7 +47,7 @@ TEST(ris_delay_message, ist_message_1) {
   EXPECT_STREQ("8004204", id->station_id()->c_str());
   EXPECT_EQ(8329, id->service_num());
   EXPECT_EQ(1444167840, id->schedule_time());
-  EXPECT_EQ(TripType_Schedule, id->trip_type());
+  EXPECT_EQ(IdEventType_Schedule, id->trip_type());
 
   EXPECT_EQ(DelayType_Is, inner_msg->type());
 
@@ -163,7 +163,7 @@ TEST(ris_delay_message, ist_message_3) {
   EXPECT_EQ(DelayType_Is, inner_msg->type());
 
   auto id = inner_msg->trip_id();
-  EXPECT_EQ(TripType_Additional, id->trip_type());
+  EXPECT_EQ(IdEventType_Additional, id->trip_type());
 
   auto events = inner_msg->events();
   ASSERT_EQ(2, events->size());

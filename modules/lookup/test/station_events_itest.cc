@@ -14,16 +14,18 @@ namespace lookup {
 constexpr auto kNotInPeriod = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
   "content_type": "LookupStationEventsRequest",
-  "content": { "eva_nr": "foo", "begin": 0, "end": 0 }}
+  "content": { "station_id": "foo", "interval": {"begin": 0, "end": 0} }}
 )"";
 
 constexpr auto kSiegenEmptyRequest = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
   "content_type": "LookupStationEventsRequest",
   "content": {
-    "eva_nr": "8000046",  // Siegen Hbf
-    "begin": 1448373600,  // 2015-11-24 15:00:00 GMT+0100
-    "end": 1448374200  // 2015-11-24 15:10:00 GMT+0100
+    "station_id": "8000046",  // Siegen Hbf
+    "interval": {
+      "begin": 1448373600,  // 2015-11-24 15:00:00 GMT+0100
+      "end": 1448374200  // 2015-11-24 15:10:00 GMT+0100
+    }
   }}
 )"";
 
@@ -31,9 +33,11 @@ constexpr auto kSiegenRequest = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
   "content_type": "LookupStationEventsRequest",
   "content": {
-    "eva_nr": "8000046",  // Siegen Hbf
-    "begin": 1448373600,  // 2015-11-24 15:00:00 GMT+0100
-    "end": 1448374260  // 2015-11-24 15:11:00 GMT+0100
+    "station_id": "8000046",  // Siegen Hbf
+    "interval": {
+      "begin": 1448373600,  // 2015-11-24 15:00:00 GMT+0100
+      "end": 1448374260  // 2015-11-24 15:11:00 GMT+0100
+    }
   }}
 )"";
 
@@ -41,9 +45,11 @@ constexpr auto kFrankfurtRequest = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
   "content_type": "LookupStationEventsRequest",
   "content": {
-    "eva_nr": "8000105",  // Frankfurt(Main)Hbf
-    "begin": 1448371800,  // 2015-11-24 14:30:00 GMT+0100
-    "end": 1448375400  // 2015-11-24 15:30:00 GMT+0100
+    "station_id": "8000105",  // Frankfurt(Main)Hbf
+    "interval": {
+      "begin": 1448371800,  // 2015-11-24 14:30:00 GMT+0100
+      "end": 1448375400  // 2015-11-24 15:30:00 GMT+0100
+    }
   }}
 )"";
 
@@ -68,17 +74,17 @@ TEST(lookup, DISABLED_station_events) {
     auto event = resp->events()->Get(0);
     EXPECT_EQ(EventType_Departure, event->type());
     EXPECT_EQ(10958, event->train_nr());
-    EXPECT_EQ(std::string(""), event->line_id()->str());
+    EXPECT_EQ("", event->line_id()->str());
     EXPECT_EQ(1448374200, event->time());
     EXPECT_EQ(1448374200, event->schedule_time());
 
     auto trip_ids = event->trip_id();
     ASSERT_EQ(1, trip_ids->size());
     auto trip_id = trip_ids->Get(0);
-    EXPECT_EQ(std::string("8000046"), trip_id->eva_nr()->str());
+    EXPECT_EQ("8000046", trip_id->station_id()->str());
     EXPECT_EQ(EventType_Departure, trip_id->type());
     EXPECT_EQ(10958, trip_id->train_nr());
-    EXPECT_EQ(std::string(""), trip_id->line_id()->str());
+    EXPECT_EQ("", trip_id->line_id()->str());
     EXPECT_EQ(1448374200, trip_id->time());
   }
   {
@@ -96,42 +102,42 @@ TEST(lookup, DISABLED_station_events) {
         case 1448372400:
           EXPECT_EQ(EventType_Arrival, e->type());
           EXPECT_EQ(2292, e->train_nr());
-          EXPECT_EQ(std::string("381"), e->line_id()->str());
+          EXPECT_EQ("381", e->line_id()->str());
           EXPECT_EQ(1448372400, e->time());
           EXPECT_EQ(1448372400, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000096"), tid->eva_nr()->str());
+          EXPECT_EQ("8000096", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(2292, tid->train_nr());
-          EXPECT_EQ(std::string("381"), tid->line_id()->str());
+          EXPECT_EQ("381", tid->line_id()->str());
           EXPECT_EQ(1448366700, tid->time());
           break;
 
         case 1448373840:
           EXPECT_EQ(EventType_Arrival, e->type());
           EXPECT_EQ(628, e->train_nr());
-          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ("", e->line_id()->str());
           EXPECT_EQ(1448373900, e->time());
           EXPECT_EQ(1448373840, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ("8000261", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(628, tid->train_nr());
-          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
           break;
 
         case 1448374200:
           EXPECT_EQ(EventType_Departure, e->type());
           EXPECT_EQ(628, e->train_nr());
-          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ("", e->line_id()->str());
           EXPECT_EQ(1448374200, e->time());
           EXPECT_EQ(1448374200, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ("8000261", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(628, tid->train_nr());
-          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
           break;
 
@@ -159,17 +165,17 @@ TEST(lookup, station_events_no_realtime) {
     auto event = resp->events()->Get(0);
     EXPECT_EQ(EventType_Departure, event->type());
     EXPECT_EQ(10958, event->train_nr());
-    EXPECT_EQ(std::string(""), event->line_id()->str());
+    EXPECT_EQ("", event->line_id()->str());
     EXPECT_EQ(1448374200, event->time());
     EXPECT_EQ(1448374200, event->schedule_time());
 
     auto trip_ids = event->trip_id();
     ASSERT_EQ(1, trip_ids->size());
     auto trip_id = trip_ids->Get(0);
-    EXPECT_EQ(std::string("8000046"), trip_id->eva_nr()->str());
+    EXPECT_EQ("8000046", trip_id->station_id()->str());
     EXPECT_EQ(EventType_Departure, trip_id->type());
     EXPECT_EQ(10958, trip_id->train_nr());
-    EXPECT_EQ(std::string(""), trip_id->line_id()->str());
+    EXPECT_EQ("", trip_id->line_id()->str());
     EXPECT_EQ(1448374200, trip_id->time());
   }
   {
@@ -187,42 +193,42 @@ TEST(lookup, station_events_no_realtime) {
         case 1448372400:
           EXPECT_EQ(EventType_Arrival, e->type());
           EXPECT_EQ(2292, e->train_nr());
-          EXPECT_EQ(std::string("381"), e->line_id()->str());
+          EXPECT_EQ("381", e->line_id()->str());
           EXPECT_EQ(1448372400, e->time());
           EXPECT_EQ(1448372400, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000096"), tid->eva_nr()->str());
+          EXPECT_EQ("8000096", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(2292, tid->train_nr());
-          EXPECT_EQ(std::string("381"), tid->line_id()->str());
+          EXPECT_EQ("381", tid->line_id()->str());
           EXPECT_EQ(1448366700, tid->time());
           break;
 
         case 1448373840:
           EXPECT_EQ(EventType_Arrival, e->type());
           EXPECT_EQ(628, e->train_nr());
-          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ("", e->line_id()->str());
           EXPECT_EQ(1448373840, e->time());
           EXPECT_EQ(1448373840, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ("8000261", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(628, tid->train_nr());
-          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
           break;
 
         case 1448374200:
           EXPECT_EQ(EventType_Departure, e->type());
           EXPECT_EQ(628, e->train_nr());
-          EXPECT_EQ(std::string(""), e->line_id()->str());
+          EXPECT_EQ("", e->line_id()->str());
           EXPECT_EQ(1448374200, e->time());
           EXPECT_EQ(1448374200, e->schedule_time());
 
-          EXPECT_EQ(std::string("8000261"), tid->eva_nr()->str());
+          EXPECT_EQ("8000261", tid->station_id()->str());
           EXPECT_EQ(EventType_Departure, tid->type());
           EXPECT_EQ(628, tid->train_nr());
-          EXPECT_EQ(std::string(""), tid->line_id()->str());
+          EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
           break;
 
