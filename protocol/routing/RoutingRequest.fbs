@@ -72,6 +72,6 @@ union Start {
 
 table RoutingRequest {
   start:Start;
-  path:[motis.Station];
+  path:[string];  // station_ids
   additional_edges:[AdditionalEdgeWrapper];
 }
