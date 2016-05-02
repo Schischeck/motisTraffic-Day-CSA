@@ -111,6 +111,8 @@ void geo_collector::init(registry& r) {
                 [this](msg_ptr const& m) { return submit_measurements(m); });
   r.register_op("/geo_collector/submit_journey",
                 [this](msg_ptr const& m) { return submit_journey(m); });
+  r.register_op("/geo_collector/upload",
+                [this](msg_ptr const& m) { return upload(m); });
 }
 
 msg_ptr geo_collector::sign_up(msg_ptr const& msg) {
@@ -175,6 +177,14 @@ msg_ptr geo_collector::submit_journey(msg_ptr const& msg) {
   connection_handle conn(conninfo_);
   insert_journey::exec(conn, req->journey()->str(), req->participant());
 
+  return make_success_msg();
+}
+
+msg_ptr geo_collector::upload(msg_ptr const& msg) {
+  auto req = motis_content(HTTPRequest, msg);
+
+  std::cout << "REQ INC" << std::endl;
+  std::cout << req->content()->str() << std::endl;
   return make_success_msg();
 }
 
