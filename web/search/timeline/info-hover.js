@@ -26,7 +26,7 @@ SVG.InfoHover = SVG.invent({
       this.content.innerHTML =
         '<table style="padding: 3px 5px; margin: 0">' +
           '<tr>' +
-            '<td>' + from.name + '</td>' +
+            '<td>' + from.station.name + '</td>' +
             '<td>' +
               '<span style="' + (departure.isDelayed ? 'color: #A33' : '') + '">' +
                 departure.time +
@@ -37,7 +37,7 @@ SVG.InfoHover = SVG.invent({
             '</td>' +
           '</tr>' +
           '<tr>' +
-            '<td>' + to.name + '</td>' +
+            '<td>' + to.station.name + '</td>' +
             '<td>' +
               '<span style="' + (arrival.isDelayed ? 'color: #A33' : '') + '">' +
                 arrival.time +

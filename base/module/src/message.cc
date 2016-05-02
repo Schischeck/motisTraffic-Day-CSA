@@ -7,7 +7,6 @@
 #include "flatbuffers/util.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/util.h"
 #include "motis/module/error.h"
 #include "motis/protocol/resources.h"
 
@@ -19,7 +18,8 @@ namespace motis {
 namespace module {
 
 std::unique_ptr<Parser> init_parser() {
-  auto parser = make_unique<Parser>();
+  auto parser = std::make_unique<Parser>();
+  parser->opts.strict_json = true;
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT
@@ -39,12 +39,8 @@ std::unique_ptr<Parser> init_parser() {
 static std::unique_ptr<Parser> parser = init_parser();
 
 std::string message::to_json() const {
-  auto opt = flatbuffers::GeneratorOptions();
-  opt.strict_json = true;
-
   std::string json;
-  flatbuffers::GenerateText(*parser, data(), opt, &json);
-
+  flatbuffers::GenerateText(*parser, data(), &json);
   return json;
 }
 

@@ -165,10 +165,10 @@ route_map read_routes(loaded_file file, agency_map const& agencies) {
     auto agency_ptr =
         agency_it == end(agencies) ? nullptr : agency_it->second.get();
     routes.emplace(get<route_id>(r).to_str(),
-                   make_unique<route>(agency_ptr, get<route_id>(r).to_str(),
-                                      get<route_short_name>(r).to_str(),
-                                      get<route_long_name>(r).to_str(),
-                                      get<route_type>(r)));
+                   std::make_unique<route>(
+                       agency_ptr, get<route_id>(r).to_str(),
+                       get<route_short_name>(r).to_str(),
+                       get<route_long_name>(r).to_str(), get<route_type>(r)));
   }
   return routes;
 }

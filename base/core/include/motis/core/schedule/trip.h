@@ -87,11 +87,33 @@ struct full_trip_id {
 };
 
 struct trip {
+  struct route_edge {
+    route_edge() = default;
+
+    explicit route_edge(edge const* e) : route_node_(e->from_) {
+      for (std::size_t i = 0; i < route_node_->edges_.size(); ++i) {
+        if (&route_node_->edges_[i] == e) {
+          outgoing_edge_idx_ = i;
+          return;
+        }
+      }
+      assert(false);
+    }
+
+    edge const* get_edge() const {
+      assert(outgoing_edge_idx_ < route_node_->edges_.size());
+      return &route_node_->edges_[outgoing_edge_idx_];
+    }
+
+    node const* route_node_;
+    std::size_t outgoing_edge_idx_;
+  };
+
   explicit trip(full_trip_id id)
       : id_(std::move(id)), edges_(nullptr), lcon_idx_(0) {}
 
   full_trip_id id_;
-  std::vector<edge*> const* edges_;
+  std::vector<route_edge> const* edges_;
   size_t lcon_idx_;
 };
 

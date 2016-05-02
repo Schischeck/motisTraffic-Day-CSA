@@ -19,7 +19,6 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.index_ = 0;
     stop.interchange_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -32,7 +31,6 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.index_ = 1;
     stop.interchange_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -47,7 +45,6 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "3333333";
-    stop.index_ = 2;
     stop.interchange_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -62,7 +59,6 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[3];
     stop.eva_no_ = "4444444";
-    stop.index_ = 3;
     stop.interchange_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -88,7 +84,6 @@ journey create_journey1() {
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.type_ = journey::transport::PublicTransport;
-    transport.route_id_ = 1;
   }
   {
     auto& transport = j.transports_[1];
@@ -104,7 +99,6 @@ journey create_journey1() {
     transport.to_ = 2;
     transport.train_nr_ = 222;
     transport.type_ = journey::transport::PublicTransport;
-    transport.route_id_ = 2;
   }
   {
     auto& transport = j.transports_[2];
@@ -120,7 +114,6 @@ journey create_journey1() {
     transport.provider_ = "";
     transport.slot_ = 0;
     transport.train_nr_ = 0;
-    transport.route_id_ = 0;
   }
 
   j.attributes_.resize(2);
@@ -151,7 +144,6 @@ journey create_journey2() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.index_ = 0;
     stop.interchange_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -164,7 +156,6 @@ journey create_journey2() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.index_ = 1;
     stop.interchange_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
@@ -191,7 +182,6 @@ journey create_journey2() {
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.type_ = journey::transport::PublicTransport;
-    transport.route_id_ = 1;
   }
   return j;
 }
@@ -221,7 +211,6 @@ TEST(core_convert_journey, journey_message_journey) {
       auto const& os = o.stops_[s];
       auto const& js = j.stops_[s];
       ASSERT_EQ(os.eva_no_, js.eva_no_);
-      ASSERT_EQ(os.index_, js.index_);
       ASSERT_EQ(os.interchange_, js.interchange_);
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
@@ -249,7 +238,6 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(ot.to_, jt.to_);
       ASSERT_EQ(ot.train_nr_, jt.train_nr_);
       ASSERT_EQ(ot.type_, jt.type_);
-      ASSERT_EQ(ot.route_id_, jt.route_id_);
     }
 
     for (unsigned int a = 0; a < o.attributes_.size(); ++a) {

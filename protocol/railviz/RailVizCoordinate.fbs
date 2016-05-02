@@ -1,6 +1,0 @@
-namespace motis.railviz;
-
-struct RailVizCoordinate {
-  lat: double;
-  lng: double;
-}

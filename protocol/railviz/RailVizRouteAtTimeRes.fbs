@@ -3,14 +3,14 @@ include "railviz/RailVizTrain.fbs";
 namespace motis.railviz;
 
 table RailVizRouteEntry {
-  departure_id: uint;
-  departure_station_name: string;
-  train_departure : RailVizTrain;
+  departure_id:uint;
+  departure_station_name:string;
+  train_departure:RailVizTrain;
 }
 
 table RailVizRouteAtTimeRes {
-  train_num : string;
-  train_identifier : string;
-  classz: int = -1;
-  route : [RailVizRouteEntry];
+  train_num:string;
+  train_identifier:string;
+  classz:int = -1;
+  route:[RailVizRouteEntry];
 }

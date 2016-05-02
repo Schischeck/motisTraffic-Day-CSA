@@ -20,10 +20,10 @@ constexpr auto kIdTrainICERequest = R""(
   "content_type": "LookupIdTrainRequest",
   "content": {
     "trip_id": {
-      "eva_nr": "8000261",
+      "station_id": "8000261",
       "train_nr": 628,
       "time": 1448362440,
-      "target_eva_nr": "8000080",
+      "target_station_id": "8000080",
       "target_time": 1448382360,
       "type": "Departure",
       "line_id": ""
@@ -46,10 +46,10 @@ TEST(lookup, DISABLED_id_train) {
 
   {
     auto s = stops->Get(0);
-    EXPECT_EQ("8000261", s->eva_nr()->str());
-    EXPECT_EQ("München Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(48.140232, s->lat());
-    EXPECT_DOUBLE_EQ(11.558335, s->lng());
+    EXPECT_EQ("8000261", s->station()->id()->str());
+    EXPECT_EQ("München Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(48.140232, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(11.558335, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(0, a->schedule_time());
@@ -63,10 +63,10 @@ TEST(lookup, DISABLED_id_train) {
   }
   {
     auto s = stops->Get(3);
-    EXPECT_EQ("8000010", s->eva_nr()->str());
-    EXPECT_EQ("Aschaffenburg Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(49.980557, s->lat());
-    EXPECT_DOUBLE_EQ(9.143697, s->lng());
+    EXPECT_EQ("8000010", s->station()->id()->str());
+    EXPECT_EQ("Aschaffenburg Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(49.980557, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(9.143697, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(1448372040, a->schedule_time());
@@ -80,10 +80,10 @@ TEST(lookup, DISABLED_id_train) {
   }
   {
     auto s = stops->Get(11);
-    EXPECT_EQ("8000080", s->eva_nr()->str());
-    EXPECT_EQ("Dortmund Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(51.517896, s->lat());
-    EXPECT_DOUBLE_EQ(7.459290, s->lng());
+    EXPECT_EQ("8000080", s->station()->id()->str());
+    EXPECT_EQ("Dortmund Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(51.517896, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(7.459290, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(1448382360, a->schedule_time());
@@ -108,10 +108,10 @@ TEST(lookup, id_train_no_realtime) {
 
   {
     auto s = stops->Get(0);
-    EXPECT_EQ("8000261", s->eva_nr()->str());
-    EXPECT_EQ("München Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(48.140232, s->lat());
-    EXPECT_DOUBLE_EQ(11.558335, s->lng());
+    EXPECT_EQ("8000261", s->station()->id()->str());
+    EXPECT_EQ("München Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(48.140232, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(11.558335, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(0, a->schedule_time());
@@ -125,10 +125,10 @@ TEST(lookup, id_train_no_realtime) {
   }
   {
     auto s = stops->Get(3);
-    EXPECT_EQ("8000010", s->eva_nr()->str());
-    EXPECT_EQ("Aschaffenburg Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(49.980557, s->lat());
-    EXPECT_DOUBLE_EQ(9.143697, s->lng());
+    EXPECT_EQ("8000010", s->station()->id()->str());
+    EXPECT_EQ("Aschaffenburg Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(49.980557, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(9.143697, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(1448372040, a->schedule_time());
@@ -142,10 +142,10 @@ TEST(lookup, id_train_no_realtime) {
   }
   {
     auto s = stops->Get(11);
-    EXPECT_EQ("8000080", s->eva_nr()->str());
-    EXPECT_EQ("Dortmund Hbf", s->name()->str());
-    EXPECT_DOUBLE_EQ(51.517896, s->lat());
-    EXPECT_DOUBLE_EQ(7.459290, s->lng());
+    EXPECT_EQ("8000080", s->station()->id()->str());
+    EXPECT_EQ("Dortmund Hbf", s->station()->name()->str());
+    EXPECT_DOUBLE_EQ(51.517896, s->station()->pos()->lat());
+    EXPECT_DOUBLE_EQ(7.459290, s->station()->pos()->lng());
 
     auto a = s->arrival();
     EXPECT_EQ(1448382360, a->schedule_time());

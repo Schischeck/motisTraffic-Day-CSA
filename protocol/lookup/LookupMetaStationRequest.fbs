@@ -5,13 +5,13 @@ namespace motis.lookup;
 // {
 //   "content_type": "LookupMetaStationRequest",
 //   "content": {
-//     "eva_nr": "8000105"
-//  }
-//}
+//     "station_id": "8000105"
+//   }
+// }
 table LookupMetaStationRequest {
-  eva_nr: string;
+  station_id:string;
 }
 
 table LookupBatchMetaStationRequest {
-  requests: [LookupMetaStationRequest];
+  requests:[LookupMetaStationRequest];
 }

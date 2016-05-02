@@ -56,6 +56,7 @@ namespace motis;
 //   "content_type": "MotisError",
 //   "content": {
 //     "error_code": 1,
+//     "category": "motis::access",
 //     "reason": "module: there is no module capable of handling the message"
 //   }
 // }
@@ -162,12 +163,12 @@ union MsgContent {
 enum DestinationType : byte { Module, Topic }
 
 table Destination {
-  type: DestinationType;
-  target: string;
+  type:DestinationType;
+  target:string;
 }
 
 table Message {
-  destination: Destination;
+  destination:Destination;
   content:MsgContent;
   id:int = 0;
 }

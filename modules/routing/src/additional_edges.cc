@@ -19,8 +19,8 @@ std::vector<edge> create_additional_edges(
       case AdditionalEdge_MumoEdge: {
         auto info = reinterpret_cast<MumoEdge const*>(e->additional_edge());
         edges.push_back(make_mumo_edge(
-            get_station_node(sched, info->from_station_eva()->str()),
-            get_station_node(sched, info->to_station_eva()->str()),
+            get_station_node(sched, info->from_station_id()->str()),
+            get_station_node(sched, info->to_station_id()->str()),
             info->duration(), info->price(), info->slot()));
         break;
       }
@@ -30,11 +30,11 @@ std::vector<edge> create_additional_edges(
             e->additional_edge());
         auto edge = info->edge();
         edges.push_back(make_time_dependent_mumo_edge(
-            get_station_node(sched, edge->from_station_eva()->str()),
-            get_station_node(sched, edge->to_station_eva()->str()),
+            get_station_node(sched, edge->from_station_id()->str()),
+            get_station_node(sched, edge->to_station_id()->str()),
             edge->duration(), edge->price(), edge->slot(),
-            unix_to_motistime(sched.schedule_begin_, info->interval_begin()),
-            unix_to_motistime(sched.schedule_begin_, info->interval_end())));
+            unix_to_motistime(sched.schedule_begin_, info->interval()->begin()),
+            unix_to_motistime(sched.schedule_begin_, info->interval()->end())));
         break;
       }
 
@@ -43,17 +43,17 @@ std::vector<edge> create_additional_edges(
             e->additional_edge());
         auto edge = info->edge();
         edges.push_back(make_periodic_mumo_edge(
-            get_station_node(sched, edge->from_station_eva()->str()),
-            get_station_node(sched, edge->to_station_eva()->str()),
+            get_station_node(sched, edge->from_station_id()->str()),
+            get_station_node(sched, edge->to_station_id()->str()),
             edge->duration(), edge->price(), edge->slot(),
-            info->interval_begin(), info->interval_end()));
+            info->interval()->begin(), info->interval()->end()));
         break;
       }
 
       case AdditionalEdge_HotelEdge: {
         auto info = reinterpret_cast<HotelEdge const*>(e->additional_edge());
         edges.push_back(
-            make_hotel_edge(get_station_node(sched, info->station_eva()->str()),
+            make_hotel_edge(get_station_node(sched, info->station_id()->str()),
                             info->earliest_checkout_time(),
                             info->min_stay_duration(), info->price()));
         break;

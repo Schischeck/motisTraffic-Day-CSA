@@ -1,10 +1,10 @@
-include "railviz/RailVizCoordinate.fbs";
+include "base/Position.fbs";
 
 namespace motis.railviz;
 
 table RailVizAlltraReq {
-  p1 : RailVizCoordinate;
-  p2 : RailVizCoordinate;
-  time : ulong;
-  with_routes : bool = false;
+  p1:motis.Position;
+  p2:motis.Position;
+  time:ulong;
+  with_routes:bool = false;
 }

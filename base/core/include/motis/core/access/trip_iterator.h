@@ -25,8 +25,8 @@ public:
     return *this;
   }
 
-  T operator*() { return {trip_, index_}; }
-  T operator[](int rhs) { return {trip_, rhs}; }
+  T const operator*() const { return {trip_, index_}; }
+  T const operator[](int rhs) const { return {trip_, rhs}; }
 
   trip_iterator<T>& operator++() {
     ++index_;
