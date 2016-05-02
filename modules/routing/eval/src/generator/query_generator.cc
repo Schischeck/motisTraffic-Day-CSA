@@ -131,7 +131,6 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
   message_creator fbb;
   auto const interval = Interval(interval_start, interval_end);
-  auto const additional_edges = std::vector<Offset<AdditionalEdgeWrapper>>();
   fbb.create_and_finish(
       MsgContent_RoutingRequest,
       CreateRoutingRequest(
@@ -143,7 +142,9 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
               .Union(),
           CreateInputStation(fbb, fbb.CreateString(""),
                              fbb.CreateString(to_eva)),
-          fbb.CreateVector(additional_edges))
+          SearchType_DefaultForward,
+          fbb.CreateVector(std::vector<Offset<Via>>()),
+          fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
       "/routing");
   auto msg = make_msg(fbb);
