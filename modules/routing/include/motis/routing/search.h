@@ -55,7 +55,7 @@ struct search {
       additional_edges[e.from_].push_back(e);
     }
 
-    pareto_dijkstra<my_label, lower_bounds> pd(
+    pareto_dijkstra<Label, lower_bounds> pd(
         q.sched_->node_count_, q.to_,
         StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, q.from_,
                                       q.query_edges_, q.interval_begin_,
@@ -72,7 +72,7 @@ struct search {
     std::vector<journey> journeys;
     journeys.resize(results.size());
     std::transform(begin(results), end(results), begin(journeys),
-                   [&q](my_label* label) {
+                   [&q](Label* label) {
                      return output::labels_to_journey(label, *q.sched_);
                    });
 

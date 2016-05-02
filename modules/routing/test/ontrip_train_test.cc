@@ -34,8 +34,9 @@ TEST(routing_ontrip_train, stay_in_train) {
               .Union(),
           CreateInputStation(fbb, fbb.CreateString("8000001"),
                              fbb.CreateString("")),
-          fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()),
-          fbb.CreateVector(std::vector<Offset<Via>>()))
+          SearchType_SingleCriterionForward,
+          fbb.CreateVector(std::vector<Offset<Via>>()),
+          fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
       "/routing");
   EXPECT_EQ(1, motis_content(RoutingResponse, call(motis, make_msg(fbb)))

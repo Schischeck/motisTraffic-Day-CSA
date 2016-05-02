@@ -10,7 +10,7 @@ namespace error {
 enum error_code_t {
   ok = 0,
   no_guess_for_station = 1,
-  given_eva_not_available = 2,
+  search_type_not_supported = 2,
   path_length_not_supported = 3,
   journey_date_not_in_schedule = 4,
   event_not_found = 5
@@ -26,8 +26,8 @@ public:
       case error::ok: return "routing: no error";
       case error::no_guess_for_station:
         return "routing: station could not be guessed";
-      case error::given_eva_not_available:
-        return "routing: given eva number is not available in this schedule";
+      case error::search_type_not_supported:
+        return "routing: requested search type not supported";
       case error::path_length_not_supported:
         return "routing: path length not supported";
       case error::journey_date_not_in_schedule:

@@ -119,7 +119,7 @@ station_node const* get_station_node(schedule const& sched,
   auto const& eva_to_station = sched.eva_to_station_;
   auto const it = eva_to_station.find(station_id);
   if (it == end(eva_to_station)) {
-    throw std::system_error(error::given_eva_not_available);
+    throw std::system_error(error::search_type_not_supported);
   }
   return sched.station_nodes_.at(it->second->index_).get();
 }
@@ -178,6 +178,30 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
   return q;
 }
 
+search_result ontrip_search(search_query const& q, SearchType const t) {
+  switch (t) {
+    case SearchType_DefaultForward:
+      return search<pretrip_gen<default_label>, default_label>::get_connections(
+          q);
+    case SearchType_SingleCriterionForward:
+      return search<pretrip_gen<single_criterion_label>,
+                    single_criterion_label>::get_connections(q);
+  }
+  throw std::system_error(error::search_type_not_supported);
+}
+
+search_result pretrip_search(search_query const& q, SearchType const t) {
+  switch (t) {
+    case SearchType_DefaultForward:
+      return search<ontrip_gen<default_label>, default_label>::get_connections(
+          q);
+    case SearchType_SingleCriterionForward:
+      return search<ontrip_gen<single_criterion_label>,
+                    single_criterion_label>::get_connections(q);
+  }
+  throw std::system_error(error::search_type_not_supported);
+}
+
 msg_ptr routing::route(msg_ptr const& msg) {
   auto const req = motis_content(RoutingRequest, msg);
 
@@ -190,12 +214,14 @@ msg_ptr routing::route(msg_ptr const& msg) {
   search_result res;
   switch (req->start_type()) {
     case Start_PretripStart:
-      res = search<pretrip_gen<my_label>, my_label>::get_connections(query);
+      res = search<pretrip_gen<default_label>, default_label>::get_connections(
+          query);
       break;
 
     case Start_OntripStationStart:
     case Start_OntripTrainStart:
-      res = search<ontrip_gen<my_label>, my_label>::get_connections(query);
+      res = search<ontrip_gen<single_criterion_label>,
+                   single_criterion_label>::get_connections(query);
       break;
 
     case Start_NONE: assert(false);

@@ -83,10 +83,19 @@ table Via {
 }
 
 // ----------------------------------------------------------------------------
+// Search Type
+// ----------------------------------------------------------------------------
+enum SearchType : byte {
+  DefaultForward,
+  SingleCriterionForward
+}
+
+// ----------------------------------------------------------------------------
 
 table RoutingRequest {
   start:Start;
   destination:InputStation;
-  additional_edges:[AdditionalEdgeWrapper];
+  search_type:SearchType;
   via:[Via];
+  additional_edges:[AdditionalEdgeWrapper];
 }
