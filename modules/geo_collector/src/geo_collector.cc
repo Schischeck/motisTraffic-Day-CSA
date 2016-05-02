@@ -1,7 +1,7 @@
 #include "motis/geo_collector/geo_collector.h"
 
-// #include "motis/db/prep_stmt.h"
-
+#include <ctime>
+#include <fstream>
 #include <iostream>
 
 #include "boost/tokenizer.hpp"
@@ -183,8 +183,10 @@ msg_ptr geo_collector::submit_journey(msg_ptr const& msg) {
 msg_ptr geo_collector::upload(msg_ptr const& msg) {
   auto req = motis_content(HTTPRequest, msg);
 
-  std::cout << "REQ INC" << std::endl;
-  std::cout << req->content()->str() << std::endl;
+  auto fname = std::to_string(std::time(nullptr)) + ".json";
+  std::ofstream out(fname);
+  out << req->content()->str();
+
   return make_success_msg();
 }
 
