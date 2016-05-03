@@ -134,11 +134,11 @@ std::vector<rating::rating_element> compute_test_ratings1(
 
 TEST_F(reliability_public_transport2, rate) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(STUTTGART.name, STUTTGART.eva)
-          .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+      flatbuffers::request_builder()
+          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .add_destination(KASSEL.name, KASSEL.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -304,11 +304,11 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
 TEST_F(reliability_public_transport5, rate2) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(MANNHEIM.name, MANNHEIM.eva)
-          .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 701))
+      flatbuffers::request_builder()
+          .add_pretrip_start(MANNHEIM.name, MANNHEIM.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(MARBURG.name, MARBURG.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -401,11 +401,11 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 
 TEST_F(reliability_public_transport3, rate_foot) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(LANGEN.name, LANGEN.eva)
-          .add_station(WEST.name, WEST.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1001))
+      flatbuffers::request_builder()
+          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .add_destination(WEST.name, WEST.eva)
           .build_routing_request();
   using routing::RoutingResponse;
   auto const journeys = message_to_journeys(

@@ -13,13 +13,8 @@ namespace motis {
 namespace reliability {
 namespace flatbuffers {
 
-request_builder::request_builder(routing::Type const type,
-                                 routing::Direction const dir)
-    : type_(type),
-      direction_(dir),
-      interval_begin_(0),
-      interval_end_(0),
-      is_intermodal_(false) {
+request_builder::request_builder(routing::SearchType search_type)
+    : search_type_(search_type), is_intermodal_(false) {
   b_.ForceDefaults(true); /* necessary to write indices 0 */
   dep_.lat_ = 0.0;
   dep_.lng_ = 0.0;
@@ -28,21 +23,58 @@ request_builder::request_builder(routing::Type const type,
 }
 
 request_builder::request_builder(routing::RoutingRequest const* request)
-    : request_builder(request->type(), request->direction()) {
-  set_interval(request->interval()->begin(), request->interval()->end());
-  for (auto const& e : *request->path()) {
-    add_station(e->name() ? e->name()->c_str() : "",
-                e->eva_nr() ? e->eva_nr()->c_str() : "");
-  }
-}
-
-request_builder& request_builder::add_station(std::string const& name,
-                                              std::string const& eva) {
-  if (is_intermodal_) {
+    : request_builder(request->search_type()) {
+  if (request->start_type() == routing::Start_OntripStationStart) {
+    auto const start =
+        reinterpret_cast<routing::OntripStationStart const*>(request->start());
+    add_ontrip_station_start(start->station()->name()->c_str(),
+                             start->station()->id()->c_str(),
+                             start->departure_time());
+  } else if (request->start_type() == routing::Start_PretripStart) {
+    auto const start =
+        reinterpret_cast<routing::PretripStart const*>(request->start());
+    add_pretrip_start(start->station()->name()->c_str(),
+                      start->station()->id()->c_str(),
+                      start->interval()->begin(), start->interval()->end());
+  } else {
     throw std::system_error(error::malformed_msg);
   }
-  path_.push_back(routing::CreateStationPathElement(b_, b_.CreateString(name),
-                                                    b_.CreateString(eva)));
+
+  add_destination(request->destination()->name()->c_str(),
+                  request->destination()->id()->c_str());
+}
+
+request_builder& request_builder::add_pretrip_start(
+    std::string const& name, std::string const& id,
+    std::time_t const interval_begin, std::time_t const interval_end) {
+  is_intermodal_ = false;
+  motis::Interval interval(interval_begin, interval_end);
+  start_.first = routing::Start_PretripStart;
+  start_.second = routing::CreatePretripStart(
+                      b_, routing::CreateInputStation(b_, b_.CreateString(id),
+                                                      b_.CreateString(name)),
+                      &interval)
+                      .Union();
+  return *this;
+}
+request_builder& request_builder::add_ontrip_station_start(
+    std::string const& name, std::string const& id,
+    std::time_t const ontrip_time) {
+  is_intermodal_ = false;
+  start_.first = routing::Start_OntripStationStart;
+  start_.second = routing::CreateOntripStationStart(
+                      b_, routing::CreateInputStation(b_, b_.CreateString(id),
+                                                      b_.CreateString(name)),
+                      ontrip_time)
+                      .Union();
+  return *this;
+}
+
+request_builder& request_builder::add_destination(std::string const& name,
+                                                  std::string const& id) {
+  is_intermodal_ = false;
+  destination_station_ = routing::CreateInputStation(b_, b_.CreateString(id),
+                                                     b_.CreateString(name));
   return *this;
 }
 
@@ -63,13 +95,6 @@ request_builder& request_builder::add_arr_coordinates(double const& lat,
   return *this;
 }
 
-request_builder& request_builder::set_interval(std::time_t const begin,
-                                               std::time_t const end) {
-  interval_begin_ = begin;
-  interval_end_ = end;
-  return *this;
-}
-
 request_builder& request_builder::add_additional_edge(
     Offset<routing::AdditionalEdgeWrapper> const& edge) {
   additional_edges_.push_back(edge);
@@ -85,7 +110,8 @@ request_builder& request_builder::add_additional_edges(
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
       std::string const tail_station, std::string const head_station) {
     using namespace routing;
-    for (auto const& interval : info.availability_intervals_) {
+    for (auto const& availability : info.availability_intervals_) {
+      Interval interval(availability.first, availability.second);
       additional_edges_.push_back(CreateAdditionalEdgeWrapper(
           b_, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(
@@ -93,7 +119,7 @@ request_builder& request_builder::add_additional_edges(
                                  b_.CreateString(head_station), info.duration_,
                                  0 /* TODO(Mohammad Keyhani) price */,
                                  0 /* TODO(Mohammad Keyhani) slot */),
-              interval.first, interval.second)
+              &interval)
               .Union()));
     }
   };
@@ -109,10 +135,10 @@ request_builder& request_builder::add_additional_edges(
 }
 
 Offset<routing::RoutingRequest> request_builder::create_routing_request() {
-  routing::Interval interval(interval_begin_, interval_end_);
-  return routing::CreateRoutingRequest(b_, &interval, type_, direction_,
-                                       b_.CreateVector(path_),
-                                       b_.CreateVector(additional_edges_));
+  std::vector<::flatbuffers::Offset<routing::Via>> vias;
+  return routing::CreateRoutingRequest(
+      b_, start_.first, start_.second, destination_station_, search_type_,
+      b_.CreateVector(vias), b_.CreateVector(additional_edges_));
 }
 
 msg_ptr request_builder::build_routing_request() {

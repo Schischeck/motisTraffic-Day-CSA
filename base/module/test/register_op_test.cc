@@ -18,17 +18,23 @@ auto query = R"({
   },
   "content_type": "RoutingRequest",
   "content": {
-    "interval": {
-      "begin": 1444896228,
-      "end": 1444899228
+    "start_type": "PretripStart",
+    "start": {
+      "station": {
+        "name": "",
+        "id": "8000096"
+      },
+      "interval": {
+        "begin": 1444896228,
+        "end": 1444899228
+      }
     },
-    "type": "PreTrip",
-    "direction": "Forward",
-    "path": [
-      { "id": "8000096", "name": "", "pos": {"lat": 0, "lng": 0} },
-      { "id": "8000105", "name": "", "pos": {"lat": 0, "lng": 0} }
-    ],
-    "additional_edges": []
+    "destination": {
+      "name": "",
+      "id": "8000105"
+    },
+    "additional_edges": [],
+    "via": []
   }
 })";
 

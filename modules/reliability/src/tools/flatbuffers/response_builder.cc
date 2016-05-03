@@ -24,12 +24,12 @@ namespace response_builder {
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b,
     routing::RoutingResponse const* orig_routing_response) {
-  std::vector<Offset<routing::Connection>> connections;
+  std::vector<Offset<Connection>> connections;
   auto const journeys = message_to_journeys(orig_routing_response);
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  return CreateRoutingResponse(b, 0, b.CreateVector(connections));
+  return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
 }
 
 namespace rating_converter {
@@ -48,7 +48,7 @@ Offset<reliability::ProbabilityDistribution> convert(
 /* write the distributions for all events */
 std::vector<Offset<RatingElement>> convert_rating_elements(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    routing::Connection const* orig_conn) {
+    motis::Connection const* orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto e : conn_rating.public_transport_ratings_) {
     Range r(e.departure_stop_idx_, e.arrival_stop_idx());
@@ -69,12 +69,12 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
  * the first departure and the last arrival */
 std::vector<Offset<RatingElement>> convert_rating_elements_short(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    routing::Connection const* orig_conn) {
+    Connection const* orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto it_t = orig_conn->transports()->begin();
        it_t != orig_conn->transports()->end(); ++it_t) {
-    if (it_t->move_type() == routing::Move_Transport) {
-      auto transport = (routing::Transport const*)it_t->move();
+    if (it_t->move_type() == Move_Transport) {
+      auto transport = (Transport const*)it_t->move();
       auto const rating_from =
           std::find_if(conn_rating.public_transport_ratings_.begin(),
                        conn_rating.public_transport_ratings_.end(),
@@ -113,7 +113,7 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
 Offset<Vector<Offset<Rating>>> convert_ratings(
     FlatBufferBuilder& b,
     std::vector<rating::connection_rating> const& orig_ratings,
-    Vector<Offset<routing::Connection>> const& orig_connections,
+    Vector<Offset<Connection>> const& orig_connections,
     bool const short_output) {
   std::vector<Offset<Rating>> v_conn_ratings;
   for (unsigned int c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
@@ -240,7 +240,7 @@ Offset<ConnectionGraph> to_connection_graph(
         CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
   }
 
-  std::vector<Offset<routing::Connection>> journeys;
+  std::vector<Offset<Connection>> journeys;
   for (auto const& j : cg.journeys_) {
     journeys.push_back(to_connection(b, j));
   }

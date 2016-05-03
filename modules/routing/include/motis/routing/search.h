@@ -12,13 +12,13 @@ namespace motis {
 namespace routing {
 
 struct search_query {
-  schedule const& sched_;
-  memory_manager& mem_;
-  station_node const* from_;
+  schedule const* sched_;
+  memory_manager* mem_;
+  node const* from_;
   station_node const* to_;
-  std::vector<edge> const& query_edges_;
   time interval_begin_;
   time interval_end_;
+  std::vector<edge> query_edges_;
 };
 
 struct search_result {
@@ -33,7 +33,7 @@ struct search_result {
 template <typename StartLabelGenerator, typename Label>
 struct search {
   static search_result get_connections(search_query const& q) {
-    q.mem_.reset();
+    q.mem_->reset();
 
     std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
     for (auto const& e : q.query_edges_) {
@@ -41,7 +41,7 @@ struct search {
           e.from_->get_station()->id_, e.get_minimum_cost());
     }
 
-    lower_bounds lbs(q.sched_.lower_bounds_, q.to_->id_, lb_graph_edges);
+    lower_bounds lbs(q.sched_->lower_bounds_, q.to_->id_, lb_graph_edges);
     lbs.travel_time_.run();
     lbs.transfers_.run();
 
@@ -55,12 +55,12 @@ struct search {
       additional_edges[e.from_].push_back(e);
     }
 
-    pareto_dijkstra<my_label, lower_bounds> pd(
-        q.sched_.node_count_, q.to_,
-        StartLabelGenerator::generate(q.sched_, q.mem_, lbs, q.from_,
+    pareto_dijkstra<Label, lower_bounds> pd(
+        q.sched_->node_count_, q.to_,
+        StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, q.from_,
                                       q.query_edges_, q.interval_begin_,
                                       q.interval_end_),
-        additional_edges, lbs, q.mem_);
+        additional_edges, lbs, *q.mem_);
 
     MOTIS_START_TIMING(pareto_dijkstra_timing);
     auto& results = pd.search();
@@ -72,8 +72,8 @@ struct search {
     std::vector<journey> journeys;
     journeys.resize(results.size());
     std::transform(begin(results), end(results), begin(journeys),
-                   [&q](my_label* label) {
-                     return output::labels_to_journey(label, q.sched_);
+                   [&q](Label* label) {
+                     return output::labels_to_journey(label, *q.sched_);
                    });
 
     return search_result(stats, journeys);

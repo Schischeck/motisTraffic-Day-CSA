@@ -138,10 +138,10 @@ TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
           .build_reliable_search_request(1);
   test_cg(motis_instance_->run([&]() {
     return search_cgs(motis_content(ReliableRoutingRequest, msg),
@@ -154,10 +154,10 @@ TEST_F(reliability_connection_graph_search,
        connection_tree_three_alternatives) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
           .build_connection_tree_request(3, 1);
 
   test_cg(motis_instance_->run([&]() {
@@ -170,12 +170,13 @@ TEST_F(reliability_connection_graph_search,
 /* search for alternatives at stops_ not necessary
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
-  auto msg = flatbuffers::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                               test_util::hhmm_to_unixtime(get_schedule(), 700))
-                 .build_connection_tree_request(1, 1);
+  auto msg =
+      flatbuffers::request_builder()
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -246,12 +247,13 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
  */
 TEST_F(reliability_connection_graph_search,
        alternative_requires_further_alternatives) {
-  auto msg = flatbuffers::request_builder()
-                 .add_station(PFUNGSTADT.name, PFUNGSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 630),
-                               test_util::hhmm_to_unixtime(get_schedule(), 630))
-                 .build_connection_tree_request(3, 1);
+  auto msg =
+      flatbuffers::request_builder()
+          .add_pretrip_start(PFUNGSTADT.name, PFUNGSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 630),
+                             test_util::hhmm_to_unixtime(get_schedule(), 630))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,

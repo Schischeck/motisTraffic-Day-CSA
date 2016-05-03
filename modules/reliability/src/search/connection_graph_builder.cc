@@ -45,13 +45,12 @@ std::pair<journey, journey> split_journey(journey const& j,
   journey j1;
   journey j2;
 
-  for (auto const& stop : j.stops_) {
-    if (stop.index_ <= stop_idx) {
-      j1.stops_.push_back(stop);
+  for (unsigned idx = 0; idx < j.stops_.size(); ++idx) {
+    if (idx <= stop_idx) {
+      j1.stops_.push_back(j.stops_[idx]);
     }
-    if (stop.index_ >= stop_idx) {
-      j2.stops_.push_back(stop);
-      j2.stops_.back().index_ -= stop_idx;
+    if (idx >= stop_idx) {
+      j2.stops_.push_back(j.stops_[idx]);
     }
   }
   j1.stops_.back().interchange_ = false;
@@ -110,11 +109,12 @@ void split_journey(std::vector<journey>& journeys) {
   auto const& stop =
       std::find_if(journeys.back().stops_.begin(), journeys.back().stops_.end(),
                    [](journey::stop const& s) { return s.interchange_; });
+  auto const stop_idx = std::distance(journeys.back().stops_.begin(), stop);
   if (stop == journeys.back().stops_.end() ||
-      no_public_transport_after_this_stop(journeys.back(), stop->index_)) {
+      no_public_transport_after_this_stop(journeys.back(), stop_idx)) {
     return;
   }
-  auto splitted_journey = split_journey(journeys.back(), stop->index_);
+  auto splitted_journey = split_journey(journeys.back(), stop_idx);
   journeys.pop_back();
   journeys.push_back(splitted_journey.first);
   journeys.push_back(splitted_journey.second);
@@ -136,9 +136,6 @@ journey remove_dummy_stops(journey const& orig_journey) {
     for (auto& a : j.attributes_) {
       --a.from_;
       --a.to_;
-    }
-    for (auto& stop : j.stops_) {
-      --stop.index_;
     }
   }
   if (j.stops_.back().name_ == "DUMMY") {

@@ -39,6 +39,7 @@ struct connection_graph {
   std::vector<stop> stops_;
   std::vector<journey> journeys_;
 
+  /* returns name and station_id (eva_no) */
   std::pair<std::string, std::string> station_info(
       unsigned int const stop_idx) const {
     if (stop_idx == stop::Index_arrival_stop) {

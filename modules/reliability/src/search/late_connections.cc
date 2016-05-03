@@ -20,7 +20,7 @@ module::msg_ptr to_routing_late_connections_message(
     std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
   flatbuffers::request_builder builder(request);
-  builder.type_ = Type::Type_LateConnection;
+  builder.search_type_ = routing::SearchType_LateConnections;
 
   auto& b = builder.b_;
   /* Create taxi-edges */
@@ -31,14 +31,16 @@ module::msg_ptr to_routing_late_connections_message(
     auto const* mumo =
         static_cast<TimeDependentMumoEdge const*>(e->additional_edge());
     /* TODO(Mohammad Keyhani) ask intermodal modul for taxi-edges */
+    Interval interval(LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME);
     builder.add_additional_edge(CreateAdditionalEdgeWrapper(
         b, AdditionalEdge_PeriodicMumoEdge,
         CreatePeriodicMumoEdge(
             b, CreateMumoEdge(
-                   b, b.CreateString(mumo->edge()->from_station_eva()->c_str()),
-                   b.CreateString(mumo->edge()->to_station_eva()->c_str()),
-                   mumo->edge()->duration(), mumo->edge()->price()),
-            LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME)
+                   b, b.CreateString(mumo->edge()->from_station_id()->c_str()),
+                   b.CreateString(mumo->edge()->to_station_id()->c_str()),
+                   mumo->edge()->duration(), mumo->edge()->price(),
+                   0 /* TODO(Mohammad Keyhani) */),
+            &interval)
             .Union()));
   }
   for (auto const& hotel : hotel_infos) {

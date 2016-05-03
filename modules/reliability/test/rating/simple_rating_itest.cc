@@ -54,11 +54,11 @@ public:
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(STUTTGART.name, STUTTGART.eva)
-          .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+      flatbuffers::request_builder()
+          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .add_destination(KASSEL.name, KASSEL.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -96,11 +96,11 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(MANNHEIM.name, MANNHEIM.eva)
-          .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 701))
+      flatbuffers::request_builder()
+          .add_pretrip_start(MANNHEIM.name, MANNHEIM.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(MARBURG.name, MARBURG.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;

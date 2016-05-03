@@ -57,16 +57,14 @@ public:
   short const S_L_F = 3;  // 07:16 --> 07:34
   short const IC_L_F = 4;  // 07:17 --> 07:40
 
-  void test_journey(routing::Connection const* j,
-                    std::string const departure_eva,
+  void test_journey(Connection const* j, std::string const departure_eva,
                     std::string const arrival_eva, time_t const departure_time,
                     time_t const arrival_time, unsigned int const train_nr) {
     auto const first_stop = j->stops()->begin();
     auto const last_stop = (*j->stops())[j->stops()->size() - 1];
-    auto const transport =
-        ((routing::Transport const*)j->transports()->begin()->move());
-    ASSERT_EQ(departure_eva, first_stop->eva_nr()->c_str());
-    ASSERT_EQ(arrival_eva, last_stop->eva_nr()->c_str());
+    auto const transport = ((Transport const*)j->transports()->begin()->move());
+    ASSERT_EQ(departure_eva, first_stop->station()->id()->c_str());
+    ASSERT_EQ(arrival_eva, last_stop->station()->id()->c_str());
     ASSERT_EQ(departure_time, first_stop->departure()->time());
     ASSERT_EQ(arrival_time, last_stop->arrival()->time());
     ASSERT_EQ(train_nr, transport->train_nr());
@@ -162,10 +160,10 @@ public:
 TEST_F(reliability_test_rating, rating_request) {
   auto const req =
       flatbuffers::request_builder()
-          .add_station(STUTTGART.name, STUTTGART.eva)
-          .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .add_destination(KASSEL.name, KASSEL.eva)
           .build_rating_request();
   auto const res = test::call(motis_instance_, req);
   auto const response = motis_content(ReliabilityRatingResponse, res);
@@ -199,10 +197,10 @@ TEST_F(reliability_test_rating, rating_request) {
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
       flatbuffers::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 701))
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 701))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
           .build_connection_tree_request(3, 1);
   auto const res = test::call(motis_instance_, req);
   test_cg(motis_content(ReliableRoutingResponse, res));
@@ -211,10 +209,10 @@ TEST_F(reliability_test_cg, connection_tree) {
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   auto const req =
       flatbuffers::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                        test_util::hhmm_to_unixtime(get_schedule(), 701))
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 701))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
           .build_reliable_search_request(1);
   auto const res = test::call(motis_instance_, req);
   test_cg(motis_content(ReliableRoutingResponse, res));
@@ -243,19 +241,19 @@ module::msg_ptr to_reliable_late_connections_request(
     std::vector<taxi_info> const& taxi_infos) {
   using namespace routing;
   flatbuffers::request_builder builder;
-  builder.add_station(from_name, from_eva)
-      .add_station(to_name, to_eva)
-      .set_interval(interval_begin, interval_end);
+  builder.add_pretrip_start(from_name, from_eva, interval_begin, interval_end)
+      .add_destination(to_name, to_eva);
 
   auto& b = builder.b_;
   for (auto const& info : taxi_infos) {
+    Interval interval(21 * 60, 3 * 60);
     builder.add_additional_edge(CreateAdditionalEdgeWrapper(
         b, AdditionalEdge_TimeDependentMumoEdge,
         CreatePeriodicMumoEdge(
             b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
                               b.CreateString("-2") /* to dummy target */,
                               std::get<1>(info), std::get<2>(info)),
-            21 * 60, 3 * 60)
+            &interval)
             .Union()));
   }
   return builder.build_late_connection_cequest();
@@ -278,14 +276,13 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
   ASSERT_EQ(2, response->connections()->size());
   ASSERT_EQ(2, (*response->connections())[0]->transports()->size());
   auto taxi =
-      (routing::Mumo const*)(*(*response->connections())[0]->transports())[1]
-          ->move();
+      (Mumo const*)(*(*response->connections())[0]->transports())[1]->move();
   ASSERT_EQ("Taxi", std::string(taxi->name()->c_str()));
 
   ASSERT_EQ(2, (*response->connections())[1]->transports()->size());
-  auto direct_conn = (routing::Transport const*)(*(*response->connections())[1]
-                                                      ->transports())[0]
-                         ->move();
+  auto direct_conn =
+      (Transport const*)(*(*response->connections())[1]->transports())[0]
+          ->move();
   ASSERT_EQ(1, direct_conn->train_nr());
 }
 

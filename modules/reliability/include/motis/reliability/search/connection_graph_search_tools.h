@@ -23,10 +23,10 @@ to_routing_request(connection_graph const& conn_graph,
   auto const stop_station = conn_graph.station_info(stop.index_);
   auto const arrival_station =
       conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
-  auto msg = flatbuffers::request_builder(routing::Type::Type_OnTrip)
-                 .add_station(stop_station.first, stop_station.second)
-                 .add_station(arrival_station.first, arrival_station.second)
-                 .set_interval(ontrip_time, ontrip_time)
+  auto msg = flatbuffers::request_builder()
+                 .add_ontrip_station_start(stop_station.first,
+                                           stop_station.second, ontrip_time)
+                 .add_destination(arrival_station.first, arrival_station.second)
                  .build_routing_request();
   return std::make_pair(msg, detail::context::journey_cache_key(
                                  stop_station.second, ontrip_time));

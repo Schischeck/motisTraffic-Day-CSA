@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(motis)
 
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
+option(MOTIS_COV "enable coverage (coverage) target" OFF)
 
 if (MOTIS_LINT)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -54,6 +55,10 @@ if (NOT MSVC)
   set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
+  endif()
+  if (MOTIS_COV)
+    set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} --coverage")
+    set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
   endif()
 else()
   set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB")
@@ -283,3 +288,53 @@ add_custom_target(format-check
   COMMENT "Checking source code formatting"
   VERBATIM
 )
+
+
+################################
+# coverage report
+################################
+if (MOTIS_COV)
+  set(LCOV_OPTS "")
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(LCOV_OPTS "--gcov-tool=${CMAKE_CURRENT_SOURCE_DIR}/tools/llvm-gcov.sh")
+  endif()
+
+  add_custom_target(coverage
+    # clean previous files
+    rm -rf ./combined_coverage ./motis-test_coverage ./motis-itest_coverage
+    COMMAND rm -f combined-test.info motis-test.info motis-itest.info
+    COMMAND find . -name "*.gcda" -delete
+
+    # combined (motis-test + motis-itest)
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-test
+    COMMAND ./motis-itest
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/usr*" -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/external_lib*" -o combined-test.info
+    COMMAND lcov --remove combined-test.info "/test/*" -o combined-test.info
+    COMMAND genhtml -o combined_coverage -t "motis-test + motis-itest" --num-spaces 4 combined-test.info
+
+    # only motis-test
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-test
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/usr*" -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/external_lib*" -o motis-test.info
+    COMMAND lcov --remove motis-test.info "/test/*" -o motis-test.info
+    COMMAND genhtml -o motis-test_coverage -t "motis-test" --num-spaces 4 motis-test.info
+
+    # only motis-itest
+    COMMAND lcov --base-directory . --directory . --zerocounters -q
+    COMMAND ./motis-itest
+    COMMAND lcov ${LCOV_OPTS} --base-directory . --directory . -c -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/usr*" -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/external_lib*" -o motis-itest.info
+    COMMAND lcov --remove motis-itest.info "/test/*" -o motis-itest.info
+    COMMAND genhtml -o motis-itest_coverage -t "motis-itest" --num-spaces 4 motis-itest.info
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating coverage report"
+    VERBATIM
+  )
+  add_dependencies(coverage motis-test motis-itest)
+endif()

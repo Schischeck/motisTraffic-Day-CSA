@@ -100,7 +100,7 @@ SVG.DetailView = SVG.invent({
                                      .draw(c.DETAIL_VIEW_CONNECTION_LENGTH - c.CIRCLE_WIDTH, label, el.color, -90, isIcon)
                                      .fill(el.color)
                                      .move(i * c.DETAIL_VIEW_CONNECTION_LENGTH, 0);
-        addStationLabel(el.from.stop.name, i);
+        addStationLabel(el.from.stop.station.name, i);
         addTimeLabel(i, i != 0 && !lastIsIcon, el.from.stop.arrival.time, !isIcon, el.from.stop.departure.time);
         addTrackLabel(i, i != 0 && !lastIsIcon, el.from.stop.arrival.platform, !isIcon, el.from.stop.departure.platform);
         const isExpandable = el.transport.move.range.from + 1 !== el.transport.move.range.to;
@@ -115,9 +115,11 @@ SVG.DetailView = SVG.invent({
                  .radius(c.RADIUS);
 
       const finalStopEl = elements[elements.length - 1];
-      addStationLabel(finalStopEl.to.stop.name, elements.length);
+      addStationLabel(finalStopEl.to.stop.station.name, elements.length);
       addTimeLabel(elements.length, true, finalStopEl.to.stop.arrival.time);
-      addTrackLabel(elements.length, true, finalStopEl.to.stop.arrival.platform, false, finalStopEl.to.stop.departure.platform);
+      addTrackLabel(elements.length,
+                    true, finalStopEl.to.stop.arrival.platform,
+                    false, finalStopEl.to.stop.departure.platform);
 
       this.add(rotateGroup);
       return this;

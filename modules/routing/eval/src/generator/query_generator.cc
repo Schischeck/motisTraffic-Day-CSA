@@ -130,20 +130,21 @@ static It rand_in(It begin, It end) {
 std::string query(int id, std::time_t interval_start, std::time_t interval_end,
                   std::string const& from_eva, std::string const& to_eva) {
   message_creator fbb;
-  Interval interval(interval_start, interval_end);
-
-  auto const pos = Position(0, 0);
-  auto const path = std::vector<Offset<Station>>(
-      {CreateStation(fbb, fbb.CreateString(from_eva), fbb.CreateString(""),
-                     &pos),
-       CreateStation(fbb, fbb.CreateString(to_eva), fbb.CreateString(""),
-                     &pos)});
-  auto const additional_edges = std::vector<Offset<AdditionalEdgeWrapper>>();
+  auto const interval = Interval(interval_start, interval_end);
   fbb.create_and_finish(
       MsgContent_RoutingRequest,
-      CreateRoutingRequest(fbb, &interval, Type_PreTrip, Direction_Forward,
-                           fbb.CreateVector(path),
-                           fbb.CreateVector(additional_edges))
+      CreateRoutingRequest(
+          fbb, Start_PretripStart,
+          CreatePretripStart(fbb,
+                             CreateInputStation(fbb, fbb.CreateString(""),
+                                                fbb.CreateString(from_eva)),
+                             &interval)
+              .Union(),
+          CreateInputStation(fbb, fbb.CreateString(""),
+                             fbb.CreateString(to_eva)),
+          SearchType_DefaultForward,
+          fbb.CreateVector(std::vector<Offset<Via>>()),
+          fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
       "/routing");
   auto msg = make_msg(fbb);

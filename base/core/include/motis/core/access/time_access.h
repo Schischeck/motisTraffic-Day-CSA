@@ -9,11 +9,11 @@ namespace motis {
 constexpr auto kDefaultTimezoneOffset = 60;
 
 inline std::time_t motis_to_unixtime(schedule const& sched, time t) {
-  return motis::motis_to_unixtime(sched.schedule_begin_, t);
+  return motis_to_unixtime(sched.schedule_begin_, t);
 }
 
 inline time unix_to_motistime(schedule const& sched, std::time_t t) {
-  return motis::unix_to_motistime(sched.schedule_begin_, t);
+  return unix_to_motistime(sched.schedule_begin_, t);
 }
 
 inline std::time_t external_schedule_begin(schedule const& sched) {
@@ -24,9 +24,8 @@ inline std::time_t external_schedule_end(schedule const& sched) {
   return sched.schedule_end_;
 }
 
-inline motis::time motis_time(
-    int const hhmm, int const day_idx = 0,
-    int const timezone_offset = kDefaultTimezoneOffset) {
+inline time motis_time(int const hhmm, int const day_idx = 0,
+                       int const timezone_offset = kDefaultTimezoneOffset) {
   return SCHEDULE_OFFSET_MINUTES + day_idx * MINUTES_A_DAY + hhmm_to_min(hhmm) -
          timezone_offset;
 }

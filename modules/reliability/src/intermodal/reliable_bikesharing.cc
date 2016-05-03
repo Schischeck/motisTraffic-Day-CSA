@@ -29,7 +29,7 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     }
     if (!availability_intervals.empty()) {
       infos.push_back(
-          {std::string(edge->eva_nr()->c_str()),
+          {std::string(edge->station_id()->c_str()),
            (unsigned int)((edge->bike_duration() + edge->walk_duration()) / 60),
            availability_intervals, std::string(edge->from()->name()->c_str()),
            std::string(edge->to()->name()->c_str())});
@@ -58,10 +58,11 @@ module::msg_ptr to_bikesharing_request(
     double const arrival_lat, double const arrival_lng, time_t window_begin,
     time_t window_end, motis::bikesharing::AvailabilityAggregator aggregator) {
   module::message_creator fb;
+  Position dep(departure_lat, departure_lng), arr(arrival_lat, arrival_lng);
+  Interval window(window_begin, window_end);
   fb.create_and_finish(MsgContent_BikesharingRequest,
                        motis::bikesharing::CreateBikesharingRequest(
-                           fb, departure_lat, departure_lng, arrival_lat,
-                           arrival_lng, window_begin, window_end, aggregator)
+                           fb, &dep, &arr, &window, aggregator)
                            .Union(),
                        "/bikesharing");
   return module::make_msg(fb);

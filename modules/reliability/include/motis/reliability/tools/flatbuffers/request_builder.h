@@ -19,21 +19,22 @@ namespace flatbuffers {
 
 struct request_builder {
   request_builder(
-      routing::Type const type = routing::Type::Type_PreTrip,
-      routing::Direction const dir = routing::Direction::Direction_Forward);
-
+      routing::SearchType search_type = routing::SearchType_DefaultForward);
   request_builder(routing::RoutingRequest const*);
 
-  // not for intermodal requests
-  request_builder& add_station(std::string const& name, std::string const& eva);
+  request_builder& add_pretrip_start(std::string const& name,
+                                     std::string const& id,
+                                     std::time_t const interval_begin,
+                                     std::time_t const interval_end);
+  request_builder& add_ontrip_station_start(std::string const& name,
+                                            std::string const& id,
+                                            std::time_t const ontrip_time);
+  request_builder& add_destination(std::string const& name,
+                                   std::string const& eva);
 
-  // for intermodal requests
+  /* for reliable intermodal requests */
   request_builder& add_dep_coordinates(double const& lat, double const& lng);
-
-  // for intermodal requests
   request_builder& add_arr_coordinates(double const& lat, double const& lng);
-
-  request_builder& set_interval(std::time_t const begin, std::time_t const end);
 
   request_builder& add_additional_edge(
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
@@ -56,13 +57,13 @@ struct request_builder {
       short const num_alternatives_at_stop, short const min_dep_diff);
 
   module::message_creator b_;
-  routing::Type type_;
-  routing::Direction direction_;
-  std::vector<::flatbuffers::Offset<routing::StationPathElement>> path_;
-  std::time_t interval_begin_, interval_end_;
+  routing::SearchType search_type_;
+  std::pair<routing::Start, ::flatbuffers::Offset<void>> start_;
+  ::flatbuffers::Offset<routing::InputStation> destination_station_;
   std::vector<::flatbuffers::Offset<routing::AdditionalEdgeWrapper>>
       additional_edges_;
 
+  /* for reliable intermodal requests */
   bool is_intermodal_;
   struct coordinates {
     double lat_, lng_;

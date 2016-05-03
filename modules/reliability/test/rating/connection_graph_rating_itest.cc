@@ -258,12 +258,14 @@ TEST_F(reliability_connection_graph_rating,
 
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
-  auto msg = flatbuffers::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                               test_util::hhmm_to_unixtime(get_schedule(), 701))
-                 .build_connection_tree_request(1, 1);
+  auto msg =
+      flatbuffers::request_builder()
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .build_connection_tree_request(1, 1);
+  printf("\nsent msg: %s", msg->to_json().c_str());
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -312,12 +314,13 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
-  auto msg = flatbuffers::request_builder()
-                 .add_station(DARMSTADT.name, DARMSTADT.eva)
-                 .add_station(FRANKFURT.name, FRANKFURT.eva)
-                 .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 700),
-                               test_util::hhmm_to_unixtime(get_schedule(), 701))
-                 .build_connection_tree_request(3, 1);
+  auto msg =
+      flatbuffers::request_builder()
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 700),
+                             test_util::hhmm_to_unixtime(get_schedule(), 700))
+          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -429,10 +432,10 @@ TEST_F(reliability_connection_graph_rating_foot,
        DISABLED_reliable_routing_request_foot) {
   auto msg =
       flatbuffers::request_builder()
-          .add_station(LANGEN.name, LANGEN.eva)
-          .add_station(WEST.name, WEST.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .add_destination(WEST.name, WEST.eva)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -490,10 +493,10 @@ TEST_F(reliability_connection_graph_rating_foot,
        DISABLED_reliable_routing_request_foot_at_the_end) {
   auto msg =
       flatbuffers::request_builder()
-          .add_station(LANGEN.name, LANGEN.eva)
-          .add_station(MESSE.name, MESSE.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1000),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1000))
+          .add_destination(MESSE.name, MESSE.eva)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(

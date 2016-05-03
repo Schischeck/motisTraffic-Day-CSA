@@ -128,11 +128,11 @@ void test_element(connection_element const& expected,
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(STUTTGART.name, STUTTGART.eva)
-          .add_station(KASSEL.name, KASSEL.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 1132),
-                        test_util::hhmm_to_unixtime(get_schedule(), 1132))
+      flatbuffers::request_builder()
+          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132),
+                             test_util::hhmm_to_unixtime(get_schedule(), 1132))
+          .add_destination(KASSEL.name, KASSEL.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -186,11 +186,11 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(MARBURG.name, MARBURG.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 755),
-                        test_util::hhmm_to_unixtime(get_schedule(), 805))
+      flatbuffers::request_builder()
+          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 755),
+                             test_util::hhmm_to_unixtime(get_schedule(), 805))
+          .add_destination(MARBURG.name, MARBURG.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -271,11 +271,11 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  */
 TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
   auto req_msg =
-      flatbuffers::request_builder(routing::Type::Type_PreTrip)
-          .add_station(MANNHEIM.name, MANNHEIM.eva)
-          .add_station(HAUPTWACHE.name, HAUPTWACHE.eva)
-          .set_interval(test_util::hhmm_to_unixtime(get_schedule(), 810),
-                        test_util::hhmm_to_unixtime(get_schedule(), 811))
+      flatbuffers::request_builder()
+          .add_pretrip_start(MANNHEIM.name, MANNHEIM.eva,
+                             test_util::hhmm_to_unixtime(get_schedule(), 810),
+                             test_util::hhmm_to_unixtime(get_schedule(), 811))
+          .add_destination(HAUPTWACHE.name, HAUPTWACHE.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
