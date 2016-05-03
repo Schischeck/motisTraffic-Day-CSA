@@ -25,7 +25,6 @@
 
 namespace p = std::placeholders;
 namespace po = boost::program_options;
-namespace fbs = flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
 using namespace motis::guesser;
@@ -34,7 +33,7 @@ namespace motis {
 namespace routing {
 
 struct memory {
-  memory(std::size_t bytes) : in_use_(false), mem_(bytes) {}
+  explicit memory(std::size_t bytes) : in_use_(false), mem_(bytes) {}
   bool in_use_;
   memory_manager mem_;
 };
