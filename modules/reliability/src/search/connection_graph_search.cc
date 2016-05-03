@@ -126,12 +126,14 @@ struct alternative_futures {
   void spawn_request(std::shared_ptr<request_type> req,
                      std::shared_ptr<context> c) {
     new_alternative_futures_.emplace_back(module::spawn_job([req, c]() {
-      auto const cache_it = c->journey_cache_.find(req->cache_key_);
-      bool const is_cached = cache_it != c->journey_cache_.end();
-      return future_return{req,
-                           is_cached ? cache_it->second
-                                     : retrieve_alternative(req->request_msg_),
-                           is_cached};
+      {
+        std::lock_guard<std::mutex> guard(c->journey_cache_.first);
+        auto const cache_it = c->journey_cache_.second.find(req->cache_key_);
+        if (cache_it != c->journey_cache_.second.end()) {
+          return future_return{req, cache_it->second, true};
+        }
+      }
+      return future_return{req, retrieve_alternative(req->request_msg_), false};
     }));
   };
 };
@@ -175,7 +177,9 @@ void handle_alternative(alternative_futures::future_return const& alternative,
                         std::vector<unsigned int>& active_stops) {
   active_stops.clear();
   if (!alternative.is_cached_) {
-    c->journey_cache_[alternative.request_->cache_key_] = alternative.journey_;
+    std::lock_guard<std::mutex> guard(c->journey_cache_.first);
+    c->journey_cache_.second[alternative.request_->cache_key_] =
+        alternative.journey_;
   }
   if (alternative.journey_.stops_.empty()) {
     return;
@@ -190,7 +194,6 @@ void handle_alternative(alternative_futures::future_return const& alternative,
 
 void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
   auto active_stops = init_active_stops(cg, *c->optimizer_);
-  // TODO mutex for cache ?
 
   alternative_futures futures;
   while (!(futures.new_alternative_futures_.empty() && active_stops.empty())) {

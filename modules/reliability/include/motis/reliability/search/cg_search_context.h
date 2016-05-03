@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "motis/module/module.h"
 
@@ -52,7 +53,7 @@ struct context {
     std::string from_eva_;
     time_t ontrip_time_;
   };
-  std::map<journey_cache_key, journey> journey_cache_;
+  std::pair<std::mutex, std::map<journey_cache_key, journey>> journey_cache_;
 };
 
 }  // namespace detail

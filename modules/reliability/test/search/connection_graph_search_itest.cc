@@ -307,34 +307,39 @@ TEST_F(reliability_connection_graph_search, cache_journey) {
   {
     journey j;
     j.duration_ = 10;
-    c.journey_cache_[key("A", 0)] = j;
+    c.journey_cache_.second[key("A", 0)] = j;
   }
   {
     journey j;
     j.duration_ = 20;
-    c.journey_cache_[key("B", 1)] = j;
+    c.journey_cache_.second[key("B", 1)] = j;
   }
   {
-    ASSERT_EQ(c.journey_cache_.end(), c.journey_cache_.find(key("A", 1)));
+    ASSERT_EQ(c.journey_cache_.second.end(),
+              c.journey_cache_.second.find(key("A", 1)));
     journey j;
     j.duration_ = 30;
-    c.journey_cache_[key("A", 1)] = j;
-    ASSERT_NE(c.journey_cache_.end(), c.journey_cache_.find(key("A", 1)));
+    c.journey_cache_.second[key("A", 1)] = j;
+    ASSERT_NE(c.journey_cache_.second.end(),
+              c.journey_cache_.second.find(key("A", 1)));
   }
   {
     journey j;
     j.duration_ = 40;
-    c.journey_cache_[key("B", 0)] = j;
+    c.journey_cache_.second[key("B", 0)] = j;
   }
 
-  ASSERT_EQ(10, c.journey_cache_.at(key("A", 0)).duration_);
-  ASSERT_EQ(30, c.journey_cache_.at(key("A", 1)).duration_);
-  ASSERT_EQ(40, c.journey_cache_.at(key("B", 0)).duration_);
-  ASSERT_EQ(20, c.journey_cache_.at(key("B", 1)).duration_);
+  ASSERT_EQ(10, c.journey_cache_.second.at(key("A", 0)).duration_);
+  ASSERT_EQ(30, c.journey_cache_.second.at(key("A", 1)).duration_);
+  ASSERT_EQ(40, c.journey_cache_.second.at(key("B", 0)).duration_);
+  ASSERT_EQ(20, c.journey_cache_.second.at(key("B", 1)).duration_);
 
-  ASSERT_EQ(c.journey_cache_.end(), c.journey_cache_.find(key("A", 2)));
-  ASSERT_EQ(c.journey_cache_.end(), c.journey_cache_.find(key("B", 2)));
-  ASSERT_EQ(c.journey_cache_.end(), c.journey_cache_.find(key("C", 0)));
+  ASSERT_EQ(c.journey_cache_.second.end(),
+            c.journey_cache_.second.find(key("A", 2)));
+  ASSERT_EQ(c.journey_cache_.second.end(),
+            c.journey_cache_.second.find(key("B", 2)));
+  ASSERT_EQ(c.journey_cache_.second.end(),
+            c.journey_cache_.second.find(key("C", 0)));
 }
 
 }  // namespace connection_graph_search
