@@ -268,20 +268,20 @@ TEST_F(reliability_connection_graph_search,
 
   // Pfungstadt
   ASSERT_EQ(1, cg.stops_.front().alternative_infos_.size());
-  ASSERT_EQ(1, cg.stops_.front().alternative_infos_.front().next_stop_index_);
+  ASSERT_EQ(2, cg.stops_.front().alternative_infos_.front().next_stop_index_);
   {
     // Darmstadt
-    auto const& stop = cg.stops_[1];
+    auto const& stop = cg.stops_[2];
     ASSERT_EQ(2, stop.alternative_infos_.size());
     {
-      ASSERT_EQ(3 /* Frankfurt */, stop.alternative_infos_[0].next_stop_index_);
+      ASSERT_EQ(1 /* Frankfurt */, stop.alternative_infos_[0].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[0].journey_index_];
       ASSERT_EQ(DARMSTADT.eva, alternative.stops_.front().eva_no_);
       ASSERT_EQ(FRANKFURT.eva, alternative.stops_.back().eva_no_);
     }
     {
-      ASSERT_EQ(3 /* Langen */, stop.alternative_infos_[0].next_stop_index_);
+      ASSERT_EQ(3 /* Langen */, stop.alternative_infos_[1].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[1].journey_index_];
       ASSERT_EQ(DARMSTADT.eva, alternative.stops_.front().eva_no_);
@@ -289,7 +289,15 @@ TEST_F(reliability_connection_graph_search,
     }
   }
   // Langen
-  ASSERT_EQ(3, cg.stops_[2].alternative_infos_.size());
+  ASSERT_EQ(3, cg.stops_[3].alternative_infos_.size());
+  for (auto const& alternative_info : cg.stops_[3].alternative_infos_) {
+    ASSERT_EQ(1 /* Frankfurt */, alternative_info.next_stop_index_);
+    auto const& alternative = cg.journeys_[alternative_info.journey_index_];
+    ASSERT_EQ(LANGEN.eva, alternative.stops_.front().eva_no_);
+    ASSERT_EQ(FRANKFURT.eva, alternative.stops_.back().eva_no_);
+  }
+  // Frankfurt
+  ASSERT_EQ(0, cg.stops_[1].alternative_infos_.size());
 }
 
 TEST_F(reliability_connection_graph_search, cache_journey) {

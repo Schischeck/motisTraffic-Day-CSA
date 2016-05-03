@@ -265,7 +265,6 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
           .add_destination(FRANKFURT.name, FRANKFURT.eva)
           .build_connection_tree_request(1, 1);
-  printf("\nsent msg: %s", msg->to_json().c_str());
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,

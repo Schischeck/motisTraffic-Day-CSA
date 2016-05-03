@@ -205,7 +205,6 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
-  printf("\nrouting msg: %s", msg->to_json().c_str());
   auto const req = motis_content(RoutingRequest, msg);
 
   auto const& sched = get_schedule();
