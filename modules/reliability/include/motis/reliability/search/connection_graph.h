@@ -22,11 +22,11 @@ struct connection_graph {
                                            with index >= 2 are intermediate
                                            stops */
     };
-    unsigned short index_;
+    uint16_t index_;
 
     struct alternative_info {
-      unsigned short journey_index_;
-      unsigned short next_stop_index_;
+      uint16_t journey_index_;
+      uint16_t next_stop_index_;
 
       struct rating {
         probability_distribution departure_distribution_;

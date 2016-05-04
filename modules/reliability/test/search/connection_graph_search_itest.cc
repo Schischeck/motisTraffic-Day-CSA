@@ -29,17 +29,17 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule7_cg/",
                          "20151019") {}
 
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  schedule_station const PFUNGSTADT = {"Pfungstadt", "5420132"};
-  short const RE_D_L = 1;  // 07:00 --> 07:10
-  short const RE_L_F = 2;  // 07:15 --> 07:25
-  short const S_L_F = 3;  // 07:16 --> 07:34
-  short const IC_L_F = 4;  // 07:17 --> 07:40
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static schedule_station PFUNGSTADT = {"Pfungstadt", "5420132"};
+  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10
+  constexpr static unsigned RE_L_F = 2;  // 07:15 --> 07:25
+  constexpr static unsigned S_L_F = 3;  // 07:16 --> 07:34
+  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
 
-  short const RE_P_D = 5;  // 06:40 --> 06:50
-  short const IC_DA_F = 6;  // 06:50 --> 07:10
+  constexpr static unsigned RE_P_D = 5;  // 06:40 --> 06:50
+  constexpr static unsigned IC_DA_F = 6;  // 06:50 --> 07:10
 
   void test_cg(std::vector<std::shared_ptr<connection_graph> > const cgs) {
     ASSERT_EQ(1, cgs.size());

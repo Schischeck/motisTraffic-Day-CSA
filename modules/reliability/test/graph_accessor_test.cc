@@ -24,18 +24,18 @@ public:
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
   /* eva numbers */
-  std::string const DARMSTADT = "4219971";
-  std::string const FRANKFURT = "8351230";
-  std::string const HEIDELBERG = "9335048";
+  constexpr static auto DARMSTADT = "4219971";
+  constexpr static auto FRANKFURT = "8351230";
+  constexpr static auto HEIDELBERG = "9335048";
   /* train numbers */
-  short const IC_DA_H = 1;
-  short const IC_FR_DA = 2;
-  short const IC_FH_DA = 3;
-  short const RE_MA_DA = 4;
-  short const ICE_FR_DA_H = 5;
-  short const ICE_HA_W_HE = 6;
-  short const ICE_K_K = 7;
-  short const RE_K_S = 8;
+  constexpr static unsigned IC_DA_H = 1;
+  constexpr static unsigned IC_FR_DA = 2;
+  constexpr static unsigned IC_FH_DA = 3;
+  constexpr static unsigned RE_MA_DA = 4;
+  constexpr static unsigned ICE_FR_DA_H = 5;
+  constexpr static unsigned ICE_HA_W_HE = 6;
+  constexpr static unsigned ICE_K_K = 7;
+  constexpr static unsigned RE_K_S = 8;
 };
 
 class reliability_graph_accessor3 : public test_schedule_setup {
@@ -43,8 +43,8 @@ public:
   reliability_graph_accessor3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
                             "20150928") {}
-  short const ICE_L_H = 1;  // 10:00 --> 10:10
-  short const S_M_W = 2;  // 10:20 --> 10:25
+  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
+  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
 };
 
 TEST_F(reliability_graph_accessor, get_first_route_node_by_train_nr) {

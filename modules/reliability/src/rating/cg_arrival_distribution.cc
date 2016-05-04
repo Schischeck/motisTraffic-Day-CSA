@@ -31,7 +31,7 @@ std::vector<distribution_info> distributions_arriving_alternatives(
       }
     }
   }
-  assert(distributions.size() > 0);
+  assert(!distributions.empty());
   return distributions;
 }
 

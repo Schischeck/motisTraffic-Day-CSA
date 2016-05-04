@@ -37,11 +37,12 @@ void correct_transports_and_attributes_indices(std::vector<T> const& orig,
 /* split journey at a stop with interchange */
 std::pair<journey, journey> split_journey(journey const& j,
                                           unsigned int const stop_idx) {
-  assert(j.transports_.size() >= 1);
+  assert(!j.transports_.empty());
   assert(j.stops_.size() > 2);
   assert(j.stops_.at(stop_idx).interchange_);
   assert(stop_idx > 0);
   assert(stop_idx + 1 < j.stops_.size());
+
   journey j1;
   journey j2;
 
@@ -72,9 +73,9 @@ std::pair<journey, journey> split_journey(journey const& j,
   // j1.night_penalty = 0; // TODO
   // j2.night_penalty = 0; // TODO
 
-  assert(j1.transports_.size() >= 1);
+  assert(!j1.transports_.empty());
   assert(j1.stops_.size() >= 2);
-  assert(j2.transports_.size() >= 1);
+  assert(!j2.transports_.empty());
   assert(j2.stops_.size() >= 2);
   assert(j1.stops_.size() + j2.stops_.size() == j.stops_.size() + 1);
   assert(!j1.stops_.front().interchange_);
@@ -122,7 +123,7 @@ void split_journey(std::vector<journey>& journeys) {
 }
 
 journey remove_dummy_stops(journey const& orig_journey) {
-  assert(orig_journey.transports_.size() >= 1);
+  assert(!orig_journey.transports_.empty());
   assert(orig_journey.stops_.size() >= 2);
   journey j = orig_journey;
   if (j.stops_.front().name_ == "DUMMY") {
@@ -144,7 +145,7 @@ journey remove_dummy_stops(journey const& orig_journey) {
     j.stops_.back().interchange_ = false;
     j.transports_.pop_back();
   }
-  assert(j.transports_.size() >= 1);
+  assert(!j.transports_.empty());
   assert(j.stops_.size() >= 2);
   return j;
 }
@@ -205,7 +206,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
         journeys.size() > 1) {
       stop_idx = connection_graph::stop::Index_first_intermediate_stop;
     } else if (alternative_info.journey_index_ + 1 ==
-               (unsigned short)journeys.size()) {
+               (uint16_t)journeys.size()) {
       stop_idx = connection_graph::stop::Index_arrival_stop;
     } else {
       ++stop_idx;

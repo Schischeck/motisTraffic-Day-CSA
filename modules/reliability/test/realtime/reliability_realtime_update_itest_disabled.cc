@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/distributions/distributions_container.h"
-#include "motis/reliability/realtime/time_util.h"
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/realtime_update.h"
+#include "motis/reliability/realtime/time_util.h"
 
 #include "../include/message_builder.h"
 #include "../include/start_and_travel_test_distributions.h"
@@ -20,15 +20,15 @@ public:
       : test_motis_setup(
             "modules/reliability/resources/schedule_realtime_update/",
             "20151019", true) {}
-  std::string const DARMSTADT = "3333333";
-  std::string const FRANKFURT = "1111111";
-  std::string const HANAU = "9646170";
-  std::string const LANGEN = "2222222";
+  constexpr static auto DARMSTADT = "3333333";
+  constexpr static auto FRANKFURT = "1111111";
+  constexpr static auto HANAU = "9646170";
+  constexpr static auto LANGEN = "2222222";
 
   /* 08:00 --> 08:10, 08:13 --> 08:18 */
-  unsigned const ICE_D_L_F = 1;
+  constexpr static unsigned ICE_D_L_F = 1;
   /* 08:45 --> 09:00 */
-  unsigned const ICE_F_H = 3;
+  constexpr static unsigned ICE_F_H = 3;
 };
 
 TEST_F(reliability_realtime_update, is_message) {

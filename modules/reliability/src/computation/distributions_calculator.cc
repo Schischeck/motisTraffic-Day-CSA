@@ -22,7 +22,7 @@ namespace common {
 void output_element(std::ostream& os, schedule const& schedule,
                     node const& from, node const& to,
                     light_connection const& light_connection,
-                    unsigned short const light_connection_idx,
+                    uint16_t const light_connection_idx,
                     bool const is_first_route_node) {
   os << schedule.stations_[from.station_node_->id_]->name_ << "("
      << schedule.stations_[from.station_node_->id_]->index_ << "," << from.id_
@@ -196,7 +196,7 @@ void insert_all_light_connections(node const& tail_node,
     if (route_edge == nullptr) {
       return;
     }
-    for (unsigned short light_conn_idx = 0;
+    for (uint16_t light_conn_idx = 0;
          light_conn_idx < route_edge->m_.route_edge_.conns_.size();
          ++light_conn_idx) {
       auto& light_conn = route_edge->m_.route_edge_.conns_[light_conn_idx];

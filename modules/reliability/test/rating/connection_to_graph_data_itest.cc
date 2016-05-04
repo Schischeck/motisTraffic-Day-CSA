@@ -30,25 +30,25 @@ public:
   reliability_connection_to_graph_data2()
       : test_motis_setup("modules/reliability/resources/schedule2/",
                          "20150928") {}
-  schedule_station const ERLANGEN = {"Erlangen", "0953067"};
-  schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
-  schedule_station const KASSEL = {"Kassel", "6380201"};
-  schedule_station const STUTTGART = {"Stuttgart", "7309882"};
-  unsigned short const ICE_E_K = 7;  // 12:45 --> 14:15
-  unsigned short const ICE_S_E = 5;  // 11:32 --> 12:32
-  unsigned short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
+  constexpr static schedule_station ERLANGEN = {"Erlangen", "0953067"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5744986"};
+  constexpr static schedule_station KASSEL = {"Kassel", "6380201"};
+  constexpr static schedule_station STUTTGART = {"Stuttgart", "7309882"};
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
 };
 class reliability_connection_to_graph_data5 : public test_motis_setup {
 public:
   reliability_connection_to_graph_data5()
       : test_motis_setup("modules/reliability/resources/schedule5/",
                          "20151019") {}
-  schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
-  schedule_station const FRANKFURT = {"Frankfurt", "2222222"};
-  schedule_station const GIESSEN = {"Giessen", "3333333"};
-  schedule_station const MARBURG = {"Marburg", "4444444"};
-  unsigned short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
-  unsigned short const RE_G_M = 2;  // 09:10 --> 09:40
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "1111111"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "2222222"};
+  constexpr static schedule_station GIESSEN = {"Giessen", "3333333"};
+  constexpr static schedule_station MARBURG = {"Marburg", "4444444"};
+  constexpr static unsigned RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
+  constexpr static unsigned RE_G_M = 2;  // 09:10 --> 09:40
 };
 class reliability_connection_to_graph_data6 : public test_motis_setup {
 public:
@@ -56,13 +56,13 @@ public:
       : test_motis_setup(
             "modules/reliability/resources/schedule6_footconnection/",
             "20151019") {}
-  schedule_station const MANNHEIM = {"Mannheim", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  schedule_station const TUD = {"TUD", "4444444"};
-  schedule_station const FRANKFURT = {"Frankfurt", "5555555"};
-  schedule_station const HAUPTWACHE = {"Hauptwache", "6666666"};
-  unsigned short const IC_M_D = 1;  // 08:10 --> 08:40
-  unsigned short const RE_T_F = 2;  // 08:45 --> 09:15
+  constexpr static schedule_station MANNHEIM = {"Mannheim", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static schedule_station TUD = {"TUD", "4444444"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5555555"};
+  constexpr static schedule_station HAUPTWACHE = {"Hauptwache", "6666666"};
+  constexpr static unsigned IC_M_D = 1;  // 08:10 --> 08:40
+  constexpr static unsigned RE_T_F = 2;  // 08:45 --> 09:15
 };
 
 TEST_F(reliability_connection_to_graph_data2, to_element) {

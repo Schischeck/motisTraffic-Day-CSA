@@ -22,7 +22,7 @@ TEST(reliability_empty_distribution, probability_distribution) {
 
   std::vector<probability> probabilities;
   pd.get_probabilities(probabilities);
-  ASSERT_TRUE(probabilities.size() == 0);
+  ASSERT_TRUE(probabilities.empty());
 }
 
 TEST(reliability_empty_distribution2, probability_distribution) {

@@ -147,8 +147,8 @@ msg_ptr request_builder::build_routing_request() {
   return module::make_msg(b_);
 }
 
-msg_ptr request_builder::build_reliable_search_request(short const min_dep_diff,
-                                                       bool const bikesharing) {
+msg_ptr request_builder::build_reliable_search_request(
+    int16_t const min_dep_diff, bool const bikesharing) {
   auto opts = CreateRequestOptionsWrapper(
       b_, RequestOptions_ReliableSearchReq,
       CreateReliableSearchReq(b_, min_dep_diff).Union());
@@ -168,7 +168,7 @@ msg_ptr request_builder::build_late_connection_cequest() {
 }
 
 msg_ptr request_builder::build_connection_tree_request(
-    short const num_alternatives_at_stop, short const min_dep_diff) {
+    int16_t const num_alternatives_at_stop, int16_t const min_dep_diff) {
   auto opts = CreateRequestOptionsWrapper(
       b_, RequestOptions_ConnectionTreeReq,
       CreateConnectionTreeReq(b_, num_alternatives_at_stop, min_dep_diff)

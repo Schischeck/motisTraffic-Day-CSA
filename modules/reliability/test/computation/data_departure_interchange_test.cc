@@ -24,19 +24,19 @@ public:
   reliability_data_departure_interchange2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             "20150928") {}
-  std::string const KASSEL = "6380201";
-  std::string const FRANKFURT = "5744986";
-  std::string const STUTTGART = "7309882";
-  std::string const ERLANGEN = "0953067";
-  std::string const HEILBRONN = "1584227";
+  constexpr static auto KASSEL = "6380201";
+  constexpr static auto FRANKFURT = "5744986";
+  constexpr static auto STUTTGART = "7309882";
+  constexpr static auto ERLANGEN = "0953067";
+  constexpr static auto HEILBRONN = "1584227";
 
   /* train numbers */
-  short const RE_K_F = 1;  // 08:00 --> 10:00
-  short const ICE_F_S = 2;  // 10:10 --> 11:10
-  short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const S_H_S = 6;  // 07:15 --> 11:15
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static unsigned RE_K_F = 1;  // 08:00 --> 10:00
+  constexpr static unsigned ICE_F_S = 2;  // 10:10 --> 11:10
+  constexpr static unsigned ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned S_H_S = 6;  // 07:15 --> 11:15
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
 class reliability_data_departure_interchange3 : public test_schedule_setup {
@@ -44,13 +44,13 @@ public:
   reliability_data_departure_interchange3()
       : test_schedule_setup("modules/reliability/resources/schedule3/",
                             "20150928") {}
-  std::string const FRANKFURT = "1111111";
-  std::string const MESSE = "2222222";
-  std::string const LANGEN = "3333333";
-  std::string const WEST = "4444444";
+  constexpr static auto FRANKFURT = "1111111";
+  constexpr static auto MESSE = "2222222";
+  constexpr static auto LANGEN = "3333333";
+  constexpr static auto WEST = "4444444";
 
-  short const ICE_L_H = 1;  // 10:00 --> 10:10
-  short const S_M_W = 2;  // 10:20 --> 10:25
+  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
+  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
 };
 
 TEST_F(reliability_data_departure_interchange2,
@@ -74,7 +74,7 @@ TEST_F(reliability_data_departure_interchange2,
               ic_data.departing_light_conn_.d_time_);
   ASSERT_TRUE(data.largest_delay() == 1);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
   ASSERT_TRUE(data.train_info_.first_departure_distribution_ ==
               &s_t_distributions.start_distribution_);
 
@@ -140,7 +140,7 @@ TEST_F(reliability_data_departure_interchange2,
               ic_data.departing_light_conn_.d_time_);
   ASSERT_TRUE(data.largest_delay() == 0);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
   ASSERT_TRUE(
       data.train_info_.preceding_arrival_info_.scheduled_arrival_time_ ==
       preceding_arrival_light_conn.a_time_);
@@ -336,7 +336,7 @@ TEST_F(reliability_data_departure_interchange2,
   ASSERT_TRUE(data.scheduled_departure_time_ ==
               ic_data.departing_light_conn_.d_time_);
   ASSERT_TRUE(data.largest_delay() == 3);
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
 
   ASSERT_TRUE(data.maximum_waiting_time_ == 3);
   ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
@@ -378,7 +378,7 @@ TEST_F(reliability_data_departure_interchange3, interchange_walk) {
   ASSERT_TRUE(data.scheduled_departure_time_ ==
               ic_data.departing_light_conn_.d_time_);
   ASSERT_TRUE(data.largest_delay() == 2);
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
 
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
   ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==

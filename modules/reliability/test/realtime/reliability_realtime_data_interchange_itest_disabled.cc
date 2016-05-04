@@ -20,13 +20,13 @@ public:
   reliability_realtime_data_interchange()
       : test_motis_setup("modules/reliability/resources/schedule2/", "20150928",
                          true) {}
-  std::string const STUTTGART = "7309882";
-  std::string const ERLANGEN = "0953067";
-  std::string const KASSEL = "6380201";
+  constexpr static auto STUTTGART = "7309882";
+  constexpr static auto ERLANGEN = "0953067";
+  constexpr static auto KASSEL = "6380201";
 
   /* train numbers */
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
 class reliability_realtime_data_interchange_walk : public test_motis_setup {
@@ -34,13 +34,13 @@ public:
   reliability_realtime_data_interchange_walk()
       : test_motis_setup("modules/reliability/resources/schedule3/", "20150928",
                          true) {}
-  std::string const FRANKFURT = "1111111";
-  std::string const MESSE = "2222222";
-  std::string const LANGEN = "3333333";
-  std::string const WEST = "4444444";
+  constexpr static auto FRANKFURT = "1111111";
+  constexpr static auto MESSE = "2222222";
+  constexpr static auto LANGEN = "3333333";
+  constexpr static auto WEST = "4444444";
 
-  short const ICE_L_H = 1;  // 10:00 --> 10:10
-  short const S_M_W = 2;  // 10:20 --> 10:25
+  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
+  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
 };
 
 TEST_F(reliability_realtime_data_interchange,

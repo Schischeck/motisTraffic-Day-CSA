@@ -59,7 +59,7 @@ void data_arrival::init_travel_info(
   left_bound_ = INT_MAX;
   right_bound_ = INT_MIN;
 
-  if (travel_distributions_.size() > 0) {
+  if (!travel_distributions_.empty()) {
     auto const last_minute =
         (unsigned int)departure_info_.distribution_.last_minute();
     assert(travel_distributions_.size() == last_minute + 1);

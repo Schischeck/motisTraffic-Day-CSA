@@ -88,13 +88,13 @@ public:
       : reliability_connection_graph_rating_base(
             "modules/reliability/resources/schedule7_cg/", "20151019") {}
 
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  short const RE_D_L = 1;  // 07:00 --> 07:10
-  short const RE_L_F = 2;  // 07:15 --> 07:25
-  short const S_L_F = 3;  // 07:16 --> 07:34
-  short const IC_L_F = 4;  // 07:17 --> 07:40
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10
+  constexpr static unsigned RE_L_F = 2;  // 07:15 --> 07:25
+  constexpr static unsigned S_L_F = 3;  // 07:16 --> 07:34
+  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
 };
 
 class reliability_connection_graph_rating_foot
@@ -103,13 +103,13 @@ public:
   reliability_connection_graph_rating_foot()
       : reliability_connection_graph_rating_base(
             "modules/reliability/resources/schedule3/", "20150928") {}
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const MESSE = {"Frankfurt Messe", "2222222"};
-  schedule_station const LANGEN = {"Langen", "3333333"};
-  schedule_station const WEST = {"Frankfurt West", "4444444"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station MESSE = {"Frankfurt Messe", "2222222"};
+  constexpr static schedule_station LANGEN = {"Langen", "3333333"};
+  constexpr static schedule_station WEST = {"Frankfurt West", "4444444"};
 
-  short const ICE_L_H = 1;  // 10:00 --> 10:10
-  short const S_M_W = 2;  // 10:20 --> 10:25
+  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
+  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
 };
 
 TEST_F(reliability_connection_graph_rating, scheduled_transfer_filter) {

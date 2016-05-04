@@ -17,13 +17,6 @@ namespace distributions_container {
 
 struct container {
   struct key {
-    uint32_t train_id_;
-    std::string category_;
-    std::string line_identifier_;
-    uint32_t station_index_;
-    time_util::event_type type_;
-    motis::time scheduled_event_time_;
-
     key()
         : train_id_(0),
           category_(""),
@@ -36,7 +29,7 @@ struct container {
         motis::time scheduled_event_time)
         : train_id_(train_id),
           category_(to_lower(category)),
-          line_identifier_(line_identifier),
+          line_identifier_(std::move(line_identifier)),
           station_index_(station_index),
           type_(type),
           scheduled_event_time_(scheduled_event_time) {}
@@ -54,6 +47,13 @@ struct container {
              std::tie(o.train_id_, o.category_, o.line_identifier_,
                       o.station_index_, o.type_, o.scheduled_event_time_);
     }
+
+    uint32_t train_id_;
+    std::string category_;
+    std::string line_identifier_;
+    uint32_t station_index_;
+    time_util::event_type type_;
+    motis::time scheduled_event_time_;
 
   private:
     static std::string to_lower(std::string str) {

@@ -1,0 +1,1 @@
+make -j8 motis-test motis-itest && ./motis-itest && ./motis-test $1

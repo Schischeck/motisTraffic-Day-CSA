@@ -5,7 +5,7 @@
 namespace motis {
 namespace routing {
 struct RoutingResponse;
-}
+}  // namespace routing
 namespace reliability {
 struct context;
 namespace rating {

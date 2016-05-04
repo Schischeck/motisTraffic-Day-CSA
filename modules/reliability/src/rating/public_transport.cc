@@ -119,7 +119,7 @@ void rate(std::vector<rating_element>& ratings,
           std::vector<std::vector<connection_element>> const& elements,
           bool const first_element_already_processed,
           reliability::context const& context) {
-  assert(elements.size() > 0);
+  assert(!elements.empty());
 
   /* XXX if the first element is already processed
    * (this is the case when rating connection graph

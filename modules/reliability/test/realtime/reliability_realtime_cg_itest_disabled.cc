@@ -7,10 +7,10 @@
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/reliability.h"
+#include "motis/reliability/search/cg_optimizer.h"
+#include "motis/reliability/search/cg_search_context.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_search.h"
-#include "motis/reliability/search/cg_search_context.h"
-#include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/message_builder.h"
@@ -28,12 +28,12 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule_realtime_cg/",
                          "20151019", true) {}
 
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  short const RE_D_L = 1;  // 07:00 --> 07:10 (+1 is-delay)
-  short const RE_L_F = 2;  // 07:15 (+1 forecast) --> 07:25
-  short const IC_L_F = 4;  // 07:17 --> 07:40
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10 (+1 is-delay)
+  constexpr static unsigned RE_L_F = 2;  // 07:15 (+1 forecast) --> 07:25
+  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
 
   void test_scheduled_cg(module::msg_ptr msg) {
     ASSERT_NE(nullptr, msg);

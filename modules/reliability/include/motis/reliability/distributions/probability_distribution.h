@@ -20,7 +20,7 @@ struct probability_distribution {
   void init(probability_distribution const& other);
   void init_one_point(int const minute, probability const prob);
 
-  bool empty() const { return probabilities_.size() == 0; }
+  bool empty() const { return probabilities_.empty(); }
 
   int first_minute() const { return first_minute_; }
   int last_minute() const;

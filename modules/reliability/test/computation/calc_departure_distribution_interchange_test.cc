@@ -28,20 +28,20 @@ public:
   reliability_calc_departure_distribution2()
       : test_schedule_setup("modules/reliability/resources/schedule2/",
                             "20150928") {}
-  std::string const KASSEL = "6380201";
-  std::string const FRANKFURT = "5744986";
-  std::string const STUTTGART = "7309882";
-  std::string const ERLANGEN = "0953067";
-  std::string const HEILBRONN = "1584227";
+  constexpr static auto KASSEL = "6380201";
+  constexpr static auto FRANKFURT = "5744986";
+  constexpr static auto STUTTGART = "7309882";
+  constexpr static auto ERLANGEN = "0953067";
+  constexpr static auto HEILBRONN = "1584227";
 
   /* train numbers */
-  short const RE_K_F = 1;  // 08:00 --> 10:00
-  short const ICE_F_S = 2;  // 10:10 --> 11:10
-  short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
-  short const S_N_E = 4;  // 11:30 --> 15:30
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const S_H_S = 6;  // 07:15 --> 11:15
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static unsigned RE_K_F = 1;  // 08:00 --> 10:00
+  constexpr static unsigned ICE_F_S = 2;  // 10:10 --> 11:10
+  constexpr static unsigned ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
+  constexpr static unsigned S_N_E = 4;  // 11:30 --> 15:30
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned S_H_S = 6;  // 07:15 --> 11:15
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
 TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {

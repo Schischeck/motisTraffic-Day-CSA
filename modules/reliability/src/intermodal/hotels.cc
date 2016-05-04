@@ -8,7 +8,7 @@ namespace intermodal {
 namespace hotels {
 
 std::vector<hotel_info> parse_hotels(std::string const file_path) {
-  using hotels_csv = std::tuple<std::string, std::string, unsigned short>;
+  using hotels_csv = std::tuple<std::string, std::string, uint16_t>;
   parser::column_mapping<hotels_csv> const hotels_columns = {
       {"station_eva", "hotel_name", "hotel_rating"}};
   enum hotels_pos { h_station, h_name, h_rating };

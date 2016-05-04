@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/distributions/distributions_container.h"
+#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/time_util.h"
 
 #include "../include/message_builder.h"
@@ -19,29 +19,29 @@ public:
       : test_motis_setup(
             "modules/reliability/resources/schedule_realtime_dependencies/",
             "20151019", true) {}
-  std::string const DARMSTADT = "3333333";
-  std::string const FRANKFURT = "1111111";
-  std::string const HANAU = "9646170";
-  std::string const LANGEN = "2222222";
+  constexpr static auto DARMSTADT = "3333333";
+  constexpr static auto FRANKFURT = "1111111";
+  constexpr static auto HANAU = "9646170";
+  constexpr static auto LANGEN = "2222222";
 
   /* 08:00 --> 08:10, 08:12 --> 08:20
    * 08:20 --> 08:30, 80:32 --> 08:40
    * 08:40 --> 08:50, 08:52 --> 09:00 */
-  unsigned const ICE_D_L_F = 1;
+  constexpr static unsigned ICE_D_L_F = 1;
   /* 08:20 --> 08:35
    * 08:50 --> 09:05
    * 09:20 --> 09:35 */
-  unsigned const ICE_L_H = 2;
+  constexpr static unsigned ICE_L_H = 2;
   /* 09:10 --> 09:20
    * 10:10 --> 10:20 */
-  unsigned const ICE_F_H = 3;
+  constexpr static unsigned ICE_F_H = 3;
   /* 09:15 --> 09:25 */
-  unsigned const RE_H_F = 4;
+  constexpr static unsigned RE_H_F = 4;
 
   /* 16:00 --> 16:20 */
-  unsigned const ICE_D_F = 5;
+  constexpr static unsigned ICE_D_F = 5;
   /* 16:30 --> 16:39 */
-  unsigned const ICE_L_H_16 = 6;
+  constexpr static unsigned ICE_L_H_16 = 6;
 };
 
 /** No entry for RE events (day do not wait) */

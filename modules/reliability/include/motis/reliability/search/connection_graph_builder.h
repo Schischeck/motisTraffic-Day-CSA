@@ -18,9 +18,8 @@ namespace detail {
 std::vector<journey> split_journey(journey const&);
 journey remove_dummy_stops(journey const&);
 journey move_early_walk(journey const&);
-}
-}
-
+}  // namespace detail
+}  // namespace connection_graph_builder
 }  // namespace search
 }  // namespace reliability
 }  // namespace motis

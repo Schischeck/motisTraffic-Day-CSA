@@ -13,7 +13,7 @@
 namespace motis {
 namespace routing {
 struct RoutingRequest;
-}
+}  // namespace routing
 namespace reliability {
 namespace intermodal {
 namespace bikesharing {

@@ -8,7 +8,7 @@ namespace reliability {
 struct probability_distribution;
 namespace search {
 struct connection_graph;
-}
+}  // namespace search
 namespace rating {
 namespace cg {
 

@@ -27,27 +27,27 @@ public:
   reliability_simple_rating2()
       : test_motis_setup("modules/reliability/resources/schedule2/",
                          "20150928") {}
-  schedule_station const ERLANGEN = {"Erlangen", "0953067"};
-  schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
-  schedule_station const KASSEL = {"Kassel", "6380201"};
-  schedule_station const STUTTGART = {"Stuttgart", "7309882"};
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static schedule_station ERLANGEN = {"Erlangen", "0953067"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5744986"};
+  constexpr static schedule_station KASSEL = {"Kassel", "6380201"};
+  constexpr static schedule_station STUTTGART = {"Stuttgart", "7309882"};
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
 class reliability_simple_rating5 : public test_motis_setup {
 public:
   reliability_simple_rating5()
       : test_motis_setup("modules/reliability/resources/schedule5/",
                          "20151019") {}
-  schedule_station const DARMSTADT = {"Darmstadt", "1111111"};
-  schedule_station const FRANKFURT = {"Frankfurt", "2222222"};
-  schedule_station const GIESSEN = {"Giessen", "3333333"};
-  schedule_station const MARBURG = {"Marburg", "4444444"};
-  schedule_station const BENSHEIM = {"Bensheim", "5555555"};
-  schedule_station const MANNHEIM = {"Mannheim", "6666666"};
-  short const RE_M_B_D = 3;  // 07:00 --> 07:30, 07:31 --> 07:55
-  short const RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
-  short const RE_G_M = 2;  // 09:10 --> 09:40
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "1111111"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "2222222"};
+  constexpr static schedule_station GIESSEN = {"Giessen", "3333333"};
+  constexpr static schedule_station MARBURG = {"Marburg", "4444444"};
+  constexpr static schedule_station BENSHEIM = {"Bensheim", "5555555"};
+  constexpr static schedule_station MANNHEIM = {"Mannheim", "6666666"};
+  constexpr static unsigned RE_M_B_D = 3;  // 07:00 --> 07:30, 07:31 --> 07:55
+  constexpr static unsigned RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
+  constexpr static unsigned RE_G_M = 2;  // 09:10 --> 09:40
 };
 
 /* Stuttgart to Erlangen with ICE_S_E (interchange in Stuttgart) and

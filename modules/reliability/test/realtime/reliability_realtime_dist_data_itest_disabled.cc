@@ -21,12 +21,12 @@ public:
   reliability_realtime_dist_data_test()
       : test_motis_setup("modules/reliability/resources/schedule_realtime/",
                          "20151019", true) {}
-  std::string const FRANKFURT = "1111111";
-  std::string const LANGEN = "2222222";
-  std::string const DARMSTADT = "3333333";
-  std::string const HANAU = "9646170";
-  short const ICE_F_L_D = 1;
-  short const ICE_L_H = 2;
+  constexpr static auto FRANKFURT = "1111111";
+  constexpr static auto LANGEN = "2222222";
+  constexpr static auto DARMSTADT = "3333333";
+  constexpr static auto HANAU = "9646170";
+  constexpr static unsigned ICE_F_L_D = 1;
+  constexpr static unsigned ICE_L_H = 2;
 
   void test_departure_frankfurt(bool is_message, time is_time = 0) {
     auto const& route_node =

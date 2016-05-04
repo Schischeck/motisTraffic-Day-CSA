@@ -13,8 +13,8 @@ namespace reliability {
 namespace intermodal {
 namespace bikesharing {
 struct bikesharing_infos;
-}
-}
+}  // namespace bikesharing
+}  // namespace intermodal
 namespace flatbuffers {
 
 struct request_builder {
@@ -46,7 +46,7 @@ struct request_builder {
 
   module::msg_ptr build_routing_request();
 
-  module::msg_ptr build_reliable_search_request(short const min_dep_diff,
+  module::msg_ptr build_reliable_search_request(int16_t const min_dep_diff,
                                                 bool const bikesharing = false);
 
   module::msg_ptr build_rating_request(bool const bikesharing = false);
@@ -54,7 +54,7 @@ struct request_builder {
   module::msg_ptr build_late_connection_cequest();
 
   module::msg_ptr build_connection_tree_request(
-      short const num_alternatives_at_stop, short const min_dep_diff);
+      int16_t const num_alternatives_at_stop, int16_t const min_dep_diff);
 
   module::message_creator b_;
   routing::SearchType search_type_;

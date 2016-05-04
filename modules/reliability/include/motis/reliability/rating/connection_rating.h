@@ -17,7 +17,7 @@ namespace rating {
 struct connection_element : distributions_calculator::common::queue_element {
   connection_element(unsigned int const departure_stop_idx, node const* from,
                      node const* to, light_connection const* light_connection,
-                     unsigned short const light_connection_idx,
+                     uint16_t const light_connection_idx,
                      bool const is_first_route_node)
       : distributions_calculator::common::queue_element(
             from, to, light_connection, light_connection_idx,

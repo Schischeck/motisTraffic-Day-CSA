@@ -12,7 +12,6 @@
 
 namespace motis {
 namespace reliability {
-
 namespace graph_accessor {
 
 inline edge const* get_departing_route_edge(node const& route_node) {
@@ -99,8 +98,8 @@ inline node const* get_first_route_node(schedule const& schedule,
                                         unsigned int const train_nr) {
   for (auto node : schedule.route_index_to_first_route_node_) {
     assert(graph_accessor::get_departing_route_edge(*node));
-    assert(graph_accessor::get_departing_route_edge(*node)
-               ->m_.route_edge_.conns_.size() > 0);
+    assert(!graph_accessor::get_departing_route_edge(*node)
+                ->m_.route_edge_.conns_.empty());
     if (graph_accessor::get_departing_route_edge(*node)
             ->m_.route_edge_.conns_[0]
             .full_con_->con_info_->train_nr_ == train_nr) {

@@ -28,18 +28,18 @@ public:
   reliability_distributions_calculator()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
-  std::string const DARMSTADT = "4219971";
-  std::string const FRANKFURT = "8351230";
-  std::string const HEIDELBERG = "9335048";
+  constexpr static auto DARMSTADT = "4219971";
+  constexpr static auto FRANKFURT = "8351230";
+  constexpr static auto HEIDELBERG = "9335048";
   /* train numbers */
-  short const IC_DA_H = 1;
-  short const IC_FR_DA = 2;
-  short const IC_FH_DA = 3;
-  short const RE_MA_DA = 4;
-  short const ICE_FR_DA_H = 5;
-  short const ICE_HA_W_HE = 6;
-  short const ICE_K_K = 7;
-  short const RE_K_S = 8;
+  constexpr static unsigned IC_DA_H = 1;
+  constexpr static unsigned IC_FR_DA = 2;
+  constexpr static unsigned IC_FH_DA = 3;
+  constexpr static unsigned RE_MA_DA = 4;
+  constexpr static unsigned ICE_FR_DA_H = 5;
+  constexpr static unsigned ICE_HA_W_HE = 6;
+  constexpr static unsigned ICE_K_K = 7;
+  constexpr static unsigned RE_K_S = 8;
 };
 
 class reliability_distributions_calculator4 : public test_schedule_setup {
@@ -47,7 +47,7 @@ public:
   reliability_distributions_calculator4()
       : test_schedule_setup("modules/reliability/resources/schedule4/",
                             "20151019") {}
-  short const RE_F_L_D = 1;
+  constexpr static unsigned RE_F_L_D = 1;
 };
 
 TEST_F(reliability_distributions_calculator, is_pre_computed_train) {

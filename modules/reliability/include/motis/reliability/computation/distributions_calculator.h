@@ -30,7 +30,7 @@ struct queue_element {
   };
   queue_element(node const* from, node const* to,
                 light_connection const* light_connection,
-                unsigned short const light_connection_idx,
+                uint16_t const light_connection_idx,
                 bool const is_first_route_node)
       : from_(from),
         to_(to),
@@ -40,7 +40,7 @@ struct queue_element {
   node const* from_;
   node const* to_;
   light_connection const* light_connection_;
-  unsigned short light_connection_idx_;
+  uint16_t light_connection_idx_;
   bool is_first_route_node_;
 };
 

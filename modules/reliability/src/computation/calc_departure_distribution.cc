@@ -99,7 +99,7 @@ probability had_to_wait_for_feeders(
     std::vector<probability_distribution> const& modified_feeders_distributions,
     time const timestamp) {
   assert(feeders.size() == modified_feeders_distributions.size());
-  if (feeders.size() == 0) {
+  if (feeders.empty()) {
     return 0.0;
   }
 

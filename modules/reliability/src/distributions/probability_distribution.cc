@@ -1,14 +1,14 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 
-#include <algorithm>
 #include <cassert>
+#include <algorithm>
 
 namespace motis {
 namespace reliability {
 
 void probability_distribution::init(
     std::vector<probability> const& probabilities, int const first_minute) {
-  if (probabilities.size() == 0) {
+  if (probabilities.empty()) {
     return;
   }
 
@@ -111,7 +111,9 @@ probability probability_distribution::probability_greater(
 }
 
 probability probability_distribution::sum() const {
-  if (probabilities_.size() == 0) return 0.0;
+  if (probabilities_.empty()) {
+    return 0.0;
+  }
   return probabilities_[probabilities_.size() - 1];
 }
 

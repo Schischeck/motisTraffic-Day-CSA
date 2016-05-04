@@ -40,7 +40,7 @@ std::vector<std::vector<connection_element>> get_elements(
     }
 
     // begin new train if elements empty or if there is an interchange
-    if (elements.size() == 0 ||
+    if (elements.empty() ||
         elements.back().back().to_->id_ != element.from_->id_) {
       elements.emplace_back();
     }

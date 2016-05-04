@@ -35,12 +35,12 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule2/",
                          "20150928") {}
 
-  schedule_station const ERLANGEN = {"Erlangen", "0953067"};
-  schedule_station const FRANKFURT = {"Frankfurt", "5744986"};
-  schedule_station const KASSEL = {"Kassel", "6380201"};
-  schedule_station const STUTTGART = {"Stuttgart", "7309882"};
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+  constexpr static schedule_station ERLANGEN = {"Erlangen", "0953067"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5744986"};
+  constexpr static schedule_station KASSEL = {"Kassel", "6380201"};
+  constexpr static schedule_station STUTTGART = {"Stuttgart", "7309882"};
+  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
+  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
 
 class reliability_test_cg : public test_motis_setup {
@@ -49,13 +49,13 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule7_cg/",
                          "20151019") {}
 
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  short const RE_D_L = 1;  // 07:00 --> 07:10
-  short const RE_L_F = 2;  // 07:15 --> 07:25
-  short const S_L_F = 3;  // 07:16 --> 07:34
-  short const IC_L_F = 4;  // 07:17 --> 07:40
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10
+  constexpr static unsigned RE_L_F = 2;  // 07:15 --> 07:25
+  constexpr static unsigned S_L_F = 3;  // 07:16 --> 07:34
+  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
 
   void test_journey(Connection const* j, std::string const departure_eva,
                     std::string const arrival_eva, time_t const departure_time,
@@ -224,15 +224,15 @@ public:
       : test_motis_setup("modules/reliability/resources/schedule_hotels/",
                          "20151019") {}
 
-  schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-  schedule_station const LANGEN = {"Langen", "2222222"};
-  schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-  schedule_station const OFFENBACH = {"Offenbach", "9727248"};
-  schedule_station const MAINZ = {"Mainz", "3953754"};
+  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
+  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
+  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
+  constexpr static schedule_station OFFENBACH = {"Offenbach", "9727248"};
+  constexpr static schedule_station MAINZ = {"Mainz", "3953754"};
 };
 
 /* taxi-info: from-station, duration, price */
-using taxi_info = std::tuple<std::string, unsigned short, unsigned short>;
+using taxi_info = std::tuple<std::string, uint16_t, uint16_t>;
 
 module::msg_ptr to_reliable_late_connections_request(
     std::string const& from_name, std::string const& from_eva,
@@ -261,8 +261,7 @@ module::msg_ptr to_reliable_late_connections_request(
 
 TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
   /* taxi-info: from-station, duration, price */
-  std::vector<std::tuple<std::string, unsigned short, unsigned short>>
-      taxi_infos;
+  std::vector<std::tuple<std::string, uint16_t, uint16_t>> taxi_infos;
   taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
 
   auto const req = to_reliable_late_connections_request(

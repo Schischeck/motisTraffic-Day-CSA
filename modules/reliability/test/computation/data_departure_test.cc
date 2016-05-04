@@ -26,19 +26,19 @@ public:
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
   /* eva numbers */
-  std::string const DARMSTADT = "4219971";
-  std::string const FRANKFURT = "8351230";
-  std::string const KARLSRUHE = "7226036";
-  std::string const WURZBURG = "0064254";
+  constexpr static auto DARMSTADT = "4219971";
+  constexpr static auto FRANKFURT = "8351230";
+  constexpr static auto KARLSRUHE = "7226036";
+  constexpr static auto WURZBURG = "0064254";
   /* train numbers */
-  short const IC_DA_H = 1;
-  short const IC_FR_DA = 2;
-  short const IC_FH_DA = 3;
-  short const RE_MA_DA = 4;
-  short const ICE_FR_DA_H = 5;
-  short const ICE_HA_W_HE = 6;
-  short const ICE_K_K = 7;
-  short const RE_K_S = 8;
+  constexpr static unsigned IC_DA_H = 1;
+  constexpr static unsigned IC_FR_DA = 2;
+  constexpr static unsigned IC_FH_DA = 3;
+  constexpr static unsigned RE_MA_DA = 4;
+  constexpr static unsigned ICE_FR_DA_H = 5;
+  constexpr static unsigned ICE_HA_W_HE = 6;
+  constexpr static unsigned ICE_K_K = 7;
+  constexpr static unsigned RE_K_S = 8;
 };
 
 TEST_F(reliability_data_departure, first_route_node_no_feeders) {
@@ -80,7 +80,7 @@ TEST_F(reliability_data_departure, first_route_node_no_feeders) {
   ASSERT_TRUE(equal(start_distribution->probability_equal(0), 0.6));
   ASSERT_TRUE(equal(start_distribution->probability_equal(1), 0.4));
 
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
 }
 
 TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
@@ -117,7 +117,7 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
   ASSERT_TRUE(data.largest_delay() == 1);
   ASSERT_TRUE(!data.is_first_route_node_);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
 
   ASSERT_TRUE(
       data.train_info_.preceding_arrival_info_.scheduled_arrival_time_ ==
@@ -291,7 +291,7 @@ TEST_F(reliability_data_departure, first_route_node_no_waiting_category) {
   ASSERT_TRUE(equal(start_distribution->probability_equal(0), 0.6));
   ASSERT_TRUE(equal(start_distribution->probability_equal(1), 0.4));
 
-  ASSERT_TRUE(data.feeders_.size() == 0);
+  ASSERT_TRUE(data.feeders_.empty());
 }
 
 bool key_equals(distributions_container::container::key const& a,

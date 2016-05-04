@@ -26,14 +26,14 @@ public:
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
   /* train numbers */
-  short const IC_DA_H = 1;
-  short const IC_FR_DA = 2;
-  short const IC_FH_DA = 3;
-  short const RE_MA_DA = 4;
-  short const ICE_FR_DA_H = 5;
-  short const ICE_HA_W_HE = 6;
-  short const ICE_K_K = 7;
-  short const RE_K_S = 8;
+  constexpr static unsigned IC_DA_H = 1;
+  constexpr static unsigned IC_FR_DA = 2;
+  constexpr static unsigned IC_FH_DA = 3;
+  constexpr static unsigned RE_MA_DA = 4;
+  constexpr static unsigned ICE_FR_DA_H = 5;
+  constexpr static unsigned ICE_HA_W_HE = 6;
+  constexpr static unsigned ICE_K_K = 7;
+  constexpr static unsigned RE_K_S = 8;
 };
 
 TEST_F(reliability_calc_arrival_distribution, correct_rounding_errors) {
