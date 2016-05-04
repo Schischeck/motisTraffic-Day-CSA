@@ -213,14 +213,12 @@ msg_ptr routing::route(msg_ptr const& msg) {
   search_result res;
   switch (req->start_type()) {
     case Start_PretripStart:
-      res = search<pretrip_gen<default_label>, default_label>::get_connections(
-          query);
+      res = pretrip_search(query, req->search_type());
       break;
 
     case Start_OntripStationStart:
     case Start_OntripTrainStart:
-      res = search<ontrip_gen<single_criterion_label>,
-                   single_criterion_label>::get_connections(query);
+      res = ontrip_search(query, req->search_type());
       break;
 
     case Start_NONE: assert(false);
