@@ -180,10 +180,10 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 search_result ontrip_search(search_query const& q, SearchType const t) {
   switch (t) {
     case SearchType_DefaultForward:
-      return search<pretrip_gen<default_label>, default_label>::get_connections(
+      return search<ontrip_gen<default_label>, default_label>::get_connections(
           q);
     case SearchType_SingleCriterionForward:
-      return search<pretrip_gen<single_criterion_label>,
+      return search<ontrip_gen<single_criterion_label>,
                     single_criterion_label>::get_connections(q);
   }
   throw std::system_error(error::search_type_not_supported);
@@ -192,7 +192,7 @@ search_result ontrip_search(search_query const& q, SearchType const t) {
 search_result pretrip_search(search_query const& q, SearchType const t) {
   switch (t) {
     case SearchType_DefaultForward:
-      return search<ontrip_gen<default_label>, default_label>::get_connections(
+      return search<pretrip_gen<default_label>, default_label>::get_connections(
           q);
     case SearchType_SingleCriterionForward:
       return search<ontrip_gen<single_criterion_label>,
