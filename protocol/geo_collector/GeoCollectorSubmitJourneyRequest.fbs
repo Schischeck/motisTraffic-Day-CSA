@@ -15,6 +15,6 @@ namespace motis.geo_collector;
 // }
  
 table GeoCollectorSubmitJourneyRequest {
-  participant: long;
+  participant: int;
   journey: string;
 }
