@@ -28,19 +28,17 @@ public:
   reliability_distributions_calculator()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
-  constexpr static auto DARMSTADT = "4219971";
-  constexpr static auto FRANKFURT = "8351230";
-  constexpr static auto HEIDELBERG = "9335048";
-  /* train numbers */
-  constexpr static unsigned IC_DA_H = 1;
-  constexpr static unsigned IC_FR_DA = 2;
-  constexpr static unsigned IC_FH_DA = 3;
-  constexpr static unsigned RE_MA_DA = 4;
-  constexpr static unsigned ICE_FR_DA_H = 5;
-  constexpr static unsigned ICE_HA_W_HE = 6;
-  constexpr static unsigned ICE_K_K = 7;
-  constexpr static unsigned RE_K_S = 8;
 };
+
+constexpr auto DARMSTADT = "4219971";
+constexpr auto FRANKFURT = "8351230";
+constexpr auto HEIDELBERG = "9335048";
+/* train numbers */
+constexpr unsigned IC_DA_H = 1;
+constexpr unsigned IC_FR_DA = 2;
+constexpr unsigned IC_FH_DA = 3;
+constexpr unsigned ICE_FR_DA_H = 5;
+constexpr unsigned RE_K_S = 8;
 
 class reliability_distributions_calculator4 : public test_schedule_setup {
 public:
@@ -116,51 +114,6 @@ TEST_F(reliability_distributions_calculator, Initial_distributions_simple) {
                        *schedule_);
   }
 }
-
-#if 0
-#include "motis/reliability/db_distributions.h"
-TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributions) {
-  distributions_container::container
-      precomputed_distributions(schedule_->node_count);
-  db_distributions db_dists(
-      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/", 120,
-      120);  // todo: read max travel time from graph
-
-  precomputation::perform_precomputation(
-      *schedule_, db_dists, precomputed_distributions);
-
-  for (auto const first_route_node :
-       schedule_->route_index_to_first_route_node) {
-    test_distributions(
-        *first_route_node, precomputed_distributions,
-        precomputation::detail::is_pre_computed_route(
-            *schedule_, *first_route_node));
-  }
-}
-TEST_F(reliability_distributions_calculator, Initial_distributions_db_distributions2) {
-  std::cout << "Initial_distributions_db_distributions2" << std::endl;
-  auto schedule = loader::load_schedule("/tmp/rohdaten/rohdaten/",
-                                        to_unix_time(2015, 9, 28),
-                                        to_unix_time(2015, 9, 29));
-  std::cout << "schedule loaded" << std::endl;
-  distributions_container::container
-      precomputed_distributions(schedule->node_count);
-  db_distributions db_dists(
-      "/home/keyhani/Workspace/git/motis/DBDists/DBData/20130805/Original/td/", 120,
-      120);  // todo: read max travel time from graph
-
-  precomputation::perform_precomputation(
-      *schedule, db_dists, precomputed_distributions);
-
-  for (auto const first_route_node :
-       schedule->route_index_to_first_route_node) {
-    test_distributions(
-        *first_route_node, precomputed_distributions,
-        precomputation::detail::is_pre_computed_route(
-            *schedule, *first_route_node));
-  }
-}
-#endif
 
 TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
   distributions_container::container precomputed_distributions;

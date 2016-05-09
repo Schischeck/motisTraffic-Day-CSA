@@ -34,28 +34,33 @@ public:
   reliability_test_rating()
       : test_motis_setup("modules/reliability/resources/schedule2/",
                          "20150928") {}
-
-  constexpr static schedule_station ERLANGEN = {"Erlangen", "0953067"};
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5744986"};
-  constexpr static schedule_station KASSEL = {"Kassel", "6380201"};
-  constexpr static schedule_station STUTTGART = {"Stuttgart", "7309882"};
-  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
-  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 };
+
+namespace schedule2 {
+schedule_station const KASSEL = {"Kassel", "6380201"};
+schedule_station const STUTTGART = {"Stuttgart", "7309882"};
+}  // namespace schedule2
+
+namespace schedule7_cg {
+schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
+schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
+constexpr unsigned RE_D_L = 1;  // 07:00 --> 07:10
+constexpr unsigned RE_L_F = 2;  // 07:15 --> 07:25
+constexpr unsigned S_L_F = 3;  // 07:16 --> 07:34
+constexpr unsigned IC_L_F = 4;  // 07:17 --> 07:40
+}  // namespace schedule7_cg
+
+namespace schedule_hotels {
+schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
+schedule_station const LANGEN = {"Langen", "2222222"};
+schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
+}  // namespace schedule_hotels
 
 class reliability_test_cg : public test_motis_setup {
 public:
   reliability_test_cg()
       : test_motis_setup("modules/reliability/resources/schedule7_cg/",
                          "20151019") {}
-
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
-  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
-  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
-  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10
-  constexpr static unsigned RE_L_F = 2;  // 07:15 --> 07:25
-  constexpr static unsigned S_L_F = 3;  // 07:16 --> 07:34
-  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
 
   void test_journey(Connection const* j, std::string const departure_eva,
                     std::string const arrival_eva, time_t const departure_time,
@@ -144,26 +149,31 @@ public:
     ASSERT_EQ(4, cg->journeys()->size());
     test_journey((*cg->journeys())[0], "3333333", "2222222",
                  1445230800 /* 10/19/2015, 7:00:00 AM GMT+2:00 DST */,
-                 1445231400 /* 10/19/2015, 7:10:00 AM GMT+2:00 DST */, RE_D_L);
+                 1445231400 /* 10/19/2015, 7:10:00 AM GMT+2:00 DST */,
+                 schedule7_cg::RE_D_L);
     test_journey((*cg->journeys())[1], "2222222", "1111111",
                  1445231700 /* 10/19/2015, 7:15:00 AM GMT+2:00 DST */,
-                 1445232300 /* 10/19/2015, 7:25:00 AM GMT+2:00 DST */, RE_L_F);
+                 1445232300 /* 10/19/2015, 7:25:00 AM GMT+2:00 DST */,
+                 schedule7_cg::RE_L_F);
     test_journey((*cg->journeys())[2], "2222222", "1111111",
                  1445231760 /* 10/19/2015, 7:16:00 AM GMT+2:00 DST */,
-                 1445232840 /* 10/19/2015, 7:34:00 AM GMT+2:00 DST */, S_L_F);
+                 1445232840 /* 10/19/2015, 7:34:00 AM GMT+2:00 DST */,
+                 schedule7_cg::S_L_F);
     test_journey((*cg->journeys())[3], "2222222", "1111111",
                  1445231820 /* 10/19/2015, 7:17:00 AM GMT+2:00 DST */,
-                 1445233200 /* 10/19/2015, 7:40:00 AM GMT+2:00 DST */, IC_L_F);
+                 1445233200 /* 10/19/2015, 7:40:00 AM GMT+2:00 DST */,
+                 schedule7_cg::IC_L_F);
   }
 };
 
 TEST_F(reliability_test_rating, rating_request) {
   auto const req =
       flatbuffers::request_builder()
-          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+          .add_pretrip_start(schedule2::STUTTGART.name,
+                             schedule2::STUTTGART.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
-          .add_destination(KASSEL.name, KASSEL.eva)
+          .add_destination(schedule2::KASSEL.name, schedule2::KASSEL.eva)
           .build_rating_request();
   auto const res = test::call(motis_instance_, req);
   auto const response = motis_content(ReliabilityRatingResponse, res);
@@ -197,10 +207,12 @@ TEST_F(reliability_test_rating, rating_request) {
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+          .add_pretrip_start(schedule7_cg::DARMSTADT.name,
+                             schedule7_cg::DARMSTADT.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 701))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(schedule7_cg::FRANKFURT.name,
+                           schedule7_cg::FRANKFURT.eva)
           .build_connection_tree_request(3, 1);
   auto const res = test::call(motis_instance_, req);
   test_cg(motis_content(ReliableRoutingResponse, res));
@@ -209,10 +221,12 @@ TEST_F(reliability_test_cg, connection_tree) {
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   auto const req =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+          .add_pretrip_start(schedule7_cg::DARMSTADT.name,
+                             schedule7_cg::DARMSTADT.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 701))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(schedule7_cg::FRANKFURT.name,
+                           schedule7_cg::FRANKFURT.eva)
           .build_reliable_search_request(1);
   auto const res = test::call(motis_instance_, req);
   test_cg(motis_content(ReliableRoutingResponse, res));
@@ -223,12 +237,6 @@ public:
   reliability_late_connections()
       : test_motis_setup("modules/reliability/resources/schedule_hotels/",
                          "20151019") {}
-
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
-  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
-  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
-  constexpr static schedule_station OFFENBACH = {"Offenbach", "9727248"};
-  constexpr static schedule_station MAINZ = {"Mainz", "3953754"};
 };
 
 /* taxi-info: from-station, duration, price */
@@ -256,16 +264,17 @@ module::msg_ptr to_reliable_late_connections_request(
             &interval)
             .Union()));
   }
-  return builder.build_late_connection_cequest();
+  return builder.build_late_connection_request();
 }
 
 TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
   /* taxi-info: from-station, duration, price */
   std::vector<std::tuple<std::string, uint16_t, uint16_t>> taxi_infos;
-  taxi_infos.emplace_back(LANGEN.eva, 55, 6000);
+  taxi_infos.emplace_back(schedule_hotels::LANGEN.eva, 55, 6000);
 
   auto const req = to_reliable_late_connections_request(
-      DARMSTADT.name, DARMSTADT.eva, FRANKFURT.name, FRANKFURT.eva,
+      schedule_hotels::DARMSTADT.name, schedule_hotels::DARMSTADT.eva,
+      schedule_hotels::FRANKFURT.name, schedule_hotels::FRANKFURT.eva,
       test_util::hhmm_to_unixtime(get_schedule(), 2350),
       test_util::hhmm_to_unixtime(get_schedule(), 100, 1), taxi_infos);
   auto const res = test::call(motis_instance_, req);

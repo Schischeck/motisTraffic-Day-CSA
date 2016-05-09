@@ -31,6 +31,9 @@
 #include "motis/test/motis_instance_helper.h"
 
 #include "../include/interchange_data_for_tests.h"
+#include "../include/schedules/schedule2.h"
+#include "../include/schedules/schedule3.h"
+#include "../include/schedules/schedule5.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
 
@@ -42,41 +45,17 @@ namespace public_transport {
 class reliability_public_transport2 : public test_motis_setup {
 public:
   reliability_public_transport2()
-      : test_motis_setup("modules/reliability/resources/schedule2/",
-                         "20150928") {}
-  constexpr static schedule_station ERLANGEN = {"Erlangen", "0953067"};
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "5744986"};
-  constexpr static schedule_station KASSEL = {"Kassel", "6380201"};
-  constexpr static schedule_station STUTTGART = {"Stuttgart", "7309882"};
-  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
-  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
+      : test_motis_setup(schedule2::PATH, schedule2::DATE) {}
 };
 class reliability_public_transport3 : public test_motis_setup {
 public:
   reliability_public_transport3()
-      : test_motis_setup("modules/reliability/resources/schedule3/",
-                         "20150928") {}
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
-  constexpr static schedule_station MESSE = {"Frankfurt Messe", "2222222"};
-  constexpr static schedule_station LANGEN = {"Langen", "3333333"};
-  constexpr static schedule_station WEST = {"Frankfurt West", "4444444"};
-  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
-  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
+      : test_motis_setup(schedule3::PATH, schedule3::DATE) {}
 };
 class reliability_public_transport5 : public test_motis_setup {
 public:
   reliability_public_transport5()
-      : test_motis_setup("modules/reliability/resources/schedule5/",
-                         "20151019") {}
-  constexpr static schedule_station DARMSTADT = {"Darmstadt", "1111111"};
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "2222222"};
-  constexpr static schedule_station GIESSEN = {"Giessen", "3333333"};
-  constexpr static schedule_station MARBURG = {"Marburg", "4444444"};
-  constexpr static schedule_station BENSHEIM = {"Bensheim", "5555555"};
-  constexpr static schedule_station MANNHEIM = {"Mannheim", "6666666"};
-  constexpr static unsigned RE_M_B_D = 3;  // 07:00 --> 07:30, 07:31 --> 07:55
-  constexpr static unsigned RE_D_F_G = 1;  // 08:00 --> 08:20, 08:22 --> 09:00
-  constexpr static unsigned RE_G_M = 2;  // 09:10 --> 09:40
+      : test_motis_setup(schedule5::PATH, schedule5::DATE) {}
 };
 
 /* deliver distributions for connection
@@ -88,8 +67,8 @@ std::vector<rating::rating_element> compute_test_ratings1(
     reliability_public_transport2 const& test_info) {
   std::vector<rating::rating_element> ratings;
   interchange_data_for_tests const ic_data(
-      test_info.get_schedule(), test_info.ICE_S_E, test_info.ICE_E_K,
-      test_info.STUTTGART.eva, test_info.ERLANGEN.eva, test_info.KASSEL.eva,
+      test_info.get_schedule(), schedule2::ICE_S_E, schedule2::ICE_E_K,
+      schedule2::STUTTGART.eva, schedule2::ERLANGEN.eva, schedule2::KASSEL.eva,
       11 * 60 + 32, 12 * 60 + 32, 12 * 60 + 45, 14 * 60 + 15);
 
   // departure ICE_S_E in Stuttgart
@@ -135,10 +114,11 @@ std::vector<rating::rating_element> compute_test_ratings1(
 TEST_F(reliability_public_transport2, rate) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(STUTTGART.name, STUTTGART.eva,
+          .add_pretrip_start(schedule2::STUTTGART.name,
+                             schedule2::STUTTGART.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
-          .add_destination(KASSEL.name, KASSEL.eva)
+          .add_destination(schedule2::KASSEL.name, schedule2::KASSEL.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -180,7 +160,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   /* distributions for the first train (RE_M_B_D) */
   node const& node_m = *graph_accessor::get_first_route_node(
-      test_info.get_schedule(), test_info.RE_M_B_D);
+      test_info.get_schedule(), schedule5::RE_M_B_D);
   node const& node_b = *graph_accessor::get_departing_route_edge(node_m)->to_;
   node const& node_d1 = *graph_accessor::get_departing_route_edge(node_b)->to_;
   {
@@ -223,7 +203,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   // departure RE_D_F_G in Darmstadt
   auto const& node_d2 = *graph_accessor::get_first_route_node(
-      test_info.get_schedule(), test_info.RE_D_F_G);
+      test_info.get_schedule(), schedule5::RE_D_F_G);
   auto const& edge_d_f = *graph_accessor::get_departing_route_edge(node_d2);
   auto const& lc_d_f = edge_d_f.m_.route_edge_.conns_[0];
   auto const& lc_b_d = graph_accessor::get_departing_route_edge(node_b)
@@ -277,7 +257,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
   // departure RE_G_M in Giessen
   auto const& node_g = *graph_accessor::get_first_route_node(
-      test_info.get_schedule(), test_info.RE_G_M);
+      test_info.get_schedule(), schedule5::RE_G_M);
   auto const& edge_g_m = *graph_accessor::get_departing_route_edge(node_g);
   auto const& lc_g_m = edge_g_m.m_.route_edge_.conns_[0];
   ratings.emplace_back(4);
@@ -305,10 +285,10 @@ std::vector<rating::rating_element> compute_test_ratings2(
 TEST_F(reliability_public_transport5, rate2) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(MANNHEIM.name, MANNHEIM.eva,
+          .add_pretrip_start(schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(MARBURG.name, MARBURG.eva)
+          .add_destination(schedule5::MARBURG.name, schedule5::MARBURG.eva)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -355,9 +335,9 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   // interchange at Frankfurt and walking to Messe
   // departing train S_M_W from Messe to West
   interchange_data_for_tests const ic_data(
-      test_info.get_schedule(), test_info.ICE_L_H, test_info.S_M_W,
-      test_info.LANGEN.eva, test_info.FRANKFURT.eva, test_info.MESSE.eva,
-      test_info.WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
+      test_info.get_schedule(), schedule3::ICE_L_H, schedule3::S_M_W,
+      schedule3::LANGEN.eva, schedule3::FRANKFURT.eva, schedule3::MESSE.eva,
+      schedule3::WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
 
   // departure ICE_L_H in Langen
   ratings.emplace_back(0);
@@ -402,10 +382,10 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 TEST_F(reliability_public_transport3, rate_foot) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+          .add_pretrip_start(schedule3::LANGEN.name, schedule3::LANGEN.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
-          .add_destination(WEST.name, WEST.eva)
+          .add_destination(schedule3::WEST.name, schedule3::WEST.eva)
           .build_routing_request();
   using routing::RoutingResponse;
   auto const journeys = message_to_journeys(

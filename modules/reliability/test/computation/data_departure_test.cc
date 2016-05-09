@@ -25,21 +25,19 @@ public:
   reliability_data_departure()
       : test_schedule_setup("modules/reliability/resources/schedule/",
                             "20150928") {}
-  /* eva numbers */
-  constexpr static auto DARMSTADT = "4219971";
-  constexpr static auto FRANKFURT = "8351230";
-  constexpr static auto KARLSRUHE = "7226036";
-  constexpr static auto WURZBURG = "0064254";
-  /* train numbers */
-  constexpr static unsigned IC_DA_H = 1;
-  constexpr static unsigned IC_FR_DA = 2;
-  constexpr static unsigned IC_FH_DA = 3;
-  constexpr static unsigned RE_MA_DA = 4;
-  constexpr static unsigned ICE_FR_DA_H = 5;
-  constexpr static unsigned ICE_HA_W_HE = 6;
-  constexpr static unsigned ICE_K_K = 7;
-  constexpr static unsigned RE_K_S = 8;
 };
+
+/* eva numbers */
+constexpr auto DARMSTADT = "4219971";
+constexpr auto FRANKFURT = "8351230";
+constexpr auto KARLSRUHE = "7226036";
+constexpr auto WURZBURG = "0064254";
+/* train numbers */
+constexpr unsigned IC_DA_H = 1;
+constexpr unsigned IC_FH_DA = 3;
+constexpr unsigned ICE_FR_DA_H = 5;
+constexpr unsigned ICE_HA_W_HE = 6;
+constexpr unsigned RE_K_S = 8;
 
 TEST_F(reliability_data_departure, first_route_node_no_feeders) {
   // route node at Frankfurt of train ICE_FR_DA_H

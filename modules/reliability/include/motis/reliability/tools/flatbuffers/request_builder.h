@@ -51,7 +51,7 @@ struct request_builder {
 
   module::msg_ptr build_rating_request(bool const bikesharing = false);
 
-  module::msg_ptr build_late_connection_cequest();
+  module::msg_ptr build_late_connection_request();
 
   module::msg_ptr build_connection_tree_request(
       int16_t const num_alternatives_at_stop, int16_t const min_dep_diff);

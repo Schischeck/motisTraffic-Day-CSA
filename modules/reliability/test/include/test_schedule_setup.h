@@ -92,8 +92,8 @@ private:
 };
 
 struct schedule_station {
-  std::string name;
-  std::string eva;
+  char const* name;
+  char const* eva;
 };
 
 }  // namespace reliability

@@ -161,7 +161,7 @@ msg_ptr request_builder::build_rating_request(bool const bikesharing) {
   return build_reliable_request(opts, bikesharing);
 }
 
-msg_ptr request_builder::build_late_connection_cequest() {
+msg_ptr request_builder::build_late_connection_request() {
   auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_LateConnectionReq,
                                           CreateLateConnectionReq(b_).Union());
   return build_reliable_request(opts);

@@ -14,6 +14,7 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 
 #include "../include/interchange_data_for_tests.h"
+#include "../include/schedules/schedule2.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
@@ -26,22 +27,7 @@ namespace calc_departure_distribution {
 class reliability_calc_departure_distribution2 : public test_schedule_setup {
 public:
   reliability_calc_departure_distribution2()
-      : test_schedule_setup("modules/reliability/resources/schedule2/",
-                            "20150928") {}
-  constexpr static auto KASSEL = "6380201";
-  constexpr static auto FRANKFURT = "5744986";
-  constexpr static auto STUTTGART = "7309882";
-  constexpr static auto ERLANGEN = "0953067";
-  constexpr static auto HEILBRONN = "1584227";
-
-  /* train numbers */
-  constexpr static unsigned RE_K_F = 1;  // 08:00 --> 10:00
-  constexpr static unsigned ICE_F_S = 2;  // 10:10 --> 11:10
-  constexpr static unsigned ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
-  constexpr static unsigned S_N_E = 4;  // 11:30 --> 15:30
-  constexpr static unsigned ICE_S_E = 5;  // 11:32 --> 12:32
-  constexpr static unsigned S_H_S = 6;  // 07:15 --> 11:15
-  constexpr static unsigned ICE_E_K = 7;  // 12:45 --> 14:15
+      : test_schedule_setup(schedule2::PATH, schedule2::DATE) {}
 };
 
 TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {
@@ -83,9 +69,10 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 // first route node without feeders, no waiting, interchange highly reliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic1) {
-  interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
-                                           FRANKFURT, STUTTGART, 8 * 60,
-                                           10 * 60, 10 * 60 + 10, 11 * 60 + 10);
+  interchange_data_for_tests const ic_data(
+      *schedule_, schedule2::RE_K_F, schedule2::ICE_F_S, schedule2::KASSEL.eva,
+      schedule2::FRANKFURT.eva, schedule2::STUTTGART.eva, 8 * 60, 10 * 60,
+      10 * 60 + 10, 11 * 60 + 10);
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -112,9 +99,10 @@ TEST_F(reliability_calc_departure_distribution2,
 // first route node without feeders, no waiting, interchange unreliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic2) {
-  interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
-                                           FRANKFURT, STUTTGART, 8 * 60,
-                                           10 * 60, 10 * 60 + 10, 11 * 60 + 10);
+  interchange_data_for_tests const ic_data(
+      *schedule_, schedule2::RE_K_F, schedule2::ICE_F_S, schedule2::KASSEL.eva,
+      schedule2::FRANKFURT.eva, schedule2::STUTTGART.eva, 8 * 60, 10 * 60,
+      10 * 60 + 10, 11 * 60 + 10);
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -145,11 +133,11 @@ TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic3) {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   // route node at Frankfurt of train ICE_K_F_S
-  auto& tail_node_departing_train =
-      *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
-           ->to_;
-  ASSERT_EQ(FRANKFURT,
+  auto& tail_node_departing_train = *graph_accessor::get_departing_route_edge(
+                                         *graph_accessor::get_first_route_node(
+                                             *schedule_, schedule2::ICE_K_F_S))
+                                         ->to_;
+  ASSERT_EQ(schedule2::FRANKFURT.eva,
             schedule_->stations_[tail_node_departing_train.station_node_->id_]
                 ->eva_nr_);
   probability_distribution arrival_distribution;
@@ -159,8 +147,9 @@ TEST_F(reliability_calc_departure_distribution2,
   // interchange at Frankfurt (second node of ICE_K_F_S)
   // departing train ICE_K_F_S from Frankfurt to Stuttgart
   interchange_data_for_tests const ic_data(
-      *schedule_, RE_K_F, tail_node_departing_train, KASSEL, FRANKFURT,
-      STUTTGART, 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
+      *schedule_, schedule2::RE_K_F, tail_node_departing_train,
+      schedule2::KASSEL.eva, schedule2::FRANKFURT.eva, schedule2::STUTTGART.eva,
+      8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
 
   // preceding-arrival: 10:18 - 10:19
   distributions_container::container precomputed;
@@ -205,8 +194,10 @@ TEST_F(reliability_calc_departure_distribution2,
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
   interchange_data_for_tests const ic_data(
-      *schedule_, ICE_F_S, ICE_S_E, FRANKFURT, STUTTGART, ERLANGEN,
-      10 * 60 + 10, 11 * 60 + 10, 11 * 60 + 32, 12 * 60 + 32);
+      *schedule_, schedule2::ICE_F_S, schedule2::ICE_S_E,
+      schedule2::FRANKFURT.eva, schedule2::STUTTGART.eva,
+      schedule2::ERLANGEN.eva, 10 * 60 + 10, 11 * 60 + 10, 11 * 60 + 32,
+      12 * 60 + 32);
   probability_distribution arrival_distribution;
   arrival_distribution.init({.4, .3, .2, .1}, 16);  // 11:26 - 11:29
 

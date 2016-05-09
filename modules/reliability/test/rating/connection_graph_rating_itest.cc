@@ -24,6 +24,8 @@
 #include "motis/test/motis_instance_helper.h"
 
 #include "../include/interchange_data_for_tests.h"
+#include "../include/schedules/schedule3.h"
+#include "../include/schedules/schedule7_cg.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
@@ -85,31 +87,16 @@ class reliability_connection_graph_rating
     : public reliability_connection_graph_rating_base {
 public:
   reliability_connection_graph_rating()
-      : reliability_connection_graph_rating_base(
-            "modules/reliability/resources/schedule7_cg/", "20151019") {}
-
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
-  constexpr static schedule_station LANGEN = {"Langen", "2222222"};
-  constexpr static schedule_station DARMSTADT = {"Darmstadt", "3333333"};
-  constexpr static unsigned RE_D_L = 1;  // 07:00 --> 07:10
-  constexpr static unsigned RE_L_F = 2;  // 07:15 --> 07:25
-  constexpr static unsigned S_L_F = 3;  // 07:16 --> 07:34
-  constexpr static unsigned IC_L_F = 4;  // 07:17 --> 07:40
+      : reliability_connection_graph_rating_base(schedule7_cg::PATH,
+                                                 schedule7_cg::DATE) {}
 };
 
 class reliability_connection_graph_rating_foot
     : public reliability_connection_graph_rating_base {
 public:
   reliability_connection_graph_rating_foot()
-      : reliability_connection_graph_rating_base(
-            "modules/reliability/resources/schedule3/", "20150928") {}
-  constexpr static schedule_station FRANKFURT = {"Frankfurt", "1111111"};
-  constexpr static schedule_station MESSE = {"Frankfurt Messe", "2222222"};
-  constexpr static schedule_station LANGEN = {"Langen", "3333333"};
-  constexpr static schedule_station WEST = {"Frankfurt West", "4444444"};
-
-  constexpr static unsigned ICE_L_H = 1;  // 10:00 --> 10:10
-  constexpr static unsigned S_M_W = 2;  // 10:20 --> 10:25
+      : reliability_connection_graph_rating_base(schedule3::PATH,
+                                                 schedule3::DATE) {}
 };
 
 TEST_F(reliability_connection_graph_rating, scheduled_transfer_filter) {
@@ -258,13 +245,14 @@ TEST_F(reliability_connection_graph_rating,
 
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
-  auto msg =
-      flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
-                             test_util::hhmm_to_unixtime(get_schedule(), 700),
-                             test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
-          .build_connection_tree_request(1, 1);
+  auto msg = flatbuffers::request_builder()
+                 .add_pretrip_start(
+                     schedule7_cg::DARMSTADT.name, schedule7_cg::DARMSTADT.eva,
+                     test_util::hhmm_to_unixtime(get_schedule(), 700),
+                     test_util::hhmm_to_unixtime(get_schedule(), 700))
+                 .add_destination(schedule7_cg::FRANKFURT.name,
+                                  schedule7_cg::FRANKFURT.eva)
+                 .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -289,8 +277,10 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   }
   {
     interchange_data_for_tests ic_data(
-        get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
-        FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+        get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
+        schedule7_cg::DARMSTADT.eva, schedule7_cg::LANGEN.eva,
+        schedule7_cg::FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15,
+        7 * 60 + 25);
     auto const dists = calc_distributions(
         ic_data, detail::scheduled_transfer_filter(
                      cg.stops_[0]
@@ -313,13 +303,14 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
-  auto msg =
-      flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
-                             test_util::hhmm_to_unixtime(get_schedule(), 700),
-                             test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
-          .build_connection_tree_request(3, 1);
+  auto msg = flatbuffers::request_builder()
+                 .add_pretrip_start(
+                     schedule7_cg::DARMSTADT.name, schedule7_cg::DARMSTADT.eva,
+                     test_util::hhmm_to_unixtime(get_schedule(), 700),
+                     test_util::hhmm_to_unixtime(get_schedule(), 700))
+                 .add_destination(schedule7_cg::FRANKFURT.name,
+                                  schedule7_cg::FRANKFURT.eva)
+                 .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
@@ -347,8 +338,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
       cg.stops_[0].alternative_infos_.front().rating_.arrival_distribution_;
   {
     interchange_data_for_tests ic_data(
-        get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
-        FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+        get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
+        schedule7_cg::DARMSTADT.eva, schedule7_cg::LANGEN.eva,
+        schedule7_cg::FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15,
+        7 * 60 + 25);
     auto const dists = calc_distributions(
         ic_data, detail::scheduled_transfer_filter(
                      uncovered_arr_dist,
@@ -359,13 +352,15 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: S_L_F and RE_L_F are on the same route */
-    auto const departing_lc =
-        graph_accessor::get_departing_route_edge(
-            *graph_accessor::get_first_route_node(get_schedule(), RE_L_F))
-            ->m_.route_edge_.conns_[1];
+    auto const departing_lc = graph_accessor::get_departing_route_edge(
+                                  *graph_accessor::get_first_route_node(
+                                      get_schedule(), schedule7_cg::RE_L_F))
+                                  ->m_.route_edge_.conns_[1];
     interchange_data_for_tests ic_data(
-        get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
-        FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+        get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
+        schedule7_cg::DARMSTADT.eva, schedule7_cg::LANGEN.eva,
+        schedule7_cg::FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15,
+        7 * 60 + 25);
     uncovered_arr_dist =
         rating::cg::detail::compute_uncovered_arrival_distribution(
             uncovered_arr_dist,
@@ -384,13 +379,15 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: IC_L_F and RE_L_F are on the same route */
-    auto const departing_lc =
-        graph_accessor::get_departing_route_edge(
-            *graph_accessor::get_first_route_node(get_schedule(), RE_L_F))
-            ->m_.route_edge_.conns_[2];
+    auto const departing_lc = graph_accessor::get_departing_route_edge(
+                                  *graph_accessor::get_first_route_node(
+                                      get_schedule(), schedule7_cg::RE_L_F))
+                                  ->m_.route_edge_.conns_[2];
     interchange_data_for_tests ic_data(
-        get_schedule(), RE_D_L, RE_L_F, DARMSTADT.eva, LANGEN.eva,
-        FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15, 7 * 60 + 25);
+        get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
+        schedule7_cg::DARMSTADT.eva, schedule7_cg::LANGEN.eva,
+        schedule7_cg::FRANKFURT.eva, 7 * 60, 7 * 60 + 10, 7 * 60 + 15,
+        7 * 60 + 25);
     uncovered_arr_dist =
         rating::cg::detail::compute_uncovered_arrival_distribution(
             uncovered_arr_dist,
@@ -431,10 +428,10 @@ TEST_F(reliability_connection_graph_rating_foot,
        DISABLED_reliable_routing_request_foot) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+          .add_pretrip_start(schedule3::LANGEN.name, schedule3::LANGEN.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
-          .add_destination(WEST.name, WEST.eva)
+          .add_destination(schedule3::WEST.name, schedule3::WEST.eva)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -463,8 +460,9 @@ TEST_F(reliability_connection_graph_rating_foot,
     // interchange at Frankfurt and walking to Messe
     // departing train S_M_W from Messe to West
     interchange_data_for_tests const ic_data(
-        get_schedule(), ICE_L_H, S_M_W, LANGEN.eva, FRANKFURT.eva, MESSE.eva,
-        WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
+        get_schedule(), schedule3::ICE_L_H, schedule3::S_M_W,
+        schedule3::LANGEN.eva, schedule3::FRANKFURT.eva, schedule3::MESSE.eva,
+        schedule3::WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
 
     auto const dists = calc_distributions(
         ic_data,
@@ -492,10 +490,10 @@ TEST_F(reliability_connection_graph_rating_foot,
        DISABLED_reliable_routing_request_foot_at_the_end) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(LANGEN.name, LANGEN.eva,
+          .add_pretrip_start(schedule3::LANGEN.name, schedule3::LANGEN.eva,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
-          .add_destination(MESSE.name, MESSE.eva)
+          .add_destination(schedule3::MESSE.name, schedule3::MESSE.eva)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
