@@ -1,7 +1,7 @@
 project(motis)
 cmake_minimum_required(VERSION 2.8)
 
-set(protocol-dir ${CMAKE_SOURCE_DIR}/protocol)
+set(protocol-dir ${CMAKE_CURRENT_SOURCE_DIR}/../../protocol)
 file(GLOB_RECURSE protocol-files ${protocol-dir}/*.fbs)
 set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/protocol")
 build_flatbuffers(
