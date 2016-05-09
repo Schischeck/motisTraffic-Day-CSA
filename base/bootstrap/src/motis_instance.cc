@@ -28,6 +28,14 @@ std::vector<motis::module::module*> motis_instance::modules() const {
   return m;
 }
 
+std::vector<std::string> motis_instance::module_names() const {
+  std::vector<std::string> s;
+  for (auto const& module : modules_) {
+    s.push_back(module->name());
+  }
+  return s;
+}
+
 void motis_instance::init_schedule(
     motis::loader::loader_options const& dataset_opt) {
   schedule_ = loader::load_schedule(dataset_opt);

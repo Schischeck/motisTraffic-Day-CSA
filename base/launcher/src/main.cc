@@ -14,6 +14,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/bootstrap/dataset_settings.h"
+#include "motis/bootstrap/module_settings.h"
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/loader/util.h"
 #include "motis/launcher/batch_mode.h"
@@ -23,7 +24,6 @@
 #include "motis/launcher/socket_server.h"
 #include "motis/launcher/ws_server.h"
 
-#include "modules.h"
 #include "version.h"
 
 using namespace motis::bootstrap;
@@ -63,17 +63,13 @@ int main(int argc, char** argv) {
   listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", true, true, true, true, "TODAY", 2);
-  launcher_settings launcher_opt(
-      launcher_settings::motis_mode_t::SERVER,
-      loader::transform_to_vec(
-          begin(instance.modules_), end(instance.modules_),
-          [](std::unique_ptr<motis::module::module> const& m) {
-            return m->name();
-          }),
-      "queries.txt", "responses.txt", std::thread::hardware_concurrency());
+  module_settings module_opt(instance.module_names());
+  launcher_settings launcher_opt(launcher_settings::motis_mode_t::SERVER,
+                                 "queries.txt", "responses.txt",
+                                 std::thread::hardware_concurrency());
 
   std::vector<conf::configuration*> confs = {&listener_opt, &dataset_opt,
-                                             &launcher_opt};
+                                             &module_opt, &launcher_opt};
   for (auto const& module : instance.modules()) {
     confs.push_back(module);
   }
@@ -103,7 +99,7 @@ int main(int argc, char** argv) {
   shutd_hdr_ptr<socket_server> tcp_shutdown_handler;
   try {
     instance.init_schedule(dataset_opt);
-    instance.init_modules(launcher_opt.modules_);
+    instance.init_modules(module_opt.modules_);
 
     if (listener_opt.listen_ws_) {
       websocket.set_api_key(listener_opt.api_key_);

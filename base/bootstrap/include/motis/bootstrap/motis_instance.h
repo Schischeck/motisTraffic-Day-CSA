@@ -10,9 +10,14 @@
 #include "motis/module/controller.h"
 #include "motis/module/module.h"
 #include "motis/loader/loader_options.h"
-#include "modules.h"
 
 namespace motis {
+namespace module {
+
+struct module;
+
+}  // namespace module
+
 namespace bootstrap {
 
 struct motis_instance : public motis::module::controller {
@@ -22,6 +27,8 @@ struct motis_instance : public motis::module::controller {
   motis_instance& operator=(motis_instance const&) = delete;
 
   std::vector<motis::module::module*> modules() const;
+  std::vector<std::string> module_names() const;
+
   void init_schedule(motis::loader::loader_options const& dataset_opt);
   void init_modules(std::vector<std::string> const& modules);
 
