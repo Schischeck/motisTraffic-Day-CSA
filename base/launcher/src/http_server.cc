@@ -18,6 +18,7 @@
 using namespace net::http::server;
 using namespace motis::module;
 namespace p = std::placeholders;
+namespace srv = net::http::server;
 
 namespace motis {
 namespace launcher {
@@ -48,8 +49,7 @@ struct http_server::impl {
 
   void stop() { server_.stop(); }
 
-  void operator()(net::http::server::route_request const& req,
-                  net::http::server::callback cb) {
+  void operator()(srv::route_request const& req, srv::callback cb) {
     try {
       if (req.method == "GET") {
         return handle_get(req, cb);
@@ -71,21 +71,15 @@ struct http_server::impl {
     }
   }
 
-  void handle_get(net::http::server::route_request const& req,
-                  net::http::server::callback& cb) {
+  void handle_get(srv::route_request const& req, srv::callback& cb) {
     return receiver_.on_msg(
         make_no_msg(get_path(req.uri)),
         ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
   }
 
-  void handle_post(net::http::server::route_request const& req,
-                   net::http::server::callback& cb) {
+  void handle_post(srv::route_request const& req, srv::callback& cb) {
     std::string content;
-    auto encoding_it = std::find_if(
-        begin(req.headers), end(req.headers),
-        [](auto&& h) { return boost::iequals(h.name, "Content-Encoding"); });
-    if (encoding_it != end(req.headers) &&
-        encoding_it->value.find("gzip") != std::string::npos) {
+    if (has_header(req, "Content-Encoding", "gzip")) {
       std::istringstream s(req.content);
       boost::iostreams::filtering_streambuf<boost::iostreams::input> filter;
       filter.push(boost::iostreams::gzip_decompressor());
@@ -95,11 +89,7 @@ struct http_server::impl {
       content = std::move(req.content);
     }
 
-    auto content_type_it =
-        std::find_if(begin(req.headers), end(req.headers),
-                     [](header const& h) { return h.name == "Content-Type"; });
-    if (content_type_it != end(req.headers) &&
-        content_type_it->value.find("application/json") != std::string::npos) {
+    if (has_header(req, "Content-Type", "application/json")) {
       return receiver_.on_msg(
           make_msg(content),
           ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
@@ -117,23 +107,30 @@ struct http_server::impl {
                                       fbb.CreateString(h.value));
                                 })),
                             fbb.CreateString(content))
-              .Union(), get_path(req.uri));
+              .Union(),
+          get_path(req.uri));
       return receiver_.on_msg(
           make_msg(fbb),
           ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
     }
   }
 
-  std::string get_path(std::string const&  uri) {
+  std::string get_path(std::string const& uri) {
     auto pos = uri.find('?');
-    if(pos != std::string::npos) {
+    if (pos != std::string::npos) {
       return uri.substr(0, pos);
     }
     return uri;
   }
 
-  void on_response(net::http::server::callback cb, msg_ptr msg,
-                   std::error_code ec) {
+  bool has_header(srv::route_request const& req, char const* k, char const* v) {
+    auto it =
+        std::find_if(begin(req.headers), end(req.headers),
+                     [&k](auto&& h) { return boost::iequals(h.name, k); });
+    return it != end(req.headers) && it->value.find(v) != std::string::npos;
+  }
+
+  void on_response(srv::callback cb, msg_ptr msg, std::error_code ec) {
     reply rep = reply::stock_reply(reply::internal_server_error);
     try {
       if (!ec && msg) {
