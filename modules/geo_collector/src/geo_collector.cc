@@ -161,11 +161,11 @@ msg_ptr geo_collector::submit_measurements(msg_ptr const& msg) {
 
   auto content = req->content()->str();
 
-  // static std::atomic_uint serial{0};  // multiple uploads per second
-  // auto fname = std::to_string(std::time(nullptr)) + "-" +
-  //              std::to_string(serial++) + ".json";
-  // std::ofstream out(fname);
-  // out << content;
+  static std::atomic_uint serial{0};  // multiple uploads per second
+  auto fname = std::to_string(std::time(nullptr)) + "-" +
+               std::to_string(serial++) + ".json";
+  std::ofstream out(fname);
+  out << content;
 
   rapidjson::Document doc;
   bool failure = doc.Parse<0>(content.c_str()).HasParseError();
@@ -181,8 +181,8 @@ msg_ptr geo_collector::submit_measurements(msg_ptr const& msg) {
     for (Value::ConstValueIterator it = items.Begin(); it != items.End();
          ++it) {
       auto const& e = *it;
-      insert_loc(e["timestamp"].GetInt64(),  //
-                 e["latitude"].GetDouble(),
+      insert_loc(e["timestamp"].GetInt64() / 1000,  //
+                 e["latitude"].GetDouble(),  //
                  e["longitude"].GetDouble(),  //
                  e["accuracy"].GetDouble(),  //
                  participant_id);
