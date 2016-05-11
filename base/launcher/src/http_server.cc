@@ -1,13 +1,9 @@
 #include "motis/launcher/http_server.h"
 
 #include <functional>
-#include <iostream>
 #include <system_error>
 
 #include "boost/algorithm/string/predicate.hpp"
-#include "boost/iostreams/copy.hpp"
-#include "boost/iostreams/filter/gzip.hpp"
-#include "boost/iostreams/filtering_streambuf.hpp"
 
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
@@ -78,20 +74,9 @@ struct http_server::impl {
   }
 
   void handle_post(srv::route_request const& req, srv::callback& cb) {
-    std::string content;
-    if (has_header(req, "Content-Encoding", "gzip")) {
-      std::istringstream s(req.content);
-      boost::iostreams::filtering_streambuf<boost::iostreams::input> filter;
-      filter.push(boost::iostreams::gzip_decompressor());
-      filter.push(s);
-      boost::iostreams::copy(filter, std::back_inserter(content));
-    } else {
-      content = std::move(req.content);
-    }
-
     if (has_header(req, "Content-Type", "application/json")) {
       return receiver_.on_msg(
-          make_msg(content),
+          make_msg(req.content),
           ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
     } else {
       message_creator fbb;
@@ -106,7 +91,7 @@ struct http_server::impl {
                                       fbb, fbb.CreateString(h.name),
                                       fbb.CreateString(h.value));
                                 })),
-                            fbb.CreateString(content))
+                            fbb.CreateString(req.content))
               .Union(),
           get_path(req.uri));
       return receiver_.on_msg(
