@@ -45,6 +45,11 @@ std::string message::to_json() const {
 }
 
 msg_ptr make_msg(std::string const& json) {
+  if (json.empty()) {
+    LOG(motis::logging::error) << "empty request";
+    throw std::system_error(error::unable_to_parse_msg);
+  }
+
   bool parse_ok = parser->Parse(json.c_str());
   if (!parse_ok) {
     LOG(motis::logging::error) << "parse error: " << parser->error_;
