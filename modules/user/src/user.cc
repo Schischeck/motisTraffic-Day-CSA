@@ -3,6 +3,7 @@
 #include <cinttypes>
 
 #include "pgdb_default_conn.h"
+
 #include "pgdb/pgdb.h"
 
 #include "motis/module/message.h"

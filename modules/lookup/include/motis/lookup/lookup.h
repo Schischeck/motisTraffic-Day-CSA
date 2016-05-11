@@ -16,6 +16,7 @@ struct lookup final : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr lookup_station_id(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr lookup_station(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr lookup_stations(motis::module::msg_ptr const&) const;
 
