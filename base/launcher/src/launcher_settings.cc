@@ -49,12 +49,10 @@ std::ostream& operator<<(std::ostream& out,
 }
 
 launcher_settings::launcher_settings(motis_mode_t m,
-                                     std::vector<std::string> modules,
                                      std::string batch_input_file,
                                      std::string batch_output_file,
                                      int num_threads)
     : mode_(m),
-      modules_(std::move(modules)),
       batch_input_file_(std::move(batch_input_file)),
       batch_output_file_(std::move(batch_output_file)),
       num_threads_(num_threads) {}
@@ -69,9 +67,6 @@ po::options_description launcher_settings::desc() {
        MODE_BATCH " = inject batch file\n"
        MODE_SERVER " = network server\n"
        MODE_TEST " = exit after 1s")
-      (MODULES, po::value<std::vector<std::string>>(&modules_)
-           ->default_value(modules_)->multitoken(),
-       "List of modules to load")
       (BATCH_INPUT_FILE,
        po::value<std::string>(&batch_input_file_)
            ->default_value(batch_input_file_))
@@ -86,7 +81,6 @@ po::options_description launcher_settings::desc() {
 
 void launcher_settings::print(std::ostream& out) const {
   out << "  " << MODE << ": " << mode_ << "\n"
-      << "  " << MODULES << ": " << modules_ << "\n"
       << "  " << BATCH_INPUT_FILE << ": " << batch_input_file_ << "\n"
       << "  " << BATCH_OUTPUT_FILE << ": " << batch_output_file_ << "\n"
       << "  " << NUM_THREADS << ": " << num_threads_;
