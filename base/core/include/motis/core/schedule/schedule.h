@@ -20,20 +20,20 @@
 
 namespace motis {
 
-struct connection;
-struct connection_info;
-
 struct schedule {
-  schedule() : system_time_(0), last_update_timestamp_(0) {
-    constexpr auto i = std::numeric_limits<int32_t>::max();
-    constexpr auto iu = std::numeric_limits<uint32_t>::max();
-
-    schedule_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME});
-    graph_to_delay_info_.set_empty_key({iu, iu, true, INVALID_TIME, i});
-    graph_to_delay_info_.set_deleted_key({iu - 1, iu, true, INVALID_TIME, i});
+  schedule()
+      : schedule_begin_(0),
+        schedule_end_(0),
+        node_count_(0),
+        system_time_(0),
+        last_update_timestamp_(0) {
+    schedule_to_delay_info_.set_empty_key(
+        {primary_trip_id(0, 0, 0), 0, base_event::event_type::ARR, 0});
+    graph_to_delay_info_.set_empty_key(
+        {primary_trip_id(0, 0, 0), 0, base_event::event_type::ARR, 0});
+    graph_to_delay_info_.set_deleted_key(
+        {primary_trip_id(0, 0, 0), 0, base_event::event_type::DEP, 0});
   }
-
-  virtual ~schedule() = default;
 
   schedule(schedule const&) = delete;
   schedule& operator=(schedule const&) = delete;
