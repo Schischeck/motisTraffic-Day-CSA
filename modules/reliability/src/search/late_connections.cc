@@ -54,7 +54,7 @@ module::msg_ptr to_routing_late_connections_message(
 
   return builder.build_routing_request();
 }
-}
+}  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const* req,
                        std::string const& hotels_file) {
@@ -63,7 +63,7 @@ module::msg_ptr search(ReliableRoutingRequest const* req,
                  req->request(), intermodal::hotels::parse_hotels(hotels_file)))
       ->val();
 }
-}
-}
-}
-}
+}  // namespace late_connections
+}  // namespace search
+}  // namespace reliability
+}  // namespace motis

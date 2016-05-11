@@ -35,7 +35,7 @@ struct context {
 
   context(motis::reliability::context rel_context,
           std::shared_ptr<connection_graph_optimizer const> optimizer)
-      : reliability_context_(std::move(rel_context)),
+      : reliability_context_(std::move(rel_context)) /* NOLINT */,
         optimizer_(std::move(optimizer)) {}
 
   motis::reliability::context reliability_context_;

@@ -68,6 +68,6 @@ TEST(reliability_distributions_container, get_distribution) {
     ASSERT_EQ(it.second, c.get_distribution(it.first));
   }
 }
-}
-}
-}
+}  // namespace distributions_container
+}  // namespace reliability
+}  // namespace motis

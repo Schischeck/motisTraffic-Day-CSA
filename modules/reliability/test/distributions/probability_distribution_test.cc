@@ -180,8 +180,9 @@ TEST(reliability_get_probabilities, probability_distribution) {
   pd.get_probabilities(probabilies_out);
 
   ASSERT_TRUE(probabilies_in.size() == probabilies_out.size());
-  for (unsigned int i = 0; i < probabilies_in.size(); i++)
+  for (unsigned int i = 0; i < probabilies_in.size(); i++) {
     ASSERT_TRUE(equal(probabilies_in[i], probabilies_out[i]));
+  }
 }
 
 TEST(reliability_copy, probability_distribution) {

@@ -21,7 +21,7 @@ namespace reliability {
 namespace realtime {
 
 struct lc_not_found_exception : std::exception {
-  const char* what() const throw() {
+  const char* what() const throw() override {
     return "Could not find the light connection for a delay-info";
   };
 };
@@ -119,13 +119,14 @@ route_node_and_lc_info get_node_and_light_connection(
       *sched.station_nodes_.at(key.station_index_),
       key.type_ == time_util::departure, find_light_conn);
 }
-}
+}  // namespace graph_util
 
 namespace detail {
 distributions_container::container::node* find_distribution_node(
     motis::realtime::DelayInfo const* delay_info, schedule const& sched,
     distributions_container::container& precomputed_distributions) {
-  // TODO: category and line-identification can be read from the RIS-message
+  // TODO(Mohammad Keyhani): category and line-identification can be read from
+  // the RIS-message
   auto const cat_line =
       graph_util::get_category_and_line_identification(delay_info, sched);
   distributions_container::container::key key(
@@ -235,7 +236,7 @@ void process_element(
     ++not_significant;
   }
 }
-}
+}  // namespace detail
 
 void update_precomputed_distributions(
     motis::realtime::RealtimeDelayInfoResponse const* res,
@@ -252,12 +253,11 @@ void update_precomputed_distributions(
   /* add all events with updates to the queue */
   detail::queue_type queue;
   std::set<distributions_container::container::node*> currently_processed;
-  for (auto it = res->delay_infos()->begin(); it != res->delay_infos()->end();
-       ++it) {
-    if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
+  for (auto const& info : *res->delay_infos()) {
+    if (info->reason() == motis::realtime::InternalTimestampReason_Is) {
       try {
         if (auto n = detail::find_distribution_node(
-                *it, sched, precomputed_distributions)) {
+                info, sched, precomputed_distributions)) {
           queue.emplace(n);
         }
       } catch (std::exception& e) {
@@ -280,8 +280,8 @@ void update_precomputed_distributions(
   }
 
   /* print statistics */
-  auto to_percent = [&](unsigned int c) -> float {
-    return ((c * 100.0) / (double)detail::num_processed);
+  auto to_percent = [&](unsigned int c) -> double {
+    return ((c * 100.0) / static_cast<double>(detail::num_processed));
   };
   std::stringstream sst;
   sst << "Queue contained " << detail::num_processed << " elements";

@@ -60,7 +60,7 @@ inline std::vector<journey> remove_invalid_journeys(
   std::vector<journey> filtered;
   for (auto& j : journeys) {
     if (check_journey(j)) {
-      filtered.push_back(std::move(j));
+      filtered.push_back(j);
     }
   }
   return filtered;

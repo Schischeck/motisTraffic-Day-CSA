@@ -69,7 +69,7 @@ namespace detail {
 std::tuple<bool, time, time> get_feeder_time_interval(
     time const departure_time, duration change_time,
     duration const feeder_threshold) {
-  change_time = std::max(change_time, (duration)1);
+  change_time = std::max(change_time, static_cast<duration>(1));
   time const begin_time =
       (departure_time <= feeder_threshold ? 0
                                           : departure_time - feeder_threshold);
@@ -110,8 +110,7 @@ std::vector<std::pair<node const*, light_connection const*>> get_feeders(
       continue;
     }
     auto& all_connections = feeder_route_edge->m_.route_edge_.conns_;
-    for (unsigned int i = 0; i < all_connections.size(); i++) {
-      auto const& feeder_light_conn = all_connections[i];
+    for (auto const& feeder_light_conn : all_connections) {
       if (is_feeder(feeder_light_conn)) {
         feeders.emplace_back(&feeder_route_node, &feeder_light_conn);
       }
@@ -168,9 +167,8 @@ bool is_pre_computed_route(schedule const& schedule,
   edge const* route_edge = nullptr;
   while ((route_edge = graph_accessor::get_departing_route_edge(*node)) !=
          nullptr) {
-    for (unsigned i = 0; i < route_edge->m_.route_edge_.conns_.size(); i++) {
-      auto const family =
-          route_edge->m_.route_edge_.conns_[i].full_con_->con_info_->family_;
+    for (auto const& lc : route_edge->m_.route_edge_.conns_) {
+      auto const family = lc.full_con_->con_info_->family_;
       if (schedule.waiting_time_rules_.other_trains_wait_for(
               schedule.waiting_time_rules_.waiting_time_category(family)) ||
           /* trains which wait for other trains are added to the

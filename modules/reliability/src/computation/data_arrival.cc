@@ -60,8 +60,9 @@ void data_arrival::init_travel_info(
   right_bound_ = INT_MIN;
 
   if (!travel_distributions_.empty()) {
+    assert(departure_info_.distribution_.last_minute() >= 0);
     auto const last_minute =
-        (unsigned int)departure_info_.distribution_.last_minute();
+        static_cast<unsigned>(departure_info_.distribution_.last_minute());
     assert(travel_distributions_.size() == last_minute + 1);
     for (unsigned int d = 0; d <= last_minute; d++) {
       assert(!travel_distributions_[d].get().empty());

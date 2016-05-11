@@ -10,8 +10,8 @@ struct connection_graph;
 
 namespace connection_graph_builder {
 void add_base_journey(connection_graph&, journey const&);
-void add_alternative_journey(connection_graph&, unsigned int const stop_idx,
-                             journey const&);
+void add_alternative_journey(connection_graph&,
+                             unsigned int const first_stop_idx, journey const&);
 
 namespace detail {
 /* split journey at each stop with interchange */

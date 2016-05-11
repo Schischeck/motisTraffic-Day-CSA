@@ -8,8 +8,9 @@ namespace reliability {
 namespace intermodal {
 namespace hotels {
 struct hotel_info {
-  hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
-             uint16_t min_stay_duration = 9 * 60, uint16_t price = 5000)
+  explicit hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
+                      uint16_t min_stay_duration = 9 * 60,
+                      uint16_t price = 5000)
       : station_(st),
         earliest_checkout_(earliest_checkout),
         min_stay_duration_(min_stay_duration),

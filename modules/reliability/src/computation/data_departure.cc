@@ -19,7 +19,8 @@ data_departure::data_departure(
     node const& route_node, light_connection const& light_connection,
     bool const is_first_route_node,
     distributions_container::container const& distributions_preceding_arrival,
-    distributions_container::container::node const& distributions_node,
+    distributions_container::container::node const&
+        departing_distributions_node,
     reliability::context const& context)
     : is_first_route_node_(is_first_route_node), maximum_waiting_time_(0) {
   init_departure_time(route_node, light_connection, context.schedule_);
@@ -32,7 +33,8 @@ data_departure::data_departure(
                                 context.schedule_);
   }
   init_feeder_info(route_node, light_connection,
-                   distributions_node.predecessors_, context.schedule_);
+                   departing_distributions_node.predecessors_,
+                   context.schedule_);
 }
 
 data_departure::data_departure(node const& route_node,
@@ -62,11 +64,11 @@ void data_departure::init_departure_time(node const& route_node,
 }
 
 void data_departure::init_first_departure_info(
-    light_connection const& light_conn,
+    light_connection const& departing_light_conn,
     start_and_travel_distributions const& s_t_distributions,
     std::vector<std::unique_ptr<category>> const& categories) {
   auto const& train_category =
-      categories[light_conn.full_con_->con_info_->family_]->name_;
+      categories[departing_light_conn.full_con_->con_info_->family_]->name_;
   train_info_.first_departure_distribution_ =
       &s_t_distributions.get_start_distribution(train_category).second.get();
   assert(!train_info_.first_departure_distribution_->empty());
@@ -103,7 +105,7 @@ void data_departure::init_preceding_arrival_info(
 }
 
 void erase_preceding_arrival(
-    node const& route_node, light_connection const& light_conn,
+    node const& route_node, light_connection const& departing_light_conn,
     std::vector<distributions_container::container::node*>& predecessors,
     motis::time const preceding_arrival_time_scheduled,
     schedule const& schedule) {
@@ -111,7 +113,7 @@ void erase_preceding_arrival(
       graph_accessor::get_previous_light_connection(
           graph_accessor::get_arriving_route_edge(route_node)
               ->m_.route_edge_.conns_,
-          light_conn.d_time_);
+          departing_light_conn.d_time_);
   auto const preceding_arrival_key = distributions_container::to_container_key(
       arriving_light_conn, route_node.get_station()->id_, time_util::arrival,
       preceding_arrival_time_scheduled, schedule);
@@ -163,8 +165,8 @@ void data_departure::init_feeder_info(
 duration data_departure::largest_delay() const {
   duration maximum_train_delay = 0;
   if (is_first_route_node_) {
-    maximum_train_delay =
-        (duration)train_info_.first_departure_distribution_->last_minute();
+    maximum_train_delay = static_cast<duration>(
+        train_info_.first_departure_distribution_->last_minute());
   } else {
     time const latest_arrival =
         train_info_.preceding_arrival_info_.scheduled_arrival_time_ +

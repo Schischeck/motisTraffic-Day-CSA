@@ -4,7 +4,7 @@
 
 namespace motis {
 namespace routing {
-struct RoutingResponse;
+struct RoutingResponse;  // NOLINT
 }  // namespace routing
 namespace reliability {
 struct context;

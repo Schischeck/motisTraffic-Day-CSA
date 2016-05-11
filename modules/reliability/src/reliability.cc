@@ -82,7 +82,9 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
   std::vector<s_t_distributions_container::parameters> param;
   for (auto const& p : paths) {
     if (p.rfind("/train/") != std::string::npos) {
-      param.push_back({p, 500, 120});  // TODO: read max travel time from graph
+      param.push_back(
+          {p, 500,
+           120});  // TODO(Mohammad Keyhani): read max travel time from graph
     } else if (p.rfind("/bus/") != std::string::npos) {
       param.push_back({p, 60, 45});
     } else if (p.rfind("/str/") != std::string::npos) {
@@ -113,8 +115,7 @@ void reliability::init(motis::module::registry& reg) {
   }
 
   precomputed_distributions_ =
-      std::unique_ptr<distributions_container::container>(
-          new distributions_container::container);
+      std::make_unique<distributions_container::container>();
 
   auto lock = synced_sched();
   distributions_calculator::precomputation::perform_precomputation(
@@ -171,8 +172,8 @@ msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
 }
 
 msg_ptr connection_tree(ReliableRoutingRequest const* req, reliability& rel) {
-  auto req_info =
-      (ConnectionTreeReq const*)req->request_type()->request_options();
+  auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
+      req->request_type()->request_options());
   auto lock = rel.synced_sched();
   auto const cgs = search::connection_graph_search::search_cgs(
       req, ::motis::reliability::context(lock.sched(),

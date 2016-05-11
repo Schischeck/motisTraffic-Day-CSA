@@ -23,14 +23,16 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     std::vector<std::pair<time_t, time_t>> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator->is_reliable(rating->value())) {
-        availability_intervals.emplace_back((time_t)rating->begin(),
-                                            (time_t)rating->end());
+        availability_intervals.emplace_back(
+            static_cast<time_t>(rating->begin()),
+            static_cast<time_t>(rating->end()));
       }
     }
     if (!availability_intervals.empty()) {
       infos.push_back(
           {std::string(edge->station_id()->c_str()),
-           (unsigned int)((edge->bike_duration() + edge->walk_duration()) / 60),
+           static_cast<unsigned>(
+               (edge->bike_duration() + edge->walk_duration()) / 60),
            availability_intervals, std::string(edge->from()->name()->c_str()),
            std::string(edge->to()->name()->c_str())});
     }

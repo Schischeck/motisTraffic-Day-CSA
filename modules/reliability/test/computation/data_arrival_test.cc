@@ -11,6 +11,7 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/graph_accessor.h"
 
+#include "../include/schedules/schedule1.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
@@ -23,19 +24,7 @@ namespace calc_arrival_distribution {
 class reliability_data_arrival : public test_schedule_setup {
 public:
   reliability_data_arrival()
-      : test_schedule_setup("modules/reliability/resources/schedule/",
-                            "20150928") {}
-  /* eva numbers */
-  constexpr static auto DARMSTADT = "4219971";
-  /* train numbers */
-  constexpr static unsigned IC_DA_H = 1;
-  constexpr static unsigned IC_FR_DA = 2;
-  constexpr static unsigned IC_FH_DA = 3;
-  constexpr static unsigned RE_MA_DA = 4;
-  constexpr static unsigned ICE_FR_DA_H = 5;
-  constexpr static unsigned ICE_HA_W_HE = 6;
-  constexpr static unsigned ICE_K_K = 7;
-  constexpr static unsigned RE_K_S = 8;
+      : test_schedule_setup(schedule1::PATH, schedule1::DATE) {}
 };
 
 TEST_F(reliability_data_arrival, initialize) {
@@ -45,7 +34,7 @@ TEST_F(reliability_data_arrival, initialize) {
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
@@ -57,7 +46,7 @@ TEST_F(reliability_data_arrival, initialize) {
 
   ASSERT_TRUE(
       schedule_->stations_[second_route_node.station_node_->id_]->eva_nr_ ==
-      DARMSTADT);
+      schedule1::DARMSTADT);
   ASSERT_EQ(test_util::minutes_to_motis_time(5 * 60 + 55),
             light_connection.d_time_);
   ASSERT_TRUE(light_connection.a_time_ ==
@@ -109,7 +98,7 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto departure_route_node =
-      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const route_edge =
       graph_accessor::get_departing_route_edge(departure_route_node);

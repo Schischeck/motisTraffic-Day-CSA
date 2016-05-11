@@ -42,8 +42,8 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {
   info.arrival_distribution_ = &pd;
 
   for (unsigned int i = 0; i < 8; i++) {
-    probability const prob =
-        interchange::detail::ic_feeder_arrived(info, (motis::time)(4 + i));
+    probability const prob = interchange::detail::ic_feeder_arrived(
+        info, static_cast<motis::time>(4 + i));
     ASSERT_TRUE(equal(prob, (i + 1) * 0.1));
   }
 }
@@ -61,7 +61,7 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 
   for (unsigned int i = 0; i < 8; i++) {
     probability const prob = interchange::detail::ic_feeder_arrives_at_time(
-        info, (motis::time)(4 + i));
+        info, static_cast<motis::time>(4 + i));
     ASSERT_TRUE(equal(prob, 0.1));
   }
 }
@@ -148,8 +148,8 @@ TEST_F(reliability_calc_departure_distribution2,
   // departing train ICE_K_F_S from Frankfurt to Stuttgart
   interchange_data_for_tests const ic_data(
       *schedule_, schedule2::RE_K_F, tail_node_departing_train,
-      schedule2::KASSEL.eva_, schedule2::FRANKFURT.eva_, schedule2::STUTTGART.eva_,
-      8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
+      schedule2::KASSEL.eva_, schedule2::FRANKFURT.eva_,
+      schedule2::STUTTGART.eva_, 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
 
   // preceding-arrival: 10:18 - 10:19
   distributions_container::container precomputed;

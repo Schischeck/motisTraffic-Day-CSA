@@ -9,7 +9,7 @@
 
 namespace motis {
 namespace reliability {
-struct ReliableRoutingRequest;
+struct ReliableRoutingRequest;  // NOLINT
 struct context;
 namespace search {
 struct connection_graph;

@@ -1264,7 +1264,7 @@ TEST(reliability_connection_graph_builder, move_early_walk) {
   ASSERT_EQ(5, j.transports_.size());
 }
 
-}  // namespace connection_graph_search
+}  // namespace connection_graph_builder
 }  // namespace search
 }  // namespace reliability
 }  // namespace motis

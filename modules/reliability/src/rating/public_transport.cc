@@ -53,22 +53,20 @@ create_data_for_interchange(
   // interchange with walk
   if (preceding_element.to_->station_node_->id_ !=
       element.from_->station_node_->id_) {
-    return std::unique_ptr<
+    return std::make_unique<
         calc_departure_distribution::data_departure_interchange>(
-        new calc_departure_distribution::data_departure_interchange_walk(
-            element.is_first_route_node_, *element.from_,
-            *preceding_element.to_, *element.light_connection_,
-            *preceding_element.light_connection_, arrival_distribution,
-            train_distributions, departing_distribution_node, context));
+        element.is_first_route_node_, *element.from_, *preceding_element.to_,
+        *element.light_connection_, *preceding_element.light_connection_,
+        arrival_distribution, train_distributions, departing_distribution_node,
+        context);
   }
   // interchange without walk
-  return std::unique_ptr<
+  return std::make_unique<
       calc_departure_distribution::data_departure_interchange>(
-      new calc_departure_distribution::data_departure_interchange(
-          element.is_first_route_node_, *element.from_, *preceding_element.to_,
-          *element.light_connection_, *preceding_element.light_connection_,
-          arrival_distribution, train_distributions,
-          departing_distribution_node, context));
+      element.is_first_route_node_, *element.from_, *preceding_element.to_,
+      *element.light_connection_, *preceding_element.light_connection_,
+      arrival_distribution, train_distributions, departing_distribution_node,
+      context);
 }
 
 void distributions_for_train_after_interchange(
@@ -96,13 +94,12 @@ void distributions_for_train_after_interchange(
           *dep_data, departure_distribution);
     } else { /* departure without interchange */
       auto dep_data =
-          std::unique_ptr<calc_departure_distribution::data_departure>(
-              new calc_departure_distribution::data_departure(
-                  *element.from_, *element.light_connection_,
-                  element.is_first_route_node_,
-                  distributions_container::single_distribution_container(
-                      preceding_arrival_distribution),
-                  distribution_node, context));
+          std::make_unique<calc_departure_distribution::data_departure>(
+              *element.from_, *element.light_connection_,
+              element.is_first_route_node_,
+              distributions_container::single_distribution_container(
+                  preceding_arrival_distribution),
+              distribution_node, context);
       calc_departure_distribution::compute_departure_distribution(
           *dep_data, departure_distribution);
     }
@@ -121,7 +118,7 @@ void rate(std::vector<rating_element>& ratings,
           reliability::context const& context) {
   assert(!elements.empty());
 
-  /* XXX if the first element is already processed
+  /* TODO(Mohammad Keyhani) if the first element is already processed
    * (this is the case when rating connection graph
    * alternative after an interchange) and the train
    * of this first element has not a precomputation-class,

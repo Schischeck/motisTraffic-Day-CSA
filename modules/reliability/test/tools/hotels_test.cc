@@ -17,7 +17,7 @@ TEST(reliability_hotels, parse) {
                                          return info.station_ == "8000013";
                                        }));
 }
-}
-}
-}
-}
+}  // namespace hotels
+}  // namespace intermodal
+}  // namespace reliability
+}  // namespace motis

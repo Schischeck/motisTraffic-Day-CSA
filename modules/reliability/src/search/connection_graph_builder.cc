@@ -23,12 +23,12 @@ void correct_transports_and_attributes_indices(std::vector<T> const& orig,
   for (auto const& element : orig) {
     if (element.from_ < stop_idx) {
       j1.push_back(element);
-      j1.back().to_ = std::min((unsigned int)j1.back().to_, stop_idx);
+      j1.back().to_ = std::min(static_cast<unsigned>(j1.back().to_), stop_idx);
     }
     if (element.to_ > stop_idx) {
       j2.push_back(element);
       j2.back().from_ =
-          std::max((unsigned int)j2.back().from_, stop_idx) - stop_idx;
+          std::max(static_cast<unsigned>(j2.back().from_), stop_idx) - stop_idx;
       j2.back().to_ -= stop_idx;
     }
   }
@@ -206,7 +206,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
         journeys.size() > 1) {
       stop_idx = connection_graph::stop::Index_first_intermediate_stop;
     } else if (alternative_info.journey_index_ + 1 ==
-               (uint16_t)journeys.size()) {
+               static_cast<uint16_t>(journeys.size())) {
       stop_idx = connection_graph::stop::Index_arrival_stop;
     } else {
       ++stop_idx;
@@ -228,7 +228,7 @@ void add_alternative_journey(connection_graph& cg,
   auto journeys = detail::split_journey(
       detail::move_early_walk(detail::remove_dummy_stops(j)));
 
-  /* todo:
+  /* TODO(Mohammad Keyhani):
    * call function: std::vector<unsigned int> add_journeys(cg, journeys);
    * for each journey, this function check whether it is already contained in
    * cg.journeys. Only if not, it adds the journey to cg.journeys.

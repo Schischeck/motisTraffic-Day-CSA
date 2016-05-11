@@ -12,20 +12,20 @@
 
 namespace motis {
 namespace routing {
-struct RoutingRequest;
+struct RoutingRequest;  // NOLINT
 }  // namespace routing
 namespace reliability {
 namespace intermodal {
 namespace bikesharing {
 
 struct availability_aggregator {
-  virtual ~availability_aggregator() {}
+  virtual ~availability_aggregator() = default;
   virtual motis::bikesharing::AvailabilityAggregator get_aggregator() const = 0;
   virtual bool is_reliable(double const&) const = 0;
 };
 
 struct average_aggregator : availability_aggregator {
-  average_aggregator(double const threshold) : threshold_(threshold) {}
+  explicit average_aggregator(double const threshold) : threshold_(threshold) {}
   motis::bikesharing::AvailabilityAggregator get_aggregator() const override {
     return motis::bikesharing::AvailabilityAggregator::
         AvailabilityAggregator_Average;

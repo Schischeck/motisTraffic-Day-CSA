@@ -59,14 +59,16 @@ interchange_info::interchange_info(connection_element const& arriving_element,
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);
 
-  int const max_waiting = (int)graph_accessor::get_waiting_time(
+  int const max_waiting = static_cast<int>(graph_accessor::get_waiting_time(
       sched.waiting_time_rules_, *arriving_element.light_connection_,
-      *departing_element.light_connection_);
-  int const departure_delay = departure_time_ - scheduled_departure_time_;
+      *departing_element.light_connection_));
+  int const departure_delay = static_cast<int>(departure_time_) -
+                              static_cast<int>(scheduled_departure_time_);
 
-  waiting_time_ = (!departure_is_ && departure_delay < (int)max_waiting)
-                      ? max_waiting - departure_delay
-                      : 0;
+  waiting_time_ =
+      (!departure_is_ && departure_delay < static_cast<int>(max_waiting))
+          ? max_waiting - departure_delay
+          : 0;
 }
 
 probability_distribution scheduled_transfer_filter(

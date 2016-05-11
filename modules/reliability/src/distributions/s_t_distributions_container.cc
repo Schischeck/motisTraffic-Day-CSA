@@ -9,7 +9,7 @@ s_t_distributions_container::s_t_distributions_container(
     std::vector<parameters> const& param) {
   for (auto const& p : param) {
     distributions_.emplace_back(new db_distributions(
-        p.root, p.max_expected_travel_time, p.max_expected_departure_delay));
+        p.root_, p.max_expected_travel_time_, p.max_expected_departure_delay_));
   }
   dummy_distribution_.init_one_point(0, 1.0);
 }

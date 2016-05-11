@@ -22,8 +22,8 @@ probability ic_feeder_arrived(
 
   return interchange_feeder_info.arrival_distribution_
       ->probability_smaller_equal(
-          (int)(latest_arrival_for_valid_interchange -
-                interchange_feeder_info.scheduled_arrival_time_));
+          static_cast<int>(latest_arrival_for_valid_interchange) -
+          static_cast<int>(interchange_feeder_info.scheduled_arrival_time_));
 }
 
 probability ic_feeder_arrives_at_time(
@@ -34,8 +34,8 @@ probability ic_feeder_arrives_at_time(
       timestamp - interchange_feeder_info.transfer_time_;
 
   return interchange_feeder_info.arrival_distribution_->probability_equal(
-      (int)(latest_arrival_for_valid_interchange -
-            interchange_feeder_info.scheduled_arrival_time_));
+      static_cast<int>(latest_arrival_for_valid_interchange) -
+      static_cast<int>(interchange_feeder_info.scheduled_arrival_time_));
 }
 
 probability departure_at_scheduled_time(

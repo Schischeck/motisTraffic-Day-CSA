@@ -20,6 +20,9 @@
 
 #include "motis/test/motis_instance_helper.h"
 
+#include "include/schedules/schedule2.h"
+#include "include/schedules/schedule7_cg.h"
+#include "include/schedules/schedule_hotels.h"
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
 #include "include/test_util.h"
@@ -32,42 +35,21 @@ namespace reliability {
 class reliability_test_rating : public test_motis_setup {
 public:
   reliability_test_rating()
-      : test_motis_setup("modules/reliability/resources/schedule2/",
-                         "20150928") {}
+      : test_motis_setup(schedule2::PATH, schedule2::DATE) {}
 };
-
-namespace schedule2 {
-schedule_station const KASSEL = {"Kassel", "6380201"};
-schedule_station const STUTTGART = {"Stuttgart", "7309882"};
-}  // namespace schedule2
-
-namespace schedule7_cg {
-schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-constexpr unsigned RE_D_L = 1;  // 07:00 --> 07:10
-constexpr unsigned RE_L_F = 2;  // 07:15 --> 07:25
-constexpr unsigned S_L_F = 3;  // 07:16 --> 07:34
-constexpr unsigned IC_L_F = 4;  // 07:17 --> 07:40
-}  // namespace schedule7_cg
-
-namespace schedule_hotels {
-schedule_station const FRANKFURT = {"Frankfurt", "1111111"};
-schedule_station const LANGEN = {"Langen", "2222222"};
-schedule_station const DARMSTADT = {"Darmstadt", "3333333"};
-}  // namespace schedule_hotels
 
 class reliability_test_cg : public test_motis_setup {
 public:
   reliability_test_cg()
-      : test_motis_setup("modules/reliability/resources/schedule7_cg/",
-                         "20151019") {}
+      : test_motis_setup(schedule7_cg::PATH, schedule7_cg::DATE) {}
 
   void test_journey(Connection const* j, std::string const departure_eva,
                     std::string const arrival_eva, time_t const departure_time,
                     time_t const arrival_time, unsigned int const train_nr) {
     auto const first_stop = j->stops()->begin();
     auto const last_stop = (*j->stops())[j->stops()->size() - 1];
-    auto const transport = ((Transport const*)j->transports()->begin()->move());
+    auto const transport =
+        reinterpret_cast<Transport const*>(j->transports()->begin()->move());
     ASSERT_EQ(departure_eva, first_stop->station()->id()->c_str());
     ASSERT_EQ(arrival_eva, last_stop->station()->id()->c_str());
     ASSERT_EQ(departure_time, first_stop->departure()->time());
@@ -235,8 +217,7 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
 class reliability_late_connections : public test_motis_setup {
 public:
   reliability_late_connections()
-      : test_motis_setup("modules/reliability/resources/schedule_hotels/",
-                         "20151019") {}
+      : test_motis_setup(schedule_hotels::PATH, schedule_hotels::DATE) {}
 };
 
 /* taxi-info: from-station, duration, price */
@@ -283,14 +264,13 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
 
   ASSERT_EQ(2, response->connections()->size());
   ASSERT_EQ(2, (*response->connections())[0]->transports()->size());
-  auto taxi =
-      (Mumo const*)(*(*response->connections())[0]->transports())[1]->move();
+  auto taxi = reinterpret_cast<Mumo const*>(
+      (*(*response->connections())[0]->transports())[1]->move());
   ASSERT_EQ("Taxi", std::string(taxi->name()->c_str()));
 
   ASSERT_EQ(2, (*response->connections())[1]->transports()->size());
-  auto direct_conn =
-      (Transport const*)(*(*response->connections())[1]->transports())[0]
-          ->move();
+  auto direct_conn = reinterpret_cast<Transport const*>(
+      (*(*response->connections())[1]->transports())[0]->move());
   ASSERT_EQ(1, direct_conn->train_nr());
 }
 

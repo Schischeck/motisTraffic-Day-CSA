@@ -19,7 +19,7 @@
 
 #include "../include/schedules/schedule2.h"
 #include "../include/schedules/schedule5.h"
-#include "../include/schedules/schedule6.h"
+#include "../include/schedules/schedule6_footconnection.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
 

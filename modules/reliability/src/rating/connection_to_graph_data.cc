@@ -21,7 +21,8 @@ std::vector<std::vector<connection_element>> get_elements(
     schedule const& sched, journey const& journey) {
   std::vector<std::vector<connection_element>> elements;
 
-  // TODO it would be more efficient to find the first route edge
+  // TODO(Mohammad Keyhani) it would be more efficient to find the first route
+  // edge
   // and follow the route to get the succeeding elements
   foreach_light_connection(journey, [&](unsigned const dep_stop_idx,
                                         unsigned const transport_idx) {
@@ -87,7 +88,7 @@ connection_element const to_element(
   auto const& tail_station = *sched.station_nodes_.at(
       sched.eva_to_station_.find(tail_eva)->second->index_);
   auto const head_station_id =
-      (unsigned int)sched.eva_to_station_.find(head_eva)->second->index_;
+      sched.eva_to_station_.find(head_eva)->second->index_;
 
   for (auto const& entering_edge : tail_station.edges_) {
     auto const route_edge =
