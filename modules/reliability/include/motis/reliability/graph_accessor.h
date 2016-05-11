@@ -62,9 +62,9 @@ inline light_connection const& get_previous_light_connection(
 inline duration get_waiting_time(waiting_time_rules const& waiting_time_rules,
                                  uint32_t const family_feeder_train,
                                  uint32_t const family_connecting_train) {
-  return (duration)waiting_time_rules.waiting_time(
+  return static_cast<duration>(waiting_time_rules.waiting_time(
       waiting_time_rules.waiting_time_category(family_connecting_train),
-      waiting_time_rules.waiting_time_category(family_feeder_train));
+      waiting_time_rules.waiting_time_category(family_feeder_train)));
 }
 inline duration get_waiting_time(
     waiting_time_rules const& waiting_time_rules,

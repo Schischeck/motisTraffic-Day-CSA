@@ -11,10 +11,10 @@ struct context;
 struct start_and_travel_distributions;
 namespace distributions_container {
 struct container;
-}
+}  // namespace distributions_container
 namespace rating {
 struct connection_element;
-};
+}  // namespace rating
 
 namespace distributions_calculator {
 namespace ride_distribution {

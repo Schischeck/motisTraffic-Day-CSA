@@ -130,5 +130,5 @@ struct interchange_data_for_tests {
   edge const& departing_route_edge_;
   light_connection const& departing_light_conn_;
 };
-}
-}
+}  // namespace reliability
+}  // namespace motis

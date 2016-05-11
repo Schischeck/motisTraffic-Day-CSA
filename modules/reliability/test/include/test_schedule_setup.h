@@ -21,7 +21,7 @@ protected:
       : schedule_path_(std::move(schedule_name)),
         schedule_begin_(std::move(schedule_begin)) {}
 
-  virtual void SetUp() override {
+  void SetUp() override {
     schedule_ = loader::load_schedule(
         {schedule_path_, false, true, false, false, schedule_begin_, 2});
   }
@@ -46,21 +46,22 @@ public:
                            [](std::unique_ptr<motis::module::module> const& m) {
                              return m->name() == "reliability";
                            });
-    return *((reliability*)it->get());
+    return *(reinterpret_cast<reliability*>(it->get()));
   }
 
 protected:
   explicit test_motis_setup(std::string schedule_path,
-                            std::string schedule_begin, bool realtime = false,
-                            bool bikesharing = false,
+                            std::string schedule_begin,
+                            bool const realtime = false,
+                            bool const bikesharing = false,
                             std::string bikesharing_path = "")
-      : schedule_path_(schedule_path),
-        schedule_begin_(schedule_begin),
+      : schedule_path_(std::move(schedule_path)),
+        schedule_begin_(std::move(schedule_begin)),
         realtime_(realtime),
         bikesharing_(bikesharing),
-        bikesharing_path_(bikesharing_path) {}
+        bikesharing_path_(std::move(bikesharing_path)) {}
 
-  virtual void SetUp() override {
+  void SetUp() override {
     std::vector<std::string> modules = {"reliability", "routing"};
     std::vector<std::string> modules_cmdline_opt;
     if (realtime_) {
@@ -77,11 +78,9 @@ protected:
     }
     motis_instance_ = test::launch_motis(schedule_path_, schedule_begin_,
                                          modules, modules_cmdline_opt);
-    reliability_context_ = std::unique_ptr<motis::reliability::context>(
-        new motis::reliability::context(
-            get_schedule(),
-            get_reliability_module().precomputed_distributions(),
-            get_reliability_module().s_t_distributions()));
+    reliability_context_ = std::make_unique<motis::reliability::context>(
+        get_schedule(), get_reliability_module().precomputed_distributions(),
+        get_reliability_module().s_t_distributions());
   }
 
 private:
@@ -92,8 +91,8 @@ private:
 };
 
 struct schedule_station {
-  char const* name;
-  char const* eva;
+  char const* name_;
+  char const* eva_;
 };
 
 }  // namespace reliability

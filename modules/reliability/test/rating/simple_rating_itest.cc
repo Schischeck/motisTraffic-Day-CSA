@@ -40,11 +40,11 @@ public:
 TEST_F(reliability_simple_rating2, simple_rate) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule2::STUTTGART.name,
-                             schedule2::STUTTGART.eva,
+          .add_pretrip_start(schedule2::STUTTGART.name_,
+                             schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
-          .add_destination(schedule2::KASSEL.name, schedule2::KASSEL.eva)
+          .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -83,10 +83,10 @@ TEST_F(reliability_simple_rating2, simple_rate) {
 TEST_F(reliability_simple_rating5, simple_rate2) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
+          .add_pretrip_start(schedule5::MANNHEIM.name_, schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(schedule5::MARBURG.name, schedule5::MARBURG.eva)
+          .add_destination(schedule5::MARBURG.name_, schedule5::MARBURG.eva_)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;

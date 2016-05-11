@@ -135,10 +135,10 @@ TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
           .build_reliable_search_request(1);
   test_cg(motis_instance_->run([&]() {
     return search_cgs(motis_content(ReliableRoutingRequest, msg),
@@ -151,10 +151,10 @@ TEST_F(reliability_connection_graph_search,
        connection_tree_three_alternatives) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
 
   test_cg(motis_instance_->run([&]() {
@@ -169,10 +169,10 @@ TEST_F(reliability_connection_graph_search,
 TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name, DARMSTADT.eva,
+          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -246,10 +246,10 @@ TEST_F(reliability_connection_graph_search,
        alternative_requires_further_alternatives) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(PFUNGSTADT.name, PFUNGSTADT.eva,
+          .add_pretrip_start(PFUNGSTADT.name_, PFUNGSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 630),
                              test_util::hhmm_to_unixtime(get_schedule(), 630))
-          .add_destination(FRANKFURT.name, FRANKFURT.eva)
+          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -274,15 +274,15 @@ TEST_F(reliability_connection_graph_search,
       ASSERT_EQ(1 /* Frankfurt */, stop.alternative_infos_[0].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[0].journey_index_];
-      ASSERT_EQ(DARMSTADT.eva, alternative.stops_.front().eva_no_);
-      ASSERT_EQ(FRANKFURT.eva, alternative.stops_.back().eva_no_);
+      ASSERT_EQ(DARMSTADT.eva_, alternative.stops_.front().eva_no_);
+      ASSERT_EQ(FRANKFURT.eva_, alternative.stops_.back().eva_no_);
     }
     {
       ASSERT_EQ(3 /* Langen */, stop.alternative_infos_[1].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[1].journey_index_];
-      ASSERT_EQ(DARMSTADT.eva, alternative.stops_.front().eva_no_);
-      ASSERT_EQ(LANGEN.eva, alternative.stops_.back().eva_no_);
+      ASSERT_EQ(DARMSTADT.eva_, alternative.stops_.front().eva_no_);
+      ASSERT_EQ(LANGEN.eva_, alternative.stops_.back().eva_no_);
     }
   }
   // Langen
@@ -290,8 +290,8 @@ TEST_F(reliability_connection_graph_search,
   for (auto const& alternative_info : cg.stops_[3].alternative_infos_) {
     ASSERT_EQ(1 /* Frankfurt */, alternative_info.next_stop_index_);
     auto const& alternative = cg.journeys_[alternative_info.journey_index_];
-    ASSERT_EQ(LANGEN.eva, alternative.stops_.front().eva_no_);
-    ASSERT_EQ(FRANKFURT.eva, alternative.stops_.back().eva_no_);
+    ASSERT_EQ(LANGEN.eva_, alternative.stops_.front().eva_no_);
+    ASSERT_EQ(FRANKFURT.eva_, alternative.stops_.back().eva_no_);
   }
   // Frankfurt
   ASSERT_EQ(0, cg.stops_[1].alternative_infos_.size());

@@ -146,7 +146,7 @@ TEST_F(reliability_data_departure_interchange2,
       preceding_arrival_light_conn.a_time_);
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.min_standing_ == 2);
   ASSERT_TRUE(data.train_info_.preceding_arrival_info_.arrival_distribution_ ==
-              &train_distributions.dist);
+              &train_distributions.dist_);
 
   ASSERT_TRUE(data.interchange_feeder_info_.scheduled_arrival_time_ ==
               ic_data.arriving_light_conn_.a_time_);

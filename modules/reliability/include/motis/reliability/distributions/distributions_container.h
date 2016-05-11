@@ -71,7 +71,7 @@ struct container {
 
   container() : invalid_node_(std::make_shared<node>()) {}
 
-  virtual ~container() {}
+  virtual ~container() = default;
 
   virtual probability_distribution const& get_distribution(key const& k) const {
     auto it = distributions_nodes_.find(k);
@@ -121,7 +121,8 @@ inline std::ostream& operator<<(std::ostream& out, container::key const& k) {
 }
 
 struct single_distribution_container : container {
-  single_distribution_container(probability_distribution const& distribution)
+  explicit single_distribution_container(
+      probability_distribution const& distribution)
       : distribution_(distribution) {}
   probability_distribution const& get_distribution(key const&) const override {
     return distribution_;

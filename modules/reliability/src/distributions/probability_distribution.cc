@@ -6,6 +6,8 @@
 namespace motis {
 namespace reliability {
 
+constexpr double THRESHOLD_SMALL_VALUES = 0.00001;
+
 void probability_distribution::init(
     std::vector<probability> const& probabilities, int const first_minute) {
   if (probabilities.empty()) {
@@ -137,8 +139,6 @@ std::ostream& operator<<(std::ostream& os,
   }
   return os;
 }
-
-const double probability_distribution::THRESHOLD_SMALL_VALUES = 0.00001;
 
 }  // namespace reliability
 }  // namespace motis

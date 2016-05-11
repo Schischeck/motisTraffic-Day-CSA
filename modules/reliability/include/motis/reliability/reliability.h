@@ -20,10 +20,10 @@ namespace reliability {
 struct reliability : public motis::module::module {
   reliability();
 
-  virtual std::string name() const override { return "reliability"; }
-  virtual boost::program_options::options_description desc() override;
-  virtual void print(std::ostream& out) const override;
-  virtual bool empty_config() const override { return false; }
+  std::string name() const override { return "reliability"; }
+  boost::program_options::options_description desc() override;
+  void print(std::ostream& out) const override;
+  bool empty_config() const override { return false; }
 
   void init(motis::module::registry&) override;
 

@@ -43,7 +43,7 @@ inline journey const& select_alternative(std::vector<journey> const& journeys) {
 }
 
 inline bool check_journey(journey const& j) {
-  if (j.transports_.size() < 1 || j.stops_.size() < 2) {
+  if (j.transports_.empty() || j.stops_.size() < 2) {
     return false;
   }
   if (j.stops_.front().departure_.timestamp_ == 0 ||
@@ -58,9 +58,9 @@ inline bool check_journey(journey const& j) {
 inline std::vector<journey> remove_invalid_journeys(
     std::vector<journey> const& journeys) {
   std::vector<journey> filtered;
-  for (auto it = journeys.begin(); it != journeys.end(); ++it) {
-    if (check_journey(*it)) {
-      filtered.push_back(std::move(*it));
+  for (auto& j : journeys) {
+    if (check_journey(j)) {
+      filtered.push_back(std::move(j));
     }
   }
   return filtered;

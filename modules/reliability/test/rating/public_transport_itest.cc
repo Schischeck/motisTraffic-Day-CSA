@@ -68,7 +68,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
   std::vector<rating::rating_element> ratings;
   interchange_data_for_tests const ic_data(
       test_info.get_schedule(), schedule2::ICE_S_E, schedule2::ICE_E_K,
-      schedule2::STUTTGART.eva, schedule2::ERLANGEN.eva, schedule2::KASSEL.eva,
+      schedule2::STUTTGART.eva_, schedule2::ERLANGEN.eva_, schedule2::KASSEL.eva_,
       11 * 60 + 32, 12 * 60 + 32, 12 * 60 + 45, 14 * 60 + 15);
 
   // departure ICE_S_E in Stuttgart
@@ -114,11 +114,11 @@ std::vector<rating::rating_element> compute_test_ratings1(
 TEST_F(reliability_public_transport2, rate) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule2::STUTTGART.name,
-                             schedule2::STUTTGART.eva,
+          .add_pretrip_start(schedule2::STUTTGART.name_,
+                             schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
-          .add_destination(schedule2::KASSEL.name, schedule2::KASSEL.eva)
+          .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -285,10 +285,10 @@ std::vector<rating::rating_element> compute_test_ratings2(
 TEST_F(reliability_public_transport5, rate2) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule5::MANNHEIM.name, schedule5::MANNHEIM.eva,
+          .add_pretrip_start(schedule5::MANNHEIM.name_, schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(schedule5::MARBURG.name, schedule5::MARBURG.eva)
+          .add_destination(schedule5::MARBURG.name_, schedule5::MARBURG.eva_)
           .build_routing_request();
   auto msg = test::call(motis_instance_, req_msg);
   using routing::RoutingResponse;
@@ -336,8 +336,8 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
   // departing train S_M_W from Messe to West
   interchange_data_for_tests const ic_data(
       test_info.get_schedule(), schedule3::ICE_L_H, schedule3::S_M_W,
-      schedule3::LANGEN.eva, schedule3::FRANKFURT.eva, schedule3::MESSE.eva,
-      schedule3::WEST.eva, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
+      schedule3::LANGEN.eva_, schedule3::FRANKFURT.eva_, schedule3::MESSE.eva_,
+      schedule3::WEST.eva_, 10 * 60, 10 * 60 + 10, 10 * 60 + 20, 10 * 60 + 25);
 
   // departure ICE_L_H in Langen
   ratings.emplace_back(0);
@@ -382,10 +382,10 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 TEST_F(reliability_public_transport3, rate_foot) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule3::LANGEN.name, schedule3::LANGEN.eva,
+          .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
-          .add_destination(schedule3::WEST.name, schedule3::WEST.eva)
+          .add_destination(schedule3::WEST.name_, schedule3::WEST.eva_)
           .build_routing_request();
   using routing::RoutingResponse;
   auto const journeys = message_to_journeys(

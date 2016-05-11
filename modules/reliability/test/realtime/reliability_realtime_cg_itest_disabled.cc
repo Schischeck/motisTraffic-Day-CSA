@@ -120,15 +120,15 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
   test_scheduled_cg(test::send(
       motis_instance_,
       flatbuffers::request_builder::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .add_station(DARMSTADT.name_, DARMSTADT.eva_)
+          .add_station(FRANKFURT.name_, FRANKFURT.eva_)
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1)));
 
   test::send(motis_instance_,
              realtime::get_delay_message(
-                 LANGEN.eva, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
+                 LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
                  1445238660 /* 2015-10-19 07:11:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Is));
 
@@ -140,15 +140,15 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 
   test::send(motis_instance_,
              realtime::get_delay_message(
-                 LANGEN.eva, RE_L_F, 1445238900 /* 2015-10-19 07:15:00 GMT */,
+                 LANGEN.eva_, RE_L_F, 1445238900 /* 2015-10-19 07:15:00 GMT */,
                  1445238960 /* 2015-10-19 07:16:00 GMT */,
                  ris::EventType_Departure, ris::DelayType_Forecast));
 
   test_realtime_cg(test::send(
       motis_instance_,
       flatbuffers::request_builder::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(FRANKFURT.name, FRANKFURT.eva)
+          .add_station(DARMSTADT.name_, DARMSTADT.eva_)
+          .add_station(FRANKFURT.name_, FRANKFURT.eva_)
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1)));
@@ -157,13 +157,13 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
   test::send(motis_instance_,
              realtime::get_delay_message(
-                 LANGEN.eva, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
+                 LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
                  1445238660 /* 2015-10-19 07:11:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Is));
   auto req_msg =
       flatbuffers::request_builder::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(LANGEN.name, LANGEN.eva)
+          .add_station(DARMSTADT.name_, DARMSTADT.eva_)
+          .add_station(LANGEN.name_, LANGEN.eva_)
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1);
@@ -182,14 +182,14 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
   test::send(motis_instance_,
              realtime::get_delay_message(
-                 LANGEN.eva, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
+                 LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
                  1445238660 /* 2015-10-19 07:11:00 GMT */,
                  ris::EventType_Arrival, ris::DelayType_Forecast));
 
   auto req_msg =
       flatbuffers::request_builder::request_builder()
-          .add_station(DARMSTADT.name, DARMSTADT.eva)
-          .add_station(LANGEN.name, LANGEN.eva)
+          .add_station(DARMSTADT.name_, DARMSTADT.eva_)
+          .add_station(LANGEN.name_, LANGEN.eva_)
           .set_interval(std::make_tuple(19, 10, 2015), (motis::time)(7 * 60),
                         (motis::time)(7 * 60 + 1))
           .build_reliable_search_request(1);

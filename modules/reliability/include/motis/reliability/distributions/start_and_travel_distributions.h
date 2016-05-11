@@ -17,7 +17,7 @@ struct start_and_travel_distributions {
   using probability_distribution_cref =
       std::reference_wrapper<probability_distribution const>;
 
-  virtual ~start_and_travel_distributions() {}
+  virtual ~start_and_travel_distributions() = default;
 
   /**
    * @return true if a distribution could be found.

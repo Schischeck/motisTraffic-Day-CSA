@@ -57,6 +57,6 @@ private:
                         std::vector<std::unique_ptr<category>> const&);
 };
 
-}  // namespace calc_arrival_distribution {
+}  // namespace calc_arrival_distribution
 }  // namespace reliability
 }  // namespace motis

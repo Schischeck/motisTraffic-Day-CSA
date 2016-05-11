@@ -9,9 +9,9 @@ namespace search {
 namespace connection_graph_search {
 
 struct connection_graph_optimizer {
-  connection_graph_optimizer(duration const min_departure_diff)
+  explicit connection_graph_optimizer(duration const min_departure_diff)
       : min_departure_diff_(min_departure_diff) {}
-  virtual ~connection_graph_optimizer() {}
+  virtual ~connection_graph_optimizer() = default;
   virtual bool complete(
       connection_graph::stop const&,
       detail::context::conn_graph_context::stop_state const&) const = 0;
@@ -20,7 +20,7 @@ struct connection_graph_optimizer {
 };
 
 struct reliable_cg_optimizer : connection_graph_optimizer {
-  reliable_cg_optimizer(duration const min_departure_diff)
+  explicit reliable_cg_optimizer(duration const min_departure_diff)
       : connection_graph_optimizer(min_departure_diff) {}
 
   bool complete(connection_graph::stop const&,

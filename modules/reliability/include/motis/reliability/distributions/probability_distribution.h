@@ -33,10 +33,11 @@ struct probability_distribution {
   probability sum() const;
 
   /* insert all probabilities in to the vector 'probabilities' */
-  template <typename Prob_Type>
-  void get_probabilities(std::vector<Prob_Type>& probabilities) const {
-    for (int i = first_minute_; i <= last_minute(); ++i)
-      probabilities.push_back((Prob_Type)probability_equal(i));
+  template <typename ProbType>
+  void get_probabilities(std::vector<ProbType>& probabilities) const {
+    for (int i = first_minute_; i <= last_minute(); ++i) {
+      probabilities.push_back(static_cast<ProbType>(probability_equal(i)));
+    }
   }
 
   friend std::ostream& operator<<(std::ostream& os,
@@ -49,8 +50,6 @@ private:
 
   std::vector<probability> probabilities_;
   int first_minute_;
-
-  static const double THRESHOLD_SMALL_VALUES;
 };
 
 inline int timestamp_to_delay(time const scheduled_time,

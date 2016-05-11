@@ -33,9 +33,10 @@ struct context {
     std::vector<stop_state> stop_states_;
   };
 
-  context(motis::reliability::context const& rel_context,
+  context(motis::reliability::context rel_context,
           std::shared_ptr<connection_graph_optimizer const> optimizer)
-      : reliability_context_(rel_context), optimizer_(optimizer) {}
+      : reliability_context_(std::move(rel_context)),
+        optimizer_(std::move(optimizer)) {}
 
   motis::reliability::context reliability_context_;
 
@@ -44,8 +45,8 @@ struct context {
 
   struct journey_cache_key {
     journey_cache_key() = default;
-    journey_cache_key(std::string const& from_eva, time_t const& ontrip_time)
-        : from_eva_(from_eva), ontrip_time_(ontrip_time) {}
+    journey_cache_key(std::string from_eva, time_t const& ontrip_time)
+        : from_eva_(std::move(from_eva)), ontrip_time_(ontrip_time) {}
     bool operator<(journey_cache_key const& right) const {
       return from_eva_ < right.from_eva_ || (from_eva_ == right.from_eva_ &&
                                              ontrip_time_ < right.ontrip_time_);

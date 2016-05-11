@@ -65,8 +65,8 @@ probability train_arrives_before_time(data_departure const& data,
  * departure_after_waiting_interval */
 probability train_arrives_at_time(data_departure const& data,
                                   time const timestamp);
-}
-}
+}  // namespace detail
+}  // namespace calc_departure_distribution
 
 }  // namespace reliability
 }  // namespace motis

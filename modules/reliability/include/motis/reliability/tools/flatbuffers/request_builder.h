@@ -18,9 +18,9 @@ struct bikesharing_infos;
 namespace flatbuffers {
 
 struct request_builder {
-  request_builder(
+  explicit request_builder(
       routing::SearchType search_type = routing::SearchType_DefaultForward);
-  request_builder(routing::RoutingRequest const*);
+  explicit request_builder(routing::RoutingRequest const*);
 
   request_builder& add_pretrip_start(std::string const& name,
                                      std::string const& id,

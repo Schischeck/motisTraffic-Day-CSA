@@ -14,7 +14,7 @@ struct connection_element;
 
 namespace connection_to_graph_data {
 struct element_not_found_exception : std::exception {
-  const char* what() const throw() {
+  const char* what() const throw() override {
     return "Could not find light connections of a journey";
   };
 };
