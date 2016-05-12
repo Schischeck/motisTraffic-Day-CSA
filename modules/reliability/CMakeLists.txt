@@ -12,14 +12,3 @@ target_link_libraries(motis-reliability
   motis-module
   motis-core
 )
-
-add_executable(motis-reliability-eval EXCLUDE_FROM_ALL eval/main.cc ${motis-reliability-files})
-set_target_properties(motis-reliability-eval PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-target_link_libraries(motis-reliability-eval 
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_THREAD_LIBRARY}
-  ${NETWORKING}
-  motis-reliability
-  motis-routing
-)

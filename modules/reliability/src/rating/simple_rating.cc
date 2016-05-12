@@ -68,7 +68,8 @@ probability rate_interchange(
       graph_accessor::get_interchange_time(*last_element_feeder.to_,
                                            *first_element_departing_train.from_,
                                            schedule);
-  int const delay = (int)latest_feasible_arrival - (int)scheduled_arrival_time;
+  int const delay = static_cast<int>(latest_feasible_arrival) -
+                    static_cast<int>(scheduled_arrival_time);
   return travel_time_distribution.probability_smaller_equal(delay);
 }
 

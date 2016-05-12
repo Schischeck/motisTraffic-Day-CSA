@@ -25,8 +25,6 @@
 #include "motis/reliability/search/connection_graph_builder.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
 
-namespace p = std::placeholders;
-
 namespace motis {
 namespace reliability {
 namespace search {

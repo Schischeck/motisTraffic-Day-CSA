@@ -30,7 +30,7 @@ struct request_builder {
                                             std::string const& id,
                                             std::time_t const ontrip_time);
   request_builder& add_destination(std::string const& name,
-                                   std::string const& eva);
+                                   std::string const& id);
 
   /* for reliable intermodal requests */
   request_builder& add_dep_coordinates(double const& lat, double const& lng);
