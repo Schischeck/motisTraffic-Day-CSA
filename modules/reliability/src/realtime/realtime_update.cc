@@ -7,21 +7,21 @@
 
 #include "motis/protocol/RealtimeDelayInfoResponse_generated.h"
 
-#include "motis/reliability/context.h"
-#include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/computation/data_departure.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
+#include "motis/reliability/graph_accessor.h"
 
 namespace motis {
 namespace reliability {
 namespace realtime {
 
 struct lc_not_found_exception : std::exception {
-  const char* what() const throw() {
+  const char* what() const throw() override {
     return "Could not find the light connection for a delay-info";
   };
 };
@@ -33,25 +33,26 @@ using route_node_and_lc_info =
 route_node_and_lc_info get_node_and_light_connection(
     node const& station, bool const is_departure,
     std::function<std::pair<light_connection const*, unsigned int>(
-        edge const* route_edge)> find_light_conn) {
+        edge const* route_edge)>
+        find_light_conn) {
   if (is_departure) {
-    for (auto const& e : station._edges) {
+    for (auto const& e : station.edges_) {
       if (auto const* route_edge =
-              graph_accessor::get_departing_route_edge(*e._to)) {
+              graph_accessor::get_departing_route_edge(*e.to_)) {
         auto const light_conn = find_light_conn(route_edge);
         if (light_conn.first) {
-          return std::make_tuple(route_edge->_from, light_conn.first,
+          return std::make_tuple(route_edge->from_, light_conn.first,
                                  light_conn.second);
         }
       }
     }
   } else {
-    for (auto const* e : station._incoming_edges) {
+    for (auto const* e : station.incoming_edges_) {
       if (auto const* route_edge =
-              graph_accessor::get_arriving_route_edge(*e->_from)) {
+              graph_accessor::get_arriving_route_edge(*e->from_)) {
         auto const light_conn = find_light_conn(route_edge);
         if (light_conn.first) {
-          return std::make_tuple(route_edge->_to, light_conn.first,
+          return std::make_tuple(route_edge->to_, light_conn.first,
                                  light_conn.second);
         }
       }
@@ -74,56 +75,58 @@ std::pair<std::string, std::string> get_category_and_line_identification(
         auto const light_conn = graph_accessor::find_light_connection(
             *route_edge, get_event_time(delay_info),
             delay_info->departure() == 1, [&](connection_info const& ci) {
-              return ci.train_nr == delay_info->train_nr();
+              return ci.train_nr_ == delay_info->train_nr();
             });
         return light_conn;
       };
 
   auto res = get_node_and_light_connection(
-      *sched.station_nodes.at(delay_info->station_index()),
+      *sched.station_nodes_.at(delay_info->station_index()),
       delay_info->departure() == 1, find_light_conn);
 
   auto const* light_conn = std::get<1>(res);
   return std::make_pair(
-      sched.categories.at(light_conn->_full_con->con_info->family)->name,
-      light_conn->_full_con->con_info->line_identifier);
+      sched.categories_.at(light_conn->full_con_->con_info_->family_)->name_,
+      light_conn->full_con_->con_info_->line_identifier_);
 }
 
 route_node_and_lc_info get_node_and_light_connection(
     distributions_container::container::key const& key, schedule const& sched) {
   auto get_event_time = [](motis::delay_info const* delay_info) {
-    return delay_info->_reason == motis::timestamp_reason::FORECAST
-               ? delay_info->_forecast_time
-               : delay_info->_current_time;
+    return delay_info->reason_ == motis::timestamp_reason::FORECAST
+               ? delay_info->forecast_time_
+               : delay_info->current_time_;
   };
 
-  auto const it = sched.schedule_to_delay_info.find(schedule_event(
+  auto const it = sched.schedule_to_delay_info_.find(schedule_event(
       key.station_index_, key.train_id_, key.type_ == time_util::departure,
       key.scheduled_event_time_));
-  unsigned int const current_time = it == sched.schedule_to_delay_info.end()
+  unsigned int const current_time = it == sched.schedule_to_delay_info_.end()
                                         ? key.scheduled_event_time_
                                         : get_event_time(it->second);
 
-  auto find_light_conn = [&](edge const* route_edge)
-      -> std::pair<light_connection const*, unsigned int> {
-        auto const light_conn = graph_accessor::find_light_connection(
-            *route_edge, current_time, key.type_ == time_util::departure,
-            graph_accessor::find_family(sched.categories, key.category_).second,
-            key.train_id_, key.line_identifier_);
-        return light_conn;
-      };
+  auto find_light_conn =
+      [&](edge const* route_edge) -> std::pair<light_connection const*,
+                                               unsigned int> {
+    auto const light_conn = graph_accessor::find_light_connection(
+        *route_edge, current_time, key.type_ == time_util::departure,
+        graph_accessor::find_family(sched.categories_, key.category_).second,
+        key.train_id_, key.line_identifier_);
+    return light_conn;
+  };
 
   return get_node_and_light_connection(
-      *sched.station_nodes.at(key.station_index_),
+      *sched.station_nodes_.at(key.station_index_),
       key.type_ == time_util::departure, find_light_conn);
 }
-}
+}  // namespace graph_util
 
 namespace detail {
 distributions_container::container::node* find_distribution_node(
     motis::realtime::DelayInfo const* delay_info, schedule const& sched,
     distributions_container::container& precomputed_distributions) {
-  // TODO: category and line-identification can be read from the RIS-message
+  // TODO(Mohammad Keyhani): category and line-identification can be read from
+  // the RIS-message
   auto const cat_line =
       graph_util::get_category_and_line_identification(delay_info, sched);
   distributions_container::container::key key(
@@ -216,7 +219,7 @@ void process_element(
                                                                 element->pd_);
   } else {
     calc_arrival_distribution::data_arrival const a_data(
-        *graph_accessor::get_arriving_route_edge(*route_node)->_from,
+        *graph_accessor::get_arriving_route_edge(*route_node)->from_,
         *route_node, *lc, element->predecessors_.front()->pd_, c.schedule_,
         c.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(a_data,
@@ -233,7 +236,7 @@ void process_element(
     ++not_significant;
   }
 }
-}
+}  // namespace detail
 
 void update_precomputed_distributions(
     motis::realtime::RealtimeDelayInfoResponse const* res,
@@ -250,12 +253,11 @@ void update_precomputed_distributions(
   /* add all events with updates to the queue */
   detail::queue_type queue;
   std::set<distributions_container::container::node*> currently_processed;
-  for (auto it = res->delay_infos()->begin(); it != res->delay_infos()->end();
-       ++it) {
-    if (it->reason() == motis::realtime::InternalTimestampReason_Is) {
+  for (auto const& info : *res->delay_infos()) {
+    if (info->reason() == motis::realtime::InternalTimestampReason_Is) {
       try {
         if (auto n = detail::find_distribution_node(
-                *it, sched, precomputed_distributions)) {
+                info, sched, precomputed_distributions)) {
           queue.emplace(n);
         }
       } catch (std::exception& e) {
@@ -278,8 +280,8 @@ void update_precomputed_distributions(
   }
 
   /* print statistics */
-  auto to_percent = [&](unsigned int c) -> float {
-    return ((c * 100.0) / (double)detail::num_processed);
+  auto to_percent = [&](unsigned int c) -> double {
+    return ((c * 100.0) / static_cast<double>(detail::num_processed));
   };
   std::stringstream sst;
   sst << "Queue contained " << detail::num_processed << " elements";

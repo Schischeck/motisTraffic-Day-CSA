@@ -4,9 +4,9 @@
 #include <tuple>
 #include <vector>
 
+#include "motis/core/schedule/time.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
-#include "motis/core/schedule/time.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
@@ -24,12 +24,12 @@ namespace response_builder {
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b,
     routing::RoutingResponse const* orig_routing_response) {
-  std::vector<Offset<routing::Connection>> connections;
+  std::vector<Offset<Connection>> connections;
   auto const journeys = message_to_journeys(orig_routing_response);
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  return CreateRoutingResponse(b, 0, b.CreateVector(connections));
+  return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
 }
 
 namespace rating_converter {
@@ -41,14 +41,14 @@ Offset<reliability::ProbabilityDistribution> convert(
   pd.get_probabilities(probabilities);
   auto fpd = CreateProbabilityDistribution(
       b, scheduled_event_time + (pd.first_minute() * 60),
-      b.CreateVector(probabilities), (float)pd.sum());
+      b.CreateVector(probabilities), static_cast<float>(pd.sum()));
   return fpd;
 }
 
 /* write the distributions for all events */
 std::vector<Offset<RatingElement>> convert_rating_elements(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    routing::Connection const* orig_conn) {
+    motis::Connection const* orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto e : conn_rating.public_transport_ratings_) {
     Range r(e.departure_stop_idx_, e.arrival_stop_idx());
@@ -69,43 +69,43 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
  * the first departure and the last arrival */
 std::vector<Offset<RatingElement>> convert_rating_elements_short(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    routing::Connection const* orig_conn) {
+    Connection const* orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
-  for (auto it_t = orig_conn->transports()->begin();
-       it_t != orig_conn->transports()->end(); ++it_t) {
-    if (it_t->move_type() == routing::Move_Transport) {
-      auto transport = (routing::Transport const*)it_t->move();
-      auto const rating_from =
-          std::find_if(conn_rating.public_transport_ratings_.begin(),
-                       conn_rating.public_transport_ratings_.end(),
-                       [transport](rating::rating_element const& rating) {
-                         return (unsigned int)transport->range()->from() ==
-                                rating.departure_stop_idx_;
-                       });
-      auto const rating_to =
-          std::find_if(conn_rating.public_transport_ratings_.begin(),
-                       conn_rating.public_transport_ratings_.end(),
-                       [transport](rating::rating_element const& rating) {
-                         return (unsigned int)transport->range()->to() ==
-                                rating.arrival_stop_idx();
-                       });
-      if (rating_from == conn_rating.public_transport_ratings_.end() ||
-          rating_to == conn_rating.public_transport_ratings_.end()) {
-        std::cout << "\nWarning(convert_rating_elements_short) failure."
-                  << std::endl;
-        break;
-      }
-      Range r(rating_from->departure_stop_idx_, rating_to->arrival_stop_idx());
-      rating_elements.push_back(CreateRatingElement(
-          b, &r, convert(b, rating_from->departure_distribution_,
-                         (*orig_conn->stops())[rating_from->departure_stop_idx_]
-                             ->departure()
-                             ->schedule_time()),
-          convert(b, rating_to->arrival_distribution_,
-                  (*orig_conn->stops())[rating_to->arrival_stop_idx()]
-                      ->arrival()
-                      ->schedule_time())));
+  for (auto const& trans : *orig_conn->transports()) {
+    if (trans->move_type() != Move_Transport) {
+      continue;
     }
+    auto transport = reinterpret_cast<Transport const*>(trans->move());
+    auto const from_idx = static_cast<unsigned>(transport->range()->from());
+    auto const to_idx = static_cast<unsigned>(transport->range()->to());
+    auto const rating_from =
+        std::find_if(conn_rating.public_transport_ratings_.begin(),
+                     conn_rating.public_transport_ratings_.end(),
+                     [from_idx](rating::rating_element const& rating) {
+                       return from_idx == rating.departure_stop_idx_;
+                     });
+    auto const rating_to =
+        std::find_if(conn_rating.public_transport_ratings_.begin(),
+                     conn_rating.public_transport_ratings_.end(),
+                     [to_idx](rating::rating_element const& rating) {
+                       return to_idx == rating.arrival_stop_idx();
+                     });
+    if (rating_from == conn_rating.public_transport_ratings_.end() ||
+        rating_to == conn_rating.public_transport_ratings_.end()) {
+      std::cout << "\nWarning(convert_rating_elements_short) failure."
+                << std::endl;
+      break;
+    }
+    Range r(rating_from->departure_stop_idx_, rating_to->arrival_stop_idx());
+    rating_elements.push_back(CreateRatingElement(
+        b, &r, convert(b, rating_from->departure_distribution_,
+                       (*orig_conn->stops())[rating_from->departure_stop_idx_]
+                           ->departure()
+                           ->schedule_time()),
+        convert(b, rating_to->arrival_distribution_,
+                (*orig_conn->stops())[rating_to->arrival_stop_idx()]
+                    ->arrival()
+                    ->schedule_time())));
   }
   return rating_elements;
 }
@@ -113,10 +113,10 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
 Offset<Vector<Offset<Rating>>> convert_ratings(
     FlatBufferBuilder& b,
     std::vector<rating::connection_rating> const& orig_ratings,
-    Vector<Offset<routing::Connection>> const& orig_connections,
+    Vector<Offset<Connection>> const& orig_connections,
     bool const short_output) {
   std::vector<Offset<Rating>> v_conn_ratings;
-  for (unsigned int c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
+  for (unsigned c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
     auto const& conn_rating = orig_ratings[c_idx];
     auto const orig_conn = orig_connections[c_idx];
     v_conn_ratings.push_back(CreateRating(
@@ -124,7 +124,7 @@ Offset<Vector<Offset<Rating>>> convert_ratings(
                short_output
                    ? convert_rating_elements_short(b, conn_rating, orig_conn)
                    : convert_rating_elements(b, conn_rating, orig_conn)),
-        (float)conn_rating.connection_rating_));
+        static_cast<float>(conn_rating.connection_rating_)));
   }
   return b.CreateVector(v_conn_ratings);
 }
@@ -154,11 +154,10 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
     std::vector<rating::simple_rating::simple_connection_rating> const&
         orig_ratings) {
   std::vector<Offset<SimpleRating>> v_conn_ratings;
-  for (unsigned int c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
-    auto const& conn_rating = orig_ratings[c_idx];
+  for (auto const& conn_rating : orig_ratings) {
     v_conn_ratings.push_back(CreateSimpleRating(
         b, b.CreateVector(convert_simple_rating_elements(b, conn_rating)),
-        (float)conn_rating.connection_rating_));
+        static_cast<float>(conn_rating.connection_rating_)));
   }
   return b.CreateVector(v_conn_ratings);
 }
@@ -180,35 +179,37 @@ module::msg_ptr to_reliability_rating_response(
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
   b.create_and_finish(MsgContent_ReliabilityRatingResponse,
-                    CreateReliabilityRatingResponse(
-                        b, routing_response, conn_ratings, simple_ratings)
-                        .Union());
+                      CreateReliabilityRatingResponse(
+                          b, routing_response, conn_ratings, simple_ratings)
+                          .Union());
   return module::make_msg(b);
 }
 
 std::pair<std::time_t, std::time_t> get_scheduled_times(
     journey const& journey) {
   auto const& first_transport =
-      std::find_if(journey.transports.begin(), journey.transports.end(),
+      std::find_if(journey.transports_.begin(), journey.transports_.end(),
                    [&](journey::transport const& t) {
-                     return t.type == journey::transport::PublicTransport;
+                     return t.type_ == journey::transport::PublicTransport;
                    });
   auto const& last_transport =
-      std::find_if(journey.transports.rbegin(), journey.transports.rend(),
+      std::find_if(journey.transports_.rbegin(), journey.transports_.rend(),
                    [&](journey::transport const& t) {
-                     return t.type == journey::transport::PublicTransport;
+                     return t.type_ == journey::transport::PublicTransport;
                    });
   auto const scheduled_departure =
-      first_transport != journey.transports.end()
-          ? journey.stops[first_transport->from].departure.schedule_timestamp
-          : journey.stops.front()
-                .departure
-                .schedule_timestamp /* transport consists of a walk */;
+      first_transport != journey.transports_.end()
+          ? journey.stops_[first_transport->from_]
+                .departure_.schedule_timestamp_
+          : journey.stops_.front()
+                .departure_
+                .schedule_timestamp_ /* transport consists of a walk */;
   auto const scheduled_arrival =
-      last_transport != journey.transports.rend()
-          ? journey.stops[last_transport->to].arrival.schedule_timestamp
-          : journey.stops.back()
-                .arrival.schedule_timestamp /* transport consists of a walk */;
+      last_transport != journey.transports_.rend()
+          ? journey.stops_[last_transport->to_].arrival_.schedule_timestamp_
+          : journey.stops_.back()
+                .arrival_
+                .schedule_timestamp_ /* transport consists of a walk */;
 
   return std::make_pair(scheduled_departure, scheduled_arrival);
 }
@@ -238,7 +239,7 @@ Offset<ConnectionGraph> to_connection_graph(
         CreateStop(b, stop.index_, b.CreateVector(alternative_infos)));
   }
 
-  std::vector<Offset<routing::Connection>> journeys;
+  std::vector<Offset<Connection>> journeys;
   for (auto const& j : cg.journeys_) {
     journeys.push_back(to_connection(b, j));
   }
@@ -258,9 +259,9 @@ module::msg_ptr to_reliable_routing_response(
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
-                    reliability::CreateReliableRoutingResponse(
-                        b, b.CreateVector(connection_graphs))
-                        .Union());
+                      reliability::CreateReliableRoutingResponse(
+                          b, b.CreateVector(connection_graphs))
+                          .Union());
   return module::make_msg(b);
 }
 

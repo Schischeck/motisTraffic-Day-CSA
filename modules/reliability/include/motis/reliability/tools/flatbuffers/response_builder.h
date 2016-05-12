@@ -13,11 +13,11 @@ namespace rating {
 struct connection_rating;
 namespace simple_rating {
 struct simple_connection_rating;
-}
-}
+}  // namespace simple_rating
+}  // namespace rating
 namespace search {
 struct connection_graph;
-}
+}  // namespace search
 namespace flatbuffers {
 namespace response_builder {
 

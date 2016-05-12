@@ -14,7 +14,7 @@ struct connection_element;
 
 namespace connection_to_graph_data {
 struct element_not_found_exception : std::exception {
-  const char* what() const throw() {
+  const char* what() const throw() override {
     return "Could not find light connections of a journey";
   };
 };
@@ -28,13 +28,12 @@ std::vector<std::vector<connection_element>> get_elements(schedule const&,
                                                           journey const&);
 
 /* get only the last connection element of a journey */
-connection_element get_last_element(schedule const& sched,
-                                    journey const& journey);
+connection_element get_last_element(schedule const&, journey const&);
 
 namespace detail {
 connection_element const to_element(
     unsigned int const departure_stop_idx, schedule const&,
-    std::string const& from_eva, std::string const& to_eva,
+    std::string const& tail_eva, std::string const& head_eva,
     motis::time const dep_time, motis::time const arr_time,
     unsigned int const category_id, unsigned int const train_nr,
     std::string const& line_identifier);

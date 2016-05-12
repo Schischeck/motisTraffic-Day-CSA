@@ -22,15 +22,15 @@ namespace common {
 struct queue_element {
   struct queue_element_cmp {
     bool operator()(queue_element const& a, queue_element const& b) {
-      if (a.light_connection_->d_time == b.light_connection_->d_time) {
-        return a.from_->_id > b.from_->_id;
+      if (a.light_connection_->d_time_ == b.light_connection_->d_time_) {
+        return a.from_->id_ > b.from_->id_;
       }
-      return a.light_connection_->d_time > b.light_connection_->d_time;
+      return a.light_connection_->d_time_ > b.light_connection_->d_time_;
     }
   };
   queue_element(node const* from, node const* to,
                 light_connection const* light_connection,
-                unsigned short const light_connection_idx,
+                uint16_t const light_connection_idx,
                 bool const is_first_route_node)
       : from_(from),
         to_(to),
@@ -40,7 +40,7 @@ struct queue_element {
   node const* from_;
   node const* to_;
   light_connection const* light_connection_;
-  unsigned short light_connection_idx_;
+  uint16_t light_connection_idx_;
   bool is_first_route_node_;
 };
 

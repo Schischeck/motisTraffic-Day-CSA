@@ -8,13 +8,13 @@ using namespace motis::reliability;
 std::vector<s_t_distributions_container::parameters> get_parameters() {
   std::vector<s_t_distributions_container::parameters> param;
   param.emplace_back();
-  param.back().root = "modules/reliability/resources/distributions/";
-  param.back().max_expected_travel_time = 10;
-  param.back().max_expected_departure_delay = 10;
+  param.back().root_ = "modules/reliability/resources/distributions/";
+  param.back().max_expected_travel_time_ = 10;
+  param.back().max_expected_departure_delay_ = 10;
   param.emplace_back();
-  param.back().root = "modules/reliability/resources/distributions2/";
-  param.back().max_expected_travel_time = 10;
-  param.back().max_expected_departure_delay = 10;
+  param.back().root_ = "modules/reliability/resources/distributions2/";
+  param.back().max_expected_travel_time_ = 10;
+  param.back().max_expected_departure_delay_ = 10;
   return param;
 }
 

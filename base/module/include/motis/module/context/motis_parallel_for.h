@@ -3,6 +3,8 @@
 #include "ctx/ctx.h"
 #include "ctx/parallel_for.h"
 
+#include "motis/module/ctx_data.h"
+
 namespace motis {
 namespace module {
 

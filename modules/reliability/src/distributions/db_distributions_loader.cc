@@ -104,8 +104,9 @@ struct distribution_info {
 template <typename Tuple, unsigned int DistributionIDPos,
           unsigned int DelayMinutePos>
 bool distribution_is_smaller(Tuple a, Tuple b) {
-  if (std::get<DistributionIDPos>(a) < std::get<DistributionIDPos>(b))
+  if (std::get<DistributionIDPos>(a) < std::get<DistributionIDPos>(b)) {
     return true;
+  }
   return std::get<DistributionIDPos>(a) == std::get<DistributionIDPos>(b) &&
          std::get<DelayMinutePos>(a) < std::get<DelayMinutePos>(b);
 }
@@ -162,8 +163,8 @@ void parse_distributions(
     // add new distribution entry if necessary
     if (is_first_distribution_element) {
       distribution_infos.emplace_back(
-          (DistributionIDType)std::get<DistributionIDPos>(
-              distributions_entries[i]),
+          static_cast<DistributionIDType>(
+              std::get<DistributionIDPos>(distributions_entries[i])),
           std::get<DelayMinutePos>(
               distributions_entries[i])); /* first delay minute */
     }
@@ -193,7 +194,7 @@ inline bool parse_integer(std::string const& str, int& number) {
 }
 
 inline unsigned int map_negative_to_zero(int number) {
-  return (unsigned int)std::max(0, number);
+  return static_cast<unsigned int>(std::max(0, number));
 }
 
 bool parse_travel_time_interval(std::string const& from_travel_time_str,
@@ -207,10 +208,11 @@ bool parse_travel_time_interval(std::string const& from_travel_time_str,
   } else {
     if (to_travel_time_int < 0) {
       return false;
-    } else if ((unsigned int)to_travel_time_int > max_expected_travel_time) {
+    } else if (static_cast<unsigned>(to_travel_time_int) >
+               max_expected_travel_time) {
       to_travel_time = max_expected_travel_time;
     } else /* to_travel_time_int <= max_expected_travel_time */ {
-      to_travel_time = (unsigned int)to_travel_time_int;
+      to_travel_time = static_cast<unsigned>(to_travel_time_int);
     }
   }
 
@@ -234,7 +236,8 @@ bool parse_departure_delay_interval(
   } else {
     if (to_delay_int <= 0) {
       return false;
-    } else if ((unsigned int)to_delay_int <= max_expected_departure_delay) {
+    } else if (static_cast<unsigned>(to_delay_int) <=
+               max_expected_departure_delay) {
       to_delay = to_delay_int - 1;  // right-open interval
     } else /* to_delay_int > max_expected_departure_delay */ {
       to_delay = max_expected_departure_delay;
@@ -440,6 +443,6 @@ void load_start_distributions(std::string const filepath,
 }
 
 }  // namespace detail
-}  // namespace distributions_loader
+}  // namespace db_distributions_loader
 }  // namespace reliability
 }  // namespace motis

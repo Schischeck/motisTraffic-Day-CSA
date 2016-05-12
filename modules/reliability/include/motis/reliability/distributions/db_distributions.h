@@ -50,7 +50,8 @@ private:
   std::map<std::string, std::string> family_to_distribution_class_;
   std::vector<std::pair<unsigned int, probability_distribution>>
       all_probability_distributions_;
-  // TODO: enable access in constant time (a vector for each travel time)
+  // TODO(Mohammad Keyhani): enable access in constant time (a vector for each
+  // travel time)
   std::map<std::string, /* distribution class */
            std::vector<distribution_mapping>>
       distribution_mappings_;

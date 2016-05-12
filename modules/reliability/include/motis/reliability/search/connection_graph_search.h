@@ -6,18 +6,19 @@
 #include "motis/module/module.h"
 
 #include "motis/reliability/reliability.h"
-#include "motis/reliability/search/cg_search_callback.h"
-#include "motis/reliability/search/connection_graph.h"
 
 namespace motis {
 namespace reliability {
-struct ReliableRoutingRequest;
+struct ReliableRoutingRequest;  // NOLINT
+struct context;
 namespace search {
+struct connection_graph;
 namespace connection_graph_search {
 struct connection_graph_optimizer;
 
-void search_cgs(ReliableRoutingRequest const*, reliability&, motis::module::sid,
-                std::shared_ptr<connection_graph_optimizer const>, callback);
+std::vector<std::shared_ptr<connection_graph> > search_cgs(
+    ReliableRoutingRequest const*, motis::reliability::context const&,
+    std::shared_ptr<connection_graph_optimizer const>);
 
 }  // namespace connection_graph_search
 }  // namespace search

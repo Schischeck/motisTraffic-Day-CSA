@@ -10,7 +10,7 @@
 
 #include "motis/reliability/graph_accessor.h"
 
-#include "../include/test_util.h"
+#include "test_util.h"
 
 namespace motis {
 namespace reliability {
@@ -45,36 +45,37 @@ struct interchange_data_for_tests {
       : arriving_route_edge_(*graph_accessor::get_departing_route_edge(
             *graph_accessor::get_first_route_node(schedule,
                                                   arriving_train_id))),
-        arriving_light_conn_(arriving_route_edge_._m._route_edge._conns[0]),
+        arriving_light_conn_(arriving_route_edge_.m_.route_edge_.conns_[0]),
         tail_node_departing_train_(tail_node_departing_train),
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
             tail_node_departing_train_)),
-        departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
+        departing_light_conn_(departing_route_edge_.m_.route_edge_.conns_[0]) {
     EXPECT_EQ(interchange_station_eva,
-              schedule.stations[tail_node_departing_train_._station_node->_id]
-                  ->eva_nr);
-    EXPECT_EQ(previous_station_eva,
-              schedule.stations[arriving_route_edge_._from->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[tail_node_departing_train_.station_node_->id_]
+                  ->eva_nr_);
+    EXPECT_EQ(
+        previous_station_eva,
+        schedule.stations_[arriving_route_edge_.from_->station_node_->id_]
+            ->eva_nr_);
     EXPECT_EQ(interchange_station_eva,
-              schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[arriving_route_edge_.to_->station_node_->id_]
+                  ->eva_nr_);
     EXPECT_EQ(
         interchange_station_eva,
-        schedule.stations[departing_route_edge_._from->_station_node->_id]
-            ->eva_nr);
+        schedule.stations_[departing_route_edge_.from_->station_node_->id_]
+            ->eva_nr_);
     EXPECT_EQ(next_station_eva,
-              schedule.stations[departing_route_edge_._to->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[departing_route_edge_.to_->station_node_->id_]
+                  ->eva_nr_);
 
     EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_dep),
-              arriving_light_conn_.d_time);
+              arriving_light_conn_.d_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_arr),
-              arriving_light_conn_.a_time);
+              arriving_light_conn_.a_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_dep),
-              departing_light_conn_.d_time);
+              departing_light_conn_.d_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_arr),
-              departing_light_conn_.a_time);
+              departing_light_conn_.a_time_);
   }
 
   /* interchange with walking */
@@ -89,37 +90,38 @@ struct interchange_data_for_tests {
       : arriving_route_edge_(*graph_accessor::get_departing_route_edge(
             *graph_accessor::get_first_route_node(schedule,
                                                   arriving_train_id))),
-        arriving_light_conn_(arriving_route_edge_._m._route_edge._conns[0]),
+        arriving_light_conn_(arriving_route_edge_.m_.route_edge_.conns_[0]),
         tail_node_departing_train_(*graph_accessor::get_first_route_node(
             schedule, departing_train_id)),
         departing_route_edge_(*graph_accessor::get_departing_route_edge(
             tail_node_departing_train_)),
-        departing_light_conn_(departing_route_edge_._m._route_edge._conns[0]) {
+        departing_light_conn_(departing_route_edge_.m_.route_edge_.conns_[0]) {
     EXPECT_EQ(end_walking_eva,
-              schedule.stations[tail_node_departing_train_._station_node->_id]
-                  ->eva_nr);
-    EXPECT_EQ(previous_station_eva,
-              schedule.stations[arriving_route_edge_._from->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[tail_node_departing_train_.station_node_->id_]
+                  ->eva_nr_);
+    EXPECT_EQ(
+        previous_station_eva,
+        schedule.stations_[arriving_route_edge_.from_->station_node_->id_]
+            ->eva_nr_);
     EXPECT_EQ(begin_walking_eva,
-              schedule.stations[arriving_route_edge_._to->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[arriving_route_edge_.to_->station_node_->id_]
+                  ->eva_nr_);
     EXPECT_EQ(
         end_walking_eva,
-        schedule.stations[departing_route_edge_._from->_station_node->_id]
-            ->eva_nr);
+        schedule.stations_[departing_route_edge_.from_->station_node_->id_]
+            ->eva_nr_);
     EXPECT_EQ(next_station_eva,
-              schedule.stations[departing_route_edge_._to->_station_node->_id]
-                  ->eva_nr);
+              schedule.stations_[departing_route_edge_.to_->station_node_->id_]
+                  ->eva_nr_);
 
     EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_dep),
-              arriving_light_conn_.d_time);
+              arriving_light_conn_.d_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(arriving_train_arr),
-              arriving_light_conn_.a_time);
+              arriving_light_conn_.a_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_dep),
-              departing_light_conn_.d_time);
+              departing_light_conn_.d_time_);
     EXPECT_EQ(test_util::minutes_to_motis_time(departing_train_arr),
-              departing_light_conn_.a_time);
+              departing_light_conn_.a_time_);
   }
 
   edge const& arriving_route_edge_;
@@ -128,5 +130,5 @@ struct interchange_data_for_tests {
   edge const& departing_route_edge_;
   light_connection const& departing_light_conn_;
 };
-}
-}
+}  // namespace reliability
+}  // namespace motis

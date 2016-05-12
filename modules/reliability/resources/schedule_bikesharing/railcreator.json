@@ -1,0 +1,115 @@
+{
+  "stations": [
+    {
+      "name": "Frankfurt(Main)Hbf",
+      "tracks": 2,
+      "latitude": 50.108000000000004,
+      "longitude": 8.669999999999959,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "4570367",
+      "ds100Code": "4570367",
+      "KMInfo": 0
+    },
+    {
+      "name": "Darmstadt Hbf",
+      "tracks": 2,
+      "latitude": 49.87299999999999,
+      "longitude": 8.629000000000019,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2158078",
+      "ds100Code": "2158078",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "IC_D_F",
+      "category": "IC",
+      "evaNumber": "8911645",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "2158078",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "4570367",
+          "arrival": 15,
+          "departure": 17,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "18:00:00.000",
+          "untilTime": "18:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "IC_F_D",
+      "category": "IC",
+      "evaNumber": "0717537",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "4570367",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2158078",
+          "arrival": 15,
+          "departure": 17,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "18:00:00.000",
+          "untilTime": "18:00:00.000",
+          "interval": 1
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": [],
+  "startDate": "2015-01-15",
+  "endDate": "2015-01-16",
+  "exportTimezones": true
+}

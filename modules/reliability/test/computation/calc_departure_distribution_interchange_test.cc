@@ -14,6 +14,7 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 
 #include "../include/interchange_data_for_tests.h"
+#include "../include/schedules/schedule2.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
@@ -26,22 +27,7 @@ namespace calc_departure_distribution {
 class reliability_calc_departure_distribution2 : public test_schedule_setup {
 public:
   reliability_calc_departure_distribution2()
-      : test_schedule_setup("modules/reliability/resources/schedule2/",
-                            "20150928") {}
-  std::string const KASSEL = "6380201";
-  std::string const FRANKFURT = "5744986";
-  std::string const STUTTGART = "7309882";
-  std::string const ERLANGEN = "0953067";
-  std::string const HEILBRONN = "1584227";
-
-  /* train numbers */
-  short const RE_K_F = 1;  // 08:00 --> 10:00
-  short const ICE_F_S = 2;  // 10:10 --> 11:10
-  short const ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
-  short const S_N_E = 4;  // 11:30 --> 15:30
-  short const ICE_S_E = 5;  // 11:32 --> 12:32
-  short const S_H_S = 6;  // 07:15 --> 11:15
-  short const ICE_E_K = 7;  // 12:45 --> 14:15
+      : test_schedule_setup(schedule2::PATH, schedule2::DATE) {}
 };
 
 TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {
@@ -56,8 +42,8 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrived) {
   info.arrival_distribution_ = &pd;
 
   for (unsigned int i = 0; i < 8; i++) {
-    probability const prob =
-        interchange::detail::ic_feeder_arrived(info, (motis::time)(4 + i));
+    probability const prob = interchange::detail::ic_feeder_arrived(
+        info, static_cast<motis::time>(4 + i));
     ASSERT_TRUE(equal(prob, (i + 1) * 0.1));
   }
 }
@@ -75,7 +61,7 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 
   for (unsigned int i = 0; i < 8; i++) {
     probability const prob = interchange::detail::ic_feeder_arrives_at_time(
-        info, (motis::time)(4 + i));
+        info, static_cast<motis::time>(4 + i));
     ASSERT_TRUE(equal(prob, 0.1));
   }
 }
@@ -83,9 +69,10 @@ TEST_F(reliability_calc_departure_distribution2, ic_feeder_arrives_at_time) {
 // first route node without feeders, no waiting, interchange highly reliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic1) {
-  interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
-                                           FRANKFURT, STUTTGART, 8 * 60,
-                                           10 * 60, 10 * 60 + 10, 11 * 60 + 10);
+  interchange_data_for_tests const ic_data(
+      *schedule_, schedule2::RE_K_F, schedule2::ICE_F_S, schedule2::KASSEL.eva_,
+      schedule2::FRANKFURT.eva_, schedule2::STUTTGART.eva_, 8 * 60, 10 * 60,
+      10 * 60 + 10, 11 * 60 + 10);
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -93,7 +80,7 @@ TEST_F(reliability_calc_departure_distribution2,
   arrival_distribution.init({.1, .7, .2}, -1);
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy, dummy_node,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -112,9 +99,10 @@ TEST_F(reliability_calc_departure_distribution2,
 // first route node without feeders, no waiting, interchange unreliable
 TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic2) {
-  interchange_data_for_tests const ic_data(*schedule_, RE_K_F, ICE_F_S, KASSEL,
-                                           FRANKFURT, STUTTGART, 8 * 60,
-                                           10 * 60, 10 * 60 + 10, 11 * 60 + 10);
+  interchange_data_for_tests const ic_data(
+      *schedule_, schedule2::RE_K_F, schedule2::ICE_F_S, schedule2::KASSEL.eva_,
+      schedule2::FRANKFURT.eva_, schedule2::STUTTGART.eva_, 8 * 60, 10 * 60,
+      10 * 60 + 10, 11 * 60 + 10);
   distributions_container::container dummy;
   distributions_container::container::node dummy_node;
   start_and_travel_test_distributions s_t_distributions({.6, .4});
@@ -123,7 +111,7 @@ TEST_F(reliability_calc_departure_distribution2,
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, dummy, dummy_node,
       context(*schedule_, dummy, s_t_distributions));
   ASSERT_TRUE(data.interchange_feeder_info_.transfer_time_ == 5);
@@ -145,13 +133,13 @@ TEST_F(reliability_calc_departure_distribution2,
        compute_departure_distribution_ic3) {
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
   // route node at Frankfurt of train ICE_K_F_S
-  auto& tail_node_departing_train =
-      *graph_accessor::get_departing_route_edge(
-           *graph_accessor::get_first_route_node(*schedule_, ICE_K_F_S))
-           ->_to;
-  ASSERT_EQ(FRANKFURT,
-            schedule_->stations[tail_node_departing_train._station_node->_id]
-                ->eva_nr);
+  auto& tail_node_departing_train = *graph_accessor::get_departing_route_edge(
+                                         *graph_accessor::get_first_route_node(
+                                             *schedule_, schedule2::ICE_K_F_S))
+                                         ->to_;
+  ASSERT_EQ(schedule2::FRANKFURT.eva_,
+            schedule_->stations_[tail_node_departing_train.station_node_->id_]
+                ->eva_nr_);
   probability_distribution arrival_distribution;
   arrival_distribution.init({.4, .3, .2, .1}, 14);  // 10:14 - 10:17
 
@@ -159,8 +147,9 @@ TEST_F(reliability_calc_departure_distribution2,
   // interchange at Frankfurt (second node of ICE_K_F_S)
   // departing train ICE_K_F_S from Frankfurt to Stuttgart
   interchange_data_for_tests const ic_data(
-      *schedule_, RE_K_F, tail_node_departing_train, KASSEL, FRANKFURT,
-      STUTTGART, 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
+      *schedule_, schedule2::RE_K_F, tail_node_departing_train,
+      schedule2::KASSEL.eva_, schedule2::FRANKFURT.eva_,
+      schedule2::STUTTGART.eva_, 8 * 60, 10 * 60, 10 * 60 + 20, 11 * 60 + 15);
 
   // preceding-arrival: 10:18 - 10:19
   distributions_container::container precomputed;
@@ -174,7 +163,7 @@ TEST_F(reliability_calc_departure_distribution2,
       preceding_arrival_container(preceding_arr_dist);
 
   data_departure_interchange data(
-      false, tail_node_departing_train, *ic_data.arriving_route_edge_._to,
+      false, tail_node_departing_train, *ic_data.arriving_route_edge_.to_,
       ic_data.departing_light_conn_, ic_data.arriving_light_conn_,
       arrival_distribution, preceding_arrival_container, distribution_node,
       context(*schedule_, precomputed, s_t_distributions));
@@ -205,8 +194,10 @@ TEST_F(reliability_calc_departure_distribution2,
   // interchange at Stuttgart
   // departing train ICE_S_E from Stuttgart to Erlangen
   interchange_data_for_tests const ic_data(
-      *schedule_, ICE_F_S, ICE_S_E, FRANKFURT, STUTTGART, ERLANGEN,
-      10 * 60 + 10, 11 * 60 + 10, 11 * 60 + 32, 12 * 60 + 32);
+      *schedule_, schedule2::ICE_F_S, schedule2::ICE_S_E,
+      schedule2::FRANKFURT.eva_, schedule2::STUTTGART.eva_,
+      schedule2::ERLANGEN.eva_, 10 * 60 + 10, 11 * 60 + 10, 11 * 60 + 32,
+      12 * 60 + 32);
   probability_distribution arrival_distribution;
   arrival_distribution.init({.4, .3, .2, .1}, 16);  // 11:26 - 11:29
 
@@ -218,7 +209,7 @@ TEST_F(reliability_calc_departure_distribution2,
 
   data_departure_interchange data(
       true, ic_data.tail_node_departing_train_,
-      *ic_data.arriving_route_edge_._to, ic_data.departing_light_conn_,
+      *ic_data.arriving_route_edge_.to_, ic_data.departing_light_conn_,
       ic_data.arriving_light_conn_, arrival_distribution, precomputed,
       distribution_node, context(*schedule_, precomputed, s_t_distributions));
 

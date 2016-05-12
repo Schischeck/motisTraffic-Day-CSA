@@ -3,127 +3,42 @@
 #include <limits>
 #include <memory>
 
+#include "motis/module/context/motis_call.h"
+#include "motis/module/context/motis_parallel_for.h"
+#include "motis/module/context/motis_spawn.h"
+
 #include "motis/core/common/logging.h"
-
-#include "motis/core/journey/journey_util.h"
-#include "motis/core/journey/message_to_journeys.h"
-
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/access/time_access.h"
+#include "motis/core/journey/journey_util.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
 
 #include "motis/reliability/context.h"
-#include "motis/reliability/reliability.h"
 #include "motis/reliability/rating/connection_graph_rating.h"
+#include "motis/reliability/reliability.h"
+#include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/cg_search_context.h"
 #include "motis/reliability/search/connection_graph.h"
 #include "motis/reliability/search/connection_graph_builder.h"
 #include "motis/reliability/search/connection_graph_search_tools.h"
-#include "motis/reliability/search/cg_optimizer.h"
-
-namespace p = std::placeholders;
 
 namespace motis {
 namespace reliability {
 namespace search {
 namespace connection_graph_search {
 namespace detail {
-void build_result(context::conn_graph_context::cg_state,
-                  std::shared_ptr<context>);
-void handle_base_response(motis::module::msg_ptr, boost::system::error_code,
-                          std::shared_ptr<context>);
-void handle_alternative_response(motis::module::msg_ptr,
-                                 boost::system::error_code,
-                                 std::shared_ptr<context>,
-                                 unsigned int const conn_graph_idx,
-                                 unsigned int const stop_idx,
-                                 context::journey_cache_key const);
-void add_alternative(journey const&, std::shared_ptr<context>,
-                     context::conn_graph_context&, unsigned int const stop_idx);
 
-void search_for_alternative(std::shared_ptr<context> c,
-                            context::conn_graph_context& cg_context,
-                            connection_graph::stop& stop) {
-  auto request = tools::to_routing_request(*cg_context.cg_, stop,
-                                           c->optimizer_->min_departure_diff_);
-
-  auto cache_it = c->journey_cache.find(request.second);
-  if (cache_it != c->journey_cache.end()) {
-    /* todo: do not copy cached journeys!
-     * store and output (json) each journey once */
-    return add_alternative(cache_it->second, c, cg_context, stop.index_);
-  }
-
-  return c->reliability_.send_message(
-      request.first, c->session_,
-      std::bind(&handle_alternative_response, p::_1, p::_2, c,
-                cg_context.index_, stop.index_, request.second));
-}
-
-void build_cg(std::shared_ptr<context> c,
-              context::conn_graph_context& cg_context) {
-  if (cg_context.cg_state_ == context::conn_graph_context::CG_in_progress) {
-    for (auto& stop : cg_context.cg_->stops_) {
-      auto it = cg_context.stop_states_.find(stop.index_);
-      assert(it != cg_context.stop_states_.end());
-      if (it->second.state_ ==
-          context::conn_graph_context::stop_state::Stop_idle) {
-        it->second.state_ = context::conn_graph_context::stop_state::Stop_busy;
-        /* note: If a cached journey is used, build_cg is called recursively
-         * without an asynchronous call from the routing module */
-        search_for_alternative(c, cg_context, stop);
-      }
-    }
-    return; /* wait for search results */
-  } else {
-    return build_result(context::conn_graph_context::CG_completed, c);
-  }
-  LOG(logging::error) << "build_cg: unexpected case";
-  /* unexpected case */
-  return build_result(context::conn_graph_context::CG_failed, c);
-}
-
-std::vector<unsigned int> insert_stop_states(
-    context::conn_graph_context& cg_context) {
-  std::vector<unsigned int> new_stops;
-  for (auto const& stop : cg_context.cg_->stops_) {
-    if (cg_context.stop_states_.find(stop.index_) ==
-        cg_context.stop_states_.end()) {
-      auto& state = cg_context.stop_states_[stop.index_];
-      if (stop.index_ == connection_graph::stop::Index_departure_stop ||
-          stop.index_ == connection_graph::stop::Index_arrival_stop) {
-        state.state_ = context::conn_graph_context::stop_state::Stop_completed;
-      } else {
-        new_stops.push_back(stop.index_);
-        state.state_ = context::conn_graph_context::stop_state::Stop_idle;
-      }
-    }
-  }
-  assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
-  return new_stops;
-}
-
-void check_stop_states(connection_graph_optimizer const& optimizer,
-                       context::conn_graph_context& cg_context,
-                       std::vector<unsigned int> const& stop_indices) {
-  bool stop_completed = false;
-  for (auto const idx : stop_indices) {
-    if (idx != connection_graph::stop::Index_departure_stop &&
-        idx != connection_graph::stop::Index_arrival_stop) {
-      auto& stop_state = cg_context.stop_states_.at(idx);
-      if (optimizer.complete(cg_context.cg_->stops_.at(idx), stop_state)) {
-        stop_state.state_ =
-            context::conn_graph_context::stop_state::Stop_completed;
-        stop_completed = true;
-      } else {
-        stop_state.state_ = context::conn_graph_context::stop_state::Stop_idle;
-      }
-    }
-  }
-  if (stop_completed && tools::complete(cg_context)) {
-    cg_context.cg_state_ = context::conn_graph_context::cg_state::CG_completed;
-  }
+std::vector<journey> retrieve_base_journeys(
+    ReliableRoutingRequest const* request) {
+  auto routing_response =
+      motis_call(flatbuffers::request_builder(request->request())
+                     .build_routing_request())
+          ->val();
+  using routing::RoutingResponse;
+  return message_to_journeys(motis_content(RoutingResponse, routing_response));
 }
 
 void init_connection_graph_from_base_journey(context& context,
@@ -131,150 +46,189 @@ void init_connection_graph_from_base_journey(context& context,
   context.connection_graphs_.emplace_back();
   auto& cg_context = context.connection_graphs_.back();
   cg_context.index_ = context.connection_graphs_.size() - 1;
-  cg_context.cg_state_ = context::conn_graph_context::CG_in_progress;
 
   connection_graph_builder::add_base_journey(*cg_context.cg_, base_journey);
-  auto const stop_indices = insert_stop_states(cg_context);
+  cg_context.stop_states_.resize(cg_context.cg_->stops_.size());
   rating::cg::rate_inserted_alternative(cg_context, 0,
                                         context.reliability_context_);
-  check_stop_states(*context.optimizer_, cg_context, stop_indices);
-
-  if (cg_context.cg_->journeys_.size() == 1) {
-    cg_context.cg_state_ = context::conn_graph_context::CG_completed;
-  }
 }
 
-void handle_base_response(motis::module::msg_ptr msg,
-                          boost::system::error_code e,
-                          std::shared_ptr<context> context) {
-  if (e) {
-    LOG(logging::error) << "routing module replied: " << e.message();
-    return build_result(context::conn_graph_context::CG_base_failed, context);
-  }
-  auto journeys =
-      message_to_journeys(msg->content<routing::RoutingResponse const*>());
-  if (journeys.empty()) {
-    LOG(logging::error) << "List of journeys from routing module is empty";
-    return build_result(context::conn_graph_context::CG_base_failed, context);
-  }
-
-  for (auto const& j : journeys) {
-    try {
-      init_connection_graph_from_base_journey(*context, j);
-    } catch (std::exception& e) {
-      LOG(logging::error) << e.what();
-    }
-  }
-  if (context->connection_graphs_.empty()) {
-    return build_result(context::conn_graph_context::CG_base_failed, context);
-  }
-
-  for (auto& conn_graph : context->connection_graphs_) {
-    build_cg(context, conn_graph);
-  }
-}
-
-void add_alternative(journey const& j, std::shared_ptr<context> c,
-                     context::conn_graph_context& conn_graph,
-                     unsigned int const stop_idx) {
-  connection_graph_builder::add_alternative_journey(*conn_graph.cg_, stop_idx,
+/* retrieves indices of new stops */
+std::vector<unsigned int> add_alternative(
+    journey const& j, std::shared_ptr<context> c,
+    context::conn_graph_context& cg_context, unsigned int const stop_idx) {
+  auto const num_stops_before = cg_context.cg_->stops_.size();
+  connection_graph_builder::add_alternative_journey(*cg_context.cg_, stop_idx,
                                                     j);
-  std::vector<unsigned int> stop_indices({stop_idx});
-  if (conn_graph.stop_states_.size() < conn_graph.cg_->stops_.size()) {
-    auto new_indices = insert_stop_states(conn_graph);
-    for (auto const idx : new_indices) {
-      stop_indices.push_back(idx);
-    }
-  }
+  cg_context.stop_states_.resize(cg_context.cg_->stops_.size());
+  rating::cg::rate_inserted_alternative(cg_context, stop_idx,
+                                        c->reliability_context_);
 
+  std::vector<unsigned int> new_stops;
+  for (auto stop_idx = num_stops_before;
+       stop_idx < cg_context.cg_->stops_.size(); ++stop_idx) {
+    new_stops.push_back(stop_idx);
+  }
+  return new_stops;
+}
+
+struct request_type {
+  unsigned int stop_id_;
+  module::msg_ptr request_msg_;
+  context::journey_cache_key cache_key_;
+};
+
+std::shared_ptr<request_type> create_alternative_request(
+    connection_graph const& cg, unsigned int const stop_index,
+    duration const min_dep_diff) {
+  auto const req =
+      tools::to_routing_request(cg, cg.stops_.at(stop_index), min_dep_diff);
+  return std::make_shared<request_type>(
+      request_type{stop_index, req.first, req.second});
+}
+
+journey retrieve_alternative(motis::module::msg_ptr const& request) {
+  std::vector<journey> journeys;
   try {
-    rating::cg::rate_inserted_alternative(conn_graph, stop_idx,
-                                          c->reliability_context_);
-  } catch (std::exception& e) {
-    LOG(logging::error) << e.what();
-    return build_result(context::conn_graph_context::CG_failed, c);
+    auto routing_response = motis_call(request)->val();
+    using routing::RoutingResponse;
+    journeys =
+        message_to_journeys(motis_content(RoutingResponse, routing_response));
+  } catch (...) {
+    LOG(logging::warn) << "Failed to retrieve alternative";
   }
 
-  check_stop_states(*c->optimizer_, conn_graph, stop_indices);
-
-  build_cg(c, conn_graph);
+  /* note: this method ignores journeys that are
+   * corrupt because the state machine in journey.cc
+   * can not handle walks at the beginning of journeys
+   * (such journeys are found in the on-trip search).
+   * This filtering is not necessary as soon as the state
+   * machine in journey.cc works correctly. */
+  auto const filtered = tools::remove_invalid_journeys(journeys);
+  if (filtered.size() != journeys.size() || filtered.empty()) {
+    return journey();
+  }
+  return tools::select_alternative(filtered);
 }
 
-void handle_alternative_response(motis::module::msg_ptr msg,
-                                 boost::system::error_code e,
-                                 std::shared_ptr<context> c,
-                                 unsigned int const conn_graph_idx,
-                                 unsigned int const stop_idx,
-                                 context::journey_cache_key const cache_key) {
-  auto& cg_context = c->connection_graphs_.at(conn_graph_idx);
-  assert(cg_context.stop_states_.size() == cg_context.cg_->stops_.size());
-  auto& stop_state = cg_context.stop_states_.at(stop_idx);
+struct alternative_futures {
+  struct future_return {
+    std::shared_ptr<request_type> request_;
+    journey journey_;
+    bool is_cached_;
+  };
 
-  std::vector<journey> filtered;
-  if (e) {
-    LOG(logging::error) << "Routing failed: " << e.message();
-  } else {
-    auto journeys =
-        message_to_journeys(msg->content<routing::RoutingResponse const*>());
-    /* note: this method ignores journeys that are
-     * corrupt because the state machine in journey.cc
-     * can not handle walks at the beginning of journeys
-     * (such journeys are found in the on-trip search).
-     * This filtering is not necessary as soon as the state
-     * machine in journey.cc works correctly. */
-    filtered = tools::remove_invalid_journeys(journeys);
-    if (filtered.size() != journeys.size()) {
-      LOG(logging::error) << "Invalid alternatives for cg " << conn_graph_idx
-                          << " at stop " << stop_idx;
-    }
-  }
-  if (filtered.empty()) {
-    stop_state.state_ = context::conn_graph_context::stop_state::Stop_completed;
-    if (tools::complete(cg_context)) {
-      cg_context.cg_state_ =
-          context::conn_graph_context::cg_state::CG_completed;
-    }
-    return build_cg(c, cg_context);
-  }
+  std::vector<ctx::future_ptr<module::ctx_data, future_return>>
+      new_alternative_futures_;
 
-  auto const& j = tools::select_alternative(filtered);
-  assert(c->journey_cache.find(cache_key) == c->journey_cache.end());
-  c->journey_cache[cache_key] = j;
-  add_alternative(j, c, cg_context, stop_idx);
-}
-
-void build_result(context::conn_graph_context::cg_state state,
-                  std::shared_ptr<context> c) {
-  if (c->result_returned_) {
-    return;
-  } else if (state == context::conn_graph_context::CG_base_failed ||
-             state == context::conn_graph_context::CG_failed) {
-    c->result_returned_ = true;
-    return c->result_callback_({});
-  } else if (tools::complete(*c)) {
-    c->result_returned_ = true;
-    std::vector<std::shared_ptr<connection_graph> > cgs;
-    for (auto const& cg_c : c->connection_graphs_) {
-      if (cg_c.cg_state_ == context::conn_graph_context::CG_completed) {
-        cgs.push_back(cg_c.cg_);
+  void spawn_request(std::shared_ptr<request_type> req,
+                     std::shared_ptr<context> c) {
+    new_alternative_futures_.emplace_back(module::spawn_job([req, c]() {
+      {
+        std::lock_guard<std::mutex> guard(c->journey_cache_.first);
+        auto const cache_it = c->journey_cache_.second.find(req->cache_key_);
+        if (cache_it != c->journey_cache_.second.end()) {
+          return future_return{req, cache_it->second, true};
+        }
       }
+      return future_return{req, retrieve_alternative(req->request_msg_), false};
+    }));
+  };
+};
+
+bool stop_is_completed(connection_graph_optimizer const& optimizer,
+                       context::conn_graph_context const& cg,
+                       unsigned int const stop_idx) {
+  return stop_idx == connection_graph::stop::INDEX_DEPARTURE_STOP ||
+         stop_idx == connection_graph::stop::INDEX_ARRIVAL_STOP ||
+         optimizer.complete(cg.cg_->stops_.at(stop_idx),
+                            cg.stop_states_.at(stop_idx));
+}
+
+std::vector<unsigned int> filter_completed_stops(
+    std::vector<unsigned int> stops, context::conn_graph_context& cg,
+    connection_graph_optimizer const& optimizer) {
+  std::vector<unsigned int> filtered;
+  for (auto const idx : stops) {
+    if (idx != connection_graph::stop::INDEX_DEPARTURE_STOP &&
+        idx != connection_graph::stop::INDEX_ARRIVAL_STOP &&
+        !optimizer.complete(cg.cg_->stops_.at(idx), cg.stop_states_.at(idx))) {
+      filtered.push_back(idx);
     }
-    return c->result_callback_(cgs);
+  }
+  return filtered;
+}
+
+std::vector<unsigned int> init_active_stops(
+    context::conn_graph_context& cg,
+    connection_graph_optimizer const& optimizer) {
+  std::vector<unsigned int> active_stops;
+  for (auto const& stop : cg.cg_->stops_) {
+    active_stops.push_back(stop.index_);
+  }
+  return filter_completed_stops(active_stops, cg, optimizer);
+}
+
+void handle_alternative(alternative_futures::future_return const& alternative,
+                        std::shared_ptr<context> c,
+                        context::conn_graph_context& cg,
+                        std::vector<unsigned int>& active_stops) {
+  active_stops.clear();
+  if (!alternative.is_cached_) {
+    std::lock_guard<std::mutex> guard(c->journey_cache_.first);
+    c->journey_cache_.second[alternative.request_->cache_key_] =
+        alternative.journey_;
+  }
+  if (alternative.journey_.stops_.empty()) {
+    return;
+  }
+
+  auto const new_stops = add_alternative(alternative.journey_, c, cg,
+                                         alternative.request_->stop_id_);
+  active_stops.push_back(alternative.request_->stop_id_);
+  active_stops.insert(active_stops.end(), new_stops.begin(), new_stops.end());
+  filter_completed_stops(active_stops, cg, *c->optimizer_);
+}
+
+void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
+  auto active_stops = init_active_stops(cg, *c->optimizer_);
+
+  alternative_futures futures;
+  while (!(futures.new_alternative_futures_.empty() && active_stops.empty())) {
+    for (auto const stop_id : active_stops) {
+      futures.spawn_request(
+          create_alternative_request(*cg.cg_, stop_id,
+                                     c->optimizer_->min_departure_diff_),
+          c);
+    }
+    handle_alternative(futures.new_alternative_futures_.front()->val(), c, cg,
+                       active_stops);
+    futures.new_alternative_futures_.erase(
+        futures.new_alternative_futures_.begin());
   }
 }
 
 }  // namespace detail
 
-void search_cgs(ReliableRoutingRequest const* request,
-                motis::reliability::reliability& rel,
-                motis::module::sid session,
-                std::shared_ptr<connection_graph_optimizer const> optimizer,
-                callback cb) {
-  rel.send_message(
-      flatbuffers::request_builder::to_flatbuffers_message(request->request()),
-      session, std::bind(&detail::handle_base_response, p::_1, p::_2,
-                         std::make_shared<detail::context>(rel, session, cb,
-                                                           optimizer)));
+std::vector<std::shared_ptr<connection_graph>> search_cgs(
+    ReliableRoutingRequest const* request,
+    motis::reliability::context const& rel_context,
+    std::shared_ptr<connection_graph_optimizer const> optimizer) {
+  auto c = std::make_shared<detail::context>(rel_context, optimizer);
+
+  for (auto const& j : detail::retrieve_base_journeys(request)) {
+    detail::init_connection_graph_from_base_journey(*c, j);
+  }
+
+  using namespace motis::module;
+  motis_parallel_for(c->connection_graphs_,
+                     std::bind(&detail::build_cg, std::placeholders::_1, c));
+
+  std::vector<std::shared_ptr<connection_graph>> cgs;
+  for (auto const& cg_c : c->connection_graphs_) {
+    cgs.push_back(cg_c.cg_);
+  }
+  return cgs;
 }
 
 }  // namespace connection_graph_search

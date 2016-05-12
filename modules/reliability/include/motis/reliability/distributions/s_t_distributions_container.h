@@ -16,11 +16,11 @@ struct probability_distribution;
 
 struct s_t_distributions_container : start_and_travel_distributions {
   struct parameters {
-    std::string root;
-    unsigned int max_expected_travel_time;
-    unsigned int max_expected_departure_delay;
+    std::string root_;
+    unsigned int max_expected_travel_time_;
+    unsigned int max_expected_departure_delay_;
   };
-  s_t_distributions_container(std::vector<parameters> const&);
+  explicit s_t_distributions_container(std::vector<parameters> const&);
 
   std::pair<bool, probability_distribution_cref> get_start_distribution(
       std::string const& family) const override;

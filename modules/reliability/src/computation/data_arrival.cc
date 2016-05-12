@@ -1,7 +1,7 @@
 #include "motis/reliability/computation/data_arrival.h"
 
-#include <algorithm>
 #include <climits>
+#include <algorithm>
 
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
@@ -24,23 +24,23 @@ data_arrival::data_arrival(
           time_util::get_scheduled_event_time(departure_node, light_connection,
                                               time_util::departure, schedule)) {
   init_arrival_time(arrival_node, light_connection, schedule);
-  init_travel_info(light_connection, s_t_distributions, schedule.categories);
+  init_travel_info(light_connection, s_t_distributions, schedule.categories_);
 }
 
 void data_arrival::init_arrival_time(node const& route_node,
                                      light_connection const& light_conn,
                                      schedule const& sched) {
   is_message_.received_ = false;
-  scheduled_arrival_time_ = light_conn.a_time;
+  scheduled_arrival_time_ = light_conn.a_time_;
 
-  auto it = sched.graph_to_delay_info.find(graph_event(
-      route_node.get_station()->_id, light_conn._full_con->con_info->train_nr,
-      false, light_conn.a_time, route_node._route));
-  if (it != sched.graph_to_delay_info.end()) {
-    scheduled_arrival_time_ = it->second->_schedule_event._schedule_time;
-    if (it->second->_reason == timestamp_reason::IS) {
+  auto it = sched.graph_to_delay_info_.find(graph_event(
+      route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
+      false, light_conn.a_time_, route_node.route_));
+  if (it != sched.graph_to_delay_info_.end()) {
+    scheduled_arrival_time_ = it->second->schedule_event_.schedule_time_;
+    if (it->second->reason_ == timestamp_reason::IS) {
       is_message_.received_ = true;
-      is_message_.current_time_ = it->second->_current_time;
+      is_message_.current_time_ = it->second->current_time_;
     }
   }
 }
@@ -52,16 +52,17 @@ void data_arrival::init_travel_info(
   assert(!departure_info_.distribution_.empty());
 
   s_t_distributions.get_travel_time_distributions(
-      categories[light_connection._full_con->con_info->family]->name,
+      categories[light_connection.full_con_->con_info_->family_]->name_,
       scheduled_travel_duration(), departure_info_.distribution_.last_minute(),
       travel_distributions_);
 
   left_bound_ = INT_MAX;
   right_bound_ = INT_MIN;
 
-  if (travel_distributions_.size() > 0) {
+  if (!travel_distributions_.empty()) {
+    assert(departure_info_.distribution_.last_minute() >= 0);
     auto const last_minute =
-        (unsigned int)departure_info_.distribution_.last_minute();
+        static_cast<unsigned>(departure_info_.distribution_.last_minute());
     assert(travel_distributions_.size() == last_minute + 1);
     for (unsigned int d = 0; d <= last_minute; d++) {
       assert(!travel_distributions_[d].get().empty());

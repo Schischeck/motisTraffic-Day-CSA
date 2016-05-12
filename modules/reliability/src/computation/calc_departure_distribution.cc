@@ -99,7 +99,7 @@ probability had_to_wait_for_feeders(
     std::vector<probability_distribution> const& modified_feeders_distributions,
     time const timestamp) {
   assert(feeders.size() == modified_feeders_distributions.size());
-  if (feeders.size() == 0) {
+  if (feeders.empty()) {
     return 0.0;
   }
 
@@ -134,11 +134,12 @@ void cut_minutes_after_latest_feasible_arrival(
 
     for (int feeder_delay = feeder.distribution_.first_minute();
          feeder_delay <= feeder.distribution_.last_minute(); feeder_delay++) {
-      if (feeder_delay > lfa_minute)
+      if (feeder_delay > lfa_minute) {
         probabilities.push_back(0.0);
-      else
+      } else {
         probabilities.push_back(
             feeder.distribution_.probability_equal(feeder_delay));
+      }
     }
 
     minutes_up_to_lfa[feeder_idx].init(probabilities,
@@ -242,6 +243,6 @@ void compute_departure_distribution(
   assert(smaller_equal(departure_distribution.sum(), 1.0));
 }
 
-}  // namespace distributions_calculator
+}  // namespace calc_departure_distribution
 }  // namespace reliability
 }  // namespace motis
