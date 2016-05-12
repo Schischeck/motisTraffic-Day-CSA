@@ -18,9 +18,6 @@ public:
   std::vector<const station*> stations(double lat, double lng,
                                        double radius) const;
 
-  flatbuffers::Offset<LookupGeoStationResponse> stations(
-      flatbuffers::FlatBufferBuilder&, LookupGeoStationRequest const*) const;
-
 private:
   struct impl;
   std::unique_ptr<impl> impl_;
