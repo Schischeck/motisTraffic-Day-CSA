@@ -20,7 +20,8 @@ module::msg_ptr to_routing_late_connections_message(
     std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
   flatbuffers::request_builder builder(request);
-  builder.search_type_ = routing::SearchType_LateConnections;
+  // builder.search_type_ = routing::SearchType_LateConnections; TODO(Mohammad
+  // Keyhani)
 
   auto& b = builder.b_;
   /* Create taxi-edges */

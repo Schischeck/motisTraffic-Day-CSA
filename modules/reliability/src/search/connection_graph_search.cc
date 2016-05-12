@@ -139,8 +139,8 @@ struct alternative_futures {
 bool stop_is_completed(connection_graph_optimizer const& optimizer,
                        context::conn_graph_context const& cg,
                        unsigned int const stop_idx) {
-  return stop_idx == connection_graph::stop::Index_departure_stop ||
-         stop_idx == connection_graph::stop::Index_arrival_stop ||
+  return stop_idx == connection_graph::stop::INDEX_DEPARTURE_STOP ||
+         stop_idx == connection_graph::stop::INDEX_ARRIVAL_STOP ||
          optimizer.complete(cg.cg_->stops_.at(stop_idx),
                             cg.stop_states_.at(stop_idx));
 }
@@ -150,8 +150,8 @@ std::vector<unsigned int> filter_completed_stops(
     connection_graph_optimizer const& optimizer) {
   std::vector<unsigned int> filtered;
   for (auto const idx : stops) {
-    if (idx != connection_graph::stop::Index_departure_stop &&
-        idx != connection_graph::stop::Index_arrival_stop &&
+    if (idx != connection_graph::stop::INDEX_DEPARTURE_STOP &&
+        idx != connection_graph::stop::INDEX_ARRIVAL_STOP &&
         !optimizer.complete(cg.cg_->stops_.at(idx), cg.stop_states_.at(idx))) {
       filtered.push_back(idx);
     }

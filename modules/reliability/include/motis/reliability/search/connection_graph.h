@@ -15,9 +15,9 @@ namespace search {
 struct connection_graph {
   struct stop {
     enum indices {
-      Index_departure_stop = 0, /* source of the query */
-      Index_arrival_stop = 1, /* destination of the query */
-      Index_first_intermediate_stop = 2 /* first intermediate stop in the
+      INDEX_DEPARTURE_STOP = 0, /* source of the query */
+      INDEX_ARRIVAL_STOP = 1, /* destination of the query */
+      INDEX_FIRST_INTERMEDIATE_STOP = 2 /* first intermediate stop in the
                                            connection graph (note: all stops
                                            with index >= 2 are intermediate
                                            stops */
@@ -42,7 +42,7 @@ struct connection_graph {
   /* returns name and station_id (eva_no) */
   std::pair<std::string, std::string> station_info(
       unsigned int const stop_idx) const {
-    if (stop_idx == stop::Index_arrival_stop) {
+    if (stop_idx == stop::INDEX_ARRIVAL_STOP) {
       return arrival_station_info();
     }
     auto const& stop =
@@ -56,7 +56,7 @@ private:
     auto it = std::find_if(stops_.begin(), stops_.end(), [](stop const& s) {
       return !s.alternative_infos_.empty() &&
              s.alternative_infos_.front().next_stop_index_ ==
-                 stop::Index_arrival_stop;
+                 stop::INDEX_ARRIVAL_STOP;
     });
     auto const& stop =
         journeys_.at(it->alternative_infos_.front().journey_index_)

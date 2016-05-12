@@ -32,18 +32,8 @@ constexpr char const* kRoutingRequest = R""(
     "type": "OnTrip",
     "direction": "Forward",
     "path": [
-      { "element_type": "StationPathElement",
-        "element": {
-          "eva_nr": "8000260",
-          "name": ""
-        }
-      }, // Würzburg
-      { "element_type": "StationPathElement",
-        "element": {
-          "eva_nr": "8000208",
-          "name": ""
-        }
-      } // Köln-Ehrenfeld
+      { "eva_nr": "8000260", "name": "" }, // Würzburg
+      { "eva_nr": "8000208", "name": "" }  // Köln-Ehrenfeld
     ],
     "additional_edges": []
   }

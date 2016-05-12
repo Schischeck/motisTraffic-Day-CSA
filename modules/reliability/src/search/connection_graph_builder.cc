@@ -194,7 +194,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
   auto journeys = detail::split_journey(
       detail::move_early_walk(detail::remove_dummy_stops(base_journey)));
 
-  unsigned int stop_idx = connection_graph::stop::Index_departure_stop;
+  unsigned int stop_idx = connection_graph::stop::INDEX_DEPARTURE_STOP;
   for (auto const& j : journeys) {
     cg.stops_.emplace_back();
     auto& stop = cg.stops_.back();
@@ -202,12 +202,12 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
     stop.alternative_infos_.emplace_back();
     auto& alternative_info = stop.alternative_infos_.front();
     alternative_info.journey_index_ = cg.journeys_.size();
-    if (stop_idx == connection_graph::stop::Index_departure_stop &&
+    if (stop_idx == connection_graph::stop::INDEX_DEPARTURE_STOP &&
         journeys.size() > 1) {
-      stop_idx = connection_graph::stop::Index_first_intermediate_stop;
+      stop_idx = connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP;
     } else if (alternative_info.journey_index_ + 1 ==
                static_cast<uint16_t>(journeys.size())) {
-      stop_idx = connection_graph::stop::Index_arrival_stop;
+      stop_idx = connection_graph::stop::INDEX_ARRIVAL_STOP;
     } else {
       ++stop_idx;
     }
@@ -215,7 +215,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
 
     if (cg.stops_.size() == 1) {
       cg.stops_.emplace_back();
-      cg.stops_.back().index_ = connection_graph::stop::Index_arrival_stop;
+      cg.stops_.back().index_ = connection_graph::stop::INDEX_ARRIVAL_STOP;
     }
 
     cg.journeys_.push_back(j);
@@ -243,7 +243,7 @@ void add_alternative_journey(connection_graph& cg,
     auto& departure_info = stop.alternative_infos_.back();
     departure_info.journey_index_ = cg.journeys_.size();
     if (journey_count + 1 == journeys.size()) {
-      stop_idx = connection_graph::stop::Index_arrival_stop;
+      stop_idx = connection_graph::stop::INDEX_ARRIVAL_STOP;
     } else if (stop_idx == first_stop_idx) {
       stop_idx = cg.stops_.size();
     } else {

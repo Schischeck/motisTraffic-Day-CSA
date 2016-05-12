@@ -87,8 +87,7 @@ table Via {
 // ----------------------------------------------------------------------------
 enum SearchType : byte {
   DefaultForward,
-  SingleCriterionForward,
-  LateConnections
+  SingleCriterionForward
 }
 
 // ----------------------------------------------------------------------------

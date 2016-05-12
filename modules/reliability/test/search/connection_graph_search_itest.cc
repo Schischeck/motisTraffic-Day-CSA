@@ -36,43 +36,43 @@ public:
     ASSERT_EQ(3, cg.stops_.size());
     {
       auto const& stop =
-          cg.stops_[connection_graph::stop::Index_departure_stop];
-      ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
+          cg.stops_[connection_graph::stop::INDEX_DEPARTURE_STOP];
+      ASSERT_EQ(stop.index_, connection_graph::stop::INDEX_DEPARTURE_STOP);
       ASSERT_EQ(stop.alternative_infos_.size(), 1);
       ASSERT_EQ(stop.alternative_infos_.front().journey_index_, 0);
       ASSERT_EQ(stop.alternative_infos_.front().next_stop_index_,
-                connection_graph::stop::Index_first_intermediate_stop);
+                connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP);
     }
     {
-      auto const& stop = cg.stops_[connection_graph::stop::Index_arrival_stop];
-      ASSERT_EQ(stop.index_, connection_graph::stop::Index_arrival_stop);
+      auto const& stop = cg.stops_[connection_graph::stop::INDEX_ARRIVAL_STOP];
+      ASSERT_EQ(stop.index_, connection_graph::stop::INDEX_ARRIVAL_STOP);
       ASSERT_TRUE(stop.alternative_infos_.empty());
     }
     {
       auto const& stop =
-          cg.stops_[connection_graph::stop::Index_first_intermediate_stop];
+          cg.stops_[connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP];
       ASSERT_EQ(stop.index_,
-                connection_graph::stop::Index_first_intermediate_stop);
+                connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP);
       ASSERT_EQ(stop.alternative_infos_.size(), 3);
       {
         auto const& ic = stop.alternative_infos_[0];
         ASSERT_EQ(ic.journey_index_, 1);
         ASSERT_EQ(ic.next_stop_index_,
-                  connection_graph::stop::Index_arrival_stop);
+                  connection_graph::stop::INDEX_ARRIVAL_STOP);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
         auto const& ic = stop.alternative_infos_[1];
         ASSERT_EQ(ic.journey_index_, 2);
         ASSERT_EQ(ic.next_stop_index_,
-                  connection_graph::stop::Index_arrival_stop);
+                  connection_graph::stop::INDEX_ARRIVAL_STOP);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
       {
         auto const& ic = stop.alternative_infos_[2];
         ASSERT_EQ(ic.journey_index_, 3);
         ASSERT_EQ(ic.next_stop_index_,
-                  connection_graph::stop::Index_arrival_stop);
+                  connection_graph::stop::INDEX_ARRIVAL_STOP);
         // ASSERT_EQ(ic.interchange_time, 5);
       }
     }
@@ -182,29 +182,29 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
 
   ASSERT_EQ(cg.stops_.size(), 3);
   {
-    auto const& stop = cg.stops_[connection_graph::stop::Index_departure_stop];
-    ASSERT_EQ(stop.index_, connection_graph::stop::Index_departure_stop);
+    auto const& stop = cg.stops_[connection_graph::stop::INDEX_DEPARTURE_STOP];
+    ASSERT_EQ(stop.index_, connection_graph::stop::INDEX_DEPARTURE_STOP);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     ASSERT_EQ(stop.alternative_infos_.front().journey_index_, 0);
     ASSERT_EQ(stop.alternative_infos_.front().next_stop_index_,
-              connection_graph::stop::Index_first_intermediate_stop);
+              connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP);
   }
   {
-    auto const& stop = cg.stops_[connection_graph::stop::Index_arrival_stop];
-    ASSERT_EQ(stop.index_, connection_graph::stop::Index_arrival_stop);
+    auto const& stop = cg.stops_[connection_graph::stop::INDEX_ARRIVAL_STOP];
+    ASSERT_EQ(stop.index_, connection_graph::stop::INDEX_ARRIVAL_STOP);
     ASSERT_TRUE(stop.alternative_infos_.empty());
   }
   {
     auto const& stop =
-        cg.stops_[connection_graph::stop::Index_first_intermediate_stop];
+        cg.stops_[connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP];
     ASSERT_EQ(stop.index_,
-              connection_graph::stop::Index_first_intermediate_stop);
+              connection_graph::stop::INDEX_FIRST_INTERMEDIATE_STOP);
     ASSERT_EQ(stop.alternative_infos_.size(), 1);
     {
       auto const& ic = stop.alternative_infos_[0];
       ASSERT_EQ(ic.journey_index_, 1);
       ASSERT_EQ(ic.next_stop_index_,
-                connection_graph::stop::Index_arrival_stop);
+                connection_graph::stop::INDEX_ARRIVAL_STOP);
       // ASSERT_EQ(ic.interchange_time, 5);
     }
   }

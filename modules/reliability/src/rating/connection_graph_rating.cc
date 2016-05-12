@@ -255,7 +255,7 @@ void rate_inserted_alternative(
   auto& alternative = stop.alternative_infos_.back();
 
   /* first journey in the connection graph */
-  if (stop_idx == search::connection_graph::stop::Index_departure_stop) {
+  if (stop_idx == search::connection_graph::stop::INDEX_DEPARTURE_STOP) {
     detail::rate_first_journey_in_cg(cg_context, alternative, context);
   }
   /* an alternative in the connection graph
@@ -265,7 +265,7 @@ void rate_inserted_alternative(
   }
 
   if (alternative.next_stop_index_ !=
-      search::connection_graph::stop::Index_arrival_stop) {
+      search::connection_graph::stop::INDEX_ARRIVAL_STOP) {
     return rate_inserted_alternative(cg_context, alternative.next_stop_index_,
                                      context);
   }

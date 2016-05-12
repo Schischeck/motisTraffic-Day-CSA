@@ -17,7 +17,7 @@ std::vector<distribution_info> distributions_arriving_alternatives(
   for (auto const& stop : cg.stops_) {
     for (auto const& alternative : stop.alternative_infos_) {
       if (alternative.next_stop_index_ ==
-          search::connection_graph::stop::Index_arrival_stop) {
+          search::connection_graph::stop::INDEX_ARRIVAL_STOP) {
         std::vector<probability> values;
         alternative.rating_.arrival_distribution_.get_probabilities(values);
         probability_distribution pd;

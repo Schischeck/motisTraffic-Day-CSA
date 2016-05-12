@@ -22,7 +22,7 @@ to_routing_request(connection_graph const& conn_graph,
                            min_departure_diff * 60;
   auto const stop_station = conn_graph.station_info(stop.index_);
   auto const arrival_station =
-      conn_graph.station_info(connection_graph::stop::Index_arrival_stop);
+      conn_graph.station_info(connection_graph::stop::INDEX_ARRIVAL_STOP);
   auto msg = flatbuffers::request_builder()
                  .add_ontrip_station_start(stop_station.first,
                                            stop_station.second, ontrip_time)
