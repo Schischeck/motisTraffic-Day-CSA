@@ -7,11 +7,9 @@
 using namespace motis;
 using namespace motis::module;
 using namespace motis::test;
+using namespace motis::lookup;
 using motis::test::schedule::simple_realtime::dataset_opt;
 using motis::test::schedule::simple_realtime::get_ris_message;
-
-namespace motis {
-namespace lookup {
 
 constexpr auto kIdTrainICERequest = R""(
 {
@@ -160,6 +158,3 @@ TEST_F(lookup_id_train_test, no_realtime) {
     EXPECT_EQ("", d->platform()->str());
   }
 }
-
-}  // namespace lookup
-}  // namespace motis
