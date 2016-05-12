@@ -2,17 +2,16 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "motis/module/module.h"
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/probability_distribution.h"
-#include "motis/reliability/search/cg_search_callback.h"
 
 namespace motis {
 struct journey;
 namespace reliability {
-struct reliability;
 namespace search {
 struct connection_graph;
 namespace connection_graph_search {
@@ -21,52 +20,41 @@ namespace detail {
 
 struct context {
   struct conn_graph_context {
-    conn_graph_context();
+    conn_graph_context()
+        : index_(0), cg_(std::make_shared<connection_graph>()) {}
     unsigned int index_;
     std::shared_ptr<connection_graph> cg_;
-    enum cg_state {
-      CG_in_progress,
-      CG_completed,
-      CG_base_failed,
-      CG_failed
-    } cg_state_;
 
     struct stop_state {
-      enum state {
-        Stop_idle,
-        Stop_busy,
-        Stop_completed,
-        Stop_Aborted
-      } state_ = Stop_idle;
       probability_distribution uncovered_arrival_distribution_;
     };
-    std::map<unsigned int, stop_state> stop_states_;
+
+    /* positions analogous to connection_graph::stops_ */
+    std::vector<stop_state> stop_states_;
   };
 
-  context(motis::reliability::reliability& rel, motis::module::sid session,
-          /*motis::reliability::search::connection_graph_search::*/ callback cb,
-          std::shared_ptr<connection_graph_optimizer const> optimizer);
+  context(motis::reliability::context rel_context,
+          std::shared_ptr<connection_graph_optimizer const> optimizer)
+      : reliability_context_(std::move(rel_context)) /* NOLINT */,
+        optimizer_(std::move(optimizer)) {}
+
+  motis::reliability::context reliability_context_;
 
   std::vector<conn_graph_context> connection_graphs_;
-  motis::reliability::reliability& reliability_;
-  motis::module::sid session_;
-  callback result_callback_;
   std::shared_ptr<connection_graph_optimizer const> optimizer_;
-  bool result_returned_;
 
   struct journey_cache_key {
-    journey_cache_key(std::string const& from_eva, time_t const& begin_time,
-                      time_t const& end_time)
-        : from_eva_(from_eva), begin_time_(begin_time), end_time_(end_time) {}
-    bool operator<(journey_cache_key const& right) const;
-    std::string const from_eva_;
-    time_t const begin_time_;
-    time_t const end_time_;
+    journey_cache_key() = default;
+    journey_cache_key(std::string from_eva, time_t const& ontrip_time)
+        : from_eva_(std::move(from_eva)), ontrip_time_(ontrip_time) {}
+    bool operator<(journey_cache_key const& right) const {
+      return from_eva_ < right.from_eva_ || (from_eva_ == right.from_eva_ &&
+                                             ontrip_time_ < right.ontrip_time_);
+    }
+    std::string from_eva_;
+    time_t ontrip_time_;
   };
-  std::map<journey_cache_key, journey> journey_cache;
-
-  synced_schedule<RO> synced_sched_;
-  motis::reliability::context reliability_context_;
+  std::pair<std::mutex, std::map<journey_cache_key, journey>> journey_cache_;
 };
 
 }  // namespace detail

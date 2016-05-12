@@ -10,7 +10,7 @@ namespace motis {
 namespace reliability {
 
 struct start_and_travel_test_distributions : start_and_travel_distributions {
-  start_and_travel_test_distributions(
+  explicit start_and_travel_test_distributions(
       std::vector<probability> const& start_probabilities) {
     init_start_distribution(start_probabilities);
     init_travel_distributions({1.0}, 0);

@@ -185,6 +185,7 @@ search_result ontrip_search(search_query const& q, SearchType const t) {
     case SearchType_SingleCriterionForward:
       return search<ontrip_gen<single_criterion_label>,
                     single_criterion_label>::get_connections(q);
+    default: break;
   }
   throw std::system_error(error::search_type_not_supported);
 }
@@ -197,6 +198,7 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
     case SearchType_SingleCriterionForward:
       return search<ontrip_gen<single_criterion_label>,
                     single_criterion_label>::get_connections(q);
+    default: break;
   }
   throw std::system_error(error::search_type_not_supported);
 }

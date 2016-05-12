@@ -5,8 +5,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 
-#include "motis/reliability/context.h"
 #include "motis/reliability/computation/distributions_calculator.h"
+#include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -26,13 +26,13 @@ void insert_all_elements_into_queue(node const& first_route_node,
   edge const* route_edge = nullptr;
   while ((route_edge = graph_accessor::get_departing_route_edge(*node)) !=
          nullptr) {
-    auto& light_conn = route_edge->_m._route_edge._conns[light_connection_idx];
-    queue.emplace(node, route_edge->_to, &light_conn, light_connection_idx,
-                  node->_id == first_route_node._id);
+    auto& light_conn = route_edge->m_.route_edge_.conns_[light_connection_idx];
+    queue.emplace(node, route_edge->to_, &light_conn, light_connection_idx,
+                  node->id_ == first_route_node.id_);
     if (node == &last_route_node) {
       break;
     }
-    node = route_edge->_to;
+    node = route_edge->to_;
   }
 }
 

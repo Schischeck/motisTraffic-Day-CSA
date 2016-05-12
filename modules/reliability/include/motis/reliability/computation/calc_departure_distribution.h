@@ -51,7 +51,7 @@ probability had_to_wait_for_feeders(
  */
 void cut_minutes_after_latest_feasible_arrival(
     std::vector<data_departure::feeder_info> const& feeders,
-    std::vector<probability_distribution>& part_before_lfa);
+    std::vector<probability_distribution>& minutes_up_to_lfa);
 
 /* helper for departure_at_scheduled_time */
 probability train_arrived(data_departure const& data);
@@ -65,8 +65,8 @@ probability train_arrives_before_time(data_departure const& data,
  * departure_after_waiting_interval */
 probability train_arrives_at_time(data_departure const& data,
                                   time const timestamp);
-}
-}
+}  // namespace detail
+}  // namespace calc_departure_distribution
 
 }  // namespace reliability
 }  // namespace motis

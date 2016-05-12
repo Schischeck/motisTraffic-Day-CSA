@@ -35,6 +35,18 @@
       "evaNumber": "3333333",
       "ds100Code": "3333333",
       "KMInfo": 0
+    },
+    {
+      "name": "Pfungstadt",
+      "tracks": 2,
+      "latitude": 49.811000000000035,
+      "longitude": 8.609000000000037,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "5420132",
+      "ds100Code": "5420132",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -197,10 +209,91 @@
           "interval": 1
         }
       ]
+    },
+    {
+      "name": "RE_P_D",
+      "category": "RE",
+      "evaNumber": "5546254",
+      "trainNumber": 5,
+      "stations": [
+        {
+          "station": "5420132",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "3333333",
+          "arrival": 10,
+          "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "06:30:00.000",
+          "untilTime": "06:30:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "IC_D_F",
+      "category": "IC",
+      "evaNumber": "0947988",
+      "trainNumber": 6,
+      "stations": [
+        {
+          "station": "3333333",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "1111111",
+          "arrival": 20,
+          "departure": 22,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "06:50:00.000",
+          "untilTime": "06:50:00.000",
+          "interval": 1
+        }
+      ]
     }
   ],
   "footpaths": [],
   "specialTransferTimes": [],
   "startDate": "2015-10-19",
-  "endDate": "2015-10-20"
+  "endDate": "2015-10-20",
+  "exportTimezones": true
 }

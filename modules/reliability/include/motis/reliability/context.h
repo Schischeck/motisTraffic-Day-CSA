@@ -5,7 +5,7 @@ struct schedule;
 namespace reliability {
 namespace distributions_container {
 struct container;
-}
+}  // namespace distributions_container
 struct start_and_travel_distributions;
 struct context {
   context(schedule const& schedule,
@@ -18,5 +18,5 @@ struct context {
   distributions_container::container const& precomputed_distributions_;
   start_and_travel_distributions const& s_t_distributions_;
 };
-}
-}
+}  // namespace reliability
+}  // namespace motis

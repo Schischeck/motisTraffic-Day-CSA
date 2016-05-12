@@ -59,6 +59,18 @@
       "evaNumber": "6666666",
       "ds100Code": "6666666",
       "KMInfo": 0
+    },
+    {
+      "name": "Frankfurt Eckenheim",
+      "tracks": 2,
+      "latitude": 50.15336617939988,
+      "longitude": 8.678169250488281,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "2046695",
+      "ds100Code": "2046695",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -141,6 +153,46 @@
           "interval": 1
         }
       ]
+    },
+    {
+      "name": "dummy_train",
+      "category": "RE",
+      "evaNumber": "7475109",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "6666666",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "2046695",
+          "arrival": 3,
+          "departure": 5,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:48:00.000",
+          "untilTime": "10:48:00.000",
+          "interval": 1
+        }
+      ]
     }
   ],
   "footpaths": [
@@ -167,5 +219,6 @@
   ],
   "specialTransferTimes": [],
   "startDate": "2015-10-19",
-  "endDate": "2015-10-20"
+  "endDate": "2015-10-20",
+  "exportTimezones": true
 }

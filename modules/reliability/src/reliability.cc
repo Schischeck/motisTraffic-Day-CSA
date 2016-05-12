@@ -1,11 +1,12 @@
 #include "motis/reliability/reliability.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <memory>
 #include <string>
 
-#include "boost/program_options.hpp"
 #include "boost/algorithm/string.hpp"
+#include "boost/program_options.hpp"
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/util.h"
@@ -13,12 +14,14 @@
 #include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 
+#include "motis/module/context/motis_call.h"
+
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
-#include "motis/reliability/rating/connection_rating.h"
-#include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
+#include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/realtime/realtime_update.h"
 #include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
@@ -79,24 +82,26 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
   std::vector<s_t_distributions_container::parameters> param;
   for (auto const& p : paths) {
     if (p.rfind("/train/") != std::string::npos) {
-      param.push_back({p, 500, 120});  // TODO: read max travel time from graph
+      param.push_back(
+          {p, 500,
+           120});  // TODO(Mohammad Keyhani): read max travel time from graph
     } else if (p.rfind("/bus/") != std::string::npos) {
       param.push_back({p, 60, 45});
     } else if (p.rfind("/str/") != std::string::npos) {
       param.push_back({p, 20, 31});
     } else {
-      LOG(logging::warn) << "Undefined distribution type";
+      LOG(logging::warn) << "undefined distribution type";
     }
   }
   return param;
 }
 
-void reliability::init() {
-  auto lock = synced_sched();
-  auto& sched = lock.sched();
-  precomputed_distributions_ =
-      std::unique_ptr<distributions_container::container>(
-          new distributions_container::container);
+void reliability::init(motis::module::registry& reg) {
+  reg.register_op("/reliability/route",
+                  std::bind(&reliability::routing_request, this, p::_1));
+  reg.register_op("/reliability/update",
+                  std::bind(&reliability::realtime_update, this, p::_1));
+
   if (read_distributions_) {
     s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
         new s_t_distributions_container(
@@ -108,136 +113,107 @@ void reliability::init() {
                                                 -1));
     LOG(info) << "Using generated start and travel distributions";
   }
+
+  precomputed_distributions_ =
+      std::make_unique<distributions_container::container>();
+
+  auto lock = synced_sched();
   distributions_calculator::precomputation::perform_precomputation(
-      sched, *s_t_distributions_, *precomputed_distributions_);
+      lock.sched(), *s_t_distributions_, *precomputed_distributions_);
 }
 
-void reliability::on_msg(msg_ptr msg, sid session_id, callback cb) {
-  auto content_type = msg->content_type();
-  if (content_type == MsgContent_ReliableRoutingRequest) {
-    auto req = msg->content<ReliableRoutingRequest const*>();
-    return handle_routing_request(req, session_id, cb);
-  } else if (content_type == MsgContent_RealtimeDelayInfoResponse) {
-    auto update =
-        msg->content<motis::realtime::RealtimeDelayInfoResponse const*>();
-    return handle_realtime_update(update, cb);
+namespace detail {
+
+using bs_type = motis::reliability::intermodal::bikesharing::bikesharing_infos;
+bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
+  bs_type bikesharing_infos;
+  if (req->individual_modes()->bikesharing() == 1) {
+    /* TODO(Mohammad Keyhani)
+       bikesharing_infos =
+       motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
+        motis::reliability::intermodal::bikesharing::to_bikesharing_request(
+            req->request(), motis::bikesharing::AvailabilityAggregator_Average),
+        std::make_shared<
+            motis::reliability::intermodal::bikesharing::average_aggregator>(4),
+        *this);*/
   }
-  return cb({}, error::not_implemented);
+  if (req->individual_modes()->taxi() == 1) {
+    throw std::system_error(error::not_implemented);
+  }
+  return bikesharing_infos;
 }
 
-void reliability::handle_routing_request(ReliableRoutingRequest const* req,
-                                         sid session_id, callback cb) {
+msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
+  using routing::RoutingResponse;
+  auto routing_response =
+      motis_call(flatbuffers::request_builder(req->request())
+                     .add_additional_edges(retrieve_individual_mode_infos(req))
+                     .build_routing_request())
+          ->val();
+  auto lock = rel.synced_sched();
+  return rating::rate_routing_response(
+      *motis_content(RoutingResponse, routing_response),
+      ::motis::reliability::context(lock.sched(),
+                                    *rel.precomputed_distributions_,
+                                    *rel.s_t_distributions_));
+}
+
+msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
+  auto req_info = reinterpret_cast<ReliableSearchReq const*>(
+      req->request_type()->request_options());
+  auto lock = rel.synced_sched();
+  auto const cgs = search::connection_graph_search::search_cgs(
+      req, ::motis::reliability::context(lock.sched(),
+                                         *rel.precomputed_distributions_,
+                                         *rel.s_t_distributions_),
+      std::make_shared<search::connection_graph_search::reliable_cg_optimizer>(
+          req_info->min_departure_diff()));
+  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
+}
+
+msg_ptr connection_tree(ReliableRoutingRequest const* req, reliability& rel) {
+  auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
+      req->request_type()->request_options());
+  auto lock = rel.synced_sched();
+  auto const cgs = search::connection_graph_search::search_cgs(
+      req, ::motis::reliability::context(lock.sched(),
+                                         *rel.precomputed_distributions_,
+                                         *rel.s_t_distributions_),
+      std::make_shared<search::connection_graph_search::simple_optimizer>(
+          req_info->num_alternatives_at_each_stop(),
+          req_info->min_departure_diff()));
+  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
+}
+
+}  // namespace detail
+
+msg_ptr reliability::routing_request(msg_ptr const& msg) {
+  auto const req = motis_content(ReliableRoutingRequest, msg);
   switch (req->request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
-      return dispatch(
-          flatbuffers::request_builder::to_flatbuffers_message(req->request()),
-          session_id, std::bind(&reliability::handle_routing_response, this,
-                                p::_1, p::_2, cb));
+      return detail::rating(req, *this);
     }
     case RequestOptions_ReliableSearchReq: {
-      auto req_info =
-          (ReliableSearchReq const*)req->request_type()->request_options();
-      return search::connection_graph_search::search_cgs(
-          req, *this, session_id,
-          std::make_shared<
-              search::connection_graph_search::reliable_cg_optimizer>(
-              req_info->min_departure_diff()),
-          std::bind(&reliability::handle_connection_graph_result, this, p::_1,
-                    cb));
+      return detail::reliable_search(req, *this);
     }
     case RequestOptions_ConnectionTreeReq: {
-      auto req_info =
-          (ConnectionTreeReq const*)req->request_type()->request_options();
-      return search::connection_graph_search::search_cgs(
-          req, *this, session_id,
-          std::make_shared<search::connection_graph_search::simple_optimizer>(
-              req_info->num_alternatives_at_each_stop(),
-              req_info->min_departure_diff()),
-          std::bind(&reliability::handle_connection_graph_result, this, p::_1,
-                    cb));
+      return detail::connection_tree(req, *this);
     }
     case RequestOptions_LateConnectionReq: {
-      return search::late_connections::search(
-          req, *this, session_id,
-          std::bind(&reliability::handle_late_connection_result, this, p::_1,
-                    p::_2, cb));
+      return search::late_connections::search(req, hotels_file_);
     }
     default: break;
   }
-  return cb({}, error::not_implemented);
+  throw std::system_error(error::not_implemented);
 }
 
-void reliability::handle_realtime_update(
-    motis::realtime::RealtimeDelayInfoResponse const* res, callback cb) {
-  LOG(info) << "reliability received " << res->delay_infos()->size()
-            << " delay infos";
-
-  auto lock = synced_sched();
-  auto& sched = lock.sched();
-  realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
-                                             *precomputed_distributions_);
-  return cb({}, error::ok);
-}
-
-void reliability::handle_routing_response(msg_ptr msg,
-                                          boost::system::error_code e,
-                                          callback cb) {
-  if (e) {
-    return cb(nullptr, e);
-  }
-  auto lock = synced_sched();
-  auto& schedule = lock.sched();
-  auto res = msg->content<routing::RoutingResponse const*>();
-  std::vector<rating::connection_rating> ratings(res->connections()->size());
-  std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
-      res->connections()->size());
-  unsigned int rating_index = 0;
-  auto const journeys = message_to_journeys(res);
-  try {
-    for (auto const& j : journeys) {
-      rating::rate(
-          ratings[rating_index], j,
-          context(schedule, *precomputed_distributions_, *s_t_distributions_));
-      rating::simple_rating::rate(simple_ratings[rating_index], j, schedule,
-                                  *s_t_distributions_);
-      ++rating_index;
-    }
-  } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
-    return cb(nullptr, error::failure);
-  }
-
-  cb(flatbuffers::response_builder::to_reliability_rating_response(
-         res, ratings, simple_ratings, true /* short output */),
-     error::ok);
-}
-
-void reliability::handle_connection_graph_result(
-    std::vector<std::shared_ptr<search::connection_graph>> const cgs,
-    callback cb) {
-  auto res = flatbuffers::response_builder::to_reliable_routing_response(cgs);
-  std::ofstream os("CG.json");
-  os << res->to_json() << std::endl;
-  return cb(res, error::ok);
-}
-
-void reliability::handle_late_connection_result(motis::module::msg_ptr msg,
-                                                boost::system::error_code,
-                                                motis::module::callback cb) {
-  auto res = msg->content<routing::RoutingResponse const*>();
-  auto const journeys = message_to_journeys(res);
-  auto lock = synced_sched();
-  auto& sched = lock.sched();
-  std::cout << "\n\n\nJourneys found:\n\n";
-  for (auto const& j : journeys) {
-    print_journey(j, sched.schedule_begin_, std::cout);
-    std::cout << std::endl;
-  }
-  return cb(msg, error::ok);
-}
-
-void reliability::send_message(msg_ptr msg, sid session, callback cb) {
-  return dispatch(msg, session, cb);
+msg_ptr reliability::realtime_update(msg_ptr const&) {
+  /* not implemented TODO(Mohammad Keyhani) */
+  // auto lock = synced_sched();
+  // auto& sched = lock.sched();
+  // realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
+  //                                           *precomputed_distributions_);
+  throw std::system_error(error::not_implemented);
 }
 
 }  // namespace reliability

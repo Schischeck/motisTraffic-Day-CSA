@@ -11,10 +11,10 @@ struct context;
 struct start_and_travel_distributions;
 namespace distributions_container {
 struct container;
-}
+}  // namespace distributions_container
 namespace rating {
 struct connection_element;
-};
+}  // namespace rating
 
 namespace distributions_calculator {
 namespace ride_distribution {
@@ -32,7 +32,8 @@ std::vector<bool> compute_missing_train_distributions(
 namespace detail {
 void compute_distributions_for_a_ride(
     unsigned int const light_connection_idx, node const& last_route_node,
-    context const&, distributions_container::container& ride_distributions);
+    context const&,
+    distributions_container::container& ride_distributions_container);
 
 }  // namespace detail
 }  // namespace ride_distribution

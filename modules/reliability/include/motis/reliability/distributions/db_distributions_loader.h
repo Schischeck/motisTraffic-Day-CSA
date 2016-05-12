@@ -69,7 +69,7 @@ void resolve_mappings(std::vector<mapping_int> const& integer_mappings,
 bool mapping_is_smaller(resolved_mapping const& a, resolved_mapping const& b);
 
 }  // namespace detail
-}  // namespace distributions_loader
+}  // namespace db_distributions_loader
 
 }  // namespace reliability
 }  // namespace motis

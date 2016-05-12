@@ -12,7 +12,7 @@ struct probability_distribution;
 struct start_and_travel_distributions;
 namespace search {
 struct connection_graph;
-}
+}  // namespace search
 namespace rating {
 struct connection_element;
 
@@ -73,7 +73,7 @@ probability_distribution scheduled_transfer_filter(
  * of the both involved trains. */
 probability_distribution compute_uncovered_arrival_distribution(
     probability_distribution const& arr_distribution, interchange_info const&);
-}
+}  // namespace detail
 }  // namespace cg
 }  // namespace rating
 }  // namespace reliability

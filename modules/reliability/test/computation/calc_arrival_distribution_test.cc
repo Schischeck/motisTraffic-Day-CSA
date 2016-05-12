@@ -11,6 +11,7 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/graph_accessor.h"
 
+#include "../include/schedules/schedule1.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_container.h"
 #include "../include/test_schedule_setup.h"
@@ -23,17 +24,7 @@ using namespace detail;
 class reliability_calc_arrival_distribution : public test_schedule_setup {
 public:
   reliability_calc_arrival_distribution()
-      : test_schedule_setup("modules/reliability/resources/schedule/",
-                            "20150928") {}
-  /* train numbers */
-  short const IC_DA_H = 1;
-  short const IC_FR_DA = 2;
-  short const IC_FH_DA = 3;
-  short const RE_MA_DA = 4;
-  short const ICE_FR_DA_H = 5;
-  short const ICE_HA_W_HE = 6;
-  short const ICE_K_K = 7;
-  short const RE_K_S = 8;
+      : test_schedule_setup(schedule1::PATH, schedule1::DATE) {}
 };
 
 TEST_F(reliability_calc_arrival_distribution, correct_rounding_errors) {
@@ -62,13 +53,13 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution) {
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
@@ -93,13 +84,13 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution2) {
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 
@@ -124,13 +115,13 @@ TEST_F(reliability_calc_arrival_distribution, compute_arrival_distribution3) {
 
   // route node at Frankfurt of train ICE_FR_DA_H
   auto& first_route_node =
-      *graph_accessor::get_first_route_node(*schedule_, ICE_FR_DA_H);
+      *graph_accessor::get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const first_route_edge =
       graph_accessor::get_departing_route_edge(first_route_node);
-  auto const& light_connection = first_route_edge->_m._route_edge._conns[0];
+  auto const& light_connection = first_route_edge->m_.route_edge_.conns_[0];
 
-  data_arrival data(*first_route_edge->_from, *first_route_edge->_to,
+  data_arrival data(*first_route_edge->from_, *first_route_edge->to_,
                     light_connection, dep_dist, *schedule_, s_t_distributions);
   probability_distribution arrival_distribution;
 

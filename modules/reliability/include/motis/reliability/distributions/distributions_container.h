@@ -17,13 +17,6 @@ namespace distributions_container {
 
 struct container {
   struct key {
-    uint32_t train_id_;
-    std::string category_;
-    std::string line_identifier_;
-    uint32_t station_index_;
-    time_util::event_type type_;
-    motis::time scheduled_event_time_;
-
     key()
         : train_id_(0),
           category_(""),
@@ -36,7 +29,7 @@ struct container {
         motis::time scheduled_event_time)
         : train_id_(train_id),
           category_(to_lower(category)),
-          line_identifier_(line_identifier),
+          line_identifier_(std::move(line_identifier)),
           station_index_(station_index),
           type_(type),
           scheduled_event_time_(scheduled_event_time) {}
@@ -55,6 +48,13 @@ struct container {
                       o.station_index_, o.type_, o.scheduled_event_time_);
     }
 
+    uint32_t train_id_;
+    std::string category_;
+    std::string line_identifier_;
+    uint32_t station_index_;
+    time_util::event_type type_;
+    motis::time scheduled_event_time_;
+
   private:
     static std::string to_lower(std::string str) {
       std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -71,7 +71,7 @@ struct container {
 
   container() : invalid_node_(std::make_shared<node>()) {}
 
-  virtual ~container() {}
+  virtual ~container() = default;
 
   virtual probability_distribution const& get_distribution(key const& k) const {
     auto it = distributions_nodes_.find(k);
@@ -121,7 +121,8 @@ inline std::ostream& operator<<(std::ostream& out, container::key const& k) {
 }
 
 struct single_distribution_container : container {
-  single_distribution_container(probability_distribution const& distribution)
+  explicit single_distribution_container(
+      probability_distribution const& distribution)
       : distribution_(distribution) {}
   probability_distribution const& get_distribution(key const&) const override {
     return distribution_;
@@ -136,10 +137,10 @@ inline container::key to_container_key(light_connection const& lc,
                                        time_util::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {
-  auto const& conn_info = *lc._full_con->con_info;
+  auto const& conn_info = *lc.full_con_->con_info_;
   return container::key(
-      conn_info.train_nr, sched.categories.at(conn_info.family)->name,
-      conn_info.line_identifier, station_idx, type, scheduled_event_time);
+      conn_info.train_nr_, sched.categories_.at(conn_info.family_)->name_,
+      conn_info.line_identifier_, station_idx, type, scheduled_event_time);
 }
 
 inline container::key to_container_key(node const& route_node,
@@ -147,7 +148,7 @@ inline container::key to_container_key(node const& route_node,
                                        time_util::event_type const type,
                                        schedule const& sched) {
   return to_container_key(
-      lc, route_node.get_station()->_id, type,
+      lc, route_node.get_station()->id_, type,
       time_util::get_scheduled_event_time(route_node, lc, type, sched), sched);
 };
 

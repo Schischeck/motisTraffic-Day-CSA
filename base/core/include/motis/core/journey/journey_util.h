@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 #include <iostream>
+#include <system_error>
 
 #include "motis/core/journey/journey.h"
 
@@ -11,15 +13,19 @@ uint16_t get_duration(journey const&);
 uint16_t get_transfers(journey const&);
 void print_journey(journey const&, time_t const sched_begin, std::ostream&);
 
-template <typename Journey, typename F>
-void foreach_light_connection(Journey& journey, F func) {
-  for (auto& transport : journey.transports) {
-    if (transport.type != Journey::transport::PublicTransport) {
-      continue;
+template <typename F>
+void foreach_light_connection(journey const& j, F func) {
+  for (unsigned int stop_idx = 0; stop_idx + 1 < j.stops_.size(); ++stop_idx) {
+    auto const transport =
+        std::find_if(j.transports_.begin(), j.transports_.end(),
+                     [stop_idx](journey::transport const& tr) {
+                       return stop_idx >= tr.from_ && stop_idx < tr.to_;
+                     });
+    if (transport == j.transports_.end()) {
+      throw std::system_error();
     }
-
-    for (auto i = transport.from; i < transport.to; ++i) {
-      func(transport, journey.stops[i], journey.stops[i + 1]);
+    if (transport->type_ == journey::transport::PublicTransport) {
+      func(stop_idx, std::distance(j.transports_.begin(), transport));
     }
   }
 }

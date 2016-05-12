@@ -1,8 +1,8 @@
 #include "motis/reliability/rating/simple_rating.h"
 
-#include "motis/core/journey/journey.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/journey/journey.h"
 
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
@@ -28,13 +28,14 @@ probability_distribution get_travel_time_distribution(
       *first_element_feeder.from_, *first_element_feeder.light_connection_,
       time_util::departure, sched);
   int const departure_delay =
-      std::max(0, first_element_feeder.light_connection_->d_time -
+      std::max(0, first_element_feeder.light_connection_->d_time_ -
                       scheduled_departure_time);
 
   s_t_distributions.get_travel_time_distributions(
-      sched.categories[first_element_feeder.light_connection_->_full_con
-                           ->con_info->family]
-          ->name,
+      sched
+          .categories_[first_element_feeder.light_connection_->full_con_
+                           ->con_info_->family_]
+          ->name_,
       scheduled_arrival_time - scheduled_departure_time, departure_delay,
       distributions);
   if (distributions.empty()) {
@@ -67,7 +68,8 @@ probability rate_interchange(
       graph_accessor::get_interchange_time(*last_element_feeder.to_,
                                            *first_element_departing_train.from_,
                                            schedule);
-  int const delay = (int)latest_feasible_arrival - (int)scheduled_arrival_time;
+  int const delay = static_cast<int>(latest_feasible_arrival) -
+                    static_cast<int>(scheduled_arrival_time);
   return travel_time_distribution.probability_smaller_equal(delay);
 }
 
@@ -85,7 +87,7 @@ void rate(simple_connection_rating& rating, journey const& journey,
     element_ratings.emplace_back(
         rating_type::Cancellation,
         is_not_cancelled(
-            ce.front().light_connection_->_full_con->con_info->family));
+            ce.front().light_connection_->full_con_->con_info_->family_));
     if (idx > 0) {
       element_ratings.emplace_back(
           rating_type::Interchange,

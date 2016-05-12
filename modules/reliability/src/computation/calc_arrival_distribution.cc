@@ -1,7 +1,7 @@
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 
-#include <algorithm>
 #include <cassert>
+#include <algorithm>
 
 #include "motis/reliability/computation/data_arrival.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
@@ -38,10 +38,12 @@ void compute_arrival_distribution(
   for (int arr_delay = data.left_bound_; arr_delay <= data.right_bound_;
        arr_delay++) {
     probability computed_probability = 0.0;
-    for (unsigned int dep_prob_idx = 0; dep_prob_idx < dep_dist.size();
+    for (unsigned dep_prob_idx = 0; dep_prob_idx < dep_dist.size();
          dep_prob_idx++) {
-      unsigned int const dep_delay =
-          (unsigned int)data.departure_info_.distribution_.first_minute() +
+      assert(data.departure_info_.distribution_.first_minute() >= 0);
+      auto const dep_delay =
+          static_cast<unsigned>(
+              data.departure_info_.distribution_.first_minute()) +
           dep_prob_idx;
       int const travel_time_delay = arr_delay - dep_delay;
       auto const& travel_time_dist =
@@ -97,6 +99,6 @@ void correct_rounding_errors(probability const& expected_sum,
   }
 }
 }  // namespace detail
-}  // namespace calc_arrival_distibution
+}  // namespace calc_arrival_distribution
 }  // namespace reliability
 }  // namespace motis

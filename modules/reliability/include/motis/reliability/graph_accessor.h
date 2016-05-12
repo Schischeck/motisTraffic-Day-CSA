@@ -12,11 +12,10 @@
 
 namespace motis {
 namespace reliability {
-
 namespace graph_accessor {
 
 inline edge const* get_departing_route_edge(node const& route_node) {
-  for (auto& edge : route_node._edges) {
+  for (auto& edge : route_node.edges_) {
     if (!edge.empty()) {
       return &edge;
     }
@@ -25,7 +24,7 @@ inline edge const* get_departing_route_edge(node const& route_node) {
 }
 
 inline edge const* get_arriving_route_edge(node const& route_node) {
-  for (auto& edge : route_node._incoming_edges) {
+  for (auto& edge : route_node.incoming_edges_) {
     if (!edge->empty()) {
       return edge;
     }
@@ -50,7 +49,7 @@ inline light_connection const& get_previous_light_connection(
       arriving_light_connections.begin(), arriving_light_connections.end(),
       departure_time,
       [](unsigned int const dep_time, light_connection const& lc) {
-        return dep_time < lc.a_time;
+        return dep_time < lc.a_time_;
       });
   if (ub == arriving_light_connections.begin()) {
     return arriving_light_connections.front();
@@ -63,25 +62,25 @@ inline light_connection const& get_previous_light_connection(
 inline duration get_waiting_time(waiting_time_rules const& waiting_time_rules,
                                  uint32_t const family_feeder_train,
                                  uint32_t const family_connecting_train) {
-  return (duration)waiting_time_rules.waiting_time(
+  return static_cast<duration>(waiting_time_rules.waiting_time(
       waiting_time_rules.waiting_time_category(family_connecting_train),
-      waiting_time_rules.waiting_time_category(family_feeder_train));
+      waiting_time_rules.waiting_time_category(family_feeder_train)));
 }
 inline duration get_waiting_time(
     waiting_time_rules const& waiting_time_rules,
     light_connection const& feeder_light_conn,
     light_connection const& connecting_light_conn) {
   return get_waiting_time(waiting_time_rules,
-                          feeder_light_conn._full_con->con_info->family,
-                          connecting_light_conn._full_con->con_info->family);
+                          feeder_light_conn.full_con_->con_info_->family_,
+                          connecting_light_conn.full_con_->con_info_->family_);
 }
 
 inline std::string train_name(
     light_connection const& conn,
     std::vector<std::unique_ptr<category>> const& categories) {
   std::stringstream sst;
-  sst << categories[conn._full_con->con_info->family]->name
-      << conn._full_con->con_info->train_nr;
+  sst << categories[conn.full_con_->con_info_->family_]->name_
+      << conn.full_con_->con_info_->train_nr_;
   return sst.str();
 }
 
@@ -89,7 +88,7 @@ inline node const& get_first_route_node(node const& route_node) {
   node const* curr_node = &route_node;
   edge const* edge;
   while ((edge = get_arriving_route_edge(*curr_node)) != nullptr) {
-    curr_node = edge->_from;
+    curr_node = edge->from_;
   }
   return *curr_node;
 }
@@ -97,13 +96,13 @@ inline node const& get_first_route_node(node const& route_node) {
 /* only for test-schedules: requires unique train numbers */
 inline node const* get_first_route_node(schedule const& schedule,
                                         unsigned int const train_nr) {
-  for (auto node : schedule.route_index_to_first_route_node) {
+  for (auto node : schedule.route_index_to_first_route_node_) {
     assert(graph_accessor::get_departing_route_edge(*node));
-    assert(graph_accessor::get_departing_route_edge(*node)
-               ->_m._route_edge._conns.size() > 0);
+    assert(!graph_accessor::get_departing_route_edge(*node)
+                ->m_.route_edge_.conns_.empty());
     if (graph_accessor::get_departing_route_edge(*node)
-            ->_m._route_edge._conns[0]
-            ._full_con->con_info->train_nr == train_nr) {
+            ->m_.route_edge_.conns_[0]
+            .full_con_->con_info_->train_nr_ == train_nr) {
       return node;
     }
   }
@@ -114,27 +113,27 @@ inline std::pair<light_connection const*, unsigned int> find_light_connection(
     edge const& route_edge, motis::time const event_time, bool is_departure,
     std::function<bool(connection_info const&)> check_connection_info) {
   auto lc_time = [is_departure](light_connection const& lc) -> unsigned int {
-    return is_departure ? lc.d_time : lc.a_time;
+    return is_departure ? lc.d_time_ : lc.a_time_;
   };
   if (route_edge.empty()) {
     return std::make_pair(nullptr, 0);
   }
   auto it =
-      std::lower_bound(std::begin(route_edge._m._route_edge._conns),
-                       std::end(route_edge._m._route_edge._conns), event_time,
+      std::lower_bound(std::begin(route_edge.m_.route_edge_.conns_),
+                       std::end(route_edge.m_.route_edge_.conns_), event_time,
                        [&](light_connection const& a, unsigned int const b) {
                          return lc_time(a) < b;
                        });
-  while (it != std::end(route_edge._m._route_edge._conns) &&
+  while (it != std::end(route_edge.m_.route_edge_.conns_) &&
          lc_time(*it) == event_time &&
-         !check_connection_info(*it->_full_con->con_info)) {
+         !check_connection_info(*it->full_con_->con_info_)) {
     ++it;
   }
-  return (it == std::end(route_edge._m._route_edge._conns) ||
+  return (it == std::end(route_edge.m_.route_edge_.conns_) ||
           lc_time(*it) != event_time)
              ? std::make_pair(nullptr, 0)
              : std::make_pair(
-                   it, it - std::begin(route_edge._m._route_edge._conns));
+                   it, it - std::begin(route_edge.m_.route_edge_.conns_));
 }
 
 inline std::pair<light_connection const*, unsigned int> find_light_connection(
@@ -143,24 +142,24 @@ inline std::pair<light_connection const*, unsigned int> find_light_connection(
     std::string const& line_identifier) {
   return find_light_connection(
       route_edge, event_time, is_departure, [&](connection_info const& ci) {
-        return (train_nr == 0 || ci.train_nr == train_nr) &&
-               ci.family == family && ci.line_identifier == line_identifier;
+        return (train_nr == 0 || ci.train_nr_ == train_nr) &&
+               ci.family_ == family && ci.line_identifier_ == line_identifier;
       });
 }
 
 inline duration walking_duration(node const& tail_station,
                                  node const& head_station) {
   node const* foot_node = nullptr;
-  for (auto e : tail_station._edges) {
-    if (e._to->is_foot_node()) {
-      foot_node = e._to;
+  for (auto e : tail_station.edges_) {
+    if (e.to_->is_foot_node()) {
+      foot_node = e.to_;
       break;
     }
   }
   assert(foot_node);
-  for (auto e : foot_node->_edges) {
-    if (e._to->_id == head_station._id) {
-      return e._m._foot_edge._time_cost;
+  for (auto e : foot_node->edges_) {
+    if (e.to_->id_ == head_station.id_) {
+      return e.m_.foot_edge_.time_cost_;
     }
   }
   assert(false);
@@ -170,13 +169,13 @@ inline duration walking_duration(node const& tail_station,
 inline duration get_interchange_time(node const& arrival_node_feeder,
                                      node const& departure_node_departing_train,
                                      schedule const& schedule) {
-  if (arrival_node_feeder._station_node->_id !=
-      departure_node_departing_train._station_node->_id) {
-    return walking_duration(*arrival_node_feeder._station_node,
-                            *departure_node_departing_train._station_node);
+  if (arrival_node_feeder.station_node_->id_ !=
+      departure_node_departing_train.station_node_->id_) {
+    return walking_duration(*arrival_node_feeder.station_node_,
+                            *departure_node_departing_train.station_node_);
   }
-  return schedule.stations[departure_node_departing_train._station_node->_id]
-      ->transfer_time;
+  return schedule.stations_[departure_node_departing_train.station_node_->id_]
+      ->transfer_time_;
 }
 
 /* note: category-names are not unique */
@@ -190,7 +189,7 @@ inline std::pair<bool, int> find_family(
   auto const cat_it =
       std::find_if(categories.begin(), categories.end(),
                    [&](std::unique_ptr<category> const& cat) {
-                     return to_lower(cat->name) == to_lower(category_name);
+                     return to_lower(cat->name_) == to_lower(category_name);
                    });
 
   if (cat_it == categories.end()) {
@@ -202,23 +201,23 @@ inline std::pair<bool, int> find_family(
 inline void print_route_edge(edge const& route_edge, schedule const& schedule,
                              std::ostream& os) {
   os << "route-edge from "
-     << schedule.stations[route_edge._from->get_station()->_id]->name
-     << "(route-node-id: " << route_edge._from->_id << ") to "
-     << schedule.stations[route_edge._to->get_station()->_id]->name
-     << "(route-node-id: " << route_edge._to->_id << "):\n";
+     << schedule.stations_[route_edge.from_->get_station()->id_]->name_
+     << "(route-node-id: " << route_edge.from_->id_ << ") to "
+     << schedule.stations_[route_edge.to_->get_station()->id_]->name_
+     << "(route-node-id: " << route_edge.to_->id_ << "):\n";
   unsigned int light_connection_idx = 0;
-  for (auto const& light_connection : route_edge._m._route_edge._conns) {
-    os << schedule.stations[route_edge._from->_station_node->_id]->name << "/"
-       << schedule.stations[route_edge._from->_station_node->_id]->eva_nr << " "
-       << format_time(light_connection.d_time) << "--"
-       << schedule.categories[light_connection._full_con->con_info->family]
-              ->name
-       << light_connection._full_con->con_info->train_nr << ","
-       << light_connection._full_con->con_info->line_identifier << "("
+  for (auto const& light_connection : route_edge.m_.route_edge_.conns_) {
+    os << schedule.stations_[route_edge.from_->station_node_->id_]->name_ << "/"
+       << schedule.stations_[route_edge.from_->station_node_->id_]->eva_nr_
+       << " " << format_time(light_connection.d_time_) << "--"
+       << schedule.categories_[light_connection.full_con_->con_info_->family_]
+              ->name_
+       << light_connection.full_con_->con_info_->train_nr_ << ","
+       << light_connection.full_con_->con_info_->line_identifier_ << "("
        << light_connection_idx++ << ")->"
-       << format_time(light_connection.a_time) << " "
-       << schedule.stations[route_edge._to->_station_node->_id]->name << "/"
-       << schedule.stations[route_edge._to->_station_node->_id]->eva_nr
+       << format_time(light_connection.a_time_) << " "
+       << schedule.stations_[route_edge.to_->station_node_->id_]->name_ << "/"
+       << schedule.stations_[route_edge.to_->station_node_->id_]->eva_nr_
        << std::endl;
   }
 }
@@ -229,7 +228,7 @@ inline void print_route(node const* const first_route_node,
   edge const* edge = nullptr;
   while ((edge = get_departing_route_edge(*node)) != nullptr) {
     print_route_edge(*edge, schedule, os);
-    node = edge->_to;
+    node = edge->to_;
   }
   os << std::endl;
 }
