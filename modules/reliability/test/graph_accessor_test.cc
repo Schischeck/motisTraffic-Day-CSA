@@ -11,6 +11,8 @@
 
 #include "motis/reliability/graph_accessor.h"
 
+#include "include/schedules/schedule1.h"
+#include "include/schedules/schedule3.h"
 #include "include/test_schedule_setup.h"
 #include "include/test_util.h"
 
@@ -21,30 +23,14 @@ namespace graph_accessor {
 class reliability_graph_accessor : public test_schedule_setup {
 public:
   reliability_graph_accessor()
-      : test_schedule_setup("modules/reliability/resources/schedule/",
-                            "20150928") {}
+      : test_schedule_setup(schedule1::PATH, schedule1::DATE) {}
 };
-
-namespace schedule1 {
-/* modules/reliability/resources/schedule/ */
-constexpr auto DARMSTADT = "4219971";
-constexpr auto FRANKFURT = "8351230";
-/* train numbers */
-constexpr unsigned ICE_FR_DA_H = 5;
-constexpr unsigned RE_MA_DA = 4;
-}  // namespace schedule1
 
 class reliability_graph_accessor3 : public test_schedule_setup {
 public:
   reliability_graph_accessor3()
-      : test_schedule_setup("modules/reliability/resources/schedule3/",
-                            "20150928") {}
+      : test_schedule_setup(schedule3::PATH, schedule3::DATE) {}
 };
-
-namespace schedule3 {
-constexpr unsigned ICE_L_H = 1;  // 10:00 --> 10:10
-constexpr unsigned S_M_W = 2;  // 10:20 --> 10:25
-}  // namespace schedule3
 
 TEST_F(reliability_graph_accessor, get_first_route_node_by_train_nr) {
   auto node = get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);

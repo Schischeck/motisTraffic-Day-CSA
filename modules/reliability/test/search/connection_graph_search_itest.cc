@@ -14,6 +14,7 @@
 
 #include "motis/test/motis_instance_helper.h"
 
+#include "../include/schedules/schedule7_cg.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
 #include "../include/test_util.h"
@@ -23,20 +24,10 @@ namespace reliability {
 namespace search {
 namespace connection_graph_search {
 
-constexpr auto FRANKFURT = schedule_station{"Frankfurt", "1111111"};
-constexpr auto LANGEN = schedule_station{"Langen", "2222222"};
-constexpr auto DARMSTADT = schedule_station{"Darmstadt", "3333333"};
-constexpr auto PFUNGSTADT = schedule_station{"Pfungstadt", "5420132"};
-constexpr unsigned RE_D_L = 1;  // 07:00 --> 07:10
-constexpr unsigned RE_L_F = 2;  // 07:15 --> 07:25
-constexpr unsigned S_L_F = 3;  // 07:16 --> 07:34
-constexpr unsigned IC_L_F = 4;  // 07:17 --> 07:40
-
 class reliability_connection_graph_search : public test_motis_setup {
 public:
   reliability_connection_graph_search()
-      : test_motis_setup("modules/reliability/resources/schedule7_cg/",
-                         "20151019") {}
+      : test_motis_setup(schedule7_cg::PATH, schedule7_cg::DATE) {}
 
   void test_cg(std::vector<std::shared_ptr<connection_graph> > const cgs) {
     ASSERT_EQ(1, cgs.size());
@@ -95,7 +86,7 @@ public:
                 j.stops_.front().departure_.timestamp_);
       ASSERT_EQ(1445231400 /* 10/19/2015, 7:10:00 AM GMT+2:00 DST */,
                 j.stops_.back().arrival_.timestamp_);
-      ASSERT_EQ(j.transports_.front().train_nr_, RE_D_L);
+      ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::RE_D_L);
     }
     {
       auto const& j = cg.journeys_[1];
@@ -105,7 +96,7 @@ public:
                 j.stops_.front().departure_.timestamp_);
       ASSERT_EQ(1445232300 /* 10/19/2015, 7:25:00 AM GMT+2:00 DST */,
                 j.stops_.back().arrival_.timestamp_);
-      ASSERT_EQ(j.transports_.front().train_nr_, RE_L_F);
+      ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::RE_L_F);
     }
     {
       auto const& j = cg.journeys_[2];
@@ -115,7 +106,7 @@ public:
                 j.stops_.front().departure_.timestamp_);
       ASSERT_EQ(1445232840 /* 10/19/2015, 7:34:00 AM GMT+2:00 DST */,
                 j.stops_.back().arrival_.timestamp_);
-      ASSERT_EQ(j.transports_.front().train_nr_, S_L_F);
+      ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::S_L_F);
     }
     {
       auto const& j = cg.journeys_[3];
@@ -125,7 +116,7 @@ public:
                 j.stops_.front().departure_.timestamp_);
       ASSERT_EQ(1445233200 /* 10/19/2015, 7:40:00 AM GMT+2:00 DST */,
                 j.stops_.back().arrival_.timestamp_);
-      ASSERT_EQ(j.transports_.front().train_nr_, IC_L_F);
+      ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::IC_L_F);
     }
   }
 };
@@ -135,10 +126,12 @@ TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
+          .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
+                             schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
+          .add_destination(schedule7_cg::FRANKFURT.name_,
+                           schedule7_cg::FRANKFURT.eva_)
           .build_reliable_search_request(1);
   test_cg(motis_instance_->run([&]() {
     return search_cgs(motis_content(ReliableRoutingRequest, msg),
@@ -151,10 +144,12 @@ TEST_F(reliability_connection_graph_search,
        connection_tree_three_alternatives) {
   auto const msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
+          .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
+                             schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
+          .add_destination(schedule7_cg::FRANKFURT.name_,
+                           schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
 
   test_cg(motis_instance_->run([&]() {
@@ -169,10 +164,12 @@ TEST_F(reliability_connection_graph_search,
 TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(DARMSTADT.name_, DARMSTADT.eva_,
+          .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
+                             schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
-          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
+          .add_destination(schedule7_cg::FRANKFURT.name_,
+                           schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -221,7 +218,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
               j.stops_.front().departure_.timestamp_);
     ASSERT_EQ(1445231400 /* 10/19/2015, 7:10:00 AM GMT+2:00 DST */,
               j.stops_.back().arrival_.timestamp_);
-    ASSERT_EQ(j.transports_.front().train_nr_, RE_D_L);
+    ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::RE_D_L);
   }
   {
     auto const& j = cg.journeys_[1];
@@ -231,7 +228,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
               j.stops_.front().departure_.timestamp_);
     ASSERT_EQ(1445232300 /* 10/19/2015, 7:25:00 AM GMT+2:00 DST */,
               j.stops_.back().arrival_.timestamp_);
-    ASSERT_EQ(j.transports_.front().train_nr_, RE_L_F);
+    ASSERT_EQ(j.transports_.front().train_nr_, schedule7_cg::RE_L_F);
   }
 }
 
@@ -246,10 +243,12 @@ TEST_F(reliability_connection_graph_search,
        alternative_requires_further_alternatives) {
   auto msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(PFUNGSTADT.name_, PFUNGSTADT.eva_,
+          .add_pretrip_start(schedule7_cg::PFUNGSTADT.name_,
+                             schedule7_cg::PFUNGSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 630),
                              test_util::hhmm_to_unixtime(get_schedule(), 630))
-          .add_destination(FRANKFURT.name_, FRANKFURT.eva_)
+          .add_destination(schedule7_cg::FRANKFURT.name_,
+                           schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
   auto const cgs = motis_instance_->run([&]() {
     return search_cgs(
@@ -274,15 +273,18 @@ TEST_F(reliability_connection_graph_search,
       ASSERT_EQ(1 /* Frankfurt */, stop.alternative_infos_[0].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[0].journey_index_];
-      ASSERT_EQ(DARMSTADT.eva_, alternative.stops_.front().eva_no_);
-      ASSERT_EQ(FRANKFURT.eva_, alternative.stops_.back().eva_no_);
+      ASSERT_EQ(schedule7_cg::DARMSTADT.eva_,
+                alternative.stops_.front().eva_no_);
+      ASSERT_EQ(schedule7_cg::FRANKFURT.eva_,
+                alternative.stops_.back().eva_no_);
     }
     {
       ASSERT_EQ(3 /* Langen */, stop.alternative_infos_[1].next_stop_index_);
       auto const& alternative =
           cg.journeys_[stop.alternative_infos_[1].journey_index_];
-      ASSERT_EQ(DARMSTADT.eva_, alternative.stops_.front().eva_no_);
-      ASSERT_EQ(LANGEN.eva_, alternative.stops_.back().eva_no_);
+      ASSERT_EQ(schedule7_cg::DARMSTADT.eva_,
+                alternative.stops_.front().eva_no_);
+      ASSERT_EQ(schedule7_cg::LANGEN.eva_, alternative.stops_.back().eva_no_);
     }
   }
   // Langen
@@ -290,8 +292,8 @@ TEST_F(reliability_connection_graph_search,
   for (auto const& alternative_info : cg.stops_[3].alternative_infos_) {
     ASSERT_EQ(1 /* Frankfurt */, alternative_info.next_stop_index_);
     auto const& alternative = cg.journeys_[alternative_info.journey_index_];
-    ASSERT_EQ(LANGEN.eva_, alternative.stops_.front().eva_no_);
-    ASSERT_EQ(FRANKFURT.eva_, alternative.stops_.back().eva_no_);
+    ASSERT_EQ(schedule7_cg::LANGEN.eva_, alternative.stops_.front().eva_no_);
+    ASSERT_EQ(schedule7_cg::FRANKFURT.eva_, alternative.stops_.back().eva_no_);
   }
   // Frankfurt
   ASSERT_EQ(0, cg.stops_[1].alternative_infos_.size());
