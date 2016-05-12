@@ -41,7 +41,6 @@ void handle_delay_message(schedule const& sched, ris::DelayMessage const* msg) {
   auto lcon_idx = trp->lcon_idx_;
   for (auto const& trp_e : *trp->edges_) {
     auto const& e = *trp_e.get_edge();
-
     for (auto const& upd : get_updates(sched, msg->events())) {
     }
     e.m_.route_edge_.conns_[lcon_idx];
