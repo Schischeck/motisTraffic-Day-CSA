@@ -15,21 +15,21 @@ include_directories(${CMAKE_BINARY_DIR}/generated)
 ################################
 execute_process(
   COMMAND git rev-parse --abbrev-ref HEAD
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE motis_git_branch
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 execute_process(
   COMMAND git --no-pager log -1 --format=%h
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE motis_git_ref
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 execute_process(
   COMMAND git describe --tags --dirty=-dirty
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE motis_git_tag
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -90,31 +90,31 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib) # for osrm-backend
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/expat/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/flatbuffers/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/libosmium/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/googletest/googletest/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/leveldb/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/miniz)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/osrm-backend/third_party)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pugixml/src)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/snappy-cmake)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sparsehash/src)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlite/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/external_lib/websocketpp)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/conf/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/guess/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/net/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/parser/include)
-include_directories(${CMAKE_SOURCE_DIR}/external_lib/ctx/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib) # for osrm-backend
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/expat/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/flatbuffers/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/libosmium/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/googletest/googletest/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/leveldb/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/miniz)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/third_party)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pugixml/src)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/snappy-cmake)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sparsehash/src)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlite/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlpp11/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/websocketpp)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/conf/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/guess/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/net/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/parser/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/ctx/include)
 
 add_subdirectory(external_lib/expat EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
@@ -136,12 +136,12 @@ add_subdirectory(external_lib/pgdb EXCLUDE_FROM_ALL)
 ################################
 # MOTIS
 ################################
-include_directories(${CMAKE_SOURCE_DIR}/base/bootstrap/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/core/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/loader/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/module/include)
-include_directories(${CMAKE_SOURCE_DIR}/base/client/include)
-include_directories(${CMAKE_SOURCE_DIR}/test/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/bootstrap/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/core/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/loader/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/module/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/client/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
@@ -165,7 +165,7 @@ list(REMOVE_ITEM modules
 set(module-targets "")
 set(module-test-files "")
 foreach(module ${all-modules})
-  include_directories(${CMAKE_SOURCE_DIR}/modules/${module}/include)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/modules/${module}/include)
 endforeach(module)
 foreach(module ${modules})
   add_subdirectory(modules/${module})
@@ -183,7 +183,7 @@ add_subdirectory(base/client)
 # Tests
 ################################
 configure_file (
-  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/test_dir.h.in
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-test-files test/src/*.cc)
@@ -211,7 +211,7 @@ target_link_libraries(motis-test gtest gtest_main)
 # Integration Tests
 ################################
 configure_file (
-  ${CMAKE_SOURCE_DIR}/test/test_dir.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/test_dir.h.in
   ${CMAKE_BINARY_DIR}/generated/test_dir.h
 )
 file(GLOB_RECURSE motis-modules-itest-files ${module-itest-files})
@@ -239,7 +239,7 @@ if(MOTIS_LINT)
   add_custom_target(lint
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-        # -exit-on-error
+        -exit-on-error
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"

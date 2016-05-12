@@ -3,6 +3,8 @@
 #include <functional>
 #include <system_error>
 
+#include "boost/algorithm/string/predicate.hpp"
+
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
@@ -12,6 +14,7 @@
 using namespace net::http::server;
 using namespace motis::module;
 namespace p = std::placeholders;
+namespace srv = net::http::server;
 
 namespace motis {
 namespace launcher {
@@ -42,37 +45,14 @@ struct http_server::impl {
 
   void stop() { server_.stop(); }
 
-  void operator()(net::http::server::route_request const& req,
-                  net::http::server::callback cb) {
+  void operator()(srv::route_request const& req, srv::callback cb) {
     try {
-      auto content_type_header_it = std::find_if(
-          begin(req.headers), end(req.headers),
-          [](header const& h) { return h.name == "Content-Type"; });
-      if (req.method == "POST" &&  //
-          content_type_header_it != end(req.headers) &&
-          content_type_header_it->value.find("application/json") !=
-              std::string::npos) {
-        return receiver_.on_msg(
-            make_msg(req.content),
-            ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
+      if (req.method == "GET") {
+        return handle_get(req, cb);
+      } else if (req.method == "POST") {
+        return handle_post(req, cb);
       } else {
-        message_creator fbb;
-        fbb.create_and_finish(
-            MsgContent_HTTPRequest,
-            CreateHTTPRequest(fbb, translate_method_string(req.method),
-                              fbb.CreateString(req.uri),
-                              fbb.CreateVector(loader::transform_to_vec(
-                                  begin(req.headers), end(req.headers),
-                                  [&](header const& h) {
-                                    return CreateHTTPHeader(
-                                        fbb, fbb.CreateString(h.name),
-                                        fbb.CreateString(h.value));
-                                  })),
-                              fbb.CreateString(req.content))
-                .Union());
-        return receiver_.on_msg(
-            make_msg(fbb),
-            ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
+        return cb(reply::stock_reply(reply::not_found));
       }
     } catch (std::system_error const& e) {
       reply rep = reply::stock_reply(reply::internal_server_error);
@@ -87,8 +67,55 @@ struct http_server::impl {
     }
   }
 
-  void on_response(net::http::server::callback cb, msg_ptr msg,
-                   std::error_code ec) {
+  void handle_get(srv::route_request const& req, srv::callback& cb) {
+    return receiver_.on_msg(
+        make_no_msg(get_path(req.uri)),
+        ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
+  }
+
+  void handle_post(srv::route_request const& req, srv::callback& cb) {
+    if (has_header(req, "Content-Type", "application/json")) {
+      return receiver_.on_msg(
+          make_msg(req.content),
+          ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
+    } else {
+      message_creator fbb;
+      fbb.create_and_finish(
+          MsgContent_HTTPRequest,
+          CreateHTTPRequest(fbb, translate_method_string(req.method),
+                            fbb.CreateString(get_path(req.uri)),
+                            fbb.CreateVector(loader::transform_to_vec(
+                                begin(req.headers), end(req.headers),
+                                [&](header const& h) {
+                                  return CreateHTTPHeader(
+                                      fbb, fbb.CreateString(h.name),
+                                      fbb.CreateString(h.value));
+                                })),
+                            fbb.CreateString(req.content))
+              .Union(),
+          get_path(req.uri));
+      return receiver_.on_msg(
+          make_msg(fbb),
+          ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
+    }
+  }
+
+  std::string get_path(std::string const& uri) {
+    auto pos = uri.find('?');
+    if (pos != std::string::npos) {
+      return uri.substr(0, pos);
+    }
+    return uri;
+  }
+
+  bool has_header(srv::route_request const& req, char const* k, char const* v) {
+    auto it =
+        std::find_if(begin(req.headers), end(req.headers),
+                     [&k](auto&& h) { return boost::iequals(h.name, k); });
+    return it != end(req.headers) && it->value.find(v) != std::string::npos;
+  }
+
+  void on_response(srv::callback cb, msg_ptr msg, std::error_code ec) {
     reply rep = reply::stock_reply(reply::internal_server_error);
     try {
       if (!ec && msg) {
