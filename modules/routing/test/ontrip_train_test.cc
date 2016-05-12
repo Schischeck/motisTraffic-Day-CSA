@@ -26,13 +26,12 @@ TEST_F(routing_ontrip_train, stay_in_train) {
           fbb, Start_OntripTrainStart,
           CreateOntripTrainStart(
               fbb, CreateTripId(fbb, fbb.CreateString("8000096"), 2292,
-                                unix_time(sched(), 1305),
-                                fbb.CreateString("8000105"),
-                                unix_time(sched(), 1440), EventType_Departure,
+                                unix_time(1305), fbb.CreateString("8000105"),
+                                unix_time(1440), EventType_Departure,
                                 fbb.CreateString("381")),
               CreateInputStation(fbb, fbb.CreateString("8000068"),
                                  fbb.CreateString("")),
-              unix_time(sched(), 1422))
+              unix_time(1422))
               .Union(),
           CreateInputStation(fbb, fbb.CreateString("8000001"),
                              fbb.CreateString("")),

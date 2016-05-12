@@ -101,9 +101,6 @@ include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/include)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/third_party)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pugixml/src)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/snappy-cmake)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sparsehash/src)
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlite/include)
@@ -130,7 +127,6 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/pgdb EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -158,7 +154,7 @@ list(REMOVE_ITEM modules
   "connectionchecker"
   "intermodal"
   "railviz"
-  "realtime"
+  "reliability"
   "rt"
 )
 

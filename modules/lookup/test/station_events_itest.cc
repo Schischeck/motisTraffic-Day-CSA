@@ -1,15 +1,15 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
-#include "motis/test/motis_instance_helper.h"
+#include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
+using namespace motis;
 using namespace motis::module;
 using namespace motis::test;
-using namespace motis::test::schedule::simple_realtime;
-
-namespace motis {
-namespace lookup {
+using namespace motis::lookup;
+using motis::test::schedule::simple_realtime::dataset_opt;
+using motis::test::schedule::simple_realtime::get_ris_message;
 
 constexpr auto kNotInPeriod = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
@@ -53,21 +53,24 @@ constexpr auto kFrankfurtRequest = R""(
   }}
 )"";
 
-// TODO(sebastian) re-enable when working realtime module is available
-TEST(lookup, DISABLED_station_events) {
-  auto motis =
-      launch_motis(kSchedulePath, kScheduleDate, {"lookup", "realtime"});
-  call(motis, get_ris_message());
+struct lookup_station_events_test : public motis_instance_test {
+  lookup_station_events_test()
+      : motis_instance_test(dataset_opt, {"lookup", "rt"}) {}
+};
 
-  ASSERT_ANY_THROW(call(motis, make_msg(kNotInPeriod)));
+// TODO(sebastian) re-enable when working realtime module is available
+TEST_F(lookup_station_events_test, DISABLED_station_events) {
+  call(get_ris_message());
+
+  ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 
   {
-    auto msg = call(motis, make_msg(kSiegenEmptyRequest));
+    auto msg = call(make_msg(kSiegenEmptyRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
     ASSERT_EQ(0, resp->events()->size());  // end is exclusive
   }
   {
-    auto msg = call(motis, make_msg(kSiegenRequest));
+    auto msg = call(make_msg(kSiegenRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
     ASSERT_EQ(1, resp->events()->size());
 
@@ -88,7 +91,7 @@ TEST(lookup, DISABLED_station_events) {
     EXPECT_EQ(1448374200, trip_id->time());
   }
   {
-    auto msg = call(motis, make_msg(kFrankfurtRequest));
+    auto msg = call(make_msg(kFrankfurtRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
 
     ASSERT_EQ(3, resp->events()->size());
@@ -147,18 +150,16 @@ TEST(lookup, DISABLED_station_events) {
   }
 }
 
-TEST(lookup, station_events_no_realtime) {
-  auto instance = launch_motis(kSchedulePath, kScheduleDate, {"lookup"});
-
-  ASSERT_ANY_THROW(call(instance, make_msg(kNotInPeriod)));
+TEST_F(lookup_station_events_test, station_events_no_realtime) {
+  ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 
   {
-    auto msg = call(instance, make_msg(kSiegenEmptyRequest));
+    auto msg = call(make_msg(kSiegenEmptyRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
     ASSERT_EQ(0, resp->events()->size());  // end is exclusive
   }
   {
-    auto msg = call(instance, make_msg(kSiegenRequest));
+    auto msg = call(make_msg(kSiegenRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
     ASSERT_EQ(1, resp->events()->size());
 
@@ -179,7 +180,7 @@ TEST(lookup, station_events_no_realtime) {
     EXPECT_EQ(1448374200, trip_id->time());
   }
   {
-    auto msg = call(instance, make_msg(kFrankfurtRequest));
+    auto msg = call(make_msg(kFrankfurtRequest));
     auto resp = motis_content(LookupStationEventsResponse, msg);
 
     ASSERT_EQ(3, resp->events()->size());
@@ -237,6 +238,3 @@ TEST(lookup, station_events_no_realtime) {
     }
   }
 }
-
-}  // namespace lookup
-}  // namespace motis

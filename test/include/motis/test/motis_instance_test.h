@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "motis/core/access/time_access.h"
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/loader/loader_options.h"
 
@@ -33,7 +34,13 @@ struct motis_instance_test : public ::testing::Test {
   std::function<module::msg_ptr(module::msg_ptr const&)> msg_sink(
       std::vector<module::msg_ptr>*);
 
+  schedule const& sched() const { return *instance_->sched_; }
   schedule& sched() { return *instance_->sched_; }
+
+  std::time_t unix_time(int hhmm, int day_idx = 0,
+                        int timezone_offset = kDefaultTimezoneOffset) const {
+    return motis::unix_time(sched(), hhmm, day_idx, timezone_offset);
+  }
 
 private:
   bootstrap::motis_instance_ptr instance_;
