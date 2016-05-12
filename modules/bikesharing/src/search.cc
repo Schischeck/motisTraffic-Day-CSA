@@ -62,13 +62,14 @@ struct bikesharing_search::impl {
 
   Offset<Vector<Offset<BikesharingEdge>>> find_departures(
       context& ctx, BikesharingRequest const* req) const {
-    auto begin = req->window_begin() - req->window_begin() % kSecondsPerHour;
-    auto end = req->window_end();
+    auto begin =
+        req->interval()->begin() - req->interval()->begin() % kSecondsPerHour;
+    auto end = req->interval()->end();
     auto first_bucket = timestamp_to_bucket(begin);
 
     std::multimap<std::string, bike_edge> departures;
     foreach_terminal_in_walk_dist(
-        req->departure_lng(), req->departure_lat(),
+        req->dep()->lng(), req->dep()->lat(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& from_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *from_t->get()->reachable()) {
@@ -94,13 +95,14 @@ struct bikesharing_search::impl {
 
   Offset<Vector<Offset<BikesharingEdge>>> find_arrivals(
       context& ctx, BikesharingRequest const* req) const {
-    auto begin = req->window_begin() - req->window_begin() % kSecondsPerHour;
-    auto end = req->window_end() + MAX_TRAVEL_TIME_SECONDS;
+    auto begin =
+        req->interval()->begin() - req->interval()->begin() % kSecondsPerHour;
+    auto end = req->interval()->end() + MAX_TRAVEL_TIME_SECONDS;
     auto first_bucket = timestamp_to_bucket(begin);
 
     std::multimap<std::string, bike_edge> arrivals;
     foreach_terminal_in_walk_dist(
-        req->arrival_lng(), req->arrival_lat(),
+        req->arr()->lng(), req->arr()->lat(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& to_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *to_t->get()->reachable()) {
@@ -136,16 +138,19 @@ struct bikesharing_search::impl {
                  std::back_inserter(result_n));
 
     for (const auto& result : result_n) {
-      // TODO OSRM
+      // TODO(Sebastian Fahnenschreiber) OSRM
       int walk_dur = distance_in_m(result.first, loc) / WALK_SPEED;
       func(terminal_ids_[result.second], walk_dur);
     }
   }
 
   persistable_terminal* load_terminal(context& c, std::string const& id) const {
-    return get_or_create(c.terminals, id, [&]() {
-             return make_unique<persistable_terminal>(db_.get(id));
-           }).get();
+    return get_or_create(
+               c.terminals, id,
+               [&]() {
+                 return std::make_unique<persistable_terminal>(db_.get(id));
+               })
+        .get();
   }
 
   std::vector<availability_bucket> get_availability(
@@ -191,9 +196,10 @@ struct bikesharing_search::impl {
       context& ctx, persistable_terminal* terminal) const {
     auto const* t = terminal->get();
     return get_or_create(ctx.terminal_offsets, t->id()->str(), [&]() {
+      motis::Position pos(t->lat(), t->lng());
       return CreateBikesharingTerminal(
-          ctx.b, ctx.b.CreateString(t->id()->str()), t->lat(), t->lng(),
-          ctx.b.CreateString(t->name()->str()));
+          ctx.b, ctx.b.CreateString(t->id()->str()),
+          ctx.b.CreateString(t->name()->str()), &pos);
     });
   }
 

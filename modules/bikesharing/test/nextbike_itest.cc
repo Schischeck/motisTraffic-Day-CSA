@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "motis/test/motis_instance_helper.h"
 #include "motis/module/message.h"
+#include "motis/test/motis_instance_helper.h"
 
 using namespace motis::test;
 using namespace motis::module;
@@ -13,20 +13,32 @@ namespace bikesharing {
 
 constexpr auto kBikesharingRequest = R""(
 {
-  "content_type": "BikesharingRequest",
+  "destination": {
+    "type": "Module",
+    "target": "/bikesharing"
+  },
   "content": {
-    // close to campus darmstadt
-    "departure_lat": 49.8776114,
-    "departure_lng": 8.6571044,
-
-    // close to campus ffm
-    "arrival_lat": 50.1273104,
-    "arrival_lng": 8.6669383,
-
-    "window_begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
-    "window_end": 1454606100,  // Thu, 04 Feb 2016 17:15:00 GMT
-
-    "availability_aggregator": "Average"
+    "content_type": "BikesharingRequest",
+    "content": {
+      // close to campus darmstadt
+      "dep": {
+        "lat": 49.8776114,
+        "lng": 8.6571044
+      },
+  
+      // close to campus ffm
+      "arr": {
+        "lat": 50.1273104,
+        "lng": 8.6669383
+      },
+  
+      "interval": {
+        "begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
+        "end": 1454606100,  // Thu, 04 Feb 2016 17:15:00 GMT
+      }
+  
+      "availability_aggregator": "Average"
+    }
   }
 }
 )"";
@@ -47,15 +59,16 @@ BikesharingEdge const* find_edge(V const* vec, std::string const& from,
 
 TEST(bikesharing_nextbike_itest, integration_test) {
   auto instance = launch_motis("modules/bikesharing/test_resources/schedule",
-                               "20150112", {"bikesharing", "lookup"},
+                               "20150112", {"lookup", "bikesharing"},
                                {"--bikesharing.nextbike_path=modules/"
                                 "bikesharing/test_resources/nextbike",
                                 "--bikesharing.database_path=:memory:"});
 
-  auto msg = send(instance, make_msg(kBikesharingRequest));
+  auto msg = test::call(instance, make_msg(kBikesharingRequest));
 
-  ASSERT_EQ(MsgContent_BikesharingResponse, msg->content_type());
-  auto resp = msg->content<BikesharingResponse const*>();
+  ASSERT_EQ(MsgContent_BikesharingResponse, msg->get()->content_type());
+  using bikesharing::BikesharingResponse;
+  auto resp = motis_content(BikesharingResponse, msg);
 
   /****************************************************************************
    *  check departure side
@@ -66,7 +79,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_3 = find_edge(dep_edges, "1", "3");
     ASSERT_NE(nullptr, e_1_3);
-    EXPECT_EQ(std::string("8000068"), e_1_3->eva_nr()->str());
+    EXPECT_EQ(std::string("8000068"), e_1_3->station_id()->str());
     ASSERT_EQ(2, e_1_3->availability()->size());
 
     auto e_1_a0 = e_1_3->availability()->Get(0);
@@ -81,12 +94,12 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_4 = find_edge(dep_edges, "1", "4");
     ASSERT_NE(nullptr, e_1_4);
-    EXPECT_EQ(std::string("8000068"), e_1_4->eva_nr()->str());
+    EXPECT_EQ(std::string("8000068"), e_1_4->station_id()->str());
     ASSERT_EQ(2, e_1_4->availability()->size());
 
     auto e_2_3 = find_edge(dep_edges, "2", "3");
     ASSERT_NE(nullptr, e_2_3);
-    EXPECT_EQ(std::string("8000068"), e_2_3->eva_nr()->str());
+    EXPECT_EQ(std::string("8000068"), e_2_3->station_id()->str());
     ASSERT_EQ(2, e_2_3->availability()->size());
 
     auto e_2_a0 = e_2_3->availability()->Get(0);
@@ -101,7 +114,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_2_4 = find_edge(dep_edges, "2", "4");
     ASSERT_NE(nullptr, e_2_4);
-    EXPECT_EQ(std::string("8000068"), e_2_4->eva_nr()->str());
+    EXPECT_EQ(std::string("8000068"), e_2_4->station_id()->str());
     ASSERT_EQ(2, e_2_4->availability()->size());
   }
 
@@ -114,7 +127,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_3 = find_edge(arr_edges, "7", "5");
     ASSERT_NE(nullptr, e_1_3);
-    EXPECT_EQ(std::string("8000105"), e_1_3->eva_nr()->str());
+    EXPECT_EQ(std::string("8000105"), e_1_3->station_id()->str());
     ASSERT_EQ(26, e_1_3->availability()->size());
 
     auto e_1_a0 = e_1_3->availability()->Get(0);
@@ -129,12 +142,12 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_1_4 = find_edge(arr_edges, "7", "6");
     ASSERT_NE(nullptr, e_1_4);
-    EXPECT_EQ(std::string("8000105"), e_1_4->eva_nr()->str());
+    EXPECT_EQ(std::string("8000105"), e_1_4->station_id()->str());
     ASSERT_EQ(26, e_1_4->availability()->size());
 
     auto e_2_3 = find_edge(arr_edges, "8", "5");
     ASSERT_NE(nullptr, e_2_3);
-    EXPECT_EQ(std::string("8000105"), e_2_3->eva_nr()->str());
+    EXPECT_EQ(std::string("8000105"), e_2_3->station_id()->str());
     ASSERT_EQ(26, e_2_3->availability()->size());
 
     auto e_2_a0 = e_2_3->availability()->Get(0);
@@ -149,7 +162,7 @@ TEST(bikesharing_nextbike_itest, integration_test) {
 
     auto e_2_4 = find_edge(arr_edges, "8", "6");
     ASSERT_NE(nullptr, e_2_4);
-    EXPECT_EQ(std::string("8000105"), e_2_4->eva_nr()->str());
+    EXPECT_EQ(std::string("8000105"), e_2_4->station_id()->str());
     ASSERT_EQ(26, e_2_4->availability()->size());
   }
 }

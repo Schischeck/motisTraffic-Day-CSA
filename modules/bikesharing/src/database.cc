@@ -4,7 +4,7 @@
 
 #include "motis/bikesharing/error.h"
 
-using boost::system::system_error;
+using std::system_error;
 
 using namespace leveldb;
 using namespace flatbuffers;
@@ -37,12 +37,12 @@ struct database::database_impl {
     Status s = db_->Get(ReadOptions(), id, &value);
 
     if (s.IsNotFound()) {
-      throw boost::system::system_error(error::terminal_not_found);
+      throw system_error(error::terminal_not_found);
     } else if (!s.ok()) {
       throw system_error(error::database_error);
     }
 
-    return value;
+    return persistable_terminal(value);
   }
 
   virtual void put(std::vector<persistable_terminal> const& terminals) {
@@ -62,7 +62,7 @@ struct database::database_impl {
       throw system_error(error::database_error);
     }
 
-    return value;
+    return bikesharing_summary(value);
   }
 
   virtual void put_summary(bikesharing_summary const& summary) {
@@ -79,9 +79,9 @@ struct inmemory_database : public database::database_impl {
   persistable_terminal get(std::string const& id) const {
     auto it = store_.find(id);
     if (it == end(store_)) {
-      throw boost::system::system_error(error::terminal_not_found);
+      throw system_error(error::terminal_not_found);
     }
-    return it->second;
+    return persistable_terminal(it->second);
   }
 
   void put(std::vector<persistable_terminal> const& terminals) {
@@ -93,9 +93,9 @@ struct inmemory_database : public database::database_impl {
   bikesharing_summary get_summary() const {
     auto it = store_.find(kSummaryKey);
     if (it == end(store_)) {
-      throw boost::system::system_error(error::terminal_not_found);
+      throw system_error(error::terminal_not_found);
     }
-    return it->second;
+    return bikesharing_summary(it->second);
   }
 
   void put_summary(bikesharing_summary const& summary) {
@@ -159,7 +159,7 @@ persistable_terminal convert_terminal(
                           detail::create_availabilities(b, availabilities),
                           detail::create_close_locations(b, attached),
                           detail::create_close_locations(b, reachable)));
-  return {std::move(b)};
+  return persistable_terminal(std::move(b));
 }
 
 bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
@@ -172,7 +172,7 @@ bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
   }
   b.Finish(CreateSummary(b, b.CreateVector(locations)));
 
-  return {std::move(b)};
+  return bikesharing_summary(std::move(b));
 }
 
 }  // namespace bikesharing

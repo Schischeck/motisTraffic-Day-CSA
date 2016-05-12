@@ -20,7 +20,7 @@ constexpr unsigned ICE_F_S = 2;  // 10:10 --> 11:10
 constexpr unsigned ICE_K_F_S = 3;  // 09:15 --> 10:15, 10:20 --> 11:15
 constexpr unsigned S_N_E = 4;  // 11:30 --> 15:30
 constexpr unsigned ICE_S_E = 5;  // 11:32 --> 12:32
-constexpr static unsigned S_H_S = 6;  // 07:15 --> 11:15
+constexpr unsigned S_H_S = 6;  // 07:15 --> 11:15
 constexpr unsigned ICE_E_K = 7;  // 12:45 --> 14:15
 
 }  // namespace schedule2

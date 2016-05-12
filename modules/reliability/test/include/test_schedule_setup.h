@@ -70,8 +70,8 @@ protected:
       modules.push_back("ris");
     }
     if (bikesharing_) {
+      modules.push_back("lookup");
       modules.push_back("bikesharing");
-      modules.push_back("intermodal");
       modules_cmdline_opt.push_back("--bikesharing.nextbike_path=" +
                                     bikesharing_path_);
       modules_cmdline_opt.push_back("--bikesharing.database_path=:memory:");

@@ -9,9 +9,9 @@
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/bikesharing/database.h"
 #include "motis/bikesharing/error.h"
 #include "motis/bikesharing/nextbike_initializer.h"
-#include "motis/bikesharing/database.h"
 #include "motis/bikesharing/search.h"
 
 #define DATABASE_PATH "bikesharing.database_path"
@@ -29,7 +29,7 @@ namespace bikesharing {
 bikesharing::bikesharing()
     : database_path_("bikesharing"), nextbike_path_("") {}
 
-bikesharing::~bikesharing() {}
+bikesharing::~bikesharing() = default;
 
 po::options_description bikesharing::desc() {
   po::options_description desc("bikesharing Module");
@@ -50,40 +50,22 @@ void bikesharing::print(std::ostream& out) const {
       << "  " << NEXTBIKE_PATH << ": " << nextbike_path_;
 }
 
-void bikesharing::init_async() {
-  database_ = std::make_unique<database>(database_path_);
+void bikesharing::init(motis::module::registry& reg) {
+  reg.register_op("/bikesharing",
+                  std::bind(&bikesharing::request, this, p::_1));
 
-  auto dispatch_fun = [this](msg_ptr msg, callback cb) {
-    return dispatch(msg, 0, cb);
-  };
-  auto finished = [this](msg_ptr, boost::system::error_code ec) mutable {
-    if (!ec) {
-      search_ = std::make_unique<bikesharing_search>(*database_);
-    } else {
-      throw boost::system::system_error(ec);
-    }
-  };
-  initialize_nextbike(nextbike_path_, *database_, dispatch_fun, finished);
+  database_ = std::make_unique<database>(database_path_);
+  initialize_nextbike(nextbike_path_, *database_);
+  search_ = std::make_unique<bikesharing_search>(*database_);
 }
 
-void bikesharing::on_msg(msg_ptr msg, sid, callback cb) {
+motis::module::msg_ptr bikesharing::request(motis::module::msg_ptr const& req) {
   if (!search_ || !database_) {
-    return cb({}, error::not_initialized);
+    throw std::system_error(error::not_initialized);
   }
 
-  auto content_type = msg->content_type();
-  if (content_type == MsgContent_BikesharingRequest) {
-    auto req = msg->content<BikesharingRequest const*>();
-    try {
-      return cb(search_->find_connections(req), error::ok);
-    } catch (boost::system::system_error const& e) {
-      return cb({}, e.code());
-    } catch (...) {
-      return cb({}, error::search_failure);
-    }
-  }
-
-  return cb({}, error::not_implemented);
+  using motis::bikesharing::BikesharingRequest;
+  return search_->find_connections(motis_content(BikesharingRequest, req));
 }
 
 }  // namespace bikesharing
