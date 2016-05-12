@@ -12,7 +12,7 @@ struct rt : public motis::module::module {
   std::string name() const override { return "rt"; }
 
   boost::program_options::options_description desc() override;
-  void print(std::ostream& out) const override {}
+  void print(std::ostream&) const override {}
   bool empty_config() const override { return true; }
 
   void init(motis::module::registry&) override;

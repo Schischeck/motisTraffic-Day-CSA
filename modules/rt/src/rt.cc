@@ -4,9 +4,12 @@
 
 #include "boost/program_options.hpp"
 
-#include "motis/protocol/Message_generated.h"
+#include "motis/core/access/station_access.h"
+#include "motis/core/access/time_access.h"
+#include "motis/core/access/trip_access.h"
+#include "motis/module/context/get_schedule.h"
+#include "motis/loader/util.h"
 
-namespace p = std::placeholders;
 namespace po = boost::program_options;
 using namespace flatbuffers;
 using namespace motis::module;
@@ -27,8 +30,9 @@ std::vector<update> get_updates(
     schedule const& sched, Vector<Offset<ris::UpdatedEvent>> const* events) {
   return loader::transform_to_vec(
       events->begin(), events->end(), [&](ris::UpdatedEvent const* ev) {
-        return update(get_station_node(sched, ev->base()->station_id()->str()),
-                      unix_to_motistime(sched, ev->base()->schedule_time()));
+        return update(
+            get_station_node(sched, ev->base()->station_id()->str())->id_,
+            unix_to_motistime(sched, ev->base()->schedule_time()));
       });
 }
 
@@ -42,8 +46,11 @@ void handle_delay_message(schedule const& sched, ris::DelayMessage const* msg) {
   for (auto const& trp_e : *trp->edges_) {
     auto const& e = *trp_e.get_edge();
     for (auto const& upd : get_updates(sched, msg->events())) {
+      (void)(upd);
+      (void)(e);
+      (void)(lcon_idx);
     }
-    e.m_.route_edge_.conns_[lcon_idx];
+    // e.m_.route_edge_.conns_[lcon_idx];
   }
 }
 

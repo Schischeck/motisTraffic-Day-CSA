@@ -155,7 +155,6 @@ list(REMOVE_ITEM modules
   "intermodal"
   "railviz"
   "reliability"
-  "rt"
 )
 
 set(module-targets "")

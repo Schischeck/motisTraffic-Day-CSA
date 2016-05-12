@@ -10,8 +10,8 @@ using namespace motis::test;
 using motis::test::schedule::simple_realtime::dataset_opt;
 using motis::test::schedule::simple_realtime::get_ris_message;
 
-struct lookup_id_train_test : public motis_instance_test {
-  lookup_id_train_test() : motis_instance_test(dataset_opt, {"rt"}) {}
+struct rt_test : public motis_instance_test {
+  rt_test() : motis_instance_test(dataset_opt, {"rt"}) {}
 };
 
-TEST_F(lookup_id_train_test, DISABLED_id_train) { call(get_ris_message()); }
+TEST_F(rt_test, simple) { publish(get_ris_message()); }

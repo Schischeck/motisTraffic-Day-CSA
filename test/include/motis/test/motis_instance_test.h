@@ -14,9 +14,10 @@ namespace motis {
 namespace test {
 
 struct motis_instance_test : public ::testing::Test {
-  motis_instance_test(loader::loader_options const&,
-                      std::vector<std::string> const& modules = {},
-                      std::vector<std::string> const& modules_cmdline_opt = {});
+  explicit motis_instance_test(
+      loader::loader_options const&,
+      std::vector<std::string> const& modules = {},
+      std::vector<std::string> const& modules_cmdline_opt = {});
 
   template <typename F>
   void subscribe(std::string const& topic, F&& func) {
@@ -30,6 +31,7 @@ struct motis_instance_test : public ::testing::Test {
 
   module::msg_ptr call(std::string const& target);
   module::msg_ptr call(module::msg_ptr const&);
+  void publish(module::msg_ptr const&);
 
   std::function<module::msg_ptr(module::msg_ptr const&)> msg_sink(
       std::vector<module::msg_ptr>*);

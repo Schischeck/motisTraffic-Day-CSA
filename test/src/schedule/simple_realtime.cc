@@ -49,7 +49,8 @@ msg_ptr get_ris_message() {
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
   mc.create_and_finish(MsgContent_RISBatch,
-                       CreateRISBatch(mc, mc.CreateVector(messages)).Union());
+                       CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
+                       "/ris/messages", DestinationType_Topic);
   return make_msg(mc);
 }
 

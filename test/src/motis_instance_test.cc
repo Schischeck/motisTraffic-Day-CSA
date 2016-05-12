@@ -4,6 +4,8 @@
 
 #include "conf/options_parser.h"
 
+#include "motis/module/context/motis_call.h"
+#include "motis/module/context/motis_publish.h"
 #include "motis/module/message.h"
 
 using namespace motis::module;
@@ -33,19 +35,42 @@ motis_instance_test::motis_instance_test(
 }
 
 msg_ptr motis_instance_test::call(msg_ptr const& msg) {
+  std::exception_ptr e;
   msg_ptr response;
-  std::error_code ec;
-  instance_->on_msg(msg, [&](msg_ptr r, std::error_code e) {
-    response = r;
-    ec = e;
+
+  instance_->run([&]() {
+    try {
+      response = motis_call(msg)->val();
+    } catch (...) {
+      e = std::current_exception();
+    }
   });
   instance_->ios_.run();
   instance_->ios_.reset();
 
-  if (ec) {
-    throw std::system_error(ec);
+  if (e) {
+    std::rethrow_exception(e);
   }
+
   return response;
+}
+
+void motis_instance_test::publish(msg_ptr const& msg) {
+  std::exception_ptr e;
+
+  instance_->run([&]() {
+    try {
+      motis_publish(msg);
+    } catch (...) {
+      e = std::current_exception();
+    }
+  });
+  instance_->ios_.run();
+  instance_->ios_.reset();
+
+  if (e) {
+    std::rethrow_exception(e);
+  }
 }
 
 msg_ptr motis_instance_test::call(std::string const& target) {
