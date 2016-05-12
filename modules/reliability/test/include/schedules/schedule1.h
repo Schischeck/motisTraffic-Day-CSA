@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../test_schedule_setup.h"
-
 namespace motis {
 namespace reliability {
 namespace schedule1 {
