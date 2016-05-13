@@ -55,3 +55,6 @@
 [submodule "external_lib/expat"]
 	path = external_lib/expat
 	url = git@git.motis-project.de:lib/expat.git
+[submodule "external_lib/rocksdb"]
+	path = external_lib/rocksdb
+	url = git@git.motis-project.de:lib/rocksdb-flat.git

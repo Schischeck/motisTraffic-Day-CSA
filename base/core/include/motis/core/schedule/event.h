@@ -11,9 +11,9 @@
 
 namespace motis {
 
-struct base_event {
-  enum class event_type { DEP, ARR };
+enum class event_type { DEP, ARR };
 
+struct base_event {
   base_event() = default;
   base_event(primary_trip_id trp, unsigned station_idx, event_type type)
       : trp_(trp), station_idx_(station_idx), type_(type) {}
@@ -74,8 +74,7 @@ struct hash<motis::schedule_event> {
     motis::hash_combine(seed, e.station_idx_);
     motis::hash_combine(
         seed,
-        static_cast<
-            typename std::underlying_type<motis::base_event::event_type>::type>(
+        static_cast<typename std::underlying_type<motis::event_type>::type>(
             e.type_));
     motis::hash_combine(seed, e.schedule_time_);
     return seed;
@@ -90,8 +89,7 @@ struct hash<motis::graph_event> {
     motis::hash_combine(seed, e.station_idx_);
     motis::hash_combine(
         seed,
-        static_cast<
-            typename std::underlying_type<motis::base_event::event_type>::type>(
+        static_cast<typename std::underlying_type<motis::event_type>::type>(
             e.type_));
     motis::hash_combine(seed, e.current_time_);
     return seed;

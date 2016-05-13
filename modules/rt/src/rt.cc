@@ -22,6 +22,11 @@ struct update {
   update() = default;
   update(unsigned station_id, time schedule_time)
       : station_id_(station_id), schedule_time_(schedule_time) {}
+
+  schedule_event sched_ev(primary_trip_id const& id, event_type type) const {
+    return {id, station_id_, type, schedule_time_};
+  }
+
   unsigned station_id_;
   time schedule_time_;
 };
@@ -39,18 +44,21 @@ std::vector<update> get_updates(
 void handle_delay_message(schedule const& sched, ris::DelayMessage const* msg) {
   auto const id = msg->trip_id();
   auto const updates = get_updates(sched, msg->events());
-  auto const trp = get_trip(sched, id->station_id()->str(), id->service_num(),
-                            id->schedule_time());
+  auto const trp = *get_trip(sched, id->station_id()->str(), id->service_num(),
+                             id->schedule_time());
 
-  auto lcon_idx = trp->lcon_idx_;
-  for (auto const& trp_e : *trp->edges_) {
+  auto lcon_idx = trp.lcon_idx_;
+  for (auto const& trp_e : *trp.edges_) {
     auto const& e = *trp_e.get_edge();
-    for (auto const& upd : get_updates(sched, msg->events())) {
-      (void)(upd);
-      (void)(e);
-      (void)(lcon_idx);
+    auto& lcon = e.m_.route_edge_.conns_[lcon_idx];
+
+    for (auto const ev_type : {event_type::DEP, event_type::ARR}) {
+      for (auto const& upd : get_updates(sched, msg->events())) {
+        sched.schedule_to_delay_info_.find(
+            upd.sched_ev(trp.id_.primary_, ev_type));
+        (void)(lcon);
+      }
     }
-    // e.m_.route_edge_.conns_[lcon_idx];
   }
 }
 

@@ -28,11 +28,11 @@ struct schedule {
         system_time_(0),
         last_update_timestamp_(0) {
     schedule_to_delay_info_.set_empty_key(
-        {primary_trip_id(0, 0, 0), 0, base_event::event_type::ARR, 0});
+        {primary_trip_id(0, 0, 0), 0, event_type::ARR, 0});
     graph_to_delay_info_.set_empty_key(
-        {primary_trip_id(0, 0, 0), 0, base_event::event_type::ARR, 0});
+        {primary_trip_id(0, 0, 0), 0, event_type::ARR, 0});
     graph_to_delay_info_.set_deleted_key(
-        {primary_trip_id(0, 0, 0), 0, base_event::event_type::DEP, 0});
+        {primary_trip_id(0, 0, 0), 0, event_type::DEP, 0});
   }
 
   schedule(schedule const&) = delete;
