@@ -114,7 +114,7 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));
@@ -173,7 +173,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
                              test_util::hhmm_to_unixtime(get_schedule(), 805))
           .add_destination(schedule5::MARBURG.name_, schedule5::MARBURG.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));
@@ -259,7 +259,7 @@ TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
                      .add_destination(schedule6::HAUPTWACHE.name_,
                                       schedule6::HAUPTWACHE.eva_)
                      .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));

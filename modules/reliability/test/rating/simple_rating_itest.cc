@@ -11,8 +11,6 @@
 #include "motis/reliability/rating/simple_rating.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/test/motis_instance_helper.h"
-
 #include "../include/schedules/schedule2.h"
 #include "../include/schedules/schedule5.h"
 #include "../include/start_and_travel_test_distributions.h"
@@ -46,7 +44,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));
@@ -83,12 +81,13 @@ TEST_F(reliability_simple_rating2, simple_rate) {
 TEST_F(reliability_simple_rating5, simple_rate2) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule5::MANNHEIM.name_, schedule5::MANNHEIM.eva_,
+          .add_pretrip_start(schedule5::MANNHEIM.name_,
+                             schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
           .add_destination(schedule5::MARBURG.name_, schedule5::MARBURG.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));

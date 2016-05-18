@@ -25,8 +25,8 @@ struct motis_instance_test : public ::testing::Test {
   }
 
   template <typename Fn>
-  void run(Fn&& fn) {
-    instance_->run(fn);
+  auto run(Fn&& fn) {
+    return instance_->run(fn);
   }
 
   module::msg_ptr call(std::string const& target);
@@ -42,6 +42,17 @@ struct motis_instance_test : public ::testing::Test {
   std::time_t unix_time(int hhmm, int day_idx = 0,
                         int timezone_offset = kDefaultTimezoneOffset) const {
     return motis::unix_time(sched(), hhmm, day_idx, timezone_offset);
+  }
+
+  template <typename Module>
+  Module* get_module(std::string const module_name) {
+    auto it = std::find_if(
+        instance_->modules_.begin(), instance_->modules_.end(),
+        [module_name](auto const& m) { return m->name() == module_name; });
+    if (it == instance_->modules_.end()) {
+      return nullptr;
+    }
+    return reinterpret_cast<Module*>(it->get());
   }
 
 private:

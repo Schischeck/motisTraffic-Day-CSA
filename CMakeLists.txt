@@ -153,7 +153,6 @@ list(REMOVE_ITEM modules
   "connectionchecker"
   "intermodal"
   "railviz"
-  "reliability"
 )
 
 set(module-targets "")

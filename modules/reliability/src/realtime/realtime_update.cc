@@ -1,3 +1,7 @@
+// TODO(Mohammad Keyhani)
+
+#if 0
+
 #include "motis/reliability/realtime/realtime_update.h"
 
 #include <set>
@@ -298,3 +302,5 @@ void update_precomputed_distributions(
 }  // namespace realtime
 }  // namespace reliability
 }  // namespace motis
+
+#endif

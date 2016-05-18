@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO(Mohammad Keyhani)
+#if 0
 namespace motis {
 struct schedule;
 namespace realtime {
@@ -20,3 +22,4 @@ void update_precomputed_distributions(
 }  // namespace realtime
 }  // namespace reliability
 }  // namespace motis
+#endif
