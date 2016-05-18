@@ -51,12 +51,16 @@ void bikesharing::print(std::ostream& out) const {
 }
 
 void bikesharing::init(motis::module::registry& reg) {
+  reg.register_op("/init", std::bind(&bikesharing::init_module, this, p::_1));
   reg.register_op("/bikesharing",
                   std::bind(&bikesharing::request, this, p::_1));
+}
 
+motis::module::msg_ptr bikesharing::init_module(motis::module::msg_ptr const&) {
   database_ = std::make_unique<database>(database_path_);
   initialize_nextbike(nextbike_path_, *database_);
   search_ = std::make_unique<bikesharing_search>(*database_);
+  return nullptr;
 }
 
 motis::module::msg_ptr bikesharing::request(motis::module::msg_ptr const& req) {

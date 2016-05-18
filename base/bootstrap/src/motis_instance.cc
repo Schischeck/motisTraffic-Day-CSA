@@ -10,6 +10,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/loader/loader.h"
 
+#include "motis/module/context/motis_publish.h"
+
 #include "modules.h"
 
 using namespace motis::module;
@@ -61,6 +63,25 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
                 << "unhandled unknown init error";
       throw;
     }
+  }
+  publish(make_no_msg("/init"));
+}
+
+void motis_instance::publish(msg_ptr const& msg) {
+  std::exception_ptr e;
+
+  run([&]() {
+    try {
+      motis_publish(msg);
+    } catch (...) {
+      e = std::current_exception();
+    }
+  });
+  ios_.run();
+  ios_.reset();
+
+  if (e) {
+    std::rethrow_exception(e);
   }
 }
 

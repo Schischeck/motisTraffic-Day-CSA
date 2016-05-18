@@ -23,6 +23,7 @@ struct bikesharing : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr init_module(motis::module::msg_ptr const&);
   motis::module::msg_ptr request(motis::module::msg_ptr const&);
 
   std::string database_path_;

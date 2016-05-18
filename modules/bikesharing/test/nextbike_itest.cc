@@ -17,28 +17,26 @@ constexpr auto kBikesharingRequest = R""(
     "type": "Module",
     "target": "/bikesharing"
   },
+  "content_type": "BikesharingRequest",
   "content": {
-    "content_type": "BikesharingRequest",
-    "content": {
-      // close to campus darmstadt
-      "dep": {
-        "lat": 49.8776114,
-        "lng": 8.6571044
-      },
-  
-      // close to campus ffm
-      "arr": {
-        "lat": 50.1273104,
-        "lng": 8.6669383
-      },
-  
-      "interval": {
-        "begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
-        "end": 1454606100,  // Thu, 04 Feb 2016 17:15:00 GMT
-      }
-  
-      "availability_aggregator": "Average"
-    }
+    // close to campus darmstadt
+    "dep": {
+      "lat": 49.8776114,
+      "lng": 8.6571044
+    },
+
+    // close to campus ffm
+    "arr": {
+      "lat": 50.1273104,
+      "lng": 8.6669383
+    },
+
+    "interval": {
+      "begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
+      "end": 1454606100,  // Thu, 04 Feb 2016 17:15:00 GMT
+    },
+
+    "availability_aggregator": "Average"
   }
 }
 )"";
