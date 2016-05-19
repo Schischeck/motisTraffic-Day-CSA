@@ -33,6 +33,9 @@ interchange_info::interchange_info(connection_element const& arriving_element,
   scheduled_departure_time_ = departure_time_;
   arrival_is_ = false;
   departure_is_ = false;
+
+// TODO (Mohammad Keyhani)
+#if 0
   {
     auto const it = sched.graph_to_delay_info_.find(graph_event(
         arriving_element.to_->get_station()->id_,
@@ -55,6 +58,7 @@ interchange_info::interchange_info(connection_element const& arriving_element,
       scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
     }
   }
+#endif
 
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);

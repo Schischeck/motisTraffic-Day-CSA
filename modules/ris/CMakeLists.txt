@@ -17,6 +17,7 @@ target_link_libraries(motis-ris
   pugixml
   sqlpp11-connector-sqlite3
   sqlite
+  rocksdb
 )
 
 add_executable(ris_loader EXCLUDE_FROM_ALL ${ris_loader-files})

@@ -16,9 +16,9 @@ namespace bootstrap {
 class dataset_settings : public conf::configuration,
                          public motis::loader::loader_options {
 public:
-  dataset_settings(std::string default_dataset, bool write_serialized,
-                   bool apply_rules, bool adjust_footpaths, bool unique_check,
-                   std::string schedule_begin, int num_days);
+  dataset_settings(std::string default_dataset, std::string schedule_begin,
+                   int num_days, bool write_serialized, bool apply_rules,
+                   bool adjust_footpaths, bool unique_check);
 
   ~dataset_settings() override = default;
 

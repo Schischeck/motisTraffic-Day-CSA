@@ -33,6 +33,11 @@ void data_arrival::init_arrival_time(node const& route_node,
   is_message_.received_ = false;
   scheduled_arrival_time_ = light_conn.a_time_;
 
+// TODO(Mohammad Keyhani)
+#if 1
+  (void)route_node;
+  (void)sched;
+#else
   auto it = sched.graph_to_delay_info_.find(graph_event(
       route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
       false, light_conn.a_time_, route_node.route_));
@@ -43,6 +48,7 @@ void data_arrival::init_arrival_time(node const& route_node,
       is_message_.current_time_ = it->second->current_time_;
     }
   }
+#endif
 }
 
 void data_arrival::init_travel_info(

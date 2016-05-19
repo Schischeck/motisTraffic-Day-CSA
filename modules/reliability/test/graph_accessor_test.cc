@@ -33,8 +33,8 @@ public:
 };
 
 TEST_F(reliability_graph_accessor, get_first_route_node_by_train_nr) {
-  auto node = get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
-  ASSERT_EQ(schedule_->stations_[node->station_node_->id_]->eva_nr_,
+  auto node = get_first_route_node(sched(), schedule1::ICE_FR_DA_H);
+  ASSERT_EQ(sched().stations_[node->station_node_->id_]->eva_nr_,
             schedule1::FRANKFURT);
   ASSERT_EQ(get_departing_route_edge(*node)
                 ->m_.route_edge_.conns_[0]
@@ -44,8 +44,8 @@ TEST_F(reliability_graph_accessor, get_first_route_node_by_train_nr) {
 
 TEST_F(reliability_graph_accessor, get_previous_light_connection) {
   auto const first_route_node =
-      get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
-  ASSERT_EQ(schedule_->stations_[first_route_node->station_node_->id_]->eva_nr_,
+      get_first_route_node(sched(), schedule1::ICE_FR_DA_H);
+  ASSERT_EQ(sched().stations_[first_route_node->station_node_->id_]->eva_nr_,
             schedule1::FRANKFURT);
   auto const first_route_edge = get_departing_route_edge(*first_route_node);
   {
@@ -54,9 +54,8 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
               test_util::minutes_to_motis_time(5 * 60 + 55));
 
     auto second_route_node = first_route_edge->to_;
-    ASSERT_EQ(
-        schedule_->stations_[second_route_node->station_node_->id_]->eva_nr_,
-        schedule1::DARMSTADT);
+    ASSERT_EQ(sched().stations_[second_route_node->station_node_->id_]->eva_nr_,
+              schedule1::DARMSTADT);
     ASSERT_EQ(get_arriving_route_edge(*second_route_node), first_route_edge);
 
     auto const& second_light_conn =
@@ -76,9 +75,8 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection) {
               test_util::minutes_to_motis_time(6 * 60 + 55));
 
     auto second_route_node = first_route_edge->to_;
-    ASSERT_EQ(
-        schedule_->stations_[second_route_node->station_node_->id_]->eva_nr_,
-        schedule1::DARMSTADT);
+    ASSERT_EQ(sched().stations_[second_route_node->station_node_->id_]->eva_nr_,
+              schedule1::DARMSTADT);
     ASSERT_EQ(get_arriving_route_edge(*second_route_node), first_route_edge);
 
     auto const& second_light_conn =
@@ -129,8 +127,7 @@ TEST_F(reliability_graph_accessor, get_previous_light_connection2) {
 }
 
 TEST_F(reliability_graph_accessor, get_first_route_node) {
-  auto const first_node =
-      get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H);
+  auto const first_node = get_first_route_node(sched(), schedule1::ICE_FR_DA_H);
   auto const node =
       get_departing_route_edge(*get_departing_route_edge(*first_node)->to_)
           ->to_;
@@ -199,38 +196,38 @@ TEST_F(reliability_graph_accessor, get_light_connection) {
 TEST_F(reliability_graph_accessor3, walking_duration) {
   auto const& tail_station =
       *get_departing_route_edge(
-           *get_first_route_node(*schedule_, schedule3::ICE_L_H))
+           *get_first_route_node(sched(), schedule3::ICE_L_H))
            ->to_->station_node_;
   auto const& head_station =
-      *get_first_route_node(*schedule_, schedule3::S_M_W)->station_node_;
+      *get_first_route_node(sched(), schedule3::S_M_W)->station_node_;
   ASSERT_EQ(walking_duration(tail_station, head_station), (duration)10);
 }
 
 TEST_F(reliability_graph_accessor3, get_interchange_time_walk) {
   auto const& feeder_arrival =
       *get_departing_route_edge(
-           *get_first_route_node(*schedule_, schedule3::ICE_L_H))
+           *get_first_route_node(sched(), schedule3::ICE_L_H))
            ->to_;
   auto const& departing_train_departure =
-      *get_first_route_node(*schedule_, schedule3::S_M_W);
-  ASSERT_EQ(get_interchange_time(feeder_arrival, departing_train_departure,
-                                 *schedule_),
-            (duration)10);
+      *get_first_route_node(sched(), schedule3::S_M_W);
+  ASSERT_EQ(
+      get_interchange_time(feeder_arrival, departing_train_departure, sched()),
+      (duration)10);
 }
 
 TEST_F(reliability_graph_accessor, get_interchange_time) {
   auto const& feeder_arrival =
       *get_departing_route_edge(
-           *get_first_route_node(*schedule_, schedule1::RE_MA_DA))
+           *get_first_route_node(sched(), schedule1::RE_MA_DA))
            ->to_;
   auto const& departing_train_departure =
       *get_departing_route_edge(
-           *get_first_route_node(*schedule_, schedule1::ICE_FR_DA_H))
+           *get_first_route_node(sched(), schedule1::ICE_FR_DA_H))
            ->to_;
 
-  ASSERT_EQ(get_interchange_time(feeder_arrival, departing_train_departure,
-                                 *schedule_),
-            (duration)5);
+  ASSERT_EQ(
+      get_interchange_time(feeder_arrival, departing_train_departure, sched()),
+      (duration)5);
 }
 
 }  // namespace graph_accessor

@@ -26,7 +26,7 @@ table IdEvent {
 // ----------------------------------------------------------------------------
 table CancelMessage {
   trip_id:IdEvent;
-  events:[Event] (required);
+  events:[Event];
 }
 
 table UpdatedEvent {
@@ -38,12 +38,12 @@ enum DelayType : byte {Is, Forecast} // Ist and IstProg
 table DelayMessage {
   trip_id:IdEvent;
   type:DelayType;
-  events:[UpdatedEvent] (required);
+  events:[UpdatedEvent];
 }
 
 table AdditionalEvent {
   base:Event;
-  category:string (required);
+  category:string;
   track:string;  // optional
 }
 
@@ -54,14 +54,14 @@ table AdditionMessage {
 
 enum RerouteStatus : byte {Normal, UmlNeu}
 table ReroutedEvent {
-  base:AdditionalEvent (required);
+  base:AdditionalEvent;
   status:RerouteStatus;
 }
 
 table RerouteMessage {
   trip_id:IdEvent;
-  cancelled_events:[Event] (required);
-  new_events:[ReroutedEvent] (required);
+  cancelled_events:[Event];
+  new_events:[ReroutedEvent];
 }
 
 // ----------------------------------------------------------------------------
@@ -69,26 +69,26 @@ table RerouteMessage {
 // ----------------------------------------------------------------------------
 table ConnectionDecision {
   trip_id:IdEvent;
-  base:Event (required);
+  base:Event;
   hold:bool;
 }
 
 table ConnectionDecisionMessage { // Anschluss
   from_trip_id:IdEvent;
-  from:Event (required);
-  to:[ConnectionDecision] (required);
+  from:Event;
+  to:[ConnectionDecision];
 }
 
 table ConnectionAssessment {
   trip_id:IdEvent;
-  base:Event (required);
+  base:Event;
   assessment:int;
 }
 
 table ConnectionAssessmentMessage { // Anschlussbewertung
   from_trip_id:IdEvent;
-  from:Event (required);
-  to:[ConnectionAssessment] (required);
+  from:Event;
+  to:[ConnectionAssessment];
 }
 
 // ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ union MessageUnion {
 }
 
 table Message {
-  content:MessageUnion (required);
+  content:MessageUnion;
 }
 
 root_type Message;

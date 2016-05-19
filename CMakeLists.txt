@@ -90,39 +90,35 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib) # for osrm-backend
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/expat/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/flatbuffers/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/libosmium/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/googletest/googletest/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/leveldb/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/miniz)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/osrm-backend/third_party)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pugixml/src)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/pgdb/external_lib/pq-standalone/src/interfaces/libpq)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/snappy-cmake)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sparsehash/src)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlite/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlpp11/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/sqlpp11-connector-sqlite3/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_lib/websocketpp)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/conf/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/guess/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/net/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/parser/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_lib/ctx/include)
+include_directories(SYSTEM external_lib) # for osrm-backend
+include_directories(SYSTEM external_lib/expat/include)
+include_directories(SYSTEM external_lib/flatbuffers/include)
+include_directories(SYSTEM external_lib/googletest/googletest/include)
+include_directories(SYSTEM external_lib/libosmium/include)
+include_directories(SYSTEM external_lib/miniz)
+include_directories(SYSTEM external_lib/osrm-backend)
+include_directories(SYSTEM external_lib/osrm-backend/include)
+include_directories(SYSTEM external_lib/osrm-backend/third_party)
+include_directories(SYSTEM external_lib/pugixml/src)
+include_directories(SYSTEM external_lib/rocksdb/include)
+include_directories(SYSTEM external_lib/rocksdb/external_lib/snappy)
+include_directories(SYSTEM external_lib/sparsehash/src)
+include_directories(SYSTEM external_lib/sqlite/include)
+include_directories(SYSTEM external_lib/sqlpp11/include)
+include_directories(SYSTEM external_lib/sqlpp11-connector-sqlite3/include)
+include_directories(SYSTEM external_lib/websocketpp)
+include_directories(external_lib/conf/include)
+include_directories(external_lib/guess/include)
+include_directories(external_lib/net/include)
+include_directories(external_lib/parser/include)
+include_directories(external_lib/ctx/include)
 
 add_subdirectory(external_lib/expat EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/googletest/googletest EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/leveldb EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/osrm-backend EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/rocksdb EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/snappy-cmake EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
@@ -130,7 +126,6 @@ add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/pgdb EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -158,8 +153,6 @@ list(REMOVE_ITEM modules
   "connectionchecker"
   "intermodal"
   "railviz"
-  "realtime"
-  "rt"
 )
 
 set(module-targets "")

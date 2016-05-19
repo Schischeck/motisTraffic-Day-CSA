@@ -49,12 +49,12 @@
 [submodule "external_lib/ctx"]
 	path = external_lib/ctx
 	url = git@git.motis-project.de:lib/ctx.git
-[submodule "external_lib/pgdb"]
-	path = external_lib/pgdb
-	url = git@git.motis-project.de:lib/pgdb.git
 [submodule "external_lib/osmium"]
 	path = external_lib/osmium
 	url = git@git.motis-project.de:lib/osmium.git
 [submodule "external_lib/expat"]
 	path = external_lib/expat
 	url = git@git.motis-project.de:lib/expat.git
+[submodule "external_lib/rocksdb"]
+	path = external_lib/rocksdb
+	url = git@git.motis-project.de:lib/rocksdb-flat.git

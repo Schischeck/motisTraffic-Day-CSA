@@ -28,8 +28,6 @@
 #include "motis/reliability/rating/public_transport.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/test/motis_instance_helper.h"
-
 #include "../include/interchange_data_for_tests.h"
 #include "../include/schedules/schedule2.h"
 #include "../include/schedules/schedule3.h"
@@ -68,8 +66,9 @@ std::vector<rating::rating_element> compute_test_ratings1(
   std::vector<rating::rating_element> ratings;
   interchange_data_for_tests const ic_data(
       test_info.get_schedule(), schedule2::ICE_S_E, schedule2::ICE_E_K,
-      schedule2::STUTTGART.eva_, schedule2::ERLANGEN.eva_, schedule2::KASSEL.eva_,
-      11 * 60 + 32, 12 * 60 + 32, 12 * 60 + 45, 14 * 60 + 15);
+      schedule2::STUTTGART.eva_, schedule2::ERLANGEN.eva_,
+      schedule2::KASSEL.eva_, 11 * 60 + 32, 12 * 60 + 32, 12 * 60 + 45,
+      14 * 60 + 15);
 
   // departure ICE_S_E in Stuttgart
   ratings.emplace_back(0);
@@ -120,7 +119,7 @@ TEST_F(reliability_public_transport2, rate) {
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));
@@ -285,12 +284,13 @@ std::vector<rating::rating_element> compute_test_ratings2(
 TEST_F(reliability_public_transport5, rate2) {
   auto req_msg =
       flatbuffers::request_builder()
-          .add_pretrip_start(schedule5::MANNHEIM.name_, schedule5::MANNHEIM.eva_,
+          .add_pretrip_start(schedule5::MANNHEIM.name_,
+                             schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
           .add_destination(schedule5::MARBURG.name_, schedule5::MARBURG.eva_)
           .build_routing_request();
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using routing::RoutingResponse;
   auto const journeys =
       message_to_journeys(motis_content(RoutingResponse, msg));
@@ -388,8 +388,8 @@ TEST_F(reliability_public_transport3, rate_foot) {
           .add_destination(schedule3::WEST.name_, schedule3::WEST.eva_)
           .build_routing_request();
   using routing::RoutingResponse;
-  auto const journeys = message_to_journeys(
-      motis_content(RoutingResponse, test::call(motis_instance_, req_msg)));
+  auto const journeys =
+      message_to_journeys(motis_content(RoutingResponse, call(req_msg)));
 
   ASSERT_EQ(1, journeys.size());
   auto const elements = rating::connection_to_graph_data::get_elements(
