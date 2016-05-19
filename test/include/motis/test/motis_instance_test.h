@@ -45,14 +45,14 @@ struct motis_instance_test : public ::testing::Test {
   }
 
   template <typename Module>
-  Module* get_module(std::string const module_name) {
+  Module& get_module(std::string const module_name) {
     auto it = std::find_if(
         instance_->modules_.begin(), instance_->modules_.end(),
         [module_name](auto const& m) { return m->name() == module_name; });
     if (it == instance_->modules_.end()) {
-      return nullptr;
+      throw std::system_error();
     }
-    return reinterpret_cast<Module*>(it->get());
+    return *reinterpret_cast<Module*>(it->get());
   }
 
 private:

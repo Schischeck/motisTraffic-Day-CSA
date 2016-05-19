@@ -29,7 +29,7 @@ public:
 
   schedule const& get_schedule() const { return sched(); }
   reliability& get_reliability_module() {
-    return *get_module<reliability>("reliability");
+    return get_module<reliability>("reliability");
   }
 
 protected:
