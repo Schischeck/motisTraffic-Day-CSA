@@ -8,6 +8,8 @@
 #include <thread>
 
 #include "motis/core/common/logging.h"
+#include "motis/module/context/motis_call.h"
+#include "motis/module/context/motis_publish.h"
 #include "motis/loader/loader.h"
 
 #include "modules.h"
@@ -61,6 +63,45 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
                 << "unhandled unknown init error";
       throw;
     }
+  }
+}
+
+msg_ptr motis_instance::call(msg_ptr const& msg) {
+  std::exception_ptr e;
+  msg_ptr response;
+
+  run([&]() {
+    try {
+      response = motis_call(msg)->val();
+    } catch (...) {
+      e = std::current_exception();
+    }
+  });
+  ios_.run();
+  ios_.reset();
+
+  if (e) {
+    std::rethrow_exception(e);
+  }
+
+  return response;
+}
+
+void motis_instance::publish(msg_ptr const& msg) {
+  std::exception_ptr e;
+
+  run([&]() {
+    try {
+      motis_publish(msg);
+    } catch (...) {
+      e = std::current_exception();
+    }
+  });
+  ios_.run();
+  ios_.reset();
+
+  if (e) {
+    std::rethrow_exception(e);
   }
 }
 
