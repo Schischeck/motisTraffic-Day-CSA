@@ -35,42 +35,11 @@ motis_instance_test::motis_instance_test(
 }
 
 msg_ptr motis_instance_test::call(msg_ptr const& msg) {
-  std::exception_ptr e;
-  msg_ptr response;
-
-  instance_->run([&]() {
-    try {
-      response = motis_call(msg)->val();
-    } catch (...) {
-      e = std::current_exception();
-    }
-  });
-  instance_->ios_.run();
-  instance_->ios_.reset();
-
-  if (e) {
-    std::rethrow_exception(e);
-  }
-
-  return response;
+  return instance_->call(msg);
 }
 
 void motis_instance_test::publish(msg_ptr const& msg) {
-  std::exception_ptr e;
-
-  instance_->run([&]() {
-    try {
-      motis_publish(msg);
-    } catch (...) {
-      e = std::current_exception();
-    }
-  });
-  instance_->ios_.run();
-  instance_->ios_.reset();
-
-  if (e) {
-    std::rethrow_exception(e);
-  }
+  instance_->publish(msg);
 }
 
 msg_ptr motis_instance_test::call(std::string const& target) {
