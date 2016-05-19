@@ -33,7 +33,7 @@ constexpr auto kBikesharingRequest = R""(
 
     "interval": {
       "begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
-      "end": 1454606100,  // Thu, 04 Feb 2016 17:15:00 GMT
+      "end": 1454606100  // Thu, 04 Feb 2016 17:15:00 GMT
     },
 
     "availability_aggregator": "Average"
