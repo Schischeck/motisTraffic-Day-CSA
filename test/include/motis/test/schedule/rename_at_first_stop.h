@@ -1,11 +1,15 @@
 #pragma once
 
+#include "motis/loader/loader_options.h"
+
 namespace motis {
 namespace test {
 namespace schedule {
 namespace rename_at_first_stop {
-constexpr auto kSchedulePath = "test/schedule/rename_at_first_stop";
-constexpr auto kScheduleDate = "20160128";
+
+static loader::loader_options dataset_opt("test/schedule/rename_at_first_stop",
+                                          "20160128");
+
 constexpr auto kRisFolderArg =
     "--ris.input_folder=test/schedule/rename_at_first_stop/ris";
 

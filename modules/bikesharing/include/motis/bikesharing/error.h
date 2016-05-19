@@ -14,6 +14,7 @@ enum error_code_t {
   database_error = 3,
   terminal_not_found = 4,
   search_failure = 5,
+  init_error = 6
 };
 }  // namespace error
 
@@ -29,6 +30,7 @@ public:
       case error::database_error: return "bikesharing: database error";
       case error::terminal_not_found: return "bikesharing: terminal not found";
       case error::search_failure: return "bikesharing: search_failure";
+      case error::init_error: return "bikesharing: init error";
       default: return "bikesharing: unkown error";
     }
   }

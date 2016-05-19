@@ -1,15 +1,15 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
-#include "motis/test/motis_instance_helper.h"
+#include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
+using namespace motis;
 using namespace motis::module;
 using namespace motis::test;
-using namespace motis::test::schedule::simple_realtime;
-
-namespace motis {
-namespace lookup {
+using namespace motis::lookup;
+using motis::test::schedule::simple_realtime::dataset_opt;
+using motis::test::schedule::simple_realtime::get_ris_message;
 
 constexpr auto kIdTrainICERequest = R""(
 {
@@ -32,13 +32,15 @@ constexpr auto kIdTrainICERequest = R""(
 }
 )"";
 
-// TODO(sebastian) re-enable when working realtime module is available
-TEST(lookup, DISABLED_id_train) {
-  auto motis =
-      launch_motis(kSchedulePath, kScheduleDate, {"lookup", "realtime"});
-  call(motis, get_ris_message());
+struct lookup_id_train_test : public motis_instance_test {
+  lookup_id_train_test() : motis_instance_test(dataset_opt, {"lookup", "rt"}) {}
+};
 
-  auto msg = call(motis, make_msg(kIdTrainICERequest));
+// TODO(sebastian) re-enable when working realtime module is available
+TEST_F(lookup_id_train_test, DISABLED_id_train) {
+  call(get_ris_message());
+
+  auto msg = call(make_msg(kIdTrainICERequest));
   auto resp = motis_content(LookupIdTrainResponse, msg);
 
   auto stops = resp->train()->stops();
@@ -97,10 +99,8 @@ TEST(lookup, DISABLED_id_train) {
   }
 }
 
-TEST(lookup, id_train_no_realtime) {
-  auto motis = launch_motis(kSchedulePath, kScheduleDate, {"lookup"});
-
-  auto msg = call(motis, make_msg(kIdTrainICERequest));
+TEST_F(lookup_id_train_test, no_realtime) {
+  auto msg = call(make_msg(kIdTrainICERequest));
   auto resp = motis_content(LookupIdTrainResponse, msg);
 
   auto stops = resp->train()->stops();
@@ -158,6 +158,3 @@ TEST(lookup, id_train_no_realtime) {
     EXPECT_EQ("", d->platform()->str());
   }
 }
-
-}  // namespace lookup
-}  // namespace motis

@@ -18,7 +18,6 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
   auto trp = get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
                       t->target_station_id()->str(), t->target_time(),
                       t->type() == EventType_Arrival, t->line_id()->str());
-  auto route_id = trp->edges_->at(0).get_edge()->from_->route_;
 
   journey j;
   for (auto const& s : access::stops(trp)) {
@@ -37,11 +36,9 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       auto lcon = s.arr_lcon();
       auto info = s.arr_info(sched);
 
-      auto sched_time = get_schedule_time(sched, station.index_, info.train_nr_,
-                                          false, lcon.a_time_, route_id);
-
       arr.timestamp_ = motis_to_unixtime(sched, lcon.a_time_);
-      arr.schedule_timestamp_ = motis_to_unixtime(sched, sched_time);
+      arr.schedule_timestamp_ =
+          arr.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
       arr.platform_ = sched.tracks_[lcon.full_con_->a_platform_];
     }
     stop.arrival_ = arr;
@@ -52,11 +49,9 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       auto lcon = s.dep_lcon();
       auto info = s.dep_info(sched);
 
-      auto sched_time = get_schedule_time(sched, station.index_, info.train_nr_,
-                                          false, lcon.d_time_, route_id);
-
       dep.timestamp_ = motis_to_unixtime(sched, lcon.d_time_);
-      dep.schedule_timestamp_ = motis_to_unixtime(sched, sched_time);
+      dep.schedule_timestamp_ =
+          dep.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
       dep.platform_ = sched.tracks_[lcon.full_con_->d_platform_];
     }
     stop.departure_ = dep;
@@ -64,7 +59,8 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
     j.stops_.push_back(stop);
   }
 
-  // TODO(sebastian) write transport (using the section based iterator)
+  // TODO(Sebastian Fahnenschreiber) write transport
+  // (using the section based iterator)
   return to_connection(fbb, j);
 }
 

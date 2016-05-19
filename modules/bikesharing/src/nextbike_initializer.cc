@@ -106,20 +106,17 @@ using ctx_ptr = std::shared_ptr<context>;
 
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
                                  double radius);
-void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path);
 void find_close_terminals(ctx_ptr ctx);
 void handle_attached_stations(ctx_ptr ctx,
                               lookup::LookupBatchGeoStationResponse const*);
 void persist_terminals(ctx_ptr ctx);
 
 void initialize_nextbike(std::string const& nextbike_path, database& db) {
-  auto ctx = std::make_shared<context>(db);
-  return initialize_nextbike(ctx, nextbike_path);
-}
-
-void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path) {
   auto files = get_nextbike_files(nextbike_path);
   LOG(info) << "loading " << files.size() << " NEXTBIKE XML files";
+  if (files.empty()) {
+    throw std::system_error(error::init_error);
+  }
 
   manual_timer parse_timer("NEXTBIKE parsing");
   snapshot_merger merger;
@@ -135,6 +132,7 @@ void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path) {
   auto merged = merger.merged();
   merge_timer.stop_and_print();
 
+  auto ctx = std::make_shared<context>(db);
   ctx->terminals_ = merged.first;
   ctx->availabilities_ = merged.second;
 

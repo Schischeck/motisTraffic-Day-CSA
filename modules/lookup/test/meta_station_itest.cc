@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
-#include "motis/test/motis_instance_helper.h"
+#include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
+using namespace motis;
 using namespace motis::module;
 using namespace motis::test;
-using namespace motis::test::schedule::simple_realtime;
+using motis::test::schedule::simple_realtime::dataset_opt;
 
 namespace motis {
 namespace lookup {
@@ -23,24 +24,22 @@ constexpr auto kMetaStationRequest = R""({
   "content": { "station_id": "8073368" }}
 )"";
 
-TEST(lookup, meta_station) {
-  auto motis = launch_motis(kSchedulePath, kScheduleDate, {"lookup"});
-  {
-    auto msg = call(motis, make_msg(kEmptyMetaStationRequest));
-    auto resp = motis_content(LookupMetaStationResponse, msg);
-    ASSERT_EQ(0, resp->equivalent()->size());
-  }
-  {
-    auto msg = call(motis, make_msg(kMetaStationRequest));
-    auto resp = motis_content(LookupMetaStationResponse, msg);
-    ASSERT_EQ(2, resp->equivalent()->size());
+struct lookup_meta_station_test : public motis_instance_test {
+  lookup_meta_station_test() : motis_instance_test(dataset_opt, {"lookup"}) {}
+};
 
-    auto e0_eva = resp->equivalent()->Get(0)->id()->str();
-    EXPECT_EQ("8003368", e0_eva);
+TEST_F(lookup_meta_station_test, no_meta_station) {
+  auto const msg = call(make_msg(kEmptyMetaStationRequest));
+  auto const resp = motis_content(LookupMetaStationResponse, msg);
+  ASSERT_EQ(0, resp->equivalent()->size());
+}
 
-    auto e1_eva = resp->equivalent()->Get(1)->id()->str();
-    EXPECT_EQ("8073368", e1_eva);
-  }
+TEST_F(lookup_meta_station_test, meta_station) {
+  auto const msg = call(make_msg(kMetaStationRequest));
+  auto const resp = motis_content(LookupMetaStationResponse, msg);
+  ASSERT_EQ(2, resp->equivalent()->size());
+  EXPECT_EQ("8003368", resp->equivalent()->Get(0)->id()->str());
+  EXPECT_EQ("8073368", resp->equivalent()->Get(1)->id()->str());
 }
 
 }  // namespace lookup

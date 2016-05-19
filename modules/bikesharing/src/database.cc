@@ -1,12 +1,13 @@
 #include "motis/bikesharing/database.h"
 
-#include "leveldb/db.h"
+#include "rocksdb/db.h"
+#include "rocksdb/utilities/leveldb_options.h"
 
 #include "motis/bikesharing/error.h"
 
 using std::system_error;
 
-using namespace leveldb;
+using namespace rocksdb;
 using namespace flatbuffers;
 
 namespace motis {
@@ -19,9 +20,9 @@ struct database::database_impl {
 
   database_impl(std::string const& path) {
     DB* db;
-    Options options;
+    LevelDBOptions options;
     options.create_if_missing = true;
-    Status s = DB::Open(options, path, &db);
+    Status s = DB::Open(ConvertOptions(options), path, &db);
 
     if (!s.ok()) {
       throw system_error(error::database_error);

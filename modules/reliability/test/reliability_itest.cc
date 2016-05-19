@@ -18,8 +18,6 @@
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/test/motis_instance_helper.h"
-
 #include "include/schedules/schedule2.h"
 #include "include/schedules/schedule7_cg.h"
 #include "include/schedules/schedule_hotels.h"
@@ -157,7 +155,7 @@ TEST_F(reliability_test_rating, rating_request) {
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_rating_request();
-  auto const res = test::call(motis_instance_, req);
+  auto const res = call(req);
   auto const response = motis_content(ReliabilityRatingResponse, res);
 
   ASSERT_EQ(1, response->response()->connections()->size());
@@ -196,7 +194,7 @@ TEST_F(reliability_test_cg, connection_tree) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
-  auto const res = test::call(motis_instance_, req);
+  auto const res = call(req);
   test_cg(motis_content(ReliableRoutingResponse, res));
 }
 
@@ -210,7 +208,7 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_reliable_search_request(1);
-  auto const res = test::call(motis_instance_, req);
+  auto const res = call(req);
   test_cg(motis_content(ReliableRoutingResponse, res));
 }
 
@@ -258,7 +256,7 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
       schedule_hotels::FRANKFURT.name_, schedule_hotels::FRANKFURT.eva_,
       test_util::hhmm_to_unixtime(get_schedule(), 2350),
       test_util::hhmm_to_unixtime(get_schedule(), 100, 1), taxi_infos);
-  auto const res = test::call(motis_instance_, req);
+  auto const res = call(req);
   using routing::RoutingResponse;
   auto const response = motis_content(RoutingResponse, res);
 

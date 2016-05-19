@@ -2,9 +2,11 @@
 
 #include <cinttypes>
 
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/edges.h"
 
 namespace motis {
@@ -30,19 +32,6 @@ struct primary_trip_id {
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 };
-
-}  // namespace motis
-
-namespace std {
-template <>
-struct hash<motis::primary_trip_id> {
-  std::size_t operator()(motis::primary_trip_id const& e) const {
-    return *reinterpret_cast<uint64_t const*>(&e);
-  }
-};
-}  // namespace std
-
-namespace motis {
 
 struct secondary_trip_id {
   secondary_trip_id() = default;
@@ -118,3 +107,36 @@ struct trip {
 };
 
 }  // namespace motis
+
+namespace std {
+
+template <>
+struct hash<motis::primary_trip_id> {
+  std::size_t operator()(motis::primary_trip_id const& e) const {
+    return *reinterpret_cast<uint64_t const*>(&e);
+  }
+};
+
+template <>
+struct hash<motis::secondary_trip_id> {
+  std::size_t operator()(motis::secondary_trip_id const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e.target_station_id_);
+    motis::hash_combine(seed, e.target_time_);
+    motis::hash_combine(seed, e.is_arrival_);
+    motis::hash_combine(seed, e.line_id_);
+    return seed;
+  }
+};
+
+template <>
+struct hash<motis::full_trip_id> {
+  std::size_t operator()(motis::full_trip_id const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e.primary_);
+    motis::hash_combine(seed, e.secondary_);
+    return seed;
+  }
+};
+
+}  // namespace std

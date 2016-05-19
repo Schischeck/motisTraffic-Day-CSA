@@ -115,12 +115,7 @@ station_node const* get_station_node(schedule const& sched,
     station_id = guesses->Get(0)->id()->str();
   }
 
-  auto const& eva_to_station = sched.eva_to_station_;
-  auto const it = eva_to_station.find(station_id);
-  if (it == end(eva_to_station)) {
-    throw std::system_error(error::search_type_not_supported);
-  }
-  return sched.station_nodes_.at(it->second->index_).get();
+  return motis::get_station_node(sched, station_id);
 }
 
 node const* get_route_node(schedule const& sched, TripId const* trip,
@@ -205,7 +200,6 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
 
 msg_ptr routing::route(msg_ptr const& msg) {
   auto const req = motis_content(RoutingRequest, msg);
-
   auto const& sched = get_schedule();
   auto query = get_query(sched, req);
 

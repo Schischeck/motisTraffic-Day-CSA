@@ -51,7 +51,7 @@ void bikesharing::print(std::ostream& out) const {
 }
 
 void bikesharing::init(motis::module::registry& reg) {
-  reg.register_op("/init", std::bind(&bikesharing::init_module, this, p::_1));
+  reg.subscribe("/init", std::bind(&bikesharing::init_module, this, p::_1));
   reg.register_op("/bikesharing",
                   std::bind(&bikesharing::request, this, p::_1));
 }

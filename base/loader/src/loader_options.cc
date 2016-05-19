@@ -8,16 +8,16 @@ namespace motis {
 namespace loader {
 
 loader_options::loader_options(std::string default_dataset,
+                               std::string schedule_begin, int num_days,
                                bool write_serialized, bool apply_rules,
-                               bool adjust_footpaths, bool unique_check,
-                               std::string schedule_begin, int num_days)
+                               bool adjust_footpaths, bool unique_check)
     : dataset_(std::move(default_dataset)),
+      schedule_begin_(std::move(schedule_begin)),
+      num_days_(num_days),
       write_serialized_(write_serialized),
       unique_check_(unique_check),
       apply_rules_(apply_rules),
-      adjust_footpaths_(adjust_footpaths),
-      schedule_begin_(std::move(schedule_begin)),
-      num_days_(num_days) {}
+      adjust_footpaths_(adjust_footpaths) {}
 
 std::pair<std::time_t, std::time_t> loader_options::interval() const {
   std::pair<std::time_t, std::time_t> interval;

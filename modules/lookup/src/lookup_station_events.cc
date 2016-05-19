@@ -39,8 +39,8 @@ std::vector<Offset<TripId>> make_trip_ids(FlatBufferBuilder& fbb,
 
 Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
                                 light_connection const* lcon,
-                                unsigned const station_index,
-                                int const route_id, bool is_dep) {
+                                unsigned const /* station_index */,
+                                int const /* route_id */, bool is_dep) {
   auto trip_ids = make_trip_ids(fbb, sched, lcon);
 
   auto const& fcon = *lcon->full_con_;
@@ -49,8 +49,8 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
   auto const type = is_dep ? EventType_Departure : EventType_Arrival;
 
   auto const& time = is_dep ? lcon->d_time_ : lcon->a_time_;
-  auto const sched_time = get_schedule_time(
-      sched, station_index, info.train_nr_, is_dep, time, route_id);
+  auto const sched_time =
+      time;  // TODO(Sebastian Fahnenschreiber) get sched time
 
   std::string dir;
   if (info.dir_ != nullptr) {

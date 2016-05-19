@@ -41,7 +41,7 @@ TEST_F(reliability_bikesharing, test_request) {
       1454602500, /* Thu, 04 Feb 2016 16:15:00 GMT */
       1454606100, /* Thu, 04 Feb 2016 17:15:00 GMT */
       motis::bikesharing::AvailabilityAggregator_Average);
-  auto msg = test::call(motis_instance_, req_msg);
+  auto msg = call(req_msg);
   using ::motis::bikesharing::BikesharingResponse;
   auto const response = motis_content(BikesharingResponse, msg);
 
@@ -165,10 +165,8 @@ TEST_F(reliability_bikesharing_routing, rating_request) {
                                    1421348400 /* 15 Jan 2015 18:00:00 GMT */)
                      .build_rating_request(true);
 
-  auto const journeys =
-      message_to_journeys(motis_content(ReliabilityRatingResponse,
-                                        test::call(motis_instance_, req_msg))
-                              ->response());
+  auto const journeys = message_to_journeys(
+      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
   auto const& j = journeys[0];
   ASSERT_EQ(4, j.stops_.size());

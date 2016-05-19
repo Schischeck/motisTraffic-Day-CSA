@@ -3,7 +3,8 @@
 #include <iostream>
 
 #include "motis/module/message.h"
-#include "motis/test/motis_instance_helper.h"
+
+#include "motis/test/motis_instance_test.h"
 
 using namespace motis::test;
 using namespace motis::module;
@@ -55,14 +56,20 @@ BikesharingEdge const* find_edge(V const* vec, std::string const& from,
   return nullptr;
 }
 
-TEST(bikesharing_nextbike_itest, integration_test) {
-  auto instance = launch_motis("modules/bikesharing/test_resources/schedule",
-                               "20150112", {"lookup", "bikesharing"},
-                               {"--bikesharing.nextbike_path=modules/"
-                                "bikesharing/test_resources/nextbike",
-                                "--bikesharing.database_path=:memory:"});
+class bikesharing_nextbike_itest : public test::motis_instance_test {
+public:
+  bikesharing_nextbike_itest()
+      : test::motis_instance_test(
+            {"modules/bikesharing/test_resources/schedule", "20150112", 2,
+             false, false, false, true},
+            {"lookup", "bikesharing"},
+            {"--bikesharing.nextbike_path=modules/"
+             "bikesharing/test_resources/nextbike",
+             "--bikesharing.database_path=:memory:"}) {}
+};
 
-  auto msg = test::call(instance, make_msg(kBikesharingRequest));
+TEST_F(bikesharing_nextbike_itest, integration_test) {
+  auto msg = call(make_msg(kBikesharingRequest));
 
   ASSERT_EQ(MsgContent_BikesharingResponse, msg->get()->content_type());
   using bikesharing::BikesharingResponse;

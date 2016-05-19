@@ -51,6 +51,11 @@ void data_departure::init_departure_time(node const& route_node,
   is_message_.received_ = false;
   scheduled_departure_time_ = light_conn.d_time_;
 
+// TODO(Mohammad Keyhan)
+#if 1
+  (void)route_node;
+  (void)sched;
+#else
   auto it = sched.graph_to_delay_info_.find(graph_event(
       route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
       true, light_conn.d_time_, route_node.route_));
@@ -61,6 +66,7 @@ void data_departure::init_departure_time(node const& route_node,
       is_message_.current_time_ = it->second->current_time_;
     }
   }
+#endif
 }
 
 void data_departure::init_first_departure_info(

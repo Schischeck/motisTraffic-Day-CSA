@@ -16,12 +16,12 @@ namespace bootstrap {
 namespace po = boost::program_options;
 
 dataset_settings::dataset_settings(std::string default_dataset,
+                                   std::string schedule_begin, int num_days,
                                    bool write_serialized, bool apply_rules,
-                                   bool adjust_footpaths, bool unique_check,
-                                   std::string schedule_begin, int num_days)
-    : loader_options(default_dataset, write_serialized, apply_rules,
-                     adjust_footpaths, unique_check, schedule_begin, num_days) {
-}
+                                   bool adjust_footpaths, bool unique_check)
+    : loader_options(default_dataset, schedule_begin, num_days,
+                     write_serialized, apply_rules, adjust_footpaths,
+                     unique_check) {}
 
 po::options_description dataset_settings::desc() {
   po::options_description desc("Dataset Settings");

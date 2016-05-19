@@ -200,8 +200,8 @@ std::pair<std::string, std::string> random_station_ids(schedule const& sched,
 }
 
 int main(int argc, char** argv) {
-  dataset_settings dataset_opt("rohdaten", true, false, false, false, "TODAY",
-                               2);
+  dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, false, false,
+                               false);
   generator_settings generator_opt(1000, "queries.txt");
 
   conf::options_parser parser({&dataset_opt, &generator_opt});

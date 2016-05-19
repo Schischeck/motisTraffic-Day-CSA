@@ -12,8 +12,6 @@
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
-#include "motis/test/motis_instance_helper.h"
-
 #include "../include/schedules/schedule7_cg.h"
 #include "../include/start_and_travel_test_distributions.h"
 #include "../include/test_schedule_setup.h"
@@ -133,7 +131,7 @@ TEST_F(reliability_connection_graph_search,
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_reliable_search_request(1);
-  test_cg(motis_instance_->run([&]() {
+  test_cg(run([&]() {
     return search_cgs(motis_content(ReliableRoutingRequest, msg),
                       *reliability_context_,
                       std::make_shared<reliable_cg_optimizer>(1));
@@ -152,7 +150,7 @@ TEST_F(reliability_connection_graph_search,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
 
-  test_cg(motis_instance_->run([&]() {
+  test_cg(run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
@@ -171,7 +169,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
-  auto const cgs = motis_instance_->run([&]() {
+  auto const cgs = run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
@@ -250,7 +248,7 @@ TEST_F(reliability_connection_graph_search,
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
-  auto const cgs = motis_instance_->run([&]() {
+  auto const cgs = run([&]() {
     return search_cgs(
         motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
