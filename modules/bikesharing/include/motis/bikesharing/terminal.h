@@ -11,26 +11,26 @@ namespace motis {
 namespace bikesharing {
 
 struct terminal {
-  std::string uid;
-  double lat, lng;
-  std::string name;
+  std::string uid_;
+  double lat_, lng_;
+  std::string name_;
 };
 
 struct terminal_snapshot : public terminal {
-  int available_bikes;
+  int available_bikes_;
 };
 
 struct availability {
-  double average;
-  double median;
-  double minimum;
-  double q90;
-  double percent_reliable;
+  double average_;
+  double median_;
+  double minimum_;
+  double q90_;
+  double percent_reliable_;
 };
 
 struct close_location {
-  std::string id;
-  int duration;
+  std::string id_;
+  int duration_;
 };
 
 constexpr size_t kHoursPerDay = 24;

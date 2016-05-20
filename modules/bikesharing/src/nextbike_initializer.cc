@@ -80,11 +80,11 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
     auto const& node = xnode.node();
 
     terminal_snapshot terminal;
-    terminal.uid = node.attribute("uid").value();
-    terminal.lat = node.attribute("lat").as_double();
-    terminal.lng = node.attribute("lng").as_double();
-    terminal.name = node.attribute("name").value();
-    terminal.available_bikes = parse<int>(node.attribute("bikes").value(), 0);
+    terminal.uid_ = node.attribute("uid").value();
+    terminal.lat_ = node.attribute("lat").as_double();
+    terminal.lng_ = node.attribute("lng").as_double();
+    terminal.name_ = node.attribute("name").value();
+    terminal.available_bikes_ = parse<int>(node.attribute("bikes").value(), 0);
     result.push_back(terminal);
   }
 
@@ -150,7 +150,7 @@ void handle_attached_stations(
     auto const& found_stations = content->responses()->Get(i)->stations();
     std::vector<close_location> attached_stations;
     for (auto const& station : *found_stations) {
-      int dist = distance_in_m(t.lat, t.lng, station->pos()->lat(),
+      int dist = distance_in_m(t.lat_, t.lng_, station->pos()->lat(),
                                station->pos()->lng());
       attached_stations.push_back({station->id()->str(), dist});
     }
@@ -165,13 +165,13 @@ void find_close_terminals(ctx_ptr ctx) {
   std::vector<value> values;
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     values.push_back(std::make_pair(
-        spherical_point(ctx->terminals_[i].lng, ctx->terminals_[i].lat), i));
+        spherical_point(ctx->terminals_[i].lng_, ctx->terminals_[i].lat_), i));
   }
   bgi::rtree<value, bgi::quadratic<16>> rtree{values};
 
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     auto const& t = ctx->terminals_[i];
-    spherical_point t_location(t.lng, t.lat);
+    spherical_point t_location(t.lng_, t.lat_);
 
     std::vector<value> result_n;
     rtree.query(bgi::intersects(generate_box(t_location, MAX_BIKE_DIST)) &&
@@ -183,7 +183,8 @@ void find_close_terminals(ctx_ptr ctx) {
     std::vector<close_location> reachable_terminals;
     for (const auto& result : result_n) {
       int dist = distance_in_m(result.first, t_location);
-      reachable_terminals.push_back({ctx->terminals_[result.second].uid, dist});
+      reachable_terminals.push_back(
+          {ctx->terminals_[result.second].uid_, dist});
     }
     ctx->reachable_terminals_.push_back(reachable_terminals);
   }
@@ -207,7 +208,7 @@ msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
   message_creator b;
   std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
-    Position pos(merged.lat, merged.lng);
+    Position pos(merged.lat_, merged.lng_);
     c.push_back(CreateLookupGeoStationRequest(b, &pos, radius));
   }
   b.create_and_finish(

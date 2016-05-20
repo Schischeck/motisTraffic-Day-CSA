@@ -23,7 +23,7 @@ persistable_terminal convert_terminal(
 bikesharing_summary make_summary(std::vector<terminal> const& terminals);
 
 struct database {
-  database(std::string const& path);
+  explicit database(std::string const& path);
   ~database();
 
   persistable_terminal get(std::string const& id) const;

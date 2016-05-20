@@ -133,8 +133,8 @@ Offset<Vector<Offset<Availability>>> create_availabilities(
     FlatBufferBuilder& b, hourly_availabilities const& availabilities) {
   std::vector<Offset<Availability>> vec;
   for (auto const& a : availabilities) {
-    vec.push_back(CreateAvailability(b, a.average, a.median, a.minimum, a.q90,
-                                     a.percent_reliable));
+    vec.push_back(CreateAvailability(b, a.average_, a.median_, a.minimum_,
+                                     a.q90_, a.percent_reliable_));
   }
   return b.CreateVector(vec);
 }
@@ -143,7 +143,7 @@ Offset<Vector<Offset<CloseLocation>>> create_close_locations(
     FlatBufferBuilder& b, std::vector<close_location> const& locations) {
   std::vector<Offset<CloseLocation>> vec;
   for (auto const& l : locations) {
-    vec.push_back(CreateCloseLocation(b, b.CreateString(l.id), l.duration));
+    vec.push_back(CreateCloseLocation(b, b.CreateString(l.id_), l.duration_));
   }
   return b.CreateVector(vec);
 }
@@ -155,8 +155,8 @@ persistable_terminal convert_terminal(
     std::vector<close_location> const& attached,
     std::vector<close_location> const& reachable) {
   FlatBufferBuilder b;
-  b.Finish(CreateTerminal(b, b.CreateString(terminal.uid), terminal.lat,
-                          terminal.lng, b.CreateString(terminal.name),
+  b.Finish(CreateTerminal(b, b.CreateString(terminal.uid_), terminal.lat_,
+                          terminal.lng_, b.CreateString(terminal.name_),
                           detail::create_availabilities(b, availabilities),
                           detail::create_close_locations(b, attached),
                           detail::create_close_locations(b, reachable)));
@@ -168,8 +168,8 @@ bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
 
   std::vector<Offset<TerminalLocation>> locations;
   for (auto const& terminal : terminals) {
-    locations.push_back(CreateTerminalLocation(b, b.CreateString(terminal.uid),
-                                               terminal.lat, terminal.lng));
+    locations.push_back(CreateTerminalLocation(b, b.CreateString(terminal.uid_),
+                                               terminal.lat_, terminal.lng_));
   }
   b.Finish(CreateSummary(b, b.CreateVector(locations)));
 
