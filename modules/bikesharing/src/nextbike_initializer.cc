@@ -11,12 +11,13 @@
 #include "parser/arg_parser.h"
 #include "parser/file.h"
 
-#include "motis/bikesharing/error.h"
 #include "motis/core/common/constants.h"
 #include "motis/core/common/geo.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/util.h"
+#include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
+#include "motis/bikesharing/error.h"
 
 #include "motis/protocol/Message_generated.h"
 
@@ -79,11 +80,11 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
     auto const& node = xnode.node();
 
     terminal_snapshot terminal;
-    terminal.uid = node.attribute("uid").value();
-    terminal.lat = node.attribute("lat").as_double();
-    terminal.lng = node.attribute("lng").as_double();
-    terminal.name = node.attribute("name").value();
-    terminal.available_bikes = parse<int>(node.attribute("bikes").value(), 0);
+    terminal.uid_ = node.attribute("uid").value();
+    terminal.lat_ = node.attribute("lat").as_double();
+    terminal.lng_ = node.attribute("lng").as_double();
+    terminal.name_ = node.attribute("name").value();
+    terminal.available_bikes_ = parse<int>(node.attribute("bikes").value(), 0);
     result.push_back(terminal);
   }
 
@@ -91,12 +92,9 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
 }
 
 struct context {
-  context(database& db, dispatch_fun dispatch_fun, module::callback finished_cb)
-      : db_(db), dispatch_fun_(dispatch_fun), finished_cb_(finished_cb) {}
+  explicit context(database& db) : db_(db) {}
 
   database& db_;
-  dispatch_fun dispatch_fun_;
-  module::callback finished_cb_;
 
   std::vector<terminal> terminals_;
   std::vector<hourly_availabilities> availabilities_;
@@ -108,21 +106,17 @@ using ctx_ptr = std::shared_ptr<context>;
 
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
                                  double radius);
-void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path);
 void find_close_terminals(ctx_ptr ctx);
-void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec);
+void handle_attached_stations(ctx_ptr ctx,
+                              lookup::LookupBatchGeoStationResponse const*);
 void persist_terminals(ctx_ptr ctx);
 
-void initialize_nextbike(std::string const& nextbike_path, database& db,
-                         dispatch_fun dispatch_fun,
-                         module::callback finished_cb) {
-  auto ctx = std::make_shared<context>(db, dispatch_fun, finished_cb);
-  return initialize_nextbike(ctx, nextbike_path);
-}
-
-void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path) {
+void initialize_nextbike(std::string const& nextbike_path, database& db) {
   auto files = get_nextbike_files(nextbike_path);
   LOG(info) << "loading " << files.size() << " NEXTBIKE XML files";
+  if (files.empty()) {
+    throw std::system_error(error::init_error);
+  }
 
   manual_timer parse_timer("NEXTBIKE parsing");
   snapshot_merger merger;
@@ -138,47 +132,46 @@ void initialize_nextbike(ctx_ptr ctx, std::string const& nextbike_path) {
   auto merged = merger.merged();
   merge_timer.stop_and_print();
 
+  auto ctx = std::make_shared<context>(db);
   ctx->terminals_ = merged.first;
   ctx->availabilities_ = merged.second;
 
-  auto req = terminals_to_geo_request(merged.first, MAX_WALK_DIST);
-  namespace p = std::placeholders;
-  return ctx->dispatch_fun_(
-      req, std::bind(handle_attached_stations, ctx, p::_1, p::_2));
+  auto const req = terminals_to_geo_request(merged.first, MAX_WALK_DIST);
+  auto const msg = motis_call(req)->val();
+  using lookup::LookupBatchGeoStationResponse;
+  handle_attached_stations(ctx,
+                           motis_content(LookupBatchGeoStationResponse, msg));
 }
 
-void handle_attached_stations(ctx_ptr ctx, msg_ptr msg, error_code ec) {
-  if (ec) {
-    return ctx->finished_cb_({}, ec);
-  }
-
+void handle_attached_stations(
+    ctx_ptr ctx, lookup::LookupBatchGeoStationResponse const* content) {
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     auto const& t = ctx->terminals_[i];
-    auto const& content = msg->content<LookupBatchGeoStationResponse const*>();
     auto const& found_stations = content->responses()->Get(i)->stations();
     std::vector<close_location> attached_stations;
     for (auto const& station : *found_stations) {
-      int dist = distance_in_m(t.lat, t.lng, station->lat(), station->lng());
-      attached_stations.push_back({station->eva_nr()->str(), dist});
+      int dist = distance_in_m(t.lat_, t.lng_, station->pos()->lat(),
+                               station->pos()->lng());
+      attached_stations.push_back({station->id()->str(), dist});
     }
 
     ctx->attached_stations_.push_back(attached_stations);
   }
 
-  return find_close_terminals(ctx);
+  find_close_terminals(ctx);
 }
 
 void find_close_terminals(ctx_ptr ctx) {
   std::vector<value> values;
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     values.push_back(std::make_pair(
-        spherical_point(ctx->terminals_[i].lng, ctx->terminals_[i].lat), i));
+        spherical_point(ctx->terminals_[i].lng_, ctx->terminals_[i].lat_), i));
   }
   bgi::rtree<value, bgi::quadratic<16>> rtree{values};
 
   for (size_t i = 0; i < ctx->terminals_.size(); ++i) {
     auto const& t = ctx->terminals_[i];
-    spherical_point t_location(t.lng, t.lat);
+    spherical_point t_location(t.lng_, t.lat_);
 
     std::vector<value> result_n;
     rtree.query(bgi::intersects(generate_box(t_location, MAX_BIKE_DIST)) &&
@@ -190,12 +183,13 @@ void find_close_terminals(ctx_ptr ctx) {
     std::vector<close_location> reachable_terminals;
     for (const auto& result : result_n) {
       int dist = distance_in_m(result.first, t_location);
-      reachable_terminals.push_back({ctx->terminals_[result.second].uid, dist});
+      reachable_terminals.push_back(
+          {ctx->terminals_[result.second].uid_, dist});
     }
     ctx->reachable_terminals_.push_back(reachable_terminals);
   }
 
-  return persist_terminals(ctx);
+  persist_terminals(ctx);
 }
 
 void persist_terminals(ctx_ptr ctx) {
@@ -207,7 +201,6 @@ void persist_terminals(ctx_ptr ctx) {
   }
   ctx->db_.put(p);
   ctx->db_.put_summary(make_summary(ctx->terminals_));
-  return ctx->finished_cb_({}, error::ok);
 }
 
 msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
@@ -215,12 +208,13 @@ msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
   message_creator b;
   std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
-    c.push_back(
-        CreateLookupGeoStationRequest(b, merged.lat, merged.lng, radius));
+    Position pos(merged.lat_, merged.lng_);
+    c.push_back(CreateLookupGeoStationRequest(b, &pos, radius));
   }
   b.create_and_finish(
       MsgContent_LookupBatchGeoStationRequest,
-      CreateLookupBatchGeoStationRequest(b, b.CreateVector(c)).Union());
+      CreateLookupBatchGeoStationRequest(b, b.CreateVector(c)).Union(),
+      "/lookup/geo_station_batch");
   return make_msg(b);
 }
 

@@ -7,6 +7,8 @@
 #include <future>
 #include <thread>
 
+#include "ctx/future.h"
+
 #include "motis/core/common/logging.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/context/motis_publish.h"
@@ -64,6 +66,7 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
+  publish(make_no_msg("/init"));
 }
 
 msg_ptr motis_instance::call(msg_ptr const& msg) {
@@ -92,7 +95,7 @@ void motis_instance::publish(msg_ptr const& msg) {
 
   run([&]() {
     try {
-      motis_publish(msg);
+      ctx::await_all(motis_publish(msg));
     } catch (...) {
       e = std::current_exception();
     }

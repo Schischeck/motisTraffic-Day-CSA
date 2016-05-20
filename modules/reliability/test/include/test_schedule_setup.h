@@ -56,9 +56,10 @@ private:
       modules.push_back("realtime");
       modules.push_back("ris");
     }
+
     if (bikesharing) {
+      modules.push_back("lookup");
       modules.push_back("bikesharing");
-      modules.push_back("intermodal");
     }
     return modules;
   }

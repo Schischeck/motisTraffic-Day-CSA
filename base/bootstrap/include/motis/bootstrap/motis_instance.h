@@ -8,16 +8,11 @@
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/module/controller.h"
+#include "motis/module/message.h"
 #include "motis/module/module.h"
 #include "motis/loader/loader_options.h"
 
 namespace motis {
-namespace module {
-
-struct module;
-
-}  // namespace module
-
 namespace bootstrap {
 
 struct motis_instance : public motis::module::controller {

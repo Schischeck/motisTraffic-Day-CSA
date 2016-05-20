@@ -1,7 +1,7 @@
 #pragma once
 
-#include "boost/system/system_error.hpp"
 #include "boost/type_traits.hpp"
+#include <system_error>
 
 namespace motis {
 namespace bikesharing {
@@ -14,14 +14,15 @@ enum error_code_t {
   database_error = 3,
   terminal_not_found = 4,
   search_failure = 5,
+  init_error = 6
 };
 }  // namespace error
 
-class error_category_impl : public boost::system::error_category {
+class error_category_impl : public std::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::bikesharing"; }
+  const char* name() const noexcept override { return "motis::bikesharing"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "bikesharing: no error";
       case error::not_implemented: return "bikesharing: not implemented";
@@ -29,31 +30,30 @@ public:
       case error::database_error: return "bikesharing: database error";
       case error::terminal_not_found: return "bikesharing: terminal not found";
       case error::search_failure: return "bikesharing: search_failure";
+      case error::init_error: return "bikesharing: init error";
       default: return "bikesharing: unkown error";
     }
   }
 };
 
-inline const boost::system::error_category& error_category() {
+inline const std::error_category& error_category() {
   static error_category_impl instance;
   return instance;
 }
 
 namespace error {
-inline boost::system::error_code make_error_code(error_code_t e) noexcept {
-  return boost::system::error_code(static_cast<int>(e), error_category());
+inline std::error_code make_error_code(error_code_t e) noexcept {
+  return std::error_code(static_cast<int>(e), error_category());
 }
 }  // namespace error
 
 }  // namespace bikesharing
 }  // namespace motis
 
-namespace boost {
-namespace system {
+namespace std {
 
 template <>
 struct is_error_code_enum<motis::bikesharing::error::error_code_t>
-    : public boost::true_type {};
+    : public std::true_type {};
 
-}  // namespace system
-}  // namespace boost
+}  // namespace std

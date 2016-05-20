@@ -3,9 +3,10 @@
 #include <numeric>
 
 #include "boost/date_time/posix_time/posix_time.hpp"
+
+#include "boost/date_time/c_local_time_adjustor.hpp"
 #include "boost/date_time/local_time_adjustor.hpp"
 #include "boost/date_time/local_timezone_defs.hpp"
-#include "boost/date_time/c_local_time_adjustor.hpp"
 
 #include "motis/core/common/logging.h"
 
@@ -37,8 +38,8 @@ void snapshot_merger::add_snapshot(
   ++snapshot_count_;
   auto const& bucket = timestamp_to_bucket(t);
   for (auto const& s : snapshots) {
-    terminals_[s.uid] = s;
-    distributions_[s.uid][bucket].push_back(s.available_bikes);
+    terminals_[s.uid_] = s;
+    distributions_[s.uid_].at(bucket).push_back(s.available_bikes_);
   }
 }
 
@@ -50,15 +51,15 @@ availability compute_availability(std::vector<int>& dist) {
   }
 
   auto sum = std::accumulate(begin(dist), end(dist), 0);
-  a.average = static_cast<double>(sum) / size;
+  a.average_ = static_cast<double>(sum) / size;
 
   std::sort(begin(dist), end(dist));
-  a.median = dist[(size - 1) * 0.5];
-  a.minimum = dist[0];
-  a.q90 = dist[(size - 1) * 0.1];
+  a.median_ = dist[(size - 1) * 0.5];
+  a.minimum_ = dist[0];
+  a.q90_ = dist[(size - 1) * 0.1];
 
   auto lb = std::lower_bound(begin(dist), end(dist), 5);
-  a.percent_reliable = std::distance(lb, end(dist)) / size;
+  a.percent_reliable_ = std::distance(lb, end(dist)) / size;
 
   return a;
 }
@@ -75,7 +76,7 @@ snapshot_merger::merged() {
 
     hourly_availabilities availabilities;
     for (size_t i = 0; i < kBucketCount; ++i) {
-      availabilities[i] = compute_availability(distributions_.at(id)[i]);
+      availabilities.at(i) = compute_availability(distributions_.at(id).at(i));
     }
 
     t.push_back(terminal.second);
