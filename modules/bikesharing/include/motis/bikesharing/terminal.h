@@ -46,8 +46,7 @@ size_t timestamp_to_bucket(std::time_t timestamp);
 struct snapshot_merger {
   using hourly_buckets = hourly<std::vector<int>>;
 
-  void add_snapshot(std::time_t timestamp,
-                    std::vector<terminal_snapshot> const& snapshot);
+  void add_snapshot(std::time_t, std::vector<terminal_snapshot> const&);
 
   std::pair<std::vector<terminal>, std::vector<hourly_availabilities>> merged();
 

@@ -7,11 +7,10 @@ namespace motis {
 namespace bikesharing {
 
 struct bikesharing_search {
-
-  bikesharing_search(database const& db);
+  explicit bikesharing_search(database const&);
   ~bikesharing_search();
 
-  module::msg_ptr find_connections(BikesharingRequest const* req) const;
+  module::msg_ptr find_connections(BikesharingRequest const*) const;
 
 private:
   struct impl;
@@ -19,4 +18,4 @@ private:
 };
 
 }  // namespace bikesharing
-}  // namespace bikesharing
+}  // namespace motis

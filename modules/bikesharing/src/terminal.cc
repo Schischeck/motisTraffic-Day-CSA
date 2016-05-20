@@ -39,7 +39,7 @@ void snapshot_merger::add_snapshot(
   auto const& bucket = timestamp_to_bucket(t);
   for (auto const& s : snapshots) {
     terminals_[s.uid_] = s;
-    distributions_[s.uid_][bucket].push_back(s.available_bikes_);
+    distributions_[s.uid_].at(bucket).push_back(s.available_bikes_);
   }
 }
 
@@ -76,7 +76,7 @@ snapshot_merger::merged() {
 
     hourly_availabilities availabilities;
     for (size_t i = 0; i < kBucketCount; ++i) {
-      availabilities[i] = compute_availability(distributions_.at(id)[i]);
+      availabilities.at(i) = compute_availability(distributions_.at(id).at(i));
     }
 
     t.push_back(terminal.second);

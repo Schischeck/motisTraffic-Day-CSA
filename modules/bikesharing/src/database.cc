@@ -18,7 +18,7 @@ constexpr auto kSummaryKey = "__summary";
 struct database::database_impl {
   database_impl() = default;
 
-  database_impl(std::string const& path) {
+  explicit database_impl(std::string const& path) {
     DB* db;
     LevelDBOptions options;
     options.create_if_missing = true;
@@ -77,7 +77,7 @@ struct database::database_impl {
 };
 
 struct inmemory_database : public database::database_impl {
-  persistable_terminal get(std::string const& id) const {
+  persistable_terminal get(std::string const& id) const override {
     auto it = store_.find(id);
     if (it == end(store_)) {
       throw system_error(error::terminal_not_found);
@@ -85,13 +85,13 @@ struct inmemory_database : public database::database_impl {
     return persistable_terminal(it->second);
   }
 
-  void put(std::vector<persistable_terminal> const& terminals) {
+  void put(std::vector<persistable_terminal> const& terminals) override {
     for (auto const& t : terminals) {
       store_[t.get()->id()->str()] = t.to_string();
     }
   }
 
-  bikesharing_summary get_summary() const {
+  bikesharing_summary get_summary() const override {
     auto it = store_.find(kSummaryKey);
     if (it == end(store_)) {
       throw system_error(error::terminal_not_found);
@@ -99,7 +99,7 @@ struct inmemory_database : public database::database_impl {
     return bikesharing_summary(it->second);
   }
 
-  void put_summary(bikesharing_summary const& summary) {
+  void put_summary(bikesharing_summary const& summary) override {
     store_[kSummaryKey] = summary.to_string();
   }
 

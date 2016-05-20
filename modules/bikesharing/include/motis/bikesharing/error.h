@@ -20,9 +20,9 @@ enum error_code_t {
 
 class error_category_impl : public std::error_category {
 public:
-  virtual const char* name() const noexcept { return "motis::bikesharing"; }
+  const char* name() const noexcept override { return "motis::bikesharing"; }
 
-  virtual std::string message(int ev) const noexcept {
+  std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "bikesharing: no error";
       case error::not_implemented: return "bikesharing: not implemented";

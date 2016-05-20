@@ -29,8 +29,6 @@ namespace bikesharing {
 bikesharing::bikesharing()
     : database_path_("bikesharing"), nextbike_path_("") {}
 
-bikesharing::~bikesharing() = default;
-
 po::options_description bikesharing::desc() {
   po::options_description desc("bikesharing Module");
   // clang-format off

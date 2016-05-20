@@ -14,28 +14,28 @@ using namespace motis::module;
 namespace motis {
 namespace bikesharing {
 
-constexpr unsigned long kSecondsPerHour = 3600;
+constexpr uint64_t kSecondsPerHour = 3600;
 
 using availability_bucket = BikesharingAvailability;
 struct bikesharing_search::impl {
   struct bike_edge {
-    int walk_duration;
-    int bike_duration;
-    std::vector<availability_bucket> availability;
+    int walk_duration_;
+    int bike_duration_;
+    std::vector<availability_bucket> availability_;
 
-    persistable_terminal* from;
-    persistable_terminal* to;
+    persistable_terminal* from_;
+    persistable_terminal* to_;
 
-    std::string eva_nr;
+    std::string eva_nr_;
   };
 
   struct context {
-    message_creator b;
-    std::map<std::string, std::unique_ptr<persistable_terminal>> terminals;
-    std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets;
+    message_creator b_;
+    std::map<std::string, std::unique_ptr<persistable_terminal>> terminals_;
+    std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets_;
   };
 
-  impl(database const& db) : db_(db) {
+  explicit impl(database const& db) : db_(db) {
     auto summary = db.get_summary();
     auto locations = summary.get()->terminals();
 
@@ -54,10 +54,10 @@ struct bikesharing_search::impl {
     auto const departures = find_departures(ctx, req);
     auto const arrivals = find_arrivals(ctx, req);
 
-    ctx.b.create_and_finish(
+    ctx.b_.create_and_finish(
         MsgContent_BikesharingResponse,
-        CreateBikesharingResponse(ctx.b, departures, arrivals).Union());
-    return make_msg(ctx.b);
+        CreateBikesharingResponse(ctx.b_, departures, arrivals).Union());
+    return make_msg(ctx.b_);
   }
 
   Offset<Vector<Offset<BikesharingEdge>>> find_departures(
@@ -146,7 +146,7 @@ struct bikesharing_search::impl {
 
   persistable_terminal* load_terminal(context& c, std::string const& id) const {
     return get_or_create(
-               c.terminals, id,
+               c.terminals_, id,
                [&]() {
                  return std::make_unique<persistable_terminal>(db_.get(id));
                })
@@ -154,8 +154,8 @@ struct bikesharing_search::impl {
   }
 
   std::vector<availability_bucket> get_availability(
-      Terminal const* term, unsigned long begin, unsigned long end,
-      size_t bucket, AvailabilityAggregator aggr) const {
+      Terminal const* term, uint64_t begin, uint64_t end, size_t bucket,
+      AvailabilityAggregator aggr) const {
     std::vector<availability_bucket> availability;
     for (auto t = begin; t < end; t += kSecondsPerHour) {
       double val = get_availability(term->availability()->Get(bucket++), aggr);
@@ -181,25 +181,25 @@ struct bikesharing_search::impl {
     std::vector<Offset<BikesharingEdge>> stored;
     for (auto const& pair : edges) {
       auto const& edge = pair.second;
-      auto from = serialize_terminal(ctx, edge.from);
-      auto to = serialize_terminal(ctx, edge.to);
+      auto from = serialize_terminal(ctx, edge.from_);
+      auto to = serialize_terminal(ctx, edge.to_);
 
       stored.push_back(CreateBikesharingEdge(
-          ctx.b, from, to, ctx.b.CreateVectorOfStructs(edge.availability),
-          ctx.b.CreateString(edge.eva_nr), edge.walk_duration,
-          edge.bike_duration));
+          ctx.b_, from, to, ctx.b_.CreateVectorOfStructs(edge.availability_),
+          ctx.b_.CreateString(edge.eva_nr_), edge.walk_duration_,
+          edge.bike_duration_));
     }
-    return ctx.b.CreateVector(stored);
+    return ctx.b_.CreateVector(stored);
   }
 
   Offset<BikesharingTerminal> serialize_terminal(
       context& ctx, persistable_terminal* terminal) const {
     auto const* t = terminal->get();
-    return get_or_create(ctx.terminal_offsets, t->id()->str(), [&]() {
+    return get_or_create(ctx.terminal_offsets_, t->id()->str(), [&]() {
       motis::Position pos(t->lat(), t->lng());
       return CreateBikesharingTerminal(
-          ctx.b, ctx.b.CreateString(t->id()->str()),
-          ctx.b.CreateString(t->name()->str()), &pos);
+          ctx.b_, ctx.b_.CreateString(t->id()->str()),
+          ctx.b_.CreateString(t->name()->str()), &pos);
     });
   }
 
