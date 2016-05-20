@@ -4,6 +4,8 @@
 
 #include "motis/module/error.h"
 
+#include "motis/protocol/RoutingRequest_generated.h"
+
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 using namespace flatbuffers;
@@ -12,6 +14,9 @@ using namespace motis::module;
 namespace motis {
 namespace reliability {
 namespace flatbuffers {
+
+constexpr auto INTERMODAL_START_STATION = "START";
+constexpr auto INTERMODAL_DESTINATION_STATION = "END";
 
 request_builder::request_builder(routing::SearchType search_type)
     : search_type_(search_type), is_intermodal_(false) {
@@ -24,6 +29,28 @@ request_builder::request_builder(routing::SearchType search_type)
 
 request_builder::request_builder(routing::RoutingRequest const* request)
     : request_builder(request->search_type()) {
+  init_from_routing_request(request);
+}
+
+request_builder::request_builder(ReliableRoutingRequest const* request) {
+  if (!request->is_intermodal()) {
+    init_from_routing_request(request->request());
+    return;
+  }
+  if (request->request()->start_type() != routing::Start_PretripStart) {
+    throw std::system_error(error::malformed_msg);
+  }
+  auto const start = reinterpret_cast<routing::PretripStart const*>(
+      request->request()->start());
+  add_intermodal_start(request->dep_coord()->lat(), request->dep_coord()->lng(),
+                       start->interval()->begin(), start->interval()->end());
+  add_intermodal_destination(request->arr_coord()->lat(),
+                             request->arr_coord()->lng());
+}
+
+/* not intermodal */
+void request_builder::init_from_routing_request(
+    routing::RoutingRequest const* request) {
   if (request->start_type() == routing::Start_OntripStationStart) {
     auto const start =
         reinterpret_cast<routing::OntripStationStart const*>(request->start());
@@ -44,17 +71,25 @@ request_builder::request_builder(routing::RoutingRequest const* request)
                   request->destination()->id()->c_str());
 }
 
+void request_builder::create_pretrip_start(std::string const station_name,
+                                           std::string const station_id,
+                                           std::time_t const interval_begin,
+                                           std::time_t const interval_end) {
+  motis::Interval interval(interval_begin, interval_end);
+  start_.first = routing::Start_PretripStart;
+  start_.second =
+      routing::CreatePretripStart(
+          b_, routing::CreateInputStation(b_, b_.CreateString(station_id),
+                                          b_.CreateString(station_name)),
+          &interval)
+          .Union();
+}
+
 request_builder& request_builder::add_pretrip_start(
     std::string const& name, std::string const& id,
     std::time_t const interval_begin, std::time_t const interval_end) {
   is_intermodal_ = false;
-  motis::Interval interval(interval_begin, interval_end);
-  start_.first = routing::Start_PretripStart;
-  start_.second = routing::CreatePretripStart(
-                      b_, routing::CreateInputStation(b_, b_.CreateString(id),
-                                                      b_.CreateString(name)),
-                      &interval)
-                      .Union();
+  create_pretrip_start(name, id, interval_begin, interval_end);
   return *this;
 }
 request_builder& request_builder::add_ontrip_station_start(
@@ -78,20 +113,25 @@ request_builder& request_builder::add_destination(std::string const& name,
   return *this;
 }
 
-request_builder& request_builder::add_dep_coordinates(double const& lat,
-                                                      double const& lng) {
+request_builder& request_builder::add_intermodal_start(
+    double const& lat, double const& lng, std::time_t const interval_begin,
+    std::time_t const interval_end) {
   is_intermodal_ = true;
   dep_.lat_ = lat;
   dep_.lng_ = lng;
+  create_pretrip_start(INTERMODAL_START_STATION, INTERMODAL_START_STATION,
+                       interval_begin, interval_end);
   return *this;
 }
 
-// for intermodal requests
-request_builder& request_builder::add_arr_coordinates(double const& lat,
-                                                      double const& lng) {
+request_builder& request_builder::add_intermodal_destination(
+    double const& lat, double const& lng) {
   is_intermodal_ = true;
   arr_.lat_ = lat;
   arr_.lng_ = lng;
+  destination_station_ = routing::CreateInputStation(
+      b_, b_.CreateString(INTERMODAL_DESTINATION_STATION),
+      b_.CreateString(INTERMODAL_DESTINATION_STATION));
   return *this;
 }
 
@@ -125,11 +165,11 @@ request_builder& request_builder::add_additional_edges(
   };
 
   for (auto const& info : infos.at_start_) {
-    create_edge(info, "START", info.station_eva_);
+    create_edge(info, INTERMODAL_START_STATION, info.station_eva_);
   }
 
   for (auto const& info : infos.at_destination_) {
-    create_edge(info, info.station_eva_, "END");
+    create_edge(info, info.station_eva_, INTERMODAL_DESTINATION_STATION);
   }
   return *this;
 }

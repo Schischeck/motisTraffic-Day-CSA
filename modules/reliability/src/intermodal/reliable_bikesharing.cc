@@ -6,6 +6,9 @@
 #include "motis/module/context/motis_call.h"
 #include "motis/module/module.h"
 
+#include "motis/protocol/ReliableRoutingRequest_generated.h"
+#include "motis/protocol/RoutingRequest_generated.h"
+
 #include "motis/reliability/error.h"
 
 namespace motis {
@@ -53,6 +56,20 @@ bikesharing_infos retrieve_bikesharing_infos(
   return bikesharing_infos{
       detail::to_bikesharing_infos(response->departure_edges(), aggregator),
       detail::to_bikesharing_infos(response->arrival_edges(), aggregator)};
+}
+
+module::msg_ptr to_bikesharing_request(
+    ReliableRoutingRequest const* req,
+    motis::bikesharing::AvailabilityAggregator aggregator) {
+  if (req->request()->start_type() != routing::Start_PretripStart) {
+    throw std::system_error(error::not_implemented);
+  }
+  auto start =
+      reinterpret_cast<routing::PretripStart const*>(req->request()->start());
+  return to_bikesharing_request(
+      req->dep_coord()->lat(), req->dep_coord()->lng(), req->arr_coord()->lat(),
+      req->arr_coord()->lng(), start->interval()->begin(),
+      start->interval()->end(), aggregator);
 }
 
 module::msg_ptr to_bikesharing_request(

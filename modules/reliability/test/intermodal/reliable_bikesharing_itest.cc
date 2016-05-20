@@ -51,7 +51,7 @@ TEST_F(reliability_bikesharing, test_request) {
 
 TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   auto aggregator = std::make_shared<average_aggregator>(4);
-  auto infos = motis_instance_->run([&]() {
+  auto infos = run([&]() {
     return retrieve_bikesharing_infos(
         to_bikesharing_request(49.8776114, 8.6571044, 50.1273104, 8.6669383,
                                1454602500, /* Thu, 04 Feb 2016 16:15:00 GMT */
@@ -156,15 +156,15 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 }
 
 TEST_F(reliability_bikesharing_routing, rating_request) {
-  ::motis::reliability::flatbuffers::request_builder::request_builder b;
+  ::motis::reliability::flatbuffers::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
-  auto req_msg = b.add_dep_coordinates(49.8776114, 8.6571044)
-                     .add_arr_coordinates(50.1273104, 8.6669383)
-                     .set_interval(1421337600, /* 15 Jan 2015 16:00:00 GMT */
-                                   1421348400 /* 15 Jan 2015 18:00:00 GMT */)
-                     .build_rating_request(true);
-
+  auto req_msg =
+      b.add_intermodal_start(49.8776114, 8.6571044,
+                             1421337600, /* 15 Jan 2015 16:00:00 GMT */
+                             1421348400 /* 15 Jan 2015 18:00:00 GMT */)
+          .add_intermodal_destination(50.1273104, 8.6669383)
+          .build_rating_request(true);
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
@@ -172,25 +172,31 @@ TEST_F(reliability_bikesharing_routing, rating_request) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
-    ASSERT_EQ("-1", s.eva_no_);
-    ASSERT_EQ(1421339100, s.departure_.schedule_timestamp_);
+    ASSERT_EQ("START", s.eva_no_);
+    ASSERT_EQ(1421339100 /* Thu, 15 Jan 2015 16:25:00 GMT */,
+              s.departure_.schedule_timestamp_);
   }
   {
     auto const& s = j.stops_[1];
     ASSERT_EQ("Darmstadt Hbf", s.name_);
-    ASSERT_EQ(1421341200, s.arrival_.schedule_timestamp_);
-    ASSERT_EQ(1421341200, s.departure_.schedule_timestamp_);
+    ASSERT_EQ(1421341200 /* Thu, 15 Jan 2015 17:00:00 GMT */,
+              s.arrival_.schedule_timestamp_);
+    ASSERT_EQ(1421341200 /* Thu, 15 Jan 2015 17:00:00 GMT */,
+              s.departure_.schedule_timestamp_);
   }
   {
     auto const& s = j.stops_[2];
     ASSERT_EQ("Frankfurt(Main)Hbf", s.name_);
-    ASSERT_EQ(1421342100, s.arrival_.schedule_timestamp_);
-    ASSERT_EQ(1421342400, s.departure_.schedule_timestamp_);
+    ASSERT_EQ(1421342100 /* Thu, 15 Jan 2015 17:15:00 GMT */,
+              s.arrival_.schedule_timestamp_);
+    ASSERT_EQ(1421342400 /* Thu, 15 Jan 2015 17:20:00 GMT */,
+              s.departure_.schedule_timestamp_);
   }
   {
     auto const& s = j.stops_[3];
-    ASSERT_EQ("-2", s.eva_no_);
-    ASSERT_EQ(1421345520, s.arrival_.schedule_timestamp_);
+    ASSERT_EQ("END", s.eva_no_);
+    ASSERT_EQ(1421345520 /* Thu, 15 Jan 2015 18:12:00 GMT */,
+              s.arrival_.schedule_timestamp_);
   }
 
   ASSERT_EQ(3, j.transports_.size());

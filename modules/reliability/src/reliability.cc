@@ -128,14 +128,12 @@ using bs_type = motis::reliability::intermodal::bikesharing::bikesharing_infos;
 bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
   bs_type bikesharing_infos;
   if (req->individual_modes()->bikesharing() == 1) {
-    /* TODO(Mohammad Keyhani)
-       bikesharing_infos =
-       motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
-        motis::reliability::intermodal::bikesharing::to_bikesharing_request(
-            req->request(), motis::bikesharing::AvailabilityAggregator_Average),
-        std::make_shared<
-            motis::reliability::intermodal::bikesharing::average_aggregator>(4),
-        *this);*/
+    bikesharing_infos =
+        motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
+            motis::reliability::intermodal::bikesharing::to_bikesharing_request(
+                req, motis::bikesharing::AvailabilityAggregator_Average),
+            std::make_shared<motis::reliability::intermodal::bikesharing::
+                                 average_aggregator>(4));
   }
   if (req->individual_modes()->taxi() == 1) {
     throw std::system_error(error::not_implemented);
@@ -146,7 +144,7 @@ bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
 msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
   using routing::RoutingResponse;
   auto routing_response =
-      motis_call(flatbuffers::request_builder(req->request())
+      motis_call(flatbuffers::request_builder(req)
                      .add_additional_edges(retrieve_individual_mode_infos(req))
                      .build_routing_request())
           ->val();

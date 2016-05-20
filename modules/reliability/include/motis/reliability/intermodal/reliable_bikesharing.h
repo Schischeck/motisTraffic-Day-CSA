@@ -15,6 +15,7 @@ namespace routing {
 struct RoutingRequest;  // NOLINT
 }  // namespace routing
 namespace reliability {
+struct ReliableRoutingRequest;
 namespace intermodal {
 namespace bikesharing {
 
@@ -61,6 +62,9 @@ module::msg_ptr to_bikesharing_request(
     double const arrival_lat, double const arrival_lng,
     std::time_t window_begin, std::time_t window_end,
     motis::bikesharing::AvailabilityAggregator);
+
+module::msg_ptr to_bikesharing_request(
+    ReliableRoutingRequest const*, motis::bikesharing::AvailabilityAggregator);
 
 }  // namespace bikesharing
 }  // namespace intermodal

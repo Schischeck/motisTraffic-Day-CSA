@@ -6,10 +6,12 @@
 
 #include "motis/module/module.h"
 
-#include "motis/protocol/RoutingRequest_generated.h"
-
 namespace motis {
+namespace routing {
+struct RoutingRequest;
+}  // namespace routing
 namespace reliability {
+struct ReliableRoutingRequest;
 namespace intermodal {
 namespace bikesharing {
 struct bikesharing_infos;
@@ -21,6 +23,7 @@ struct request_builder {
   explicit request_builder(
       routing::SearchType search_type = routing::SearchType_DefaultForward);
   explicit request_builder(routing::RoutingRequest const*);
+  explicit request_builder(ReliableRoutingRequest const*);
 
   request_builder& add_pretrip_start(std::string const& name,
                                      std::string const& id,
@@ -33,8 +36,11 @@ struct request_builder {
                                    std::string const& id);
 
   /* for reliable intermodal requests */
-  request_builder& add_dep_coordinates(double const& lat, double const& lng);
-  request_builder& add_arr_coordinates(double const& lat, double const& lng);
+  request_builder& add_intermodal_start(double const& lat, double const& lng,
+                                        std::time_t const interval_begin,
+                                        std::time_t const interval_end);
+  request_builder& add_intermodal_destination(double const& lat,
+                                              double const& lng);
 
   request_builder& add_additional_edge(
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
@@ -70,9 +76,17 @@ struct request_builder {
   } dep_, arr_;
 
 private:
+  /* not for intermodal requests */
+  void init_from_routing_request(routing::RoutingRequest const*);
+
   module::msg_ptr build_reliable_request(
       ::flatbuffers::Offset<RequestOptionsWrapper> const&,
       bool const bikesharing = false);
+
+  void create_pretrip_start(std::string const station_name,
+                            std::string const station_id,
+                            std::time_t const interval_begin,
+                            std::time_t const interval_end);
 };
 
 }  // namespace flatbuffers
