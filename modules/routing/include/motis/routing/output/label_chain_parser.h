@@ -40,7 +40,8 @@ state next_state(int s, Label const* c, Label const* n) {
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
         switch (c->node_->type()) {
-          case node_type::STATION_NODE: return AT_STATION;
+          case node_type::STATION_NODE:
+            return n && n->node_->is_station_node() ? WALK : AT_STATION;
           case node_type::FOOT_NODE: return WALK;
           case node_type::ROUTE_NODE:
             return n->node_->is_route_node() ? IN_CONNECTION_THROUGH
