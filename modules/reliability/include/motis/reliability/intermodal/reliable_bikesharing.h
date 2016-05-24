@@ -15,7 +15,7 @@ namespace routing {
 struct RoutingRequest;  // NOLINT
 }  // namespace routing
 namespace reliability {
-struct ReliableRoutingRequest;
+struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
 namespace bikesharing {
 

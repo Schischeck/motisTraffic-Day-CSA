@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/BikesharingRequest_generated.h"
@@ -155,7 +156,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   }
 }
 
-void test_journey(journey const& j) {
+void test_journey1(journey const& j) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
@@ -190,9 +191,75 @@ void test_journey(journey const& j) {
   ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
   ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
   ASSERT_EQ(journey::transport::Walk, j.transports_[2].type_);
+  ASSERT_EQ(35, j.transports_[0].duration_);
+  ASSERT_EQ(15, j.transports_[1].duration_);
+  ASSERT_EQ(52, j.transports_[2].duration_);
+}
+
+void test_journey2(journey const& j) {
+  ASSERT_EQ(4, j.stops_.size());
+  {
+    auto const& s = j.stops_[0];
+    ASSERT_EQ("START", s.eva_no_);
+    ASSERT_EQ(1421337600 /* Thu, 15 Jan 2015 16:00:00 GMT */,
+              s.departure_.schedule_timestamp_);
+  }
+  {
+    auto const& s = j.stops_[1];
+    ASSERT_EQ("Darmstadt Hbf", s.name_);
+    ASSERT_EQ(1421339700 /* Thu, 15 Jan 2015 16:35:00 GMT */,
+              s.arrival_.schedule_timestamp_);
+    ASSERT_EQ(1421339700 /* Thu, 15 Jan 2015 16:35:00 GMT */,
+              s.departure_.schedule_timestamp_);
+  }
+  {
+    auto const& s = j.stops_[2];
+    ASSERT_EQ("Frankfurt(Main)Hbf", s.name_);
+    ASSERT_EQ(1421340000 /* Thu, 15 Jan 2015 16:40:00 GMT */,
+              s.arrival_.schedule_timestamp_);
+    ASSERT_EQ(1421340300 /* Thu, 15 Jan 2015 16:45:00 GMT */,
+              s.departure_.schedule_timestamp_);
+  }
+  {
+    auto const& s = j.stops_[3];
+    ASSERT_EQ("END", s.eva_no_);
+    ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
+              s.arrival_.schedule_timestamp_);
+  }
+
+  ASSERT_EQ(3, j.transports_.size());
+  ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
+  ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
+  ASSERT_EQ(journey::transport::Walk, j.transports_[2].type_);
+  ASSERT_EQ(35, j.transports_[0].duration_);
+  ASSERT_EQ(5, j.transports_[1].duration_);
+  // ASSERT_EQ(52, j.transports_[2].duration_);
 }
 
 TEST_F(reliability_bikesharing_routing, rating_request) {
+  ::motis::reliability::flatbuffers::request_builder b;
+  // departure close to campus darmstadt
+  // arrival close to campus ffm
+  auto req_msg =
+      b.add_intermodal_start(49.8776114, 8.6571044,
+                             1421336700, /* 15 Jan 2015 15:45:00 GMT */
+                             1421342100 /* 15 Jan 2015 17:15:00 GMT */)
+          .add_intermodal_destination(50.1273104, 8.6669383)
+          .build_rating_request(true);
+  auto journeys = message_to_journeys(
+      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
+  std::sort(journeys.begin(), journeys.end(),
+            [](journey const& a, journey const& b) {
+              return a.stops_.front().departure_.schedule_timestamp_ <
+                     b.stops_.front().departure_.schedule_timestamp_;
+            });
+
+  ASSERT_EQ(2, journeys.size());
+  test_journey2(journeys[0]);
+  test_journey1(journeys[1]);
+}
+
+TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
   ::motis::reliability::flatbuffers::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
@@ -205,23 +272,7 @@ TEST_F(reliability_bikesharing_routing, rating_request) {
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
-  test_journey(journeys[0]);
-}
-
-TEST_F(reliability_bikesharing_routing, rating_request_other_query_interval2) {
-  ::motis::reliability::flatbuffers::request_builder b;
-  // departure close to campus darmstadt
-  // arrival close to campus ffm
-  auto req_msg =
-      b.add_intermodal_start(49.8776114, 8.6571044,
-                             1421336700, /* 15 Jan 2015 15:45:00 GMT */
-                             1421342100 /* 15 Jan 2015 17:15:00 GMT */)
-          .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
-  auto const journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
-  ASSERT_EQ(1, journeys.size());
-  test_journey(journeys[0]);
+  test_journey1(journeys[0]);
 }
 
 }  // namespace bikesharing

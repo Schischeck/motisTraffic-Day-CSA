@@ -8,10 +8,10 @@
 
 namespace motis {
 namespace routing {
-struct RoutingRequest;
+struct RoutingRequest;  // NOLINT
 }  // namespace routing
 namespace reliability {
-struct ReliableRoutingRequest;
+struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
 namespace bikesharing {
 struct bikesharing_infos;

@@ -145,7 +145,7 @@ request_builder& request_builder::add_additional_edge(
 request_builder& request_builder::add_additional_edges(
     motis::reliability::intermodal::bikesharing::bikesharing_infos const&
         infos) {
-  // TODO(Mohammad Keyhani) Peridic edges for taxi
+  // TODO(Mohammad Keyhani) Periodic edges for taxi
 
   auto create_edge = [&](
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
