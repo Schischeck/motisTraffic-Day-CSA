@@ -31,7 +31,7 @@ struct pretrip_gen {
           throw std::runtime_error("unsupported edge type");
         }
 
-        auto const d = e.get_edge_cost(interval_begin, nullptr).time_;
+        auto const d = e.m_.foot_edge_.time_cost_;
         auto const td = e.type() == edge::TIME_DEPENDENT_MUMO_EDGE;
         auto const edge_interval_begin =
             td ? std::max(e.m_.foot_edge_.interval_begin_, interval_begin)
