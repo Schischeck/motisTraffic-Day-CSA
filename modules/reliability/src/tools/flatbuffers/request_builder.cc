@@ -32,7 +32,8 @@ request_builder::request_builder(routing::RoutingRequest const* request)
   init_from_routing_request(request);
 }
 
-request_builder::request_builder(ReliableRoutingRequest const* request) {
+request_builder::request_builder(ReliableRoutingRequest const* request)
+    : request_builder(request->request()->search_type()) {
   if (!request->is_intermodal()) {
     init_from_routing_request(request->request());
     return;
