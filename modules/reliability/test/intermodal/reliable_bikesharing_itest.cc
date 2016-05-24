@@ -155,20 +155,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   }
 }
 
-TEST_F(reliability_bikesharing_routing, rating_request) {
-  ::motis::reliability::flatbuffers::request_builder b;
-  // departure close to campus darmstadt
-  // arrival close to campus ffm
-  auto req_msg =
-      b.add_intermodal_start(49.8776114, 8.6571044,
-                             1421337600, /* 15 Jan 2015 16:00:00 GMT */
-                             1421348400 /* 15 Jan 2015 18:00:00 GMT */)
-          .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
-  auto const journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
-  ASSERT_EQ(1, journeys.size());
-  auto const& j = journeys[0];
+void test_journey(journey const& j) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
@@ -203,6 +190,38 @@ TEST_F(reliability_bikesharing_routing, rating_request) {
   ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
   ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
   ASSERT_EQ(journey::transport::Walk, j.transports_[2].type_);
+}
+
+TEST_F(reliability_bikesharing_routing, rating_request) {
+  ::motis::reliability::flatbuffers::request_builder b;
+  // departure close to campus darmstadt
+  // arrival close to campus ffm
+  auto req_msg =
+      b.add_intermodal_start(49.8776114, 8.6571044,
+                             1421339100, /* 15 Jan 2015 16:25:00 GMT */
+                             1421339100 /* 15 Jan 2015 16:25:00 GMT */)
+          .add_intermodal_destination(50.1273104, 8.6669383)
+          .build_rating_request(true);
+  auto const journeys = message_to_journeys(
+      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
+  ASSERT_EQ(1, journeys.size());
+  test_journey(journeys[0]);
+}
+
+TEST_F(reliability_bikesharing_routing, rating_request_other_query_interval2) {
+  ::motis::reliability::flatbuffers::request_builder b;
+  // departure close to campus darmstadt
+  // arrival close to campus ffm
+  auto req_msg =
+      b.add_intermodal_start(49.8776114, 8.6571044,
+                             1421336700, /* 15 Jan 2015 15:45:00 GMT */
+                             1421342100 /* 15 Jan 2015 17:15:00 GMT */)
+          .add_intermodal_destination(50.1273104, 8.6669383)
+          .build_rating_request(true);
+  auto const journeys = message_to_journeys(
+      motis_content(ReliabilityRatingResponse, call(req_msg))->response());
+  ASSERT_EQ(1, journeys.size());
+  test_journey(journeys[0]);
 }
 
 }  // namespace bikesharing
