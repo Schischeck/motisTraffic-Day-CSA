@@ -66,7 +66,7 @@ gcc-5-debug-valgrind:
     - git submodule update --init --recursive
     - mkdir -p build-gcc-5-valgrind
     - cd build-gcc-5-valgrind
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true -DCTX_VALGRIND=true ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
