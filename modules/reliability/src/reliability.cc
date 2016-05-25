@@ -124,16 +124,26 @@ void reliability::init(motis::module::registry& reg) {
 
 namespace detail {
 
-using bs_type = motis::reliability::intermodal::bikesharing::bikesharing_infos;
-bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
-  bs_type bikesharing_infos;
+struct bikesharing_info_container {
+  using bs_type = motis::reliability::intermodal::bikesharing::bikesharing_info;
+  std::vector<bs_type> at_start_, at_destination_;
+
+  void init(ReliableRoutingRequest const* req) {
+    using namespace motis::reliability::intermodal::bikesharing;
+    if (req->dep_is_intermodal()) {
+      at_start_ = retrieve_bikesharing_infos(true, req);
+    }
+    if (req->arr_is_intermodal()) {
+      at_destination_ = retrieve_bikesharing_infos(false, req);
+    }
+  }
+};
+
+bikesharing_info_container retrieve_individual_mode_infos(
+    ReliableRoutingRequest const* req) {
+  bikesharing_info_container bikesharing_infos;
   if (req->individual_modes()->bikesharing() == 1) {
-    bikesharing_infos =
-        motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
-            motis::reliability::intermodal::bikesharing::to_bikesharing_request(
-                req, motis::bikesharing::AvailabilityAggregator_Average),
-            std::make_shared<motis::reliability::intermodal::bikesharing::
-                                 average_aggregator>(4));
+    bikesharing_infos.init(req);
   }
   if (req->individual_modes()->taxi() == 1) {
     throw std::system_error(error::not_implemented);
@@ -143,10 +153,12 @@ bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
 
 msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
   using routing::RoutingResponse;
+  auto const infos = retrieve_individual_mode_infos(req);
   auto routing_response =
-      motis_call(flatbuffers::request_builder(req)
-                     .add_additional_edges(retrieve_individual_mode_infos(req))
-                     .build_routing_request())
+      motis_call(
+          flatbuffers::request_builder(req)
+              .add_additional_edges(infos.at_start_, infos.at_destination_)
+              .build_routing_request())
           ->val();
   auto lock = rel.synced_sched();
   return rating::rate_routing_response(

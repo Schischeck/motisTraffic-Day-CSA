@@ -12,9 +12,14 @@ enum AvailabilityAggregator : ubyte {
   PercentReliable
 }
 
+enum Type : ubyte {
+  Departure,
+  Arrival
+}
+
 table BikesharingRequest {
-  dep:motis.Position;
-  arr:motis.Position;
+  type:Type;
+  position:motis.Position;
   interval:motis.Interval;
   availability_aggregator:AvailabilityAggregator = Average;
 }

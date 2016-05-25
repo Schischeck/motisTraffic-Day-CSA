@@ -47,24 +47,25 @@ struct bikesharing_info {
   std::string from_bike_station_, to_bike_station_;
 };
 
-struct bikesharing_infos {
-  std::vector<bikesharing_info> at_start_;
-  std::vector<bikesharing_info> at_destination_;
-};
-typedef std::function<void(bikesharing_infos const)> callback;
-
-/* retrieves reliable bikesharing infos */
-bikesharing_infos retrieve_bikesharing_infos(
-    module::msg_ptr request, std::shared_ptr<availability_aggregator>);
+/* retrieves reliable bikesharing infos for departure or arrival */
+std::vector<bikesharing_info> retrieve_bikesharing_infos(
+    bool const for_departure, ReliableRoutingRequest const*);
 
 module::msg_ptr to_bikesharing_request(
-    double const departure_lat, double const departure_lng,
-    double const arrival_lat, double const arrival_lng,
-    std::time_t window_begin, std::time_t window_end,
-    motis::bikesharing::AvailabilityAggregator);
+    bool const is_departure_type, double const lat, double const lng,
+    time_t const window_begin, time_t const window_end,
+    motis::bikesharing::AvailabilityAggregator const aggregator);
 
 module::msg_ptr to_bikesharing_request(
-    ReliableRoutingRequest const*, motis::bikesharing::AvailabilityAggregator);
+    ReliableRoutingRequest const*, bool const for_departure,
+    motis::bikesharing::AvailabilityAggregator const);
+
+namespace detail {
+std::vector<bikesharing_info> const to_bikesharing_infos(
+    ::flatbuffers::Vector<
+        ::flatbuffers::Offset<::motis::bikesharing::BikesharingEdge>> const*,
+    availability_aggregator const&);
+}  // namespace detail
 
 }  // namespace bikesharing
 }  // namespace intermodal
