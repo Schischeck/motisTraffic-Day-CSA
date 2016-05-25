@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "motis/core/journey/journey_util.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/BikesharingRequest_generated.h"
