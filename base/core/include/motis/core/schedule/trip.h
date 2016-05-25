@@ -89,12 +89,12 @@ struct trip {
       assert(false);
     }
 
-    edge const* get_edge() const {
+    edge* get_edge() const {
       assert(outgoing_edge_idx_ < route_node_->edges_.size());
       return &route_node_->edges_[outgoing_edge_idx_];
     }
 
-    node const* route_node_;
+    node* route_node_;
     std::size_t outgoing_edge_idx_;
   };
 
