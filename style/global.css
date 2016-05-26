@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  padding: 0;
+  color: TEXT_COLOR;
+}
+
+html, button, input, select, textarea,
+.pure-g [class *= "pure-u"] {
+    font-family: Helvetica, sans-serif;
+}
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'), local('material-icons'), url(fonts/material-icons.woff) format('woff');
+}
+
+.icon {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.icon, .disable-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+a > * { cursor: pointer !important; }
+
+a, a:active {
+  text-decoration: none;
+}
+
+.paper {
+  z-index: 10;
+  width: calc(7 * 40px);
+  display: table;
+  margin-top: -10px;
+  background-color: white;
+  position: absolute;
+  box-sizing: content-box;
+  border: 1px solid #DDDDDD;
+  box-shadow: 0 3px 9px rgba(0,0,0,.16);
+  border-radius: 3px;
+  font-size: .85em;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: .7em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #abb7cc;
+}
+
+input:focus {
+  outline: 0;
+}
+
+.hide { display: none; }
