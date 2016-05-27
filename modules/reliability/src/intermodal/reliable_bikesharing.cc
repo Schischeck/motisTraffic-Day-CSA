@@ -55,7 +55,7 @@ std::vector<bikesharing_info> retrieve_bikesharing_infos(
   using ::motis::bikesharing::BikesharingResponse;
   return detail::to_bikesharing_infos(
       *motis_content(BikesharingResponse, res)->edges(), aggregator);
-};
+}
 
 module::msg_ptr to_bikesharing_request(
     ReliableRoutingRequest const& req, bool const for_departure,
