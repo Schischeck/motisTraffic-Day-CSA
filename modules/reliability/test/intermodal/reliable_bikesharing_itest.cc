@@ -6,6 +6,7 @@
 
 #include "motis/protocol/BikesharingRequest_generated.h"
 
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
@@ -51,9 +52,9 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 
   using ::motis::bikesharing::BikesharingResponse;
   auto dep_infos = detail::to_bikesharing_infos(
-      motis_content(BikesharingResponse, res_dep)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_dep)->edges(), *aggregator);
   auto arr_infos = detail::to_bikesharing_infos(
-      motis_content(BikesharingResponse, res_arr)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator);
 
   auto sort = [](std::vector<bikesharing_info>& infos) {
     std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,

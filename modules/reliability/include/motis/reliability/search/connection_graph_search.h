@@ -17,7 +17,7 @@ namespace connection_graph_search {
 struct connection_graph_optimizer;
 
 std::vector<std::shared_ptr<connection_graph> > search_cgs(
-    ReliableRoutingRequest const*, motis::reliability::context const&,
+    ReliableRoutingRequest const&, motis::reliability::context const&,
     std::shared_ptr<connection_graph_optimizer const>);
 
 }  // namespace connection_graph_search

@@ -13,22 +13,22 @@ struct RoutingRequest;  // NOLINT
 namespace reliability {
 struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
+struct individual_modes_container;
 namespace bikesharing {
 struct bikesharing_info;
 }  // namespace bikesharing
 }  // namespace intermodal
 namespace flatbuffers {
-using motis::reliability::intermodal::bikesharing::bikesharing_info;
 
 struct request_builder {
   explicit request_builder(
       routing::SearchType search_type = routing::SearchType_DefaultForward);
 
   /* for bcg-base journeys and late connections */
-  explicit request_builder(routing::RoutingRequest const*);
+  explicit request_builder(routing::RoutingRequest const&);
 
   /* to build routing-requests */
-  explicit request_builder(ReliableRoutingRequest const*);
+  explicit request_builder(ReliableRoutingRequest const&);
 
   request_builder& add_pretrip_start(std::string const& name,
                                      std::string const& id,
@@ -51,8 +51,7 @@ struct request_builder {
       ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
 
   request_builder& add_additional_edges(
-      std::vector<bikesharing_info> const& at_start,
-      std::vector<bikesharing_info> const& at_destination);
+      intermodal::individual_modes_container const&);
 
   ::flatbuffers::Offset<routing::RoutingRequest> create_routing_request();
 
@@ -83,7 +82,7 @@ struct request_builder {
 
 private:
   /* not for intermodal requests */
-  void init_start_from_routing_request(routing::RoutingRequest const*);
+  void init_start_from_routing_request(routing::RoutingRequest const&);
 
   module::msg_ptr build_reliable_request(
       ::flatbuffers::Offset<RequestOptionsWrapper> const&,

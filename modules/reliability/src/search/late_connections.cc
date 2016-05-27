@@ -16,7 +16,7 @@ namespace late_connections {
 namespace detail {
 /* convert routing::RoutingRequest to Offset<RoutingRequest> */
 module::msg_ptr to_routing_late_connections_message(
-    routing::RoutingRequest const* request,
+    routing::RoutingRequest const& request,
     std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
   using namespace routing;
   flatbuffers::request_builder builder(request);
@@ -25,7 +25,7 @@ module::msg_ptr to_routing_late_connections_message(
 
   auto& b = builder.b_;
   /* Create taxi-edges */
-  for (auto const& e : *request->additional_edges()) {
+  for (auto const& e : *request.additional_edges()) {
     if (e->additional_edge_type() != AdditionalEdge_TimeDependentMumoEdge) {
       continue;
     }
@@ -57,11 +57,11 @@ module::msg_ptr to_routing_late_connections_message(
 }
 }  // namespace detail
 
-module::msg_ptr search(ReliableRoutingRequest const* req,
+module::msg_ptr search(ReliableRoutingRequest const& req,
                        std::string const& hotels_file) {
   return motis_call(
              detail::to_routing_late_connections_message(
-                 req->request(), intermodal::hotels::parse_hotels(hotels_file)))
+                 *req.request(), intermodal::hotels::parse_hotels(hotels_file)))
       ->val();
 }
 }  // namespace late_connections

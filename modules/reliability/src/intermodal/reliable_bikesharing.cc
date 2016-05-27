@@ -19,10 +19,10 @@ namespace detail {
 
 std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<::flatbuffers::Offset<
-        ::motis::bikesharing::BikesharingEdge>> const* edges,
+        ::motis::bikesharing::BikesharingEdge>> const& edges,
     availability_aggregator const& aggregator) {
   std::vector<bikesharing_info> infos;
-  for (auto edge : *edges) {
+  for (auto edge : edges) {
     std::vector<std::pair<time_t, time_t>> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator.is_reliable(rating->value())) {
@@ -46,7 +46,7 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
 }  // namespace detail
 
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
-    bool for_departure, ReliableRoutingRequest const* req) {
+    bool for_departure, ReliableRoutingRequest const& req) {
   auto res = motis_call(to_bikesharing_request(
                             req, for_departure,
                             motis::bikesharing::AvailabilityAggregator_Average))
@@ -54,33 +54,32 @@ std::vector<bikesharing_info> retrieve_bikesharing_infos(
   motis::reliability::intermodal::bikesharing::average_aggregator aggregator(4);
   using ::motis::bikesharing::BikesharingResponse;
   return detail::to_bikesharing_infos(
-      motis_content(BikesharingResponse, res)->edges(), aggregator);
+      *motis_content(BikesharingResponse, res)->edges(), aggregator);
 };
 
 module::msg_ptr to_bikesharing_request(
-    ReliableRoutingRequest const* req, bool const for_departure,
+    ReliableRoutingRequest const& req, bool const for_departure,
     motis::bikesharing::AvailabilityAggregator const aggregator) {
-  if ((for_departure && !req->dep_is_intermodal()) ||
-      (!for_departure && !req->arr_is_intermodal())) {
+  if ((for_departure && !req.dep_is_intermodal()) ||
+      (!for_departure && !req.arr_is_intermodal())) {
     throw std::system_error(error::failure);
   }
   std::time_t begin, end;
-  if (req->request()->start_type() == routing::Start_PretripStart) {
+  if (req.request()->start_type() == routing::Start_PretripStart) {
     auto start =
-        reinterpret_cast<routing::PretripStart const*>(req->request()->start());
+        reinterpret_cast<routing::PretripStart const*>(req.request()->start());
     begin = start->interval()->begin();
     end = start->interval()->end();
-  } else if (req->request()->start_type() ==
-             routing::Start_OntripStationStart) {
+  } else if (req.request()->start_type() == routing::Start_OntripStationStart) {
     auto start = reinterpret_cast<routing::OntripStationStart const*>(
-        req->request()->start());
+        req.request()->start());
     begin = start->departure_time();
     end = start->departure_time() + 60;
   } else {
     throw std::system_error(error::not_implemented);
   }
 
-  auto const coord = for_departure ? req->dep_coord() : req->arr_coord();
+  auto const coord = for_departure ? req.dep_coord() : req.arr_coord();
 
   return to_bikesharing_request(for_departure, coord->lat(), coord->lng(),
                                 begin, end, aggregator);

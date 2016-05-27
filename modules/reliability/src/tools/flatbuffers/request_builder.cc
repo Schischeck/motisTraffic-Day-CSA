@@ -6,6 +6,7 @@
 
 #include "motis/protocol/RoutingRequest_generated.h"
 
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 using namespace flatbuffers;
@@ -30,55 +31,54 @@ request_builder::request_builder(routing::SearchType search_type)
 }
 
 /* for bcg-base journeys and late connections */
-request_builder::request_builder(routing::RoutingRequest const* request)
-    : request_builder(request->search_type()) {
+request_builder::request_builder(routing::RoutingRequest const& request)
+    : request_builder(request.search_type()) {
   init_start_from_routing_request(request);
-  add_destination(request->destination()->name()->c_str(),
-                  request->destination()->id()->c_str());
+  add_destination(request.destination()->name()->c_str(),
+                  request.destination()->id()->c_str());
 }
 
 /* to build routing-requests (rating a journey) */
-request_builder::request_builder(ReliableRoutingRequest const* request)
-    : request_builder(request->request()->search_type()) {
-  if (!request->dep_is_intermodal()) {
-    init_start_from_routing_request(request->request());
+request_builder::request_builder(ReliableRoutingRequest const& request)
+    : request_builder(request.request()->search_type()) {
+  if (!request.dep_is_intermodal()) {
+    init_start_from_routing_request(*request.request());
   } else {
-    if (request->request()->start_type() != routing::Start_PretripStart) {
-      throw std::system_error(error::malformed_msg);
+    if (request.request()->start_type() != routing::Start_PretripStart) {
+      throw std::system_error(module::error::malformed_msg);
     }
     auto const start = reinterpret_cast<routing::PretripStart const*>(
-        request->request()->start());
-    add_intermodal_start(request->dep_coord()->lat(),
-                         request->dep_coord()->lng(),
+        request.request()->start());
+    add_intermodal_start(request.dep_coord()->lat(), request.dep_coord()->lng(),
                          start->interval()->begin(), start->interval()->end());
   }
 
-  if (!request->arr_is_intermodal()) {
-    add_destination(request->request()->destination()->name()->c_str(),
-                    request->request()->destination()->id()->c_str());
+  if (!request.arr_is_intermodal()) {
+    add_destination(request.request()->destination()->name()->c_str(),
+                    request.request()->destination()->id()->c_str());
   } else {
-    add_intermodal_destination(request->arr_coord()->lat(),
-                               request->arr_coord()->lng());
+    add_intermodal_destination(request.arr_coord()->lat(),
+                               request.arr_coord()->lng());
   }
 }
 
 /* not intermodal */
 void request_builder::init_start_from_routing_request(
-    routing::RoutingRequest const* request) {
-  if (request->start_type() == routing::Start_OntripStationStart) {
+    routing::RoutingRequest const& request) {
+  if (request.start_type() == routing::Start_OntripStationStart) {
     auto const start =
-        reinterpret_cast<routing::OntripStationStart const*>(request->start());
+        reinterpret_cast<routing::OntripStationStart const*>(request.start());
     add_ontrip_station_start(start->station()->name()->c_str(),
                              start->station()->id()->c_str(),
                              start->departure_time());
-  } else if (request->start_type() == routing::Start_PretripStart) {
+  } else if (request.start_type() == routing::Start_PretripStart) {
     auto const start =
-        reinterpret_cast<routing::PretripStart const*>(request->start());
+        reinterpret_cast<routing::PretripStart const*>(request.start());
     add_pretrip_start(start->station()->name()->c_str(),
                       start->station()->id()->c_str(),
                       start->interval()->begin(), start->interval()->end());
   } else {
-    throw std::system_error(error::malformed_msg);
+    throw std::system_error(module::error::malformed_msg);
   }
 }
 
@@ -153,8 +153,7 @@ request_builder& request_builder::add_additional_edge(
 }
 
 request_builder& request_builder::add_additional_edges(
-    std::vector<bikesharing_info> const& at_start,
-    std::vector<bikesharing_info> const& at_destination) {
+    intermodal::individual_modes_container const& container) {
   // TODO(Mohammad Keyhani) Periodic edges for taxi
 
   auto create_edge = [&](
@@ -175,11 +174,11 @@ request_builder& request_builder::add_additional_edges(
     }
   };
 
-  for (auto const& info : at_start) {
+  for (auto const& info : container.bikesharing_.at_start_) {
     create_edge(info, INTERMODAL_START_STATION, info.station_eva_);
   }
 
-  for (auto const& info : at_destination) {
+  for (auto const& info : container.bikesharing_.at_destination_) {
     create_edge(info, info.station_eva_, INTERMODAL_DESTINATION_STATION);
   }
   return *this;
