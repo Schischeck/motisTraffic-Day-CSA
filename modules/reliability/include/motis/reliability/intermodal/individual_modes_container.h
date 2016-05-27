@@ -10,6 +10,8 @@ namespace reliability {
 struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
 
+enum slot { BIKESHARING = 1, TAXI = 2, HOTEL = 3 };
+
 struct individual_modes_container {
   explicit individual_modes_container(ReliableRoutingRequest const& req) {
     if (req.individual_modes()->bikesharing() == 1) {

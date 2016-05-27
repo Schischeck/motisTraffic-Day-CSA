@@ -13,13 +13,15 @@ template <typename Data, typename Init, typename Updater, typename Filter,
 struct label : public Data {
   label() = default;
 
-  label(node const* n, label* pred, time now, lower_bounds& lb)
+  label(node const* n, label* pred, time now, lower_bounds& lb,
+        uint8_t const slot)
       : pred_(pred),
         node_(n),
         connection_(nullptr),
         start_(pred != nullptr ? pred->start_ : now),
         now_(now),
-        dominated_(false) {
+        dominated_(false),
+        slot_(slot) {
     Init::init(*this, lb);
   }
 
@@ -39,6 +41,7 @@ struct label : public Data {
     l.node_ = e.get_destination();
     l.connection_ = ec.connection_;
     l.now_ += ec.time_;
+    l.slot_ = ec.slot_;
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
   }
@@ -63,6 +66,7 @@ struct label : public Data {
   light_connection const* connection_;
   time start_, now_;
   bool dominated_;
+  uint8_t slot_;
 };
 
 }  // namespace routing

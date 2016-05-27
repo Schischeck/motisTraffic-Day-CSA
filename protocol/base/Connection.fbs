@@ -32,17 +32,14 @@ table Transport {
   direction: string;
 }
 
+/* walk and mumo */
 table Walk {
   range: Range;
-}
-
-table Mumo {
-  range: Range;
-  name: string;
+  slot: uint;
   price: uint;
 }
 
-union Move { Transport, Walk, Mumo }
+union Move { Transport, Walk }
 
 table MoveWrapper {
   move: Move;
