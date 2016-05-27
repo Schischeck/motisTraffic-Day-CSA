@@ -334,21 +334,21 @@ private:
     if (start_time > m_.foot_edge_.interval_end_) {
       return NO_EDGE;
     }
-    auto const time_off = m_.foot_edge_.interval_begin_ > start_time
-                              ? m_.foot_edge_.interval_begin_ - start_time
-                              : 0;
+    auto const time_off =
+        std::max(0, m_.foot_edge_.interval_begin_ - start_time);
     return edge_cost(time_off + m_.foot_edge_.time_cost_,
                      m_.foot_edge_.transfer_, m_.foot_edge_.price_,
                      m_.foot_edge_.slot_);
   }
 
   edge_cost calc_cost_periodic_edge(time const start_time) const {
-    auto const start_daytime = start_time % 1440;
+    auto const start_daytime = start_time % MINUTES_A_DAY;
     auto time_off = 0;
     if (start_daytime < m_.foot_edge_.interval_begin_) {
       time_off = m_.foot_edge_.interval_begin_ - start_daytime;
     } else if (start_daytime > m_.foot_edge_.interval_end_) {
-      time_off = (1440 - start_daytime) + m_.foot_edge_.interval_begin_;
+      time_off =
+          (MINUTES_A_DAY - start_daytime) + m_.foot_edge_.interval_begin_;
     }
     return edge_cost(time_off + m_.foot_edge_.time_cost_,
                      m_.foot_edge_.transfer_, m_.foot_edge_.price_,
