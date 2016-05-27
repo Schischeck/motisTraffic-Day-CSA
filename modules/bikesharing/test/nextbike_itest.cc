@@ -12,7 +12,7 @@ using namespace motis::module;
 namespace motis {
 namespace bikesharing {
 
-constexpr auto kBikesharingRequest = R""(
+constexpr auto kBikesharingRequestDeparture = R""(
 {
   "destination": {
     "type": "Module",
@@ -20,14 +20,36 @@ constexpr auto kBikesharingRequest = R""(
   },
   "content_type": "BikesharingRequest",
   "content": {
+    "type": Departure,
+
     // close to campus darmstadt
-    "dep": {
+    "position": {
       "lat": 49.8776114,
       "lng": 8.6571044
     },
 
+    "interval": {
+      "begin": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
+      "end": 1454606100  // Thu, 04 Feb 2016 17:15:00 GMT
+    },
+
+    "availability_aggregator": "Average"
+  }
+}
+)"";
+
+constexpr auto kBikesharingRequestArrival = R""(
+{
+  "destination": {
+    "type": "Module",
+    "target": "/bikesharing"
+  },
+  "content_type": "BikesharingRequest",
+  "content": {
+    "type": Arrival,
+
     // close to campus ffm
-    "arr": {
+    "position": {
       "lat": 50.1273104,
       "lng": 8.6669383
     },
@@ -68,8 +90,8 @@ public:
              "--bikesharing.database_path=:memory:"}) {}
 };
 
-TEST_F(bikesharing_nextbike_itest, integration_test) {
-  auto msg = call(make_msg(kBikesharingRequest));
+TEST_F(bikesharing_nextbike_itest, integration_test_departure) {
+  auto msg = call(make_msg(kBikesharingRequestDeparture));
 
   ASSERT_EQ(MsgContent_BikesharingResponse, msg->get()->content_type());
   using bikesharing::BikesharingResponse;
@@ -79,7 +101,7 @@ TEST_F(bikesharing_nextbike_itest, integration_test) {
    *  check departure side
    ****************************************************************************/
   {
-    auto dep_edges = resp->departure_edges();
+    auto dep_edges = resp->edges();
     ASSERT_EQ(4, dep_edges->size());
 
     auto e_1_3 = find_edge(dep_edges, "1", "3");
@@ -122,12 +144,20 @@ TEST_F(bikesharing_nextbike_itest, integration_test) {
     EXPECT_EQ(std::string("8000068"), e_2_4->station_id()->str());
     ASSERT_EQ(2, e_2_4->availability()->size());
   }
+}
+
+TEST_F(bikesharing_nextbike_itest, integration_test_arrival) {
+  auto msg = call(make_msg(kBikesharingRequestArrival));
+
+  ASSERT_EQ(MsgContent_BikesharingResponse, msg->get()->content_type());
+  using bikesharing::BikesharingResponse;
+  auto resp = motis_content(BikesharingResponse, msg);
 
   /****************************************************************************
    *  check arrival side
    ****************************************************************************/
   {
-    auto arr_edges = resp->arrival_edges();
+    auto arr_edges = resp->edges();
     ASSERT_EQ(4, arr_edges->size());
 
     auto e_1_3 = find_edge(arr_edges, "7", "5");

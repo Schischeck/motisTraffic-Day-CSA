@@ -1,4 +1,5 @@
 #include "motis/reliability/search/cg_search_context.h"
+
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 namespace motis {
@@ -15,19 +16,26 @@ inline journey const& latest_departing_alternative(
 inline std::pair<module::msg_ptr, detail::context::journey_cache_key>
 to_routing_request(connection_graph const& conn_graph,
                    connection_graph::stop const& stop,
-                   duration const min_departure_diff) {
+                   duration const min_departure_diff,
+                   detail::context const& c) {
   auto const ontrip_time = latest_departing_alternative(conn_graph, stop)
                                .stops_.front()
                                .departure_.timestamp_ +
                            min_departure_diff * 60;
   auto const stop_station = conn_graph.station_info(stop.index_);
-  auto const arrival_station =
-      conn_graph.station_info(connection_graph::stop::INDEX_ARRIVAL_STOP);
-  auto msg = flatbuffers::request_builder()
-                 .add_ontrip_station_start(stop_station.first,
-                                           stop_station.second, ontrip_time)
-                 .add_destination(arrival_station.first, arrival_station.second)
-                 .build_routing_request();
+
+  flatbuffers::request_builder b;
+  b.add_ontrip_station_start(stop_station.first, stop_station.second,
+                             ontrip_time);
+  if (c.destination_.is_intermodal_) {
+    b.add_intermodal_destination(c.destination_.coordinates_.lat_,
+                                 c.destination_.coordinates_.lng_);
+    b.add_additional_edges(c.individual_modes_container_);
+  } else {
+    b.add_destination(c.destination_.station_.name_,
+                      c.destination_.station_.id_);
+  }
+  auto msg = b.build_routing_request();
   return std::make_pair(msg, detail::context::journey_cache_key(
                                  stop_station.second, ontrip_time));
 }

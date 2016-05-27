@@ -39,7 +39,8 @@ struct Coordinates {
 table ReliableRoutingRequest {
   request:motis.routing.RoutingRequest;
 
-  is_intermodal:bool = false;
+  dep_is_intermodal:bool = false;
+  arr_is_intermodal:bool = false;
   dep_coord:Coordinates;
   arr_coord:Coordinates;
 

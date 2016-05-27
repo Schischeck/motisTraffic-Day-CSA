@@ -67,13 +67,13 @@
       ]
     },
     {
-      "name": "IC_F_D",
+      "name": "IC_D_F_2",
       "category": "IC",
       "evaNumber": "0717537",
       "trainNumber": 2,
       "stations": [
         {
-          "station": "4570367",
+          "station": "2158078",
           "arrival": 0,
           "departure": 0,
           "track": 1,
@@ -81,9 +81,9 @@
           "leavingAllowed": true
         },
         {
-          "station": "2158078",
-          "arrival": 15,
-          "departure": 17,
+          "station": "4570367",
+          "arrival": 5,
+          "departure": 7,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true
@@ -100,8 +100,8 @@
       ],
       "intervals": [
         {
-          "fromTime": "18:00:00.000",
-          "untilTime": "18:00:00.000",
+          "fromTime": "17:35:00.000",
+          "untilTime": "17:35:00.000",
           "interval": 1
         }
       ]
