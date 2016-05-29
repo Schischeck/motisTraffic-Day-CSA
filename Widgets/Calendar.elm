@@ -13,7 +13,7 @@ import Task
 import String
 import Array
 import Mouse
-import Json.Decode as Json
+import Widgets.ViewUtil exposing (onStopAll, onStopPropagation)
 import Widgets.Input as Input
 import Widgets.Button as Button
 
@@ -162,16 +162,6 @@ subscriptions model =
 -- VIEW
 
 
-onStop : String -> msg -> Html.Attribute msg
-onStop event msg =
-    onWithOptions event { stopPropagation = True, preventDefault = True } (Json.succeed msg)
-
-
-onPreventDefault : String -> msg -> Html.Attribute msg
-onPreventDefault event msg =
-    onWithOptions event { stopPropagation = True, preventDefault = False } (Json.succeed msg)
-
-
 weekDays : DateConfig -> List (Html Msg)
 weekDays conf =
     dayListForMonthView (Date.fromTime 0) (Date.fromTime 0)
@@ -210,8 +200,8 @@ monthView conf date =
 dayButtons : Html Msg
 dayButtons =
     div [ class "day-buttons" ]
-        [ div [ ] [Button.view [ onStop "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ]]
-        , div [ ] [Button.view [ onStop "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ]]
+        [ div [ ] [Button.view [ onStopAll "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ]]
+        , div [ ] [Button.view [ onStopAll "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ]]
         ]
 
 
@@ -219,7 +209,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ Input.view
-            [ onPreventDefault "mousedown" ToggleVisibility
+            [ onStopPropagation "mousedown" ToggleVisibility
             , onInput DateInput
             , value model.inputStr
             ]
@@ -230,7 +220,7 @@ view model =
                 , ( "calendar", True )
                 , ( "hide", not model.visible )
                 ]
-            , onStop "mousedown" NoOp
+            , onStopAll "mousedown" NoOp
             ]
             [ monthView model.conf model.date
             , ul [ class "weekdays" ] (weekDays model.conf)

@@ -21,6 +21,7 @@ main =
 
 type alias Model =
     { calendar : Calendar.Model
+    , typeahead : Typeahead.Model
     }
 
 
@@ -29,8 +30,15 @@ init =
     let
         ( calendarModel, calendarCmd ) =
             Calendar.init
+
+        ( typeaheadModel, typeaheadCmd ) =
+            Typeahead.init
     in
-        ( { calendar = calendarModel }, Cmd.map CalendarUpdate calendarCmd )
+        ( { calendar = calendarModel
+          , typeahead = typeaheadModel
+          }
+        , Cmd.map CalendarUpdate calendarCmd
+        )
 
 
 
@@ -40,6 +48,7 @@ init =
 type Msg
     = Reset
     | CalendarUpdate Calendar.Msg
+    | TypeaheadUpdate Typeahead.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -55,6 +64,13 @@ update msg model =
             in
                 ( { model | calendar = calModel }, Cmd.none )
 
+        TypeaheadUpdate m ->
+            let
+                ( taModel, calCmd ) =
+                    Typeahead.update m model.typeahead
+            in
+                ( { model | typeahead = taModel }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -62,7 +78,10 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map CalendarUpdate (Calendar.subscriptions model.calendar)
+    Sub.batch
+        [ Sub.map CalendarUpdate (Calendar.subscriptions model.calendar)
+        , Sub.map TypeaheadUpdate (Typeahead.subscriptions model.typeahead)
+        ]
 
 
 
@@ -71,4 +90,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    App.map CalendarUpdate (Calendar.view model.calendar)
+    div []
+        [ App.map CalendarUpdate (Calendar.view model.calendar)
+        , App.map TypeaheadUpdate (Typeahead.view model.typeahead)
+        ]
