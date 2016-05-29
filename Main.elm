@@ -3,7 +3,6 @@ module Main exposing (..)
 import Widgets.Calendar as Calendar
 import Html exposing (..)
 import Html.App as App
-import Html.Attributes exposing (..)
 
 
 main =

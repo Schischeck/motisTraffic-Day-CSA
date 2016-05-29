@@ -6,14 +6,15 @@ import Html.Attributes exposing (..)
 
 -- VIEW
 
-view : List (Html.Attribute msg) -> Html msg
-view attr =
+
+view : List (Html.Attribute msg) -> List (Html msg) -> Html msg
+view attr inputWidget =
     div []
         [ div [ class "label" ] [ text "Date" ]
         , div [ class "gb-input-group" ]
             [ div [ class "gb-input-icon" ]
                 [ i [ class "icon" ] [ text "\xE878" ] ]
             , input (class "gb-input" :: attr) []
-            , div [ class "gb-input-widget" ] []
+            , div [ class "gb-input-widget" ] inputWidget
             ]
         ]

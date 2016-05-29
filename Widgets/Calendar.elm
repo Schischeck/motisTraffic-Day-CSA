@@ -15,6 +15,7 @@ import Array
 import Mouse
 import Json.Decode as Json
 import Widgets.Input as Input
+import Widgets.Button as Button
 
 
 -- MODEL
@@ -36,7 +37,7 @@ init =
 
 emptyModel : Model
 emptyModel =
-    { conf = enDateConfig
+    { conf = deDateConfig
     , today = Date.fromTime 0
     , date = Date.fromTime 0
     , visible = False
@@ -54,6 +55,8 @@ type Msg
     | NewDate Date
     | DateInput String
     | NewDateError String
+    | PrevDay
+    | NextDay
     | PrevMonth
     | NextMonth
     | ToggleVisibility
@@ -72,10 +75,18 @@ updateModel msg model =
             model
 
         InitDate d ->
-            { model | date = d, inputStr = formatDate model.conf d, today = d }
+            { model
+                | date = d
+                , inputStr = formatDate model.conf d
+                , today = d
+            }
 
         NewDate d ->
-            { model | date = d, inputStr = formatDate model.conf d, visible = False }
+            { model
+                | date = d
+                , inputStr = formatDate model.conf d
+                , visible = False
+            }
 
         DateInput str ->
             case parseDate model.conf str of
@@ -87,6 +98,26 @@ updateModel msg model =
 
         NewDateError _ ->
             model
+
+        PrevDay ->
+            let
+                newDate =
+                    Duration.add Duration.Day -1 model.date
+            in
+                { model
+                    | date = newDate
+                    , inputStr = formatDate model.conf newDate
+                }
+
+        NextDay ->
+            let
+                newDate =
+                    Duration.add Duration.Day 1 model.date
+            in
+                { model
+                    | date = newDate
+                    , inputStr = formatDate model.conf newDate
+                }
 
         PrevMonth ->
             let
@@ -164,7 +195,7 @@ calendarDay date =
 
 calendarDays : Date -> Date -> List (Html Msg)
 calendarDays today date =
-    dayListForMonthView today date |> List.map calendarDay
+     List.map calendarDay (dayListForMonthView today date)
 
 
 monthView : DateConfig -> Date -> Html Msg
@@ -176,6 +207,14 @@ monthView conf date =
         ]
 
 
+dayButtons : Html Msg
+dayButtons =
+    div [ class "day-buttons" ]
+        [ div [ ] [Button.view [ onStop "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ]]
+        , div [ ] [Button.view [ onStop "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ]]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div []
@@ -184,6 +223,7 @@ view model =
             , onInput DateInput
             , value model.inputStr
             ]
+            [ dayButtons ]
         , div
             [ classList
                 [ ( "paper", True )
@@ -291,12 +331,13 @@ type alias DateConfig =
 enDateConfig : DateConfig
 enDateConfig =
     { seperator = "/"
-    , yearPos = 2
+    , yearPos = 0
     , monthPos = 1
-    , dayPos = 0
+    , dayPos = 2
     , weekDayNames = [ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" ]
     , monthNames =
-        [ "January"
+        [ ""
+        , "January"
         , "February"
         , "March"
         , "April"
@@ -315,12 +356,13 @@ enDateConfig =
 deDateConfig : DateConfig
 deDateConfig =
     { seperator = "."
-    , yearPos = 0
+    , yearPos = 2
     , monthPos = 1
-    , dayPos = 2
+    , dayPos = 0
     , weekDayNames = [ "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" ]
     , monthNames =
-        [ "Januar"
+        [ ""
+        , "Januar"
         , "Februar"
         , "März"
         , "April"
