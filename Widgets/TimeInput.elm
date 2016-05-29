@@ -5,6 +5,7 @@ import Html exposing (..)
 import Date exposing (Date)
 import Html.Events exposing (onInput)
 import Html.Attributes exposing (value)
+import Html.Lazy exposing (lazy)
 import Widgets.Input as Input
 import Widgets.StringSplitUtil exposing (..)
 import Date.Extra.Create exposing (dateFromFields)
@@ -92,6 +93,11 @@ formatDate d =
 -- VIEW
 
 
+timeInputView : Model -> Html Msg
+timeInputView model =
+    Input.view [ onInput TimeInput, value model.inputStr ] []
+
+
 view : Model -> Html Msg
 view model =
-    Input.view [ onInput TimeInput, value model.inputStr ] []
+    lazy timeInputView model

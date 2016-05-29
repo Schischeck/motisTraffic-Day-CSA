@@ -2,7 +2,8 @@ module Widgets.Typeahead exposing (Model, Msg, init, subscriptions, update, view
 
 import Html exposing (Html, div, ul, li, text)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onMouseOver, onClick, keyCode, on)
+import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
+import Html.Lazy exposing (lazy)
 import String
 import Dict exposing (..)
 import Json.Encode as Encode
@@ -44,6 +45,7 @@ type Msg
     | SelectionDown
     | Select Int
     | Hide
+    | Show
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,6 +99,9 @@ updateModel msg model =
         Hide ->
             { model | visible = False, selected = 0 }
 
+        Show ->
+            { model | visible = True, selected = 0 }
+
 
 command : Msg -> Model -> Cmd Msg
 command msg model =
@@ -141,7 +146,7 @@ onKey fail msgs =
         tagger code =
             Dict.get code msgs |> Maybe.withDefault fail
     in
-        on "keyup" (Decode.map tagger keyCode)
+        on "keydown" (Decode.map tagger keyCode)
 
 
 proposalView : Int -> Int -> String -> Html Msg
@@ -154,12 +159,13 @@ proposalView selected index str =
         [ text str ]
 
 
-view : Model -> Html Msg
-view model =
+typeaheadView : Model -> Html Msg
+typeaheadView model =
     div []
         [ Input.view
             [ value model.input
             , onInput InputChange
+            , onFocus Show
             , onKey NoOp
                 (Dict.fromList
                     [ ( down, SelectionDown )
@@ -173,7 +179,7 @@ view model =
         , div
             [ classList
                 [ ( "paper", True )
-                , ( "hide", not model.visible )
+                , ( "hide", not model.visible || (List.length model.suggestions) == 0 )
                 ]
             , onStopAll "mousedown" NoOp
             ]
@@ -182,6 +188,9 @@ view model =
             ]
         ]
 
+view : Model -> Html Msg
+view model =
+    lazy typeaheadView model
 
 
 -- SUBSCRIPTIONS

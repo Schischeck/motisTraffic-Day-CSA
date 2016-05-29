@@ -3,6 +3,7 @@ module Widgets.TagList exposing (Model, Msg, init, subscriptions, update, view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Lazy exposing (lazy)
 import Set exposing (..)
 import Mouse
 import Widgets.ViewUtil exposing (onStopAll, onStopPropagation)
@@ -58,8 +59,8 @@ updateModel msg model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
+tagListView : Model -> Html Msg
+tagListView model =
     let
         availableTags =
             Set.toList (Set.diff model.tags model.selected)
@@ -100,6 +101,11 @@ view model =
         div []
             ([ div [ class "label" ] [ text "Label" ] ]
             ++ selectedTags ++ addButton)
+
+
+view : Model -> Html Msg
+view model =
+    lazy tagListView model
 
 
 
