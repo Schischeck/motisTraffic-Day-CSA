@@ -81,8 +81,8 @@ view model =
             if (Set.size model.selected == Set.size model.tags) then
                 []
             else
-                [ div [ class "tag outline" ]
-                    ([ i [ class "icon", onStopPropagation "mousedown" ToggleVisibility ] [ text "\xE145" ] ]
+                [ div [ class "tag outline", onStopPropagation "mousedown" ToggleVisibility ]
+                    ([ i [ class "icon" ] [ text "\xE145" ] ]
                         ++ [ availableTags ]
                     )
                 ]

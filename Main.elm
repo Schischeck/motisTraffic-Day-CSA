@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Widgets.TimeInput as TimeInput
 import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
@@ -24,6 +25,7 @@ type alias Model =
     { calendar : Calendar.Model
     , typeahead : Typeahead.Model
     , taglist : TagList.Model
+    , timeinput : TimeInput.Model
     }
 
 
@@ -38,10 +40,14 @@ init =
 
         ( taglistModel, taglistCmd ) =
             TagList.init
+
+        ( timeinputModel, timeinputCmd ) =
+            TimeInput.init
     in
         ( { calendar = calendarModel
           , typeahead = typeaheadModel
           , taglist = taglistModel
+          , timeinput = timeinputModel
           }
         , Cmd.map CalendarUpdate calendarCmd
         )
@@ -56,6 +62,7 @@ type Msg
     | CalendarUpdate Calendar.Msg
     | TypeaheadUpdate Typeahead.Msg
     | TagListUpdate TagList.Msg
+    | TimeInputUpdate TimeInput.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,6 +92,13 @@ update msg model =
             in
                 ( { model | taglist = tlModel }, Cmd.none )
 
+        TimeInputUpdate m ->
+            let
+                ( tiModel, calCmd ) =
+                    ( TimeInput.update m model.timeinput, Cmd.none )
+            in
+                ( { model | timeinput = tiModel }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -109,4 +123,5 @@ view model =
         [ App.map CalendarUpdate (Calendar.view model.calendar)
         , App.map TypeaheadUpdate (Typeahead.view model.typeahead)
         , App.map TagListUpdate (TagList.view model.taglist)
+        , App.map TimeInputUpdate (TimeInput.view model.timeinput)
         ]
