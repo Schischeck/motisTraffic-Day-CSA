@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Html exposing (..)
@@ -22,6 +23,7 @@ main =
 type alias Model =
     { calendar : Calendar.Model
     , typeahead : Typeahead.Model
+    , taglist : TagList.Model
     }
 
 
@@ -33,9 +35,13 @@ init =
 
         ( typeaheadModel, typeaheadCmd ) =
             Typeahead.init
+
+        ( taglistModel, taglistCmd ) =
+            TagList.init
     in
         ( { calendar = calendarModel
           , typeahead = typeaheadModel
+          , taglist = taglistModel
           }
         , Cmd.map CalendarUpdate calendarCmd
         )
@@ -49,6 +55,7 @@ type Msg
     = Reset
     | CalendarUpdate Calendar.Msg
     | TypeaheadUpdate Typeahead.Msg
+    | TagListUpdate TagList.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,6 +78,13 @@ update msg model =
             in
                 ( { model | typeahead = taModel }, Cmd.none )
 
+        TagListUpdate m ->
+            let
+                ( tlModel, calCmd ) =
+                    TagList.update m model.taglist
+            in
+                ( { model | taglist = tlModel }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -81,6 +95,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map CalendarUpdate (Calendar.subscriptions model.calendar)
         , Sub.map TypeaheadUpdate (Typeahead.subscriptions model.typeahead)
+        , Sub.map TagListUpdate (TagList.subscriptions model.taglist)
         ]
 
 
@@ -93,4 +108,5 @@ view model =
     div []
         [ App.map CalendarUpdate (Calendar.view model.calendar)
         , App.map TypeaheadUpdate (Typeahead.view model.typeahead)
+        , App.map TagListUpdate (TagList.view model.taglist)
         ]
