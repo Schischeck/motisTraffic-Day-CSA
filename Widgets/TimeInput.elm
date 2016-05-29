@@ -1,6 +1,7 @@
 module Widgets.TimeInput exposing (Model, Msg, update, view, init)
 
 import Task
+import String
 import Html exposing (..)
 import Date exposing (Date)
 import Html.Events exposing (onInput)
@@ -86,7 +87,9 @@ toDate h m =
 
 formatDate : Date -> String
 formatDate d =
-    (toString (Date.hour d)) ++ ":" ++ (toString (Date.minute d))
+    (toString (Date.hour d) |> String.padLeft 2 '0')
+        ++ ":"
+        ++ (toString (Date.minute d) |> String.padLeft 2 '0')
 
 
 
