@@ -1,9 +1,22 @@
 module Widgets.Typeahead exposing (Model, Msg, init, subscriptions, update, view)
 
-import Html exposing (..)
+import Html exposing (Html, div, ul, li, text)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onInput, onMouseOver, onClick, keyCode, on)
+import String
+import Dict exposing (..)
+import Json.Encode as Encode
+import Json.Decode as Decode
 import Widgets.Input as Input
 import Widgets.ViewUtil exposing (onStopAll)
+import WebSocket
+import Mouse
+
+
+remoteAddress : String
+remoteAddress =
+    "ws://localhost:8080"
+
 
 
 -- MODEL
@@ -12,7 +25,7 @@ import Widgets.ViewUtil exposing (onStopAll)
 type alias Model =
     { suggestions : List String
     , input : String
-    , selectedSuggestion : Int
+    , selected : Int
     , visible : Bool
     }
 
@@ -23,66 +36,140 @@ type alias Model =
 
 type Msg
     = NoOp
-    | InputChange
+    | ReceiveSuggestions String
+    | InputChange String
     | EnterSelection
+    | ClickElement Int
     | SelectionUp
     | SelectionDown
-    | Select
+    | Select Int
     | Hide
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    ( updateModel msg model, command msg model )
+
+
+updateModel : Msg -> Model -> Model
+updateModel msg model =
     case msg of
         NoOp ->
-            ( model, Cmd.none )
+            model
 
-        InputChange ->
-            ( model, Cmd.none )
+        ReceiveSuggestions json ->
+            { model
+                | suggestions =
+                    case suggestionsFromJson (json) of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            [ "ERROR" ]
+                , visible = True
+            }
+
+        InputChange str ->
+            { model | input = str }
 
         EnterSelection ->
-            ( model, Cmd.none )
+            { model
+                | visible = False
+                , input = Maybe.withDefault "" (nthElement model.selected model.suggestions)
+            }
+
+        ClickElement i ->
+            { model
+                | visible = False
+                , selected = 0
+                , input = Maybe.withDefault "" (nthElement i model.suggestions)
+            }
 
         SelectionUp ->
-            ( model, Cmd.none )
+            { model | selected = (model.selected - 1) % List.length model.suggestions }
 
         SelectionDown ->
-            ( model, Cmd.none )
+            { model | selected = (model.selected + 1) % List.length model.suggestions }
 
-        Select ->
-            ( model, Cmd.none )
+        Select index ->
+            { model | selected = index }
 
         Hide ->
-            ( model, Cmd.none )
+            { model | visible = False, selected = 0 }
+
+
+command : Msg -> Model -> Cmd Msg
+command msg model =
+    case msg of
+        InputChange str ->
+            if String.length str > 2 then
+                requestSuggestions str
+            else
+                Cmd.none
+
+        _ ->
+            Cmd.none
 
 
 
 -- VIEW
-{-
-   <gb-input value={getValue()}
-             label={opts.label}
-             icon={opts.icon}
-             placeholder={opts.placeholder}
-             input-keyup={onKeyUp}>
-     <yield/>
-   </gb-input>
-   <div if={isVisible && proposals.length !== 0} class="paper" onclick={preventDismiss}>
-     <ul class="proposals">
-       <li each={p, i in proposals}
-           class={selected: (i === selectedIndex)}
-           onclick={selectProposal}
-           onmouseover={setSelectedIndex}>
-         {parent.opts.displayProperty ? p[parent.opts.displayProperty] : p}
-       </li>
-     </ul>
-   </div>
--}
+
+
+up : Int
+up =
+    38
+
+
+down : Int
+down =
+    40
+
+
+enter : Int
+enter =
+    13
+
+
+escape : Int
+escape =
+    27
+
+
+onKey : Msg -> Dict Int Msg -> Html.Attribute Msg
+onKey fail msgs =
+    let
+        tagger code =
+            Dict.get code msgs |> Maybe.withDefault fail
+    in
+        on "keyup" (Decode.map tagger keyCode)
+
+
+proposalView : Int -> Int -> String -> Html Msg
+proposalView selected index str =
+    li
+        [ classList [ ( "selected", selected == index ) ]
+        , onClick (ClickElement index)
+        , onMouseOver (Select index)
+        ]
+        [ text str ]
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ Input.view [] []
+        [ Input.view
+            [ value model.input
+            , onInput InputChange
+            , onKey NoOp
+                (Dict.fromList
+                    [ ( down, SelectionDown )
+                    , ( up, SelectionUp )
+                    , ( enter, EnterSelection )
+                    , ( escape, Hide )
+                    ]
+                )
+            ]
+            []
         , div
             [ classList
                 [ ( "paper", True )
@@ -90,7 +177,8 @@ view model =
                 ]
             , onStopAll "mousedown" NoOp
             ]
-            [ ul [ class "proposals" ] []
+            [ ul [ class "proposals" ]
+                (List.indexedMap (proposalView model.selected) model.suggestions)
             ]
         ]
 
@@ -101,7 +189,14 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    let
+        wsSub =
+            WebSocket.listen remoteAddress ReceiveSuggestions
+    in
+        if model.visible then
+            Sub.batch [ Mouse.downs (\_ -> Hide), wsSub ]
+        else
+            wsSub
 
 
 
@@ -112,8 +207,64 @@ init : ( Model, Cmd Msg )
 init =
     ( { suggestions = []
       , input = ""
-      , selectedSuggestion = 0
+      , selected = 0
       , visible = False
       }
     , Cmd.none
     )
+
+
+
+-- REMOTE SUGGESTIONS
+
+
+generateRequest : String -> Encode.Value
+generateRequest input =
+    Encode.object
+        [ ( "destination"
+          , Encode.object
+                [ ( "type", Encode.string "Module" )
+                , ( "target", Encode.string "/guesser" )
+                ]
+          )
+        , ( "content_type", Encode.string "StationGuesserRequest" )
+        , ( "content"
+          , Encode.object
+                [ ( "input", Encode.string input )
+                , ( "guess_count", Encode.int 6 )
+                ]
+          )
+        ]
+
+
+requestSuggestions : String -> Cmd Msg
+requestSuggestions input =
+    generateRequest input
+        |> Encode.encode 0
+        |> WebSocket.send remoteAddress
+
+
+suggestionDecoder : Decode.Decoder String
+suggestionDecoder =
+    Decode.at [ "name" ] Decode.string
+
+
+suggestionsDecoder : Decode.Decoder (List String)
+suggestionsDecoder =
+    Decode.at [ "content", "guesses" ] (Decode.list suggestionDecoder)
+
+
+suggestionsFromJson : String -> Maybe (List String)
+suggestionsFromJson json =
+    Decode.decodeString suggestionsDecoder json
+        |> Result.toMaybe
+
+
+
+-- UTIL
+
+
+nthElement : Int -> List a -> Maybe a
+nthElement index l =
+    List.drop index l
+        |> List.head

@@ -76,14 +76,14 @@ update msg model =
                 ( calModel, calCmd ) =
                     Calendar.update m model.calendar
             in
-                ( { model | calendar = calModel }, Cmd.none )
+                ( { model | calendar = calModel }, Cmd.map CalendarUpdate calCmd )
 
         TypeaheadUpdate m ->
             let
-                ( taModel, calCmd ) =
+                ( taModel, taCmd ) =
                     Typeahead.update m model.typeahead
             in
-                ( { model | typeahead = taModel }, Cmd.none )
+                ( { model | typeahead = taModel }, Cmd.map TypeaheadUpdate taCmd )
 
         TagListUpdate m ->
             let
