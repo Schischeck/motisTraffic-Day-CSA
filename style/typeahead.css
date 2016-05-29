@@ -19,5 +19,5 @@
 }
 
 .proposals li.selected {
-  background-color: precss.LIGHTEN("PRIMARY_COLOR", 85);
+  background-color: #e4eafb;
 }

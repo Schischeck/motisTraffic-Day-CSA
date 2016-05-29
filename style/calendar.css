@@ -86,7 +86,7 @@
   font-weight: lighter;
 }
 
-.selected, .selected:hover {
+.calendardays li.selected, .calendardays li.selected:hover {
   color: white;
   background-color: #809cee !important;
 }
