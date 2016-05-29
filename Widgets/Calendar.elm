@@ -1,7 +1,7 @@
 module Widgets.Calendar exposing (Model, Msg, init, subscriptions, update, view)
 
 import Html exposing (..)
-import Html.Events exposing (onClick, onInput, onWithOptions)
+import Html.Events exposing (onClick, onInput, onFocus, onBlur, onWithOptions)
 import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy)
 import Date exposing (Date, Day, day, month, year, dayOfWeek)
@@ -61,7 +61,8 @@ type Msg
     | PrevMonth
     | NextMonth
     | ToggleVisibility
-    | Click
+    | Show
+    | Hide
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -141,10 +142,13 @@ updateModel msg model =
                 }
 
         ToggleVisibility ->
-            { model | visible = not model.visible }
+            model
 
-        Click ->
+        Hide ->
             { model | visible = False }
+
+        Show ->
+            { model | visible = True }
 
 
 
@@ -153,10 +157,7 @@ updateModel msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.visible then
-        Mouse.downs (\_ -> Click)
-    else
-        Sub.none
+    Sub.none
 
 
 
@@ -210,7 +211,9 @@ calendarView : Model -> Html Msg
 calendarView model =
     div []
         [ Input.view
-            [ onStopPropagation "mousedown" ToggleVisibility
+            [ onFocus Show
+            , onBlur Hide
+            , onClick Show
             , onInput DateInput
             , value model.inputStr
             ]

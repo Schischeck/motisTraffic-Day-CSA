@@ -77,4 +77,10 @@ input:focus {
   outline: 0;
 }
 
+.clear:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
 .hide { display: none; }

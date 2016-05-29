@@ -16,6 +16,7 @@ type alias Model =
     { tags : Set String
     , selected : Set String
     , visible : Bool
+    , ignoreNextToggle : Bool
     }
 
 
@@ -43,13 +44,20 @@ updateModel msg model =
             model
 
         AddTag t ->
-            { model | selected = Set.insert t model.selected, visible = False }
+            { model
+                | selected = Set.insert t model.selected
+                , visible = False
+                , ignoreNextToggle = True
+            }
 
         RemoveTag t ->
             { model | selected = Set.remove t model.selected }
 
         ToggleVisibility ->
-            { model | visible = not model.visible }
+            if model.ignoreNextToggle then
+                { model | ignoreNextToggle = False }
+            else
+                { model | visible = not model.visible }
 
         Click ->
             { model | visible = False }
@@ -82,7 +90,7 @@ tagListView model =
             if (Set.size model.selected == Set.size model.tags) then
                 []
             else
-                [ div [ class "tag outline", onStopPropagation "mousedown" ToggleVisibility ]
+                [ div [ class "tag outline", onClick ToggleVisibility ]
                     ([ i [ class "icon" ] [ text "\xE145" ] ]
                         ++ [ availableTags ]
                     )
@@ -98,9 +106,11 @@ tagListView model =
                             ]
                     )
     in
-        div []
+        div [ class "clear", style [ ( "margin-top", "250px" ) ] ]
             ([ div [ class "label" ] [ text "Label" ] ]
-            ++ selectedTags ++ addButton)
+                ++ selectedTags
+                ++ addButton
+            )
 
 
 view : Model -> Html Msg
@@ -129,6 +139,7 @@ init =
     ( { tags = Set.fromList [ "\xE531", "\xE536", "\xE52F" ]
       , selected = Set.empty
       , visible = False
+      , ignoreNextToggle = False
       }
     , Cmd.none
     )
