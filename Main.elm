@@ -49,7 +49,10 @@ init =
           , taglist = taglistModel
           , timeinput = timeinputModel
           }
-        , Cmd.map CalendarUpdate calendarCmd
+        , Cmd.batch
+            [ Cmd.map CalendarUpdate calendarCmd
+            , Cmd.map TimeInputUpdate timeinputCmd
+            ]
         )
 
 
@@ -94,10 +97,10 @@ update msg model =
 
         TimeInputUpdate m ->
             let
-                ( tiModel, calCmd ) =
-                    ( TimeInput.update m model.timeinput, Cmd.none )
+                ( tiModel, tiCmd ) =
+                    TimeInput.update m model.timeinput
             in
-                ( { model | timeinput = tiModel }, Cmd.none )
+                ( { model | timeinput = tiModel }, Cmd.map TimeInputUpdate tiCmd )
 
 
 

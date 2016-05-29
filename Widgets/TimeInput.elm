@@ -27,9 +27,12 @@ init =
     , getCurrentDate
     )
 
+
 getCurrentDate : Cmd Msg
 getCurrentDate =
     Task.perform NoOp InitDate Date.now
+
+
 
 -- UPDATE
 
@@ -40,8 +43,13 @@ type Msg
     | NoOp String
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    ( updateModel msg model, Cmd.none )
+
+
+updateModel : Msg -> Model -> Model
+updateModel msg model =
     case msg of
         TimeInput s ->
             case parseInput s of
@@ -50,9 +58,9 @@ update msg model =
 
                 Just date ->
                     { model | date = date, inputStr = s }
-                    
+
         InitDate d ->
-                    { model | date = d, inputStr = formatDate d }
+            { model | date = d, inputStr = formatDate d }
 
         NoOp s ->
             model

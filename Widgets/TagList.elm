@@ -98,7 +98,8 @@ view model =
                     )
     in
         div []
-            (selectedTags ++ addButton)
+            ([ div [ class "label" ] [ text "Label" ] ]
+            ++ selectedTags ++ addButton)
 
 
 
