@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Widgets.Calendar as Calendar
+import Widgets.Typeahead as Typeahead
 import Html exposing (..)
 import Html.App as App
 
