@@ -3,6 +3,7 @@ module Widgets.Calendar exposing (Model, Msg, init, subscriptions, update, view)
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput, onWithOptions)
 import Html.Attributes exposing (..)
+import Html.Lazy exposing (lazy)
 import Date exposing (Date, Day, day, month, year, dayOfWeek)
 import Date.Extra.Duration as Duration
 import Date.Extra.Core exposing (lastOfMonthDate, intToMonth, monthToInt, toFirstOfMonth, isoDayOfWeek)
@@ -185,7 +186,7 @@ calendarDay date =
 
 calendarDays : Date -> Date -> List (Html Msg)
 calendarDays today date =
-     List.map calendarDay (dayListForMonthView today date)
+    List.map calendarDay (dayListForMonthView today date)
 
 
 monthView : DateConfig -> Date -> Html Msg
@@ -200,13 +201,13 @@ monthView conf date =
 dayButtons : Html Msg
 dayButtons =
     div [ class "day-buttons" ]
-        [ div [ ] [Button.view [ onStopAll "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ]]
-        , div [ ] [Button.view [ onStopAll "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ]]
+        [ div [] [ Button.view [ onStopAll "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ] ]
+        , div [] [ Button.view [ onStopAll "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ] ]
         ]
 
 
-view : Model -> Html Msg
-view model =
+calendarView : Model -> Html Msg
+calendarView model =
     div []
         [ Input.view
             [ onStopPropagation "mousedown" ToggleVisibility
@@ -227,6 +228,11 @@ view model =
             , ul [ class "calendardays" ] (calendarDays model.today model.date)
             ]
         ]
+
+
+view : Model -> Html Msg
+view =
+    lazy calendarView
 
 
 
