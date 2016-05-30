@@ -41,8 +41,10 @@ std::vector<Offset<MoveWrapper>> convert_moves(
   for (auto const& t : transports) {
     Range r(t.from_, t.to_);
     if (t.is_walk_) {
-      moves.push_back(
-          CreateMoveWrapper(b, Move_Walk, CreateWalk(b, &r).Union()));
+      moves.push_back(CreateMoveWrapper(
+          b, Move_Walk, CreateWalk(b, &r, t.slot_, t.mumo_price_,
+                                   b.CreateString(t.mumo_type_))
+                            .Union()));
     } else {
       moves.push_back(CreateMoveWrapper(
           b, Move_Transport,

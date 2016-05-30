@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "motis/reliability/error.h"
@@ -11,6 +12,15 @@ struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
 
 enum slot { BIKESHARING = 1, TAXI = 2, HOTEL = 3 };
+
+inline std::string to_str(slot const s) {
+  switch (s) {
+    case BIKESHARING: return "Bikesharing";
+    case TAXI: return "Taxi";
+    case HOTEL: return "Hotel";
+  }
+  return "unknown";
+}
 
 struct individual_modes_container {
   explicit individual_modes_container(ReliableRoutingRequest const& req) {

@@ -136,9 +136,10 @@ parse_label_chain(Label const* terminal_label) {
                                                : last_con->a_time_,
             current->now_, last_con != nullptr);
 
-        transports.emplace_back(
-            station_index, static_cast<unsigned int>(station_index) + 1,
-            (*std::next(it))->now_ - current->now_, current->slot_);
+        transports.emplace_back(station_index,
+                                static_cast<unsigned int>(station_index) + 1,
+                                (*std::next(it))->now_ - current->now_,
+                                current->slot_, 0 /* TODO(Mohammad Keyhani)*/);
 
         walk_arrival = (*std::next(it))->now_;
 
@@ -149,7 +150,7 @@ parse_label_chain(Label const* terminal_label) {
         if (current->connection_) {
           transports.emplace_back(static_cast<unsigned int>(station_index),
                                   static_cast<unsigned int>(station_index) + 1,
-                                  current->connection_, current->slot_);
+                                  current->connection_);
         }
 
         // do not collect the last connection route node.

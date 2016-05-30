@@ -60,7 +60,7 @@ connection_element get_last_element(schedule const& sched,
   for (auto it = journey.transports_.rbegin(); it != journey.transports_.rend();
        ++it) {
     auto const& transport = *it;
-    if (transport.type_ == journey::transport::PublicTransport) {
+    if (!transport.is_walk_) {
       unsigned int const tail_stop_idx = transport.to_ - 1;
       auto const& tail_stop = journey.stops_[tail_stop_idx];
       auto const& head_stop = journey.stops_[tail_stop_idx + 1];

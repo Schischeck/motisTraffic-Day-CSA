@@ -37,6 +37,7 @@ table Walk {
   range: Range;
   slot: uint;
   price: uint;
+  mumo_type: string;
 }
 
 union Move { Transport, Walk }

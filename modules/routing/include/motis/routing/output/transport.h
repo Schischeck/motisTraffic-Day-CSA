@@ -10,22 +10,28 @@ namespace intermediate {
 
 struct transport {
   transport() = default;
-  transport(unsigned int from, unsigned int to, light_connection const* con,
-            uint16_t slot)
+  transport(unsigned const from, unsigned const to, light_connection const* con)
       : from_(from),
         to_(to),
         con_(con),
         duration_(con->a_time_ - con->d_time_),
-        slot_(slot) {}
+        slot_(0),
+        mumo_price_(0) {}
 
-  transport(unsigned int from, unsigned int to, unsigned int duration,
-            uint8_t slot)
-      : from_(from), to_(to), con_(nullptr), duration_(duration), slot_(slot) {}
+  transport(unsigned const from, unsigned const to, unsigned const duration,
+            uint8_t const slot, uint8_t const mumo_price)
+      : from_(from),
+        to_(to),
+        con_(nullptr),
+        duration_(duration),
+        slot_(slot),
+        mumo_price_(mumo_price) {}
 
   unsigned from_, to_;
   light_connection const* con_;
   unsigned duration_;
   uint8_t slot_;
+  uint8_t mumo_price_;
 };
 
 }  // namespace intermediate

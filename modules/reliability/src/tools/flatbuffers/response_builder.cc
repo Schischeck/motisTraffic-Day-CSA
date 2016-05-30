@@ -189,14 +189,10 @@ std::pair<std::time_t, std::time_t> get_scheduled_times(
     journey const& journey) {
   auto const& first_transport =
       std::find_if(journey.transports_.begin(), journey.transports_.end(),
-                   [&](journey::transport const& t) {
-                     return t.type_ == journey::transport::PublicTransport;
-                   });
+                   [&](journey::transport const& t) { return !t.is_walk_; });
   auto const& last_transport =
       std::find_if(journey.transports_.rbegin(), journey.transports_.rend(),
-                   [&](journey::transport const& t) {
-                     return t.type_ == journey::transport::PublicTransport;
-                   });
+                   [&](journey::transport const& t) { return !t.is_walk_; });
   auto const scheduled_departure =
       first_transport != journey.transports_.end()
           ? journey.stops_[first_transport->from_]

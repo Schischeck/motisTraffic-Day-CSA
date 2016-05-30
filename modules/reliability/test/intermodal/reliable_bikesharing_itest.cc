@@ -183,12 +183,21 @@ void test_journey1(journey const& j) {
   }
 
   ASSERT_EQ(3, j.transports_.size());
-  ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
-  ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
-  ASSERT_EQ(journey::transport::Walk, j.transports_[2].type_);
+  ASSERT_TRUE(j.transports_[0].is_walk_);
+  ASSERT_FALSE(j.transports_[1].is_walk_);
+  ASSERT_TRUE(j.transports_[2].is_walk_);
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(15, j.transports_[1].duration_);
   ASSERT_EQ(52, j.transports_[2].duration_);
+
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[0].slot_);
+  ASSERT_EQ(0, j.transports_[0].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[0].mumo_type_);
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[1].slot_);
+  ASSERT_EQ(0, j.transports_[1].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[1].mumo_type_);
 }
 
 void test_journey2(journey const& j) {
@@ -223,12 +232,22 @@ void test_journey2(journey const& j) {
   }
 
   ASSERT_EQ(3, j.transports_.size());
-  ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
-  ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
-  ASSERT_EQ(journey::transport::Walk, j.transports_[2].type_);
+  ASSERT_TRUE(j.transports_[0].is_walk_);
+  ASSERT_FALSE(j.transports_[1].is_walk_);
+  ASSERT_TRUE(j.transports_[2].is_walk_);
+
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(5, j.transports_[1].duration_);
   // ASSERT_EQ(52, j.transports_[2].duration_);
+
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[0].slot_);
+  ASSERT_EQ(0, j.transports_[0].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[0].mumo_type_);
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[1].slot_);
+  ASSERT_EQ(0, j.transports_[1].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[1].mumo_type_);
 }
 
 /* Test a query interval larger than the availability interval */
@@ -336,9 +355,14 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     }
 
     ASSERT_EQ(2, j.transports_.size());
-    ASSERT_EQ(journey::transport::PublicTransport, j.transports_[0].type_);
-    ASSERT_EQ(journey::transport::Walk, j.transports_[1].type_);
+    ASSERT_FALSE(j.transports_[0].is_walk_);
+    ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(5, j.transports_[0].duration_);
+
+    ASSERT_EQ(intermodal::BIKESHARING, j.transports_[1].slot_);
+    ASSERT_EQ(0, j.transports_[1].mumo_price_);
+    ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+              j.transports_[1].mumo_type_);
   }
 
   {
@@ -367,10 +391,15 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     }
 
     ASSERT_EQ(2, j.transports_.size());
-    ASSERT_EQ(journey::transport::PublicTransport, j.transports_[0].type_);
-    ASSERT_EQ(journey::transport::Walk, j.transports_[1].type_);
+    ASSERT_FALSE(j.transports_[0].is_walk_);
+    ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(15, j.transports_[0].duration_);
     ASSERT_EQ(52, j.transports_[1].duration_);
+
+    ASSERT_EQ(intermodal::BIKESHARING, j.transports_[1].slot_);
+    ASSERT_EQ(0, j.transports_[1].mumo_price_);
+    ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+              j.transports_[1].mumo_type_);
   }
 }
 
@@ -413,9 +442,14 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   }
 
   ASSERT_EQ(2, j.transports_.size());
-  ASSERT_EQ(journey::transport::PublicTransport, j.transports_[0].type_);
-  ASSERT_EQ(journey::transport::Walk, j.transports_[1].type_);
+  ASSERT_FALSE(j.transports_[0].is_walk_);
+  ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_EQ(5, j.transports_[0].duration_);
+
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[1].slot_);
+  ASSERT_EQ(0, j.transports_[1].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[1].mumo_type_);
 }
 
 TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
@@ -458,10 +492,15 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
   }
 
   ASSERT_EQ(2, j.transports_.size());
-  ASSERT_EQ(journey::transport::Walk, j.transports_[0].type_);
-  ASSERT_EQ(journey::transport::PublicTransport, j.transports_[1].type_);
+  ASSERT_TRUE(j.transports_[0].is_walk_);
+  ASSERT_FALSE(j.transports_[1].is_walk_);
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(15, j.transports_[1].duration_);
+
+  ASSERT_EQ(intermodal::BIKESHARING, j.transports_[0].slot_);
+  ASSERT_EQ(0, j.transports_[0].mumo_price_);
+  ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+            j.transports_[0].mumo_type_);
 }
 
 }  // namespace bikesharing

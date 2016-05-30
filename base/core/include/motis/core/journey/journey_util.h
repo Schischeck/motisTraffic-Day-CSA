@@ -24,7 +24,7 @@ void foreach_light_connection(journey const& j, F func) {
     if (transport == j.transports_.end()) {
       throw std::runtime_error("transport not found");
     }
-    if (transport->type_ == journey::transport::PublicTransport) {
+    if (!transport->is_walk_) {
       func(stop_idx, std::distance(j.transports_.begin(), transport));
     }
   }
