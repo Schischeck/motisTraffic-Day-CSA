@@ -13,7 +13,6 @@ import Date.Extra.Create exposing (dateFromFields)
 import Task
 import String
 import Array
-import Mouse
 import Widgets.ViewUtil exposing (onStopAll, onStopPropagation)
 import Widgets.Input as Input
 import Widgets.Button as Button
@@ -28,6 +27,7 @@ type alias Model =
     , date : Date
     , inputStr : String
     , visible : Bool
+    , input : Input.Model
     }
 
 
@@ -43,6 +43,7 @@ emptyModel =
     , date = Date.fromTime 0
     , visible = False
     , inputStr = ""
+    , input = Input.init
     }
 
 
@@ -61,8 +62,7 @@ type Msg
     | PrevMonth
     | NextMonth
     | ToggleVisibility
-    | Show
-    | Hide
+    | InputUpdate Input.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,6 +75,18 @@ updateModel msg model =
     case msg of
         NoOp ->
             model
+
+        InputUpdate msg' ->
+            let
+                updated =
+                    case msg' of
+                        Input.Focus ->
+                            { model | visible = True }
+
+                        Input.Blur ->
+                            { model | visible = False }
+            in
+                { updated | input = Input.update msg' model.input }
 
         InitDate d ->
             { model
@@ -144,12 +156,6 @@ updateModel msg model =
         ToggleVisibility ->
             model
 
-        Hide ->
-            { model | visible = False }
-
-        Show ->
-            { model | visible = True }
-
 
 
 -- SUBSCRIPTIONS
@@ -210,14 +216,12 @@ dayButtons =
 calendarView : Model -> Html Msg
 calendarView model =
     div []
-        [ Input.view
-            [ onFocus Show
-            , onBlur Hide
-            , onClick Show
-            , onInput DateInput
+        [ Input.view InputUpdate
+            [ onInput DateInput
             , value model.inputStr
             ]
             [ dayButtons ]
+            model.input
         , div
             [ classList
                 [ ( "paper", True )

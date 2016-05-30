@@ -18,6 +18,7 @@ import Date.Extra.Create exposing (dateFromFields)
 type alias Model =
     { date : Date
     , inputStr : String
+    , inputWidget : Input.Model
     }
 
 
@@ -25,6 +26,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { date = dateFromFields 0 Date.Jan 0 0 0 0 0
       , inputStr = formatDate (dateFromFields 0 Date.Jan 0 0 0 0 0)
+      , inputWidget = Input.init
       }
     , getCurrentDate
     )
@@ -43,6 +45,7 @@ type Msg
     = TimeInput String
     | InitDate Date
     | NoOp String
+    | InputUpdate Input.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,6 +69,9 @@ updateModel msg model =
 
         NoOp s ->
             model
+
+        InputUpdate msg' ->
+            { model | inputWidget = Input.update msg' model.inputWidget }
 
 
 parseInput : String -> Maybe Date
@@ -98,7 +104,7 @@ formatDate d =
 
 timeInputView : Model -> Html Msg
 timeInputView model =
-    Input.view [ onInput TimeInput, value model.inputStr ] []
+    Input.view InputUpdate [ onInput TimeInput, value model.inputStr ] [] model.inputWidget
 
 
 view : Model -> Html Msg

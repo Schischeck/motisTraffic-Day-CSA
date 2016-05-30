@@ -6,12 +6,12 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (lazy)
 import String
 import Dict exposing (..)
+import WebSocket
+import Mouse
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Widgets.Input as Input
 import Widgets.ViewUtil exposing (onStopAll)
-import WebSocket
-import Mouse
 
 
 remoteAddress : String
@@ -28,6 +28,7 @@ type alias Model =
     , input : String
     , selected : Int
     , visible : Bool
+    , inputWidget : Input.Model
     }
 
 
@@ -45,7 +46,7 @@ type Msg
     | SelectionDown
     | Select Int
     | Hide
-    | Show
+    | InputUpdate Input.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,8 +100,17 @@ updateModel msg model =
         Hide ->
             { model | visible = False, selected = 0 }
 
-        Show ->
-            { model | visible = True, selected = 0 }
+        InputUpdate msg' ->
+            let
+                updated =
+                    case msg' of
+                        Input.Focus ->
+                            { model | visible = True }
+
+                        _ ->
+                            model
+            in
+                { model | inputWidget = Input.update msg' model.inputWidget }
 
 
 command : Msg -> Model -> Cmd Msg
@@ -162,10 +172,9 @@ proposalView selected index str =
 typeaheadView : Model -> Html Msg
 typeaheadView model =
     div []
-        [ Input.view
+        [ Input.view InputUpdate
             [ value model.input
             , onInput InputChange
-            , onFocus Show
             , onKey NoOp
                 (Dict.fromList
                     [ ( down, SelectionDown )
@@ -176,6 +185,7 @@ typeaheadView model =
                 )
             ]
             []
+            model.inputWidget
         , div
             [ classList
                 [ ( "paper", True )
@@ -188,9 +198,11 @@ typeaheadView model =
             ]
         ]
 
+
 view : Model -> Html Msg
 view model =
     lazy typeaheadView model
+
 
 
 -- SUBSCRIPTIONS
@@ -218,6 +230,7 @@ init =
       , input = ""
       , selected = 0
       , visible = False
+      , inputWidget = Input.init
       }
     , Cmd.none
     )
