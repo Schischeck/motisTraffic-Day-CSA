@@ -168,7 +168,7 @@ request_builder& request_builder::add_additional_edges(
               b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
                                  b_.CreateString(head_station), info.duration_,
                                  0 /* TODO(Mohammad Keyhani) price */,
-                                 0 /* TODO(Mohammad Keyhani) slot */),
+                                 motis::reliability::intermodal::BIKESHARING),
               &interval)
               .Union()));
     }

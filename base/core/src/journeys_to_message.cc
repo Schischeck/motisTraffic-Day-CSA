@@ -40,30 +40,20 @@ std::vector<Offset<MoveWrapper>> convert_moves(
 
   for (auto const& t : transports) {
     Range r(t.from_, t.to_);
-    switch (t.type_) {
-      case journey::transport::Walk: {
-        moves.push_back(
-            CreateMoveWrapper(b, Move_Walk, CreateWalk(b, &r).Union()));
-        break;
-      }
-      case journey::transport::PublicTransport: {
-        moves.push_back(CreateMoveWrapper(
-            b, Move_Transport,
-            CreateTransport(
-                b, &r, b.CreateString(t.category_name_), t.category_id_,
-                t.clasz_, t.train_nr_, b.CreateString(t.line_identifier_),
-                b.CreateString(t.name_), b.CreateString(t.provider_),
-                b.CreateString(t.direction_))
-                .Union()));
-        break;
-      }
-      case journey::transport::Mumo: {
-        moves.push_back(CreateMoveWrapper(
-            b, Move_Mumo,
-            CreateMumo(b, &r, b.CreateString(t.mumo_type_name_), t.mumo_price_)
-                .Union()));
-        break;
-      }
+    if (t.is_walk_) {
+      moves.push_back(CreateMoveWrapper(
+          b, Move_Walk, CreateWalk(b, &r, t.slot_, t.mumo_price_,
+                                   b.CreateString(t.mumo_type_))
+                            .Union()));
+    } else {
+      moves.push_back(CreateMoveWrapper(
+          b, Move_Transport,
+          CreateTransport(b, &r, b.CreateString(t.category_name_),
+                          t.category_id_, t.clasz_, t.train_nr_,
+                          b.CreateString(t.line_identifier_),
+                          b.CreateString(t.name_), b.CreateString(t.provider_),
+                          b.CreateString(t.direction_))
+              .Union()));
     }
   }
 

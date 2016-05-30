@@ -11,8 +11,9 @@ namespace output {
 
 journey::transport generate_journey_transport(
     unsigned int from, unsigned int to, connection_info const* con_info,
-    schedule const& sched, duration duration = 0, int slot = 0) {
-  journey::transport::transport_type type;
+    schedule const& sched, duration duration = 0, unsigned slot = 0,
+    unsigned mumo_price = 0) {
+  bool is_walk = true;
   std::string name;
   std::string cat_name;
   unsigned cat_id = 0;
@@ -22,10 +23,8 @@ journey::transport generate_journey_transport(
   std::string direction;
   std::string provider;
 
-  if (con_info == nullptr) {
-    type = journey::transport::Walk;
-  } else {
-    type = journey::transport::PublicTransport;
+  if (con_info != nullptr) {
+    is_walk = false;
 
     cat_id = con_info->family_;
     cat_name = sched.categories_[con_info->family_]->name_;
@@ -49,21 +48,11 @@ journey::transport generate_journey_transport(
     name = get_service_name(sched, con_info);
   }
 
-  return {from,
-          to,
-          type /* TODO(Mohammad Keyhani) mumo */,
-          name,
-          cat_name,
-          cat_id,
-          clasz,
-          train_nr,
-          line_identifier,
-          duration,
-          slot,
-          direction,
-          provider,
-          "" /* TODO(Mohammad Keyhani) mumo-type-name */,
-          0 /* TODO(Mohammad Keyhani) mumo-price */};
+  return {from,     to,         is_walk,
+          name,     cat_name,   cat_id,
+          clasz,    train_nr,   line_identifier,
+          duration, slot,       direction,
+          provider, mumo_price, ""};
 }
 
 std::vector<journey::transport> generate_journey_transports(
@@ -89,7 +78,7 @@ std::vector<journey::transport> generate_journey_transports(
       }
     } else {
       journey_transports.push_back(generate_journey_transport(
-          t.from_, t.to_, nullptr, sched, t.duration_, t.slot_));
+          t.from_, t.to_, nullptr, sched, t.duration_, t.slot_, t.mumo_price_));
     }
   }
 

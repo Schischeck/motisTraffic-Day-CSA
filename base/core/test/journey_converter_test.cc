@@ -83,7 +83,7 @@ journey create_journey1() {
     transport.slot_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[1];
@@ -98,11 +98,11 @@ journey create_journey1() {
     transport.slot_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 222;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[2];
-    transport.type_ = journey::transport::Walk;
+    transport.is_walk_ = true;
     transport.duration_ = 5;
     transport.from_ = 2;
     transport.to_ = 3;
@@ -181,7 +181,7 @@ journey create_journey2() {
     transport.slot_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -237,7 +237,9 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(ot.slot_, jt.slot_);
       ASSERT_EQ(ot.to_, jt.to_);
       ASSERT_EQ(ot.train_nr_, jt.train_nr_);
-      ASSERT_EQ(ot.type_, jt.type_);
+      ASSERT_EQ(ot.is_walk_, jt.is_walk_);
+      ASSERT_EQ(ot.mumo_price_, jt.mumo_price_);
+      ASSERT_EQ(ot.mumo_type_, jt.mumo_type_);
     }
 
     for (unsigned int a = 0; a < o.attributes_.size(); ++a) {

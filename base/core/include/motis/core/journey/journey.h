@@ -9,7 +9,7 @@ namespace motis {
 struct journey {
   struct transport {
     unsigned from_, to_;
-    enum transport_type { PublicTransport, Walk, Mumo } type_;
+    bool is_walk_;
     std::string name_;
     std::string category_name_;
     unsigned category_id_;
@@ -17,12 +17,11 @@ struct journey {
     unsigned train_nr_;
     std::string line_identifier_;
     unsigned duration_;
-    int slot_;
+    unsigned slot_;
     std::string direction_;
     std::string provider_;
-
-    std::string mumo_type_name_;
     unsigned mumo_price_;
+    std::string mumo_type_;
   };
 
   struct stop {

@@ -98,10 +98,9 @@ bool no_public_transport_after_this_stop(journey const& j,
     return true;
   }
 
-  auto const& public_transport_it = std::find_if(
-      transport_it, j.transports_.end(), [](journey::transport const& t) {
-        return t.type_ == journey::transport::PublicTransport;
-      });
+  auto const& public_transport_it =
+      std::find_if(transport_it, j.transports_.end(),
+                   [](journey::transport const& t) { return !t.is_walk_; });
 
   return public_transport_it == j.transports_.end();
 }
@@ -134,7 +133,7 @@ journey move_early_walk(journey const& orig_j) {
   if (j.transports_.size() > 1 && j.stops_.size() > 2) {
     unsigned int const index_last_stop = j.stops_.size() - 1;
     for (auto const& tr : j.transports_) {
-      if (tr.type_ == journey::transport::Walk && tr.to_ < index_last_stop) {
+      if (tr.is_walk_ && tr.to_ < index_last_stop) {
         auto const buffer = j.stops_[tr.to_].departure_.timestamp_ -
                             j.stops_[tr.to_].arrival_.timestamp_;
         if (buffer > 0) {

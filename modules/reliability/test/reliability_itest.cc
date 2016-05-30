@@ -262,9 +262,9 @@ TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
 
   ASSERT_EQ(2, response->connections()->size());
   ASSERT_EQ(2, (*response->connections())[0]->transports()->size());
-  auto taxi = reinterpret_cast<Mumo const*>(
+  auto taxi = reinterpret_cast<Walk const*>(
       (*(*response->connections())[0]->transports())[1]->move());
-  ASSERT_EQ("Taxi", std::string(taxi->name()->c_str()));
+  ASSERT_EQ("Taxi", std::string(taxi->mumo_type()->c_str()));
 
   ASSERT_EQ(2, (*response->connections())[1]->transports()->size());
   auto direct_conn = reinterpret_cast<Transport const*>(
