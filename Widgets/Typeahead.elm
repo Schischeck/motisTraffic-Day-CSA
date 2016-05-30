@@ -110,7 +110,7 @@ updateModel msg model =
                         _ ->
                             model
             in
-                { model | inputWidget = Input.update msg' model.inputWidget }
+                { updated | inputWidget = Input.update msg' model.inputWidget }
 
 
 command : Msg -> Model -> Cmd Msg
