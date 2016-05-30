@@ -19,7 +19,7 @@ struct transport {
         mumo_price_(0) {}
 
   transport(unsigned const from, unsigned const to, unsigned const duration,
-            uint8_t const slot, uint8_t const mumo_price)
+            uint8_t const slot, unsigned const mumo_price)
       : from_(from),
         to_(to),
         con_(nullptr),
@@ -31,7 +31,7 @@ struct transport {
   light_connection const* con_;
   unsigned duration_;
   uint8_t slot_;
-  uint8_t mumo_price_;
+  unsigned mumo_price_;
 };
 
 }  // namespace intermediate

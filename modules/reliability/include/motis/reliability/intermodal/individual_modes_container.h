@@ -11,10 +11,11 @@ namespace reliability {
 struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
 
-enum slot { BIKESHARING = 1, TAXI = 2, HOTEL = 3 };
+enum slot { WALK = 0, BIKESHARING = 1, TAXI = 2, HOTEL = 3 };
 
 inline std::string to_str(slot const s) {
   switch (s) {
+    case WALK: return "Walk";
     case BIKESHARING: return "Bikesharing";
     case TAXI: return "Taxi";
     case HOTEL: return "Hotel";
@@ -22,13 +23,18 @@ inline std::string to_str(slot const s) {
   return "unknown";
 }
 
+constexpr auto HOTEL_EARLIEST_CHECKOUT = 8 * 60;
+constexpr auto HOTEL_MIN_STAY_DURATION = 9 * 60;
+constexpr auto HOTEL_PRICE = 5000;
+
 struct individual_modes_container {
+  /* for late connections */
+  individual_modes_container() = default;
+
+  /* for bikesharing requests */
   explicit individual_modes_container(ReliableRoutingRequest const& req) {
     if (req.individual_modes()->bikesharing() == 1) {
       bikesharing_.init(req);
-    }
-    if (req.individual_modes()->taxi() == 1) {
-      throw std::system_error(error::not_implemented);
     }
   }
 
@@ -47,6 +53,30 @@ struct individual_modes_container {
         motis::reliability::intermodal::bikesharing::bikesharing_info;
     std::vector<bs_type> at_start_, at_destination_;
   } bikesharing_;
+
+  struct hotel {
+    hotel(std::string const station,
+          uint16_t const earliest_checkout = HOTEL_EARLIEST_CHECKOUT,
+          uint16_t const min_stay_duration = HOTEL_MIN_STAY_DURATION,
+          uint16_t const price = HOTEL_PRICE)
+        : station_(station),
+          earliest_checkout_(earliest_checkout),
+          min_stay_duration_(min_stay_duration),
+          price_(price) {}
+
+    std::string station_;
+    uint16_t earliest_checkout_;
+    uint16_t min_stay_duration_;
+    uint16_t price_;
+  };
+  std::vector<hotel> hotel_;
+
+  struct taxi {
+    std::string from_station_;
+    uint16_t duration_;
+    uint16_t price_;
+  };
+  std::vector<taxi> taxi_;
 };
 
 }  // namespace intermodal

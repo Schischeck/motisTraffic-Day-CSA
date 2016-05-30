@@ -50,6 +50,8 @@ struct journey {
   std::vector<stop> stops_;
   std::vector<transport> transports_;
   std::vector<attribute> attributes_;
+
+  unsigned night_penalty_;
 };
 
 }  // namespace motis
