@@ -86,7 +86,7 @@ parse_label_chain(Label const* terminal_label) {
 
   light_connection const* last_con = nullptr;
   time walk_arrival = INVALID_TIME;
-  int station_index = -1;
+  int stop_index = -1;
 
   auto it = begin(labels);
   int current_state = initial_state(it);
@@ -114,7 +114,7 @@ parse_label_chain(Label const* terminal_label) {
           d_time = (*s2)->connection_->d_time_;
         }
 
-        stops.emplace_back(static_cast<unsigned int>(++station_index),
+        stops.emplace_back(static_cast<unsigned int>(++stop_index),
                            current->node_->get_station()->id_, a_platform,
                            d_platform, a_time, d_time,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
@@ -126,7 +126,7 @@ parse_label_chain(Label const* terminal_label) {
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            static_cast<unsigned int>(++station_index),
+            static_cast<unsigned int>(++stop_index),
             current->node_->get_station()->id_,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->full_con_->a_platform_,
@@ -136,10 +136,10 @@ parse_label_chain(Label const* terminal_label) {
                                                : last_con->a_time_,
             current->now_, last_con != nullptr);
 
-        transports.emplace_back(station_index,
-                                static_cast<unsigned int>(station_index) + 1,
-                                (*std::next(it))->now_ - current->now_,
-                                current->slot_, 0 /* TODO(Mohammad Keyhani)*/);
+        transports.emplace_back(
+            stop_index, static_cast<unsigned int>(stop_index) + 1,
+            (*std::next(it))->now_ - current->now_, (*std::next(it))->slot_,
+            0 /* TODO(Mohammad Keyhani) */);
 
         walk_arrival = (*std::next(it))->now_;
 
@@ -148,8 +148,8 @@ parse_label_chain(Label const* terminal_label) {
 
       case IN_CONNECTION: {
         if (current->connection_) {
-          transports.emplace_back(static_cast<unsigned int>(station_index),
-                                  static_cast<unsigned int>(station_index) + 1,
+          transports.emplace_back(static_cast<unsigned int>(stop_index),
+                                  static_cast<unsigned int>(stop_index) + 1,
                                   current->connection_);
         }
 
@@ -166,7 +166,7 @@ parse_label_chain(Label const* terminal_label) {
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
-            stops.emplace_back(static_cast<unsigned int>(++station_index),
+            stops.emplace_back(static_cast<unsigned int>(++stop_index),
                                current->node_->get_station()->id_,
                                current->connection_->full_con_->a_platform_,
                                succ->connection_->full_con_->d_platform_,

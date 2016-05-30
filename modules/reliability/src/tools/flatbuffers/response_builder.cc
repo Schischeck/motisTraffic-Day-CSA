@@ -9,6 +9,7 @@
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
@@ -21,11 +22,20 @@ namespace reliability {
 namespace flatbuffers {
 namespace response_builder {
 
+void add_mumo_info(std::vector<journey>& journeys) {
+  for (auto& j : journeys) {
+    for (auto& t : j.transports_) {
+      t.mumo_type_ = intermodal::to_str(static_cast<intermodal::slot>(t.slot_));
+    }
+  }
+}
+
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b,
     routing::RoutingResponse const* orig_routing_response) {
   std::vector<Offset<Connection>> connections;
-  auto const journeys = message_to_journeys(orig_routing_response);
+  auto journeys = message_to_journeys(orig_routing_response);
+  add_mumo_info(journeys);
   for (auto const& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
