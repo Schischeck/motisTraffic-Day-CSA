@@ -33,7 +33,7 @@ public:
 
 module::msg_ptr to_request(
     intermodal::individual_modes_container const& container) {
-  flatbuffers::request_builder b;
+  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   return b
       .add_pretrip_start(schedule_hotels::DARMSTADT.name_,
                          schedule_hotels::DARMSTADT.eva_,

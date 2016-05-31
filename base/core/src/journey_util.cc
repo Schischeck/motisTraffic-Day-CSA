@@ -34,7 +34,12 @@ void print_journey(journey const& j, time_t const sched_begin,
         return "Walk";
       } else {
         std::stringstream sst;
-        sst << t.mumo_type_ << "," << t.mumo_price_;
+        if (t.mumo_type_.length() == 0) {
+          sst << t.slot_;
+        } else {
+          sst << t.mumo_type_;
+        }
+        sst << "," << t.mumo_price_;
         return sst.str();
       }
     }
