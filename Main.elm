@@ -5,6 +5,7 @@ import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.App as App
 
 
@@ -22,36 +23,34 @@ main =
 
 
 type alias Model =
-    { calendar : Calendar.Model
-    , typeahead : Typeahead.Model
-    , taglist : TagList.Model
-    , timeinput : TimeInput.Model
+    { fromLocation : Typeahead.Model
+    , toLocation : Typeahead.Model
+    , fromTransports : TagList.Model
+    , toTransports : TagList.Model
+    , date : Calendar.Model
+    , time : TimeInput.Model
     }
 
 
 init : ( Model, Cmd Msg )
 init =
     let
-        ( calendarModel, calendarCmd ) =
+        ( dateModel, dateCmd ) =
             Calendar.init
 
-        ( typeaheadModel, typeaheadCmd ) =
-            Typeahead.init
-
-        ( taglistModel, taglistCmd ) =
-            TagList.init
-
-        ( timeinputModel, timeinputCmd ) =
+        ( timeModel, timeCmd ) =
             TimeInput.init
     in
-        ( { calendar = calendarModel
-          , typeahead = typeaheadModel
-          , taglist = taglistModel
-          , timeinput = timeinputModel
+        ( { fromLocation = Typeahead.init
+          , toLocation = Typeahead.init
+          , fromTransports = TagList.init
+          , toTransports = TagList.init
+          , date = dateModel
+          , time = timeModel
           }
         , Cmd.batch
-            [ Cmd.map CalendarUpdate calendarCmd
-            , Cmd.map TimeInputUpdate timeinputCmd
+            [ Cmd.map DateUpdate dateCmd
+            , Cmd.map TimeUpdate timeCmd
             ]
         )
 
@@ -62,10 +61,12 @@ init =
 
 type Msg
     = Reset
-    | CalendarUpdate Calendar.Msg
-    | TypeaheadUpdate Typeahead.Msg
-    | TagListUpdate TagList.Msg
-    | TimeInputUpdate TimeInput.Msg
+    | FromLocationUpdate Typeahead.Msg
+    | ToLocationUpdate Typeahead.Msg
+    | FromTransportsUpdate TagList.Msg
+    | ToTransportsUpdate TagList.Msg
+    | DateUpdate Calendar.Msg
+    | TimeUpdate TimeInput.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -74,33 +75,31 @@ update msg model =
         Reset ->
             ( model, Cmd.none )
 
-        CalendarUpdate m ->
+        FromLocationUpdate msg' ->
             let
-                ( calModel, calCmd ) =
-                    Calendar.update m model.calendar
+                ( m, c ) =
+                    Typeahead.update msg' model.fromLocation
             in
-                ( { model | calendar = calModel }, Cmd.map CalendarUpdate calCmd )
+                ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
 
-        TypeaheadUpdate m ->
+        ToLocationUpdate msg' ->
             let
-                ( taModel, taCmd ) =
-                    Typeahead.update m model.typeahead
+                ( m, c ) =
+                    Typeahead.update msg' model.toLocation
             in
-                ( { model | typeahead = taModel }, Cmd.map TypeaheadUpdate taCmd )
+                ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
 
-        TagListUpdate m ->
-            let
-                ( tlModel, calCmd ) =
-                    TagList.update m model.taglist
-            in
-                ( { model | taglist = tlModel }, Cmd.none )
+        FromTransportsUpdate msg' ->
+            ( { model | fromTransports = TagList.update msg' model.fromTransports }, Cmd.none )
 
-        TimeInputUpdate m ->
-            let
-                ( tiModel, tiCmd ) =
-                    TimeInput.update m model.timeinput
-            in
-                ( { model | timeinput = tiModel }, Cmd.map TimeInputUpdate tiCmd )
+        ToTransportsUpdate msg' ->
+            ( { model | toTransports = TagList.update msg' model.toTransports }, Cmd.none )
+
+        DateUpdate msg' ->
+            ( { model | date = Calendar.update msg' model.date }, Cmd.none )
+
+        TimeUpdate msg' ->
+            ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
 
 
 
@@ -110,9 +109,10 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map CalendarUpdate (Calendar.subscriptions model.calendar)
-        , Sub.map TypeaheadUpdate (Typeahead.subscriptions model.typeahead)
-        , Sub.map TagListUpdate (TagList.subscriptions model.taglist)
+        [ Sub.map FromLocationUpdate (Typeahead.subscriptions model.fromLocation)
+        , Sub.map ToLocationUpdate (Typeahead.subscriptions model.toLocation)
+        , Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
+        , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         ]
 
 
@@ -122,9 +122,32 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ App.map CalendarUpdate (Calendar.view model.calendar)
-        , App.map TypeaheadUpdate (Typeahead.view (Just "\xE8B4") model.typeahead)
-        , App.map TagListUpdate (TagList.view model.taglist)
-        , App.map TimeInputUpdate (TimeInput.view model.timeinput)
+    div [ class "app" ]
+        [ div [ id "map" ] []
+        , div [ class "overlay" ]
+            [ div [ id "header" ]
+                [ h1 [ class "disable-select" ] [ text "Motis Project" ]
+                , i [ class "icon" ] [ text "\xE2BF" ]
+                ]
+            , div [ id "search" ]
+                [ div [ class "pure-g gutters" ]
+                    [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+                        [ App.map FromLocationUpdate (Typeahead.view (Just "\xE8B4") model.fromLocation) ]
+                    , div [ class "pure-u-1 pure-u-sm-2-5" ]
+                        [ App.map FromTransportsUpdate (TagList.view model.fromTransports) ]
+                    ]
+                , div [ class "pure-g gutters" ]
+                    [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+                        [ App.map ToLocationUpdate (Typeahead.view (Just "\xE8B4") model.toLocation) ]
+                    , div [ class "pure-u-1 pure-u-sm-2-5" ]
+                        [ App.map ToTransportsUpdate (TagList.view model.toTransports) ]
+                    ]
+                , div [ class "pure-g gutters" ]
+                    [ div [ class "pure-u-1 pure-u-sm-1-2" ]
+                        [ App.map DateUpdate (Calendar.view model.date) ]
+                    , div [ class "pure-u-1 pure-u-sm-1-2" ]
+                        [ App.map TimeUpdate (TimeInput.view model.time) ]
+                    ]
+                ]
+            ]
         ]

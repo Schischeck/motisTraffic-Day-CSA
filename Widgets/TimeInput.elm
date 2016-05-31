@@ -52,13 +52,8 @@ type Msg
     | InputUpdate Input.Msg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
-    ( updateModel msg model, Cmd.none )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
     case msg of
         TimeInput s ->
             case parseInput s of

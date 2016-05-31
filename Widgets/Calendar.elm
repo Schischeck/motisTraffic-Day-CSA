@@ -1,4 +1,4 @@
-module Widgets.Calendar exposing (Model, Msg, init, subscriptions, update, view)
+module Widgets.Calendar exposing (Model, Msg, init, update, view)
 
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput, onFocus, onBlur, onWithOptions)
@@ -65,13 +65,8 @@ type Msg
     | InputUpdate Input.Msg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
-    ( updateModel msg model, Cmd.none )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
     case msg of
         NoOp ->
             model
@@ -155,15 +150,6 @@ updateModel msg model =
 
         ToggleVisibility ->
             model
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
 
 
 

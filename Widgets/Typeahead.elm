@@ -67,8 +67,7 @@ updateModel msg model =
                             s
 
                         Nothing ->
-                            [ "ERROR" ]
-                , visible = True
+                            model.suggestions
             }
 
         InputChange str ->
@@ -217,16 +216,14 @@ subscriptions model =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
+init : Model
 init =
-    ( { suggestions = []
-      , input = ""
-      , selected = 0
-      , visible = False
-      , inputWidget = Input.init
-      }
-    , Cmd.none
-    )
+    { suggestions = []
+    , input = ""
+    , selected = 0
+    , visible = False
+    , inputWidget = Input.init
+    }
 
 
 

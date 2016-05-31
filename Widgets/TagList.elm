@@ -32,13 +32,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
-    ( updateModel msg model, Cmd.none )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
     case msg of
         NoOp ->
             model
@@ -106,7 +101,7 @@ tagListView model =
                             ]
                     )
     in
-        div [ class "clear", style [ ( "margin-top", "250px" ) ] ]
+        div [ class "clear" ]
             ([ div [ class "label" ] [ text "Label" ] ]
                 ++ selectedTags
                 ++ addButton
@@ -134,12 +129,10 @@ subscriptions model =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
+init : Model
 init =
-    ( { tags = Set.fromList [ "\xE531", "\xE536", "\xE52F" ]
-      , selected = Set.empty
-      , visible = False
-      , ignoreNextToggle = False
-      }
-    , Cmd.none
-    )
+    { tags = Set.fromList [ "\xE531", "\xE536", "\xE52F" ]
+    , selected = Set.empty
+    , visible = False
+    , ignoreNextToggle = False
+    }
