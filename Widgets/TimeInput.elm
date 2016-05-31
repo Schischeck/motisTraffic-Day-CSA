@@ -4,12 +4,14 @@ import Task
 import String
 import Html exposing (..)
 import Date exposing (Date)
-import Html.Events exposing (onInput)
-import Html.Attributes exposing (value)
+import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (value, class)
 import Html.Lazy exposing (lazy)
 import Widgets.Input as Input
+import Widgets.Button as Button
 import Widgets.StringSplitUtil exposing (..)
 import Date.Extra.Create exposing (dateFromFields)
+import Date.Extra.Duration as Duration
 
 
 -- MODEL
@@ -45,6 +47,8 @@ type Msg
     = TimeInput String
     | InitDate Date
     | NoOp String
+    | PrevHour
+    | NextHour
     | InputUpdate Input.Msg
 
 
@@ -69,6 +73,20 @@ updateModel msg model =
 
         NoOp s ->
             model
+
+        PrevHour ->
+            let
+                newDate =
+                    Duration.add Duration.Hour -1 model.date
+            in
+                { model | date = newDate, inputStr = formatDate newDate }
+
+        NextHour ->
+            let
+                newDate =
+                    Duration.add Duration.Hour 1 model.date
+            in
+                { model | date = newDate, inputStr = formatDate newDate }
 
         InputUpdate msg' ->
             { model | inputWidget = Input.update msg' model.inputWidget }
@@ -102,9 +120,21 @@ formatDate d =
 -- VIEW
 
 
+hourButtons : Html Msg
+hourButtons =
+    div [ class "hour-buttons" ]
+        [ div [] [ Button.view [ onClick PrevHour ] [ i [ class "icon" ] [ text "\xE314" ] ] ]
+        , div [] [ Button.view [ onClick NextHour ] [ i [ class "icon" ] [ text "\xE315" ] ] ]
+        ]
+
+
 timeInputView : Model -> Html Msg
 timeInputView model =
-    Input.view InputUpdate [ onInput TimeInput, value model.inputStr ] [] model.inputWidget
+    Input.view InputUpdate
+        [ onInput TimeInput, value model.inputStr ]
+        (Just [ hourButtons ])
+        (Just "\xE8AE")
+        model.inputWidget
 
 
 view : Model -> Html Msg

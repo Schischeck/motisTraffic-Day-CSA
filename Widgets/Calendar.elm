@@ -220,7 +220,8 @@ calendarView model =
             [ onInput DateInput
             , value model.inputStr
             ]
-            [ dayButtons ]
+            (Just [ dayButtons ])
+            (Just "\xE878")
             model.inputWidget
         , div
             [ classList

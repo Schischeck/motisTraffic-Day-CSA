@@ -168,8 +168,8 @@ proposalView selected index str =
         [ text str ]
 
 
-typeaheadView : Model -> Html Msg
-typeaheadView model =
+typeaheadView : Maybe String -> Model -> Html Msg
+typeaheadView icon model =
     div []
         [ Input.view InputUpdate
             [ value model.input
@@ -183,7 +183,8 @@ typeaheadView model =
                     ]
                 )
             ]
-            []
+            Nothing
+            icon
             model.inputWidget
         , div
             [ classList
@@ -198,9 +199,9 @@ typeaheadView model =
         ]
 
 
-view : Model -> Html Msg
-view model =
-    lazy typeaheadView model
+view : Maybe String -> Model -> Html Msg
+view icon model =
+    lazy (typeaheadView icon) model
 
 
 

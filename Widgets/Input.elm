@@ -40,13 +40,37 @@ update msg model =
 -- VIEW
 
 
+addIcon : Maybe String -> List (Html msg) -> List (Html msg)
+addIcon icon list =
+    case icon of
+        Just str ->
+            (div [ class "gb-input-icon" ]
+                [ i [ class "icon" ] [ text str ] ]
+            )
+                :: list
+
+        Nothing ->
+            list
+
+
+addInputWidget : Maybe (List (Html msg)) -> List (Html msg) -> List (Html msg)
+addInputWidget inputWidget list =
+    case inputWidget of
+        Just widget ->
+            List.append list [ div [ class "gb-input-widget" ] widget ]
+
+        Nothing ->
+            list
+
+
 view :
     (Msg -> msg)
     -> List (Html.Attribute msg)
-    -> List (Html msg)
+    -> Maybe (List (Html msg))
+    -> Maybe String
     -> Model
     -> Html msg
-view makeMsg attributes inputWidget model =
+view makeMsg attributes inputWidget icon model =
     div []
         [ div [ class "label" ] [ text "Date" ]
         , div
@@ -55,15 +79,15 @@ view makeMsg attributes inputWidget model =
                 , ( "gb-input-group-selected", model )
                 ]
             ]
-            [ div [ class "gb-input-icon" ]
-                [ i [ class "icon" ] [ text "\xE878" ] ]
-            , input
+            ([ input
                 (class "gb-input"
                     :: onBlur (makeMsg Blur)
                     :: onFocus (makeMsg Focus)
                     :: attributes
                 )
                 []
-            , div [ class "gb-input-widget" ] inputWidget
-            ]
+             ]
+                |> addInputWidget inputWidget
+                |> addIcon icon
+            )
         ]

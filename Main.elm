@@ -124,7 +124,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ App.map CalendarUpdate (Calendar.view model.calendar)
-        , App.map TypeaheadUpdate (Typeahead.view model.typeahead)
+        , App.map TypeaheadUpdate (Typeahead.view (Just "\xE8B4") model.typeahead)
         , App.map TagListUpdate (TagList.view model.taglist)
         , App.map TimeInputUpdate (TimeInput.view model.timeinput)
         ]
