@@ -117,7 +117,13 @@ public:
         return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
                          m_.foot_edge_.price_, m_.foot_edge_.slot_);
 
-      case PERIODIC_MUMO_EDGE: return calc_cost_periodic_edge(start_time);
+      case PERIODIC_MUMO_EDGE:
+        return edge_cost(calc_time_off(m_.foot_edge_.interval_begin_,
+                                       m_.foot_edge_.interval_end_,
+                                       start_time % MINUTES_A_DAY) +
+                             m_.foot_edge_.time_cost_,
+                         m_.foot_edge_.transfer_, m_.foot_edge_.price_,
+                         m_.foot_edge_.slot_);
       case TIME_DEPENDENT_MUMO_EDGE:
         return calc_cost_time_dependent_edge(start_time);
       case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
@@ -217,6 +223,28 @@ public:
 
   inline bool empty() const {
     return (type() != ROUTE_EDGE) ? true : m_.route_edge_.conns_.empty();
+  }
+
+  static time calc_time_off(time const period_begin, time const period_end,
+                            time const timestamp) {
+    assert(period_begin < MINUTES_A_DAY);
+    assert(period_end < MINUTES_A_DAY);
+    assert(timestamp < MINUTES_A_DAY);
+
+    /* validity-period begins and ends at the same day */
+    if (period_begin <= period_end) {
+      if (timestamp < period_begin) {
+        return period_begin - timestamp;
+      } else if (timestamp > period_end) {
+        return (MINUTES_A_DAY - timestamp) + period_begin;
+      }
+    }
+    /* validity-period is over midnight */
+    else if (timestamp > period_end && timestamp < period_begin) {
+      return period_begin - timestamp;
+    }
+
+    return 0;
   }
 
   node* from_;
@@ -338,20 +366,6 @@ private:
     }
     auto const time_off =
         std::max(0, m_.foot_edge_.interval_begin_ - start_time);
-    return edge_cost(time_off + m_.foot_edge_.time_cost_,
-                     m_.foot_edge_.transfer_, m_.foot_edge_.price_,
-                     m_.foot_edge_.slot_);
-  }
-
-  edge_cost calc_cost_periodic_edge(time const start_time) const {
-    auto const start_daytime = start_time % MINUTES_A_DAY;
-    auto time_off = 0;
-    if (start_daytime < m_.foot_edge_.interval_begin_) {
-      time_off = m_.foot_edge_.interval_begin_ - start_daytime;
-    } else if (start_daytime > m_.foot_edge_.interval_end_) {
-      time_off =
-          (MINUTES_A_DAY - start_daytime) + m_.foot_edge_.interval_begin_;
-    }
     return edge_cost(time_off + m_.foot_edge_.time_cost_,
                      m_.foot_edge_.transfer_, m_.foot_edge_.price_,
                      m_.foot_edge_.slot_);
