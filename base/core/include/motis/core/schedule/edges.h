@@ -93,12 +93,13 @@ public:
 
   /** hotel edge constructor. */
   edge(node* station_node, uint16_t checkout_time, uint16_t min_stay_duration,
-       uint16_t price)
+       uint16_t price, uint16_t slot)
       : from_(station_node), to_(station_node) {
     m_.type_ = HOTEL_EDGE;
     m_.hotel_edge_.checkout_time_ = checkout_time;
     m_.hotel_edge_.min_stay_duration_ = min_stay_duration;
     m_.hotel_edge_.price_ = price;
+    m_.hotel_edge_.slot_ = slot;
   }
 
   edge_cost get_edge_cost(time start_time,
@@ -326,6 +327,7 @@ public:
       uint16_t checkout_time_;
       uint16_t min_stay_duration_;
       uint16_t price_;
+      uint8_t slot_;
     } hotel_edge_;
   } m_;
 
@@ -357,12 +359,15 @@ private:
 
   edge_cost calc_cost_hotel_edge(time const start_time) const {
     uint16_t const offset =
-        start_time % 1440 < m_.hotel_edge_.checkout_time_ ? 0 : 1440;
+        start_time % MINUTES_A_DAY < m_.hotel_edge_.checkout_time_
+            ? 0
+            : MINUTES_A_DAY;
     auto const duration = std::max(
         m_.hotel_edge_.min_stay_duration_,
         static_cast<uint16_t>((m_.hotel_edge_.checkout_time_ + offset) -
-                              (start_time % 1440)));
-    return edge_cost(duration, false, m_.hotel_edge_.price_, 0);
+                              (start_time % MINUTES_A_DAY)));
+    return edge_cost(duration, false, m_.hotel_edge_.price_,
+                     m_.hotel_edge_.slot_);
   }
 };
 
@@ -405,8 +410,9 @@ inline edge make_periodic_mumo_edge(node* from, node* to, uint16_t time_cost,
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
-                            uint16_t min_stay_duration, uint16_t price) {
-  return edge(station_node, checkout_time, min_stay_duration, price);
+                            uint16_t min_stay_duration, uint16_t price,
+                            uint8_t slot) {
+  return edge(station_node, checkout_time, min_stay_duration, price, slot);
 }
 
 inline edge make_invalid_edge(node* from, node* to) {

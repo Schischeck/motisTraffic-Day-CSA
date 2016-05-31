@@ -32,10 +32,9 @@ table TimeDependentMumoEdge {
 }
 
 table HotelEdge {
-  station_id:string;
+  edge:MumoEdge;
   earliest_checkout_time:ushort;
   min_stay_duration:ushort;
-  price:ushort;
 }
 
 union AdditionalEdge {

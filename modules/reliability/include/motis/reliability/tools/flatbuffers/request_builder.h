@@ -92,6 +92,10 @@ private:
                             std::string const station_id,
                             std::time_t const interval_begin,
                             std::time_t const interval_end);
+
+  void create_bikesharing_edges(intermodal::individual_modes_container const&);
+  void create_taxi_edges(intermodal::individual_modes_container const&);
+  void create_hotel_edges(intermodal::individual_modes_container const&);
 };
 
 }  // namespace flatbuffers

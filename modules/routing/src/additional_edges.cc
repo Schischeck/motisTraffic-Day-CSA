@@ -52,10 +52,11 @@ std::vector<edge> create_additional_edges(
 
       case AdditionalEdge_HotelEdge: {
         auto info = reinterpret_cast<HotelEdge const*>(e->additional_edge());
-        edges.push_back(
-            make_hotel_edge(get_station_node(sched, info->station_id()->str()),
-                            info->earliest_checkout_time(),
-                            info->min_stay_duration(), info->price()));
+        auto edge = info->edge();
+        edges.push_back(make_hotel_edge(
+            get_station_node(sched, info->edge()->from_station_id()->str()),
+            info->earliest_checkout_time(), info->min_stay_duration(),
+            edge->price(), edge->slot()));
         break;
       }
 

@@ -17,44 +17,7 @@ namespace detail {
 /* convert routing::RoutingRequest to Offset<RoutingRequest> */
 module::msg_ptr to_routing_late_connections_message(
     routing::RoutingRequest const& request,
-    std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {
-  using namespace routing;
-  flatbuffers::request_builder builder(request);
-  // builder.search_type_ = routing::SearchType_LateConnections; TODO(Mohammad
-  // Keyhani)
-
-  auto& b = builder.b_;
-  /* Create taxi-edges */
-  for (auto const& e : *request.additional_edges()) {
-    if (e->additional_edge_type() != AdditionalEdge_TimeDependentMumoEdge) {
-      continue;
-    }
-    auto const* mumo =
-        static_cast<TimeDependentMumoEdge const*>(e->additional_edge());
-    /* TODO(Mohammad Keyhani) ask intermodal modul for taxi-edges */
-    Interval interval(LATE_TAXI_BEGIN_TIME, LATE_TAXI_END_TIME);
-    builder.add_additional_edge(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_PeriodicMumoEdge,
-        CreatePeriodicMumoEdge(
-            b, CreateMumoEdge(
-                   b, b.CreateString(mumo->edge()->from_station_id()->c_str()),
-                   b.CreateString(mumo->edge()->to_station_id()->c_str()),
-                   mumo->edge()->duration(), mumo->edge()->price(),
-                   0 /* TODO(Mohammad Keyhani) */),
-            &interval)
-            .Union()));
-  }
-  for (auto const& hotel : hotel_infos) {
-    builder.add_additional_edge(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_HotelEdge,
-        CreateHotelEdge(b, b.CreateString(hotel.station_),
-                        hotel.earliest_checkout_, hotel.min_stay_duration_,
-                        hotel.price_)
-            .Union()));
-  }
-
-  return builder.build_routing_request();
-}
+    std::vector<intermodal::hotels::hotel_info> const& hotel_infos) {}
 }  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const& req,

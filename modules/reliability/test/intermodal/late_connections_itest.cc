@@ -17,6 +17,8 @@
 namespace motis {
 namespace reliability {
 
+using namespace routing;
+
 class reliability_late_connections : public test_motis_setup {
 public:
   reliability_late_connections()
@@ -40,7 +42,7 @@ module::msg_ptr to_request(
       .add_destination(schedule_hotels::FRANKFURT.name_,
                        schedule_hotels::FRANKFURT.eva_)
       .add_additional_edges(container)
-      .build_late_connection_request();
+      .build_routing_request();
 }
 
 #if 0
@@ -121,17 +123,23 @@ TEST_F(reliability_late_connections, test_hotel_edges) {
 
 TEST_F(reliability_late_connections, search) {
   intermodal::individual_modes_container container;
-  container.hotel_.emplace_back(schedule_hotels::LANGEN.eva_);
-  container.hotel_.emplace_back(schedule_hotels::OFFENBACH.eva_);
-  container.hotel_.emplace_back(schedule_hotels::MAINZ.eva_);
+  container.hotel_.emplace_back(schedule_hotels::LANGEN.eva_, 8 * 60, 9 * 60,
+                                5000);
+  container.hotel_.emplace_back(schedule_hotels::OFFENBACH.eva_, 8 * 60, 9 * 60,
+                                5000);
+  container.hotel_.emplace_back(schedule_hotels::MAINZ.eva_, 8 * 60, 9 * 60,
+                                5000);
 
-  container.taxi_.push_back({schedule_hotels::LANGEN.eva_, 55, 6000});
+  container.taxi_.emplace_back(schedule_hotels::LANGEN.eva_, 55, 6000, 1260,
+                               180);
   /* this taxi should not be found
    * since it can only be reached after a hotel */
-  container.taxi_.push_back({schedule_hotels::NEUISENBURG.eva_, 10, 500});
+  container.taxi_.emplace_back(schedule_hotels::NEUISENBURG.eva_, 10, 500, 1260,
+                               180);
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxi_.push_back({schedule_hotels::WALLDORF.eva_, 10, 500});
+  container.taxi_.emplace_back(schedule_hotels::WALLDORF.eva_, 10, 500, 1260,
+                               180);
 
   auto res = call(to_request(container));
 
@@ -141,8 +149,7 @@ TEST_F(reliability_late_connections, search) {
              b.stops_.back().arrival_.timestamp_;
     }
   } journey_cmp;
-  auto journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, res)->response());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
   std::sort(journeys.begin(), journeys.end(), journey_cmp);
 
   ASSERT_EQ(4, journeys.size());
@@ -152,8 +159,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(2, j.transports_.size());
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::to_str(intermodal::TAXI),
-              j.transports_[1].mumo_type_);
+    ASSERT_EQ(intermodal::TAXI, j.transports_[1].slot_);
     ASSERT_EQ(6000, j.transports_[1].mumo_price_);
     ASSERT_EQ(schedule_hotels::LANGEN.eva_, j.stops_[1].eva_no_);
     ASSERT_EQ("-2", j.stops_[2].eva_no_);
@@ -169,8 +175,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(35, j.night_penalty_);
     ASSERT_EQ(4, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::to_str(intermodal::HOTEL),
-              j.transports_[1].mumo_type_);
+    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
     ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(5, j.transports_[2].train_nr_);
     ASSERT_EQ(schedule_hotels::OFFENBACH.eva_, j.stops_[1].eva_no_);
@@ -182,8 +187,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(0, j.night_penalty_);
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::to_str(intermodal::HOTEL),
-              j.transports_[1].mumo_type_);
+    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
     ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(3, j.transports_[2].train_nr_);
     ASSERT_TRUE(j.transports_.back().is_walk_);
@@ -202,10 +206,10 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
   intermodal::individual_modes_container container;
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxi_.push_back({schedule_hotels::WALLDORF.eva_, 10, 500});
+  container.taxi_.emplace_back(schedule_hotels::WALLDORF.eva_, 10, 500, 1260,
+                               180);
   auto msg = call(to_request(container));
-  auto journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, msg)->response());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
 
   /* Whether the search finds a connection or not depends on
    * the filter in label.h: If the maximum travel time is limited,
@@ -222,28 +226,28 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
 
 TEST_F(reliability_hotel_foot, hotel_after_foot) {
   intermodal::individual_modes_container container;
-  container.hotel_.emplace_back(schedule_hotels::NEUISENBURG.eva_);
+  container.hotel_.emplace_back(schedule_hotels::NEUISENBURG.eva_, 8 * 60,
+                                9 * 60, 5000);
   auto msg = call(to_request(container));
 
-  auto journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, msg)->response());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
   ASSERT_EQ(1, journeys.size());
 
   auto const& j = journeys.back();
   ASSERT_EQ(6, j.transports_.size());
   ASSERT_TRUE(j.transports_[2].is_walk_);
   ASSERT_TRUE(j.transports_[3].is_walk_);
-  ASSERT_EQ(intermodal::to_str(intermodal::WALK), j.transports_[2].mumo_type_);
-  ASSERT_EQ(intermodal::to_str(intermodal::HOTEL), j.transports_[3].mumo_type_);
+  ASSERT_EQ(intermodal::WALK, j.transports_[2].slot_);
+  ASSERT_EQ(intermodal::HOTEL, j.transports_[3].slot_);
 }
 
 TEST_F(reliability_hotel_foot, foot_after_hotel) {
   intermodal::individual_modes_container container;
-  container.hotel_.emplace_back(schedule_hotels::LANGEN.eva_);
+  container.hotel_.emplace_back(schedule_hotels::LANGEN.eva_, 8 * 60, 9 * 60,
+                                5000);
   auto msg = call(to_request(container));
 
-  auto journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, msg)->response());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
   ASSERT_EQ(1, journeys.size());
 
   auto const& j = journeys.back();
@@ -251,8 +255,8 @@ TEST_F(reliability_hotel_foot, foot_after_hotel) {
 
   ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_TRUE(j.transports_[2].is_walk_);
-  ASSERT_EQ(intermodal::to_str(intermodal::HOTEL), j.transports_[1].mumo_type_);
-  ASSERT_EQ(intermodal::to_str(intermodal::WALK), j.transports_[2].mumo_type_);
+  ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
+  ASSERT_EQ(intermodal::WALK, j.transports_[2].slot_);
 }
 
 }  // namespace reliability

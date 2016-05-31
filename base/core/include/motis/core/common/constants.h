@@ -15,7 +15,4 @@ constexpr const auto MAX_TRAVEL_TIME_HOURS = 24;
 constexpr const auto MAX_TRAVEL_TIME_MINUTES = MAX_TRAVEL_TIME_HOURS * 60;
 constexpr const auto MAX_TRAVEL_TIME_SECONDS = MAX_TRAVEL_TIME_MINUTES * 60;
 
-constexpr const unsigned LATE_TAXI_BEGIN_TIME = 1260;  // minutes after midnight
-constexpr const unsigned LATE_TAXI_END_TIME = 180;  // minutes after midnight
-
 }  // namespace motis
