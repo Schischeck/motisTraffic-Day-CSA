@@ -49,7 +49,7 @@ struct pretrip_gen {
     } else {
       generate_start_labels(mem, lbs, nullptr, from->get_station(), 0,
                             interval_begin, interval_end, interval_end,
-                            0 /* slot */, labels);
+                            0 /* dummy */, labels);
     }
 
     return labels;

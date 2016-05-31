@@ -75,16 +75,18 @@ struct individual_modes_container {
   std::vector<hotel> hotel_;
 
   struct taxi {
-    taxi(std::string const from_station, uint16_t const duration,
-         uint16_t const price, uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
+    taxi(std::string const from_station, std::string const to_station,
+         uint16_t const duration, uint16_t const price,
+         uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
          uint16_t const valid_to = LATE_TAXI_END_TIME)
         : from_station_(from_station),
+          to_station_(to_station),
           duration_(duration),
           price_(price),
           valid_from_(valid_from),
           valid_to_(valid_to) {}
 
-    std::string from_station_;
+    std::string from_station_, to_station_;
     uint16_t duration_;
     uint16_t price_;
     uint16_t valid_from_, valid_to_;

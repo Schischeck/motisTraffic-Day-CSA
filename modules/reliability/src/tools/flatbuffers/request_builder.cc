@@ -252,9 +252,8 @@ void request_builder::create_taxi_edges(
         b_, AdditionalEdge_PeriodicMumoEdge,
         CreatePeriodicMumoEdge(
             b_, CreateMumoEdge(b_, b_.CreateString(e.from_station_),
-                               b_.CreateString(INTERMODAL_DESTINATION_STATION),
-                               e.duration_, e.price_,
-                               motis::reliability::intermodal::TAXI),
+                               b_.CreateString(e.to_station_), e.duration_,
+                               e.price_, motis::reliability::intermodal::TAXI),
             &interval)
             .Union()));
   }
@@ -266,11 +265,11 @@ void request_builder::create_hotel_edges(
   for (auto const& e : container.hotel_) {
     additional_edges_.push_back(CreateAdditionalEdgeWrapper(
         b_, AdditionalEdge_HotelEdge,
-        CreateHotelEdge(b_,
-                        CreateMumoEdge(b_, b_.CreateString(e.station_),
-                                       b_.CreateString(e.station_), e.price_,
-                                       motis::reliability::intermodal::HOTEL),
-                        e.earliest_checkout_, e.min_stay_duration_)
+        CreateHotelEdge(
+            b_, CreateMumoEdge(b_, b_.CreateString(e.station_),
+                               b_.CreateString(e.station_), 0 /* dummy */,
+                               e.price_, motis::reliability::intermodal::HOTEL),
+            e.earliest_checkout_, e.min_stay_duration_)
             .Union()));
   }
 }
