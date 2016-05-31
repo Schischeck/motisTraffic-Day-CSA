@@ -19,7 +19,7 @@ struct transfers_initializer {
 
 struct transfers_updater {
   template <typename Label, typename LowerBounds>
-  static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
+  static void update(Label& l, uint8_t, edge_cost const& ec, LowerBounds& lb) {
     if (ec.transfer_) {
       ++l.transfers_;
     }

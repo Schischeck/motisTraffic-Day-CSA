@@ -17,7 +17,7 @@ struct travel_time_initializer {
 
 struct travel_time_updater {
   template <typename Label, typename LowerBounds>
-  static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
+  static void update(Label& l, uint8_t, edge_cost const& ec, LowerBounds& lb) {
     l.travel_time_ += ec.time_;
     l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.node_->id_];
   }
