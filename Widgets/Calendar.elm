@@ -27,7 +27,7 @@ type alias Model =
     , date : Date
     , inputStr : String
     , visible : Bool
-    , input : Input.Model
+    , inputWidget : Input.Model
     }
 
 
@@ -43,7 +43,7 @@ emptyModel =
     , date = Date.fromTime 0
     , visible = False
     , inputStr = ""
-    , input = Input.init
+    , inputWidget = Input.init
     }
 
 
@@ -86,7 +86,7 @@ updateModel msg model =
                         Input.Blur ->
                             { model | visible = False }
             in
-                { updated | input = Input.update msg' model.input }
+                { updated | inputWidget = Input.update msg' model.inputWidget }
 
         InitDate d ->
             { model
@@ -221,7 +221,7 @@ calendarView model =
             , value model.inputStr
             ]
             [ dayButtons ]
-            model.input
+            model.inputWidget
         , div
             [ classList
                 [ ( "paper", True )

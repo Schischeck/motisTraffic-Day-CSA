@@ -7,7 +7,6 @@ import Html.Lazy exposing (lazy)
 import String
 import Dict exposing (..)
 import WebSocket
-import Mouse
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Widgets.Input as Input
@@ -107,8 +106,8 @@ updateModel msg model =
                         Input.Focus ->
                             { model | visible = True }
 
-                        _ ->
-                            model
+                        Input.Blur ->
+                            { model | visible = False, selected = 0 }
             in
                 { updated | inputWidget = Input.update msg' model.inputWidget }
 
@@ -210,14 +209,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    let
-        wsSub =
-            WebSocket.listen remoteAddress ReceiveSuggestions
-    in
-        if model.visible then
-            Sub.batch [ Mouse.downs (\_ -> Hide), wsSub ]
-        else
-            wsSub
+    WebSocket.listen remoteAddress ReceiveSuggestions
 
 
 
