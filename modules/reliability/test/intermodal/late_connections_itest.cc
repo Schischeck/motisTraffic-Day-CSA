@@ -9,6 +9,7 @@
 #include "motis/loader/loader.h"
 
 #include "motis/reliability/intermodal/individual_modes_container.h"
+#include "motis/reliability/search/late_connections.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/schedules/schedule_hotels.h"
@@ -45,6 +46,27 @@ module::msg_ptr to_request(
       .build_routing_request();
 }
 
+TEST_F(reliability_late_connections, taxi_costs) {
+  using taxi_cost = search::late_connections::detail::taxi_cost;
+  auto const darmstadt = std::make_pair(49.872487, 8.630330);
+  auto const frankfurt = std::make_pair(50.106439, 8.662156);
+  {
+    taxi_cost cost(darmstadt.first, darmstadt.second, frankfurt.first,
+                   frankfurt.second, 250, 200, 10, 40, 100);
+    ASSERT_EQ(36, cost.duration_);
+    ASSERT_EQ(6817, cost.price_);
+  }
+
+  auto const tud = std::make_pair(49.877111, 8.655606);
+
+  {
+    taxi_cost cost(darmstadt.first, darmstadt.second, tud.first, tud.second,
+                   250, 200, 10, 40, 100);
+    ASSERT_EQ(14, cost.duration_);
+    ASSERT_EQ(814, cost.price_);
+  }
+}
+
 TEST_F(reliability_late_connections, search) {
   intermodal::individual_modes_container container;
   container.hotels_.emplace_back(schedule_hotels::LANGEN.eva_, 360, 540, 5000);
@@ -52,24 +74,22 @@ TEST_F(reliability_late_connections, search) {
                                  5000);
   container.hotels_.emplace_back(schedule_hotels::MAINZ.eva_, 360, 540, 5000);
 
-  container.taxi_.emplace_back(schedule_hotels::LANGEN.eva_,
-                               schedule_hotels::FRANKFURT.eva_, 55, 6000, 1140,
-                               60);
+  container.taxis_.emplace_back(schedule_hotels::LANGEN.eva_,
+                                schedule_hotels::FRANKFURT.eva_, 55, 6000, 1140,
+                                60);
   /* this taxi should not be found
    * since it can only be reached after a hotel */
-  container.taxi_.emplace_back(schedule_hotels::NEUISENBURG.eva_,
-                               schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                               60);
+  container.taxis_.emplace_back(schedule_hotels::NEUISENBURG.eva_,
+                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
+                                60);
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxi_.emplace_back(schedule_hotels::WALLDORF.eva_,
-                               schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                               60);
+  container.taxis_.emplace_back(schedule_hotels::WALLDORF.eva_,
+                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
+                                60);
 
   auto res = call(to_request(container));
-
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
-
   ASSERT_EQ(4, journeys.size());
 
   struct {
@@ -133,9 +153,9 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
   intermodal::individual_modes_container container;
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxi_.emplace_back(schedule_hotels::WALLDORF.eva_,
-                               schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                               60);
+  container.taxis_.emplace_back(schedule_hotels::WALLDORF.eva_,
+                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
+                                60);
   auto msg = call(to_request(container));
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
 

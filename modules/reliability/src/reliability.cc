@@ -168,6 +168,12 @@ msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 
+msg_ptr late_connections(ReliableRoutingRequest const& req, reliability& rel,
+                         std::string const& hotels_file) {
+  auto lock = rel.synced_sched();
+  return search::late_connections::search(req, hotels_file, lock.sched());
+}
+
 }  // namespace detail
 
 msg_ptr reliability::routing_request(msg_ptr const& msg) {
@@ -183,7 +189,7 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
       return detail::connection_tree(req, *this);
     }
     case RequestOptions_LateConnectionReq: {
-      return search::late_connections::search(req, hotels_file_);
+      return detail::late_connections(req, *this, hotels_file_);
     }
     default: break;
   }

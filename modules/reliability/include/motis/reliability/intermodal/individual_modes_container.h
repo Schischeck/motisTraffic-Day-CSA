@@ -73,7 +73,7 @@ struct individual_modes_container {
     uint16_t price_;
     uint16_t valid_from_, valid_to_;
   };
-  std::vector<taxi> taxi_;
+  std::vector<taxi> taxis_;
 };
 
 }  // namespace intermodal

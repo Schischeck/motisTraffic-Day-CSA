@@ -248,7 +248,7 @@ void request_builder::create_bikesharing_edges(
 void request_builder::create_taxi_edges(
     intermodal::individual_modes_container const& container) {
   using namespace routing;
-  for (auto const& e : container.taxi_) {
+  for (auto const& e : container.taxis_) {
     Interval interval(e.valid_from_, e.valid_to_);
     additional_edges_.push_back(CreateAdditionalEdgeWrapper(
         b_, AdditionalEdge_PeriodicMumoEdge,
