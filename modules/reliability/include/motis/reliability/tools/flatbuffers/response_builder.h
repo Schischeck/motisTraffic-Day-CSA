@@ -27,6 +27,8 @@ module::msg_ptr to_reliability_rating_response(
     std::vector<rating::simple_rating::simple_connection_rating> const&,
     bool const short_output);
 
+module::msg_ptr to_reliability_rating_response(routing::RoutingResponse const*);
+
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const&);
 

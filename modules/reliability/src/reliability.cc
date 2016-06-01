@@ -141,16 +141,26 @@ msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel) {
                                     *rel.s_t_distributions_));
 }
 
+void update_mumo_info(
+    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
+  for (auto& cg : cgs) {
+    for (auto& j : cg->journeys_) {
+      intermodal::update_mumo_info(j);
+    }
+  }
+}
+
 msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel) {
   auto req_info = reinterpret_cast<ReliableSearchReq const*>(
       req.request_type()->request_options());
   auto lock = rel.synced_sched();
-  auto const cgs = search::connection_graph_search::search_cgs(
+  auto cgs = search::connection_graph_search::search_cgs(
       req, ::motis::reliability::context(lock.sched(),
                                          *rel.precomputed_distributions_,
                                          *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::reliable_cg_optimizer>(
           req_info->min_departure_diff()));
+  update_mumo_info(cgs);
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 
@@ -158,13 +168,14 @@ msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
   auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
       req.request_type()->request_options());
   auto lock = rel.synced_sched();
-  auto const cgs = search::connection_graph_search::search_cgs(
+  auto cgs = search::connection_graph_search::search_cgs(
       req, ::motis::reliability::context(lock.sched(),
                                          *rel.precomputed_distributions_,
                                          *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::simple_optimizer>(
           req_info->num_alternatives_at_each_stop(),
           req_info->min_departure_diff()));
+  update_mumo_info(cgs);
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 

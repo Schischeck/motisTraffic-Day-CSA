@@ -3,11 +3,14 @@
 #include <string>
 #include <vector>
 
+#include "motis/core/journey/journey.h"
+
 #include "motis/reliability/error.h"
 #include "motis/reliability/intermodal/hotels.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 namespace motis {
+struct journey;
 namespace reliability {
 struct ReliableRoutingRequest;  // NOLINT
 namespace intermodal {
@@ -22,6 +25,12 @@ inline std::string to_str(slot const s) {
     case HOTEL: return "Hotel";
   }
   return "unknown";
+}
+
+inline void update_mumo_info(journey& j) {
+  for (auto& t : j.transports_) {
+    t.mumo_type_ = intermodal::to_str(static_cast<intermodal::slot>(t.slot_));
+  }
 }
 
 constexpr auto LATE_TAXI_BEGIN_TIME = 1260;  // minutes after midnight

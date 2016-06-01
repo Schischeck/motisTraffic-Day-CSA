@@ -17,6 +17,7 @@
 #include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
+#include "motis/reliability/tools/flatbuffers/response_builder.h"
 
 namespace motis {
 namespace reliability {
@@ -30,18 +31,18 @@ constexpr auto TAXI_BASE_TIME = 10;  // in minutes (entering and leaving time)
 constexpr auto TAXI_AVG_SPEED_SHORT_DISTANCE = 40;  // km/h
 constexpr auto TAXI_AVG_SPEED_LONG_DISTANCE = 100;  // km/h
 
+constexpr auto M_PER_KM = 1000.0;
+constexpr auto MIN_PER_HOUR = 60;
+constexpr auto DISTANCE_THRESHOLD = 5.0;  // 5km
+constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
+constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
+
 taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
                      double const& lon2, unsigned const taxi_base_price,
                      unsigned const taxi_km_price,
                      unsigned const taxi_base_time,
                      unsigned const taxi_avg_speed_short_distance,
                      unsigned const taxi_avg_speed_long_distance) {
-  constexpr auto M_PER_KM = 1000.0;
-  constexpr auto MIN_PER_HOUR = 60;
-  constexpr auto DISTANCE_THRESHOLD = 5.0;  // 5km
-  constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
-  constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
-
   auto const distance_in_km =
       (geo_detail::distance_in_m(lat1, lon1, lat2, lon2) / M_PER_KM);
 
@@ -73,6 +74,12 @@ void ask_lookup_module(
   auto lookup_res = motis_content(LookupGeoStationResponse,
                                   motis_call(module::make_msg(b))->val());
   for (auto const& st : *lookup_res->stations()) {
+    // no taxis from local stations
+    // in order to obtain better search times and reduce
+    // the number of pareto-optimal connections
+    if (st->id()->str().substr(0, 2) != "80") {
+      continue;
+    }
     taxi_cost cost(st->pos()->lat(), st->pos()->lng(), destination_lat,
                    destination_lng, TAXI_BASE_PRICE, TAXI_KM_PRICE,
                    TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
@@ -105,7 +112,11 @@ module::msg_ptr search(ReliableRoutingRequest const& req,
 
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
-  return motis_call(b.build_routing_request())->val();
+  using namespace routing;
+  auto res = motis_content(RoutingResponse,
+                           motis_call(b.build_routing_request())->val());
+  return motis::reliability::flatbuffers::response_builder::
+      to_reliability_rating_response(res);
 }
 }  // namespace late_connections
 }  // namespace search

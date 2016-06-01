@@ -96,6 +96,11 @@ TEST_F(reliability_bikesharing_cg, cg) {
 
     ASSERT_EQ(2, j->transports()->size());
     ASSERT_EQ(Move_Walk, (*j->transports())[0]->move_type());
+    ASSERT_EQ("Bikesharing",
+              reinterpret_cast<Walk const*>((*j->transports())[0]->move())
+                  ->mumo_type()
+                  ->str());
+
     ASSERT_EQ(Move_Transport, (*j->transports())[1]->move_type());
     ASSERT_EQ(schedule_cg_bikesharing::RE_D_L,
               reinterpret_cast<Transport const*>((*j->transports())[1]->move())
@@ -122,6 +127,10 @@ TEST_F(reliability_bikesharing_cg, cg) {
               reinterpret_cast<Transport const*>((*j->transports())[0]->move())
                   ->train_nr());
     ASSERT_EQ(Move_Walk, (*j->transports())[1]->move_type());
+    ASSERT_EQ("Bikesharing",
+              reinterpret_cast<Walk const*>((*j->transports())[1]->move())
+                  ->mumo_type()
+                  ->str());
   }
   {
     auto const j = (*cg->journeys())[2];
@@ -144,6 +153,10 @@ TEST_F(reliability_bikesharing_cg, cg) {
               reinterpret_cast<Transport const*>((*j->transports())[0]->move())
                   ->train_nr());
     ASSERT_EQ(Move_Walk, (*j->transports())[1]->move_type());
+    ASSERT_EQ("Bikesharing",
+              reinterpret_cast<Walk const*>((*j->transports())[1]->move())
+                  ->mumo_type()
+                  ->str());
   }
   {
     auto const j = (*cg->journeys())[3];
@@ -166,6 +179,10 @@ TEST_F(reliability_bikesharing_cg, cg) {
               reinterpret_cast<Transport const*>((*j->transports())[0]->move())
                   ->train_nr());
     ASSERT_EQ(Move_Walk, (*j->transports())[1]->move_type());
+    ASSERT_EQ("Bikesharing",
+              reinterpret_cast<Walk const*>((*j->transports())[1]->move())
+                  ->mumo_type()
+                  ->str());
   }
 
   /* arrival distribution of the connection graph */

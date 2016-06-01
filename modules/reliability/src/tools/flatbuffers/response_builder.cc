@@ -22,21 +22,13 @@ namespace reliability {
 namespace flatbuffers {
 namespace response_builder {
 
-void add_mumo_info(std::vector<journey>& journeys) {
-  for (auto& j : journeys) {
-    for (auto& t : j.transports_) {
-      t.mumo_type_ = intermodal::to_str(static_cast<intermodal::slot>(t.slot_));
-    }
-  }
-}
-
 Offset<routing::RoutingResponse> convert_routing_response(
     FlatBufferBuilder& b,
     routing::RoutingResponse const* orig_routing_response) {
   std::vector<Offset<Connection>> connections;
   auto journeys = message_to_journeys(orig_routing_response);
-  add_mumo_info(journeys);
-  for (auto const& j : journeys) {
+  for (auto& j : journeys) {
+    intermodal::update_mumo_info(j);
     connections.push_back(to_connection(b, j));
   }
   return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
@@ -193,6 +185,13 @@ module::msg_ptr to_reliability_rating_response(
                           b, routing_response, conn_ratings, simple_ratings)
                           .Union());
   return module::make_msg(b);
+}
+
+module::msg_ptr to_reliability_rating_response(
+    routing::RoutingResponse const* res) {
+  std::vector<rating::connection_rating> const dummy;
+  std::vector<rating::simple_rating::simple_connection_rating> dummy2;
+  return to_reliability_rating_response(res, dummy, dummy2, false);
 }
 
 std::pair<std::time_t, std::time_t> get_scheduled_times(
