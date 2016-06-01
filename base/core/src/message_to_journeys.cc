@@ -39,21 +39,25 @@ journey::transport create_empty_transport() {
   t.from_ = 0;
   t.line_identifier_ = "";
   t.mumo_price_ = 0;
-  t.mumo_type_name_ = "";
+  t.mumo_type_ = "";
   t.name_ = "";
   t.provider_ = "";
   t.slot_ = 0;
   t.to_ = 0;
   t.train_nr_ = 0;
-  t.type_ = journey::transport::PublicTransport;
+  t.is_walk_ = false;
   return t;
 }
 journey::transport to_transport(Walk const& walk, uint16_t duration) {
   auto t = create_empty_transport();
-  t.type_ = journey::transport::Walk;
+  t.is_walk_ = true;
   t.duration_ = duration;
   t.from_ = walk.range()->from();
   t.to_ = walk.range()->to();
+  t.slot_ = walk.slot();
+
+  t.mumo_price_ = walk.price();
+  t.mumo_type_ = walk.mumo_type()->c_str();
   return t;
 }
 journey::transport to_transport(Transport const& transport, uint16_t duration) {
@@ -61,7 +65,7 @@ journey::transport to_transport(Transport const& transport, uint16_t duration) {
   t.duration_ = duration;
   t.from_ = transport.range()->from();
   t.to_ = transport.range()->to();
-  t.type_ = journey::transport::PublicTransport;
+  t.is_walk_ = false;
   t.category_name_ = transport.category_name()->c_str();
   t.category_id_ = transport.category_id();
   t.clasz_ = transport.clasz();
@@ -71,16 +75,6 @@ journey::transport to_transport(Transport const& transport, uint16_t duration) {
   t.provider_ = transport.provider()->c_str();
   t.slot_ = 0;
   t.train_nr_ = transport.train_nr();
-  return t;
-}
-journey::transport to_transport(Mumo const& mumo, uint16_t duration) {
-  auto t = create_empty_transport();
-  t.type_ = journey::transport::Mumo;
-  t.duration_ = duration;
-  t.from_ = mumo.range()->from();
-  t.to_ = mumo.range()->to();
-  t.mumo_price_ = mumo.price();
-  t.mumo_type_name_ = mumo.name()->c_str();
   return t;
 }
 
@@ -117,27 +111,15 @@ std::vector<journey> message_to_journeys(
 
     /* transports */
     for (auto move : *conn->transports()) {
-      switch (move->move_type()) {
-        case Move_Walk: {
-          auto walk = reinterpret_cast<Walk const*>(move->move());
-          journey.transports_.push_back(to_transport(
-              *walk, get_move_duration(*walk->range(), *conn->stops())));
-          break;
-        }
-        case Move_Transport: {
-          auto transport = reinterpret_cast<Transport const*>(move->move());
-          journey.transports_.push_back(to_transport(
-              *transport,
-              get_move_duration(*transport->range(), *conn->stops())));
-          break;
-        }
-        case Move_Mumo: {
-          auto mumo = reinterpret_cast<Mumo const*>(move->move());
-          journey.transports_.push_back(to_transport(
-              *mumo, get_move_duration(*mumo->range(), *conn->stops())));
-          break;
-        }
-        default: break;
+      if (move->move_type() == Move_Walk) {
+        auto walk = reinterpret_cast<Walk const*>(move->move());
+        journey.transports_.push_back(to_transport(
+            *walk, get_move_duration(*walk->range(), *conn->stops())));
+      } else if (move->move_type() == Move_Transport) {
+        auto transport = reinterpret_cast<Transport const*>(move->move());
+        journey.transports_.push_back(to_transport(
+            *transport,
+            get_move_duration(*transport->range(), *conn->stops())));
       }
     }
 

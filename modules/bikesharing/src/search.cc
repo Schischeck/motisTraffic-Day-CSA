@@ -51,12 +51,11 @@ struct bikesharing_search::impl {
 
   msg_ptr find_connections(BikesharingRequest const* req) const {
     context ctx;
-    auto const departures = find_departures(ctx, req);
-    auto const arrivals = find_arrivals(ctx, req);
-
-    ctx.b_.create_and_finish(
-        MsgContent_BikesharingResponse,
-        CreateBikesharingResponse(ctx.b_, departures, arrivals).Union());
+    auto const edges = req->type() == Type::Type_Departure
+                           ? find_departures(ctx, req)
+                           : find_arrivals(ctx, req);
+    ctx.b_.create_and_finish(MsgContent_BikesharingResponse,
+                             CreateBikesharingResponse(ctx.b_, edges).Union());
     return make_msg(ctx.b_);
   }
 
@@ -69,7 +68,7 @@ struct bikesharing_search::impl {
 
     std::multimap<std::string, bike_edge> departures;
     foreach_terminal_in_walk_dist(
-        req->dep()->lng(), req->dep()->lat(),
+        req->position()->lng(), req->position()->lat(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& from_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *from_t->get()->reachable()) {
@@ -102,7 +101,7 @@ struct bikesharing_search::impl {
 
     std::multimap<std::string, bike_edge> arrivals;
     foreach_terminal_in_walk_dist(
-        req->arr()->lng(), req->arr()->lat(),
+        req->position()->lng(), req->position()->lat(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& to_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *to_t->get()->reachable()) {

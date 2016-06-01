@@ -98,10 +98,9 @@ bool no_public_transport_after_this_stop(journey const& j,
     return true;
   }
 
-  auto const& public_transport_it = std::find_if(
-      transport_it, j.transports_.end(), [](journey::transport const& t) {
-        return t.type_ == journey::transport::PublicTransport;
-      });
+  auto const& public_transport_it =
+      std::find_if(transport_it, j.transports_.end(),
+                   [](journey::transport const& t) { return !t.is_walk_; });
 
   return public_transport_it == j.transports_.end();
 }
@@ -122,34 +121,6 @@ void split_journey(std::vector<journey>& journeys) {
   split_journey(journeys);
 }
 
-journey remove_dummy_stops(journey const& orig_journey) {
-  assert(!orig_journey.transports_.empty());
-  assert(orig_journey.stops_.size() >= 2);
-  journey j = orig_journey;
-  if (j.stops_.front().name_ == "DUMMY") {
-    j.stops_.erase(j.stops_.begin());
-    j.stops_.front().arrival_.valid_ = false;
-    j.transports_.erase(j.transports_.begin());
-    for (auto& t : j.transports_) {
-      --t.from_;
-      --t.to_;
-    }
-    for (auto& a : j.attributes_) {
-      --a.from_;
-      --a.to_;
-    }
-  }
-  if (j.stops_.back().name_ == "DUMMY") {
-    j.stops_.pop_back();
-    j.stops_.back().departure_.valid_ = false;
-    j.stops_.back().interchange_ = false;
-    j.transports_.pop_back();
-  }
-  assert(!j.transports_.empty());
-  assert(j.stops_.size() >= 2);
-  return j;
-}
-
 std::vector<journey> split_journey(journey const& orig_journey) {
   std::vector<journey> journeys;
   journeys.push_back(orig_journey);
@@ -162,7 +133,7 @@ journey move_early_walk(journey const& orig_j) {
   if (j.transports_.size() > 1 && j.stops_.size() > 2) {
     unsigned int const index_last_stop = j.stops_.size() - 1;
     for (auto const& tr : j.transports_) {
-      if (tr.type_ == journey::transport::Walk && tr.to_ < index_last_stop) {
+      if (tr.is_walk_ && tr.to_ < index_last_stop) {
         auto const buffer = j.stops_[tr.to_].departure_.timestamp_ -
                             j.stops_[tr.to_].arrival_.timestamp_;
         if (buffer > 0) {
@@ -191,8 +162,7 @@ connection_graph::stop& get_stop(connection_graph& cg,
 }  // namespace detail
 
 void add_base_journey(connection_graph& cg, journey const& base_journey) {
-  auto journeys = detail::split_journey(
-      detail::move_early_walk(detail::remove_dummy_stops(base_journey)));
+  auto journeys = detail::split_journey(detail::move_early_walk(base_journey));
 
   unsigned int stop_idx = connection_graph::stop::INDEX_DEPARTURE_STOP;
   for (auto const& j : journeys) {
@@ -225,8 +195,7 @@ void add_base_journey(connection_graph& cg, journey const& base_journey) {
 void add_alternative_journey(connection_graph& cg,
                              unsigned int const first_stop_idx,
                              journey const& j) {
-  auto journeys = detail::split_journey(
-      detail::move_early_walk(detail::remove_dummy_stops(j)));
+  auto journeys = detail::split_journey(detail::move_early_walk(j));
 
   /* TODO(Mohammad Keyhani):
    * call function: std::vector<unsigned int> add_journeys(cg, journeys);

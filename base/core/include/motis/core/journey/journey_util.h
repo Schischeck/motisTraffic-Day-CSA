@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <iostream>
-#include <system_error>
+#include <stdexcept>
 
 #include "motis/core/journey/journey.h"
 
@@ -22,9 +22,9 @@ void foreach_light_connection(journey const& j, F func) {
                        return stop_idx >= tr.from_ && stop_idx < tr.to_;
                      });
     if (transport == j.transports_.end()) {
-      throw std::system_error();
+      throw std::runtime_error("transport not found");
     }
-    if (transport->type_ == journey::transport::PublicTransport) {
+    if (!transport->is_walk_) {
       func(stop_idx, std::distance(j.transports_.begin(), transport));
     }
   }

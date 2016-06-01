@@ -115,22 +115,11 @@ public:
       case FOOT_EDGE:
         return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
                          m_.foot_edge_.price_, m_.foot_edge_.slot_);
-      case PERIODIC_MUMO_EDGE:
-        start_time %= 1440;
-      /* no break */
-      case TIME_DEPENDENT_MUMO_EDGE: {
-        if (start_time >= m_.foot_edge_.interval_begin_ ||
-            start_time <= m_.foot_edge_.interval_end_) {
-          return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
-                           m_.foot_edge_.price_, m_.foot_edge_.slot_);
-        } else {
-          return NO_EDGE;
-        }
-      }
-      case HOTEL_EDGE: {
-        return edge_cost(calc_duration_hotel_edge(start_time), false,
-                         m_.hotel_edge_.price_, 0);
-      }
+
+      case PERIODIC_MUMO_EDGE: return calc_cost_periodic_edge(start_time);
+      case TIME_DEPENDENT_MUMO_EDGE:
+        return calc_cost_time_dependent_edge(start_time);
+      case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
 
       case THROUGH_EDGE: return edge_cost(0, false, 0, 0);
 
@@ -341,13 +330,39 @@ public:
   } m_;
 
 private:
-  uint16_t calc_duration_hotel_edge(time const start_time) const {
-    uint16_t offset =
+  edge_cost calc_cost_time_dependent_edge(time const start_time) const {
+    if (start_time > m_.foot_edge_.interval_end_) {
+      return NO_EDGE;
+    }
+    auto const time_off =
+        std::max(0, m_.foot_edge_.interval_begin_ - start_time);
+    return edge_cost(time_off + m_.foot_edge_.time_cost_,
+                     m_.foot_edge_.transfer_, m_.foot_edge_.price_,
+                     m_.foot_edge_.slot_);
+  }
+
+  edge_cost calc_cost_periodic_edge(time const start_time) const {
+    auto const start_daytime = start_time % MINUTES_A_DAY;
+    auto time_off = 0;
+    if (start_daytime < m_.foot_edge_.interval_begin_) {
+      time_off = m_.foot_edge_.interval_begin_ - start_daytime;
+    } else if (start_daytime > m_.foot_edge_.interval_end_) {
+      time_off =
+          (MINUTES_A_DAY - start_daytime) + m_.foot_edge_.interval_begin_;
+    }
+    return edge_cost(time_off + m_.foot_edge_.time_cost_,
+                     m_.foot_edge_.transfer_, m_.foot_edge_.price_,
+                     m_.foot_edge_.slot_);
+  }
+
+  edge_cost calc_cost_hotel_edge(time const start_time) const {
+    uint16_t const offset =
         start_time % 1440 < m_.hotel_edge_.checkout_time_ ? 0 : 1440;
-    return std::max(
+    auto const duration = std::max(
         m_.hotel_edge_.min_stay_duration_,
         static_cast<uint16_t>((m_.hotel_edge_.checkout_time_ + offset) -
                               (start_time % 1440)));
+    return edge_cost(duration, false, m_.hotel_edge_.price_, 0);
   }
 };
 

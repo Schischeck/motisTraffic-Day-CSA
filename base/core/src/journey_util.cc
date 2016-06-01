@@ -27,12 +27,14 @@ void print_journey(journey const& j, time_t const sched_begin,
     return format_time(unix_to_motistime(sched_begin, t));
   };
   auto to_str = [&](journey::transport const& t) -> std::string {
-    switch (t.type_) {
-      case journey::transport::PublicTransport: return t.name_;
-      case journey::transport::Walk: return "Walk";
-      case journey::transport::Mumo: {
+    if (!t.is_walk_) {
+      return t.name_;
+    } else if (t.is_walk_) {
+      if (t.slot_ == 0) {
+        return "Walk";
+      } else {
         std::stringstream sst;
-        sst << t.mumo_type_name_ << "," << t.mumo_price_;
+        sst << t.mumo_type_ << "," << t.mumo_price_;
         return sst.str();
       }
     }

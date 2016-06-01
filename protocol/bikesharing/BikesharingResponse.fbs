@@ -26,6 +26,5 @@ table BikesharingEdge {
 }
 
 table BikesharingResponse {
-  departure_edges:[BikesharingEdge];
-  arrival_edges:[BikesharingEdge];
+  edges:[BikesharingEdge];
 }

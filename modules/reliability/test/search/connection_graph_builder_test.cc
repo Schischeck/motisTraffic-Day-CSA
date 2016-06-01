@@ -98,7 +98,7 @@ journey create_journey1() {
     transport.slot_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[1];
@@ -113,11 +113,11 @@ journey create_journey1() {
     transport.slot_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 222;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[2];
-    transport.type_ = journey::transport::Walk;
+    transport.is_walk_ = true;
     transport.duration_ = 5;
     transport.from_ = 2;
     transport.to_ = 3;
@@ -143,7 +143,7 @@ journey create_journey1() {
     transport.slot_ = 0;
     transport.to_ = 4;
     transport.train_nr_ = 333;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
 
   j.attributes_.resize(4);
@@ -225,7 +225,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.slot_, 0);
       ASSERT_EQ(transport.to_, 1);
       ASSERT_EQ(transport.train_nr_, 111);
-      ASSERT_EQ(journey::transport::PublicTransport, transport.type_);
+      ASSERT_FALSE(transport.is_walk_);
     }
     ASSERT_EQ(journey.attributes_.size(), 2);
     {
@@ -287,7 +287,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.slot_, 0);
       ASSERT_EQ(transport.to_, 1);
       ASSERT_EQ(transport.train_nr_, 222);
-      ASSERT_EQ(journey::transport::PublicTransport, transport.type_);
+      ASSERT_FALSE(transport.is_walk_);
     }
     ASSERT_EQ(journey.attributes_.size(), 2);
     {
@@ -352,7 +352,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
     ASSERT_EQ(journey.transports_.size(), 2);
     {
       auto& transport = journey.transports_[0];
-      ASSERT_EQ(journey::transport::Walk, transport.type_);
+      ASSERT_TRUE(transport.is_walk_);
       ASSERT_EQ(transport.duration_, 5);
       ASSERT_EQ(transport.from_, 0);
       ASSERT_EQ(transport.to_, 1);
@@ -378,7 +378,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.slot_, 0);
       ASSERT_EQ(transport.to_, 2);
       ASSERT_EQ(transport.train_nr_, 333);
-      ASSERT_EQ(journey::transport::PublicTransport, transport.type_);
+      ASSERT_FALSE(transport.is_walk_);
     }
     ASSERT_EQ(journey.attributes_.size(), 1);
     {
@@ -424,7 +424,7 @@ journey create_journey2() {
     transport.from_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -555,7 +555,7 @@ journey create_journey3() {
     transport.from_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 555;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -676,14 +676,14 @@ journey create_journey4() {
     transport.from_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 666;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[1];
     transport.from_ = 1;
     transport.to_ = 2;
     transport.train_nr_ = 777;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -782,190 +782,6 @@ TEST(reliability_connection_graph_builder, add_alternative_journey2) {
   }
 }
 
-journey create_journey5() {
-  journey j;
-  j.transfers_ = 1;
-
-  j.stops_.resize(5);
-  {
-    auto& stop = j.stops_[0];
-    stop.name_ = "DUMMY";
-    stop.arrival_.valid_ = false;
-    stop.departure_.valid_ = true;
-    stop.departure_.timestamp_ = 1445262900;
-  }
-  {
-    auto& stop = j.stops_[1];
-    stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
-    stop.lat_ = 0.0;
-    stop.lng_ = 0.0;
-    stop.name_ = "Station1";
-    stop.arrival_.valid_ = true;
-    stop.arrival_.timestamp_ = 1445262900;
-    stop.departure_.valid_ = true;
-    stop.departure_.timestamp_ = 1445262900;
-  }
-  {
-    auto& stop = j.stops_[2];
-    stop.eva_no_ = "2222222";
-    stop.interchange_ = true;
-    stop.lat_ = 0.0;
-    stop.lng_ = 0.0;
-    stop.name_ = "Station2";
-    stop.arrival_.valid_ = true;
-    stop.arrival_.timestamp_ = 1445263200;
-    stop.departure_.valid_ = true;
-    stop.departure_.timestamp_ = 1445263500;
-  }
-  {
-    auto& stop = j.stops_[3];
-    stop.eva_no_ = "3333333";
-    stop.interchange_ = true;
-    stop.lat_ = 0.0;
-    stop.lng_ = 0.0;
-    stop.name_ = "Station3";
-    stop.arrival_.valid_ = true;
-    stop.arrival_.timestamp_ = 1445263800;
-    stop.departure_.valid_ = true;
-    stop.departure_.timestamp_ = 1445263800;
-  }
-  {
-    auto& stop = j.stops_[4];
-    stop.interchange_ = false;
-    stop.name_ = "DUMMY";
-    stop.arrival_.valid_ = true;
-    stop.arrival_.timestamp_ = 1445263800;
-    stop.departure_.valid_ = false;
-  }
-
-  j.transports_.resize(4);
-  {
-    auto& transport = j.transports_[0];
-    transport.from_ = 0;
-    transport.to_ = 1;
-    transport.type_ = journey::transport::Walk;
-  }
-  {
-    auto& transport = j.transports_[1];
-    transport.from_ = 1;
-    transport.to_ = 2;
-    transport.train_nr_ = 666;
-    transport.type_ = journey::transport::PublicTransport;
-  }
-  {
-    auto& transport = j.transports_[2];
-    transport.from_ = 2;
-    transport.to_ = 3;
-    transport.train_nr_ = 777;
-    transport.type_ = journey::transport::PublicTransport;
-  }
-  {
-    auto& transport = j.transports_[3];
-    transport.from_ = 3;
-    transport.to_ = 4;
-    transport.type_ = journey::transport::Walk;
-  }
-
-  j.attributes_.resize(3);
-  {
-    auto& attribute = j.attributes_[0];
-    attribute.code_ = "A";
-    attribute.from_ = 1;
-    attribute.to_ = 3;
-  }
-  {
-    auto& attribute = j.attributes_[1];
-    attribute.code_ = "B";
-    attribute.from_ = 1;
-    attribute.to_ = 2;
-  }
-  {
-    auto& attribute = j.attributes_[2];
-    attribute.code_ = "C";
-    attribute.from_ = 2;
-    attribute.to_ = 3;
-  }
-  return j;
-}
-
-TEST(reliability_connection_graph_builder, remove_dummy_stops) {
-  journey const j = detail::remove_dummy_stops(create_journey5());
-  ASSERT_EQ(j.transfers_, 1);
-
-  ASSERT_EQ(3, j.stops_.size());
-  {
-    auto& stop = j.stops_[0];
-    ASSERT_EQ(stop.eva_no_, "1111111");
-    ASSERT_EQ(stop.interchange_, false);
-    ASSERT_EQ(stop.lat_, 0.0);
-    ASSERT_EQ(stop.lng_, 0.0);
-    ASSERT_EQ(stop.name_, "Station1");
-    ASSERT_EQ(stop.arrival_.valid_, false);
-    ASSERT_EQ(stop.departure_.valid_, true);
-    ASSERT_EQ(stop.departure_.timestamp_, 1445262900);
-  }
-  {
-    auto& stop = j.stops_[1];
-    ASSERT_EQ(stop.eva_no_, "2222222");
-    ASSERT_EQ(stop.interchange_, true);
-    ASSERT_EQ(stop.lat_, 0.0);
-    ASSERT_EQ(stop.lng_, 0.0);
-    ASSERT_EQ(stop.name_, "Station2");
-    ASSERT_EQ(stop.arrival_.valid_, true);
-    ASSERT_EQ(stop.arrival_.timestamp_, 1445263200);
-    ASSERT_EQ(stop.departure_.valid_, true);
-    ASSERT_EQ(stop.departure_.timestamp_, 1445263500);
-  }
-  {
-    auto& stop = j.stops_[2];
-    ASSERT_EQ(stop.eva_no_, "3333333");
-    ASSERT_EQ(stop.interchange_, false);
-    ASSERT_EQ(stop.lat_, 0.0);
-    ASSERT_EQ(stop.lng_, 0.0);
-    ASSERT_EQ(stop.name_, "Station3");
-    ASSERT_EQ(stop.arrival_.valid_, true);
-    ASSERT_EQ(stop.arrival_.timestamp_, 1445263800);
-    ASSERT_EQ(stop.departure_.valid_, false);
-  }
-
-  ASSERT_EQ(2, j.transports_.size());
-  {
-    auto& transport = j.transports_[0];
-    ASSERT_EQ(transport.from_, 0);
-    ASSERT_EQ(transport.to_, 1);
-    ASSERT_EQ(transport.train_nr_, 666);
-    ASSERT_EQ(journey::transport::PublicTransport, transport.type_);
-  }
-  {
-    auto& transport = j.transports_[1];
-    ASSERT_EQ(transport.from_, 1);
-    ASSERT_EQ(transport.to_, 2);
-    ASSERT_EQ(transport.train_nr_, 777);
-    ASSERT_EQ(journey::transport::PublicTransport, transport.type_);
-  }
-
-  ASSERT_EQ(3, j.attributes_.size());
-  {
-    auto& attribute = j.attributes_[0];
-    ASSERT_EQ(attribute.code_, "A");
-    ASSERT_EQ(attribute.from_, 0);
-    ASSERT_EQ(attribute.to_, 2);
-  }
-  {
-    auto& attribute = j.attributes_[1];
-    ASSERT_EQ(attribute.code_, "B");
-    ASSERT_EQ(attribute.from_, 0);
-    ASSERT_EQ(attribute.to_, 1);
-  }
-  {
-    auto& attribute = j.attributes_[2];
-    ASSERT_EQ(attribute.code_, "C");
-    ASSERT_EQ(attribute.from_, 1);
-    ASSERT_EQ(attribute.to_, 2);
-  }
-}
-
 journey create_journey_train_id_change() {
   journey j;
   j.transfers_ = 1;
@@ -1013,14 +829,14 @@ journey create_journey_train_id_change() {
     transport.from_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 1;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[1];
     transport.from_ = 1;
     transport.to_ = 2;
     transport.train_nr_ = 2;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -1106,7 +922,7 @@ journey create_journey_no_new_transport_at_interchange() {
     transport.from_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 1;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   return j;
 }
@@ -1214,31 +1030,31 @@ journey create_journey_early_walk() {
     auto& transport = j.transports_[0];
     transport.from_ = 0;
     transport.to_ = 1;
-    transport.type_ = journey::transport::Walk;
+    transport.is_walk_ = true;
   }
   {
     auto& transport = j.transports_[1];
     transport.from_ = 1;
     transport.to_ = 2;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[2];
     transport.from_ = 2;
     transport.to_ = 3;
-    transport.type_ = journey::transport::Walk;
+    transport.is_walk_ = true;
   }
   {
     auto& transport = j.transports_[3];
     transport.from_ = 3;
     transport.to_ = 4;
-    transport.type_ = journey::transport::PublicTransport;
+    transport.is_walk_ = false;
   }
   {
     auto& transport = j.transports_[4];
     transport.from_ = 4;
     transport.to_ = 5;
-    transport.type_ = journey::transport::Walk;
+    transport.is_walk_ = true;
   }
 
   return j;

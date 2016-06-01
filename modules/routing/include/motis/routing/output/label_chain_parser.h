@@ -41,7 +41,8 @@ state next_state(int s, Label const* c, Label const* n) {
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
         switch (c->node_->type()) {
-          case node_type::STATION_NODE: return AT_STATION;
+          case node_type::STATION_NODE:
+            return n && n->node_->is_station_node() ? WALK : AT_STATION;
           case node_type::FOOT_NODE: return WALK;
           case node_type::ROUTE_NODE:
             return n->node_->is_route_node() ? IN_CONNECTION_THROUGH
@@ -87,7 +88,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
   node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
   time walk_arrival = INVALID_TIME;
-  int station_index = -1;
+  int stop_index = -1;
 
   auto it = begin(labels);
   int current_state = initial_state(it);
@@ -120,7 +121,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
                                            succ->connection_, event_type::DEP);
         }
 
-        stops.emplace_back(static_cast<unsigned int>(++station_index),
+        stops.emplace_back(static_cast<unsigned int>(++stop_index),
                            current->node_->get_station()->id_, a_platform,
                            d_platform, a_time, d_time, a_sched_time,
                            d_sched_time,
@@ -133,7 +134,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         assert(std::next(it) != end(labels));
 
         stops.emplace_back(
-            static_cast<unsigned int>(++station_index),
+            static_cast<unsigned int>(++stop_index),
             current->node_->get_station()->id_,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->full_con_->a_platform_,
@@ -158,9 +159,10 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
             last_con != nullptr);
 
-        transports.emplace_back(station_index,
-                                static_cast<unsigned int>(station_index) + 1,
-                                (*std::next(it))->now_ - current->now_, -1, 0);
+        transports.emplace_back(
+            stop_index, static_cast<unsigned int>(stop_index) + 1,
+            (*std::next(it))->now_ - current->now_, (*std::next(it))->slot_,
+            0 /* TODO(Mohammad Keyhani) */);
 
         walk_arrival = (*std::next(it))->now_;
 
@@ -169,9 +171,9 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
       case IN_CONNECTION: {
         if (current->connection_) {
-          transports.emplace_back(static_cast<unsigned int>(station_index),
-                                  static_cast<unsigned int>(station_index) + 1,
-                                  current->connection_, current->node_->route_);
+          transports.emplace_back(static_cast<unsigned int>(stop_index),
+                                  static_cast<unsigned int>(stop_index) + 1,
+                                  current->connection_);
         }
 
         // do not collect the last connection route node.
@@ -190,17 +192,12 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
-            stops.emplace_back(
-                static_cast<unsigned int>(++station_index),
-                current->node_->get_station()->id_,
-                current->connection_->full_con_->a_platform_,
-                succ->connection_->full_con_->d_platform_,
-                current->connection_->a_time_, succ->connection_->d_time_,
-                get_schedule_time(sched, current->node_, current->connection_,
-                                  event_type::ARR),
-                get_schedule_time(sched, dep_route_node, succ->connection_,
-                                  event_type::DEP),
-                false);
+            stops.emplace_back(static_cast<unsigned int>(++stop_index),
+                               current->node_->get_station()->id_,
+                               current->connection_->full_con_->a_platform_,
+                               succ->connection_->full_con_->d_platform_,
+                               current->connection_->a_time_,
+                               succ->connection_->d_time_, false);
           }
         }
 

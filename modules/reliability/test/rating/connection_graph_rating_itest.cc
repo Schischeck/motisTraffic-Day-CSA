@@ -255,7 +255,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
           .build_connection_tree_request(1, 1);
   auto const cgs = run([&]() {
     return search_cgs(
-        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
   });
 
@@ -314,7 +314,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
           .build_connection_tree_request(3, 1);
   auto const cgs = run([&]() {
     return search_cgs(
-        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
   });
 
@@ -426,7 +426,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 
 /* rating of a cg with a foot-path */
 TEST_F(reliability_connection_graph_rating_foot,
-       DISABLED_reliable_routing_request_foot) {
+       reliable_routing_request_foot) {
   auto msg =
       flatbuffers::request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
@@ -436,7 +436,7 @@ TEST_F(reliability_connection_graph_rating_foot,
           .build_connection_tree_request(1, 1);
   auto const cgs = run([&]() {
     return search_cgs(
-        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
   });
 
@@ -477,19 +477,19 @@ TEST_F(reliability_connection_graph_rating_foot,
     ASSERT_EQ(dists.first, rating.departure_distribution_);
     ASSERT_EQ(dists.second, rating.arrival_distribution_);
   }
-  ASSERT_EQ(1443435900, cg.journeys_.back().stops_.back().arrival_.timestamp_);
+  ASSERT_EQ(1443428700, cg.journeys_.back().stops_.back().arrival_.timestamp_);
 
   /* arrival distribution of the connection graph */
   probability_distribution exp_arr_dist;
   exp_arr_dist.init({0.0592, 0.4884, 0.1776, 0.0148}, 0);
   auto const cg_arr_dist = calc_arrival_distribution(cg);
-  ASSERT_EQ(1443435840, cg_arr_dist.first);
+  ASSERT_EQ(1443428640, cg_arr_dist.first);
   ASSERT_EQ(exp_arr_dist, cg_arr_dist.second);
 }
 
 /* rating of a cg with a foot-path at the end of the journey */
 TEST_F(reliability_connection_graph_rating_foot,
-       DISABLED_reliable_routing_request_foot_at_the_end) {
+       reliable_routing_request_foot_at_the_end) {
   auto msg =
       flatbuffers::request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
@@ -499,7 +499,7 @@ TEST_F(reliability_connection_graph_rating_foot,
           .build_connection_tree_request(1, 1);
   auto const cgs = run([&]() {
     return search_cgs(
-        motis_content(ReliableRoutingRequest, msg), *reliability_context_,
+        *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
         std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
   });
 

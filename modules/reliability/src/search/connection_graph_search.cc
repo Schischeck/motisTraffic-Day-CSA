@@ -17,6 +17,7 @@
 #include "motis/protocol/RoutingResponse_generated.h"
 
 #include "motis/reliability/context.h"
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/rating/connection_graph_rating.h"
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/search/cg_optimizer.h"
@@ -32,11 +33,11 @@ namespace connection_graph_search {
 namespace detail {
 
 std::vector<journey> retrieve_base_journeys(
-    ReliableRoutingRequest const* request) {
-  auto routing_response =
-      motis_call(flatbuffers::request_builder(request->request())
-                     .build_routing_request())
-          ->val();
+    ReliableRoutingRequest const& request, context const& c) {
+  auto req = flatbuffers::request_builder(request)
+                 .add_additional_edges(c.individual_modes_container_)
+                 .build_routing_request();
+  auto routing_response = motis_call(req)->val();
   using routing::RoutingResponse;
   return message_to_journeys(motis_content(RoutingResponse, routing_response));
 }
@@ -80,9 +81,9 @@ struct request_type {
 
 std::shared_ptr<request_type> create_alternative_request(
     connection_graph const& cg, unsigned int const stop_index,
-    duration const min_dep_diff) {
+    duration const min_dep_diff, context const& c) {
   auto const req =
-      tools::to_routing_request(cg, cg.stops_.at(stop_index), min_dep_diff);
+      tools::to_routing_request(cg, cg.stops_.at(stop_index), min_dep_diff, c);
   return std::make_shared<request_type>(
       request_type{stop_index, req.first, req.second});
 }
@@ -136,17 +137,9 @@ struct alternative_futures {
   };
 };
 
-bool stop_is_completed(connection_graph_optimizer const& optimizer,
-                       context::conn_graph_context const& cg,
-                       unsigned int const stop_idx) {
-  return stop_idx == connection_graph::stop::INDEX_DEPARTURE_STOP ||
-         stop_idx == connection_graph::stop::INDEX_ARRIVAL_STOP ||
-         optimizer.complete(cg.cg_->stops_.at(stop_idx),
-                            cg.stop_states_.at(stop_idx));
-}
-
-std::vector<unsigned int> filter_completed_stops(
-    std::vector<unsigned int> stops, context::conn_graph_context& cg,
+std::vector<unsigned int> get_incomplete_stops(
+    std::vector<unsigned int> const& stops,
+    context::conn_graph_context const& cg,
     connection_graph_optimizer const& optimizer) {
   std::vector<unsigned int> filtered;
   for (auto const idx : stops) {
@@ -166,28 +159,26 @@ std::vector<unsigned int> init_active_stops(
   for (auto const& stop : cg.cg_->stops_) {
     active_stops.push_back(stop.index_);
   }
-  return filter_completed_stops(active_stops, cg, optimizer);
+  return get_incomplete_stops(active_stops, cg, optimizer);
 }
 
-void handle_alternative(alternative_futures::future_return const& alternative,
-                        std::shared_ptr<context> c,
-                        context::conn_graph_context& cg,
-                        std::vector<unsigned int>& active_stops) {
-  active_stops.clear();
+/* delivers active stops */
+std::vector<unsigned int> handle_alternative(
+    alternative_futures::future_return const& alternative,
+    std::shared_ptr<context> c, context::conn_graph_context& cg) {
   if (!alternative.is_cached_) {
     std::lock_guard<std::mutex> guard(c->journey_cache_.first);
     c->journey_cache_.second[alternative.request_->cache_key_] =
         alternative.journey_;
   }
   if (alternative.journey_.stops_.empty()) {
-    return;
+    return {};
   }
 
-  auto const new_stops = add_alternative(alternative.journey_, c, cg,
-                                         alternative.request_->stop_id_);
-  active_stops.push_back(alternative.request_->stop_id_);
-  active_stops.insert(active_stops.end(), new_stops.begin(), new_stops.end());
-  filter_completed_stops(active_stops, cg, *c->optimizer_);
+  auto new_stops = add_alternative(alternative.journey_, c, cg,
+                                   alternative.request_->stop_id_);
+  new_stops.push_back(alternative.request_->stop_id_);
+  return get_incomplete_stops(new_stops, cg, *c->optimizer_);
 }
 
 void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
@@ -198,11 +189,11 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
     for (auto const stop_id : active_stops) {
       futures.spawn_request(
           create_alternative_request(*cg.cg_, stop_id,
-                                     c->optimizer_->min_departure_diff_),
+                                     c->optimizer_->min_departure_diff_, *c),
           c);
     }
-    handle_alternative(futures.new_alternative_futures_.front()->val(), c, cg,
-                       active_stops);
+    active_stops = handle_alternative(
+        futures.new_alternative_futures_.front()->val(), c, cg);
     futures.new_alternative_futures_.erase(
         futures.new_alternative_futures_.begin());
   }
@@ -211,12 +202,12 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
 }  // namespace detail
 
 std::vector<std::shared_ptr<connection_graph>> search_cgs(
-    ReliableRoutingRequest const* request,
+    ReliableRoutingRequest const& request,
     motis::reliability::context const& rel_context,
     std::shared_ptr<connection_graph_optimizer const> optimizer) {
-  auto c = std::make_shared<detail::context>(rel_context, optimizer);
+  auto c = std::make_shared<detail::context>(rel_context, optimizer, request);
 
-  for (auto const& j : detail::retrieve_base_journeys(request)) {
+  for (auto const& j : detail::retrieve_base_journeys(request, *c)) {
     detail::init_connection_graph_from_base_journey(*c, j);
   }
 

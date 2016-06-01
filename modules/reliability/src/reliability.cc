@@ -20,6 +20,7 @@
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/realtime/realtime_update.h"
@@ -124,31 +125,13 @@ void reliability::init(motis::module::registry& reg) {
 
 namespace detail {
 
-using bs_type = motis::reliability::intermodal::bikesharing::bikesharing_infos;
-bs_type retrieve_individual_mode_infos(ReliableRoutingRequest const* req) {
-  bs_type bikesharing_infos;
-  if (req->individual_modes()->bikesharing() == 1) {
-    /* TODO(Mohammad Keyhani)
-       bikesharing_infos =
-       motis::reliability::intermodal::bikesharing::retrieve_bikesharing_infos(
-        motis::reliability::intermodal::bikesharing::to_bikesharing_request(
-            req->request(), motis::bikesharing::AvailabilityAggregator_Average),
-        std::make_shared<
-            motis::reliability::intermodal::bikesharing::average_aggregator>(4),
-        *this);*/
-  }
-  if (req->individual_modes()->taxi() == 1) {
-    throw std::system_error(error::not_implemented);
-  }
-  return bikesharing_infos;
-}
-
-msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
+msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel) {
   using routing::RoutingResponse;
   auto routing_response =
-      motis_call(flatbuffers::request_builder(req->request())
-                     .add_additional_edges(retrieve_individual_mode_infos(req))
-                     .build_routing_request())
+      motis_call(
+          flatbuffers::request_builder(req)
+              .add_additional_edges(intermodal::individual_modes_container(req))
+              .build_routing_request())
           ->val();
   auto lock = rel.synced_sched();
   return rating::rate_routing_response(
@@ -158,9 +141,9 @@ msg_ptr rating(ReliableRoutingRequest const* req, reliability& rel) {
                                     *rel.s_t_distributions_));
 }
 
-msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
+msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel) {
   auto req_info = reinterpret_cast<ReliableSearchReq const*>(
-      req->request_type()->request_options());
+      req.request_type()->request_options());
   auto lock = rel.synced_sched();
   auto const cgs = search::connection_graph_search::search_cgs(
       req, ::motis::reliability::context(lock.sched(),
@@ -171,9 +154,9 @@ msg_ptr reliable_search(ReliableRoutingRequest const* req, reliability& rel) {
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 
-msg_ptr connection_tree(ReliableRoutingRequest const* req, reliability& rel) {
+msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
   auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
-      req->request_type()->request_options());
+      req.request_type()->request_options());
   auto lock = rel.synced_sched();
   auto const cgs = search::connection_graph_search::search_cgs(
       req, ::motis::reliability::context(lock.sched(),
@@ -188,8 +171,8 @@ msg_ptr connection_tree(ReliableRoutingRequest const* req, reliability& rel) {
 }  // namespace detail
 
 msg_ptr reliability::routing_request(msg_ptr const& msg) {
-  auto const req = motis_content(ReliableRoutingRequest, msg);
-  switch (req->request_type()->request_options_type()) {
+  auto const& req = *motis_content(ReliableRoutingRequest, msg);
+  switch (req.request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
       return detail::rating(req, *this);
     }

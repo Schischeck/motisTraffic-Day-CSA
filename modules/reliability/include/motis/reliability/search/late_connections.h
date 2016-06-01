@@ -8,7 +8,7 @@ namespace motis {
 namespace reliability {
 namespace search {
 namespace late_connections {
-module::msg_ptr search(ReliableRoutingRequest const*,
+module::msg_ptr search(ReliableRoutingRequest const&,
                        std::string const& hotels_file);
 }  // namespace late_connections
 }  // namespace search
