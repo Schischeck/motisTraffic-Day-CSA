@@ -20,7 +20,6 @@
 
 #include "include/schedules/schedule2.h"
 #include "include/schedules/schedule7_cg.h"
-#include "include/schedules/schedule_hotels.h"
 #include "include/start_and_travel_test_distributions.h"
 #include "include/test_schedule_setup.h"
 #include "include/test_util.h"
@@ -210,66 +209,6 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
           .build_reliable_search_request(1);
   auto const res = call(req);
   test_cg(motis_content(ReliableRoutingResponse, res));
-}
-
-class reliability_late_connections : public test_motis_setup {
-public:
-  reliability_late_connections()
-      : test_motis_setup(schedule_hotels::PATH, schedule_hotels::DATE) {}
-};
-
-/* taxi-info: from-station, duration, price */
-using taxi_info = std::tuple<std::string, uint16_t, uint16_t>;
-
-module::msg_ptr to_reliable_late_connections_request(
-    std::string const& from_name, std::string const& from_eva,
-    std::string const& to_name, std::string const& to_eva,
-    std::time_t interval_begin, std::time_t interval_end,
-    std::vector<taxi_info> const& taxi_infos) {
-  using namespace routing;
-  flatbuffers::request_builder builder;
-  builder.add_pretrip_start(from_name, from_eva, interval_begin, interval_end)
-      .add_destination(to_name, to_eva);
-
-  auto& b = builder.b_;
-  for (auto const& info : taxi_infos) {
-    Interval interval(21 * 60, 3 * 60);
-    builder.add_additional_edge(CreateAdditionalEdgeWrapper(
-        b, AdditionalEdge_TimeDependentMumoEdge,
-        CreatePeriodicMumoEdge(
-            b, CreateMumoEdge(b, b.CreateString(std::get<0>(info)),
-                              b.CreateString("-2") /* to dummy target */,
-                              std::get<1>(info), std::get<2>(info)),
-            &interval)
-            .Union()));
-  }
-  return builder.build_late_connection_request();
-}
-
-TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
-  /* taxi-info: from-station, duration, price */
-  std::vector<std::tuple<std::string, uint16_t, uint16_t>> taxi_infos;
-  taxi_infos.emplace_back(schedule_hotels::LANGEN.eva_, 55, 6000);
-
-  auto const req = to_reliable_late_connections_request(
-      schedule_hotels::DARMSTADT.name_, schedule_hotels::DARMSTADT.eva_,
-      schedule_hotels::FRANKFURT.name_, schedule_hotels::FRANKFURT.eva_,
-      test_util::hhmm_to_unixtime(get_schedule(), 2350),
-      test_util::hhmm_to_unixtime(get_schedule(), 100, 1), taxi_infos);
-  auto const res = call(req);
-  using routing::RoutingResponse;
-  auto const response = motis_content(RoutingResponse, res);
-
-  ASSERT_EQ(2, response->connections()->size());
-  ASSERT_EQ(2, (*response->connections())[0]->transports()->size());
-  auto taxi = reinterpret_cast<Walk const*>(
-      (*(*response->connections())[0]->transports())[1]->move());
-  ASSERT_EQ("Taxi", std::string(taxi->mumo_type()->c_str()));
-
-  ASSERT_EQ(2, (*response->connections())[1]->transports()->size());
-  auto direct_conn = reinterpret_cast<Transport const*>(
-      (*(*response->connections())[1]->transports())[0]->move());
-  ASSERT_EQ(1, direct_conn->train_nr());
 }
 
 }  // namespace reliability

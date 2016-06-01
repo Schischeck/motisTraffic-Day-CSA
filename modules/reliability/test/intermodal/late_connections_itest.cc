@@ -186,5 +186,37 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
   ASSERT_EQ(intermodal::WALK, j.transports_[2].slot_);
 }
 
+TEST_F(reliability_late_connections, DISABLED_late_conn_req) {
+  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  auto req =
+      b.add_pretrip_start(schedule_hotels::DARMSTADT.name_,
+                          schedule_hotels::DARMSTADT.eva_,
+                          1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
+                          1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
+          .add_destination(schedule_hotels::FRANKFURT.name_,
+                           schedule_hotels::FRANKFURT.eva_)
+          .build_late_connection_request(50000 /* 50 km*/);
+
+  using routing::RoutingResponse;
+  auto const res = motis_content(ReliabilityRatingResponse, call(req));
+
+  ASSERT_EQ(2, res->response()->connections()->size());
+  ASSERT_EQ(2, (*res->response()->connections())[0]->transports()->size());
+  ASSERT_EQ(
+      Move_Walk,
+      (*(*res->response()->connections())[0]->transports())[1]->move_type());
+  auto taxi = reinterpret_cast<Walk const*>(
+      (*(*res->response()->connections())[0]->transports())[1]->move());
+  ASSERT_EQ("Taxi", std::string(taxi->mumo_type()->c_str()));
+
+  ASSERT_EQ(2, (*res->response()->connections())[1]->transports()->size());
+  ASSERT_EQ(
+      Move_Transport,
+      (*(*res->response()->connections())[1]->transports())[0]->move_type());
+  auto direct_conn = reinterpret_cast<Transport const*>(
+      (*(*res->response()->connections())[1]->transports())[0]->move());
+  ASSERT_EQ(1, direct_conn->train_nr());
+}
+
 }  // namespace reliability
 }  // namespace motis
