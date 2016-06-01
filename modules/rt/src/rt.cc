@@ -8,6 +8,7 @@
 #include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_publish.h"
 #include "motis/loader/util.h"
 
 namespace po = boost::program_options;
@@ -18,9 +19,32 @@ using motis::ris::RISBatch;
 namespace motis {
 namespace rt {
 
+struct shifted_node {
+  shifted_node() = default;
+  shifted_node(primary_trip_id trp, uint32_t station_idx, time schedule_time,
+               event_type ev_type, time updated_time, delay_info::reason reason,
+               bool canceled)
+      : trp_(trp),
+        station_idx_(station_idx),
+        schedule_time_(schedule_time),
+        ev_type_(ev_type),
+        updated_time_(updated_time),
+        reason_(reason),
+        canceled_(canceled) {}
+
+  primary_trip_id trp_;
+  uint32_t station_idx_;
+  time schedule_time_;
+  event_type ev_type_;
+
+  time updated_time_;
+  delay_info::reason reason_;
+  bool canceled_;
+};
+
 struct update {
   update() = default;
-  update(unsigned station_id, delay_info::reason reason, time schedule_time,
+  update(uint32_t station_id, delay_info::reason reason, time schedule_time,
          time new_time)
       : station_id_(station_id),
         reason_(reason),
@@ -31,7 +55,7 @@ struct update {
     return {id, station_id_, type, schedule_time_};
   }
 
-  unsigned station_id_;
+  uint32_t station_id_;
   delay_info::reason reason_;
   time schedule_time_, updated_time_;
 };
@@ -66,7 +90,16 @@ node* get_route_node(edge const& e, event_type const ev_type) {
   return ev_type == event_type::DEP ? e.from_ : e.to_;
 }
 
-void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
+bool applicable(schedule const&) {
+  // TODO(Felix Guendling):
+  // check whether update can be applied to the search graph without losing
+  // important properties.
+  return true;
+}
+
+void handle_delay_message(schedule& sched, ris::DelayMessage const* msg,
+                          std::vector<shifted_node>& shifted_nodes) {
+
   auto const id = msg->trip_id();
   auto const updates = get_updates(sched, msg->type() == ris::DelayType_Is
                                               ? delay_info::reason::IS
@@ -106,6 +139,11 @@ void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
           continue;
         }
 
+        // Check whether update is applicable.
+        if (!applicable(sched)) {
+          continue;
+        }
+
         delay_info* di = nullptr;
         if (di_it == end(sched.graph_to_delay_info_)) {
           // Create new delay info.
@@ -124,9 +162,40 @@ void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
         // Update event.
         di->set(upd.reason_, upd.updated_time_);
         ev_time = di->get_current_time();
+
+        // Store update for broadcast.
+        shifted_nodes.emplace_back(trp_id, upd.station_id_, schedule_time,
+                                   ev_type, di->get_current_time(),
+                                   di->get_reason(), false);
       }
     }
   }
+}
+
+msg_ptr shifted_nodes_to_msg(schedule const& sched,
+                             std::vector<shifted_node> const& shifted_nodes) {
+  message_creator fbb;
+  std::vector<Offset<ShiftedNode>> nodes;
+  for (auto const& n : shifted_nodes) {
+    nodes.push_back(CreateShiftedNode(
+        fbb,
+        CreateTripId(
+            fbb,
+            fbb.CreateString(sched.stations_.at(n.trp_.station_id_)->eva_nr_),
+            n.trp_.train_nr_, motis_to_unixtime(sched, n.trp_.time_),
+            fbb.CreateString(""), 0, EventType_Departure, fbb.CreateString("")),
+        fbb.CreateString(sched.stations_.at(n.station_idx_)->eva_nr_),
+        motis_to_unixtime(sched, n.schedule_time_),
+        n.ev_type_ == event_type::DEP ? EventType_DEPARTURE : EventType_ARRIVAL,
+        motis_to_unixtime(sched, n.updated_time_),
+        n.reason_ == delay_info::reason::IS ? TimestampReason_IS
+                                            : TimestampReason_FORECAST,
+        false));
+  }
+  fbb.create_and_finish(MsgContent_RtUpdate,
+                        CreateRtUpdate(fbb, fbb.CreateVector(nodes)).Union(),
+                        "/rt/update", DestinationType_Topic);
+  return make_msg(fbb);
 }
 
 po::options_description rt::desc() {
@@ -136,6 +205,8 @@ po::options_description rt::desc() {
 
 void rt::init(motis::module::registry& reg) {
   reg.subscribe("/ris/messages", [](msg_ptr const& msg) -> msg_ptr {
+    std::vector<shifted_node> shifted_nodes;
+
     auto& sched = get_schedule();
     for (auto const& m : *motis_content(RISBatch, msg)->messages()) {
       auto const& nested = m->message_nested_root();
@@ -145,8 +216,18 @@ void rt::init(motis::module::registry& reg) {
 
       auto const& delay_msg =
           reinterpret_cast<ris::DelayMessage const*>(nested->content());
-      handle_delay_message(sched, delay_msg);
+
+      try {
+        handle_delay_message(sched, delay_msg, shifted_nodes);
+      } catch (...) {
+        continue;
+      }
     }
+
+    if (!shifted_nodes.empty()) {
+      motis_publish(shifted_nodes_to_msg(sched, shifted_nodes));
+    }
+
     return nullptr;
   });
 }

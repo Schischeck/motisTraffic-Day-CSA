@@ -136,12 +136,12 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
       CreateRoutingRequest(
           fbb, Start_PretripStart,
           CreatePretripStart(fbb,
-                             CreateInputStation(fbb, fbb.CreateString(""),
-                                                fbb.CreateString(from_eva)),
+                             CreateInputStation(fbb, fbb.CreateString(from_eva),
+                                                fbb.CreateString("")),
                              &interval)
               .Union(),
-          CreateInputStation(fbb, fbb.CreateString(""),
-                             fbb.CreateString(to_eva)),
+          CreateInputStation(fbb, fbb.CreateString(to_eva),
+                             fbb.CreateString("")),
           SearchType_DefaultForward,
           fbb.CreateVector(std::vector<Offset<Via>>()),
           fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))

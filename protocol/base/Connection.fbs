@@ -1,20 +1,13 @@
 include "base/Station.fbs";
+include "base/TimestampReason.fbs";
 
 namespace motis;
-
-enum Reason : byte {
-  SCHEDULE,
-  REPAIR,
-  IS,
-  PROPAGATION,
-  FORECAST
-}
 
 table EventInfo {
   time:ulong;
   schedule_time:ulong;
   platform:string;
-  reason:Reason;
+  reason:TimestampReason;
 }
 
 table Stop {
