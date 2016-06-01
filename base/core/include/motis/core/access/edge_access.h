@@ -70,6 +70,10 @@ inline time get_time(node const* route_node, std::size_t const lcon_index,
   }
 }
 
+inline time get_time(light_connection const* lcon, event_type const ev_type) {
+  return ev_type == event_type::DEP ? lcon->d_time_ : lcon->a_time_;
+}
+
 inline std::size_t get_dep_lcon_index(node const* route_node,
                                       light_connection const* lcon) {
   for (auto const& e : route_node->edges_) {

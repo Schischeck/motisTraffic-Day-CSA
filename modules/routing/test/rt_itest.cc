@@ -25,8 +25,7 @@ namespace routing {
 
 struct routing_rt : public motis_instance_test {
   routing_rt()
-      : motis::test::motis_instance_test(dataset_opt,
-                                         {"routing", "rt"}) {}
+      : motis::test::motis_instance_test(dataset_opt, {"routing", "rt"}) {}
 
   msg_ptr routing_request() const {
     auto const interval = Interval(unix_time(1330), unix_time(1330));
@@ -52,7 +51,7 @@ struct routing_rt : public motis_instance_test {
 };
 
 TEST_F(routing_rt, finds_annotated_connections) {
-  publish(get_ris_message());
+  publish(get_ris_message(sched()));
   auto journeys = message_to_journeys(
       motis_content(RoutingResponse, call(routing_request())));
 

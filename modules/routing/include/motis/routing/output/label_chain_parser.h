@@ -86,8 +86,9 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
   node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
-  time walk_arrival = INVALID_TIME;
-  int stop_index = -1;
+  auto walk_arrival = INVALID_TIME;
+  auto walk_arrival_di = delay_info(INVALID_TIME);
+  auto stop_index = -1;
 
   auto it = begin(labels);
   int current_state = initial_state(it);
@@ -100,11 +101,16 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         int d_platform = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
         time d_time = INVALID_TIME, d_sched_time = INVALID_TIME;
+        delay_info::reason a_reason = walk_arrival_di.get_reason(),
+                           d_reason = delay_info::reason::SCHEDULE;
         if (a_time == INVALID_TIME && last_con != nullptr) {
           a_platform = last_con->full_con_->a_platform_;
           a_time = last_con->a_time_;
-          a_sched_time = get_schedule_time(sched, last_route_node, last_con,
-                                           event_type::ARR);
+
+          auto a_di =
+              get_delay_info(sched, last_route_node, last_con, event_type::ARR);
+          a_sched_time = a_di.get_schedule_time();
+          a_reason = a_di.get_reason();
         }
 
         walk_arrival = INVALID_TIME;
@@ -116,14 +122,17 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
           auto const& succ = *s2;
           d_platform = succ->connection_->full_con_->d_platform_;
           d_time = succ->connection_->d_time_;
-          d_sched_time = get_schedule_time(sched, (*s1)->node_,
-                                           succ->connection_, event_type::DEP);
+
+          auto d_di = get_delay_info(sched, (*s1)->node_, succ->connection_,
+                                     event_type::DEP);
+          d_sched_time = d_di.get_schedule_time();
+          d_reason = d_di.get_reason();
         }
 
         stops.emplace_back(static_cast<unsigned int>(++stop_index),
                            current->node_->get_station()->id_, a_platform,
                            d_platform, a_time, d_time, a_sched_time,
-                           d_sched_time,
+                           d_sched_time, a_reason, d_reason,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
         break;
@@ -131,6 +140,11 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
       case WALK:
         assert(std::next(it) != end(labels));
+
+        if (last_con != nullptr) {
+          walk_arrival_di =
+              get_delay_info(sched, last_route_node, last_con, event_type::ARR);
+        }
 
         stops.emplace_back(
             static_cast<unsigned int>(++stop_index),
@@ -147,14 +161,14 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             current->now_,
 
             // Arrival schedule time:
-            stops.empty()
-                ? INVALID_TIME
-                : last_con ? get_schedule_time(sched, last_route_node, last_con,
-                                               event_type::ARR)
-                           : current->now_,
+            stops.empty() ? INVALID_TIME
+                          : last_con ? walk_arrival_di.get_schedule_time()
+                                     : current->now_,
 
             // Departure schedule time:
             current->now_,
+
+            walk_arrival_di.get_reason(), walk_arrival_di.get_reason(),
 
             last_con != nullptr);
 
@@ -163,7 +177,6 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
                                 (*std::next(it))->now_ - current->now_, -1, 0);
 
         walk_arrival = (*std::next(it))->now_;
-
         last_con = nullptr;
         break;
 
@@ -187,6 +200,11 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             succ = *std::next(it, 2);
           }
 
+          auto a_di = get_delay_info(sched, current->node_,
+                                     current->connection_, event_type::ARR);
+          auto d_di = get_delay_info(sched, dep_route_node, succ->connection_,
+                                     event_type::DEP);
+
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
@@ -196,11 +214,8 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
                 current->connection_->full_con_->a_platform_,
                 succ->connection_->full_con_->d_platform_,
                 current->connection_->a_time_, succ->connection_->d_time_,
-                get_schedule_time(sched, current->node_, current->connection_,
-                                  event_type::ARR),
-                get_schedule_time(sched, dep_route_node, succ->connection_,
-                                  event_type::DEP),
-                false);
+                a_di.get_schedule_time(), d_di.get_schedule_time(),
+                a_di.get_reason(), d_di.get_reason(), false);
           }
         }
 

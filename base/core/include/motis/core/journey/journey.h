@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "motis/core/schedule/delay_info.h"
+
 namespace motis {
 
 struct journey {
@@ -33,6 +35,7 @@ struct journey {
       bool valid_;
       std::time_t timestamp_;
       std::time_t schedule_timestamp_;
+      delay_info::reason timestamp_reason_;
       std::string platform_;
     } arrival_, departure_;
   };

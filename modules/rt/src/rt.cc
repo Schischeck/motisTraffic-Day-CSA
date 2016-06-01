@@ -100,7 +100,7 @@ void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
 
         // Check whether schedule time matches update message schedule time.
         auto const schedule_time = di_it != end(sched.graph_to_delay_info_)
-                                       ? di_it->second->schedule_time_
+                                       ? di_it->second->get_schedule_time()
                                        : ev_time;
         if (upd.schedule_time_ != schedule_time) {
           continue;
@@ -114,7 +114,7 @@ void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
 
           auto const sched_ev =
               schedule_event(trp_id, route_node->get_station()->id_, ev_type,
-                             di->schedule_time_);
+                             di->get_schedule_time());
           sched.schedule_to_delay_info_[sched_ev] = di;
           sched.graph_to_delay_info_[graph_ev] = di;
         } else {
@@ -122,8 +122,6 @@ void handle_delay_message(schedule& sched, ris::DelayMessage const* msg) {
         }
 
         // Update event.
-        std::cout << upd.reason_ << " "
-                  << motis_to_unixtime(sched, upd.updated_time_) << "\n";
         di->set(upd.reason_, upd.updated_time_);
         ev_time = di->get_current_time();
       }

@@ -8,6 +8,7 @@
 
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/nodes.h"
 
 namespace motis {
 

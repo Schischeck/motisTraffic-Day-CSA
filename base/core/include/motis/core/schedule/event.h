@@ -11,6 +11,7 @@
 
 namespace motis {
 
+class node;
 enum class event_type { DEP, ARR };
 
 struct schedule_event {

@@ -32,6 +32,12 @@ struct delay_info {
         forecase_time_(0),
         propagation_time_(0) {}
 
+  time get_schedule_time() const { return schedule_time_; }
+  time get_repair_time() const { return repair_time_; }
+  time get_is_time() const { return is_time_; }
+  time get_forecast_time() const { return forecase_time_; }
+  time get_propagation_time() const { return propagation_time_; }
+
   void set(reason const r, time const t) {
     switch (r) {
       case reason::SCHEDULE: schedule_time_ = t; break;
@@ -67,6 +73,7 @@ struct delay_info {
     }
   }
 
+private:
   time repair_time_, is_time_;
   time schedule_time_, forecase_time_, propagation_time_;
 };
