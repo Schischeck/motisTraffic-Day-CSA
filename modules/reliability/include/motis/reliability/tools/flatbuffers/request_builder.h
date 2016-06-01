@@ -98,6 +98,8 @@ private:
   void create_hotel_edges(intermodal::individual_modes_container const&);
 };
 
+std::string departure_station_name(routing::RoutingRequest const& req);
+
 }  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

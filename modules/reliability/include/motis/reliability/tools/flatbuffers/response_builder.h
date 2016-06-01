@@ -25,7 +25,9 @@ module::msg_ptr to_reliability_rating_response(
     routing::RoutingResponse const*,
     std::vector<rating::connection_rating> const&,
     std::vector<rating::simple_rating::simple_connection_rating> const&,
-    bool const short_output);
+    bool const short_output, bool const dep_intermodal = false,
+    bool const arr_intermodal = false, std::string const dep_address = "",
+    std::string const arr_address = "");
 
 module::msg_ptr to_reliability_rating_response(routing::RoutingResponse const*);
 

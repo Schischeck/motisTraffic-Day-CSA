@@ -276,6 +276,18 @@ void request_builder::create_hotel_edges(
   }
 }
 
+std::string departure_station_name(routing::RoutingRequest const& req) {
+  using namespace routing;
+  if (req.start_type() == Start_PretripStart) {
+    auto start = reinterpret_cast<PretripStart const*>(req.start());
+    return start->station()->name()->str();
+  } else if (req.start_type() == Start_OntripStationStart) {
+    auto start = reinterpret_cast<OntripStationStart const*>(req.start());
+    return start->station()->name()->str();
+  }
+  return "";
+}
+
 }  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

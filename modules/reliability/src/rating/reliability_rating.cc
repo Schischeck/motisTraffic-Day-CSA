@@ -14,7 +14,11 @@ namespace reliability {
 namespace rating {
 
 module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
-                                      context const& c) {
+                                      context const& c,
+                                      bool const dep_intermodal,
+                                      bool const arr_intermodal,
+                                      std::string const dep_address,
+                                      std::string const arr_address) {
   std::vector<rating::connection_rating> ratings(res.connections()->size());
   std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
       res.connections()->size());
@@ -31,7 +35,8 @@ module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
   }
 
   return flatbuffers::response_builder::to_reliability_rating_response(
-      &res, ratings, simple_ratings, true /* short output */);
+      &res, ratings, simple_ratings, true /* short output */, dep_intermodal,
+      arr_intermodal, dep_address, arr_address);
 }
 
 }  // namespace rating

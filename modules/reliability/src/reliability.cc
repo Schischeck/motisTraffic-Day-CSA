@@ -138,7 +138,10 @@ msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel) {
       *motis_content(RoutingResponse, routing_response),
       ::motis::reliability::context(lock.sched(),
                                     *rel.precomputed_distributions_,
-                                    *rel.s_t_distributions_));
+                                    *rel.s_t_distributions_),
+      req.dep_is_intermodal(), req.arr_is_intermodal(),
+      flatbuffers::departure_station_name(*req.request()),
+      req.request()->destination()->name()->str());
 }
 
 void update_mumo_info(
@@ -146,6 +149,29 @@ void update_mumo_info(
   for (auto& cg : cgs) {
     for (auto& j : cg->journeys_) {
       intermodal::update_mumo_info(j);
+    }
+  }
+}
+
+void update_address_info(
+    ReliableRoutingRequest const& req,
+    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
+  for (auto& cg : cgs) {
+    if (req.dep_is_intermodal()) {
+      cg->journeys_.front().stops_.front().name_ =
+          flatbuffers::departure_station_name(*req.request());
+    }
+    if (req.arr_is_intermodal()) {
+      std::set<uint16_t> arriving_journeys;
+      for (auto& s : cg->stops_) {
+        for (auto& a : s.alternative_infos_) {
+          arriving_journeys.insert(a.journey_index_);
+        }
+      }
+      for (auto idx : arriving_journeys) {
+        cg->journeys_.at(idx).stops_.back().name_ =
+            req.request()->destination()->name()->str();
+      }
     }
   }
 }
