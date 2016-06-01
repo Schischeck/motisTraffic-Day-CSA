@@ -6,7 +6,7 @@ namespace motis {
 namespace reliability {
 namespace schedule_hotels {
 
-constexpr auto PATH = "modules/reliability/resources/schedule_hotels/";
+constexpr auto PATH = "test/schedule/schedule_hotels/";
 constexpr auto PATH_FOOT_SCHEDULE =
     "modules/reliability/resources/schedule_hotels_foot/";
 constexpr auto DATE = "20151019";
