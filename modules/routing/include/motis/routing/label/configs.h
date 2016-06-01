@@ -41,8 +41,7 @@ typedef label<
               late_connections_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance,
               late_connections_post_search_dominance>,
-    comparator<travel_time_dominance, transfers_dominance,
-               late_connections_dominance>>
+    comparator<travel_time_dominance, transfers_dominance>>
     late_connections_label;
 
 }  // namespace routing
