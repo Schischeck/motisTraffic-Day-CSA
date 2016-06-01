@@ -41,8 +41,7 @@ state next_state(int s, Label const* c, Label const* n) {
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
         switch (c->node_->type()) {
-          case node_type::STATION_NODE:
-            return n && n->node_->is_station_node() ? WALK : AT_STATION;
+          case node_type::STATION_NODE: return AT_STATION;
           case node_type::FOOT_NODE: return WALK;
           case node_type::ROUTE_NODE:
             return n->node_->is_route_node() ? IN_CONNECTION_THROUGH
@@ -159,10 +158,9 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
             last_con != nullptr);
 
-        transports.emplace_back(
-            stop_index, static_cast<unsigned int>(stop_index) + 1,
-            (*std::next(it))->now_ - current->now_, (*std::next(it))->slot_,
-            0 /* TODO(Mohammad Keyhani) */);
+        transports.emplace_back(stop_index,
+                                static_cast<unsigned int>(stop_index) + 1,
+                                (*std::next(it))->now_ - current->now_, -1, 0);
 
         walk_arrival = (*std::next(it))->now_;
 
@@ -192,12 +190,17 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
-            stops.emplace_back(static_cast<unsigned int>(++stop_index),
-                               current->node_->get_station()->id_,
-                               current->connection_->full_con_->a_platform_,
-                               succ->connection_->full_con_->d_platform_,
-                               current->connection_->a_time_,
-                               succ->connection_->d_time_, false);
+            stops.emplace_back(
+                static_cast<unsigned int>(++stop_index),
+                current->node_->get_station()->id_,
+                current->connection_->full_con_->a_platform_,
+                succ->connection_->full_con_->d_platform_,
+                current->connection_->a_time_, succ->connection_->d_time_,
+                get_schedule_time(sched, current->node_, current->connection_,
+                                  event_type::ARR),
+                get_schedule_time(sched, dep_route_node, succ->connection_,
+                                  event_type::DEP),
+                false);
           }
         }
 

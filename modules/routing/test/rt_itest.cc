@@ -26,7 +26,7 @@ namespace routing {
 struct routing_rt : public motis_instance_test {
   routing_rt()
       : motis::test::motis_instance_test(dataset_opt,
-                                         {"routing", "rt", "ris"}) {}
+                                         {"routing", "rt"}) {}
 
   msg_ptr routing_request() const {
     auto const interval = Interval(unix_time(1330), unix_time(1330));

@@ -33,6 +33,10 @@ inline time get_schedule_time(schedule const& sched, node const* route_node,
   if (it == end(sched.graph_to_delay_info_)) {
     return ev_type == event_type::DEP ? lcon->d_time_ : lcon->a_time_;
   } else {
+    printf("\n\nFOUND:\n");
+    printf("  schedule: %d\n", motis_to_unixtime(sched, it->second->schedule_time_));
+    printf("   current: %d\n", motis_to_unixtime(sched, it->second->get_current_time()));
+    printf("\n");
     return it->second->schedule_time_;
   }
 }
