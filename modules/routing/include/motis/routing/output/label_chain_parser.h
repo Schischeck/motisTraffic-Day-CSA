@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "motis/core/schedule/connection.h"
+#include "motis/core/access/realtime_access.h"
 
 #include "motis/routing/output/stop.h"
 #include "motis/routing/output/transport.h"
@@ -69,7 +70,7 @@ int initial_state(LabelIt& it) {
 
 template <typename Label>
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
-parse_label_chain(Label const* terminal_label) {
+parse_label_chain(schedule const& sched, Label const* terminal_label) {
   std::vector<Label const*> labels;
 
   auto c = terminal_label;
@@ -83,6 +84,7 @@ parse_label_chain(Label const* terminal_label) {
   auto& stops = ret.first;
   auto& transports = ret.second;
 
+  node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
   time walk_arrival = INVALID_TIME;
   int station_index = -1;
@@ -96,11 +98,13 @@ parse_label_chain(Label const* terminal_label) {
       case AT_STATION: {
         int a_platform = MOTIS_UNKNOWN_TRACK;
         int d_platform = MOTIS_UNKNOWN_TRACK;
-        time a_time = walk_arrival;
-        time d_time = INVALID_TIME;
+        time a_time = walk_arrival, a_sched_time = walk_arrival;
+        time d_time = INVALID_TIME, d_sched_time = INVALID_TIME;
         if (a_time == INVALID_TIME && last_con != nullptr) {
           a_platform = last_con->full_con_->a_platform_;
           a_time = last_con->a_time_;
+          a_sched_time = get_schedule_time(sched, last_route_node, last_con,
+                                           event_type::ARR);
         }
 
         walk_arrival = INVALID_TIME;
@@ -109,13 +113,17 @@ parse_label_chain(Label const* terminal_label) {
         auto s2 = std::next(it, 2);
         if (s1 != end(labels) && s2 != end(labels) &&
             (*s2)->connection_ != nullptr) {
-          d_platform = (*s2)->connection_->full_con_->d_platform_;
-          d_time = (*s2)->connection_->d_time_;
+          auto const& succ = *s2;
+          d_platform = succ->connection_->full_con_->d_platform_;
+          d_time = succ->connection_->d_time_;
+          d_sched_time = get_schedule_time(sched, (*s1)->node_,
+                                           succ->connection_, event_type::DEP);
         }
 
         stops.emplace_back(static_cast<unsigned int>(++station_index),
                            current->node_->get_station()->id_, a_platform,
-                           d_platform, a_time, d_time,
+                           d_platform, a_time, d_time, a_sched_time,
+                           d_sched_time,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
         break;
@@ -130,10 +138,25 @@ parse_label_chain(Label const* terminal_label) {
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->full_con_->a_platform_,
             MOTIS_UNKNOWN_TRACK,
-            stops.empty() ? INVALID_TIME : (last_con == nullptr)
-                                               ? current->now_
-                                               : last_con->a_time_,
-            current->now_, last_con != nullptr);
+
+            // Arrival graph time:
+            stops.empty() ? INVALID_TIME : last_con ? last_con->a_time_
+                                                    : current->now_,
+
+            // Departure graph time:
+            current->now_,
+
+            // Arrival schedule time:
+            stops.empty()
+                ? INVALID_TIME
+                : last_con ? get_schedule_time(sched, last_route_node, last_con,
+                                               event_type::ARR)
+                           : current->now_,
+
+            // Departure schedule time:
+            current->now_,
+
+            last_con != nullptr);
 
         transports.emplace_back(station_index,
                                 static_cast<unsigned int>(station_index) + 1,
@@ -156,23 +179,32 @@ parse_label_chain(Label const* terminal_label) {
         auto succ = *std::next(it);
 
         if (succ->node_->is_route_node()) {
+          auto dep_route_node = current->node_;
+
           // skip through edge.
           if (!succ->connection_) {
+            dep_route_node = succ->node_;
             succ = *std::next(it, 2);
           }
 
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
-            stops.emplace_back(static_cast<unsigned int>(++station_index),
-                               current->node_->get_station()->id_,
-                               current->connection_->full_con_->a_platform_,
-                               succ->connection_->full_con_->d_platform_,
-                               current->connection_->a_time_,
-                               succ->connection_->d_time_, false);
+            stops.emplace_back(
+                static_cast<unsigned int>(++station_index),
+                current->node_->get_station()->id_,
+                current->connection_->full_con_->a_platform_,
+                succ->connection_->full_con_->d_platform_,
+                current->connection_->a_time_, succ->connection_->d_time_,
+                get_schedule_time(sched, current->node_, current->connection_,
+                                  event_type::ARR),
+                get_schedule_time(sched, dep_route_node, succ->connection_,
+                                  event_type::DEP),
+                false);
           }
         }
 
+        last_route_node = current->node_;
         last_con = current->connection_;
         break;
       }

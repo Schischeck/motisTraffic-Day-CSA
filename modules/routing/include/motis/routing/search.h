@@ -73,7 +73,7 @@ struct search {
     journeys.resize(results.size());
     std::transform(begin(results), end(results), begin(journeys),
                    [&q](Label* label) {
-                     return output::labels_to_journey(label, *q.sched_);
+                     return output::labels_to_journey(*q.sched_, label);
                    });
 
     return search_result(stats, journeys);

@@ -41,27 +41,22 @@ struct schedule_event {
 
 struct graph_event {
   graph_event() = default;
-  graph_event(primary_trip_id trp, unsigned station_idx, event_type type,
-              time current_time)
-      : trp_(trp),
-        station_idx_(station_idx),
-        type_(type),
-        current_time_(current_time) {}
+  graph_event(node const* route_node, std::size_t lcon_idx, event_type type)
+      : route_node_(route_node), lcon_idx_(lcon_idx), type_(type) {}
 
   friend bool operator==(graph_event const& lhs, const graph_event& rhs) {
-    return std::tie(lhs.trp_, lhs.station_idx_, lhs.type_, lhs.current_time_) ==
-           std::tie(rhs.trp_, rhs.station_idx_, rhs.type_, rhs.current_time_);
+    return std::tie(lhs.route_node_, lhs.lcon_idx_, lhs.type_) ==
+           std::tie(rhs.route_node_, rhs.lcon_idx_, rhs.type_);
   }
 
   friend bool operator<(graph_event const& lhs, const graph_event& rhs) {
-    return std::tie(lhs.trp_, lhs.station_idx_, lhs.type_, lhs.current_time_) <
-           std::tie(rhs.trp_, rhs.station_idx_, rhs.type_, rhs.current_time_);
+    return std::tie(lhs.route_node_, lhs.lcon_idx_, lhs.type_) <
+           std::tie(rhs.route_node_, rhs.lcon_idx_, rhs.type_);
   }
 
-  primary_trip_id trp_;
-  unsigned station_idx_;
+  node const* route_node_;
+  std::size_t lcon_idx_;
   event_type type_;
-  time current_time_;
 };
 
 }  // namespace motis
@@ -74,10 +69,7 @@ struct hash<motis::schedule_event> {
     std::size_t seed = 0;
     motis::hash_combine(seed, e.trp_);
     motis::hash_combine(seed, e.station_idx_);
-    motis::hash_combine(
-        seed,
-        static_cast<typename std::underlying_type<motis::event_type>::type>(
-            e.type_));
+    motis::hash_combine(seed, e.type_ == motis::event_type::DEP ? 0 : 1);
     motis::hash_combine(seed, e.schedule_time_);
     return seed;
   }
@@ -87,13 +79,9 @@ template <>
 struct hash<motis::graph_event> {
   std::size_t operator()(motis::graph_event const& e) const {
     std::size_t seed = 0;
-    motis::hash_combine(seed, e.trp_);
-    motis::hash_combine(seed, e.station_idx_);
-    motis::hash_combine(
-        seed,
-        static_cast<typename std::underlying_type<motis::event_type>::type>(
-            e.type_));
-    motis::hash_combine(seed, e.current_time_);
+    motis::hash_combine(seed, e.route_node_);
+    motis::hash_combine(seed, e.lcon_idx_);
+    motis::hash_combine(seed, e.type_ == motis::event_type::DEP ? 0 : 1);
     return seed;
   }
 };
