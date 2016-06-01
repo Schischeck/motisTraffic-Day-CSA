@@ -21,7 +21,7 @@ namespace rt {
 
 struct shifted_node {
   shifted_node() = default;
-  shifted_node(primary_trip_id trp, uint32_t station_idx, time schedule_time,
+  shifted_node(primary_trip_id trp, uint32_t station_idx, time schedule_time,  // NOLINT
                event_type ev_type, time updated_time, delay_info::reason reason,
                bool canceled)
       : trp_(trp),
