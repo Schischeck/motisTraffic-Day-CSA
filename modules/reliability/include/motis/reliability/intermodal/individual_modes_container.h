@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/hotels.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
 namespace motis {
@@ -22,10 +23,6 @@ inline std::string to_str(slot const s) {
   }
   return "unknown";
 }
-
-constexpr auto HOTEL_EARLIEST_CHECKOUT = 8 * 60;
-constexpr auto HOTEL_MIN_STAY_DURATION = 9 * 60;
-constexpr auto HOTEL_PRICE = 5000;
 
 constexpr auto LATE_TAXI_BEGIN_TIME = 1260;  // minutes after midnight
 constexpr auto LATE_TAXI_END_TIME = 180;  // minutes after midnight
@@ -57,28 +54,13 @@ struct individual_modes_container {
     std::vector<bs_type> at_start_, at_destination_;
   } bikesharing_;
 
-  struct hotel {
-    hotel(std::string const station,
-          uint16_t const earliest_checkout = HOTEL_EARLIEST_CHECKOUT,
-          uint16_t const min_stay_duration = HOTEL_MIN_STAY_DURATION,
-          uint16_t const price = HOTEL_PRICE)
-        : station_(station),
-          earliest_checkout_(earliest_checkout),
-          min_stay_duration_(min_stay_duration),
-          price_(price) {}
-
-    std::string station_;
-    uint16_t earliest_checkout_;
-    uint16_t min_stay_duration_;
-    uint16_t price_;
-  };
-  std::vector<hotel> hotel_;
+  std::vector<hotel> hotels_;
 
   struct taxi {
-    taxi(std::string const from_station, std::string const to_station,
-         uint16_t const duration, uint16_t const price,
-         uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
-         uint16_t const valid_to = LATE_TAXI_END_TIME)
+    explicit taxi(std::string const from_station, std::string const to_station,
+                  uint16_t const duration, uint16_t const price,
+                  uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
+                  uint16_t const valid_to = LATE_TAXI_END_TIME)
         : from_station_(from_station),
           to_station_(to_station),
           duration_(duration),

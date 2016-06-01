@@ -262,7 +262,7 @@ void request_builder::create_taxi_edges(
 void request_builder::create_hotel_edges(
     intermodal::individual_modes_container const& container) {
   using namespace routing;
-  for (auto const& e : container.hotel_) {
+  for (auto const& e : container.hotels_) {
     additional_edges_.push_back(CreateAdditionalEdgeWrapper(
         b_, AdditionalEdge_HotelEdge,
         CreateHotelEdge(

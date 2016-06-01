@@ -53,6 +53,6 @@ TEST(routing_late_connections_util, night_travel_duration_overnight) {
   ASSERT_EQ(300, f(1379, 1681));
 }
 
-}  // namespace late_connections
+}  // namespace late_connections_util
 }  // namespace routing
 }  // namespace motis
