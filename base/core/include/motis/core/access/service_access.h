@@ -33,7 +33,11 @@ inline std::string get_service_name(schedule const& sched,
   }
 
   auto const& category = sched.categories_[info->family_]->name_;
-  auto const& provider = info->provider_->short_name_;
+
+  std::string provider;
+  if(info->provider_ != nullptr) {
+    provider = info->provider_->short_name_;
+  }
 
   std::string print_cat;
   if (!category.empty() &&
