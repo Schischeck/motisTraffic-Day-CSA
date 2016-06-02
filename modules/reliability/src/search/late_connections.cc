@@ -61,14 +61,13 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
 }
 
 void ask_lookup_module(
-    std::string const& destination, double const& destination_lat,
-    double const& destination_lng, unsigned const taxi_radius,
+    station const& destination, unsigned const taxi_radius,
     std::vector<intermodal::individual_modes_container::taxi>& taxis) {
   using namespace lookup;
   module::message_creator b;
   b.create_and_finish(
       MsgContent_LookupGeoStationIdRequest,
-      CreateLookupGeoStationIdRequest(b, b.CreateString(destination),
+      CreateLookupGeoStationIdRequest(b, b.CreateString(destination.eva_nr_),
                                       static_cast<double>(taxi_radius))
           .Union(),
       "/lookup/geo_station_id");
@@ -81,13 +80,39 @@ void ask_lookup_module(
     if (st->id()->str().substr(0, 2) != "80") {
       continue;
     }
-    taxi_cost cost(st->pos()->lat(), st->pos()->lng(), destination_lat,
-                   destination_lng, TAXI_BASE_PRICE, TAXI_KM_PRICE,
+    taxi_cost cost(st->pos()->lat(), st->pos()->lng(), destination.lat(),
+                   destination.lng(), TAXI_BASE_PRICE, TAXI_KM_PRICE,
                    TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
                    TAXI_AVG_SPEED_LONG_DISTANCE);
-    taxis.emplace_back(st->id()->str(), destination, cost.duration_,
+    taxis.emplace_back(st->id()->str(), destination.eva_nr_, cost.duration_,
                        cost.price_);
   }
+}
+
+station const& get_destination(ReliableRoutingRequest const& req,
+                               schedule const& sched) {
+  auto destination_eva = req.request()->destination()->id()->str();
+  if (destination_eva.empty()) {
+    module::message_creator b;
+    b.create_and_finish(
+        MsgContent_StationGuesserRequest,
+        guesser::CreateStationGuesserRequest(
+            b, 1, b.CreateString(req.request()->destination()->name()->str()))
+            .Union(),
+        "/guesser");
+    auto const msg = motis_call(make_msg(b))->val();
+    using guesser::StationGuesserResponse;
+    auto const guesses = motis_content(StationGuesserResponse, msg)->guesses();
+    if (guesses->size() == 0) {
+      throw std::system_error(error::failure);
+    }
+    destination_eva = guesses->Get(0)->id()->str();
+  }
+  auto const it = sched.eva_to_station_.find(destination_eva);
+  if (it == sched.eva_to_station_.end()) {
+    throw std::system_error(motis::access::error::station_not_found);
+  }
+  return *it->second;
 }
 
 void init_taxi(
@@ -99,14 +124,10 @@ void init_taxi(
   }
   auto ops = reinterpret_cast<LateConnectionReq const*>(
       req.request_type()->request_options());
-  auto const destination_eva = req.request()->destination()->id()->str();
-  auto const it = sched.eva_to_station_.find(destination_eva);
-  if (it == sched.eva_to_station_.end()) {
-    throw std::system_error(motis::access::error::station_not_found);
-  }
 
-  ask_lookup_module(destination_eva, it->second->lat(), it->second->lng(),
-                    ops->taxi_radius(), taxis);
+  auto const& destination = get_destination(req, sched);
+
+  ask_lookup_module(destination, ops->taxi_radius(), taxis);
 }
 }  // namespace detail
 

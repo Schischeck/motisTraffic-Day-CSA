@@ -54,7 +54,7 @@ private:
   static std::vector<std::string> get_modules(bool const realtime,
                                               bool const bikesharing,
                                               bool const late_connections) {
-    std::vector<std::string> modules = {"reliability", "routing"};
+    std::vector<std::string> modules = {"reliability", "routing", "guesser"};
     if (realtime) {
       modules.push_back("rt");
       modules.push_back("ris");
