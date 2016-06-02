@@ -37,7 +37,6 @@ TEST_F(reliability_bikesharing_cg, cg) {
           .add_intermodal_destination(50.1273104, 8.6669383)
           .build_reliable_search_request(1, true);
   auto res_msg = call(req_msg);
-  ASSERT_NE(nullptr, res_msg);
   auto const cgs =
       motis_content(ReliableRoutingResponse, res_msg)->connection_graphs();
   ASSERT_EQ(1, cgs->size());

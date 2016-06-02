@@ -7,7 +7,7 @@ namespace motis {
 namespace reliability {
 namespace intermodal {
 
-constexpr auto HOTEL_EARLIEST_CHECKOUT = 6 * 60;
+constexpr auto HOTEL_EARLIEST_CHECKOUT = 6 * 60; /* GMT */
 constexpr auto HOTEL_MIN_STAY_DURATION = 9 * 60;
 constexpr auto HOTEL_PRICE = 5000;
 

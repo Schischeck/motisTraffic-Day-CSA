@@ -29,8 +29,6 @@ module::msg_ptr to_reliability_rating_response(
     bool const arr_intermodal = false, std::string const dep_address = "",
     std::string const arr_address = "");
 
-module::msg_ptr to_reliability_rating_response(routing::RoutingResponse const*);
-
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const&);
 

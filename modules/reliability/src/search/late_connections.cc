@@ -66,13 +66,14 @@ void ask_lookup_module(
     std::vector<intermodal::individual_modes_container::taxi>& taxis) {
   using namespace lookup;
   module::message_creator b;
-  b.create_and_finish(MsgContent_LookupGeoStationIdRequest,
-                      CreateLookupGeoStationIdRequest(
-                          b, b.CreateString(destination), taxi_radius)
-                          .Union(),
-                      "/lookup/geo_station_id");
-  auto lookup_res = motis_content(LookupGeoStationResponse,
-                                  motis_call(module::make_msg(b))->val());
+  b.create_and_finish(
+      MsgContent_LookupGeoStationIdRequest,
+      CreateLookupGeoStationIdRequest(b, b.CreateString(destination),
+                                      static_cast<double>(taxi_radius))
+          .Union(),
+      "/lookup/geo_station_id");
+  auto res_msg = motis_call(module::make_msg(b))->val();
+  auto lookup_res = motis_content(LookupGeoStationResponse, res_msg);
   for (auto const& st : *lookup_res->stations()) {
     // no taxis from local stations
     // in order to obtain better search times and reduce
@@ -92,12 +93,18 @@ void ask_lookup_module(
 void init_taxi(
     ReliableRoutingRequest const& req, schedule const& sched,
     std::vector<intermodal::individual_modes_container::taxi>& taxis) {
-  auto ops = reinterpret_cast<LateConnectionReq const*>(req.request_type());
+  if (req.request_type()->request_options_type() !=
+      RequestOptions_LateConnectionReq) {
+    throw std::system_error(error::failure);
+  }
+  auto ops = reinterpret_cast<LateConnectionReq const*>(
+      req.request_type()->request_options());
   auto const destination_eva = req.request()->destination()->id()->str();
   auto const it = sched.eva_to_station_.find(destination_eva);
   if (it == sched.eva_to_station_.end()) {
     throw std::system_error(motis::access::error::station_not_found);
   }
+
   ask_lookup_module(destination_eva, it->second->lat(), it->second->lng(),
                     ops->taxi_radius(), taxis);
 }
@@ -112,11 +119,7 @@ module::msg_ptr search(ReliableRoutingRequest const& req,
 
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
-  using namespace routing;
-  auto res = motis_content(RoutingResponse,
-                           motis_call(b.build_routing_request())->val());
-  return motis::reliability::flatbuffers::response_builder::
-      to_reliability_rating_response(res);
+  return motis_call(b.build_routing_request())->val();
 }
 }  // namespace late_connections
 }  // namespace search

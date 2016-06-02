@@ -13,6 +13,7 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "../include/schedules/schedule_hotels.h"
+#include "../include/schedules/schedule_hotels_foot.h"
 #include "../include/test_schedule_setup.h"
 
 namespace motis {
@@ -23,25 +24,32 @@ using namespace routing;
 class reliability_late_connections : public test_motis_setup {
 public:
   reliability_late_connections()
-      : test_motis_setup(schedule_hotels::PATH, schedule_hotels::DATE) {}
+      : test_motis_setup(schedule_hotels::PATH, schedule_hotels::DATE, false,
+                         false, "") {}
 };
 class reliability_hotels_foot : public test_motis_setup {
 public:
   reliability_hotels_foot()
-      : test_motis_setup(schedule_hotels::PATH_FOOT_SCHEDULE,
-                         schedule_hotels::DATE) {}
+      : test_motis_setup(schedule_hotels_foot::PATH, schedule_hotels_foot::DATE,
+                         false, false, "", true, schedule_hotels_foot::HOTELS) {
+  }
 };
 
 module::msg_ptr to_request(
-    intermodal::individual_modes_container const& container) {
+    intermodal::individual_modes_container const& container,
+    bool const foot = false) {
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   return b
-      .add_pretrip_start(schedule_hotels::DARMSTADT.name_,
-                         schedule_hotels::DARMSTADT.eva_,
+      .add_pretrip_start((foot ? schedule_hotels_foot::DARMSTADT.name_
+                               : schedule_hotels::DARMSTADT.name_),
+                         (foot ? schedule_hotels_foot::DARMSTADT.eva_
+                               : schedule_hotels::DARMSTADT.eva_),
                          1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                          1445295000 /* 10/20/2015, 00:50:00 GMT+2:00 DST */)
-      .add_destination(schedule_hotels::FRANKFURT.name_,
-                       schedule_hotels::FRANKFURT.eva_)
+      .add_destination((foot ? schedule_hotels_foot::FRANKFURT.name_
+                             : schedule_hotels::FRANKFURT.name_),
+                       (foot ? schedule_hotels_foot::FRANKFURT.eva_
+                             : schedule_hotels::FRANKFURT.eva_))
       .add_additional_edges(container)
       .build_routing_request();
 }
@@ -199,9 +207,9 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
 
 TEST_F(reliability_hotels_foot, hotels_after_foot) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels::NEUISENBURG.eva_, 8 * 60,
-                                 9 * 60, 5000);
-  auto msg = call(to_request(container));
+  container.hotels_.emplace_back(schedule_hotels_foot::NEUISENBURG.eva_, 480,
+                                 540, 5000);
+  auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
   struct {
@@ -234,8 +242,9 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
 
 TEST_F(reliability_hotels_foot, foot_after_hotel) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels::LANGEN.eva_, 360, 540, 5000);
-  auto msg = call(to_request(container));
+  container.hotels_.emplace_back(schedule_hotels_foot::LANGEN.eva_, 360, 540,
+                                 5000);
+  auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
   struct {
@@ -266,38 +275,88 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
   }
 }
 
-TEST_F(reliability_late_connections, late_conn_req) {
+TEST_F(reliability_hotels_foot, late_conn_req) {
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
-      b.add_pretrip_start(schedule_hotels::DARMSTADT.name_,
-                          schedule_hotels::DARMSTADT.eva_,
+      b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_,
+                          schedule_hotels_foot::DARMSTADT.eva_,
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
-          .add_destination(schedule_hotels::FRANKFURT.name_,
-                           schedule_hotels::FRANKFURT.eva_)
+          .add_destination(schedule_hotels_foot::FRANKFURT.name_,
+                           schedule_hotels_foot::FRANKFURT.eva_)
           .build_late_connection_request(50000 /* 50 km*/);
+  auto const res_msg = call(req);
+  auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
-  // TODO: CHECK MUMO TYPE
+  ASSERT_EQ(3, res->response()->connections()->size());
 
-  using routing::RoutingResponse;
-  auto const res = motis_content(ReliabilityRatingResponse, call(req));
-
-  ASSERT_EQ(2, res->response()->connections()->size());
-  ASSERT_EQ(2, (*res->response()->connections())[0]->transports()->size());
-  ASSERT_EQ(
-      Move_Walk,
-      (*(*res->response()->connections())[0]->transports())[1]->move_type());
-  auto taxi = reinterpret_cast<Walk const*>(
-      (*(*res->response()->connections())[0]->transports())[1]->move());
-  ASSERT_EQ("Taxi", std::string(taxi->mumo_type()->c_str()));
-
-  ASSERT_EQ(2, (*res->response()->connections())[1]->transports()->size());
-  ASSERT_EQ(
-      Move_Transport,
-      (*(*res->response()->connections())[1]->transports())[0]->move_type());
-  auto direct_conn = reinterpret_cast<Transport const*>(
-      (*(*res->response()->connections())[1]->transports())[0]->move());
-  ASSERT_EQ(1, direct_conn->train_nr());
+  {
+    auto const conn = (*res->response()->connections())[0];
+    ASSERT_EQ(3567, conn->db_costs());
+    ASSERT_EQ(0, conn->night_penalty());
+    ASSERT_EQ(2, conn->transports()->size());
+    {
+      auto const move = (*conn->transports())[0];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ("RE 1", transport->name()->str());
+      ASSERT_EQ(1, transport->train_nr());
+    }
+    {
+      auto const move = (*conn->transports())[1];
+      ASSERT_EQ(Move_Walk, move->move_type());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
+      ASSERT_EQ("Taxi", walk->mumo_type()->str());
+    }
+  }
+  {
+    auto const conn = (*res->response()->connections())[1];
+    ASSERT_EQ(1967, conn->db_costs());
+    ASSERT_EQ(0, conn->night_penalty());
+    ASSERT_EQ(3, conn->transports()->size());
+    {
+      auto const move = (*conn->transports())[0];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(1, transport->train_nr());
+    }
+    {
+      auto const move = (*conn->transports())[1];
+      ASSERT_EQ(Move_Walk, move->move_type());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
+      ASSERT_EQ("Walk", walk->mumo_type()->str());
+    }
+    {
+      auto const move = (*conn->transports())[2];
+      ASSERT_EQ(Move_Walk, move->move_type());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
+      ASSERT_EQ("Taxi", walk->mumo_type()->str());
+    }
+  }
+  {
+    auto const conn = (*res->response()->connections())[2];
+    ASSERT_EQ(0, conn->db_costs());
+    ASSERT_EQ(300, conn->night_penalty());
+    ASSERT_EQ(3, conn->transports()->size());
+    {
+      auto const move = (*conn->transports())[0];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(1, transport->train_nr());
+    }
+    {
+      auto const move = (*conn->transports())[1];
+      ASSERT_EQ(Move_Walk, move->move_type());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
+      ASSERT_EQ("Walk", walk->mumo_type()->str());
+    }
+    {
+      auto const move = (*conn->transports())[2];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(2, transport->train_nr());
+    }
+  }
 }
 
 }  // namespace reliability

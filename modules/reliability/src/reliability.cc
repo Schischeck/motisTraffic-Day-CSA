@@ -208,7 +208,15 @@ msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
 msg_ptr late_connections(ReliableRoutingRequest const& req, reliability& rel,
                          std::string const& hotels_file) {
   auto lock = rel.synced_sched();
-  return search::late_connections::search(req, hotels_file, lock.sched());
+  auto routing_res =
+      search::late_connections::search(req, hotels_file, lock.sched());
+
+  using routing::RoutingResponse;
+  return rating::rate_routing_response(
+      *motis_content(RoutingResponse, routing_res),
+      ::motis::reliability::context(lock.sched(),
+                                    *rel.precomputed_distributions_,
+                                    *rel.s_t_distributions_));
 }
 
 }  // namespace detail

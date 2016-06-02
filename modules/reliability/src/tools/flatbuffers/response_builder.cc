@@ -205,13 +205,6 @@ module::msg_ptr to_reliability_rating_response(
   return module::make_msg(b);
 }
 
-module::msg_ptr to_reliability_rating_response(
-    routing::RoutingResponse const* res) {
-  std::vector<rating::connection_rating> const dummy;
-  std::vector<rating::simple_rating::simple_connection_rating> dummy2;
-  return to_reliability_rating_response(res, dummy, dummy2, false);
-}
-
 std::pair<std::time_t, std::time_t> get_scheduled_times(
     journey const& journey) {
   auto const& first_transport =
