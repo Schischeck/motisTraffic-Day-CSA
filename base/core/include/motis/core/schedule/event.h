@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "motis/core/common/hash_helper.h"
+#include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip.h"
 
@@ -42,22 +43,32 @@ struct schedule_event {
 
 struct graph_event {
   graph_event() = default;
-  graph_event(node const* route_node, std::size_t lcon_idx, event_type type)
-      : route_node_(route_node), lcon_idx_(lcon_idx), type_(type) {}
+  graph_event(edge const* route_edge, std::size_t lcon_idx, event_type type)
+      : route_edge_(route_edge), lcon_idx_(lcon_idx), ev_type_(type) {}
 
   friend bool operator==(graph_event const& lhs, const graph_event& rhs) {
-    return std::tie(lhs.route_node_, lhs.lcon_idx_, lhs.type_) ==
-           std::tie(rhs.route_node_, rhs.lcon_idx_, rhs.type_);
+    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) ==
+           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
   }
 
   friend bool operator<(graph_event const& lhs, const graph_event& rhs) {
-    return std::tie(lhs.route_node_, lhs.lcon_idx_, lhs.type_) <
-           std::tie(rhs.route_node_, rhs.lcon_idx_, rhs.type_);
+    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) <
+           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
   }
 
-  node const* route_node_;
+  light_connection const* lcon() const {
+    return &route_edge_->m_.route_edge_.conns_[lcon_idx_];
+  }
+
+  uint32_t get_station_idx() const {
+    return (ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_)
+        ->get_station()
+        ->id_;
+  }
+
+  edge const* route_edge_;
   std::size_t lcon_idx_;
-  event_type type_;
+  event_type ev_type_;
 };
 
 }  // namespace motis
@@ -80,9 +91,9 @@ template <>
 struct hash<motis::graph_event> {
   std::size_t operator()(motis::graph_event const& e) const {
     std::size_t seed = 0;
-    motis::hash_combine(seed, e.route_node_);
+    motis::hash_combine(seed, e.route_edge_);
     motis::hash_combine(seed, e.lcon_idx_);
-    motis::hash_combine(seed, e.type_ == motis::event_type::DEP ? 0 : 1);
+    motis::hash_combine(seed, e.ev_type_ == motis::event_type::DEP ? 0 : 1);
     return seed;
   }
 };

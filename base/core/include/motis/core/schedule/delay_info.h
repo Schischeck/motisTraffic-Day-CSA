@@ -25,8 +25,9 @@ struct delay_info {
     }
   }
 
-  delay_info(time schedule_time)
-      : repair_time_(0),
+  delay_info(graph_event ev, time schedule_time)
+      : ev_(std::move(ev)),
+        repair_time_(0),
         is_time_(0),
         schedule_time_(schedule_time),
         forecase_time_(0),
@@ -73,7 +74,10 @@ struct delay_info {
     }
   }
 
+  graph_event get_graph_event() const { return ev_; }
+
 private:
+  graph_event ev_;
   time repair_time_, is_time_;
   time schedule_time_, forecase_time_, propagation_time_;
 };
