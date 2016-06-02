@@ -30,7 +30,7 @@ struct late_connections_updater {
       if (l.visited_hotel_ == late_connections::NOT_VISITED) {
         l.visited_hotel_ = late_connections::VISITED;
       }
-    } else if (t == edge::TIME_DEPENDENT_MUMO_EDGE &&
+    } else if (t == edge::PERIODIC_MUMO_EDGE /* taxi */ &&
                l.visited_hotel_ == late_connections::VISITED) {
       /* taxi after hotel not allowed */
       l.visited_hotel_ = late_connections::FILTERED;
@@ -45,11 +45,9 @@ struct late_connections_dominance {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(a.visited_hotel_ == b.visited_hotel_ &&
-                   a.db_costs_ >= b.db_costs_ &&
-                   a.night_penalty_ >= b.night_penalty_ &&
-                   (a.db_costs_ > b.db_costs_ ||
-                    a.night_penalty_ > b.night_penalty_)),
+        : greater_(a.visited_hotel_ != b.visited_hotel_ ||
+                   a.db_costs_ > b.db_costs_ ||
+                   a.night_penalty_ > b.night_penalty_),
           smaller_(a.visited_hotel_ == b.visited_hotel_ &&
                    a.db_costs_ <= b.db_costs_ &&
                    a.night_penalty_ <= b.night_penalty_ &&
@@ -70,10 +68,8 @@ struct late_connections_post_search_dominance {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(a.db_costs_ >= b.db_costs_ &&
-                   a.night_penalty_ >= b.night_penalty_ &&
-                   (a.db_costs_ > b.db_costs_ ||
-                    a.night_penalty_ > b.night_penalty_)),
+        : greater_(a.db_costs_ > b.db_costs_ ||
+                   a.night_penalty_ > b.night_penalty_),
           smaller_(a.db_costs_ <= b.db_costs_ &&
                    a.night_penalty_ <= b.night_penalty_ &&
                    (a.db_costs_ < b.db_costs_ ||

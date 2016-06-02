@@ -130,6 +130,8 @@ std::vector<journey> message_to_journeys(
 
     journey.duration_ = get_duration(journey);
     journey.transfers_ = get_transfers(journey);
+    journey.night_penalty_ = conn->night_penalty();
+    journey.db_costs_ = conn->db_costs();
   }
   return journeys;
 }

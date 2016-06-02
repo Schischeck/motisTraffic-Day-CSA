@@ -16,6 +16,20 @@ namespace routing {
 namespace output {
 
 template <typename Label>
+unsigned db_costs(Label const&) {
+  return 0;
+}
+unsigned db_costs(late_connections_label const& l) { return l.db_costs_; }
+
+template <typename Label>
+unsigned night_penalty(Label const&) {
+  return 0;
+}
+unsigned night_penalty(late_connections_label const& l) {
+  return l.night_penalty_;
+}
+
+template <typename Label>
 journey labels_to_journey(Label const* label, schedule const& sched) {
   journey j;
   auto parsed = parse_label_chain(label);
@@ -32,6 +46,9 @@ journey labels_to_journey(Label const* label, schedule const& sched) {
       [](int transfers_count, journey::stop const& s) {
         return s.interchange_ ? transfers_count + 1 : transfers_count;
       });
+
+  j.db_costs_ = db_costs(*label);
+  j.night_penalty_ = night_penalty(*label);
 
   return j;
 }

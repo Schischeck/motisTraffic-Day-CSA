@@ -74,7 +74,7 @@ Offset<Connection> to_connection(FlatBufferBuilder& b, journey const& j) {
   return CreateConnection(b, b.CreateVector(convert_stops(b, j.stops_)),
                           b.CreateVector(convert_moves(b, j.transports_)),
                           b.CreateVector(convert_attributes(b, j.attributes_)),
-                          0);
+                          j.night_penalty_, j.db_costs_);
 }
 
 msg_ptr journeys_to_message(std::vector<journey> const& journeys,
