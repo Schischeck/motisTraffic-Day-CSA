@@ -4,8 +4,9 @@
 
 #include "motis/core/common/constants.h"
 #include "motis/core/common/geo.h"
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/core/access/error.h"
+#include "motis/core/access/station_access.h"
 
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
@@ -108,14 +109,10 @@ station const& get_destination(ReliableRoutingRequest const& req,
     }
     destination_eva = guesses->Get(0)->id()->str();
   }
-  auto const it = sched.eva_to_station_.find(destination_eva);
-  if (it == sched.eva_to_station_.end()) {
-    throw std::system_error(motis::access::error::station_not_found);
-  }
-  return *it->second;
+  return *get_station(sched, destination_eva);
 }
 
-void init_taxi(
+void init_taxis(
     ReliableRoutingRequest const& req, schedule const& sched,
     std::vector<intermodal::individual_modes_container::taxi>& taxis) {
   if (req.request_type()->request_options_type() !=
@@ -129,14 +126,28 @@ void init_taxi(
 
   ask_lookup_module(destination, ops->taxi_radius(), taxis);
 }
+
+void init_hotels(schedule const& sched, std::string const& hotels_file,
+                 std::vector<intermodal::hotel>& hotels) {
+  std::vector<intermodal::hotel> tmp;
+  parse_hotels(hotels_file, tmp);
+  for (auto const& h : tmp) {
+    auto it = sched.eva_to_station_.find(h.station_);
+    if (it != end(sched.eva_to_station_)) {
+      hotels.push_back(h);
+    } else {
+      LOG(logging::warn) << "Could not find hotel-station " << h.station_;
+    }
+  }
+}
 }  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const& req,
                        std::string const& hotels_file, schedule const& sched) {
   using namespace motis::reliability::intermodal;
   individual_modes_container container;
-  parse_hotels(hotels_file, container.hotels_);
-  detail::init_taxi(req, sched, container.taxis_);
+  detail::init_hotels(sched, hotels_file, container.hotels_);
+  detail::init_taxis(req, sched, container.taxis_);
 
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
