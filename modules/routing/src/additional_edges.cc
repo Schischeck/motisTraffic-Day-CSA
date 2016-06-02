@@ -12,7 +12,7 @@ namespace routing {
 
 std::vector<edge> create_additional_edges(
     fbs::Vector<fbs::Offset<AdditionalEdgeWrapper>> const* edge_wrappers,
-    schedule const& sched) {
+    unsigned const destination_station_index, schedule const& sched) {
   std::vector<edge> edges;
   for (auto const& e : *edge_wrappers) {
     switch (e->additional_edge_type()) {
@@ -42,11 +42,13 @@ std::vector<edge> create_additional_edges(
         auto info = reinterpret_cast<TimeDependentMumoEdge const*>(
             e->additional_edge());
         auto edge = info->edge();
+        auto const head_station =
+            get_station_node(sched, edge->to_station_id()->str());
         edges.push_back(make_periodic_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
-            get_station_node(sched, edge->to_station_id()->str()),
-            edge->duration(), edge->price(), edge->slot(),
-            info->interval()->begin(), info->interval()->end()));
+            head_station, edge->duration(), edge->price(), edge->slot(),
+            info->interval()->begin(), info->interval()->end(),
+            head_station->id_ == destination_station_index));
         break;
       }
 
