@@ -204,9 +204,9 @@ void rt::init(motis::module::registry& reg) {
           trp, k.get_station_idx(), di->get_schedule_time(), k.ev_type_,
           di->get_current_time(), di->get_reason(), false);
 
-      const_cast<time&>(k.ev_type_ == event_type::DEP ? k.lcon()->d_time_
-                                                      : k.lcon()->a_time_) =
-          di->get_current_time();
+      auto& event_time =
+          k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
+      const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
     }
 
     if (!shifted_nodes.empty()) {
