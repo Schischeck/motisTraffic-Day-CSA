@@ -201,14 +201,14 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             succ = *std::next(it, 2);
           }
 
-          auto a_di = get_delay_info(sched, current->node_,
-                                     current->connection_, event_type::ARR);
-          auto d_di = get_delay_info(sched, dep_route_node, succ->connection_,
-                                     event_type::DEP);
-
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
+            auto a_di = get_delay_info(sched, current->node_,
+                                       current->connection_, event_type::ARR);
+            auto d_di = get_delay_info(sched, dep_route_node, succ->connection_,
+                                       event_type::DEP);
+
             stops.emplace_back(
                 static_cast<unsigned int>(++stop_index),
                 current->node_->get_station()->id_,
