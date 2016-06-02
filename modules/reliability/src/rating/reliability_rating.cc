@@ -13,6 +13,12 @@ namespace motis {
 namespace reliability {
 namespace rating {
 
+bool walks_only(journey const& j) {
+  return std::find_if(j.transports_.begin(), j.transports_.end(),
+                      [](auto const& t) { return !t.is_walk_; }) ==
+         j.transports_.end();
+}
+
 module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
                                       context const& c,
                                       bool const dep_intermodal,
@@ -26,11 +32,13 @@ module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
   auto const journeys = message_to_journeys(&res);
 
   for (auto const& j : journeys) {
-    rating::rate(ratings[rating_index], j,
-                 context(c.schedule_, c.precomputed_distributions_,
-                         c.s_t_distributions_));
-    rating::simple_rating::rate(simple_ratings[rating_index], j, c.schedule_,
-                                c.s_t_distributions_);
+    if (!walks_only(j)) {
+      rating::rate(ratings[rating_index], j,
+                   context(c.schedule_, c.precomputed_distributions_,
+                           c.s_t_distributions_));
+      rating::simple_rating::rate(simple_ratings[rating_index], j, c.schedule_,
+                                  c.s_t_distributions_);
+    }
     ++rating_index;
   }
 
