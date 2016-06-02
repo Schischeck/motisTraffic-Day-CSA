@@ -58,6 +58,8 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
 
     j.stops_.push_back(stop);
   }
+  j.db_costs_ = 0;
+  j.night_penalty_ = 0;
 
   // TODO(Sebastian Fahnenschreiber) write transport
   // (using the section based iterator)
