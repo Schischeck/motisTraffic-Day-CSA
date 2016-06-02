@@ -210,7 +210,6 @@ msg_ptr late_connections(ReliableRoutingRequest const& req, reliability& rel,
   auto lock = rel.synced_sched();
   auto routing_res =
       search::late_connections::search(req, hotels_file, lock.sched());
-
   using routing::RoutingResponse;
   return rating::rate_routing_response(
       *motis_content(RoutingResponse, routing_res),

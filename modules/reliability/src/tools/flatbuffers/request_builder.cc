@@ -1,6 +1,7 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
 #include "motis/core/common/date_time_util.h"
+#include "motis/core/common/logging.h"
 
 #include "motis/module/error.h"
 
@@ -157,6 +158,12 @@ request_builder& request_builder::add_additional_edges(
   create_bikesharing_edges(container);
   create_taxi_edges(container);
   create_hotel_edges(container);
+
+  LOG(logging::info) << "Request created with "
+                     << container.bikesharing_.at_start_.size() << "|"
+                     << container.bikesharing_.at_destination_.size()
+                     << " bikesharings, " << container.hotels_.size()
+                     << " hotels, and " << container.taxis_.size() << " taxis.";
   return *this;
 }
 
