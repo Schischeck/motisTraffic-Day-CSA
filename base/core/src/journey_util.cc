@@ -46,10 +46,6 @@ void print_journey(journey const& j, time_t const sched_begin,
     return "unknown";
   };
 
-  auto db_cost =
-      std::accumulate(begin(j.transports_), end(j.transports_), 0u,
-                      [](auto&& acc, auto&& t) { return acc + t.mumo_price_; });
-
   os << "Journey (d=" << j.duration_ << " #ic=" << j.transfers_
      << ", np=" << j.night_penalty_ << ", c=" << j.db_costs_ << ")\n";
   for (auto const& t : j.transports_) {
