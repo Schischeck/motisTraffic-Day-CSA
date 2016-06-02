@@ -16,16 +16,18 @@ namespace routing {
 namespace output {
 
 template <typename Label>
-unsigned db_costs(Label const&) {
+inline unsigned db_costs(Label const&) {
   return 0;
 }
-unsigned db_costs(late_connections_label const& l) { return l.db_costs_; }
+inline unsigned db_costs(late_connections_label const& l) {
+  return l.db_costs_;
+}
 
 template <typename Label>
-unsigned night_penalty(Label const&) {
+inline unsigned night_penalty(Label const&) {
   return 0;
 }
-unsigned night_penalty(late_connections_label const& l) {
+inline unsigned night_penalty(late_connections_label const& l) {
   return l.night_penalty_;
 }
 
