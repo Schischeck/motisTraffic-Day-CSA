@@ -17,7 +17,6 @@ TimestampReason convert_reason(delay_info::reason const r) {
     case delay_info::reason::IS: return TimestampReason_IS;
     case delay_info::reason::FORECAST: return TimestampReason_FORECAST;
     case delay_info::reason::PROPAGATION: return TimestampReason_PROPAGATION;
-    case delay_info::reason::REPAIR: return TimestampReason_REPAIR;
     default: return TimestampReason_SCHEDULE;
   }
 }

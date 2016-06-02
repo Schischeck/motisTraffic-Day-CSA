@@ -13,7 +13,6 @@ namespace motis {
 delay_info::reason convert_reason(TimestampReason const r) {
   switch (r) {
     case TimestampReason_SCHEDULE: return delay_info::reason::SCHEDULE;
-    case TimestampReason_REPAIR: return delay_info::reason::REPAIR;
     case TimestampReason_PROPAGATION: return delay_info::reason::PROPAGATION;
     case TimestampReason_IS: return delay_info::reason::IS;
     case TimestampReason_FORECAST: return delay_info::reason::FORECAST;

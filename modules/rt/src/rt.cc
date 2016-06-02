@@ -192,7 +192,8 @@ void rt::init(motis::module::registry& reg) {
     }
 
     std::vector<shifted_node> shifted_nodes;
-    for (auto const& di : propagator.updates_) {
+    for (auto const& ev : propagator.events_) {
+      auto const& di = ev.second;
       auto const& k = di->get_graph_event();
 
       auto const trp =
@@ -203,6 +204,11 @@ void rt::init(motis::module::registry& reg) {
       shifted_nodes.emplace_back(
           trp, k.get_station_idx(), di->get_schedule_time(), k.ev_type_,
           di->get_current_time(), di->get_reason(), false);
+
+      map_get_or_create(sched.graph_to_delay_info_, k, [&]() {
+        sched.delay_mem_.push_back(std::make_unique<delay_info>(*di));
+        return sched.delay_mem_.back().get();
+      })->update(*di);
 
       auto& event_time =
           k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
