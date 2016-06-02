@@ -47,6 +47,18 @@
       "evaNumber": "8044444",
       "ds100Code": "5345291",
       "KMInfo": 0
+    },
+    {
+      "name": "Berlin",
+      "tracks": 2,
+      "latitude": 52.51999999999998,
+      "longitude": 13.372000000000071,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "8055555",
+      "ds100Code": "0000005",
+      "KMInfo": 0
     }
   ],
   "trains": [
@@ -108,6 +120,46 @@
           "station": "8011111",
           "arrival": 10,
           "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_L_B",
+      "category": "ICE",
+      "evaNumber": "0010003",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "8022222",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8055555",
+          "arrival": 180,
+          "departure": 182,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true

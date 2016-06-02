@@ -275,7 +275,7 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
   }
 }
 
-TEST_F(reliability_hotels_foot, late_conn_req) {
+TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
@@ -353,6 +353,64 @@ TEST_F(reliability_hotels_foot, late_conn_req) {
       ASSERT_EQ(Move_Transport, move->move_type());
       auto const transport = reinterpret_cast<Transport const*>(move->move());
       ASSERT_EQ(2, transport->train_nr());
+    }
+  }
+}
+
+TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
+  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  auto req =
+      b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
+                          1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
+                          1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
+          .add_destination(schedule_hotels_foot::BERLIN.name_, "")
+          .build_late_connection_request(50000 /* 50 km*/);
+  auto const res_msg = call(req);
+  auto const res = motis_content(ReliabilityRatingResponse, res_msg);
+
+  ASSERT_EQ(2, res->response()->connections()->size());
+
+  {
+    auto const conn = (*res->response()->connections())[0];
+    ASSERT_EQ(5000, conn->db_costs());
+    ASSERT_EQ(0, conn->night_penalty());
+    ASSERT_EQ(3, conn->transports()->size());
+    {
+      auto const move = (*conn->transports())[0];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ("RE 1", transport->name()->str());
+      ASSERT_EQ(1, transport->train_nr());
+    }
+    {
+      auto const move = (*conn->transports())[1];
+      ASSERT_EQ(Move_Walk, move->move_type());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
+      ASSERT_EQ("Hotel", walk->mumo_type()->str());
+    }
+    {
+      auto const move = (*conn->transports())[2];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(3, transport->train_nr());
+    }
+  }
+  {
+    auto const conn = (*res->response()->connections())[1];
+    ASSERT_EQ(0, conn->db_costs());
+    ASSERT_EQ(300, conn->night_penalty());
+    ASSERT_EQ(2, conn->transports()->size());
+    {
+      auto const move = (*conn->transports())[0];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(1, transport->train_nr());
+    }
+    {
+      auto const move = (*conn->transports())[1];
+      ASSERT_EQ(Move_Transport, move->move_type());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
+      ASSERT_EQ(3, transport->train_nr());
     }
   }
 }
