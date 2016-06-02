@@ -2,72 +2,57 @@
 
 #include <string>
 
-#include "boost/lexical_cast.hpp"
+#include "boost/algorithm/string/trim.hpp"
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/error.h"
 
 namespace motis {
 
-inline int output_train_nr(uint32_t const& train_nr,
-                           uint32_t original_train_nr) {
+inline uint32_t output_train_nr(uint32_t train_nr, uint32_t original_train_nr) {
   return train_nr <= kMaxValidTrainNr ? train_nr : original_train_nr;
 }
 
 inline std::string get_service_name(schedule const& sched,
                                     connection_info const* info) {
-  auto const& cat_name = sched.categories_[info->family_]->name_;
+  auto rule = sched.categories_[info->family_]->output_rule_;
+  auto const force_train_nr = (rule & 0b1000) != 0;  // line_id -> train_nr
+  auto const force_provider = (rule & 0b0100) != 0;  // category -> provider
+  auto const base_rule = rule & 0b0011;
+
   auto const& line_identifier = info->line_identifier_;
-
-  std::string print_train_nr;
-  auto const& train_nr =
+  auto const train_nr =
       output_train_nr(info->train_nr_, info->original_train_nr_);
-  if (train_nr != 0) {
-    print_train_nr = boost::lexical_cast<std::string>(train_nr);
-  } else if (train_nr == 0 && !line_identifier.empty()) {
-    print_train_nr = line_identifier;
-  } else {
-    print_train_nr = "";
+
+  std::string print_id;
+  if (!line_identifier.empty() &&
+      (!force_train_nr || (force_train_nr && train_nr == 0))) {
+    print_id = line_identifier;
+  } else if (train_nr != 0) {
+    print_id = std::to_string(train_nr);
   }
 
-  std::string name;
-  switch (sched.categories_[info->family_]->output_rule_) {
-    case category::CATEGORY_AND_TRAIN_NUM:
-      name = cat_name + " " + print_train_nr;
-      break;
+  auto const& category = sched.categories_[info->family_]->name_;
+  auto const& provider = info->provider_->short_name_;
 
-    case category::CATEGORY: name = cat_name; break;
-
-    case category::TRAIN_NUM: name = print_train_nr; break;
-
-    case category::NOTHING: break;
-
-    case category::PROVIDER_AND_TRAIN_NUM:
-      if (info->provider_ != nullptr) {
-        name = info->provider_->short_name_ + " ";
-      }
-      name += print_train_nr;
-      break;
-
-    case category::PROVIDER:
-      if (info->provider_ != nullptr) {
-        name = info->provider_->short_name_;
-      }
-      break;
-
-    case category::LINE:
-      if (!line_identifier.empty()) {
-        name = line_identifier;
-        break;
-      }
-    // fall-through
-
-    case category::CATEGORY_AND_LINE:
-      name = cat_name + " " + line_identifier;
-      break;
+  std::string print_cat;
+  if (!category.empty() &&
+      (!force_provider || (force_provider && provider.empty()))) {
+    print_cat = category;
+  } else if (!provider.empty()) {
+    print_cat = provider;
   }
 
-  return name;
+  switch (base_rule) {
+    case 0: {
+      auto res = print_cat + " " + print_id;
+      boost::algorithm::trim(res);
+      return res;
+    }
+    case 1: return print_cat;
+    case 2: return print_id;
+    default: return "";
+  }
 }
 
 }  // namespace motis
