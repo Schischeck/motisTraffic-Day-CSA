@@ -101,8 +101,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
 
   auto get_or_create_category = [&](int type) {
     return get_or_create(fbs_categories, type, [&]() {
-      return CreateCategory(fbb, fbb.CreateString(route::s_types_.at(type)),
-                            CategoryOutputRule_LINE);
+      return CreateCategory(fbb, fbb.CreateString(route::s_types_.at(type)), 2);
     });
   };
 

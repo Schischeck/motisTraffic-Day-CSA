@@ -1,17 +1,6 @@
 namespace motis.loader;
 
-enum CategoryOutputRule : byte {
-  CATEGORY_AND_TRAIN_NUM,
-  CATEGORY,
-  TRAIN_NUM,
-  NOTHING,
-  PROVIDER_AND_TRAIN_NUM,
-  PROVIDER,
-  CATEGORY_AND_LINE,
-  LINE
-}
-
 table Category {
   name: string;
-  output_rule: CategoryOutputRule;
+  output_rule: ubyte;
 }

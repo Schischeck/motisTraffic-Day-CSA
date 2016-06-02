@@ -14,11 +14,11 @@ namespace hrd {
 
 struct category {
   category() = default;
-  category(std::string name, CategoryOutputRule output_rule)
+  category(std::string name, uint8_t output_rule)
       : name_(std::move(name)), output_rule_(output_rule) {}
 
   std::string name_;
-  CategoryOutputRule output_rule_;
+  uint8_t output_rule_;
 };
 
 std::map<uint32_t, category> parse_categories(loaded_file const& file);
