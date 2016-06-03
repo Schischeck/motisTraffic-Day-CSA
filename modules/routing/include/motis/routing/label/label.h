@@ -29,7 +29,7 @@ struct label : public Data {
 
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
-    if (pred_ && e.get_destination() == pred_->node_) {
+    if (pred_ && e.get_destination() == pred_->node()) {
       return false;
     }
 
@@ -40,7 +40,7 @@ struct label : public Data {
 
     l = *this;
     l.pred_ = this;
-    l.node_ = e.get_destination();
+    l.edge_ = &e;
     l.connection_ = ec.connection_;
     l.now_ += ec.time_;
     l.slot_ = ec.slot_;
