@@ -1,3 +1,0 @@
-namespace motis.realtime;
-
-table RealtimeDelayInfoRequest {}

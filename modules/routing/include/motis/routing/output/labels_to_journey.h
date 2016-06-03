@@ -16,9 +16,9 @@ namespace routing {
 namespace output {
 
 template <typename Label>
-journey labels_to_journey(Label const* label, schedule const& sched) {
+journey labels_to_journey(schedule const& sched, Label const* label) {
   journey j;
-  auto parsed = parse_label_chain(label);
+  auto parsed = parse_label_chain(sched, label);
   std::vector<intermediate::stop> const& s = parsed.first;
   std::vector<intermediate::transport> const& t = parsed.second;
 

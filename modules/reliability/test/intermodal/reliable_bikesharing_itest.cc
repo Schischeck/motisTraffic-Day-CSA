@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/BikesharingRequest_generated.h"
@@ -152,6 +153,8 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 }
 
 void test_journey1(journey const& j) {
+  printf("%s\n", journeys_to_message({j}, 0)->to_json().c_str());
+
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];

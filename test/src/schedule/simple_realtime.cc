@@ -1,5 +1,8 @@
 #include "motis/test/schedule/simple_realtime.h"
 
+#include "motis/core/schedule/schedule.h"
+#include "motis/core/access/time_access.h"
+
 using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::ris;
@@ -9,8 +12,7 @@ namespace test {
 namespace schedule {
 namespace simple_realtime {
 
-msg_ptr get_ris_message() {
-  FlatBufferBuilder fbb;
+void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
   // clang-format off
   std::vector<Offset<UpdatedEvent>> events{
     CreateUpdatedEvent(fbb,
@@ -19,9 +21,9 @@ msg_ptr get_ris_message() {
           628,
           fbb.CreateString(""),
           motis::ris::EventType_Departure,
-          1448372160  // 2015-11-24 14:36:00 GMT+0100
+          unix_time(sched, 1436)
         ),
-      1448372220  // 2015-11-24 14:37:00 GMT+0100
+        unix_time(sched, 1437)
     ),
     CreateUpdatedEvent(fbb,
         motis::ris::CreateEvent(fbb,
@@ -29,14 +31,14 @@ msg_ptr get_ris_message() {
           628,
           fbb.CreateString(""),
           motis::ris::EventType_Departure,
-          1448375100  // 2015-11-24 15:25:00 GMT+0100
+          unix_time(sched, 1525)
         ),
-      1448375400  // 2015-11-24 15:30:00 GMT+0100
+        unix_time(sched, 1530)
     )};
   auto trip_id = motis::ris::CreateIdEvent(fbb,
         fbb.CreateString("8000261"),  // Muenchen Hbf
         628,
-        1448362440);  // 2015-11-24 11:54:00 GMT+0100
+        unix_time(sched, 1154));
   // clang-format on
 
   fbb.Finish(
@@ -44,10 +46,57 @@ msg_ptr get_ris_message() {
                     motis::ris::CreateDelayMessage(fbb, trip_id, DelayType_Is,
                                                    fbb.CreateVector(events))
                         .Union()));
+}
+
+void create_forecast_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
+  // clang-format off
+  std::vector<Offset<UpdatedEvent>> events{
+    CreateUpdatedEvent(fbb,
+        motis::ris::CreateEvent(fbb,
+          fbb.CreateString("8000105"),  // Frankfurt(Main)Hbf
+          628,
+          fbb.CreateString(""),
+          motis::ris::EventType_Arrival,
+          unix_time(sched, 1504)
+        ),
+        unix_time(sched, 1505)
+    ),
+    CreateUpdatedEvent(fbb,
+        motis::ris::CreateEvent(fbb,
+          fbb.CreateString("8073368"),  // Köln Messe/Deutz Gl.1
+          628,
+          fbb.CreateString(""),
+          motis::ris::EventType_Arrival,
+          unix_time(sched, 1614)
+        ),
+        unix_time(sched, 1619)
+    )};
+  auto trip_id = motis::ris::CreateIdEvent(fbb,
+        fbb.CreateString("8000261"),  // Muenchen Hbf
+        628,
+        unix_time(sched, 1154));
+  // clang-format on
+
+  fbb.Finish(CreateMessage(
+      fbb, MessageUnion_DelayMessage,
+      motis::ris::CreateDelayMessage(fbb, trip_id, DelayType_Forecast,
+                                     fbb.CreateVector(events))
+          .Union()));
+}
+
+msg_ptr get_ris_message(motis::schedule const& sched) {
+  FlatBufferBuilder is_msg_fbb;
+  create_is_msg(sched, is_msg_fbb);
+
+  FlatBufferBuilder fc_msg_fbb;
+  create_forecast_msg(sched, fc_msg_fbb);
 
   message_creator mc;
-  std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
-      mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
+  std::vector<Offset<MessageHolder>> messages{
+      CreateMessageHolder(mc, mc.CreateVector(is_msg_fbb.GetBufferPointer(),
+                                              is_msg_fbb.GetSize())),
+      CreateMessageHolder(mc, mc.CreateVector(fc_msg_fbb.GetBufferPointer(),
+                                              fc_msg_fbb.GetSize()))};
   mc.create_and_finish(MsgContent_RISBatch,
                        CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
                        "/ris/messages", DestinationType_Topic);

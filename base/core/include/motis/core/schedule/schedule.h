@@ -27,12 +27,7 @@ struct schedule {
         node_count_(0),
         system_time_(0),
         last_update_timestamp_(0) {
-    schedule_to_delay_info_.set_empty_key(
-        {primary_trip_id(0, 0, 0), 0, event_type::ARR, 0});
-    graph_to_delay_info_.set_empty_key(
-        {primary_trip_id(0, 0, 0), 0, event_type::ARR, 0});
-    graph_to_delay_info_.set_deleted_key(
-        {primary_trip_id(0, 0, 0), 0, event_type::DEP, 0});
+    graph_to_delay_info_.set_empty_key({nullptr, 0, event_type::DEP});
   }
 
   schedule(schedule const&) = delete;
@@ -66,8 +61,7 @@ struct schedule {
   std::vector<std::unique_ptr<std::vector<trip*>>> merged_trips_;
 
   std::time_t system_time_, last_update_timestamp_;
-  std::vector<std::unique_ptr<delay_info>> delay_infos_;
-  hash_map<schedule_event, delay_info*> schedule_to_delay_info_;
+  std::vector<std::unique_ptr<delay_info>> delay_mem_;
   hash_map<graph_event, delay_info*> graph_to_delay_info_;
 };
 

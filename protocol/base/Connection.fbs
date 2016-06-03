@@ -1,61 +1,63 @@
 include "base/Station.fbs";
+include "base/TimestampReason.fbs";
 
 namespace motis;
 
 table EventInfo {
-  time: ulong;
-  schedule_time: ulong;
-  platform: string;
+  time:ulong;
+  schedule_time:ulong;
+  platform:string;
+  reason:TimestampReason;
 }
 
 table Stop {
-  station: motis.Station;
-  arrival: EventInfo;
-  departure: EventInfo;
-  interchange: bool;
+  station:motis.Station;
+  arrival:EventInfo;
+  departure:EventInfo;
+  interchange:bool;
 }
 
 struct Range {
-  from: short;
-  to: short;
+  from:short;
+  to:short;
 }
 
 table Transport {
-  range: Range;
-  category_name: string;
-  category_id: uint;
-  clasz: uint;
-  train_nr: uint;
-  line_id: string;
-  name: string;
-  provider: string;
-  direction: string;
+  range:Range;
+  category_name:string;
+  category_id:uint;
+  clasz:uint;
+  train_nr:uint;
+  line_id:string;
+  name:string;
+  provider:string;
+  direction:string;
 }
 
 /* walk and mumo */
 table Walk {
-  range: Range;
-  slot: uint;
-  price: uint;
-  mumo_type: string;
+  range:Range;
+  slot:uint;
+  price:uint;
+  mumo_type:string;
 }
 
 union Move { Transport, Walk }
 
 table MoveWrapper {
-  move: Move;
+  move:Move;
 }
 
 table Attribute {
-  from: short;
-  to: short;
-  code: string;
-  text: string;
+  from:short;
+  to:short;
+  code:string;
+  text:string;
 }
 
 table Connection {
-  stops: [Stop];
-  transports: [MoveWrapper];
-  attributes: [Attribute];
-  night_penalty: ushort;
+  stops:[Stop];
+  transports:[MoveWrapper];
+  attributes:[Attribute];
+  night_penalty:ushort;
 }
