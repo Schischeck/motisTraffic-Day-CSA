@@ -1,5 +1,6 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
+#include "motis/core/common/constants.h"
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
 
@@ -16,9 +17,6 @@ using namespace motis::module;
 namespace motis {
 namespace reliability {
 namespace flatbuffers {
-
-constexpr auto INTERMODAL_START_STATION = "START";
-constexpr auto INTERMODAL_DESTINATION_STATION = "END";
 
 request_builder::request_builder(routing::SearchType search_type)
     : search_type_(search_type),
@@ -131,8 +129,8 @@ request_builder& request_builder::add_intermodal_start(
   dep_is_intermodal_ = true;
   dep_.lat_ = lat;
   dep_.lng_ = lng;
-  create_pretrip_start(INTERMODAL_START_STATION, INTERMODAL_START_STATION,
-                       interval_begin, interval_end);
+  create_pretrip_start(STATION_START, STATION_START, interval_begin,
+                       interval_end);
   return *this;
 }
 
@@ -142,8 +140,7 @@ request_builder& request_builder::add_intermodal_destination(
   arr_.lat_ = lat;
   arr_.lng_ = lng;
   destination_station_ = routing::CreateInputStation(
-      b_, b_.CreateString(INTERMODAL_DESTINATION_STATION),
-      b_.CreateString(INTERMODAL_DESTINATION_STATION));
+      b_, b_.CreateString(STATION_END), b_.CreateString(STATION_END));
   return *this;
 }
 
@@ -245,10 +242,10 @@ void request_builder::create_bikesharing_edges(
   };
 
   for (auto const& info : container.bikesharing_.at_start_) {
-    create_edge(info, INTERMODAL_START_STATION, info.station_eva_);
+    create_edge(info, STATION_START, info.station_eva_);
   }
   for (auto const& info : container.bikesharing_.at_destination_) {
-    create_edge(info, info.station_eva_, INTERMODAL_DESTINATION_STATION);
+    create_edge(info, info.station_eva_, STATION_END);
   }
 }
 

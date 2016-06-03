@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "motis/core/common/constants.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/BikesharingRequest_generated.h"
@@ -81,7 +82,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
   {
     auto const j = (*cg->journeys())[0];
     ASSERT_EQ(3, j->stops()->size());
-    ASSERT_EQ("START", (*j->stops())[0]->station()->id()->str());
+    ASSERT_EQ(STATION_START, (*j->stops())[0]->station()->id()->str());
     ASSERT_EQ("3333333", (*j->stops())[1]->station()->id()->str());
     ASSERT_EQ("2222222", (*j->stops())[2]->station()->id()->str());
     ASSERT_EQ(1454563620 /* Thu, 04 Feb 2016 05:27:00 GMT */,
@@ -110,7 +111,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
     ASSERT_EQ(3, j->stops()->size());
     ASSERT_EQ("2222222", (*j->stops())[0]->station()->id()->str());
     ASSERT_EQ("1111111", (*j->stops())[1]->station()->id()->str());
-    ASSERT_EQ("END", (*j->stops())[2]->station()->id()->str());
+    ASSERT_EQ(STATION_END, (*j->stops())[2]->station()->id()->str());
     ASSERT_EQ(1454566500 /* Thu, 04 Feb 2016 06:15:00 GMT */,
               (*j->stops())[0]->departure()->time());
     ASSERT_EQ(1454567100 /* Thu, 04 Feb 2016 06:25:00 GMT */,
@@ -136,7 +137,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
     ASSERT_EQ(3, j->stops()->size());
     ASSERT_EQ("2222222", (*j->stops())[0]->station()->id()->str());
     ASSERT_EQ("1111111", (*j->stops())[1]->station()->id()->str());
-    ASSERT_EQ("END", (*j->stops())[2]->station()->id()->str());
+    ASSERT_EQ(STATION_END, (*j->stops())[2]->station()->id()->str());
     ASSERT_EQ(1454566560 /* Thu, 04 Feb 2016 06:16:00 GMT */,
               (*j->stops())[0]->departure()->time());
     ASSERT_EQ(1454567640 /* Thu, 04 Feb 2016 06:34:00 GMT */,
@@ -162,7 +163,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
     ASSERT_EQ(3, j->stops()->size());
     ASSERT_EQ("2222222", (*j->stops())[0]->station()->id()->str());
     ASSERT_EQ("1111111", (*j->stops())[1]->station()->id()->str());
-    ASSERT_EQ("END", (*j->stops())[2]->station()->id()->str());
+    ASSERT_EQ(STATION_END, (*j->stops())[2]->station()->id()->str());
     ASSERT_EQ(1454566620 /* Thu, 04 Feb 2016 06:17:00 GMT */,
               (*j->stops())[0]->departure()->time());
     ASSERT_EQ(1454568000 /* Thu, 04 Feb 2016 06:40:00 GMT */,
