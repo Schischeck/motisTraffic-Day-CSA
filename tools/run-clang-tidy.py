@@ -103,6 +103,7 @@ def run_tidy(args, tmpdir, build_path, queue):
     print stderr
     if args.exit_on_error and not args.fix and re.search("(error)|(warning):", stdout):
       print "FOUND ERROR OR WARNING"
+      sys.stdout.flush()
       kill_self(args)
     queue.task_done()
 
