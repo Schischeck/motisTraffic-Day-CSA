@@ -79,9 +79,8 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
   std::vector<s_t_distributions_container::parameters> param;
   for (auto const& p : paths) {
     if (p.rfind("/train/") != std::string::npos) {
-      param.push_back(
-          {p, 500,
-           120});  // TODO(Mohammad Keyhani): read max travel time from graph
+      // TODO(Mohammad Keyhani): read max travel time from graph
+      param.push_back({p, 500, 120});
     } else if (p.rfind("/bus/") != std::string::npos) {
       param.push_back({p, 60, 45});
     } else if (p.rfind("/str/") != std::string::npos) {
