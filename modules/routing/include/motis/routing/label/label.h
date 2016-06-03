@@ -44,8 +44,7 @@ struct label : public Data {
     l.connection_ = ec.connection_;
     l.now_ += ec.time_;
     l.slot_ = ec.slot_;
-
-    Updater::update(l, e.type(), ec, lb);
+    Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
   }
 
