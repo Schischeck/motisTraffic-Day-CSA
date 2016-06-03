@@ -142,7 +142,7 @@ void init_hotels(schedule const& sched, std::string const& hotels_file,
   }
 }
 
-module::msg_ptr search(ReliableRoutingRequest const& req,
+module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
                        std::string const& hotels_file, schedule const& sched) {
   using namespace motis::reliability::intermodal;
   individual_modes_container container;
@@ -159,7 +159,7 @@ module::msg_ptr search(ReliableRoutingRequest const& req,
 module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
                        std::string const& hotels_file) {
   auto lock = rel.synced_sched();
-  auto routing_res = detail::search(req, hotels_file, lock.sched());
+  auto routing_res = detail::ask_routing(req, hotels_file, lock.sched());
   using routing::RoutingResponse;
   return rating::rate_routing_response(
       *motis_content(RoutingResponse, routing_res),

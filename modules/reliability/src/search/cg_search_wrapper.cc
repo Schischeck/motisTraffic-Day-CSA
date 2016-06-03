@@ -17,6 +17,24 @@ namespace search {
 namespace connection_graph_search {
 namespace detail {
 
+std::shared_ptr<connection_graph_optimizer> get_optimizer(
+    RequestOptionsWrapper const& options) {
+  if (options.request_options_type() == RequestOptions_ReliableSearchReq) {
+    auto req_info =
+        reinterpret_cast<ReliableSearchReq const*>(options.request_options());
+    return std::make_shared<reliable_cg_optimizer>(
+        req_info->min_departure_diff());
+  } else if (options.request_options_type() ==
+             RequestOptions_ConnectionTreeReq) {
+    auto req_info =
+        reinterpret_cast<ConnectionTreeReq const*>(options.request_options());
+    return std::make_shared<simple_optimizer>(
+        req_info->num_alternatives_at_each_stop(),
+        req_info->min_departure_diff());
+  }
+  throw std::system_error(error::not_implemented);
+}
+
 void update_mumo_info(
     std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
   for (auto& cg : cgs) {
@@ -47,24 +65,6 @@ void update_address_info(
       }
     }
   }
-}
-
-std::shared_ptr<connection_graph_optimizer> get_optimizer(
-    RequestOptionsWrapper const& options) {
-  if (options.request_options_type() == RequestOptions_ReliableSearchReq) {
-    auto req_info =
-        reinterpret_cast<ReliableSearchReq const*>(options.request_options());
-    return std::make_shared<reliable_cg_optimizer>(
-        req_info->min_departure_diff());
-  } else if (options.request_options_type() ==
-             RequestOptions_ConnectionTreeReq) {
-    auto req_info =
-        reinterpret_cast<ConnectionTreeReq const*>(options.request_options());
-    return std::make_shared<simple_optimizer>(
-        req_info->num_alternatives_at_each_stop(),
-        req_info->min_departure_diff());
-  }
-  throw std::system_error(error::not_implemented);
 }
 
 }  // namespace detail
