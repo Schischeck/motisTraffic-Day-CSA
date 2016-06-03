@@ -23,6 +23,11 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     availability_aggregator const& aggregator) {
   std::vector<bikesharing_info> infos;
   for (auto edge : edges) {
+    auto const duration = static_cast<unsigned>(
+        (edge->bike_duration() + edge->walk_duration()) / 60);
+    if (duration > 45) {
+      continue;
+    }
     std::vector<std::pair<time_t, time_t>> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator.is_reliable(rating->value())) {
@@ -32,12 +37,10 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
       }
     }
     if (!availability_intervals.empty()) {
-      infos.push_back(
-          {std::string(edge->station_id()->c_str()),
-           static_cast<unsigned>(
-               (edge->bike_duration() + edge->walk_duration()) / 60),
-           availability_intervals, std::string(edge->from()->name()->c_str()),
-           std::string(edge->to()->name()->c_str())});
+      infos.push_back({std::string(edge->station_id()->c_str()), duration,
+                       availability_intervals,
+                       std::string(edge->from()->name()->c_str()),
+                       std::string(edge->to()->name()->c_str())});
     }
   }
   return infos;
