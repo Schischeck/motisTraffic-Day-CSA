@@ -49,6 +49,7 @@ private:
   bool read_distributions_;
   std::vector<std::string> distributions_folders_;
   std::string hotels_file_;
+  unsigned max_bikesharing_duration_;
 };  // struct reliability
 }  // namespace reliability
 }  // namespace motis

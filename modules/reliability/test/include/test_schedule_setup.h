@@ -76,6 +76,8 @@ private:
       modules_cmdline_opt.push_back("--bikesharing.nextbike_path=" +
                                     bikesharing_path);
       modules_cmdline_opt.push_back("--bikesharing.database_path=:memory:");
+      modules_cmdline_opt.push_back(
+          "--reliability.max_bikesharing_duration=120");
     }
     if (late_connections) {
       modules_cmdline_opt.push_back("--reliability.hotels=" + hotels_path);

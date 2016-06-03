@@ -256,7 +256,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -315,7 +315,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -437,7 +437,7 @@ TEST_F(reliability_connection_graph_rating_foot,
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -500,7 +500,7 @@ TEST_F(reliability_connection_graph_rating_foot,
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
   });
 
   ASSERT_EQ(cgs.size(), 1);

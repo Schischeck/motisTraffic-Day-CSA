@@ -40,6 +40,7 @@ namespace p = std::placeholders;
 #define READ_DISTRIBUTINS "reliability.read_distributions"
 #define DISTRIBUTIONS_FOLDERS "reliability.distributions_folders"
 #define HOTELS_FILE "reliability.hotels"
+#define MAX_BIKESHARING_DURATION "reliability.max_bikesharing_duration"
 
 namespace motis {
 namespace reliability {
@@ -48,7 +49,8 @@ reliability::reliability()
     : read_distributions_(false),
       distributions_folders_(
           {"/data/db_distributions/train/", "/data/db_distributions/bus/"}),
-      hotels_file_("modules/reliability/resources/hotels.csv") {}
+      hotels_file_("modules/reliability/resources/hotels.csv"),
+      max_bikesharing_duration_(45) {}
 
 po::options_description reliability::desc() {
   po::options_description desc("Reliability Module");
@@ -68,6 +70,11 @@ po::options_description reliability::desc() {
        po::value<std::string>(&hotels_file_)->
        default_value(hotels_file_),
        "file containing hotels info");
+  desc.add_options()
+      (MAX_BIKESHARING_DURATION,
+       po::value<unsigned>(&max_bikesharing_duration_)->
+       default_value(max_bikesharing_duration_),
+       "maximum allowed duration for bikesharing");
   // clang-format on
   return desc;
 }
@@ -125,12 +132,14 @@ void reliability::init(motis::module::registry& reg) {
 
 namespace detail {
 
-msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel) {
+msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
+               unsigned const max_bikesharing_duration) {
   using routing::RoutingResponse;
   auto routing_response =
       motis_call(
           flatbuffers::request_builder(req)
-              .add_additional_edges(intermodal::individual_modes_container(req))
+              .add_additional_edges(intermodal::individual_modes_container(
+                  req, max_bikesharing_duration))
               .build_routing_request())
           ->val();
   auto lock = rel.synced_sched();
@@ -176,7 +185,8 @@ void update_address_info(
   }
 }
 
-msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel) {
+msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel,
+                        unsigned const max_bikesharing_duration) {
   auto req_info = reinterpret_cast<ReliableSearchReq const*>(
       req.request_type()->request_options());
   auto lock = rel.synced_sched();
@@ -185,12 +195,15 @@ msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel) {
                                          *rel.precomputed_distributions_,
                                          *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::reliable_cg_optimizer>(
-          req_info->min_departure_diff()));
+          req_info->min_departure_diff()),
+      max_bikesharing_duration);
   update_mumo_info(cgs);
+  update_address_info(req, cgs);
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 
-msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
+msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel,
+                        unsigned const max_bikesharing_duration) {
   auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
       req.request_type()->request_options());
   auto lock = rel.synced_sched();
@@ -200,8 +213,10 @@ msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel) {
                                          *rel.s_t_distributions_),
       std::make_shared<search::connection_graph_search::simple_optimizer>(
           req_info->num_alternatives_at_each_stop(),
-          req_info->min_departure_diff()));
+          req_info->min_departure_diff()),
+      max_bikesharing_duration);
   update_mumo_info(cgs);
+  update_address_info(req, cgs);
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }
 
@@ -224,13 +239,13 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
   auto const& req = *motis_content(ReliableRoutingRequest, msg);
   switch (req.request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
-      return detail::rating(req, *this);
+      return detail::rating(req, *this, max_bikesharing_duration_);
     }
     case RequestOptions_ReliableSearchReq: {
-      return detail::reliable_search(req, *this);
+      return detail::reliable_search(req, *this, max_bikesharing_duration_);
     }
     case RequestOptions_ConnectionTreeReq: {
-      return detail::connection_tree(req, *this);
+      return detail::connection_tree(req, *this, max_bikesharing_duration_);
     }
     case RequestOptions_LateConnectionReq: {
       return detail::late_connections(req, *this, hotels_file_);

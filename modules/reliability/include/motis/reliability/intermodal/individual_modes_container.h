@@ -41,20 +41,21 @@ struct individual_modes_container {
   individual_modes_container() = default;
 
   /* for bikesharing requests */
-  explicit individual_modes_container(ReliableRoutingRequest const& req) {
+  individual_modes_container(ReliableRoutingRequest const& req,
+                             unsigned const max_bikesharing_duration) {
     if (req.individual_modes()->bikesharing() == 1) {
-      bikesharing_.init(req);
+      bikesharing_.init(req, max_bikesharing_duration);
     }
   }
 
   struct bikesharing {
-    void init(ReliableRoutingRequest const& req) {
+    void init(ReliableRoutingRequest const& req, unsigned const max_duration) {
       using namespace motis::reliability::intermodal::bikesharing;
       if (req.dep_is_intermodal()) {
-        at_start_ = retrieve_bikesharing_infos(true, req);
+        at_start_ = retrieve_bikesharing_infos(true, req, max_duration);
       }
       if (req.arr_is_intermodal()) {
-        at_destination_ = retrieve_bikesharing_infos(false, req);
+        at_destination_ = retrieve_bikesharing_infos(false, req, max_duration);
       }
     }
 

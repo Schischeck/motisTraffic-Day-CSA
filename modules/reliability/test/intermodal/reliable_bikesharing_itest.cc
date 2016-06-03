@@ -53,9 +53,9 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 
   using ::motis::bikesharing::BikesharingResponse;
   auto dep_infos = detail::to_bikesharing_infos(
-      *motis_content(BikesharingResponse, res_dep)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_dep)->edges(), *aggregator, 120);
   auto arr_infos = detail::to_bikesharing_infos(
-      *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator, 120);
 
   auto sort = [](std::vector<bikesharing_info>& infos) {
     std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,

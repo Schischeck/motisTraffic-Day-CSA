@@ -134,7 +134,7 @@ TEST_F(reliability_connection_graph_search,
   test_cg(run([&]() {
     return search_cgs(*motis_content(ReliableRoutingRequest, msg),
                       *reliability_context_,
-                      std::make_shared<reliable_cg_optimizer>(1));
+                      std::make_shared<reliable_cg_optimizer>(1), 0);
   }));
 }
 
@@ -153,7 +153,7 @@ TEST_F(reliability_connection_graph_search,
   test_cg(run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
   }));
 }
 
@@ -172,7 +172,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
   });
 
   ASSERT_EQ(cgs.size(), 1);
@@ -251,7 +251,7 @@ TEST_F(reliability_connection_graph_search,
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1));
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
   });
 
   ASSERT_EQ(cgs.size(), 1);
@@ -309,7 +309,7 @@ TEST_F(reliability_connection_graph_search, cache_journey) {
           .build_connection_tree_request(3, 1);
   auto req = motis_content(ReliableRoutingRequest, msg);
   detail::context c(*reliability_context_,
-                    std::make_shared<simple_optimizer>(1, 1), *req);
+                    std::make_shared<simple_optimizer>(1, 1), *req, 0);
   using key = detail::context::journey_cache_key;
   {
     journey j;

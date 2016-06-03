@@ -49,7 +49,8 @@ struct bikesharing_info {
 
 /* retrieves reliable bikesharing infos for departure or arrival */
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
-    bool const for_departure, ReliableRoutingRequest const&);
+    bool const for_departure, ReliableRoutingRequest const&,
+    unsigned const max_duration);
 
 module::msg_ptr to_bikesharing_request(
     bool const is_departure_type, double const lat, double const lng,
@@ -64,7 +65,7 @@ namespace detail {
 std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<
         ::flatbuffers::Offset<::motis::bikesharing::BikesharingEdge>> const&,
-    availability_aggregator const&);
+    availability_aggregator const&, unsigned const max_duration);
 }  // namespace detail
 
 }  // namespace bikesharing

@@ -204,8 +204,10 @@ void build_cg(context::conn_graph_context& cg, std::shared_ptr<context> c) {
 std::vector<std::shared_ptr<connection_graph>> search_cgs(
     ReliableRoutingRequest const& request,
     motis::reliability::context const& rel_context,
-    std::shared_ptr<connection_graph_optimizer const> optimizer) {
-  auto c = std::make_shared<detail::context>(rel_context, optimizer, request);
+    std::shared_ptr<connection_graph_optimizer const> optimizer,
+    unsigned const max_bikesharing_duration) {
+  auto c = std::make_shared<detail::context>(rel_context, optimizer, request,
+                                             max_bikesharing_duration);
 
   for (auto const& j : detail::retrieve_base_journeys(request, *c)) {
     detail::init_connection_graph_from_base_journey(*c, j);
