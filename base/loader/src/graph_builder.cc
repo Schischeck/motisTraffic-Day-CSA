@@ -58,18 +58,18 @@ void graph_builder::add_dummy_node(std::string const& name) {
 
 void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
   // Add dummy stations.
-  add_dummy_node("START");
-  add_dummy_node("END");
-  add_dummy_node("VIA0");
-  add_dummy_node("VIA1");
-  add_dummy_node("VIA2");
-  add_dummy_node("VIA3");
-  add_dummy_node("VIA4");
-  add_dummy_node("VIA5");
-  add_dummy_node("VIA6");
-  add_dummy_node("VIA7");
-  add_dummy_node("VIA8");
-  add_dummy_node("VIA9");
+  add_dummy_node(STATION_START);
+  add_dummy_node(STATION_END);
+  add_dummy_node(STATION_VIA0);
+  add_dummy_node(STATION_VIA1);
+  add_dummy_node(STATION_VIA2);
+  add_dummy_node(STATION_VIA3);
+  add_dummy_node(STATION_VIA4);
+  add_dummy_node(STATION_VIA5);
+  add_dummy_node(STATION_VIA6);
+  add_dummy_node(STATION_VIA7);
+  add_dummy_node(STATION_VIA8);
+  add_dummy_node(STATION_VIA9);
 
   // Add schedule stations.
   auto const dummy_station_count = sched_.station_nodes_.size();
