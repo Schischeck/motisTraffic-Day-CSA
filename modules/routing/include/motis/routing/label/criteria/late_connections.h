@@ -24,13 +24,13 @@ struct late_connections_initializer {
 
 struct late_connections_updater {
   template <typename Label, typename LowerBounds>
-  static void update(Label& l, uint8_t t, edge_cost const& ec, LowerBounds&) {
+  static void update(Label& l, edge_cost const& ec, LowerBounds&) {
     l.db_costs_ += ec.price_;
-    if (t == edge::HOTEL_EDGE) {
+    if (l.edge_->type() == edge::HOTEL_EDGE) {
       if (l.visited_hotel_ == late_connections::NOT_VISITED) {
         l.visited_hotel_ = late_connections::VISITED;
       }
-    } else if (t == edge::PERIODIC_MUMO_EDGE /* taxi */ &&
+    } else if (l.edge_->type() == edge::PERIODIC_MUMO_EDGE /* taxi */ &&
                l.visited_hotel_ == late_connections::VISITED) {
       /* taxi after hotel not allowed */
       l.visited_hotel_ = late_connections::FILTERED;
