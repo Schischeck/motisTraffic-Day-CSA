@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/common/constants.h"
 #include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/protocol/BikesharingRequest_generated.h"
@@ -53,9 +53,9 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 
   using ::motis::bikesharing::BikesharingResponse;
   auto dep_infos = detail::to_bikesharing_infos(
-      *motis_content(BikesharingResponse, res_dep)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_dep)->edges(), *aggregator, 120);
   auto arr_infos = detail::to_bikesharing_infos(
-      *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator);
+      *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator, 120);
 
   auto sort = [](std::vector<bikesharing_info>& infos) {
     std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,
@@ -153,12 +153,10 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
 }
 
 void test_journey1(journey const& j) {
-  printf("%s\n", journeys_to_message({j}, 0)->to_json().c_str());
-
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
-    ASSERT_EQ("START", s.eva_no_);
+    ASSERT_EQ(STATION_START, s.eva_no_);
     ASSERT_EQ(1421339100 /* Thu, 15 Jan 2015 16:25:00 GMT */,
               s.departure_.schedule_timestamp_);
   }
@@ -180,7 +178,7 @@ void test_journey1(journey const& j) {
   }
   {
     auto const& s = j.stops_[3];
-    ASSERT_EQ("END", s.eva_no_);
+    ASSERT_EQ(STATION_END, s.eva_no_);
     ASSERT_EQ(1421345520 /* Thu, 15 Jan 2015 18:12:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
@@ -207,7 +205,7 @@ void test_journey2(journey const& j) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
-    ASSERT_EQ("START", s.eva_no_);
+    ASSERT_EQ(STATION_START, s.eva_no_);
     ASSERT_EQ(1421337600 /* Thu, 15 Jan 2015 16:00:00 GMT */,
               s.departure_.schedule_timestamp_);
   }
@@ -229,7 +227,7 @@ void test_journey2(journey const& j) {
   }
   {
     auto const& s = j.stops_[3];
-    ASSERT_EQ("END", s.eva_no_);
+    ASSERT_EQ(STATION_END, s.eva_no_);
     ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
@@ -353,7 +351,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     }
     {
       auto const& s = j.stops_[2];
-      ASSERT_EQ("END", s.eva_no_);
+      ASSERT_EQ(STATION_END, s.eva_no_);
       ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
@@ -389,7 +387,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     }
     {
       auto const& s = j.stops_[2];
-      ASSERT_EQ("END", s.eva_no_);
+      ASSERT_EQ(STATION_END, s.eva_no_);
       ASSERT_EQ(1421345520 /* Thu, 15 Jan 2015 18:12:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
@@ -440,7 +438,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   }
   {
     auto const& s = j.stops_[2];
-    ASSERT_EQ("END", s.eva_no_);
+    ASSERT_EQ(STATION_END, s.eva_no_);
     ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
@@ -476,7 +474,7 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
   ASSERT_EQ(3, j.stops_.size());
   {
     auto const& s = j.stops_[0];
-    ASSERT_EQ("START", s.eva_no_);
+    ASSERT_EQ(STATION_START, s.eva_no_);
     ASSERT_EQ(1421339100 /* Thu, 15 Jan 2015 16:25:00 GMT */,
               s.departure_.schedule_timestamp_);
   }

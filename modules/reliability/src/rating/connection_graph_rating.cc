@@ -219,13 +219,15 @@ void rate_alternative_in_cg(
   auto const& alternative_journey =
       cg_context.cg_->journeys_.at(alternative.journey_index_);
 
-  /* alternative to the destination consisting of a walk */
-  if (alternative_journey.transports_.size() == 1 &&
-      alternative_journey.transports_.front().is_walk_) {
+  /* alternative to the destination consisting of a walk/mumo */
+  if (std::find_if(alternative_journey.transports_.begin(),
+                   alternative_journey.transports_.end(), [](auto const& t) {
+                     return !t.is_walk_;
+                   }) == alternative_journey.transports_.end()) {
     alternative.rating_.departure_distribution_ = last_element.second;
     alternative.rating_.arrival_distribution_ = last_element.second;
-    cg_context.stop_states_.at(stop.index_)
-        .uncovered_arrival_distribution_.init_one_point(0, 0.0);
+    cg_context.stop_states_.at(stop.index_).uncovered_arrival_distribution_ =
+        probability_distribution();
     return;
   }
 

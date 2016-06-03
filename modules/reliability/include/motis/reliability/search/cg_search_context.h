@@ -26,10 +26,11 @@ namespace detail {
 struct context {
   context(motis::reliability::context rel_context,
           std::shared_ptr<connection_graph_optimizer const> optimizer,
-          ReliableRoutingRequest const& req)
+          ReliableRoutingRequest const& req,
+          unsigned const max_bikesharing_duration)
       : reliability_context_(std::move(rel_context)) /* NOLINT */,
         optimizer_(std::move(optimizer)),
-        individual_modes_container_(req) {
+        individual_modes_container_(req, max_bikesharing_duration) {
     destination_.is_intermodal_ = req.arr_is_intermodal();
     if (destination_.is_intermodal_) {
       destination_.coordinates_.lat_ = req.arr_coord()->lat();

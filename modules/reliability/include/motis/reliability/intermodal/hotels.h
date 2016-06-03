@@ -6,11 +6,16 @@
 namespace motis {
 namespace reliability {
 namespace intermodal {
-namespace hotels {
-struct hotel_info {
-  explicit hotel_info(std::string const st, uint16_t earliest_checkout = 8 * 60,
-                      uint16_t min_stay_duration = 9 * 60,
-                      uint16_t price = 5000)
+
+constexpr auto HOTEL_EARLIEST_CHECKOUT = 6 * 60; /* GMT */
+constexpr auto HOTEL_MIN_STAY_DURATION = 9 * 60;
+constexpr auto HOTEL_PRICE = 5000;
+
+struct hotel {
+  explicit hotel(std::string const st,
+                 uint16_t const earliest_checkout = HOTEL_EARLIEST_CHECKOUT,
+                 uint16_t const min_stay_duration = HOTEL_MIN_STAY_DURATION,
+                 uint16_t const price = HOTEL_PRICE)
       : station_(st),
         earliest_checkout_(earliest_checkout),
         min_stay_duration_(min_stay_duration),
@@ -22,9 +27,8 @@ struct hotel_info {
 };
 
 /* get the eva numbers of all stations at which hotels are located */
-std::vector<hotel_info> parse_hotels(std::string const file_path);
+void parse_hotels(std::string const file_path, std::vector<hotel>&);
 
-}  // namespace hotels
 }  // namespace intermodal
 }  // namespace reliability
 }  // namespace motis

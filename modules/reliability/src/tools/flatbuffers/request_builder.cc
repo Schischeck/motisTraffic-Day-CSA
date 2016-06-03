@@ -1,6 +1,8 @@
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 
+#include "motis/core/common/constants.h"
 #include "motis/core/common/date_time_util.h"
+#include "motis/core/common/logging.h"
 
 #include "motis/module/error.h"
 
@@ -15,9 +17,6 @@ using namespace motis::module;
 namespace motis {
 namespace reliability {
 namespace flatbuffers {
-
-constexpr auto INTERMODAL_START_STATION = "START";
-constexpr auto INTERMODAL_DESTINATION_STATION = "END";
 
 request_builder::request_builder(routing::SearchType search_type)
     : search_type_(search_type),
@@ -130,8 +129,8 @@ request_builder& request_builder::add_intermodal_start(
   dep_is_intermodal_ = true;
   dep_.lat_ = lat;
   dep_.lng_ = lng;
-  create_pretrip_start(INTERMODAL_START_STATION, INTERMODAL_START_STATION,
-                       interval_begin, interval_end);
+  create_pretrip_start(STATION_START, STATION_START, interval_begin,
+                       interval_end);
   return *this;
 }
 
@@ -141,8 +140,7 @@ request_builder& request_builder::add_intermodal_destination(
   arr_.lat_ = lat;
   arr_.lng_ = lng;
   destination_station_ = routing::CreateInputStation(
-      b_, b_.CreateString(INTERMODAL_DESTINATION_STATION),
-      b_.CreateString(INTERMODAL_DESTINATION_STATION));
+      b_, b_.CreateString(STATION_END), b_.CreateString(STATION_END));
   return *this;
 }
 
@@ -154,33 +152,15 @@ request_builder& request_builder::add_additional_edge(
 
 request_builder& request_builder::add_additional_edges(
     intermodal::individual_modes_container const& container) {
-  // TODO(Mohammad Keyhani) Periodic edges for taxi
+  create_bikesharing_edges(container);
+  create_taxi_edges(container);
+  create_hotel_edges(container);
 
-  auto create_edge = [&](
-      motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
-      std::string const tail_station, std::string const head_station) {
-    using namespace routing;
-    for (auto const& availability : info.availability_intervals_) {
-      Interval interval(availability.first, availability.second);
-      additional_edges_.push_back(CreateAdditionalEdgeWrapper(
-          b_, AdditionalEdge_TimeDependentMumoEdge,
-          CreateTimeDependentMumoEdge(
-              b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
-                                 b_.CreateString(head_station), info.duration_,
-                                 0 /* TODO(Mohammad Keyhani) price */,
-                                 motis::reliability::intermodal::BIKESHARING),
-              &interval)
-              .Union()));
-    }
-  };
-
-  for (auto const& info : container.bikesharing_.at_start_) {
-    create_edge(info, INTERMODAL_START_STATION, info.station_eva_);
-  }
-
-  for (auto const& info : container.bikesharing_.at_destination_) {
-    create_edge(info, info.station_eva_, INTERMODAL_DESTINATION_STATION);
-  }
+  LOG(logging::info) << "Request created with "
+                     << container.bikesharing_.at_start_.size() << "|"
+                     << container.bikesharing_.at_destination_.size()
+                     << " bikesharings, " << container.hotels_.size()
+                     << " hotels, and " << container.taxis_.size() << " taxis.";
   return *this;
 }
 
@@ -211,9 +191,11 @@ msg_ptr request_builder::build_rating_request(bool const bikesharing) {
   return build_reliable_request(opts, bikesharing);
 }
 
-msg_ptr request_builder::build_late_connection_request() {
-  auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_LateConnectionReq,
-                                          CreateLateConnectionReq(b_).Union());
+msg_ptr request_builder::build_late_connection_request(
+    unsigned const taxi_radius) {
+  auto opts = CreateRequestOptionsWrapper(
+      b_, RequestOptions_LateConnectionReq,
+      CreateLateConnectionReq(b_, taxi_radius).Union());
   return build_reliable_request(opts);
 }
 
@@ -237,6 +219,77 @@ msg_ptr request_builder::build_reliable_request(
                            .Union(),
                        "/reliability/route");
   return module::make_msg(b_);
+}
+
+void request_builder::create_bikesharing_edges(
+    intermodal::individual_modes_container const& container) {
+  auto create_edge = [&](
+      motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
+      std::string const tail_station, std::string const head_station) {
+    using namespace routing;
+    for (auto const& availability : info.availability_intervals_) {
+      Interval interval(availability.first, availability.second);
+      additional_edges_.push_back(CreateAdditionalEdgeWrapper(
+          b_, AdditionalEdge_TimeDependentMumoEdge,
+          CreateTimeDependentMumoEdge(
+              b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
+                                 b_.CreateString(head_station), info.duration_,
+                                 0 /* TODO(Mohammad Keyhani) price */,
+                                 motis::reliability::intermodal::BIKESHARING),
+              &interval)
+              .Union()));
+    }
+  };
+
+  for (auto const& info : container.bikesharing_.at_start_) {
+    create_edge(info, STATION_START, info.station_eva_);
+  }
+  for (auto const& info : container.bikesharing_.at_destination_) {
+    create_edge(info, info.station_eva_, STATION_END);
+  }
+}
+
+void request_builder::create_taxi_edges(
+    intermodal::individual_modes_container const& container) {
+  using namespace routing;
+  for (auto const& e : container.taxis_) {
+    Interval interval(e.valid_from_, e.valid_to_);
+    additional_edges_.push_back(CreateAdditionalEdgeWrapper(
+        b_, AdditionalEdge_PeriodicMumoEdge,
+        CreatePeriodicMumoEdge(
+            b_, CreateMumoEdge(b_, b_.CreateString(e.from_station_),
+                               b_.CreateString(e.to_station_), e.duration_,
+                               e.price_, motis::reliability::intermodal::TAXI),
+            &interval)
+            .Union()));
+  }
+}
+
+void request_builder::create_hotel_edges(
+    intermodal::individual_modes_container const& container) {
+  using namespace routing;
+  for (auto const& e : container.hotels_) {
+    additional_edges_.push_back(CreateAdditionalEdgeWrapper(
+        b_, AdditionalEdge_HotelEdge,
+        CreateHotelEdge(
+            b_, CreateMumoEdge(b_, b_.CreateString(e.station_),
+                               b_.CreateString(e.station_), 0 /* dummy */,
+                               e.price_, motis::reliability::intermodal::HOTEL),
+            e.earliest_checkout_, e.min_stay_duration_)
+            .Union()));
+  }
+}
+
+std::string departure_station_name(routing::RoutingRequest const& req) {
+  using namespace routing;
+  if (req.start_type() == Start_PretripStart) {
+    auto start = reinterpret_cast<PretripStart const*>(req.start());
+    return start->station()->name()->str();
+  } else if (req.start_type() == Start_OntripStationStart) {
+    auto start = reinterpret_cast<OntripStationStart const*>(req.start());
+    return start->station()->name()->str();
+  }
+  return "";
 }
 
 }  // namespace flatbuffers

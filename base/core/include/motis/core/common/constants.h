@@ -15,7 +15,17 @@ constexpr const auto MAX_TRAVEL_TIME_HOURS = 24;
 constexpr const auto MAX_TRAVEL_TIME_MINUTES = MAX_TRAVEL_TIME_HOURS * 60;
 constexpr const auto MAX_TRAVEL_TIME_SECONDS = MAX_TRAVEL_TIME_MINUTES * 60;
 
-constexpr const unsigned LATE_TAXI_BEGIN_TIME = 1260;  // minutes after midnight
-constexpr const unsigned LATE_TAXI_END_TIME = 180;  // minutes after midnight
+constexpr const auto STATION_START = "START";
+constexpr const auto STATION_END = "END";
+constexpr const auto STATION_VIA0 = "VIA0";
+constexpr const auto STATION_VIA1 = "VIA1";
+constexpr const auto STATION_VIA2 = "VIA2";
+constexpr const auto STATION_VIA3 = "VIA3";
+constexpr const auto STATION_VIA4 = "VIA4";
+constexpr const auto STATION_VIA5 = "VIA5";
+constexpr const auto STATION_VIA6 = "VIA6";
+constexpr const auto STATION_VIA7 = "VIA7";
+constexpr const auto STATION_VIA8 = "VIA8";
+constexpr const auto STATION_VIA9 = "VIA9";
 
 }  // namespace motis

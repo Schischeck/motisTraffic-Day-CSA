@@ -34,19 +34,20 @@ void print_journey(journey const& j, time_t const sched_begin,
         return "Walk";
       } else {
         std::stringstream sst;
-        sst << t.mumo_type_ << "," << t.mumo_price_;
+        if (t.mumo_type_.empty()) {
+          sst << t.slot_;
+        } else {
+          sst << t.mumo_type_;
+        }
+        sst << "," << t.mumo_price_;
         return sst.str();
       }
     }
     return "unknown";
   };
 
-  auto db_cost =
-      std::accumulate(begin(j.transports_), end(j.transports_), 0u,
-                      [](auto&& acc, auto&& t) { return acc + t.mumo_price_; });
-
-  os << "Journey (" << j.duration_ << ", " << j.transfers_ << ", " << db_cost
-     << ")\n";
+  os << "Journey (d=" << j.duration_ << " #ic=" << j.transfers_
+     << ", np=" << j.night_penalty_ << ", c=" << j.db_costs_ << ")\n";
   for (auto const& t : j.transports_) {
     auto const& from = j.stops_[t.from_];
     auto const& to = j.stops_[t.to_];

@@ -22,21 +22,28 @@ namespace reliability {
 namespace flatbuffers {
 namespace response_builder {
 
-void add_mumo_info(std::vector<journey>& journeys) {
-  for (auto& j : journeys) {
-    for (auto& t : j.transports_) {
-      t.mumo_type_ = intermodal::to_str(static_cast<intermodal::slot>(t.slot_));
-    }
+void update_address_info(journey& j, bool const dep_intermodal = false,
+                         bool const arr_intermodal = false,
+                         std::string const dep_address = "",
+                         std::string const arr_address = "") {
+  if (dep_intermodal) {
+    j.stops_.front().name_ = dep_address;
+  }
+  if (arr_intermodal) {
+    j.stops_.back().name_ = arr_address;
   }
 }
 
 Offset<routing::RoutingResponse> convert_routing_response(
-    FlatBufferBuilder& b,
-    routing::RoutingResponse const* orig_routing_response) {
+    FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
+    bool const dep_intermodal = false, bool const arr_intermodal = false,
+    std::string const dep_address = "", std::string const arr_address = "") {
   std::vector<Offset<Connection>> connections;
   auto journeys = message_to_journeys(orig_routing_response);
-  add_mumo_info(journeys);
-  for (auto const& j : journeys) {
+  for (auto& j : journeys) {
+    intermodal::update_mumo_info(j);
+    update_address_info(j, dep_intermodal, arr_intermodal, dep_address,
+                        arr_address);
     connections.push_back(to_connection(b, j));
   }
   return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
@@ -178,12 +185,15 @@ module::msg_ptr to_reliability_rating_response(
     std::vector<rating::connection_rating> const& orig_ratings,
     std::vector<rating::simple_rating::simple_connection_rating> const&
         orig_simple_ratings,
-    bool const short_output) {
+    bool const short_output, bool const dep_intermodal,
+    bool const arr_intermodal, std::string const dep_address,
+    std::string const arr_address) {
   assert(orig_routing_response->connections()->size() == orig_ratings.size());
   module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
   auto const routing_response =
-      convert_routing_response(b, orig_routing_response);
+      convert_routing_response(b, orig_routing_response, dep_intermodal,
+                               arr_intermodal, dep_address, arr_address);
   auto const conn_ratings = rating_converter::convert_ratings(
       b, orig_ratings, *orig_routing_response->connections(), short_output);
   auto const simple_ratings =

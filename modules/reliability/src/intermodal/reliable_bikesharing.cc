@@ -20,9 +20,14 @@ namespace detail {
 std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<::flatbuffers::Offset<
         ::motis::bikesharing::BikesharingEdge>> const& edges,
-    availability_aggregator const& aggregator) {
+    availability_aggregator const& aggregator, unsigned const max_duration) {
   std::vector<bikesharing_info> infos;
   for (auto edge : edges) {
+    auto const duration = static_cast<unsigned>(
+        (edge->bike_duration() + edge->walk_duration()) / 60);
+    if (duration > max_duration) {
+      continue;
+    }
     std::vector<std::pair<time_t, time_t>> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator.is_reliable(rating->value())) {
@@ -32,12 +37,10 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
       }
     }
     if (!availability_intervals.empty()) {
-      infos.push_back(
-          {std::string(edge->station_id()->c_str()),
-           static_cast<unsigned>(
-               (edge->bike_duration() + edge->walk_duration()) / 60),
-           availability_intervals, std::string(edge->from()->name()->c_str()),
-           std::string(edge->to()->name()->c_str())});
+      infos.push_back({std::string(edge->station_id()->c_str()), duration,
+                       availability_intervals,
+                       std::string(edge->from()->name()->c_str()),
+                       std::string(edge->to()->name()->c_str())});
     }
   }
   return infos;
@@ -46,7 +49,8 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
 }  // namespace detail
 
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
-    bool for_departure, ReliableRoutingRequest const& req) {
+    bool for_departure, ReliableRoutingRequest const& req,
+    unsigned const max_duration) {
   auto res = motis_call(to_bikesharing_request(
                             req, for_departure,
                             motis::bikesharing::AvailabilityAggregator_Average))
@@ -54,7 +58,8 @@ std::vector<bikesharing_info> retrieve_bikesharing_infos(
   motis::reliability::intermodal::bikesharing::average_aggregator aggregator(4);
   using ::motis::bikesharing::BikesharingResponse;
   return detail::to_bikesharing_infos(
-      *motis_content(BikesharingResponse, res)->edges(), aggregator);
+      *motis_content(BikesharingResponse, res)->edges(), aggregator,
+      max_duration);
 }
 
 module::msg_ptr to_bikesharing_request(

@@ -8,7 +8,7 @@
       "interchangeTime": 0,
       "minInterchangeTime": 0,
       "platformInterchangeTime": 0,
-      "evaNumber": "1111111",
+      "evaNumber": "8011111",
       "ds100Code": "1111111",
       "KMInfo": 0
     },
@@ -20,7 +20,7 @@
       "interchangeTime": 5,
       "minInterchangeTime": 5,
       "platformInterchangeTime": 5,
-      "evaNumber": "2222222",
+      "evaNumber": "8022222",
       "ds100Code": "2222222",
       "KMInfo": 0
     },
@@ -32,7 +32,7 @@
       "interchangeTime": 0,
       "minInterchangeTime": 0,
       "platformInterchangeTime": 0,
-      "evaNumber": "3333333",
+      "evaNumber": "8033333",
       "ds100Code": "3333333",
       "KMInfo": 0
     },
@@ -44,8 +44,20 @@
       "interchangeTime": 5,
       "minInterchangeTime": 5,
       "platformInterchangeTime": 5,
-      "evaNumber": "5345291",
+      "evaNumber": "8044444",
       "ds100Code": "5345291",
+      "KMInfo": 0
+    },
+    {
+      "name": "Berlin",
+      "tracks": 2,
+      "latitude": 52.51999999999998,
+      "longitude": 13.372000000000071,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "8055555",
+      "ds100Code": "0000005",
       "KMInfo": 0
     }
   ],
@@ -57,7 +69,7 @@
       "trainNumber": 1,
       "stations": [
         {
-          "station": "3333333",
+          "station": "8033333",
           "arrival": 0,
           "departure": 0,
           "track": 1,
@@ -65,7 +77,7 @@
           "leavingAllowed": true
         },
         {
-          "station": "2222222",
+          "station": "8022222",
           "arrival": 10,
           "departure": 12,
           "track": 1,
@@ -97,7 +109,7 @@
       "trainNumber": 2,
       "stations": [
         {
-          "station": "5345291",
+          "station": "8044444",
           "arrival": 0,
           "departure": 0,
           "track": 1,
@@ -105,9 +117,49 @@
           "leavingAllowed": true
         },
         {
-          "station": "1111111",
+          "station": "8011111",
           "arrival": 10,
           "departure": 12,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "intervals": [
+        {
+          "fromTime": "10:00:00.000",
+          "untilTime": "10:00:00.000",
+          "interval": 1
+        }
+      ]
+    },
+    {
+      "name": "ICE_L_B",
+      "category": "ICE",
+      "evaNumber": "0010003",
+      "trainNumber": 3,
+      "stations": [
+        {
+          "station": "8022222",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "8055555",
+          "arrival": 180,
+          "departure": 182,
           "track": 1,
           "enteringAllowed": true,
           "leavingAllowed": true
@@ -133,17 +185,18 @@
   ],
   "footpaths": [
     {
-      "fromStation": "2222222",
-      "toStation": "5345291",
+      "fromStation": "8022222",
+      "toStation": "8044444",
       "duration": 20
     },
     {
-      "fromStation": "5345291",
-      "toStation": "2222222",
+      "fromStation": "8044444",
+      "toStation": "8022222",
       "duration": 20
     }
   ],
   "specialTransferTimes": [],
   "startDate": "2015-10-19",
-  "endDate": "2015-10-20"
+  "endDate": "2015-10-20",
+  "exportTimezones": true
 }

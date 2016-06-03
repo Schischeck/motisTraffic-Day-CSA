@@ -9,6 +9,7 @@
 
 namespace motis {
 namespace reliability {
+struct reliability;
 struct ReliableRoutingRequest;  // NOLINT
 struct context;
 namespace search {
@@ -16,9 +17,13 @@ struct connection_graph;
 namespace connection_graph_search {
 struct connection_graph_optimizer;
 
+module::msg_ptr search_cgs(ReliableRoutingRequest const&, reliability&,
+                           unsigned const max_bikesharing_duration);
+
 std::vector<std::shared_ptr<connection_graph> > search_cgs(
     ReliableRoutingRequest const&, motis::reliability::context const&,
-    std::shared_ptr<connection_graph_optimizer const>);
+    std::shared_ptr<connection_graph_optimizer const>,
+    unsigned const max_bikesharing_duration);
 
 }  // namespace connection_graph_search
 }  // namespace search

@@ -127,7 +127,7 @@ journey create_journey1() {
     transport.line_identifier_ = "";
     transport.name_ = "";
     transport.provider_ = "";
-    transport.slot_ = 0;
+    transport.slot_ = 1;
     transport.train_nr_ = 0;
   }
   {
@@ -362,7 +362,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier_, "");
       ASSERT_EQ(transport.name_, "");
       ASSERT_EQ(transport.provider_, "");
-      ASSERT_EQ(transport.slot_, 0);
+      ASSERT_EQ(transport.slot_, 1);
       ASSERT_EQ(transport.train_nr_, 0);
     }
     {

@@ -46,6 +46,7 @@ private:
   unsigned int const num_alternatives_at_each_stop_;
 
 };  // namespace simple_optimizer
+
 }  // namespace connection_graph_search
 }  // namespace search
 }  // namespace reliability

@@ -37,11 +37,14 @@ protected:
                             std::string const schedule_begin,
                             bool const realtime = false,
                             bool const bikesharing = false,
-                            std::string const bikesharing_path = "")
+                            std::string const bikesharing_path = "",
+                            bool const late_connections = false,
+                            std::string const hotels_path = "")
       : motis_instance_test(
             {schedule_path, schedule_begin, 2, false, false, false, true},
-            get_modules(realtime, bikesharing),
-            get_cmdline_opt(bikesharing, bikesharing_path)) {
+            get_modules(realtime, bikesharing, late_connections),
+            get_cmdline_opt(bikesharing, bikesharing_path, late_connections,
+                            hotels_path)) {
     reliability_context_ = std::make_unique<motis::reliability::context>(
         sched(), get_reliability_module().precomputed_distributions(),
         get_reliability_module().s_t_distributions());
@@ -49,28 +52,35 @@ protected:
 
 private:
   static std::vector<std::string> get_modules(bool const realtime,
-                                              bool const bikesharing) {
-    std::vector<std::string> modules = {"reliability", "routing"};
+                                              bool const bikesharing,
+                                              bool const late_connections) {
+    std::vector<std::string> modules = {"reliability", "routing", "guesser"};
     if (realtime) {
-      modules.push_back("connectionchecker");
-      modules.push_back("realtime");
+      modules.push_back("rt");
       modules.push_back("ris");
     }
-
     if (bikesharing) {
       modules.push_back("lookup");
       modules.push_back("bikesharing");
+    } else if (late_connections) {
+      modules.push_back("lookup");
     }
     return modules;
   }
 
   static std::vector<std::string> get_cmdline_opt(
-      bool const bikesharing, std::string const bikesharing_path) {
+      bool const bikesharing, std::string const bikesharing_path,
+      bool const late_connections, std::string const hotels_path) {
     std::vector<std::string> modules_cmdline_opt;
     if (bikesharing) {
       modules_cmdline_opt.push_back("--bikesharing.nextbike_path=" +
                                     bikesharing_path);
       modules_cmdline_opt.push_back("--bikesharing.database_path=:memory:");
+      modules_cmdline_opt.push_back(
+          "--reliability.max_bikesharing_duration=120");
+    }
+    if (late_connections) {
+      modules_cmdline_opt.push_back("--reliability.hotels=" + hotels_path);
     }
     return modules_cmdline_opt;
   }

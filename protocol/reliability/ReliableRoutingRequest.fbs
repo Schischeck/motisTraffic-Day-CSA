@@ -8,7 +8,9 @@ table ReliableSearchReq {
   min_departure_diff:short;
 }
 
-table LateConnectionReq { }
+table LateConnectionReq {
+  taxi_radius:uint = 50000; // in meters
+}
 
 table ConnectionTreeReq {
   num_alternatives_at_each_stop:short;
