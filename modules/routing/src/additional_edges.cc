@@ -1,5 +1,6 @@
 #include "motis/routing/additional_edges.h"
 
+#include "motis/core/common/constants.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
@@ -44,11 +45,13 @@ std::vector<edge> create_additional_edges(
         auto edge = info->edge();
         auto const head_station =
             get_station_node(sched, edge->to_station_id()->str());
+        bool const transfer =
+            head_station->id_ == destination_station_index &&
+            sched.stations_[head_station->id_]->eva_nr_ != STATION_END;
         edges.push_back(make_periodic_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
             head_station, edge->duration(), edge->price(), edge->slot(),
-            info->interval()->begin(), info->interval()->end(),
-            head_station->id_ == destination_station_index));
+            info->interval()->begin(), info->interval()->end(), transfer));
         break;
       }
 
