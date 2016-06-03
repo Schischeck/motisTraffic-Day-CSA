@@ -2,11 +2,15 @@
 
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
+#include "motis/module/context/motis_call.h"
 #include "motis/protocol/RoutingResponse_generated.h"
 
 #include "motis/reliability/context.h"
+#include "motis/reliability/intermodal/individual_modes_container.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
+#include "motis/reliability/reliability.h"
+#include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/flatbuffers/response_builder.h"
 
 namespace motis {
@@ -45,6 +49,27 @@ module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
   return flatbuffers::response_builder::to_reliability_rating_response(
       &res, ratings, simple_ratings, true /* short output */, dep_intermodal,
       arr_intermodal, dep_address, arr_address);
+}
+
+module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
+                       unsigned const max_bikesharing_duration) {
+  using routing::RoutingResponse;
+  auto routing_response =
+      motis_call(
+          flatbuffers::request_builder(req)
+              .add_additional_edges(intermodal::individual_modes_container(
+                  req, max_bikesharing_duration))
+              .build_routing_request())
+          ->val();
+  auto lock = rel.synced_sched();
+  return rating::rate_routing_response(
+      *motis_content(RoutingResponse, routing_response),
+      ::motis::reliability::context(lock.sched(),
+                                    *rel.precomputed_distributions_,
+                                    *rel.s_t_distributions_),
+      req.dep_is_intermodal(), req.arr_is_intermodal(),
+      flatbuffers::departure_station_name(*req.request()),
+      req.request()->destination()->name()->str());
 }
 
 }  // namespace rating

@@ -7,6 +7,7 @@
 namespace motis {
 struct schedule;
 namespace reliability {
+struct reliability;
 struct ReliableRoutingRequest;  // NOLINT
 namespace search {
 namespace late_connections {
@@ -21,8 +22,8 @@ struct taxi_cost {
 };
 }  // namespace detail
 
-module::msg_ptr search(ReliableRoutingRequest const&,
-                       std::string const& hotels_file, schedule const&);
+module::msg_ptr search(ReliableRoutingRequest const&, reliability&,
+                       std::string const& hotels_file);
 }  // namespace late_connections
 }  // namespace search
 }  // namespace reliability

@@ -1,6 +1,5 @@
 #include "motis/reliability/reliability.h"
 
-#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,25 +9,15 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/util.h"
-#include "motis/core/journey/journey.h"
-#include "motis/core/journey/journey_util.h"
-#include "motis/core/journey/message_to_journeys.h"
-
-#include "motis/module/context/motis_call.h"
 
 #include "motis/reliability/computation/distributions_calculator.h"
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/error.h"
-#include "motis/reliability/intermodal/individual_modes_container.h"
-#include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/realtime/realtime_update.h"
-#include "motis/reliability/search/cg_optimizer.h"
 #include "motis/reliability/search/connection_graph_search.h"
 #include "motis/reliability/search/late_connections.h"
-#include "motis/reliability/tools/flatbuffers/request_builder.h"
-#include "motis/reliability/tools/flatbuffers/response_builder.h"
 
 #include "../test/include/start_and_travel_test_distributions.h"
 
@@ -130,125 +119,19 @@ void reliability::init(motis::module::registry& reg) {
       lock.sched(), *s_t_distributions_, *precomputed_distributions_);
 }
 
-namespace detail {
-
-msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
-               unsigned const max_bikesharing_duration) {
-  using routing::RoutingResponse;
-  auto routing_response =
-      motis_call(
-          flatbuffers::request_builder(req)
-              .add_additional_edges(intermodal::individual_modes_container(
-                  req, max_bikesharing_duration))
-              .build_routing_request())
-          ->val();
-  auto lock = rel.synced_sched();
-  return rating::rate_routing_response(
-      *motis_content(RoutingResponse, routing_response),
-      ::motis::reliability::context(lock.sched(),
-                                    *rel.precomputed_distributions_,
-                                    *rel.s_t_distributions_),
-      req.dep_is_intermodal(), req.arr_is_intermodal(),
-      flatbuffers::departure_station_name(*req.request()),
-      req.request()->destination()->name()->str());
-}
-
-void update_mumo_info(
-    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
-  for (auto& cg : cgs) {
-    for (auto& j : cg->journeys_) {
-      intermodal::update_mumo_info(j);
-    }
-  }
-}
-
-void update_address_info(
-    ReliableRoutingRequest const& req,
-    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
-  for (auto& cg : cgs) {
-    if (req.dep_is_intermodal()) {
-      cg->journeys_.front().stops_.front().name_ =
-          flatbuffers::departure_station_name(*req.request());
-    }
-    if (req.arr_is_intermodal()) {
-      std::set<uint16_t> arriving_journeys;
-      for (auto& s : cg->stops_) {
-        for (auto& a : s.alternative_infos_) {
-          arriving_journeys.insert(a.journey_index_);
-        }
-      }
-      for (auto idx : arriving_journeys) {
-        cg->journeys_.at(idx).stops_.back().name_ =
-            req.request()->destination()->name()->str();
-      }
-    }
-  }
-}
-
-msg_ptr reliable_search(ReliableRoutingRequest const& req, reliability& rel,
-                        unsigned const max_bikesharing_duration) {
-  auto req_info = reinterpret_cast<ReliableSearchReq const*>(
-      req.request_type()->request_options());
-  auto lock = rel.synced_sched();
-  auto cgs = search::connection_graph_search::search_cgs(
-      req, ::motis::reliability::context(lock.sched(),
-                                         *rel.precomputed_distributions_,
-                                         *rel.s_t_distributions_),
-      std::make_shared<search::connection_graph_search::reliable_cg_optimizer>(
-          req_info->min_departure_diff()),
-      max_bikesharing_duration);
-  update_mumo_info(cgs);
-  update_address_info(req, cgs);
-  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
-}
-
-msg_ptr connection_tree(ReliableRoutingRequest const& req, reliability& rel,
-                        unsigned const max_bikesharing_duration) {
-  auto req_info = reinterpret_cast<ConnectionTreeReq const*>(
-      req.request_type()->request_options());
-  auto lock = rel.synced_sched();
-  auto cgs = search::connection_graph_search::search_cgs(
-      req, ::motis::reliability::context(lock.sched(),
-                                         *rel.precomputed_distributions_,
-                                         *rel.s_t_distributions_),
-      std::make_shared<search::connection_graph_search::simple_optimizer>(
-          req_info->num_alternatives_at_each_stop(),
-          req_info->min_departure_diff()),
-      max_bikesharing_duration);
-  update_mumo_info(cgs);
-  update_address_info(req, cgs);
-  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
-}
-
-msg_ptr late_connections(ReliableRoutingRequest const& req, reliability& rel,
-                         std::string const& hotels_file) {
-  auto lock = rel.synced_sched();
-  auto routing_res =
-      search::late_connections::search(req, hotels_file, lock.sched());
-  using routing::RoutingResponse;
-  return rating::rate_routing_response(
-      *motis_content(RoutingResponse, routing_res),
-      ::motis::reliability::context(lock.sched(),
-                                    *rel.precomputed_distributions_,
-                                    *rel.s_t_distributions_));
-}
-
-}  // namespace detail
-
 msg_ptr reliability::routing_request(msg_ptr const& msg) {
   auto const& req = *motis_content(ReliableRoutingRequest, msg);
   switch (req.request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
-      return detail::rating(req, *this, max_bikesharing_duration_);
+      return rating::rating(req, *this, max_bikesharing_duration_);
     }
-    case RequestOptions_ReliableSearchReq: {
-      return detail::reliable_search(req, *this, max_bikesharing_duration_);
-    }
+    case RequestOptions_ReliableSearchReq:
     case RequestOptions_ConnectionTreeReq: {
-      return detail::connection_tree(req, *this, max_bikesharing_duration_);
+      return search::connection_graph_search::search_cgs(
+          req, *this, max_bikesharing_duration_);
     }
     case RequestOptions_LateConnectionReq: {
-      return detail::late_connections(req, *this, hotels_file_);
+      return search::late_connections::search(req, *this, hotels_file_);
     }
     default: break;
   }

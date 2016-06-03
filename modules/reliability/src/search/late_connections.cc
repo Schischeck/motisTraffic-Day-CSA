@@ -16,6 +16,7 @@
 
 #include "motis/reliability/intermodal/hotels.h"
 #include "motis/reliability/intermodal/individual_modes_container.h"
+#include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
 #include "motis/reliability/tools/flatbuffers/response_builder.h"
@@ -140,7 +141,6 @@ void init_hotels(schedule const& sched, std::string const& hotels_file,
     }
   }
 }
-}  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const& req,
                        std::string const& hotels_file, schedule const& sched) {
@@ -153,6 +153,21 @@ module::msg_ptr search(ReliableRoutingRequest const& req,
   b.add_additional_edges(container);
   return motis_call(b.build_routing_request())->val();
 }
+
+}  // namespace detail
+
+module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
+                       std::string const& hotels_file) {
+  auto lock = rel.synced_sched();
+  auto routing_res = detail::search(req, hotels_file, lock.sched());
+  using routing::RoutingResponse;
+  return rating::rate_routing_response(
+      *motis_content(RoutingResponse, routing_res),
+      ::motis::reliability::context(lock.sched(),
+                                    *rel.precomputed_distributions_,
+                                    *rel.s_t_distributions_));
+}
+
 }  // namespace late_connections
 }  // namespace search
 }  // namespace reliability
