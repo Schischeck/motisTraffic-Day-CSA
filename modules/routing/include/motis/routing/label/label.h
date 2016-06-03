@@ -13,10 +13,10 @@ template <typename Data, typename Init, typename Updater, typename Filter,
 struct label : public Data {
   label() = default;
 
-  label(node const* n, label* pred, time now, lower_bounds& lb,
+  label(edge const* e, label* pred, time now, lower_bounds& lb,
         uint8_t const slot)
       : pred_(pred),
-        node_(n),
+        edge_(e),
         connection_(nullptr),
         start_(pred != nullptr ? pred->start_ : now),
         now_(now),
@@ -24,6 +24,8 @@ struct label : public Data {
         slot_(slot) {
     Init::init(*this, lb);
   }
+
+  node const* node() const { return edge_->to_; }
 
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
@@ -62,7 +64,7 @@ struct label : public Data {
   }
 
   label const* pred_;
-  node const* node_;
+  edge const* edge_;
   light_connection const* connection_;
   time start_, now_;
   bool dominated_;

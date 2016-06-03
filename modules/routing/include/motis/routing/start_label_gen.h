@@ -15,13 +15,13 @@ template <typename Label>
 struct pretrip_gen {
   static std::vector<Label*> generate(schedule const& sched,
                                       memory_manager& mem, lower_bounds& lbs,
-                                      node const* from,
+                                      edge const* start_edge,
                                       std::vector<edge> const& query_edges,
                                       time interval_begin, time interval_end) {
     std::vector<Label*> labels;
 
     auto const start = sched.station_nodes_.at(0).get();
-    if (from == start) {
+    if (start_edge->to_ == start) {
       for (auto const& e : query_edges) {
         if (e.from_ != start) {
           continue;
@@ -47,8 +47,8 @@ struct pretrip_gen {
                               e.m_.foot_edge_.slot_, labels);
       }
     } else {
-      generate_start_labels(mem, lbs, nullptr, from->get_station(), 0,
-                            interval_begin, interval_end, interval_end,
+      generate_start_labels(mem, lbs, nullptr, start_edge->to_->get_station(),
+                            0, interval_begin, interval_end, interval_end,
                             0 /* slot */, labels);
     }
 
@@ -97,12 +97,12 @@ struct pretrip_gen {
 template <typename Label>
 struct ontrip_gen {
   static std::vector<Label*> generate(schedule const&, memory_manager& mem,
-                                      lower_bounds& lbs, node const* from,
+                                      lower_bounds& lbs, edge const* start_edge,
                                       std::vector<edge> const&,
                                       time interval_begin,
                                       time /* interval_end */) {
-    return {
-        mem.create<Label>(from, nullptr, interval_begin, lbs, 0 /* slot */)};
+    return {mem.create<Label>(start_edge, nullptr, interval_begin, lbs,
+                              0 /* slot */)};
   }
 };
 

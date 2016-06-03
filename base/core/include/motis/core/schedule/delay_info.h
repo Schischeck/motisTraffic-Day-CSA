@@ -70,7 +70,6 @@ struct delay_info {
       case reason::IS: return is_time_;
       case reason::FORECAST: return forecase_time_;
       case reason::PROPAGATION: return propagation_time_;
-
       default: return schedule_time_;
     }
   }
