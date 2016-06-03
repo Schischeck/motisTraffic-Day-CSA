@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -50,7 +51,7 @@ struct motis_instance_test : public ::testing::Test {
         instance_->modules_.begin(), instance_->modules_.end(),
         [module_name](auto const& m) { return m->name() == module_name; });
     if (it == instance_->modules_.end()) {
-      throw std::system_error();
+      throw std::runtime_error("module not found");
     }
     return *reinterpret_cast<Module*>(it->get());
   }

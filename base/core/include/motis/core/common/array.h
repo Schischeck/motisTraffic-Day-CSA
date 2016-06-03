@@ -231,6 +231,8 @@ struct array final {
     return end();
   }
 
+  bool contains(T const* el) const { return el >= begin() && el < end(); }
+
   std::string to_string() const { return std::string(el_); }
 
   operator std::string() const { return to_string(); }

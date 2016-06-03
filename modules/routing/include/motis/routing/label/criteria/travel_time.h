@@ -11,7 +11,7 @@ struct travel_time_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
     l.travel_time_ = l.now_ - l.start_;
-    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.node_->id_];
+    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.get_node()->id_];
   }
 };
 
@@ -19,7 +19,7 @@ struct travel_time_updater {
   template <typename Label, typename LowerBounds>
   static void update(Label& l, uint8_t, edge_cost const& ec, LowerBounds& lb) {
     l.travel_time_ += ec.time_;
-    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.node_->id_];
+    l.travel_time_lb_ = l.travel_time_ + lb.travel_time_[l.get_node()->id_];
   }
 };
 

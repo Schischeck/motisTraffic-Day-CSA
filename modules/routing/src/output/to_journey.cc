@@ -111,18 +111,22 @@ std::vector<journey::stop> generate_journey_stops(
                                                    stop.a_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
-                                             stop.a_time_),
+                                             stop.a_sched_time_),
+                                         stop.a_reason_,
                                          sched.tracks_[stop.a_platform_]}
-             : journey::stop::event_info{false, 0, 0, ""},
+             : journey::stop::event_info{false, 0, 0,
+                                         delay_info::reason::SCHEDULE, ""},
          stop.d_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,
                                                    stop.d_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
-                                             stop.d_time_),
+                                             stop.d_sched_time_),
+                                         stop.d_reason_,
                                          sched.tracks_[stop.d_platform_]}
-             : journey::stop::event_info{false, 0, 0, ""}});
+             : journey::stop::event_info{false, 0, 0,
+                                         delay_info::reason::SCHEDULE, ""}});
   }
   return journey_stops;
 }
