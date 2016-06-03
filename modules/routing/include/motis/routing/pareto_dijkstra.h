@@ -36,7 +36,7 @@ public:
         label_store_(label_store),
         max_labels_(label_store.size() / sizeof(Label) - 1000) {
     for (auto const& start_label : start_labels) {
-      node_labels_[start_label->node()->id_].emplace_back(start_label);
+      node_labels_[start_label->get_node()->id_].emplace_back(start_label);
     }
   }
 
@@ -78,18 +78,18 @@ public:
         continue;
       }
 
-      if (label->node() == goal_) {
+      if (label->get_node() == goal_) {
         continue;
       }
 
-      auto it = additional_edges_.find(label->node());
+      auto it = additional_edges_.find(label->get_node());
       if (it != std::end(additional_edges_)) {
         for (auto const& additional_edge : it->second) {
           create_new_label(label, additional_edge);
         }
       }
 
-      for (auto const& edge : label->node()->edges_) {
+      for (auto const& edge : label->get_node()->edges_) {
         create_new_label(label, edge);
       }
     }

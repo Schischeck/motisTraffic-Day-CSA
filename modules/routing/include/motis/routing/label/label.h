@@ -25,11 +25,11 @@ struct label : public Data {
     Init::init(*this, lb);
   }
 
-  node const* node() const { return edge_->to_; }
+  node const* get_node() const { return edge_->to_; }
 
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
-    if (pred_ && e.get_destination() == pred_->node()) {
+    if (pred_ && e.get_destination() == pred_->get_node()) {
       return false;
     }
 
