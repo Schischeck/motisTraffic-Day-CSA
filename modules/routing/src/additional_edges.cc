@@ -13,7 +13,7 @@ namespace routing {
 
 std::vector<edge> create_additional_edges(
     fbs::Vector<fbs::Offset<AdditionalEdgeWrapper>> const* edge_wrappers,
-    unsigned const destination_station_index, schedule const& sched) {
+    schedule const& sched, unsigned const destination_station_index) {
   std::vector<edge> edges;
   for (auto const& e : *edge_wrappers) {
     switch (e->additional_edge_type()) {
@@ -59,7 +59,7 @@ std::vector<edge> create_additional_edges(
         auto info = reinterpret_cast<HotelEdge const*>(e->additional_edge());
         auto edge = info->edge();
         edges.push_back(make_hotel_edge(
-            get_station_node(sched, info->edge()->from_station_id()->str()),
+            get_station_node(sched, edge->from_station_id()->str()),
             info->earliest_checkout_time(), info->min_stay_duration(),
             edge->price(), edge->slot()));
         break;
