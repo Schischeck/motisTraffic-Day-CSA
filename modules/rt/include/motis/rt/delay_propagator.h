@@ -10,7 +10,7 @@ namespace motis {
 namespace rt {
 
 struct delay_propagator {
-  delay_propagator(schedule const& sched) : sched_(sched) {
+  explicit delay_propagator(schedule const& sched) : sched_(sched) {
     events_.set_empty_key({nullptr, 0, event_type::DEP});
   }
 
