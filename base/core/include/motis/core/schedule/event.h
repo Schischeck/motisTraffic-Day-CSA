@@ -19,7 +19,7 @@ struct schedule_event {
   schedule_event() = default;
   schedule_event(primary_trip_id trp, unsigned station_idx, event_type type,
                  time schedule_time)
-      : trp_(trp),
+      : trp_(std::move(trp)),
         station_idx_(station_idx),
         type_(type),
         schedule_time_(schedule_time) {}
