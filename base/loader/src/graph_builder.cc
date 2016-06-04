@@ -531,7 +531,8 @@ bitfield const& graph_builder::get_or_create_bitfield(
     String const* serialized_bitfield) {
   return map_get_or_create(bitfields_, serialized_bitfield, [&]() {
     return deserialize_bitset<BIT_COUNT>(
-        {serialized_bitfield->c_str(), serialized_bitfield->Length()});
+        {serialized_bitfield->c_str(),
+         static_cast<size_t>(serialized_bitfield->Length())});
   });
 }
 
