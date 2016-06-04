@@ -18,7 +18,7 @@ class pareto_dijkstra {
 public:
   class compare_labels {
   public:
-    bool operator()(const Label* l1, const Label* l2) const {
+    bool operator()(Label const* l1, Label const* l2) const {
       return l2->operator<(*l1);
     }
   };

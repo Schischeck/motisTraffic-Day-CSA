@@ -121,7 +121,7 @@ void add_to_propagator(schedule& sched, ris::DelayMessage const* msg,
         }
 
         // Get delay info from graph event.
-        auto const graph_ev = graph_event(&e, lcon_idx, ev_type);
+        auto const graph_ev = ev_key(&e, lcon_idx, ev_type);
         auto di_it = sched.graph_to_delay_info_.find(graph_ev);
 
         // Check whether schedule time matches update message schedule time.
@@ -132,8 +132,8 @@ void add_to_propagator(schedule& sched, ris::DelayMessage const* msg,
           continue;
         }
 
-        propagator.add_delay(graph_event(&e, lcon_idx, ev_type), upd.reason_,
-                             schedule_time, upd.updated_time_);
+        propagator.add_delay(ev_key(&e, lcon_idx, ev_type), upd.reason_,
+                             upd.updated_time_);
       }
     }
   }
@@ -190,10 +190,12 @@ void rt::init(motis::module::registry& reg) {
       }
     }
 
+    propagator.propagate();
+
     std::vector<shifted_node> shifted_nodes;
-    for (auto const& ev : propagator.events_) {
+    for (auto const& ev : propagator.events()) {
       auto const& di = ev.second;
-      auto const& k = di->get_graph_event();
+      auto const& k = di->get_ev_key();
 
       auto const trp =
           sched.merged_trips_[get_lcon(k.route_edge_, k.lcon_idx_).trips_]

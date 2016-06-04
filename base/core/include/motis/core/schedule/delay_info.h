@@ -26,7 +26,7 @@ struct delay_info {
 
   delay_info(delay_info const&) = default;
 
-  delay_info(graph_event ev, time schedule_time)
+  delay_info(ev_key ev, time schedule_time)
       : ev_(std::move(ev)),
         is_time_(0),
         schedule_time_(schedule_time),
@@ -55,13 +55,17 @@ struct delay_info {
     }
   }
 
-  void set(reason const r, time const t) {
+  bool set(reason const r, time const t) {
+    auto const before = get_current_time();
+
     switch (r) {
       case reason::SCHEDULE: schedule_time_ = t; break;
       case reason::IS: is_time_ = t; break;
       case reason::FORECAST: forecase_time_ = t; break;
       case reason::PROPAGATION: propagation_time_ = t; break;
     }
+
+    return get_current_time() != before;
   }
 
   time get_current_time() const {
@@ -86,10 +90,10 @@ struct delay_info {
     }
   }
 
-  graph_event get_graph_event() const { return ev_; }
+  ev_key get_ev_key() const { return ev_; }
 
 private:
-  graph_event ev_;
+  ev_key ev_;
   time is_time_;
   time schedule_time_, forecase_time_, propagation_time_;
 };
