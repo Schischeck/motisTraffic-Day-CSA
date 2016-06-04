@@ -36,9 +36,6 @@ std::vector<std::vector<connection_element>> get_elements(
         unix_to_motistime(sched.schedule_begin_, head_stop.arrival_.timestamp_),
         transport.category_id_, transport.train_nr_,
         transport.line_identifier_);
-    if (element.empty()) {
-      throw element_not_found_exception();
-    }
 
     // begin new train if elements empty or if there is an interchange
     if (elements.empty() ||
@@ -50,6 +47,7 @@ std::vector<std::vector<connection_element>> get_elements(
   });
 
   if (elements.empty()) {
+    LOG(logging::error) << "Elements is empty";
     throw element_not_found_exception();
   }
   return elements;

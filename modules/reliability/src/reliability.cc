@@ -71,7 +71,8 @@ po::options_description reliability::desc() {
 void reliability::print(std::ostream& out) const {
   out << "  " << READ_DISTRIBUTINS << ": " << read_distributions_ << "\n  "
       << DISTRIBUTIONS_FOLDERS << ": " << distributions_folders_ << "\n  "
-      << HOTELS_FILE << ": " << hotels_file_;
+      << HOTELS_FILE << ": " << hotels_file_ << "\n  "
+      << MAX_BIKESHARING_DURATION << ": " << max_bikesharing_duration_;
 }
 
 std::vector<s_t_distributions_container::parameters>
