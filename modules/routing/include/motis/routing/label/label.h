@@ -93,7 +93,7 @@ private:
   inline void correct_ec_for_terminal_label(edge_cost& ec, Edge const& e) {
     if (get_node()->is_route_node() && e.to_->is_station_node()) {
       ec.time_ = 0;
-      ec.transfer_ = 0;
+      ec.transfer_ = false;
     }
   }
 };
