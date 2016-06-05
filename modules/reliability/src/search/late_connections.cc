@@ -7,6 +7,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/station_access.h"
+#include "motis/core/journey/message_to_journeys.h"
 
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
@@ -162,11 +163,18 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
   auto lock = rel.synced_sched();
   auto routing_res = detail::ask_routing(req, hotels_file, lock.sched());
   using routing::RoutingResponse;
-  return rating::rate_routing_response(
-      *motis_content(RoutingResponse, routing_res),
-      ::motis::reliability::context(lock.sched(),
-                                    *rel.precomputed_distributions_,
-                                    *rel.s_t_distributions_));
+  auto journeys =
+      message_to_journeys(motis_content(RoutingResponse, routing_res));
+  auto ratings = rating::rate_journeys(
+      journeys,
+      motis::reliability::context(lock.sched(), rel.precomputed_distributions(),
+                                  rel.s_t_distributions()));
+  for (auto& j : journeys) {
+    intermodal::update_mumo_info(j);
+  }
+
+  return flatbuffers::response_builder::to_reliability_rating_response(
+      journeys, ratings.first, ratings.second, true /* short output */);
 }
 
 }  // namespace late_connections
