@@ -3,6 +3,8 @@
 #include "motis/core/common/constants.h"
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
+#include "motis/core/journey/journey.h"
+#include "motis/core/journey/journeys_to_message.h"
 
 #include "motis/module/error.h"
 
@@ -192,10 +194,11 @@ msg_ptr request_builder::build_rating_request(bool const bikesharing) {
 }
 
 msg_ptr request_builder::build_late_connection_request(
-    unsigned const taxi_radius) {
+    unsigned const taxi_radius, journey const& orig_journey) {
   auto opts = CreateRequestOptionsWrapper(
       b_, RequestOptions_LateConnectionReq,
-      CreateLateConnectionReq(b_, taxi_radius).Union());
+      CreateLateConnectionReq(b_, taxi_radius, to_connection(b_, orig_journey))
+          .Union());
   return build_reliable_request(opts);
 }
 

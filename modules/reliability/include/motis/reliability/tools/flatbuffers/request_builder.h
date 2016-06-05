@@ -7,6 +7,7 @@
 #include "motis/module/module.h"
 
 namespace motis {
+struct journey;
 namespace routing {
 struct RoutingRequest;  // NOLINT
 }  // namespace routing
@@ -62,7 +63,8 @@ struct request_builder {
 
   module::msg_ptr build_rating_request(bool const bikesharing = false);
 
-  module::msg_ptr build_late_connection_request(unsigned const taxi_radius);
+  module::msg_ptr build_late_connection_request(unsigned const taxi_radius,
+                                                journey const& orig_journey);
 
   module::msg_ptr build_connection_tree_request(
       int16_t const num_alternatives_at_stop, int16_t const min_dep_diff);
