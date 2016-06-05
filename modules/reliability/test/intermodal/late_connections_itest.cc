@@ -301,9 +301,6 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
     }
   } journey_cmp;
   std::sort(journeys.begin(), journeys.end(), journey_cmp);
-  for (auto const& j : journeys) {
-    print_journey(j, sched().schedule_begin_, std::cout);
-  }
   ASSERT_EQ(2, journeys.size());
 
   {
@@ -326,18 +323,59 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
     ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
     ASSERT_EQ(2, j.transports_[2].train_nr_);
 
-    for (auto const& s : j.stops_) {
-      std::cout << s.name_ << " "
-                << (s.arrival_.valid_
-                        ? format_time(unix_to_motistime(
-                              sched(), s.arrival_.schedule_timestamp_))
-                        : "")
-                << "|" << (s.departure_.valid_
-                               ? format_time(unix_to_motistime(
-                                     sched(), s.departure_.schedule_timestamp_))
-                               : "")
-                << std::endl;
+    ASSERT_EQ(4, j.stops_.size());
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[2].departure_.valid_);
+    ASSERT_TRUE(j.stops_[3].arrival_.valid_);
+  }
+}
+
+TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
+  intermodal::individual_modes_container container;
+  container.hotels_.emplace_back(schedule_hotels_foot::NEUISENBURG.eva_, 480,
+                                 540, 5000);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  auto req = b.add_ontrip_station_start(
+                  schedule_hotels_foot::LANGEN.name_,
+                  schedule_hotels_foot::LANGEN.eva_,
+                  1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */)
+                 .add_destination(schedule_hotels_foot::FRANKFURT.name_,
+                                  schedule_hotels_foot::FRANKFURT.eva_)
+                 .add_additional_edges(container)
+                 .build_routing_request();
+  auto msg = call(req);
+
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
+  struct {
+    bool operator()(journey const& a, journey const& b) {
+      return a.db_costs_ < b.db_costs_;
     }
+  } journey_cmp;
+  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  ASSERT_EQ(2, journeys.size());
+
+  {
+    auto const& j = journeys.front();
+    ASSERT_EQ(2, j.transports_.size());
+    ASSERT_EQ(3, j.stops_.size());
+    ASSERT_EQ(300, j.night_penalty_);
+    ASSERT_EQ(0, j.db_costs_);
+    ASSERT_TRUE(j.transports_[0].is_walk_);
+    ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
+  }
+  {
+    auto const& j = journeys.back();
+    ASSERT_EQ(3, j.transports_.size());
+    ASSERT_EQ(4, j.stops_.size());
+    ASSERT_EQ(0, j.night_penalty_);
+    ASSERT_EQ(5000, j.db_costs_);
+    ASSERT_TRUE(j.transports_[0].is_walk_);
+    ASSERT_TRUE(j.transports_[1].is_walk_);
+    ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
+    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
 
     ASSERT_EQ(4, j.stops_.size());
     ASSERT_TRUE(j.stops_[0].departure_.valid_);

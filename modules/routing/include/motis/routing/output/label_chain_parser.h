@@ -98,6 +98,10 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
     switch (current_state) {
       case AT_STATION: {
+        if (current->edge_->type() == edge::HOTEL_EDGE &&
+            (*std::next(it))->get_node()->is_foot_node()) {
+          break;
+        }
         int a_platform = MOTIS_UNKNOWN_TRACK;
         int d_platform = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
