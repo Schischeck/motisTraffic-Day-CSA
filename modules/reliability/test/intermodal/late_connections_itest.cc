@@ -228,6 +228,12 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[2].departure_.valid_);
+    ASSERT_TRUE(j.stops_[3].arrival_.valid_);
   }
   {
     auto const& j = journeys.back();
@@ -239,6 +245,14 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
     ASSERT_TRUE(j.transports_[2].is_walk_);
     ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
     ASSERT_EQ(intermodal::HOTEL, j.transports_[2].slot_);
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[2].departure_.valid_);
+    ASSERT_TRUE(j.stops_[3].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[3].departure_.valid_);
+    ASSERT_TRUE(j.stops_[4].arrival_.valid_);
   }
 }
 
@@ -265,6 +279,12 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[2].departure_.valid_);
+    ASSERT_TRUE(j.stops_[3].arrival_.valid_);
   }
   {
     auto const& j = journeys.back();
@@ -276,6 +296,14 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
     ASSERT_TRUE(j.transports_[2].is_walk_);
     ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
     ASSERT_EQ(intermodal::WALK, j.transports_[2].slot_);
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[2].departure_.valid_);
+    ASSERT_TRUE(j.stops_[3].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[3].departure_.valid_);
+    ASSERT_TRUE(j.stops_[4].arrival_.valid_);
   }
 }
 
@@ -365,6 +393,10 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[0].is_walk_);
     ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
+    ASSERT_TRUE(j.stops_[0].departure_.valid_);
+    ASSERT_TRUE(j.stops_[1].arrival_.valid_);
+    ASSERT_TRUE(j.stops_[1].departure_.valid_);
+    ASSERT_TRUE(j.stops_[2].arrival_.valid_);
   }
   {
     auto const& j = journeys.back();
