@@ -276,13 +276,14 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
+  journey dummy;
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::FRANKFURT.name_, "")
-          .build_late_connection_request(50000 /* 50 km*/);
+          .build_late_connection_request(50000 /* 50 km*/, dummy);
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
@@ -358,13 +359,14 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
+  journey dummy;
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::BERLIN.name_, "")
-          .build_late_connection_request(50000 /* 50 km*/);
+          .build_late_connection_request(50000 /* 50 km*/, dummy);
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
