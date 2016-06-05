@@ -219,12 +219,18 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
       ASSERT_EQ(os.name_, js.name_);
-      ASSERT_EQ(os.arrival_.platform_, js.arrival_.platform_);
-      ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
       ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
-      ASSERT_EQ(os.departure_.platform_, js.departure_.platform_);
-      ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
       ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      if (os.arrival_.valid_) {
+        ASSERT_EQ(os.arrival_.platform_, js.arrival_.platform_);
+        ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
+        ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
+      }
+      if (os.departure_.valid_) {
+        ASSERT_EQ(os.departure_.platform_, js.departure_.platform_);
+        ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
+        ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      }
     }
 
     for (unsigned int t = 0; t < o.transports_.size(); ++t) {
