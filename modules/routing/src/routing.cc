@@ -167,8 +167,7 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 
   q.sched_ = &sched;
   q.to_ = get_station_node(sched, req->destination());
-  q.query_edges_ =
-      create_additional_edges(req->additional_edges(), sched, q.to_->id_);
+  q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
 
   return q;
 }

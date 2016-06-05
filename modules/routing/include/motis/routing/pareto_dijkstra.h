@@ -103,7 +103,8 @@ public:
 private:
   void create_new_label(Label* l, edge const& edge) {
     Label blank;
-    bool created = l->create_label(blank, edge, lower_bounds_);
+    bool created = l->create_label(blank, edge, lower_bounds_,
+                                   edge.get_destination() == goal_);
     if (!created) {
       return;
     }

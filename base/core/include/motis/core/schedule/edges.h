@@ -428,9 +428,9 @@ inline edge make_time_dependent_mumo_edge(node* from, node* to,
 inline edge make_periodic_mumo_edge(node* from, node* to, uint16_t time_cost,
                                     uint16_t price, uint8_t slot,
                                     uint16_t interval_begin,
-                                    uint16_t interval_end, bool transfer) {
-  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, transfer,
-              slot, interval_begin, interval_end);
+                                    uint16_t interval_end) {
+  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, false, slot,
+              interval_begin, interval_end);
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
