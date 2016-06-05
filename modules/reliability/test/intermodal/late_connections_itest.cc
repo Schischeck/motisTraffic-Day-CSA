@@ -35,6 +35,62 @@ public:
   }
 };
 
+journey get_journey(schedule_station const from, schedule_station const to) {
+  journey j;
+  j.db_costs_ = 0;
+  j.duration_ = 60;
+  j.night_penalty_ = 0;
+  j.price_ = 100;
+  j.transfers_ = 0;
+
+  {
+    journey::stop s;
+    s.eva_no_ = from.eva_;
+    s.name_ = from.name_;
+    s.interchange_ = false;
+    s.lat_ = 0.0;
+    s.lng_ = 0.0;
+    s.arrival_.valid_ = false;
+    s.departure_.valid_ = true;
+    s.departure_.timestamp_ = 1445284800 /* 10/19/2015, 22:00 GMT+2:00 DST */;
+    s.departure_.schedule_timestamp_ = s.departure_.timestamp_;
+    s.departure_.timestamp_reason_ = delay_info::reason::IS;
+    j.stops_.push_back(s);
+  }
+  {
+    journey::stop s;
+    s.eva_no_ = to.eva_;
+    s.name_ = to.name_;
+    s.interchange_ = false;
+    s.lat_ = 0.0;
+    s.lng_ = 0.0;
+    s.departure_.valid_ = false;
+    s.arrival_.valid_ = true;
+    s.arrival_.timestamp_ = 1445288400 /* 10/19/2015, 23:00 GMT+2:00 DST */;
+    s.arrival_.schedule_timestamp_ = s.arrival_.timestamp_;
+    s.arrival_.timestamp_reason_ = delay_info::reason::IS;
+    j.stops_.push_back(s);
+  }
+
+  journey::transport t;
+  t.from_ = 0;
+  t.to_ = 1;
+  t.category_name_ = "ICE";
+  t.category_id_ = 0;
+  t.clasz_ = 0;
+  t.direction_ = "";
+  t.duration_ = 60;
+  t.is_walk_ = false;
+  t.line_identifier_ = "";
+  t.mumo_price_ = 0;
+  t.mumo_type_ = "";
+  t.name_ = "ICE 1";
+  t.provider_ = "";
+  t.slot_ = 0;
+  t.train_nr_ = 1;
+  return j;
+}
+
 module::msg_ptr to_request(
     intermodal::individual_modes_container const& container,
     bool const foot = false) {
@@ -420,14 +476,15 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
-  journey dummy;
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::FRANKFURT.name_, "")
-          .build_late_connection_request(50000 /* 50 km*/, dummy);
+          .build_late_connection_request(
+              50000 /* 50 km*/, get_journey(schedule_hotels_foot::DARMSTADT,
+                                            schedule_hotels_foot::FRANKFURT));
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
@@ -503,14 +560,15 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
-  journey dummy;
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::BERLIN.name_, "")
-          .build_late_connection_request(50000 /* 50 km*/, dummy);
+          .build_late_connection_request(
+              50000 /* 50 km*/, get_journey(schedule_hotels_foot::DARMSTADT,
+                                            schedule_hotels_foot::FRANKFURT));
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
