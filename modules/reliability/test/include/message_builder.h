@@ -2,56 +2,44 @@
 
 #include "motis/module/message.h"
 
+#include "motis/protocol/RISMessage_generated.h"
+
 namespace motis {
 namespace reliability {
 namespace realtime {
 
-// TODO line_ids and trip_ids are stubs right now
-inline ::flatbuffers::Offset<ris::TripId> stub_id(
-    ::flatbuffers::FlatBufferBuilder& fbb) {
-  using namespace ris;
-  return CreateTripId(
-      fbb, CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(""), 0,
-                       fbb.CreateString(""), EventType_Departure, 0),
-      StationIdType_EVA, fbb.CreateString(""), 0);
-}
-
 inline module::msg_ptr get_delay_message(std::string const& station,
                                          unsigned const train_nr,
+                                         std::string const line_id,
+                                         ris::EventType event_type,
                                          time_t const scheduled_time,
                                          time_t const delayed_time,
-                                         ris::EventType event_type,
                                          ris::DelayType const delayType) {
   using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
-  // clang-format off
-    std::vector<Offset<UpdatedEvent>> events{
-      CreateUpdatedEvent(fbb,
-          CreateEvent(fbb,
-            StationIdType_EVA,
-            fbb.CreateString(station),
-            train_nr,
-            fbb.CreateString("TODO"),
-            event_type,
-            scheduled_time
-          ),
-          delayed_time
-      )};
-  // clang-format on
+  std::vector<Offset<UpdatedEvent>> events{CreateUpdatedEvent(
+      fbb, CreateEvent(fbb, fbb.CreateString(station), train_nr,
+                       fbb.CreateString(line_id), event_type, scheduled_time),
+      delayed_time)};
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,
-      CreateDelayMessage(fbb, stub_id(fbb), delayType, fbb.CreateVector(events))
+      CreateDelayMessage(
+          fbb, ris::CreateIdEvent(fbb, fbb.CreateString(station), train_nr,
+                                  scheduled_time, IdEventType_Schedule),
+          delayType, fbb.CreateVector(events))
           .Union()));
 
   module::message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
   mc.create_and_finish(MsgContent_RISBatch,
-                       CreateRISBatch(mc, mc.CreateVector(messages)).Union());
+                       CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
+                       "/ris/messages");
   return make_msg(mc);
 }
 
+#if 0
 struct event {
   std::string station;
   unsigned train_nr;
@@ -132,6 +120,7 @@ inline module::msg_ptr get_reroute_message(
                        CreateRISBatch(mc, mc.CreateVector(messages)).Union());
   return make_msg(mc);
 }
+#endif
 }
 }
 }
