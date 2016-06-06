@@ -194,10 +194,14 @@ msg_ptr request_builder::build_rating_request(bool const bikesharing) {
 }
 
 msg_ptr request_builder::build_late_connection_request(
-    unsigned const taxi_radius, journey const& orig_journey) {
+    journey const& orig_journey, unsigned const taxi_radius,
+    uint16_t const hotel_earliest_checkout, uint16_t const hotel_min_stay,
+    uint16_t const hotel_price) {
   auto opts = CreateRequestOptionsWrapper(
       b_, RequestOptions_LateConnectionReq,
-      CreateLateConnectionReq(b_, taxi_radius, to_connection(b_, orig_journey))
+      CreateLateConnectionReq(b_, to_connection(b_, orig_journey), taxi_radius,
+                              hotel_earliest_checkout, hotel_min_stay,
+                              hotel_price)
           .Union());
   return build_reliable_request(opts);
 }
