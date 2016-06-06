@@ -4,6 +4,7 @@ import Widgets.TimeInput as TimeInput
 import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
+import Widgets.Map as Map
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.App as App
@@ -29,6 +30,7 @@ type alias Model =
     , toTransports : TagList.Model
     , date : Calendar.Model
     , time : TimeInput.Model
+    , map : Map.Model
     }
 
 
@@ -40,6 +42,9 @@ init =
 
         ( timeModel, timeCmd ) =
             TimeInput.init
+
+        ( mapModel, mapCmd ) =
+            Map.init
     in
         ( { fromLocation = Typeahead.init
           , toLocation = Typeahead.init
@@ -47,10 +52,12 @@ init =
           , toTransports = TagList.init
           , date = dateModel
           , time = timeModel
+          , map = mapModel
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
             , Cmd.map TimeUpdate timeCmd
+            , Cmd.map MapUpdate mapCmd
             ]
         )
 
@@ -67,6 +74,7 @@ type Msg
     | ToTransportsUpdate TagList.Msg
     | DateUpdate Calendar.Msg
     | TimeUpdate TimeInput.Msg
+    | MapUpdate Map.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -74,6 +82,13 @@ update msg model =
     case msg of
         Reset ->
             ( model, Cmd.none )
+
+        MapUpdate msg' ->
+            let
+                ( m, c ) =
+                    Map.update msg' model.map
+            in
+                ( { model | map = m }, Cmd.map MapUpdate c )
 
         FromLocationUpdate msg' ->
             let
@@ -113,6 +128,7 @@ subscriptions model =
         , Sub.map ToLocationUpdate (Typeahead.subscriptions model.toLocation)
         , Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
+        , Sub.map MapUpdate (Map.subscriptions model.map)
         ]
 
 
@@ -123,7 +139,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ]
-        [ div [ id "map" ] []
+        [ App.map MapUpdate (Map.view model.map) 
         , div [ class "overlay" ]
             [ div [ id "header" ]
                 [ h1 [ class "disable-select" ] [ text "Motis Project" ]

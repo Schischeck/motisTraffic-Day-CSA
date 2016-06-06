@@ -8,18 +8,39 @@
   <link rel="stylesheet" href="external_lib/grid/grids-min.css">
   <link rel="stylesheet" href="external_lib/grid/grids-responsive-min.css">
   <link rel="stylesheet" href="external_lib/grid/grids-gutters.css">
-  <link rel="stylesheet" href="style/global.css" />
-  <link rel="stylesheet" href="style/taglist.css" />
-  <link rel="stylesheet" href="style/calendar.css" />
-  <link rel="stylesheet" href="style/time.css" />
-  <link rel="stylesheet" href="style/button.css" />
-  <link rel="stylesheet" href="style/input.css" />
-  <link rel="stylesheet" href="style/typeahead.css" />
-  <link rel="stylesheet" href="style/app.css" />
+  <link rel="stylesheet" href="style/global.css">
+  <link rel="stylesheet" href="style/taglist.css">
+  <link rel="stylesheet" href="style/calendar.css">
+  <link rel="stylesheet" href="style/time.css">
+  <link rel="stylesheet" href="style/button.css">
+  <link rel="stylesheet" href="style/input.css">
+  <link rel="stylesheet" href="style/typeahead.css">
+  <link rel="stylesheet" href="style/map.css">
+  <link rel="stylesheet" href="style/app.css">
 </head>
-
 <body>
+  <script type="text/javascript" src="external_lib/leaflet.min.js"></script>
   <script type="text/javascript" src="elm.js"></script>
-  <script type="text/javascript">Elm.Main.fullscreen()</script>
+  <script type="text/javascript">
+  var app = Elm.Main.fullscreen()
+
+  window.elmMaps = {};
+
+  app.ports.initMap.subscribe(function(id) {
+    var map = L.map('map').setView([49.8728, 8.6512], 14);
+
+    L.tileLayer('https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}', {
+      attribution: 'Map data &copy; OpenStreetMap contributors, CC-BY-SA',
+      maxZoom: 18,
+      accessToken: '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
+    }).addTo(map);
+
+    map.on('load', function(e) {
+      app.ports.mapLoaded.send(id);
+    });
+    
+    window.elmMaps[id] = map;
+  });
+  </script>
 </body>
 </html>
