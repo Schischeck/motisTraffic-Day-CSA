@@ -197,8 +197,9 @@ void disable_route_layer(ev_key const& k) {
   }
 
   for (auto const& e : visited) {
-    const_cast<light_connection&>(e->m_.route_edge_.conns_[k.lcon_idx_])
-        .valid_ = false;
+    auto const& con = e->m_.route_edge_.conns_[k.lcon_idx_];
+    auto& mutable_con = const_cast<light_connection&>(con);  // NOLINT
+    mutable_con.valid_ = false;
   }
 }
 
