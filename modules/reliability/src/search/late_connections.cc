@@ -28,20 +28,21 @@ namespace search {
 namespace late_connections {
 namespace detail {
 
-constexpr auto TAXI_BASE_PRICE = 250;
-constexpr auto TAXI_KM_PRICE = 200;
-constexpr auto TAXI_BASE_TIME = 10;  // in minutes (entering and leaving time)
-constexpr auto TAXI_AVG_SPEED_SHORT_DISTANCE = 40;  // km/h
-constexpr auto TAXI_AVG_SPEED_LONG_DISTANCE = 100;  // km/h
+constexpr unsigned TAXI_BASE_PRICE = 250;
+constexpr unsigned TAXI_KM_PRICE = 200;
+constexpr unsigned TAXI_BASE_TIME =
+    10;  // in minutes (entering and leaving time)
+constexpr unsigned TAXI_AVG_SPEED_SHORT_DISTANCE = 40;  // km/h
+constexpr unsigned TAXI_AVG_SPEED_LONG_DISTANCE = 100;  // km/h
 
-constexpr auto M_PER_KM = 1000.0;
-constexpr auto MIN_PER_HOUR = 60;
-constexpr auto DISTANCE_THRESHOLD = 5.0;  // 5km
-constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
-constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
+constexpr double M_PER_KM = 1000.0;
+constexpr unsigned MIN_PER_HOUR = 60;
+constexpr double DISTANCE_THRESHOLD = 5.0;  // 5km
+constexpr double AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
+constexpr double AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
 
-constexpr auto MAX_TRAIN_PRICE = 12300;
-constexpr auto TRAIN_KM_PRICE = 30.0;
+constexpr unsigned MAX_TRAIN_PRICE = 12300;
+constexpr double TRAIN_KM_PRICE = 30.0;
 
 taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
                      double const& lon2, unsigned const taxi_base_price,
@@ -207,7 +208,7 @@ unsigned calc_compensation(journey const& orig_journey,
 
   auto const delay = (alternative.stops_.back().arrival_.timestamp_ -
                       orig_journey.stops_.back().arrival_.timestamp_) /
-                     60;
+                     MIN_PER_HOUR;
   return static_cast<unsigned>(compensation_factor(delay) *
                                orig_journey.price_);
 }
