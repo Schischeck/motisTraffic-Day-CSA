@@ -40,6 +40,9 @@ constexpr auto DISTANCE_THRESHOLD = 5.0;  // 5km
 constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
 constexpr auto AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
 
+constexpr auto MAX_TRAIN_PRICE = 12300;
+constexpr auto TRAIN_KM_PRICE = 30.0;
+
 taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
                      double const& lon2, unsigned const taxi_base_price,
                      unsigned const taxi_km_price,
@@ -165,8 +168,6 @@ module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
 }
 
 unsigned estimate_price(journey const& j) {
-  constexpr unsigned MAX_PRICE = 12300;
-  constexpr double KM_PRICE = 30.0;
   auto class_factor = [](unsigned const train_class) -> double {
     switch (train_class) {
       case 4: return 1.5;
@@ -189,8 +190,8 @@ unsigned estimate_price(journey const& j) {
       });
 
   auto const price = static_cast<unsigned>(
-      distance_in_km * class_factor(highest_class->clasz_) * KM_PRICE);
-  return std::min(MAX_PRICE, price);
+      distance_in_km * class_factor(highest_class->clasz_) * TRAIN_KM_PRICE);
+  return std::min(MAX_TRAIN_PRICE, price);
 }
 
 unsigned calc_compensation(journey const& orig_journey,
