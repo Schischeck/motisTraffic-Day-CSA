@@ -64,7 +64,8 @@ struct late_connections_dominance {
   }
 };
 
-struct late_connections_post_search_dominance {
+template <unsigned db_cost_relaxation>
+struct late_connections_post_search_dominance_base {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
@@ -78,7 +79,7 @@ struct late_connections_post_search_dominance {
     inline bool smaller() const { return smaller_; }
     bool greater_, smaller_;
 
-    constexpr static auto DB_COST_RELAXATION = 1000;
+    constexpr static auto DB_COST_RELAXATION = db_cost_relaxation;
   };
 
   template <typename Label>
@@ -86,6 +87,11 @@ struct late_connections_post_search_dominance {
     return domination_info<Label>(a, b);
   }
 };
+
+using late_connections_post_search_dominance =
+    late_connections_post_search_dominance_base<1000>;
+using late_connections_post_search_dominance_for_tests =
+    late_connections_post_search_dominance_base<0>;
 
 struct late_connections_filter {
   template <typename Label>
