@@ -10,7 +10,7 @@ namespace motis {
 namespace rt {
 
 struct shifted_nodes_msg_builder {
-  shifted_nodes_msg_builder(schedule const&);
+  explicit shifted_nodes_msg_builder(schedule const&);
 
   void add_shifted_node(delay_info const& di);
   motis::module::msg_ptr finish();

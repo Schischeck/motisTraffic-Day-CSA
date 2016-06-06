@@ -169,6 +169,7 @@ bool is_corrupt(ev_key const& k) {
 void disable_route_layer(ev_key const& k) {
   std::set<edge const*> visited;
   std::queue<edge const*> q;
+  q.push(k.route_edge_);
   while (!q.empty()) {
     auto const e = q.front();
     q.pop();
@@ -247,7 +248,9 @@ void rt::init(motis::module::registry& reg) {
       auto const& di = ev.second;
       auto const& k = di->get_ev_key();
 
-      if (is_corrupt(k)) {
+      if (!k.lcon()->valid_) {
+        continue;
+      } else if (is_corrupt(k)) {
         disable_route_layer(k);
       } else {
         checked_events.push_back(ev.second);

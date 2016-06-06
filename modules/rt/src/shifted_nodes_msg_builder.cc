@@ -4,7 +4,6 @@
 #include "motis/core/access/time_access.h"
 
 using namespace motis::module;
-namespace fbs = flatbuffers;
 
 namespace motis {
 namespace rt {
