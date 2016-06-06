@@ -70,7 +70,7 @@ void guesser::init(motis::module::registry& reg) {
                          })
             ->second;
     for (auto& s : stations) {
-      s.second = (s.second / max_importatance) * 0.5;
+      s.second = 1 + (s.second / max_importatance) * 0.5;
     }
   }
 
