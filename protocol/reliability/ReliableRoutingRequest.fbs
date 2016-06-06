@@ -10,8 +10,11 @@ table ReliableSearchReq {
 }
 
 table LateConnectionReq {
-  taxi_radius:uint = 50000; // in meters
   original_connection:motis.Connection;
+  taxi_radius:uint = 50000; // in meters
+  hotel_earliest_checkout:uint = 360; // 6:00 GMT
+  hotel_min_stay:uint = 420;
+  hotel_price:uint = 7000;
 }
 
 table ConnectionTreeReq {

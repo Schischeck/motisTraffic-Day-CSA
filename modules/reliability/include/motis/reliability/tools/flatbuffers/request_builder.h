@@ -63,8 +63,10 @@ struct request_builder {
 
   module::msg_ptr build_rating_request(bool const bikesharing = false);
 
-  module::msg_ptr build_late_connection_request(unsigned const taxi_radius,
-                                                journey const& orig_journey);
+  module::msg_ptr build_late_connection_request(
+      journey const& orig_journey, unsigned const taxi_radius,
+      uint16_t const hotel_earliest_checkout, uint16_t const hotel_min_stay,
+      uint16_t const hotel_price);
 
   module::msg_ptr build_connection_tree_request(
       int16_t const num_alternatives_at_stop, int16_t const min_dep_diff);

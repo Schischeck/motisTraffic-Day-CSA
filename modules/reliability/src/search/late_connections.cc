@@ -129,10 +129,19 @@ void init_taxis(
   ask_lookup_module(destination, ops->taxi_radius(), taxis);
 }
 
-void init_hotels(schedule const& sched, std::string const& hotels_file,
+void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
+                 std::string const& hotels_file,
                  std::vector<intermodal::hotel>& hotels) {
+  if (req.request_type()->request_options_type() !=
+      RequestOptions_LateConnectionReq) {
+    throw std::system_error(error::failure);
+  }
+  auto ops = reinterpret_cast<LateConnectionReq const*>(
+      req.request_type()->request_options());
+
   std::vector<intermodal::hotel> tmp;
-  parse_hotels(hotels_file, tmp);
+  parse_hotels(hotels_file, tmp, ops->hotel_earliest_checkout(),
+               ops->hotel_min_stay(), ops->hotel_price());
   for (auto const& h : tmp) {
     auto it = sched.eva_to_station_.find(h.station_);
     if (it != end(sched.eva_to_station_)) {
@@ -148,9 +157,8 @@ module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
                             schedule const& sched) {
   using namespace motis::reliability::intermodal;
   individual_modes_container container;
-  detail::init_hotels(sched, hotels_file, container.hotels_);
+  detail::init_hotels(req, sched, hotels_file, container.hotels_);
   detail::init_taxis(req, sched, container.taxis_);
-
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
   return motis_call(b.build_routing_request())->val();

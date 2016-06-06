@@ -98,7 +98,7 @@ journey get_journey(schedule_station const from, schedule_station const to) {
 module::msg_ptr to_request(
     intermodal::individual_modes_container const& container,
     bool const foot = false) {
-  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   return b
       .add_pretrip_start((foot ? schedule_hotels_foot::DARMSTADT.name_
                                : schedule_hotels::DARMSTADT.name_),
@@ -369,7 +369,7 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
   intermodal::individual_modes_container container;
   container.hotels_.emplace_back(schedule_hotels_foot::LANGEN.eva_, 360, 540,
                                  5000);
-  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
                   schedule_hotels_foot::LANGEN.eva_,
@@ -423,7 +423,7 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
   intermodal::individual_modes_container container;
   container.hotels_.emplace_back(schedule_hotels_foot::NEUISENBURG.eva_, 480,
                                  540, 5000);
-  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
                   schedule_hotels_foot::LANGEN.eva_,
@@ -478,15 +478,16 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
-  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::FRANKFURT.name_, "")
           .build_late_connection_request(
-              50000 /* 50 km*/, get_journey(schedule_hotels_foot::DARMSTADT,
-                                            schedule_hotels_foot::FRANKFURT));
+              get_journey(schedule_hotels_foot::DARMSTADT,
+                          schedule_hotels_foot::FRANKFURT),
+              50000 /* 50 km*/, 360, 540, 5000);
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
@@ -570,13 +571,14 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
   orig_journey.stops_.back().lng_ = 13.404953;
   orig_journey.transports_.front().clasz_ = 0;
 
-  flatbuffers::request_builder b(SearchType_LateConnectionsForward);
+  flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::BERLIN.name_, "")
-          .build_late_connection_request(50000 /* 50 km*/, orig_journey);
+          .build_late_connection_request(orig_journey, 50000 /* 50 km*/, 360,
+                                         540, 5000);
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
