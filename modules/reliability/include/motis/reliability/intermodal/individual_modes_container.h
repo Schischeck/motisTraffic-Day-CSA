@@ -34,7 +34,7 @@ inline void update_mumo_info(journey& j) {
 }
 
 constexpr auto LATE_TAXI_BEGIN_TIME = 1140;  // 19:00 GMT
-constexpr auto LATE_TAXI_END_TIME = 60;  // 01:00 GMT
+constexpr auto LATE_TAXI_END_TIME = 180;  // 03:00 GMT
 
 struct individual_modes_container {
   /* for late connections */
