@@ -24,13 +24,13 @@ struct late_connections_initializer {
 
 struct late_connections_updater {
   template <typename Label, typename LowerBounds>
-  static void update(Label& l, uint8_t t, edge_cost const& ec, LowerBounds&) {
+  static void update(Label& l, edge_cost const& ec, LowerBounds&) {
     l.db_costs_ += ec.price_;
-    if (t == edge::HOTEL_EDGE) {
+    if (l.edge_->type() == edge::HOTEL_EDGE) {
       if (l.visited_hotel_ == late_connections::NOT_VISITED) {
         l.visited_hotel_ = late_connections::VISITED;
       }
-    } else if (t == edge::PERIODIC_MUMO_EDGE /* taxi */ &&
+    } else if (l.edge_->type() == edge::PERIODIC_MUMO_EDGE /* taxi */ &&
                l.visited_hotel_ == late_connections::VISITED) {
       /* taxi after hotel not allowed */
       l.visited_hotel_ = late_connections::FILTERED;
@@ -64,19 +64,22 @@ struct late_connections_dominance {
   }
 };
 
-struct late_connections_post_search_dominance {
+template <unsigned db_cost_relaxation>
+struct late_connections_post_search_dominance_base {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(a.db_costs_ > b.db_costs_ ||
+        : greater_(a.db_costs_ > b.db_costs_ + DB_COST_RELAXATION ||
                    a.night_penalty_ > b.night_penalty_),
-          smaller_(a.db_costs_ <= b.db_costs_ &&
+          smaller_(a.db_costs_ + DB_COST_RELAXATION <= b.db_costs_ &&
                    a.night_penalty_ <= b.night_penalty_ &&
-                   (a.db_costs_ < b.db_costs_ ||
+                   (a.db_costs_ + DB_COST_RELAXATION < b.db_costs_ ||
                     a.night_penalty_ < b.night_penalty_)) {}
     inline bool greater() const { return greater_; }
     inline bool smaller() const { return smaller_; }
     bool greater_, smaller_;
+
+    constexpr static auto DB_COST_RELAXATION = db_cost_relaxation;
   };
 
   template <typename Label>
@@ -84,6 +87,11 @@ struct late_connections_post_search_dominance {
     return domination_info<Label>(a, b);
   }
 };
+
+using late_connections_post_search_dominance =
+    late_connections_post_search_dominance_base<1000>;
+using late_connections_post_search_dominance_for_tests =
+    late_connections_post_search_dominance_base<0>;
 
 struct late_connections_filter {
   template <typename Label>

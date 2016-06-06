@@ -13,7 +13,7 @@ namespace routing {
 
 std::vector<edge> create_additional_edges(
     flatbuffers::Vector<flatbuffers::Offset<AdditionalEdgeWrapper>> const*,
-    unsigned const destination_station_index, schedule const&);
+    schedule const&);
 
 }  // namespace routing
 }  // namespace motis

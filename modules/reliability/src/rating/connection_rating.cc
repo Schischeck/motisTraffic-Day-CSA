@@ -22,8 +22,10 @@ void rate(connection_rating& rating, journey const& journey,
 
   public_transport::rate(rating.public_transport_ratings_, connection_elements,
                          false, context);
-  rating.connection_rating_ =
-      rating.public_transport_ratings_.back().arrival_distribution_.sum();
+  if (!rating.public_transport_ratings_.empty()) {
+    rating.connection_rating_ =
+        rating.public_transport_ratings_.back().arrival_distribution_.sum();
+  }
 }
 
 }  // namespace rating

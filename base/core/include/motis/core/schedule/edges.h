@@ -225,6 +225,16 @@ public:
     return (type() != ROUTE_EDGE) ? true : m_.route_edge_.conns_.empty();
   }
 
+  uint8_t get_slot() const {
+    switch (m_.type_) {
+      case MUMO_EDGE:
+      case PERIODIC_MUMO_EDGE:
+      case TIME_DEPENDENT_MUMO_EDGE: return m_.foot_edge_.slot_;
+      case HOTEL_EDGE: return m_.hotel_edge_.slot_;
+      default: return 0;
+    }
+  }
+
   static time calc_time_off(time const period_begin, time const period_end,
                             time const timestamp) {
     assert(period_begin < MINUTES_A_DAY);
@@ -418,9 +428,9 @@ inline edge make_time_dependent_mumo_edge(node* from, node* to,
 inline edge make_periodic_mumo_edge(node* from, node* to, uint16_t time_cost,
                                     uint16_t price, uint8_t slot,
                                     uint16_t interval_begin,
-                                    uint16_t interval_end, bool transfer) {
-  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, transfer,
-              slot, interval_begin, interval_end);
+                                    uint16_t interval_end) {
+  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, false, slot,
+              interval_begin, interval_end);
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,

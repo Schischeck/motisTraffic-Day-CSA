@@ -23,32 +23,40 @@ bool walks_only(journey const& j) {
          j.transports_.end();
 }
 
-module::msg_ptr rate_routing_response(routing::RoutingResponse const& res,
-                                      context const& c,
-                                      bool const dep_intermodal,
-                                      bool const arr_intermodal,
-                                      std::string const dep_address,
-                                      std::string const arr_address) {
-  std::vector<rating::connection_rating> ratings(res.connections()->size());
-  std::vector<rating::simple_rating::simple_connection_rating> simple_ratings(
-      res.connections()->size());
+std::pair<std::vector<connection_rating>,
+          std::vector<simple_rating::simple_connection_rating> >
+rate_journeys(std::vector<journey> const& journeys, context const& c) {
+  std::vector<connection_rating> ratings(journeys.size());
+  std::vector<simple_rating::simple_connection_rating> simple_ratings(
+      journeys.size());
   unsigned int rating_index = 0;
-  auto const journeys = message_to_journeys(&res);
 
   for (auto const& j : journeys) {
     if (!walks_only(j)) {
-      rating::rate(ratings[rating_index], j,
-                   context(c.schedule_, c.precomputed_distributions_,
-                           c.s_t_distributions_));
+      rating::rate(ratings[rating_index], j, c);
       rating::simple_rating::rate(simple_ratings[rating_index], j, c.schedule_,
                                   c.s_t_distributions_);
     }
     ++rating_index;
   }
 
-  return flatbuffers::response_builder::to_reliability_rating_response(
-      &res, ratings, simple_ratings, true /* short output */, dep_intermodal,
-      arr_intermodal, dep_address, arr_address);
+  return std::make_pair(ratings, simple_ratings);
+}
+
+void update_mumo_and_address_infos(std::vector<journey>& journeys,
+                                   bool const dep_intermodal = false,
+                                   bool const arr_intermodal = false,
+                                   std::string const dep_address = "",
+                                   std::string const arr_address = "") {
+  for (auto& j : journeys) {
+    intermodal::update_mumo_info(j);
+    if (dep_intermodal) {
+      j.stops_.front().name_ = dep_address;
+    }
+    if (arr_intermodal) {
+      j.stops_.back().name_ = arr_address;
+    }
+  }
 }
 
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
@@ -62,14 +70,20 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
               .build_routing_request())
           ->val();
   auto lock = rel.synced_sched();
-  return rating::rate_routing_response(
-      *motis_content(RoutingResponse, routing_response),
-      ::motis::reliability::context(lock.sched(),
-                                    *rel.precomputed_distributions_,
-                                    *rel.s_t_distributions_),
-      req.dep_is_intermodal(), req.arr_is_intermodal(),
+
+  ::motis::reliability::context c(lock.sched(), *rel.precomputed_distributions_,
+                                  *rel.s_t_distributions_);
+  auto journeys =
+      message_to_journeys(motis_content(RoutingResponse, routing_response));
+  auto const ratings = rate_journeys(journeys, c);
+
+  update_mumo_and_address_infos(
+      journeys, req.dep_is_intermodal(), req.arr_is_intermodal(),
       flatbuffers::departure_station_name(*req.request()),
       req.request()->destination()->name()->str());
+
+  return flatbuffers::response_builder::to_reliability_rating_response(
+      journeys, ratings.first, ratings.second, true /* short output */);
 }
 
 }  // namespace rating
