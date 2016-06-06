@@ -2,11 +2,21 @@
 
 #include <cassert>
 
+#include "motis/core/schedule/event.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/access/edge_access.h"
 
 namespace motis {
+
+inline time get_schedule_time(schedule const& sched, ev_key const& k) {
+  auto it = sched.graph_to_delay_info_.find(k);
+  if (it == end(sched.graph_to_delay_info_)) {
+    return get_time(k.route_edge_, k.lcon_idx_, k.ev_type_);
+  } else {
+    return it->second->get_schedule_time();
+  }
+}
 
 inline time get_schedule_time(schedule const& sched, edge const* route_edge,
                               std::size_t const lcon_index,
@@ -31,6 +41,10 @@ inline time get_schedule_time(schedule const& sched, edge const* route_edge,
   }
 }
 
+inline time get_delay(schedule const& sched, ev_key const& k) {
+  return get_time(k.lcon(), k.ev_type_) - get_schedule_time(sched, k);
+}
+
 inline delay_info get_delay_info(schedule const& sched, node const* route_node,
                                  light_connection const* lcon,
                                  event_type const ev_type) {
@@ -38,8 +52,7 @@ inline delay_info get_delay_info(schedule const& sched, node const* route_node,
   auto lcon_idx = get_lcon_index(route_edge, lcon);
   auto it = sched.graph_to_delay_info_.find({route_edge, lcon_idx, ev_type});
   if (it == end(sched.graph_to_delay_info_)) {
-    return {graph_event(route_edge, lcon_idx, ev_type),
-            get_time(lcon, ev_type)};
+    return {ev_key(route_edge, lcon_idx, ev_type), get_time(lcon, ev_type)};
   } else {
     return *it->second;
   }
@@ -51,8 +64,7 @@ inline delay_info get_delay_info(schedule const& sched, edge const* route_edge,
   auto lcon_idx = get_lcon_index(route_edge, lcon);
   auto it = sched.graph_to_delay_info_.find({route_edge, lcon_idx, ev_type});
   if (it == end(sched.graph_to_delay_info_)) {
-    return {graph_event(route_edge, lcon_idx, ev_type),
-            get_time(lcon, ev_type)};
+    return {ev_key(route_edge, lcon_idx, ev_type), get_time(lcon, ev_type)};
   } else {
     return *it->second;
   }

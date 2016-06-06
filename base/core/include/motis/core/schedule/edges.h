@@ -269,9 +269,9 @@ public:
         route_edge_.init_empty();
         route_edge_ = std::move(other.route_edge_);
       } else if (type_ == HOTEL_EDGE) {
-        hotel_edge_ = std::move(other.hotel_edge_);
+        hotel_edge_ = other.hotel_edge_;
       } else {
-        foot_edge_ = std::move(other.foot_edge_);
+        foot_edge_ = other.foot_edge_;
       }
     }
 
@@ -281,7 +281,7 @@ public:
         route_edge_.init_empty();
         route_edge_ = other.route_edge_;
       } else if (type_ == HOTEL_EDGE) {
-        hotel_edge_ = std::move(other.hotel_edge_);
+        hotel_edge_ = other.hotel_edge_;
       } else {
         foot_edge_.init_empty();
         foot_edge_ = other.foot_edge_;
@@ -294,10 +294,10 @@ public:
         route_edge_.init_empty();
         route_edge_ = std::move(other.route_edge_);
       } else if (type_ == HOTEL_EDGE) {
-        hotel_edge_ = std::move(other.hotel_edge_);
+        hotel_edge_ = other.hotel_edge_;
       } else {
         foot_edge_.init_empty();
-        foot_edge_ = std::move(other.foot_edge_);
+        foot_edge_ = other.foot_edge_;
       }
 
       return *this;
@@ -309,7 +309,7 @@ public:
         route_edge_.init_empty();
         route_edge_ = other.route_edge_;
       } else if (type_ == HOTEL_EDGE) {
-        hotel_edge_ = std::move(other.hotel_edge_);
+        hotel_edge_ = other.hotel_edge_;
       } else {
         foot_edge_.init_empty();
         foot_edge_ = other.foot_edge_;

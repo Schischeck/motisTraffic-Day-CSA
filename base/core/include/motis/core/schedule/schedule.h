@@ -62,7 +62,7 @@ struct schedule {
 
   std::time_t system_time_, last_update_timestamp_;
   std::vector<std::unique_ptr<delay_info>> delay_mem_;
-  hash_map<graph_event, delay_info*> graph_to_delay_info_;
+  hash_map<ev_key, delay_info*> graph_to_delay_info_;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

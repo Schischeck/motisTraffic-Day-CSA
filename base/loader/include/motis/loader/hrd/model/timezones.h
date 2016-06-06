@@ -42,7 +42,7 @@ struct timezones {
            eva_number);
 
     auto it = eva_to_tze_.upper_bound(eva_number);
-    verify(it != end(eva_to_tze_) || timezone_entries_.size() > 0,
+    verify(it != end(eva_to_tze_) || !timezone_entries_.empty(),
            "no timezone entry for eva number: %d", eva_number);
     return std::next(it, -1)->second;
   }

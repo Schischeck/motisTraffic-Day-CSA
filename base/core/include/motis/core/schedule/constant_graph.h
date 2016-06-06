@@ -109,7 +109,7 @@ public:
   }
 
   inline void expand_edge(uint32_t dist, simple_edge const& edge) {
-    uint32_t new_dist = dist + edge.dist_[Criterion];
+    uint32_t new_dist = dist + edge.dist_[Criterion];  // NOLINT
     if (new_dist < dists_[edge.to_]) {
       dists_[edge.to_] = new_dist;
       pq_.push(label(edge.to_, new_dist));

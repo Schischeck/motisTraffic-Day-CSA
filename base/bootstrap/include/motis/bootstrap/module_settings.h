@@ -12,7 +12,7 @@ namespace bootstrap {
 
 class module_settings : public conf::configuration {
 public:
-  module_settings(std::vector<std::string> modules);
+  explicit module_settings(std::vector<std::string> modules);
 
   ~module_settings() override = default;
 
