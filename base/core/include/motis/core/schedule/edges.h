@@ -160,7 +160,46 @@ public:
     }
   }
 
+  inline light_connection const* get_next_valid_lcon(light_connection const* lc,
+                                                     unsigned skip = 0) const {
+    assert(type() == ROUTE_EDGE);
+    assert(lc);
+
+    auto it = lc;
+    while (it != end(m_.route_edge_.conns_)) {
+      if (skip == 0 && it->valid_) {
+        return it;
+      }
+      ++it;
+      if (skip != 0) {
+        --skip;
+      }
+    }
+    return nullptr;
+  }
+
+  inline light_connection const* get_prev_valid_lcon(light_connection const* lc,
+                                                     unsigned skip = 0) const {
+    assert(type() == ROUTE_EDGE);
+    assert(lc);
+
+    auto it = std::reverse_iterator<light_connection const*>(lc);
+    --it;
+    while (it != m_.route_edge_.conns_.rend()) {
+      if (skip == 0 && it->valid_) {
+        return &*it;
+      }
+      ++it;
+      if (skip != 0) {
+        --skip;
+      }
+    }
+    return nullptr;
+  }
+
   light_connection const* get_connection(time const start_time) const {
+    assert(type() == ROUTE_EDGE);
+
     if (m_.route_edge_.conns_.size() == 0) {
       return nullptr;
     }
@@ -169,10 +208,16 @@ public:
                                std::end(m_.route_edge_.conns_),
                                light_connection(start_time));
 
-    return (it == std::end(m_.route_edge_.conns_)) ? nullptr : &*it;
+    if (it == std::end(m_.route_edge_.conns_)) {
+      return nullptr;
+    } else {
+      return get_next_valid_lcon(&*it);
+    }
   }
 
   light_connection const* get_connection_reverse(time const start_time) const {
+    assert(type() == ROUTE_EDGE);
+
     if (m_.route_edge_.conns_.size() == 0) {
       return nullptr;
     }
@@ -184,18 +229,16 @@ public:
           return lhs.a_time_ > rhs.a_time_;
         });
 
-    return (it == m_.route_edge_.conns_.rend()) ? nullptr : &*it;
-  }
-
-  light_connection const* get_connection(time const start_time) {
-    return static_cast<const edge*>(this)->get_connection(start_time);
-  }
-
-  light_connection const* get_connection_reverse(time const start_time) {
-    return static_cast<const edge*>(this)->get_connection_reverse(start_time);
+    if (it == m_.route_edge_.conns_.rend()) {
+      return nullptr;
+    } else {
+      return get_prev_valid_lcon(&*it);
+    }
   }
 
   edge_cost get_route_edge_cost(time const start_time) const {
+    assert(type() == ROUTE_EDGE);
+
     light_connection const* c = get_connection(start_time);
     return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time_ - start_time, c);
   }
