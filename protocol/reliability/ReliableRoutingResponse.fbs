@@ -27,4 +27,5 @@ table ConnectionGraph {
 
 table ReliableRoutingResponse {
   connection_graphs:[ConnectionGraph];
+  additional_infos:[AdditionalInfosWrapper];
 }

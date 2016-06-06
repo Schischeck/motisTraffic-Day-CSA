@@ -39,8 +39,27 @@ table Rating {
   connection_rating:float;
 }
 
+table MumoRoute { }
+
+table MumoAdditionalInfos {
+  at_departure:MumoRoute;
+  at_arrival:MumoRoute;
+}
+
+table NoInfo { }
+
+union AdditionalInfos {
+  MumoAdditionalInfos,
+  NoInfo
+}
+
+table AdditionalInfosWrapper {
+  infos:AdditionalInfos;
+}
+
 table ReliabilityRatingResponse {
   response:motis.routing.RoutingResponse;
   ratings:[Rating];
   simple_ratings:[SimpleRating];
+  additional_infos:[AdditionalInfosWrapper];
 }

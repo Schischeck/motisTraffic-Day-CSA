@@ -168,9 +168,11 @@ module::msg_ptr to_reliability_rating_response(
       b, orig_ratings, journeys, short_output);
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
+  std::vector<Offset<AdditionalInfosWrapper>> additional_infos;
   b.create_and_finish(MsgContent_ReliabilityRatingResponse,
                       CreateReliabilityRatingResponse(
-                          b, routing_response, conn_ratings, simple_ratings)
+                          b, routing_response, conn_ratings, simple_ratings,
+                          b.CreateVector(additional_infos))
                           .Union());
   return module::make_msg(b);
 }
@@ -244,9 +246,11 @@ module::msg_ptr to_reliable_routing_response(
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
+  std::vector<Offset<AdditionalInfosWrapper>> additional_infos;
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
                       reliability::CreateReliableRoutingResponse(
-                          b, b.CreateVector(connection_graphs))
+                          b, b.CreateVector(connection_graphs),
+                          b.CreateVector(additional_infos))
                           .Union());
   return module::make_msg(b);
 }
