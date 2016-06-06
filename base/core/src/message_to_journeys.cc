@@ -106,43 +106,46 @@ uint16_t get_move_duration(
   return (to.arrival()->time() - from.departure()->time()) / 60;
 }
 
+journey convert(Connection const* conn) {
+  journey journey;
+  /* stops */
+  unsigned int stop_index = 0;
+  for (auto stop : *conn->stops()) {
+    journey.stops_.push_back(
+        to_stop(*stop, stop_index++, conn->stops()->size()));
+  }
+
+  /* transports */
+  for (auto move : *conn->transports()) {
+    if (move->move_type() == Move_Walk) {
+      auto walk = reinterpret_cast<Walk const*>(move->move());
+      journey.transports_.push_back(to_transport(
+          *walk, get_move_duration(*walk->range(), *conn->stops())));
+    } else if (move->move_type() == Move_Transport) {
+      auto transport = reinterpret_cast<Transport const*>(move->move());
+      journey.transports_.push_back(to_transport(
+          *transport, get_move_duration(*transport->range(), *conn->stops())));
+    }
+  }
+
+  /* attributes */
+  for (auto attribute : *conn->attributes()) {
+    journey.attributes_.push_back(to_attribute(*attribute));
+  }
+
+  journey.duration_ = get_duration(journey);
+  journey.transfers_ = get_transfers(journey);
+  journey.night_penalty_ = conn->night_penalty();
+  journey.db_costs_ = conn->db_costs();
+
+  return journey;
+}
+
 std::vector<journey> message_to_journeys(
     routing::RoutingResponse const* response) {
   std::vector<journey> journeys;
   for (auto conn : *response->connections()) {
-    journeys.emplace_back();
-    auto& journey = journeys.back();
-
-    /* stops */
-    unsigned int stop_index = 0;
-    for (auto stop : *conn->stops()) {
-      journey.stops_.push_back(
-          to_stop(*stop, stop_index++, conn->stops()->size()));
-    }
-
-    /* transports */
-    for (auto move : *conn->transports()) {
-      if (move->move_type() == Move_Walk) {
-        auto walk = reinterpret_cast<Walk const*>(move->move());
-        journey.transports_.push_back(to_transport(
-            *walk, get_move_duration(*walk->range(), *conn->stops())));
-      } else if (move->move_type() == Move_Transport) {
-        auto transport = reinterpret_cast<Transport const*>(move->move());
-        journey.transports_.push_back(to_transport(
-            *transport,
-            get_move_duration(*transport->range(), *conn->stops())));
-      }
-    }
-
-    /* attributes */
-    for (auto attribute : *conn->attributes()) {
-      journey.attributes_.push_back(to_attribute(*attribute));
-    }
-
-    journey.duration_ = get_duration(journey);
-    journey.transfers_ = get_transfers(journey);
-    journey.night_penalty_ = conn->night_penalty();
-    journey.db_costs_ = conn->db_costs();
+    journeys.push_back(convert(conn));
   }
   return journeys;
 }
