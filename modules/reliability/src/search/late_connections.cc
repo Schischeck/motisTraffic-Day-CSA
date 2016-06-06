@@ -156,6 +156,81 @@ module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
   return motis_call(b.build_routing_request())->val();
 }
 
+unsigned estimate_price(journey const& j) {
+  constexpr unsigned MAX_PRICE = 12300;
+  constexpr double KM_PRICE = 30.0;
+  auto class_factor = [](unsigned const train_class) -> double {
+    switch (train_class) {
+      case 4: return 1.5;
+      case 3: return 1.2;
+      case 2: return 1.1;
+      default: return 1.0;
+    }
+  };
+  if (j.stops_.size() < 2 || j.transports_.empty()) {
+    throw std::system_error(error::failure);
+  }
+  auto const distance_in_km =
+      (geo_detail::distance_in_m(j.stops_.front().lat_, j.stops_.front().lng_,
+                                 j.stops_.back().lat_, j.stops_.back().lng_) /
+       M_PER_KM);
+  auto const highest_class = std::max_element(
+      j.transports_.begin(), j.transports_.end(),
+      [](journey::transport const& t1, journey::transport const& t2) {
+        return t1.clasz_ < t2.clasz_;
+      });
+
+  auto const price = static_cast<unsigned>(
+      distance_in_km * class_factor(highest_class->clasz_) * KM_PRICE);
+  return std::min(MAX_PRICE, price);
+}
+
+unsigned calc_compensation(journey const& orig_journey,
+                           journey const& alternative) {
+  auto compensation_factor = [](int const delay) -> double {
+    if (delay >= 120) {
+      return 0.5;
+    } else if (delay >= 60) {
+      return 0.25;
+    }
+    return 0.0;
+  };
+
+  auto const delay = (alternative.stops_.back().arrival_.timestamp_ -
+                      orig_journey.stops_.back().arrival_.timestamp_) /
+                     60;
+  return static_cast<unsigned>(compensation_factor(delay) *
+                               orig_journey.price_);
+}
+
+void update_db_costs(std::vector<journey>& journeys, journey orig_conn) {
+  auto no_hotel_or_taxi = [](journey const& j) {
+    return std::find_if(
+               j.transports_.begin(), j.transports_.end(), [](auto const& t) {
+                 return t.is_walk_ &&
+                        (!t.mumo_type_.empty() &&
+                         t.mumo_type_ != intermodal::to_str(intermodal::WALK));
+               }) == j.transports_.end();
+  };
+  orig_conn.price_ = estimate_price(orig_conn);
+  for (auto& j : journeys) {
+    if (no_hotel_or_taxi(j)) {
+      j.db_costs_ = calc_compensation(orig_conn, j);
+    }
+  }
+}
+
+void update_db_costs(std::vector<journey>& journeys,
+                     ReliableRoutingRequest const& req) {
+  if (req.request_type()->request_options_type() !=
+      RequestOptions_LateConnectionReq) {
+    throw std::system_error(error::failure);
+  }
+  auto ops = reinterpret_cast<LateConnectionReq const*>(
+      req.request_type()->request_options());
+  update_db_costs(journeys, convert(ops->original_connection()));
+}
+
 }  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
@@ -169,9 +244,12 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
       journeys,
       motis::reliability::context(lock.sched(), rel.precomputed_distributions(),
                                   rel.s_t_distributions()));
+
   for (auto& j : journeys) {
     intermodal::update_mumo_info(j);
   }
+
+  detail::update_db_costs(journeys, req);
 
   return flatbuffers::response_builder::to_reliability_rating_response(
       journeys, ratings.first, ratings.second, true /* short output */);

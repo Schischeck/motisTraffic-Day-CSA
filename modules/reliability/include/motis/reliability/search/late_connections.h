@@ -6,6 +6,7 @@
 
 namespace motis {
 struct schedule;
+struct journey;
 namespace reliability {
 struct reliability;
 struct ReliableRoutingRequest;  // NOLINT
@@ -20,6 +21,8 @@ struct taxi_cost {
             unsigned const taxi_avg_speed_long_distance);
   uint16_t duration_, price_;
 };
+
+unsigned estimate_price(journey const&);
 }  // namespace detail
 
 module::msg_ptr search(ReliableRoutingRequest const&, reliability&,

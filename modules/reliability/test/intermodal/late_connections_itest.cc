@@ -18,6 +18,8 @@
 
 namespace motis {
 namespace reliability {
+namespace search {
+namespace late_connections {
 
 using namespace routing;
 
@@ -88,6 +90,8 @@ journey get_journey(schedule_station const from, schedule_station const to) {
   t.provider_ = "";
   t.slot_ = 0;
   t.train_nr_ = 1;
+  j.transports_.push_back(t);
+
   return j;
 }
 
@@ -558,15 +562,21 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
+  auto orig_journey = get_journey(schedule_hotels_foot::DARMSTADT,
+                                  schedule_hotels_foot::FRANKFURT);
+  orig_journey.stops_.front().lat_ = 50.110922; /* Frankfurt */
+  orig_journey.stops_.front().lng_ = 8.6821267;
+  orig_journey.stops_.back().lat_ = 52.520006; /* Berlin */
+  orig_journey.stops_.back().lng_ = 13.404953;
+  orig_journey.transports_.front().clasz_ = 0;
+
   flatbuffers::request_builder b(SearchType_LateConnectionsForward);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
                           1445298000 /* 10/20/2015, 01:40:00 GMT+2:00 DST */)
           .add_destination(schedule_hotels_foot::BERLIN.name_, "")
-          .build_late_connection_request(
-              50000 /* 50 km*/, get_journey(schedule_hotels_foot::DARMSTADT,
-                                            schedule_hotels_foot::FRANKFURT));
+          .build_late_connection_request(50000 /* 50 km*/, orig_journey);
   auto const res_msg = call(req);
   auto const res = motis_content(ReliabilityRatingResponse, res_msg);
 
@@ -599,7 +609,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
   }
   {
     auto const conn = (*res->response()->connections())[1];
-    ASSERT_EQ(0, conn->db_costs());
+    ASSERT_EQ(6150, conn->db_costs());
     ASSERT_EQ(300, conn->night_penalty());
     ASSERT_EQ(2, conn->transports()->size());
     {
@@ -617,5 +627,51 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
   }
 }
 
+TEST_F(reliability_hotels_foot, estimate_train_price) {
+  using namespace detail;
+  auto j = get_journey(schedule_hotels_foot::DARMSTADT,
+                       schedule_hotels_foot::FRANKFURT);
+  j.stops_.front().lat_ = 49.8725972; /* Darmstadt */
+  j.stops_.front().lng_ = 8.62932120;
+  j.stops_.back().lat_ = 50.110922; /* Frankfurt */
+  j.stops_.back().lng_ = 8.6821267;
+  j.transports_.front().clasz_ = 0;
+  ASSERT_EQ(803, estimate_price(j));
+  j.transports_.front().clasz_ = 1;
+  ASSERT_EQ(803, estimate_price(j));
+  j.transports_.front().clasz_ = 2;
+  ASSERT_EQ(883, estimate_price(j));
+  j.transports_.front().clasz_ = 4;
+  ASSERT_EQ(1204, estimate_price(j));
+
+  j.stops_.front().lat_ = 50.110922; /* Frankfurt */
+  j.stops_.front().lng_ = 8.6821267;
+  j.stops_.back().lat_ = 50.937531; /* Koeln */
+  j.stops_.back().lng_ = 6.9602786;
+  j.transports_.front().clasz_ = 0;
+  ASSERT_EQ(4575, estimate_price(j));
+  j.transports_.front().clasz_ = 1;
+  ASSERT_EQ(4575, estimate_price(j));
+  j.transports_.front().clasz_ = 2;
+  ASSERT_EQ(5033, estimate_price(j));
+  j.transports_.front().clasz_ = 4;
+  ASSERT_EQ(6863, estimate_price(j));
+
+  j.stops_.front().lat_ = 50.110922; /* Frankfurt */
+  j.stops_.front().lng_ = 8.6821267;
+  j.stops_.back().lat_ = 52.520006; /* Berlin */
+  j.stops_.back().lng_ = 13.404953;
+  j.transports_.front().clasz_ = 0;
+  ASSERT_EQ(12300, estimate_price(j));
+  j.transports_.front().clasz_ = 1;
+  ASSERT_EQ(12300, estimate_price(j));
+  j.transports_.front().clasz_ = 2;
+  ASSERT_EQ(12300, estimate_price(j));
+  j.transports_.front().clasz_ = 4;
+  ASSERT_EQ(12300, estimate_price(j));
+}
+
+}  // namespace late_connections
+}  // namespace search
 }  // namespace reliability
 }  // namespace motis
