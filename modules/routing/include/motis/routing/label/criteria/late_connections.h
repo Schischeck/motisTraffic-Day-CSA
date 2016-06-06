@@ -68,15 +68,17 @@ struct late_connections_post_search_dominance {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(a.db_costs_ > b.db_costs_ ||
+        : greater_(a.db_costs_ > b.db_costs_ + DB_COST_RELAXATION ||
                    a.night_penalty_ > b.night_penalty_),
-          smaller_(a.db_costs_ <= b.db_costs_ &&
+          smaller_(a.db_costs_ + DB_COST_RELAXATION <= b.db_costs_ &&
                    a.night_penalty_ <= b.night_penalty_ &&
-                   (a.db_costs_ < b.db_costs_ ||
+                   (a.db_costs_ + DB_COST_RELAXATION < b.db_costs_ ||
                     a.night_penalty_ < b.night_penalty_)) {}
     inline bool greater() const { return greater_; }
     inline bool smaller() const { return smaller_; }
     bool greater_, smaller_;
+
+    constexpr static auto DB_COST_RELAXATION = 1000;
   };
 
   template <typename Label>
