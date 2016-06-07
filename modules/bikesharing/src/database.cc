@@ -98,7 +98,7 @@ struct inmemory_database : public database::database_impl {
   bikesharing_summary get_summary() const override {
     auto it = store_.find(kSummaryKey);
     if (it == end(store_)) {
-      throw system_error(error::terminal_not_found);
+      throw system_error(error::database_not_initialized);
     }
     return bikesharing_summary(it->second);
   }
