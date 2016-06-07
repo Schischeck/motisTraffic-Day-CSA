@@ -30,18 +30,9 @@ void print_journey(journey const& j, time_t const sched_begin,
     if (!t.is_walk_) {
       return t.name_;
     } else if (t.is_walk_) {
-      if (t.slot_ == 0) {
-        return "Walk";
-      } else {
-        std::stringstream sst;
-        if (t.mumo_type_.empty()) {
-          sst << t.slot_;
-        } else {
-          sst << t.mumo_type_;
-        }
-        sst << "," << t.mumo_price_;
-        return sst.str();
-      }
+      std::stringstream sst;
+      sst << t.mumo_id_ << "," << t.mumo_price_;
+      return sst.str();
     }
     return "unknown";
   };

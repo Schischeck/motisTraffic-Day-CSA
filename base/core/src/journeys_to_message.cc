@@ -60,7 +60,7 @@ std::vector<Offset<MoveWrapper>> convert_moves(
     Range r(t.from_, t.to_);
     if (t.is_walk_) {
       moves.push_back(CreateMoveWrapper(
-          b, Move_Walk, CreateWalk(b, &r, t.slot_, t.mumo_price_,
+          b, Move_Walk, CreateWalk(b, &r, t.mumo_id_, t.mumo_price_,
                                    b.CreateString(t.mumo_type_))
                             .Union()));
     } else {

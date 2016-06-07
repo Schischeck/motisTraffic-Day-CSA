@@ -53,7 +53,7 @@ journey::transport create_empty_transport() {
   t.mumo_type_ = "";
   t.name_ = "";
   t.provider_ = "";
-  t.slot_ = 0;
+  t.mumo_id_ = 0;
   t.to_ = 0;
   t.train_nr_ = 0;
   t.is_walk_ = false;
@@ -65,8 +65,7 @@ journey::transport to_transport(Walk const& walk, uint16_t duration) {
   t.duration_ = duration;
   t.from_ = walk.range()->from();
   t.to_ = walk.range()->to();
-  t.slot_ = walk.slot();
-
+  t.mumo_id_ = walk.mumo_id();
   t.mumo_price_ = walk.price();
   t.mumo_type_ = walk.mumo_type()->c_str();
   return t;
@@ -84,7 +83,7 @@ journey::transport to_transport(Transport const& transport, uint16_t duration) {
   t.line_identifier_ = transport.line_id()->c_str();
   t.name_ = transport.name()->c_str();
   t.provider_ = transport.provider()->c_str();
-  t.slot_ = 0;
+  t.mumo_id_ = 0;
   t.train_nr_ = transport.train_nr();
   return t;
 }

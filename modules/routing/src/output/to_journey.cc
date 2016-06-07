@@ -11,7 +11,7 @@ namespace output {
 
 journey::transport generate_journey_transport(
     unsigned int from, unsigned int to, connection_info const* con_info,
-    schedule const& sched, duration duration = 0, unsigned slot = 0,
+    schedule const& sched, duration duration = 0, int mumo_id = -1,
     unsigned mumo_price = 0) {
   bool is_walk = true;
   std::string name;
@@ -51,7 +51,7 @@ journey::transport generate_journey_transport(
   return {from,     to,         is_walk,
           name,     cat_name,   cat_id,
           clasz,    train_nr,   line_identifier,
-          duration, slot,       direction,
+          duration, mumo_id,    direction,
           provider, mumo_price, ""};
 }
 

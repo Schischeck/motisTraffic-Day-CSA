@@ -180,7 +180,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
                                 (*std::next(it))->now_ - current->now_,
-                                (*std::next(it))->edge_->get_slot(), 0);
+                                (*std::next(it))->edge_->get_mumo_id(), 0);
 
         walk_arrival = (*std::next(it))->now_;
         last_con = nullptr;
