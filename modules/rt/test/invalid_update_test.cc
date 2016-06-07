@@ -18,6 +18,7 @@ struct rt_invalid_update_test : public motis_instance_test {
 
 TEST_F(rt_invalid_update_test, valid_graph) {
   publish(get_ris_message(sched()));
+  publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp1 = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                        unix_time(1400), false, "381");

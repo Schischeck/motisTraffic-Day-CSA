@@ -204,17 +204,24 @@ void disable_route_layer(ev_key const& k) {
   }
 }
 
+rt::rt() = default;
+
+rt::~rt() = default;
+
 po::options_description rt::desc() {
   po::options_description desc("RT Module");
   return desc;
 }
 
 void rt::init(motis::module::registry& reg) {
-  reg.subscribe("/ris/messages", [](msg_ptr const& msg) -> msg_ptr {
+  reg.subscribe("/ris/messages", [&](msg_ptr const& msg) -> msg_ptr {
     auto& sched = get_schedule();
 
+    if (!propagator_) {
+      propagator_ = std::make_unique<delay_propagator>(sched);
+    }
+
     // Parse message and add updates to propagator.
-    auto propagator = delay_propagator(sched);
     for (auto const& m : *motis_content(RISBatch, msg)->messages()) {
       auto const& nested = m->message_nested_root();
       if (nested->content_type() != ris::MessageUnion_DelayMessage) {
@@ -224,16 +231,26 @@ void rt::init(motis::module::registry& reg) {
       try {
         add_to_propagator(sched, reinterpret_cast<ris::DelayMessage const*>(
                                      nested->content()),
-                          propagator);
+                          *propagator_);
       } catch (...) {
         continue;
       }
     }
 
-    propagator.propagate();
+    return nullptr;
+  });
+
+  reg.subscribe("/ris/system_time_changed", [&](msg_ptr const&) -> msg_ptr {
+    auto& sched = get_schedule();
+
+    if (!propagator_) {
+      return nullptr;
+    }
+
+    propagator_->propagate();
 
     // Update graph.
-    for (auto const& ev : propagator.events()) {
+    for (auto const& ev : propagator_->events()) {
       auto const& di = ev.second;
       auto const& k = di->get_ev_key();
 
@@ -244,7 +261,7 @@ void rt::init(motis::module::registry& reg) {
 
     // Check for graph corruption and revert if necessary.
     std::vector<delay_info*> checked_events;
-    for (auto const& ev : propagator.events()) {
+    for (auto const& ev : propagator_->events()) {
       auto const& di = ev.second;
       auto const& k = di->get_ev_key();
 
@@ -274,6 +291,8 @@ void rt::init(motis::module::registry& reg) {
     if (!shifted_nodes.empty()) {
       motis_publish(shifted_nodes.finish());
     }
+
+    propagator_.reset();
 
     return nullptr;
   });
