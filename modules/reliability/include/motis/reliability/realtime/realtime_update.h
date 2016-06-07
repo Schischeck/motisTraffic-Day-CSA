@@ -1,11 +1,9 @@
 #pragma once
 
-// TODO(Mohammad Keyhani)
-#if 0
 namespace motis {
 struct schedule;
-namespace realtime {
-struct RealtimeDelayInfoResponse;  // NOLINT
+namespace rt {
+struct RtUpdate;  // NOLINT
 }  // namespace realtime
 namespace reliability {
 struct start_and_travel_distributions;
@@ -15,11 +13,10 @@ struct container;
 namespace realtime {
 
 void update_precomputed_distributions(
-    motis::realtime::RealtimeDelayInfoResponse const*, schedule const&,
+    motis::rt::RtUpdate const*, schedule const&,
     start_and_travel_distributions const&,
     distributions_container::container& precomputed_distributions);
 
 }  // namespace realtime
 }  // namespace reliability
 }  // namespace motis
-#endif

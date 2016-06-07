@@ -96,8 +96,8 @@ get_s_t_distributions_parameters(std::vector<std::string> const& paths) {
 void reliability::init(motis::module::registry& reg) {
   reg.register_op("/reliability/route",
                   std::bind(&reliability::routing_request, this, p::_1));
-  reg.register_op("/reliability/update",
-                  std::bind(&reliability::realtime_update, this, p::_1));
+  reg.subscribe("/rt/update",
+                std::bind(&reliability::realtime_update, this, p::_1));
 
   if (read_distributions_) {
     s_t_distributions_ = std::unique_ptr<start_and_travel_distributions>(
@@ -139,12 +139,10 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
 }
 
 msg_ptr reliability::realtime_update(msg_ptr const&) {
-  /* not implemented TODO(Mohammad Keyhani) */
-  // auto lock = synced_sched();
-  // auto& sched = lock.sched();
-  // realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
-  //                                           *precomputed_distributions_);
-  throw std::system_error(error::not_implemented);
+  auto lock = synced_sched();
+  auto& sched = lock.sched();
+  realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
+                                             *precomputed_distributions_);
 }
 
 }  // namespace reliability

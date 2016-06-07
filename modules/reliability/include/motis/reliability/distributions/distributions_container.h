@@ -9,23 +9,23 @@
 #include "motis/core/schedule/time.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
-#include "motis/reliability/realtime/time_util.h"
 
 namespace motis {
 namespace reliability {
 namespace distributions_container {
 
 struct container {
+  enum event_type { departure, arrival };
   struct key {
     key()
         : train_id_(0),
           category_(""),
           line_identifier_(""),
           station_index_(0),
-          type_(time_util::departure),
+          type_(departure),
           scheduled_event_time_(0) {}
     key(uint32_t train_id, std::string category, std::string line_identifier,
-        uint32_t station_index, time_util::event_type type,
+        uint32_t station_index, event_type type,
         motis::time scheduled_event_time)
         : train_id_(train_id),
           category_(to_lower(category)),
@@ -52,7 +52,7 @@ struct container {
     std::string category_;
     std::string line_identifier_;
     uint32_t station_index_;
-    time_util::event_type type_;
+    event_type type_;
     motis::time scheduled_event_time_;
 
   private:
@@ -115,7 +115,7 @@ inline std::ostream& operator<<(std::ostream& out, container::key const& k) {
   out << "key: tr=" << k.train_id_ << " cat='" << k.category_ << "'"
       << " line='" << k.line_identifier_ << "'"
       << " st=" << k.station_index_
-      << " tp=" << (k.type_ == time_util::departure ? "d" : "a")
+      << " tp=" << (k.type_ == container::departure ? "d" : "a")
       << " t=" << format_time(k.scheduled_event_time_) << std::endl;
   return out;
 }
@@ -134,7 +134,7 @@ private:
 
 inline container::key to_container_key(light_connection const& lc,
                                        unsigned int const station_idx,
-                                       time_util::event_type const type,
+                                       container::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {
   auto const& conn_info = *lc.full_con_->con_info_;
@@ -145,11 +145,10 @@ inline container::key to_container_key(light_connection const& lc,
 
 inline container::key to_container_key(node const& route_node,
                                        light_connection const& lc,
-                                       time_util::event_type const type,
+                                       container::event_type const type,
                                        schedule const& sched) {
-  return to_container_key(
-      lc, route_node.get_station()->id_, type,
-      time_util::get_scheduled_event_time(route_node, lc, type, sched), sched);
+  return to_container_key(lc, route_node.get_station()->id_, type,
+                          /* TODO */ 0, sched);
 };
 
 }  // namespace distributions_container

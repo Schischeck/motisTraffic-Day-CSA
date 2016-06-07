@@ -37,14 +37,15 @@ TEST_F(reliability_realtime_update, is_message) {
   }
   publish(realtime::get_delay_message(
       schedule_realtime_update::DARMSTADT, schedule_realtime_update::ICE_D_L_F,
-      "", ris::EventType_Departure, 1445241600 /* 2015-10-19 08:00:00 GMT */,
-      1445243040 /* 2015-10-19 08:24:00 GMT */, ris::DelayType_Is));
+      "", ris::EventType_Departure,
+      1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */,
+      1445235840 /* 2015-10-19 08:24:00 GMT+2:00 */, ris::DelayType_Is));
   {
+    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 24), lc_D_L.d_time_);
     auto const& dist_dep_D =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
                 n_D, lc_D_L, time_util::event_type::departure, get_schedule()));
-    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 24), lc_D_L.d_time_);
     ASSERT_EQ(24, dist_dep_D.first_minute());
     ASSERT_EQ(24, dist_dep_D.last_minute());
     ASSERT_TRUE(equal(1.0, dist_dep_D.probability_equal(24)));
