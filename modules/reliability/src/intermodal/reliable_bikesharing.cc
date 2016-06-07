@@ -17,6 +17,20 @@ namespace intermodal {
 namespace bikesharing {
 namespace detail {
 
+std::vector<std::pair<time_t, time_t>> compress_intervals(
+    std::vector<std::pair<time_t, time_t>> orig_intervals) {
+  std::sort(orig_intervals.begin(), orig_intervals.end());
+  std::vector<std::pair<time_t, time_t>> compressed;
+  for (auto const& i : orig_intervals) {
+    if (!compressed.empty() && (i.first - compressed.back().second) <= 60) {
+      compressed.back().second = i.second;
+    } else {
+      compressed.push_back(i);
+    }
+  }
+  return compressed;
+}
+
 std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<::flatbuffers::Offset<
         ::motis::bikesharing::BikesharingEdge>> const& edges,
@@ -36,10 +50,10 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
             static_cast<time_t>(rating->end()));
       }
     }
-    if (!availability_intervals.empty()) {
+    auto const intervals = compress_intervals(availability_intervals);
+    if (!intervals.empty()) {
       infos.push_back({std::string(edge->station_id()->c_str()), duration,
-                       availability_intervals,
-                       std::string(edge->from()->name()->c_str()),
+                       intervals, std::string(edge->from()->name()->c_str()),
                        std::string(edge->to()->name()->c_str())});
     }
   }

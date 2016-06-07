@@ -36,6 +36,40 @@ public:
                          "modules/reliability/resources/nextbike_routing") {}
 };
 
+TEST_F(reliability_bikesharing, compress_intervals) {
+  {
+    std::vector<std::pair<time_t, time_t>> intervals = {
+        std::make_pair(1465293600, 1465297200),
+        std::make_pair(1465297200, 1465300800),
+        std::make_pair(1465304400, 1465308000),
+        std::make_pair(1465311600, 1465315200),
+        std::make_pair(1465315200, 1465318800)};
+    auto const c = detail::compress_intervals(intervals);
+    ASSERT_EQ(3, c.size());
+    ASSERT_EQ(1465293600, c[0].first);
+    ASSERT_EQ(1465300800, c[0].second);
+    ASSERT_EQ(1465304400, c[1].first);
+    ASSERT_EQ(1465308000, c[1].second);
+    ASSERT_EQ(1465311600, c[2].first);
+    ASSERT_EQ(1465318800, c[2].second);
+  }
+  {
+    std::vector<std::pair<time_t, time_t>> intervals = {
+        std::make_pair(1465293600, 1465297200),
+        std::make_pair(1465304400, 1465308000),
+        std::make_pair(1465311600, 1465315200),
+        std::make_pair(1465315200, 1465318800)};
+    auto const c = detail::compress_intervals(intervals);
+    ASSERT_EQ(3, c.size());
+    ASSERT_EQ(1465293600, c[0].first);
+    ASSERT_EQ(1465297200, c[0].second);
+    ASSERT_EQ(1465304400, c[1].first);
+    ASSERT_EQ(1465308000, c[1].second);
+    ASSERT_EQ(1465311600, c[2].first);
+    ASSERT_EQ(1465318800, c[2].second);
+  }
+}
+
 TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   auto aggregator = std::make_shared<average_aggregator>(4);
   auto res_dep = call(to_bikesharing_request(true, 49.8776114, 8.6571044,
