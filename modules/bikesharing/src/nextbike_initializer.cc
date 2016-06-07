@@ -75,8 +75,8 @@ std::vector<terminal_snapshot> nextbike_parse_xml(parser::buffer&& buffer) {
   xml_document d;
   d.load_buffer_inplace(reinterpret_cast<void*>(buffer.data()), buffer.size());
 
-  constexpr char const* query = "/markers/country[@country='DE']/city/place";
-  for (auto const& xnode : d.select_nodes(query)) {
+  constexpr auto q = "/markers/country[@country='DE']/city/place[@spot='1']";
+  for (auto const& xnode : d.select_nodes(q)) {
     auto const& node = xnode.node();
 
     terminal_snapshot terminal;
