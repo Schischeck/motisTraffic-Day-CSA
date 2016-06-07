@@ -3,6 +3,7 @@
 #include <ctime>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "motis/module/message.h"
@@ -66,6 +67,8 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<
         ::flatbuffers::Offset<::motis::bikesharing::BikesharingEdge>> const&,
     availability_aggregator const&, unsigned const max_duration);
+std::vector<std::pair<time_t, time_t>> compress_intervals(
+    std::vector<std::pair<time_t, time_t>> orig_intervals);
 }  // namespace detail
 
 }  // namespace bikesharing
