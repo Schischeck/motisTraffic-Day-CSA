@@ -101,6 +101,12 @@ int main(int argc, char** argv) {
     instance.init_schedule(dataset_opt);
     instance.init_modules(module_opt.modules_);
 
+    try {
+      instance.call("/ris/init");
+    } catch (std::exception const& e) {
+      LOG(warn) << "RIS module initialization failed: " << e.what();
+    }
+
     if (listener_opt.listen_ws_) {
       websocket.set_api_key(listener_opt.api_key_);
       websocket.listen(listener_opt.ws_host_, listener_opt.ws_port_);

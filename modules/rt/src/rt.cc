@@ -4,6 +4,7 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
@@ -68,10 +69,6 @@ time get_event_time(light_connection const& lcon, event_type const ev_type) {
 
 time& get_event_time(light_connection& lcon, event_type const ev_type) {
   return ev_type == event_type::DEP ? lcon.d_time_ : lcon.a_time_;
-}
-
-node* get_route_node(edge const& e, event_type const ev_type) {
-  return ev_type == event_type::DEP ? e.from_ : e.to_;
 }
 
 void add_to_propagator(schedule& sched, ris::DelayMessage const* msg,
