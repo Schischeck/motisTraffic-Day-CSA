@@ -12,6 +12,9 @@ namespace reliability {
 struct reliability;
 struct ReliableRoutingRequest;  // NOLINT
 struct context;
+namespace intermodal {
+struct individual_modes_container;
+}  // namespace intermodal
 namespace search {
 struct connection_graph;
 namespace connection_graph_search {
@@ -23,7 +26,7 @@ module::msg_ptr search_cgs(ReliableRoutingRequest const&, reliability&,
 std::vector<std::shared_ptr<connection_graph> > search_cgs(
     ReliableRoutingRequest const&, motis::reliability::context const&,
     std::shared_ptr<connection_graph_optimizer const>,
-    unsigned const max_bikesharing_duration);
+    intermodal::individual_modes_container const&);
 
 }  // namespace connection_graph_search
 }  // namespace search

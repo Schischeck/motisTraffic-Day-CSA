@@ -36,10 +36,11 @@ std::shared_ptr<connection_graph_optimizer> get_optimizer(
 }
 
 void update_mumo_info(
-    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
+    std::vector<std::shared_ptr<search::connection_graph>>& cgs,
+    intermodal::individual_modes_container const& container) {
   for (auto& cg : cgs) {
     for (auto& j : cg->journeys_) {
-      intermodal::update_mumo_info(j);
+      intermodal::update_mumo_info(j, container);
     }
   }
 }
@@ -72,12 +73,13 @@ void update_address_info(
 module::msg_ptr search_cgs(ReliableRoutingRequest const& req, reliability& rel,
                            unsigned const max_bikesharing_duration) {
   auto lock = rel.synced_sched();
+  intermodal::individual_modes_container container(req,
+                                                   max_bikesharing_duration);
   auto cgs = search_cgs(req, ::motis::reliability::context(
                                  lock.sched(), *rel.precomputed_distributions_,
                                  *rel.s_t_distributions_),
-                        detail::get_optimizer(*req.request_type()),
-                        max_bikesharing_duration);
-  detail::update_mumo_info(cgs);
+                        detail::get_optimizer(*req.request_type()), container);
+  detail::update_mumo_info(cgs, container);
   detail::update_address_info(req, cgs);
   return flatbuffers::response_builder::to_reliable_routing_response(cgs);
 }

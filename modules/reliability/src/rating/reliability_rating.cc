@@ -43,13 +43,13 @@ rate_journeys(std::vector<journey> const& journeys, context const& c) {
   return std::make_pair(ratings, simple_ratings);
 }
 
-void update_mumo_and_address_infos(std::vector<journey>& journeys,
-                                   bool const dep_intermodal = false,
-                                   bool const arr_intermodal = false,
-                                   std::string const dep_address = "",
-                                   std::string const arr_address = "") {
+void update_mumo_and_address_infos(
+    std::vector<journey>& journeys,
+    intermodal::individual_modes_container const& container,
+    bool const dep_intermodal = false, bool const arr_intermodal = false,
+    std::string const dep_address = "", std::string const arr_address = "") {
   for (auto& j : journeys) {
-    intermodal::update_mumo_info(j);
+    intermodal::update_mumo_info(j, container);
     if (dep_intermodal) {
       j.stops_.front().name_ = dep_address;
     }
@@ -61,14 +61,13 @@ void update_mumo_and_address_infos(std::vector<journey>& journeys,
 
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
                        unsigned const max_bikesharing_duration) {
+  intermodal::individual_modes_container container(req,
+                                                   max_bikesharing_duration);
   using routing::RoutingResponse;
-  auto routing_response =
-      motis_call(
-          flatbuffers::request_builder(req)
-              .add_additional_edges(intermodal::individual_modes_container(
-                  req, max_bikesharing_duration))
-              .build_routing_request())
-          ->val();
+  auto routing_response = motis_call(flatbuffers::request_builder(req)
+                                         .add_additional_edges(container)
+                                         .build_routing_request())
+                              ->val();
   auto lock = rel.synced_sched();
 
   ::motis::reliability::context c(lock.sched(), *rel.precomputed_distributions_,
@@ -78,7 +77,7 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
   auto const ratings = rate_journeys(journeys, c);
 
   update_mumo_and_address_infos(
-      journeys, req.dep_is_intermodal(), req.arr_is_intermodal(),
+      journeys, container, req.dep_is_intermodal(), req.arr_is_intermodal(),
       flatbuffers::departure_station_name(*req.request()),
       req.request()->destination()->name()->str());
 

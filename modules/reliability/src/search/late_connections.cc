@@ -156,13 +156,9 @@ void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
   }
 }
 
-module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
-                            std::string const& hotels_file,
-                            schedule const& sched) {
-  using namespace motis::reliability::intermodal;
-  individual_modes_container container;
-  detail::init_hotels(req, sched, hotels_file, container.hotels_);
-  detail::init_taxis(req, sched, container.taxis_);
+module::msg_ptr ask_routing(
+    ReliableRoutingRequest const& req,
+    intermodal::individual_modes_container const& container) {
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
   return motis_call(b.build_routing_request())->val();
@@ -215,12 +211,10 @@ unsigned calc_compensation(journey const& orig_journey,
 
 void update_db_costs(std::vector<journey>& journeys, journey orig_conn) {
   auto no_hotel_or_taxi = [](journey const& j) {
-    return std::find_if(
-               j.transports_.begin(), j.transports_.end(), [](auto const& t) {
-                 return t.is_walk_ &&
-                        (!t.mumo_type_.empty() &&
-                         t.mumo_type_ != intermodal::to_str(intermodal::WALK));
-               }) == j.transports_.end();
+    return std::find_if(j.transports_.begin(), j.transports_.end(),
+                        [](auto const& t) {
+                          return t.is_walk_ && t.mumo_id_ > 0;
+                        }) == j.transports_.end();
   };
   orig_conn.price_ = estimate_price(orig_conn);
   for (auto& j : journeys) {
@@ -246,7 +240,12 @@ void update_db_costs(std::vector<journey>& journeys,
 module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
                        std::string const& hotels_file) {
   auto lock = rel.synced_sched();
-  auto routing_res = detail::ask_routing(req, hotels_file, lock.sched());
+  auto const& sched = lock.sched();
+  using namespace motis::reliability::intermodal;
+  individual_modes_container container;
+  detail::init_hotels(req, sched, hotels_file, container.hotels_);
+  detail::init_taxis(req, sched, container.taxis_);
+  auto routing_res = detail::ask_routing(req, container);
   using routing::RoutingResponse;
   auto journeys =
       message_to_journeys(motis_content(RoutingResponse, routing_res));
@@ -256,7 +255,7 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
                                   rel.s_t_distributions()));
 
   for (auto& j : journeys) {
-    intermodal::update_mumo_info(j);
+    intermodal::update_mumo_info(j, container);
   }
 
   detail::update_db_costs(journeys, req);

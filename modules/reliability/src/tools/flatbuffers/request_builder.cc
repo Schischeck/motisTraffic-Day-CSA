@@ -146,17 +146,12 @@ request_builder& request_builder::add_intermodal_destination(
   return *this;
 }
 
-request_builder& request_builder::add_additional_edge(
-    Offset<routing::AdditionalEdgeWrapper> const& edge) {
-  additional_edges_.push_back(edge);
-  return *this;
-}
-
 request_builder& request_builder::add_additional_edges(
     intermodal::individual_modes_container const& container) {
-  create_bikesharing_edges(container);
-  create_taxi_edges(container);
-  create_hotel_edges(container);
+  create_bikesharing_edges(container,
+                           container.get_id_offset(intermodal::BIKESHARING));
+  create_taxi_edges(container, container.get_id_offset(intermodal::TAXI));
+  create_hotel_edges(container, container.get_id_offset(intermodal::HOTEL));
 
   LOG(logging::info) << "Request created with "
                      << container.bikesharing_.at_start_.size() << "|"
@@ -229,7 +224,7 @@ msg_ptr request_builder::build_reliable_request(
 }
 
 void request_builder::create_bikesharing_edges(
-    intermodal::individual_modes_container const& container) {
+    intermodal::individual_modes_container const& container, int id_offset) {
   auto create_edge = [&](
       motis::reliability::intermodal::bikesharing::bikesharing_info const& info,
       std::string const tail_station, std::string const head_station) {
@@ -239,10 +234,10 @@ void request_builder::create_bikesharing_edges(
       additional_edges_.push_back(CreateAdditionalEdgeWrapper(
           b_, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(
-              b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
-                                 b_.CreateString(head_station), info.duration_,
-                                 0 /* TODO(Mohammad Keyhani) price */,
-                                 motis::reliability::intermodal::BIKESHARING),
+              b_,
+              CreateMumoEdge(b_, b_.CreateString(tail_station),
+                             b_.CreateString(head_station), info.duration_,
+                             0 /* TODO(Mohammad Keyhani) price */, id_offset++),
               &interval)
               .Union()));
     }
@@ -257,7 +252,7 @@ void request_builder::create_bikesharing_edges(
 }
 
 void request_builder::create_taxi_edges(
-    intermodal::individual_modes_container const& container) {
+    intermodal::individual_modes_container const& container, int id_offset) {
   using namespace routing;
   for (auto const& e : container.taxis_) {
     Interval interval(e.valid_from_, e.valid_to_);
@@ -266,23 +261,23 @@ void request_builder::create_taxi_edges(
         CreatePeriodicMumoEdge(
             b_, CreateMumoEdge(b_, b_.CreateString(e.from_station_),
                                b_.CreateString(e.to_station_), e.duration_,
-                               e.price_, motis::reliability::intermodal::TAXI),
+                               e.price_, id_offset++),
             &interval)
             .Union()));
   }
 }
 
 void request_builder::create_hotel_edges(
-    intermodal::individual_modes_container const& container) {
+    intermodal::individual_modes_container const& container, int id_offset) {
   using namespace routing;
   for (auto const& e : container.hotels_) {
     additional_edges_.push_back(CreateAdditionalEdgeWrapper(
         b_, AdditionalEdge_HotelEdge,
-        CreateHotelEdge(
-            b_, CreateMumoEdge(b_, b_.CreateString(e.station_),
-                               b_.CreateString(e.station_), 0 /* dummy */,
-                               e.price_, motis::reliability::intermodal::HOTEL),
-            e.earliest_checkout_, e.min_stay_duration_)
+        CreateHotelEdge(b_,
+                        CreateMumoEdge(b_, b_.CreateString(e.station_),
+                                       b_.CreateString(e.station_),
+                                       0 /* dummy */, e.price_, id_offset++),
+                        e.earliest_checkout_, e.min_stay_duration_)
             .Union()));
   }
 }

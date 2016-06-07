@@ -95,7 +95,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l1";
     transport.name_ = "ICE 111";
     transport.provider_ = "DB1";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
@@ -110,7 +110,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l2";
     transport.name_ = "IC 222";
     transport.provider_ = "DB2";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 222;
     transport.is_walk_ = false;
@@ -127,7 +127,7 @@ journey create_journey1() {
     transport.line_identifier_ = "";
     transport.name_ = "";
     transport.provider_ = "";
-    transport.slot_ = 1;
+    transport.mumo_id_ = 1;
     transport.train_nr_ = 0;
   }
   {
@@ -140,7 +140,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l3";
     transport.name_ = "RB 333";
     transport.provider_ = "DB3";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 4;
     transport.train_nr_ = 333;
     transport.is_walk_ = false;
@@ -222,7 +222,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier_, "l1");
       ASSERT_EQ(transport.name_, "ICE 111");
       ASSERT_EQ(transport.provider_, "DB1");
-      ASSERT_EQ(transport.slot_, 0);
+      ASSERT_EQ(transport.mumo_id_, 0);
       ASSERT_EQ(transport.to_, 1);
       ASSERT_EQ(transport.train_nr_, 111);
       ASSERT_FALSE(transport.is_walk_);
@@ -284,7 +284,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier_, "l2");
       ASSERT_EQ(transport.name_, "IC 222");
       ASSERT_EQ(transport.provider_, "DB2");
-      ASSERT_EQ(transport.slot_, 0);
+      ASSERT_EQ(transport.mumo_id_, 0);
       ASSERT_EQ(transport.to_, 1);
       ASSERT_EQ(transport.train_nr_, 222);
       ASSERT_FALSE(transport.is_walk_);
@@ -362,7 +362,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier_, "");
       ASSERT_EQ(transport.name_, "");
       ASSERT_EQ(transport.provider_, "");
-      ASSERT_EQ(transport.slot_, 1);
+      ASSERT_EQ(transport.mumo_id_, 1);
       ASSERT_EQ(transport.train_nr_, 0);
     }
     {
@@ -375,7 +375,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(transport.line_identifier_, "l3");
       ASSERT_EQ(transport.name_, "RB 333");
       ASSERT_EQ(transport.provider_, "DB3");
-      ASSERT_EQ(transport.slot_, 0);
+      ASSERT_EQ(transport.mumo_id_, 0);
       ASSERT_EQ(transport.to_, 2);
       ASSERT_EQ(transport.train_nr_, 333);
       ASSERT_FALSE(transport.is_walk_);

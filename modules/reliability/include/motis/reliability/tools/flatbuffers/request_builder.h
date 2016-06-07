@@ -48,9 +48,6 @@ struct request_builder {
   request_builder& add_intermodal_destination(double const& lat,
                                               double const& lng);
 
-  request_builder& add_additional_edge(
-      ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
-
   request_builder& add_additional_edges(
       intermodal::individual_modes_container const&);
 
@@ -97,9 +94,12 @@ private:
                             std::time_t const interval_begin,
                             std::time_t const interval_end);
 
-  void create_bikesharing_edges(intermodal::individual_modes_container const&);
-  void create_taxi_edges(intermodal::individual_modes_container const&);
-  void create_hotel_edges(intermodal::individual_modes_container const&);
+  void create_bikesharing_edges(intermodal::individual_modes_container const&,
+                                int id_offset);
+  void create_taxi_edges(intermodal::individual_modes_container const&,
+                         int id_offset);
+  void create_hotel_edges(intermodal::individual_modes_container const&,
+                          int id_offset);
 };
 
 std::string departure_station_name(routing::RoutingRequest const& req);
