@@ -61,6 +61,7 @@ void update_mumo_and_address_infos(std::vector<journey>& journeys,
 
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
                        unsigned const max_bikesharing_duration) {
+  auto lock = rel.synced_sched();
   using routing::RoutingResponse;
   auto routing_response =
       motis_call(
@@ -69,7 +70,6 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
                   req, max_bikesharing_duration))
               .build_routing_request())
           ->val();
-  auto lock = rel.synced_sched();
 
   ::motis::reliability::context c(lock.sched(), *rel.precomputed_distributions_,
                                   *rel.s_t_distributions_);
