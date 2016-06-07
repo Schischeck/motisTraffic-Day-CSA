@@ -59,7 +59,11 @@ struct database::database_impl {
     std::string value;
     Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
 
-    if (s.IsNotFound() || !s.ok()) {
+    if (s.IsNotFound()) {
+      throw system_error(error::database_not_initialized);
+    }
+
+    if (!s.ok()) {
       throw system_error(error::database_error);
     }
 
