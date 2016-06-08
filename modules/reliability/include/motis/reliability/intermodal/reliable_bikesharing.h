@@ -42,10 +42,12 @@ private:
 
 struct bikesharing_info {
   std::string station_eva_;
+  struct terminal {
+    double lat_, lng_;
+  } from_, to_;
   unsigned int duration_;
   /* right-open intervals */
   std::vector<std::pair<time_t, time_t>> availability_intervals_;
-  std::string from_bike_station_, to_bike_station_;
 };
 
 /* retrieves reliable bikesharing infos for departure or arrival */

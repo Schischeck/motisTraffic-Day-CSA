@@ -52,9 +52,12 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     }
     auto const intervals = compress_intervals(availability_intervals);
     if (!intervals.empty()) {
-      infos.push_back({std::string(edge->station_id()->c_str()), duration,
-                       intervals, std::string(edge->from()->name()->c_str()),
-                       std::string(edge->to()->name()->c_str())});
+      infos.push_back({std::string(edge->station_id()->c_str()),
+                       bikesharing_info::terminal{edge->from()->pos()->lat(),
+                                                  edge->from()->pos()->lng()},
+                       bikesharing_info::terminal{edge->to()->pos()->lat(),
+                                                  edge->to()->pos()->lng()},
+                       duration, intervals});
     }
   }
   return infos;

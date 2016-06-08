@@ -24,7 +24,7 @@ bool walks_only(journey const& j) {
 }
 
 std::pair<std::vector<connection_rating>,
-          std::vector<simple_rating::simple_connection_rating> >
+          std::vector<simple_rating::simple_connection_rating>>
 rate_journeys(std::vector<journey> const& journeys, context const& c) {
   std::vector<connection_rating> ratings(journeys.size());
   std::vector<simple_rating::simple_connection_rating> simple_ratings(
@@ -59,6 +59,33 @@ void update_mumo_and_address_infos(
   }
 }
 
+using bs_type = intermodal::bikesharing::bikesharing_info;
+using bs_return_type = std::vector<std::pair<bs_type const*, bs_type const*>>;
+bs_return_type get_bikesharings(
+    std::vector<journey>& journeys,
+    intermodal::individual_modes_container const& container,
+    bool const dep_is_intermodal, bool const arr_is_intermodal) {
+  auto check = [&container](bool const is_intermodal, int const mumo_id) {
+    return is_intermodal &&
+           container.get_mumo_type(mumo_id) == intermodal::BIKESHARING;
+  };
+  bs_return_type bikesharings;
+  if (dep_is_intermodal || arr_is_intermodal) {
+    for (auto& j : journeys) {
+      bikesharings.emplace_back();
+      if (check(dep_is_intermodal, j.transports_.front().mumo_id_)) {
+        bikesharings.back().first = &intermodal::get_bikesharing_info(
+            container, j.transports_.front().mumo_id_);
+      }
+      if (check(arr_is_intermodal, j.transports_.back().mumo_id_)) {
+        bikesharings.back().second = &intermodal::get_bikesharing_info(
+            container, j.transports_.back().mumo_id_);
+      }
+    }
+  }
+  return bikesharings;
+}
+
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
                        unsigned const max_bikesharing_duration) {
   intermodal::individual_modes_container container(req,
@@ -81,8 +108,12 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
       flatbuffers::departure_station_name(*req.request()),
       req.request()->destination()->name()->str());
 
+  auto const bikesharings = get_bikesharings(
+      journeys, container, req.dep_is_intermodal(), req.arr_is_intermodal());
+
   return flatbuffers::response_builder::to_reliability_rating_response(
-      journeys, ratings.first, ratings.second, true /* short output */);
+      journeys, ratings.first, ratings.second, true /* short output */,
+      bikesharings);
 }
 
 }  // namespace rating

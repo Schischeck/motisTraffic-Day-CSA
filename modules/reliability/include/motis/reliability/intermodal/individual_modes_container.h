@@ -22,59 +22,46 @@ constexpr auto LATE_TAXI_END_TIME = 180;  // 03:00 GMT
 
 struct individual_modes_container {
   /* for late connections */
-  individual_modes_container() = default;
+  individual_modes_container() : id_counter_(0) {}
 
   /* for bikesharing requests */
   individual_modes_container(ReliableRoutingRequest const& req,
-                             unsigned const max_bikesharing_duration) {
+                             unsigned const max_bikesharing_duration)
+      : id_counter_(0) {
     if (req.individual_modes()->bikesharing() == 1) {
-      bikesharing_.init(req, max_bikesharing_duration);
+      init_bikesharing(req, max_bikesharing_duration);
     }
   }
 
-  int get_id_offset(mode_type const t) const {
-    switch (t) {
-      case BIKESHARING: return 0;
-      case TAXI:
-        return bikesharing_.at_start_.size() +
-               bikesharing_.at_destination_.size();
-      case HOTEL: return taxis_.size() + get_id_offset(TAXI);
-      default: break;
-    }
-    throw std::system_error(error::failure);
-  }
+  int next_id() { return id_counter_++; }
 
-  mode_type get_mumo_type(int const id) const {
-    if (id == -1) {
-      return WALK;
-    }
-    if (id < get_id_offset(TAXI)) {
-      return BIKESHARING;
-    }
-    if (id < get_id_offset(HOTEL)) {
-      return TAXI;
-    }
-    return HOTEL;
-    throw std::system_error(error::failure);
-  }
+  mode_type get_mumo_type(int const id) const;
 
-  struct bikesharing {
-    void init(ReliableRoutingRequest const& req, unsigned const max_duration) {
-      using namespace motis::reliability::intermodal::bikesharing;
-      if (req.dep_is_intermodal()) {
-        at_start_ = retrieve_bikesharing_infos(true, req, max_duration);
-      }
-      if (req.arr_is_intermodal()) {
-        at_destination_ = retrieve_bikesharing_infos(false, req, max_duration);
+  void init_bikesharing(ReliableRoutingRequest const& req,
+                        unsigned const max_duration) {
+    using namespace motis::reliability::intermodal::bikesharing;
+    if (req.dep_is_intermodal()) {
+      auto infos = retrieve_bikesharing_infos(true, req, max_duration);
+      for (auto& info : infos) {
+        bikesharing_at_start_.emplace_back(next_id(), std::move(info));
       }
     }
+    if (req.arr_is_intermodal()) {
+      auto infos = retrieve_bikesharing_infos(false, req, max_duration);
+      for (auto& info : infos) {
+        bikesharing_at_destination_.emplace_back(next_id(), std::move(info));
+      }
+    }
+  }
 
-    using bs_type =
-        motis::reliability::intermodal::bikesharing::bikesharing_info;
-    std::vector<bs_type> at_start_, at_destination_;
-  } bikesharing_;
+  void insert_hotel(intermodal::hotel const& h) {
+    hotels_.emplace_back(next_id(), h);
+  }
 
-  std::vector<hotel> hotels_;
+  std::vector<std::pair<int, bikesharing::bikesharing_info>>
+      bikesharing_at_start_, bikesharing_at_destination_;
+
+  std::vector<std::pair<int, hotel>> hotels_;
 
   struct taxi {
     explicit taxi(std::string const from_station, std::string const to_station,
@@ -93,7 +80,11 @@ struct individual_modes_container {
     uint16_t price_;
     uint16_t valid_from_, valid_to_;
   };
-  std::vector<taxi> taxis_;
+  std::vector<std::pair<int, taxi>> taxis_;
+
+  void insert_taxi(taxi const& t) { taxis_.emplace_back(next_id(), t); }
+
+  int id_counter_;
 };
 
 inline std::string to_str(mode_type const t) {
@@ -109,9 +100,14 @@ inline std::string to_str(mode_type const t) {
 inline void update_mumo_info(journey& j,
                              individual_modes_container const& container) {
   for (auto& t : j.transports_) {
-    t.mumo_type_ = intermodal::to_str(container.get_mumo_type(t.mumo_id_));
+    if (t.is_walk_ && t.mumo_id_ >= 0) {
+      t.mumo_type_ = intermodal::to_str(container.get_mumo_type(t.mumo_id_));
+    }
   }
 }
+
+motis::reliability::intermodal::bikesharing::bikesharing_info const&
+get_bikesharing_info(individual_modes_container const&, int const mumo_id);
 
 }  // namespace intermodal
 }  // namespace reliability

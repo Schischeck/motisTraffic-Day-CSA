@@ -24,6 +24,11 @@
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
+namespace bikesharing {
+struct bikesharing_info;
+}  // namespace bikesharing
+}  // namespace intermodal
 namespace search {
 namespace late_connections {
 namespace detail {
@@ -67,9 +72,8 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
   price_ = taxi_base_price + (city_distance + highway_distance) * taxi_km_price;
 }
 
-void ask_lookup_module(
-    station const& destination, unsigned const taxi_radius,
-    std::vector<intermodal::individual_modes_container::taxi>& taxis) {
+void ask_lookup_module(station const& destination, unsigned const taxi_radius,
+                       intermodal::individual_modes_container& container) {
   using namespace lookup;
   module::message_creator b;
   b.create_and_finish(
@@ -91,8 +95,8 @@ void ask_lookup_module(
                    destination.lng(), TAXI_BASE_PRICE, TAXI_KM_PRICE,
                    TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
                    TAXI_AVG_SPEED_LONG_DISTANCE);
-    taxis.emplace_back(st->id()->str(), destination.eva_nr_, cost.duration_,
-                       cost.price_);
+    container.insert_taxi(intermodal::individual_modes_container::taxi(
+        st->id()->str(), destination.eva_nr_, cost.duration_, cost.price_));
   }
 }
 
@@ -118,9 +122,8 @@ station const& get_destination(ReliableRoutingRequest const& req,
   return *get_station(sched, destination_eva);
 }
 
-void init_taxis(
-    ReliableRoutingRequest const& req, schedule const& sched,
-    std::vector<intermodal::individual_modes_container::taxi>& taxis) {
+void init_taxis(ReliableRoutingRequest const& req, schedule const& sched,
+                intermodal::individual_modes_container& container) {
   if (req.request_type()->request_options_type() !=
       RequestOptions_LateConnectionReq) {
     throw std::system_error(error::failure);
@@ -130,12 +133,12 @@ void init_taxis(
 
   auto const& destination = get_destination(req, sched);
 
-  ask_lookup_module(destination, ops->taxi_radius(), taxis);
+  ask_lookup_module(destination, ops->taxi_radius(), container);
 }
 
 void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
                  std::string const& hotels_file,
-                 std::vector<intermodal::hotel>& hotels) {
+                 intermodal::individual_modes_container& container) {
   if (req.request_type()->request_options_type() !=
       RequestOptions_LateConnectionReq) {
     throw std::system_error(error::failure);
@@ -149,7 +152,7 @@ void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
   for (auto const& h : tmp) {
     auto it = sched.eva_to_station_.find(h.station_);
     if (it != end(sched.eva_to_station_)) {
-      hotels.push_back(h);
+      container.insert_hotel(h);
     } else {
       LOG(logging::warn) << "Could not find hotel-station " << h.station_;
     }
@@ -243,8 +246,8 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
   auto const& sched = lock.sched();
   using namespace motis::reliability::intermodal;
   individual_modes_container container;
-  detail::init_hotels(req, sched, hotels_file, container.hotels_);
-  detail::init_taxis(req, sched, container.taxis_);
+  detail::init_hotels(req, sched, hotels_file, container);
+  detail::init_taxis(req, sched, container);
   auto routing_res = detail::ask_routing(req, container);
   using routing::RoutingResponse;
   auto journeys =
@@ -260,8 +263,11 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
 
   detail::update_db_costs(journeys, req);
 
+  std::vector<std::pair<intermodal::bikesharing::bikesharing_info const*,
+                        intermodal::bikesharing::bikesharing_info const*>>
+      dummy;
   return flatbuffers::response_builder::to_reliability_rating_response(
-      journeys, ratings.first, ratings.second, true /* short output */);
+      journeys, ratings.first, ratings.second, true /* short output */, dummy);
 }
 
 }  // namespace late_connections

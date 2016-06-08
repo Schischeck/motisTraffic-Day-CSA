@@ -9,7 +9,10 @@
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
 
+#include "motis/protocol/Position_generated.h"
+
 #include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
@@ -145,6 +148,31 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
 }
 }  // namespace simple_rating_converter
 
+namespace intermodal_converter {
+Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
+    FlatBufferBuilder& b,
+    std::vector<
+        std::pair<intermodal::bikesharing::bikesharing_info const*,
+                  intermodal::bikesharing::bikesharing_info const*>> const&
+        bikesharings) {
+  auto to_bike_info =
+      [&b](intermodal::bikesharing::bikesharing_info const* infos) {
+        auto from = infos ? Position(infos->from_.lat_, infos->from_.lng_)
+                          : Position(0.0, 0.0);
+        auto to = infos ? Position(infos->to_.lat_, infos->to_.lng_)
+                        : Position(0.0, 0.0);
+        return CreateBikeInfo(b, infos != nullptr, &from, &to);
+
+      };
+  std::vector<Offset<AdditionalInfos>> infos;
+  for (auto const& bike : bikesharings) {
+    infos.push_back(CreateAdditionalInfos(b, to_bike_info(bike.first),
+                                          to_bike_info(bike.second)));
+  }
+  return b.CreateVector(infos);
+}
+}
+
 Offset<routing::RoutingResponse> to_routing_response(
     FlatBufferBuilder& b, std::vector<journey> const& journeys) {
   std::vector<Offset<Connection>> connections;
@@ -159,7 +187,11 @@ module::msg_ptr to_reliability_rating_response(
     std::vector<rating::connection_rating> const& orig_ratings,
     std::vector<rating::simple_rating::simple_connection_rating> const&
         orig_simple_ratings,
-    bool const short_output) {
+    bool const short_output,
+    std::vector<
+        std::pair<intermodal::bikesharing::bikesharing_info const*,
+                  intermodal::bikesharing::bikesharing_info const*>> const&
+        bikesharings) {
   assert(journeys.size() == orig_ratings.size());
   module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
@@ -168,12 +200,13 @@ module::msg_ptr to_reliability_rating_response(
       b, orig_ratings, journeys, short_output);
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
-  std::vector<Offset<AdditionalInfosWrapper>> additional_infos;
-  b.create_and_finish(MsgContent_ReliabilityRatingResponse,
-                      CreateReliabilityRatingResponse(
-                          b, routing_response, conn_ratings, simple_ratings,
-                          b.CreateVector(additional_infos))
-                          .Union());
+
+  b.create_and_finish(
+      MsgContent_ReliabilityRatingResponse,
+      CreateReliabilityRatingResponse(
+          b, routing_response, conn_ratings, simple_ratings,
+          intermodal_converter::create_additional_infos(b, bikesharings))
+          .Union());
   return module::make_msg(b);
 }
 
@@ -246,11 +279,10 @@ module::msg_ptr to_reliable_routing_response(
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
-  std::vector<Offset<AdditionalInfosWrapper>> additional_infos;
+  std::vector<Offset<AdditionalInfos>> additional_infos;
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
                       reliability::CreateReliableRoutingResponse(
-                          b, b.CreateVector(connection_graphs),
-                          b.CreateVector(additional_infos))
+                          b, b.CreateVector(connection_graphs))
                           .Union());
   return module::make_msg(b);
 }
