@@ -3,8 +3,8 @@ module Widgets.Map exposing (Model, Msg, init, view, update, subscriptions)
 import Html exposing (Html, Attribute, div, text)
 import Html.Attributes exposing (..)
 import Port exposing (..)
-import Math.Vector3 exposing (..)
-import Math.Matrix4 exposing (..)
+import Math.Vector3 exposing (Vec3, vec3)
+import Math.Matrix4 exposing (Mat4, scale, translate, makeOrtho2D)
 import WebGL exposing (..)
 import Html exposing (Html)
 
@@ -143,8 +143,8 @@ view model =
 perspective : Model -> Mat4
 perspective model =
     makeOrtho2D 0.0 model.width model.height 0.0
-        |> Math.Matrix4.scale (vec3 model.scale model.scale model.scale)
-        |> Math.Matrix4.translate (vec3 -model.west -model.north 0)
+        |> scale (vec3 model.scale model.scale model.scale)
+        |> translate (vec3 -model.west -model.north 0)
 
 
 
@@ -184,7 +184,7 @@ latLngToWorldCoord lat lng =
             2 * pi * 6378137 / 256
 
         originShift =
-            2 * pi * 6378137 / 2
+            pi * 6378137
 
         mx =
             lng * originShift / 180
