@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <iostream>
 
 #include "motis/core/common/constants.h"
@@ -225,14 +226,11 @@ void test_journey1(journey const& j) {
   ASSERT_EQ(15, j.transports_[1].duration_);
   ASSERT_EQ(52, j.transports_[2].duration_);
 
-  // TODO(Mohammad Keyhani) ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[0].slot_);
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[2].slot_);
-  ASSERT_EQ(0, j.transports_[2].mumo_price_);
+  ASSERT_EQ(0, j.transports_[0].mumo_id_);
+  ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -275,16 +273,13 @@ void test_journey2(journey const& j) {
 
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(5, j.transports_[1].duration_);
-  // ASSERT_EQ(52, j.transports_[2].duration_);
+  ASSERT_EQ(52 + 15, j.transports_[2].duration_);
 
-  // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[0].slot_);
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[2].slot_);
-  ASSERT_EQ(0, j.transports_[2].mumo_price_);
+  ASSERT_EQ(0, j.transports_[0].mumo_id_);
+  ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -301,8 +296,8 @@ TEST_F(reliability_bikesharing_routing, large_interval) {
           .add_intermodal_destination(50.1273104, 8.6669383)
           .build_rating_request(true);
   auto res = call(req_msg);
-  auto journeys = message_to_journeys(
-      motis_content(ReliabilityRatingResponse, res)->response());
+  auto response = motis_content(ReliabilityRatingResponse, res);
+  auto journeys = message_to_journeys(response->response());
 
   std::sort(journeys.begin(), journeys.end(),
             [](journey const& a, journey const& b) {
@@ -313,6 +308,30 @@ TEST_F(reliability_bikesharing_routing, large_interval) {
   ASSERT_EQ(2, journeys.size());
   test_journey2(journeys[0]);
   test_journey1(journeys[1]);
+
+  auto infos = response->additional_infos();
+
+  ASSERT_EQ(2, infos->size());
+  for (auto const& info : *infos) {
+    ASSERT_TRUE(info->at_departure()->valid());
+    ASSERT_TRUE(std::abs(49.878025 - info->at_departure()->from()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.654584 - info->at_departure()->from()->lng()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(49.872558 - info->at_departure()->to()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.631700 - info->at_departure()->to()->lng()) <
+                0.00001);
+
+    ASSERT_TRUE(info->at_arrival()->valid());
+    ASSERT_TRUE(std::abs(50.107610 - info->at_arrival()->from()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.661005 - info->at_arrival()->from()->lng()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(50.128734 - info->at_arrival()->to()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.665265 - info->at_arrival()->to()->lng()) < 0.00001);
+  }
 }
 
 TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
@@ -399,7 +418,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(5, j.transports_[0].duration_);
 
-    // TODO(Mohammad Keyhani)ASSERT_EQ(j.transports_[1].mumo_id_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -436,8 +455,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_EQ(15, j.transports_[0].duration_);
     ASSERT_EQ(52, j.transports_[1].duration_);
 
-    // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-    // j.transports_[1].slot_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -487,9 +505,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_EQ(5, j.transports_[0].duration_);
 
-  // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[1].slot_);
-  ASSERT_EQ(0, j.transports_[1].mumo_price_);
+  ASSERT_EQ(3, j.transports_[1].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[1].mumo_type_);
 }
