@@ -171,7 +171,7 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
   }
   return b.CreateVector(infos);
 }
-}
+}  // namespace intermodal_converter
 
 Offset<routing::RoutingResponse> to_routing_response(
     FlatBufferBuilder& b, std::vector<journey> const& journeys) {
