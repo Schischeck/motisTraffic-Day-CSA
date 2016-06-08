@@ -58,22 +58,17 @@ motis::module::msg_ptr bikesharing::init_module(motis::module::msg_ptr const&) {
   if (!database_path_.empty()) {
     database_ = std::make_unique<database>(database_path_);
 
-    try {
-      database_->get_summary();
+    if (database_->is_initialized()) {
       LOG(info) << "using initialized bikesharing database";
-    } catch (std::system_error const& e) {
-      if (e.code() == error::database_not_initialized) {
-        if (nextbike_path_.empty()) {
-          LOG(info) << "cannot initialize bikesharing database";
-        } else {
-          initialize_nextbike(nextbike_path_, *database_);
-        }
-      } else {
-        throw e;
+    } else {
+      if (!nextbike_path_.empty()) {
+        initialize_nextbike(nextbike_path_, *database_);
       }
     }
 
-    search_ = std::make_unique<bikesharing_search>(*database_);
+    if (database_->is_initialized()) {
+      search_ = std::make_unique<bikesharing_search>(*database_);
+    }
   }
   return nullptr;
 }
