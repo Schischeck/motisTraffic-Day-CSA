@@ -177,7 +177,9 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(2, j.transports_.size());
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(0, j.transports_[1].mumo_id_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    ASSERT_EQ(intermodal::TAXI,
+              container.get_mumo_type(j.transports_[1].mumo_id_));
     // ASSERT_EQ(6000, j.transports_[1].mumo_price_);
     ASSERT_EQ(schedule_hotels::LANGEN.eva_, j.stops_[1].eva_no_);
     ASSERT_EQ(schedule_hotels::FRANKFURT.eva_, j.stops_[2].eva_no_);
@@ -195,7 +197,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_EQ(4, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(4, j.transports_[1].mumo_id_);
+    ASSERT_EQ(1, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(5, j.transports_[2].train_nr_);
     ASSERT_EQ(schedule_hotels::OFFENBACH.eva_, j.stops_[1].eva_no_);
@@ -208,7 +210,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    ASSERT_EQ(0, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(3, j.transports_[2].train_nr_);
     ASSERT_FALSE(j.transports_.back().is_walk_);
@@ -229,7 +231,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5001, j.db_costs_);
     ASSERT_EQ(6, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(5, j.transports_[1].mumo_id_);
+    ASSERT_EQ(2, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5001, j.transports_[1].mumo_price_);
     ASSERT_EQ(7, j.transports_[2].train_nr_);
     ASSERT_FALSE(j.transports_.back().is_walk_);
@@ -529,7 +531,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
       auto const move = (*conn->transports())[1];
       ASSERT_EQ(Move_Walk, move->move_type());
       auto const walk = reinterpret_cast<Walk const*>(move->move());
-      ASSERT_EQ("Walk", walk->mumo_type()->str());
+      ASSERT_EQ("", walk->mumo_type()->str());
     }
     {
       auto const move = (*conn->transports())[2];
@@ -553,7 +555,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
       auto const move = (*conn->transports())[1];
       ASSERT_EQ(Move_Walk, move->move_type());
       auto const walk = reinterpret_cast<Walk const*>(move->move());
-      ASSERT_EQ("Walk", walk->mumo_type()->str());
+      ASSERT_EQ("", walk->mumo_type()->str());
     }
     {
       auto const move = (*conn->transports())[2];

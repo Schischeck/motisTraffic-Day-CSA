@@ -31,9 +31,9 @@ module::msg_ptr to_reliability_rating_response(
     std::vector<journey> const&, std::vector<rating::connection_rating> const&,
     std::vector<rating::simple_rating::simple_connection_rating> const&,
     bool const short_output,
-    std::vector<
-        std::pair<intermodal::bikesharing::bikesharing_info const*,
-                  intermodal::bikesharing::bikesharing_info const*>> const&);
+    std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                          intermodal::bikesharing::bikesharing_info>> const&,
+    bool const dep_is_intermodal, bool const arr_is_intermodal);
 
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const&);

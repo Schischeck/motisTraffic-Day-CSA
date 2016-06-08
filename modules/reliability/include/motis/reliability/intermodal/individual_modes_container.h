@@ -106,7 +106,7 @@ inline void update_mumo_info(journey& j,
   }
 }
 
-motis::reliability::intermodal::bikesharing::bikesharing_info const&
+motis::reliability::intermodal::bikesharing::bikesharing_info
 get_bikesharing_info(individual_modes_container const&, int const mumo_id);
 
 }  // namespace intermodal

@@ -216,7 +216,7 @@ void update_db_costs(std::vector<journey>& journeys, journey orig_conn) {
   auto no_hotel_or_taxi = [](journey const& j) {
     return std::find_if(j.transports_.begin(), j.transports_.end(),
                         [](auto const& t) {
-                          return t.is_walk_ && t.mumo_id_ > 0;
+                          return t.is_walk_ && t.mumo_id_ >= 0;
                         }) == j.transports_.end();
   };
   orig_conn.price_ = estimate_price(orig_conn);
@@ -263,11 +263,12 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
 
   detail::update_db_costs(journeys, req);
 
-  std::vector<std::pair<intermodal::bikesharing::bikesharing_info const*,
-                        intermodal::bikesharing::bikesharing_info const*>>
+  std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                        intermodal::bikesharing::bikesharing_info>>
       dummy;
   return flatbuffers::response_builder::to_reliability_rating_response(
-      journeys, ratings.first, ratings.second, true /* short output */, dummy);
+      journeys, ratings.first, ratings.second, true /* short output */, dummy,
+      false, false);
 }
 
 }  // namespace late_connections

@@ -60,7 +60,7 @@ void update_mumo_and_address_infos(
 }
 
 using bs_type = intermodal::bikesharing::bikesharing_info;
-using bs_return_type = std::vector<std::pair<bs_type const*, bs_type const*>>;
+using bs_return_type = std::vector<std::pair<bs_type, bs_type>>;
 bs_return_type get_bikesharings(
     std::vector<journey>& journeys,
     intermodal::individual_modes_container const& container,
@@ -74,11 +74,11 @@ bs_return_type get_bikesharings(
     for (auto& j : journeys) {
       bikesharings.emplace_back();
       if (check(dep_is_intermodal, j.transports_.front().mumo_id_)) {
-        bikesharings.back().first = &intermodal::get_bikesharing_info(
+        bikesharings.back().first = intermodal::get_bikesharing_info(
             container, j.transports_.front().mumo_id_);
       }
       if (check(arr_is_intermodal, j.transports_.back().mumo_id_)) {
-        bikesharings.back().second = &intermodal::get_bikesharing_info(
+        bikesharings.back().second = intermodal::get_bikesharing_info(
             container, j.transports_.back().mumo_id_);
       }
     }
@@ -113,7 +113,7 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
 
   return flatbuffers::response_builder::to_reliability_rating_response(
       journeys, ratings.first, ratings.second, true /* short output */,
-      bikesharings);
+      bikesharings, req.dep_is_intermodal(), req.arr_is_intermodal());
 }
 
 }  // namespace rating

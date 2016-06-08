@@ -7,7 +7,7 @@ namespace reliability {
 namespace intermodal {
 
 template <typename Mode>
-Mode const& find_id(std::vector<std::pair<int, Mode>> container, int const id) {
+Mode find_id(std::vector<std::pair<int, Mode>> container, int const id) {
   auto it = std::find_if(container.begin(), container.end(),
                          [id](auto const& p) { return p.first == id; });
   if (it == container.end()) {
@@ -16,7 +16,7 @@ Mode const& find_id(std::vector<std::pair<int, Mode>> container, int const id) {
   return it->second;
 }
 
-motis::reliability::intermodal::bikesharing::bikesharing_info const&
+motis::reliability::intermodal::bikesharing::bikesharing_info
 get_bikesharing_info(individual_modes_container const& container,
                      int const mumo_id) {
   using namespace intermodal;
