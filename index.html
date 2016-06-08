@@ -26,7 +26,7 @@
 
   window.elmMaps = {};
 
-  app.ports.initMap.subscribe(function(id) {
+  app.ports.mapInit.subscribe(function(id) {
     var map = L.map('map').setView([49.8728, 8.6512], 14);
 
     L.tileLayer('https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}', {
@@ -35,9 +35,29 @@
       accessToken: '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
     }).addTo(map);
 
-    map.on('load', function(e) {
-      app.ports.mapLoaded.send(id);
-    });
+    app.ports.mapLoaded.send(id);
+
+    function update() {
+      // size
+      var mapSize = map.getSize();
+      app.ports.mapResizeWidth.send(mapSize.x);
+      app.ports.mapResizeHeight.send(mapSize.y);
+
+      // zoom
+      app.ports.mapZoom.send(map.getZoom());
+
+      // bounds
+      var bounds = map.getBounds();
+      app.ports.mapNorth.send(bounds.getNorth());
+      app.ports.mapWest.send(bounds.getWest());
+    }
+
+    map.on('zoomend', update);
+    map.on('resize', update);
+    map.on('moveend', update);
+    map.on('drag', update);
+
+    setTimeout(update, 50);
     
     window.elmMaps[id] = map;
   });

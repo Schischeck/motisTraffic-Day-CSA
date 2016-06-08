@@ -139,7 +139,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ]
-        [ App.map MapUpdate (Map.view model.map) 
+        [ App.map MapUpdate (Map.view model.map)
         , div [ class "overlay" ]
             [ div [ id "header" ]
                 [ h1 [ class "disable-select" ] [ text "Motis Project" ]
