@@ -44,7 +44,7 @@ constexpr double M_PER_KM = 1000.0;
 constexpr unsigned MIN_PER_HOUR = 60;
 constexpr double DISTANCE_THRESHOLD = 5.0;  // 5km
 constexpr double AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
-constexpr double AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
+constexpr double AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.5;
 
 constexpr unsigned MAX_TRAIN_PRICE = 12300;
 constexpr double TRAIN_KM_PRICE = 30.0;
@@ -220,6 +220,7 @@ void update_db_costs(std::vector<journey>& journeys, journey orig_conn) {
                         }) == j.transports_.end();
   };
   orig_conn.price_ = estimate_price(orig_conn);
+  LOG(logging::info) << "Price estimated for orig-conn: " << orig_conn.price_;
   for (auto& j : journeys) {
     if (no_hotel_or_taxi(j)) {
       j.db_costs_ = calc_compensation(orig_conn, j);

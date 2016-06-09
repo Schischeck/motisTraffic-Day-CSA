@@ -56,6 +56,35 @@ mode_type individual_modes_container::get_mumo_type(int const id) const {
   throw std::system_error(error::failure);
 }
 
+void individual_modes_container::init_bikesharing(
+    ReliableRoutingRequest const& req, unsigned const max_duration) {
+  using namespace motis::reliability::intermodal::bikesharing;
+  if (req.dep_is_intermodal()) {
+    auto infos = retrieve_bikesharing_infos(true, req, max_duration);
+    for (auto& info : infos) {
+      auto const& i = info;
+      if (i.station_eva_ == "8000105") {
+        printf("\nREL %s %d+%dmin %f,%f --> %f,%f", i.station_eva_.c_str(),
+               i.bike_duration_, i.walk_duration_, i.from_.lat_, i.from_.lng_,
+               i.to_.lat_, i.to_.lng_);
+      }
+      bikesharing_at_start_.emplace_back(next_id(), std::move(info));
+    }
+  }
+  if (req.arr_is_intermodal()) {
+    auto infos = retrieve_bikesharing_infos(false, req, max_duration);
+    for (auto& info : infos) {
+      auto const& i = info;
+      if (i.station_eva_ == "0657967") {
+        printf("\nREL %s %d+%dmin %f,%f --> %f,%f", i.station_eva_.c_str(),
+               i.bike_duration_, i.walk_duration_, i.from_.lat_, i.from_.lng_,
+               i.to_.lat_, i.to_.lng_);
+      }
+      bikesharing_at_destination_.emplace_back(next_id(), std::move(info));
+    }
+  }
+}
+
 }  // namespace intermodal
 }  // namespace reliability
 }  // namespace motis

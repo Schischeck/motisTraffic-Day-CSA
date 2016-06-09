@@ -235,7 +235,7 @@ void request_builder::create_bikesharing_edges(
           b_, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(
               b_, CreateMumoEdge(b_, b_.CreateString(tail_station),
-                                 b_.CreateString(head_station), info.duration_,
+                                 b_.CreateString(head_station), info.duration(),
                                  0 /* TODO(Mohammad Keyhani) price */, id),
               &interval)
               .Union()));

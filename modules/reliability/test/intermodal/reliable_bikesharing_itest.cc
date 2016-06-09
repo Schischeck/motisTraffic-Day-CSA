@@ -71,6 +71,39 @@ TEST_F(reliability_bikesharing, compress_intervals) {
   }
 }
 
+TEST_F(reliability_bikesharing, pareto_filter) {
+  std::vector<bikesharing_info> all;
+  auto b = [&all](unsigned bike, unsigned walk, std::string station) {
+    all.push_back({bike,
+                   walk,
+                   station,
+                   bikesharing_info::terminal{0.0, 0.0},
+                   bikesharing_info::terminal{0.0, 0.0},
+                   {}});
+  };
+  b(80, 20, "A");
+  b(10, 10, "A");
+  b(20, 5, "A");
+  b(16, 5, "A");
+  b(20, 20, "B");
+
+  auto filtered = detail::pareto_filter(all);
+  std::sort(filtered.begin(), filtered.end(), [](auto const& a, auto const& b) {
+    return std::make_pair(a.bike_duration_, a.walk_duration_) <
+           std::make_pair(b.bike_duration_, b.walk_duration_);
+  });
+
+  ASSERT_EQ(4, filtered.size());
+  ASSERT_EQ(10, filtered[0].bike_duration_);
+  ASSERT_EQ(10, filtered[0].walk_duration_);
+  ASSERT_EQ(16, filtered[1].bike_duration_);
+  ASSERT_EQ(5, filtered[1].walk_duration_);
+  ASSERT_EQ(20, filtered[2].bike_duration_);
+  ASSERT_EQ(5, filtered[2].walk_duration_);
+  ASSERT_EQ(20, filtered[3].bike_duration_);
+  ASSERT_EQ(20, filtered[3].walk_duration_);
+}
+
 TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   auto aggregator = std::make_shared<average_aggregator>(4);
   auto res_dep = call(to_bikesharing_request(true, 49.8776114, 8.6571044,
@@ -96,7 +129,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
     std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,
                                              bikesharing_info const& b) {
       return a.station_eva_ < b.station_eva_ ||
-             (a.station_eva_ == b.station_eva_ && a.duration_ < b.duration_);
+             (a.station_eva_ == b.station_eva_ && a.duration() < b.duration());
     });
   };
   sort(dep_infos);
@@ -106,7 +139,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[0];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(34, info.duration_);
+    ASSERT_EQ(34, info.duration());
     // ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -116,7 +149,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[1];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(36, info.duration_);
+    ASSERT_EQ(36, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -126,7 +159,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[2];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(38, info.duration_);
+    ASSERT_EQ(38, info.duration());
     // ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -136,7 +169,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[3];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(40, info.duration_);
+    ASSERT_EQ(40, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -148,7 +181,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[0];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(44, info.duration_);
+    ASSERT_EQ(44, info.duration());
     // ASSERT_EQ("FFM HBF North", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -158,7 +191,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[1];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(45, info.duration_);
+    ASSERT_EQ(45, info.duration());
     // ASSERT_EQ("FFM HBF North", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -168,7 +201,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[2];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(49, info.duration_);
+    ASSERT_EQ(49, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -178,7 +211,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[3];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(50, info.duration_);
+    ASSERT_EQ(50, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());

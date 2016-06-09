@@ -121,8 +121,8 @@ TEST_F(reliability_late_connections, taxi_costs) {
   {
     taxi_cost cost(darmstadt.first, darmstadt.second, frankfurt.first,
                    frankfurt.second, 250, 200, 10, 40, 100);
-    ASSERT_EQ(36, cost.duration_);
-    ASSERT_EQ(6817, cost.price_);
+    ASSERT_EQ(40, cost.duration_);
+    ASSERT_EQ(8084, cost.price_);
   }
 
   auto const tud = std::make_pair(49.877111, 8.655606);
@@ -499,7 +499,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
 
   {
     auto const conn = (*res->response()->connections())[0];
-    ASSERT_EQ(3567, conn->db_costs());
+    ASSERT_EQ(4021, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(2, conn->transports()->size());
     {
@@ -518,7 +518,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
   }
   {
     auto const conn = (*res->response()->connections())[1];
-    ASSERT_EQ(1967, conn->db_costs());
+    ASSERT_EQ(2022, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(3, conn->transports()->size());
     {

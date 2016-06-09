@@ -41,11 +41,12 @@ private:
 };
 
 struct bikesharing_info {
+  unsigned int duration() const { return bike_duration_ + walk_duration_; }
+  unsigned int bike_duration_, walk_duration_;
   std::string station_eva_;
   struct terminal {
     double lat_, lng_;
   } from_, to_;
-  unsigned int duration_;
   /* right-open intervals */
   std::vector<std::pair<time_t, time_t>> availability_intervals_;
 };
@@ -71,6 +72,8 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     availability_aggregator const&, unsigned const max_duration);
 std::vector<std::pair<time_t, time_t>> compress_intervals(
     std::vector<std::pair<time_t, time_t>> orig_intervals);
+std::vector<bikesharing_info> pareto_filter(
+    std::vector<bikesharing_info> const&);
 }  // namespace detail
 
 }  // namespace bikesharing

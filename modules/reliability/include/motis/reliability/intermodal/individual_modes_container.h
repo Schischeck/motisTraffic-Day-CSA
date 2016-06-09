@@ -38,21 +38,7 @@ struct individual_modes_container {
   mode_type get_mumo_type(int const id) const;
 
   void init_bikesharing(ReliableRoutingRequest const& req,
-                        unsigned const max_duration) {
-    using namespace motis::reliability::intermodal::bikesharing;
-    if (req.dep_is_intermodal()) {
-      auto infos = retrieve_bikesharing_infos(true, req, max_duration);
-      for (auto& info : infos) {
-        bikesharing_at_start_.emplace_back(next_id(), std::move(info));
-      }
-    }
-    if (req.arr_is_intermodal()) {
-      auto infos = retrieve_bikesharing_infos(false, req, max_duration);
-      for (auto& info : infos) {
-        bikesharing_at_destination_.emplace_back(next_id(), std::move(info));
-      }
-    }
-  }
+                        unsigned const max_duration);
 
   void insert_hotel(intermodal::hotel const& h) {
     hotels_.emplace_back(next_id(), h);
