@@ -138,8 +138,8 @@ struct bikesharing_search::impl {
 
     for (const auto& result : result_n) {
       // TODO(Sebastian Fahnenschreiber) OSRM
-      int walk_dur = distance_in_m(result.first, loc) / WALK_SPEED;
-      func(terminal_ids_[result.second], walk_dur);
+      func(terminal_ids_[result.second],
+           distance_in_m(result.first, loc) * LINEAR_DIST_APPROX / WALK_SPEED);
     }
   }
 
