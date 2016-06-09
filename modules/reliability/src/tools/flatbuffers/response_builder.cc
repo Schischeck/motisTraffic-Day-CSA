@@ -165,9 +165,13 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
   };
   std::vector<Offset<AdditionalInfos>> infos;
   for (auto const& bike : bikesharings) {
-    infos.push_back(
-        CreateAdditionalInfos(b, to_bike_info(bike.first, dep_is_intermodal),
-                              to_bike_info(bike.second, arr_is_intermodal)));
+    infos.push_back(CreateAdditionalInfos(
+        b, to_bike_info(bike.first,
+                        dep_is_intermodal &&
+                            !bike.first.availability_intervals_.empty()),
+        to_bike_info(bike.second,
+                     arr_is_intermodal &&
+                         !bike.second.availability_intervals_.empty())));
   }
   return b.CreateVector(infos);
 }
