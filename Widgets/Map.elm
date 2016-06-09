@@ -126,11 +126,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ id "map" ]
-        [ WebGL.toHtml
-            [ width (round model.width)
-            , height (round model.height)
-            , id "glCanvas"
-            ]
+        [ WebGL.toHtml [ class "leaflet-overlay" ]
             [ render vertexShader
                 fragmentShader
                 mesh

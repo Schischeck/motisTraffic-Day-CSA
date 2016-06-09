@@ -22,6 +22,64 @@
   <script type="text/javascript" src="external_lib/leaflet.min.js"></script>
   <script type="text/javascript" src="elm.js"></script>
   <script type="text/javascript">
+    var CanvasOverlay = L.Class.extend({
+      initialize: function () {
+        L.setOptions(this, {});
+      },
+
+      onAdd: function (map) {
+        this._map = map;
+
+        map._panes.overlayPane.appendChild(this._el);
+
+        map.on('dragend', this._updatePosition, this);
+        map.on('resize', this._sizeUpdate, this);
+        map.on('zoomend', this._zoomUpdate, this);
+
+        setTimeout(function() {
+          this._sizeUpdate();
+          this._zoomUpdate();
+        }.bind(this), 50);
+        app.ports.mapLoaded.send("");
+      },
+
+      onRemove: function (map) {
+        map.getPanes().overlayPane.removeChild(this._el);
+        map.off('dragend', this._updatePosition, this);
+        map.off('resize', this._sizeUpdate, this);
+        map.off('zoomend', this._zoomUpdate, this);
+      },
+
+      _updatePosition: function() {
+        var pos = this._map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(this._el, pos);
+
+        this._boundsUpdate();
+      },
+
+      _sizeUpdate: function() {
+        var size = this._map.getSize();
+        this._el.width = size.x;
+        this._el.height = size.y;
+
+        app.ports.mapResizeWidth.send(size.x);
+        app.ports.mapResizeHeight.send(size.y);
+      },
+
+      _zoomUpdate: function() {
+        app.ports.mapZoom.send(this._map.getZoom());
+        this._boundsUpdate();
+      },
+
+      _boundsUpdate: function() {
+        var bounds = this._map.getBounds();
+        app.ports.mapNorth.send(bounds.getNorth());
+        app.ports.mapWest.send(bounds.getWest());
+      }
+    });
+  </script>
+
+  <script type="text/javascript">
   var app = Elm.Main.fullscreen()
 
   window.elmMaps = {};
@@ -35,31 +93,12 @@
       accessToken: '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
     }).addTo(map);
 
-    app.ports.mapLoaded.send(id);
-
-    function update() {
-      // size
-      var mapSize = map.getSize();
-      app.ports.mapResizeWidth.send(mapSize.x);
-      app.ports.mapResizeHeight.send(mapSize.y);
-
-      // zoom
-      app.ports.mapZoom.send(map.getZoom());
-
-      // bounds
-      var bounds = map.getBounds();
-      app.ports.mapNorth.send(bounds.getNorth());
-      app.ports.mapWest.send(bounds.getWest());
-    }
-
-    map.on('zoomend', update);
-    map.on('resize', update);
-    map.on('moveend', update);
-    map.on('drag', update);
-
-    setTimeout(update, 50);
-    
     window.elmMaps[id] = map;
+
+    var overlay = map.getContainer().querySelector('.leaflet-overlay');
+    var c = new CanvasOverlay();
+    c._el = overlay;
+    map.addLayer(c);
   });
   </script>
 </body>
