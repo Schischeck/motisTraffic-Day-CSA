@@ -58,7 +58,8 @@ struct request_builder {
   module::msg_ptr build_reliable_search_request(int16_t const min_dep_diff,
                                                 bool const bikesharing = false);
 
-  module::msg_ptr build_rating_request(bool const bikesharing = false);
+  module::msg_ptr build_rating_request(bool const bikesharing = false,
+                                       bool const walks = false);
 
   module::msg_ptr build_late_connection_request(
       journey const& orig_journey, unsigned const taxi_radius,
@@ -87,7 +88,7 @@ private:
 
   module::msg_ptr build_reliable_request(
       ::flatbuffers::Offset<RequestOptionsWrapper> const&,
-      bool const bikesharing = false);
+      bool const bikesharing = false, bool const walks = false);
 
   void create_pretrip_start(std::string const station_name,
                             std::string const station_id,
@@ -97,6 +98,7 @@ private:
   void create_bikesharing_edges(intermodal::individual_modes_container const&);
   void create_taxi_edges(intermodal::individual_modes_container const&);
   void create_hotel_edges(intermodal::individual_modes_container const&);
+  void create_walks(intermodal::individual_modes_container const&);
 };
 
 std::string departure_station_name(routing::RoutingRequest const& req);

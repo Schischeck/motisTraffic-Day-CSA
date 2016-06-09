@@ -1,6 +1,10 @@
 #include "motis/reliability/intermodal/individual_modes_container.h"
 
+#include "motis/core/common/constants.h"
+#include "motis/core/common/geo.h"
+
 #include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/lookup.h"
 
 namespace motis {
 namespace reliability {
@@ -53,6 +57,15 @@ mode_type individual_modes_container::get_mumo_type(int const id) const {
       id <= hotels_.back().first) {
     return HOTEL;
   }
+  if (!walks_at_start_.empty() && id >= walks_at_start_.front().first &&
+      id <= walks_at_start_.back().first) {
+    return WALK;
+  }
+  if (!walks_at_destination_.empty() &&
+      id >= walks_at_destination_.front().first &&
+      id <= walks_at_destination_.back().first) {
+    return WALK;
+  }
   throw std::system_error(error::failure);
 }
 
@@ -64,12 +77,6 @@ void individual_modes_container::init_bikesharing(
     auto infos = retrieve_bikesharing_infos(true, req, max_duration,
                                             pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
-      auto const& i = info;
-      if (i.station_eva_ == "8000105") {
-        printf("\nREL %s %d+%dmin %f,%f --> %f,%f", i.station_eva_.c_str(),
-               i.bike_duration_, i.walk_duration_, i.from_.lat_, i.from_.lng_,
-               i.to_.lat_, i.to_.lng_);
-      }
       bikesharing_at_start_.emplace_back(next_id(), std::move(info));
     }
   }
@@ -77,14 +84,44 @@ void individual_modes_container::init_bikesharing(
     auto infos = retrieve_bikesharing_infos(false, req, max_duration,
                                             pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
-      auto const& i = info;
-      if (i.station_eva_ == "0657967") {
-        printf("\nREL %s %d+%dmin %f,%f --> %f,%f", i.station_eva_.c_str(),
-               i.bike_duration_, i.walk_duration_, i.from_.lat_, i.from_.lng_,
-               i.to_.lat_, i.to_.lng_);
-      }
       bikesharing_at_destination_.emplace_back(next_id(), std::move(info));
     }
+  }
+}
+
+uint16_t foot_duration(double const& lat1, double const& lon1,
+                       double const& lat2, double const& lon2) {
+  constexpr unsigned sec_per_min = 60;
+  return static_cast<uint16_t>(
+      (geo_detail::distance_in_m(lat1, lon1, lat2, lon2) / WALK_SPEED) /
+      sec_per_min);
+}
+
+void individual_modes_container::init_walks(ReliableRoutingRequest const& req) {
+  auto init = [](std::vector<std::pair<int, walk>>& walks, double const& lat,
+                 double const& lng) {
+    auto lookup_msg = ask_lookup_module(lat, lng, MAX_WALK_DIST);
+    using lookup::LookupGeoStationResponse;
+    auto res = motis_content(LookupGeoStationResponse, lookup_msg);
+    for (auto w : *res->stations()) {
+      walks.emplace_back(
+          0 /* dummy */,
+          walk{w->id()->str(),
+               foot_duration(lat, lng, w->pos()->lat(), w->pos()->lng())});
+    }
+  };
+  if (req.dep_is_intermodal()) {
+    init(walks_at_start_, req.dep_coord()->lat(), req.dep_coord()->lng());
+  }
+  if (req.arr_is_intermodal()) {
+    init(walks_at_destination_, req.arr_coord()->lat(), req.arr_coord()->lng());
+  }
+
+  for (auto& w : walks_at_start_) {
+    w.first = next_id();
+  }
+  for (auto& w : walks_at_destination_) {
+    w.first = next_id();
   }
 }
 

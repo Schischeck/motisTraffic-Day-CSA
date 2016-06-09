@@ -74,6 +74,7 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
 
 void ask_lookup_module(station const& destination, unsigned const taxi_radius,
                        intermodal::individual_modes_container& container) {
+  // TODO(Mohammad Keyhani): refactoring: use reliability/intermodal/lookup.h
   using namespace lookup;
   module::message_creator b;
   b.create_and_finish(

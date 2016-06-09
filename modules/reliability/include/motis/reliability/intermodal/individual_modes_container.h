@@ -33,15 +33,14 @@ struct individual_modes_container {
       init_bikesharing(req, max_bikesharing_duration,
                        pareto_filtering_for_bikesharing);
     }
+    if (req.individual_modes()->walk() == 1) {
+      init_walks(req);
+    }
   }
 
   int next_id() { return id_counter_++; }
 
   mode_type get_mumo_type(int const id) const;
-
-  void init_bikesharing(ReliableRoutingRequest const& req,
-                        unsigned const max_duration,
-                        bool const pareto_filtering_for_bikesharing);
 
   void insert_hotel(intermodal::hotel const& h) {
     hotels_.emplace_back(next_id(), h);
@@ -53,10 +52,10 @@ struct individual_modes_container {
   std::vector<std::pair<int, hotel>> hotels_;
 
   struct taxi {
-    explicit taxi(std::string const from_station, std::string const to_station,
-                  uint16_t const duration, uint16_t const price,
-                  uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
-                  uint16_t const valid_to = LATE_TAXI_END_TIME)
+    taxi(std::string const from_station, std::string const to_station,
+         uint16_t const duration, uint16_t const price,
+         uint16_t const valid_from = LATE_TAXI_BEGIN_TIME,
+         uint16_t const valid_to = LATE_TAXI_END_TIME)
         : from_station_(from_station),
           to_station_(to_station),
           duration_(duration),
@@ -71,7 +70,19 @@ struct individual_modes_container {
   };
   std::vector<std::pair<int, taxi>> taxis_;
 
+  struct walk {
+    std::string station_id_;
+    uint16_t duration_;
+  };
+  std::vector<std::pair<int, walk>> walks_at_start_, walks_at_destination_;
+
   void insert_taxi(taxi const& t) { taxis_.emplace_back(next_id(), t); }
+
+private:
+  void init_bikesharing(ReliableRoutingRequest const& req,
+                        unsigned const max_duration,
+                        bool const pareto_filtering_for_bikesharing);
+  void init_walks(ReliableRoutingRequest const& req);
 
   int id_counter_;
 };

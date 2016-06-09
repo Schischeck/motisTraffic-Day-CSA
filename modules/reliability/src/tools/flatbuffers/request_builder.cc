@@ -151,12 +151,15 @@ request_builder& request_builder::add_additional_edges(
   create_bikesharing_edges(container);
   create_taxi_edges(container);
   create_hotel_edges(container);
+  create_walks(container);
 
   LOG(logging::info) << "Request created with "
                      << container.bikesharing_at_start_.size() << "|"
                      << container.bikesharing_at_destination_.size()
                      << " bikesharings, " << container.hotels_.size()
-                     << " hotels, and " << container.taxis_.size() << " taxis.";
+                     << " hotels, " << container.taxis_.size() << " taxis, and "
+                     << container.walks_at_start_.size() << "|"
+                     << container.walks_at_destination_.size() << " walks.";
   return *this;
 }
 
@@ -181,10 +184,11 @@ msg_ptr request_builder::build_reliable_search_request(
   return build_reliable_request(opts, bikesharing);
 }
 
-msg_ptr request_builder::build_rating_request(bool const bikesharing) {
+msg_ptr request_builder::build_rating_request(bool const bikesharing,
+                                              bool const walks) {
   auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_RatingReq,
                                           CreateRatingReq(b_).Union());
-  return build_reliable_request(opts, bikesharing);
+  return build_reliable_request(opts, bikesharing, walks);
 }
 
 msg_ptr request_builder::build_late_connection_request(
@@ -210,8 +214,9 @@ msg_ptr request_builder::build_connection_tree_request(
 }
 
 msg_ptr request_builder::build_reliable_request(
-    Offset<RequestOptionsWrapper> const& options, bool const bikesharing) {
-  IndividualModes modes(bikesharing, 0);
+    Offset<RequestOptionsWrapper> const& options, bool const bikesharing,
+    bool const walks) {
+  IndividualModes modes(bikesharing, walks);
   Coordinates dep(dep_.lat_, dep_.lng_), arr(arr_.lat_, arr_.lng_);
   b_.create_and_finish(MsgContent_ReliableRoutingRequest,
                        CreateReliableRoutingRequest(
@@ -279,6 +284,30 @@ void request_builder::create_hotel_edges(
                                0 /* dummy */, e.second.price_, e.first),
             e.second.earliest_checkout_, e.second.min_stay_duration_)
             .Union()));
+  }
+}
+
+void request_builder::create_walks(
+    intermodal::individual_modes_container const& container) {
+  auto create_edge = [&](
+      intermodal::individual_modes_container::walk const& walk,
+      std::string const tail_station, std::string const head_station,
+      int const id) {
+    using namespace routing;
+    additional_edges_.push_back(CreateAdditionalEdgeWrapper(
+        b_, AdditionalEdge_MumoEdge,
+        CreateMumoEdge(b_, b_.CreateString(tail_station),
+                       b_.CreateString(head_station), walk.duration_,
+                       0 /* price */, id)
+            .Union()));
+
+  };
+  for (auto const& walk : container.walks_at_start_) {
+    create_edge(walk.second, STATION_START, walk.second.station_id_,
+                walk.first);
+  }
+  for (auto const& walk : container.walks_at_destination_) {
+    create_edge(walk.second, walk.second.station_id_, STATION_END, walk.first);
   }
 }
 
