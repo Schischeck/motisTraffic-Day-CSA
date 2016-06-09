@@ -145,10 +145,10 @@ close_locations find_close_stations(std::vector<terminal> const& terminals) {
     auto const& found_stations = resp->responses()->Get(i)->stations();
     attached_stations.push_back(transform_to_vec(
         *found_stations, [&t](auto&& stations) -> close_location {
-          return {stations->id()->str(),
-                  static_cast<int>(distance_in_m(t.lat_, t.lng_,
-                                                 stations->pos()->lat(),
-                                                 stations->pos()->lng()))};
+          int const dist = distance_in_m(t.lat_, t.lng_, stations->pos()->lat(),
+                                         stations->pos()->lng());
+          int const dur = dist * LINEAR_DIST_APPROX / WALK_SPEED;
+          return {stations->id()->str(), dur};
         }));
   }
 
@@ -196,8 +196,8 @@ close_locations find_close_terminals(std::vector<terminal> const& terminals) {
       if (dist < 500) {
         continue;
       }
-
-      close_terminals.push_back({terminals[result.second].uid_, dist});
+      int const dur = dist * LINEAR_DIST_APPROX / BIKE_SPEED;
+      close_terminals.push_back({terminals[result.second].uid_, dur});
     }
     all_close_terminals.push_back(close_terminals);
   }
