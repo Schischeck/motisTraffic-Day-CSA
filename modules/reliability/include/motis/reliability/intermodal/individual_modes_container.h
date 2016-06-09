@@ -26,10 +26,12 @@ struct individual_modes_container {
 
   /* for bikesharing requests */
   individual_modes_container(ReliableRoutingRequest const& req,
-                             unsigned const max_bikesharing_duration)
+                             unsigned const max_bikesharing_duration,
+                             bool const pareto_filtering_for_bikesharing)
       : id_counter_(0) {
     if (req.individual_modes()->bikesharing() == 1) {
-      init_bikesharing(req, max_bikesharing_duration);
+      init_bikesharing(req, max_bikesharing_duration,
+                       pareto_filtering_for_bikesharing);
     }
   }
 
@@ -38,7 +40,8 @@ struct individual_modes_container {
   mode_type get_mumo_type(int const id) const;
 
   void init_bikesharing(ReliableRoutingRequest const& req,
-                        unsigned const max_duration);
+                        unsigned const max_duration,
+                        bool const pareto_filtering_for_bikesharing);
 
   void insert_hotel(intermodal::hotel const& h) {
     hotels_.emplace_back(next_id(), h);

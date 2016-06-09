@@ -101,7 +101,7 @@ std::vector<bikesharing_info> pareto_filter(
 
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
     bool for_departure, ReliableRoutingRequest const& req,
-    unsigned const max_duration) {
+    unsigned const max_duration, bool const pareto_filtering_for_bikesharing) {
   auto res = motis_call(to_bikesharing_request(
                             req, for_departure,
                             motis::bikesharing::AvailabilityAggregator_Average))
@@ -111,7 +111,7 @@ std::vector<bikesharing_info> retrieve_bikesharing_infos(
   auto const all = detail::to_bikesharing_infos(
       *motis_content(BikesharingResponse, res)->edges(), aggregator,
       max_duration);
-  return detail::pareto_filter(all);
+  return pareto_filtering_for_bikesharing ? detail::pareto_filter(all) : all;
 }
 
 module::msg_ptr to_bikesharing_request(

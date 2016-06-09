@@ -21,7 +21,8 @@ namespace connection_graph_search {
 struct connection_graph_optimizer;
 
 module::msg_ptr search_cgs(ReliableRoutingRequest const&, reliability&,
-                           unsigned const max_bikesharing_duration);
+                           unsigned const max_bikesharing_duration,
+                           bool const pareto_filtering_for_bikesharing);
 
 std::vector<std::shared_ptr<connection_graph> > search_cgs(
     ReliableRoutingRequest const&, motis::reliability::context const&,

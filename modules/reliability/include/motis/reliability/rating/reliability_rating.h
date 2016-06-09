@@ -21,7 +21,8 @@ namespace rating {
 struct connection_rating;
 
 module::msg_ptr rating(ReliableRoutingRequest const&, reliability&,
-                       unsigned const max_bikesharing_duration);
+                       unsigned const max_bikesharing_duration,
+                       bool const pareto_filtering_for_bikesharing);
 
 module::msg_ptr rate_routing_response(routing::RoutingResponse const&,
                                       motis::reliability::context const&,

@@ -57,10 +57,12 @@ mode_type individual_modes_container::get_mumo_type(int const id) const {
 }
 
 void individual_modes_container::init_bikesharing(
-    ReliableRoutingRequest const& req, unsigned const max_duration) {
+    ReliableRoutingRequest const& req, unsigned const max_duration,
+    bool const pareto_filtering_for_bikesharing) {
   using namespace motis::reliability::intermodal::bikesharing;
   if (req.dep_is_intermodal()) {
-    auto infos = retrieve_bikesharing_infos(true, req, max_duration);
+    auto infos = retrieve_bikesharing_infos(true, req, max_duration,
+                                            pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
       auto const& i = info;
       if (i.station_eva_ == "8000105") {
@@ -72,7 +74,8 @@ void individual_modes_container::init_bikesharing(
     }
   }
   if (req.arr_is_intermodal()) {
-    auto infos = retrieve_bikesharing_infos(false, req, max_duration);
+    auto infos = retrieve_bikesharing_infos(false, req, max_duration,
+                                            pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
       auto const& i = info;
       if (i.station_eva_ == "0657967") {
