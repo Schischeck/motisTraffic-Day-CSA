@@ -29,6 +29,7 @@ struct lc_not_found_exception : std::exception {
   };
 };
 
+#if 0
 namespace graph_util {
 using route_node_and_lc_info =
     std::tuple<node const*, light_connection const*, unsigned int>;
@@ -102,6 +103,7 @@ route_node_and_lc_info get_node_and_light_connection(
       key.type_ == time_util::departure, find_light_conn);
 }
 }  // namespace graph_util
+#endif
 
 namespace detail {
 
@@ -167,33 +169,21 @@ void process_element(queue_type& queue,
     return;
   }
 
-  node const* route_node;
-  light_connection const* lc;
-  unsigned int lc_pos;
-
-  try {
-    std::tie(route_node, lc, lc_pos) =
-        graph_util::get_node_and_light_connection(element->node_->key_,
-                                                  c.schedule_);
-  } catch (std::exception& e) {
-    // LOG(logging::error) << e.what() << " key: " << element->key_;
-    ++errors;
-    return;
-  }
-
   probability_distribution const pd_before = element->node_->pd_;
   if (element->node_->key_.type_ == time_util::departure) {
     calc_departure_distribution::data_departure const d_data(
-        *route_node, *lc,
-        graph_accessor::get_arriving_route_edge(*route_node) == nullptr,
+        *element->route_node_, *element->lc_,
+        graph_accessor::get_arriving_route_edge(*element->route_node_) ==
+            nullptr,
         c.precomputed_distributions_, *element, c);
     calc_departure_distribution::compute_departure_distribution(
         d_data, element->node_->pd_);
   } else {
     calc_arrival_distribution::data_arrival const a_data(
-        *graph_accessor::get_arriving_route_edge(*route_node)->from_,
-        *route_node, *lc, element->node_->predecessors_.front()->pd_,
-        c.schedule_, c.s_t_distributions_);
+        *graph_accessor::get_arriving_route_edge(*element->route_node_)->from_,
+        *element->route_node_, *element->lc_,
+        element->node_->predecessors_.front()->pd_, c.schedule_,
+        c.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(
         a_data, element->node_->pd_);
   }
