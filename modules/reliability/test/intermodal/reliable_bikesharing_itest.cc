@@ -618,6 +618,53 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
             j.transports_[0].mumo_type_);
 }
 
+TEST_F(reliability_bikesharing_routing, unreliable_bike) {
+  ::motis::reliability::flatbuffers::request_builder b;
+  // departure close to campus darmstadt
+  // arrival close to campus ffm
+  auto req_msg =
+      b.add_intermodal_start(49.8776114, 8.6571044,
+                             1421336700, /* 15 Jan 2015 15:45:00 GMT */
+                             1421342100 /* 15 Jan 2015 17:15:00 GMT */)
+          .add_intermodal_destination(50.1273104, 8.6669383)
+          .build_rating_request(false, true, false);
+  auto res = call(req_msg);
+  auto response = motis_content(ReliabilityRatingResponse, res);
+  auto journeys = message_to_journeys(response->response());
+
+  std::sort(journeys.begin(), journeys.end(),
+            [](journey const& a, journey const& b) {
+              return a.stops_.front().departure_.schedule_timestamp_ <
+                     b.stops_.front().departure_.schedule_timestamp_;
+            });
+
+  ASSERT_EQ(2, journeys.size());
+
+  {
+    auto const& j = journeys[0];
+
+    ASSERT_EQ(3, j.transports_.size());
+    ASSERT_TRUE(j.transports_[0].is_walk_);
+    ASSERT_FALSE(j.transports_[1].is_walk_);
+    ASSERT_TRUE(j.transports_[2].is_walk_);
+
+    ASSERT_EQ(17, j.transports_[0].duration_);
+    ASSERT_EQ(5, j.transports_[1].duration_);
+    ASSERT_EQ(28 /* no waiting for reliable bucket */,
+              j.transports_[2].duration_);
+
+    ASSERT_EQ(0, j.transports_[0].mumo_price_);
+    ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+              j.transports_[0].mumo_type_);
+    ASSERT_EQ(3, j.transports_[0].mumo_id_);
+    ASSERT_EQ(7, j.transports_[2].mumo_id_);
+    ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
+              j.transports_[2].mumo_type_);
+  }
+
+  test_journey1(journeys[1], 2);
+}
+
 }  // namespace bikesharing
 }  // namespace intermodal
 }  // namespace reliability
