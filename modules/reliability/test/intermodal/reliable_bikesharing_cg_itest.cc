@@ -33,8 +33,8 @@ TEST_F(reliability_bikesharing_cg, cg) {
   // arrival close to campus ffm
   auto req_msg =
       b.add_intermodal_start(49.8776114, 8.6571044,
-                             1454563620, /* 4 Feb 2016 05:27:00 GMT */
-                             1454563620 /* 4 Feb 2016 05:27:00 GMT */)
+                             1454564700, /* 4 Feb 2016 05:45:00 GMT */
+                             1454564700 /* 4 Feb 2016 05:45:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
           .build_reliable_search_request(1, true);
   auto res_msg = call(req_msg);
@@ -85,7 +85,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
     ASSERT_EQ(STATION_START, (*j->stops())[0]->station()->id()->str());
     ASSERT_EQ("3333333", (*j->stops())[1]->station()->id()->str());
     ASSERT_EQ("2222222", (*j->stops())[2]->station()->id()->str());
-    ASSERT_EQ(1454563620 /* Thu, 04 Feb 2016 05:27:00 GMT */,
+    ASSERT_EQ(1454564700 /* Thu, 04 Feb 2016 05:45:00 GMT */,
               (*j->stops())[0]->departure()->time());
     ASSERT_EQ(1454565600 /* Thu, 04 Feb 2016 06:00:00 GMT */,
               (*j->stops())[1]->arrival()->time());
@@ -118,7 +118,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
               (*j->stops())[1]->arrival()->time());
     ASSERT_EQ(1454567400 /* Thu, 04 Feb 2016 06:30:00 GMT */,
               (*j->stops())[1]->departure()->time());
-    ASSERT_EQ(1454570040 /* Thu, 04 Feb 2016 07:14:00 GMT */,
+    ASSERT_EQ(1454568540 /* Thu, 04 Feb 2016 06:49:00 GMT */,
               (*j->stops())[2]->arrival()->time());
 
     ASSERT_EQ(2, j->transports()->size());
@@ -144,7 +144,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
               (*j->stops())[1]->arrival()->time());
     ASSERT_EQ(1454567940 /* Thu, 04 Feb 2016 06:39:00 GMT */,
               (*j->stops())[1]->departure()->time());
-    ASSERT_EQ(1454570580 /* Thu, 04 Feb 2016 07:23:00 GMT */,
+    ASSERT_EQ(1454569080 /* Thu, 04 Feb 2016 06:58:00 GMT */,
               (*j->stops())[2]->arrival()->time());
 
     ASSERT_EQ(2, j->transports()->size());
@@ -170,7 +170,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
               (*j->stops())[1]->arrival()->time());
     ASSERT_EQ(1454568300 /* Thu, 04 Feb 2016 06:45:00 GMT */,
               (*j->stops())[1]->departure()->time());
-    ASSERT_EQ(1454570940 /* Thu, 04 Feb 2016 07:29:00 GMT */,
+    ASSERT_EQ(1454569440 /* Thu, 04 Feb 2016 07:04:00 GMT */,
               (*j->stops())[2]->arrival()->time());
 
     ASSERT_EQ(2, j->transports()->size());
@@ -192,7 +192,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
        0.0576, 0.0048, 0.0, 0.0, 0.0016, 0.0132, 0.0048, 0.0004},
       0);
 
-  ASSERT_EQ(1454569980 /* Thu, 04 Feb 2016 07:13:00 GMT */,
+  ASSERT_EQ(1454568480 /* Thu, 04 Feb 2016 06:48:00 GMT */,
             cg->arrival_distribution()->begin_time());
   ASSERT_EQ(exp_arr_dist.last_minute() + 1,
             cg->arrival_distribution()->distribution()->size());

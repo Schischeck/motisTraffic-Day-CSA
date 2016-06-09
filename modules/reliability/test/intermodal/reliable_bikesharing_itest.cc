@@ -139,7 +139,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[0];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(34, info.duration());
+    ASSERT_EQ(17, info.duration());
     // ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -149,7 +149,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[1];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(35, info.duration());
+    ASSERT_EQ(17, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -159,7 +159,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[2];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(37, info.duration());
+    ASSERT_EQ(17, info.duration());
     // ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -169,7 +169,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[3];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(39, info.duration());
+    ASSERT_EQ(17, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -181,7 +181,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[0];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(44, info.duration());
+    ASSERT_EQ(21, info.duration());
     // ASSERT_EQ("FFM HBF North", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -191,7 +191,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[1];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(45, info.duration());
+    ASSERT_EQ(23, info.duration());
     // ASSERT_EQ("FFM HBF North", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -201,7 +201,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[2];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(48, info.duration());
+    ASSERT_EQ(23, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -211,7 +211,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[3];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(49, info.duration());
+    ASSERT_EQ(25, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -220,12 +220,12 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   }
 }
 
-void test_journey1(journey const& j) {
+void test_journey1(journey const& j, unsigned start_mumo_id) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
     ASSERT_EQ(STATION_START, s.eva_no_);
-    ASSERT_EQ(1421339100 /* Thu, 15 Jan 2015 16:25:00 GMT */,
+    ASSERT_EQ(1421340180 /* Thu, 15 Jan 2015 16:43:00 GMT */,
               s.departure_.schedule_timestamp_);
   }
   {
@@ -247,7 +247,7 @@ void test_journey1(journey const& j) {
   {
     auto const& s = j.stops_[3];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421345460 /* Thu, 15 Jan 2015 18:11:00 GMT */,
+    ASSERT_EQ(1421344080 /* Thu, 15 Jan 2015 17:48:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -255,15 +255,15 @@ void test_journey1(journey const& j) {
   ASSERT_TRUE(j.transports_[0].is_walk_);
   ASSERT_FALSE(j.transports_[1].is_walk_);
   ASSERT_TRUE(j.transports_[2].is_walk_);
-  ASSERT_EQ(35, j.transports_[0].duration_);
+  ASSERT_EQ(17, j.transports_[0].duration_);
   ASSERT_EQ(15, j.transports_[1].duration_);
-  ASSERT_EQ(51, j.transports_[2].duration_);
+  ASSERT_EQ(28, j.transports_[2].duration_);
 
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  ASSERT_EQ(0, j.transports_[0].mumo_id_);
-  ASSERT_EQ(5, j.transports_[2].mumo_id_);
+  ASSERT_EQ(start_mumo_id, j.transports_[0].mumo_id_);
+  ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -273,7 +273,7 @@ void test_journey2(journey const& j) {
   {
     auto const& s = j.stops_[0];
     ASSERT_EQ(STATION_START, s.eva_no_);
-    ASSERT_EQ(1421337600 /* Thu, 15 Jan 2015 16:00:00 GMT */,
+    ASSERT_EQ(1421338680 /* Thu, 15 Jan 2015 16:18:00 GMT */,
               s.departure_.schedule_timestamp_);
   }
   {
@@ -295,7 +295,7 @@ void test_journey2(journey const& j) {
   {
     auto const& s = j.stops_[3];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
+    ASSERT_EQ(1421342880 /* Thu, 15 Jan 2015 17:28:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -304,15 +304,15 @@ void test_journey2(journey const& j) {
   ASSERT_FALSE(j.transports_[1].is_walk_);
   ASSERT_TRUE(j.transports_[2].is_walk_);
 
-  ASSERT_EQ(35, j.transports_[0].duration_);
+  ASSERT_EQ(17, j.transports_[0].duration_);
   ASSERT_EQ(5, j.transports_[1].duration_);
-  ASSERT_EQ(51 + 15, j.transports_[2].duration_);
+  ASSERT_EQ(28 + 15, j.transports_[2].duration_);
 
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  ASSERT_EQ(0, j.transports_[0].mumo_id_);
-  ASSERT_EQ(5, j.transports_[2].mumo_id_);
+  ASSERT_EQ(3, j.transports_[0].mumo_id_);
+  ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -340,30 +340,56 @@ TEST_F(reliability_bikesharing_routing, large_interval) {
 
   ASSERT_EQ(2, journeys.size());
   test_journey2(journeys[0]);
-  test_journey1(journeys[1]);
+  test_journey1(journeys[1], 2);
 
   auto infos = response->additional_infos();
 
   ASSERT_EQ(2, infos->size());
-  for (auto const& info : *infos) {
+  {
+    // id=3 2158078 49.875768,8.657800 49.872231,8.628254 17
+    auto const& info = (*infos)[0];
     ASSERT_TRUE(info->at_departure()->valid());
-    ASSERT_TRUE(std::abs(49.878025 - info->at_departure()->from()->lat()) <
+    ASSERT_TRUE(std::abs(49.875768 - info->at_departure()->from()->lat()) <
                 0.00001);
-    ASSERT_TRUE(std::abs(8.654584 - info->at_departure()->from()->lng()) <
+    ASSERT_TRUE(std::abs(8.657800 - info->at_departure()->from()->lng()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(49.872231 - info->at_departure()->to()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.628254 - info->at_departure()->to()->lng()) <
+                0.00001);
+
+    // id=7 4570367 50.107610,8.661005 50.128734,8.665265 28
+    ASSERT_TRUE(info->at_arrival()->valid());
+    ASSERT_TRUE(std::abs(50.107610 - info->at_arrival()->from()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.661005 - info->at_arrival()->from()->lng()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(50.128734 - info->at_arrival()->to()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.665265 - info->at_arrival()->to()->lng()) < 0.00001);
+  }
+  {
+    auto const& info = (*infos)[1];
+    ASSERT_TRUE(info->at_departure()->valid());
+    // id=2 2158078 49.875768,8.657800 49.872558,8.631700 17
+    ASSERT_TRUE(std::abs(49.875768 - info->at_departure()->from()->lat()) <
+                0.00001);
+    ASSERT_TRUE(std::abs(8.657800 - info->at_departure()->from()->lng()) <
                 0.00001);
     ASSERT_TRUE(std::abs(49.872558 - info->at_departure()->to()->lat()) <
                 0.00001);
     ASSERT_TRUE(std::abs(8.631700 - info->at_departure()->to()->lng()) <
                 0.00001);
 
+    // id=7 4570367 50.107610,8.661005 50.128734,8.665265 28
     ASSERT_TRUE(info->at_arrival()->valid());
     ASSERT_TRUE(std::abs(50.107610 - info->at_arrival()->from()->lat()) <
                 0.00001);
     ASSERT_TRUE(std::abs(8.661005 - info->at_arrival()->from()->lng()) <
                 0.00001);
-    ASSERT_TRUE(std::abs(50.126436 - info->at_arrival()->to()->lat()) <
+    ASSERT_TRUE(std::abs(50.128734 - info->at_arrival()->to()->lat()) <
                 0.00001);
-    ASSERT_TRUE(std::abs(8.670654 - info->at_arrival()->to()->lng()) < 0.00001);
+    ASSERT_TRUE(std::abs(8.665265 - info->at_arrival()->to()->lng()) < 0.00001);
   }
 }
 
@@ -373,14 +399,14 @@ TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
   // arrival close to campus ffm
   auto req_msg =
       b.add_intermodal_start(49.8776114, 8.6571044,
-                             1421339100, /* 15 Jan 2015 16:25:00 GMT */
-                             1421339100 /* 15 Jan 2015 16:25:00 GMT */)
+                             1421340180, /* 15 Jan 2015 16:43:00 GMT */
+                             1421340180 /* 15 Jan 2015 16:43:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
           .build_rating_request(true);
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
-  test_journey1(journeys[0]);
+  test_journey1(journeys[0], 3);
 }
 
 TEST_F(reliability_bikesharing_routing,
@@ -390,8 +416,8 @@ TEST_F(reliability_bikesharing_routing,
   // arrival close to campus ffm
   auto req_msg =
       b.add_intermodal_start(49.8776114, 8.6571044,
-                             1421337600, /* 15 Jan 2015 16:00:00 GMT */
-                             1421337660 /* 15 Jan 2015 16:01:00 GMT */)
+                             1421338680, /* 15 Jan 2015 16:18:00 GMT */
+                             1421338680 /* 15 Jan 2015 16:18:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
           .build_rating_request(true);
   auto const journeys = message_to_journeys(
@@ -442,7 +468,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     {
       auto const& s = j.stops_[2];
       ASSERT_EQ(STATION_END, s.eva_no_);
-      ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
+      ASSERT_EQ(1421342880 /* Thu, 15 Jan 2015 17:28:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
 
@@ -451,7 +477,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(5, j.transports_[0].duration_);
 
-    ASSERT_EQ(1, j.transports_[1].mumo_id_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -478,7 +504,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     {
       auto const& s = j.stops_[2];
       ASSERT_EQ(STATION_END, s.eva_no_);
-      ASSERT_EQ(1421345460 /* Thu, 15 Jan 2015 18:11:00 GMT */,
+      ASSERT_EQ(1421344080 /* Thu, 15 Jan 2015 17:48:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
 
@@ -486,9 +512,9 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_FALSE(j.transports_[0].is_walk_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(15, j.transports_[0].duration_);
-    ASSERT_EQ(51, j.transports_[1].duration_);
+    ASSERT_EQ(28, j.transports_[1].duration_);
 
-    ASSERT_EQ(1, j.transports_[1].mumo_id_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -529,7 +555,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   {
     auto const& s = j.stops_[2];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
+    ASSERT_EQ(1421342880 /* Thu, 15 Jan 2015 17:28:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -538,7 +564,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_EQ(5, j.transports_[0].duration_);
 
-  ASSERT_EQ(1, j.transports_[1].mumo_id_);
+  ASSERT_EQ(3, j.transports_[1].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[1].mumo_type_);
 }
@@ -549,8 +575,8 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
   // arrival close to campus ffm
   auto req_msg =
       b.add_intermodal_start(49.8776114, 8.6571044,
-                             1421339100, /* 15 Jan 2015 16:25:00 GMT */
-                             1421339100 /* 15 Jan 2015 16:25:00 GMT */)
+                             1421340180, /* 15 Jan 2015 16:43:00 GMT */
+                             1421340180 /* 15 Jan 2015 16:43:00 GMT */)
           .add_destination(schedule_bikesharing::FRANKFURT.name_,
                            schedule_bikesharing::FRANKFURT.eva_)
           .build_rating_request(true);
@@ -564,7 +590,7 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
   {
     auto const& s = j.stops_[0];
     ASSERT_EQ(STATION_START, s.eva_no_);
-    ASSERT_EQ(1421339100 /* Thu, 15 Jan 2015 16:25:00 GMT */,
+    ASSERT_EQ(1421340180 /* Thu, 15 Jan 2015 16:43:00 GMT */,
               s.departure_.schedule_timestamp_);
   }
   {
@@ -585,11 +611,8 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
   ASSERT_EQ(2, j.transports_.size());
   ASSERT_TRUE(j.transports_[0].is_walk_);
   ASSERT_FALSE(j.transports_[1].is_walk_);
-  ASSERT_EQ(35, j.transports_[0].duration_);
+  ASSERT_EQ(17, j.transports_[0].duration_);
   ASSERT_EQ(15, j.transports_[1].duration_);
-
-  // TODO(Mohammad Keyhani)ASSERT_EQ(intermodal::BIKESHARING,
-  // j.transports_[0].slot_);
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
