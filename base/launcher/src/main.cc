@@ -149,6 +149,7 @@ int main(int argc, char** argv) {
                    launcher_opt.batch_output_file_);
   }
 
+  LOG(info) << "system boot finished";
   run(ios)();
   instance.ios_.stop();
   std::for_each(begin(threads), end(threads),

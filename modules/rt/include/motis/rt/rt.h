@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "motis/module/module.h"
+#include "motis/rt/statistics.h"
 
 namespace motis {
 namespace rt {
@@ -24,8 +25,10 @@ struct rt : public motis::module::module {
 
 private:
   motis::module::msg_ptr handle_messages(motis::module::msg_ptr const&);
+  void add_to_propagator(schedule const& sched, ris::DelayMessage const* msg);
 
   std::unique_ptr<delay_propagator> propagator_;
+  statistics stats_;
 };
 
 }  // namespace rt
