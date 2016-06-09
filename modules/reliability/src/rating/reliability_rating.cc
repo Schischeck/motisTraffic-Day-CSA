@@ -87,9 +87,10 @@ bs_return_type get_bikesharings(
 }
 
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
-                       unsigned const max_bikesharing_duration) {
-  intermodal::individual_modes_container container(req,
-                                                   max_bikesharing_duration);
+                       unsigned const max_bikesharing_duration,
+                       bool const pareto_filtering_for_bikesharing) {
+  intermodal::individual_modes_container container(
+      req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
   using routing::RoutingResponse;
   auto routing_response = motis_call(flatbuffers::request_builder(req)
                                          .add_additional_edges(container)

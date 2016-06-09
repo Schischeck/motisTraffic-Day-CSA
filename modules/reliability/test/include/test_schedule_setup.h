@@ -78,6 +78,8 @@ private:
       modules_cmdline_opt.push_back("--bikesharing.database_path=:memory:");
       modules_cmdline_opt.push_back(
           "--reliability.max_bikesharing_duration=120");
+      modules_cmdline_opt.push_back(
+          "--reliability.pareto_filtering_for_bikesharing=false");
     }
     if (late_connections) {
       modules_cmdline_opt.push_back("--reliability.hotels=" + hotels_path);

@@ -71,10 +71,11 @@ void update_address_info(
 }  // namespace detail
 
 module::msg_ptr search_cgs(ReliableRoutingRequest const& req, reliability& rel,
-                           unsigned const max_bikesharing_duration) {
+                           unsigned const max_bikesharing_duration,
+                           bool const pareto_filtering_for_bikesharing) {
   auto lock = rel.synced_sched();
-  intermodal::individual_modes_container container(req,
-                                                   max_bikesharing_duration);
+  intermodal::individual_modes_container container(
+      req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
   auto cgs = search_cgs(req, ::motis::reliability::context(
                                  lock.sched(), *rel.precomputed_distributions_,
                                  *rel.s_t_distributions_),
