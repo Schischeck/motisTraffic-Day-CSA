@@ -327,7 +327,7 @@ TEST_F(reliability_bikesharing_routing, large_interval) {
                              1421336700, /* 15 Jan 2015 15:45:00 GMT */
                              1421342100 /* 15 Jan 2015 17:15:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
+          .build_rating_request(true, false, false);
   auto res = call(req_msg);
   auto response = motis_content(ReliabilityRatingResponse, res);
   auto journeys = message_to_journeys(response->response());
@@ -402,7 +402,7 @@ TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
                              1421340180, /* 15 Jan 2015 16:43:00 GMT */
                              1421340180 /* 15 Jan 2015 16:43:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
+          .build_rating_request(true, false, false);
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
@@ -419,7 +419,7 @@ TEST_F(reliability_bikesharing_routing,
                              1421338680, /* 15 Jan 2015 16:18:00 GMT */
                              1421338680 /* 15 Jan 2015 16:18:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
+          .build_rating_request(true, false, false);
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
@@ -435,7 +435,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
                                      1421339700, /* 15 Jan 2015 16:35:00 GMT */
                                      1421341260 /* 15 Jan 2015 17:01:00 GMT */)
                      .add_intermodal_destination(50.1273104, 8.6669383)
-                     .build_rating_request(true);
+                     .build_rating_request(true, false, false);
   auto journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
 
@@ -530,7 +530,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
                                  schedule_bikesharing::DARMSTADT.eva_,
                                  1421339700 /* 15 Jan 2015 16:35:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true);
+          .build_rating_request(true, false, false);
   auto journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
@@ -579,7 +579,7 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
                              1421340180 /* 15 Jan 2015 16:43:00 GMT */)
           .add_destination(schedule_bikesharing::FRANKFURT.name_,
                            schedule_bikesharing::FRANKFURT.eva_)
-          .build_rating_request(true);
+          .build_rating_request(true, false, false);
   auto journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());

@@ -177,18 +177,22 @@ msg_ptr request_builder::build_routing_request() {
 }
 
 msg_ptr request_builder::build_reliable_search_request(
-    int16_t const min_dep_diff, bool const bikesharing) {
+    int16_t const min_dep_diff, bool const reliable_bikesharing,
+    bool const unreliable_bikesharing, bool const walks) {
   auto opts = CreateRequestOptionsWrapper(
       b_, RequestOptions_ReliableSearchReq,
       CreateReliableSearchReq(b_, min_dep_diff).Union());
-  return build_reliable_request(opts, bikesharing);
+  return build_reliable_request(opts, reliable_bikesharing,
+                                unreliable_bikesharing, walks);
 }
 
-msg_ptr request_builder::build_rating_request(bool const bikesharing,
+msg_ptr request_builder::build_rating_request(bool const reliable_bikesharing,
+                                              bool const unreliable_bikesharing,
                                               bool const walks) {
   auto opts = CreateRequestOptionsWrapper(b_, RequestOptions_RatingReq,
                                           CreateRatingReq(b_).Union());
-  return build_reliable_request(opts, bikesharing, walks);
+  return build_reliable_request(opts, reliable_bikesharing,
+                                unreliable_bikesharing, walks);
 }
 
 msg_ptr request_builder::build_late_connection_request(
@@ -201,7 +205,7 @@ msg_ptr request_builder::build_late_connection_request(
                               hotel_earliest_checkout, hotel_min_stay,
                               hotel_price)
           .Union());
-  return build_reliable_request(opts);
+  return build_reliable_request(opts, false, false, false);
 }
 
 msg_ptr request_builder::build_connection_tree_request(
@@ -210,13 +214,14 @@ msg_ptr request_builder::build_connection_tree_request(
       b_, RequestOptions_ConnectionTreeReq,
       CreateConnectionTreeReq(b_, num_alternatives_at_stop, min_dep_diff)
           .Union());
-  return build_reliable_request(opts);
+  return build_reliable_request(opts, false, false, false);
 }
 
 msg_ptr request_builder::build_reliable_request(
-    Offset<RequestOptionsWrapper> const& options, bool const bikesharing,
+    Offset<RequestOptionsWrapper> const& options,
+    bool const reliable_bikesharing, bool const unreliable_bikesharing,
     bool const walks) {
-  IndividualModes modes(bikesharing, walks);
+  IndividualModes modes(reliable_bikesharing, unreliable_bikesharing, walks);
   Coordinates dep(dep_.lat_, dep_.lng_), arr(arr_.lat_, arr_.lng_);
   b_.create_and_finish(MsgContent_ReliableRoutingRequest,
                        CreateReliableRoutingRequest(

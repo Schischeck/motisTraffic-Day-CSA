@@ -31,8 +31,9 @@ TEST_F(reliability_intermodal_walks, walk_at_begin) {
                              1421336700, /* 15 Jan 2015 15:45:00 GMT */
                              1421342100 /* 15 Jan 2015 17:15:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_rating_request(true, true);
-  auto const res = motis_content(ReliabilityRatingResponse, call(req_msg));
+          .build_rating_request(true, false, true);
+  auto const res_msg = call(req_msg);
+  auto const res = motis_content(ReliabilityRatingResponse, res_msg);
   auto journeys = message_to_journeys(res->response());
 
   std::sort(journeys.begin(), journeys.end(),
@@ -67,8 +68,9 @@ TEST_F(reliability_intermodal_walks, walk_at_end) {
                              1421336700, /* 15 Jan 2015 15:45:00 GMT */
                              1421342100 /* 15 Jan 2015 17:15:00 GMT */)
           .add_intermodal_destination(50.108290, 8.664139)
-          .build_rating_request(true, true);
-  auto const res = motis_content(ReliabilityRatingResponse, call(req_msg));
+          .build_rating_request(true, false, true);
+  auto const res_msg = call(req_msg);
+  auto const res = motis_content(ReliabilityRatingResponse, res_msg);
   auto journeys = message_to_journeys(res->response());
 
   std::sort(journeys.begin(), journeys.end(),

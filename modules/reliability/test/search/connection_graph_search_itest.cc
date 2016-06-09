@@ -130,7 +130,7 @@ TEST_F(reliability_connection_graph_search,
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
-          .build_reliable_search_request(1);
+          .build_reliable_search_request(1, false, false, false);
   intermodal::individual_modes_container container;
   test_cg(run([&]() {
     return search_cgs(*motis_content(ReliableRoutingRequest, msg),

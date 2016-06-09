@@ -34,7 +34,8 @@ table RequestOptionsWrapper {
 }
 
 struct IndividualModes {
-  bikesharing:bool;
+  reliable_bikesharing:bool;
+  unreliable_bikesharing:bool;
   walk:bool;
 }
 

@@ -36,7 +36,7 @@ TEST_F(reliability_bikesharing_cg, cg) {
                              1454564700, /* 4 Feb 2016 05:45:00 GMT */
                              1454564700 /* 4 Feb 2016 05:45:00 GMT */)
           .add_intermodal_destination(50.1273104, 8.6669383)
-          .build_reliable_search_request(1, true);
+          .build_reliable_search_request(1, true, false, false);
   auto res_msg = call(req_msg);
   auto const cgs =
       motis_content(ReliableRoutingResponse, res_msg)->connection_graphs();
