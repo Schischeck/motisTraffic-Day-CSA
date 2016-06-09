@@ -149,7 +149,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[1];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(36, info.duration());
+    ASSERT_EQ(35, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF East", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -159,7 +159,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[2];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(38, info.duration());
+    ASSERT_EQ(37, info.duration());
     // ASSERT_EQ("Darmstadt Algo", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -169,7 +169,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = dep_infos[3];
     ASSERT_EQ("8000068", info.station_eva_);
-    ASSERT_EQ(40, info.duration());
+    ASSERT_EQ(39, info.duration());
     // ASSERT_EQ("Darmstadt Mensa", info.from_bike_station_);
     // ASSERT_EQ("Darmstadt HBF West", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -201,7 +201,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[2];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(49, info.duration());
+    ASSERT_EQ(48, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 1", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -211,7 +211,7 @@ TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
   {
     auto const& info = arr_infos[3];
     ASSERT_EQ("8000105", info.station_eva_);
-    ASSERT_EQ(50, info.duration());
+    ASSERT_EQ(49, info.duration());
     // ASSERT_EQ("FFM HBF South", info.from_bike_station_);
     // ASSERT_EQ("FFM Westend 2", info.to_bike_station_);
     ASSERT_EQ(1, info.availability_intervals_.size());
@@ -247,7 +247,7 @@ void test_journey1(journey const& j) {
   {
     auto const& s = j.stops_[3];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421345520 /* Thu, 15 Jan 2015 18:12:00 GMT */,
+    ASSERT_EQ(1421345460 /* Thu, 15 Jan 2015 18:11:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -257,13 +257,13 @@ void test_journey1(journey const& j) {
   ASSERT_TRUE(j.transports_[2].is_walk_);
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(15, j.transports_[1].duration_);
-  ASSERT_EQ(52, j.transports_[2].duration_);
+  ASSERT_EQ(51, j.transports_[2].duration_);
 
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
   ASSERT_EQ(0, j.transports_[0].mumo_id_);
-  ASSERT_EQ(7, j.transports_[2].mumo_id_);
+  ASSERT_EQ(5, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -295,7 +295,7 @@ void test_journey2(journey const& j) {
   {
     auto const& s = j.stops_[3];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
+    ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -306,13 +306,13 @@ void test_journey2(journey const& j) {
 
   ASSERT_EQ(35, j.transports_[0].duration_);
   ASSERT_EQ(5, j.transports_[1].duration_);
-  ASSERT_EQ(52 + 15, j.transports_[2].duration_);
+  ASSERT_EQ(51 + 15, j.transports_[2].duration_);
 
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
   ASSERT_EQ(0, j.transports_[0].mumo_id_);
-  ASSERT_EQ(7, j.transports_[2].mumo_id_);
+  ASSERT_EQ(5, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -361,9 +361,9 @@ TEST_F(reliability_bikesharing_routing, large_interval) {
                 0.00001);
     ASSERT_TRUE(std::abs(8.661005 - info->at_arrival()->from()->lng()) <
                 0.00001);
-    ASSERT_TRUE(std::abs(50.128734 - info->at_arrival()->to()->lat()) <
+    ASSERT_TRUE(std::abs(50.126436 - info->at_arrival()->to()->lat()) <
                 0.00001);
-    ASSERT_TRUE(std::abs(8.665265 - info->at_arrival()->to()->lng()) < 0.00001);
+    ASSERT_TRUE(std::abs(8.670654 - info->at_arrival()->to()->lng()) < 0.00001);
   }
 }
 
@@ -442,7 +442,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     {
       auto const& s = j.stops_[2];
       ASSERT_EQ(STATION_END, s.eva_no_);
-      ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
+      ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
 
@@ -451,7 +451,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(5, j.transports_[0].duration_);
 
-    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    ASSERT_EQ(1, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -478,7 +478,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     {
       auto const& s = j.stops_[2];
       ASSERT_EQ(STATION_END, s.eva_no_);
-      ASSERT_EQ(1421345520 /* Thu, 15 Jan 2015 18:12:00 GMT */,
+      ASSERT_EQ(1421345460 /* Thu, 15 Jan 2015 18:11:00 GMT */,
                 s.arrival_.schedule_timestamp_);
     }
 
@@ -486,9 +486,9 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_FALSE(j.transports_[0].is_walk_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(15, j.transports_[0].duration_);
-    ASSERT_EQ(52, j.transports_[1].duration_);
+    ASSERT_EQ(51, j.transports_[1].duration_);
 
-    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    ASSERT_EQ(1, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -529,7 +529,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   {
     auto const& s = j.stops_[2];
     ASSERT_EQ(STATION_END, s.eva_no_);
-    ASSERT_EQ(1421344320 /* Thu, 15 Jan 2015 17:52:00 GMT */,
+    ASSERT_EQ(1421344260 /* Thu, 15 Jan 2015 17:51:00 GMT */,
               s.arrival_.schedule_timestamp_);
   }
 
@@ -538,7 +538,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_EQ(5, j.transports_[0].duration_);
 
-  ASSERT_EQ(3, j.transports_[1].mumo_id_);
+  ASSERT_EQ(1, j.transports_[1].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[1].mumo_type_);
 }

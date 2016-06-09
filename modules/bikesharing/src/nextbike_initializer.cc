@@ -183,7 +183,7 @@ void find_close_terminals(ctx_ptr ctx) {
     std::vector<close_location> reachable_terminals;
     for (const auto& result : result_n) {
       int dist = distance_in_m(result.first, t_location);
-      if(dist < 500) {
+      if (dist < 500) {
         continue;
       }
 
