@@ -1,9 +1,11 @@
 #include "motis/rt/rt.h"
 
-#include <iostream>
+#include <queue>
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/logging.h"
+#include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
@@ -12,59 +14,49 @@
 #include "motis/module/context/motis_publish.h"
 #include "motis/loader/util.h"
 #include "motis/rt/delay_propagator.h"
+#include "motis/rt/shifted_nodes_msg_builder.h"
 
 namespace po = boost::program_options;
 using namespace flatbuffers;
 using namespace motis::module;
+using namespace motis::logging;
 using motis::ris::RISBatch;
 
 namespace motis {
 namespace rt {
 
-struct shifted_node {
-  shifted_node() = default;
-  shifted_node(primary_trip_id trp,  // NOLINT
-               uint32_t station_idx, time schedule_time, event_type ev_type,
-               time updated_time, delay_info::reason reason, bool canceled)
-      : trp_(trp),
-        station_idx_(station_idx),
-        schedule_time_(schedule_time),
-        ev_type_(ev_type),
-        updated_time_(updated_time),
-        reason_(reason),
-        canceled_(canceled) {}
-
-  primary_trip_id trp_;
-  uint32_t station_idx_;
-  time schedule_time_;
-  event_type ev_type_;
-
-  time updated_time_;
-  delay_info::reason reason_;
-  bool canceled_;
-};
-
 struct update {
   update() = default;
-  update(uint32_t station_id, delay_info::reason reason, time schedule_time,
-         time new_time)
+  update(uint32_t station_id, time schedule_time, event_type ev_type,
+         delay_info::reason reason, time new_time)
       : station_id_(station_id),
+        sched_time_(schedule_time),
+        ev_type_(ev_type),
         reason_(reason),
-        schedule_time_(schedule_time),
-        updated_time_(new_time) {}
+        upd_time_(new_time) {}
 
-  schedule_event sched_ev(primary_trip_id const& id, event_type type) const {
-    return {id, station_id_, type, schedule_time_};
+  friend bool operator<(update const& a, update const& b) {
+    return std::tie(a.station_id_, a.reason_, a.sched_time_, a.upd_time_) <
+           std::tie(b.station_id_, b.reason_, b.sched_time_, b.upd_time_);
+  }
+
+  friend bool operator==(update const& a, update const& b) {
+    return std::tie(a.station_id_, a.reason_, a.sched_time_, a.upd_time_) ==
+           std::tie(b.station_id_, b.reason_, b.sched_time_, b.upd_time_);
   }
 
   uint32_t station_id_;
+  time sched_time_;
+  event_type ev_type_;
+
   delay_info::reason reason_;
-  time schedule_time_, updated_time_;
+  time upd_time_;
 };
 
-std::vector<update> get_updates(
-    schedule const& sched, delay_info::reason const reason,
-    Vector<Offset<ris::UpdatedEvent>> const* events) {
+std::vector<update> get_updates(schedule const& sched,
+                                delay_info::reason const reason,
+                                Vector<Offset<ris::UpdatedEvent>> const* events,
+                                statistics& stats) {
   std::vector<update> updates;
 
   for (auto const& ev : *events) {
@@ -74,9 +66,17 @@ std::vector<update> get_updates(
       auto const time = unix_to_motistime(sched, ev->base()->schedule_time());
       auto const upd_time = unix_to_motistime(sched, ev->updated_time());
       if (time != INVALID_TIME && upd_time != INVALID_TIME) {
-        updates.emplace_back(station_node, reason, time, upd_time);
+        updates.emplace_back(
+            station_node, time,
+            ev->base()->type() == motis::ris::EventType_Departure
+                ? event_type::DEP
+                : event_type::ARR,
+            reason, upd_time);
+      } else {
+        ++stats.ev_invalid_time_;
       }
     } catch (...) {
+      ++stats.ev_station_not_found_;
       continue;
     }
   }
@@ -84,27 +84,50 @@ std::vector<update> get_updates(
   return updates;
 }
 
+time get_event_time(light_connection const& lcon, event_type const ev_type) {
+  return ev_type == event_type::DEP ? lcon.d_time_ : lcon.a_time_;
+}
+
 time& get_event_time(light_connection& lcon, event_type const ev_type) {
   return ev_type == event_type::DEP ? lcon.d_time_ : lcon.a_time_;
 }
 
-node* get_route_node(edge const& e, event_type const ev_type) {
-  return ev_type == event_type::DEP ? e.from_ : e.to_;
-}
+void rt::add_to_propagator(schedule const& sched,
+                           ris::DelayMessage const* msg) {
+  stats_.total_evs_ += msg->events()->size();
 
-void add_to_propagator(schedule& sched, ris::DelayMessage const* msg,
-                       delay_propagator& propagator) {
+  // TODO(Felix Guendling) remove this when additional trains are supported
+  if (msg->trip_id()->trip_type() != ris::IdEventType_Schedule) {
+    stats_.additional_not_found_ += msg->events()->size();
+    return;
+  }
+
+  // Retrieve trip.
+  // - first try: exact match of first departure
+  // - second try: match of first departure with train number set to 0
+  trip const* trp;
   auto const id = msg->trip_id();
+  trp = find_trip(sched, id->station_id()->str(), id->service_num(),
+                  id->schedule_time());
+  if (trp == nullptr) {
+    stats_.ev_exact_trp_not_found_ += msg->events()->size();
+    trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
+  }
+  if (trp == nullptr) {
+    stats_.ev_trp_not_found_ += msg->events()->size();
+    return;
+  }
+
+  // Translate external identifiers to internal identifiers.
   auto const updates = get_updates(sched, msg->type() == ris::DelayType_Is
                                               ? delay_info::reason::IS
                                               : delay_info::reason::FORECAST,
-                                   msg->events());
-  auto const trp = *get_trip(sched, id->station_id()->str(), id->service_num(),
-                             id->schedule_time());
-  auto const lcon_idx = trp.lcon_idx_;
+                                   msg->events(), stats_);
+  auto const lcon_idx = trp->lcon_idx_;
+  stats_.total_updates_ += updates.size();
 
   // For each edge of the trip:
-  for (auto& trp_e : *trp.edges_) {
+  for (auto& trp_e : *trp->edges_) {
     auto& e = *trp_e.get_edge();
     auto& lcon = e.m_.route_edge_.conns_[lcon_idx];
 
@@ -116,54 +139,130 @@ void add_to_propagator(schedule& sched, ris::DelayMessage const* msg,
       // Try updates:
       for (auto const& upd : updates) {
         // Check whether station matches update station.
-        if (upd.station_id_ != route_node->get_station()->id_) {
+        if (upd.ev_type_ != ev_type ||
+            upd.station_id_ != route_node->get_station()->id_) {
           continue;
         }
 
         // Get delay info from graph event.
-        auto const graph_ev = graph_event(&e, lcon_idx, ev_type);
+        auto const graph_ev = ev_key(&e, lcon_idx, ev_type);
         auto di_it = sched.graph_to_delay_info_.find(graph_ev);
 
         // Check whether schedule time matches update message schedule time.
         auto const schedule_time = di_it != end(sched.graph_to_delay_info_)
                                        ? di_it->second->get_schedule_time()
                                        : ev_time;
-        if (upd.schedule_time_ != schedule_time) {
+        auto const diff =
+            std::abs(static_cast<int>(upd.sched_time_) - schedule_time);
+        if (diff != 0) {
+          ++stats_.update_mismatch_sched_time_;
+        }
+        if (diff > 5) {
+          ++stats_.diff_gt_5_;
+          if (diff > 10) {
+            ++stats_.diff_gt_10_;
+          }
+          if (diff > 30) {
+            ++stats_.diff_gt_30_;
+          }
           continue;
         }
 
-        propagator.add_delay(graph_event(&e, lcon_idx, ev_type), upd.reason_,
-                             schedule_time, upd.updated_time_);
+        propagator_->add_delay(ev_key(&e, lcon_idx, ev_type), upd.reason_,
+                               upd.upd_time_);
+        ++stats_.found_updates_;
       }
     }
   }
 }
 
-msg_ptr shifted_nodes_to_msg(schedule const& sched,
-                             std::vector<shifted_node> const& shifted_nodes) {
-  message_creator fbb;
-  std::vector<Offset<ShiftedNode>> nodes;
-  for (auto const& n : shifted_nodes) {
-    nodes.push_back(CreateShiftedNode(
-        fbb,
-        CreateTripId(
-            fbb,
-            fbb.CreateString(sched.stations_.at(n.trp_.station_id_)->eva_nr_),
-            n.trp_.train_nr_, motis_to_unixtime(sched, n.trp_.time_),
-            fbb.CreateString(""), 0, EventType_Departure, fbb.CreateString("")),
-        fbb.CreateString(sched.stations_.at(n.station_idx_)->eva_nr_),
-        motis_to_unixtime(sched, n.schedule_time_),
-        n.ev_type_ == event_type::DEP ? EventType_DEPARTURE : EventType_ARRIVAL,
-        motis_to_unixtime(sched, n.updated_time_),
-        n.reason_ == delay_info::reason::IS ? TimestampReason_IS
-                                            : TimestampReason_FORECAST,
-        false));
+bool is_corrupt(ev_key const& k, statistics& stats) {
+  // Check conflict with earlier and later connection.
+  auto const ev_time = get_event_time(*k.lcon(), k.ev_type_);
+  auto const next = k.route_edge_->get_next_valid_lcon(k.lcon(), 1);
+  auto const prev = k.route_edge_->get_prev_valid_lcon(k.lcon(), 1);
+
+  if ((next && get_event_time(*next, k.ev_type_) <= ev_time) ||
+      (prev && get_event_time(*prev, k.ev_type_) >= ev_time)) {
+    ++stats.route_overtake_;
+    return true;
   }
-  fbb.create_and_finish(MsgContent_RtUpdate,
-                        CreateRtUpdate(fbb, fbb.CreateVector(nodes)).Union(),
-                        "/rt/update", DestinationType_Topic);
-  return make_msg(fbb);
+
+  // Check conflict with previous and next events.
+  switch (k.ev_type_) {
+    case event_type::ARR: {
+      auto const dep_time = get_time(k.get_opposite());
+      auto const arr_time = get_time(k);
+      if (dep_time > arr_time) {
+        return true;
+      }
+
+      bool valid = true;
+      for_each_departure(k, [&](ev_key const& dep) {
+        valid = valid && get_time(dep) >= arr_time;
+      });
+      return !valid;
+    }
+
+    case event_type::DEP: {
+      auto const dep_time = get_time(k);
+      auto const arr_time = get_time(k.get_opposite());
+      if (dep_time > arr_time) {
+        return true;
+      }
+
+      bool valid = true;
+      for_each_arrival(k, [&](ev_key const& arr) {
+        valid = valid && get_time(arr) <= dep_time;
+      });
+      return !valid;
+    }
+
+    default: return true;
+  }
 }
+
+void disable_route_layer(ev_key const& k) {
+  std::set<edge const*> visited;
+  std::queue<edge const*> q;
+  q.push(k.route_edge_);
+  while (!q.empty()) {
+    auto const e = q.front();
+    q.pop();
+
+    for (auto const& in : e->from_->incoming_edges_) {
+      if (in->empty()) {
+        continue;
+      }
+
+      auto res = visited.insert(in);
+      if (res.second) {
+        q.push(in);
+      }
+    }
+
+    for (auto const& out : e->to_->edges_) {
+      if (out.empty()) {
+        continue;
+      }
+
+      auto res = visited.insert(&out);
+      if (res.second) {
+        q.push(&out);
+      }
+    }
+  }
+
+  for (auto const& e : visited) {
+    auto const& con = e->m_.route_edge_.conns_[k.lcon_idx_];
+    auto& mutable_con = const_cast<light_connection&>(con);  // NOLINT
+    mutable_con.valid_ = false;
+  }
+}
+
+rt::rt() = default;
+
+rt::~rt() = default;
 
 po::options_description rt::desc() {
   po::options_description desc("RT Module");
@@ -171,52 +270,108 @@ po::options_description rt::desc() {
 }
 
 void rt::init(motis::module::registry& reg) {
-  reg.subscribe("/ris/messages", [](msg_ptr const& msg) -> msg_ptr {
+  reg.subscribe("/ris/messages", [&](msg_ptr const& msg) -> msg_ptr {
     auto& sched = get_schedule();
+    auto msgs = motis_content(RISBatch, msg)->messages();
+    LOG(info) << "rt received " << msgs->size() << " ris messages";
 
-    auto propagator = delay_propagator(sched);
-    for (auto const& m : *motis_content(RISBatch, msg)->messages()) {
+    if (!propagator_) {
+      LOG(info) << "initializing propagator";
+      propagator_ = std::make_unique<delay_propagator>(sched);
+      stats_ = statistics();
+    }
+
+    // Parse message and add updates to propagator.
+    for (auto const& m : *msgs) {
       auto const& nested = m->message_nested_root();
       if (nested->content_type() != ris::MessageUnion_DelayMessage) {
         continue;
       }
 
+      auto const content =
+          reinterpret_cast<ris::DelayMessage const*>(nested->content());
       try {
-        add_to_propagator(sched, reinterpret_cast<ris::DelayMessage const*>(
-                                     nested->content()),
-                          propagator);
+        add_to_propagator(sched, content);
       } catch (...) {
         continue;
       }
     }
 
-    std::vector<shifted_node> shifted_nodes;
-    for (auto const& ev : propagator.events_) {
+    LOG(info) << "rt propagator: " << propagator_->events().size() << " events";
+    return nullptr;
+  });
+
+  reg.subscribe("/ris/system_time_changed", [&](msg_ptr const&) -> msg_ptr {
+    scoped_timer timer("rt update");
+    manual_timer graph_update("graph update");
+
+    auto& sched = get_schedule();
+
+    if (!propagator_) {
+      LOG(info) << "rt no updates - ignoring system time change";
+      return nullptr;
+    }
+
+    LOG(info) << "rt propagating " << propagator_->events().size() << " events";
+    propagator_->propagate();
+    LOG(info) << "rt total changes " << propagator_->events().size();
+
+    // Update graph.
+    for (auto const& ev : propagator_->events()) {
       auto const& di = ev.second;
-      auto const& k = di->get_graph_event();
-
-      auto const trp =
-          sched.merged_trips_[get_lcon(k.route_edge_, k.lcon_idx_).trips_]
-              ->at(0)
-              ->id_.primary_;
-
-      shifted_nodes.emplace_back(
-          trp, k.get_station_idx(), di->get_schedule_time(), k.ev_type_,
-          di->get_current_time(), di->get_reason(), false);
-
-      map_get_or_create(sched.graph_to_delay_info_, k, [&]() {
-        sched.delay_mem_.push_back(std::make_unique<delay_info>(*di));
-        return sched.delay_mem_.back().get();
-      })->update(*di);
+      auto const& k = di->get_ev_key();
 
       auto& event_time =
           k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
       const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
     }
 
-    if (!shifted_nodes.empty()) {
-      motis_publish(shifted_nodes_to_msg(sched, shifted_nodes));
+    // Check for graph corruption and revert if necessary.
+    std::vector<delay_info*> checked_events;
+    for (auto const& ev : propagator_->events()) {
+      auto const& di = ev.second;
+      auto const& k = di->get_ev_key();
+
+      if (!k.lcon()->valid_) {
+        continue;
+      } else if (is_corrupt(k, stats_)) {
+        ++stats_.disabled_routes_;
+        disable_route_layer(k);
+      } else {
+        checked_events.push_back(ev.second);
+      }
     }
+
+    stats_.propagated_updates_ = propagator_->events().size();
+    stats_.graph_updates_ = checked_events.size();
+
+    // Generate shifted nodes
+    // and update the delay info map.
+    shifted_nodes_msg_builder shifted_nodes(sched);
+    for (auto const& di : checked_events) {
+      auto const& k = di->get_ev_key();
+
+      shifted_nodes.add_shifted_node(*di);
+
+      map_get_or_create(sched.graph_to_delay_info_, k, [&]() {
+        sched.delay_mem_.push_back(std::make_unique<delay_info>(*di));
+        return sched.delay_mem_.back().get();
+      })->update(*di);
+    }
+
+    graph_update.stop_and_print();
+
+    if (!shifted_nodes.empty()) {
+      motis_publish(shifted_nodes.finish());
+    }
+
+    manual_timer lb_update("lower bound graph update");
+    sched.lower_bounds_ = constant_graph(sched.station_nodes_);
+    lb_update.stop_and_print();
+
+    std::cout << stats_ << std::endl;
+
+    propagator_.reset();
 
     return nullptr;
   });

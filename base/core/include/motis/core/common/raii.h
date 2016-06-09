@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#define MOTIS_FINALLY(fun) auto finally##__LINE__ = make_finally(fun);
+#define MOTIS_FINALLY(fn) auto finally##__LINE__ = make_finally(fn);
 
 namespace motis {
 
@@ -30,11 +30,11 @@ struct raii {
 template <typename T, typename DestructFun>
 raii<T, DestructFun> make_raii(T&& el, DestructFun&& destruct) {
   return {std::forward<T>(el), std::forward<DestructFun>(destruct)};
-};
+}
 
 template <typename DestructFun>
 struct finally {
-  finally(DestructFun&& destruct)
+  explicit finally(DestructFun&& destruct)
       : destruct_(std::forward<DestructFun>(destruct)) {}
   ~finally() { destruct_(); }
   DestructFun destruct_;
@@ -42,7 +42,7 @@ struct finally {
 
 template <typename DestructFun>
 finally<DestructFun> make_finally(DestructFun&& destruct) {
-  return {std::forward<DestructFun>(destruct)};
-};
+  return finally<DestructFun>(std::forward<DestructFun>(destruct));
+}
 
 }  // namespace motis
