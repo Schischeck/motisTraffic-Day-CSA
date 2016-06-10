@@ -9,6 +9,7 @@ namespace motis {
 namespace bikesharing {
 
 struct database;
+struct geo_index;
 struct bikesharing_search;
 
 struct bikesharing : public motis::module::module {
@@ -29,6 +30,7 @@ private:
   std::string nextbike_path_;
 
   std::unique_ptr<database> database_;
+  std::unique_ptr<geo_index> geo_index_;
   std::unique_ptr<bikesharing_search> search_;
 };
 

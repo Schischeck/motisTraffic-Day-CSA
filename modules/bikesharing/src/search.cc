@@ -3,12 +3,10 @@
 #include <vector>
 
 #include "motis/core/common/constants.h"
-#include "motis/core/common/geo.h"
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/util.h"
 
 using namespace flatbuffers;
-using namespace motis::geo_detail;
 using namespace motis::module;
 
 namespace motis {
@@ -35,19 +33,8 @@ struct bikesharing_search::impl {
     std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets_;
   };
 
-  explicit impl(database const& db) : db_(db) {
-    auto summary = db.get_summary();
-    auto locations = summary.get()->terminals();
-
-    std::vector<value> rtree_values;
-    for (size_t i = 0; i < locations->size(); ++i) {
-      auto location = locations->Get(i);
-      rtree_values.push_back(
-          std::make_pair(spherical_point(location->lat(), location->lng()), i));
-      terminal_ids_.push_back(location->id()->str());
-    }
-    rtree_ = quadratic_rtree{rtree_values};
-  }
+  explicit impl(database const& db, geo_index const& geo_index)
+      : db_(db), geo_index_(geo_index) {}
 
   msg_ptr find_connections(BikesharingRequest const* req) const {
     context ctx;
@@ -75,6 +62,7 @@ struct bikesharing_search::impl {
             auto to_t = load_terminal(ctx, reachable_t->id()->str());
 
             for (auto const& station : *to_t->get()->attached()) {
+              // TODO ajdust begin and end with walk_dur
               auto availability =
                   get_availability(from_t->get(), begin, end, first_bucket,
                                    req->availability_aggregator());
@@ -127,19 +115,8 @@ struct bikesharing_search::impl {
 
   template <typename F>
   void foreach_terminal_in_walk_dist(double lat, double lng, F func) const {
-    spherical_point loc(lng, lat);
-
-    std::vector<value> result_n;
-    rtree_.query(bgi::intersects(generate_box(loc, MAX_WALK_DIST)) &&
-                     bgi::satisfies([&loc](const value& v) {
-                       return distance_in_m(v.first, loc) < MAX_WALK_DIST;
-                     }),
-                 std::back_inserter(result_n));
-
-    for (const auto& result : result_n) {
-      // TODO(Sebastian Fahnenschreiber) OSRM
-      func(terminal_ids_[result.second],
-           distance_in_m(result.first, loc) * LINEAR_DIST_APPROX / WALK_SPEED);
+    for (const auto& t : geo_index_.get_terminals(lat, lng, MAX_WALK_DIST)) {
+      func(t.id_, t.distance_ * LINEAR_DIST_APPROX / WALK_SPEED);
     }
   }
 
@@ -203,12 +180,12 @@ struct bikesharing_search::impl {
   }
 
   database const& db_;
-  std::vector<std::string> terminal_ids_;
-  quadratic_rtree rtree_;
+  geo_index const& geo_index_;
 };
 
-bikesharing_search::bikesharing_search(database const& db)
-    : impl_(new impl(db)) {}
+bikesharing_search::bikesharing_search(database const& db,
+                                       geo_index const& geo_index)
+    : impl_(new impl(db, geo_index)) {}
 
 bikesharing_search::~bikesharing_search() = default;
 

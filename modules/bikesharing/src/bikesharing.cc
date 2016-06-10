@@ -11,6 +11,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/bikesharing/database.h"
 #include "motis/bikesharing/error.h"
+#include "motis/bikesharing/geo_index.h"
 #include "motis/bikesharing/nextbike_initializer.h"
 #include "motis/bikesharing/search.h"
 
@@ -67,7 +68,8 @@ motis::module::msg_ptr bikesharing::init_module(motis::module::msg_ptr const&) {
     }
 
     if (database_->is_initialized()) {
-      search_ = std::make_unique<bikesharing_search>(*database_);
+      geo_index_ = std::make_unique<geo_index>(*database_);
+      search_ = std::make_unique<bikesharing_search>(*database_, *geo_index_);
     }
   }
   return nullptr;
