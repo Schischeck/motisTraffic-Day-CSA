@@ -232,7 +232,7 @@ if(MOTIS_LINT)
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
         -exit-on-error
-        -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}(base/)|(modules/)|(test/)"
+        -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/test/"

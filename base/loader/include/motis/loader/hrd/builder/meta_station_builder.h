@@ -16,6 +16,6 @@ create_meta_stations(std::set<station_meta_data::meta_station> const&,
                      std::map<int, flatbuffers::Offset<Station>> const&,
                      flatbuffers::FlatBufferBuilder&);
 
-}  // hrd
-}  // loader
-}  // motis
+}  // namespace hrd
+}  // namespace loader
+}  // namespace motis

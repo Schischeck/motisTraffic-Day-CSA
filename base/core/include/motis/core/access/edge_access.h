@@ -56,6 +56,10 @@ inline edge const* get_route_edge(node const* route_node,
   throw std::runtime_error("get_route_edge(): light connection not found");
 }
 
+inline node* get_route_node(edge const& e, event_type const ev_type) {
+  return ev_type == event_type::DEP ? e.from_ : e.to_;
+}
+
 inline light_connection const& get_lcon(edge const* route_edge,
                                         size_t const index) {
   assert(route_edge->type() == edge::ROUTE_EDGE);

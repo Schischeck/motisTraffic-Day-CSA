@@ -157,9 +157,11 @@ inline duration walking_duration(node const& tail_station,
     }
   }
   assert(foot_node);
-  for (auto e : foot_node->edges_) {
-    if (e.to_->id_ == head_station.id_) {
-      return e.m_.foot_edge_.time_cost_;
+  if (foot_node) {
+    for (auto e : foot_node->edges_) {
+      if (e.to_->id_ == head_station.id_) {
+        return e.m_.foot_edge_.time_cost_;
+      }
     }
   }
   assert(false);
