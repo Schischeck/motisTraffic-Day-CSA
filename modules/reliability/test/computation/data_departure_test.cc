@@ -98,7 +98,7 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
               test_util::minutes_to_motis_time(11 * 60 + 7));
 
   ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time_);
-  ASSERT_TRUE(data.largest_delay() == 1);
+  ASSERT_EQ(1, data.largest_delay());
   ASSERT_TRUE(!data.is_first_route_node_);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
   ASSERT_TRUE(data.feeders_.empty());

@@ -15,12 +15,6 @@ namespace time_util {
 
 enum event_type { departure, arrival };
 
-// TODO(Mohammad Keyhani)
-// parts of data_departure::init_departure_time,
-// data_arrival::init_arrival_time,
-// and interchange_info (connection_graph_rating)
-// have to be moved to this file
-
 inline motis::time get_scheduled_event_time(node const& route_node,
                                             light_connection const& lc,
                                             event_type type,
@@ -29,7 +23,7 @@ inline motis::time get_scheduled_event_time(node const& route_node,
       sched,
       type == departure ? graph_accessor::get_departing_route_edge(route_node)
                         : graph_accessor::get_arriving_route_edge(route_node),
-      &lc, type == departure ? motis::event_type::DEP : motis::event_type::DEP);
+      &lc, type == departure ? motis::event_type::DEP : motis::event_type::ARR);
 }
 
 }  // namespace time_util

@@ -147,8 +147,9 @@ inline container::key to_container_key(node const& route_node,
                                        light_connection const& lc,
                                        time_util::event_type const type,
                                        schedule const& sched) {
-  return to_container_key(lc, route_node.get_station()->id_, type,
-                          /* TODO */ 0, sched);
+  return to_container_key(
+      lc, route_node.get_station()->id_, type,
+      time_util::get_scheduled_event_time(route_node, lc, type, sched), sched);
 };
 
 }  // namespace distributions_container

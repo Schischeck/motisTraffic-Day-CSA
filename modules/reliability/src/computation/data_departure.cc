@@ -48,25 +48,13 @@ data_departure::data_departure(node const& route_node,
 void data_departure::init_departure_time(node const& route_node,
                                          light_connection const& light_conn,
                                          schedule const& sched) {
-  is_message_.received_ = false;
-  scheduled_departure_time_ = light_conn.d_time_;
-
-// TODO(Mohammad Keyhan)
-#if 1
-  (void)route_node;
-  (void)sched;
-#else
-  auto it = sched.graph_to_delay_info_.find(graph_event(
-      route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
-      true, light_conn.d_time_, route_node.route_));
-  if (it != sched.graph_to_delay_info_.end()) {
-    scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
-    if (it->second->reason_ == timestamp_reason::IS) {
-      is_message_.received_ = true;
-      is_message_.current_time_ = it->second->current_time_;
-    }
-  }
-#endif
+  auto const delay_info = get_delay_info(
+      sched, graph_accessor::get_departing_route_edge(route_node), &light_conn,
+      event_type::DEP);
+  scheduled_departure_time_ = delay_info.get_schedule_time();
+  is_message_.received_ = (delay_info.get_reason() == delay_info::reason::IS);
+  is_message_.current_time_ =
+      is_message_.received_ ? delay_info.get_current_time() : 0;
 }
 
 void data_departure::init_first_departure_info(
