@@ -37,20 +37,13 @@ mesh =
 
 
 type alias Model =
-    { width : Float
-    , height : Float
-    , zoomFactor : Float
-    , scale : Float
-    , north : Float
-    , west : Float
-    }
+    Map
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { width = 0
       , height = 0
-      , zoomFactor = 0
       , scale = 0
       , north = 0
       , west = 0
@@ -66,11 +59,7 @@ init =
 type Msg
     = Ready
     | Loaded String
-    | Zoom Float
-    | ResizeWidth Float
-    | ResizeHeight Float
-    | North Float
-    | West Float
+    | MapUpdate Map
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -82,25 +71,12 @@ update msg model =
         Loaded mapId ->
             ( model, Cmd.none )
 
-        Zoom zoomFactor ->
-            ( { model
-                | zoomFactor = zoomFactor
-                , scale = 2 ^ zoomFactor
-              }
-            , Cmd.none
-            )
-
-        ResizeWidth w ->
-            ( { model | width = w }, Cmd.none )
-
-        ResizeHeight h ->
-            ( { model | height = h }, Cmd.none )
-
-        North n ->
-            ( { model | north = snd (latLngToWorldCoord n 0) }, Cmd.none )
-
-        West w ->
-            ( { model | west = fst (latLngToWorldCoord 0 w) }, Cmd.none )
+        MapUpdate m' ->
+            let
+                ( x, y ) =
+                    latLngToWorldCoord m'.north m'.west
+            in
+                ( { m' | north = y, west = x }, Cmd.none )
 
 
 
@@ -111,11 +87,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ mapLoaded Loaded
-        , mapResizeWidth ResizeWidth
-        , mapResizeHeight ResizeHeight
-        , mapZoom Zoom
-        , mapNorth North
-        , mapWest West
+        , mapUpdate MapUpdate
         ]
 
 

@@ -33,48 +33,49 @@
         map._panes.overlayPane.appendChild(this._el);
 
         map.on('dragend', this._updatePosition, this);
-        map.on('resize', this._sizeUpdate, this);
-        map.on('zoomend', this._zoomUpdate, this);
+        //map.on('move', this._updatePosition, this);
+        map.on('resize', this._updateSize, this);
+        map.on('zoomend', this._update, this);
 
         setTimeout(function() {
-          this._sizeUpdate();
-          this._zoomUpdate();
-        }.bind(this), 50);
+          this._updateSize();
+        }.bind(this), 100);
         app.ports.mapLoaded.send("");
       },
 
       onRemove: function (map) {
         map.getPanes().overlayPane.removeChild(this._el);
         map.off('dragend', this._updatePosition, this);
-        map.off('resize', this._sizeUpdate, this);
-        map.off('zoomend', this._zoomUpdate, this);
+        map.off('move', this._updatePosition, this);
+        map.off('resize', this._updateSize, this);
+        map.off('zoomend', this._update, this);
       },
 
-      _updatePosition: function() {
-        var pos = this._map.containerPointToLayerPoint([0, 0]);
-        L.DomUtil.setPosition(this._el, pos);
+      _update: function() {
+        var bounds = this._map.getBounds();
+        var size = this._map.getSize();
 
-        this._boundsUpdate();
+        app.ports.mapUpdate.send({
+          scale: Math.pow(2, this._map.getZoom()),
+          north: bounds.getNorth(),
+          west: bounds.getWest(),
+          width: size.x,
+          height: size.y
+        });
       },
 
-      _sizeUpdate: function() {
+      _updateSize: function() {
         var size = this._map.getSize();
         this._el.width = size.x;
         this._el.height = size.y;
-
-        app.ports.mapResizeWidth.send(size.x);
-        app.ports.mapResizeHeight.send(size.y);
+        this._updatePosition();
       },
 
-      _zoomUpdate: function() {
-        app.ports.mapZoom.send(this._map.getZoom());
-        this._boundsUpdate();
-      },
+      _updatePosition: function() {
+        this._update();
 
-      _boundsUpdate: function() {
-        var bounds = this._map.getBounds();
-        app.ports.mapNorth.send(bounds.getNorth());
-        app.ports.mapWest.send(bounds.getWest());
+        var pos = this._map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(this._el, pos);
       }
     });
   </script>
@@ -95,9 +96,8 @@
 
     window.elmMaps[id] = map;
 
-    var overlay = map.getContainer().querySelector('.leaflet-overlay');
     var c = new CanvasOverlay();
-    c._el = overlay;
+    c._el = map.getContainer().querySelector('.leaflet-overlay');
     map.addLayer(c);
   });
   </script>
