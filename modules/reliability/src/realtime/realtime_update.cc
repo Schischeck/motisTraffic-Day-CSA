@@ -269,14 +269,21 @@ void update_precomputed_distributions(
   std::set<distributions_container::container::node const*> currently_processed;
   for (auto const& shifted_node : *res.shifted_nodes()) {
     if (shifted_node->reason() == TimestampReason_IS) {
-      auto const& trip = *get_trip(sched, shifted_node->trip());
-      auto const n_l =
-          detail::route_node_and_light_conn(trip, *shifted_node, sched);
+      try {
+        auto const& trip = *get_trip(sched, shifted_node->trip());
+        auto const n_l =
+            detail::route_node_and_light_conn(trip, *shifted_node, sched);
 
-      if (auto n = detail::find_distribution_node(
-              n_l.first->get_station()->id_, *n_l.second, *shifted_node, sched,
-              precomputed_distributions)) {
-        queue.push({n, n_l.first, n_l.second});
+        if (auto n = detail::find_distribution_node(
+                n_l.first->get_station()->id_, *n_l.second, *shifted_node,
+                sched, precomputed_distributions)) {
+          queue.push({n, n_l.first, n_l.second});
+        }
+      } catch (...) {
+        LOG(logging::warn) << "Could not find trip for shifted node st="
+                           << shifted_node->station_id()->str()
+                           << " tr=" << shifted_node->trip()->train_nr()
+                           << " sched=" << shifted_node->schedule_time();
       }
     }
   }
