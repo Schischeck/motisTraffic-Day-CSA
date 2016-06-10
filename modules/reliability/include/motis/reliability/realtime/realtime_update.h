@@ -4,7 +4,7 @@ namespace motis {
 struct schedule;
 namespace rt {
 struct RtUpdate;  // NOLINT
-}  // namespace realtime
+}  // namespace rt
 namespace reliability {
 struct start_and_travel_distributions;
 namespace distributions_container {

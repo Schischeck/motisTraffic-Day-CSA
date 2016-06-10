@@ -121,6 +121,7 @@ inline module::msg_ptr get_reroute_message(
   return make_msg(mc);
 }
 #endif
-}
-}
-}
+
+}  // namespace realtime
+}  // namespace reliability
+}  // namespace motis
