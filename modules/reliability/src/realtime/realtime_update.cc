@@ -134,9 +134,11 @@ auto route_node_and_light_conn(trip const& tr, unsigned const station_idx,
                                time const graph_time) {
   auto const trip_edge = std::find_if(
       tr.edges_->begin(), tr.edges_->end(), [&](trip::route_edge const& e) {
-        auto const light_conn =
-            e.get_edge()->m_.route_edge_.conns_[tr.lcon_idx_];
-        auto const s = e.route_node_->get_station()->id_;
+        auto const re = e.get_edge();
+        auto const light_conn = re->m_.route_edge_.conns_[tr.lcon_idx_];
+        auto const s = event_type == EventType_Arrival
+                           ? re->to_->get_station()->id_
+                           : re->from_->get_station()->id_;
         auto const tr = light_conn.full_con_->con_info_->train_nr_;
         auto const t = event_type == EventType_Arrival ? light_conn.a_time_
                                                        : light_conn.d_time_;

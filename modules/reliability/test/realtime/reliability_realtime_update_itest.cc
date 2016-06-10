@@ -15,6 +15,10 @@ namespace motis {
 namespace reliability {
 namespace realtime {
 
+constexpr auto RT_SUPPORTS_FEEDER_DEPENDENCIES = false;
+
+using namespace module;
+
 class reliability_realtime_update : public test_motis_setup {
 public:
   reliability_realtime_update()
@@ -40,7 +44,10 @@ TEST_F(reliability_realtime_update, is_message) {
       schedule_realtime_update::DARMSTADT, schedule_realtime_update::ICE_D_L_F,
       "", ris::EventType_Departure,
       1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */,
-      1445235840 /* 2015-10-19 08:24:00 GMT+2:00 */, ris::DelayType_Is));
+      1445235840 /* 2015-10-19 08:24:00 GMT+2:00 */,
+      schedule_realtime_update::DARMSTADT, schedule_realtime_update::ICE_D_L_F,
+      1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */, ris::DelayType_Is));
+  publish(make_no_msg("/ris/system_time_changed"));
   {
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 24),
               lc_darm_langen.d_time_);
@@ -112,7 +119,8 @@ TEST_F(reliability_realtime_update, is_message) {
             distributions_container::to_container_key(
                 n_ffm, lc_ffm_hanau, time_util::event_type::departure,
                 get_schedule()));
-    ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 46),
+    ASSERT_EQ(test_util::minutes_to_motis_time(
+                  8 * 60 + 45 + (RT_SUPPORTS_FEEDER_DEPENDENCIES ? 1 : 0)),
               lc_ffm_hanau.d_time_);
     ASSERT_EQ(0, dist_dep_ffm.first_minute());
     ASSERT_EQ(3, dist_dep_ffm.last_minute());
@@ -128,7 +136,8 @@ TEST_F(reliability_realtime_update, is_message) {
             distributions_container::to_container_key(
                 n_hanau, lc_ffm_hanau, time_util::event_type::arrival,
                 get_schedule()));
-    ASSERT_EQ(test_util::minutes_to_motis_time(9 * 60 + 1),
+    ASSERT_EQ(test_util::minutes_to_motis_time(
+                  9 * 60 + (RT_SUPPORTS_FEEDER_DEPENDENCIES ? 1 : 0)),
               lc_ffm_hanau.a_time_);
     ASSERT_EQ(-1, dist_arr_hanau.first_minute());
     ASSERT_EQ(4, dist_arr_hanau.last_minute());

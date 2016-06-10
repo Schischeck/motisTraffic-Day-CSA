@@ -50,10 +50,12 @@ inline trip const* find_trip(schedule const& sched, std::string const& eva_nr,
   auto it =
       std::lower_bound(begin(sched.trips_), end(sched.trips_),
                        std::make_pair(primary_id, static_cast<trip*>(nullptr)));
+  if (it == end(sched.trips_)) {
+    return nullptr;
+  }
   if (it == end(sched.trips_) || !(it->first == primary_id)) {
     return nullptr;
   }
-
   return it->second;
 }
 

@@ -8,13 +8,12 @@ namespace motis {
 namespace reliability {
 namespace realtime {
 
-inline module::msg_ptr get_delay_message(std::string const& station,
-                                         unsigned const train_nr,
-                                         std::string const line_id,
-                                         ris::EventType event_type,
-                                         time_t const scheduled_time,
-                                         time_t const delayed_time,
-                                         ris::DelayType const delayType) {
+inline module::msg_ptr get_delay_message(
+    std::string const& station, unsigned const train_nr,
+    std::string const line_id, ris::EventType event_type,
+    time_t const scheduled_time, time_t const delayed_time,
+    std::string const& trip_station, unsigned const trip_train_nr,
+    time_t const trip_scheduled_time, ris::DelayType const delayType) {
   using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
@@ -25,8 +24,9 @@ inline module::msg_ptr get_delay_message(std::string const& station,
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,
       CreateDelayMessage(
-          fbb, ris::CreateIdEvent(fbb, fbb.CreateString(station), train_nr,
-                                  scheduled_time, IdEventType_Schedule),
+          fbb,
+          ris::CreateIdEvent(fbb, fbb.CreateString(trip_station), trip_train_nr,
+                             trip_scheduled_time, IdEventType_Schedule),
           delayType, fbb.CreateVector(events))
           .Union()));
 
