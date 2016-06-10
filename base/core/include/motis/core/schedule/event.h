@@ -42,7 +42,7 @@ struct schedule_event {
 };
 
 struct ev_key {
-  ev_key() = default;
+  ev_key() : route_edge_(nullptr), lcon_idx_(0), ev_type_(event_type::DEP) {}
   ev_key(edge const* route_edge, std::size_t lcon_idx, event_type type)
       : route_edge_(route_edge), lcon_idx_(lcon_idx), ev_type_(type) {}
 
@@ -55,6 +55,8 @@ struct ev_key {
     return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) <
            std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
   }
+
+  bool valid() const { return route_edge_ != nullptr; }
 
   bool is_arrival() const { return ev_type_ == event_type::ARR; }
   bool is_departure() const { return ev_type_ == event_type::DEP; }

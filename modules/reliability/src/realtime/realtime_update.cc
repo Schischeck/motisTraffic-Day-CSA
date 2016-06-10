@@ -6,6 +6,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/trip_access.h"
+#include "../../include/motis/reliability/realtime/graph_access.h"
 
 #include "motis/protocol/RtUpdate_generated.h"
 #include "motis/protocol/TimestampReason_generated.h"
@@ -19,6 +20,7 @@
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/error.h"
 #include "motis/reliability/graph_accessor.h"
+#include "motis/reliability/realtime/graph_access.h"
 
 namespace motis {
 namespace reliability {
@@ -29,81 +31,6 @@ struct lc_not_found_exception : std::exception {
     return "Could not find the light connection for a delay-info";
   };
 };
-
-namespace graph_util {
-
-auto get_node_and_light_connection(
-    node const& station, bool const is_departure,
-    std::function<std::pair<light_connection const*, unsigned int>(
-        edge const* route_edge)>
-        find_light_conn) {
-  if (is_departure) {
-    for (auto const& e : station.edges_) {
-      if (auto const* route_edge =
-              graph_accessor::get_departing_route_edge(*e.to_)) {
-        auto const light_conn = find_light_conn(route_edge);
-        if (light_conn.first) {
-          return std::make_pair(route_edge->from_, light_conn.first);
-        }
-      }
-    }
-  } else {
-    for (auto const* e : station.incoming_edges_) {
-      if (auto const* route_edge =
-              graph_accessor::get_arriving_route_edge(*e->from_)) {
-        auto const light_conn = find_light_conn(route_edge);
-        if (light_conn.first) {
-          return std::make_pair(route_edge->to_, light_conn.first);
-        }
-      }
-    }
-  }
-  throw lc_not_found_exception();
-}
-
-#if 0
-std::pair<std::string, std::string> get_category_and_line_identification(
-    TripId const* trip_id, time const graph_time, unsigned const train_id,
-    schedule const& sched) {
-
-  auto const& light_conn = find_light_conn(
-      *get_trip(sched, trip_id),
-      sched.eva_to_station_.at(trip_id->station_id()->str())->index_, train_id,
-      trip_id->type(), graph_time);
-
-  return std::make_pair(
-      sched.categories_.at(light_conn.full_con_->con_info_->family_)->name_,
-      light_conn.full_con_->con_info_->line_identifier_);
-}
-
-#endif
-
-auto get_node_and_light_connection(
-    distributions_container::container::key const& key, schedule const& sched) {
-  /*auto const it = sched.schedule_to_delay_info_.find(schedule_event(
-      key.station_index_, key.train_id_, key.type_ == time_util::departure,
-      key.scheduled_event_time_));
-  unsigned int const current_time = it == sched.schedule_to_delay_info_.end()
-                                        ? key.scheduled_event_time_
-                                        : get_event_time(it->second);*/
-
-  unsigned int const current_time = 0;  // TODO
-
-  auto find_light_conn =
-      [&](edge const* route_edge) -> std::pair<light_connection const*,
-                                               unsigned int> {
-    auto const light_conn = graph_accessor::find_light_connection(
-        *route_edge, current_time, key.type_ == time_util::departure,
-        graph_accessor::find_family(sched.categories_, key.category_).second,
-        key.train_id_, key.line_identifier_);
-    return light_conn;
-  };
-
-  return get_node_and_light_connection(
-      *sched.station_nodes_.at(key.station_index_),
-      key.type_ == time_util::departure, find_light_conn);
-}
-}  // namespace graph_util
 
 namespace detail {
 
@@ -190,8 +117,9 @@ void process_element(queue_type& queue,
     auto const& successors = element.node_->successors_;
     std::for_each(successors.begin(), successors.end(),
                   [&](distributions_container::container::node* n) {
-                    auto const n_l = graph_util::get_node_and_light_connection(
-                        n->key_, c.schedule_);
+                    auto const n_l =
+                        graph_access::get_node_and_light_connection(
+                            n->key_, c.schedule_);
                     queue.push({n, n_l.first, n_l.second});
                   });
     ++significant;
