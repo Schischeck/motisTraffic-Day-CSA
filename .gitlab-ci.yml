@@ -84,6 +84,9 @@ msvc-release:
   tags:
     - windows
   script:
+    - set WD=%cd%
+    - "C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat" x64
+    - cd %WD%
     - set BOOTST_ROOT=C:\boost_1_60_0
     - git submodule update --init --recursive
     - mkdir build-msvc-release
