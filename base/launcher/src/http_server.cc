@@ -102,7 +102,7 @@ struct http_server::impl {
     }
   }
 
-  void handle_options(srv::route_request const& req, srv::callback& cb) {
+  void handle_options(srv::route_request const&, srv::callback& cb) {
     reply rep;
     rep.status = reply::status_type::ok;
     add_cors_headers(rep);
