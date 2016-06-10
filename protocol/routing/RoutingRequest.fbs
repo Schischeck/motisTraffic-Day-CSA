@@ -18,7 +18,7 @@ table MumoEdge {
   to_station_id:string;
   duration:ushort;
   price:ushort;
-  slot:ushort;
+  id:int;
 }
 
 table PeriodicMumoEdge {

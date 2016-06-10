@@ -30,6 +30,7 @@ namespace p = std::placeholders;
 #define DISTRIBUTIONS_FOLDERS "reliability.distributions_folders"
 #define HOTELS_FILE "reliability.hotels"
 #define MAX_BIKESHARING_DURATION "reliability.max_bikesharing_duration"
+#define PARETO_FILTERING "reliability.pareto_filtering_for_bikesharing"
 
 namespace motis {
 namespace reliability {
@@ -39,7 +40,8 @@ reliability::reliability()
       distributions_folders_(
           {"/data/db_distributions/train/", "/data/db_distributions/bus/"}),
       hotels_file_("modules/reliability/resources/hotels.csv"),
-      max_bikesharing_duration_(45) {}
+      max_bikesharing_duration_(45),
+      pareto_filtering_for_bikesharing_(true) {}
 
 po::options_description reliability::desc() {
   po::options_description desc("Reliability Module");
@@ -64,6 +66,11 @@ po::options_description reliability::desc() {
        po::value<unsigned>(&max_bikesharing_duration_)->
        default_value(max_bikesharing_duration_),
        "maximum allowed duration for bikesharing");
+  desc.add_options()
+        (PARETO_FILTERING,
+         po::value<bool>(&pareto_filtering_for_bikesharing_)->
+         default_value(pareto_filtering_for_bikesharing_),
+         "activate pareto-filtering for bikesharings");
   // clang-format on
   return desc;
 }
@@ -72,7 +79,8 @@ void reliability::print(std::ostream& out) const {
   out << "  " << READ_DISTRIBUTINS << ": " << read_distributions_ << "\n  "
       << DISTRIBUTIONS_FOLDERS << ": " << distributions_folders_ << "\n  "
       << HOTELS_FILE << ": " << hotels_file_ << "\n  "
-      << MAX_BIKESHARING_DURATION << ": " << max_bikesharing_duration_;
+      << MAX_BIKESHARING_DURATION << ": " << max_bikesharing_duration_ << "\n  "
+      << PARETO_FILTERING << ": " << pareto_filtering_for_bikesharing_;
 }
 
 std::vector<s_t_distributions_container::parameters>
@@ -123,12 +131,14 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
   auto const& req = *motis_content(ReliableRoutingRequest, msg);
   switch (req.request_type()->request_options_type()) {
     case RequestOptions_RatingReq: {
-      return rating::rating(req, *this, max_bikesharing_duration_);
+      return rating::rating(req, *this, max_bikesharing_duration_,
+                            pareto_filtering_for_bikesharing_);
     }
     case RequestOptions_ReliableSearchReq:
     case RequestOptions_ConnectionTreeReq: {
       return search::connection_graph_search::search_cgs(
-          req, *this, max_bikesharing_duration_);
+          req, *this, max_bikesharing_duration_,
+          pareto_filtering_for_bikesharing_);
     }
     case RequestOptions_LateConnectionReq: {
       return search::late_connections::search(req, *this, hotels_file_);

@@ -34,8 +34,9 @@ table RequestOptionsWrapper {
 }
 
 struct IndividualModes {
-  bikesharing:bool;
-  taxi:bool;
+  reliable_bikesharing:bool;
+  unreliable_bikesharing:bool;
+  walk:bool;
 }
 
 struct Coordinates {

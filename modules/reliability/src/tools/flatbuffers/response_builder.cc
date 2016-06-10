@@ -9,7 +9,11 @@
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
 
+#include "motis/protocol/Position_generated.h"
+
 #include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
@@ -145,6 +149,56 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
 }
 }  // namespace simple_rating_converter
 
+namespace intermodal_converter {
+Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
+    FlatBufferBuilder& b,
+    std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                          intermodal::bikesharing::bikesharing_info>> const&
+        bikesharings,
+    bool const dep_is_intermodal, bool const arr_is_intermodal,
+    std::vector<journey> const& journeys) {
+  auto to_bike_info = [&b](
+      intermodal::bikesharing::bikesharing_info const& infos, bool const valid,
+      time_t bike_time) {
+    auto rel = [&]() -> unsigned {
+      auto const it = std::find_if(
+          infos.availability_intervals_.begin(),
+          infos.availability_intervals_.end(), [&bike_time](auto const& i) {
+            return i.from_ <= bike_time && i.to_ >= bike_time;
+          });
+      if (it == infos.availability_intervals_.end()) {
+        return 0;
+      }
+      return it->rating_;
+    };
+    auto from = Position(infos.from_.lat_, infos.from_.lng_);
+    auto to = Position(infos.to_.lat_, infos.to_.lng_);
+    return CreateBikeInfo(b, valid, &from, &to, rel());
+
+  };
+
+  if (!bikesharings.empty() && bikesharings.size() != journeys.size()) {
+    throw std::system_error(error::failure);
+  }
+
+  std::vector<Offset<AdditionalInfos>> infos;
+  for (unsigned int i = 0; i < bikesharings.size(); ++i) {
+    auto const& bike = bikesharings[i];
+    auto const& j = journeys[i];
+    infos.push_back(CreateAdditionalInfos(
+        b, to_bike_info(
+               bike.first,
+               dep_is_intermodal && !bike.first.availability_intervals_.empty(),
+               j.stops_.front().departure_.timestamp_),
+        to_bike_info(
+            bike.second,
+            arr_is_intermodal && !bike.second.availability_intervals_.empty(),
+            j.stops_.at(j.stops_.size() - 2).departure_.timestamp_)));
+  }
+  return b.CreateVector(infos);
+}
+}  // namespace intermodal_converter
+
 Offset<routing::RoutingResponse> to_routing_response(
     FlatBufferBuilder& b, std::vector<journey> const& journeys) {
   std::vector<Offset<Connection>> connections;
@@ -159,7 +213,11 @@ module::msg_ptr to_reliability_rating_response(
     std::vector<rating::connection_rating> const& orig_ratings,
     std::vector<rating::simple_rating::simple_connection_rating> const&
         orig_simple_ratings,
-    bool const short_output) {
+    bool const short_output,
+    std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                          intermodal::bikesharing::bikesharing_info>> const&
+        bikesharings,
+    bool const dep_is_intermodal, bool const arr_is_intermodal) {
   assert(journeys.size() == orig_ratings.size());
   module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
@@ -168,10 +226,14 @@ module::msg_ptr to_reliability_rating_response(
       b, orig_ratings, journeys, short_output);
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
-  b.create_and_finish(MsgContent_ReliabilityRatingResponse,
-                      CreateReliabilityRatingResponse(
-                          b, routing_response, conn_ratings, simple_ratings)
-                          .Union());
+
+  b.create_and_finish(
+      MsgContent_ReliabilityRatingResponse,
+      CreateReliabilityRatingResponse(
+          b, routing_response, conn_ratings, simple_ratings,
+          intermodal_converter::create_additional_infos(
+              b, bikesharings, dep_is_intermodal, arr_is_intermodal, journeys))
+          .Union());
   return module::make_msg(b);
 }
 
@@ -244,6 +306,7 @@ module::msg_ptr to_reliable_routing_response(
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
+  std::vector<Offset<AdditionalInfos>> additional_infos;
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
                       reliability::CreateReliableRoutingResponse(
                           b, b.CreateVector(connection_graphs))

@@ -153,7 +153,7 @@ TEST_F(reliability_test_rating, rating_request) {
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
-          .build_rating_request();
+          .build_rating_request(false, false, false);
   auto const res = call(req);
   auto const response = motis_content(ReliabilityRatingResponse, res);
 
@@ -206,7 +206,7 @@ TEST_F(reliability_test_cg, reliable_connection_graph) {
                              test_util::hhmm_to_unixtime(get_schedule(), 701))
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
-          .build_reliable_search_request(1);
+          .build_reliable_search_request(1, false, false, false);
   auto const res = call(req);
   test_cg(motis_content(ReliableRoutingResponse, res));
 }

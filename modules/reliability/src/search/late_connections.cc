@@ -24,6 +24,11 @@
 
 namespace motis {
 namespace reliability {
+namespace intermodal {
+namespace bikesharing {
+struct bikesharing_info;
+}  // namespace bikesharing
+}  // namespace intermodal
 namespace search {
 namespace late_connections {
 namespace detail {
@@ -39,7 +44,7 @@ constexpr double M_PER_KM = 1000.0;
 constexpr unsigned MIN_PER_HOUR = 60;
 constexpr double DISTANCE_THRESHOLD = 5.0;  // 5km
 constexpr double AIR_DISTANCE_CORRECTION_FACTOR_CITY = 1.5;
-constexpr double AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.2;
+constexpr double AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY = 1.5;
 
 constexpr unsigned MAX_TRAIN_PRICE = 12300;
 constexpr double TRAIN_KM_PRICE = 30.0;
@@ -67,9 +72,9 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
   price_ = taxi_base_price + (city_distance + highway_distance) * taxi_km_price;
 }
 
-void ask_lookup_module(
-    station const& destination, unsigned const taxi_radius,
-    std::vector<intermodal::individual_modes_container::taxi>& taxis) {
+void ask_lookup_module(station const& destination, unsigned const taxi_radius,
+                       intermodal::individual_modes_container& container) {
+  // TODO(Mohammad Keyhani): refactoring: use reliability/intermodal/lookup.h
   using namespace lookup;
   module::message_creator b;
   b.create_and_finish(
@@ -91,8 +96,8 @@ void ask_lookup_module(
                    destination.lng(), TAXI_BASE_PRICE, TAXI_KM_PRICE,
                    TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
                    TAXI_AVG_SPEED_LONG_DISTANCE);
-    taxis.emplace_back(st->id()->str(), destination.eva_nr_, cost.duration_,
-                       cost.price_);
+    container.insert_taxi(intermodal::individual_modes_container::taxi(
+        st->id()->str(), destination.eva_nr_, cost.duration_, cost.price_));
   }
 }
 
@@ -118,9 +123,8 @@ station const& get_destination(ReliableRoutingRequest const& req,
   return *get_station(sched, destination_eva);
 }
 
-void init_taxis(
-    ReliableRoutingRequest const& req, schedule const& sched,
-    std::vector<intermodal::individual_modes_container::taxi>& taxis) {
+void init_taxis(ReliableRoutingRequest const& req, schedule const& sched,
+                intermodal::individual_modes_container& container) {
   if (req.request_type()->request_options_type() !=
       RequestOptions_LateConnectionReq) {
     throw std::system_error(error::failure);
@@ -130,12 +134,12 @@ void init_taxis(
 
   auto const& destination = get_destination(req, sched);
 
-  ask_lookup_module(destination, ops->taxi_radius(), taxis);
+  ask_lookup_module(destination, ops->taxi_radius(), container);
 }
 
 void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
                  std::string const& hotels_file,
-                 std::vector<intermodal::hotel>& hotels) {
+                 intermodal::individual_modes_container& container) {
   if (req.request_type()->request_options_type() !=
       RequestOptions_LateConnectionReq) {
     throw std::system_error(error::failure);
@@ -149,20 +153,16 @@ void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
   for (auto const& h : tmp) {
     auto it = sched.eva_to_station_.find(h.station_);
     if (it != end(sched.eva_to_station_)) {
-      hotels.push_back(h);
+      container.insert_hotel(h);
     } else {
       LOG(logging::warn) << "Could not find hotel-station " << h.station_;
     }
   }
 }
 
-module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
-                            std::string const& hotels_file,
-                            schedule const& sched) {
-  using namespace motis::reliability::intermodal;
-  individual_modes_container container;
-  detail::init_hotels(req, sched, hotels_file, container.hotels_);
-  detail::init_taxis(req, sched, container.taxis_);
+module::msg_ptr ask_routing(
+    ReliableRoutingRequest const& req,
+    intermodal::individual_modes_container const& container) {
   flatbuffers::request_builder b(req);
   b.add_additional_edges(container);
   return motis_call(b.build_routing_request())->val();
@@ -215,14 +215,13 @@ unsigned calc_compensation(journey const& orig_journey,
 
 void update_db_costs(std::vector<journey>& journeys, journey orig_conn) {
   auto no_hotel_or_taxi = [](journey const& j) {
-    return std::find_if(
-               j.transports_.begin(), j.transports_.end(), [](auto const& t) {
-                 return t.is_walk_ &&
-                        (!t.mumo_type_.empty() &&
-                         t.mumo_type_ != intermodal::to_str(intermodal::WALK));
-               }) == j.transports_.end();
+    return std::find_if(j.transports_.begin(), j.transports_.end(),
+                        [](auto const& t) {
+                          return t.is_walk_ && t.mumo_id_ >= 0;
+                        }) == j.transports_.end();
   };
   orig_conn.price_ = estimate_price(orig_conn);
+  LOG(logging::info) << "Price estimated for orig-conn: " << orig_conn.price_;
   for (auto& j : journeys) {
     if (no_hotel_or_taxi(j)) {
       j.db_costs_ = calc_compensation(orig_conn, j);
@@ -246,7 +245,12 @@ void update_db_costs(std::vector<journey>& journeys,
 module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
                        std::string const& hotels_file) {
   auto lock = rel.synced_sched();
-  auto routing_res = detail::ask_routing(req, hotels_file, lock.sched());
+  auto const& sched = lock.sched();
+  using namespace motis::reliability::intermodal;
+  individual_modes_container container;
+  detail::init_hotels(req, sched, hotels_file, container);
+  detail::init_taxis(req, sched, container);
+  auto routing_res = detail::ask_routing(req, container);
   using routing::RoutingResponse;
   auto journeys =
       message_to_journeys(motis_content(RoutingResponse, routing_res));
@@ -256,13 +260,17 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
                                   rel.s_t_distributions()));
 
   for (auto& j : journeys) {
-    intermodal::update_mumo_info(j);
+    intermodal::update_mumo_info(j, container);
   }
 
   detail::update_db_costs(journeys, req);
 
+  std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                        intermodal::bikesharing::bikesharing_info>>
+      dummy;
   return flatbuffers::response_builder::to_reliability_rating_response(
-      journeys, ratings.first, ratings.second, true /* short output */);
+      journeys, ratings.first, ratings.second, true /* short output */, dummy,
+      false, false);
 }
 
 }  // namespace late_connections

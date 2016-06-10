@@ -253,10 +253,12 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -312,10 +314,12 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -434,10 +438,12 @@ TEST_F(reliability_connection_graph_rating_foot,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
           .add_destination(schedule3::WEST.name_, schedule3::WEST.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -497,10 +503,12 @@ TEST_F(reliability_connection_graph_rating_foot,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
           .add_destination(schedule3::MESSE.name_, schedule3::MESSE.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(cgs.size(), 1);

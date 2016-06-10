@@ -88,7 +88,7 @@ journey get_journey(schedule_station const from, schedule_station const to) {
   t.mumo_type_ = "";
   t.name_ = "ICE 1";
   t.provider_ = "";
-  t.slot_ = 0;
+  t.mumo_id_ = 0;
   t.train_nr_ = 1;
   j.transports_.push_back(t);
 
@@ -121,8 +121,8 @@ TEST_F(reliability_late_connections, taxi_costs) {
   {
     taxi_cost cost(darmstadt.first, darmstadt.second, frankfurt.first,
                    frankfurt.second, 250, 200, 10, 40, 100);
-    ASSERT_EQ(36, cost.duration_);
-    ASSERT_EQ(6817, cost.price_);
+    ASSERT_EQ(40, cost.duration_);
+    ASSERT_EQ(8084, cost.price_);
   }
 
   auto const tud = std::make_pair(49.877111, 8.655606);
@@ -137,24 +137,26 @@ TEST_F(reliability_late_connections, taxi_costs) {
 
 TEST_F(reliability_late_connections, search) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels::LANGEN.eva_, 360, 540, 5000);
-  container.hotels_.emplace_back(schedule_hotels::OFFENBACH.eva_, 360, 540,
-                                 5000);
-  container.hotels_.emplace_back(schedule_hotels::MAINZ.eva_, 360, 540, 5001);
+  container.insert_hotel(
+      intermodal::hotel(schedule_hotels::LANGEN.eva_, 360, 540, 5000));
+  container.insert_hotel(
+      intermodal::hotel(schedule_hotels::OFFENBACH.eva_, 360, 540, 5000));
+  container.insert_hotel(
+      intermodal::hotel(schedule_hotels::MAINZ.eva_, 360, 540, 5001));
 
-  container.taxis_.emplace_back(schedule_hotels::LANGEN.eva_,
-                                schedule_hotels::FRANKFURT.eva_, 55, 6000, 1140,
-                                60);
+  container.insert_taxi(intermodal::individual_modes_container::taxi(
+      schedule_hotels::LANGEN.eva_, schedule_hotels::FRANKFURT.eva_, 55, 6000,
+      1140, 60));
   /* this taxi should not be found
    * since it can only be reached after a hotel */
-  container.taxis_.emplace_back(schedule_hotels::NEUISENBURG.eva_,
-                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                                60);
+  container.insert_taxi(intermodal::individual_modes_container::taxi(
+      schedule_hotels::NEUISENBURG.eva_, schedule_hotels::FRANKFURT.eva_, 10,
+      500, 1140, 60));
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxis_.emplace_back(schedule_hotels::WALLDORF.eva_,
-                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                                60);
+  container.insert_taxi(intermodal::individual_modes_container::taxi(
+      schedule_hotels::WALLDORF.eva_, schedule_hotels::FRANKFURT.eva_, 10, 500,
+      1140, 60));
 
   auto res = call(to_request(container));
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
@@ -175,7 +177,9 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(2, j.transports_.size());
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::TAXI, j.transports_[1].slot_);
+    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    ASSERT_EQ(intermodal::TAXI,
+              container.get_mumo_type(j.transports_[1].mumo_id_));
     // ASSERT_EQ(6000, j.transports_[1].mumo_price_);
     ASSERT_EQ(schedule_hotels::LANGEN.eva_, j.stops_[1].eva_no_);
     ASSERT_EQ(schedule_hotels::FRANKFURT.eva_, j.stops_[2].eva_no_);
@@ -193,7 +197,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_EQ(4, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
+    ASSERT_EQ(1, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(5, j.transports_[2].train_nr_);
     ASSERT_EQ(schedule_hotels::OFFENBACH.eva_, j.stops_[1].eva_no_);
@@ -206,7 +210,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_EQ(2, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
+    ASSERT_EQ(0, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5000, j.transports_[1].mumo_price_);
     ASSERT_EQ(3, j.transports_[2].train_nr_);
     ASSERT_FALSE(j.transports_.back().is_walk_);
@@ -227,7 +231,7 @@ TEST_F(reliability_late_connections, search) {
     ASSERT_EQ(5001, j.db_costs_);
     ASSERT_EQ(6, j.transports_[0].train_nr_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
+    ASSERT_EQ(2, j.transports_[1].mumo_id_);
     // ASSERT_EQ(5001, j.transports_[1].mumo_price_);
     ASSERT_EQ(7, j.transports_[2].train_nr_);
     ASSERT_FALSE(j.transports_.back().is_walk_);
@@ -244,9 +248,9 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
   intermodal::individual_modes_container container;
   /* this taxi should not be found
    * since it can only be reached after 3 o'clock */
-  container.taxis_.emplace_back(schedule_hotels::WALLDORF.eva_,
-                                schedule_hotels::FRANKFURT.eva_, 10, 500, 1140,
-                                60);
+  container.insert_taxi(intermodal::individual_modes_container::taxi(
+      schedule_hotels::WALLDORF.eva_, schedule_hotels::FRANKFURT.eva_, 10, 500,
+      1140, 60));
   auto msg = call(to_request(container));
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
 
@@ -265,8 +269,8 @@ TEST_F(reliability_late_connections, taxi_not_allowed) {
 
 TEST_F(reliability_hotels_foot, hotels_after_foot) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels_foot::NEUISENBURG.eva_, 480,
-                                 540, 5000);
+  container.insert_hotel(intermodal::hotel(
+      schedule_hotels_foot::NEUISENBURG.eva_, 480, 540, 5000));
   auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
@@ -285,7 +289,7 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
     ASSERT_EQ(300, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
+    ASSERT_EQ(-1, j.transports_[1].mumo_id_);
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
     ASSERT_TRUE(j.stops_[1].arrival_.valid_);
     ASSERT_TRUE(j.stops_[1].departure_.valid_);
@@ -301,8 +305,8 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_TRUE(j.transports_[2].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[2].slot_);
+    ASSERT_EQ(-1, j.transports_[1].mumo_id_);
+    ASSERT_EQ(0, j.transports_[2].mumo_id_);
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
     ASSERT_TRUE(j.stops_[1].arrival_.valid_);
     ASSERT_TRUE(j.stops_[1].departure_.valid_);
@@ -316,8 +320,8 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
 
 TEST_F(reliability_hotels_foot, foot_after_hotel) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels_foot::LANGEN.eva_, 360, 540,
-                                 5000);
+  container.insert_hotel(
+      intermodal::hotel(schedule_hotels_foot::LANGEN.eva_, 360, 540, 5000));
   auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
@@ -336,7 +340,7 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
     ASSERT_EQ(300, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
+    ASSERT_EQ(-1, j.transports_[1].mumo_id_);
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
     ASSERT_TRUE(j.stops_[1].arrival_.valid_);
     ASSERT_TRUE(j.stops_[1].departure_.valid_);
@@ -352,8 +356,8 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_TRUE(j.transports_[2].is_walk_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[2].slot_);
+    ASSERT_EQ(0, j.transports_[1].mumo_id_);
+    ASSERT_EQ(-1, j.transports_[2].mumo_id_);
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
     ASSERT_TRUE(j.stops_[1].arrival_.valid_);
     ASSERT_TRUE(j.stops_[1].departure_.valid_);
@@ -367,8 +371,8 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
 
 TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels_foot::LANGEN.eva_, 360, 540,
-                                 5000);
+  container.insert_hotel(
+      intermodal::hotel(schedule_hotels_foot::LANGEN.eva_, 360, 540, 5000));
   flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
@@ -395,7 +399,7 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
     ASSERT_EQ(300, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[0].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
+    ASSERT_EQ(-1, j.transports_[0].mumo_id_);
     ASSERT_EQ(2, j.transports_[1].train_nr_);
   }
   {
@@ -405,8 +409,8 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_TRUE(j.transports_[0].is_walk_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[0].slot_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[1].slot_);
+    ASSERT_EQ(0, j.transports_[0].mumo_id_);
+    ASSERT_EQ(-1, j.transports_[1].mumo_id_);
     ASSERT_EQ(2, j.transports_[2].train_nr_);
 
     ASSERT_EQ(4, j.stops_.size());
@@ -421,8 +425,8 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
 
 TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
   intermodal::individual_modes_container container;
-  container.hotels_.emplace_back(schedule_hotels_foot::NEUISENBURG.eva_, 480,
-                                 540, 5000);
+  container.insert_hotel(intermodal::hotel(
+      schedule_hotels_foot::NEUISENBURG.eva_, 480, 540, 5000));
   flatbuffers::request_builder b(SearchType_LateConnectionsForwardTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
@@ -450,7 +454,7 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
     ASSERT_EQ(300, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_TRUE(j.transports_[0].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
+    ASSERT_EQ(-1, j.transports_[0].mumo_id_);
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
     ASSERT_TRUE(j.stops_[1].arrival_.valid_);
     ASSERT_TRUE(j.stops_[1].departure_.valid_);
@@ -464,8 +468,8 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
     ASSERT_EQ(5000, j.db_costs_);
     ASSERT_TRUE(j.transports_[0].is_walk_);
     ASSERT_TRUE(j.transports_[1].is_walk_);
-    ASSERT_EQ(intermodal::WALK, j.transports_[0].slot_);
-    ASSERT_EQ(intermodal::HOTEL, j.transports_[1].slot_);
+    ASSERT_EQ(-1, j.transports_[0].mumo_id_);
+    ASSERT_EQ(0, j.transports_[1].mumo_id_);
 
     ASSERT_EQ(4, j.stops_.size());
     ASSERT_TRUE(j.stops_[0].departure_.valid_);
@@ -495,7 +499,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
 
   {
     auto const conn = (*res->response()->connections())[0];
-    ASSERT_EQ(3567, conn->db_costs());
+    ASSERT_EQ(4021, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(2, conn->transports()->size());
     {
@@ -514,7 +518,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
   }
   {
     auto const conn = (*res->response()->connections())[1];
-    ASSERT_EQ(1967, conn->db_costs());
+    ASSERT_EQ(2022, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(3, conn->transports()->size());
     {
@@ -527,7 +531,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
       auto const move = (*conn->transports())[1];
       ASSERT_EQ(Move_Walk, move->move_type());
       auto const walk = reinterpret_cast<Walk const*>(move->move());
-      ASSERT_EQ("Walk", walk->mumo_type()->str());
+      ASSERT_EQ("", walk->mumo_type()->str());
     }
     {
       auto const move = (*conn->transports())[2];
@@ -551,7 +555,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
       auto const move = (*conn->transports())[1];
       ASSERT_EQ(Move_Walk, move->move_type());
       auto const walk = reinterpret_cast<Walk const*>(move->move());
-      ASSERT_EQ("Walk", walk->mumo_type()->str());
+      ASSERT_EQ("", walk->mumo_type()->str());
     }
     {
       auto const move = (*conn->transports())[2];
