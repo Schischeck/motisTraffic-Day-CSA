@@ -240,7 +240,7 @@ void request_builder::create_bikesharing_edges(
       int const id) {
     using namespace routing;
     for (auto const& availability : info.availability_intervals_) {
-      Interval interval(availability.first, availability.second);
+      Interval interval(availability.from_, availability.to_);
       additional_edges_.push_back(CreateAdditionalEdgeWrapper(
           b_, AdditionalEdge_TimeDependentMumoEdge,
           CreateTimeDependentMumoEdge(

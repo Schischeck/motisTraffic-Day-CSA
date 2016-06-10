@@ -12,6 +12,7 @@
 #include "motis/protocol/Position_generated.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/error.h"
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
@@ -154,24 +155,45 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
     std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
                           intermodal::bikesharing::bikesharing_info>> const&
         bikesharings,
-    bool const dep_is_intermodal, bool const arr_is_intermodal) {
+    bool const dep_is_intermodal, bool const arr_is_intermodal,
+    std::vector<journey> const& journeys) {
   auto to_bike_info = [&b](
-      intermodal::bikesharing::bikesharing_info const& infos,
-      bool const valid) {
+      intermodal::bikesharing::bikesharing_info const& infos, bool const valid,
+      time_t bike_time) {
+    auto rel = [&]() -> unsigned {
+      auto const it = std::find_if(
+          infos.availability_intervals_.begin(),
+          infos.availability_intervals_.end(), [&bike_time](auto const& i) {
+            return i.from_ <= bike_time && i.to_ >= bike_time;
+          });
+      if (it == infos.availability_intervals_.end()) {
+        return 0;
+      }
+      return it->rating_;
+    };
     auto from = Position(infos.from_.lat_, infos.from_.lng_);
     auto to = Position(infos.to_.lat_, infos.to_.lng_);
-    return CreateBikeInfo(b, valid, &from, &to);
+    return CreateBikeInfo(b, valid, &from, &to, rel());
 
   };
+
+  if (!bikesharings.empty() && bikesharings.size() != journeys.size()) {
+    throw std::system_error(error::failure);
+  }
+
   std::vector<Offset<AdditionalInfos>> infos;
-  for (auto const& bike : bikesharings) {
+  for (unsigned int i = 0; i < bikesharings.size(); ++i) {
+    auto const& bike = bikesharings[i];
+    auto const& j = journeys[i];
     infos.push_back(CreateAdditionalInfos(
-        b, to_bike_info(bike.first,
-                        dep_is_intermodal &&
-                            !bike.first.availability_intervals_.empty()),
-        to_bike_info(bike.second,
-                     arr_is_intermodal &&
-                         !bike.second.availability_intervals_.empty())));
+        b, to_bike_info(
+               bike.first,
+               dep_is_intermodal && !bike.first.availability_intervals_.empty(),
+               j.stops_.front().departure_.timestamp_),
+        to_bike_info(
+            bike.second,
+            arr_is_intermodal && !bike.second.availability_intervals_.empty(),
+            j.stops_.at(j.stops_.size() - 2).departure_.timestamp_)));
   }
   return b.CreateVector(infos);
 }
@@ -210,7 +232,7 @@ module::msg_ptr to_reliability_rating_response(
       CreateReliabilityRatingResponse(
           b, routing_response, conn_ratings, simple_ratings,
           intermodal_converter::create_additional_infos(
-              b, bikesharings, dep_is_intermodal, arr_is_intermodal))
+              b, bikesharings, dep_is_intermodal, arr_is_intermodal, journeys))
           .Union());
   return module::make_msg(b);
 }
