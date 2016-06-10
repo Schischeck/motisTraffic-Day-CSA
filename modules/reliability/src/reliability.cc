@@ -138,11 +138,14 @@ msg_ptr reliability::routing_request(msg_ptr const& msg) {
   throw std::system_error(error::not_implemented);
 }
 
-msg_ptr reliability::realtime_update(msg_ptr const&) {
+msg_ptr reliability::realtime_update(msg_ptr const& msg) {
   auto lock = synced_sched();
   auto& sched = lock.sched();
+  using rt::RtUpdate;
+  auto const& res = *motis_content(RtUpdate, msg);
   realtime::update_precomputed_distributions(res, sched, *s_t_distributions_,
                                              *precomputed_distributions_);
+  return nullptr;
 }
 
 }  // namespace reliability

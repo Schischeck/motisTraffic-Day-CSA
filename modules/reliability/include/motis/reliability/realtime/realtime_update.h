@@ -13,7 +13,7 @@ struct container;
 namespace realtime {
 
 void update_precomputed_distributions(
-    motis::rt::RtUpdate const*, schedule const&,
+    motis::rt::RtUpdate const&, schedule const&,
     start_and_travel_distributions const&,
     distributions_container::container& precomputed_distributions);
 
