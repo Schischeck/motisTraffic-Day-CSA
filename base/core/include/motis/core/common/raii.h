@@ -2,8 +2,7 @@
 
 #include <utility>
 
-#define MOTIS_FINALLY(fn) \
-  auto finally##__LINE__ = make_finally(fn);
+#define MOTIS_FINALLY(fn) auto finally##__LINE__ = make_finally(fn);
 
 namespace motis {
 

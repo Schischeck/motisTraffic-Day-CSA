@@ -113,7 +113,11 @@ struct light_connection {
   light_connection(time d_time, time a_time,
                    connection const* full_con = nullptr,
                    merged_trips_idx trips = 0)
-      : full_con_(full_con), d_time_(d_time), a_time_(a_time), trips_(trips) {}
+      : full_con_(full_con),
+        d_time_(d_time),
+        a_time_(a_time),
+        trips_(trips),
+        valid_(true) {}
 
   unsigned travel_time() const { return a_time_ - d_time_; }
 
@@ -128,7 +132,8 @@ struct light_connection {
 
   connection const* full_con_;
   time d_time_, a_time_;
-  merged_trips_idx trips_;
+  uint32_t trips_ : 31;
+  uint32_t valid_ : 1;
 };
 
 }  // namespace motis

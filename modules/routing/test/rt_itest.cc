@@ -52,8 +52,9 @@ struct routing_rt : public motis_instance_test {
 
 TEST_F(routing_rt, finds_annotated_connections) {
   publish(get_ris_message(sched()));
-  auto journeys = message_to_journeys(
-      motis_content(RoutingResponse, call(routing_request())));
+  publish(make_no_msg("/ris/system_time_changed"));
+  auto res = call(routing_request());
+  auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
 
   ASSERT_EQ(1, journeys.size());
   auto j = journeys[0];
