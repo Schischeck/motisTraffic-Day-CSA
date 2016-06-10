@@ -3,6 +3,8 @@ variables:
 
 # GCC 5 production
 gcc-5-release:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
     - git submodule update --init --recursive
@@ -20,6 +22,8 @@ gcc-5-release:
 
 # Clang 3.8 debug with address sanitizer
 clang-3.8-debug-asan:
+  tags:
+    - xenial
   script:
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
@@ -41,6 +45,8 @@ clang-3.8-debug-asan:
 
 # Clang 3.8 debug with thread sanitizer
 clang-3.8-debug-tsan:
+  tags:
+    - xenial
   script:
     - export CXXFLAGS="-fsanitize=thread -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
@@ -61,6 +67,8 @@ clang-3.8-debug-tsan:
 
 # GCC 5 debug valgrind
 gcc-5-debug-valgrind:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
     - git submodule update --init --recursive
@@ -108,6 +116,8 @@ msvc-release:
 
 # Clang-Tidy
 clang-tidy:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
     - export CXX=clang++-3.8
@@ -120,6 +130,8 @@ clang-tidy:
 
 # Clang-Format
 clang-format:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
     - git submodule update --init --recursive
