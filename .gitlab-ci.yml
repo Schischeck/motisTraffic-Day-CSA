@@ -78,6 +78,30 @@ gcc-5-debug-valgrind:
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-itest
+  
+# MSVC release
+msvc-release:
+  tags:
+    - windows
+  script:
+    - set BOOTST_ROOT=C:\boost_1_60_0
+    - git submodule update --init --recursive
+    - mkdir build-msvc-release
+    - cd build-msvc-release
+    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser" ..
+    - jom motis-test motis-itest motis motis-eval motis-cli
+    - motis --mode test
+              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+              --dataset.begin 20151111
+              --dataset.write_serialized false
+              --listen.ws false
+    - motis --mode test
+              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+              --dataset.begin 20151111
+              --dataset.write_serialized false
+              --listen.ws false
+    - motis-test
+    - motis-itest
 
 # Clang-Tidy
 clang-tidy:
