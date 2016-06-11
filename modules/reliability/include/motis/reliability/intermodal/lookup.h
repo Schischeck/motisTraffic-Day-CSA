@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdexcept>
 #include <string>
 
 #include "motis/module/context/motis_call.h"
@@ -10,8 +9,8 @@ namespace motis {
 namespace reliability {
 namespace intermodal {
 
-module::msg_ptr ask_lookup_module(std::string const station_id,
-                                  unsigned const radius) {
+inline module::msg_ptr ask_lookup_module(std::string const station_id,
+                                         unsigned const radius) {
   using namespace lookup;
   module::message_creator b;
   b.create_and_finish(
@@ -23,8 +22,8 @@ module::msg_ptr ask_lookup_module(std::string const station_id,
   return motis_call(module::make_msg(b))->val();
 }
 
-module::msg_ptr ask_lookup_module(double const& lat, double const& lng,
-                                  unsigned const radius) {
+inline module::msg_ptr ask_lookup_module(double const& lat, double const& lng,
+                                         unsigned const radius) {
   using namespace lookup;
   module::message_creator b;
   Position pos(lat, lng);

@@ -43,6 +43,7 @@ table BikeInfo {
   valid:bool;
   from:motis.Position;
   to:motis.Position;
+  rating:ushort;
 }
 
 table AdditionalInfos {

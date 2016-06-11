@@ -29,8 +29,10 @@ struct individual_modes_container {
                              unsigned const max_bikesharing_duration,
                              bool const pareto_filtering_for_bikesharing)
       : id_counter_(0) {
-    if (req.individual_modes()->bikesharing() == 1) {
-      init_bikesharing(req, max_bikesharing_duration,
+    if (req.individual_modes()->reliable_bikesharing() == 1 ||
+        req.individual_modes()->bikesharing() == 1) {
+      init_bikesharing(req, req.individual_modes()->bikesharing() == 0,
+                       max_bikesharing_duration,
                        pareto_filtering_for_bikesharing);
     }
     if (req.individual_modes()->walk() == 1) {
@@ -80,7 +82,7 @@ struct individual_modes_container {
 
 private:
   void init_bikesharing(ReliableRoutingRequest const& req,
-                        unsigned const max_duration,
+                        bool const reliable_only, unsigned const max_duration,
                         bool const pareto_filtering_for_bikesharing);
   void init_walks(ReliableRoutingRequest const& req);
 

@@ -18,13 +18,17 @@ namespace intermodal {
 namespace bikesharing {
 namespace detail {
 
-std::vector<std::pair<time_t, time_t>> compress_intervals(
-    std::vector<std::pair<time_t, time_t>> orig_intervals) {
-  std::sort(orig_intervals.begin(), orig_intervals.end());
-  std::vector<std::pair<time_t, time_t>> compressed;
+std::vector<bikesharing_info::availability> compress_intervals(
+    std::vector<bikesharing_info::availability> orig_intervals) {
+  std::sort(orig_intervals.begin(), orig_intervals.end(), [](auto const& a,
+                                                             auto const& b) {
+    return std::make_pair(a.from_, a.to_) < std::make_pair(b.from_, b.to_);
+  });
+  std::vector<bikesharing_info::availability> compressed;
   for (auto const& i : orig_intervals) {
-    if (!compressed.empty() && (i.first - compressed.back().second) <= 60) {
-      compressed.back().second = i.second;
+    if (!compressed.empty() && i.rating_ == compressed.back().rating_ &&
+        (i.from_ - compressed.back().to_) <= 60) {
+      compressed.back().to_ = i.to_;
     } else {
       compressed.push_back(i);
     }
@@ -45,12 +49,14 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     if (bike_duration + walk_duration > max_duration) {
       continue;
     }
-    std::vector<std::pair<time_t, time_t>> availability_intervals;
+
+    std::vector<bikesharing_info::availability> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator.is_reliable(rating->value())) {
-        availability_intervals.emplace_back(
-            static_cast<time_t>(rating->begin()),
-            static_cast<time_t>(rating->end()));
+        availability_intervals.push_back(
+            {static_cast<time_t>(rating->begin()),
+             static_cast<time_t>(rating->end()),
+             static_cast<unsigned>(rating->value())});
       }
     }
     auto const intervals = compress_intervals(availability_intervals);
@@ -101,12 +107,14 @@ std::vector<bikesharing_info> pareto_filter(
 
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
     bool for_departure, ReliableRoutingRequest const& req,
-    unsigned const max_duration, bool const pareto_filtering_for_bikesharing) {
+    bool const reliable_only, unsigned const max_duration,
+    bool const pareto_filtering_for_bikesharing) {
   auto res = motis_call(to_bikesharing_request(
                             req, for_departure,
                             motis::bikesharing::AvailabilityAggregator_Average))
                  ->val();
-  motis::reliability::intermodal::bikesharing::average_aggregator aggregator(4);
+  motis::reliability::intermodal::bikesharing::average_aggregator aggregator(
+      reliable_only ? 4 : 0);
   using ::motis::bikesharing::BikesharingResponse;
   auto const all = detail::to_bikesharing_infos(
       *motis_content(BikesharingResponse, res)->edges(), aggregator,

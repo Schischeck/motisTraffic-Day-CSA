@@ -70,19 +70,21 @@ mode_type individual_modes_container::get_mumo_type(int const id) const {
 }
 
 void individual_modes_container::init_bikesharing(
-    ReliableRoutingRequest const& req, unsigned const max_duration,
-    bool const pareto_filtering_for_bikesharing) {
+    ReliableRoutingRequest const& req, bool const reliable_only,
+    unsigned const max_duration, bool const pareto_filtering_for_bikesharing) {
   using namespace motis::reliability::intermodal::bikesharing;
   if (req.dep_is_intermodal()) {
-    auto infos = retrieve_bikesharing_infos(true, req, max_duration,
-                                            pareto_filtering_for_bikesharing);
+    auto infos =
+        retrieve_bikesharing_infos(true, req, reliable_only, max_duration,
+                                   pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
       bikesharing_at_start_.emplace_back(next_id(), std::move(info));
     }
   }
   if (req.arr_is_intermodal()) {
-    auto infos = retrieve_bikesharing_infos(false, req, max_duration,
-                                            pareto_filtering_for_bikesharing);
+    auto infos =
+        retrieve_bikesharing_infos(false, req, reliable_only, max_duration,
+                                   pareto_filtering_for_bikesharing);
     for (auto& info : infos) {
       bikesharing_at_destination_.emplace_back(next_id(), std::move(info));
     }
