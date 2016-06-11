@@ -134,22 +134,11 @@ struct bikesharing_search::impl {
       AvailabilityAggregator aggr) const {
     std::vector<availability_bucket> availability;
     for (auto t = begin; t < end; t += kSecondsPerHour) {
-      double val = get_availability(term->availability()->Get(bucket++), aggr);
+      double val = bikesharing::get_availability(
+          term->availability()->Get(bucket++), aggr);
       availability.push_back({t, t + kSecondsPerHour, val});
     }
     return availability;
-  }
-
-  double get_availability(Availability const* a,
-                          AvailabilityAggregator aggr) const {
-    switch (aggr) {
-      case AvailabilityAggregator_Average: return a->average();
-      case AvailabilityAggregator_Median: return a->median();
-      case AvailabilityAggregator_Minimum: return a->minimum();
-      case AvailabilityAggregator_Quantile90: return a->q90();
-      case AvailabilityAggregator_PercentReliable: return a->percent_reliable();
-      default: return 0.0;
-    }
   }
 
   Offset<Vector<Offset<BikesharingEdge>>> serialize_edges(

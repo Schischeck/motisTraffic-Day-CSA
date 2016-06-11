@@ -18,7 +18,7 @@ struct geo_index::impl {
     for (size_t i = 0; i < locations->size(); ++i) {
       auto location = locations->Get(i);
       rtree_values.push_back(
-          std::make_pair(spherical_point(location->lat(), location->lng()), i));
+          std::make_pair(spherical_point(location->lng(), location->lat()), i));
       terminal_ids_.push_back(location->id()->str());
     }
     rtree_ = quadratic_rtree{rtree_values};
@@ -35,7 +35,7 @@ struct geo_index::impl {
             }),
         boost::make_function_output_iterator([this, &loc, &vec](auto&& result) {
           vec.emplace_back(terminal_ids_[result.second],
-                        distance_in_m(result.first, loc));
+                           distance_in_m(result.first, loc));
         }));
     return vec;
   };

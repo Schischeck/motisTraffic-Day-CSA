@@ -8,7 +8,7 @@ namespace motis {
 namespace bikesharing {
 
 struct bikesharing_search {
-  explicit bikesharing_search(database const&, geo_index const&);
+  bikesharing_search(database const&, geo_index const&);
   ~bikesharing_search();
 
   module::msg_ptr find_connections(BikesharingRequest const*) const;

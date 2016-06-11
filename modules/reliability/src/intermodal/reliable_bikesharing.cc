@@ -164,7 +164,7 @@ module::msg_ptr to_bikesharing_request(
                                 : motis::bikesharing::Type_Arrival,
           &pos, &window, aggregator)
           .Union(),
-      "/bikesharing");
+      "/bikesharing/search");
   return module::make_msg(fb);
 }
 
