@@ -57,7 +57,7 @@ struct snapshot_merger {
   std::map<std::string, hourly_buckets> distributions_;
 };
 
-struct Availability;
+struct Availability;  // NOLINT
 double get_availability(Availability const*, AvailabilityAggregator);
 
 }  // namespace bikesharing

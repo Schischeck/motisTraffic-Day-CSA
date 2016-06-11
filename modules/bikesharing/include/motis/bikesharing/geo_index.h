@@ -11,7 +11,7 @@ namespace bikesharing {
 
 struct close_terminal {
   close_terminal(std::string id, double distance)
-      : id_(std::move(id)), distance_(distance){};
+      : id_(std::move(id)), distance_(distance) {}
 
   std::string id_;
   double distance_;
