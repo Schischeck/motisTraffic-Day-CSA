@@ -111,7 +111,7 @@ TEST_F(reliability_bikesharing, pareto_filter) {
   ASSERT_EQ(20, filtered[3].walk_duration_);
 }
 
-TEST_F(reliability_bikesharing, retrieve_bikesharing_infos) {
+TEST_F(reliability_bikesharing, DISABLED_retrieve_bikesharing_infos) {
   auto aggregator = std::make_shared<average_aggregator>(4);
   auto res_dep = call(to_bikesharing_request(true, 49.8776114, 8.6571044,
                                              1454602500, /* Thu, 04 Feb 2016
@@ -333,7 +333,7 @@ void test_journey2(journey const& j) {
 }
 
 /* Test a query interval larger than the availability interval */
-TEST_F(reliability_bikesharing_routing, large_interval) {
+TEST_F(reliability_bikesharing_routing, DISABLED_large_interval) {
   ::motis::reliability::flatbuffers::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
@@ -633,7 +633,7 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
             j.transports_[0].mumo_type_);
 }
 
-TEST_F(reliability_bikesharing_routing, unreliable_bike) {
+TEST_F(reliability_bikesharing_routing, DISABLED_unreliable_bike) {
   ::motis::reliability::flatbuffers::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm

@@ -27,7 +27,7 @@ public:
                          "modules/reliability/resources/nextbike_cg") {}
 };
 
-TEST_F(reliability_bikesharing_cg, cg) {
+TEST_F(reliability_bikesharing_cg, DISABLED_cg) {
   ::motis::reliability::flatbuffers::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
