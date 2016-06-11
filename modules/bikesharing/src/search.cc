@@ -55,7 +55,7 @@ struct bikesharing_search::impl {
 
     std::multimap<std::string, bike_edge> departures;
     foreach_terminal_in_walk_dist(
-        req->position()->lng(), req->position()->lat(),
+        req->position()->lat(), req->position()->lng(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& from_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *from_t->get()->reachable()) {
@@ -89,7 +89,7 @@ struct bikesharing_search::impl {
 
     std::multimap<std::string, bike_edge> arrivals;
     foreach_terminal_in_walk_dist(
-        req->position()->lng(), req->position()->lat(),
+        req->position()->lat(), req->position()->lng(),
         [&, this](std::string const& id, int walk_dur) {
           auto const& to_t = load_terminal(ctx, id);
           for (auto const& reachable_t : *to_t->get()->reachable()) {
