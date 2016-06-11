@@ -251,10 +251,6 @@ void update_precomputed_distributions(
           queue.push({n, n_l.first, n_l.second});
         }
       } catch (...) {
-        LOG(logging::warn) << "Could not find trip for shifted node st="
-                           << shifted_node->station_id()->str()
-                           << " tr=" << shifted_node->trip()->train_nr()
-                           << " sched=" << shifted_node->schedule_time();
         ++stat.trip_not_found_;
       }
     }
