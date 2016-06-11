@@ -18,7 +18,8 @@ namespace realtime {
 namespace graph_access {
 
 inline ev_key get_ev_key(schedule const& sched, edge const* re,
-                         uint32_t const train_nr, uint32_t const family,
+                         uint32_t const train_nr,
+                         std::vector<uint32_t> const& family,
                          std::string const& line_identifier,
                          motis::event_type const ev_type,
                          time const sched_time) {
@@ -27,7 +28,9 @@ inline ev_key get_ev_key(schedule const& sched, edge const* re,
     auto const& lc = lcons[lcon_idx];
     auto const& con_info = *lc.full_con_->con_info_;
     auto const k = ev_key{re, lcon_idx, ev_type};
-    if (con_info.family_ == family && con_info.train_nr_ == train_nr &&
+    bool const family_found = std::find(family.begin(), family.end(),
+                                        con_info.family_) != family.end();
+    if (family_found && con_info.train_nr_ == train_nr &&
         con_info.line_identifier_ == line_identifier &&
         get_schedule_time(sched, k) == sched_time) {
       return k;
@@ -37,7 +40,7 @@ inline ev_key get_ev_key(schedule const& sched, edge const* re,
 }
 
 inline ev_key get_ev_key(schedule const& sched, uint32_t const train_nr,
-                         uint32_t const family,
+                         std::vector<uint32_t> const& family,
                          std::string const& line_identifier,
                          station_node const* station,
                          motis::event_type const ev_type,
@@ -78,24 +81,42 @@ inline ev_key get_ev_key(schedule const& sched, uint32_t const train_nr,
   return ev_key();
 }
 
+std::vector<uint32_t> find_family(
+    std::vector<std::unique_ptr<category>> const& categories,
+    std::string const& category_name) {
+  auto to_lower = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  };
+  std::vector<uint32_t> family;
+  auto const c = to_lower(category_name);
+  for (uint32_t f = 0; f < categories.size(); ++f) {
+    if (to_lower(categories[f]->name_) == c) {
+      family.push_back(f);
+    }
+  }
+  return family;
+}
+
 auto get_node_and_light_connection(
     distributions_container::container::key const& key, schedule const& sched) {
-  auto const family =
-      graph_accessor::find_family(sched.categories_, key.category_);
-  if (!family.first) {
+  auto const family = find_family(sched.categories_, key.category_);
+  if (family.empty()) {
     throw std::system_error(error::failure);
   }
   auto ev =
-      get_ev_key(sched, key.train_id_, family.second, key.line_identifier_,
+      get_ev_key(sched, key.train_id_, family, key.line_identifier_,
                  sched.station_nodes_.at(key.station_index_).get(),
                  (key.type_ == time_util::departure ? motis::event_type::DEP
                                                     : motis::event_type::ARR),
                  key.scheduled_event_time_);
+  if (!ev.valid()) {
+    throw std::system_error(error::failure);
+  }
   auto const* route_node = key.type_ == time_util::departure
                                ? ev.route_edge_->from_
                                : ev.route_edge_->to_;
   auto const* lc = &ev.route_edge_->m_.route_edge_.conns_[ev.lcon_idx_];
-
   return std::make_pair(route_node, lc);
 }
 }  // namespace graph_access

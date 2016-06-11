@@ -133,7 +133,7 @@ private:
 };
 
 inline container::key to_container_key(light_connection const& lc,
-                                       unsigned int const station_idx,
+                                       unsigned const station_idx,
                                        time_util::event_type const type,
                                        motis::time const scheduled_event_time,
                                        schedule const& sched) {

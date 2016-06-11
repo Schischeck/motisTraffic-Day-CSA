@@ -34,6 +34,46 @@ struct lc_not_found_exception : std::exception {
 
 namespace detail {
 
+struct stat {
+  stat()
+      : num_processed_(0),
+        significant_(0),
+        not_significant_(0),
+        already_updated_(0),
+        errors_(0),
+        shifted_nodes_(0),
+        trip_not_found_(0),
+        graph_event_not_found_(0),
+        invalid_lc_(0) {}
+
+  void print(std::ostream& os) {
+    auto to_percent = [](unsigned int c, unsigned int total) -> double {
+      return ((c * 100.0) / static_cast<double>(total));
+    };
+    auto p = [&](unsigned int c) -> double {
+      return to_percent(c, num_processed_);
+    };
+    os << "\nDistributions updated\n"
+       << std::setw(10) << num_processed_ << " elements added to the queue\n";
+    if (num_processed_ > 0) {
+      os << std::fixed << std::setprecision(1) << std::setw(9)
+         << p(significant_) << "% significant updates\n"
+         << std::setw(9) << p(not_significant_) << "% not significant updates\n"
+         << std::setw(9) << p(already_updated_) << "% already updated\n"
+         << std::setw(9) << p(invalid_lc_) << "% invalid light-conn\n"
+         << std::setw(10) << errors_ << " errors\n"
+         << std::setw(10) << shifted_nodes_ << " shifted nodes\n"
+         << std::setw(10) << trip_not_found_ << " trips not found\n"
+         << std::setw(10) << graph_event_not_found_
+         << " graph-events not found\n";
+    }
+  }
+
+  uint64_t num_processed_, significant_, not_significant_, already_updated_,
+      errors_, shifted_nodes_, trip_not_found_, graph_event_not_found_,
+      invalid_lc_;
+};
+
 bool is_significant_update(probability_distribution const& before,
                            probability_distribution const& after) {
   int const first_min = std::min(before.first_minute(), after.first_minute());
@@ -72,15 +112,10 @@ using queue_type =
     std::priority_queue<queue_element, std::vector<queue_element>,
                         queue_element_cmp>;
 
-unsigned int num_processed = 0;
-unsigned int significant = 0;
-unsigned int not_significant = 0;
-unsigned int already_updated = 0;
-unsigned int errors = 0;
 void process_element(queue_type& queue,
                      std::set<distributions_container::container::node const*>&
                          currently_processed,
-                     context const& c) {
+                     context const& c, detail::stat& stat) {
   auto const element = queue.top();
   queue.pop();
 
@@ -90,7 +125,12 @@ void process_element(queue_type& queue,
           element.node_->key_.scheduled_event_time_) {
     currently_processed.clear();
   } else if (!currently_processed.insert(element.node_).second) {
-    ++already_updated;
+    ++stat.already_updated_;
+    return;
+  }
+
+  if (element.lc_->valid_ == 0) {
+    ++stat.invalid_lc_;
     return;
   }
 
@@ -117,14 +157,18 @@ void process_element(queue_type& queue,
     auto const& successors = element.node_->successors_;
     std::for_each(successors.begin(), successors.end(),
                   [&](distributions_container::container::node* n) {
-                    auto const n_l =
-                        graph_access::get_node_and_light_connection(
-                            n->key_, c.schedule_);
-                    queue.push({n, n_l.first, n_l.second});
+                    try {
+                      auto const n_l =
+                          graph_access::get_node_and_light_connection(
+                              n->key_, c.schedule_);
+                      queue.push({n, n_l.first, n_l.second});
+                    } catch (...) {
+                      ++stat.graph_event_not_found_;
+                    }
                   });
-    ++significant;
+    ++stat.significant_;
   } else {
-    ++not_significant;
+    ++stat.not_significant_;
   }
 }
 
@@ -188,17 +232,14 @@ void update_precomputed_distributions(
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::container& precomputed_distributions) {
   logging::scoped_timer time("updating distributions");
-  detail::num_processed = 0;
-  detail::significant = 0;
-  detail::not_significant = 0;
-  detail::already_updated = 0;
-  detail::errors = 0;
+  detail::stat stat;
 
   /* add all events with updates to the queue */
   detail::queue_type queue;
   std::set<distributions_container::container::node const*> currently_processed;
   for (auto const& shifted_node : *res.shifted_nodes()) {
     if (shifted_node->reason() == TimestampReason_IS) {
+      ++stat.shifted_nodes_;
       try {
         auto const& trip = *get_trip(sched, shifted_node->trip());
         auto const n_l =
@@ -214,36 +255,27 @@ void update_precomputed_distributions(
                            << shifted_node->station_id()->str()
                            << " tr=" << shifted_node->trip()->train_nr()
                            << " sched=" << shifted_node->schedule_time();
+        ++stat.trip_not_found_;
       }
     }
   }
+
+  LOG(logging::info) << "Process queue";
 
   /* process all events in the queue
    * (each event adds event that depend on it into the queue) */
   context const c(sched, precomputed_distributions, s_t_distributions);
   while (!queue.empty()) {
+    ++stat.num_processed_;
     try {
-      detail::process_element(queue, currently_processed, c);
+      detail::process_element(queue, currently_processed, c, stat);
     } catch (std::exception& e) {
       LOG(logging::error) << e.what() << std::endl;
+      ++stat.errors_;
     }
-    ++detail::num_processed;
   }
 
-  /* print statistics */
-  auto to_percent = [&](unsigned int c) -> double {
-    return ((c * 100.0) / static_cast<double>(detail::num_processed));
-  };
-  std::stringstream sst;
-  sst << "Queue contained " << detail::num_processed << " elements";
-  if (detail::num_processed > 0) {
-    sst << "(" << std::fixed << std::setprecision(1)
-        << to_percent(detail::significant) << "% significant updates, "
-        << to_percent(detail::not_significant) << "% not significant updates, "
-        << to_percent(detail::already_updated) << "% already updated, "
-        << to_percent(detail::errors) << "% errors)";
-  }
-  LOG(logging::info) << sst.str();
+  stat.print(LOG(logging::info));
 }
 
 }  // namespace realtime
