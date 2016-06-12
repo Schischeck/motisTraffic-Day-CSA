@@ -94,9 +94,10 @@ void individual_modes_container::init_bikesharing(
 uint16_t foot_duration(double const& lat1, double const& lon1,
                        double const& lat2, double const& lon2) {
   constexpr unsigned sec_per_min = 60;
-  return static_cast<uint16_t>(
-      (geo_detail::distance_in_m(lat1, lon1, lat2, lon2) / WALK_SPEED) /
-      sec_per_min);
+  auto const dist =
+      geo_detail::distance_in_m(lat1, lon1, lat2, lon2) * LINEAR_DIST_APPROX;
+  auto const dur_in_sec = dist / WALK_SPEED;
+  return static_cast<uint16_t>(dur_in_sec / sec_per_min);
 }
 
 void individual_modes_container::init_walks(ReliableRoutingRequest const& req) {

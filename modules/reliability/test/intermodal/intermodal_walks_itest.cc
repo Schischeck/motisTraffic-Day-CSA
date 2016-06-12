@@ -48,7 +48,7 @@ TEST_F(reliability_intermodal_walks, walk_at_begin) {
     ASSERT_EQ(3, j.transports_.size());
     ASSERT_TRUE(j.transports_[0].is_walk_);
     ASSERT_EQ("Walk", j.transports_[0].mumo_type_);
-    ASSERT_EQ(3, j.transports_[0].duration_);
+    ASSERT_EQ(4, j.transports_[0].duration_);
     ASSERT_EQ("Bikesharing", j.transports_[2].mumo_type_);
   }
 
@@ -86,7 +86,7 @@ TEST_F(reliability_intermodal_walks, walk_at_end) {
   ASSERT_TRUE(j.transports_[0].is_walk_);
   ASSERT_EQ("Bikesharing", j.transports_[0].mumo_type_);
   ASSERT_EQ("Walk", j.transports_[2].mumo_type_);
-  ASSERT_EQ(4, j.transports_[2].duration_);
+  ASSERT_EQ(6, j.transports_[2].duration_);
 
   ASSERT_EQ(1, res->additional_infos()->size());
   auto const info = (*res->additional_infos())[0];
