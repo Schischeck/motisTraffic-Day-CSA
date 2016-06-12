@@ -256,8 +256,6 @@ void update_precomputed_distributions(
     }
   }
 
-  LOG(logging::info) << "Process queue";
-
   /* process all events in the queue
    * (each event adds event that depend on it into the queue) */
   context const c(sched, precomputed_distributions, s_t_distributions);
