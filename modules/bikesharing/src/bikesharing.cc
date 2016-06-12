@@ -11,13 +11,10 @@
 #include "motis/core/common/logging.h"
 #include "motis/bikesharing/database.h"
 #include "motis/bikesharing/error.h"
+#include "motis/bikesharing/find_connections.h"
 #include "motis/bikesharing/geo_index.h"
 #include "motis/bikesharing/geo_terminals.h"
 #include "motis/bikesharing/nextbike_initializer.h"
-#include "motis/bikesharing/search.h"
-
-#define DATABASE_PATH "bikesharing.database_path"
-#define NEXTBIKE_PATH "bikesharing.nextbike_path"
 
 using namespace flatbuffers;
 using namespace motis::logging;
@@ -34,6 +31,8 @@ bikesharing::bikesharing() : module("Bikesharing Options", "bikesharing") {
   string_param(nextbike_path_, "", "nextbike_path",
                "Where nextbike snapshots can be found (folder or single file)");
 }
+
+bikesharing::~bikesharing() = default;
 
 void bikesharing::init(motis::module::registry& reg) {
   reg.subscribe("/init", std::bind(&bikesharing::init_module, this, p::_1));
@@ -57,7 +56,6 @@ msg_ptr bikesharing::init_module(msg_ptr const&) {
 
     if (database_->is_initialized()) {
       geo_index_ = std::make_unique<geo_index>(*database_);
-      search_ = std::make_unique<bikesharing_search>(*database_, *geo_index_);
     }
   }
   return nullptr;
@@ -67,7 +65,8 @@ msg_ptr bikesharing::search(msg_ptr const& req) const {
   ensure_initialized();
 
   using motis::bikesharing::BikesharingRequest;
-  return search_->find_connections(motis_content(BikesharingRequest, req));
+  return motis::bikesharing::find_connections(
+      *database_, *geo_index_, motis_content(BikesharingRequest, req));
 }
 
 msg_ptr bikesharing::geo_terminals(msg_ptr const& req) const {
@@ -80,7 +79,7 @@ msg_ptr bikesharing::geo_terminals(msg_ptr const& req) const {
 }
 
 void bikesharing::ensure_initialized() const {
-  if (!database_ || !search_ || !geo_index_) {
+  if (!database_ || !geo_index_) {
     throw std::system_error(error::not_initialized);
   }
 }

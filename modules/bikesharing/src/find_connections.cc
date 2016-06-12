@@ -1,4 +1,4 @@
-#include "motis/bikesharing/search.h"
+#include "motis/bikesharing/find_connections.h"
 
 #include <vector>
 
@@ -15,7 +15,7 @@ namespace bikesharing {
 constexpr uint64_t kSecondsPerHour = 3600;
 
 using availability_bucket = BikesharingAvailability;
-struct bikesharing_search::impl {
+struct search_impl {
   struct bike_edge {
     int walk_duration_;
     int bike_duration_;
@@ -27,27 +27,21 @@ struct bikesharing_search::impl {
     std::string eva_nr_;
   };
 
-  struct context {
-    message_creator b_;
-    std::map<std::string, std::unique_ptr<persistable_terminal>> terminals_;
-    std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets_;
-  };
-
-  explicit impl(database const& db, geo_index const& geo_index)
+  search_impl(database const& db, geo_index const& geo_index)
       : db_(db), geo_index_(geo_index) {}
 
-  msg_ptr find_connections(BikesharingRequest const* req) const {
-    context ctx;
+  msg_ptr find_connections(BikesharingRequest const* req) {
     auto const edges = req->type() == Type::Type_Departure
-                           ? find_departures(ctx, req)
-                           : find_arrivals(ctx, req);
-    ctx.b_.create_and_finish(MsgContent_BikesharingResponse,
-                             CreateBikesharingResponse(ctx.b_, edges).Union());
-    return make_msg(ctx.b_);
+                           ? find_departures(req)
+                           : find_arrivals(req);
+    mc_.create_and_finish(MsgContent_BikesharingResponse,
+                          CreateBikesharingResponse(mc_, edges).Union());
+    return make_msg(mc_);
   }
 
+private:
   Offset<Vector<Offset<BikesharingEdge>>> find_departures(
-      context& ctx, BikesharingRequest const* req) const {
+      BikesharingRequest const* req) {
     auto begin =
         req->interval()->begin() - req->interval()->begin() % kSecondsPerHour;
     auto end = req->interval()->end();
@@ -57,9 +51,9 @@ struct bikesharing_search::impl {
     foreach_terminal_in_walk_dist(
         req->position()->lat(), req->position()->lng(),
         [&, this](std::string const& id, int walk_dur) {
-          auto const& from_t = load_terminal(ctx, id);
+          auto const& from_t = load_terminal(id);
           for (auto const& reachable_t : *from_t->get()->reachable()) {
-            auto to_t = load_terminal(ctx, reachable_t->id()->str());
+            auto to_t = load_terminal(reachable_t->id()->str());
 
             for (auto const& station : *to_t->get()->attached()) {
               // TODO ajdust begin and end with walk_dur
@@ -77,11 +71,11 @@ struct bikesharing_search::impl {
           }
         });
 
-    return serialize_edges(ctx, departures);
+    return serialize_edges(departures);
   }
 
   Offset<Vector<Offset<BikesharingEdge>>> find_arrivals(
-      context& ctx, BikesharingRequest const* req) const {
+      BikesharingRequest const* req) {
     auto begin =
         req->interval()->begin() - req->interval()->begin() % kSecondsPerHour;
     auto end = req->interval()->end() + MAX_TRAVEL_TIME_SECONDS;
@@ -91,9 +85,9 @@ struct bikesharing_search::impl {
     foreach_terminal_in_walk_dist(
         req->position()->lat(), req->position()->lng(),
         [&, this](std::string const& id, int walk_dur) {
-          auto const& to_t = load_terminal(ctx, id);
+          auto const& to_t = load_terminal(id);
           for (auto const& reachable_t : *to_t->get()->reachable()) {
-            auto from_t = load_terminal(ctx, reachable_t->id()->str());
+            auto from_t = load_terminal(reachable_t->id()->str());
 
             for (auto const& station : *from_t->get()->attached()) {
               auto availability =
@@ -110,7 +104,7 @@ struct bikesharing_search::impl {
           }
         });
 
-    return serialize_edges(ctx, arrivals);
+    return serialize_edges(arrivals);
   }
 
   template <typename F>
@@ -120,9 +114,9 @@ struct bikesharing_search::impl {
     }
   }
 
-  persistable_terminal* load_terminal(context& c, std::string const& id) const {
+  persistable_terminal* load_terminal(std::string const& id) {
     return get_or_create(
-               c.terminals_, id,
+               terminals_, id,
                [&]() {
                  return std::make_unique<persistable_terminal>(db_.get(id));
                })
@@ -135,52 +129,52 @@ struct bikesharing_search::impl {
     std::vector<availability_bucket> availability;
     for (auto t = begin; t < end; t += kSecondsPerHour) {
       double val = bikesharing::get_availability(
-          term->availability()->Get(bucket++), aggr);
+          term->availability()->Get(bucket), aggr);
+      bucket = (bucket + 1) % kBucketCount;
       availability.push_back({t, t + kSecondsPerHour, val});
     }
     return availability;
   }
 
   Offset<Vector<Offset<BikesharingEdge>>> serialize_edges(
-      context& ctx, std::multimap<std::string, bike_edge> const& edges) const {
+      std::multimap<std::string, bike_edge> const& edges) {
     std::vector<Offset<BikesharingEdge>> stored;
     for (auto const& pair : edges) {
       auto const& edge = pair.second;
-      auto from = serialize_terminal(ctx, edge.from_);
-      auto to = serialize_terminal(ctx, edge.to_);
+      auto from = serialize_terminal(edge.from_);
+      auto to = serialize_terminal(edge.to_);
 
       stored.push_back(CreateBikesharingEdge(
-          ctx.b_, from, to, ctx.b_.CreateVectorOfStructs(edge.availability_),
-          ctx.b_.CreateString(edge.eva_nr_), edge.walk_duration_,
+          mc_, from, to, mc_.CreateVectorOfStructs(edge.availability_),
+          mc_.CreateString(edge.eva_nr_), edge.walk_duration_,
           edge.bike_duration_));
     }
-    return ctx.b_.CreateVector(stored);
+    return mc_.CreateVector(stored);
   }
 
   Offset<BikesharingTerminal> serialize_terminal(
-      context& ctx, persistable_terminal* terminal) const {
+      persistable_terminal* terminal) {
     auto const* t = terminal->get();
-    return get_or_create(ctx.terminal_offsets_, t->id()->str(), [&]() {
+    return get_or_create(terminal_offsets_, t->id()->str(), [&]() {
       motis::Position pos(t->lat(), t->lng());
-      return CreateBikesharingTerminal(
-          ctx.b_, ctx.b_.CreateString(t->id()->str()),
-          ctx.b_.CreateString(t->name()->str()), &pos);
+      return CreateBikesharingTerminal(mc_, mc_.CreateString(t->id()->str()),
+                                       mc_.CreateString(t->name()->str()),
+                                       &pos);
     });
   }
 
   database const& db_;
   geo_index const& geo_index_;
+
+  message_creator mc_;
+  std::map<std::string, std::unique_ptr<persistable_terminal>> terminals_;
+  std::map<std::string, Offset<BikesharingTerminal>> terminal_offsets_;
 };
 
-bikesharing_search::bikesharing_search(database const& db,
-                                       geo_index const& geo_index)
-    : impl_(new impl(db, geo_index)) {}
-
-bikesharing_search::~bikesharing_search() = default;
-
-msg_ptr bikesharing_search::find_connections(
-    BikesharingRequest const* req) const {
-  return impl_->find_connections(req);
+msg_ptr find_connections(database const& db, geo_index const& index,
+                         BikesharingRequest const* req) {
+  search_impl impl(db, index);
+  return impl.find_connections(req);
 }
 
 }  // namespace bikesharing

@@ -10,11 +10,10 @@ namespace bikesharing {
 
 struct database;
 struct geo_index;
-struct bikesharing_lookup;
-struct bikesharing_search;
 
 struct bikesharing : public motis::module::module {
   bikesharing();
+  ~bikesharing();
 
   std::string name() const override { return "bikesharing"; }
   void init(motis::module::registry&) override;
@@ -31,7 +30,6 @@ private:
 
   std::unique_ptr<database> database_;
   std::unique_ptr<geo_index> geo_index_;
-  std::unique_ptr<bikesharing_search> search_;
 };
 
 }  // namespace bikesharing

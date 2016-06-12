@@ -12,7 +12,7 @@ namespace bikesharing {
 struct geo_index::impl {
   explicit impl(database const& db) {
     auto summary = db.get_summary();
-    auto locations = summary.get()->terminals();
+    auto const& locations = summary.get()->terminals();
 
     std::vector<value> rtree_values;
     for (size_t i = 0; i < locations->size(); ++i) {
