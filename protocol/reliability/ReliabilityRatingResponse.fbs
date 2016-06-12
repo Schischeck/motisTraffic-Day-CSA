@@ -41,7 +41,9 @@ table Rating {
 
 table BikeInfo {
   valid:bool;
+  from_id:string;
   from:motis.Position;
+  to_id:string;
   to:motis.Position;
   rating:ushort;
 }

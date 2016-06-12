@@ -62,9 +62,11 @@ std::vector<bikesharing_info> const to_bikesharing_infos(
     auto const intervals = compress_intervals(availability_intervals);
     if (!intervals.empty()) {
       infos.push_back({bike_duration, walk_duration, edge->station_id()->str(),
-                       bikesharing_info::terminal{edge->from()->pos()->lat(),
+                       bikesharing_info::terminal{edge->from()->id()->str(),
+                                                  edge->from()->pos()->lat(),
                                                   edge->from()->pos()->lng()},
-                       bikesharing_info::terminal{edge->to()->pos()->lat(),
+                       bikesharing_info::terminal{edge->to()->id()->str(),
+                                                  edge->to()->pos()->lat(),
                                                   edge->to()->pos()->lng()},
                        intervals});
     }
@@ -164,7 +166,7 @@ module::msg_ptr to_bikesharing_request(
                                 : motis::bikesharing::Type_Arrival,
           &pos, &window, aggregator)
           .Union(),
-      "/bikesharing");
+      "/bikesharing/search");
   return module::make_msg(fb);
 }
 
