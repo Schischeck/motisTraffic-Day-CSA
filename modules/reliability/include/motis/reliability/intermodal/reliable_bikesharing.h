@@ -45,6 +45,7 @@ struct bikesharing_info {
   unsigned int bike_duration_, walk_duration_;
   std::string station_eva_;
   struct terminal {
+    std::string id_;
     double lat_, lng_;
   } from_, to_;
   /* right-open intervals */

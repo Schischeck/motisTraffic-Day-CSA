@@ -84,8 +84,8 @@ TEST_F(reliability_bikesharing, pareto_filter) {
     all.push_back({bike,
                    walk,
                    station,
-                   bikesharing_info::terminal{0.0, 0.0},
-                   bikesharing_info::terminal{0.0, 0.0},
+                   bikesharing_info::terminal{"a", 0.0, 0.0},
+                   bikesharing_info::terminal{"b", 0.0, 0.0},
                    {}});
   };
   b(80, 20, "A");

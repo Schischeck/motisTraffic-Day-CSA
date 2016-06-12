@@ -173,8 +173,8 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
     };
     auto from = Position(infos.from_.lat_, infos.from_.lng_);
     auto to = Position(infos.to_.lat_, infos.to_.lng_);
-    return CreateBikeInfo(b, valid, &from, &to, rel());
-
+    return CreateBikeInfo(b, valid, b.CreateString(infos.from_.id_), &from,
+                          b.CreateString(infos.to_.id_), &to, rel());
   };
 
   if (!bikesharings.empty() && bikesharings.size() != journeys.size()) {
