@@ -57,7 +57,10 @@ void update_address_info(
       std::set<uint16_t> arriving_journeys;
       for (auto& s : cg->stops_) {
         for (auto& a : s.alternative_infos_) {
-          arriving_journeys.insert(a.journey_index_);
+          if (a.next_stop_index_ ==
+              connection_graph::stop::INDEX_ARRIVAL_STOP) {
+            arriving_journeys.insert(a.journey_index_);
+          }
         }
       }
       for (auto idx : arriving_journeys) {
