@@ -31,7 +31,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
     stop.lng_ = station.lng();
 
     journey::stop::event_info arr{false, INVALID_TIME, INVALID_TIME,
-                                  delay_info::reason::SCHEDULE, ""};
+                                  timestamp_reason::SCHEDULE, ""};
     arr.valid_ = s.has_arrival();
     if (arr.valid_) {
       auto lcon = s.arr_lcon();
@@ -40,13 +40,13 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       arr.timestamp_ = motis_to_unixtime(sched, lcon.a_time_);
       arr.schedule_timestamp_ =
           arr.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
-      arr.timestamp_reason_ = delay_info::reason::SCHEDULE;
+      arr.timestamp_reason_ = timestamp_reason::SCHEDULE;
       arr.platform_ = sched.tracks_[lcon.full_con_->a_platform_];
     }
     stop.arrival_ = arr;
 
     journey::stop::event_info dep{false, INVALID_TIME, INVALID_TIME,
-                                  delay_info::reason::SCHEDULE, ""};
+                                  timestamp_reason::SCHEDULE, ""};
     dep.valid_ = s.has_departure();
     if (dep.valid_) {
       auto lcon = s.dep_lcon();
@@ -55,7 +55,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       dep.timestamp_ = motis_to_unixtime(sched, lcon.d_time_);
       dep.schedule_timestamp_ =
           dep.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
-      dep.timestamp_reason_ = delay_info::reason::SCHEDULE;
+      dep.timestamp_reason_ = timestamp_reason::SCHEDULE;
       dep.platform_ = sched.tracks_[lcon.full_con_->d_platform_];
     }
     stop.departure_ = dep;

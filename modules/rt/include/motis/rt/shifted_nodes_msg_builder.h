@@ -15,6 +15,7 @@ struct shifted_nodes_msg_builder {
   void add_shifted_node(delay_info const& di);
   motis::module::msg_ptr finish();
   bool empty() const;
+  std::size_t size() const;
 
 private:
   schedule const& sched_;

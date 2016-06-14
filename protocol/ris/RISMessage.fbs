@@ -1,9 +1,10 @@
+include "base/EventType.fbs";
+
 namespace motis.ris;
 
 // ----------------------------------------------------------------------------
 // Common
 // ----------------------------------------------------------------------------
-enum EventType : byte {Arrival, Departure}
 table Event {
   station_id:string;
   service_num:uint;

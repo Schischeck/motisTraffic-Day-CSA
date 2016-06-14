@@ -10,23 +10,13 @@
 
 namespace motis {
 
-delay_info::reason convert_reason(TimestampReason const r) {
-  switch (r) {
-    case TimestampReason_SCHEDULE: return delay_info::reason::SCHEDULE;
-    case TimestampReason_PROPAGATION: return delay_info::reason::PROPAGATION;
-    case TimestampReason_IS: return delay_info::reason::IS;
-    case TimestampReason_FORECAST: return delay_info::reason::FORECAST;
-    default: return delay_info::reason::SCHEDULE;
-  }
-}
-
 journey::stop::event_info to_event_info(EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
   e.platform_ = event.platform()->c_str();
   e.timestamp_ = event.time();
   e.schedule_timestamp_ = event.schedule_time();
-  e.timestamp_reason_ = convert_reason(event.reason());
+  e.timestamp_reason_ = from_fbs(event.reason());
   e.valid_ = valid;
   return e;
 }

@@ -6,6 +6,7 @@
 
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/attribute.h"
+#include "motis/core/schedule/event_type.h"
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip_idx.h"
@@ -118,6 +119,10 @@ struct light_connection {
         a_time_(a_time),
         trips_(trips),
         valid_(true) {}
+
+  time event_time(event_type const t) const {
+    return t == event_type::DEP ? d_time_ : a_time_;
+  }
 
   unsigned travel_time() const { return a_time_ - d_time_; }
 

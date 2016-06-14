@@ -1,6 +1,6 @@
-namespace motis;
+include "base/EventType.fbs";
 
-enum EventType : byte {Arrival, Departure}
+namespace motis;
 
 table TripId {
   // primary

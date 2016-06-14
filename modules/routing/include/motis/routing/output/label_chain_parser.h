@@ -102,8 +102,8 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         int d_platform = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
         time d_time = INVALID_TIME, d_sched_time = INVALID_TIME;
-        delay_info::reason a_reason = walk_arrival_di.get_reason(),
-                           d_reason = delay_info::reason::SCHEDULE;
+        timestamp_reason a_reason = walk_arrival_di.get_reason(),
+                         d_reason = timestamp_reason::SCHEDULE;
         if (a_time == INVALID_TIME && last_con != nullptr) {
           a_platform = last_con->full_con_->a_platform_;
           a_time = last_con->a_time_;

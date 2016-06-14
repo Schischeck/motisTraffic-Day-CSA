@@ -25,7 +25,7 @@ struct delay_propagator {
 
   hash_map<ev_key, delay_info*> const& events() const { return events_; }
 
-  void add_delay(ev_key const& k, delay_info::reason const reason,
+  void add_delay(ev_key const& k, timestamp_reason const reason,
                  time const updated_time) {
     auto di = get_or_create_di(k);
     if (di->set(reason, updated_time)) {
@@ -82,7 +82,7 @@ private:
         auto const arr_sched_time = di->get_schedule_time();
         auto const duration = arr_sched_time - dep_sched_time;
         auto const propagated = dep_di->get_current_time() + duration;
-        return di->set(delay_info::reason::PROPAGATION, propagated);
+        return di->set(timestamp_reason::PROPAGATION, propagated);
       }
 
       case event_type::DEP: {
@@ -98,7 +98,7 @@ private:
           max = std::max(max, arr_curr_time + min_standing);
         });
 
-        return di->set(delay_info::reason::PROPAGATION, max);
+        return di->set(timestamp_reason::PROPAGATION, max);
       }
 
       default: return false;
