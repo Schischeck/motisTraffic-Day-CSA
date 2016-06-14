@@ -1,7 +1,7 @@
 include "Service.fbs";
 include "Station.fbs";
 include "Route.fbs";
-include "Platform.fbs";
+include "Track.fbs";
 include "Attribute.fbs";
 include "Interval.fbs";
 include "Footpath.fbs";

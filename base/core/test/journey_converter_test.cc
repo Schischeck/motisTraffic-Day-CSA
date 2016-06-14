@@ -28,7 +28,7 @@ journey create_journey1() {
     stop.arrival_.valid_ = false;
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445261400;
-    stop.departure_.platform_ = "1";
+    stop.departure_.track_ = "1";
   }
   {
     auto& stop = j.stops_[1];
@@ -39,10 +39,10 @@ journey create_journey1() {
     stop.name_ = "Stop1";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445262000;
-    stop.arrival_.platform_ = "2";
+    stop.arrival_.track_ = "2";
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445262240;
-    stop.departure_.platform_ = "3";
+    stop.departure_.track_ = "3";
   }
   {
     auto& stop = j.stops_[2];
@@ -53,10 +53,10 @@ journey create_journey1() {
     stop.name_ = "Stop2";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445262900;
-    stop.arrival_.platform_ = "4";
+    stop.arrival_.track_ = "4";
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445262900;
-    stop.departure_.platform_ = "";
+    stop.departure_.track_ = "";
   }
   {
     auto& stop = j.stops_[3];
@@ -67,7 +67,7 @@ journey create_journey1() {
     stop.name_ = "Stop3";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445263200;
-    stop.arrival_.platform_ = "";
+    stop.arrival_.track_ = "";
     stop.departure_.valid_ = false;
   }
 
@@ -155,7 +155,7 @@ journey create_journey2() {
     stop.arrival_.valid_ = false;
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445328000;
-    stop.departure_.platform_ = "1";
+    stop.departure_.track_ = "1";
   }
   {
     auto& stop = j.stops_[1];
@@ -166,10 +166,10 @@ journey create_journey2() {
     stop.name_ = "Stop1";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445328900;
-    stop.arrival_.platform_ = "2";
+    stop.arrival_.track_ = "2";
     stop.departure_.valid_ = false;
     stop.departure_.timestamp_ = 0;
-    stop.departure_.platform_ = "3";
+    stop.departure_.track_ = "3";
   }
   j.transports_.resize(1);
   {
@@ -219,10 +219,10 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
       ASSERT_EQ(os.name_, js.name_);
-      ASSERT_EQ(os.arrival_.platform_, js.arrival_.platform_);
+      ASSERT_EQ(os.arrival_.track_, js.arrival_.track_);
       ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
       ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
-      ASSERT_EQ(os.departure_.platform_, js.departure_.platform_);
+      ASSERT_EQ(os.departure_.track_, js.departure_.track_);
       ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
       ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
     }

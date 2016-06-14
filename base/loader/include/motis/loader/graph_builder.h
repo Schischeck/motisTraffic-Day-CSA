@@ -193,9 +193,8 @@ struct graph_builder {
 
   int get_or_create_category_index(Category const* c);
 
-  int get_or_create_platform(
-      int day,
-      flatbuffers::Vector<flatbuffers::Offset<Platform>> const* platforms);
+  int get_or_create_track(
+      int day, flatbuffers::Vector<flatbuffers::Offset<Track>> const* tracks);
 
   void write_trip_info(route&);
 

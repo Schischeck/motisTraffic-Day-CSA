@@ -6,7 +6,7 @@ namespace motis;
 table EventInfo {
   time:ulong;
   schedule_time:ulong;
-  platform:string;
+  track:string;
   reason:TimestampReason;
 }
 

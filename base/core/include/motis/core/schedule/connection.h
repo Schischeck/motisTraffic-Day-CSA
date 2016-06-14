@@ -72,19 +72,15 @@ struct connection {
       std::size_t seed = 0;
       hash_combine(seed, c.con_info_);
       hash_combine(seed, c.price_);
-      hash_combine(seed, c.d_platform_);
-      hash_combine(seed, c.a_platform_);
+      hash_combine(seed, c.d_track_);
+      hash_combine(seed, c.a_track_);
       hash_combine(seed, c.clasz_);
       return seed;
     }
   };
 
   connection()
-      : con_info_(nullptr),
-        price_(0),
-        d_platform_(0),
-        a_platform_(0),
-        clasz_(0) {}
+      : con_info_(nullptr), price_(0), d_track_(0), a_track_(0), clasz_(0) {}
 
   bool operator==(connection const& o) const {
     return clasz_ == o.clasz_ && price_ == o.price_ && con_info_ == o.con_info_;
@@ -96,12 +92,12 @@ struct connection {
 
   std::tuple<uint8_t, uint16_t, uint16_t, uint16_t, connection_info const*>
   as_tuple() const {
-    return std::make_tuple(clasz_, d_platform_, a_platform_, price_, con_info_);
+    return std::make_tuple(clasz_, d_track_, a_track_, price_, con_info_);
   }
 
   connection_info const* con_info_;
   uint16_t price_;
-  uint16_t d_platform_, a_platform_;
+  uint16_t d_track_, a_track_;
   uint8_t clasz_;
 };
 

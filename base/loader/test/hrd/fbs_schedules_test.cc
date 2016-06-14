@@ -38,20 +38,20 @@ TEST(loader_hrd_fbs_services, repeated_service) {
   ASSERT_TRUE(deserialize_bitset<512>(service1->traffic_days()->c_str()).any());
   ASSERT_STREQ("ICE",
                service1->sections()->Get(0)->category()->name()->c_str());
-  ASSERT_TRUE(service1->platforms()->size() == 2);
-  ASSERT_TRUE(service1->platforms()->Get(0)->arr_platforms()->size() == 0);
-  ASSERT_TRUE(service1->platforms()->Get(0)->dep_platforms()->size() == 2);
+  ASSERT_TRUE(service1->tracks()->size() == 2);
+  ASSERT_TRUE(service1->tracks()->Get(0)->arr_tracks()->size() == 0);
+  ASSERT_TRUE(service1->tracks()->Get(0)->dep_tracks()->size() == 2);
   ASSERT_STREQ(
-      service1->platforms()->Get(0)->dep_platforms()->Get(0)->name()->c_str(),
+      service1->tracks()->Get(0)->dep_tracks()->Get(0)->name()->c_str(),
       "15");
   ASSERT_STREQ(
-      service1->platforms()->Get(0)->dep_platforms()->Get(1)->name()->c_str(),
+      service1->tracks()->Get(0)->dep_tracks()->Get(1)->name()->c_str(),
       "18");
-  ASSERT_TRUE(service1->platforms()->Get(1)->arr_platforms()->size() == 1);
+  ASSERT_TRUE(service1->tracks()->Get(1)->arr_tracks()->size() == 1);
   ASSERT_STREQ(
-      service1->platforms()->Get(1)->arr_platforms()->Get(0)->name()->c_str(),
+      service1->tracks()->Get(1)->arr_tracks()->Get(0)->name()->c_str(),
       "9");
-  ASSERT_TRUE(service1->platforms()->Get(1)->dep_platforms()->size() == 0);
+  ASSERT_TRUE(service1->tracks()->Get(1)->dep_tracks()->size() == 0);
 
   auto service2 = schedule->services()->Get(1);
   ASSERT_TRUE(service2->times()->Get(0) == -1);
