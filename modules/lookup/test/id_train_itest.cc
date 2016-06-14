@@ -56,12 +56,12 @@ TEST_F(lookup_id_train_test, DISABLED_id_train) {
     auto a = s->arrival();
     EXPECT_EQ(0, a->schedule_time());
     EXPECT_EQ(0, a->time());
-    EXPECT_EQ("", a->platform()->str());
+    EXPECT_EQ("", a->track()->str());
 
     auto d = s->departure();
     EXPECT_EQ(1448362440, d->schedule_time());
     EXPECT_EQ(1448362440, d->time());
-    EXPECT_EQ("23", d->platform()->str());
+    EXPECT_EQ("23", d->track()->str());
   }
   {
     auto s = stops->Get(3);
@@ -73,12 +73,12 @@ TEST_F(lookup_id_train_test, DISABLED_id_train) {
     auto a = s->arrival();
     EXPECT_EQ(1448372040, a->schedule_time());
     EXPECT_EQ(1448372040, a->time());
-    EXPECT_EQ("8", a->platform()->str());
+    EXPECT_EQ("8", a->track()->str());
 
     auto d = s->departure();
     EXPECT_EQ(1448372160, d->schedule_time());
     EXPECT_EQ(1448372220, d->time());  // +1
-    EXPECT_EQ("8", d->platform()->str());
+    EXPECT_EQ("8", d->track()->str());
   }
   {
     auto s = stops->Get(11);
@@ -90,12 +90,12 @@ TEST_F(lookup_id_train_test, DISABLED_id_train) {
     auto a = s->arrival();
     EXPECT_EQ(1448382360, a->schedule_time());
     EXPECT_EQ(1448382600, a->time());  // +4 (assuming min standing time = 2)
-    EXPECT_EQ("", a->platform()->str());  // unknown
+    EXPECT_EQ("", a->track()->str());  // unknown
 
     auto d = s->departure();
     EXPECT_EQ(0, d->schedule_time());
     EXPECT_EQ(0, d->time());
-    EXPECT_EQ("", d->platform()->str());
+    EXPECT_EQ("", d->track()->str());
   }
 }
 
@@ -116,12 +116,12 @@ TEST_F(lookup_id_train_test, no_realtime) {
     auto a = s->arrival();
     EXPECT_EQ(0, a->schedule_time());
     EXPECT_EQ(0, a->time());
-    EXPECT_EQ("", a->platform()->str());
+    EXPECT_EQ("", a->track()->str());
 
     auto d = s->departure();
     EXPECT_EQ(1448362440, d->schedule_time());
     EXPECT_EQ(1448362440, d->time());
-    EXPECT_EQ("23", d->platform()->str());
+    EXPECT_EQ("23", d->track()->str());
   }
   {
     auto s = stops->Get(3);
@@ -133,12 +133,12 @@ TEST_F(lookup_id_train_test, no_realtime) {
     auto a = s->arrival();
     EXPECT_EQ(1448372040, a->schedule_time());
     EXPECT_EQ(1448372040, a->time());
-    EXPECT_EQ("8", a->platform()->str());
+    EXPECT_EQ("8", a->track()->str());
 
     auto d = s->departure();
     EXPECT_EQ(1448372160, d->schedule_time());
     EXPECT_EQ(1448372160, d->time());  // +1
-    EXPECT_EQ("8", d->platform()->str());
+    EXPECT_EQ("8", d->track()->str());
   }
   {
     auto s = stops->Get(11);
@@ -150,11 +150,11 @@ TEST_F(lookup_id_train_test, no_realtime) {
     auto a = s->arrival();
     EXPECT_EQ(1448382360, a->schedule_time());
     EXPECT_EQ(1448382360, a->time());
-    EXPECT_EQ("", a->platform()->str());  // unknown
+    EXPECT_EQ("", a->track()->str());  // unknown
 
     auto d = s->departure();
     EXPECT_EQ(0, d->schedule_time());
     EXPECT_EQ(0, d->time());
-    EXPECT_EQ("", d->platform()->str());
+    EXPECT_EQ("", d->track()->str());
   }
 }

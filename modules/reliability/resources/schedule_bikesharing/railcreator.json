@@ -7,7 +7,7 @@
       "longitude": 8.669999999999959,
       "interchangeTime": 0,
       "minInterchangeTime": 0,
-      "platformInterchangeTime": 0,
+      "trackInterchangeTime": 0,
       "evaNumber": "4570367",
       "ds100Code": "4570367",
       "KMInfo": 0
@@ -19,7 +19,7 @@
       "longitude": 8.629000000000019,
       "interchangeTime": 0,
       "minInterchangeTime": 0,
-      "platformInterchangeTime": 0,
+      "trackInterchangeTime": 0,
       "evaNumber": "2158078",
       "ds100Code": "2158078",
       "KMInfo": 0

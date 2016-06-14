@@ -7,7 +7,7 @@
       "longitude": 9.437000000000012,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "6380201",
       "ds100Code": "6380201",
       "KMInfo": 0
@@ -19,7 +19,7 @@
       "longitude": 8.668000000000006,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "5744986",
       "ds100Code": "5744986",
       "KMInfo": 0
@@ -31,7 +31,7 @@
       "longitude": 9.145999999999958,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "7309882",
       "ds100Code": "7309882",
       "KMInfo": 0
@@ -43,7 +43,7 @@
       "longitude": 10.95900000000006,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "0953067",
       "ds100Code": "0953067",
       "KMInfo": 0
@@ -55,7 +55,7 @@
       "longitude": 9.187000000000012,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "1584227",
       "ds100Code": "1584227",
       "KMInfo": 0
@@ -67,7 +67,7 @@
       "longitude": 11.052000000000021,
       "interchangeTime": 5,
       "minInterchangeTime": 5,
-      "platformInterchangeTime": 3,
+      "trackInterchangeTime": 3,
       "evaNumber": "7611009",
       "ds100Code": "7611009",
       "KMInfo": 0

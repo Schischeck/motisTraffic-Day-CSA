@@ -61,7 +61,7 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
   }
 }
 
-enum { from_ds100_key, to_ds100_key, duration_key, platform_change_time_key };
+enum { from_ds100_key, to_ds100_key, duration_key, track_change_time_key };
 typedef std::tuple<cstr, cstr, int, int> minct;
 void load_minct(std::vector<minct>& records) {
   loaded_file minct_file{"minct.csv", station_meta_data::minct_};

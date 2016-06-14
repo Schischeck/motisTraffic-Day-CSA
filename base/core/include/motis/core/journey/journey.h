@@ -36,7 +36,7 @@ struct journey {
       std::time_t timestamp_;
       std::time_t schedule_timestamp_;
       delay_info::reason timestamp_reason_;
-      std::string platform_;
+      std::string track_;
     } arrival_, departure_;
   };
 
