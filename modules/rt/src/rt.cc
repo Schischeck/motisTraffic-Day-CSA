@@ -15,9 +15,10 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/loader/util.h"
+#include "motis/rt/bfs.h"
 #include "motis/rt/delay_propagator.h"
-#include "motis/rt/route_bfs.h"
 #include "motis/rt/shifted_nodes_msg_builder.h"
+#include "motis/rt/trip_correction.h"
 #include "motis/rt/validy_check.h"
 
 namespace po = boost::program_options;
@@ -250,19 +251,14 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
     } else if (conflicts(k)) {
       ++stats_.disabled_routes_;
       disable_route_layer(k);
-      // fix_times(k);
+      fix_times(k, sched);
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
       ++stats_.disabled_routes_;
       disable_route_layer(k);
-    } else {
-      shifted_nodes.add_shifted_node(*di);
-
-      map_get_or_create(sched.graph_to_delay_info_, k, [&]() {
-        sched.delay_mem_.push_back(std::make_unique<delay_info>(*di));
-        return sched.delay_mem_.back().get();
-      })->update(*di);
     }
+
+    shifted_nodes.add_shifted_node(*di);
   }
 
   stats_.propagated_updates_ = propagator_->events().size();

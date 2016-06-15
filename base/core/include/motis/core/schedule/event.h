@@ -41,9 +41,6 @@ struct ev_key {
     return {route_edge_, lcon_idx_, ev_type};
   }
 
-  ev_key get_earlier() const { return {route_edge_, lcon_idx_ - 1, ev_type_}; }
-  ev_key get_later() const { return {route_edge_, lcon_idx_ + 1, ev_type_}; }
-
   light_connection const* lcon() const {
     return &route_edge_->m_.route_edge_.conns_[lcon_idx_];
   }

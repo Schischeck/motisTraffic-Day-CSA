@@ -1,4 +1,4 @@
-#include "motis/rt/route_bfs.h"
+#include "motis/rt/bfs.h"
 
 #include <queue>
 
@@ -40,6 +40,15 @@ std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
     }
   }
   return visited;
+}
+
+std::set<ev_key> trip_bfs(ev_key const& k, bfs_direction const dir) {
+  std::set<ev_key> ev_keys;
+  for (auto const& e : route_bfs(k, dir)) {
+    ev_keys.insert({e, k.lcon_idx_, event_type::ARR});
+    ev_keys.insert({e, k.lcon_idx_, event_type::DEP});
+  }
+  return ev_keys;
 }
 
 }  // namespace rt

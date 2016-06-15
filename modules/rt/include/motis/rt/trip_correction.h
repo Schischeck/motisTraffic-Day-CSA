@@ -3,51 +3,70 @@
 #include <vector>
 
 #include "motis/core/schedule/delay_info.h"
+#include "motis/rt/bfs.h"
 
 namespace motis {
 namespace rt {
 
 struct entry;
-using entries = std::vector<entry>;
 
 constexpr auto tmax = std::numeric_limits<motis::time>::max();
 constexpr auto tmin = std::numeric_limits<motis::time>::min();
 
 struct entry : public delay_info {
+  entry(ev_key const& k) : delay_info(k), min_(tmin), max_(tmax) {}
   entry(delay_info const& di) : delay_info(di), min_(tmin), max_(tmax) {}
 
-  void correct(entry& e) {
-    if (e.get_current_time() > e.max_) {
-      e.set(timestamp_reason::REPAIR, e.max_);
+  void fix() {
+    if (get_current_time() > max_) {
+      set(timestamp_reason::REPAIR, max_);
     }
-    if (e.get_current_time() < e.min_) {
-      e.set(timestamp_reason::REPAIR, e.min_);
+    if (get_current_time() < min_) {
+      set(timestamp_reason::REPAIR, min_);
     }
   }
 
   motis::time min_, max_;
 };
 
-void apply_is(entries& v, int index) {
-  if (v[index].get_reason() != timestamp_reason::IS) {
-    return;
+struct trip_corrector {
+  explicit trip_corrector(schedule const& sched) : sched_(sched) {}
+
+  void apply_is(ev_key const& k, time is) {
+    auto const future_events = trip_bfs(k, bfs_direction::FORWARD);
+    for (auto const& k : future_events) {
+      // set min
+    }
+
+    auto const past_events = trip_bfs(k, bfs_direction::BACKWARD);
+    for (auto const& k : past_events) {
+      // set max
+    }
   }
 
-  auto const is = v[index].get_is_time();
-  for (int i = index; i < v.size(); ++i) {
-    v[i].min_ = std::max(v[i].min_, is);
+  void set_min(std::set<edge const*> const& edges,
+               std::map<ev_key, entry>& entries) {
+    for (auto const& e : edges) {
+    }
   }
-  for (int i = index; i >= 0; --i) {
-    v[i].max_ = std::min(v[i].max_, is);
-  }
-}
 
-void set_min(std::set<edge const*> const& edges) {
-  for (auto const& e : edges) {
-  }
-}
+  void fix_times(ev_key const& k, schedule const& sched) {
+    std::map<ev_key, entry> entries;
 
-void fix_times(ev_key const& k) { std::map<> }
+    auto const trip_events = trip_bfs(k, bfs_direction::BOTH);
+    for (auto const& k : trip_events) {
+      auto di = get_delay_info(sched, k);
+      if (di == nullptr || di->get_is_time() == 0) {
+        continue;
+      }
+
+      apply_is(k, di->get_is_time());
+    }
+  }
+
+  schedule const& sched_;
+  std::map<ev_key, entry> entries_;
+};
 
 }  // namespace rt
 }  // namespace motis

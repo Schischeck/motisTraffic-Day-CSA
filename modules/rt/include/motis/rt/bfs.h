@@ -10,7 +10,8 @@ namespace rt {
 
 enum class bfs_direction { FORWARD, BACKWARD, BOTH };
 
-std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir);
+std::set<edge const*> route_bfs(ev_key const&, bfs_direction const);
+std::set<ev_key> trip_bfs(ev_key const&, bfs_direction const);
 
 }  // namespace rt
 }  // namespace motis

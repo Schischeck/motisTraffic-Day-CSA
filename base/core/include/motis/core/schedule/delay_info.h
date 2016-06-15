@@ -11,7 +11,7 @@ namespace motis {
 struct delay_info {
   delay_info(delay_info const&) = default;
 
-  delay_info(ev_key ev)
+  explicit delay_info(ev_key ev)
       : ev_(std::move(ev)),
         repair_time_(0),
         is_time_(0),
