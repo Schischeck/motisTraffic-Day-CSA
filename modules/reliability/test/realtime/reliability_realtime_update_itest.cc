@@ -60,12 +60,12 @@ TEST_F(reliability_realtime_update, is_message) {
     ASSERT_EQ(24, dist_dep_darm.last_minute());
     ASSERT_TRUE(equal(1.0, dist_dep_darm.probability_equal(24)));
   }
-  auto const& n_L = *graph_accessor::get_departing_route_edge(n_darm)->to_;
+  auto const& n_langen = *graph_accessor::get_departing_route_edge(n_darm)->to_;
   {
     auto const& dist_arr_langen =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_L, lc_darm_langen, time_util::event_type::arrival,
+                n_langen, lc_darm_langen, time_util::event_type::arrival,
                 get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 34),
               lc_darm_langen.a_time_);
@@ -76,12 +76,12 @@ TEST_F(reliability_realtime_update, is_message) {
     ASSERT_TRUE(equal(0.1, dist_arr_langen.probability_equal(25)));
   }
   auto const& lc_langen_ffm =
-      graph_accessor::get_departing_route_edge(n_L)->m_.route_edge_.conns_[0];
+      graph_accessor::get_departing_route_edge(n_langen)->m_.route_edge_.conns_[0];
   {
     auto const& dist_dep_langen =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_L, lc_langen_ffm, time_util::event_type::departure,
+                n_langen, lc_langen_ffm, time_util::event_type::departure,
                 get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 36),
               lc_langen_ffm.d_time_);
@@ -92,7 +92,7 @@ TEST_F(reliability_realtime_update, is_message) {
     ASSERT_TRUE(equal(0.1, dist_dep_langen.probability_equal(24)));
   }
   {
-    auto const& n_ffm = *graph_accessor::get_departing_route_edge(n_L)->to_;
+    auto const& n_ffm = *graph_accessor::get_departing_route_edge(n_langen)->to_;
     auto const& dist_arr_ffm =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(

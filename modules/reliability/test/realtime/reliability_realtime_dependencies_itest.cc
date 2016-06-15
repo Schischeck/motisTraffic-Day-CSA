@@ -42,9 +42,9 @@ TEST_F(reliability_realtime_dependencies, no_entry) {
 }
 
 /* test predecessors of Departure of ICE_F_H at 09:10 in Frankfurt:
- * arrival ofschedule_realtime_dependencies::ICE_D_L_F at 08:40 in Frankfurt and
- * arrival ofschedule_realtime_dependencies::ICE_D_L_F at 09:00 in Frankfurt */
-void test_predecessors_ICE_F_H_Frankfurt(
+ * arrival of ICE_D_L_F at 08:40 in Frankfurt and
+ * arrival of ICE_D_L_F at 09:00 in Frankfurt */
+void test_predecessors_ice_ffm_hanau_in_ffm(
     reliability_realtime_dependencies& test_info,
     distributions_container::container::node const& distribution_node_dep) {
   auto predecessors = distribution_node_dep.predecessors_;
@@ -106,8 +106,9 @@ void test_predecessors_ICE_F_H_Frankfurt(
  * Departure of ICE_F_H at 09:10 in Frankfurt depends on
  * arrival ofschedule_realtime_dependencies::ICE_D_L_F at 08:40 in Frankfurt and
  * arrival ofschedule_realtime_dependencies::ICE_D_L_F at 09:00 in Frankfurt */
-void test_ICE_D_L_F_Frankfurt(reliability_realtime_dependencies& test_info,
-                              unsigned const actual_arrival_time) {
+void test_ice_darm_langen_ffm_in_ffm(
+    reliability_realtime_dependencies& test_info,
+    unsigned const actual_arrival_time) {
   /* arrival node ofschedule_realtime_dependencies::ICE_D_L_F at Frankfurt */
   auto const& node = *graph_accessor::get_departing_route_edge(
                           *graph_accessor::get_departing_route_edge(
@@ -140,7 +141,7 @@ void test_ICE_D_L_F_Frankfurt(reliability_realtime_dependencies& test_info,
           node_dep, lc_dep, time_util::departure, test_info.get_schedule()),
       distribution_node_dep.key_);
 
-  test_predecessors_ICE_F_H_Frankfurt(test_info, distribution_node_dep);
+  test_predecessors_ice_ffm_hanau_in_ffm(test_info, distribution_node_dep);
 }
 
 /** Departure of ICE_F_H at 09:10 in Frankfurt depends on the
@@ -148,7 +149,7 @@ void test_ICE_D_L_F_Frankfurt(reliability_realtime_dependencies& test_info,
  * Additionally, ensure that forecasts and propagations
  * have no effect on the dependencies. */
 TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
-  test_ICE_D_L_F_Frankfurt(*this, 9 * 60);
+  test_ice_darm_langen_ffm_in_ffm(*this, 9 * 60);
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::FRANKFURT,
@@ -160,9 +161,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
       1445236800 /* 2015-10-19 08:40:00 GMT+2:00 */, ris::DelayType_Forecast));
   publish(make_no_msg("/ris/system_time_changed"));
 
-  printf("\n\nOK\n\n");
-
-  test_ICE_D_L_F_Frankfurt(*this, 10 * 60);
+  test_ice_darm_langen_ffm_in_ffm(*this, 10 * 60);
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::FRANKFURT,
@@ -174,7 +173,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
       1445236800 /* 2015-10-19 08:40:00 GMT+2:00 */, ris::DelayType_Forecast));
   publish(make_no_msg("/ris/system_time_changed"));
 
-  test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 30);
+  test_ice_darm_langen_ffm_in_ffm(*this, 9 * 60 + 30);
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::LANGEN,
@@ -186,7 +185,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
       1445236800 /* 2015-10-19 08:40:00 GMT+2:00 */, ris::DelayType_Forecast));
   publish(make_no_msg("/ris/system_time_changed"));
 
-  test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 38);
+  test_ice_darm_langen_ffm_in_ffm(*this, 9 * 60 + 38);
 }
 
 #if 0
@@ -241,7 +240,7 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
                 node_dep, lc_dep, time_util::departure, get_schedule()),
             distribution_node_dep.key_);
 
-  test_predecessors_ICE_F_H_Frankfurt(*this, distribution_node_dep);
+  test_predecessors_ice_ffm_hanau_in_ffm(*this, distribution_node_dep);
 }
 
 /** Departure of ICE_F_H at 09:10 in Frankfurt depends on the
@@ -291,7 +290,7 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
                 node_dep, lc_dep, time_util::departure, get_schedule()),
             distribution_node_dep.key_);
 
-  test_predecessors_ICE_F_H_Frankfurt(*this, distribution_node_dep);
+  test_predecessors_ice_ffm_hanau_in_ffm(*this, distribution_node_dep);
 }
 
 /* Departure of ICE_L_H_16 at 16:30 in Langen depends on
@@ -467,6 +466,6 @@ TEST_F(reliability_realtime_dependencies, DISABLED_ICE_D_L_F_Langen) {
               distribution_node_dep.predecessors_.front());
   }
 }
-}
-}
-}
+}  // namespace realtime
+}  // namespace reliability
+}  // namespace motis

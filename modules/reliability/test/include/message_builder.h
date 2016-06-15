@@ -13,7 +13,7 @@ inline module::msg_ptr get_delay_message(
     std::string const line_id, ris::EventType event_type,
     time_t const scheduled_time, time_t const delayed_time,
     std::string const& trip_station, unsigned const trip_train_nr,
-    time_t const trip_scheduled_time, ris::DelayType const delayType) {
+    time_t const trip_scheduled_time, ris::DelayType const delay_type) {
   using namespace ::flatbuffers;
   using namespace ris;
   FlatBufferBuilder fbb;
@@ -27,7 +27,7 @@ inline module::msg_ptr get_delay_message(
           fbb,
           ris::CreateIdEvent(fbb, fbb.CreateString(trip_station), trip_train_nr,
                              trip_scheduled_time, IdEventType_Schedule),
-          delayType, fbb.CreateVector(events))
+          delay_type, fbb.CreateVector(events))
           .Union()));
 
   module::message_creator mc;
