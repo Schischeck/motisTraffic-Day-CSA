@@ -87,8 +87,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
   node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
   auto walk_arrival = INVALID_TIME;
-  auto walk_arrival_di =
-      delay_info({nullptr, 0, event_type::DEP}, INVALID_TIME);
+  auto walk_arrival_di = delay_info({nullptr, INVALID_TIME, event_type::DEP});
   auto stop_index = -1;
 
   auto it = begin(labels);

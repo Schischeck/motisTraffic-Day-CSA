@@ -11,11 +11,11 @@ namespace motis {
 struct delay_info {
   delay_info(delay_info const&) = default;
 
-  delay_info(ev_key ev, time schedule_time)
+  delay_info(ev_key ev)
       : ev_(std::move(ev)),
         repair_time_(0),
         is_time_(0),
-        schedule_time_(schedule_time),
+        schedule_time_(ev.valid() ? ev.get_time() : INVALID_TIME),
         forecase_time_(0),
         propagation_time_(0) {}
 

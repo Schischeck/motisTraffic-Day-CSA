@@ -232,8 +232,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
   LOG(info) << "rt total changes " << propagator_->events().size();
 
   // Update graph.
-  for (auto const& ev : propagator_->events()) {
-    auto const& di = ev.second;
+  for (auto const& di : propagator_->events()) {
     auto const& k = di->get_ev_key();
 
     auto& event_time =
@@ -243,8 +242,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
 
   // Check for graph corruption and revert if necessary.
   shifted_nodes_msg_builder shifted_nodes(sched);
-  for (auto const& ev : propagator_->events()) {
-    auto const& di = ev.second;
+  for (auto const& di : propagator_->events()) {
     auto const& k = di->get_ev_key();
 
     if (!k.lcon()->valid_) {
