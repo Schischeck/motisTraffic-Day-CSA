@@ -29,12 +29,12 @@ std::vector<Offset<Stop>> convert_stops(
     auto const arr = CreateEventInfo(
         b, stop.arrival_.valid_ ? stop.arrival_.timestamp_ : 0,
         stop.arrival_.valid_ ? stop.arrival_.schedule_timestamp_ : 0,
-        b.CreateString(stop.arrival_.platform_),
+        b.CreateString(stop.arrival_.track_),
         convert_reason(stop.arrival_.timestamp_reason_));
     auto const dep = CreateEventInfo(
         b, stop.departure_.valid_ ? stop.departure_.timestamp_ : 0,
         stop.departure_.valid_ ? stop.departure_.schedule_timestamp_ : 0,
-        b.CreateString(stop.departure_.platform_),
+        b.CreateString(stop.departure_.track_),
         convert_reason(stop.departure_.timestamp_reason_));
     auto const pos = Position(stop.lat_, stop.lng_);
     buf_stops.push_back(

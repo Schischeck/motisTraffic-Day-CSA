@@ -41,7 +41,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       arr.schedule_timestamp_ =
           arr.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
       arr.timestamp_reason_ = timestamp_reason::SCHEDULE;
-      arr.platform_ = sched.tracks_[lcon.full_con_->a_platform_];
+      arr.platform_ = sched.tracks_[lcon.full_con_->a_track_];
     }
     stop.arrival_ = arr;
 
@@ -56,7 +56,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
       dep.schedule_timestamp_ =
           dep.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
       dep.timestamp_reason_ = timestamp_reason::SCHEDULE;
-      dep.platform_ = sched.tracks_[lcon.full_con_->d_platform_];
+      dep.platform_ = sched.tracks_[lcon.full_con_->d_track_];
     }
     stop.departure_ = dep;
 

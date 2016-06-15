@@ -421,15 +421,15 @@ light_connection graph_builder::section_to_connection(
   auto& to = *sched_.stations_.at(
       stations_[ref->route()->stations()->Get(section_idx + 1)]->id_);
 
-  auto plfs = ref->platforms();
-  auto dep_platf = plfs ? plfs->Get(section_idx)->dep_platforms() : nullptr;
-  auto arr_platf = plfs ? plfs->Get(section_idx + 1)->arr_platforms() : nullptr;
+  auto plfs = ref->tracks();
+  auto dep_platf = plfs ? plfs->Get(section_idx)->dep_tracks() : nullptr;
+  auto arr_platf = plfs ? plfs->Get(section_idx + 1)->arr_tracks() : nullptr;
 
   auto section = ref->sections()->Get(section_idx);
   auto dep_time = ref->times()->Get(section_idx * 2 + 1);
   auto arr_time = ref->times()->Get(section_idx * 2 + 2);
 
-  // Day indices for shifted bitfields (platforms, attributes)
+  // Day indices for shifted bitfields (tracks, attributes)
   int dep_day_index = day + (dep_time / MINUTES_A_DAY);
   int arr_day_index = day + (arr_time / MINUTES_A_DAY);
 
@@ -437,8 +437,8 @@ light_connection graph_builder::section_to_connection(
   auto clasz_it = sched_.classes_.find(section->category()->name()->str());
   con_.clasz_ = (clasz_it == end(sched_.classes_)) ? 9 : clasz_it->second;
   con_.price_ = get_distance(from, to) * get_price_per_km(con_.clasz_);
-  con_.d_platform_ = get_or_create_platform(dep_day_index, dep_platf);
-  con_.a_platform_ = get_or_create_platform(arr_day_index, arr_platf);
+  con_.d_track_ = get_or_create_track(dep_day_index, dep_platf);
+  con_.a_track_ = get_or_create_track(arr_day_index, arr_platf);
   con_.con_info_ = get_or_create_connection_info(services, dep_day_index);
 
   // Build light connection.
@@ -596,22 +596,22 @@ int graph_builder::get_or_create_category_index(Category const* c) {
   });
 }
 
-int graph_builder::get_or_create_platform(
-    int day, Vector<Offset<Platform>> const* platforms) {
+int graph_builder::get_or_create_track(
+    int day, Vector<Offset<Track>> const* tracks) {
   static constexpr int no_track = 0;
   if (sched_.tracks_.empty()) {
     sched_.tracks_.push_back("");
   }
 
-  if (platforms == nullptr) {
+  if (tracks == nullptr) {
     return no_track;
   }
 
   auto track_it = std::find_if(
-      std::begin(*platforms), std::end(*platforms), [&](Platform const* track) {
+      std::begin(*tracks), std::end(*tracks), [&](Track const* track) {
         return get_or_create_bitfield(track->bitfield()).test(day);
       });
-  if (track_it == std::end(*platforms)) {
+  if (track_it == std::end(*tracks)) {
     return no_track;
   } else {
     auto name = track_it->name()->str();

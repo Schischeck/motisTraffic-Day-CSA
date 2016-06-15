@@ -17,8 +17,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-service_builder::service_builder(platform_rules plf_rules)
-    : plf_rules_(std::move(plf_rules)) {}
+service_builder::service_builder(track_rules track_rules)
+    : track_rules_(std::move(track_rules)) {}
 
 Offset<Vector<Offset<Section>>> create_sections(
     std::vector<hrd_service::section> const& sections, category_builder& cb,
@@ -36,35 +36,35 @@ Offset<Vector<Offset<Section>>> create_sections(
       }));
 }
 
-void create_platforms(platform_rule_key const& key, int time,
-                      platform_rules const& plf_rules, bitfield_builder& bb,
-                      std::vector<Offset<Platform>>& platforms,
+void create_tracks(track_rule_key const& key, int time,
+                      track_rules const& track_rules, bitfield_builder& bb,
+                      std::vector<Offset<Track>>& tracks,
                       FlatBufferBuilder& fbb) {
-  auto dep_plr_it = plf_rules.find(key);
-  if (dep_plr_it == end(plf_rules)) {
+  auto dep_plr_it = track_rules.find(key);
+  if (dep_plr_it == end(track_rules)) {
     return;
   }
 
   for (auto const& rule : dep_plr_it->second) {
     if (rule.time_ == TIME_NOT_SET || time % 1440 == rule.time_) {
-      platforms.push_back(CreatePlatform(
+      tracks.push_back(CreateTrack(
           fbb, bb.get_or_create_bitfield(rule.bitfield_num_, fbb),
-          rule.platform_name_));
+          rule.track_name_));
     }
   }
 }
 
-Offset<Vector<Offset<PlatformRules>>> create_platforms(
+Offset<Vector<Offset<TrackRules>>> create_tracks(
     std::vector<hrd_service::section> const& sections,
     std::vector<hrd_service::stop> const& stops,
-    platform_rules const& plf_rules, bitfield_builder& bb,
+    track_rules const& track_rules, bitfield_builder& bb,
     FlatBufferBuilder& fbb) {
-  struct stop_platforms {
-    std::vector<Offset<Platform>> dep_platforms_;
-    std::vector<Offset<Platform>> arr_platforms_;
+  struct stop_tracks {
+    std::vector<Offset<Track>> dep_tracks_;
+    std::vector<Offset<Track>> arr_tracks_;
   };
 
-  std::vector<stop_platforms> stops_platforms(stops.size());
+  std::vector<stop_tracks> stops_tracks(stops.size());
   for (unsigned i = 0; i < sections.size(); ++i) {
     int section_index = i;
     int from_stop_index = section_index;
@@ -79,17 +79,17 @@ Offset<Vector<Offset<PlatformRules>>> create_platforms(
     auto arr_event_key = std::make_tuple(to_stop.eva_num_, section.train_num_,
                                          raw_to_int<uint64_t>(section.admin_));
 
-    create_platforms(dep_event_key, from_stop.dep_.time_, plf_rules, bb,
-                     stops_platforms[from_stop_index].dep_platforms_, fbb);
-    create_platforms(arr_event_key, to_stop.arr_.time_, plf_rules, bb,
-                     stops_platforms[to_stop_index].arr_platforms_, fbb);
+    create_tracks(dep_event_key, from_stop.dep_.time_, track_rules, bb,
+                     stops_tracks[from_stop_index].dep_tracks_, fbb);
+    create_tracks(arr_event_key, to_stop.arr_.time_, track_rules, bb,
+                     stops_tracks[to_stop_index].arr_tracks_, fbb);
   }
 
   return fbb.CreateVector(transform_to_vec(
-      begin(stops_platforms), end(stops_platforms),
-      [&](stop_platforms const& sp) {
-        return CreatePlatformRules(fbb, fbb.CreateVector(sp.arr_platforms_),
-                                   fbb.CreateVector(sp.dep_platforms_));
+      begin(stops_tracks), end(stops_tracks),
+      [&](stop_tracks const& sp) {
+        return CreateTrackRules(fbb, fbb.CreateVector(sp.arr_tracks_),
+                                   fbb.CreateVector(sp.dep_tracks_));
       }));
 }
 
@@ -112,7 +112,7 @@ Offset<Service> service_builder::create_service(
       fbb, rb.get_or_create_route(s.stops_, sb, fbb),
       bb.get_or_create_bitfield(s.traffic_days_, fbb),
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
-      create_platforms(s.sections_, s.stops_, plf_rules_, bb, fbb),
+      create_tracks(s.sections_, s.stops_, track_rules_, bb, fbb),
       create_times(s.stops_, fbb), rb.get_or_create_route(s.stops_, sb, fbb).o,
       CreateServiceDebugInfo(fbb, get_or_create(filenames_, s.origin_.filename_,
                                                 [&fbb, &s]() {

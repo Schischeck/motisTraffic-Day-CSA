@@ -13,7 +13,7 @@ namespace motis {
 journey::stop::event_info to_event_info(EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
-  e.platform_ = event.platform()->c_str();
+  e.track_ = event.track()->c_str();
   e.timestamp_ = event.time();
   e.schedule_timestamp_ = event.schedule_time();
   e.timestamp_reason_ = from_fbs(event.reason());
