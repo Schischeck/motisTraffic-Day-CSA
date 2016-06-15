@@ -25,8 +25,7 @@ std::vector<Offset<TripId>> make_trip_ids(FlatBufferBuilder& fbb,
     auto const& target_eva_nr =
         sched.stations_[sec.target_station_id_]->eva_nr_;
     auto const& target_timestamp = motis_to_unixtime(sched, sec.target_time_);
-    auto const& type =
-        sec.is_arrival_ ? EventType_Arrival : EventType_Departure;
+    auto const& type = sec.is_arrival_ ? EventType_ARR : EventType_DEP;
     auto const& line_id = sec.line_id_;
 
     trip_ids.push_back(CreateTripId(fbb, fbb.CreateString(eva_nr), train_nr,
@@ -46,7 +45,7 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
   auto const& fcon = *lcon->full_con_;
   auto const& info = *fcon.con_info_;
 
-  auto const type = is_dep ? EventType_Departure : EventType_Arrival;
+  auto const type = is_dep ? EventType_DEP : EventType_ARR;
 
   auto const& time = is_dep ? lcon->d_time_ : lcon->a_time_;
   auto const sched_time =

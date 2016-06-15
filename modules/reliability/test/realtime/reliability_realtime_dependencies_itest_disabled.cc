@@ -169,20 +169,20 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
-                 1445248800 /* 2015-10-19 10:00:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Forecast));
+                 1445248800 /* 2015-10-19 10:00:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 10 * 60);
   test::send(motis_instance_,
              realtime::get_delay_message(
                  FRANKFURT, ICE_D_L_F, 1445245200 /* 2015-10-19 09:00:00 GMT */,
-                 1445247000 /* 2015-10-19 09:30:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Forecast));
+                 1445247000 /* 2015-10-19 09:30:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 30);
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN, ICE_D_L_F, 1445244720 /* 2015-10-19 08:52:00 GMT */,
-                 1445247000 /* 2015-10-19 09:30:00 GMT */,
-                 ris::EventType_Departure, ris::DelayType_Forecast));
+                 1445247000 /* 2015-10-19 09:30:00 GMT */, ris::EventType_DEP,
+                 ris::DelayType_Forecast));
   test_ICE_D_L_F_Frankfurt(*this, 9 * 60 + 38);
 }
 
@@ -191,11 +191,10 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
 TEST_F(reliability_realtime_dependencies, cancellation) {
   std::vector<realtime::event> events;
   // 08:40 --> 08:50, 08:52 --> 09:00
-  events.push_back(
-      {DARMSTADT, ICE_D_L_F, 1445244000, ris::EventType_Departure});
-  events.push_back({LANGEN, ICE_D_L_F, 1445244600, ris::EventType_Arrival});
-  events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_Departure});
-  events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_Arrival});
+  events.push_back({DARMSTADT, ICE_D_L_F, 1445244000, ris::EventType_DEP});
+  events.push_back({LANGEN, ICE_D_L_F, 1445244600, ris::EventType_ARR});
+  events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_DEP});
+  events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_ARR});
   test::send(motis_instance_, realtime::get_cancel_message(events));
 
   /* Ensure that 08:40 is cancelled */
@@ -238,8 +237,8 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
  * arrival of ICE_D_L_F at 09:00 in Frankfurt */
 TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
   std::vector<realtime::event> events;
-  events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_Departure});
-  events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_Arrival});
+  events.push_back({LANGEN, ICE_D_L_F, 1445244720, ris::EventType_DEP});
+  events.push_back({FRANKFURT, ICE_D_L_F, 1445245200, ris::EventType_ARR});
   test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
   /* Ensure that arrival at 09:00 is cancelled */
@@ -286,10 +285,10 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
 TEST_F(reliability_realtime_dependencies, reroute_additional) {
   std::vector<realtime::rerouted_event> events;
   events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271000 /* 16:10 */,
-                                      ris::EventType_Arrival},
+                                      ris::EventType_ARR},
                       "ICE", "");
   events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
-                                      ris::EventType_Departure},
+                                      ris::EventType_DEP},
                       "ICE", "");
   test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
@@ -336,10 +335,10 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
   {
     std::vector<realtime::rerouted_event> events;
     events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271000 /* 16:10 */,
-                                        ris::EventType_Arrival},
+                                        ris::EventType_ARR},
                         "ICE", "");
     events.emplace_back(realtime::event{LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
-                                        ris::EventType_Departure},
+                                        ris::EventType_DEP},
                         "ICE", "");
     test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
@@ -355,8 +354,8 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
   {
     std::vector<realtime::event> events;
     events.push_back(
-        {LANGEN, ICE_L_H_16, 1445272200, ris::EventType_Departure});
-    events.push_back({HANAU, ICE_L_H_16, 1445272740, ris::EventType_Arrival});
+        {LANGEN, ICE_L_H_16, 1445272200, ris::EventType_DEP});
+    events.push_back({HANAU, ICE_L_H_16, 1445272740, ris::EventType_ARR});
     test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
     /* Ensure that ICE_L_H_16 is cancelled */
@@ -400,8 +399,8 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Langen) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN, ICE_D_L_F, 1445243400 /* 2015-10-19 08:30:00 GMT */,
-                 1445244600 /* 2015-10-19 08:59:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Is));
+                 1445244600 /* 2015-10-19 08:59:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Is));
 
   auto const& distribution_node_arr =
       get_reliability_module().precomputed_distributions().get_node(

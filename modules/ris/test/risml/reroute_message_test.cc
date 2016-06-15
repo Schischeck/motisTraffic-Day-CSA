@@ -69,7 +69,7 @@ TEST(ris_reroute_message, message_1) {
   EXPECT_EQ(2318, ce0->service_num());
   EXPECT_STREQ("", ce0->line_id()->c_str());
   EXPECT_EQ(1444334220, ce0->schedule_time());
-  EXPECT_EQ(EventType_Arrival, ce0->type());
+  EXPECT_EQ(EventType_ARR, ce0->type());
 
   auto new_events = inner_msg->new_events();
   ASSERT_EQ(2, new_events->size());
@@ -79,7 +79,7 @@ TEST(ris_reroute_message, message_1) {
   EXPECT_EQ(2318, ne0->base()->base()->service_num());
   EXPECT_STREQ("", ne0->base()->base()->line_id()->c_str());
   EXPECT_EQ(1444334340, ne0->base()->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, ne0->base()->base()->type());
+  EXPECT_EQ(EventType_ARR, ne0->base()->base()->type());
 
   EXPECT_STREQ("IC", ne0->base()->category()->c_str());
   EXPECT_STREQ("6", ne0->base()->track()->c_str());
@@ -91,7 +91,7 @@ TEST(ris_reroute_message, message_1) {
   EXPECT_EQ(2318, ne1->base()->base()->service_num());
   EXPECT_STREQ("", ne1->base()->base()->line_id()->c_str());
   EXPECT_EQ(1444334460, ne1->base()->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, ne1->base()->base()->type());
+  EXPECT_EQ(EventType_DEP, ne1->base()->base()->type());
 
   EXPECT_STREQ("IC", ne1->base()->category()->c_str());
   EXPECT_STREQ("6", ne1->base()->track()->c_str());

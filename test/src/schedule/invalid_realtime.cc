@@ -20,7 +20,7 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("0000002"),
           1,
           fbb.CreateString("381"),
-          motis::ris::EventType_Arrival,
+          EventType_ARR,
           unix_time(sched, 1100)
         ),
         unix_time(sched, 1112)
@@ -30,7 +30,7 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("0000002"),
           1,
           fbb.CreateString("381"),
-          motis::ris::EventType_Departure,
+          EventType_DEP,
           unix_time(sched, 1110)
         ),
         unix_time(sched, 1110)

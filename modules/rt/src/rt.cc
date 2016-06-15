@@ -216,7 +216,7 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
   return nullptr;
 }
 
-msg_ptr rt::on_system_time_change(msg_ptr const& msg) {
+msg_ptr rt::on_system_time_change(msg_ptr const&) {
   scoped_timer timer("rt update");
   manual_timer graph_update("graph update");
 
@@ -251,6 +251,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const& msg) {
       continue;
     } else if (conflicts(k)) {
       ++stats_.disabled_routes_;
+      disable_route_layer(k);
       // fix_times(k);
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;

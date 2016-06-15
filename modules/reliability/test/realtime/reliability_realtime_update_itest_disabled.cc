@@ -47,8 +47,8 @@ TEST_F(reliability_realtime_update, is_message) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  DARMSTADT, ICE_D_L_F, 1445241600 /* 2015-10-19 08:00:00 GMT */,
-                 1445243040 /* 2015-10-19 08:24:00 GMT */,
-                 ris::EventType_Departure, ris::DelayType_Is));
+                 1445243040 /* 2015-10-19 08:24:00 GMT */, ris::EventType_DEP,
+                 ris::DelayType_Is));
   {
     auto const& dist_dep_D =
         reliability_context_->precomputed_distributions_.get_distribution(

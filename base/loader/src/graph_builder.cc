@@ -27,7 +27,9 @@ namespace loader {
 graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
                              time_t from, time_t to, bool apply_rules,
                              bool adjust_footpaths)
-    : next_route_index_(-1),
+    : duplicate_count_(0),
+      lcon_count_(0),
+      next_route_index_(-1),
       next_node_id_(-1),
       sched_(sched),
       first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
@@ -708,6 +710,7 @@ route_section graph_builder::add_route_section(
   section.outgoing_route_edge_index_ = section.from_route_node_->edges_.size();
   section.from_route_node_->edges_.push_back(make_route_edge(
       section.from_route_node_, section.to_route_node_, connections));
+  lcon_count_ += connections.size();
 
   return section;
 }
@@ -755,6 +758,9 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   }
 
   LOG(info) << sched->connection_infos_.size() << " connection infos";
+  LOG(info) << builder.lcon_count_ << " light connections";
+  LOG(info) << builder.next_route_index_ << " routes";
+  LOG(info) << sched->trip_mem_.size() << " trips";
 
   return sched;
 }

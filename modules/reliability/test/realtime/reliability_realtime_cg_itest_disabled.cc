@@ -129,8 +129,8 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
-                 1445238660 /* 2015-10-19 07:11:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Is));
+                 1445238660 /* 2015-10-19 07:11:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Is));
 
   ASSERT_EQ(to_motis_time(7 * 60 + 11),
             graph_accessor::get_departing_route_edge(
@@ -141,8 +141,8 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN.eva_, RE_L_F, 1445238900 /* 2015-10-19 07:15:00 GMT */,
-                 1445238960 /* 2015-10-19 07:16:00 GMT */,
-                 ris::EventType_Departure, ris::DelayType_Forecast));
+                 1445238960 /* 2015-10-19 07:16:00 GMT */, ris::EventType_DEP,
+                 ris::DelayType_Forecast));
 
   test_realtime_cg(test::send(
       motis_instance_,
@@ -158,8 +158,8 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
-                 1445238660 /* 2015-10-19 07:11:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Is));
+                 1445238660 /* 2015-10-19 07:11:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Is));
   auto req_msg =
       flatbuffers::request_builder::request_builder()
           .add_station(DARMSTADT.name_, DARMSTADT.eva_)
@@ -183,8 +183,8 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  LANGEN.eva_, RE_D_L, 1445238600 /* 2015-10-19 07:10:00 GMT */,
-                 1445238660 /* 2015-10-19 07:11:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Forecast));
+                 1445238660 /* 2015-10-19 07:11:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Forecast));
 
   auto req_msg =
       flatbuffers::request_builder::request_builder()

@@ -12,7 +12,7 @@ inline ::flatbuffers::Offset<ris::TripId> stub_id(
   using namespace ris;
   return CreateTripId(
       fbb, CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(""), 0,
-                       fbb.CreateString(""), EventType_Departure, 0),
+                       fbb.CreateString(""), EventType_DEP, 0),
       StationIdType_EVA, fbb.CreateString(""), 0);
 }
 
