@@ -32,7 +32,7 @@ module::msg_ptr rate_routing_response(routing::RoutingResponse const&,
                                       std::string const arr_address = "");
 
 std::pair<std::vector<connection_rating>,
-          std::vector<simple_rating::simple_connection_rating> >
+          std::vector<simple_rating::simple_connection_rating>>
 rate_journeys(std::vector<journey> const&, motis::reliability::context const&);
 }  // namespace rating
 }  // namespace reliability

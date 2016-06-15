@@ -8,7 +8,7 @@ namespace motis {
 namespace bikesharing {
 
 module::msg_ptr find_connections(database const&, geo_index const&,
-                              BikesharingRequest const*);
+                                 BikesharingRequest const*);
 
 }  // namespace bikesharing
 }  // namespace motis
