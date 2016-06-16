@@ -3,6 +3,8 @@ variables:
 
 # GCC 5 production
 gcc-5-release:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
     - git submodule update --init --recursive
@@ -20,6 +22,8 @@ gcc-5-release:
 
 # Clang 3.8 debug with address sanitizer
 clang-3.8-debug-asan:
+  tags:
+    - xenial
   script:
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
@@ -41,6 +45,8 @@ clang-3.8-debug-asan:
 
 # Clang 3.8 debug with thread sanitizer
 clang-3.8-debug-tsan:
+  tags:
+    - xenial
   script:
     - export CXXFLAGS="-fsanitize=thread -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
@@ -61,6 +67,8 @@ clang-3.8-debug-tsan:
 
 # GCC 5 debug valgrind
 gcc-5-debug-valgrind:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
     - git submodule update --init --recursive
@@ -78,9 +86,33 @@ gcc-5-debug-valgrind:
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-itest
+  
+# MSVC release
+msvc-release:
+  tags:
+    - windows
+  script:
+    - set WD=%cd%
+    - call "C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat" amd64
+    - cd %WD%
+    - set BOOST_ROOT=C:\boost_1_60_0
+    - git submodule update --init --recursive
+    - mkdir build-msvc-release
+    - cd build-msvc-release
+    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt" ..
+    - jom motis-test motis-itest motis motis-eval motis-cli
+    - motis --mode test
+            --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+            --dataset.begin 20151111
+            --dataset.write_serialized false
+            --listen.ws false
+    - motis-test
+    - motis-itest
 
 # Clang-Tidy
 clang-tidy:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
     - export CXX=clang++-3.8
@@ -93,6 +125,8 @@ clang-tidy:
 
 # Clang-Format
 clang-format:
+  tags:
+    - xenial
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
     - git submodule update --init --recursive

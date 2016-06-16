@@ -204,23 +204,23 @@ TEST_F(loader_graph_builder_multiple_ice, route_nodes) {
       }
 
       auto const& tracks = sched_->tracks_;
-      EXPECT_EQ("6", tracks[get<0>(connections[0])->full_con_->d_platform_]);
-      EXPECT_EQ("", tracks[get<0>(connections[1])->full_con_->d_platform_]);
-      EXPECT_EQ("", tracks[get<0>(connections[2])->full_con_->d_platform_]);
-      EXPECT_EQ("1", tracks[get<0>(connections[3])->full_con_->d_platform_]);
-      EXPECT_EQ("", tracks[get<0>(connections[4])->full_con_->d_platform_]);
-      EXPECT_EQ("3", tracks[get<0>(connections[5])->full_con_->d_platform_]);
-      EXPECT_EQ("8", tracks[get<0>(connections[6])->full_con_->d_platform_]);
-      EXPECT_EQ("7", tracks[get<0>(connections[7])->full_con_->d_platform_]);
+      EXPECT_EQ("6", tracks[get<0>(connections[0])->full_con_->d_track_]);
+      EXPECT_EQ("", tracks[get<0>(connections[1])->full_con_->d_track_]);
+      EXPECT_EQ("", tracks[get<0>(connections[2])->full_con_->d_track_]);
+      EXPECT_EQ("1", tracks[get<0>(connections[3])->full_con_->d_track_]);
+      EXPECT_EQ("", tracks[get<0>(connections[4])->full_con_->d_track_]);
+      EXPECT_EQ("3", tracks[get<0>(connections[5])->full_con_->d_track_]);
+      EXPECT_EQ("8", tracks[get<0>(connections[6])->full_con_->d_track_]);
+      EXPECT_EQ("7", tracks[get<0>(connections[7])->full_con_->d_track_]);
 
-      EXPECT_EQ("", tracks[get<0>(connections[0])->full_con_->a_platform_]);
-      EXPECT_EQ("", tracks[get<0>(connections[1])->full_con_->a_platform_]);
-      EXPECT_EQ("1", tracks[get<0>(connections[2])->full_con_->a_platform_]);
-      EXPECT_EQ("", tracks[get<0>(connections[3])->full_con_->a_platform_]);
-      EXPECT_EQ("3", tracks[get<0>(connections[4])->full_con_->a_platform_]);
-      EXPECT_EQ("8", tracks[get<0>(connections[5])->full_con_->a_platform_]);
-      EXPECT_EQ("7", tracks[get<0>(connections[6])->full_con_->a_platform_]);
-      EXPECT_EQ("6", tracks[get<0>(connections[7])->full_con_->a_platform_]);
+      EXPECT_EQ("", tracks[get<0>(connections[0])->full_con_->a_track_]);
+      EXPECT_EQ("", tracks[get<0>(connections[1])->full_con_->a_track_]);
+      EXPECT_EQ("1", tracks[get<0>(connections[2])->full_con_->a_track_]);
+      EXPECT_EQ("", tracks[get<0>(connections[3])->full_con_->a_track_]);
+      EXPECT_EQ("3", tracks[get<0>(connections[4])->full_con_->a_track_]);
+      EXPECT_EQ("8", tracks[get<0>(connections[5])->full_con_->a_track_]);
+      EXPECT_EQ("7", tracks[get<0>(connections[6])->full_con_->a_track_]);
+      EXPECT_EQ("6", tracks[get<0>(connections[7])->full_con_->a_track_]);
 
       auto bt = get<0>(connections[0])->full_con_->con_info_->attributes_[0];
       auto sn = get<0>(connections[4])->full_con_->con_info_->attributes_[0];

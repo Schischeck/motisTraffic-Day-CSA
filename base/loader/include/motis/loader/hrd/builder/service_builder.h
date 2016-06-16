@@ -14,14 +14,14 @@
 #include "motis/loader/hrd/builder/route_builder.h"
 #include "motis/loader/hrd/builder/station_builder.h"
 #include "motis/loader/hrd/model/hrd_service.h"
-#include "motis/loader/hrd/parser/platform_rules_parser.h"
+#include "motis/loader/hrd/parser/track_rules_parser.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
 struct service_builder {
-  explicit service_builder(platform_rules);
+  explicit service_builder(track_rules);
 
   flatbuffers::Offset<Service> create_service(
       hrd_service const&, route_builder&, station_builder&, category_builder&,
@@ -29,7 +29,7 @@ struct service_builder {
       direction_builder&, flatbuffers::FlatBufferBuilder&,
       bool is_rule_participant);
 
-  platform_rules const plf_rules_;
+  track_rules const track_rules_;
   std::vector<flatbuffers::Offset<Service>> fbs_services_;
   std::map<char const*, flatbuffers::Offset<flatbuffers::String>> filenames_;
 };

@@ -62,7 +62,7 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
   }
 
   auto const& track =
-      sched.tracks_[is_dep ? fcon.d_platform_ : fcon.a_platform_];
+      sched.tracks_[is_dep ? fcon.d_track_ : fcon.a_track_];
   auto const& service_name = get_service_name(sched, &info);
 
   return CreateStationEvent(

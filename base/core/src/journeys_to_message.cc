@@ -30,7 +30,7 @@ std::vector<Offset<Stop>> convert_stops(
         stop.arrival_.valid_
             ? CreateEventInfo(b, stop.arrival_.timestamp_,
                               stop.arrival_.schedule_timestamp_,
-                              b.CreateString(stop.arrival_.platform_),
+                              b.CreateString(stop.arrival_.track_),
                               convert_reason(stop.arrival_.timestamp_reason_))
             : CreateEventInfo(b, 0, 0, b.CreateString(""),
                               TimestampReason_SCHEDULE);
@@ -38,7 +38,7 @@ std::vector<Offset<Stop>> convert_stops(
         stop.departure_.valid_
             ? CreateEventInfo(b, stop.departure_.timestamp_,
                               stop.departure_.schedule_timestamp_,
-                              b.CreateString(stop.departure_.platform_),
+                              b.CreateString(stop.departure_.track_),
                               convert_reason(stop.departure_.timestamp_reason_))
             : CreateEventInfo(b, 0, 0, b.CreateString(""),
                               TimestampReason_SCHEDULE);

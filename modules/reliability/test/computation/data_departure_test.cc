@@ -162,11 +162,11 @@ TEST_F(reliability_data_departure, first_route_node_feeders) {
     auto const& feeder = data.feeders_[1];
     ASSERT_EQ(test_util::minutes_to_motis_time(6 * 60 + 54),
               feeder.scheduled_arrival_time_);
-    ASSERT_EQ(5, feeder.transfer_time_);  // TODO(Mohammad Keyhani) use platform
+    ASSERT_EQ(5, feeder.transfer_time_);  // TODO(Mohammad Keyhani) use track
     // change time
     ASSERT_EQ(test_util::minutes_to_motis_time((7 * 60 + 3) - 5),
               feeder.latest_feasible_arrival_);  // TODO(Mohammad Keyhani) use
-    // platform change time
+    // track change time
     ASSERT_EQ(feeder_dist, feeder.distribution_);
   }
 

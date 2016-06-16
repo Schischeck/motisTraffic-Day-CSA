@@ -22,7 +22,7 @@
 #include "motis/loader/hrd/parser/categories_parser.h"
 #include "motis/loader/hrd/parser/directions_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
-#include "motis/loader/hrd/parser/platform_rules_parser.h"
+#include "motis/loader/hrd/parser/track_rules_parser.h"
 #include "motis/loader/hrd/parser/providers_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
@@ -47,7 +47,7 @@ enum filename_key {
   STATIONS,
   COORDINATES,
   BITFIELDS,
-  PLATFORMS,
+  TRACKS,
   INFOTEXT,
   BASIC_DATA,
   CATEGORIES,
@@ -65,7 +65,7 @@ std::vector<std::vector<std::string>> const required_files = {
     {STATIONS_FILE},
     {COORDINATES_FILE},
     {BITFIELDS_FILE},
-    {PLATFORMS_FILE},
+    {TRACKS_FILE},
     {INFOTEXT_FILE},
     {BASIC_DATA_FILE},
     {CATEGORIES_FILE},
@@ -177,8 +177,8 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto const directions_file = load(core_data_root, DIRECTIONS);
   direction_builder db(parse_directions(directions_file));
 
-  auto const platforms_file = load(core_data_root, PLATFORMS);
-  service_builder sb(parse_platform_rules(platforms_file, fbb));
+  auto const tracks_file = load(core_data_root, TRACKS);
+  service_builder sb(parse_track_rules(tracks_file, fbb));
 
   line_builder lb;
   route_builder rb;

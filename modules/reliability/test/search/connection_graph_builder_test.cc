@@ -27,7 +27,7 @@ journey create_journey1() {
     stop.arrival_.valid_ = false;
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445261400;
-    stop.departure_.platform_ = "1";
+    stop.departure_.track_ = "1";
   }
   {
     auto& stop = j.stops_[1];
@@ -38,10 +38,10 @@ journey create_journey1() {
     stop.name_ = "Station1";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445262000;
-    stop.arrival_.platform_ = "2";
+    stop.arrival_.track_ = "2";
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445262240;
-    stop.departure_.platform_ = "3";
+    stop.departure_.track_ = "3";
   }
   {
     auto& stop = j.stops_[2];
@@ -52,10 +52,10 @@ journey create_journey1() {
     stop.name_ = "Station2";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445262900;
-    stop.arrival_.platform_ = "4";
+    stop.arrival_.track_ = "4";
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445262900;
-    stop.departure_.platform_ = "";
+    stop.departure_.track_ = "";
   }
   {
     auto& stop = j.stops_[3];
@@ -66,10 +66,10 @@ journey create_journey1() {
     stop.name_ = "Station3";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445263200;
-    stop.arrival_.platform_ = "";
+    stop.arrival_.track_ = "";
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445263320;
-    stop.departure_.platform_ = "5";
+    stop.departure_.track_ = "5";
   }
   {
     auto& stop = j.stops_[4];
@@ -80,7 +80,7 @@ journey create_journey1() {
     stop.name_ = "Station4";
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445263920;
-    stop.arrival_.platform_ = "6";
+    stop.arrival_.track_ = "6";
     stop.departure_.valid_ = false;
   }
 
@@ -197,7 +197,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_FALSE(stop.arrival_.valid_);
       ASSERT_TRUE(stop.departure_.valid_);
       ASSERT_EQ(stop.departure_.timestamp_, 1445261400);
-      ASSERT_EQ(stop.departure_.platform_, "1");
+      ASSERT_EQ(stop.departure_.track_, "1");
     }
     {
       auto& stop = journey.stops_[1];
@@ -208,7 +208,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(stop.name_, "Station1");
       ASSERT_TRUE(stop.arrival_.valid_);
       ASSERT_EQ(stop.arrival_.timestamp_, 1445262000);
-      ASSERT_EQ(stop.arrival_.platform_, "2");
+      ASSERT_EQ(stop.arrival_.track_, "2");
       ASSERT_FALSE(stop.departure_.valid_);
     }
     ASSERT_EQ(journey.transports_.size(), 1);
@@ -259,7 +259,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_FALSE(stop.arrival_.valid_);
       ASSERT_TRUE(stop.departure_.valid_);
       ASSERT_EQ(stop.departure_.timestamp_, 1445262240);
-      ASSERT_EQ(stop.departure_.platform_, "3");
+      ASSERT_EQ(stop.departure_.track_, "3");
     }
     {
       auto& stop = journey.stops_[1];
@@ -270,7 +270,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(stop.name_, "Station2");
       ASSERT_TRUE(stop.arrival_.valid_);
       ASSERT_EQ(stop.arrival_.timestamp_, 1445262900);
-      ASSERT_EQ(stop.arrival_.platform_, "4");
+      ASSERT_EQ(stop.arrival_.track_, "4");
       ASSERT_FALSE(stop.departure_.valid_);
     }
     ASSERT_EQ(journey.transports_.size(), 1);
@@ -321,7 +321,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_FALSE(stop.arrival_.valid_);
       ASSERT_TRUE(stop.departure_.valid_);
       ASSERT_EQ(stop.departure_.timestamp_, 1445262900);
-      ASSERT_EQ(stop.departure_.platform_, "");
+      ASSERT_EQ(stop.departure_.track_, "");
     }
     {
       auto& stop = journey.stops_[1];
@@ -332,10 +332,10 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(stop.name_, "Station3");
       ASSERT_TRUE(stop.arrival_.valid_);
       ASSERT_EQ(stop.arrival_.timestamp_, 1445263200);
-      ASSERT_EQ(stop.arrival_.platform_, "");
+      ASSERT_EQ(stop.arrival_.track_, "");
       ASSERT_TRUE(stop.departure_.valid_);
       ASSERT_EQ(stop.departure_.timestamp_, 1445263320);
-      ASSERT_EQ(stop.departure_.platform_, "5");
+      ASSERT_EQ(stop.departure_.track_, "5");
     }
     {
       auto& stop = journey.stops_[2];
@@ -346,7 +346,7 @@ TEST(reliability_connection_graph_builder, split_journey) {
       ASSERT_EQ(stop.name_, "Station4");
       ASSERT_TRUE(stop.arrival_.valid_);
       ASSERT_EQ(stop.arrival_.timestamp_, 1445263920);
-      ASSERT_EQ(stop.arrival_.platform_, "6");
+      ASSERT_EQ(stop.arrival_.track_, "6");
       ASSERT_FALSE(stop.departure_.valid_);
     }
     ASSERT_EQ(journey.transports_.size(), 2);

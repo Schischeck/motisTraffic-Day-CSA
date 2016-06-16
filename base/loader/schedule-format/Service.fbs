@@ -1,6 +1,6 @@
 include "Route.fbs";
 include "Section.fbs";
-include "Platform.fbs";
+include "Track.fbs";
 
 namespace motis.loader;
 
@@ -13,7 +13,7 @@ table Service {
   route : Route;
   traffic_days : string;
   sections : [Section];
-  platforms : [PlatformRules];
+  tracks : [TrackRules];
   times : [int];
   route_key : uint (key);
   debug : ServiceDebugInfo;

@@ -102,14 +102,14 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             (*std::next(it))->get_node()->is_foot_node()) {
           break;
         }
-        int a_platform = MOTIS_UNKNOWN_TRACK;
-        int d_platform = MOTIS_UNKNOWN_TRACK;
+        int a_track = MOTIS_UNKNOWN_TRACK;
+        int d_track = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
         time d_time = INVALID_TIME, d_sched_time = INVALID_TIME;
         delay_info::reason a_reason = walk_arrival_di.get_reason(),
                            d_reason = delay_info::reason::SCHEDULE;
         if (a_time == INVALID_TIME && last_con != nullptr) {
-          a_platform = last_con->full_con_->a_platform_;
+          a_track = last_con->full_con_->a_track_;
           a_time = last_con->a_time_;
 
           auto a_di =
@@ -125,7 +125,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         if (s1 != end(labels) && s2 != end(labels) &&
             (*s2)->connection_ != nullptr) {
           auto const& succ = *s2;
-          d_platform = succ->connection_->full_con_->d_platform_;
+          d_track = succ->connection_->full_con_->d_track_;
           d_time = succ->connection_->d_time_;
 
           auto d_di = get_delay_info(sched, (*s1)->get_node(),
@@ -135,9 +135,9 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
         }
 
         stops.emplace_back(static_cast<unsigned int>(++stop_index),
-                           current->get_node()->get_station()->id_, a_platform,
-                           d_platform, a_time, d_time, a_sched_time,
-                           d_sched_time, a_reason, d_reason,
+                           current->get_node()->get_station()->id_, a_track,
+                           d_track, a_time, d_time, a_sched_time, d_sched_time,
+                           a_reason, d_reason,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
                                last_con != nullptr);
         break;
@@ -155,7 +155,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             static_cast<unsigned int>(++stop_index),
             current->get_node()->get_station()->id_,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
-                                : last_con->full_con_->a_platform_,
+                                : last_con->full_con_->a_track_,
             MOTIS_UNKNOWN_TRACK,
 
             // Arrival graph time:
@@ -217,8 +217,8 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
             stops.emplace_back(
                 static_cast<unsigned int>(++stop_index),
                 current->get_node()->get_station()->id_,
-                current->connection_->full_con_->a_platform_,
-                succ->connection_->full_con_->d_platform_,
+                current->connection_->full_con_->a_track_,
+                succ->connection_->full_con_->d_track_,
                 current->connection_->a_time_, succ->connection_->d_time_,
                 a_di.get_schedule_time(), d_di.get_schedule_time(),
                 a_di.get_reason(), d_di.get_reason(), false);
