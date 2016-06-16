@@ -13,7 +13,7 @@ struct geo_index;
 
 struct bikesharing : public motis::module::module {
   bikesharing();
-  ~bikesharing();
+  ~bikesharing() override;
 
   std::string name() const override { return "bikesharing"; }
   void init(motis::module::registry&) override;

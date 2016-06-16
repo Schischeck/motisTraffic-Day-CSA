@@ -19,7 +19,6 @@
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
-namespace po = boost::program_options;
 namespace p = std::placeholders;
 
 namespace motis {
