@@ -56,7 +56,7 @@ private:
             auto to_t = load_terminal(reachable_t->id()->str());
 
             for (auto const& station : *to_t->get()->attached()) {
-              // TODO ajdust begin and end with walk_dur
+              // TODO(root) ajdust begin and end with walk_dur
               auto availability =
                   get_availability(from_t->get(), begin, end, first_bucket,
                                    req->availability_aggregator());
