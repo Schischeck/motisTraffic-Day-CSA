@@ -1,0 +1,16 @@
+include "routes/RoutesSections.fbs";
+
+namespace motis.routes;
+
+table RoutesSection {
+  from: uint;
+  to: uint;
+  clasz: int;
+  section: [double];
+}
+
+table RoutesSections {
+  sections: [RoutesSection];
+}
+
+root_type RoutesSections;

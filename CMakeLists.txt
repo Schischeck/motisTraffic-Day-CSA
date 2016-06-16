@@ -98,7 +98,7 @@ include_directories(SYSTEM external_lib) # for osrm-backend
 include_directories(SYSTEM external_lib/expat/include)
 include_directories(SYSTEM external_lib/flatbuffers/include)
 include_directories(SYSTEM external_lib/googletest/googletest/include)
-include_directories(SYSTEM external_lib/libosmium/include)
+include_directories(SYSTEM external_lib/osmium/include)
 include_directories(SYSTEM external_lib/miniz)
 include_directories(SYSTEM external_lib/osrm-backend)
 include_directories(SYSTEM external_lib/osrm-backend/include)

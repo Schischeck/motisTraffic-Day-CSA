@@ -1,0 +1,6 @@
+namespace motis.routes;
+
+table RoutesSectionRes {
+  section: [double];
+  clasz: int;
+}
