@@ -2,6 +2,8 @@ include "base/Interval.fbs";
 
 namespace motis.lookup;
 
+enum TableType : byte { BOTH, ONLY_ARRIVALS, ONLY_DEPARTURES }
+
 // JSON example
 // --
 // {
@@ -17,4 +19,5 @@ namespace motis.lookup;
 table LookupStationEventsRequest {
   station_id:string;
   interval:Interval;
+  type: TableType = BOTH;
 }

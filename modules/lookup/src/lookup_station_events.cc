@@ -61,8 +61,7 @@ Offset<StationEvent> make_event(FlatBufferBuilder& fbb, schedule const& sched,
     dir = sched.stations_[trp->id_.secondary_.target_station_id_]->name_;
   }
 
-  auto const& track =
-      sched.tracks_[is_dep ? fcon.d_track_ : fcon.a_track_];
+  auto const& track = sched.tracks_[is_dep ? fcon.d_track_ : fcon.a_track_];
   auto const& service_name = get_service_name(sched, &info);
 
   return CreateStationEvent(
@@ -95,18 +94,22 @@ std::vector<Offset<StationEvent>> lookup_station_events(
   for (auto const& route_node : station_node->get_route_nodes()) {
     auto const& route_id = route_node->route_;
 
-    for (auto const& edge : route_node->incoming_edges_) {
-      foreach_arrival_in(*edge, begin, end, [&](light_connection const* lcon) {
-        events.push_back(
-            make_event(fbb, sched, lcon, station_index, route_id, false));
-      });
+    if (req->type() != TableType_ONLY_DEPARTURES) {
+      for (auto const& edge : route_node->incoming_edges_) {
+        foreach_arrival_in(*edge, begin, end, [&](auto&& lcon) {
+          events.push_back(
+              make_event(fbb, sched, lcon, station_index, route_id, false));
+        });
+      }
     }
 
-    for (auto const& edge : route_node->edges_) {
-      foreach_departure_in(edge, begin, end, [&](light_connection const* lcon) {
-        events.push_back(
-            make_event(fbb, sched, lcon, station_index, route_id, true));
-      });
+    if (req->type() != TableType_ONLY_ARRIVALS) {
+      for (auto const& edge : route_node->edges_) {
+        foreach_departure_in(edge, begin, end, [&](auto&& lcon) {
+          events.push_back(
+              make_event(fbb, sched, lcon, station_index, route_id, true));
+        });
+      }
     }
   }
   return events;
