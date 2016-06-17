@@ -6,7 +6,7 @@ namespace motis.lookup;
 //   "content_type": "LookupGeoStationIdRequest",
 //   "content": {
 //     "station_id": "8000105",
-//     "min_radius": 250.00
+//     "min_radius": 250.00,
 //     "max_radius": 500.00
 //   }
 // }
