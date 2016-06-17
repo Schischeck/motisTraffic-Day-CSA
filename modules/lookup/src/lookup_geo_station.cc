@@ -13,8 +13,8 @@ Offset<LookupGeoStationResponse> lookup_geo_stations_id(
     LookupGeoStationIdRequest const* req) {
   auto const& station = get_station(sched, req->station_id()->str());
   std::vector<Offset<Station>> list;
-  for (auto const& s :
-       idx.stations(station->lat(), station->lng(), req->radius())) {
+  for (auto const& s : idx.stations(station->lat(), station->lng(),
+                                    req->min_radius(), req->max_radius())) {
     list.push_back(create_station(b, *s));
   }
   return CreateLookupGeoStationResponse(b, b.CreateVector(list));
@@ -24,8 +24,8 @@ Offset<LookupGeoStationResponse> lookup_geo_stations(
     FlatBufferBuilder& b, station_geo_index const& idx,
     LookupGeoStationRequest const* req) {
   std::vector<Offset<Station>> list;
-  for (auto const& s :
-       idx.stations(req->pos()->lat(), req->pos()->lng(), req->radius())) {
+  for (auto const& s : idx.stations(req->pos()->lat(), req->pos()->lng(),
+                                    req->min_radius(), req->max_radius())) {
     list.push_back(create_station(b, *s));
   }
   return CreateLookupGeoStationResponse(b, b.CreateVector(list));
