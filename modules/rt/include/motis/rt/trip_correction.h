@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <limits>
 #include <vector>
@@ -43,7 +45,7 @@ struct trip_corrector {
   explicit trip_corrector(schedule& sched, ev_key const& k)
       : sched_(sched), trip_ev_keys_(trip_bfs(k, bfs_direction::BOTH)) {}
 
-  std::vector<delay_info*> fix_times() {
+  std::vector<delay_info const*> fix_times() {
     set_min_max();
     repair();
     return update();
@@ -86,18 +88,23 @@ private:
     }
   }
 
-  std::vector<delay_info*> update() {
-    std::vector<delay_info*> updates;
+  std::vector<delay_info const*> update() {
+    std::vector<delay_info const*> updates;
     for (auto const& k : trip_ev_keys_) {
       auto& e = entries_[k];
       if (e.get_reason() == timestamp_reason::REPAIR &&
           e.get_repair_time() != k.get_time()) {
-        auto& di = sched_.graph_to_delay_info_[k];
+        auto di = map_get_or_create(sched_.graph_to_delay_info_, k, [&]() {
+          sched_.delay_mem_.emplace_back(new delay_info(k));
+          return sched_.delay_mem_.back().get();
+        });
         di->set(timestamp_reason::REPAIR, e.get_repair_time());
 
         auto& event_time = k.ev_type_ == event_type::DEP ? k.lcon()->d_time_
                                                          : k.lcon()->a_time_;
         const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
+
+        updates.push_back(di);
       }
     }
     return updates;

@@ -3,12 +3,20 @@
 #include <iomanip>
 #include <ostream>
 
+#include "motis/protocol/RISMessage_generated.h"
+
 namespace motis {
 namespace rt {
 
 struct statistics {
   statistics()
-      : total_evs_(0),
+      : delay_msgs_(0),
+        cancel_msgs_(0),
+        additional_msgs_(0),
+        reroute_msgs_(0),
+        con_decision_msgs_(0),
+        con_assessment_msgs_(0),
+        total_evs_(0),
         ev_invalid_time_(0),
         ev_station_not_found_(0),
         ev_trp_not_found_(0),
@@ -30,6 +38,14 @@ struct statistics {
       o << "  " << std::setw(22) << desc << ": " << std::setw(9) << number
         << "\n";
     };
+
+    o << "\nmsg types:\n";
+    c("delay", s.delay_msgs_);
+    c("cancel", s.cancel_msgs_);
+    c("additional", s.additional_msgs_);
+    c("reroute", s.reroute_msgs_);
+    c("conn decision", s.con_decision_msgs_);
+    c("conn assessment", s.con_assessment_msgs_);
 
     o << "\nevs:\n";
     c("total", s.total_evs_);
@@ -67,12 +83,35 @@ struct statistics {
       ++diff_gt_5_;
       if (diff > 10) {
         ++diff_gt_10_;
-      }
-      if (diff > 30) {
-        ++diff_gt_30_;
+        if (diff > 30) {
+          ++diff_gt_30_;
+        }
       }
     }
   }
+
+  void count_message(motis::ris::MessageUnion const type) {
+    switch (type) {
+      case motis::ris::MessageUnion_DelayMessage: ++delay_msgs_; break;
+      case motis::ris::MessageUnion_CancelMessage: ++cancel_msgs_; break;
+      case motis::ris::MessageUnion_AdditionMessage: ++additional_msgs_; break;
+      case motis::ris::MessageUnion_RerouteMessage: ++reroute_msgs_; break;
+      case motis::ris::MessageUnion_ConnectionDecisionMessage:
+        ++con_decision_msgs_;
+        break;
+      case motis::ris::MessageUnion_ConnectionAssessmentMessage:
+        ++con_assessment_msgs_;
+        break;
+      default: break;
+    }
+  }
+
+  unsigned delay_msgs_;
+  unsigned cancel_msgs_;
+  unsigned additional_msgs_;
+  unsigned reroute_msgs_;
+  unsigned con_decision_msgs_;
+  unsigned con_assessment_msgs_;
 
   unsigned total_evs_;
   unsigned ev_invalid_time_;

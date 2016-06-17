@@ -145,8 +145,8 @@ void rt::add_to_propagator(schedule const& sched,
         auto const schedule_time = di_it != end(sched.graph_to_delay_info_)
                                        ? di_it->second->get_schedule_time()
                                        : ev_time;
-        auto const diff =
-            std::abs(static_cast<int>(upd.sched_time_) - schedule_time);
+        auto const diff = std::abs(static_cast<int>(upd.sched_time_) -
+                                   static_cast<int>(schedule_time));
         if (diff != 0) {
           stats_.log_sched_time_mismatch(diff);
           if (diff > 5) {
@@ -200,6 +200,9 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
   // Parse message and add updates to propagator.
   for (auto const& m : *msgs) {
     auto const& nested = m->message_nested_root();
+
+    stats_.count_message(nested->content_type());
+
     if (nested->content_type() != ris::MessageUnion_DelayMessage) {
       continue;
     }
