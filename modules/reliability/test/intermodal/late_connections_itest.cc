@@ -186,7 +186,7 @@ TEST_F(reliability_late_connections, search) {
   }
   { /* direct connection, arrival 02:00 */
     auto const& j = journeys[1];
-    ASSERT_EQ(60, j.night_penalty_);
+    ASSERT_EQ(65, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_EQ(1, j.transports_.front().train_nr_);
     ASSERT_EQ(schedule_hotels::FRANKFURT.eva_, j.stops_[1].eva_no_);
