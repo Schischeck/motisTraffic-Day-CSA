@@ -11,12 +11,14 @@ namespace motis.lookup;
 //       "lat": 49.8774869,
 //       "lng": 8.6546632
 //     },
-//     "radius": 456.78
+//     "min_radius": 250.00,
+//     "max_radius": 500.00
 //   }
 // }
 table LookupGeoStationRequest {
   pos:Position;
-  radius:double;
+  min_radius: double = 0;
+  max_radius: double;
 }
 
 // JSON example:
@@ -28,12 +30,13 @@ table LookupGeoStationRequest {
 //       {
 //         "lat": 49.8774869,
 //         "lng": 8.6546632,
-//         "radius": 456.78
-//       },
-//       {
+//         "min_radius": 250.00,
+//         "max_radius": 500.00
+//       }, {
 //         "lat": 49.835668,
 //         "lng": 9.144335,
-//         "radius": 1000
+//         "min_radius": 250.00,
+//         "max_radius": 500.00
 //       }
 //     ]
 //   }

@@ -70,7 +70,7 @@ void ask_lookup_module(
   b.create_and_finish(
       MsgContent_LookupGeoStationIdRequest,
       CreateLookupGeoStationIdRequest(b, b.CreateString(destination.eva_nr_),
-                                      static_cast<double>(taxi_radius))
+                                      0.0, static_cast<double>(taxi_radius))
           .Union(),
       "/lookup/geo_station_id");
   auto res_msg = motis_call(module::make_msg(b))->val();
