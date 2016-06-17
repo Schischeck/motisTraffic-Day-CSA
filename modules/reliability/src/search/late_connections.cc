@@ -70,7 +70,7 @@ void ask_lookup_module(
   b.create_and_finish(
       MsgContent_LookupGeoStationIdRequest,
       CreateLookupGeoStationIdRequest(b, b.CreateString(destination.eva_nr_),
-                                      static_cast<double>(taxi_radius))
+                                      0.0, static_cast<double>(taxi_radius))
           .Union(),
       "/lookup/geo_station_id");
   auto res_msg = motis_call(module::make_msg(b))->val();
@@ -143,7 +143,8 @@ void init_hotels(schedule const& sched, std::string const& hotels_file,
 }
 
 module::msg_ptr ask_routing(ReliableRoutingRequest const& req,
-                       std::string const& hotels_file, schedule const& sched) {
+                            std::string const& hotels_file,
+                            schedule const& sched) {
   using namespace motis::reliability::intermodal;
   individual_modes_container container;
   detail::init_hotels(sched, hotels_file, container.hotels_);
