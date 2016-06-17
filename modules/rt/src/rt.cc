@@ -249,15 +249,16 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
     if (!k.lcon()->valid_) {
       continue;
     } else if (conflicts(k)) {
-      ++stats_.disabled_routes_;
-      trip_corrector(sched, k).fix_times();
+      for (auto const& di : trip_corrector(sched, k).fix_times()) {
+        shifted_nodes.add(di);
+      }
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
       ++stats_.disabled_routes_;
       disable_route_layer(k);
     }
 
-    shifted_nodes.add_shifted_node(*di);
+    shifted_nodes.add(di);
   }
 
   stats_.propagated_updates_ = propagator_->events().size();
