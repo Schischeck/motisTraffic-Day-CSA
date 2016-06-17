@@ -250,7 +250,6 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
       continue;
     } else if (conflicts(k)) {
       ++stats_.disabled_routes_;
-      disable_route_layer(k);
       trip_corrector(sched, k).fix_times();
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;

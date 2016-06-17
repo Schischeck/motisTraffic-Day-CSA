@@ -8,6 +8,7 @@ namespace rt {
 std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
   std::set<edge const*> visited;
   std::queue<edge const*> q;
+  visited.insert(k.route_edge_);
   q.push(k.route_edge_);
   while (!q.empty()) {
     auto const e = q.front();

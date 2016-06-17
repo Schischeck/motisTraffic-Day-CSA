@@ -7,6 +7,7 @@
 #include "motis/rt/bfs.h"
 
 namespace motis {
+
 namespace rt {
 
 struct entry;
@@ -16,8 +17,9 @@ constexpr auto tmin = std::numeric_limits<motis::time>::min();
 
 struct entry : public delay_info {
   entry() = default;
-  entry(ev_key const& k) : delay_info(k), min_(tmin), max_(tmax) {}
-  entry(delay_info const& di) : delay_info(di), min_(tmin), max_(tmax) {}
+  explicit entry(ev_key const& k) : delay_info(k), min_(tmin), max_(tmax) {}
+  explicit entry(delay_info const& di)
+      : delay_info(di), min_(tmin), max_(tmax) {}
 
   void update_min(time t) { min_ = std::max(min_, t); }
   void update_max(time t) { max_ = std::min(max_, t); }
@@ -28,6 +30,9 @@ struct entry : public delay_info {
     }
     if (get_current_time() < min_) {
       set(timestamp_reason::REPAIR, min_);
+    }
+    if (get_current_time() == get_original_time()) {
+      set(timestamp_reason::REPAIR, 0);
     }
   }
 
@@ -50,11 +55,11 @@ struct trip_corrector {
   }
 
   void apply_is(ev_key const& k, time is) {
-    for (auto const& k : trip_bfs(k, bfs_direction::FORWARD)) {
-      get_or_create(k).update_min(is);
+    for (auto const& fwd : trip_bfs(k, bfs_direction::FORWARD)) {
+      get_or_create(fwd).update_min(is);
     }
-    for (auto const& k : trip_bfs(k, bfs_direction::BACKWARD)) {
-      get_or_create(k).update_max(is);
+    for (auto const& bwd : trip_bfs(k, bfs_direction::BACKWARD)) {
+      get_or_create(bwd).update_max(is);
     }
   }
 
@@ -64,20 +69,13 @@ struct trip_corrector {
       if (di == nullptr || di->get_is_time() == 0) {
         continue;
       }
-
       apply_is(k, di->get_is_time());
     }
   }
 
   void repair() {
     for (auto const& k : trip_ev_keys_) {
-      auto& e = entries_[k];
-      if (e.get_current_time() > e.max_) {
-        e.set(timestamp_reason::REPAIR, e.max_);
-      }
-      if (e.get_current_time() < e.min_) {
-        e.set(timestamp_reason::REPAIR, e.min_);
-      }
+      entries_[k].fix();
     }
   }
 
@@ -87,6 +85,10 @@ struct trip_corrector {
       if (e.get_reason() == timestamp_reason::REPAIR) {
         auto& di = sched_.graph_to_delay_info_[k];
         di->set(timestamp_reason::REPAIR, e.get_repair_time());
+
+        auto& event_time = k.ev_type_ == event_type::DEP ? k.lcon()->d_time_
+                                                         : k.lcon()->a_time_;
+        const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
       }
     }
   }
