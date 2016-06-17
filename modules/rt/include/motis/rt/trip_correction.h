@@ -43,6 +43,13 @@ struct trip_corrector {
   explicit trip_corrector(schedule& sched, ev_key const& k)
       : sched_(sched), trip_ev_keys_(trip_bfs(k, bfs_direction::BOTH)) {}
 
+  void fix_times() {
+    set_min_max();
+    repair();
+    assign_repairs();
+  }
+
+private:
   entry& get_or_create(ev_key const& k) {
     return motis::get_or_create(entries_, k, [&]() {
       auto di_it = sched_.graph_to_delay_info_.find(k);
@@ -91,12 +98,6 @@ struct trip_corrector {
         const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
       }
     }
-  }
-
-  void fix_times() {
-    set_min_max();
-    repair();
-    assign_repairs();
   }
 
   schedule& sched_;

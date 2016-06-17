@@ -197,12 +197,6 @@ public:
     return nullptr;
   }
 
-  light_connection const* get_connection(size_t index) {
-    assert(type() == ROUTE_EDGE);
-    assert(index < m_.route_edge_.conns_.size());
-    return &m_.route_edge_.conns_[index];
-  }
-
   light_connection const* get_connection(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
