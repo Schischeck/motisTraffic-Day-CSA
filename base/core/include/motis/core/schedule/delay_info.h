@@ -9,6 +9,8 @@
 namespace motis {
 
 struct delay_info {
+  delay_info() = default;
+
   delay_info(delay_info const&) = default;
 
   explicit delay_info(ev_key ev)
