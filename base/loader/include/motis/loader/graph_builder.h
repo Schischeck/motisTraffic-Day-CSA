@@ -211,6 +211,7 @@ struct graph_builder {
       route_section prev_section, route_section next_section);
 
   unsigned duplicate_count_;
+  unsigned lcon_count_;
   unsigned next_route_index_;
   std::map<Category const*, int> categories_;
   std::map<std::string, int> tracks_;

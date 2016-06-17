@@ -60,7 +60,7 @@ TEST(ris_delay_message, ist_message_1) {
   EXPECT_EQ(8329, e0->base()->service_num());
   EXPECT_STREQ("3", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444168740, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_EQ(1444168740, e0->updated_time());
 }
@@ -106,7 +106,7 @@ TEST(ris_delay_message, ist_message_2) {
   EXPECT_EQ(60418, e0->base()->service_num());
   EXPECT_STREQ("", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444168080, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_EQ(1444168740, e0->updated_time());
 }
@@ -174,7 +174,7 @@ TEST(ris_delay_message, ist_message_3) {
   EXPECT_EQ(59622, e0->base()->service_num());
   EXPECT_STREQ("", e0->base()->line_id()->c_str());
   EXPECT_EQ(1447690080, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+  EXPECT_EQ(EventType_ARR, e0->base()->type());
   EXPECT_EQ(1447690140, e0->updated_time());
 
   auto const& e1 = events->Get(1);
@@ -183,7 +183,7 @@ TEST(ris_delay_message, ist_message_3) {
   EXPECT_EQ(59622, e1->base()->service_num());
   EXPECT_STREQ("", e1->base()->line_id()->c_str());
   EXPECT_EQ(1447690140, e1->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e1->base()->type());
+  EXPECT_EQ(EventType_DEP, e1->base()->type());
   EXPECT_EQ(1447690140, e1->updated_time());
 }
 
@@ -214,19 +214,19 @@ EventType get_type(std::vector<ris_message> const& messages) {
 TEST(ris_delay_message, train_event_type) {
   auto start_msg = type_fixture("Start");
   auto start = parse_xmls(pack(start_msg.c_str()));
-  ASSERT_EQ(EventType_Departure, get_type(start));
+  ASSERT_EQ(EventType_DEP, get_type(start));
 
   auto ab_msg = type_fixture("Ab");
   auto ab = parse_xmls(pack(ab_msg.c_str()));
-  ASSERT_EQ(EventType_Departure, get_type(ab));
+  ASSERT_EQ(EventType_DEP, get_type(ab));
 
   auto an_msg = type_fixture("An");
   auto an = parse_xmls(pack(an_msg.c_str()));
-  ASSERT_EQ(EventType_Arrival, get_type(an));
+  ASSERT_EQ(EventType_ARR, get_type(an));
 
   auto ziel_msg = type_fixture("Ziel");
   auto ziel = parse_xmls(pack(ziel_msg.c_str()));
-  ASSERT_EQ(EventType_Arrival, get_type(ziel));
+  ASSERT_EQ(EventType_ARR, get_type(ziel));
 
   // "Durch" events are ignored
   auto pass_msg = type_fixture("Durch");
@@ -278,7 +278,7 @@ TEST(ris_delay_message, ist_prog_message_1) {
 
   EXPECT_EQ(21839, e0->base()->service_num());
   EXPECT_EQ(1444169100, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+  EXPECT_EQ(EventType_ARR, e0->base()->type());
 
   EXPECT_EQ(1444169160, e0->updated_time());
 }
@@ -329,7 +329,7 @@ TEST(ris_delay_message, ist_prog_message_2) {
   EXPECT_EQ(37616, e0->base()->service_num());
   EXPECT_STREQ("1", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444169640, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e0->base()->type());
+  EXPECT_EQ(EventType_ARR, e0->base()->type());
   EXPECT_EQ(1444169880, e0->updated_time());
 
   auto e1 = events->Get(1);
@@ -338,7 +338,7 @@ TEST(ris_delay_message, ist_prog_message_2) {
   EXPECT_EQ(37616, e1->base()->service_num());
   EXPECT_STREQ("1", e1->base()->line_id()->c_str());
   EXPECT_EQ(1444169640, e1->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e1->base()->type());
+  EXPECT_EQ(EventType_DEP, e1->base()->type());
   EXPECT_EQ(1444169880, e1->updated_time());
 
   auto e2 = events->Get(2);
@@ -347,7 +347,7 @@ TEST(ris_delay_message, ist_prog_message_2) {
   EXPECT_EQ(37616, e2->base()->service_num());
   EXPECT_STREQ("1", e2->base()->line_id()->c_str());
   EXPECT_EQ(1444169940, e2->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e2->base()->type());
+  EXPECT_EQ(EventType_ARR, e2->base()->type());
   EXPECT_EQ(1444170120, e2->updated_time());
 }
 

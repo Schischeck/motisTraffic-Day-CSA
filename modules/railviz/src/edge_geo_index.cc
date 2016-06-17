@@ -1,12 +1,12 @@
 #include "motis/railviz/edge_geo_index.h"
 
-#include <vector>
-#include <set>
 #include <algorithm>
+#include <set>
+#include <vector>
 
+#include "boost/geometry/geometries/box.hpp"
 #include "boost/geometry/geometries/point.hpp"
 #include "boost/geometry/geometries/segment.hpp"
-#include "boost/geometry/geometries/box.hpp"
 #include "boost/geometry/index/rtree.hpp"
 
 #include "motis/core/schedule/schedule.h"

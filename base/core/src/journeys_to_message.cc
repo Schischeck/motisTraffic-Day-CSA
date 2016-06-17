@@ -11,12 +11,12 @@ using namespace motis::routing;
 
 namespace motis {
 
-TimestampReason convert_reason(delay_info::reason const r) {
+TimestampReason convert_reason(timestamp_reason const r) {
   switch (r) {
-    case delay_info::reason::SCHEDULE: return TimestampReason_SCHEDULE;
-    case delay_info::reason::IS: return TimestampReason_IS;
-    case delay_info::reason::FORECAST: return TimestampReason_FORECAST;
-    case delay_info::reason::PROPAGATION: return TimestampReason_PROPAGATION;
+    case timestamp_reason::SCHEDULE: return TimestampReason_SCHEDULE;
+    case timestamp_reason::IS: return TimestampReason_IS;
+    case timestamp_reason::FORECAST: return TimestampReason_FORECAST;
+    case timestamp_reason::PROPAGATION: return TimestampReason_PROPAGATION;
     default: return TimestampReason_SCHEDULE;
   }
 }

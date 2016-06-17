@@ -52,8 +52,8 @@ TEST_F(reliability_realtime_data_interchange,
   test::send(motis_instance_,
              realtime::get_delay_message(
                  ERLANGEN, ICE_S_E, 1443443520 /* 2015-09-28 12:32:00 GMT */,
-                 1443444120 /* 2015-10-19 12:42:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Is));
+                 1443444120 /* 2015-10-19 12:42:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Is));
 
   // arriving train ICE_S_E from Stuttgart to Erlangen
   // interchange at Stuttgart
@@ -97,8 +97,8 @@ TEST_F(reliability_realtime_data_interchange_walk, interchange_walk) {
   test::send(motis_instance_,
              realtime::get_delay_message(
                  FRANKFURT, ICE_L_H, 1443435000 /* 2015-09-28 10:10:00 GMT */,
-                 1443435060 /* 2015-10-19 10:11:00 GMT */,
-                 ris::EventType_Arrival, ris::DelayType_Is));
+                 1443435060 /* 2015-10-19 10:11:00 GMT */, ris::EventType_ARR,
+                 ris::DelayType_Is));
 
   // arriving train ICE_L_H from Langen to Frankfurt
   // interchange at Frankfurt and walking to Messe

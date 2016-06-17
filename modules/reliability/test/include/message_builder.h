@@ -10,10 +10,10 @@ namespace realtime {
 inline ::flatbuffers::Offset<ris::TripId> stub_id(
     ::flatbuffers::FlatBufferBuilder& fbb) {
   using namespace ris;
-  return CreateTripId(
-      fbb, CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(""), 0,
-                       fbb.CreateString(""), EventType_Departure, 0),
-      StationIdType_EVA, fbb.CreateString(""), 0);
+  return CreateTripId(fbb,
+                      CreateEvent(fbb, StationIdType_EVA, fbb.CreateString(""),
+                                  0, fbb.CreateString(""), EventType_DEP, 0),
+                      StationIdType_EVA, fbb.CreateString(""), 0);
 }
 
 inline module::msg_ptr get_delay_message(std::string const& station,

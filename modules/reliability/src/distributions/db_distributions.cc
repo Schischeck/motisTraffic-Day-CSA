@@ -1,8 +1,8 @@
 #include "motis/reliability/distributions/db_distributions.h"
 
-#include <fstream>
-#include <algorithm>
 #include <cassert>
+#include <algorithm>
+#include <fstream>
 
 #include "motis/core/common/logging.h"
 
