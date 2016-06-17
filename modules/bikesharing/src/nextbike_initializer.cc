@@ -209,7 +209,7 @@ msg_ptr terminals_to_geo_request(std::vector<terminal> const& terminals,
   std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
     Position pos(merged.lat_, merged.lng_);
-    c.push_back(CreateLookupGeoStationRequest(b, &pos, radius));
+    c.push_back(CreateLookupGeoStationRequest(b, &pos, 0.0, radius));
   }
   b.create_and_finish(
       MsgContent_LookupBatchGeoStationRequest,

@@ -1,8 +1,12 @@
 #include "motis/lookup/station_geo_index.h"
 
+#include "boost/function_output_iterator.hpp"
+
 #include "motis/core/common/geo.h"
+#include "motis/loader/util.h"
 
 using namespace motis::geo_detail;
+using namespace motis::loader;
 using namespace flatbuffers;
 
 namespace motis {
@@ -20,22 +24,26 @@ public:
     rtree_ = quadratic_rtree{values};
   }
 
-  std::vector<const station*> stations(double lat, double lng,
-                                       double radius) const {
-    std::vector<station const*> vec;
+  std::vector<station const*> stations(double lat, double lng,
+                                       double min_radius,
+                                       double max_radius) const {
     spherical_point query_point = spherical_point(lng, lat);
 
-    std::vector<value> result_n;
-    rtree_.query(bgi::intersects(generate_box(query_point, radius)) &&
-                     bgi::satisfies([&query_point, radius](const value& v) {
-                       return distance_in_m(v.first, query_point) < radius;
-                     }),
-                 std::back_inserter(result_n));
+    std::vector<std::pair<double, size_t>> results;
+    rtree_.query(bgi::intersects(generate_box(query_point, max_radius)),
+                 boost::make_function_output_iterator([&](auto&& v) {
+                   auto const distance = distance_in_m(v.first, query_point);
+                   if (distance >= max_radius || distance < min_radius) {
+                     return;
+                   }
+                   results.emplace_back(distance, v.second);
+                 }));
 
-    for (const auto& result : result_n) {
-      vec.push_back(stations_[result.second].get());
-    }
-    return vec;
+    std::sort(begin(results), end(results));
+
+    return transform_to_vec(results, [this](auto&& r) -> station const* {
+      return stations_[r.second].get();
+    });
   }
 
 private:
@@ -43,14 +51,14 @@ private:
   quadratic_rtree rtree_;
 };
 
-station_geo_index::station_geo_index(const std::vector<station_ptr>& stations)
+station_geo_index::station_geo_index(std::vector<station_ptr> const& stations)
     : impl_(new impl(stations)) {}
 
 station_geo_index::~station_geo_index() = default;
 
-std::vector<const station*> station_geo_index::stations(double lat, double lng,
-                                                        double radius) const {
-  return impl_->stations(lat, lng, radius);
+std::vector<station const*> station_geo_index::stations(
+    double lat, double lng, double min_radius, double max_radius) const {
+  return impl_->stations(lat, lng, min_radius, max_radius);
 }
 
 }  // namespace lookup
