@@ -7,6 +7,8 @@ import Math.Vector2 exposing (Vec2)
 import Math.Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4, scale, translate, makeOrtho2D)
 import WebGL exposing (..)
+import Time exposing (Time)
+import AnimationFrame
 import Task exposing (..)
 import Html exposing (Html)
 
@@ -18,32 +20,28 @@ type alias Vertex =
     { coordinate : Vec3 }
 
 
-mesh : Drawable Vertex
-mesh =
+mesh : Float -> Drawable Vertex
+mesh p =
     let
         ( x1, y1 ) =
-            latLngToWorldCoord 49 9
-
-        ( x2, y2 ) =
-            latLngToWorldCoord 49.878 8.6512
-
-        ( x3, y3 ) =
             latLngToWorldCoord 49.8728 8.61
 
-        ( x4, y4 ) =
+        ( x2, y2 ) =
             latLngToWorldCoord 49.8728 8.65
+
+        x =
+            x1 + p * (x2 - x1)
+
+        y =
+            y1 + p * (y2 - y1)
     in
-        Points
-            [ Vertex (vec3 x1 y1 0)
-            , Vertex (vec3 x2 y2 0)
-            , Vertex (vec3 x3 y3 0)
-            , Vertex (vec3 x4 y4 0)
-            ]
+        Points [ Vertex (vec3 x y 0) ]
 
 
 type alias Model =
     { map : Map
     , texture : Maybe WebGL.Texture
+    , time : Time
     }
 
 
@@ -58,6 +56,7 @@ init =
             , west = 0
             }
       , texture = Nothing
+      , time = 0.0
       }
     , mapInit "map"
     )
@@ -68,7 +67,8 @@ init =
 
 
 type Msg
-    = MapLoaded String
+    = Animate Time
+    | MapLoaded String
     | MapUpdate Map
     | TextureError WebGL.Error
     | TextureLoaded WebGL.Texture
@@ -77,6 +77,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Animate t ->
+            ( { model | time = t }, Cmd.none )
+
         MapLoaded _ ->
             ( model
             , Task.perform TextureError
@@ -103,6 +106,7 @@ subscriptions model =
     Sub.batch
         [ mapLoaded MapLoaded
         , mapUpdate MapUpdate
+        , AnimationFrame.times Animate
         ]
 
 
@@ -119,7 +123,7 @@ overlay attributes model =
         Just tex ->
             [ render vertexShader
                 fragmentShader
-                mesh
+                (mesh (progress model))
                 { texture = tex
                 , perspective = perspective model
                 , zoom = model.map.zoom
@@ -137,6 +141,11 @@ overlay attributes model =
 view : Model -> Html Msg
 view model =
     div [ id "map" ] [ overlay [ class "leaflet-overlay" ] model ]
+
+
+progress : Model -> Float
+progress model =
+    toFloat (round model.time % 60000) / 60000
 
 
 perspective : Model -> Mat4
