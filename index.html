@@ -38,9 +38,9 @@
         map.on('zoomend', this._update, this);
 
         setTimeout(function() {
+          app.ports.mapLoaded.send("");
           this._updateSize();
         }.bind(this), 100);
-        app.ports.mapLoaded.send("");
       },
 
       onRemove: function (map) {
@@ -52,13 +52,14 @@
       },
 
       _update: function() {
-        var bounds = this._map.getBounds();
+        var bounds = this._map.getPixelBounds().min;
         var size = this._map.getSize();
 
         app.ports.mapUpdate.send({
           scale: Math.pow(2, this._map.getZoom()),
-          north: bounds.getNorth(),
-          west: bounds.getWest(),
+          zoom: this._map.getZoom(),
+          north: bounds.y,
+          west: bounds.x,
           width: size.x,
           height: size.y
         });
@@ -73,7 +74,6 @@
 
       _updatePosition: function() {
         this._update();
-
         var pos = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(this._el, pos);
       }

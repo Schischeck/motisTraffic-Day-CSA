@@ -4,6 +4,7 @@ type alias Map =
     { width : Float
     , height : Float
     , scale : Float
+    , zoom : Float
     , north : Float
     , west : Float
     }
