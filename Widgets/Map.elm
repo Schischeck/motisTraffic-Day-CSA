@@ -3,7 +3,6 @@ module Widgets.Map exposing (Model, Msg, init, view, update, subscriptions)
 import Html exposing (Html, Attribute, div, text)
 import Html.Attributes exposing (..)
 import Port exposing (..)
-import Math.Vector2 exposing (Vec2)
 import Math.Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4, scale, translate, makeOrtho2D)
 import WebGL exposing (..)
@@ -27,13 +26,22 @@ type alias Vertex =
 mesh : Float -> Drawable Vertex
 mesh p =
     let
-        x =
+        ax =
             x1 + p * (x2 - x1)
 
-        y =
+        ay =
             y1 + p * (y2 - y1)
+
+        bx =
+            x2 + p * (x1 - x2)
+
+        by =
+            y2 + p * (y1 - y2)
     in
-        Points [ Vertex (vec3 x y 0) ]
+        Points
+            [ Vertex (vec3 ax ay 0)
+            , Vertex (vec3 bx by 0)
+            ]
 
 
 type alias Model =
@@ -157,7 +165,7 @@ perspective { map } =
 -- SHADERS
 
 
-vertexShader : Shader { attr | coordinate : Vec3 } { unif | perspective : Mat4, zoom : Float } { }
+vertexShader : Shader { attr | coordinate : Vec3 } { unif | perspective : Mat4, zoom : Float } {}
 vertexShader =
     [glsl|
 attribute vec3 coordinate;
