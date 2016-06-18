@@ -20,15 +20,13 @@ type alias Vertex =
     { coordinate : Vec3 }
 
 
+( x1, y1 ) =
+    latLngToWorldCoord 49.8728 8.61
+( x2, y2 ) =
+    latLngToWorldCoord 49.8728 8.65
 mesh : Float -> Drawable Vertex
 mesh p =
     let
-        ( x1, y1 ) =
-            latLngToWorldCoord 49.8728 8.61
-
-        ( x2, y2 ) =
-            latLngToWorldCoord 49.8728 8.65
-
         x =
             x1 + p * (x2 - x1)
 
@@ -159,28 +157,25 @@ perspective { map } =
 -- SHADERS
 
 
-vertexShader : Shader { attr | coordinate : Vec3 } { unif | perspective : Mat4, zoom : Float } { vcoord : Vec2 }
+vertexShader : Shader { attr | coordinate : Vec3 } { unif | perspective : Mat4, zoom : Float } { }
 vertexShader =
     [glsl|
 attribute vec3 coordinate;
 uniform mat4 perspective;
 uniform float zoom;
-varying vec2 vcoord;
 
 void main() {
     gl_Position = perspective * vec4(coordinate, 1.0);
     gl_PointSize = zoom;
-    vcoord = coordinate.xy;
 }
 |]
 
 
-fragmentShader : Shader {} { u | texture : Texture } { vcoord : Vec2 }
+fragmentShader : Shader {} { u | texture : Texture } {}
 fragmentShader =
     [glsl|
 precision mediump float;
 uniform sampler2D texture;
-varying vec2 vcoord;
 
 void main () {
     gl_FragColor = texture2D(texture, vec2(gl_PointCoord.x, gl_PointCoord.y));
