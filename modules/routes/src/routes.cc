@@ -3,6 +3,8 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/routes/routes_section.h"
 
+#include "boost/filesystem.hpp"
+
 using namespace flatbuffers;
 using namespace motis::module;
 
@@ -16,7 +18,10 @@ routes::routes() : module("Routes", "routes"), file_loaded_(false) {
 routes::~routes() = default;
 
 void routes::init(registry& r) {
-
+  if (boost::filesystem::exists(routes_file_)) {
+     routes_buf_ = parser::file(routes_file_.c_str(), "r").content();
+     file_loaded_ = true;
+   }
   r.register_op("/routes/section",
                 [this](msg_ptr const& m) { return routes_section(m); });
 }

@@ -1,0 +1,113 @@
+<osm version="0.6" generator="CGImap 0.4.0 (22121 thorn-03.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+	<way id="10" visible="true">
+		<nd ref="100"/>
+		<nd ref="101"/>
+		<nd ref="102"/>
+		<tag k="railway" v="rail" />
+	</way>
+
+	<way id="11" visible="true">
+		<nd ref="103"/>
+		<nd ref="104"/>
+		<nd ref="105"/>
+		<tag k="railway" v="rail" />
+	</way>
+
+	<node id="103" lat="50.161" lon="8.312"/>
+	<node id="104" lat="50.163" lon="8.305"/>
+	<node id="105" lat="50.165" lon="8.301"/>
+	
+	<node id="100" lat="50.16" lon="8.312"/>
+	<node id="101" lat="50.18" lon="8.288"/>
+	<node id="102" lat="50.217" lon="8.257"/>
+	
+	<relation id="0" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="ICE3"/>
+		<tag k="route" v="train"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="1" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="IC3"/>
+		<tag k="route" v="train"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="2" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="N3"/>
+		<tag k="route" v="train"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="3" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="RE3"/>
+		<tag k="route" v="train"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="4" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="RB3"/>
+		<tag k="route" v="train"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="5" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="S3"/>
+		<tag k="route" v="light_rail"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="6" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="U3"/>
+		<tag k="route" v="subway"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="7" visible="true">
+		<member type="way" ref="10" role="forward"/>
+		<member type="node" ref="100" role="stop"/>
+		<member type="node" ref="101" role="stop"/>
+		<member type="node" ref="102" role="stop"/>
+		<tag k="ref" v="STR3"/>
+		<tag k="route" v="tram"/>
+		<tag k="type" v="route"/>
+	</relation>
+	
+	<relation id="8" visible="true">
+		<member type="way" ref="11" role="forward"/>
+		<member type="node" ref="103" role="stop"/>
+		<member type="node" ref="104" role="stop"/>
+		<member type="node" ref="105" role="stop"/>
+		<tag k="ref" v="Bus 1"/>
+		<tag k="route" v="bus"/>
+		<tag k="type" v="route"/>
+	</relation>
+</osm>

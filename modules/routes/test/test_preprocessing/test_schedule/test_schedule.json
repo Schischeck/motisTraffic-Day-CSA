@@ -1,0 +1,159 @@
+{
+  "stations": [
+    {
+      "name": "Station1",
+      "tracks": 2,
+      "latitude": 50.15999999999997,
+      "longitude": 8.312000000000012,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "0000001",
+      "ds100Code": "0000001",
+      "KMInfo": 0
+    },
+    {
+      "name": "Station2",
+      "tracks": 2,
+      "latitude": 50.18000000000001,
+      "longitude": 8.288000000000011,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "0000002",
+      "ds100Code": "0000002",
+      "KMInfo": 0
+    },
+    {
+      "name": "Station3",
+      "tracks": 2,
+      "latitude": 50.216999999999985,
+      "longitude": 8.257000000000062,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "0000003",
+      "ds100Code": "0000003",
+      "KMInfo": 0
+    },
+    {
+      "name": "Bus Station 1",
+      "tracks": 2,
+      "latitude": 50.161,
+      "longitude": 8.312000000000012,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "0000004",
+      "ds100Code": "0000004",
+      "KMInfo": 0
+    },
+    {
+      "name": "Bus Station 2",
+      "tracks": 2,
+      "latitude": 50.16300000000001,
+      "longitude": 8.305000000000064,
+      "interchangeTime": 0,
+      "minInterchangeTime": 0,
+      "platformInterchangeTime": 0,
+      "evaNumber": "0000005",
+      "ds100Code": "0000005",
+      "KMInfo": 0
+    }
+  ],
+  "trains": [
+    {
+      "name": "Train1",
+      "category": "RE",
+      "evaNumber": "3479789",
+      "trainNumber": 1,
+      "stations": [
+        {
+          "station": "0000001",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0000002",
+          "arrival": 2,
+          "departure": 4,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0000003",
+          "arrival": 7,
+          "departure": 9,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "intervals": [
+        {
+          "fromTime": "14:00:00.000",
+          "untilTime": "14:59:00.000",
+          "interval": 10
+        }
+      ]
+    },
+    {
+      "name": "Bus",
+      "category": "BUS",
+      "evaNumber": "1384366",
+      "trainNumber": 2,
+      "stations": [
+        {
+          "station": "0000004",
+          "arrival": 0,
+          "departure": 0,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        },
+        {
+          "station": "0000005",
+          "arrival": 1,
+          "departure": 3,
+          "track": 1,
+          "enteringAllowed": true,
+          "leavingAllowed": true
+        }
+      ],
+      "serviceDays": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "intervals": [
+        {
+          "fromTime": "14:00:00.000",
+          "untilTime": "14:59:00.000",
+          "interval": 10
+        }
+      ]
+    }
+  ],
+  "footpaths": [],
+  "specialTransferTimes": [],
+  "startDate": "2016-01-01",
+  "endDate": "2016-02-28",
+  "exportTimezones": true
+}
