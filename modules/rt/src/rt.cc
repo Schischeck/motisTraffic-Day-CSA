@@ -254,10 +254,11 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
     } else if (conflicts(k)) {
       for (auto const& di : trip_corrector(sched, k).fix_times()) {
         shifted_nodes.add(di);
+        ++stats_.conflicting_moved_;
       }
+      ++stats_.conflicting_events_;
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
-      ++stats_.disabled_routes_;
       disable_route_layer(k);
     }
 

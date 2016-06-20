@@ -28,7 +28,8 @@ struct statistics {
         diff_gt_5_(0),
         diff_gt_10_(0),
         diff_gt_30_(0),
-        disabled_routes_(0),
+        conflicting_events_(0),
+        conflicting_moved_(0),
         route_overtake_(0),
         propagated_updates_(0),
         graph_updates_(0) {}
@@ -64,7 +65,8 @@ struct statistics {
     c("time diff >30min", s.diff_gt_30_);
 
     o << "\ndisabled routes\n";
-    c("total", s.disabled_routes_);
+    c("conflicts", s.conflicting_events_);
+    c("moved", s.conflicting_moved_);
     c("overtake", s.route_overtake_);
 
     o << "\ngraph\n";
@@ -125,7 +127,8 @@ struct statistics {
   unsigned update_mismatch_sched_time_;
   unsigned diff_gt_5_, diff_gt_10_, diff_gt_30_;
 
-  unsigned disabled_routes_;
+  unsigned conflicting_events_;
+  unsigned conflicting_moved_;
   unsigned route_overtake_;
 
   unsigned propagated_updates_;
