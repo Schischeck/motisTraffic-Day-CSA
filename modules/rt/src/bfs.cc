@@ -46,8 +46,20 @@ std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
 std::set<ev_key> trip_bfs(ev_key const& k, bfs_direction const dir) {
   std::set<ev_key> ev_keys;
   for (auto const& e : route_bfs(k, dir)) {
-    ev_keys.insert({e, k.lcon_idx_, event_type::ARR});
-    ev_keys.insert({e, k.lcon_idx_, event_type::DEP});
+    auto const arr = ev_key{e, k.lcon_idx_, event_type::ARR};
+    auto const dep = ev_key{e, k.lcon_idx_, event_type::DEP};
+
+    auto const bad_arr = dir == bfs_direction::BACKWARD && k.is_departure() &&
+                         arr == k.get_opposite();
+    if (!bad_arr) {
+      ev_keys.insert(arr);
+    }
+
+    auto const bad_dep = dir == bfs_direction::FORWARD && k.is_arrival() &&
+                         dep == k.get_opposite();
+    if (!bad_dep) {
+      ev_keys.insert(dep);
+    }
   }
   return ev_keys;
 }

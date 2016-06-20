@@ -17,6 +17,15 @@ struct entry;
 constexpr auto tmax = std::numeric_limits<motis::time>::max();
 constexpr auto tmin = std::numeric_limits<motis::time>::min();
 
+inline delay_info* get_delay_info(schedule const& sched, ev_key const& k) {
+  auto it = sched.graph_to_delay_info_.find(k);
+  if (it == end(sched.graph_to_delay_info_)) {
+    return nullptr;
+  } else {
+    return it->second;
+  }
+}
+
 struct entry : public delay_info {
   entry() = default;
   explicit entry(ev_key const& k) : delay_info(k), min_(tmin), max_(tmax) {}
@@ -74,7 +83,7 @@ private:
 
   void set_min_max() {
     for (auto const& k : trip_ev_keys_) {
-      auto di = get_delay_info(sched_, k);
+      auto di = motis::rt::get_delay_info(sched_, k);
       if (di == nullptr || di->get_is_time() == 0) {
         continue;
       }
