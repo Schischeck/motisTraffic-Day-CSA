@@ -10,7 +10,7 @@ namespace realtime {
 
 inline module::msg_ptr get_delay_message(
     std::string const& station, unsigned const train_nr,
-    std::string const line_id, ris::EventType event_type,
+    std::string const line_id, EventType event_type,
     time_t const scheduled_time, time_t const delayed_time,
     std::string const& trip_station, unsigned const trip_train_nr,
     time_t const trip_scheduled_time, ris::DelayType const delay_type) {

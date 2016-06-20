@@ -72,7 +72,7 @@ TEST(ris_addition_message, message_1) {
   EXPECT_EQ(2941, e0->base()->service_num());
   EXPECT_STREQ("", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444206000, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_STREQ("IC", e0->category()->c_str());
   EXPECT_EQ("", e0->track()->str());
@@ -82,7 +82,7 @@ TEST(ris_addition_message, message_1) {
   EXPECT_EQ(2941, e1->base()->service_num());
   EXPECT_STREQ("", e1->base()->line_id()->c_str());
   EXPECT_EQ(1444235100, e1->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e1->base()->type());
+  EXPECT_EQ(EventType_ARR, e1->base()->type());
 
   EXPECT_STREQ("IC", e1->category()->c_str());
   EXPECT_EQ("", e1->track()->str());
@@ -166,7 +166,7 @@ TEST(ris_addition_message, message_2) {
   EXPECT_EQ(2570, e0->base()->service_num());
   EXPECT_STREQ("", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444308480, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_STREQ("EC", e0->category()->c_str());
   EXPECT_STREQ("19", e0->track()->c_str());
@@ -176,7 +176,7 @@ TEST(ris_addition_message, message_2) {
   EXPECT_EQ(2570, e1->base()->service_num());
   EXPECT_STREQ("", e1->base()->line_id()->c_str());
   EXPECT_EQ(1444308840, e1->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e1->base()->type());
+  EXPECT_EQ(EventType_ARR, e1->base()->type());
 
   EXPECT_STREQ("EC", e1->category()->c_str());
   EXPECT_EQ("", e1->track()->str());
@@ -186,7 +186,7 @@ TEST(ris_addition_message, message_2) {
   EXPECT_EQ(2570, e2->base()->service_num());
   EXPECT_STREQ("", e2->base()->line_id()->c_str());
   EXPECT_EQ(1444308960, e2->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e2->base()->type());
+  EXPECT_EQ(EventType_DEP, e2->base()->type());
 
   EXPECT_STREQ("EC", e2->category()->c_str());
   EXPECT_EQ("", e2->track()->str());
@@ -196,7 +196,7 @@ TEST(ris_addition_message, message_2) {
   EXPECT_EQ(2570, e3->base()->service_num());
   EXPECT_STREQ("", e3->base()->line_id()->c_str());
   EXPECT_EQ(1444316640, e3->base()->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e3->base()->type());
+  EXPECT_EQ(EventType_ARR, e3->base()->type());
 
   EXPECT_STREQ("EC", e3->category()->c_str());
   EXPECT_STREQ("9", e3->track()->c_str());

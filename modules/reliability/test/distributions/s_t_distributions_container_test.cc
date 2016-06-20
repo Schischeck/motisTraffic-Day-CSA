@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/reliability/distributions/s_t_distributions_container.h"
 #include "motis/reliability/distributions/probability_distribution.h"
+#include "motis/reliability/distributions/s_t_distributions_container.h"
 
 using namespace motis::reliability;
 

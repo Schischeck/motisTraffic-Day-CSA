@@ -12,11 +12,12 @@ namespace lookup {
 
 class station_geo_index {
 public:
-  explicit station_geo_index(const std::vector<station_ptr>& stations);
+  explicit station_geo_index(std::vector<station_ptr> const& stations);
   ~station_geo_index();
 
-  std::vector<const station*> stations(double lat, double lng,
-                                       double radius) const;
+  std::vector<station const*> stations(double lat, double lng,
+                                       double min_radius,
+                                       double max_radius) const;
 
 private:
   struct impl;

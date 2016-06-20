@@ -37,7 +37,7 @@ TEST_F(reliability_realtime_dependencies, no_entry) {
   ASSERT_TRUE(get_reliability_module()
                   .precomputed_distributions()
                   .get_node(distributions_container::to_container_key(
-                      node, light_conn, time_util::arrival, get_schedule()))
+                      node, light_conn, event_type::ARR, get_schedule()))
                   .pd_.empty());
 }
 
@@ -68,10 +68,9 @@ void test_predecessors_ice_ffm_hanau_in_ffm(
              ->to_;
     auto const& lc_arr = graph_accessor::get_arriving_route_edge(node_arr)
                              ->m_.route_edge_.conns_[1];
-    ASSERT_EQ(
-        distributions_container::to_container_key(
-            node_arr, lc_arr, time_util::arrival, test_info.get_schedule()),
-        distribution_node_arr.key_);
+    ASSERT_EQ(distributions_container::to_container_key(
+                  node_arr, lc_arr, event_type::ARR, test_info.get_schedule()),
+              distribution_node_arr.key_);
 
     ASSERT_EQ(1, distribution_node_arr.successors_.size());
     ASSERT_EQ(&distribution_node_dep,
@@ -91,10 +90,9 @@ void test_predecessors_ice_ffm_hanau_in_ffm(
              ->to_;
     auto const& lc_arr = graph_accessor::get_arriving_route_edge(node_arr)
                              ->m_.route_edge_.conns_[2];
-    ASSERT_EQ(
-        distributions_container::to_container_key(
-            node_arr, lc_arr, time_util::arrival, test_info.get_schedule()),
-        distribution_node_arr.key_);
+    ASSERT_EQ(distributions_container::to_container_key(
+                  node_arr, lc_arr, event_type::ARR, test_info.get_schedule()),
+              distribution_node_arr.key_);
 
     ASSERT_EQ(1, distribution_node_arr.successors_.size());
     ASSERT_EQ(&distribution_node_dep,
@@ -126,7 +124,7 @@ void test_ice_darm_langen_ffm_in_ffm(
   auto const& distribution_node_arr =
       test_info.get_reliability_module().precomputed_distributions().get_node(
           distributions_container::to_container_key(
-              node, light_conn, time_util::arrival, test_info.get_schedule()));
+              node, light_conn, event_type::ARR, test_info.get_schedule()));
 
   auto const& node_dep = *graph_accessor::get_first_route_node(
       test_info.get_schedule(), schedule_realtime_dependencies::ICE_F_H);
@@ -136,10 +134,9 @@ void test_ice_darm_langen_ffm_in_ffm(
   ASSERT_EQ(1, distribution_node_arr.successors_.size());
   auto const& distribution_node_dep =
       *distribution_node_arr.successors_.front();
-  ASSERT_EQ(
-      distributions_container::to_container_key(
-          node_dep, lc_dep, time_util::departure, test_info.get_schedule()),
-      distribution_node_dep.key_);
+  ASSERT_EQ(distributions_container::to_container_key(
+                node_dep, lc_dep, event_type::DEP, test_info.get_schedule()),
+            distribution_node_dep.key_);
 
   test_predecessors_ice_ffm_hanau_in_ffm(test_info, distribution_node_dep);
 }
@@ -153,7 +150,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::FRANKFURT,
-      schedule_realtime_dependencies::ICE_D_L_F, "", ris::EventType_Arrival,
+      schedule_realtime_dependencies::ICE_D_L_F, "", EventType_ARR,
       1445238000 /* 2015-10-19 09:00:00 GMT+2:00 */,
       1445241600 /* 2015-10-19 10:00:00 GMT+2:00 */,
       schedule_realtime_dependencies::DARMSTADT,
@@ -165,7 +162,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::FRANKFURT,
-      schedule_realtime_dependencies::ICE_D_L_F, "", ris::EventType_Arrival,
+      schedule_realtime_dependencies::ICE_D_L_F, "", EventType_ARR,
       1445238000 /* 2015-10-19 09:00:00 GMT+2:00 */,
       1445239800 /* 2015-10-19 09:30:00 GMT+2:00 */,
       schedule_realtime_dependencies::DARMSTADT,
@@ -177,7 +174,7 @@ TEST_F(reliability_realtime_dependencies, ICE_D_L_F_Frankfurt) {
 
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::LANGEN,
-      schedule_realtime_dependencies::ICE_D_L_F, "", ris::EventType_Departure,
+      schedule_realtime_dependencies::ICE_D_L_F, "", EventType_DEP,
       1445237520 /* 2015-10-19 08:52:00 GMT+2:00 */,
       1445239800 /* 2015-10-19 09:30:00 GMT+2:00 */,
       schedule_realtime_dependencies::DARMSTADT,
@@ -195,16 +192,16 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
   std::vector<realtime::event> events;
   // 08:40 --> 08:50, 08:52 --> 09:00
   events.push_back({DARMSTADT, schedule_realtime_dependencies::ICE_D_L_F,
-                    1445244000, ris::EventType_Departure});
+                    1445244000, EventType_DEP});
   events.push_back({schedule_realtime_dependencies::LANGEN,
                     schedule_realtime_dependencies::ICE_D_L_F, 1445244600,
-                    ris::EventType_Arrival});
+                    EventType_ARR});
   events.push_back({schedule_realtime_dependencies::LANGEN,
                     schedule_realtime_dependencies::ICE_D_L_F, 1445244720,
-                    ris::EventType_Departure});
+                    EventType_DEP});
   events.push_back({schedule_realtime_dependencies::FRANKFURT,
                     schedule_realtime_dependencies::ICE_D_L_F, 1445245200,
-                    ris::EventType_Arrival});
+                    EventType_ARR});
   test::send(motis_instance_, realtime::get_cancel_message(events));
 
   /* Ensure that 08:40 is cancelled */
@@ -224,7 +221,7 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
       get_schedule()
           .eva_to_station.find(schedule_realtime_dependencies::FRANKFURT)
           ->second->index,
-      time_util::arrival, test_util::minutes_to_motis_time(9 * 60)};
+      event_type::ARR, test_util::minutes_to_motis_time(9 * 60)};
   auto const& distribution_node_arr =
       get_reliability_module().precomputed_distributions().get_node(node_key);
   ASSERT_EQ(1, distribution_node_arr.successors_.size());
@@ -237,7 +234,7 @@ TEST_F(reliability_realtime_dependencies, cancellation) {
                            ->m_.route_edge_.conns_[0];
 
   ASSERT_EQ(distributions_container::to_container_key(
-                node_dep, lc_dep, time_util::departure, get_schedule()),
+                node_dep, lc_dep, event_type::DEP, get_schedule()),
             distribution_node_dep.key_);
 
   test_predecessors_ice_ffm_hanau_in_ffm(*this, distribution_node_dep);
@@ -249,10 +246,10 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
   std::vector<realtime::event> events;
   events.push_back({schedule_realtime_dependencies::LANGEN,
                     schedule_realtime_dependencies::ICE_D_L_F, 1445244720,
-                    ris::EventType_Departure});
+                    EventType_DEP});
   events.push_back({schedule_realtime_dependencies::FRANKFURT,
                     schedule_realtime_dependencies::ICE_D_L_F, 1445245200,
-                    ris::EventType_Arrival});
+                    EventType_ARR});
   test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
   /* Ensure that arrival at 09:00 is cancelled */
@@ -274,7 +271,7 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
       get_schedule()
           .eva_to_station.find(schedule_realtime_dependencies::FRANKFURT)
           ->second->index,
-      time_util::arrival, test_util::minutes_to_motis_time(9 * 60)};
+      event_type::ARR, test_util::minutes_to_motis_time(9 * 60)};
   auto const& distribution_node_arr =
       get_reliability_module().precomputed_distributions().get_node(node_key);
   ASSERT_EQ(1, distribution_node_arr.successors_.size());
@@ -287,7 +284,7 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
                            ->m_.route_edge_.conns_[0];
 
   ASSERT_EQ(distributions_container::to_container_key(
-                node_dep, lc_dep, time_util::departure, get_schedule()),
+                node_dep, lc_dep, event_type::DEP, get_schedule()),
             distribution_node_dep.key_);
 
   test_predecessors_ice_ffm_hanau_in_ffm(*this, distribution_node_dep);
@@ -298,10 +295,10 @@ TEST_F(reliability_realtime_dependencies, reroute_cancellation) {
 TEST_F(reliability_realtime_dependencies, reroute_additional) {
   std::vector<realtime::rerouted_event> events;
   events.emplace_back(realtime::event{schedule_realtime_dependencies::LANGEN, ICE_D_F, 1445271000 /* 16:10 */,
-                                      ris::EventType_Arrival},
+                                      EventType_ARR},
                       "ICE", "");
   events.emplace_back(realtime::event{schedule_realtime_dependencies::LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
-                                      ris::EventType_Departure},
+                                      EventType_DEP},
                       "ICE", "");
   test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
@@ -319,7 +316,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional) {
       "ice",
       "",
       get_schedule().eva_to_station.find(schedule_realtime_dependencies::LANGEN)->second->index,
-      time_util::arrival,
+      event_type::ARR,
       test_util::minutes_to_motis_time(16 * 10)};
   auto const& distribution_node_arr =
       get_reliability_module().precomputed_distributions().get_node(node_key);
@@ -333,7 +330,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional) {
                            ->m_.route_edge_.conns_[0];
 
   ASSERT_EQ(distributions_container::to_container_key(
-                node_dep, lc_dep, time_util::departure, get_schedule()),
+                node_dep, lc_dep, event_type::DEP, get_schedule()),
             distribution_node_dep.key_);
 
   ASSERT_EQ(1, distribution_node_dep.predecessors_.size());
@@ -348,10 +345,10 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
   {
     std::vector<realtime::rerouted_event> events;
     events.emplace_back(realtime::event{schedule_realtime_dependencies::LANGEN, ICE_D_F, 1445271000 /* 16:10 */,
-                                        ris::EventType_Arrival},
+                                        EventType_ARR},
                         "ICE", "");
     events.emplace_back(realtime::event{schedule_realtime_dependencies::LANGEN, ICE_D_F, 1445271060 /* 16:11 */,
-                                        ris::EventType_Departure},
+                                        EventType_DEP},
                         "ICE", "");
     test::send(motis_instance_, realtime::get_reroute_message({}, events));
 
@@ -367,8 +364,8 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
   {
     std::vector<realtime::event> events;
     events.push_back(
-        {schedule_realtime_dependencies::LANGEN, ICE_L_H_16, 1445272200, ris::EventType_Departure});
-    events.push_back({HANAU, ICE_L_H_16, 1445272740, ris::EventType_Arrival});
+        {schedule_realtime_dependencies::LANGEN, ICE_L_H_16, 1445272200, EventType_DEP});
+    events.push_back({HANAU, ICE_L_H_16, 1445272740, EventType_ARR});
     test::send(motis_instance_, realtime::get_reroute_message(events, {}));
 
     /* Ensure that ICE_L_H_16 is cancelled */
@@ -381,7 +378,7 @@ TEST_F(reliability_realtime_dependencies, reroute_additional_cancellation) {
           .precomputed_distributions()
           .get_node({ICE_D_F, "ice", "",
                      get_schedule().eva_to_station.find(schedule_realtime_dependencies::LANGEN)->second->index,
-                     time_util::arrival,
+                     event_type::ARR,
                      test_util::minutes_to_motis_time(16 * 10)})
           .successors_.empty());
 }
@@ -402,7 +399,7 @@ TEST_F(reliability_realtime_dependencies, ICE_L_H) {
   ASSERT_TRUE(get_reliability_module()
                   .precomputed_distributions()
                   .get_node(distributions_container::to_container_key(
-                      node, light_conn, time_util::arrival, get_schedule()))
+                      node, light_conn, event_type::ARR, get_schedule()))
                   .successors_.empty());
 }
 
@@ -412,7 +409,7 @@ TEST_F(reliability_realtime_dependencies, ICE_L_H) {
 TEST_F(reliability_realtime_dependencies, DISABLED_ICE_D_L_F_Langen) {
   publish(realtime::get_delay_message(
       schedule_realtime_dependencies::LANGEN,
-      schedule_realtime_dependencies::ICE_D_L_F, "", ris::EventType_Arrival,
+      schedule_realtime_dependencies::ICE_D_L_F, "", EventType_ARR,
       1445236200 /* 2015-10-19 08:30:00 GMT+2:00 */,
       1445237940 /* 2015-10-19 08:59:00 GMT+2:00 */,
       schedule_realtime_dependencies::DARMSTADT,
@@ -427,8 +424,7 @@ TEST_F(reliability_realtime_dependencies, DISABLED_ICE_D_L_F_Langen) {
               get_schedule()
                   .eva_to_station_.find(schedule_realtime_dependencies::LANGEN)
                   ->second->index_,
-              time_util::arrival,
-              test_util::minutes_to_motis_time(8 * 60 + 30)));
+              event_type::ARR, test_util::minutes_to_motis_time(8 * 60 + 30)));
 
   ASSERT_EQ(2, distribution_node_arr.successors_.size());
   {
@@ -443,7 +439,7 @@ TEST_F(reliability_realtime_dependencies, DISABLED_ICE_D_L_F_Langen) {
     auto const& lc_dep = graph_accessor::get_departing_route_edge(node_dep)
                              ->m_.route_edge_.conns_[2];
     ASSERT_EQ(distributions_container::to_container_key(
-                  node_dep, lc_dep, time_util::departure, get_schedule()),
+                  node_dep, lc_dep, event_type::DEP, get_schedule()),
               distribution_node_dep.key_);
 
     ASSERT_EQ(1, distribution_node_dep.predecessors_.size());
@@ -458,7 +454,7 @@ TEST_F(reliability_realtime_dependencies, DISABLED_ICE_D_L_F_Langen) {
     auto const& lc_dep = graph_accessor::get_departing_route_edge(node_dep)
                              ->m_.route_edge_.conns_[1];
     ASSERT_EQ(distributions_container::to_container_key(
-                  node_dep, lc_dep, time_util::departure, get_schedule()),
+                  node_dep, lc_dep, event_type::DEP, get_schedule()),
               distribution_node_dep.key_);
 
     ASSERT_EQ(1, distribution_node_dep.predecessors_.size());

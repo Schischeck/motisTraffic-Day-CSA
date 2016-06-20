@@ -160,7 +160,7 @@ msg_ptr to_geo_request(std::vector<terminal> const& terminals, double r) {
   std::vector<Offset<lookup::LookupGeoStationRequest>> c;
   for (auto const& merged : terminals) {
     Position pos(merged.lat_, merged.lng_);
-    c.push_back(CreateLookupGeoStationRequest(b, &pos, r));
+    c.push_back(CreateLookupGeoStationRequest(b, &pos, 0.0, r));
   }
   b.create_and_finish(
       MsgContent_LookupBatchGeoStationRequest,

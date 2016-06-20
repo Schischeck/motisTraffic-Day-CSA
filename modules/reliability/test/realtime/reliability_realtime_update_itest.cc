@@ -35,15 +35,13 @@ TEST_F(reliability_realtime_update, is_message) {
     auto const& dist_dep_darm =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_darm, lc_darm_langen, time_util::event_type::departure,
-                get_schedule()));
+                n_darm, lc_darm_langen, event_type::DEP, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60), lc_darm_langen.d_time_);
     ASSERT_EQ(0, dist_dep_darm.first_minute());
   }
   publish(realtime::get_delay_message(
       schedule_realtime_update::DARMSTADT, schedule_realtime_update::ICE_D_L_F,
-      "", ris::EventType_Departure,
-      1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */,
+      "", EventType_DEP, 1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */,
       1445235840 /* 2015-10-19 08:24:00 GMT+2:00 */,
       schedule_realtime_update::DARMSTADT, schedule_realtime_update::ICE_D_L_F,
       1445234400 /* 2015-10-19 08:00:00 GMT+2:00 */, ris::DelayType_Is));
@@ -54,8 +52,7 @@ TEST_F(reliability_realtime_update, is_message) {
     auto const& dist_dep_darm =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_darm, lc_darm_langen, time_util::event_type::departure,
-                get_schedule()));
+                n_darm, lc_darm_langen, event_type::DEP, get_schedule()));
     ASSERT_EQ(24, dist_dep_darm.first_minute());
     ASSERT_EQ(24, dist_dep_darm.last_minute());
     ASSERT_TRUE(equal(1.0, dist_dep_darm.probability_equal(24)));
@@ -65,8 +62,7 @@ TEST_F(reliability_realtime_update, is_message) {
     auto const& dist_arr_langen =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_langen, lc_darm_langen, time_util::event_type::arrival,
-                get_schedule()));
+                n_langen, lc_darm_langen, event_type::ARR, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 34),
               lc_darm_langen.a_time_);
     ASSERT_EQ(23, dist_arr_langen.first_minute());
@@ -75,14 +71,13 @@ TEST_F(reliability_realtime_update, is_message) {
     ASSERT_TRUE(equal(0.8, dist_arr_langen.probability_equal(24)));
     ASSERT_TRUE(equal(0.1, dist_arr_langen.probability_equal(25)));
   }
-  auto const& lc_langen_ffm =
-      graph_accessor::get_departing_route_edge(n_langen)->m_.route_edge_.conns_[0];
+  auto const& lc_langen_ffm = graph_accessor::get_departing_route_edge(n_langen)
+                                  ->m_.route_edge_.conns_[0];
   {
     auto const& dist_dep_langen =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_langen, lc_langen_ffm, time_util::event_type::departure,
-                get_schedule()));
+                n_langen, lc_langen_ffm, event_type::DEP, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 36),
               lc_langen_ffm.d_time_);
     ASSERT_EQ(22, dist_dep_langen.first_minute());
@@ -92,12 +87,12 @@ TEST_F(reliability_realtime_update, is_message) {
     ASSERT_TRUE(equal(0.1, dist_dep_langen.probability_equal(24)));
   }
   {
-    auto const& n_ffm = *graph_accessor::get_departing_route_edge(n_langen)->to_;
+    auto const& n_ffm =
+        *graph_accessor::get_departing_route_edge(n_langen)->to_;
     auto const& dist_arr_ffm =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_ffm, lc_langen_ffm, time_util::event_type::arrival,
-                get_schedule()));
+                n_ffm, lc_langen_ffm, event_type::ARR, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(8 * 60 + 41),
               lc_langen_ffm.a_time_);
     ASSERT_EQ(21, dist_arr_ffm.first_minute());
@@ -117,8 +112,7 @@ TEST_F(reliability_realtime_update, is_message) {
     auto const& dist_dep_ffm =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_ffm, lc_ffm_hanau, time_util::event_type::departure,
-                get_schedule()));
+                n_ffm, lc_ffm_hanau, event_type::DEP, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(
                   8 * 60 + 45 + (RT_SUPPORTS_FEEDER_DEPENDENCIES ? 1 : 0)),
               lc_ffm_hanau.d_time_);
@@ -134,8 +128,7 @@ TEST_F(reliability_realtime_update, is_message) {
     auto const& dist_arr_hanau =
         reliability_context_->precomputed_distributions_.get_distribution(
             distributions_container::to_container_key(
-                n_hanau, lc_ffm_hanau, time_util::event_type::arrival,
-                get_schedule()));
+                n_hanau, lc_ffm_hanau, event_type::ARR, get_schedule()));
     ASSERT_EQ(test_util::minutes_to_motis_time(
                   9 * 60 + (RT_SUPPORTS_FEEDER_DEPENDENCIES ? 1 : 0)),
               lc_ffm_hanau.a_time_);

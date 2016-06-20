@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
+
 #include "motis/core/common/date_time_util.h"
-#include "motis/railviz/timetable_retriever.h"
-#include "motis/loader/loader.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/loader/loader.h"
+#include "motis/railviz/timetable_retriever.h"
 
 using namespace motis::railviz;
 using namespace motis;

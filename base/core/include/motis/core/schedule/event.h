@@ -7,39 +7,13 @@
 
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/event_type.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip.h"
 
 namespace motis {
 
 class node;
-enum class event_type : uint8_t { DEP, ARR };
-
-struct schedule_event {
-  schedule_event() = default;
-  schedule_event(primary_trip_id trp, unsigned station_idx, event_type type,
-                 time schedule_time)
-      : trp_(std::move(trp)),
-        station_idx_(station_idx),
-        type_(type),
-        schedule_time_(schedule_time) {}
-
-  friend bool operator==(schedule_event const& lhs, const schedule_event& rhs) {
-    return std::tie(lhs.trp_, lhs.station_idx_, lhs.type_,
-                    lhs.schedule_time_) ==
-           std::tie(rhs.trp_, rhs.station_idx_, rhs.type_, rhs.schedule_time_);
-  }
-
-  friend bool operator<(schedule_event const& lhs, const schedule_event& rhs) {
-    return std::tie(lhs.trp_, lhs.station_idx_, lhs.type_, lhs.schedule_time_) <
-           std::tie(rhs.trp_, rhs.station_idx_, rhs.type_, rhs.schedule_time_);
-  }
-
-  primary_trip_id trp_;
-  unsigned station_idx_;
-  event_type type_;
-  time schedule_time_;
-};
 
 struct ev_key {
   ev_key() : route_edge_(nullptr), lcon_idx_(0), ev_type_(event_type::DEP) {}
@@ -67,9 +41,6 @@ struct ev_key {
     return {route_edge_, lcon_idx_, ev_type};
   }
 
-  ev_key get_earlier() const { return {route_edge_, lcon_idx_ - 1, ev_type_}; }
-  ev_key get_later() const { return {route_edge_, lcon_idx_ + 1, ev_type_}; }
-
   light_connection const* lcon() const {
     return &route_edge_->m_.route_edge_.conns_[lcon_idx_];
   }
@@ -92,18 +63,6 @@ struct ev_key {
 }  // namespace motis
 
 namespace std {
-
-template <>
-struct hash<motis::schedule_event> {
-  std::size_t operator()(motis::schedule_event const& e) const {
-    std::size_t seed = 0;
-    motis::hash_combine(seed, e.trp_);
-    motis::hash_combine(seed, e.station_idx_);
-    motis::hash_combine(seed, e.type_ == motis::event_type::DEP ? 0 : 1);
-    motis::hash_combine(seed, e.schedule_time_);
-    return seed;
-  }
-};
 
 template <>
 struct hash<motis::ev_key> {

@@ -7,18 +7,18 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/time.h"
 
-#include "motis/protocol/RailVizInit_generated.h"
 #include "motis/protocol/RailVizAlltraReq_generated.h"
 #include "motis/protocol/RailVizAlltraRes_generated.h"
-#include "motis/protocol/RailVizStationDetailReq_generated.h"
-#include "motis/protocol/RailVizStationDetailRes_generated.h"
+#include "motis/protocol/RailVizInit_generated.h"
 #include "motis/protocol/RailVizRouteAtTimeReq_generated.h"
 #include "motis/protocol/RailVizRouteAtTimeRes_generated.h"
+#include "motis/protocol/RailVizStationDetailReq_generated.h"
+#include "motis/protocol/RailVizStationDetailRes_generated.h"
 #include "motis/protocol/RailVizTrain_generated.h"
 #include "motis/protocol/RealtimeTrainInfoRequest_generated.h"
 
-#include "motis/railviz/train_retriever.h"
 #include "motis/railviz/error.h"
+#include "motis/railviz/train_retriever.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -172,9 +172,9 @@ callback railviz::make_all_trains_realtime_callback(
     }
 
     b.create_and_finish(MsgContent_RailVizAlltraRes,
-                      CreateRailVizAlltraRes(b, b.CreateVector(trains_output),
-                                             b.CreateVector(fb_routes))
-                          .Union());
+                        CreateRailVizAlltraRes(b, b.CreateVector(trains_output),
+                                               b.CreateVector(fb_routes))
+                            .Union());
     cb(make_msg(b), {});
   };
 }
@@ -283,10 +283,10 @@ callback railviz::make_station_info_realtime_callback(
           outgoing));
     }
     b.create_and_finish(MsgContent_RailVizStationDetailRes,
-                      CreateRailVizStationDetailRes(
-                          b, b.CreateString(stations[station_index]->name),
-                          station_index, b.CreateVector(timetable_fb))
-                          .Union());
+                        CreateRailVizStationDetailRes(
+                            b, b.CreateString(stations[station_index]->name),
+                            station_index, b.CreateVector(timetable_fb))
+                            .Union());
     return cb(make_msg(b), boost::system::error_code());
   };
 }
@@ -395,7 +395,7 @@ callback railviz::make_route_at_time_realtime_callback(const route& route_,
     resBuilder.add_route(b.CreateVector(fb_route_offsets));
 
     b.create_and_finish(MsgContent_RailVizRouteAtTimeRes,
-                      resBuilder.Finish().Union());
+                        resBuilder.Finish().Union());
 
     return cb(make_msg(b), err);
   };

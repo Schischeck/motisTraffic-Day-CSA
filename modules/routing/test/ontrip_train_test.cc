@@ -27,7 +27,7 @@ TEST_F(routing_ontrip_train, stay_in_train) {
           CreateOntripTrainStart(
               fbb, CreateTripId(fbb, fbb.CreateString("8000096"), 2292,
                                 unix_time(1305), fbb.CreateString("8000105"),
-                                unix_time(1440), EventType_Departure,
+                                unix_time(1440), EventType_DEP,
                                 fbb.CreateString("381")),
               CreateInputStation(fbb, fbb.CreateString("8000068"),
                                  fbb.CreateString("")),

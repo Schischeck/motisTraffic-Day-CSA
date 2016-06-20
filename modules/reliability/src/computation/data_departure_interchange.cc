@@ -56,14 +56,14 @@ data_departure_interchange::data_departure_interchange(
 
   init_interchange_feeder_info(time_util::get_scheduled_event_time(
                                    arriving_route_node, arriving_light_conn,
-                                   time_util::arrival, context.schedule_),
+                                   event_type::ARR, context.schedule_),
                                arrival_distribution, transfer_time,
                                waiting_time);
 
   auto const all_feeders_data = get_all_potential_feeders_except_ic(
       departing_distribution_node.predecessors_,
       distributions_container::to_container_key(
-          arriving_route_node, arriving_light_conn, time_util::arrival,
+          arriving_route_node, arriving_light_conn, event_type::ARR,
           context.schedule_));
   init_feeder_info(departing_route_node, departing_light_conn, all_feeders_data,
                    context.schedule_);
@@ -114,9 +114,9 @@ data_departure_interchange_walk::data_departure_interchange_walk(
                                  preceding_arrival_distribution,
                                  departing_distribution_node, context) {
   init_interchange_feeder_info(
-      time_util::get_scheduled_event_time(
-          arriving_route_node, arriving_light_conn, time_util::arrival,
-          context.schedule_),
+      time_util::get_scheduled_event_time(arriving_route_node,
+                                          arriving_light_conn, event_type::ARR,
+                                          context.schedule_),
       arrival_distribution,
       graph_accessor::walking_duration(*arriving_route_node.get_station(),
                                        *departing_route_node.get_station()),

@@ -23,7 +23,7 @@ data_arrival::data_arrival(
     : departure_info_(
           departure_distribution,
           time_util::get_scheduled_event_time(departure_node, light_connection,
-                                              time_util::departure, schedule)) {
+                                              event_type::DEP, schedule)) {
   init_arrival_time(arrival_node, light_connection, schedule);
   init_travel_info(light_connection, s_t_distributions, schedule.categories_);
 }
@@ -35,7 +35,7 @@ void data_arrival::init_arrival_time(node const& route_node,
       get_delay_info(sched, graph_accessor::get_arriving_route_edge(route_node),
                      &light_conn, event_type::ARR);
   scheduled_arrival_time_ = delay_info.get_schedule_time();
-  is_message_.received_ = (delay_info.get_reason() == delay_info::reason::IS);
+  is_message_.received_ = (delay_info.get_reason() == timestamp_reason::IS);
   is_message_.current_time_ =
       is_message_.received_ ? delay_info.get_current_time() : 0;
 }

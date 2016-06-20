@@ -1,11 +1,14 @@
-#include "gtest/gtest.h"
 #include <vector>
+
+#include "gtest/gtest.h"
+
 #include "motis/core/common/date_time_util.h"
-#include "motis/railviz/train_retriever.h"
-#include "motis/loader/loader.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/synced_schedule.h"
+#include "motis/loader/loader.h"
 #include "motis/railviz/geo.h"
+#include "motis/railviz/train_retriever.h"
+
 using namespace motis::railviz;
 using namespace motis;
 

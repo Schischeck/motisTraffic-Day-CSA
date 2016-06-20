@@ -17,6 +17,7 @@
 
 #include "motis/reliability/intermodal/hotels.h"
 #include "motis/reliability/intermodal/individual_modes_container.h"
+#include "motis/reliability/intermodal/lookup.h"
 #include "motis/reliability/rating/reliability_rating.h"
 #include "motis/reliability/reliability.h"
 #include "motis/reliability/tools/flatbuffers/request_builder.h"
@@ -72,35 +73,6 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
   price_ = taxi_base_price + (city_distance + highway_distance) * taxi_km_price;
 }
 
-void ask_lookup_module(station const& destination, unsigned const taxi_radius,
-                       intermodal::individual_modes_container& container) {
-  // TODO(Mohammad Keyhani): refactoring: use reliability/intermodal/lookup.h
-  using namespace lookup;
-  module::message_creator b;
-  b.create_and_finish(
-      MsgContent_LookupGeoStationIdRequest,
-      CreateLookupGeoStationIdRequest(b, b.CreateString(destination.eva_nr_),
-                                      static_cast<double>(taxi_radius))
-          .Union(),
-      "/lookup/geo_station_id");
-  auto res_msg = motis_call(module::make_msg(b))->val();
-  auto lookup_res = motis_content(LookupGeoStationResponse, res_msg);
-  for (auto const& st : *lookup_res->stations()) {
-    // no taxis from local stations
-    // in order to obtain better search times and reduce
-    // the number of pareto-optimal connections
-    if (st->id()->str().substr(0, 2) != "80") {
-      continue;
-    }
-    taxi_cost cost(st->pos()->lat(), st->pos()->lng(), destination.lat(),
-                   destination.lng(), TAXI_BASE_PRICE, TAXI_KM_PRICE,
-                   TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
-                   TAXI_AVG_SPEED_LONG_DISTANCE);
-    container.insert_taxi(intermodal::individual_modes_container::taxi(
-        st->id()->str(), destination.eva_nr_, cost.duration_, cost.price_));
-  }
-}
-
 station const& get_destination(ReliableRoutingRequest const& req,
                                schedule const& sched) {
   auto destination_eva = req.request()->destination()->id()->str();
@@ -131,10 +103,26 @@ void init_taxis(ReliableRoutingRequest const& req, schedule const& sched,
   }
   auto ops = reinterpret_cast<LateConnectionReq const*>(
       req.request_type()->request_options());
-
   auto const& destination = get_destination(req, sched);
 
-  ask_lookup_module(destination, ops->taxi_radius(), container);
+  auto res_msg =
+      intermodal::ask_lookup_module(destination.eva_nr_, ops->taxi_radius());
+  using lookup::LookupGeoStationResponse;
+  auto lookup_res = motis_content(LookupGeoStationResponse, res_msg);
+  for (auto const& st : *lookup_res->stations()) {
+    // no taxis from local stations
+    // in order to obtain better search times and reduce
+    // the number of pareto-optimal connections
+    if (st->id()->str().substr(0, 2) != "80") {
+      continue;
+    }
+    taxi_cost cost(st->pos()->lat(), st->pos()->lng(), destination.lat(),
+                   destination.lng(), TAXI_BASE_PRICE, TAXI_KM_PRICE,
+                   TAXI_BASE_TIME, TAXI_AVG_SPEED_SHORT_DISTANCE,
+                   TAXI_AVG_SPEED_LONG_DISTANCE);
+    container.insert_taxi(intermodal::individual_modes_container::taxi(
+        st->id()->str(), destination.eva_nr_, cost.duration_, cost.price_));
+  }
 }
 
 void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,

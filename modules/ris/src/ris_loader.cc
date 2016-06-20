@@ -28,7 +28,8 @@ using namespace motis::ris::risml;
 namespace sql = sqlpp::sqlite3;
 
 struct settings : public conf::simple_config {
-  explicit settings(std::string input = "ris", std::string output = "ris.sqlite3")
+  explicit settings(std::string input = "ris",
+                    std::string output = "ris.sqlite3")
       : simple_config("Settings") {
     string_param(input_, input, "input", "Folder with RISML zip files");
     string_param(output_, output, "output",

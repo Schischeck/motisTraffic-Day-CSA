@@ -39,9 +39,9 @@ interchange_info::interchange_info(connection_element const& arriving_element,
       departing_element.light_connection_, event_type::DEP);
 
   scheduled_arrival_time_ = arr_delay_info.get_schedule_time();
-  arrival_is_ = (arr_delay_info.get_reason() == delay_info::reason::IS);
+  arrival_is_ = (arr_delay_info.get_reason() == timestamp_reason::IS);
   scheduled_departure_time_ = dep_delay_info.get_schedule_time();
-  departure_is_ = (dep_delay_info.get_reason() == delay_info::reason::IS);
+  departure_is_ = (dep_delay_info.get_reason() == timestamp_reason::IS);
 
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);

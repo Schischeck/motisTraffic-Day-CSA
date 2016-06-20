@@ -1,15 +1,14 @@
 include "base/TripId.fbs";
 include "base/TimestampReason.fbs";
+include "base/EventType.fbs";
 
 namespace motis.rt;
-
-enum EventType : byte { DEPARTURE, ARRIVAL }
 
 table ShiftedNode {
   trip:motis.TripId;
   station_id:string;
   schedule_time:long;
-  event_type:EventType;
+  event_type:motis.EventType;
   updated_time:long;
   reason:TimestampReason;
   canceled:bool;

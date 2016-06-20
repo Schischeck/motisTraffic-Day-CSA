@@ -39,13 +39,12 @@ TEST_F(reliability_realtime_data_interchange,
   start_and_travel_test_distributions s_t_distributions({0.6, 0.4});
 
   publish(realtime::get_delay_message(
-      schedule2::ERLANGEN.eva_, schedule2::ICE_S_E, "", ris::EventType_Arrival,
+      schedule2::ERLANGEN.eva_, schedule2::ICE_S_E, "", EventType_ARR,
       1443436320 /* 2015-09-28 12:32:00 GMT+2:00 */,
       1443436920 /* 2015-09-28 12:42:00 GMT+2:00 */, schedule2::STUTTGART.eva_,
       schedule2::ICE_S_E, 1443432720 /* 2015-09-28 11:32:00 GMT+2:00 */,
       ris::DelayType_Is));
   publish(make_no_msg("/ris/system_time_changed"));
-
   // arriving train ICE_S_E from Stuttgart to Erlangen
   // interchange at Stuttgart
   // departing train ICE_E_K from Erlangen to Kassel
@@ -91,7 +90,7 @@ TEST_F(reliability_realtime_data_interchange_walk, interchange_walk) {
   start_and_travel_test_distributions s_t_distributions({0.4, 0.4, 0.2});
 
   publish(realtime::get_delay_message(
-      schedule3::FRANKFURT.eva_, schedule3::ICE_L_H, "", ris::EventType_Arrival,
+      schedule3::FRANKFURT.eva_, schedule3::ICE_L_H, "", EventType_ARR,
       1443427800 /* 2015-09-28 10:10:00 GMT+2:00 */,
       1443427860 /* 2015-09-28 10:11:00 GMT */, schedule3::LANGEN.eva_,
       schedule3::ICE_L_H, 1443427200 /* 2015-09-28 10:00:00 GMT+2:00 */,

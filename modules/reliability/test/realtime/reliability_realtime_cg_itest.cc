@@ -127,7 +127,7 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 
   publish(realtime::get_delay_message(
       schedule_realtime_cg::LANGEN.eva_, schedule_realtime_cg::RE_D_L, "",
-      ris::EventType_Arrival, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
+      EventType_ARR, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
       1445231460 /* 2015-10-19 07:11:00 GMT+2:00 */,
       schedule_realtime_cg::DARMSTADT.eva_, schedule_realtime_cg::RE_D_L,
       1445230800 /* 2015-10-19 07:00:00 GMT+2:00 */, ris::DelayType_Is));
@@ -142,7 +142,7 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 
   publish(realtime::get_delay_message(
       schedule_realtime_cg::LANGEN.eva_, schedule_realtime_cg::RE_L_F, "",
-      ris::EventType_Departure, 1445231700 /* 2015-10-19 07:15:00 GMT+2:00 */,
+      EventType_DEP, 1445231700 /* 2015-10-19 07:15:00 GMT+2:00 */,
       1445231760 /* 2015-10-19 07:16:00 GMT+2:00 */,
       schedule_realtime_cg::LANGEN.eva_, schedule_realtime_cg::RE_L_F,
       1445231700 /* 2015-10-19 07:15:00 GMT+2:00 */, ris::DelayType_Forecast));
@@ -162,7 +162,7 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
   publish(realtime::get_delay_message(
       schedule_realtime_cg::LANGEN.eva_, schedule_realtime_cg::RE_D_L, "",
-      ris::EventType_Arrival, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
+      EventType_ARR, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
       1445231460 /* 2015-10-19 07:11:00 GMT+2:00 */,
       schedule_realtime_cg::DARMSTADT.eva_, schedule_realtime_cg::RE_D_L,
       1445230800 /* 2015-10-19 07:00:00 GMT+2:00 */, ris::DelayType_Is));
@@ -192,7 +192,7 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
 TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
   publish(realtime::get_delay_message(
       schedule_realtime_cg::LANGEN.eva_, schedule_realtime_cg::RE_D_L, "",
-      ris::EventType_Arrival, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
+      EventType_ARR, 1445231400 /* 2015-10-19 07:10:00 GMT+2:00 */,
       1445231460 /* 2015-10-19 07:11:00 GMT+2:00 */,
       schedule_realtime_cg::DARMSTADT.eva_, schedule_realtime_cg::RE_D_L,
       1445230800 /* 2015-10-19 07:00:00 GMT+2:00 */, ris::DelayType_Forecast));

@@ -68,7 +68,7 @@ public:
             get_reliability_module().precomputed_distributions().get_node(
                 distributions_container::to_container_key(
                     *departing_route_edge.from_, departing_light_conn,
-                    time_util::departure, get_schedule())),
+                    event_type::DEP, get_schedule())),
             context(get_schedule(),
                     get_reliability_module().precomputed_distributions(),
                     get_reliability_module().s_t_distributions())),
@@ -357,10 +357,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: S_L_F and RE_L_F are on the same route */
-    auto const departing_lc = graph_accessor::get_departing_route_edge(
-                                  *graph_accessor::get_first_route_node(
-                                      get_schedule(), schedule7_cg::RE_L_F))
-                                  ->m_.route_edge_.conns_[1];
+    auto const& departing_lc = graph_accessor::get_departing_route_edge(
+                                   *graph_accessor::get_first_route_node(
+                                       get_schedule(), schedule7_cg::RE_L_F))
+                                   ->m_.route_edge_.conns_[1];
     interchange_data_for_tests ic_data(
         get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
         schedule7_cg::DARMSTADT.eva_, schedule7_cg::LANGEN.eva_,
@@ -384,10 +384,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: IC_L_F and RE_L_F are on the same route */
-    auto const departing_lc = graph_accessor::get_departing_route_edge(
-                                  *graph_accessor::get_first_route_node(
-                                      get_schedule(), schedule7_cg::RE_L_F))
-                                  ->m_.route_edge_.conns_[2];
+    auto const& departing_lc = graph_accessor::get_departing_route_edge(
+                                   *graph_accessor::get_first_route_node(
+                                       get_schedule(), schedule7_cg::RE_L_F))
+                                   ->m_.route_edge_.conns_[2];
     interchange_data_for_tests ic_data(
         get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
         schedule7_cg::DARMSTADT.eva_, schedule7_cg::LANGEN.eva_,

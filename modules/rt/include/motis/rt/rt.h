@@ -24,6 +24,10 @@ struct rt : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr on_message(motis::module::msg_ptr const& msg);
+  motis::module::msg_ptr on_system_time_change(
+      motis::module::msg_ptr const& msg);
+
   motis::module::msg_ptr handle_messages(motis::module::msg_ptr const&);
   void add_to_propagator(schedule const& sched, ris::DelayMessage const* msg);
 

@@ -52,7 +52,7 @@ inline delay_info get_delay_info(schedule const& sched, node const* route_node,
   auto lcon_idx = get_lcon_index(route_edge, lcon);
   auto it = sched.graph_to_delay_info_.find({route_edge, lcon_idx, ev_type});
   if (it == end(sched.graph_to_delay_info_)) {
-    return {ev_key(route_edge, lcon_idx, ev_type), get_time(lcon, ev_type)};
+    return delay_info{ev_key(route_edge, lcon_idx, ev_type)};
   } else {
     return *it->second;
   }
@@ -64,9 +64,18 @@ inline delay_info get_delay_info(schedule const& sched, edge const* route_edge,
   auto lcon_idx = get_lcon_index(route_edge, lcon);
   auto it = sched.graph_to_delay_info_.find({route_edge, lcon_idx, ev_type});
   if (it == end(sched.graph_to_delay_info_)) {
-    return {ev_key(route_edge, lcon_idx, ev_type), get_time(lcon, ev_type)};
+    return delay_info{ev_key(route_edge, lcon_idx, ev_type)};
   } else {
     return *it->second;
+  }
+}
+
+inline delay_info* get_delay_info(schedule const& sched, ev_key const& k) {
+  auto it = sched.graph_to_delay_info_.find(k);
+  if (it == end(sched.graph_to_delay_info_)) {
+    return nullptr;
+  } else {
+    return it->second;
   }
 }
 

@@ -102,7 +102,7 @@ struct queue_element_cmp {
       if (a.node_->key_.type_ == b.node_->key_.type_) {
         return a.node_->key_.train_id_ > b.node_->key_.train_id_;
       }
-      return a.node_->key_.type_ == time_util::departure;
+      return a.node_->key_.type_ == event_type::DEP;
     }
     return a.node_->key_.scheduled_event_time_ >
            b.node_->key_.scheduled_event_time_;
@@ -135,7 +135,7 @@ void process_element(queue_type& queue,
   }
 
   probability_distribution const pd_before = element.node_->pd_;
-  if (element.node_->key_.type_ == time_util::departure) {
+  if (element.node_->key_.type_ == event_type::DEP) {
     calc_departure_distribution::data_departure const d_data(
         *element.route_node_, *element.lc_,
         graph_accessor::get_arriving_route_edge(*element.route_node_) ==
@@ -180,12 +180,12 @@ auto route_node_and_light_conn(trip const& tr, unsigned const station_idx,
       tr.edges_->begin(), tr.edges_->end(), [&](trip::route_edge const& e) {
         auto const re = e.get_edge();
         auto const light_conn = re->m_.route_edge_.conns_[tr.lcon_idx_];
-        auto const s = event_type == EventType_Arrival
+        auto const s = event_type == EventType_ARR
                            ? re->to_->get_station()->id_
                            : re->from_->get_station()->id_;
         auto const tr = light_conn.full_con_->con_info_->train_nr_;
-        auto const t = event_type == EventType_Arrival ? light_conn.a_time_
-                                                       : light_conn.d_time_;
+        auto const t = event_type == EventType_ARR ? light_conn.a_time_
+                                                   : light_conn.d_time_;
         return s == station_idx && tr == train_id && t == graph_time;
 
       });
@@ -204,9 +204,7 @@ auto route_node_and_light_conn(trip const& tr,
       sched.eva_to_station_.at(shifted_node.station_id()->str())->index_;
   return route_node_and_light_conn(
       tr, station_idx, shifted_node.trip()->train_nr(),
-      (shifted_node.event_type() == rt::EventType_ARRIVAL
-           ? EventType_Arrival
-           : EventType_Departure),
+      shifted_node.event_type(),
       unix_to_motistime(sched, shifted_node.updated_time()));
 }
 
@@ -215,9 +213,7 @@ distributions_container::container::node* find_distribution_node(
     rt::ShiftedNode const& shifted_node, schedule const& sched,
     distributions_container::container& container) {
   auto const key = distributions_container::to_container_key(
-      lc, station_idx, shifted_node.event_type() == rt::EventType_DEPARTURE
-                           ? time_util::departure
-                           : time_util::arrival,
+      lc, station_idx, from_fbs(shifted_node.event_type()),
       unix_to_motistime(sched, shifted_node.schedule_time()), sched);
   if (container.contains_distribution(key)) {
     return &container.get_node_non_const(key);

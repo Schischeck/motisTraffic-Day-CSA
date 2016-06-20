@@ -12,7 +12,8 @@ namespace test {
 namespace schedule {
 namespace invalid_realtime {
 
-void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
+void create_invalid_trip_is_msg(motis::schedule const& sched,
+                                FlatBufferBuilder& fbb) {
   // clang-format off
   std::vector<Offset<UpdatedEvent>> events{
     CreateUpdatedEvent(fbb,
@@ -20,20 +21,20 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("0000002"),
           1,
           fbb.CreateString("381"),
-          motis::ris::EventType_Arrival,
-          unix_time(sched, 1100)
+          EventType_DEP,
+          unix_time(sched, 1110)
         ),
-        unix_time(sched, 1112)
+        unix_time(sched, 1301)
     ),
     CreateUpdatedEvent(fbb,
         motis::ris::CreateEvent(fbb,
-          fbb.CreateString("0000002"),
+          fbb.CreateString("0000004"),
           1,
           fbb.CreateString("381"),
-          motis::ris::EventType_Departure,
-          unix_time(sched, 1110)
+          EventType_ARR,
+          unix_time(sched, 1300)
         ),
-        unix_time(sched, 1110)
+        unix_time(sched, 1200)
     )
   };
   auto trip_id = motis::ris::CreateIdEvent(fbb,
@@ -49,9 +50,9 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
                         .Union()));
 }
 
-msg_ptr get_ris_message(motis::schedule const& sched) {
+msg_ptr get_trip_conflict_ris_message(motis::schedule const& sched) {
   FlatBufferBuilder is_msg_fbb;
-  create_is_msg(sched, is_msg_fbb);
+  create_invalid_trip_is_msg(sched, is_msg_fbb);
 
   message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(

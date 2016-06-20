@@ -56,7 +56,7 @@ journey get_journey(schedule_station const from, schedule_station const to) {
     s.departure_.valid_ = true;
     s.departure_.timestamp_ = 1445284800 /* 10/19/2015, 22:00 GMT+2:00 DST */;
     s.departure_.schedule_timestamp_ = s.departure_.timestamp_;
-    s.departure_.timestamp_reason_ = delay_info::reason::IS;
+    s.departure_.timestamp_reason_ = timestamp_reason::IS;
     j.stops_.push_back(s);
   }
   {
@@ -70,7 +70,7 @@ journey get_journey(schedule_station const from, schedule_station const to) {
     s.arrival_.valid_ = true;
     s.arrival_.timestamp_ = 1445288400 /* 10/19/2015, 23:00 GMT+2:00 DST */;
     s.arrival_.schedule_timestamp_ = s.arrival_.timestamp_;
-    s.arrival_.timestamp_reason_ = delay_info::reason::IS;
+    s.arrival_.timestamp_reason_ = timestamp_reason::IS;
     j.stops_.push_back(s);
   }
 

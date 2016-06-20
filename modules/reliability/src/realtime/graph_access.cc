@@ -101,18 +101,14 @@ std::pair<node const*, light_connection const*> get_node_and_light_connection(
   if (family.empty()) {
     throw std::system_error(error::failure);
   }
-  auto ev =
-      get_ev_key(sched, key.train_id_, family, key.line_identifier_,
-                 sched.station_nodes_.at(key.station_index_).get(),
-                 (key.type_ == time_util::departure ? motis::event_type::DEP
-                                                    : motis::event_type::ARR),
-                 key.scheduled_event_time_);
+  auto ev = get_ev_key(sched, key.train_id_, family, key.line_identifier_,
+                       sched.station_nodes_.at(key.station_index_).get(),
+                       key.type_, key.scheduled_event_time_);
   if (!ev.valid()) {
     throw std::system_error(error::failure);
   }
-  auto const* route_node = key.type_ == time_util::departure
-                               ? ev.route_edge_->from_
-                               : ev.route_edge_->to_;
+  auto const* route_node = key.type_ == event_type::DEP ? ev.route_edge_->from_
+                                                        : ev.route_edge_->to_;
   auto const* lc = &ev.route_edge_->m_.route_edge_.conns_[ev.lcon_idx_];
   return std::make_pair(route_node, lc);
 }

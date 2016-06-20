@@ -32,12 +32,12 @@ void distributions_for_first_train(
     ratings.back().departure_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
-                *element.from_, *element.light_connection_,
-                time_util::departure, sched));
+                *element.from_, *element.light_connection_, event_type::DEP,
+                sched));
     ratings.back().arrival_distribution_ =
         distributions_container.get_distribution(
             distributions_container::to_container_key(
-                *element.to_, *element.light_connection_, time_util::arrival,
+                *element.to_, *element.light_connection_, event_type::ARR,
                 sched));
   }
 }
@@ -83,7 +83,7 @@ void distributions_for_train_after_interchange(
     auto& arrival_distribution = ratings.back().arrival_distribution_;
     auto const& distribution_node = context.precomputed_distributions_.get_node(
         distributions_container::to_container_key(
-            *element.from_, *element.light_connection_, time_util::departure,
+            *element.from_, *element.light_connection_, event_type::DEP,
             context.schedule_));
 
     if (&element == &elements.front()) { /* departure with interchange */

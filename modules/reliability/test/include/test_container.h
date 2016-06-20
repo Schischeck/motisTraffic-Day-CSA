@@ -36,13 +36,13 @@ init_feeders_and_get_distribution_node(
     schedule const& sched) {
   auto& train_distribution_node = feeder_distributions.get_node_non_const(
       distributions_container::to_container_key(route_node, light_conn,
-                                                time_util::departure, sched));
+                                                event_type::DEP, sched));
   for (auto const feeder :
        distributions_calculator::precomputation::detail::get_feeders(
            route_node, light_conn, sched)) {
     auto& feeder_node = feeder_distributions.get_node_non_const(
         distributions_container::to_container_key(*feeder.first, *feeder.second,
-                                                  time_util::arrival, sched));
+                                                  event_type::ARR, sched));
     feeder_node.pd_.init(values, first_minute);
     feeder_node.successors_.push_back(&train_distribution_node);
     train_distribution_node.predecessors_.push_back(&feeder_node);
@@ -55,7 +55,7 @@ init_feeders_and_get_distribution_node(
             arriving_route_edge->m_.route_edge_.conns_, light_conn.d_time_);
     auto& preceding_distribution_node = feeder_distributions.get_node_non_const(
         distributions_container::to_container_key(
-            route_node, preceding_light_conn, time_util::arrival, sched));
+            route_node, preceding_light_conn, event_type::ARR, sched));
     preceding_distribution_node.successors_.push_back(&train_distribution_node);
     train_distribution_node.predecessors_.push_back(
         &preceding_distribution_node);
