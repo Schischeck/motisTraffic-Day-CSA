@@ -5,6 +5,7 @@
 
 #include "boost/algorithm/string/predicate.hpp"
 
+#include "net/http/server/enable_cors.hpp"
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
@@ -108,8 +109,6 @@ struct http_server::impl {
     add_cors_headers(rep);
     cb(rep);
   }
-
-  void add_cors_headers(reply& rep) const { enable_cors(rep); }
 
   std::string get_path(std::string const& uri) {
     auto pos = uri.find('?');
