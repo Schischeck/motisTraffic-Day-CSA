@@ -19,7 +19,6 @@ namespace bikesharing {
 struct bikesharing_info;
 }  // namespace bikesharing
 }  // namespace intermodal
-namespace flatbuffers {
 
 struct request_builder {
   explicit request_builder(
@@ -106,6 +105,5 @@ private:
 
 std::string departure_station_name(routing::RoutingRequest const& req);
 
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

@@ -34,7 +34,7 @@ namespace detail {
 
 std::vector<journey> retrieve_base_journeys(
     ReliableRoutingRequest const& request, context const& c) {
-  auto req = flatbuffers::request_builder(request)
+  auto req = request_builder(request)
                  .add_additional_edges(c.individual_modes_container_)
                  .build_routing_request();
   auto routing_response = motis_call(req)->val();

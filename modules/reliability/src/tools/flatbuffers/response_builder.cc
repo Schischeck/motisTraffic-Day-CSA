@@ -23,7 +23,6 @@ using namespace flatbuffers;
 
 namespace motis {
 namespace reliability {
-namespace flatbuffers {
 namespace response_builder {
 
 namespace rating_converter {
@@ -315,6 +314,5 @@ module::msg_ptr to_reliable_routing_response(
 }
 
 }  // namespace response_builder
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

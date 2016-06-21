@@ -151,7 +151,7 @@ void init_hotels(ReliableRoutingRequest const& req, schedule const& sched,
 module::msg_ptr ask_routing(
     ReliableRoutingRequest const& req,
     intermodal::individual_modes_container const& container) {
-  flatbuffers::request_builder b(req);
+  request_builder b(req);
   b.add_additional_edges(container);
   return motis_call(b.build_routing_request())->val();
 }
@@ -256,7 +256,7 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
   std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
                         intermodal::bikesharing::bikesharing_info>>
       dummy;
-  return flatbuffers::response_builder::to_reliability_rating_response(
+  return response_builder::to_reliability_rating_response(
       journeys, ratings.first, ratings.second, true /* short output */, dummy,
       false, false);
 }

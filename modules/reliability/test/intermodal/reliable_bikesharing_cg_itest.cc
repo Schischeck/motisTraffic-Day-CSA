@@ -28,7 +28,7 @@ public:
 };
 
 TEST_F(reliability_bikesharing_cg, DISABLED_cg) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =

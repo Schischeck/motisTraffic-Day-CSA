@@ -24,7 +24,6 @@ struct bikesharing_info;
 namespace search {
 struct connection_graph;
 }  // namespace search
-namespace flatbuffers {
 namespace response_builder {
 
 module::msg_ptr to_reliability_rating_response(
@@ -39,6 +38,5 @@ module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const&);
 
 }  // namespace response_builder
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

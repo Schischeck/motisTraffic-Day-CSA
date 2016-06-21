@@ -147,7 +147,7 @@ public:
 
 TEST_F(reliability_test_rating, rating_request) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
                              schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -185,7 +185,7 @@ TEST_F(reliability_test_rating, rating_request) {
 
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -199,7 +199,7 @@ TEST_F(reliability_test_cg, connection_tree) {
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),

@@ -23,7 +23,7 @@ public:
 };
 
 TEST_F(reliability_intermodal_walks, walk_at_begin) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =
@@ -60,7 +60,7 @@ TEST_F(reliability_intermodal_walks, walk_at_begin) {
 }
 
 TEST_F(reliability_intermodal_walks, walk_at_end) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =

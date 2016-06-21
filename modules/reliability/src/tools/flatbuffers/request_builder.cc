@@ -18,7 +18,6 @@ using namespace motis::module;
 
 namespace motis {
 namespace reliability {
-namespace flatbuffers {
 
 request_builder::request_builder(routing::SearchType search_type)
     : search_type_(search_type),
@@ -328,6 +327,5 @@ std::string departure_station_name(routing::RoutingRequest const& req) {
   return "";
 }
 
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

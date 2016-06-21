@@ -334,7 +334,7 @@ void test_journey2(journey const& j) {
 
 /* Test a query interval larger than the availability interval */
 TEST_F(reliability_bikesharing_routing, DISABLED_large_interval) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =
@@ -409,7 +409,7 @@ TEST_F(reliability_bikesharing_routing, DISABLED_large_interval) {
 }
 
 TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =
@@ -426,7 +426,7 @@ TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
 
 TEST_F(reliability_bikesharing_routing,
        waiting_at_destination_for_bikesharing) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =
@@ -442,7 +442,7 @@ TEST_F(reliability_bikesharing_routing,
 }
 
 TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure Darmstadt Hbf
   // arrival close to campus ffm
   auto req_msg = b.add_pretrip_start(schedule_bikesharing::DARMSTADT.name_,
@@ -537,7 +537,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
 }
 
 TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure Darmstadt Hbf
   // arrival close to campus ffm
   auto req_msg =
@@ -585,7 +585,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
 }
 
 TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =
@@ -634,7 +634,7 @@ TEST_F(reliability_bikesharing_routing, coordinates_to_station) {
 }
 
 TEST_F(reliability_bikesharing_routing, DISABLED_unreliable_bike) {
-  ::motis::reliability::flatbuffers::request_builder b;
+  ::motis::reliability::request_builder b;
   // departure close to campus darmstadt
   // arrival close to campus ffm
   auto req_msg =

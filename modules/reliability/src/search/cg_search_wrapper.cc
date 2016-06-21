@@ -51,7 +51,7 @@ void update_address_info(
   for (auto& cg : cgs) {
     if (req.dep_is_intermodal()) {
       cg->journeys_.front().stops_.front().name_ =
-          flatbuffers::departure_station_name(*req.request());
+          departure_station_name(*req.request());
     }
     if (req.arr_is_intermodal()) {
       std::set<uint16_t> arriving_journeys;
@@ -85,7 +85,7 @@ module::msg_ptr search_cgs(ReliableRoutingRequest const& req, reliability& rel,
                         detail::get_optimizer(*req.request_type()), container);
   detail::update_mumo_info(cgs, container);
   detail::update_address_info(req, cgs);
-  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
+  return response_builder::to_reliable_routing_response(cgs);
 }
 
 }  // namespace connection_graph_search

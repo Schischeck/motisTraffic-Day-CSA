@@ -245,7 +245,7 @@ TEST_F(reliability_connection_graph_rating,
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -306,7 +306,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -432,7 +432,7 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
@@ -497,7 +497,7 @@ TEST_F(reliability_connection_graph_rating_foot,
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))

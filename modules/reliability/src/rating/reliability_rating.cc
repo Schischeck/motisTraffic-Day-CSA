@@ -93,7 +93,7 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
   intermodal::individual_modes_container container(
       req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
   using routing::RoutingResponse;
-  auto routing_response = motis_call(flatbuffers::request_builder(req)
+  auto routing_response = motis_call(request_builder(req)
                                          .add_additional_edges(container)
                                          .build_routing_request())
                               ->val();
@@ -104,15 +104,15 @@ module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
       message_to_journeys(motis_content(RoutingResponse, routing_response));
   auto const ratings = rate_journeys(journeys, c);
 
-  update_mumo_and_address_infos(
-      journeys, container, req.dep_is_intermodal(), req.arr_is_intermodal(),
-      flatbuffers::departure_station_name(*req.request()),
-      req.request()->destination()->name()->str());
+  update_mumo_and_address_infos(journeys, container, req.dep_is_intermodal(),
+                                req.arr_is_intermodal(),
+                                departure_station_name(*req.request()),
+                                req.request()->destination()->name()->str());
 
   auto const bikesharings = get_bikesharings(
       journeys, container, req.dep_is_intermodal(), req.arr_is_intermodal());
 
-  return flatbuffers::response_builder::to_reliability_rating_response(
+  return response_builder::to_reliability_rating_response(
       journeys, ratings.first, ratings.second, true /* short output */,
       bikesharings, req.dep_is_intermodal(), req.arr_is_intermodal());
 }

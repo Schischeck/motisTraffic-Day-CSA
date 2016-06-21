@@ -112,7 +112,7 @@ std::vector<rating::rating_element> compute_test_ratings1(
 
 TEST_F(reliability_public_transport2, rate) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
                              schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -281,7 +281,7 @@ std::vector<rating::rating_element> compute_test_ratings2(
 
 TEST_F(reliability_public_transport5, rate2) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule5::MANNHEIM.name_,
                              schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -379,7 +379,7 @@ std::vector<rating::rating_element> compute_test_ratings_foot(
 
 TEST_F(reliability_public_transport3, rate_foot) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))

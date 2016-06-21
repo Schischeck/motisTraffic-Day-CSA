@@ -116,7 +116,7 @@ public:
 
 TEST_F(reliability_realtime_cg, reliable_routing_request) {
   test_scheduled_cg(call(
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule_realtime_cg::DARMSTADT.name_,
                              schedule_realtime_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -149,7 +149,7 @@ TEST_F(reliability_realtime_cg, reliable_routing_request) {
   publish(make_no_msg("/ris/system_time_changed"));
 
   test_realtime_cg(call(
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule_realtime_cg::DARMSTADT.name_,
                              schedule_realtime_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -169,7 +169,7 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_is) {
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule_realtime_cg::DARMSTADT.name_,
                              schedule_realtime_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -199,7 +199,7 @@ TEST_F(reliability_realtime_cg, cg_arrival_distribution_forecast) {
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule_realtime_cg::DARMSTADT.name_,
                              schedule_realtime_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),

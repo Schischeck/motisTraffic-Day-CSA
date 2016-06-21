@@ -123,7 +123,7 @@ public:
 TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -142,7 +142,7 @@ TEST_F(reliability_connection_graph_search,
 TEST_F(reliability_connection_graph_search,
        connection_tree_three_alternatives) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -163,7 +163,7 @@ TEST_F(reliability_connection_graph_search,
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -244,7 +244,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
 TEST_F(reliability_connection_graph_search,
        alternative_requires_further_alternatives) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::PFUNGSTADT.name_,
                              schedule7_cg::PFUNGSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 630),
@@ -305,7 +305,7 @@ TEST_F(reliability_connection_graph_search,
 
 TEST_F(reliability_connection_graph_search, cache_journey) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
