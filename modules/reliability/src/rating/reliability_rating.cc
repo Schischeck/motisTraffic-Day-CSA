@@ -86,23 +86,34 @@ bs_return_type get_bikesharings(
   return bikesharings;
 }
 
+std::vector<journey> retrieve_journeys(
+    ReliableRoutingRequest const& req,
+    intermodal::individual_modes_container const& container) {
+  using routing::RoutingResponse;
+  auto routing_msg = motis_call(request_builder(req)
+                                    .add_additional_edges(container)
+                                    .build_routing_request())
+                         ->val();
+  using routing::RoutingResponse;
+  auto routing_res = motis_content(RoutingResponse, routing_msg);
+  return message_to_journeys(routing_res);
+}
+
 module::msg_ptr rating(ReliableRoutingRequest const& req, reliability& rel,
                        unsigned const max_bikesharing_duration,
                        bool const pareto_filtering_for_bikesharing) {
   auto lock = rel.synced_sched();
   intermodal::individual_modes_container container(
       req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
-  using routing::RoutingResponse;
-  auto routing_response = motis_call(request_builder(req)
-                                         .add_additional_edges(container)
-                                         .build_routing_request())
-                              ->val();
+  auto journeys = retrieve_journeys(req, container);
+  if (journeys.empty()) {
+    return response_builder::to_empty_reliability_rating_response();
+  }
 
-  ::motis::reliability::context c(lock.sched(), *rel.precomputed_distributions_,
-                                  *rel.s_t_distributions_);
-  auto journeys =
-      message_to_journeys(motis_content(RoutingResponse, routing_response));
-  auto const ratings = rate_journeys(journeys, c);
+  auto const ratings =
+      rate_journeys(journeys, ::motis::reliability::context(
+                                  lock.sched(), *rel.precomputed_distributions_,
+                                  *rel.s_t_distributions_));
 
   update_mumo_and_address_infos(journeys, container, req.dep_is_intermodal(),
                                 req.arr_is_intermodal(),

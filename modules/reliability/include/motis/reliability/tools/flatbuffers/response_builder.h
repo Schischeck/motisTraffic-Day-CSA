@@ -34,6 +34,8 @@ module::msg_ptr to_reliability_rating_response(
                           intermodal::bikesharing::bikesharing_info>> const&,
     bool const dep_is_intermodal, bool const arr_is_intermodal);
 
+module::msg_ptr to_empty_reliability_rating_response();
+
 module::msg_ptr to_reliable_routing_response(
     std::vector<std::shared_ptr<search::connection_graph>> const&);
 

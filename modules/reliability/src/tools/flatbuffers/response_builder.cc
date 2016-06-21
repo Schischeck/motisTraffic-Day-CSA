@@ -236,6 +236,21 @@ module::msg_ptr to_reliability_rating_response(
   return module::make_msg(b);
 }
 
+module::msg_ptr to_empty_reliability_rating_response() {
+  module::message_creator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
+  std::vector<journey> journeys;
+  std::vector<rating::connection_rating> orig_ratings;
+  std::vector<rating::simple_rating::simple_connection_rating>
+      orig_simple_ratings;
+  std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                        intermodal::bikesharing::bikesharing_info>>
+      bikesharings;
+  return to_reliability_rating_response(journeys, orig_ratings,
+                                        orig_simple_ratings, true, bikesharings,
+                                        false, false);
+}
+
 std::pair<std::time_t, std::time_t> get_scheduled_times(
     journey const& journey) {
   auto const& first_transport =

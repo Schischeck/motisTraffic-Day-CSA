@@ -183,6 +183,24 @@ TEST_F(reliability_test_rating, rating_request) {
   ASSERT_EQ((*simple_rating->rating_elements())[1]->ratings()->size(), 2);
 }
 
+TEST_F(reliability_test_rating, empty_rating_response) {
+  auto const req =
+      request_builder()
+          .add_pretrip_start(schedule2::STUTTGART.name_,
+                             schedule2::STUTTGART.eva_,
+                             test_util::hhmm_to_unixtime(get_schedule(), 0),
+                             test_util::hhmm_to_unixtime(get_schedule(), 0))
+          .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
+          .build_rating_request(false, false, false);
+  auto const res = call(req);
+  auto const response = motis_content(ReliabilityRatingResponse, res);
+
+  ASSERT_EQ(0, response->response()->connections()->size());
+  ASSERT_EQ(0, response->ratings()->size());
+  ASSERT_EQ(0, response->simple_ratings()->size());
+  ASSERT_EQ(0, response->additional_infos()->size());
+}
+
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
       request_builder()

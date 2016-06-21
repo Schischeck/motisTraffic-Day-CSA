@@ -238,10 +238,14 @@ module::msg_ptr search(ReliableRoutingRequest const& req, reliability& rel,
   individual_modes_container container;
   detail::init_hotels(req, sched, hotels_file, container);
   detail::init_taxis(req, sched, container);
-  auto routing_res = detail::ask_routing(req, container);
+  auto routing_msg = detail::ask_routing(req, container);
   using routing::RoutingResponse;
-  auto journeys =
-      message_to_journeys(motis_content(RoutingResponse, routing_res));
+  auto routing_res = motis_content(RoutingResponse, routing_msg);
+  if (routing_res->connections()->size() == 0) {
+    return response_builder::to_empty_reliability_rating_response();
+  }
+
+  auto journeys = message_to_journeys(routing_res);
   auto ratings = rating::rate_journeys(
       journeys,
       motis::reliability::context(lock.sched(), rel.precomputed_distributions(),
