@@ -162,13 +162,10 @@ TEST_F(reliability_late_connections, search) {
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
   ASSERT_EQ(5, journeys.size());
 
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.stops_.back().arrival_.timestamp_ <
-             b.stops_.back().arrival_.timestamp_;
-    }
-  } journey_cmp;
-  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  std::sort(journeys.begin(), journeys.end(), [](auto const& a, auto const& b) {
+    return a.stops_.back().arrival_.timestamp_ <
+           b.stops_.back().arrival_.timestamp_;
+  });
 
   { /* taxi connection, arrival 01:00 */
     auto const& j = journeys[0];
@@ -274,12 +271,9 @@ TEST_F(reliability_hotels_foot, hotels_after_foot) {
   auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.db_costs_ < b.db_costs_;
-    }
-  } journey_cmp;
-  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  std::sort(journeys.begin(), journeys.end(), [](auto const& a, auto const& b) {
+    return a.db_costs_ < b.db_costs_;
+  });
   ASSERT_EQ(2, journeys.size());
 
   {
@@ -325,12 +319,9 @@ TEST_F(reliability_hotels_foot, foot_after_hotel) {
   auto msg = call(to_request(container, true));
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.db_costs_ < b.db_costs_;
-    }
-  } journey_cmp;
-  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  std::sort(journeys.begin(), journeys.end(), [](auto const& a, auto const& b) {
+    return a.db_costs_ < b.db_costs_;
+  });
   ASSERT_EQ(2, journeys.size());
 
   {
@@ -385,12 +376,9 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
   auto msg = call(req);
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.db_costs_ < b.db_costs_;
-    }
-  } journey_cmp;
-  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  std::sort(journeys.begin(), journeys.end(), [](auto const& a, auto const& b) {
+    return a.db_costs_ < b.db_costs_;
+  });
   ASSERT_EQ(2, journeys.size());
 
   {
@@ -439,12 +427,9 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
   auto msg = call(req);
 
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
-  struct {
-    bool operator()(journey const& a, journey const& b) {
-      return a.db_costs_ < b.db_costs_;
-    }
-  } journey_cmp;
-  std::sort(journeys.begin(), journeys.end(), journey_cmp);
+  std::sort(journeys.begin(), journeys.end(), [](auto const& a, auto const& b) {
+    return a.db_costs_ < b.db_costs_;
+  });
   ASSERT_EQ(2, journeys.size());
 
   {
