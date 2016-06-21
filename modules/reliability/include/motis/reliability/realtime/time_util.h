@@ -16,8 +16,7 @@ inline motis::time get_scheduled_event_time(node const& route_node,
                                             light_connection const& lc,
                                             event_type type,
                                             schedule const& sched) {
-  return get_schedule_time(sched, get_route_edge(&route_node, &lc, type), &lc,
-                           type);
+  return get_delay_info(sched, &route_node, &lc, type).get_schedule_time();
 }
 
 }  // namespace time_util
