@@ -109,14 +109,7 @@ struct http_server::impl {
     cb(rep);
   }
 
-  void add_cors_headers(reply& rep) const {
-    rep.headers.emplace_back("Access-Control-Allow-Origin", "*");
-    rep.headers.emplace_back(
-        "Access-Control-Allow-Headers",
-        "X-Requested-With, Content-Type, Accept, Authorization");
-    rep.headers.emplace_back("Access-Control-Allow-Methods",
-                             "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-  }
+  void add_cors_headers(reply& rep) const { enable_cors(rep); }
 
   std::string get_path(std::string const& uri) {
     auto pos = uri.find('?');
