@@ -31,12 +31,12 @@ interchange_info::interchange_info(connection_element const& arriving_element,
   arrival_time_ = arriving_element.light_connection_->a_time_;
   departure_time_ = departing_element.light_connection_->d_time_;
 
-  auto const arr_delay_info = get_delay_info(
-      sched, graph_accessor::get_arriving_route_edge(*arriving_element.to_),
-      arriving_element.light_connection_, event_type::ARR);
-  auto const dep_delay_info = get_delay_info(
-      sched, graph_accessor::get_departing_route_edge(*departing_element.from_),
-      departing_element.light_connection_, event_type::DEP);
+  auto const arr_delay_info =
+      get_delay_info(sched, arriving_element.to_,
+                     arriving_element.light_connection_, event_type::ARR);
+  auto const dep_delay_info =
+      get_delay_info(sched, departing_element.from_,
+                     departing_element.light_connection_, event_type::DEP);
 
   scheduled_arrival_time_ = arr_delay_info.get_schedule_time();
   arrival_is_ = (arr_delay_info.get_reason() == timestamp_reason::IS);

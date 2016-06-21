@@ -48,9 +48,8 @@ data_departure::data_departure(node const& route_node,
 void data_departure::init_departure_time(node const& route_node,
                                          light_connection const& light_conn,
                                          schedule const& sched) {
-  auto const delay_info = get_delay_info(
-      sched, graph_accessor::get_departing_route_edge(route_node), &light_conn,
-      event_type::DEP);
+  auto const delay_info =
+      get_delay_info(sched, &route_node, &light_conn, event_type::DEP);
   scheduled_departure_time_ = delay_info.get_schedule_time();
   is_message_.received_ = (delay_info.get_reason() == timestamp_reason::IS);
   is_message_.current_time_ =

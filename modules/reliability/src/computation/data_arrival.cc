@@ -32,8 +32,7 @@ void data_arrival::init_arrival_time(node const& route_node,
                                      light_connection const& light_conn,
                                      schedule const& sched) {
   auto const delay_info =
-      get_delay_info(sched, graph_accessor::get_arriving_route_edge(route_node),
-                     &light_conn, event_type::ARR);
+      get_delay_info(sched, &route_node, &light_conn, event_type::ARR);
   scheduled_arrival_time_ = delay_info.get_schedule_time();
   is_message_.received_ = (delay_info.get_reason() == timestamp_reason::IS);
   is_message_.current_time_ =
