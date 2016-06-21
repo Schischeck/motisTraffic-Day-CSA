@@ -37,45 +37,45 @@ public:
                          "modules/reliability/resources/nextbike_routing") {}
 };
 
-TEST_F(reliability_bikesharing, compress_intervals) {
-  auto create = [](time_t const& from, time_t const& to) {
-    return bikesharing_info::availability{from, to, 0};
-  };
-  {
-    std::vector<bikesharing_info::availability> intervals = {
-        create(1465293600, 1465297200),
-        create(1465297200, 1465300800),
-        create(1465304400, 1465308000),
-        create(1465311600, 1465315200),
-        create(1465315200, 1465318800),
-        bikesharing_info::availability{1465318800, 1465318860, 1}};
-    auto const c = detail::compress_intervals(intervals);
-    ASSERT_EQ(4, c.size());
-    ASSERT_EQ(1465293600, c[0].from_);
-    ASSERT_EQ(1465300800, c[0].to_);
-    ASSERT_EQ(1465304400, c[1].from_);
-    ASSERT_EQ(1465308000, c[1].to_);
-    ASSERT_EQ(1465311600, c[2].from_);
-    ASSERT_EQ(1465318800, c[2].to_);
-    ASSERT_EQ(1465318800, c[3].from_);
-    ASSERT_EQ(1465318860, c[3].to_);
+bikesharing_info::availability create(time_t const& from, time_t const& to) {
+  return bikesharing_info::availability{from, to, 0};
+}
 
-    ASSERT_EQ(0, c[0].rating_);
-    ASSERT_EQ(1, c[3].rating_);
-  }
-  {
-    std::vector<bikesharing_info::availability> intervals = {
-        create(1465293600, 1465297200), create(1465304400, 1465308000),
-        create(1465311600, 1465315200), create(1465315200, 1465318800)};
-    auto const c = detail::compress_intervals(intervals);
-    ASSERT_EQ(3, c.size());
-    ASSERT_EQ(1465293600, c[0].from_);
-    ASSERT_EQ(1465297200, c[0].to_);
-    ASSERT_EQ(1465304400, c[1].from_);
-    ASSERT_EQ(1465308000, c[1].to_);
-    ASSERT_EQ(1465311600, c[2].from_);
-    ASSERT_EQ(1465318800, c[2].to_);
-  }
+TEST_F(reliability_bikesharing, compress_intervals) {
+  std::vector<bikesharing_info::availability> intervals = {
+      create(1465293600, 1465297200),
+      create(1465297200, 1465300800),
+      create(1465304400, 1465308000),
+      create(1465311600, 1465315200),
+      create(1465315200, 1465318800),
+      bikesharing_info::availability{1465318800, 1465318860, 1}};
+  auto const c = detail::compress_intervals(intervals);
+  ASSERT_EQ(4, c.size());
+  ASSERT_EQ(1465293600, c[0].from_);
+  ASSERT_EQ(1465300800, c[0].to_);
+  ASSERT_EQ(1465304400, c[1].from_);
+  ASSERT_EQ(1465308000, c[1].to_);
+  ASSERT_EQ(1465311600, c[2].from_);
+  ASSERT_EQ(1465318800, c[2].to_);
+  ASSERT_EQ(1465318800, c[3].from_);
+  ASSERT_EQ(1465318860, c[3].to_);
+
+  ASSERT_EQ(0, c[0].rating_);
+  ASSERT_EQ(1, c[3].rating_);
+}
+
+TEST_F(reliability_bikesharing, compress_intervals_end) {
+  std::vector<bikesharing_info::availability> intervals = {
+      create(1465293600, 1465297200), create(1465304400, 1465308000),
+      create(1465311600, 1465315200), create(1465315200, 1465318800)};
+  auto const c = detail::compress_intervals(intervals);
+  ASSERT_EQ(3, c.size());
+  ASSERT_EQ(1465293600, c[0].from_);
+  ASSERT_EQ(1465297200, c[0].to_);
+  ASSERT_EQ(1465304400, c[1].from_);
+  ASSERT_EQ(1465308000, c[1].to_);
+  ASSERT_EQ(1465311600, c[2].from_);
+  ASSERT_EQ(1465318800, c[2].to_);
 }
 
 TEST_F(reliability_bikesharing, pareto_filter) {
