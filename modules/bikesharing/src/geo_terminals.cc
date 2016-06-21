@@ -14,7 +14,8 @@ namespace bikesharing {
 
 module::msg_ptr geo_terminals(database const& db, geo_index const& index,
                               BikesharingGeoTerminalsRequest const* req) {
-  // TODO(root) adjust by actual walk distance to the terminal
+  // TODO(Sebastian Fahnenschreiber) adjust by actual walk distance to the
+  // terminal
   auto bucket = timestamp_to_bucket(req->timestamp());
 
   message_creator mc;
