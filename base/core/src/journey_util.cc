@@ -21,31 +21,4 @@ uint16_t get_transfers(journey const& journey) {
                        [](journey::stop const& s) { return s.interchange_; });
 }
 
-void print_journey(journey const& j, time_t const sched_begin,
-                   std::ostream& os) {
-  auto format = [&](time_t t) -> std::string {
-    return format_time(unix_to_motistime(sched_begin, t));
-  };
-  auto to_str = [&](journey::transport const& t) -> std::string {
-    if (!t.is_walk_) {
-      return t.name_;
-    } else if (t.is_walk_) {
-      std::stringstream sst;
-      sst << t.mumo_id_ << "," << t.mumo_price_;
-      return sst.str();
-    }
-    return "unknown";
-  };
-
-  os << "Journey (d=" << j.duration_ << " #ic=" << j.transfers_
-     << ", np=" << j.night_penalty_ << ", c=" << j.db_costs_ << ")\n";
-  for (auto const& t : j.transports_) {
-    auto const& from = j.stops_[t.from_];
-    auto const& to = j.stops_[t.to_];
-    os << from.name_ << " " << format(from.departure_.timestamp_) << " --"
-       << to_str(t) << "-> " << format(to.arrival_.timestamp_) << " "
-       << to.name_ << std::endl;
-  }
-}
-
 }  // namespace motis
