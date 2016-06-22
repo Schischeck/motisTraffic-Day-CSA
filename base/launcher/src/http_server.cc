@@ -5,6 +5,7 @@
 
 #include "boost/algorithm/string/predicate.hpp"
 
+#include "net/http/server/enable_cors.hpp"
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
@@ -51,6 +52,8 @@ struct http_server::impl {
         return handle_get(req, cb);
       } else if (req.method == "POST") {
         return handle_post(req, cb);
+      } else if (req.method == "OPTIONS") {
+        return handle_options(req, cb);
       } else {
         return cb(reply::stock_reply(reply::not_found));
       }
@@ -100,6 +103,13 @@ struct http_server::impl {
     }
   }
 
+  void handle_options(srv::route_request const&, srv::callback& cb) {
+    reply rep;
+    rep.status = reply::status_type::ok;
+    add_cors_headers(rep);
+    cb(rep);
+  }
+
   std::string get_path(std::string const& uri) {
     auto pos = uri.find('?');
     if (pos != std::string::npos) {
@@ -138,6 +148,7 @@ struct http_server::impl {
       } else {
         rep.content = ec.message();
       }
+      add_cors_headers(rep);
     } catch (...) {
       // reply is already set to internal_server_error
     }

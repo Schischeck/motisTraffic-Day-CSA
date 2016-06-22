@@ -68,7 +68,7 @@ public:
             get_reliability_module().precomputed_distributions().get_node(
                 distributions_container::to_container_key(
                     *departing_route_edge.from_, departing_light_conn,
-                    time_util::departure, get_schedule())),
+                    event_type::DEP, get_schedule())),
             context(get_schedule(),
                     get_reliability_module().precomputed_distributions(),
                     get_reliability_module().s_t_distributions())),
@@ -245,7 +245,7 @@ TEST_F(reliability_connection_graph_rating,
 /* rating of a cg consisting of a single journey with one interchange */
 TEST_F(reliability_connection_graph_rating, single_connection) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -253,10 +253,12 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -304,7 +306,7 @@ TEST_F(reliability_connection_graph_rating, single_connection) {
 /* rating a cg with multiple alternatives */
 TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -312,10 +314,12 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -353,10 +357,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: S_L_F and RE_L_F are on the same route */
-    auto const departing_lc = graph_accessor::get_departing_route_edge(
-                                  *graph_accessor::get_first_route_node(
-                                      get_schedule(), schedule7_cg::RE_L_F))
-                                  ->m_.route_edge_.conns_[1];
+    auto const& departing_lc = graph_accessor::get_departing_route_edge(
+                                   *graph_accessor::get_first_route_node(
+                                       get_schedule(), schedule7_cg::RE_L_F))
+                                   ->m_.route_edge_.conns_[1];
     interchange_data_for_tests ic_data(
         get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
         schedule7_cg::DARMSTADT.eva_, schedule7_cg::LANGEN.eva_,
@@ -380,10 +384,10 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
   }
   {
     /* note: IC_L_F and RE_L_F are on the same route */
-    auto const departing_lc = graph_accessor::get_departing_route_edge(
-                                  *graph_accessor::get_first_route_node(
-                                      get_schedule(), schedule7_cg::RE_L_F))
-                                  ->m_.route_edge_.conns_[2];
+    auto const& departing_lc = graph_accessor::get_departing_route_edge(
+                                   *graph_accessor::get_first_route_node(
+                                       get_schedule(), schedule7_cg::RE_L_F))
+                                   ->m_.route_edge_.conns_[2];
     interchange_data_for_tests ic_data(
         get_schedule(), schedule7_cg::RE_D_L, schedule7_cg::RE_L_F,
         schedule7_cg::DARMSTADT.eva_, schedule7_cg::LANGEN.eva_,
@@ -428,16 +432,18 @@ TEST_F(reliability_connection_graph_rating, multiple_alternatives) {
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
           .add_destination(schedule3::WEST.name_, schedule3::WEST.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(1, cgs.size());
@@ -491,16 +497,18 @@ TEST_F(reliability_connection_graph_rating_foot,
 TEST_F(reliability_connection_graph_rating_foot,
        reliable_routing_request_foot_at_the_end) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule3::LANGEN.name_, schedule3::LANGEN.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1000),
                              test_util::hhmm_to_unixtime(get_schedule(), 1000))
           .add_destination(schedule3::MESSE.name_, schedule3::MESSE.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(cgs.size(), 1);

@@ -19,7 +19,7 @@ struct journey {
     unsigned train_nr_;
     std::string line_identifier_;
     unsigned duration_;
-    unsigned slot_;
+    int mumo_id_;
     std::string direction_;
     std::string provider_;
     unsigned mumo_price_;

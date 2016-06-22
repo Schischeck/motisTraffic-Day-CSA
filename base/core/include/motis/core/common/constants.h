@@ -11,6 +11,8 @@ constexpr const auto MAX_BIKE_TIME = 30 * 60;  // s
 constexpr const auto MAX_WALK_DIST = MAX_WALK_TIME * WALK_SPEED;  // m
 constexpr const auto MAX_BIKE_DIST = MAX_BIKE_TIME * BIKE_SPEED;  // m
 
+constexpr const auto LINEAR_DIST_APPROX = 1.5;
+
 constexpr const auto MAX_TRAVEL_TIME_HOURS = 24;
 constexpr const auto MAX_TRAVEL_TIME_MINUTES = MAX_TRAVEL_TIME_HOURS * 60;
 constexpr const auto MAX_TRAVEL_TIME_SECONDS = MAX_TRAVEL_TIME_MINUTES * 60;

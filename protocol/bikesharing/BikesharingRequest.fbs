@@ -1,16 +1,9 @@
 include "base/Position.fbs";
 include "base/Interval.fbs";
 
-namespace motis.bikesharing;
+include "bikesharing/BikesharingCommon.fbs";
 
-// JSON example: see nextbike_itest.cc
-enum AvailabilityAggregator : ubyte {
-  Average,
-  Median,
-  Minimum,
-  Quantile90,
-  PercentReliable
-}
+namespace motis.bikesharing;
 
 enum Type : ubyte {
   Departure,

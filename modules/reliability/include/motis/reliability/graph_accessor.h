@@ -181,7 +181,7 @@ inline duration get_interchange_time(node const& arrival_node_feeder,
 }
 
 /* note: category-names are not unique */
-inline std::pair<bool, int> find_family(
+inline std::pair<bool, uint32_t> find_family(
     std::vector<std::unique_ptr<category>> const& categories,
     std::string const& category_name) {
   auto to_lower = [](std::string str) -> std::string {

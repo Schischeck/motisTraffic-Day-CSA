@@ -37,7 +37,7 @@ table Transport {
 /* walk and mumo */
 table Walk {
   range:Range;
-  slot:uint;
+  mumo_id:int;
   price:uint;
   mumo_type:string;
 }

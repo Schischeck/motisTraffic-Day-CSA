@@ -17,15 +17,10 @@ struct edge_cost {
   edge_cost() : time_(INVALID_TIME) {}
 
   edge_cost(duration time, light_connection const* c)
-      : connection_(c), time_(time), price_(0), transfer_(false), slot_(0) {}
+      : connection_(c), time_(time), price_(0), transfer_(false) {}
 
-  explicit edge_cost(duration time, bool transfer = false, uint16_t price = 0,
-                     uint8_t slot = 0)
-      : connection_(nullptr),
-        time_(time),
-        price_(price),
-        transfer_(transfer),
-        slot_(slot) {}
+  explicit edge_cost(duration time, bool transfer = false, uint16_t price = 0)
+      : connection_(nullptr), time_(time), price_(price), transfer_(transfer) {}
 
   bool is_valid() const { return time_ != INVALID_TIME; }
 
@@ -42,7 +37,6 @@ struct edge_cost {
   duration time_;
   uint16_t price_;
   bool transfer_;
-  uint8_t slot_;
 };
 
 const edge_cost NO_EDGE = edge_cost();
@@ -77,14 +71,14 @@ public:
 
   /** foot edge constructor. */
   edge(node* from, node* to, uint8_t type, uint16_t time_cost, uint16_t price,
-       bool transfer, uint8_t slot = 0, uint16_t interval_begin = 0,
+       bool transfer, int mumo_id = 0, uint16_t interval_begin = 0,
        uint16_t interval_end = 0)
       : from_(from), to_(to) {
     m_.type_ = type;
     m_.foot_edge_.time_cost_ = time_cost;
     m_.foot_edge_.price_ = price;
     m_.foot_edge_.transfer_ = transfer;
-    m_.foot_edge_.slot_ = slot;
+    m_.foot_edge_.mumo_id_ = mumo_id;
     m_.foot_edge_.interval_begin_ = interval_begin;
     m_.foot_edge_.interval_end_ = interval_end;
 
@@ -93,13 +87,13 @@ public:
 
   /** hotel edge constructor. */
   edge(node* station_node, uint16_t checkout_time, uint16_t min_stay_duration,
-       uint16_t price, uint16_t slot)
+       uint16_t price, int mumo_id)
       : from_(station_node), to_(station_node) {
     m_.type_ = HOTEL_EDGE;
     m_.hotel_edge_.checkout_time_ = checkout_time;
     m_.hotel_edge_.min_stay_duration_ = min_stay_duration;
     m_.hotel_edge_.price_ = price;
-    m_.hotel_edge_.slot_ = slot;
+    m_.hotel_edge_.mumo_id_ = mumo_id;
   }
 
   edge_cost get_edge_cost(time start_time,
@@ -115,20 +109,19 @@ public:
       case MUMO_EDGE:
       case FOOT_EDGE:
         return edge_cost(m_.foot_edge_.time_cost_, m_.foot_edge_.transfer_,
-                         m_.foot_edge_.price_, m_.foot_edge_.slot_);
+                         m_.foot_edge_.price_);
 
       case PERIODIC_MUMO_EDGE:
         return edge_cost(calc_time_off(m_.foot_edge_.interval_begin_,
                                        m_.foot_edge_.interval_end_,
                                        start_time % MINUTES_A_DAY) +
                              m_.foot_edge_.time_cost_,
-                         m_.foot_edge_.transfer_, m_.foot_edge_.price_,
-                         m_.foot_edge_.slot_);
+                         m_.foot_edge_.transfer_, m_.foot_edge_.price_);
       case TIME_DEPENDENT_MUMO_EDGE:
         return calc_cost_time_dependent_edge(start_time);
       case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
 
-      case THROUGH_EDGE: return edge_cost(0, false, 0, 0);
+      case THROUGH_EDGE: return edge_cost(0, false, 0);
 
       default: return NO_EDGE;
     }
@@ -264,6 +257,16 @@ public:
     }
   }
 
+  int get_mumo_id() const {
+    switch (type()) {
+      case TIME_DEPENDENT_MUMO_EDGE:
+      case PERIODIC_MUMO_EDGE:
+      case MUMO_EDGE: return m_.foot_edge_.mumo_id_;
+      case HOTEL_EDGE: return m_.hotel_edge_.mumo_id_;
+      default: return -1;
+    }
+  }
+
   inline bool empty() const {
     return (type() != ROUTE_EDGE) ? true : m_.route_edge_.conns_.empty();
   }
@@ -377,8 +380,8 @@ public:
       uint16_t price_;
       bool transfer_;
 
-      // slot for mumo edge
-      uint8_t slot_;
+      // id for mumo edge
+      int mumo_id_;
 
       // interval: time-dependent/periodic mumo edge
       uint16_t interval_begin_;
@@ -388,7 +391,7 @@ public:
         time_cost_ = 0;
         price_ = 0;
         transfer_ = false;
-        slot_ = 0;
+        mumo_id_ = -1;
       }
     } foot_edge_;
 
@@ -398,7 +401,7 @@ public:
       uint16_t checkout_time_;
       uint16_t min_stay_duration_;
       uint16_t price_;
-      uint8_t slot_;
+      int mumo_id_;
     } hotel_edge_;
   } m_;
 
@@ -410,8 +413,7 @@ private:
     auto const time_off =
         std::max(0, m_.foot_edge_.interval_begin_ - start_time);
     return edge_cost(time_off + m_.foot_edge_.time_cost_,
-                     m_.foot_edge_.transfer_, m_.foot_edge_.price_,
-                     m_.foot_edge_.slot_);
+                     m_.foot_edge_.transfer_, m_.foot_edge_.price_);
   }
 
   edge_cost calc_cost_hotel_edge(time const start_time) const {
@@ -423,8 +425,7 @@ private:
         m_.hotel_edge_.min_stay_duration_,
         static_cast<uint16_t>((m_.hotel_edge_.checkout_time_ + offset) -
                               (start_time % MINUTES_A_DAY)));
-    return edge_cost(duration, false, m_.hotel_edge_.price_,
-                     m_.hotel_edge_.slot_);
+    return edge_cost(duration, false, m_.hotel_edge_.price_);
   }
 };
 
@@ -446,30 +447,30 @@ inline edge make_after_train_edge(node* from, node* to, uint16_t time_cost = 0,
 }
 
 inline edge make_mumo_edge(node* from, node* to, uint16_t time_cost = 0,
-                           uint16_t price = 0, uint8_t slot = 0) {
-  return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, slot);
+                           uint16_t price = 0, int mumo_id = 0) {
+  return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, mumo_id);
 }
 
 inline edge make_time_dependent_mumo_edge(node* from, node* to,
                                           uint16_t time_cost, uint16_t price,
-                                          uint8_t slot, uint16_t interval_begin,
+                                          int mumo_id, uint16_t interval_begin,
                                           uint16_t interval_end) {
   return edge(from, to, edge::TIME_DEPENDENT_MUMO_EDGE, time_cost, price, false,
-              slot, interval_begin, interval_end);
+              mumo_id, interval_begin, interval_end);
 }
 
 inline edge make_periodic_mumo_edge(node* from, node* to, uint16_t time_cost,
-                                    uint16_t price, uint8_t slot,
+                                    uint16_t price, int mumo_id,
                                     uint16_t interval_begin,
-                                    uint16_t interval_end, bool transfer) {
-  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, transfer,
-              slot, interval_begin, interval_end);
+                                    uint16_t interval_end) {
+  return edge(from, to, edge::PERIODIC_MUMO_EDGE, time_cost, price, false,
+              mumo_id, interval_begin, interval_end);
 }
 
 inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
                             uint16_t min_stay_duration, uint16_t price,
-                            uint8_t slot) {
-  return edge(station_node, checkout_time, min_stay_duration, price, slot);
+                            int mumo_id) {
+  return edge(station_node, checkout_time, min_stay_duration, price, mumo_id);
 }
 
 inline edge make_invalid_edge(node* from, node* to) {

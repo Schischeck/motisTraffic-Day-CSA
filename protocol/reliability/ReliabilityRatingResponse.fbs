@@ -39,8 +39,24 @@ table Rating {
   connection_rating:float;
 }
 
+table BikeInfo {
+  valid:bool;
+  from_id:string;
+  from:motis.Position;
+  to_id:string;
+  to:motis.Position;
+  rating:ushort;
+}
+
+table AdditionalInfos {
+  at_departure:BikeInfo;
+  at_arrival:BikeInfo;
+}
+
+
 table ReliabilityRatingResponse {
   response:motis.routing.RoutingResponse;
   ratings:[Rating];
   simple_ratings:[SimpleRating];
+  additional_infos:[AdditionalInfos];
 }

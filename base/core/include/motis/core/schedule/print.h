@@ -60,7 +60,8 @@ inline void print_edge(edge const& edge, std::ostream& out, int indent) {
           << "duration=" << edge._m._foot_edge._time_cost << ", "
           << "transfer=" << std::boolalpha << edge._m._foot_edge._transfer
           << ", "
-          << "slot=" << static_cast<int>(edge._m._foot_edge._slot) << "\n";
+          << "mumo_id=" << static_cast<int>(edge._m._foot_edge.mumo_id_)
+          << "\n";
       break;
 
     case edge::INVALID_EDGE: out << "NO_EDGE\n"; break;

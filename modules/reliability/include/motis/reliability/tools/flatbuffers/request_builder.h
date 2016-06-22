@@ -7,6 +7,7 @@
 #include "motis/module/module.h"
 
 namespace motis {
+struct journey;
 namespace routing {
 struct RoutingRequest;  // NOLINT
 }  // namespace routing
@@ -18,7 +19,6 @@ namespace bikesharing {
 struct bikesharing_info;
 }  // namespace bikesharing
 }  // namespace intermodal
-namespace flatbuffers {
 
 struct request_builder {
   explicit request_builder(
@@ -47,9 +47,6 @@ struct request_builder {
   request_builder& add_intermodal_destination(double const& lat,
                                               double const& lng);
 
-  request_builder& add_additional_edge(
-      ::flatbuffers::Offset<routing::AdditionalEdgeWrapper> const&);
-
   request_builder& add_additional_edges(
       intermodal::individual_modes_container const&);
 
@@ -57,12 +54,18 @@ struct request_builder {
 
   module::msg_ptr build_routing_request();
 
-  module::msg_ptr build_reliable_search_request(int16_t const min_dep_diff,
-                                                bool const bikesharing = false);
+  module::msg_ptr build_reliable_search_request(
+      int16_t const min_dep_diff, bool const reliable_bikesharing,
+      bool const unreliable_bikesharing, bool const walks);
 
-  module::msg_ptr build_rating_request(bool const bikesharing = false);
+  module::msg_ptr build_rating_request(bool const reliable_bikesharing,
+                                       bool const unreliable_bikesharing,
+                                       bool const walks);
 
-  module::msg_ptr build_late_connection_request(unsigned const taxi_radius);
+  module::msg_ptr build_late_connection_request(
+      journey const& orig_journey, unsigned const taxi_radius,
+      uint16_t const hotel_earliest_checkout, uint16_t const hotel_min_stay,
+      uint16_t const hotel_price);
 
   module::msg_ptr build_connection_tree_request(
       int16_t const num_alternatives_at_stop, int16_t const min_dep_diff);
@@ -86,7 +89,8 @@ private:
 
   module::msg_ptr build_reliable_request(
       ::flatbuffers::Offset<RequestOptionsWrapper> const&,
-      bool const bikesharing = false);
+      bool const reliable_bikesharing, bool const unreliable_bikesharing,
+      bool const walks);
 
   void create_pretrip_start(std::string const station_name,
                             std::string const station_id,
@@ -96,10 +100,10 @@ private:
   void create_bikesharing_edges(intermodal::individual_modes_container const&);
   void create_taxi_edges(intermodal::individual_modes_container const&);
   void create_hotel_edges(intermodal::individual_modes_container const&);
+  void create_walks(intermodal::individual_modes_container const&);
 };
 
 std::string departure_station_name(routing::RoutingRequest const& req);
 
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

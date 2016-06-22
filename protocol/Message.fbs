@@ -1,3 +1,5 @@
+include "bikesharing/BikesharingGeoTerminalsRequest.fbs";
+include "bikesharing/BikesharingGeoTerminalsResponse.fbs";
 include "bikesharing/BikesharingRequest.fbs";
 include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
@@ -79,6 +81,8 @@ union MsgContent {
   motis.HTTPResponse,
   motis.bikesharing.BikesharingRequest,
   motis.bikesharing.BikesharingResponse,
+  motis.bikesharing.BikesharingGeoTerminalsRequest,
+  motis.bikesharing.BikesharingGeoTerminalsResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.lookup.LookupGeoStationIdRequest,

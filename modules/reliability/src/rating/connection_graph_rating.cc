@@ -3,6 +3,7 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/access/realtime_access.h"
 
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
@@ -29,36 +30,18 @@ interchange_info::interchange_info(connection_element const& arriving_element,
   }
   arrival_time_ = arriving_element.light_connection_->a_time_;
   departure_time_ = departing_element.light_connection_->d_time_;
-  scheduled_arrival_time_ = arrival_time_;
-  scheduled_departure_time_ = departure_time_;
-  arrival_is_ = false;
-  departure_is_ = false;
 
-// TODO (Mohammad Keyhani)
-#if 0
-  {
-    auto const it = sched.graph_to_delay_info_.find(graph_event(
-        arriving_element.to_->get_station()->id_,
-        arriving_element.light_connection_->full_con_->con_info_->train_nr_,
-        false, arriving_element.light_connection_->a_time_,
-        arriving_element.to_->route_));
-    if (it != sched.graph_to_delay_info_.end()) {
-      arrival_is_ = it->second->reason_ == timestamp_reason::IS;
-      scheduled_arrival_time_ = it->second->schedule_event_.schedule_time_;
-    }
-  }
-  {
-    auto const it = sched.graph_to_delay_info_.find(graph_event(
-        departing_element.from_->get_station()->id_,
-        departing_element.light_connection_->full_con_->con_info_->train_nr_,
-        true, departing_element.light_connection_->d_time_,
-        departing_element.from_->route_));
-    if (it != sched.graph_to_delay_info_.end()) {
-      departure_is_ = it->second->reason_ == timestamp_reason::IS;
-      scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
-    }
-  }
-#endif
+  auto const arr_delay_info =
+      get_delay_info(sched, arriving_element.to_,
+                     arriving_element.light_connection_, event_type::ARR);
+  auto const dep_delay_info =
+      get_delay_info(sched, departing_element.from_,
+                     departing_element.light_connection_, event_type::DEP);
+
+  scheduled_arrival_time_ = arr_delay_info.get_schedule_time();
+  arrival_is_ = (arr_delay_info.get_reason() == timestamp_reason::IS);
+  scheduled_departure_time_ = dep_delay_info.get_schedule_time();
+  departure_is_ = (dep_delay_info.get_reason() == timestamp_reason::IS);
 
   transfer_time_ = graph_accessor::get_interchange_time(
       *arriving_element.to_, *departing_element.from_, sched);

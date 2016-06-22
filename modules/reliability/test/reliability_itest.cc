@@ -147,13 +147,13 @@ public:
 
 TEST_F(reliability_test_rating, rating_request) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
                              schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
                              test_util::hhmm_to_unixtime(get_schedule(), 1132))
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
-          .build_rating_request();
+          .build_rating_request(false, false, false);
   auto const res = call(req);
   auto const response = motis_content(ReliabilityRatingResponse, res);
 
@@ -183,9 +183,27 @@ TEST_F(reliability_test_rating, rating_request) {
   ASSERT_EQ((*simple_rating->rating_elements())[1]->ratings()->size(), 2);
 }
 
+TEST_F(reliability_test_rating, empty_rating_response) {
+  auto const req =
+      request_builder()
+          .add_pretrip_start(schedule2::STUTTGART.name_,
+                             schedule2::STUTTGART.eva_,
+                             test_util::hhmm_to_unixtime(get_schedule(), 0),
+                             test_util::hhmm_to_unixtime(get_schedule(), 0))
+          .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
+          .build_rating_request(false, false, false);
+  auto const res = call(req);
+  auto const response = motis_content(ReliabilityRatingResponse, res);
+
+  ASSERT_EQ(0, response->response()->connections()->size());
+  ASSERT_EQ(0, response->ratings()->size());
+  ASSERT_EQ(0, response->simple_ratings()->size());
+  ASSERT_EQ(0, response->additional_infos()->size());
+}
+
 TEST_F(reliability_test_cg, connection_tree) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -199,14 +217,14 @@ TEST_F(reliability_test_cg, connection_tree) {
 
 TEST_F(reliability_test_cg, reliable_connection_graph) {
   auto const req =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 701))
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
-          .build_reliable_search_request(1);
+          .build_reliable_search_request(1, false, false, false);
   auto const res = call(req);
   test_cg(motis_content(ReliableRoutingResponse, res));
 }

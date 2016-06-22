@@ -107,7 +107,7 @@ void test_element(connection_element const& expected,
 
 TEST_F(reliability_connection_to_graph_data2, get_elements) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
                              schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -166,7 +166,7 @@ TEST_F(reliability_connection_to_graph_data2, get_elements) {
 
 TEST_F(reliability_connection_to_graph_data5, get_elements2) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule5::DARMSTADT.name_,
                              schedule5::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 755),
@@ -251,7 +251,7 @@ TEST_F(reliability_connection_to_graph_data5, get_elements2) {
  * with a station-to-station walking at the beginning).
  */
 TEST_F(reliability_connection_to_graph_data6, get_elements_foot) {
-  auto req_msg = flatbuffers::request_builder()
+  auto req_msg = request_builder()
                      .add_pretrip_start(
                          schedule6::MANNHEIM.name_, schedule6::MANNHEIM.eva_,
                          test_util::hhmm_to_unixtime(get_schedule(), 810),

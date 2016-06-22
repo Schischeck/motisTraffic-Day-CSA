@@ -1,5 +1,6 @@
 #include "motis/reliability/intermodal/reliable_bikesharing.h"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -17,49 +18,110 @@ namespace intermodal {
 namespace bikesharing {
 namespace detail {
 
+std::vector<bikesharing_info::availability> compress_intervals(
+    std::vector<bikesharing_info::availability> orig_intervals) {
+  std::sort(orig_intervals.begin(), orig_intervals.end(), [](auto const& a,
+                                                             auto const& b) {
+    return std::make_pair(a.from_, a.to_) < std::make_pair(b.from_, b.to_);
+  });
+  std::vector<bikesharing_info::availability> compressed;
+  for (auto const& i : orig_intervals) {
+    if (!compressed.empty() && i.rating_ == compressed.back().rating_ &&
+        (i.from_ - compressed.back().to_) <= 60) {
+      compressed.back().to_ = i.to_;
+    } else {
+      compressed.push_back(i);
+    }
+  }
+  return compressed;
+}
+
 std::vector<bikesharing_info> const to_bikesharing_infos(
     ::flatbuffers::Vector<::flatbuffers::Offset<
         ::motis::bikesharing::BikesharingEdge>> const& edges,
     availability_aggregator const& aggregator, unsigned const max_duration) {
   std::vector<bikesharing_info> infos;
   for (auto edge : edges) {
-    auto const duration = static_cast<unsigned>(
-        (edge->bike_duration() + edge->walk_duration()) / 60);
-    if (duration > max_duration) {
+    auto const bike_duration =
+        static_cast<unsigned>(edge->bike_duration() / 60);
+    auto const walk_duration =
+        static_cast<unsigned>(edge->walk_duration() / 60);
+    if (bike_duration + walk_duration > max_duration) {
       continue;
     }
-    std::vector<std::pair<time_t, time_t>> availability_intervals;
+
+    std::vector<bikesharing_info::availability> availability_intervals;
     for (auto rating : *edge->availability()) {
       if (aggregator.is_reliable(rating->value())) {
-        availability_intervals.emplace_back(
-            static_cast<time_t>(rating->begin()),
-            static_cast<time_t>(rating->end()));
+        availability_intervals.push_back(
+            {static_cast<time_t>(rating->begin()),
+             static_cast<time_t>(rating->end()),
+             static_cast<unsigned>(rating->value())});
       }
     }
-    if (!availability_intervals.empty()) {
-      infos.push_back({std::string(edge->station_id()->c_str()), duration,
-                       availability_intervals,
-                       std::string(edge->from()->name()->c_str()),
-                       std::string(edge->to()->name()->c_str())});
+    auto const intervals = compress_intervals(availability_intervals);
+    if (!intervals.empty()) {
+      infos.push_back({bike_duration, walk_duration, edge->station_id()->str(),
+                       bikesharing_info::terminal{edge->from()->id()->str(),
+                                                  edge->from()->pos()->lat(),
+                                                  edge->from()->pos()->lng()},
+                       bikesharing_info::terminal{edge->to()->id()->str(),
+                                                  edge->to()->pos()->lat(),
+                                                  edge->to()->pos()->lng()},
+                       intervals});
     }
   }
   return infos;
+}
+
+std::vector<bikesharing_info> pareto_filter(
+    std::vector<bikesharing_info> const& all) {
+  auto is_optimal = [&all](bikesharing_info const& i) {
+    auto dominates = [](bikesharing_info const& a, bikesharing_info const& b) {
+      auto ratio = [](bikesharing_info const& i) {
+        return static_cast<float>(i.walk_duration_) /
+               static_cast<float>(i.bike_duration_);
+      };
+      auto const a_ratio = ratio(a), b_ratio = ratio(b);
+      if (a.station_eva_ == b.station_eva_ && a_ratio <= b_ratio &&
+          a.duration() <= b.duration() &&
+          (a_ratio < b_ratio || a.duration() < b.duration())) {
+        return true;
+      }
+      return false;
+    };
+    return std::find_if(all.begin(), all.end(), [&](auto const& a) {
+             return dominates(a, i);
+           }) == all.end();
+  };
+
+  std::vector<bikesharing_info> optimal_set;
+  for (auto const& i : all) {
+    if (is_optimal(i)) {
+      optimal_set.push_back(i);
+    }
+  }
+
+  return optimal_set;
 }
 
 }  // namespace detail
 
 std::vector<bikesharing_info> retrieve_bikesharing_infos(
     bool for_departure, ReliableRoutingRequest const& req,
-    unsigned const max_duration) {
+    bool const reliable_only, unsigned const max_duration,
+    bool const pareto_filtering_for_bikesharing) {
   auto res = motis_call(to_bikesharing_request(
                             req, for_departure,
                             motis::bikesharing::AvailabilityAggregator_Average))
                  ->val();
-  motis::reliability::intermodal::bikesharing::average_aggregator aggregator(4);
+  motis::reliability::intermodal::bikesharing::average_aggregator aggregator(
+      reliable_only ? 4 : 0);
   using ::motis::bikesharing::BikesharingResponse;
-  return detail::to_bikesharing_infos(
+  auto const all = detail::to_bikesharing_infos(
       *motis_content(BikesharingResponse, res)->edges(), aggregator,
       max_duration);
+  return pareto_filtering_for_bikesharing ? detail::pareto_filter(all) : all;
 }
 
 module::msg_ptr to_bikesharing_request(
@@ -104,7 +166,7 @@ module::msg_ptr to_bikesharing_request(
                                 : motis::bikesharing::Type_Arrival,
           &pos, &window, aggregator)
           .Union(),
-      "/bikesharing");
+      "/bikesharing/search");
   return module::make_msg(fb);
 }
 

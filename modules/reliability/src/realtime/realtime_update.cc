@@ -1,15 +1,15 @@
-// TODO(Mohammad Keyhani)
-
-#if 0
-
 #include "motis/reliability/realtime/realtime_update.h"
 
+#include <memory>
 #include <set>
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/trip_access.h"
+#include "../../include/motis/reliability/realtime/graph_access.h"
 
-#include "motis/protocol/RealtimeDelayInfoResponse_generated.h"
+#include "motis/protocol/RtUpdate_generated.h"
+#include "motis/protocol/TimestampReason_generated.h"
 
 #include "motis/reliability/computation/calc_arrival_distribution.h"
 #include "motis/reliability/computation/calc_departure_distribution.h"
@@ -18,7 +18,9 @@
 #include "motis/reliability/context.h"
 #include "motis/reliability/distributions/distributions_container.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
+#include "motis/reliability/error.h"
 #include "motis/reliability/graph_accessor.h"
+#include "motis/reliability/realtime/graph_access.h"
 
 namespace motis {
 namespace reliability {
@@ -30,121 +32,47 @@ struct lc_not_found_exception : std::exception {
   };
 };
 
-namespace graph_util {
-using route_node_and_lc_info =
-    std::tuple<node const*, light_connection const*, unsigned int>;
-
-route_node_and_lc_info get_node_and_light_connection(
-    node const& station, bool const is_departure,
-    std::function<std::pair<light_connection const*, unsigned int>(
-        edge const* route_edge)>
-        find_light_conn) {
-  if (is_departure) {
-    for (auto const& e : station.edges_) {
-      if (auto const* route_edge =
-              graph_accessor::get_departing_route_edge(*e.to_)) {
-        auto const light_conn = find_light_conn(route_edge);
-        if (light_conn.first) {
-          return std::make_tuple(route_edge->from_, light_conn.first,
-                                 light_conn.second);
-        }
-      }
-    }
-  } else {
-    for (auto const* e : station.incoming_edges_) {
-      if (auto const* route_edge =
-              graph_accessor::get_arriving_route_edge(*e->from_)) {
-        auto const light_conn = find_light_conn(route_edge);
-        if (light_conn.first) {
-          return std::make_tuple(route_edge->to_, light_conn.first,
-                                 light_conn.second);
-        }
-      }
-    }
-  }
-  throw lc_not_found_exception();
-}
-
-unsigned int get_event_time(motis::realtime::DelayInfo const* delay_info) {
-  return delay_info->reason() ==
-                 motis::realtime::InternalTimestampReason_Forecast
-             ? delay_info->forecast_time()
-             : delay_info->current_time();
-}
-
-std::pair<std::string, std::string> get_category_and_line_identification(
-    motis::realtime::DelayInfo const* delay_info, schedule const& sched) {
-  auto find_light_conn = [&](edge const* route_edge)
-      -> std::pair<light_connection const*, unsigned int> {
-        auto const light_conn = graph_accessor::find_light_connection(
-            *route_edge, get_event_time(delay_info),
-            delay_info->departure() == 1, [&](connection_info const& ci) {
-              return ci.train_nr_ == delay_info->train_nr();
-            });
-        return light_conn;
-      };
-
-  auto res = get_node_and_light_connection(
-      *sched.station_nodes_.at(delay_info->station_index()),
-      delay_info->departure() == 1, find_light_conn);
-
-  auto const* light_conn = std::get<1>(res);
-  return std::make_pair(
-      sched.categories_.at(light_conn->full_con_->con_info_->family_)->name_,
-      light_conn->full_con_->con_info_->line_identifier_);
-}
-
-route_node_and_lc_info get_node_and_light_connection(
-    distributions_container::container::key const& key, schedule const& sched) {
-  auto get_event_time = [](motis::delay_info const* delay_info) {
-    return delay_info->reason_ == motis::timestamp_reason::FORECAST
-               ? delay_info->forecast_time_
-               : delay_info->current_time_;
-  };
-
-  auto const it = sched.schedule_to_delay_info_.find(schedule_event(
-      key.station_index_, key.train_id_, key.type_ == time_util::departure,
-      key.scheduled_event_time_));
-  unsigned int const current_time = it == sched.schedule_to_delay_info_.end()
-                                        ? key.scheduled_event_time_
-                                        : get_event_time(it->second);
-
-  auto find_light_conn =
-      [&](edge const* route_edge) -> std::pair<light_connection const*,
-                                               unsigned int> {
-    auto const light_conn = graph_accessor::find_light_connection(
-        *route_edge, current_time, key.type_ == time_util::departure,
-        graph_accessor::find_family(sched.categories_, key.category_).second,
-        key.train_id_, key.line_identifier_);
-    return light_conn;
-  };
-
-  return get_node_and_light_connection(
-      *sched.station_nodes_.at(key.station_index_),
-      key.type_ == time_util::departure, find_light_conn);
-}
-}  // namespace graph_util
-
 namespace detail {
-distributions_container::container::node* find_distribution_node(
-    motis::realtime::DelayInfo const* delay_info, schedule const& sched,
-    distributions_container::container& precomputed_distributions) {
-  // TODO(Mohammad Keyhani): category and line-identification can be read from
-  // the RIS-message
-  auto const cat_line =
-      graph_util::get_category_and_line_identification(delay_info, sched);
-  distributions_container::container::key key(
-      delay_info->train_nr(), cat_line.first, cat_line.second,
-      delay_info->station_index(),
-      delay_info->departure() == 1 ? time_util::departure : time_util::arrival,
-      delay_info->scheduled_time());
 
-  if (precomputed_distributions.contains_distribution(key)) {
-    return &precomputed_distributions.get_node_non_const(key);
-  } else {
-    return nullptr;
+struct stat {
+  stat()
+      : num_processed_(0),
+        significant_(0),
+        not_significant_(0),
+        already_updated_(0),
+        errors_(0),
+        shifted_nodes_(0),
+        trip_not_found_(0),
+        graph_event_not_found_(0),
+        invalid_lc_(0) {}
+
+  void print(std::ostream& os) {
+    auto to_percent = [](unsigned int c, unsigned int total) -> double {
+      return ((c * 100.0) / static_cast<double>(total));
+    };
+    auto p = [&](unsigned int c) -> double {
+      return to_percent(c, num_processed_);
+    };
+    os << "\nDistributions updated\n"
+       << std::setw(10) << num_processed_ << " elements added to the queue\n";
+    if (num_processed_ > 0) {
+      os << std::fixed << std::setprecision(1) << std::setw(9)
+         << p(significant_) << "% significant updates\n"
+         << std::setw(9) << p(not_significant_) << "% not significant updates\n"
+         << std::setw(9) << p(already_updated_) << "% already updated\n"
+         << std::setw(9) << p(invalid_lc_) << "% invalid light-conn\n"
+         << std::setw(10) << errors_ << " errors\n"
+         << std::setw(10) << shifted_nodes_ << " shifted nodes\n"
+         << std::setw(10) << trip_not_found_ << " trips not found\n"
+         << std::setw(10) << graph_event_not_found_
+         << " graph-events not found\n";
+    }
   }
-}
+
+  uint64_t num_processed_, significant_, not_significant_, already_updated_,
+      errors_, shifted_nodes_, trip_not_found_, graph_event_not_found_,
+      invalid_lc_;
+};
 
 bool is_significant_update(probability_distribution const& before,
                            probability_distribution const& after) {
@@ -161,112 +89,165 @@ bool is_significant_update(probability_distribution const& before,
   return false;
 }
 
+struct queue_element {
+  distributions_container::container::node* node_;
+  node const* route_node_;
+  light_connection const* lc_;
+};
+
 struct queue_element_cmp {
-  bool operator()(distributions_container::container::node const* a,
-                  distributions_container::container::node const* b) {
-    if (a->key_.scheduled_event_time_ == b->key_.scheduled_event_time_) {
-      if (a->key_.type_ == b->key_.type_) {
-        return a->key_.train_id_ > b->key_.train_id_;
+  bool operator()(queue_element const& a, queue_element const& b) {
+    if (a.node_->key_.scheduled_event_time_ ==
+        b.node_->key_.scheduled_event_time_) {
+      if (a.node_->key_.type_ == b.node_->key_.type_) {
+        return a.node_->key_.train_id_ > b.node_->key_.train_id_;
       }
-      return a->key_.type_ == time_util::departure;
+      return a.node_->key_.type_ == event_type::DEP;
     }
-    return a->key_.scheduled_event_time_ > b->key_.scheduled_event_time_;
+    return a.node_->key_.scheduled_event_time_ >
+           b.node_->key_.scheduled_event_time_;
   }
 };
 using queue_type =
-    std::priority_queue<distributions_container::container::node*,
-                        std::vector<distributions_container::container::node*>,
+    std::priority_queue<queue_element, std::vector<queue_element>,
                         queue_element_cmp>;
 
-unsigned int num_processed = 0;
-unsigned int significant = 0;
-unsigned int not_significant = 0;
-unsigned int already_updated = 0;
-unsigned int errors = 0;
-void process_element(
-    queue_type& queue,
-    std::set<distributions_container::container::node*>& currently_processed,
-    context const& c) {
-  auto* element = queue.top();
+void process_element(queue_type& queue,
+                     std::set<distributions_container::container::node const*>&
+                         currently_processed,
+                     context const& c, detail::stat& stat) {
+  auto const element = queue.top();
   queue.pop();
 
   // set containing all processed elements of the currently processed minute
   if (!currently_processed.empty() &&
       (*currently_processed.begin())->key_.scheduled_event_time_ <
-          element->key_.scheduled_event_time_) {
+          element.node_->key_.scheduled_event_time_) {
     currently_processed.clear();
-  } else if (!currently_processed.insert(element).second) {
-    ++already_updated;
+  } else if (!currently_processed.insert(element.node_).second) {
+    ++stat.already_updated_;
     return;
   }
 
-  node const* route_node;
-  light_connection const* lc;
-  unsigned int lc_pos;
-
-  try {
-    std::tie(route_node, lc, lc_pos) =
-        graph_util::get_node_and_light_connection(element->key_, c.schedule_);
-  } catch (std::exception& e) {
-    // LOG(logging::error) << e.what() << " key: " << element->key_;
-    ++errors;
+  if (element.lc_->valid_ == 0) {
+    ++stat.invalid_lc_;
     return;
   }
 
-  probability_distribution const pd_before = element->pd_;
-  if (element->key_.type_ == time_util::departure) {
+  probability_distribution const pd_before = element.node_->pd_;
+  if (element.node_->key_.type_ == event_type::DEP) {
     calc_departure_distribution::data_departure const d_data(
-        *route_node, *lc,
-        graph_accessor::get_arriving_route_edge(*route_node) == nullptr,
-        c.precomputed_distributions_, *element, c);
-    calc_departure_distribution::compute_departure_distribution(d_data,
-                                                                element->pd_);
+        *element.route_node_, *element.lc_,
+        graph_accessor::get_arriving_route_edge(*element.route_node_) ==
+            nullptr,
+        c.precomputed_distributions_, *element.node_, c);
+    calc_departure_distribution::compute_departure_distribution(
+        d_data, element.node_->pd_);
   } else {
     calc_arrival_distribution::data_arrival const a_data(
-        *graph_accessor::get_arriving_route_edge(*route_node)->from_,
-        *route_node, *lc, element->predecessors_.front()->pd_, c.schedule_,
+        *graph_accessor::get_arriving_route_edge(*element.route_node_)->from_,
+        *element.route_node_, *element.lc_,
+        element.node_->predecessors_.front()->pd_, c.schedule_,
         c.s_t_distributions_);
     calc_arrival_distribution::compute_arrival_distribution(a_data,
-                                                            element->pd_);
+                                                            element.node_->pd_);
   }
 
-  if (is_significant_update(pd_before, element->pd_)) {
-    auto const& successors = element->successors_;
-    std::for_each(
-        successors.begin(), successors.end(),
-        [&](distributions_container::container::node* n) { queue.emplace(n); });
-    ++significant;
+  if (is_significant_update(pd_before, element.node_->pd_)) {
+    auto const& successors = element.node_->successors_;
+    std::for_each(successors.begin(), successors.end(),
+                  [&](distributions_container::container::node* n) {
+                    try {
+                      auto const n_l =
+                          graph_access::get_node_and_light_connection(
+                              n->key_, c.schedule_);
+                      queue.push({n, n_l.first, n_l.second});
+                    } catch (...) {
+                      ++stat.graph_event_not_found_;
+                    }
+                  });
+    ++stat.significant_;
   } else {
-    ++not_significant;
+    ++stat.not_significant_;
   }
 }
+
+auto route_node_and_light_conn(trip const& tr, unsigned const station_idx,
+                               unsigned const train_id,
+                               EventType const event_type,
+                               time const graph_time) {
+  auto const trip_edge = std::find_if(
+      tr.edges_->begin(), tr.edges_->end(), [&](trip::route_edge const& e) {
+        auto const re = e.get_edge();
+        auto const light_conn = re->m_.route_edge_.conns_[tr.lcon_idx_];
+        auto const s = event_type == EventType_ARR
+                           ? re->to_->get_station()->id_
+                           : re->from_->get_station()->id_;
+        auto const tr = light_conn.full_con_->con_info_->train_nr_;
+        auto const t = event_type == EventType_ARR ? light_conn.a_time_
+                                                   : light_conn.d_time_;
+        return s == station_idx && tr == train_id && t == graph_time;
+
+      });
+  if (trip_edge == tr.edges_->end()) {
+    throw std::system_error(error::failure);
+  }
+  return std::make_pair(
+      trip_edge->route_node_,
+      &trip_edge->get_edge()->m_.route_edge_.conns_[tr.lcon_idx_]);
+}
+
+auto route_node_and_light_conn(trip const& tr,
+                               rt::ShiftedNode const& shifted_node,
+                               schedule const& sched) {
+  auto const station_idx =
+      sched.eva_to_station_.at(shifted_node.station_id()->str())->index_;
+  return route_node_and_light_conn(
+      tr, station_idx, shifted_node.trip()->train_nr(),
+      shifted_node.event_type(),
+      unix_to_motistime(sched, shifted_node.updated_time()));
+}
+
+distributions_container::container::node* find_distribution_node(
+    unsigned const station_idx, light_connection const& lc,
+    rt::ShiftedNode const& shifted_node, schedule const& sched,
+    distributions_container::container& container) {
+  auto const key = distributions_container::to_container_key(
+      lc, station_idx, from_fbs(shifted_node.event_type()),
+      unix_to_motistime(sched, shifted_node.schedule_time()), sched);
+  if (container.contains_distribution(key)) {
+    return &container.get_node_non_const(key);
+  }
+  return nullptr;
+}
+
 }  // namespace detail
 
 void update_precomputed_distributions(
-    motis::realtime::RealtimeDelayInfoResponse const* res,
-    schedule const& sched,
+    motis::rt::RtUpdate const& res, schedule const& sched,
     start_and_travel_distributions const& s_t_distributions,
     distributions_container::container& precomputed_distributions) {
   logging::scoped_timer time("updating distributions");
-  detail::num_processed = 0;
-  detail::significant = 0;
-  detail::not_significant = 0;
-  detail::already_updated = 0;
-  detail::errors = 0;
+  detail::stat stat;
 
   /* add all events with updates to the queue */
   detail::queue_type queue;
-  std::set<distributions_container::container::node*> currently_processed;
-  for (auto const& info : *res->delay_infos()) {
-    if (info->reason() == motis::realtime::InternalTimestampReason_Is) {
+  std::set<distributions_container::container::node const*> currently_processed;
+  for (auto const& shifted_node : *res.shifted_nodes()) {
+    if (shifted_node->reason() == TimestampReason_IS) {
+      ++stat.shifted_nodes_;
       try {
+        auto const& trip = *get_trip(sched, shifted_node->trip());
+        auto const n_l =
+            detail::route_node_and_light_conn(trip, *shifted_node, sched);
+
         if (auto n = detail::find_distribution_node(
-                info, sched, precomputed_distributions)) {
-          queue.emplace(n);
+                n_l.first->get_station()->id_, *n_l.second, *shifted_node,
+                sched, precomputed_distributions)) {
+          queue.push({n, n_l.first, n_l.second});
         }
-      } catch (std::exception& e) {
-        /*LOG(logging::error) << e.what() << " tr: " << it->train_nr()
-                            << " st: " << it->station_index();*/
+      } catch (...) {
+        ++stat.trip_not_found_;
       }
     }
   }
@@ -275,32 +256,18 @@ void update_precomputed_distributions(
    * (each event adds event that depend on it into the queue) */
   context const c(sched, precomputed_distributions, s_t_distributions);
   while (!queue.empty()) {
+    ++stat.num_processed_;
     try {
-      detail::process_element(queue, currently_processed, c);
+      detail::process_element(queue, currently_processed, c, stat);
     } catch (std::exception& e) {
       LOG(logging::error) << e.what() << std::endl;
+      ++stat.errors_;
     }
-    ++detail::num_processed;
   }
 
-  /* print statistics */
-  auto to_percent = [&](unsigned int c) -> double {
-    return ((c * 100.0) / static_cast<double>(detail::num_processed));
-  };
-  std::stringstream sst;
-  sst << "Queue contained " << detail::num_processed << " elements";
-  if (detail::num_processed > 0) {
-    sst << "(" << std::fixed << std::setprecision(1)
-        << to_percent(detail::significant) << "% significant updates, "
-        << to_percent(detail::not_significant) << "% not significant updates, "
-        << to_percent(detail::already_updated) << "% already updated, "
-        << to_percent(detail::errors) << "% errors)";
-  }
-  LOG(logging::info) << sst.str();
+  stat.print(LOG(logging::info));
 }
 
 }  // namespace realtime
 }  // namespace reliability
 }  // namespace motis
-
-#endif
