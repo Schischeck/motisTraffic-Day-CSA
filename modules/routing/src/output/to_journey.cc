@@ -126,7 +126,7 @@ std::vector<journey::trip> generate_journey_trips(
     for (auto const& range : t.second) {
       journey_trips.push_back(journey::trip{
           static_cast<unsigned>(range.from_), static_cast<unsigned>(range.to_),
-          sched.stations_.at(p.station_id_)->eva_nr_, p.train_nr_,
+          sched.stations_.at(p.station_id_)->eva_nr_, p.get_train_nr(),
           motis_to_unixtime(sched, p.get_time()),
           sched.stations_.at(s.target_station_id_)->eva_nr_,
           motis_to_unixtime(sched, s.get_target_time()), s.line_id_});

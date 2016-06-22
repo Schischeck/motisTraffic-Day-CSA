@@ -30,7 +30,7 @@ struct journey {
     unsigned from_, to_;
 
     std::string station_id_;
-    int train_nr_;
+    uint32_t train_nr_;
     std::time_t time_;
 
     std::string target_station_id_;

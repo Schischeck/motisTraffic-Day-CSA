@@ -58,7 +58,6 @@ struct loader_graph_builder_rule_service : public motis_instance_test {
 
 TEST_F(loader_graph_builder_rule_service, search) {
   auto res = call(make_msg(routing_request));
-  printf("%s\n", res->to_json().c_str());
   auto connections = motis_content(RoutingResponse, res)->connections();
 
   ASSERT_EQ(1, connections->size());

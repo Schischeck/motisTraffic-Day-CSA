@@ -13,7 +13,7 @@
 namespace motis {
 
 struct primary_trip_id {
-  primary_trip_id() = default;
+  primary_trip_id() : station_id_(0), train_nr_(0), time_(0) {}
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
       : station_id_(station_id), train_nr_(train_nr), time_(time) {}
 
@@ -30,6 +30,7 @@ struct primary_trip_id {
   }
 
   motis::time get_time() const { return static_cast<motis::time>(time_); }
+  uint32_t get_train_nr() const { return static_cast<uint32_t>(train_nr_); }
 
   uint64_t station_id_ : 31;
   uint64_t train_nr_ : 17;
@@ -56,8 +57,8 @@ struct secondary_trip_id {
            std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id_);
   }
 
-  std::time_t get_target_time() const {
-    return static_cast<std::time_t>(target_time_);
+  motis::time get_target_time() const {
+    return static_cast<motis::time>(target_time_);
   }
 
   uint64_t target_station_id_ : 32;
