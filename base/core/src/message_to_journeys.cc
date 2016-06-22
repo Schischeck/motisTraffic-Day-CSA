@@ -49,6 +49,8 @@ journey::transport create_empty_transport() {
 
 journey::trip create_empty_trip() {
   journey::trip t;
+  t.from_ = 0;
+  t.to_ = 0;
   t.train_nr_ = 0;
   t.time_ = 0;
   t.target_time_ = 0;
