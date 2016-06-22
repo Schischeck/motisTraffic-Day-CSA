@@ -143,9 +143,9 @@ void rt::add_to_propagator(schedule const& sched,
 
         // Check whether schedule time matches update message schedule time.
         auto const k = ev_key{e, trp->lcon_idx_, ev_type};
-        auto const schedule_time = get_schedule_time(sched, k);
-        auto const diff = std::abs(static_cast<int>(upd.sched_time_) -
-                                   static_cast<int>(schedule_time));
+        auto const diff =
+            std::abs(static_cast<int>(upd.sched_time_) -
+                     static_cast<int>(get_schedule_time(sched, k)));
         if (diff != 0) {
           stats_.log_sched_time_mismatch(diff);
           if (diff > 5) {
