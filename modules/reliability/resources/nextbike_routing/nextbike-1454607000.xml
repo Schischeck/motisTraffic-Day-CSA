@@ -2,10 +2,10 @@
 <markers>
   <country country="DE">
     <city>
-      <place uid="5" lat="50.1264361" lng="8.6706536" name="FFM Westend 1" bikes="5+" />
-      <place uid="6" lat="50.1287342" lng="8.6652648" name="FFM Westend 2" bikes="0" />
-      <place uid="7" lat="50.1051248" lng="8.6621403" name="FFM HBF South" bikes="5+" />
-      <place uid="8" lat="50.1076098" lng="8.661005" name="FFM HBF North" bikes="4" />
+      <place uid="5" lat="50.1264361" lng="8.6706536" name="FFM Westend 1" bikes="5+" spot="1"/>
+      <place uid="6" lat="50.1287342" lng="8.6652648" name="FFM Westend 2" bikes="0" spot="1"/>
+      <place uid="7" lat="50.1051248" lng="8.6621403" name="FFM HBF South" bikes="5+" spot="1"/>
+      <place uid="8" lat="50.1076098" lng="8.661005" name="FFM HBF North" bikes="4" spot="1"/>
     </city>
   </country>
 </markers>

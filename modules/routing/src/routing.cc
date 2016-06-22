@@ -167,8 +167,7 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 
   q.sched_ = &sched;
   q.to_ = get_station_node(sched, req->destination());
-  q.query_edges_ =
-      create_additional_edges(req->additional_edges(), sched, q.to_->id_);
+  q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
 
   return q;
 }
@@ -184,6 +183,9 @@ search_result ontrip_search(search_query const& q, SearchType const t) {
     case SearchType_LateConnectionsForward:
       return search<ontrip_gen<late_connections_label>,
                     late_connections_label>::get_connections(q);
+    case SearchType_LateConnectionsForwardTest:
+      return search<ontrip_gen<late_connections_label_for_tests>,
+                    late_connections_label_for_tests>::get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
@@ -200,6 +202,9 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
     case SearchType_LateConnectionsForward:
       return search<pretrip_gen<late_connections_label>,
                     late_connections_label>::get_connections(q);
+    case SearchType_LateConnectionsForwardTest:
+      return search<pretrip_gen<late_connections_label_for_tests>,
+                    late_connections_label_for_tests>::get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);

@@ -17,6 +17,25 @@ namespace reliability {
 namespace rating {
 namespace connection_to_graph_data {
 
+/* note: this function does not support "unified" trains (Vereinigungen)
+ * or transports with intersections */
+template <typename F>
+void foreach_light_connection(journey const& j, F func) {
+  for (unsigned int stop_idx = 0; stop_idx + 1 < j.stops_.size(); ++stop_idx) {
+    auto const transport =
+        std::find_if(j.transports_.begin(), j.transports_.end(),
+                     [stop_idx](journey::transport const& tr) {
+                       return stop_idx >= tr.from_ && stop_idx < tr.to_;
+                     });
+    if (transport == j.transports_.end()) {
+      throw std::runtime_error("transport not found");
+    }
+    if (!transport->is_walk_) {
+      func(stop_idx, std::distance(j.transports_.begin(), transport));
+    }
+  }
+}
+
 std::vector<std::vector<connection_element>> get_elements(
     schedule const& sched, journey const& journey) {
   std::vector<std::vector<connection_element>> elements;
@@ -36,9 +55,6 @@ std::vector<std::vector<connection_element>> get_elements(
         unix_to_motistime(sched.schedule_begin_, head_stop.arrival_.timestamp_),
         transport.category_id_, transport.train_nr_,
         transport.line_identifier_);
-    if (element.empty()) {
-      throw element_not_found_exception();
-    }
 
     // begin new train if elements empty or if there is an interchange
     if (elements.empty() ||
@@ -50,6 +66,7 @@ std::vector<std::vector<connection_element>> get_elements(
   });
 
   if (elements.empty()) {
+    LOG(logging::error) << "Elements is empty";
     throw element_not_found_exception();
   }
   return elements;

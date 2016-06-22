@@ -64,15 +64,16 @@ struct late_connections_dominance {
   }
 };
 
-struct late_connections_post_search_dominance {
+template <unsigned DBCostRelaxation>
+struct late_connections_post_search_dominance_base {
   template <typename Label>
   struct domination_info {
     domination_info(Label const& a, Label const& b)
-        : greater_(a.db_costs_ > b.db_costs_ ||
+        : greater_(a.db_costs_ > b.db_costs_ + DBCostRelaxation ||
                    a.night_penalty_ > b.night_penalty_),
-          smaller_(a.db_costs_ <= b.db_costs_ &&
+          smaller_(a.db_costs_ + DBCostRelaxation <= b.db_costs_ &&
                    a.night_penalty_ <= b.night_penalty_ &&
-                   (a.db_costs_ < b.db_costs_ ||
+                   (a.db_costs_ + DBCostRelaxation < b.db_costs_ ||
                     a.night_penalty_ < b.night_penalty_)) {}
     inline bool greater() const { return greater_; }
     inline bool smaller() const { return smaller_; }
@@ -84,6 +85,11 @@ struct late_connections_post_search_dominance {
     return domination_info<Label>(a, b);
   }
 };
+
+using late_connections_post_search_dominance =
+    late_connections_post_search_dominance_base<1000>;
+using late_connections_post_search_dominance_for_tests =
+    late_connections_post_search_dominance_base<0>;
 
 struct late_connections_filter {
   template <typename Label>

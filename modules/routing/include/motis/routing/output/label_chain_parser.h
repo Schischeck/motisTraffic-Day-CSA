@@ -97,6 +97,10 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
     switch (current_state) {
       case AT_STATION: {
+        if (current->edge_->type() == edge::HOTEL_EDGE &&
+            (*std::next(it))->get_node()->is_foot_node()) {
+          break;
+        }
         int a_track = MOTIS_UNKNOWN_TRACK;
         int d_track = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
@@ -172,9 +176,10 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
             last_con != nullptr);
 
-        transports.emplace_back(
-            stop_index, static_cast<unsigned int>(stop_index) + 1,
-            (*std::next(it))->now_ - current->now_, (*std::next(it))->slot_, 0);
+        transports.emplace_back(stop_index,
+                                static_cast<unsigned int>(stop_index) + 1,
+                                (*std::next(it))->now_ - current->now_,
+                                (*std::next(it))->edge_->get_mumo_id(), 0);
 
         walk_arrival = (*std::next(it))->now_;
         last_con = nullptr;

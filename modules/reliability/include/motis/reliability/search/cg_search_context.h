@@ -27,10 +27,10 @@ struct context {
   context(motis::reliability::context rel_context,
           std::shared_ptr<connection_graph_optimizer const> optimizer,
           ReliableRoutingRequest const& req,
-          unsigned const max_bikesharing_duration)
+          intermodal::individual_modes_container const& container)
       : reliability_context_(std::move(rel_context)) /* NOLINT */,
         optimizer_(std::move(optimizer)),
-        individual_modes_container_(req, max_bikesharing_duration) {
+        individual_modes_container_(container) {
     destination_.is_intermodal_ = req.arr_is_intermodal();
     if (destination_.is_intermodal_) {
       destination_.coordinates_.lat_ = req.arr_coord()->lat();
@@ -89,7 +89,7 @@ struct context {
     } station_;
   } destination_;
 
-  intermodal::individual_modes_container individual_modes_container_;
+  intermodal::individual_modes_container const& individual_modes_container_;
 };
 
 }  // namespace detail

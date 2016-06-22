@@ -98,7 +98,7 @@ TEST_F(reliability_data_departure, preceding_arrival_no_feeders) {
               test_util::minutes_to_motis_time(11 * 60 + 7));
 
   ASSERT_TRUE(data.scheduled_departure_time_ == light_connection.d_time_);
-  ASSERT_TRUE(data.largest_delay() == 1);
+  ASSERT_EQ(1, data.largest_delay());
   ASSERT_TRUE(!data.is_first_route_node_);
   ASSERT_TRUE(data.maximum_waiting_time_ == 0);
   ASSERT_TRUE(data.feeders_.empty());
@@ -311,7 +311,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
   } train_distributions(to_container_key(
       route_node, graph_accessor::get_arriving_route_edge(route_node)
                       ->m_.route_edge_.conns_[0],
-      time_util::arrival, sched()));
+      event_type::ARR, sched()));
 
   /* route node at Darmstadt of train IC_FH_DA */
   auto const& last_route_node_IC_FH_DA =
@@ -344,7 +344,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
                              to_container_key(
                                  last_route_node_IC_FH_DA,
                                  route_edge_IC_FH_DA.m_.route_edge_.conns_[0],
-                                 time_util::arrival, sched())),
+                                 event_type::ARR, sched())),
       &data.feeders_[0].distribution_);
   ASSERT_EQ(
       &feeder_distributions
@@ -352,7 +352,7 @@ TEST_F(reliability_data_departure, check_train_distributions) {
                              to_container_key(
                                  last_route_node_IC_FH_DA,
                                  route_edge_IC_FH_DA.m_.route_edge_.conns_[1],
-                                 time_util::arrival, sched())),
+                                 event_type::ARR, sched())),
       &data.feeders_[1].distribution_);
 }
 

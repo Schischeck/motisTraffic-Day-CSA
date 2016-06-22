@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "motis/protocol/BikesharingCommon_generated.h"
+
 namespace motis {
 namespace bikesharing {
 
@@ -54,6 +56,9 @@ struct snapshot_merger {
   std::map<std::string, terminal> terminals_;
   std::map<std::string, hourly_buckets> distributions_;
 };
+
+struct Availability;  // NOLINT
+double get_availability(Availability const*, AvailabilityAggregator);
 
 }  // namespace bikesharing
 }  // namespace motis
