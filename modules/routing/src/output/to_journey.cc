@@ -77,8 +77,9 @@ std::vector<journey::transport> generate_journey_transports(
         con_info = con_info->merged_with_;
       }
     } else {
-      journey_transports.push_back(generate_journey_transport(
-          t.from_, t.to_, nullptr, sched, t.duration_, t.slot_, t.mumo_price_));
+      journey_transports.push_back(
+          generate_journey_transport(t.from_, t.to_, nullptr, sched,
+                                     t.duration_, t.mumo_id_, t.mumo_price_));
     }
   }
 
