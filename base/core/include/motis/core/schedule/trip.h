@@ -13,7 +13,7 @@
 namespace motis {
 
 struct primary_trip_id {
-  primary_trip_id() : station_id_(0), train_nr_(0), time_(0) {}
+  primary_trip_id() = default;
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
       : station_id_(station_id), train_nr_(train_nr), time_(time) {}
 
@@ -62,7 +62,7 @@ struct secondary_trip_id {
   }
 
   uint64_t target_station_id_ : 32;
-  uint64_t target_time_ : 16;
+  uint64_t target_time_ : 32;
   std::string line_id_;
 };
 
