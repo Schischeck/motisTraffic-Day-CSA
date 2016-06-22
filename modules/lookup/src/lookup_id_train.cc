@@ -17,7 +17,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
                                    schedule const& sched, TripId const* t) {
   auto trp = get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
                       t->target_station_id()->str(), t->target_time(),
-                      t->type() == EventType_ARR, t->line_id()->str());
+                      t->line_id()->str());
 
   journey j;
   for (auto const& s : access::stops(trp)) {

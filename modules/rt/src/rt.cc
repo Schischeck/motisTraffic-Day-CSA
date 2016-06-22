@@ -12,6 +12,8 @@
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/core/conversion/event_type_conversion.h"
+#include "motis/core/conversion/timestamp_reason_conversion.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/loader/util.h"

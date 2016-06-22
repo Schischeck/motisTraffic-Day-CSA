@@ -1,13 +1,26 @@
 #include "gtest/gtest.h"
 
+#include "motis/core/schedule/category.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
-
-#include "motis/core/schedule/category.h"
+#include "motis/loader/util.h"
 
 using namespace motis;
+using namespace motis::module;
 using routing::RoutingResponse;
+
+msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
+  message_creator fbb;
+  fbb.create_and_finish(
+      MsgContent_RoutingResponse,
+      routing::CreateRoutingResponse(
+          fbb, 0, fbb.CreateVector(loader::transform_to_vec(
+                      journeys,
+                      [&](journey const& j) { return to_connection(fbb, j); })))
+          .Union());
+  return make_msg(fbb);
+}
 
 journey create_journey1() {
   journey j;
@@ -118,6 +131,41 @@ journey create_journey1() {
     transport.train_nr_ = 0;
   }
 
+  j.trips_.resize(3);
+  {
+    auto& trip = j.trips_[0];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "S";
+    trip.train_nr_ = 1;
+    trip.time_ = 1445261200;
+    trip.target_station_id_ = "T";
+    trip.target_time_ = 1445231200;
+    trip.line_id_ = "1234";
+  }
+  {
+    auto& trip = j.trips_[1];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "X";
+    trip.train_nr_ = 2;
+    trip.time_ = 1445261201;
+    trip.target_station_id_ = "Y";
+    trip.target_time_ = 1445231202;
+    trip.line_id_ = "4321";
+  }
+  {
+    auto& trip = j.trips_[2];
+    trip.from_ = 1;
+    trip.to_ = 2;
+    trip.station_id_ = "A";
+    trip.train_nr_ = 3;
+    trip.time_ = 1445261203;
+    trip.target_station_id_ = "B";
+    trip.target_time_ = 1445231204;
+    trip.line_id_ = "0";
+  }
+
   j.attributes_.resize(2);
   {
     auto& attribute = j.attributes_[0];
@@ -187,13 +235,24 @@ journey create_journey2() {
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
   }
+  j.trips_.resize(1);
+  {
+    auto& trip = j.trips_[0];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "S";
+    trip.train_nr_ = 1;
+    trip.time_ = 1445261200;
+    trip.target_station_id_ = "T";
+    trip.target_time_ = 1445231200;
+    trip.line_id_ = "1234";
+  }
   return j;
 }
 
 TEST(core_convert_journey, journey_message_journey) {
-  std::vector<journey> original_journeys;
-  original_journeys.push_back(create_journey1());
-  original_journeys.push_back(create_journey2());
+  std::vector<journey> original_journeys = {create_journey1(),
+                                            create_journey2()};
 
   auto msg = journeys_to_message(original_journeys);
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
@@ -244,6 +303,19 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(ot.is_walk_, jt.is_walk_);
       ASSERT_EQ(ot.mumo_price_, jt.mumo_price_);
       ASSERT_EQ(ot.mumo_type_, jt.mumo_type_);
+    }
+
+    for (unsigned int s = 0; s < o.trips_.size(); ++s) {
+      auto const& ot = o.trips_[s];
+      auto const& jt = j.trips_[s];
+      ASSERT_EQ(ot.from_, jt.from_);
+      ASSERT_EQ(ot.to_, jt.to_);
+      ASSERT_EQ(ot.station_id_, jt.station_id_);
+      ASSERT_EQ(ot.train_nr_, jt.train_nr_);
+      ASSERT_EQ(ot.time_, jt.time_);
+      ASSERT_EQ(ot.target_station_id_, jt.target_station_id_);
+      ASSERT_EQ(ot.target_time_, jt.target_time_);
+      ASSERT_EQ(ot.line_id_, jt.line_id_);
     }
 
     for (unsigned int a = 0; a < o.attributes_.size(); ++a) {

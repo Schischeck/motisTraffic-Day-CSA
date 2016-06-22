@@ -2,6 +2,7 @@
 
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/time_access.h"
+#include "motis/core/conversion/timestamp_reason_conversion.h"
 
 using namespace motis::module;
 
@@ -24,11 +25,11 @@ void shifted_nodes_msg_builder::build_shifted_node(delay_info const* di) {
           ->id_.primary_;
 
   nodes_.push_back(CreateShiftedNode(
-      fbb_, CreateTripId(
-                fbb_, fbb_.CreateString(
-                          sched_.stations_.at(trp.station_id_)->eva_nr_),
-                trp.train_nr_, motis_to_unixtime(sched_, trp.time_),
-                fbb_.CreateString(""), 0, EventType_DEP, fbb_.CreateString("")),
+      fbb_,
+      CreateTripId(fbb_, fbb_.CreateString(
+                             sched_.stations_.at(trp.station_id_)->eva_nr_),
+                   trp.train_nr_, motis_to_unixtime(sched_, trp.time_),
+                   fbb_.CreateString(""), 0, fbb_.CreateString("")),
       fbb_.CreateString(sched_.stations_.at(k.get_station_idx())->eva_nr_),
       motis_to_unixtime(sched_, di->get_schedule_time()),
       k.ev_type_ == event_type::DEP ? EventType_DEP : EventType_ARR,

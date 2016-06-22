@@ -170,7 +170,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
-  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, false, line_id);
+  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, line_id);
   return id;
 }
 
@@ -596,8 +596,8 @@ int graph_builder::get_or_create_category_index(Category const* c) {
   });
 }
 
-int graph_builder::get_or_create_track(
-    int day, Vector<Offset<Track>> const* tracks) {
+int graph_builder::get_or_create_track(int day,
+                                       Vector<Offset<Track>> const* tracks) {
   static constexpr int no_track = 0;
   if (sched_.tracks_.empty()) {
     sched_.tracks_.push_back("");

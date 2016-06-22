@@ -26,6 +26,18 @@ struct journey {
     std::string mumo_type_;
   };
 
+  struct trip {
+    unsigned from_, to_;
+
+    std::string station_id_;
+    int train_nr_;
+    std::time_t time_;
+
+    std::string target_station_id_;
+    std::time_t target_time_;
+    std::string line_id_;
+  };
+
   struct stop {
     bool interchange_;
     std::string name_;
@@ -52,6 +64,7 @@ struct journey {
   unsigned duration_, transfers_, price_;
   std::vector<stop> stops_;
   std::vector<transport> transports_;
+  std::vector<trip> trips_;
   std::vector<attribute> attributes_;
 
   unsigned night_penalty_, db_costs_;
