@@ -36,10 +36,11 @@ std::shared_ptr<connection_graph_optimizer> get_optimizer(
 }
 
 void update_mumo_info(
-    std::vector<std::shared_ptr<search::connection_graph>>& cgs) {
+    std::vector<std::shared_ptr<search::connection_graph>>& cgs,
+    intermodal::individual_modes_container const& container) {
   for (auto& cg : cgs) {
     for (auto& j : cg->journeys_) {
-      intermodal::update_mumo_info(j);
+      intermodal::update_mumo_info(j, container);
     }
   }
 }
@@ -50,13 +51,16 @@ void update_address_info(
   for (auto& cg : cgs) {
     if (req.dep_is_intermodal()) {
       cg->journeys_.front().stops_.front().name_ =
-          flatbuffers::departure_station_name(*req.request());
+          departure_station_name(*req.request());
     }
     if (req.arr_is_intermodal()) {
       std::set<uint16_t> arriving_journeys;
       for (auto& s : cg->stops_) {
         for (auto& a : s.alternative_infos_) {
-          arriving_journeys.insert(a.journey_index_);
+          if (a.next_stop_index_ ==
+              connection_graph::stop::INDEX_ARRIVAL_STOP) {
+            arriving_journeys.insert(a.journey_index_);
+          }
         }
       }
       for (auto idx : arriving_journeys) {
@@ -70,16 +74,18 @@ void update_address_info(
 }  // namespace detail
 
 module::msg_ptr search_cgs(ReliableRoutingRequest const& req, reliability& rel,
-                           unsigned const max_bikesharing_duration) {
+                           unsigned const max_bikesharing_duration,
+                           bool const pareto_filtering_for_bikesharing) {
   auto lock = rel.synced_sched();
+  intermodal::individual_modes_container container(
+      req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
   auto cgs = search_cgs(req, ::motis::reliability::context(
                                  lock.sched(), *rel.precomputed_distributions_,
                                  *rel.s_t_distributions_),
-                        detail::get_optimizer(*req.request_type()),
-                        max_bikesharing_duration);
-  detail::update_mumo_info(cgs);
+                        detail::get_optimizer(*req.request_type()), container);
+  detail::update_mumo_info(cgs, container);
   detail::update_address_info(req, cgs);
-  return flatbuffers::response_builder::to_reliable_routing_response(cgs);
+  return response_builder::to_reliable_routing_response(cgs);
 }
 
 }  // namespace connection_graph_search

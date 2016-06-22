@@ -95,7 +95,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l1";
     transport.name_ = "ICE 111";
     transport.provider_ = "DB1";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
@@ -110,7 +110,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l2";
     transport.name_ = "IC 222";
     transport.provider_ = "DB2";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 222;
     transport.is_walk_ = false;
@@ -127,7 +127,7 @@ journey create_journey1() {
     transport.line_identifier_ = "";
     transport.name_ = "";
     transport.provider_ = "";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.train_nr_ = 0;
   }
 
@@ -230,7 +230,7 @@ journey create_journey2() {
     transport.line_identifier_ = "l1";
     transport.name_ = "ICE 111";
     transport.provider_ = "DB1";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
@@ -263,12 +263,12 @@ TEST(core_convert_journey, journey_message_journey) {
     auto const& j = journeys[i];
     auto const& o = original_journeys[i];
 
-    ASSERT_TRUE(o.duration_ == j.duration_);
+    ASSERT_EQ(o.duration_, j.duration_);
     // ASSERT_TRUE(o.price_ == j.price_); TODO(Mohammad Keyhani)
-    ASSERT_TRUE(o.transfers_ == j.transfers_);
-    ASSERT_TRUE(o.stops_.size() == j.stops_.size());
-    ASSERT_TRUE(o.transports_.size() == j.transports_.size());
-    ASSERT_TRUE(o.attributes_.size() == j.attributes_.size());
+    EXPECT_EQ(o.transfers_, j.transfers_);
+    EXPECT_EQ(o.stops_.size(), j.stops_.size());
+    EXPECT_EQ(o.transports_.size(), j.transports_.size());
+    EXPECT_EQ(o.attributes_.size(), j.attributes_.size());
 
     for (unsigned int s = 0; s < o.stops_.size(); ++s) {
       auto const& os = o.stops_[s];
@@ -278,12 +278,18 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
       ASSERT_EQ(os.name_, js.name_);
-      ASSERT_EQ(os.arrival_.track_, js.arrival_.track_);
-      ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
       ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
-      ASSERT_EQ(os.departure_.track_, js.departure_.track_);
-      ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
       ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      if (os.arrival_.valid_) {
+        ASSERT_EQ(os.arrival_.track_, js.arrival_.track_);
+        ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
+        ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
+      }
+      if (os.departure_.valid_) {
+        ASSERT_EQ(os.departure_.track_, js.departure_.track_);
+        ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
+        ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      }
     }
 
     for (unsigned int t = 0; t < o.transports_.size(); ++t) {
@@ -297,7 +303,7 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(ot.line_identifier_, jt.line_identifier_);
       ASSERT_EQ(ot.name_, jt.name_);
       ASSERT_EQ(ot.provider_, jt.provider_);
-      ASSERT_EQ(ot.slot_, jt.slot_);
+      ASSERT_EQ(ot.mumo_id_, jt.mumo_id_);
       ASSERT_EQ(ot.to_, jt.to_);
       ASSERT_EQ(ot.train_nr_, jt.train_nr_);
       ASSERT_EQ(ot.is_walk_, jt.is_walk_);

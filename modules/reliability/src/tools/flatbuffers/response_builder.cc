@@ -5,11 +5,15 @@
 #include <vector>
 
 #include "motis/core/schedule/time.h"
+#include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
 
+#include "motis/protocol/Position_generated.h"
+
 #include "motis/reliability/distributions/probability_distribution.h"
-#include "motis/reliability/intermodal/individual_modes_container.h"
+#include "motis/reliability/error.h"
+#include "motis/reliability/intermodal/reliable_bikesharing.h"
 #include "motis/reliability/rating/cg_arrival_distribution.h"
 #include "motis/reliability/rating/connection_rating.h"
 #include "motis/reliability/rating/simple_rating.h"
@@ -19,35 +23,7 @@ using namespace flatbuffers;
 
 namespace motis {
 namespace reliability {
-namespace flatbuffers {
 namespace response_builder {
-
-void update_address_info(journey& j, bool const dep_intermodal = false,
-                         bool const arr_intermodal = false,
-                         std::string const dep_address = "",
-                         std::string const arr_address = "") {
-  if (dep_intermodal) {
-    j.stops_.front().name_ = dep_address;
-  }
-  if (arr_intermodal) {
-    j.stops_.back().name_ = arr_address;
-  }
-}
-
-Offset<routing::RoutingResponse> convert_routing_response(
-    FlatBufferBuilder& b, routing::RoutingResponse const* orig_routing_response,
-    bool const dep_intermodal = false, bool const arr_intermodal = false,
-    std::string const dep_address = "", std::string const arr_address = "") {
-  std::vector<Offset<Connection>> connections;
-  auto journeys = message_to_journeys(orig_routing_response);
-  for (auto& j : journeys) {
-    intermodal::update_mumo_info(j);
-    update_address_info(j, dep_intermodal, arr_intermodal, dep_address,
-                        arr_address);
-    connections.push_back(to_connection(b, j));
-  }
-  return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
-}
 
 namespace rating_converter {
 
@@ -65,19 +41,17 @@ Offset<reliability::ProbabilityDistribution> convert(
 /* write the distributions for all events */
 std::vector<Offset<RatingElement>> convert_rating_elements(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    motis::Connection const* orig_conn) {
+    journey const& orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto e : conn_rating.public_transport_ratings_) {
     Range r(e.departure_stop_idx_, e.arrival_stop_idx());
     rating_elements.push_back(CreateRatingElement(
         b, &r, convert(b, e.departure_distribution_,
-                       (*orig_conn->stops())[e.departure_stop_idx_]
-                           ->departure()
-                           ->schedule_time()),
+                       orig_conn.stops_[e.departure_stop_idx_]
+                           .departure_.schedule_timestamp_),
         convert(b, e.arrival_distribution_,
-                (*orig_conn->stops())[e.arrival_stop_idx()]
-                    ->arrival()
-                    ->schedule_time())));
+                orig_conn.stops_[e.arrival_stop_idx()]
+                    .arrival_.schedule_timestamp_)));
   }
   return rating_elements;
 }
@@ -86,26 +60,23 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
  * the first departure and the last arrival */
 std::vector<Offset<RatingElement>> convert_rating_elements_short(
     FlatBufferBuilder& b, rating::connection_rating const& conn_rating,
-    Connection const* orig_conn) {
+    journey const& orig_conn) {
   std::vector<Offset<RatingElement>> rating_elements;
-  for (auto const& trans : *orig_conn->transports()) {
-    if (trans->move_type() != Move_Transport) {
+  for (auto const& trans : orig_conn.transports_) {
+    if (trans.is_walk_) {
       continue;
     }
-    auto transport = reinterpret_cast<Transport const*>(trans->move());
-    auto const from_idx = static_cast<unsigned>(transport->range()->from());
-    auto const to_idx = static_cast<unsigned>(transport->range()->to());
     auto const rating_from =
         std::find_if(conn_rating.public_transport_ratings_.begin(),
                      conn_rating.public_transport_ratings_.end(),
-                     [from_idx](rating::rating_element const& rating) {
-                       return from_idx == rating.departure_stop_idx_;
+                     [trans](rating::rating_element const& rating) {
+                       return trans.from_ == rating.departure_stop_idx_;
                      });
     auto const rating_to =
         std::find_if(conn_rating.public_transport_ratings_.begin(),
                      conn_rating.public_transport_ratings_.end(),
-                     [to_idx](rating::rating_element const& rating) {
-                       return to_idx == rating.arrival_stop_idx();
+                     [trans](rating::rating_element const& rating) {
+                       return trans.to_ == rating.arrival_stop_idx();
                      });
     if (rating_from == conn_rating.public_transport_ratings_.end() ||
         rating_to == conn_rating.public_transport_ratings_.end()) {
@@ -116,13 +87,11 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
     Range r(rating_from->departure_stop_idx_, rating_to->arrival_stop_idx());
     rating_elements.push_back(CreateRatingElement(
         b, &r, convert(b, rating_from->departure_distribution_,
-                       (*orig_conn->stops())[rating_from->departure_stop_idx_]
-                           ->departure()
-                           ->schedule_time()),
+                       orig_conn.stops_[rating_from->departure_stop_idx_]
+                           .departure_.schedule_timestamp_),
         convert(b, rating_to->arrival_distribution_,
-                (*orig_conn->stops())[rating_to->arrival_stop_idx()]
-                    ->arrival()
-                    ->schedule_time())));
+                orig_conn.stops_[rating_to->arrival_stop_idx()]
+                    .arrival_.schedule_timestamp_)));
   }
   return rating_elements;
 }
@@ -130,8 +99,7 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
 Offset<Vector<Offset<Rating>>> convert_ratings(
     FlatBufferBuilder& b,
     std::vector<rating::connection_rating> const& orig_ratings,
-    Vector<Offset<Connection>> const& orig_connections,
-    bool const short_output) {
+    std::vector<journey> const& orig_connections, bool const short_output) {
   std::vector<Offset<Rating>> v_conn_ratings;
   for (unsigned c_idx = 0; c_idx < orig_ratings.size(); ++c_idx) {
     auto const& conn_rating = orig_ratings[c_idx];
@@ -180,29 +148,107 @@ Offset<Vector<Offset<SimpleRating>>> convert_simple_ratings(
 }
 }  // namespace simple_rating_converter
 
+namespace intermodal_converter {
+Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
+    FlatBufferBuilder& b,
+    std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                          intermodal::bikesharing::bikesharing_info>> const&
+        bikesharings,
+    bool const dep_is_intermodal, bool const arr_is_intermodal,
+    std::vector<journey> const& journeys) {
+  auto to_bike_info = [&b](
+      intermodal::bikesharing::bikesharing_info const& infos, bool const valid,
+      time_t bike_time) {
+    auto rel = [&]() -> unsigned {
+      auto const it = std::find_if(
+          infos.availability_intervals_.begin(),
+          infos.availability_intervals_.end(), [&bike_time](auto const& i) {
+            return i.from_ <= bike_time && i.to_ >= bike_time;
+          });
+      if (it == infos.availability_intervals_.end()) {
+        return 0;
+      }
+      return it->rating_;
+    };
+    auto from = Position(infos.from_.lat_, infos.from_.lng_);
+    auto to = Position(infos.to_.lat_, infos.to_.lng_);
+    return CreateBikeInfo(b, valid, b.CreateString(infos.from_.id_), &from,
+                          b.CreateString(infos.to_.id_), &to, rel());
+  };
+
+  if (!bikesharings.empty() && bikesharings.size() != journeys.size()) {
+    throw std::system_error(error::failure);
+  }
+
+  std::vector<Offset<AdditionalInfos>> infos;
+  for (unsigned int i = 0; i < bikesharings.size(); ++i) {
+    auto const& bike = bikesharings[i];
+    auto const& j = journeys[i];
+    infos.push_back(CreateAdditionalInfos(
+        b, to_bike_info(
+               bike.first,
+               dep_is_intermodal && !bike.first.availability_intervals_.empty(),
+               j.stops_.front().departure_.timestamp_),
+        to_bike_info(
+            bike.second,
+            arr_is_intermodal && !bike.second.availability_intervals_.empty(),
+            j.stops_.at(j.stops_.size() - 2).departure_.timestamp_)));
+  }
+  return b.CreateVector(infos);
+}
+}  // namespace intermodal_converter
+
+Offset<routing::RoutingResponse> to_routing_response(
+    FlatBufferBuilder& b, std::vector<journey> const& journeys) {
+  std::vector<Offset<Connection>> connections;
+  for (auto& j : journeys) {
+    connections.push_back(to_connection(b, j));
+  }
+  return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
+}
+
 module::msg_ptr to_reliability_rating_response(
-    routing::RoutingResponse const* orig_routing_response,
+    std::vector<journey> const& journeys,
     std::vector<rating::connection_rating> const& orig_ratings,
     std::vector<rating::simple_rating::simple_connection_rating> const&
         orig_simple_ratings,
-    bool const short_output, bool const dep_intermodal,
-    bool const arr_intermodal, std::string const dep_address,
-    std::string const arr_address) {
-  assert(orig_routing_response->connections()->size() == orig_ratings.size());
+    bool const short_output,
+    std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                          intermodal::bikesharing::bikesharing_info>> const&
+        bikesharings,
+    bool const dep_is_intermodal, bool const arr_is_intermodal) {
+  assert(journeys.size() == orig_ratings.size());
   module::message_creator b;
   b.ForceDefaults(true); /* necessary to write indices 0 */
-  auto const routing_response =
-      convert_routing_response(b, orig_routing_response, dep_intermodal,
-                               arr_intermodal, dep_address, arr_address);
+  auto const routing_response = to_routing_response(b, journeys);
   auto const conn_ratings = rating_converter::convert_ratings(
-      b, orig_ratings, *orig_routing_response->connections(), short_output);
+      b, orig_ratings, journeys, short_output);
   auto const simple_ratings =
       simple_rating_converter::convert_simple_ratings(b, orig_simple_ratings);
-  b.create_and_finish(MsgContent_ReliabilityRatingResponse,
-                      CreateReliabilityRatingResponse(
-                          b, routing_response, conn_ratings, simple_ratings)
-                          .Union());
+
+  b.create_and_finish(
+      MsgContent_ReliabilityRatingResponse,
+      CreateReliabilityRatingResponse(
+          b, routing_response, conn_ratings, simple_ratings,
+          intermodal_converter::create_additional_infos(
+              b, bikesharings, dep_is_intermodal, arr_is_intermodal, journeys))
+          .Union());
   return module::make_msg(b);
+}
+
+module::msg_ptr to_empty_reliability_rating_response() {
+  module::message_creator b;
+  b.ForceDefaults(true); /* necessary to write indices 0 */
+  std::vector<journey> journeys;
+  std::vector<rating::connection_rating> orig_ratings;
+  std::vector<rating::simple_rating::simple_connection_rating>
+      orig_simple_ratings;
+  std::vector<std::pair<intermodal::bikesharing::bikesharing_info,
+                        intermodal::bikesharing::bikesharing_info>>
+      bikesharings;
+  return to_reliability_rating_response(journeys, orig_ratings,
+                                        orig_simple_ratings, true, bikesharings,
+                                        false, false);
 }
 
 std::pair<std::time_t, std::time_t> get_scheduled_times(
@@ -274,6 +320,7 @@ module::msg_ptr to_reliable_routing_response(
   for (auto const cg : cgs) {
     connection_graphs.push_back(to_connection_graph(b, *cg));
   }
+  std::vector<Offset<AdditionalInfos>> additional_infos;
   b.create_and_finish(MsgContent_ReliableRoutingResponse,
                       reliability::CreateReliableRoutingResponse(
                           b, b.CreateVector(connection_graphs))
@@ -282,6 +329,5 @@ module::msg_ptr to_reliable_routing_response(
 }
 
 }  // namespace response_builder
-}  // namespace flatbuffers
 }  // namespace reliability
 }  // namespace motis

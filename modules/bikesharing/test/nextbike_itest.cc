@@ -16,7 +16,7 @@ constexpr auto kBikesharingRequestDeparture = R""(
 {
   "destination": {
     "type": "Module",
-    "target": "/bikesharing"
+    "target": "/bikesharing/search"
   },
   "content_type": "BikesharingRequest",
   "content": {
@@ -42,7 +42,7 @@ constexpr auto kBikesharingRequestArrival = R""(
 {
   "destination": {
     "type": "Module",
-    "target": "/bikesharing"
+    "target": "/bikesharing/search"
   },
   "content_type": "BikesharingRequest",
   "content": {
@@ -199,6 +199,48 @@ TEST_F(bikesharing_nextbike_itest, integration_test_arrival) {
     ASSERT_NE(nullptr, e_2_4);
     EXPECT_EQ(std::string("8000105"), e_2_4->station_id()->str());
     ASSERT_EQ(26, e_2_4->availability()->size());
+  }
+}
+
+constexpr auto kBikesharingGeoTerminalRequest = R""(
+{
+  "destination": {
+    "type": "Module",
+    "target": "/bikesharing/geo_terminals"
+  },
+  "content_type": "BikesharingGeoTerminalsRequest",
+  "content": {
+    // close to campus darmstadt
+    "pos": {
+      "lat": 49.8776114,
+      "lng": 8.6571044
+    },
+    "radius": 1000,
+    "timestamp": 1454602500,  // Thu, 04 Feb 2016 16:15:00 GMT
+    "availability_aggregator": "Average"
+  }
+}
+)"";
+
+TEST_F(bikesharing_nextbike_itest, geo_terminals) {
+  auto msg = call(make_msg(kBikesharingGeoTerminalRequest));
+
+  using bikesharing::BikesharingGeoTerminalsResponse;
+  auto resp = motis_content(BikesharingGeoTerminalsResponse, msg);
+
+  ASSERT_EQ(2, resp->terminals()->size());
+  for(auto&& terminal : *resp->terminals()) {
+    if (terminal->id()->str() == "1") {
+      EXPECT_DOUBLE_EQ(49.8780247, terminal->pos()->lat());
+      EXPECT_DOUBLE_EQ(8.6545839, terminal->pos()->lng());
+      EXPECT_DOUBLE_EQ(3, terminal->availability());
+    } else if (terminal->id()->str() == "2") {
+      EXPECT_DOUBLE_EQ(49.875768, terminal->pos()->lat());
+      EXPECT_DOUBLE_EQ(8.6578002, terminal->pos()->lng());
+      EXPECT_DOUBLE_EQ(4.5, terminal->availability());
+    } else {
+      FAIL() << "unexpected terminal";
+    }
   }
 }
 

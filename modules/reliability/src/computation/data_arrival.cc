@@ -5,6 +5,7 @@
 
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/realtime_access.h"
 
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/time_util.h"
@@ -22,7 +23,7 @@ data_arrival::data_arrival(
     : departure_info_(
           departure_distribution,
           time_util::get_scheduled_event_time(departure_node, light_connection,
-                                              time_util::departure, schedule)) {
+                                              event_type::DEP, schedule)) {
   init_arrival_time(arrival_node, light_connection, schedule);
   init_travel_info(light_connection, s_t_distributions, schedule.categories_);
 }
@@ -30,25 +31,12 @@ data_arrival::data_arrival(
 void data_arrival::init_arrival_time(node const& route_node,
                                      light_connection const& light_conn,
                                      schedule const& sched) {
-  is_message_.received_ = false;
-  scheduled_arrival_time_ = light_conn.a_time_;
-
-// TODO(Mohammad Keyhani)
-#if 1
-  (void)route_node;
-  (void)sched;
-#else
-  auto it = sched.graph_to_delay_info_.find(graph_event(
-      route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
-      false, light_conn.a_time_, route_node.route_));
-  if (it != sched.graph_to_delay_info_.end()) {
-    scheduled_arrival_time_ = it->second->schedule_event_.schedule_time_;
-    if (it->second->reason_ == timestamp_reason::IS) {
-      is_message_.received_ = true;
-      is_message_.current_time_ = it->second->current_time_;
-    }
-  }
-#endif
+  auto const delay_info =
+      get_delay_info(sched, &route_node, &light_conn, event_type::ARR);
+  scheduled_arrival_time_ = delay_info.get_schedule_time();
+  is_message_.received_ = (delay_info.get_reason() == timestamp_reason::IS);
+  is_message_.current_time_ =
+      is_message_.received_ ? delay_info.get_current_time() : 0;
 }
 
 void data_arrival::init_travel_info(

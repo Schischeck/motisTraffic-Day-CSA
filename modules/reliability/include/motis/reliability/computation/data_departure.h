@@ -79,7 +79,7 @@ struct data_departure {
   };
 
   /** arrival distributions of the feeder trains
-   * TODO: do not store the interchange feeder in this vector!
+   * Note: do not store the interchange feeder in this vector!
    * (distributions_calculator makes this assumption).
    */
   std::vector<feeder_info> feeders_;

@@ -123,25 +123,26 @@ public:
 TEST_F(reliability_connection_graph_search,
        reliable_routing_request_optimization) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
                              test_util::hhmm_to_unixtime(get_schedule(), 700))
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
-          .build_reliable_search_request(1);
+          .build_reliable_search_request(1, false, false, false);
+  intermodal::individual_modes_container container;
   test_cg(run([&]() {
     return search_cgs(*motis_content(ReliableRoutingRequest, msg),
                       *reliability_context_,
-                      std::make_shared<reliable_cg_optimizer>(1), 0);
+                      std::make_shared<reliable_cg_optimizer>(1), container);
   }));
 }
 
 TEST_F(reliability_connection_graph_search,
        connection_tree_three_alternatives) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -149,11 +150,12 @@ TEST_F(reliability_connection_graph_search,
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
-
+  intermodal::individual_modes_container container;
   test_cg(run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+        container);
   }));
 }
 
@@ -161,7 +163,7 @@ TEST_F(reliability_connection_graph_search,
  * (base connection is optimal) */
 TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -169,10 +171,12 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(1, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(1, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(1, 1),
+        container);
   });
 
   ASSERT_EQ(cgs.size(), 1);
@@ -240,7 +244,7 @@ TEST_F(reliability_connection_graph_search, connection_three_one_alternative) {
 TEST_F(reliability_connection_graph_search,
        alternative_requires_further_alternatives) {
   auto msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::PFUNGSTADT.name_,
                              schedule7_cg::PFUNGSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 630),
@@ -248,10 +252,12 @@ TEST_F(reliability_connection_graph_search,
           .add_destination(schedule7_cg::FRANKFURT.name_,
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
+  intermodal::individual_modes_container container;
   auto const cgs = run([&]() {
     return search_cgs(
         *motis_content(ReliableRoutingRequest, msg), *reliability_context_,
-        std::make_shared<connection_graph_search::simple_optimizer>(3, 1), 0);
+        std::make_shared<connection_graph_search::simple_optimizer>(3, 1),
+        container);
   });
 
   ASSERT_EQ(cgs.size(), 1);
@@ -299,7 +305,7 @@ TEST_F(reliability_connection_graph_search,
 
 TEST_F(reliability_connection_graph_search, cache_journey) {
   auto const msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule7_cg::DARMSTADT.name_,
                              schedule7_cg::DARMSTADT.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),
@@ -308,8 +314,9 @@ TEST_F(reliability_connection_graph_search, cache_journey) {
                            schedule7_cg::FRANKFURT.eva_)
           .build_connection_tree_request(3, 1);
   auto req = motis_content(ReliableRoutingRequest, msg);
+  intermodal::individual_modes_container container;
   detail::context c(*reliability_context_,
-                    std::make_shared<simple_optimizer>(1, 1), *req, 0);
+                    std::make_shared<simple_optimizer>(1, 1), *req, container);
   using key = detail::context::journey_cache_key;
   {
     journey j;

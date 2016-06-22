@@ -12,9 +12,10 @@ enum error_code_t {
   not_implemented = 1,
   not_initialized = 2,
   database_error = 3,
-  terminal_not_found = 4,
-  search_failure = 5,
-  init_error = 6
+  database_not_initialized = 4,
+  terminal_not_found = 5,
+  search_failure = 6,
+  init_error = 7
 };
 }  // namespace error
 
@@ -28,6 +29,8 @@ public:
       case error::not_implemented: return "bikesharing: not implemented";
       case error::not_initialized: return "bikesharing: not initialized";
       case error::database_error: return "bikesharing: database error";
+      case error::database_not_initialized:
+        return "bikesharing: database not initialized";
       case error::terminal_not_found: return "bikesharing: terminal not found";
       case error::search_failure: return "bikesharing: search_failure";
       case error::init_error: return "bikesharing: init error";

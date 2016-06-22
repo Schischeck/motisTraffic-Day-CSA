@@ -50,6 +50,7 @@ private:
   std::vector<std::string> distributions_folders_;
   std::string hotels_file_;
   unsigned max_bikesharing_duration_;
+  bool pareto_filtering_for_bikesharing_;
 };  // struct reliability
 }  // namespace reliability
 }  // namespace motis

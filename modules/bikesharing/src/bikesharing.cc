@@ -11,65 +11,76 @@
 #include "motis/core/common/logging.h"
 #include "motis/bikesharing/database.h"
 #include "motis/bikesharing/error.h"
+#include "motis/bikesharing/find_connections.h"
+#include "motis/bikesharing/geo_index.h"
+#include "motis/bikesharing/geo_terminals.h"
 #include "motis/bikesharing/nextbike_initializer.h"
-#include "motis/bikesharing/search.h"
-
-#define DATABASE_PATH "bikesharing.database_path"
-#define NEXTBIKE_PATH "bikesharing.nextbike_path"
 
 using namespace flatbuffers;
 using namespace motis::logging;
 using namespace motis::module;
-namespace po = boost::program_options;
 namespace p = std::placeholders;
 
 namespace motis {
 namespace bikesharing {
 
-bikesharing::bikesharing()
-    : database_path_("bikesharing"), nextbike_path_("") {}
-
-po::options_description bikesharing::desc() {
-  po::options_description desc("bikesharing Module");
-  // clang-format off
-  desc.add_options()
-      (DATABASE_PATH,
-       po::value<std::string>(&database_path_)->default_value(database_path_),
-       "Location of the Bikesharing Database (folder or ':memory:')")
-      (NEXTBIKE_PATH,
-       po::value<std::string>(&nextbike_path_)->default_value(nextbike_path_),
-       "Where nextbike snapshots can be found (may be folder or single file)");
-  // clang-format on
-  return desc;
+bikesharing::bikesharing() : module("Bikesharing Options", "bikesharing") {
+  string_param(database_path_, "bikesharing", "database_path",
+               "Location of the Bikesharing Database (folder or ':memory:')");
+  string_param(nextbike_path_, "", "nextbike_path",
+               "Where nextbike snapshots can be found (folder or single file)");
 }
 
-void bikesharing::print(std::ostream& out) const {
-  out << "  " << DATABASE_PATH << ": " << database_path_ << "\n"
-      << "  " << NEXTBIKE_PATH << ": " << nextbike_path_;
-}
+bikesharing::~bikesharing() = default;
 
 void bikesharing::init(motis::module::registry& reg) {
   reg.subscribe("/init", std::bind(&bikesharing::init_module, this, p::_1));
-  reg.register_op("/bikesharing",
-                  std::bind(&bikesharing::request, this, p::_1));
+  reg.register_op("/bikesharing/search",
+                  [this](msg_ptr const& req) { return search(req); });
+  reg.register_op("/bikesharing/geo_terminals",
+                  [this](msg_ptr const& req) { return geo_terminals(req); });
 }
 
-motis::module::msg_ptr bikesharing::init_module(motis::module::msg_ptr const&) {
-  if (!database_path_.empty() && !nextbike_path_.empty()) {
+msg_ptr bikesharing::init_module(msg_ptr const&) {
+  if (!database_path_.empty()) {
     database_ = std::make_unique<database>(database_path_);
-    initialize_nextbike(nextbike_path_, *database_);
-    search_ = std::make_unique<bikesharing_search>(*database_);
+
+    if (database_->is_initialized()) {
+      LOG(info) << "using initialized bikesharing database";
+    } else {
+      if (!nextbike_path_.empty()) {
+        initialize_nextbike(nextbike_path_, *database_);
+      }
+    }
+
+    if (database_->is_initialized()) {
+      geo_index_ = std::make_unique<geo_index>(*database_);
+    }
   }
   return nullptr;
 }
 
-motis::module::msg_ptr bikesharing::request(motis::module::msg_ptr const& req) {
-  if (!search_ || !database_) {
-    throw std::system_error(error::not_initialized);
-  }
+msg_ptr bikesharing::search(msg_ptr const& req) const {
+  ensure_initialized();
 
   using motis::bikesharing::BikesharingRequest;
-  return search_->find_connections(motis_content(BikesharingRequest, req));
+  return motis::bikesharing::find_connections(
+      *database_, *geo_index_, motis_content(BikesharingRequest, req));
+}
+
+msg_ptr bikesharing::geo_terminals(msg_ptr const& req) const {
+  ensure_initialized();
+
+  using motis::bikesharing::BikesharingGeoTerminalsRequest;
+  return motis::bikesharing::geo_terminals(
+      *database_, *geo_index_,
+      motis_content(BikesharingGeoTerminalsRequest, req));
+}
+
+void bikesharing::ensure_initialized() const {
+  if (!database_ || !geo_index_) {
+    throw std::system_error(error::not_initialized);
+  }
 }
 
 }  // namespace bikesharing

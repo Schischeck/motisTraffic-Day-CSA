@@ -79,7 +79,7 @@ inline time get_time(edge const* route_edge, std::size_t const lcon_index,
 inline std::size_t get_lcon_index(edge const* route_edge,
                                   light_connection const* lcon) {
   auto const& lcons = route_edge->m_.route_edge_.conns_;
-  if (lcon < begin(lcons) && lcon >= end(lcons)) {
+  if (lcon < begin(lcons) || lcon >= end(lcons)) {
     throw std::runtime_error("get_lcon_index(): light connection not found");
   }
   return std::distance(begin(lcons), lcon);

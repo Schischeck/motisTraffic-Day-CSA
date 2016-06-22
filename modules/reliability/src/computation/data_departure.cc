@@ -48,25 +48,12 @@ data_departure::data_departure(node const& route_node,
 void data_departure::init_departure_time(node const& route_node,
                                          light_connection const& light_conn,
                                          schedule const& sched) {
-  is_message_.received_ = false;
-  scheduled_departure_time_ = light_conn.d_time_;
-
-// TODO(Mohammad Keyhan)
-#if 1
-  (void)route_node;
-  (void)sched;
-#else
-  auto it = sched.graph_to_delay_info_.find(graph_event(
-      route_node.get_station()->id_, light_conn.full_con_->con_info_->train_nr_,
-      true, light_conn.d_time_, route_node.route_));
-  if (it != sched.graph_to_delay_info_.end()) {
-    scheduled_departure_time_ = it->second->schedule_event_.schedule_time_;
-    if (it->second->reason_ == timestamp_reason::IS) {
-      is_message_.received_ = true;
-      is_message_.current_time_ = it->second->current_time_;
-    }
-  }
-#endif
+  auto const delay_info =
+      get_delay_info(sched, &route_node, &light_conn, event_type::DEP);
+  scheduled_departure_time_ = delay_info.get_schedule_time();
+  is_message_.received_ = (delay_info.get_reason() == timestamp_reason::IS);
+  is_message_.current_time_ =
+      is_message_.received_ ? delay_info.get_current_time() : 0;
 }
 
 void data_departure::init_first_departure_info(
@@ -92,12 +79,12 @@ void data_departure::init_preceding_arrival_info(
 
   train_info_.preceding_arrival_info_.scheduled_arrival_time_ =
       time_util::get_scheduled_event_time(route_node, arriving_light_conn,
-                                          time_util::arrival, sched);
+                                          event_type::ARR, sched);
   train_info_.preceding_arrival_info_.arrival_distribution_ =
       &distributions_container.get_distribution(
           distributions_container::to_container_key(
               arriving_light_conn, route_node.get_station()->id_,
-              time_util::arrival,
+              event_type::ARR,
               train_info_.preceding_arrival_info_.scheduled_arrival_time_,
               sched));
   // the standing-time is always less or equal 2 minutes
@@ -121,7 +108,7 @@ void erase_preceding_arrival(
               ->m_.route_edge_.conns_,
           departing_light_conn.d_time_);
   auto const preceding_arrival_key = distributions_container::to_container_key(
-      arriving_light_conn, route_node.get_station()->id_, time_util::arrival,
+      arriving_light_conn, route_node.get_station()->id_, event_type::ARR,
       preceding_arrival_time_scheduled, schedule);
 
   predecessors.erase(

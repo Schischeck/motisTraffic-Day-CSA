@@ -27,16 +27,22 @@ std::vector<Offset<Stop>> convert_stops(
   std::vector<Offset<Stop>> buf_stops;
 
   for (auto const& stop : stops) {
-    auto const arr = CreateEventInfo(
-        b, stop.arrival_.valid_ ? stop.arrival_.timestamp_ : 0,
-        stop.arrival_.valid_ ? stop.arrival_.schedule_timestamp_ : 0,
-        b.CreateString(stop.arrival_.track_),
-        convert_reason(stop.arrival_.timestamp_reason_));
-    auto const dep = CreateEventInfo(
-        b, stop.departure_.valid_ ? stop.departure_.timestamp_ : 0,
-        stop.departure_.valid_ ? stop.departure_.schedule_timestamp_ : 0,
-        b.CreateString(stop.departure_.track_),
-        convert_reason(stop.departure_.timestamp_reason_));
+    auto const arr =
+        stop.arrival_.valid_
+            ? CreateEventInfo(b, stop.arrival_.timestamp_,
+                              stop.arrival_.schedule_timestamp_,
+                              b.CreateString(stop.arrival_.track_),
+                              convert_reason(stop.arrival_.timestamp_reason_))
+            : CreateEventInfo(b, 0, 0, b.CreateString(""),
+                              TimestampReason_SCHEDULE);
+    auto const dep =
+        stop.departure_.valid_
+            ? CreateEventInfo(b, stop.departure_.timestamp_,
+                              stop.departure_.schedule_timestamp_,
+                              b.CreateString(stop.departure_.track_),
+                              convert_reason(stop.departure_.timestamp_reason_))
+            : CreateEventInfo(b, 0, 0, b.CreateString(""),
+                              TimestampReason_SCHEDULE);
     auto const pos = Position(stop.lat_, stop.lng_);
     buf_stops.push_back(
         CreateStop(b, CreateStation(b, b.CreateString(stop.eva_no_),
@@ -55,7 +61,7 @@ std::vector<Offset<MoveWrapper>> convert_moves(
     Range r(t.from_, t.to_);
     if (t.is_walk_) {
       moves.push_back(CreateMoveWrapper(
-          b, Move_Walk, CreateWalk(b, &r, t.slot_, t.mumo_price_,
+          b, Move_Walk, CreateWalk(b, &r, t.mumo_id_, t.mumo_price_,
                                    b.CreateString(t.mumo_type_))
                             .Union()));
     } else {

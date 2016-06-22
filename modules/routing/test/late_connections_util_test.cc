@@ -29,6 +29,10 @@ TEST(routing_late_connections_util, night_travel_duration) {
   ASSERT_EQ(0, f(360, 361));
   ASSERT_EQ(0, f(361, 1500));
   ASSERT_EQ(1, f(361, 1501));
+
+  ASSERT_EQ(300, f(0, 1441));
+  ASSERT_EQ(600, f(0, 2881));
+  ASSERT_EQ(601, f(0, 2941));
 }
 
 TEST(routing_late_connections_util, night_travel_duration_overnight) {
@@ -51,6 +55,10 @@ TEST(routing_late_connections_util, night_travel_duration_overnight) {
   ASSERT_EQ(119, f(1381, 1500));
   ASSERT_EQ(300, f(1380, 1680));
   ASSERT_EQ(300, f(1379, 1681));
+
+  ASSERT_EQ(301, f(0, 1441));
+  ASSERT_EQ(601, f(0, 2881));
+  ASSERT_EQ(840, f(0, 3121));
 }
 
 }  // namespace late_connections_util

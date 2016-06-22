@@ -34,7 +34,7 @@ namespace detail {
 
 std::vector<journey> retrieve_base_journeys(
     ReliableRoutingRequest const& request, context const& c) {
-  auto req = flatbuffers::request_builder(request)
+  auto req = request_builder(request)
                  .add_additional_edges(c.individual_modes_container_)
                  .build_routing_request();
   auto routing_response = motis_call(req)->val();
@@ -205,9 +205,9 @@ std::vector<std::shared_ptr<connection_graph>> search_cgs(
     ReliableRoutingRequest const& request,
     motis::reliability::context const& rel_context,
     std::shared_ptr<connection_graph_optimizer const> optimizer,
-    unsigned const max_bikesharing_duration) {
+    intermodal::individual_modes_container const& container) {
   auto c = std::make_shared<detail::context>(rel_context, optimizer, request,
-                                             max_bikesharing_duration);
+                                             container);
 
   for (auto const& j : detail::retrieve_base_journeys(request, *c)) {
     detail::init_connection_graph_from_base_journey(*c, j);

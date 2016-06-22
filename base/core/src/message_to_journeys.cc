@@ -40,7 +40,7 @@ journey::transport create_empty_transport() {
   t.category_id_ = 0;
   t.from_ = 0;
   t.mumo_price_ = 0;
-  t.slot_ = 0;
+  t.mumo_id_ = 0;
   t.to_ = 0;
   t.train_nr_ = 0;
   t.is_walk_ = false;
@@ -61,8 +61,7 @@ journey::transport to_transport(Walk const& walk, uint16_t duration) {
   t.duration_ = duration;
   t.from_ = walk.range()->from();
   t.to_ = walk.range()->to();
-  t.slot_ = walk.slot();
-
+  t.mumo_id_ = walk.mumo_id();
   t.mumo_price_ = walk.price();
   t.mumo_type_ = walk.mumo_type()->c_str();
   return t;
@@ -81,7 +80,7 @@ journey::transport to_transport(Transport const& transport, uint16_t duration) {
   t.line_identifier_ = transport.line_id()->c_str();
   t.name_ = transport.name()->c_str();
   t.provider_ = transport.provider()->c_str();
-  t.slot_ = 0;
+  t.mumo_id_ = 0;
   t.train_nr_ = transport.train_nr();
   return t;
 }
@@ -116,48 +115,51 @@ uint16_t get_move_duration(
   return (to.arrival()->time() - from.departure()->time()) / 60;
 }
 
+journey convert(Connection const* conn) {
+  journey journey;
+  /* stops */
+  unsigned int stop_index = 0;
+  for (auto stop : *conn->stops()) {
+    journey.stops_.push_back(
+        to_stop(*stop, stop_index++, conn->stops()->size()));
+  }
+
+  /* transports */
+  for (auto move : *conn->transports()) {
+    if (move->move_type() == Move_Walk) {
+      auto walk = reinterpret_cast<Walk const*>(move->move());
+      journey.transports_.push_back(to_transport(
+          *walk, get_move_duration(*walk->range(), *conn->stops())));
+    } else if (move->move_type() == Move_Transport) {
+      auto transport = reinterpret_cast<Transport const*>(move->move());
+      journey.transports_.push_back(to_transport(
+          *transport, get_move_duration(*transport->range(), *conn->stops())));
+    }
+  }
+
+  /* attributes */
+  for (auto attribute : *conn->attributes()) {
+    journey.attributes_.push_back(to_attribute(*attribute));
+  }
+
+  /* trips */
+  for (auto trp : *conn->trips()) {
+    journey.trips_.push_back(to_trip(*trp));
+  }
+
+  journey.duration_ = get_duration(journey);
+  journey.transfers_ = get_transfers(journey);
+  journey.night_penalty_ = conn->night_penalty();
+  journey.db_costs_ = conn->db_costs();
+
+  return journey;
+}
+
 std::vector<journey> message_to_journeys(
     routing::RoutingResponse const* response) {
   std::vector<journey> journeys;
   for (auto conn : *response->connections()) {
-    journeys.emplace_back();
-    auto& journey = journeys.back();
-
-    /* stops */
-    unsigned int stop_index = 0;
-    for (auto stop : *conn->stops()) {
-      journey.stops_.push_back(
-          to_stop(*stop, stop_index++, conn->stops()->size()));
-    }
-
-    /* transports */
-    for (auto move : *conn->transports()) {
-      if (move->move_type() == Move_Walk) {
-        auto walk = reinterpret_cast<Walk const*>(move->move());
-        journey.transports_.push_back(to_transport(
-            *walk, get_move_duration(*walk->range(), *conn->stops())));
-      } else if (move->move_type() == Move_Transport) {
-        auto transport = reinterpret_cast<Transport const*>(move->move());
-        journey.transports_.push_back(to_transport(
-            *transport,
-            get_move_duration(*transport->range(), *conn->stops())));
-      }
-    }
-
-    /* trips */
-    for (auto trp : *conn->trips()) {
-      journey.trips_.push_back(to_trip(*trp));
-    }
-
-    /* attributes */
-    for (auto attribute : *conn->attributes()) {
-      journey.attributes_.push_back(to_attribute(*attribute));
-    }
-
-    journey.duration_ = get_duration(journey);
-    journey.transfers_ = get_transfers(journey);
-    journey.night_penalty_ = conn->night_penalty();
-    journey.db_costs_ = conn->db_costs();
+    journeys.push_back(convert(conn));
   }
   return journeys;
 }
