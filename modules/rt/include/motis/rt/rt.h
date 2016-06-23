@@ -10,10 +10,6 @@ namespace motis {
 
 struct trip;
 
-namespace ris {
-struct DelayMessage;
-}  // namespace ris
-
 namespace rt {
 
 struct delay_propagator;
