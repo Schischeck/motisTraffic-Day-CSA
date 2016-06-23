@@ -41,16 +41,25 @@ TEST_F(rt_invalid_update_test, trip_conflict_test) {
   publish(get_trip_conflict_ris_message(sched()));
   publish(make_no_msg("/ris/system_time_changed"));
 
-  auto trp = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
-                      unix_time(1400), "381");
-  auto events = get_trip_event_info(trp);
+  auto ev1 =
+      get_trip_event_info(get_trip(sched(), "0000001", 1, unix_time(1010),
+                                   "0000005", unix_time(1400), "381"));
+  EXPECT_EQ(motis_time(1010), ev1["0000001"].dep_);
+  EXPECT_EQ(motis_time(1100), ev1["0000002"].arr_);
+  EXPECT_EQ(motis_time(1301), ev1["0000002"].dep_);
+  EXPECT_EQ(motis_time(1301), ev1["0000003"].arr_);
+  EXPECT_EQ(motis_time(1301), ev1["0000003"].dep_);
+  EXPECT_EQ(motis_time(1301), ev1["0000004"].arr_);
+  EXPECT_EQ(motis_time(1310), ev1["0000004"].dep_);
+  EXPECT_EQ(motis_time(1400), ev1["0000005"].arr_);
 
-  EXPECT_EQ(motis_time(1010), events["0000001"].dep_);
-  EXPECT_EQ(motis_time(1100), events["0000002"].arr_);
-  EXPECT_EQ(motis_time(1301), events["0000002"].dep_);
-  EXPECT_EQ(motis_time(1301), events["0000003"].arr_);
-  EXPECT_EQ(motis_time(1301), events["0000003"].dep_);
-  EXPECT_EQ(motis_time(1301), events["0000004"].arr_);
-  EXPECT_EQ(motis_time(1310), events["0000004"].dep_);
-  EXPECT_EQ(motis_time(1400), events["0000005"].arr_);
+  auto ev2 =
+      get_trip_event_info(get_trip(sched(), "0000001", 2, unix_time(1010),
+                                   "0000004", unix_time(1300), "382"));
+  EXPECT_EQ(motis_time(1010), ev2["0000001"].dep_);
+  EXPECT_EQ(motis_time(1100), ev2["0000002"].arr_);
+  EXPECT_EQ(motis_time(1110), ev2["0000002"].dep_);
+  EXPECT_EQ(motis_time(1200), ev2["0000003"].arr_);
+  EXPECT_EQ(motis_time(1210), ev2["0000003"].dep_);
+  EXPECT_EQ(motis_time(1300), ev2["0000004"].arr_);
 }

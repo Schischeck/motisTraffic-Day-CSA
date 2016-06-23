@@ -8,20 +8,21 @@ namespace rt {
 std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
   std::set<edge const*> visited;
   std::queue<edge const*> q;
+
   visited.insert(k.route_edge_);
   q.push(k.route_edge_);
+
   while (!q.empty()) {
     auto const e = q.front();
     q.pop();
 
     if (dir == bfs_direction::BOTH || dir == bfs_direction::BACKWARD) {
       for (auto const& in : e->from_->incoming_edges_) {
-        if (in->empty()) {
+        if (in->type() != edge::THROUGH_EDGE && in->empty()) {
           continue;
         }
 
-        auto res = visited.insert(in);
-        if (res.second) {
+        if (visited.insert(in).second) {
           q.push(in);
         }
       }
@@ -29,17 +30,25 @@ std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
 
     if (dir == bfs_direction::BOTH || dir == bfs_direction::FORWARD) {
       for (auto const& out : e->to_->edges_) {
-        if (out.empty()) {
+        if (out.type() != edge::THROUGH_EDGE && out.empty()) {
           continue;
         }
 
-        auto res = visited.insert(&out);
-        if (res.second) {
+        if (visited.insert(&out).second) {
           q.push(&out);
         }
       }
     }
   }
+
+  for (auto it = begin(visited); it != end(visited);) {
+    if ((*it)->type() == edge::THROUGH_EDGE) {
+      it = visited.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
   return visited;
 }
 

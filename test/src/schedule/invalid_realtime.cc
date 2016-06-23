@@ -24,7 +24,7 @@ void create_invalid_trip_is_msg(motis::schedule const& sched,
           EventType_DEP,
           unix_time(sched, 1110)
         ),
-        unix_time(sched, 1301)
+        unix_time(sched, 1111)
     ),
     CreateUpdatedEvent(fbb,
         motis::ris::CreateEvent(fbb,

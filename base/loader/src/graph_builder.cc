@@ -742,7 +742,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   LOG(info) << sched->connection_infos_.size() << " connection infos";
   LOG(info) << builder.lcon_count_ << " light connections";
-  LOG(info) << builder.next_route_index_ << " routes";
+  LOG(info) << builder.next_route_index_ + 1 << " routes";
   LOG(info) << sched->trip_mem_.size() << " trips";
 
   return sched;
