@@ -2,8 +2,8 @@
 
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/time_access.h"
-#include "motis/core/conversion/event_type_conversion.h"
-#include "motis/core/conversion/timestamp_reason_conversion.h"
+#include "motis/core/conv/event_type_conv.h"
+#include "motis/core/conv/timestamp_reason_conv.h"
 
 using namespace motis::module;
 

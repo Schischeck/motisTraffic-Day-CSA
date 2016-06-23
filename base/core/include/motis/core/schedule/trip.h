@@ -47,22 +47,18 @@ struct secondary_trip_id {
 
   friend bool operator<(secondary_trip_id const& lhs,
                         secondary_trip_id const& rhs) {
-    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id_) <
-           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id_);
+    return std::tie(lhs.target_station_id_, lhs.target_time_, lhs.line_id_) <
+           std::tie(rhs.target_station_id_, rhs.target_time_, rhs.line_id_);
   }
 
   friend bool operator==(secondary_trip_id const& lhs,
                          secondary_trip_id const& rhs) {
-    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id_) ==
-           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id_);
+    return std::tie(lhs.target_station_id_, lhs.target_time_, lhs.line_id_) ==
+           std::tie(rhs.target_station_id_, rhs.target_time_, rhs.line_id_);
   }
 
-  motis::time get_target_time() const {
-    return static_cast<motis::time>(target_time_);
-  }
-
-  uint64_t target_station_id_ : 32;
-  uint64_t target_time_ : 32;
+  uint32_t target_station_id_;
+  motis::time target_time_;
   std::string line_id_;
 };
 

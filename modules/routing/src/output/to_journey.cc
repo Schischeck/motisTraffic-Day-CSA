@@ -129,7 +129,7 @@ std::vector<journey::trip> generate_journey_trips(
           sched.stations_.at(p.station_id_)->eva_nr_, p.get_train_nr(),
           motis_to_unixtime(sched, p.get_time()),
           sched.stations_.at(s.target_station_id_)->eva_nr_,
-          motis_to_unixtime(sched, s.get_target_time()), s.line_id_});
+          motis_to_unixtime(sched, s.target_time_), s.line_id_});
     }
   }
 

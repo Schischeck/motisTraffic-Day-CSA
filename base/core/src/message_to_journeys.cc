@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "motis/core/schedule/category.h"
-#include "motis/core/conversion/timestamp_reason_conversion.h"
+#include "motis/core/conv/timestamp_reason_conv.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 
@@ -119,33 +119,34 @@ uint16_t get_move_duration(
 
 journey convert(Connection const* conn) {
   journey journey;
+
   /* stops */
   unsigned int stop_index = 0;
-  for (auto stop : *conn->stops()) {
+  for (auto const& stop : *conn->stops()) {
     journey.stops_.push_back(
         to_stop(*stop, stop_index++, conn->stops()->size()));
   }
 
   /* transports */
-  for (auto move : *conn->transports()) {
+  for (auto const& move : *conn->transports()) {
     if (move->move_type() == Move_Walk) {
-      auto walk = reinterpret_cast<Walk const*>(move->move());
+      auto const walk = reinterpret_cast<Walk const*>(move->move());
       journey.transports_.push_back(to_transport(
           *walk, get_move_duration(*walk->range(), *conn->stops())));
     } else if (move->move_type() == Move_Transport) {
-      auto transport = reinterpret_cast<Transport const*>(move->move());
+      auto const transport = reinterpret_cast<Transport const*>(move->move());
       journey.transports_.push_back(to_transport(
           *transport, get_move_duration(*transport->range(), *conn->stops())));
     }
   }
 
   /* attributes */
-  for (auto attribute : *conn->attributes()) {
+  for (auto const& attribute : *conn->attributes()) {
     journey.attributes_.push_back(to_attribute(*attribute));
   }
 
   /* trips */
-  for (auto trp : *conn->trips()) {
+  for (auto const& trp : *conn->trips()) {
     journey.trips_.push_back(to_trip(*trp));
   }
 

@@ -6,8 +6,8 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/trip_access.h"
-#include "motis/core/conversion/event_type_conversion.h"
-#include "motis/core/conversion/trip_conversion.h"
+#include "motis/core/conv/event_type_conv.h"
+#include "motis/core/conv/trip_conv.h"
 
 #include "motis/protocol/RtUpdate_generated.h"
 #include "motis/protocol/TimestampReason_generated.h"

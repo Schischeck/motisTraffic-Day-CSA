@@ -9,7 +9,7 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
-#include "motis/core/conversion/trip_conversion.h"
+#include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"

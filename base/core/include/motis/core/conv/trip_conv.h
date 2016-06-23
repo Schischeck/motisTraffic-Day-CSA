@@ -2,7 +2,7 @@
 
 #include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
-#include "motis/core/conversion/event_type_conversion.h"
+#include "motis/core/conv/event_type_conv.h"
 #include "motis/protocol/TripId_generated.h"
 
 namespace motis {

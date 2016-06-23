@@ -3,8 +3,7 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include "motis/core/conversion/trip_conversion.h"
-#include "motis/protocol/RoutingResponse_generated.h"
+#include "motis/core/conv/trip_conv.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
