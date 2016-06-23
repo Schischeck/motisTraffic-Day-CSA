@@ -2,6 +2,8 @@
 
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/time_access.h"
+#include "motis/core/conv/event_type_conv.h"
+#include "motis/core/conv/timestamp_reason_conv.h"
 
 using namespace motis::module;
 
@@ -26,19 +28,16 @@ void shifted_nodes_msg_builder::build_shifted_node(delay_info const* di) {
   auto const secondary = trp.secondary_;
 
   nodes_.push_back(CreateShiftedNode(
-      fbb_,
-      CreateTripId(
-          fbb_,
-          fbb_.CreateString(sched_.stations_.at(primary.station_id_)->eva_nr_),
-          primary.train_nr_, motis_to_unixtime(sched_, primary.time_),
-          fbb_.CreateString(
-              sched_.stations_.at(secondary.target_station_id_)->eva_nr_),
-          motis_to_unixtime(sched_, secondary.target_time_),
-          secondary.is_arrival_ ? motis::EventType_ARR : motis::EventType_DEP,
-          fbb_.CreateString(secondary.line_id_)),
+      fbb_, CreateTripId(
+                fbb_, fbb_.CreateString(
+                          sched_.stations_.at(primary.station_id_)->eva_nr_),
+                primary.train_nr_, motis_to_unixtime(sched_, primary.time_),
+                fbb_.CreateString(
+                    sched_.stations_.at(secondary.target_station_id_)->eva_nr_),
+                motis_to_unixtime(sched_, secondary.target_time_),
+                fbb_.CreateString(secondary.line_id_)),
       fbb_.CreateString(sched_.stations_.at(k.get_station_idx())->eva_nr_),
-      motis_to_unixtime(sched_, di->get_schedule_time()),
-      k.ev_type_ == event_type::DEP ? EventType_DEP : EventType_ARR,
+      motis_to_unixtime(sched_, di->get_schedule_time()), to_fbs(k.ev_type_),
       motis_to_unixtime(sched_, di->get_current_time()),
       to_fbs(di->get_reason()), false));
 }

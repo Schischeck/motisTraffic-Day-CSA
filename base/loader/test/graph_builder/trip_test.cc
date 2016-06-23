@@ -23,12 +23,12 @@ public:
 
 TEST_F(loader_trip, none) {
   ASSERT_ANY_THROW(get_trip(*sched_, "1234567", 31337, unix_time(100),
-                            "7654321", unix_time(200), true, ""));
+                            "7654321", unix_time(200), ""));
 }
 
 TEST_F(loader_trip, simple) {
   auto trp = get_trip(*sched_, "0000001", 1, unix_time(1000), "0000003",
-                      unix_time(1200), false, "");
+                      unix_time(1200), "");
   ASSERT_NE(nullptr, trp);
 
   auto const& primary = trp->id_.primary_;
@@ -42,7 +42,6 @@ TEST_F(loader_trip, simple) {
   EXPECT_EQ("0000003",
             sched_->stations_[secondary.target_station_id_]->eva_nr_);
   EXPECT_EQ(motis_time(1200), secondary.target_time_);
-  EXPECT_EQ(false, secondary.is_arrival_);
 
   ASSERT_EQ(2, trp->edges_->size());
   for (auto const& sec : sections(trp)) {
@@ -105,9 +104,9 @@ TEST_F(loader_trip, simple) {
 
 TEST_F(loader_trip, collision) {
   auto trp0 = get_trip(*sched_, "0000004", 2, unix_time(1000), "0000005",
-                       unix_time(1100), false, "foo");
+                       unix_time(1100), "foo");
   auto trp1 = get_trip(*sched_, "0000004", 2, unix_time(1000), "0000005",
-                       unix_time(1100), false, "bar");
+                       unix_time(1100), "bar");
 
   ASSERT_NE(nullptr, trp0);
   ASSERT_NE(nullptr, trp1);
@@ -116,9 +115,9 @@ TEST_F(loader_trip, collision) {
 
 TEST_F(loader_trip, rename) {
   auto trp0 = get_trip(*sched_, "0000001", 3, unix_time(2000), "0000003",
-                       unix_time(2200), false, "");
+                       unix_time(2200), "");
   auto trp1 = get_trip(*sched_, "0000002", 4, unix_time(2100), "0000003",
-                       unix_time(2200), false, "");
+                       unix_time(2200), "");
 
   ASSERT_NE(nullptr, trp0);
   ASSERT_NE(nullptr, trp1);

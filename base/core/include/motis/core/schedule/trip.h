@@ -17,10 +17,6 @@ struct primary_trip_id {
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
       : station_id_(station_id), train_nr_(train_nr), time_(time) {}
 
-  uint64_t station_id_ : 31;
-  uint64_t train_nr_ : 17;
-  uint64_t time_ : 16;
-
   friend bool operator<(primary_trip_id const& lhs,
                         primary_trip_id const& rhs) {
     return *reinterpret_cast<uint64_t const*>(&lhs) <
@@ -32,33 +28,38 @@ struct primary_trip_id {
     return *reinterpret_cast<uint64_t const*>(&lhs) ==
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
+
+  motis::time get_time() const { return static_cast<motis::time>(time_); }
+  uint32_t get_train_nr() const { return static_cast<uint32_t>(train_nr_); }
+
+  uint64_t station_id_ : 31;
+  uint64_t train_nr_ : 17;
+  uint64_t time_ : 16;
 };
 
 struct secondary_trip_id {
   secondary_trip_id() = default;
   secondary_trip_id(uint32_t target_station_id, uint16_t target_time,
-                    bool is_arrival, std::string line_id)
+                    std::string line_id)
       : target_station_id_(target_station_id),
         target_time_(target_time),
-        is_arrival_(is_arrival),
         line_id_(std::move(line_id)) {}
-
-  uint64_t target_station_id_ : 31;
-  uint64_t target_time_ : 16;
-  uint64_t is_arrival_ : 1;
-  std::string line_id_;
 
   friend bool operator<(secondary_trip_id const& lhs,
                         secondary_trip_id const& rhs) {
-    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id_) <
-           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id_);
+    return std::tie(lhs.target_station_id_, lhs.target_time_, lhs.line_id_) <
+           std::tie(rhs.target_station_id_, rhs.target_time_, rhs.line_id_);
   }
 
   friend bool operator==(secondary_trip_id const& lhs,
                          secondary_trip_id const& rhs) {
-    return std::tie(*reinterpret_cast<uint64_t const*>(&lhs), lhs.line_id_) ==
-           std::tie(*reinterpret_cast<uint64_t const*>(&rhs), rhs.line_id_);
+    return std::tie(lhs.target_station_id_, lhs.target_time_, lhs.line_id_) ==
+           std::tie(rhs.target_station_id_, rhs.target_time_, rhs.line_id_);
   }
+
+  uint32_t target_station_id_;
+  motis::time target_time_;
+  std::string line_id_;
 };
 
 struct full_trip_id {
@@ -124,7 +125,6 @@ struct hash<motis::secondary_trip_id> {
     std::size_t seed = 0;
     motis::hash_combine(seed, e.target_station_id_);
     motis::hash_combine(seed, e.target_time_);
-    motis::hash_combine(seed, e.is_arrival_);
     motis::hash_combine(seed, e.line_id_);
     return seed;
   }

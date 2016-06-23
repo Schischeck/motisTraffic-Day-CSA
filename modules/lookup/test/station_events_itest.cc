@@ -85,7 +85,6 @@ TEST_F(lookup_station_events_test, DISABLED_station_events) {
     ASSERT_EQ(1, trip_ids->size());
     auto trip_id = trip_ids->Get(0);
     EXPECT_EQ("8000046", trip_id->station_id()->str());
-    EXPECT_EQ(EventType_DEP, trip_id->type());
     EXPECT_EQ(10958, trip_id->train_nr());
     EXPECT_EQ("", trip_id->line_id()->str());
     EXPECT_EQ(1448374200, trip_id->time());
@@ -110,7 +109,6 @@ TEST_F(lookup_station_events_test, DISABLED_station_events) {
           EXPECT_EQ(1448372400, e->schedule_time());
 
           EXPECT_EQ("8000096", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(2292, tid->train_nr());
           EXPECT_EQ("381", tid->line_id()->str());
           EXPECT_EQ(1448366700, tid->time());
@@ -124,7 +122,6 @@ TEST_F(lookup_station_events_test, DISABLED_station_events) {
           EXPECT_EQ(1448373840, e->schedule_time());
 
           EXPECT_EQ("8000261", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(628, tid->train_nr());
           EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
@@ -138,7 +135,6 @@ TEST_F(lookup_station_events_test, DISABLED_station_events) {
           EXPECT_EQ(1448374200, e->schedule_time());
 
           EXPECT_EQ("8000261", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(628, tid->train_nr());
           EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
@@ -174,7 +170,6 @@ TEST_F(lookup_station_events_test, station_events_no_realtime) {
     ASSERT_EQ(1, trip_ids->size());
     auto trip_id = trip_ids->Get(0);
     EXPECT_EQ("8000046", trip_id->station_id()->str());
-    EXPECT_EQ(EventType_DEP, trip_id->type());
     EXPECT_EQ(10958, trip_id->train_nr());
     EXPECT_EQ("", trip_id->line_id()->str());
     EXPECT_EQ(1448374200, trip_id->time());
@@ -199,7 +194,6 @@ TEST_F(lookup_station_events_test, station_events_no_realtime) {
           EXPECT_EQ(1448372400, e->schedule_time());
 
           EXPECT_EQ("8000096", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(2292, tid->train_nr());
           EXPECT_EQ("381", tid->line_id()->str());
           EXPECT_EQ(1448366700, tid->time());
@@ -213,7 +207,6 @@ TEST_F(lookup_station_events_test, station_events_no_realtime) {
           EXPECT_EQ(1448373840, e->schedule_time());
 
           EXPECT_EQ("8000261", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(628, tid->train_nr());
           EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());
@@ -227,7 +220,6 @@ TEST_F(lookup_station_events_test, station_events_no_realtime) {
           EXPECT_EQ(1448374200, e->schedule_time());
 
           EXPECT_EQ("8000261", tid->station_id()->str());
-          EXPECT_EQ(EventType_DEP, tid->type());
           EXPECT_EQ(628, tid->train_nr());
           EXPECT_EQ("", tid->line_id()->str());
           EXPECT_EQ(1448362440, tid->time());

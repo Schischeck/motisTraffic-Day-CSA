@@ -42,7 +42,7 @@ TEST_F(rt_invalid_update_test, trip_conflict_test) {
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
-                      unix_time(1400), false, "381");
+                      unix_time(1400), "381");
   auto events = get_trip_event_info(trp);
 
   EXPECT_EQ(motis_time(1010), events["0000001"].dep_);
