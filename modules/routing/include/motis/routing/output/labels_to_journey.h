@@ -46,6 +46,7 @@ journey labels_to_journey(schedule const& sched, Label const* label) {
 
   j.stops_ = generate_journey_stops(s, sched);
   j.transports_ = generate_journey_transports(t, sched);
+  j.trips_ = generate_journey_trips(t, sched);
   j.attributes_ = generate_journey_attributes(t);
 
   j.duration_ = label->now_ - label->start_;

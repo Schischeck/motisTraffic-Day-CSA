@@ -25,7 +25,6 @@ constexpr auto kIdTrainICERequest = R""(
       "time": 1448362440,
       "target_station_id": "8000080",
       "target_time": 1448382360,
-      "type": "DEP",
       "line_id": ""
     }
   }
