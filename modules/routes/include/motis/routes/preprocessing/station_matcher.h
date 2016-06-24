@@ -6,12 +6,11 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/protocol/RoutesSections_generated.h"
 #include "motis/routes/preprocessing/geo_util.h"
 #include "motis/routes/preprocessing/node_geo_index.h"
 #include "motis/routes/preprocessing/osm/osm_node.h"
 #include "motis/routes/preprocessing/osm/osm_route.h"
-#include "motis/routes/preprocessing/postgres_writer.h"
+#include "motis/protocol/RoutesSections_generated.h"
 
 namespace motis {
 namespace routes {
@@ -22,9 +21,7 @@ public:
                   std::map<int64_t, osm_route> const& osm_routes,
                   schedule const& schedule);
 
-  void find_railways(postgres_writer& writer);
-
-  void export_stations(postgres_writer& writer);
+  void find_railways(std::string file_name);
 
   void add_nodes();
 
@@ -45,5 +42,6 @@ public:
   flatbuffers::FlatBufferBuilder builder_;
   schedule const& sched_;
 };
+
 }  // namespace routes
 }  // namespace motis

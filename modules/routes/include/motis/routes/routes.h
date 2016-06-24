@@ -3,13 +3,14 @@
 #include <string>
 #include <vector>
 
-#include "motis/module/module.h"
 #include "parser/file.h"
 
+#include "motis/module/module.h"
 #include "motis/protocol/RoutesSections_generated.h"
 
 namespace motis {
 namespace routes {
+
 struct routes : public motis::module::module {
   routes();
   ~routes() override;
@@ -24,5 +25,6 @@ private:
   std::string routes_file_;
   bool file_loaded_;
 };
+
 }  // namespace routes
 }  // namespace motis

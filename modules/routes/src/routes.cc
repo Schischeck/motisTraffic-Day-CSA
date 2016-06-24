@@ -36,9 +36,9 @@ msg_ptr routes::routes_section(msg_ptr const& m) {
 
   b.create_and_finish(
       MsgContent_RoutesSectionRes,
-      (file_loaded_ ? motis::routes::railviz_railroad_sec_with_data(
+      (file_loaded_ ? motis::routes::routes_railroad_sec_with_data(
                           departure, arrival, clasz, b, routes_buf_)
-                    : motis::routes::railviz_railroad_sec_without_data(
+                    : motis::routes::routes_railroad_sec_without_data(
                           departure, arrival, clasz, b))
           .Union());
   return make_msg(b);

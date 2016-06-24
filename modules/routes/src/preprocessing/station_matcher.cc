@@ -35,25 +35,20 @@ station_matcher::station_matcher(std::map<int64_t, osm_node>& osm_nodes,
   }
 }
 
-void station_matcher::find_railways(postgres_writer& writer) {
+void station_matcher::find_railways(std::string file_name) {
   scoped_timer timer("finding railway nodes");
-  writer.add_table("railway_nodes", "(clasz integer, way geometry)",
-                   "(clasz, way)", 2);
   for (auto const& station_node : sched_.station_nodes_) {
     auto results = find_routes(*station_node);
     for (auto const& nodes : results) {
-      writer.add_entry({std::to_string(std::get<1>(nodes)),
-                        writer.make_line(std::get<2>(nodes))});
       rail_roads_.push_back(CreateRoutesSection(
           builder_, station_node->id_, std::get<0>(nodes), std::get<1>(nodes),
           builder_.CreateVector(std::get<2>(nodes))));
     }
   }
-  writer.end_table();
   auto railroads_fb =
       CreateRoutesSections(builder_, builder_.CreateVector(rail_roads_));
   builder_.Finish(railroads_fb);
-  parser::file("test.raw", "w+")
+  parser::file(file_name.c_str(), "w+")
       .write(builder_.GetBufferPointer(), builder_.GetSize());
 };
 
@@ -105,19 +100,6 @@ station_matcher::find_routes(station_node const& station_node) {
             });
   return results;
 };
-
-void station_matcher::export_stations(postgres_writer& writer) {
-  scoped_timer timer("exporting stations");
-  writer.add_table("motis_station",
-                   "(name TEXT NOT NULL, clasz integer, way geometry)",
-                   "(name, clasz, way)", 3);
-  for (auto const& station : sched_.stations_) {
-    auto clasz = min_clasz(station->index_);
-    writer.add_entry({station->name_, std::to_string(clasz),
-                      writer.make_point(station->length_, station->width_)});
-  }
-  writer.end_table();
-}
 
 uint8_t station_matcher::min_clasz(int32_t station_index) {
   uint8_t min_clasz = 9;

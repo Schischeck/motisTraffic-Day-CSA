@@ -10,7 +10,7 @@ namespace routes {
 
 class osm_route {
 public:
-  explicit osm_route(uint8_t clasz_) : clasz_(clasz_) {}
+  explicit osm_route(uint8_t clasz) : clasz_(clasz) {}
 
   std::vector<int64_t> railways_;
   uint8_t clasz_;

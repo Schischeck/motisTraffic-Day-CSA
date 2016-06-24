@@ -1,8 +1,8 @@
 #pragma once
 
-#include "boost/geometry.hpp"
-#include "boost/geometry/geometries/point.hpp"
+#include "boost/geometry/geometries/geometries.hpp"
 
+#include "motis/core/common/geo.h"
 #include "motis/routes/preprocessing/osm/osm_node.h"
 
 namespace bg = boost::geometry;
@@ -11,13 +11,10 @@ namespace bgi = boost::geometry::index;
 namespace motis {
 namespace routes {
 
-typedef bg::cs::spherical_equatorial<bg::degree> coordinate_system;
-typedef bg::model::point<double, 2, coordinate_system> spherical_point;
-typedef bg::model::box<spherical_point> box;
-typedef bg::model::linestring<spherical_point> linestring;
+using linestring =  bg::model::linestring<geo_detail::spherical_point>;
 
-inline box create_bounding_box(linestring const& ls) {
-  box bounding_box;
+inline geo_detail::box create_bounding_box(linestring const& ls) {
+  geo_detail::box bounding_box;
   envelope(ls, bounding_box);
   return bounding_box;
 }
@@ -48,8 +45,7 @@ inline linestring create_linestring_from_ways(
 
 inline bool check_distance(double lat1, double lon1, double lat2, double lon2,
                            int max_dist) {
-  return distance(spherical_point(lon1, lat1), spherical_point(lon2, lat2)) *
-             6378137 <
+  return geo_detail::distance_in_m(geo_detail::spherical_point(lon1, lat1), geo_detail::spherical_point(lon2, lat2)) <
          max_dist;
 }
 

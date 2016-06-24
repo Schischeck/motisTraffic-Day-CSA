@@ -7,7 +7,6 @@
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/routes/preprocessing/osm/osm_loader.h"
-#include "motis/routes/preprocessing/postgres_writer.h"
 #include "motis/routes/preprocessing/station_matcher.h"
 
 using namespace motis;
@@ -16,14 +15,15 @@ using namespace motis::logging;
 using namespace motis::routes;
 
 int main(int argc, char** argv) {
-  if (argc < 2 && argc < 4) {
+  if (argc < 5) {
     std::cout << "./routes-preprocessor <osm pbf> <schedule (default "
-                 "rohdaten)> <schedule_begin>"
+                 "rohdaten)> <schedule_begin> <file_name>"
               << std::endl;
     return 0;
   }
   std::string pbf(argv[1]);
-  std::string schedule(argc >= 3 ? argv[2] : "rohdaten");
+  std::string schedule(argv[2]);
+  std::string file_name(argv[4]);
   std::map<int64_t, osm_node> osm_nodes;
   std::map<int64_t, osm_route> osm_routes;
   if (pbf != "/") {
@@ -32,15 +32,11 @@ int main(int argc, char** argv) {
     LOG(log_level::info) << osm_nodes.size() << " Nodes extracted";
     LOG(log_level::info) << osm_routes.size() << " Routes extracted";
   }
-  dataset_settings dataset_opt(schedule, argc == 4 ? argv[3] : "TODAY", 2,
+  dataset_settings dataset_opt(schedule, argv[3], 2,
                                false, false, false, false);
   motis_instance instance;
   instance.init_schedule(dataset_opt);
   auto const& sched = *instance.schedule_;
-  postgres_writer writer("railways");
-  writer.open();
   station_matcher matcher(osm_nodes, osm_routes, sched);
-  matcher.find_railways(writer);
-  matcher.export_stations(writer);
-  writer.close();
+  matcher.find_railways(file_name);
 }
