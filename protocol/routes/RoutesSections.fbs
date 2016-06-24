@@ -1,5 +1,3 @@
-include "routes/RoutesSections.fbs";
-
 namespace motis.routes;
 
 table RoutesSection {
