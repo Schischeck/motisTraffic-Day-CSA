@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "parser/file.h"
 #include "flatbuffers/flatbuffers.h"
+#include "parser/file.h"
 
 #include "motis/core/access/station_access.h"
 #include "motis/module/message.h"

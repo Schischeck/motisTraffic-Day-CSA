@@ -61,8 +61,7 @@ const std::vector<std::string> routesFile = {
     "test_preprocessing/test_osm/simple_realtime.raw"};
 
 struct routes_test : public motis_instance_test {
-  routes_test()
-      : motis_instance_test(dataset_opt, {"routes"}, routesFile) {}
+  routes_test() : motis_instance_test(dataset_opt, {"routes"}, routesFile) {}
 };
 
 TEST_F(routes_test, sec_no_route) {

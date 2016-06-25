@@ -106,5 +106,5 @@ TEST_F(routes_preprocessing_test, check_node_no_departure_node) {
   ASSERT_EQ(3, std::get<1>(actual[0]));
   ASSERT_EQ(nodes, std::get<2>(actual[0]));
 };
-} // namespace routes
-} // namespace motis
+}  // namespace routes
+}  // namespace motis

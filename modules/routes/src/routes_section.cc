@@ -23,8 +23,7 @@ flatbuffers::Offset<RoutesSectionRes> routes_railroad_sec_with_data(
       it->from() == departure->index_ && it->to() == arrival->index_) {
     std::vector<double> section;
     auto best = it;
-    while (it != railroad_sections->sections()->end() &&
-           it->clasz() != clasz &&
+    while (it != railroad_sections->sections()->end() && it->clasz() != clasz &&
            (it->from() == departure->index_ && it->to() == arrival->index_)) {
       ++it;
       if (it->clasz() < best->clasz()) {

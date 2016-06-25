@@ -11,7 +11,7 @@ namespace bgi = boost::geometry::index;
 namespace motis {
 namespace routes {
 
-using linestring =  bg::model::linestring<geo_detail::spherical_point>;
+using linestring = bg::model::linestring<geo_detail::spherical_point>;
 
 inline geo_detail::box create_bounding_box(linestring const& ls) {
   geo_detail::box bounding_box;
@@ -45,7 +45,8 @@ inline linestring create_linestring_from_ways(
 
 inline bool check_distance(double lat1, double lon1, double lat2, double lon2,
                            int max_dist) {
-  return geo_detail::distance_in_m(geo_detail::spherical_point(lon1, lat1), geo_detail::spherical_point(lon2, lat2)) <
+  return geo_detail::distance_in_m(geo_detail::spherical_point(lon1, lat1),
+                                   geo_detail::spherical_point(lon2, lat2)) <
          max_dist;
 }
 

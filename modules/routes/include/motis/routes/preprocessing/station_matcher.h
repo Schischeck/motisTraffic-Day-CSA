@@ -10,6 +10,7 @@
 #include "motis/routes/preprocessing/node_geo_index.h"
 #include "motis/routes/preprocessing/osm/osm_node.h"
 #include "motis/routes/preprocessing/osm/osm_route.h"
+
 #include "motis/protocol/RoutesSections_generated.h"
 
 namespace motis {

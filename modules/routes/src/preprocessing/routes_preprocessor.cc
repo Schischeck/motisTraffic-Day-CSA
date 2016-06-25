@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
     LOG(log_level::info) << osm_nodes.size() << " Nodes extracted";
     LOG(log_level::info) << osm_routes.size() << " Routes extracted";
   }
-  dataset_settings dataset_opt(schedule, argv[3], 2,
-                               false, false, false, false);
+  dataset_settings dataset_opt(schedule, argv[3], 2, false, false, false,
+                               false);
   motis_instance instance;
   instance.init_schedule(dataset_opt);
   auto const& sched = *instance.schedule_;

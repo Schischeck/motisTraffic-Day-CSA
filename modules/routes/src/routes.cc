@@ -19,9 +19,9 @@ routes::~routes() = default;
 
 void routes::init(registry& r) {
   if (boost::filesystem::exists(routes_file_)) {
-     routes_buf_ = parser::file(routes_file_.c_str(), "r").content();
-     file_loaded_ = true;
-   }
+    routes_buf_ = parser::file(routes_file_.c_str(), "r").content();
+    file_loaded_ = true;
+  }
   r.register_op("/routes/section",
                 [this](msg_ptr const& m) { return routes_section(m); });
 }

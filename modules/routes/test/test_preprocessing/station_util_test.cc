@@ -49,8 +49,8 @@ TEST_F(routes_preprocessing_util, extract_nodes) {
   std::vector<int64_t> node_section;
   std::vector<int64_t> expected = {100, 101, 102};
   station_matcher station_matcher(osm_nodes_, osm_routes_, *schedule_);
-  ASSERT_EQ(expected,
-            station_matcher.extract_nodes(osm_routes_.at(1).railways_, 100, 102));
+  ASSERT_EQ(expected, station_matcher.extract_nodes(osm_routes_.at(1).railways_,
+                                                    100, 102));
 }
-} // namespace routes
-} // namespace motis
+}  // namespace routes
+}  // namespace motis

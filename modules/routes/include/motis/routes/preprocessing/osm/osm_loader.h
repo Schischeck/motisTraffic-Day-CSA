@@ -13,6 +13,7 @@
 #include "motis/routes/preprocessing/osm/osm_route.h"
 #include "motis/routes/preprocessing/osm/osm_route_finder.h"
 #include "motis/routes/preprocessing/osm/osm_way_finder.h"
+
 namespace motis {
 namespace routes {
 
