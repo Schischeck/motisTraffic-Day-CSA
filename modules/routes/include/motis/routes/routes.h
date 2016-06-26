@@ -21,6 +21,8 @@ struct routes : public motis::module::module {
 private:
   motis::module::msg_ptr routes_section(motis::module::msg_ptr const& m);
 
+  motis::module::msg_ptr all_sections(motis::module::msg_ptr const& m);
+
   parser::buffer routes_buf_;
   std::string routes_file_;
   bool file_loaded_;

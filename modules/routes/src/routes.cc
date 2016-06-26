@@ -5,6 +5,8 @@
 
 #include "boost/filesystem.hpp"
 
+#include "motis/protocol/RoutesAllSectionRes_generated.h"
+
 using namespace flatbuffers;
 using namespace motis::module;
 
@@ -24,6 +26,8 @@ void routes::init(registry& r) {
   }
   r.register_op("/routes/section",
                 [this](msg_ptr const& m) { return routes_section(m); });
+  r.register_op("/routes/all",
+                [this](msg_ptr const& m) { return all_sections(m); });
 }
 
 msg_ptr routes::routes_section(msg_ptr const& m) {
@@ -41,6 +45,35 @@ msg_ptr routes::routes_section(msg_ptr const& m) {
                     : motis::routes::routes_railroad_sec_without_data(
                           departure, arrival, clasz, b))
           .Union());
+  return make_msg(b);
+}
+
+msg_ptr routes::all_sections(msg_ptr const& m) {
+  message_creator b;
+  auto msg = motis_content(RoutesAllSectionReq, m);
+  auto railroad_sections = GetRoutesSections(routes_buf_.buf_);
+  std::vector<flatbuffers::Offset<RoutesSection>> sections;
+  auto index = 0;
+  auto it = railroad_sections->sections()->begin();
+  while (it != railroad_sections->sections()->end()) {
+    std::vector<double> section;
+    for (auto const d : *it->section()) {
+      section.push_back(d);
+    }
+    if (it->clasz() == msg->clasz()) {
+      if (index == 3) {
+        std::cout << it->to() << it->from() << std::endl;
+      }
+      sections.push_back(CreateRoutesSection(
+          b, it->from(), it->to(), it->clasz(), b.CreateVector(section)));
+      index++;
+    }
+    ++it;
+  }
+
+  b.create_and_finish(
+      MsgContent_RoutesAllSectionRes,
+      CreateRoutesAllSectionRes(b, b.CreateVector(sections)).Union());
   return make_msg(b);
 }
 

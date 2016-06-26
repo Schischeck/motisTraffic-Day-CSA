@@ -73,19 +73,10 @@ station_matcher::find_routes(station_node const& station_node) {
         continue;
       }
       auto nodes = intersect(station_node.id_, dest->id_, clasz);
-      if (nodes.empty()) {
-        auto const& station1 = sched_.stations_[station_node.id_];
-        auto const& station2 = sched_.stations_[dest->id_];
-        route.push_back(station1->width_);
-        route.push_back(station1->length_);
-        route.push_back(station2->width_);
-        route.push_back(station2->length_);
-      } else {
-        for (auto const& id : nodes) {
-          auto const& n = osm_nodes_.at(id);
-          route.push_back(n.location_.lat());
-          route.push_back(n.location_.lon());
-        }
+      for (auto const& id : nodes) {
+        auto const& n = osm_nodes_.at(id);
+        route.push_back(n.location_.lat());
+        route.push_back(n.location_.lon());
       }
       if (!route.empty()) {
         results.push_back(std::make_tuple(dest->id_, clasz, route));
@@ -142,22 +133,12 @@ std::vector<int64_t> station_matcher::intersect(uint32_t id1, uint32_t id2,
 
 std::vector<int64_t> station_matcher::extract_nodes(
     std::vector<int64_t> const& nodes, int64_t n1, int64_t n2) {
-  bool first_found = false;
   std::vector<int64_t> node_section;
-  for (auto const& node : nodes) {
-    if (node == n1 || node == n2) {
-      if (!first_found) {
-        first_found = true;
-      } else {
-        first_found = false;
-        node_section.push_back(node);
-      }
-    }
-    if (!first_found) {
-      continue;
-    }
-    node_section.push_back(node);
-  }
+  auto it = std::find(nodes.begin(), nodes.end(), n1);
+  auto it2 = std::find(nodes.begin(), nodes.end(), n2);
+  auto first = std::min(it, it2);
+  auto second = std::max(it, it2);
+  std::copy(first, second + 1, std::back_inserter(node_section));
   return node_section;
 };
 

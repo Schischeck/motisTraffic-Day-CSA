@@ -60,7 +60,7 @@ TEST_F(routes_preprocessing_test, match_intersect_without_nodes) {
   ASSERT_TRUE(actual_station45.empty());
 };
 
-TEST_F(routes_preprocessing_test, check_node_no_osm_nodes) {
+TEST_F(routes_preprocessing_test, DISABLED_check_node_no_osm_nodes) {
   station_matcher station_matcher(osm_nodes_, osm_routes_, *schedule_);
   std::vector<double> nodes = {
       schedule_->stations_[17]->width_, schedule_->stations_[17]->length_,
@@ -71,7 +71,7 @@ TEST_F(routes_preprocessing_test, check_node_no_osm_nodes) {
   ASSERT_EQ(nodes, std::get<2>(actual[0]));
 };
 
-TEST_F(routes_preprocessing_test, check_node_no_destination_node) {
+TEST_F(routes_preprocessing_test, DISABLED_check_node_no_destination_node) {
   station_matcher station_matcher(osm_nodes_, osm_routes_, *schedule_);
   std::vector<double> nodes = {
       schedule_->stations_[12]->width_, schedule_->stations_[12]->length_,
@@ -96,7 +96,7 @@ TEST_F(routes_preprocessing_test, check_node_both_with_osm_nodes) {
   ASSERT_EQ(osm_nodes, std::get<2>(actual[0]));
 };
 
-TEST_F(routes_preprocessing_test, check_node_no_departure_node) {
+TEST_F(routes_preprocessing_test, DISABLED_check_node_no_departure_node) {
   station_matcher station_matcher(osm_nodes_, osm_routes_, *schedule_);
   std::vector<double> nodes = {
       schedule_->stations_[17]->width_, schedule_->stations_[17]->length_,
