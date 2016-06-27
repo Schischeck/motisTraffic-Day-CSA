@@ -73,11 +73,13 @@ struct label : public Data {
   uint8_t absurdity_, foot_counter_;
 
 private:
-  void set_absurdity() {
+  inline void set_absurdity() {
+    auto constexpr MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED = 3;
     if (edge_->type() == edge::FOOT_EDGE ||
         edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
       ++foot_counter_;
-      if (foot_counter_ >= 4 && absurdity_ < 255) {
+      if (foot_counter_ > MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED &&
+          absurdity_ < UINT8_MAX) {
         ++absurdity_;
       }
     } else {
