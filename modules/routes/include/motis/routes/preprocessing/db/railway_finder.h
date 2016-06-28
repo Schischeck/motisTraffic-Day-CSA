@@ -5,16 +5,17 @@
 
 namespace motis {
 namespace routes {
-class railway_finder {
+
+struct railway_finder {
 public:
   railway_finder(schedule const& sched, railway_graph& graph);
 
   void find_railways(std::string file);
 
 private:
-  std::vector<double> shortest_path(station_node const& start,
-                                    station_node const& end);
-  std::vector<int> get_connected_stations(station_node const& node);
+  // std::vector<double> shortest_path(station_node const& start,
+  //                                   station_node const& end);
+  // std::vector<int> get_connected_stations(station_node const& node);
 
   schedule const& sched_;
   railway_graph& graph_;

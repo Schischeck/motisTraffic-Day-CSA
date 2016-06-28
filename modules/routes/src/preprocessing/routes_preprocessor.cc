@@ -4,19 +4,19 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/station.h"
-#include "motis/bootstrap/dataset_settings.h"
-#include "motis/bootstrap/motis_instance.h"
+
+#include "motis/loader/loader.h"
+
 #include "motis/routes/preprocessing/db/railway_finder.h"
 #include "motis/routes/preprocessing/db/railway_graph.h"
 #include "motis/routes/preprocessing/db/railway_graph_builder.h"
-#include "motis/routes/preprocessing/db/railway_node.h"
 #include "motis/routes/preprocessing/osm/osm_loader.h"
 #include "motis/routes/preprocessing/station_matcher.h"
 
 using namespace motis;
-using namespace motis::bootstrap;
 using namespace motis::logging;
 using namespace motis::routes;
+using namespace motis::loader;
 
 int main(int argc, char** argv) {
   if (argc < 4) {
@@ -25,16 +25,13 @@ int main(int argc, char** argv) {
               << std::endl;
     return 0;
   }
-  std::string root(argv[1]);
-  std::string schedule(argv[2]);
-  dataset_settings dataset_opt(schedule, argv[3], 2, false, false, false,
-                               false);
-  motis_instance instance;
-  instance.init_schedule(dataset_opt);
-  auto const& sched = *instance.schedule_;
+
+  loader_options opt(argv[2], argv[3], 2, false, false, false, false);
+  auto schedule = load_schedule(opt);
+
   railway_graph graph;
   railway_graph_builder graph_builder(graph);
-  graph_builder.build_graph(root);
+  graph_builder.build_graph(argv[1]);
 
-  railway_finder finder(sched, graph);
+  // railway_finder finder(sched, graph);
 }

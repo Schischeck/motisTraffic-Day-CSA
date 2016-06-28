@@ -9,8 +9,6 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/routes/preprocessing/db/railway_graph.h"
-#include "motis/routes/preprocessing/db/railway_link.h"
-#include "motis/routes/preprocessing/db/railway_node.h"
 
 namespace motis {
 namespace routes {
