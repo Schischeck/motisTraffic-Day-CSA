@@ -3,6 +3,7 @@
 #include <string>
 
 #include "motis/core/access/service_access.h"
+#include "motis/core/access/time_access.h"
 #include "motis/routing/output/interval_map.h"
 
 namespace motis {
@@ -96,6 +97,48 @@ std::vector<journey::transport> generate_journey_transports(
             });
 
   return journey_transports;
+}
+
+std::vector<journey::trip> generate_journey_trips(
+    std::vector<intermediate::transport> const& transports,
+    schedule const& sched) {
+  struct trp_cmp {
+    bool operator()(trip const* a, trip const* b) const {
+      return a->id_ < b->id_;
+    }
+  };
+
+  interval_map<trip const*, trp_cmp> intervals;
+  for (auto const& t : transports) {
+    if (!t.con_) {
+      continue;
+    }
+
+    for (auto const& trp : *sched.merged_trips_.at(t.con_->trips_)) {
+      intervals.add_entry(trp, t.from_, t.to_);
+    }
+  }
+
+  std::vector<journey::trip> journey_trips;
+  for (auto const& t : intervals.get_attribute_ranges()) {
+    auto const& p = t.first->id_.primary_;
+    auto const& s = t.first->id_.secondary_;
+    for (auto const& range : t.second) {
+      journey_trips.push_back(journey::trip{
+          static_cast<unsigned>(range.from_), static_cast<unsigned>(range.to_),
+          sched.stations_.at(p.station_id_)->eva_nr_, p.get_train_nr(),
+          motis_to_unixtime(sched, p.get_time()),
+          sched.stations_.at(s.target_station_id_)->eva_nr_,
+          motis_to_unixtime(sched, s.target_time_), s.line_id_});
+    }
+  }
+
+  std::sort(begin(journey_trips), end(journey_trips),
+            [](journey::trip const& lhs, journey::trip const& rhs) {
+              return lhs.from_ < rhs.from_;
+            });
+
+  return journey_trips;
 }
 
 std::vector<journey::stop> generate_journey_stops(

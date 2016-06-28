@@ -148,9 +148,9 @@ TEST_F(service_rules_graph_builder_test_virt, service_numbers_3) {
 
 TEST_F(service_rules_graph_builder_test_virt, trip_1) {
   auto trp1 = get_trip(*sched_, "0000001", 1, unix_time(110, 0), "0000007",
-                       unix_time(600, 0, 120), false, "");
+                       unix_time(600, 0, 120), "");
   auto trp2 = get_trip(*sched_, "0000005", 5, unix_time(510, 0, 120), "0000007",
-                       unix_time(600, 0, 120), false, "");
+                       unix_time(600, 0, 120), "");
 
   EXPECT_EQ(trp1, trp2);
   EXPECT_EQ(path_evas(trp1),
@@ -170,7 +170,7 @@ TEST_F(service_rules_graph_builder_test_virt, trip_1) {
 
 TEST_F(service_rules_graph_builder_test_virt, trip_2) {
   auto trp = get_trip(*sched_, "0000002", 3, unix_time(210, 0, 60), "0000011",
-                      unix_time(800, 0, 120), false, "");
+                      unix_time(800, 0, 120), "");
 
   auto sections = access::sections(trp);
   auto sec2 = *std::next(begin(sections));
