@@ -87,6 +87,23 @@ std::vector<update> get_updates(schedule const& sched,
   return updates;
 }
 
+trip const* rt::get_trip_fuzzy(schedule const& sched,
+                               ris::DelayMessage const* msg) {
+  auto const id = msg->trip_id();
+
+  // first try: exact match of first departure
+  auto trp = find_trip(sched, id->station_id()->str(), id->service_num(),
+                       id->schedule_time());
+
+  // second try: match of first departure with train number set to 0
+  if (trp == nullptr) {
+    stats_.ev_exact_trp_not_found_ += msg->events()->size();
+    trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
+  }
+
+  return trp;
+}
+
 void rt::add_to_propagator(schedule const& sched,
                            ris::DelayMessage const* msg) {
   stats_.total_evs_ += msg->events()->size();
@@ -97,17 +114,7 @@ void rt::add_to_propagator(schedule const& sched,
     return;
   }
 
-  // Retrieve trip.
-  // - first try: exact match of first departure
-  // - second try: match of first departure with train number set to 0
-  trip const* trp;
-  auto const id = msg->trip_id();
-  trp = find_trip(sched, id->station_id()->str(), id->service_num(),
-                  id->schedule_time());
-  if (trp == nullptr) {
-    stats_.ev_exact_trp_not_found_ += msg->events()->size();
-    trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
-  }
+  auto trp = get_trip_fuzzy(sched, msg);
   if (trp == nullptr) {
     stats_.ev_trp_not_found_ += msg->events()->size();
     return;
@@ -118,18 +125,15 @@ void rt::add_to_propagator(schedule const& sched,
                                               ? timestamp_reason::IS
                                               : timestamp_reason::FORECAST,
                                    msg->events(), stats_);
-  auto const lcon_idx = trp->lcon_idx_;
   stats_.total_updates_ += updates.size();
 
   // For each edge of the trip:
-  for (auto& trp_e : *trp->edges_) {
-    auto& e = *trp_e.get_edge();
-    auto& lcon = e.m_.route_edge_.conns_[lcon_idx];
+  for (auto const& trp_e : *trp->edges_) {
+    auto const e = trp_e.get_edge();
 
     // For each event of the edge / light connection:
     for (auto ev_type : {event_type::DEP, event_type::ARR}) {
-      auto const route_node = get_route_node(e, ev_type);
-      auto const ev_time = lcon.event_time(ev_type);
+      auto const route_node = get_route_node(*e, ev_type);
 
       // Try updates:
       for (auto const& upd : updates) {
@@ -139,16 +143,11 @@ void rt::add_to_propagator(schedule const& sched,
           continue;
         }
 
-        // Get delay info from graph event.
-        auto const graph_ev = ev_key(&e, lcon_idx, ev_type);
-        auto di_it = sched.graph_to_delay_info_.find(graph_ev);
-
         // Check whether schedule time matches update message schedule time.
-        auto const schedule_time = di_it != end(sched.graph_to_delay_info_)
-                                       ? di_it->second->get_schedule_time()
-                                       : ev_time;
+        auto const k = ev_key{e, trp->lcon_idx_, ev_type};
         auto const diff =
-            std::abs(static_cast<int>(upd.sched_time_) - schedule_time);
+            std::abs(static_cast<int>(upd.sched_time_) -
+                     static_cast<int>(get_schedule_time(sched, k)));
         if (diff != 0) {
           stats_.log_sched_time_mismatch(diff);
           if (diff > 5) {
@@ -156,8 +155,7 @@ void rt::add_to_propagator(schedule const& sched,
           }
         }
 
-        propagator_->add_delay(ev_key(&e, lcon_idx, ev_type), upd.reason_,
-                               upd.upd_time_);
+        propagator_->add_delay(k, upd.reason_, upd.upd_time_);
         ++stats_.found_updates_;
       }
     }
@@ -202,6 +200,9 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
   // Parse message and add updates to propagator.
   for (auto const& m : *msgs) {
     auto const& nested = m->message_nested_root();
+
+    stats_.count_message(nested->content_type());
+
     if (nested->content_type() != ris::MessageUnion_DelayMessage) {
       continue;
     }
@@ -253,10 +254,11 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
     } else if (conflicts(k)) {
       for (auto const& di : trip_corrector(sched, k).fix_times()) {
         shifted_nodes.add(di);
+        ++stats_.conflicting_moved_;
       }
+      ++stats_.conflicting_events_;
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
-      ++stats_.disabled_routes_;
       disable_route_layer(k);
     }
 

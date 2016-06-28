@@ -1,4 +1,4 @@
-#include "../include/motis/rt/shifted_nodes_msg_builder.h"
+#include "motis/rt/shifted_nodes_msg_builder.h"
 
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/time_access.h"
