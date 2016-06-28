@@ -5,6 +5,8 @@
 namespace motis {
 namespace routing {
 
+constexpr auto MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED = 3;
+
 struct absurdity {
   uint8_t absurdity_, foot_counter_;
 };
@@ -20,7 +22,6 @@ struct absurdity_initializer {
 struct absurdity_updater {
   template <typename Label, typename LowerBounds>
   static void update(Label& l, edge_cost const&, LowerBounds&) {
-    auto constexpr MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED = 3;
     if (l.edge_->type() == edge::FOOT_EDGE ||
         l.edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
       ++l.foot_counter_;
