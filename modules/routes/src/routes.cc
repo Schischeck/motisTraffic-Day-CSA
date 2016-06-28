@@ -61,9 +61,6 @@ msg_ptr routes::all_sections(msg_ptr const& m) {
       section.push_back(d);
     }
     if (it->clasz() == msg->clasz()) {
-      if (index == 3) {
-        std::cout << it->to() << it->from() << std::endl;
-      }
       sections.push_back(CreateRoutesSection(
           b, it->from(), it->to(), it->clasz(), b.CreateVector(section)));
       index++;
