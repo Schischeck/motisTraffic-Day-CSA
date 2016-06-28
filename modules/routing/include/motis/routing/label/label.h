@@ -19,9 +19,7 @@ struct label : public Data {
         connection_(nullptr),
         start_(pred != nullptr ? pred->start_ : now),
         now_(now),
-        dominated_(false),
-        absurdity_(0),
-        foot_counter_(0) {
+        dominated_(false) {
     Init::init(*this, lb);
   }
 
@@ -43,8 +41,6 @@ struct label : public Data {
     l.edge_ = &e;
     l.connection_ = ec.connection_;
     l.now_ += ec.time_;
-
-    set_absurdity(l);
 
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
@@ -70,22 +66,6 @@ struct label : public Data {
   light_connection const* connection_;
   time start_, now_;
   bool dominated_;
-  uint8_t absurdity_, foot_counter_;
-
-private:
-  inline static void set_absurdity(label& l) {
-    auto constexpr MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED = 3;
-    if (l.edge_->type() == edge::FOOT_EDGE ||
-        l.edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
-      ++l.foot_counter_;
-      if (l.foot_counter_ > MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED &&
-          l.absurdity_ < UINT8_MAX) {
-        ++l.absurdity_;
-      }
-    } else {
-      l.foot_counter_ = 0;
-    }
-  }
 };
 
 }  // namespace routing
