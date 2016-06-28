@@ -53,21 +53,17 @@ msg_ptr routes::all_sections(msg_ptr const& m) {
   auto msg = motis_content(RoutesAllSectionReq, m);
   auto railroad_sections = GetRoutesSections(routes_buf_.buf_);
   std::vector<flatbuffers::Offset<RoutesSection>> sections;
-  auto index = 0;
-  auto it = railroad_sections->sections()->begin();
-  while (it != railroad_sections->sections()->end()) {
-    std::vector<double> section;
-    for (auto const d : *it->section()) {
-      section.push_back(d);
+  for (auto const& section : *railroad_sections->sections()) {
+    std::vector<double> rail_section;
+    for (auto const d : *section->section()) {
+      rail_section.push_back(d);
     }
-    if (it->clasz() == msg->clasz()) {
-      sections.push_back(CreateRoutesSection(
-          b, it->from(), it->to(), it->clasz(), b.CreateVector(section)));
-      index++;
+    if (section->clasz() == msg->clasz()) {
+      sections.push_back(CreateRoutesSection(b, section->from(), section->to(),
+                                             section->clasz(),
+                                             b.CreateVector(rail_section)));
     }
-    ++it;
   }
-
   b.create_and_finish(
       MsgContent_RoutesAllSectionRes,
       CreateRoutesAllSectionRes(b, b.CreateVector(sections)).Union());
