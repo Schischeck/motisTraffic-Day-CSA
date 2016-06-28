@@ -44,7 +44,7 @@ struct label : public Data {
     l.connection_ = ec.connection_;
     l.now_ += ec.time_;
 
-    set_absurdity();
+    set_absurdity(l);
 
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
@@ -73,17 +73,17 @@ struct label : public Data {
   uint8_t absurdity_, foot_counter_;
 
 private:
-  inline void set_absurdity() {
+  inline static void set_absurdity(label& l) {
     auto constexpr MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED = 3;
-    if (edge_->type() == edge::FOOT_EDGE ||
-        edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
-      ++foot_counter_;
-      if (foot_counter_ > MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED &&
-          absurdity_ < UINT8_MAX) {
-        ++absurdity_;
+    if (l.edge_->type() == edge::FOOT_EDGE ||
+        l.edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
+      ++l.foot_counter_;
+      if (l.foot_counter_ > MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED &&
+          l.absurdity_ < UINT8_MAX) {
+        ++l.absurdity_;
       }
     } else {
-      foot_counter_ = 0;
+      l.foot_counter_ = 0;
     }
   }
 };
