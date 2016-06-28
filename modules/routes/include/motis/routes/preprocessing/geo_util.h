@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include "boost/geometry/geometries/geometries.hpp"
 
 #include "motis/core/common/geo.h"
@@ -45,9 +47,18 @@ inline linestring create_linestring_from_ways(
 
 inline bool check_distance(double lat1, double lon1, double lat2, double lon2,
                            int max_dist) {
-  return geo_detail::distance_in_m(geo_detail::spherical_point(lon1, lat1),
-                                   geo_detail::spherical_point(lon2, lat2)) <
-         max_dist;
+  return geo_detail::distance_in_m({lon1, lat1}, {lon2, lat2}) < max_dist;
+}
+
+inline double get_length(std::vector<double> const& coords) {
+  assert(coords.size() % 4 == 0);
+
+  double result = 0;
+  for (unsigned i = 0; i < coords.size() - 4; i += 2) {
+    result += geo_detail::distance_in_m({coords[i], coords[i + 1]},
+                                        {coords[i + 2], coords[i + 3]});
+  }
+  return result;
 }
 
 }  // namespace routes
