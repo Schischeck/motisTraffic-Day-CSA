@@ -4,42 +4,31 @@
 
 #include "motis/core/schedule/event.h"
 #include "motis/core/schedule/time.h"
+#include "motis/core/schedule/timestamp_reason.h"
 
 namespace motis {
 
 struct delay_info {
-  // The order is important:
-  // If (forecast time == schedule time), the reason should be FORECAST.
-  // Thus, FORECAST needs to appear after SCHEDULE (higher priority last).
-  enum class reason { IS, SCHEDULE, PROPAGATION, FORECAST };
-
-  friend std::ostream& operator<<(std::ostream& out,
-                                  delay_info::reason const& r) {
-    switch (r) {
-      case delay_info::reason::SCHEDULE: return out << "SCHEDULE";
-      case delay_info::reason::IS: return out << "IS";
-      case delay_info::reason::FORECAST: return out << "FORECAST";
-      case delay_info::reason::PROPAGATION: return out << "PROPAGATION";
-      default: return out;
-    }
-  }
+  delay_info() = default;
 
   delay_info(delay_info const&) = default;
 
-  delay_info(ev_key ev, time schedule_time)
+  explicit delay_info(ev_key ev)
       : ev_(std::move(ev)),
+        repair_time_(0),
         is_time_(0),
-        schedule_time_(schedule_time),
+        schedule_time_(ev.valid() ? ev.get_time() : INVALID_TIME),
         forecase_time_(0),
         propagation_time_(0) {}
 
-  time get_schedule_time() const { return schedule_time_; }
+  inline time get_schedule_time() const { return schedule_time_; }
 
-  time get_is_time() const { return is_time_; }
-  time get_forecast_time() const { return forecase_time_; }
-  time get_propagation_time() const { return propagation_time_; }
+  inline time get_is_time() const { return is_time_; }
+  inline time get_repair_time() const { return repair_time_; }
+  inline time get_forecast_time() const { return forecase_time_; }
+  inline time get_propagation_time() const { return propagation_time_; }
 
-  void update(delay_info const& d) {
+  inline void update(delay_info const& d) {
     if (schedule_time_ == 0) {
       *this = d;
     } else {
@@ -55,46 +44,63 @@ struct delay_info {
     }
   }
 
-  bool set(reason const r, time const t) {
+  inline bool set(timestamp_reason const r, time const t) {
     auto const before = get_current_time();
 
     switch (r) {
-      case reason::SCHEDULE: schedule_time_ = t; break;
-      case reason::IS: is_time_ = t; break;
-      case reason::FORECAST: forecase_time_ = t; break;
-      case reason::PROPAGATION: propagation_time_ = t; break;
+      case timestamp_reason::REPAIR: repair_time_ = t; break;
+      case timestamp_reason::SCHEDULE: schedule_time_ = t; break;
+      case timestamp_reason::IS: is_time_ = t; break;
+      case timestamp_reason::FORECAST: forecase_time_ = t; break;
+      case timestamp_reason::PROPAGATION: propagation_time_ = t; break;
+    }
+
+    if (r != timestamp_reason::REPAIR) {
+      repair_time_ = 0;
     }
 
     return get_current_time() != before;
   }
 
-  time get_current_time() const {
-    switch (get_reason()) {
-      case reason::SCHEDULE: return schedule_time_;
-      case reason::IS: return is_time_;
-      case reason::FORECAST: return forecase_time_;
-      case reason::PROPAGATION: return propagation_time_;
+  inline time get(timestamp_reason const r) const {
+    switch (r) {
+      case timestamp_reason::REPAIR: return repair_time_;
+      case timestamp_reason::IS: return is_time_;
+      case timestamp_reason::SCHEDULE: return schedule_time_;
+      case timestamp_reason::PROPAGATION: return propagation_time_;
+      case timestamp_reason::FORECAST: return forecase_time_;
       default: return schedule_time_;
     }
   }
 
-  reason get_reason() const {
+  inline time get_current_time() const { return get(get_reason()); }
+
+  inline time get_original_time() const { return get(get_original_reason()); }
+
+  inline timestamp_reason get_reason() const {
+    if (repair_time_ != 0) {
+      return timestamp_reason::REPAIR;
+    }
+    return get_original_reason();
+  }
+
+  inline timestamp_reason get_original_reason() const {
     if (is_time_ != 0) {
-      return reason::IS;
+      return timestamp_reason::IS;
     } else {
       auto const times = {
-          std::make_pair(schedule_time_, reason::SCHEDULE),
-          std::make_pair(forecase_time_, reason::FORECAST),
-          std::make_pair(propagation_time_, reason::PROPAGATION)};
+          std::make_pair(schedule_time_, timestamp_reason::SCHEDULE),
+          std::make_pair(forecase_time_, timestamp_reason::FORECAST),
+          std::make_pair(propagation_time_, timestamp_reason::PROPAGATION)};
       return std::max_element(begin(times), end(times))->second;
     }
   }
 
-  ev_key get_ev_key() const { return ev_; }
+  inline ev_key get_ev_key() const { return ev_; }
 
 private:
   ev_key ev_;
-  time is_time_;
+  time repair_time_, is_time_;
   time schedule_time_, forecase_time_, propagation_time_;
 };
 

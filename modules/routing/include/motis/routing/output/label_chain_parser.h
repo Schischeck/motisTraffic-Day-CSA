@@ -87,8 +87,7 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
   node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
   auto walk_arrival = INVALID_TIME;
-  auto walk_arrival_di =
-      delay_info({nullptr, 0, event_type::DEP}, INVALID_TIME);
+  auto walk_arrival_di = delay_info({nullptr, INVALID_TIME, event_type::DEP});
   auto stop_index = -1;
 
   auto it = begin(labels);
@@ -98,12 +97,16 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
     switch (current_state) {
       case AT_STATION: {
+        if (current->edge_->type() == edge::HOTEL_EDGE &&
+            (*std::next(it))->get_node()->is_foot_node()) {
+          break;
+        }
         int a_track = MOTIS_UNKNOWN_TRACK;
         int d_track = MOTIS_UNKNOWN_TRACK;
         time a_time = walk_arrival, a_sched_time = walk_arrival;
         time d_time = INVALID_TIME, d_sched_time = INVALID_TIME;
-        delay_info::reason a_reason = walk_arrival_di.get_reason(),
-                           d_reason = delay_info::reason::SCHEDULE;
+        timestamp_reason a_reason = walk_arrival_di.get_reason(),
+                         d_reason = timestamp_reason::SCHEDULE;
         if (a_time == INVALID_TIME && last_con != nullptr) {
           a_track = last_con->full_con_->a_track_;
           a_time = last_con->a_time_;
@@ -173,9 +176,10 @@ parse_label_chain(schedule const& sched, Label const* terminal_label) {
 
             last_con != nullptr);
 
-        transports.emplace_back(
-            stop_index, static_cast<unsigned int>(stop_index) + 1,
-            (*std::next(it))->now_ - current->now_, (*std::next(it))->slot_, 0);
+        transports.emplace_back(stop_index,
+                                static_cast<unsigned int>(stop_index) + 1,
+                                (*std::next(it))->now_ - current->now_,
+                                (*std::next(it))->edge_->get_mumo_id(), 0);
 
         walk_arrival = (*std::next(it))->now_;
         last_con = nullptr;

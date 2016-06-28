@@ -61,9 +61,9 @@ void test_distributions(
   auto const& head_route_node = *route_edge->to_;
   for (auto const& lc : route_edge->m_.route_edge_.conns_) {
     auto const dep_key = distributions_container::to_container_key(
-        route_node, lc, time_util::departure, sched);
+        route_node, lc, event_type::DEP, sched);
     auto const arr_key = distributions_container::to_container_key(
-        head_route_node, lc, time_util::arrival, sched);
+        head_route_node, lc, event_type::ARR, sched);
 
     if (pre_computed_distributions) {
       ASSERT_TRUE(precomputed_distributions.contains_distribution(dep_key));
@@ -130,7 +130,7 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
             first_route_node,
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->m_.route_edge_.conns_.front(),
-            time_util::departure, sched()));
+            event_type::DEP, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -140,7 +140,7 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
             second_route_node,
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->m_.route_edge_.conns_.front(),
-            time_util::arrival, sched()));
+            event_type::ARR, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -150,7 +150,7 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
             second_route_node,
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->m_.route_edge_.conns_.front(),
-            time_util::departure, sched()));
+            event_type::DEP, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -160,7 +160,7 @@ TEST_F(reliability_distributions_calculator4, distributions_for_a_ride_RE) {
             last_route_node,
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->m_.route_edge_.conns_.front(),
-            time_util::arrival, sched()));
+            event_type::ARR, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -194,7 +194,7 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
             first_route_node,
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->m_.route_edge_.conns_[light_conn_idx],
-            time_util::departure, sched()));
+            event_type::DEP, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -204,7 +204,7 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
             second_route_node,
             graph_accessor::get_departing_route_edge(first_route_node)
                 ->m_.route_edge_.conns_[light_conn_idx],
-            time_util::arrival, sched()));
+            event_type::ARR, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -214,7 +214,7 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
             second_route_node,
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->m_.route_edge_.conns_[light_conn_idx],
-            time_util::departure, sched()));
+            event_type::DEP, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }
@@ -224,7 +224,7 @@ TEST_F(reliability_distributions_calculator, distributions_for_a_ride_ICE) {
             last_route_node,
             graph_accessor::get_departing_route_edge(second_route_node)
                 ->m_.route_edge_.conns_[light_conn_idx],
-            time_util::arrival, sched()));
+            event_type::ARR, sched()));
     ASSERT_FALSE(distribution.empty());
     ASSERT_TRUE(equal(distribution.sum(), 1.0));
   }

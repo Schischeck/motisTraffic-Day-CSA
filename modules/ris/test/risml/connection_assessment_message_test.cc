@@ -74,7 +74,7 @@ TEST(ris_connection_assessment_message, message_1) {
   EXPECT_EQ(30815, from->service_num());
   EXPECT_STREQ("23", from->line_id()->c_str());
   EXPECT_EQ(1444189440, from->schedule_time());
-  EXPECT_EQ(EventType_Arrival, from->type());
+  EXPECT_EQ(EventType_ARR, from->type());
 
   auto to = inner_msg->to();
   ASSERT_EQ(1, to->size());
@@ -84,7 +84,7 @@ TEST(ris_connection_assessment_message, message_1) {
   EXPECT_EQ(90708, e0->base()->service_num());
   EXPECT_STREQ("42", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444189800, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_EQ(2, e0->assessment());
 
@@ -172,7 +172,7 @@ TEST(ris_connection_assessment_message, message_2) {
   EXPECT_EQ(8239, from->service_num());
   EXPECT_STREQ("", from->line_id()->c_str());
   EXPECT_EQ(1444169280, from->schedule_time());
-  EXPECT_EQ(EventType_Arrival, from->type());
+  EXPECT_EQ(EventType_ARR, from->type());
 
   auto to = inner_msg->to();
   ASSERT_EQ(2, to->size());
@@ -182,7 +182,7 @@ TEST(ris_connection_assessment_message, message_2) {
   EXPECT_EQ(8326, e0->base()->service_num());
   EXPECT_STREQ("", e0->base()->line_id()->c_str());
   EXPECT_EQ(1444169940, e0->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e0->base()->type());
+  EXPECT_EQ(EventType_DEP, e0->base()->type());
 
   EXPECT_EQ(4, e0->assessment());
 
@@ -191,7 +191,7 @@ TEST(ris_connection_assessment_message, message_2) {
   EXPECT_EQ(8426, e1->base()->service_num());
   EXPECT_STREQ("", e1->base()->line_id()->c_str());
   EXPECT_EQ(1444170060, e1->base()->schedule_time());
-  EXPECT_EQ(EventType_Departure, e1->base()->type());
+  EXPECT_EQ(EventType_DEP, e1->base()->type());
 
   EXPECT_EQ(3, e1->assessment());
 }

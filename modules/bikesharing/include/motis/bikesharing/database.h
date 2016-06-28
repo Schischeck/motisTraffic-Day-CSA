@@ -26,6 +26,8 @@ struct database {
   explicit database(std::string const& path);
   ~database();
 
+  bool is_initialized() const;
+
   persistable_terminal get(std::string const& id) const;
   void put(std::vector<persistable_terminal> const& terminals);
 

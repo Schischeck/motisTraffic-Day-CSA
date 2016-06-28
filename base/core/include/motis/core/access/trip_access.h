@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <string>
 
 #include "motis/core/schedule/schedule.h"
@@ -17,7 +16,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
                             std::time_t const timestamp,
                             std::string const& target_eva_nr,
                             std::time_t const target_timestamp,
-                            bool const is_arrival, std::string const& line_id) {
+                            std::string const& line_id) {
   auto const station_id = get_station(sched, eva_nr)->index_;
   auto const motis_time = unix_to_motistime(sched, timestamp);
   auto const primary_id = primary_trip_id(station_id, train_nr, motis_time);
@@ -34,7 +33,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
   for (; it != end(sched.trips_) && it->first == primary_id; ++it) {
     auto const& s = it->second->id_.secondary_;
     if (line_id == s.line_id_ && target_station_id == s.target_station_id_ &&
-        target_motis_time == s.target_time_ && is_arrival == s.is_arrival_) {
+        target_motis_time == s.target_time_) {
       return it->second;
     }
   }
@@ -56,12 +55,6 @@ inline trip const* find_trip(schedule const& sched, std::string const& eva_nr,
   }
 
   return it->second;
-}
-
-inline trip const* get_trip(schedule const& sched, TripId const* t) {
-  return get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
-                  t->target_station_id()->str(), t->target_time(), false,
-                  t->line_id()->str());
 }
 
 }  // namespace motis

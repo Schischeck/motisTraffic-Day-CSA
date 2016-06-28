@@ -27,7 +27,9 @@ namespace loader {
 graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
                              time_t from, time_t to, bool apply_rules,
                              bool adjust_footpaths)
-    : next_route_index_(-1),
+    : duplicate_count_(0),
+      lcon_count_(0),
+      next_route_index_(-1),
       next_node_id_(-1),
       sched_(sched),
       first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
@@ -168,7 +170,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
-  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, false, line_id);
+  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, line_id);
   return id;
 }
 
@@ -594,8 +596,8 @@ int graph_builder::get_or_create_category_index(Category const* c) {
   });
 }
 
-int graph_builder::get_or_create_track(
-    int day, Vector<Offset<Track>> const* tracks) {
+int graph_builder::get_or_create_track(int day,
+                                       Vector<Offset<Track>> const* tracks) {
   static constexpr int no_track = 0;
   if (sched_.tracks_.empty()) {
     sched_.tracks_.push_back("");
@@ -708,6 +710,7 @@ route_section graph_builder::add_route_section(
   section.outgoing_route_edge_index_ = section.from_route_node_->edges_.size();
   section.from_route_node_->edges_.push_back(make_route_edge(
       section.from_route_node_, section.to_route_node_, connections));
+  lcon_count_ += connections.size();
 
   return section;
 }
@@ -755,6 +758,9 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   }
 
   LOG(info) << sched->connection_infos_.size() << " connection infos";
+  LOG(info) << builder.lcon_count_ << " light connections";
+  LOG(info) << builder.next_route_index_ << " routes";
+  LOG(info) << sched->trip_mem_.size() << " trips";
 
   return sched;
 }

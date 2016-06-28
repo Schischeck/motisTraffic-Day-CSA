@@ -129,7 +129,7 @@ void add_feeders(common::queue_element const& element,
   for (auto const& f : feeders) {
     auto& feeder_node =
         container.get_node_non_const(distributions_container::to_container_key(
-            *f.first, *f.second, time_util::arrival, sched));
+            *f.first, *f.second, event_type::ARR, sched));
     departure_dist_node.predecessors_.push_back(&feeder_node);
     feeder_node.successors_.push_back(&departure_dist_node);
   }
@@ -153,7 +153,7 @@ void init_predecessors_and_successors(
                 *element.from_, graph_accessor::get_previous_light_connection(
                                     route_edge->m_.route_edge_.conns_,
                                     element.light_connection_->d_time_),
-                time_util::arrival, schedule));
+                event_type::ARR, schedule));
     preceding_arrival_distribution_node.successors_.push_back(
         &departure_distribution_node);
     departure_distribution_node.predecessors_.push_back(
@@ -212,14 +212,13 @@ void process_element(
   /* departure distribution */
   auto& departure_distribution_node =
       distributions_container.get_node_non_const(
-          distributions_container::to_container_key(
-              *element.from_, *element.light_connection_, time_util::departure,
-              schedule));
+          distributions_container::to_container_key(*element.from_,
+                                                    *element.light_connection_,
+                                                    event_type::DEP, schedule));
   /* arrival distribution */
   auto& arrival_distribution_node = distributions_container.get_node_non_const(
-      distributions_container::to_container_key(*element.to_,
-                                                *element.light_connection_,
-                                                time_util::arrival, schedule));
+      distributions_container::to_container_key(
+          *element.to_, *element.light_connection_, event_type::ARR, schedule));
   if (!departure_distribution_node.pd_.empty() ||
       !arrival_distribution_node.pd_.empty()) {
     std::cout << "\nWarning(distributions_calculator): departure or arrival "

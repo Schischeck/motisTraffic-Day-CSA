@@ -37,7 +37,7 @@ public:
  * Erlangen to Kassel with ICE_E_K */
 TEST_F(reliability_simple_rating2, simple_rate) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
                              schedule2::STUTTGART.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 1132),
@@ -80,7 +80,7 @@ TEST_F(reliability_simple_rating2, simple_rate) {
  * Giessen to Marburg with RE_G_M */
 TEST_F(reliability_simple_rating5, simple_rate2) {
   auto req_msg =
-      flatbuffers::request_builder()
+      request_builder()
           .add_pretrip_start(schedule5::MANNHEIM.name_,
                              schedule5::MANNHEIM.eva_,
                              test_util::hhmm_to_unixtime(get_schedule(), 700),

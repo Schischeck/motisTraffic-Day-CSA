@@ -9,10 +9,12 @@
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
+#include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/error.h"
+#include "motis/loader/util.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
@@ -120,7 +122,7 @@ station_node const* get_station_node(schedule const& sched,
 
 node const* get_route_node(schedule const& sched, TripId const* trip,
                            station_node const* station, time arrival_time) {
-  auto const stops = access::stops(get_trip(sched, trip));
+  auto const stops = access::stops(from_fbs(sched, trip));
   auto const stop_it = std::find_if(
       begin(stops), end(stops), [&](access::trip_stop const& stop) {
         return stop.get_route_node()->station_node_ == station &&
@@ -167,8 +169,7 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
 
   q.sched_ = &sched;
   q.to_ = get_station_node(sched, req->destination());
-  q.query_edges_ =
-      create_additional_edges(req->additional_edges(), sched, q.to_->id_);
+  q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
 
   return q;
 }
@@ -184,6 +185,9 @@ search_result ontrip_search(search_query const& q, SearchType const t) {
     case SearchType_LateConnectionsForward:
       return search<ontrip_gen<late_connections_label>,
                     late_connections_label>::get_connections(q);
+    case SearchType_LateConnectionsForwardTest:
+      return search<ontrip_gen<late_connections_label_for_tests>,
+                    late_connections_label_for_tests>::get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
@@ -200,6 +204,9 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
     case SearchType_LateConnectionsForward:
       return search<pretrip_gen<late_connections_label>,
                     late_connections_label>::get_connections(q);
+    case SearchType_LateConnectionsForwardTest:
+      return search<pretrip_gen<late_connections_label_for_tests>,
+                    late_connections_label_for_tests>::get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
@@ -227,7 +234,16 @@ msg_ptr routing::route(msg_ptr const& msg) {
     case Start_NONE: assert(false);
   }
 
-  return journeys_to_message(res.journeys_, res.stats_.pareto_dijkstra_);
+  message_creator fbb;
+  fbb.create_and_finish(
+      MsgContent_RoutingResponse,
+      CreateRoutingResponse(
+          fbb, res.stats_.pareto_dijkstra_,
+          fbb.CreateVector(loader::transform_to_vec(
+              res.journeys_,
+              [&](journey const& j) { return to_connection(fbb, j); })))
+          .Union());
+  return make_msg(fbb);
 }
 
 }  // namespace routing

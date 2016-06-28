@@ -29,11 +29,19 @@ inline uint16_t night_travel_duration(time const travel_begin,
     return static_cast<uint16_t>(std::max(0, e - b));
   };
 
-  if (travel_begin == travel_end || night_begin == night_end) {
+  if (travel_begin >= travel_end || night_begin == night_end) {
     return 0;
   }
-  assert(travel_begin <= travel_end);
-  assert(travel_end - travel_begin < MINUTES_A_DAY);
+  if (travel_end - travel_begin > MINUTES_A_DAY) {
+    auto e = NIGHT_END;
+    if (NIGHT_END < NIGHT_BEGIN) {
+      e += MINUTES_A_DAY;
+    }
+    return (e - NIGHT_BEGIN) +
+           night_travel_duration(travel_begin + MINUTES_A_DAY, travel_end,
+                                 night_begin, night_end);
+  }
+
   assert(night_begin < MINUTES_A_DAY);
   assert(night_end < MINUTES_A_DAY);
 

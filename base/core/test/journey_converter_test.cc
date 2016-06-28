@@ -1,13 +1,26 @@
 #include "gtest/gtest.h"
 
+#include "motis/core/schedule/category.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
-
-#include "motis/core/schedule/category.h"
+#include "motis/loader/util.h"
 
 using namespace motis;
+using namespace motis::module;
 using routing::RoutingResponse;
+
+msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
+  message_creator fbb;
+  fbb.create_and_finish(
+      MsgContent_RoutingResponse,
+      routing::CreateRoutingResponse(
+          fbb, 0, fbb.CreateVector(loader::transform_to_vec(
+                      journeys,
+                      [&](journey const& j) { return to_connection(fbb, j); })))
+          .Union());
+  return make_msg(fbb);
+}
 
 journey create_journey1() {
   journey j;
@@ -82,7 +95,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l1";
     transport.name_ = "ICE 111";
     transport.provider_ = "DB1";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
@@ -97,7 +110,7 @@ journey create_journey1() {
     transport.line_identifier_ = "l2";
     transport.name_ = "IC 222";
     transport.provider_ = "DB2";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 2;
     transport.train_nr_ = 222;
     transport.is_walk_ = false;
@@ -114,8 +127,43 @@ journey create_journey1() {
     transport.line_identifier_ = "";
     transport.name_ = "";
     transport.provider_ = "";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.train_nr_ = 0;
+  }
+
+  j.trips_.resize(3);
+  {
+    auto& trip = j.trips_[0];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "S";
+    trip.train_nr_ = 1;
+    trip.time_ = 1445261200;
+    trip.target_station_id_ = "T";
+    trip.target_time_ = 1445231200;
+    trip.line_id_ = "1234";
+  }
+  {
+    auto& trip = j.trips_[1];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "X";
+    trip.train_nr_ = 2;
+    trip.time_ = 1445261201;
+    trip.target_station_id_ = "Y";
+    trip.target_time_ = 1445231202;
+    trip.line_id_ = "4321";
+  }
+  {
+    auto& trip = j.trips_[2];
+    trip.from_ = 1;
+    trip.to_ = 2;
+    trip.station_id_ = "A";
+    trip.train_nr_ = 3;
+    trip.time_ = 1445261203;
+    trip.target_station_id_ = "B";
+    trip.target_time_ = 1445231204;
+    trip.line_id_ = "0";
   }
 
   j.attributes_.resize(2);
@@ -182,18 +230,29 @@ journey create_journey2() {
     transport.line_identifier_ = "l1";
     transport.name_ = "ICE 111";
     transport.provider_ = "DB1";
-    transport.slot_ = 0;
+    transport.mumo_id_ = 0;
     transport.to_ = 1;
     transport.train_nr_ = 111;
     transport.is_walk_ = false;
+  }
+  j.trips_.resize(1);
+  {
+    auto& trip = j.trips_[0];
+    trip.from_ = 0;
+    trip.to_ = 2;
+    trip.station_id_ = "S";
+    trip.train_nr_ = 1;
+    trip.time_ = 1445261200;
+    trip.target_station_id_ = "T";
+    trip.target_time_ = 1445231200;
+    trip.line_id_ = "1234";
   }
   return j;
 }
 
 TEST(core_convert_journey, journey_message_journey) {
-  std::vector<journey> original_journeys;
-  original_journeys.push_back(create_journey1());
-  original_journeys.push_back(create_journey2());
+  std::vector<journey> original_journeys = {create_journey1(),
+                                            create_journey2()};
 
   auto msg = journeys_to_message(original_journeys);
   auto journeys = message_to_journeys(motis_content(RoutingResponse, msg));
@@ -204,12 +263,12 @@ TEST(core_convert_journey, journey_message_journey) {
     auto const& j = journeys[i];
     auto const& o = original_journeys[i];
 
-    ASSERT_TRUE(o.duration_ == j.duration_);
+    ASSERT_EQ(o.duration_, j.duration_);
     // ASSERT_TRUE(o.price_ == j.price_); TODO(Mohammad Keyhani)
-    ASSERT_TRUE(o.transfers_ == j.transfers_);
-    ASSERT_TRUE(o.stops_.size() == j.stops_.size());
-    ASSERT_TRUE(o.transports_.size() == j.transports_.size());
-    ASSERT_TRUE(o.attributes_.size() == j.attributes_.size());
+    EXPECT_EQ(o.transfers_, j.transfers_);
+    EXPECT_EQ(o.stops_.size(), j.stops_.size());
+    EXPECT_EQ(o.transports_.size(), j.transports_.size());
+    EXPECT_EQ(o.attributes_.size(), j.attributes_.size());
 
     for (unsigned int s = 0; s < o.stops_.size(); ++s) {
       auto const& os = o.stops_[s];
@@ -219,12 +278,18 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
       ASSERT_EQ(os.name_, js.name_);
-      ASSERT_EQ(os.arrival_.track_, js.arrival_.track_);
-      ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
       ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
-      ASSERT_EQ(os.departure_.track_, js.departure_.track_);
-      ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
       ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      if (os.arrival_.valid_) {
+        ASSERT_EQ(os.arrival_.track_, js.arrival_.track_);
+        ASSERT_EQ(os.arrival_.timestamp_, js.arrival_.timestamp_);
+        ASSERT_EQ(os.arrival_.valid_, js.arrival_.valid_);
+      }
+      if (os.departure_.valid_) {
+        ASSERT_EQ(os.departure_.track_, js.departure_.track_);
+        ASSERT_EQ(os.departure_.timestamp_, js.departure_.timestamp_);
+        ASSERT_EQ(os.departure_.valid_, js.departure_.valid_);
+      }
     }
 
     for (unsigned int t = 0; t < o.transports_.size(); ++t) {
@@ -238,12 +303,25 @@ TEST(core_convert_journey, journey_message_journey) {
       ASSERT_EQ(ot.line_identifier_, jt.line_identifier_);
       ASSERT_EQ(ot.name_, jt.name_);
       ASSERT_EQ(ot.provider_, jt.provider_);
-      ASSERT_EQ(ot.slot_, jt.slot_);
+      ASSERT_EQ(ot.mumo_id_, jt.mumo_id_);
       ASSERT_EQ(ot.to_, jt.to_);
       ASSERT_EQ(ot.train_nr_, jt.train_nr_);
       ASSERT_EQ(ot.is_walk_, jt.is_walk_);
       ASSERT_EQ(ot.mumo_price_, jt.mumo_price_);
       ASSERT_EQ(ot.mumo_type_, jt.mumo_type_);
+    }
+
+    for (unsigned int s = 0; s < o.trips_.size(); ++s) {
+      auto const& ot = o.trips_[s];
+      auto const& jt = j.trips_[s];
+      ASSERT_EQ(ot.from_, jt.from_);
+      ASSERT_EQ(ot.to_, jt.to_);
+      ASSERT_EQ(ot.station_id_, jt.station_id_);
+      ASSERT_EQ(ot.train_nr_, jt.train_nr_);
+      ASSERT_EQ(ot.time_, jt.time_);
+      ASSERT_EQ(ot.target_station_id_, jt.target_station_id_);
+      ASSERT_EQ(ot.target_time_, jt.target_time_);
+      ASSERT_EQ(ot.line_id_, jt.line_id_);
     }
 
     for (unsigned int a = 0; a < o.attributes_.size(); ++a) {

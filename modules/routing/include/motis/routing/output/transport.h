@@ -15,22 +15,22 @@ struct transport {
         to_(to),
         con_(con),
         duration_(con->a_time_ - con->d_time_),
-        slot_(0),
+        mumo_id_(0),
         mumo_price_(0) {}
 
   transport(unsigned const from, unsigned const to, unsigned const duration,
-            unsigned const slot, unsigned const mumo_price)
+            int const mumo_id, unsigned const mumo_price)
       : from_(from),
         to_(to),
         con_(nullptr),
         duration_(duration),
-        slot_(slot),
+        mumo_id_(mumo_id),
         mumo_price_(mumo_price) {}
 
   unsigned from_, to_;
   light_connection const* con_;
   unsigned duration_;
-  unsigned slot_;
+  int mumo_id_;
   unsigned mumo_price_;
 };
 

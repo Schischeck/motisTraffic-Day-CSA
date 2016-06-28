@@ -113,6 +113,7 @@ struct ws_server::ws_server_impl {
       server_.get_con_from_hdl(hdl)->set_message_handler(
           std::bind(&ws_server_impl::on_msg, this, p::_1, p::_2, true));
       send_success(add_session(hdl), 0);
+      return;
     } else if (!authenticated) {
       return;
     }

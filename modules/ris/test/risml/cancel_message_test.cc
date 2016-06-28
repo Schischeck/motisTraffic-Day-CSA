@@ -74,13 +74,13 @@ TEST(ris_cancel_message, message_1) {
   EXPECT_EQ(99655, e0->service_num());
   EXPECT_STREQ("0680414", e0->station_id()->c_str());
   EXPECT_EQ(1444197240, e0->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e0->type());
+  EXPECT_EQ(EventType_ARR, e0->type());
 
   auto e1 = events->Get(1);
   EXPECT_EQ(99655, e1->service_num());
   EXPECT_STREQ("0680414", e1->station_id()->c_str());
   EXPECT_EQ(1444197240, e1->schedule_time());
-  EXPECT_EQ(EventType_Departure, e1->type());
+  EXPECT_EQ(EventType_DEP, e1->type());
 }
 
 // clang-format off
@@ -146,21 +146,21 @@ TEST(ris_ausfall_message, message_2) {
   EXPECT_EQ(31126, e0->service_num());
   EXPECT_STREQ("M21", e0->line_id()->c_str());
   EXPECT_EQ(1444228500, e0->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e0->type());
+  EXPECT_EQ(EventType_ARR, e0->type());
 
   auto e1 = events->Get(1);
   EXPECT_STREQ("0730985", e1->station_id()->c_str());
   EXPECT_EQ(31126, e1->service_num());
   EXPECT_STREQ("M21", e1->line_id()->c_str());
   EXPECT_EQ(1444228500, e1->schedule_time());
-  EXPECT_EQ(EventType_Departure, e1->type());
+  EXPECT_EQ(EventType_DEP, e1->type());
 
   auto e2 = events->Get(2);
   EXPECT_STREQ("0730993", e2->station_id()->c_str());
   EXPECT_EQ(31126, e2->service_num());
   EXPECT_STREQ("M21", e2->line_id()->c_str());
   EXPECT_EQ(1444228560, e2->schedule_time());
-  EXPECT_EQ(EventType_Arrival, e2->type());
+  EXPECT_EQ(EventType_ARR, e2->type());
 }
 
 }  // namespace risml

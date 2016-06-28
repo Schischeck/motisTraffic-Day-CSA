@@ -97,15 +97,16 @@ TEST_F(reliability_data_arrival, test_s_t_distributions) {
   dep_dist.init({0.8, 0.2}, 0);
 
   // route node at Frankfurt of train ICE_FR_DA_H
-  auto departure_route_node =
+  auto const& departure_route_node =
       *graph_accessor::get_first_route_node(sched(), schedule1::ICE_FR_DA_H);
   // route edge from Frankfurt to Darmstadt
   auto const route_edge =
       graph_accessor::get_departing_route_edge(departure_route_node);
   // get the second light connection
   auto const& light_connection = route_edge->m_.route_edge_.conns_[1];
+  auto const& arrival_route_node = *route_edge->to_;
 
-  data_arrival data(*route_edge->from_, *route_edge->to_, light_connection,
+  data_arrival data(departure_route_node, arrival_route_node, light_connection,
                     dep_dist, sched(), s_t_distributions);
 
   ASSERT_TRUE(data.travel_distributions_.size() == 2);

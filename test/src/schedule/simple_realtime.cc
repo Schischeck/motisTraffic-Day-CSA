@@ -20,7 +20,7 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("8000010"),  // Aschaffenburg
           628,
           fbb.CreateString(""),
-          motis::ris::EventType_Departure,
+          EventType_DEP,
           unix_time(sched, 1436)
         ),
         unix_time(sched, 1437)
@@ -30,7 +30,7 @@ void create_is_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("8070003"),  // Frankfurt(M) Flughafen
           628,
           fbb.CreateString(""),
-          motis::ris::EventType_Departure,
+          EventType_DEP,
           unix_time(sched, 1525)
         ),
         unix_time(sched, 1530)
@@ -56,7 +56,7 @@ void create_forecast_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("8000105"),  // Frankfurt(Main)Hbf
           628,
           fbb.CreateString(""),
-          motis::ris::EventType_Arrival,
+          EventType_ARR,
           unix_time(sched, 1504)
         ),
         unix_time(sched, 1505)
@@ -66,7 +66,7 @@ void create_forecast_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
           fbb.CreateString("8073368"),  // Köln Messe/Deutz Gl.1
           628,
           fbb.CreateString(""),
-          motis::ris::EventType_Arrival,
+          EventType_ARR,
           unix_time(sched, 1614)
         ),
         unix_time(sched, 1619)

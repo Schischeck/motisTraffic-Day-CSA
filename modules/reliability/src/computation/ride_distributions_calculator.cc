@@ -44,12 +44,12 @@ void process_element(
   auto& departure_distribution =
       ride_distributions_container.get_node_non_const(
           distributions_container::to_container_key(
-              *element.from_, *element.light_connection_, time_util::departure,
+              *element.from_, *element.light_connection_, event_type::DEP,
               context.schedule_));
   /* arrival distribution */
   auto& arrival_distribution = ride_distributions_container.get_node_non_const(
       distributions_container::to_container_key(
-          *element.to_, *element.light_connection_, time_util::arrival,
+          *element.to_, *element.light_connection_, event_type::ARR,
           context.schedule_));
   if (!departure_distribution.pd_.empty() ||
       !arrival_distribution.pd_.empty()) {
@@ -91,7 +91,7 @@ std::vector<bool> compute_missing_train_distributions(
       context.precomputed_distributions_.contains_distribution(
           distributions_container::to_container_key(
               *first_element.from_, *first_element.light_connection_,
-              time_util::departure, context.schedule_)));
+              event_type::DEP, context.schedule_)));
 
   /* For the first train, we have to compute the distributions of all events
    * of that train in the connection. */
@@ -112,8 +112,8 @@ std::vector<bool> compute_missing_train_distributions(
     precomputed_flags.push_back(
         context.precomputed_distributions_.contains_distribution(
             distributions_container::to_container_key(
-                *element.from_, *element.light_connection_,
-                time_util::departure, context.schedule_)));
+                *element.from_, *element.light_connection_, event_type::DEP,
+                context.schedule_)));
     if (!precomputed_flags.back()) {
       detail::compute_distributions_for_a_ride(element.light_connection_idx_,
                                                *element.from_, context,

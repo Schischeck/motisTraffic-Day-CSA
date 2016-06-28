@@ -44,5 +44,18 @@ typedef label<
     comparator<travel_time_dominance, transfers_dominance>>
     late_connections_label;
 
+typedef label<
+    label_data<travel_time, transfers, late_connections>,
+    initializer<travel_time_initializer, transfers_initializer,
+                late_connections_initializer>,
+    updater<travel_time_updater, transfers_updater, late_connections_updater>,
+    filter<travel_time_filter, transfers_filter, late_connections_filter>,
+    dominance<default_tb, travel_time_dominance, transfers_dominance,
+              late_connections_dominance>,
+    dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance,
+              late_connections_post_search_dominance_for_tests>,
+    comparator<travel_time_dominance, transfers_dominance>>
+    late_connections_label_for_tests;
+
 }  // namespace routing
 }  // namespace motis

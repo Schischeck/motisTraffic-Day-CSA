@@ -59,6 +59,21 @@ struct statistics {
     return o;
   }
 
+  void log_sched_time_mismatch(int diff) {
+    if (diff != 0) {
+      ++update_mismatch_sched_time_;
+    }
+    if (diff > 5) {
+      ++diff_gt_5_;
+      if (diff > 10) {
+        ++diff_gt_10_;
+      }
+      if (diff > 30) {
+        ++diff_gt_30_;
+      }
+    }
+  }
+
   unsigned total_evs_;
   unsigned ev_invalid_time_;
   unsigned ev_station_not_found_;

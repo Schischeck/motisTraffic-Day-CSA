@@ -10,6 +10,8 @@
 
 #include "motis/core/common/logging.h"
 
+#include "motis/bikesharing/dbschema/Terminal_generated.h"
+
 using namespace motis::logging;
 
 using ptime = boost::posix_time::ptime;
@@ -84,6 +86,17 @@ snapshot_merger::merged() {
   }
 
   return {t, a};
+}
+
+double get_availability(Availability const* a, AvailabilityAggregator aggr) {
+  switch (aggr) {
+    case AvailabilityAggregator_Average: return a->average();
+    case AvailabilityAggregator_Median: return a->median();
+    case AvailabilityAggregator_Minimum: return a->minimum();
+    case AvailabilityAggregator_Quantile90: return a->q90();
+    case AvailabilityAggregator_PercentReliable: return a->percent_reliable();
+    default: return 0.0;
+  }
 }
 
 }  // namespace bikesharing

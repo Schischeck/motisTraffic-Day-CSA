@@ -24,7 +24,7 @@ to_routing_request(connection_graph const& conn_graph,
                            min_departure_diff * 60;
   auto const stop_station = conn_graph.station_info(stop.index_);
 
-  flatbuffers::request_builder b;
+  request_builder b;
   b.add_ontrip_station_start(stop_station.first, stop_station.second,
                              ontrip_time);
   if (c.destination_.is_intermodal_) {

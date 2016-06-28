@@ -33,6 +33,13 @@ struct database::database_impl {
 
   virtual ~database_impl() = default;
 
+  virtual bool is_initialized() const {
+    std::string value;
+    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
+
+    return s.ok() && !s.IsNotFound();
+  }
+
   virtual persistable_terminal get(std::string const& id) const {
     std::string value;
     Status s = db_->Get(ReadOptions(), id, &value);
@@ -77,6 +84,12 @@ struct database::database_impl {
 };
 
 struct inmemory_database : public database::database_impl {
+
+  bool is_initialized() const override {
+    auto it = store_.find(kSummaryKey);
+    return it != end(store_);
+  }
+
   persistable_terminal get(std::string const& id) const override {
     auto it = store_.find(id);
     if (it == end(store_)) {
@@ -94,7 +107,7 @@ struct inmemory_database : public database::database_impl {
   bikesharing_summary get_summary() const override {
     auto it = store_.find(kSummaryKey);
     if (it == end(store_)) {
-      throw system_error(error::terminal_not_found);
+      throw system_error(error::database_not_initialized);
     }
     return bikesharing_summary(it->second);
   }
@@ -110,6 +123,10 @@ database::database(std::string const& path)
     : impl_(path == ":memory:" ? new inmemory_database()
                                : new database_impl(path)) {}
 database::~database() = default;
+
+bool database::is_initialized() const {
+  return impl_->is_initialized();
+}
 
 persistable_terminal database::get(std::string const& id) const {
   return impl_->get(id);

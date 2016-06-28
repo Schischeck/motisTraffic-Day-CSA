@@ -19,13 +19,13 @@ struct delay_propagator {
 
   using pq = std::priority_queue<delay_info*, std::vector<delay_info*>, di_cmp>;
 
-  explicit delay_propagator(schedule const& sched) : sched_(sched) {
-    events_.set_empty_key({nullptr, 0, event_type::DEP});
+  explicit delay_propagator(schedule& sched) : sched_(sched) {
+    events_.set_empty_key(nullptr);
   }
 
-  hash_map<ev_key, delay_info*> const& events() const { return events_; }
+  hash_set<delay_info*> const& events() const { return events_; }
 
-  void add_delay(ev_key const& k, delay_info::reason const reason,
+  void add_delay(ev_key const& k, timestamp_reason const reason,
                  time const updated_time) {
     auto di = get_or_create_di(k);
     if (di->set(reason, updated_time)) {
@@ -46,20 +46,12 @@ struct delay_propagator {
 
 private:
   delay_info* get_or_create_di(ev_key const& k) {
-    return map_get_or_create(events_, k, [&]() {
-      std::unique_ptr<delay_info> di;
-
-      auto it = sched_.graph_to_delay_info_.find(k);
-      if (it == end(sched_.graph_to_delay_info_)) {
-        di = std::make_unique<delay_info>(k, k.get_time());
-      } else {
-        di = std::make_unique<delay_info>(*it->second);
-      }
-
-      delay_mem_.emplace_back(std::move(di));
-
-      return delay_mem_.back().get();
+    auto di = map_get_or_create(sched_.graph_to_delay_info_, k, [&]() {
+      sched_.delay_mem_.emplace_back(new delay_info(k));
+      return sched_.delay_mem_.back().get();
     });
+    events_.insert(di);
+    return di;
   }
 
   void push(ev_key const& k) { pq_.push(get_or_create_di(k)); }
@@ -82,7 +74,7 @@ private:
         auto const arr_sched_time = di->get_schedule_time();
         auto const duration = arr_sched_time - dep_sched_time;
         auto const propagated = dep_di->get_current_time() + duration;
-        return di->set(delay_info::reason::PROPAGATION, propagated);
+        return di->set(timestamp_reason::PROPAGATION, propagated);
       }
 
       case event_type::DEP: {
@@ -98,7 +90,7 @@ private:
           max = std::max(max, arr_curr_time + min_standing);
         });
 
-        return di->set(delay_info::reason::PROPAGATION, max);
+        return di->set(timestamp_reason::PROPAGATION, max);
       }
 
       default: return false;
@@ -107,8 +99,8 @@ private:
 
   pq pq_;
   std::vector<std::unique_ptr<delay_info>> delay_mem_;
-  hash_map<ev_key, delay_info*> events_;
-  schedule const& sched_;
+  hash_set<delay_info*> events_;
+  schedule& sched_;
 };
 
 }  // namespace rt

@@ -44,13 +44,12 @@ struct pretrip_gen {
 
         generate_start_labels(mem, lbs, start_edge, &e,
                               e.to_->as_station_node(), d, departure_begin,
-                              departure_end, edge_interval_end,
-                              e.m_.foot_edge_.slot_, labels);
+                              departure_end, edge_interval_end, labels);
       }
     } else {
       generate_start_labels(mem, lbs, start_edge, nullptr,
                             start_edge->to_->get_station(), 0, interval_begin,
-                            interval_end, interval_end, 0 /* slot */, labels);
+                            interval_end, interval_end, labels);
     }
 
     return labels;
@@ -63,7 +62,7 @@ struct pretrip_gen {
                                     station_node const* station,  //
                                     duration d,  //
                                     time departure_begin, time departure_end,
-                                    time edge_interval_end, uint8_t const slot,
+                                    time edge_interval_end,
                                     std::vector<Label*>& labels) {
     for (auto const& e : station->edges_) {
       if (!e.to_->is_route_node()) {
@@ -89,13 +88,12 @@ struct pretrip_gen {
               d + std::max(static_cast<int>(t) - d - edge_interval_end, 0);
 
           if (query_edge == nullptr) {
-            auto l = mem.create<Label>(start_edge, nullptr, t, lbs, slot);
-            labels.push_back(mem.create<Label>(&e, l, t, lbs, slot));
+            auto l = mem.create<Label>(start_edge, nullptr, t, lbs);
+            labels.push_back(mem.create<Label>(&e, l, t, lbs));
           } else {
-            auto l0 =
-                mem.create<Label>(start_edge, nullptr, t - time_off, lbs, slot);
-            auto l1 = mem.create<Label>(query_edge, l0, t, lbs, slot);
-            labels.push_back(mem.create<Label>(&e, l1, t, lbs, slot));
+            auto l0 = mem.create<Label>(start_edge, nullptr, t - time_off, lbs);
+            auto l1 = mem.create<Label>(query_edge, l0, t, lbs);
+            labels.push_back(mem.create<Label>(&e, l1, t, lbs));
           }
 
           ++t;
@@ -112,8 +110,7 @@ struct ontrip_gen {
                                       std::vector<edge> const&,
                                       time interval_begin,
                                       time /* interval_end */) {
-    return {mem.create<Label>(start_edge, nullptr, interval_begin, lbs,
-                              0 /* slot */)};
+    return {mem.create<Label>(start_edge, nullptr, interval_begin, lbs)};
   }
 };
 
