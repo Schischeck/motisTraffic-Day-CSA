@@ -127,7 +127,7 @@ void rule_service_builder::resolve_rule_services() {
 
   std::pair<std::set<rule_node*>, bitfield> component;
   for (auto const& rn : rg.rule_nodes_) {
-    while ((component = rn->max_component()).first.size() >= 1) {
+    while (!(component = rn->max_component()).first.empty()) {
       add_rule_service(component, rule_services_);
     }
   }
