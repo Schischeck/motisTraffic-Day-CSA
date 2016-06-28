@@ -10,7 +10,9 @@ using namespace motis::loader::hrd;
 using namespace flatbuffers;
 
 std::string get_simple_traffic_days(std::string const& t) {
-  return t.substr(t.size() - 3);
+  auto s = t.substr(t.size() - 3);
+  std::reverse(begin(s), end(s));
+  return s;
 }
 
 bool contains_service(Vector<Offset<Service>> const* services, int train_nr,

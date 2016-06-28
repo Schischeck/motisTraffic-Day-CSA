@@ -22,7 +22,6 @@
 #include "motis/loader/hrd/parser/categories_parser.h"
 #include "motis/loader/hrd/parser/directions_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
-#include "motis/loader/hrd/parser/track_rules_parser.h"
 #include "motis/loader/hrd/parser/providers_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
 #include "motis/loader/hrd/parser/schedule_interval_parser.h"
@@ -30,6 +29,7 @@
 #include "motis/loader/hrd/parser/stations_parser.h"
 #include "motis/loader/hrd/parser/through_services_parser.h"
 #include "motis/loader/hrd/parser/timezones_parser.h"
+#include "motis/loader/hrd/parser/track_rules_parser.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
 
@@ -202,8 +202,9 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   // compute and build rule services
   rsb.resolve_rule_services();
   rsb.create_rule_services(
-      [&](hrd_service const& s, FlatBufferBuilder& fbb) {
-        return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, true);
+      [&](hrd_service const& s, bool is_rule_service, FlatBufferBuilder& fbb) {
+        return sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb,
+                                 is_rule_service);
       },
       stb, fbb);
 

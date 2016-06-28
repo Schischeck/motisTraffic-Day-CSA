@@ -127,10 +127,7 @@ void rule_service_builder::resolve_rule_services() {
 
   std::pair<std::set<rule_node*>, bitfield> component;
   for (auto const& rn : rg.rule_nodes_) {
-    while ((component = rn->max_component()).first.size() > 1) {
-      add_rule_service(component, rule_services_);
-    }
-    if (component.first.size() == 1) {
+    while ((component = rn->max_component()).first.size() >= 1) {
       add_rule_service(component, rule_services_);
     }
   }
@@ -144,7 +141,7 @@ void create_rule_service(
   std::map<hrd_service const*, Offset<Service>> services;
   for (auto const& s : rs.services_) {
     auto const* service = s.service_.get();
-    services[service] = sbf(std::cref(*service), std::ref(fbb));
+    services[service] = sbf(std::cref(*service), true, std::ref(fbb));
   }
 
   std::vector<Offset<Rule>> fbb_rules;
@@ -166,7 +163,7 @@ void rule_service_builder::create_rule_services(service_builder_fun sbf,
   LOG(info) << "#remaining services: " << origin_services_.size();
   for (auto const& s : origin_services_) {
     if (s->traffic_days_.any()) {
-      sbf(std::cref(*s), std::ref(fbb));
+      sbf(std::cref(*s), false, std::ref(fbb));
     }
   }
   LOG(info) << "#rule services: " << rule_services_.size();
