@@ -70,12 +70,12 @@ inline delay_info get_delay_info(schedule const& sched, edge const* route_edge,
   }
 }
 
-inline delay_info* get_delay_info(schedule const& sched, ev_key const& k) {
+inline delay_info get_delay_info(schedule const& sched, ev_key const& k) {
   auto it = sched.graph_to_delay_info_.find(k);
   if (it == end(sched.graph_to_delay_info_)) {
-    return nullptr;
+    return delay_info{k};
   } else {
-    return it->second;
+    return *it->second;
   }
 }
 
