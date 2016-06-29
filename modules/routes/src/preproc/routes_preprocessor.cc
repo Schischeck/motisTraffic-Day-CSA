@@ -34,7 +34,7 @@ void erase_duplicates(std::vector<T>& vec) {
 }
 
 std::vector<size_t> const* find_nodes(railway_graph const& graph,
-                              std::string const& ds100) {
+                                      std::string const& ds100) {
   auto const it = graph.ds100_to_node_.find(ds100);
   if (it == end(graph.ds100_to_node_)) {
     return nullptr;
@@ -42,8 +42,8 @@ std::vector<size_t> const* find_nodes(railway_graph const& graph,
   return &it->second;
 }
 
-std::vector<size_t> const*  find_nodes(railway_graph const& graph, schedule const& sched,
-                              station const* s) {
+std::vector<size_t> const* find_nodes(railway_graph const& graph,
+                                      schedule const& sched, station const* s) {
   for (auto const& pair : sched.ds100_to_station_) {
     if (pair.second != s) {
       continue;
@@ -90,13 +90,13 @@ int main(int argc, char** argv) {
   loader_options opt(argv[2], argv[3], 2, true, false, false, false);
   auto sched = load_schedule(opt);
 
-  auto it = sched->ds100_to_station_.find("FD");
+  auto it = sched->ds100_to_station_.find("FF");
   if (it == end(sched->ds100_to_station_)) {
     std::cout << "station not found" << std::endl;
     return 1;
   }
 
-  auto from_railway_nodes = find_nodes(graph, "FD");
+  auto from_railway_nodes = find_nodes(graph, "FF");
   if (from_railway_nodes == nullptr) {
     std::cout << "station not found in DB NETZ" << std::endl;
     return 1;
@@ -106,7 +106,6 @@ int main(int argc, char** argv) {
   // for(auto const& link : from_railway_node->links_) {
   //   std::cout << ".." << link.id_ << std::endl;
   // }
-
 
   auto neighbors = get_neighbors(*sched, it->second);
 
@@ -138,12 +137,17 @@ int main(int argc, char** argv) {
   for (auto const& n : neighbors) {
     auto nodes = find_nodes(graph, *sched, n);
 
-    auto best = std::min_element(begin(*nodes), end(*nodes), [&d](auto&& lhs, auto&& rhs) {
-      return d.get_distance(lhs) < d.get_distance(rhs);
-    });
+    if (nodes == nullptr) {
+      std::cout << n->name_ << " not found in DB NETZ" << std::endl;
+      continue;
+    }
 
+    auto best = std::min_element(
+        begin(*nodes), end(*nodes), [&d](auto&& lhs, auto&& rhs) {
+          return d.get_distance(lhs) < d.get_distance(rhs);
+        });
 
-  // for (auto const& goal : goal_idx) {
+    // for (auto const& goal : goal_idx) {
     w.StartObject();
     w.String("type").String("Feature");
     w.String("properties").StartObject().EndObject();
