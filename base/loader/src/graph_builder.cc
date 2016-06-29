@@ -507,22 +507,6 @@ void graph_builder::connect_reverse() {
   }
 }
 
-void graph_builder::sort_connections() {
-  for (auto& station_node : sched_.station_nodes_) {
-    for (auto& station_edge : station_node->edges_) {
-      for (auto& edge : station_edge.to_->edges_) {
-        if (edge.empty()) {
-          continue;
-        }
-        if (!std::is_sorted(begin(edge.m_.route_edge_.conns_),
-                            end(edge.m_.route_edge_.conns_))) {
-          throw std::runtime_error("light connections not sorted");
-        }
-      }
-    }
-  }
-}
-
 void graph_builder::sort_trips() {
   std::sort(begin(sched_.trips_), end(sched_.trips_));
 }
@@ -741,7 +725,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   }
 
   builder.connect_reverse();
-  builder.sort_connections();
   builder.sort_trips();
 
   sched->node_count_ = builder.node_count();
@@ -759,7 +742,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   LOG(info) << sched->connection_infos_.size() << " connection infos";
   LOG(info) << builder.lcon_count_ << " light connections";
-  LOG(info) << builder.next_route_index_ << " routes";
+  LOG(info) << builder.next_route_index_ + 1 << " routes";
   LOG(info) << sched->trip_mem_.size() << " trips";
 
   return sched;

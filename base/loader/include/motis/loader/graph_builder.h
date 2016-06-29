@@ -212,7 +212,7 @@ struct graph_builder {
 
   unsigned duplicate_count_;
   unsigned lcon_count_;
-  unsigned next_route_index_;
+  int next_route_index_;
   std::map<Category const*, int> categories_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
