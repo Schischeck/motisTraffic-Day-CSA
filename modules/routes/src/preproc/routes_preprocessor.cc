@@ -33,23 +33,23 @@ void erase_duplicates(std::vector<T>& vec) {
   vec.erase(std::unique(begin(vec), end(vec)), end(vec));
 }
 
-railway_node const* find_node(railway_graph const& graph,
+std::vector<size_t> const* find_nodes(railway_graph const& graph,
                               std::string const& ds100) {
   auto const it = graph.ds100_to_node_.find(ds100);
   if (it == end(graph.ds100_to_node_)) {
     return nullptr;
   }
-  return it->second;
+  return &it->second;
 }
 
-railway_node const* find_node(railway_graph const& graph, schedule const& sched,
+std::vector<size_t> const*  find_nodes(railway_graph const& graph, schedule const& sched,
                               station const* s) {
   for (auto const& pair : sched.ds100_to_station_) {
     if (pair.second != s) {
       continue;
     }
 
-    auto node = find_node(graph, pair.first);
+    auto node = find_nodes(graph, pair.first);
     if (node != nullptr) {
       return node;
     }
@@ -96,41 +96,33 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  auto from_railway_node = find_node(graph, "FD");
-  if (from_railway_node == nullptr) {
+  auto from_railway_nodes = find_nodes(graph, "FD");
+  if (from_railway_nodes == nullptr) {
     std::cout << "station not found in DB NETZ" << std::endl;
     return 1;
   }
 
-  std::cout << "FROM " << from_railway_node->id_ << std::endl;
-  for(auto const& link : from_railway_node->links_) {
-    std::cout << ".." << link.id_ << std::endl;
-  }
+  // std::cout << "FROM " << from_railway_node->id_ << std::endl;
+  // for(auto const& link : from_railway_node->links_) {
+  //   std::cout << ".." << link.id_ << std::endl;
+  // }
 
 
   auto neighbors = get_neighbors(*sched, it->second);
 
-  std::vector<railway_node const*> goal_nodes;
   std::vector<size_t> goal_idx;
   for (auto const& n : neighbors) {
-    auto node = find_node(graph, *sched, n);
+    auto nodes = find_nodes(graph, *sched, n);
 
-    if (node == nullptr) {
+    if (nodes == nullptr) {
       std::cout << n->name_ << " not found in DB NETZ" << std::endl;
-      break;
+      continue;
     }
 
-    std::cout << node->idx_ << " " << n->name_ << std::endl;
-
-    // if(n->name_ != "Weinheim(Bergstr)") {
-    //   continue;
-    // }
-
-    goal_nodes.push_back(node);
-    goal_idx.push_back(node->idx_);
+    goal_idx.insert(end(goal_idx), begin(*nodes), end(*nodes));
   }
 
-  railway_graph_dijkstra d(graph, from_railway_node->idx_, goal_idx);
+  railway_graph_dijkstra d(graph, *from_railway_nodes, goal_idx);
   d.run();
 
   FILE* fp = std::fopen("geo.json", "w");
@@ -143,7 +135,15 @@ int main(int argc, char** argv) {
   w.String("type").String("FeatureCollection");
   w.String("features").StartArray();
 
-  for (auto const& goal : goal_idx) {
+  for (auto const& n : neighbors) {
+    auto nodes = find_nodes(graph, *sched, n);
+
+    auto best = std::min_element(begin(*nodes), end(*nodes), [&d](auto&& lhs, auto&& rhs) {
+      return d.get_distance(lhs) < d.get_distance(rhs);
+    });
+
+
+  // for (auto const& goal : goal_idx) {
     w.StartObject();
     w.String("type").String("Feature");
     w.String("properties").StartObject().EndObject();
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
     w.String("type").String("LineString");
     w.String("coordinates").StartArray();
 
-    for (auto const& link : d.get_links(goal)) {
+    for (auto const& link : d.get_links(*best)) {
       // std::cout << link->id_ << " " << link->polyline_->size() << std::endl;
 
       auto from = link->from_->pos_;

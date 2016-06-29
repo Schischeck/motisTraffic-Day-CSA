@@ -9,7 +9,6 @@
 
 using namespace motis::geo_detail;
 
-
 namespace rapidjson {
 template <typename Encoding, typename Allocator>
 typename GenericValue<Encoding, Allocator>::ValueIterator begin(
@@ -75,7 +74,7 @@ void railway_graph_builder::read_nodes(rapidjson::Document const& doc) {
 
     add_links(properties["spokeStartIds"], *node);
     add_links(properties["spokeEndIds"], *node);
-    graph_.ds100_to_node_.insert(std::make_pair(node->ds100_, node.get()));
+    graph_.ds100_to_node_[node->ds100_].push_back(node->idx_);
     graph_.nodes_.push_back(std::move(node));
   }
 }
@@ -84,9 +83,7 @@ void railway_graph_builder::add_links(rapidjson::Value const& v,
                                       railway_node& node) {
   for (rapidjson::SizeType i = 0; i < v.Size(); i++) {
     std::string link_id(v[i].GetString());
-    get_or_create(raw_links_, link_id, [&]() {
-      return std::set<uint32_t>{};
-    }).insert(node.idx_);
+    raw_links_[link_id].insert(node.idx_);
   }
 }
 
@@ -146,8 +143,8 @@ railway_node* railway_graph_builder::get_node(
   }
 }
 
-railway_node* railway_graph_builder::make_extra_node(
-    railway_node* node, coord const& pos) {
+railway_node* railway_graph_builder::make_extra_node(railway_node* node,
+                                                     coord const& pos) {
   auto new_node = std::make_unique<railway_node>(
       graph_.nodes_.size(), node->id_ + "-extra", pos, node->ds100_);
   node->extra_ = new_node.get();

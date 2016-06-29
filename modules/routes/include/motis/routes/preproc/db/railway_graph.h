@@ -19,7 +19,7 @@ struct railway_graph {
   std::vector<std::unique_ptr<railway_node>> nodes_;
   std::vector<std::unique_ptr<std::vector<coord>>> polylines_;
 
-  std::map<std::string, railway_node*> ds100_to_node_;
+  std::map<std::string, std::vector<size_t>> ds100_to_node_;
 };
 
 struct railway_node {

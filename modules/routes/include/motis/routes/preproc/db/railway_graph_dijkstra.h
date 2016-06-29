@@ -20,14 +20,16 @@ struct railway_graph_dijkstra {
     railway_link const* link_;
   };
 
-  railway_graph_dijkstra(railway_graph const& graph, size_t from,
+  railway_graph_dijkstra(railway_graph const& graph, std::vector<size_t> initial,
                          std::vector<size_t> goals)
       : graph_(graph), goals_(goals), open_goals_(goals) {
     dists_.resize(graph_.nodes_.size(), std::numeric_limits<size_t>::max());
     links_.resize(graph_.nodes_.size(), nullptr);
 
-    dists_[from] = 0;
-    pq_.push(label(from, 0, nullptr));
+    for(auto const& i : initial) {
+      dists_[i] = 0;
+      pq_.push(label(i, 0, nullptr));  
+    }
   }
 
   void run() {
@@ -69,6 +71,10 @@ struct railway_graph_dijkstra {
 
     std::reverse(begin(result), end(result));
     return result;
+  }
+
+  size_t get_distance(size_t const goal) const {
+    return dists_[goal];
   }
 
   railway_graph const& graph_;
