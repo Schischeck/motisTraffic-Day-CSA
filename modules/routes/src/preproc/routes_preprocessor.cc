@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -7,6 +8,7 @@
 
 #include "boost/algorithm/string/predicate.hpp"
 
+#include "motis/core/common/geo.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/station.h"
 
@@ -23,6 +25,7 @@ using namespace motis;
 using namespace motis::logging;
 using namespace motis::routes;
 using namespace motis::loader;
+using namespace motis::geo_detail;
 
 template <typename T>
 void erase_duplicates(std::vector<T>& vec) {
@@ -99,6 +102,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  std::cout << "FROM " << from_railway_node->id_ << std::endl;
+  for(auto const& link : from_railway_node->links_) {
+    std::cout << ".." << link.id_ << std::endl;
+  }
+
+
   auto neighbors = get_neighbors(*sched, it->second);
 
   std::vector<railway_node const*> goal_nodes;
@@ -143,9 +152,19 @@ int main(int argc, char** argv) {
     w.String("coordinates").StartArray();
 
     for (auto const& link : d.get_links(goal)) {
-      std::cout << link->id_ << " " << link->polyline_.size() << std::endl;
+      // std::cout << link->id_ << " " << link->polyline_->size() << std::endl;
 
-      for(auto const& coord : link->polyline_) {
+      auto from = link->from_->pos_;
+      auto start_p = link->polyline_->front();
+      auto end_p = link->polyline_->back();
+
+      std::vector<coord> polyline = *link->polyline_;  // COPY!
+      if (distance_in_m({from.lng_, from.lat_}, {start_p.lng_, start_p.lat_}) >
+          distance_in_m({from.lng_, from.lat_}, {end_p.lng_, end_p.lat_})) {
+        std::reverse(begin(polyline), end(polyline));
+      }
+
+      for (auto const& coord : polyline) {
         w.StartArray();
         w.Double(coord.lng_);
         w.Double(coord.lat_);
@@ -160,4 +179,6 @@ int main(int argc, char** argv) {
 
   w.EndArray();
   w.EndObject();
+
+  std::cout << "foo" << std::endl;
 }

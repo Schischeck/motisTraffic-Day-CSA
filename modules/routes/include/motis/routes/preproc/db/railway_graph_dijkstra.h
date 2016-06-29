@@ -1,5 +1,7 @@
 #pragma once
 
+#include "motis/core/common/logging.h"
+
 #include "motis/routes/preproc/db/railway_graph.h"
 
 namespace motis {
@@ -29,6 +31,7 @@ struct railway_graph_dijkstra {
   }
 
   void run() {
+    motis::logging::scoped_timer timer("RailwayGraph Dijkstra");
     while (!pq_.empty()) {
       auto label = pq_.top();
       pq_.pop();
@@ -44,12 +47,12 @@ struct railway_graph_dijkstra {
 
       auto const& node = graph_.nodes_[this_idx];
       for (auto const& link : node->links_) {
-        size_t const new_dist = label.dist_ + link->dist_;
-        size_t const to_idx = link->to_->idx_;
+        size_t const new_dist = label.dist_ + link.dist_;
+        size_t const to_idx = link.to_->idx_;
         if (new_dist < dists_[to_idx]) {
           dists_[to_idx] = new_dist;
-          links_[to_idx] = link;
-          pq_.push({to_idx, new_dist, link});
+          links_[to_idx] = &link;
+          pq_.push({to_idx, new_dist, &link});
         }
       }
     }

@@ -29,13 +29,16 @@ private:
   void finalize_link(std::string const& id, uint32_t const from,
                      uint32_t const to);
 
+  railway_node* get_node(uint32_t const node_id,
+                         std::vector<coord> const* polyline);
+  railway_node* make_extra_node(railway_node* node, coord const& pos);
+
   void read_file(std::string const& filename, rapidjson::Document& doc);
 
   railway_graph& graph_;
 
   std::map<std::string, std::set<uint32_t>> raw_links_;
-  std::map<std::string, std::pair<std::string, std::vector<coord>>>
-      raw_polylines_;
+  std::map<std::string, std::vector<coord> const*> raw_polylines_;
 };
 
 }  // namespace routes

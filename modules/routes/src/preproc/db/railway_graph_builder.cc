@@ -7,6 +7,9 @@
 #include "motis/core/common/get_or_create.h"
 #include "motis/routes/preproc/geo_util.h"
 
+using namespace motis::geo_detail;
+
+
 namespace rapidjson {
 template <typename Encoding, typename Allocator>
 typename GenericValue<Encoding, Allocator>::ValueIterator begin(
@@ -53,9 +56,6 @@ void railway_graph_builder::build_graph(std::string root) {
   read_links(railway_links);
 
   finalize_links();
-
-  std::cout << graph_.nodes_.size() << std::endl;
-  std::cout << graph_.links_.size() << std::endl;
 }
 
 void railway_graph_builder::read_nodes(rapidjson::Document const& doc) {
@@ -91,16 +91,14 @@ void railway_graph_builder::add_links(rapidjson::Value const& v,
 }
 
 void railway_graph_builder::read_links(rapidjson::Document const& doc) {
-  for (auto const& feature : doc["features"]) {
-    std::vector<coord> polyline;
-    for (auto const& c : feature["geometry"]["coordinates"]) {
-      polyline.emplace_back(c[1u].GetDouble(), c[0u].GetDouble());
+  for (auto const& f : doc["features"]) {
+    auto polyline = std::make_unique<std::vector<coord>>();
+    for (auto const& c : f["geometry"]["coordinates"]) {
+      polyline->emplace_back(c[1u].GetDouble(), c[0u].GetDouble());
     }
 
-    auto const& properties = feature["properties"];
-    raw_polylines_.emplace(properties["id"].GetString(),
-                           std::make_pair(properties["startNodeId"].GetString(),
-                                          std::move(polyline)));
+    raw_polylines_.emplace(f["properties"]["id"].GetString(), polyline.get());
+    graph_.polylines_.emplace_back(std::move(polyline));
   }
 }
 
@@ -118,31 +116,44 @@ void railway_graph_builder::finalize_links() {
 void railway_graph_builder::finalize_link(std::string const& id,
                                           uint32_t const from,
                                           uint32_t const to) {
-  auto const& from_node = graph_.nodes_[from].get();
-  auto const& raw_polyline = raw_polylines_.at(id);
-  auto const& length = get_length(raw_polyline.second);
+  auto polyline = raw_polylines_.at(id);
+  auto length = static_cast<size_t>(get_length(*polyline));
 
-  auto from_pos = from_node->pos_;
-  auto start_pos = raw_polyline.second.front();
-  auto end_pos = raw_polyline.second.back();
+  auto from_node = get_node(from, polyline);
+  auto to_node = get_node(to, polyline);
 
-  auto polyline = raw_polyline.second;
-  if (geo_detail::distance_in_m({from_pos.lng_, from_pos.lat_},
-                                {start_pos.lng_, start_pos.lat_}) >
-      geo_detail::distance_in_m({from_pos.lng_, from_pos.lat_},
-                                {end_pos.lng_, end_pos.lat_})) {
-    std::reverse(begin(polyline), end(polyline));
+  from_node->links_.push_back({id, polyline, length, from_node, to_node});
+}
+
+railway_node* railway_graph_builder::get_node(
+    uint32_t const node_id, std::vector<coord> const* polyline) {
+  auto node = graph_.nodes_[node_id].get();
+  auto const& start_pos = polyline->front();
+  auto const& end_pos = polyline->back();
+
+  auto const start_dist = distance_in_m(node->pos_.lat_, node->pos_.lng_,
+                                        start_pos.lat_, start_pos.lng_);
+  auto const end_dist = distance_in_m(node->pos_.lat_, node->pos_.lng_,
+                                      end_pos.lat_, end_pos.lng_);
+
+  // only attach the link to this node if the gap is reasonably small
+  if (std::min(start_dist, end_dist) < 10) {
+    return node;
+  } else if (node->extra_ != nullptr) {
+    return get_node(node->extra_->idx_, polyline);
+  } else {
+    return make_extra_node(node, start_dist < end_dist ? start_pos : end_pos);
   }
+}
 
-  // if (from_node->pos_.lat_ != raw_polyline.second[0].lat_ &&
-  //     from_node->pos_.lng_ != raw_polyline.second[0].lng_) {
-  // }
-
-  auto link = std::make_unique<railway_link>(id, polyline, length, from_node,
-                                             graph_.nodes_[to].get());
-
-  from_node->links_.push_back(link.get());
-  graph_.links_.push_back(std::move(link));
+railway_node* railway_graph_builder::make_extra_node(
+    railway_node* node, coord const& pos) {
+  auto new_node = std::make_unique<railway_node>(
+      graph_.nodes_.size(), node->id_ + "-extra", pos, node->ds100_);
+  node->extra_ = new_node.get();
+  // TODO global DS100 Mapping
+  graph_.nodes_.push_back(std::move(new_node));
+  return graph_.nodes_.back().get();
 }
 
 void railway_graph_builder::read_file(std::string const& filename,
