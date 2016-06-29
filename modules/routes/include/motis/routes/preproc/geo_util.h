@@ -5,7 +5,7 @@
 #include "boost/geometry/geometries/geometries.hpp"
 
 #include "motis/core/common/geo.h"
-#include "motis/routes/preprocessing/osm/osm_node.h"
+#include "motis/routes/preproc/osm/osm_node.h"
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -45,20 +45,21 @@ inline linestring create_linestring_from_ways(
   return ls;
 }
 
-inline bool check_distance(double lat1, double lon1, double lat2, double lon2,
+inline bool check_distance(double lat1, double lng1, double lat2, double lng2,
                            int max_dist) {
-  return geo_detail::distance_in_m({lon1, lat1}, {lon2, lat2}) < max_dist;
+  return geo_detail::distance_in_m({lng1, lat1}, {lng2, lat2}) < max_dist;
 }
 
-inline double get_length(std::vector<double> const& coords) {
-  assert(coords.size() % 4 == 0);
+inline double get_length(std::vector<coord> const& coords) {
+  assert(coords.size() >= 2);
+  assert(coords.size() % 2 == 0);
 
-  double result = 0;
-  for (unsigned i = 0; i < coords.size() - 4; i += 2) {
-    result += geo_detail::distance_in_m({coords[i], coords[i + 1]},
-                                        {coords[i + 2], coords[i + 3]});
+  double res = 0;
+  for (unsigned i = 0; i < coords.size() - 1; ++i) {
+    res += geo_detail::distance_in_m({coords[i].lat_, coords[i].lng_},
+                                     {coords[i + 1].lng_, coords[i + 1].lng_});
   }
-  return result;
+  return res;
 }
 
 }  // namespace routes

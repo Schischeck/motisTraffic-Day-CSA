@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "motis/core/schedule/station.h"
-#include "motis/routes/preprocessing/osm/osm_node.h"
+#include "motis/routes/preproc/osm/osm_node.h"
 
 namespace motis {
 namespace routes {

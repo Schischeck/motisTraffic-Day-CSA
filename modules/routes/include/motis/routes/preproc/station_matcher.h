@@ -6,10 +6,10 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/routes/preprocessing/geo_util.h"
-#include "motis/routes/preprocessing/node_geo_index.h"
-#include "motis/routes/preprocessing/osm/osm_node.h"
-#include "motis/routes/preprocessing/osm/osm_route.h"
+#include "motis/routes/preproc/geo_util.h"
+#include "motis/routes/preproc/node_geo_index.h"
+#include "motis/routes/preproc/osm/osm_node.h"
+#include "motis/routes/preproc/osm/osm_route.h"
 
 #include "motis/protocol/RoutesSections_generated.h"
 

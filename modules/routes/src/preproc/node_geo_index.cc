@@ -1,4 +1,4 @@
-#include "motis/routes/preprocessing/node_geo_index.h"
+#include "motis/routes/preproc/node_geo_index.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>

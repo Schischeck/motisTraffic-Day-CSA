@@ -5,8 +5,8 @@
 #include "osmium/handler.hpp"
 #include "osmium/osm.hpp"
 
-#include "motis/routes/preprocessing/osm/osm_node.h"
-#include "motis/routes/preprocessing/osm/osm_route.h"
+#include "motis/routes/preproc/osm/osm_node.h"
+#include "motis/routes/preproc/osm/osm_route.h"
 
 namespace motis {
 namespace routes {

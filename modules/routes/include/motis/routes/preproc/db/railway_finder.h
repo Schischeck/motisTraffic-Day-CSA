@@ -1,7 +1,7 @@
 #pragma once
 
 #include "motis/core/schedule/schedule.h"
-#include "motis/routes/preprocessing/db/railway_graph.h"
+#include "motis/routes/preproc/db/railway_graph.h"
 
 namespace motis {
 namespace routes {

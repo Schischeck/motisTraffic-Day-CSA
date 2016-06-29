@@ -7,10 +7,10 @@
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
 #include "motis/loader/loader.h"
-#include "motis/routes/preprocessing/osm/osm_loader.h"
-#include "motis/routes/preprocessing/osm/osm_node.h"
-#include "motis/routes/preprocessing/osm/osm_route.h"
-#include "motis/routes/preprocessing/station_matcher.h"
+#include "motis/routes/preproc/osm/osm_loader.h"
+#include "motis/routes/preproc/osm/osm_node.h"
+#include "motis/routes/preproc/osm/osm_route.h"
+#include "motis/routes/preproc/station_matcher.h"
 #include "./test_schedule_setup.h"
 
 using namespace motis;
