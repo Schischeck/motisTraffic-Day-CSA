@@ -199,7 +199,7 @@ search_result pretrip_search(search_query const& q, SearchType const t) {
       return search<pretrip_gen<default_label>, default_label>::get_connections(
           q);
     case SearchType_SingleCriterionForward:
-      return search<ontrip_gen<single_criterion_label>,
+      return search<pretrip_gen<single_criterion_label>,
                     single_criterion_label>::get_connections(q);
     case SearchType_LateConnectionsForward:
       return search<pretrip_gen<late_connections_label>,
