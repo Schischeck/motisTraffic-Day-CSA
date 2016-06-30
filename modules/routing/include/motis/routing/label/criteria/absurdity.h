@@ -24,7 +24,9 @@ struct absurdity_updater {
   static void update(Label& l, edge_cost const&, LowerBounds&) {
     if (l.edge_->type() == edge::FOOT_EDGE ||
         l.edge_->type() == edge::AFTER_TRAIN_FOOT_EDGE) {
-      ++l.foot_counter_;
+      if (l.foot_counter_ <= MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED) {
+        ++l.foot_counter_;
+      }
       if (l.foot_counter_ > MAX_SUCCESSIVE_FOOT_EDGES_ALLOWED &&
           l.absurdity_ < UINT8_MAX) {
         ++l.absurdity_;
