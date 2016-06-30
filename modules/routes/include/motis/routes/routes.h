@@ -19,9 +19,9 @@ struct routes : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
-  motis::module::msg_ptr routes_section(motis::module::msg_ptr const& m);
+  motis::module::msg_ptr routes_section(motis::module::msg_ptr const&);
 
-  motis::module::msg_ptr all_sections(motis::module::msg_ptr const& m);
+  motis::module::msg_ptr all_sections(motis::module::msg_ptr const&);
 
   parser::buffer routes_buf_;
   std::string routes_file_;
