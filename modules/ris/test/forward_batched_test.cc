@@ -27,7 +27,7 @@ struct ris_forward_batched : public motis_instance_test {
         ext_sched_begin_(external_schedule_begin(sched())),
         ext_sched_end_(external_schedule_end(sched())) {
     subscribe("/ris/messages", msg_sink(&msgs_));
-    call("/ris/init");
+    // call("/ris/init");
 
     sqlpp::sqlite3::connection_config conf;
     conf.path_to_database = DATABASE_URL;

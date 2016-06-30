@@ -24,8 +24,6 @@ TEST_F(ris_test_mode, simple) {
   std::vector<msg_ptr> time_changed;
   subscribe("/ris/system_time_changed", msg_sink(&time_changed));
 
-  call("/ris/init");
-
   ASSERT_EQ(1, msgs.size());
   auto batch = motis_content(RISBatch, msgs[0]);
   ASSERT_EQ(2, batch->messages()->size());
