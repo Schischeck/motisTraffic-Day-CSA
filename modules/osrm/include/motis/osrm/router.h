@@ -8,7 +8,7 @@ namespace motis {
 namespace osrm {
 
 struct router {
-  router(std::string path);
+  explicit router(std::string path);
   ~router();
 
   motis::module::msg_ptr one_to_many(OSRMOneToManyRequest const*) const;
