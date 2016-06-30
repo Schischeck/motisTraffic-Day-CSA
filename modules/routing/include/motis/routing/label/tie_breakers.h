@@ -17,5 +17,19 @@ struct post_search_tb {
   }
 };
 
+struct absurdity_tb {
+  template <typename Label>
+  static bool dominates(bool, Label const& a, Label const& b) {
+    return a.absurdity_ <= b.absurdity_;
+  }
+};
+
+struct absurdity_post_search_tb {
+  template <typename Label>
+  static bool dominates(bool could_dominate, Label const& a, Label const& b) {
+    return could_dominate || a.absurdity_ <= b.absurdity_;
+  }
+};
+
 }  // namespace routing
 }  // namespace motis

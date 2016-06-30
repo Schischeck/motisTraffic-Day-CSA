@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <limits>
 #include <vector>
@@ -14,6 +16,15 @@ struct entry;
 
 constexpr auto tmax = std::numeric_limits<motis::time>::max();
 constexpr auto tmin = std::numeric_limits<motis::time>::min();
+
+inline delay_info* get_delay_info(schedule const& sched, ev_key const& k) {
+  auto it = sched.graph_to_delay_info_.find(k);
+  if (it == end(sched.graph_to_delay_info_)) {
+    return nullptr;
+  } else {
+    return it->second;
+  }
+}
 
 struct entry : public delay_info {
   entry() = default;
@@ -43,7 +54,7 @@ struct trip_corrector {
   explicit trip_corrector(schedule& sched, ev_key const& k)
       : sched_(sched), trip_ev_keys_(trip_bfs(k, bfs_direction::BOTH)) {}
 
-  std::vector<delay_info*> fix_times() {
+  std::vector<delay_info const*> fix_times() {
     set_min_max();
     repair();
     return update();
@@ -72,7 +83,7 @@ private:
 
   void set_min_max() {
     for (auto const& k : trip_ev_keys_) {
-      auto di = get_delay_info(sched_, k);
+      auto di = motis::rt::get_delay_info(sched_, k);
       if (di == nullptr || di->get_is_time() == 0) {
         continue;
       }
@@ -86,18 +97,23 @@ private:
     }
   }
 
-  std::vector<delay_info*> update() {
-    std::vector<delay_info*> updates;
+  std::vector<delay_info const*> update() {
+    std::vector<delay_info const*> updates;
     for (auto const& k : trip_ev_keys_) {
       auto& e = entries_[k];
       if (e.get_reason() == timestamp_reason::REPAIR &&
           e.get_repair_time() != k.get_time()) {
-        auto& di = sched_.graph_to_delay_info_[k];
+        auto di = map_get_or_create(sched_.graph_to_delay_info_, k, [&]() {
+          sched_.delay_mem_.emplace_back(new delay_info(k));
+          return sched_.delay_mem_.back().get();
+        });
         di->set(timestamp_reason::REPAIR, e.get_repair_time());
 
         auto& event_time = k.ev_type_ == event_type::DEP ? k.lcon()->d_time_
                                                          : k.lcon()->a_time_;
         const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
+
+        updates.push_back(di);
       }
     }
     return updates;

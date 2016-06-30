@@ -28,7 +28,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND git describe --tags --dirty=-dirty
+  COMMAND git describe --always --tags --dirty=-dirty
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE motis_git_tag
   OUTPUT_STRIP_TRAILING_WHITESPACE

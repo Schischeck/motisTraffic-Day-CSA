@@ -10,7 +10,7 @@ using namespace motis::module;
 using namespace motis::loader;
 using motis::routing::RoutingResponse;
 
-auto routing_request = R"({
+auto routing_request_rule_service = R"({
   "destination": {
     "type": "Module",
     "target": "/routing"
@@ -37,6 +37,34 @@ auto routing_request = R"({
   }
 })";
 
+auto routing_request_standalone = R"({
+  "content_type": "RoutingRequest",
+  "content": {
+    "start_type": "PretripStart",
+    "start": {
+      "station": {
+        "id": "8000213",
+        "name": ""
+      },
+      "interval":{
+        "begin": 1463569200,
+        "end": 1463580000
+      }
+    },
+    "destination": {
+      "id": "8000297",
+      "name": ""
+    },
+    "search_type": "DefaultForward",
+    "additional_edges": [],
+    "via": []
+  },
+  "destination": {
+    "type":"Module",
+    "target":"/routing"
+  }
+})";
+
 std::vector<int> trip_train_nrs_at(
     int from, int to, fbs::Vector<fbs::Offset<Trip>> const* trips) {
   std::vector<int> train_nrs;
@@ -56,8 +84,17 @@ struct loader_graph_builder_rule_service : public motis_instance_test {
             {"routing"}) {}
 };
 
+struct loader_graph_builder_rule_service_standalone
+    : public motis_instance_test {
+  loader_graph_builder_rule_service_standalone()
+      : motis_instance_test(
+            {(hrd::SCHEDULES / "mss-ts-standalone").generic_string(),
+             "20160518"},
+            {"routing"}) {}
+};
+
 TEST_F(loader_graph_builder_rule_service, search) {
-  auto res = call(make_msg(routing_request));
+  auto res = call(make_msg(routing_request_rule_service));
   auto connections = motis_content(RoutingResponse, res)->connections();
 
   ASSERT_EQ(1, connections->size());
@@ -69,4 +106,11 @@ TEST_F(loader_graph_builder_rule_service, search) {
   EXPECT_EQ(std::vector<int>({1, 2, 3, 4}), trip_train_nrs_at(0, 5, trips));
   EXPECT_EQ(std::vector<int>({3}), trip_train_nrs_at(0, 1, trips));
   EXPECT_EQ(std::vector<int>({1, 2, 3}), trip_train_nrs_at(1, 4, trips));
+}
+
+TEST_F(loader_graph_builder_rule_service_standalone, DISABLED_search) {
+  auto res = call(make_msg(routing_request_standalone));
+  auto connections = motis_content(RoutingResponse, res)->connections();
+
+  ASSERT_EQ(1, connections->size());
 }
