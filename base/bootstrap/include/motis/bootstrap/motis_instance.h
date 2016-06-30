@@ -29,6 +29,7 @@ struct motis_instance : public motis::module::controller {
 
   module::msg_ptr call(std::string const& target);
   module::msg_ptr call(module::msg_ptr const&);
+  void publish(std::string const& target);
   void publish(module::msg_ptr const&);
 
   schedule_ptr schedule_;

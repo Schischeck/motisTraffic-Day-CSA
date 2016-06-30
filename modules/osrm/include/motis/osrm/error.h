@@ -9,7 +9,7 @@ namespace osrm {
 namespace error {
 enum error_code_t {
   ok = 0,
-  not_initialized = 1,
+  profile_not_available = 1,
   no_routing_response = 2,
 };
 }  // namespace error
@@ -20,7 +20,7 @@ public:
 
   std::string message(int ev) const noexcept override {
     switch (ev) {
-      case error::not_initialized: return "osrm: not initialized";
+      case error::profile_not_available: return "osrm: profile not available";
       case error::no_routing_response: return "osrm: no routing response";
       default: return "osrm: unkown error";
     }

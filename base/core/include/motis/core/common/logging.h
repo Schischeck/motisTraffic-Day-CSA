@@ -33,8 +33,8 @@ inline std::string time() {
 }
 
 struct scoped_timer final {
-  explicit scoped_timer(char const* name)
-      : name_(name), start_(std::chrono::steady_clock::now()) {
+  explicit scoped_timer(std::string name)
+      : name_(std::move(name)), start_(std::chrono::steady_clock::now()) {
     LOG(info) << "[" << name_ << "] starting";
   }
 
@@ -46,7 +46,7 @@ struct scoped_timer final {
               << " (" << t << "ms)";
   }
 
-  const char* name_;
+  std::string name_;
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
