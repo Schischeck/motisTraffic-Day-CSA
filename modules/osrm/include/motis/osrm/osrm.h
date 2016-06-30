@@ -1,11 +1,14 @@
 #pragma once
 
+#include <map>
 #include <memory>
+#include <vector>
 
 #include "motis/module/module.h"
 
 namespace motis {
 namespace osrm {
+struct router;
 
 struct osrm : public motis::module::module {
 public:
@@ -13,18 +16,14 @@ public:
   ~osrm() override;
 
   std::string name() const override { return "osrm"; }
-
-  boost::program_options::options_description desc() override;
-  void print(std::ostream& out) const override;
-  bool empty_config() const override { return true; }
-
   void init(motis::module::registry&) override;
+  void init_async();
 
 private:
-  std::string path_;
+  router const* get_router(std::string const& profile);
 
-  struct impl;
-  std::unique_ptr<impl> impl_;
+  std::vector<std::string> datasets_;
+  std::map<std::string, std::unique_ptr<router>> routers_;
 };
 
 }  // namespace osrm

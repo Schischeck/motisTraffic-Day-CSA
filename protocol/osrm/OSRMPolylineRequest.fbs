@@ -1,0 +1,23 @@
+include "base/Position.fbs";
+
+namespace motis.osrm;
+
+// JSON Example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/osrm/polyline"
+//   },
+//   "content_type": "OSRMPolylineRequest",
+//   "content": {
+//     "profile": "car",
+//     "from": { "lat": 49.87738029, "lng": 8.64555359 },
+//     "to": { "lat": 50.11485439, "lng": 8.65791321 }
+//   }
+// }
+table OSRMPolylineRequest {
+  profile: string;
+  from : motis.Position;
+  to : motis.Position;
+}

@@ -7,8 +7,13 @@ enum Direction : byte { Forward, Backward }
 // JSON Example:
 // --
 // {
-//   "content_type": "OSRMRoutingRequest",
+//   "destination": {
+//     "type": "Module",
+//     "target": "/osrm/one_to_many"
+//   },
+//   "content_type": "OSRMOneToManyRequest",
 //   "content": {
+//     "profile": "car",
 //     "direction": "Forward",
 //     "one": { "lat": 49.87738029, "lng": 8.64555359 },
 //     "many": [
@@ -17,7 +22,8 @@ enum Direction : byte { Forward, Backward }
 //     ]
 //   }
 // }
-table OSRMRoutingRequest {
+table OSRMOneToManyRequest {
+  profile: string;
   direction: Direction;
   one : motis.Position;
   many : [motis.Position];

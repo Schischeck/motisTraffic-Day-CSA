@@ -25,8 +25,10 @@ include "railviz/RailVizStationDetailRes.fbs";
 include "railviz/RailVizRouteAtTimeReq.fbs";
 include "railviz/RailVizRouteAtTimeRes.fbs";
 include "railviz/RailVizFindTrain.fbs";
-include "osrm/OSRMRoutingRequest.fbs";
-include "osrm/OSRMRoutingResponse.fbs";
+include "osrm/OSRMOneToManyRequest.fbs";
+include "osrm/OSRMOneToManyResponse.fbs";
+include "osrm/OSRMPolylineRequest.fbs";
+include "osrm/OSRMPolylineResponse.fbs";
 include "reliability/ReliabilityRatingResponse.fbs";
 include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
@@ -114,8 +116,10 @@ union MsgContent {
   motis.railviz.RailVizRouteAtTimeReq,
   motis.railviz.RailVizRouteAtTimeRes,
   motis.railviz.RailVizFindTrain,
-  motis.osrm.OSRMRoutingRequest,
-  motis.osrm.OSRMRoutingResponse,
+  motis.osrm.OSRMOneToManyRequest,
+  motis.osrm.OSRMOneToManyResponse,
+  motis.osrm.OSRMPolylineRequest,
+  motis.osrm.OSRMPolylineResponse,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
   motis.reliability.ReliabilityRatingResponse,

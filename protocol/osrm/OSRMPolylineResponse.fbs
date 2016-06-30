@@ -1,0 +1,5 @@
+namespace motis.osrm;
+
+table OSRMPolylineResponse {
+  polyline: [double];
+}
