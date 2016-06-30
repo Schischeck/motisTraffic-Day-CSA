@@ -46,6 +46,10 @@ msg_ptr motis_instance_test::call(std::string const& target) {
   return call(make_no_msg(target));
 }
 
+void motis_instance_test::publish(std::string const& target) {
+  publish(make_no_msg(target));
+}
+
 std::function<module::msg_ptr(module::msg_ptr const&)>
 motis_instance_test::msg_sink(std::vector<module::msg_ptr>* vec) {
   return [vec](module::msg_ptr const& m) -> module::msg_ptr {

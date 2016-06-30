@@ -66,28 +66,11 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
-  publish(make_no_msg("/init"));
+  publish("/init");
 }
 
 msg_ptr motis_instance::call(std::string const& target) {
-  std::exception_ptr e;
-  msg_ptr response;
-
-  run([&]() {
-    try {
-      response = motis_call(make_no_msg(target))->val();
-    } catch (...) {
-      e = std::current_exception();
-    }
-  });
-  ios_.run();
-  ios_.reset();
-
-  if (e) {
-    std::rethrow_exception(e);
-  }
-
-  return response;
+  return call(make_no_msg(target));
 }
 
 msg_ptr motis_instance::call(msg_ptr const& msg) {
@@ -109,6 +92,10 @@ msg_ptr motis_instance::call(msg_ptr const& msg) {
   }
 
   return response;
+}
+
+void motis_instance::publish(std::string const& target) {
+  publish(make_no_msg(target));
 }
 
 void motis_instance::publish(msg_ptr const& msg) {
