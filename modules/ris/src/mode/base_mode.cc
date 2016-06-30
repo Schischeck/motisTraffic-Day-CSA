@@ -30,10 +30,7 @@ namespace ris {
 namespace mode {
 
 void base_mode::init(registry& r) {
-  r.register_op("/ris/init", [this](msg_ptr const&) -> msg_ptr {
-    init_async();
-    return nullptr;
-  });
+  r.subscribe_void("/init", [this] { init_async(); });
 }
 
 void base_mode::init_async() {
