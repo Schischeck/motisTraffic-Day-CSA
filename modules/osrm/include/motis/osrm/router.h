@@ -12,7 +12,7 @@ struct router {
   ~router();
 
   motis::module::msg_ptr one_to_many(OSRMOneToManyRequest const*) const;
-  motis::module::msg_ptr polyline(OSRMPolylineRequest const*) const;
+  motis::module::msg_ptr via(OSRMViaRouteRequest const*) const;
 
   struct impl;
   std::unique_ptr<impl> impl_;

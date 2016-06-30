@@ -36,9 +36,9 @@ void osrm::init(motis::module::registry& reg) {
     auto const req = motis_content(OSRMOneToManyRequest, msg);
     return get_router(req->profile()->str())->one_to_many(req);
   });
-  reg.register_op("/osrm/polyline", [this](msg_ptr const& msg) {
-    auto const req = motis_content(OSRMPolylineRequest, msg);
-    return get_router(req->profile()->str())->polyline(req);
+  reg.register_op("/osrm/via", [this](msg_ptr const& msg) {
+    auto const req = motis_content(OSRMViaRouteRequest, msg);
+    return get_router(req->profile()->str())->via(req);
   });
 }
 

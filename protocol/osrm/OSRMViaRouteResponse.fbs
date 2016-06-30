@@ -1,0 +1,11 @@
+namespace motis.osrm;
+
+table Polyline {
+  coordinates: [double];
+}
+
+table OSRMViaRouteResponse {
+  time:int;
+  distance:double;
+  segments: [Polyline];
+}
