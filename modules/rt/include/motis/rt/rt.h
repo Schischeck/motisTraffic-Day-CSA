@@ -27,9 +27,6 @@ struct rt : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
-  trip const* get_trip_fuzzy(schedule const& sched,
-                             ris::DelayMessage const* msg);
-
   motis::module::msg_ptr on_message(motis::module::msg_ptr const& msg);
   motis::module::msg_ptr on_system_time_change(
       motis::module::msg_ptr const& msg);

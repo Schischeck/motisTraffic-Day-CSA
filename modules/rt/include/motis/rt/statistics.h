@@ -20,7 +20,6 @@ struct statistics {
         ev_invalid_time_(0),
         ev_station_not_found_(0),
         ev_trp_not_found_(0),
-        ev_exact_trp_not_found_(0),
         additional_not_found_(0),
         total_updates_(0),
         found_updates_(0),
@@ -53,7 +52,6 @@ struct statistics {
     c("invalid time", s.ev_invalid_time_);
     c("station not found", s.ev_station_not_found_);
     c("trip not found", s.ev_trp_not_found_);
-    c("exact trip not found", s.ev_exact_trp_not_found_);
     c("additional train event", s.additional_not_found_);
 
     o << "\nupdates\n";
@@ -119,7 +117,6 @@ struct statistics {
   unsigned ev_invalid_time_;
   unsigned ev_station_not_found_;
   unsigned ev_trp_not_found_;
-  unsigned ev_exact_trp_not_found_;
   unsigned additional_not_found_;
 
   unsigned total_updates_;

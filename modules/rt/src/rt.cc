@@ -87,21 +87,24 @@ std::vector<update> get_updates(schedule const& sched,
   return updates;
 }
 
-trip const* rt::get_trip_fuzzy(schedule const& sched,
-                               ris::DelayMessage const* msg) {
-  auto const id = msg->trip_id();
+trip const* get_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
+  try {
+    // first try: exact match of first departure
+    auto trp = find_trip(sched, id->station_id()->str(), id->service_num(),
+                         id->schedule_time());
 
-  // first try: exact match of first departure
-  auto trp = find_trip(sched, id->station_id()->str(), id->service_num(),
-                       id->schedule_time());
+    // second try: match of first departure with train number set to 0
+    if (trp == nullptr) {
+      trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
+    }
 
-  // second try: match of first departure with train number set to 0
-  if (trp == nullptr) {
-    stats_.ev_exact_trp_not_found_ += msg->events()->size();
-    trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
+    return trp;
+  } catch (std::system_error const& e) {
+    if (e.code() != access::error::station_not_found) {
+      throw;
+    }
+    return nullptr;
   }
-
-  return trp;
 }
 
 void rt::add_to_propagator(schedule const& sched,
@@ -114,7 +117,7 @@ void rt::add_to_propagator(schedule const& sched,
     return;
   }
 
-  auto trp = get_trip_fuzzy(sched, msg);
+  auto trp = get_trip_fuzzy(sched, msg->trip_id());
   if (trp == nullptr) {
     stats_.ev_trp_not_found_ += msg->events()->size();
     return;
@@ -200,7 +203,6 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
   // Parse message and add updates to propagator.
   for (auto const& m : *msgs) {
     auto const& nested = m->message_nested_root();
-
     stats_.count_message(nested->content_type());
 
     if (nested->content_type() != ris::MessageUnion_DelayMessage) {
