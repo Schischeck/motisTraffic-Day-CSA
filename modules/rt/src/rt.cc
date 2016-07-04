@@ -166,14 +166,6 @@ void rt::add_to_propagator(schedule const& sched,
   }
 }
 
-void disable_route_layer(ev_key const& k) {
-  for (auto const& e : route_bfs(k, bfs_direction::BOTH)) {
-    auto const& con = e->m_.route_edge_.conns_[k.lcon_idx_];
-    auto& mutable_con = const_cast<light_connection&>(con);  // NOLINT
-    mutable_con.valid_ = false;
-  }
-}
-
 rt::rt() = default;
 
 rt::~rt() = default;
@@ -262,7 +254,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
       ++stats_.conflicting_events_;
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
-      disable_route_layer(k);
+      seperate_trip(sched, k);
     }
 
     shifted_nodes.add(di);

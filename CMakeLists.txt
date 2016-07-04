@@ -63,7 +63,7 @@ if (NOT MSVC)
 else()
   include(external_lib/googletest/googletest/cmake/internal_utils.cmake)
   fix_default_compiler_settings_()
-  set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB")
+  set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB -DWIN32_LEAN_AND_MEAN")
 endif()
 
 if(MINGW)

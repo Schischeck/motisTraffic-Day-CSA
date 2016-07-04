@@ -136,7 +136,6 @@ public:
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
-            printf("building after train edge\n");
             route_node->edges_.push_back(
                 make_after_train_edge(route_node, foot_node_, 0, true));
             break;

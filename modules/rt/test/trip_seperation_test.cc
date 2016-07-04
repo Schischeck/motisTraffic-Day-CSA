@@ -30,7 +30,8 @@ TEST_F(rt_trip_seperation_test, simple) {
   EXPECT_EQ(t1_d1->edges_->at(0).get_edge(), t1_d2->edges_->at(0).get_edge());
   EXPECT_EQ(t2_d1->edges_->at(0).get_edge(), t2_d2->edges_->at(0).get_edge());
 
-  seperate_trip(sched(), t1_d1);
+  seperate_trip(sched(), ev_key{t1_d1->edges_->at(0).get_edge(),
+                                t1_d1->lcon_idx_, event_type::DEP});
 
   EXPECT_NE(t1_d1->edges_->at(0).get_edge(), t1_d2->edges_->at(0).get_edge());
   EXPECT_NE(t2_d1->edges_->at(0).get_edge(), t2_d2->edges_->at(0).get_edge());
