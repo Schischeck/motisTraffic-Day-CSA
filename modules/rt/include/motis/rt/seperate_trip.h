@@ -104,14 +104,14 @@ inline std::set<trip const*> route_trips(schedule const& sched,
 
 inline void update_trips(schedule& sched, trip const* trp,
                          std::map<edge const*, trip::route_edge>& edges) {
-  for (auto const& trp : route_trips(sched, trp)) {
+  for (auto const& t : route_trips(sched, trp)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
-            loader::transform_to_vec(*trp->edges_,
+            loader::transform_to_vec(*t->edges_,
                                      [&](trip::route_edge const& e) {
                                        return edges.at(e.get_edge());
                                      })));
-    const_cast<trip*>(trp)->edges_ = sched.trip_edges_.back().get();  // NOLINT
+    const_cast<trip*>(t)->edges_ = sched.trip_edges_.back().get();  // NOLINT
   }
 }
 
