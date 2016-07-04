@@ -5,19 +5,17 @@
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
-#include "motis/core/schedule/print.h"
-
 using namespace motis;
 using namespace motis::rt;
 using namespace motis::test;
 using motis::test::schedule::invalid_realtime::dataset_opt;
 
-struct rt_trip_seperation_test : public motis_instance_test {
-  rt_trip_seperation_test()
+struct rt_trip_separation_test : public motis_instance_test {
+  rt_trip_separation_test()
       : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
 };
 
-TEST_F(rt_trip_seperation_test, simple) {
+TEST_F(rt_trip_separation_test, simple) {
   auto t1_d1 = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                         unix_time(1400), "381");
   auto t1_d2 = get_trip(sched(), "0000001", 1, unix_time(1010, 1), "0000005",

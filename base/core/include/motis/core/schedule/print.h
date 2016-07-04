@@ -7,14 +7,14 @@ void print_node(node const& node, std::ostream& out, int indent,
                 bool print_recursive);
 
 struct indentation {
-  indentation(unsigned indent) : indent(indent) {}
+  explicit indentation(unsigned indent) : indent_(indent) {}
 
   friend std::ostream& operator<<(std::ostream& out, indentation const& ind) {
-    for (unsigned i = 0; i < ind.indent; ++i) out << "  ";
+    for (unsigned i = 0; i < ind.indent_; ++i) out << "  ";
     return out;
   }
 
-  unsigned indent;
+  unsigned indent_;
 };
 
 inline std::ostream& operator<<(std::ostream& out,
