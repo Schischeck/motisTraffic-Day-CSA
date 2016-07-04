@@ -125,7 +125,6 @@ public:
   }
 
   int add_foot_edge(int node_id, edge fe) {
-    printf("add_foot_edge\n");
     if (foot_node_ == nullptr) {
       foot_node_ = new node(this, node_id++);
       for (auto& route_node : get_route_nodes()) {
