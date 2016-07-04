@@ -125,6 +125,7 @@ public:
   }
 
   int add_foot_edge(int node_id, edge fe) {
+    printf("add_foot_edge\n");
     if (foot_node_ == nullptr) {
       foot_node_ = new node(this, node_id++);
       for (auto& route_node : get_route_nodes()) {
@@ -135,6 +136,7 @@ public:
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
+            printf("building after train edge\n");
             route_node->edges_.push_back(
                 make_after_train_edge(route_node, foot_node_, 0, true));
             break;

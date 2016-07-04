@@ -19,6 +19,7 @@
 #include "motis/loader/util.h"
 #include "motis/rt/bfs.h"
 #include "motis/rt/delay_propagator.h"
+#include "motis/rt/seperate_trip.h"
 #include "motis/rt/shifted_nodes_msg_builder.h"
 #include "motis/rt/trip_correction.h"
 #include "motis/rt/validy_check.h"

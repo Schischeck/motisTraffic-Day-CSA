@@ -19,54 +19,59 @@ struct indentation {
 
 inline std::ostream& operator<<(std::ostream& out,
                                 light_connection const& con) {
-  return out << "dep=" << con.d_time << ", "
-             << "arr=" << con.a_time << ", "
-             << "train_nr=" << con._full_con->con_info->train_nr;
+  return out << "dep=" << con.d_time_ << ", "
+             << "arr=" << con.a_time_ << ", "
+             << "train_nr=" << con.full_con_->con_info_->train_nr_ << ", "
+             << (con.valid_ ? "" : "valid=false");
 }
 
 inline void print_node(node const& node, std::ostream& out, int indent,
                        bool print_recursive) {
-  out << "node_id=" << node._id;
+  out << "node_id=" << node.id_;
   if (node.is_route_node()) {
-    out << " [route=" << node._route << "]";
+    out << " [route=" << node.route_ << "]";
   }
-  out << " [#edges=" << node._edges.size() << "]:\n";
-  for (unsigned i = 0; i < node._edges.size(); ++i) {
+  out << " [#edges=" << node.edges_.size() << "]:\n";
+  for (unsigned i = 0; i < node.edges_.size(); ++i) {
     out << indentation(indent + 1) << "edge[" << i << "]: ";
-    print_edge(node._edges._el[i], out, indent + 1);
+    print_edge(node.edges_.el_[i], out, indent + 1);
 
     if (print_recursive) {
       out << indentation(indent + 2);
-      print_node(*node._edges._el[i]._to, out, indent + 2, false);
+      print_node(*node.edges_.el_[i].to_, out, indent + 2, false);
     }
   }
 }
 
 inline void print_edge(edge const& edge, std::ostream& out, int indent) {
-  out << "to=" << edge._to->_id << ", ";
-  switch (edge._m._type) {
+  out << "to=" << edge.to_->id_ << ", ";
+  switch (edge.m_.type_) {
     case edge::ROUTE_EDGE: {
       out << "type=route_edge, "
-          << "[#connections=" << edge._m._route_edge._conns.size() << "]:\n";
-      for (unsigned i = 0; i < edge._m._route_edge._conns.size(); ++i) {
+          << "[#connections=" << edge.m_.route_edge_.conns_.size() << "]:\n";
+      for (unsigned i = 0; i < edge.m_.route_edge_.conns_.size(); ++i) {
         out << indentation(indent + 1) << "connection[" << i
-            << "]: " << edge._m._route_edge._conns._el[i] << "\n";
+            << "]: " << edge.m_.route_edge_.conns_.el_[i] << "\n";
       }
       break;
     }
 
     case edge::FOOT_EDGE:
       out << "type=foot_edge, "
-          << "duration=" << edge._m._foot_edge._time_cost << ", "
-          << "transfer=" << std::boolalpha << edge._m._foot_edge._transfer
-          << ", "
-          << "mumo_id=" << static_cast<int>(edge._m._foot_edge.mumo_id_)
+          << "duration=" << edge.m_.foot_edge_.time_cost_ << ", "
+          << "transfer=" << std::boolalpha << edge.m_.foot_edge_.transfer_
+          << ", " << (edge.m_.foot_edge_.mumo_id_ == 0
+                          ? ""
+                          : "mumo_id=" + std::to_string(static_cast<int>(
+                                             edge.m_.foot_edge_.mumo_id_)))
           << "\n";
       break;
 
+    case edge::THROUGH_EDGE: out << "THROUGH\n"; break;
+    case edge::AFTER_TRAIN_FOOT_EDGE: out << "AFTER_TRAIN\n"; break;
     case edge::INVALID_EDGE: out << "NO_EDGE\n"; break;
 
-    default: out << "UNKOWN [type=" << static_cast<int>(edge._m._type) << "]\n";
+    default: out << "UNKOWN [type=" << static_cast<int>(edge.m_.type_) << "]\n";
   }
 }
 
