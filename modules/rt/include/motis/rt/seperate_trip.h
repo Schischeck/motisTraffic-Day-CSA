@@ -144,14 +144,44 @@ inline void build_change_edges(
   }
 }
 
+inline std::set<station_node*> route_station_nodes(ev_key const& k) {
+  std::set<station_node*> station_nodes;
+  for (auto const& e : route_edges(k)) {
+    station_nodes.insert(e->from_->get_station());
+    station_nodes.insert(e->to_->get_station());
+  }
+  return station_nodes;
+}
+
+inline void re_connect_route_reverse(
+    std::set<station_node*> const& station_nodes) {
+  for (auto& station_node : station_nodes) {
+    station_node->incoming_edges_.clear();
+    for (auto& station_edge : station_node->edges_) {
+      station_edge.to_->incoming_edges_.clear();
+    }
+  }
+
+  for (auto& station_node : station_nodes) {
+    for (auto& station_edge : station_node->edges_) {
+      station_edge.to_->incoming_edges_.push_back(&station_edge);
+      for (auto& edge : station_edge.to_->edges_) {
+        edge.to_->incoming_edges_.push_back(&edge);
+      }
+    }
+  }
+}
+
 inline void seperate_trip(schedule& sched, ev_key const& k) {
   std::map<node const*, node*> nodes;
   std::map<edge const*, trip::route_edge> edges;
   auto in_out_allowed = get_route_in_out_allowed(k);
+  auto station_nodes = route_station_nodes(k);
 
   copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);
   build_change_edges(sched, in_out_allowed, nodes);
+  re_connect_route_reverse(station_nodes);
 }
 
 }  // namespace rt
