@@ -7,6 +7,8 @@
 
 #include "motis/rt/bfs.h"
 
+#include "motis/core/access/service_access.h"
+
 namespace motis {
 namespace rt {
 
@@ -50,13 +52,12 @@ inline edge copy_edge(edge const& original, node* from, node* to,
                       int lcon_index) {
   edge e;
   if (original.type() == edge::ROUTE_EDGE) {
-    return make_route_edge(from, to,
-                           {original.m_.route_edge_.conns_[lcon_index]});
+    e = make_route_edge(from, to, {original.m_.route_edge_.conns_[lcon_index]});
   } else {
     e = original;
+    e.from_ = from;
+    e.to_ = to;
   }
-  e.from_ = from;
-  e.to_ = to;
   return e;
 }
 
@@ -65,7 +66,7 @@ inline void copy_trip_route(schedule& sched, ev_key const& k,
                             std::map<edge const*, trip::route_edge>& edges) {
   auto const build_node = [&](node const* orig) {
     auto n = new node(orig->station_node_, sched.node_count_++);
-    n->route_ = orig->route_;
+    n->route_ = orig->route_;  // TODO(Felix Guendling) create new route
     return n;
   };
 
@@ -105,10 +106,18 @@ inline void update_trips(schedule& sched, ev_key const& k,
   for (auto const& t : route_trips(sched, k)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
-            loader::transform_to_vec(*t->edges_,
-                                     [&](trip::route_edge const& e) {
-                                       return edges.at(e.get_edge());
-                                     })));
+            loader::transform_to_vec(
+                *t->edges_, [&](trip::route_edge const& e) {
+                  try {
+                    return edges.at(e.get_edge());
+                  } catch (std::exception const&) {
+                    printf("\n\nERROR: %s: %d -> %d not found\n\n",
+                           e.get_edge()->type_str(), e.get_edge()->from_->id_,
+                           e.get_edge()->to_->id_);
+                    std::terminate();
+                    return e;
+                  }
+                })));
     const_cast<trip*>(t)->edges_ = sched.trip_edges_.back().get();  // NOLINT
   }
 }
@@ -153,21 +162,62 @@ inline std::set<station_node*> route_station_nodes(ev_key const& k) {
   return station_nodes;
 }
 
-inline void re_connect_route_reverse(
+inline bool contains(station_node const* s, node const* n) {
+  if (s == n) {
+    return true;
+  }
+  for (auto const& e : s->edges_) {
+    if (n == e.to_) {
+      return true;
+    }
+  }
+  return false;
+}
+
+inline std::map<node const*, std::vector<edge*>> incoming_non_station_edges(
     std::set<station_node*> const& station_nodes) {
-  for (auto& station_node : station_nodes) {
-    station_node->incoming_edges_.clear();
-    for (auto& station_edge : station_node->edges_) {
-      station_edge.to_->incoming_edges_.clear();
+  std::map<node const*, std::vector<edge*>> incoming;
+
+  auto const add_incoming = [&](station_node const* s, node const* n) {
+    for (auto const& e_in : n->incoming_edges_) {
+      if (!contains(s, e_in->from_)) {
+        incoming[n].push_back(e_in);
+      }
+    }
+  };
+
+  for (auto const& s : station_nodes) {
+    add_incoming(s, s);
+    for (auto const& e : s->edges_) {
+      add_incoming(s, e.to_);
     }
   }
 
-  for (auto& station_node : station_nodes) {
-    for (auto& station_edge : station_node->edges_) {
-      station_edge.to_->incoming_edges_.push_back(&station_edge);
+  return incoming;
+}
+
+inline void rebuild_incoming_edges(
+    std::set<station_node*> const& station_nodes,
+    std::map<node const*, std::vector<edge*>>& incoming) {
+  for (auto& s : station_nodes) {
+    for (auto& station_edge : s->edges_) {
+      incoming[station_edge.to_].push_back(&station_edge);
       for (auto& edge : station_edge.to_->edges_) {
-        edge.to_->incoming_edges_.push_back(&edge);
+        if (contains(s, edge.to_)) {
+          incoming[edge.to_].push_back(&edge);
+        }
       }
+    }
+  }
+
+  for (auto& s : station_nodes) {
+    auto const& s_in = incoming.at(s);
+    s->incoming_edges_ = array<edge*>(begin(s_in), end(s_in));
+
+    for (auto& station_edge : s->edges_) {
+      auto const n = station_edge.to_;
+      auto const& n_in = incoming.at(n);
+      station_edge.to_->incoming_edges_ = array<edge*>(begin(n_in), end(n_in));
     }
   }
 }
@@ -177,11 +227,12 @@ inline void seperate_trip(schedule& sched, ev_key const& k) {
   std::map<edge const*, trip::route_edge> edges;
   auto in_out_allowed = get_route_in_out_allowed(k);
   auto station_nodes = route_station_nodes(k);
+  auto incoming = incoming_non_station_edges(station_nodes);
 
   copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);
   build_change_edges(sched, in_out_allowed, nodes);
-  re_connect_route_reverse(station_nodes);
+  rebuild_incoming_edges(station_nodes, incoming);
 }
 
 }  // namespace rt
