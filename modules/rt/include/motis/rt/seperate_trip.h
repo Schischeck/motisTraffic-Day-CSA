@@ -196,7 +196,7 @@ inline std::map<node const*, std::vector<edge*>> incoming_non_station_edges(
   return incoming;
 }
 
-inline void rebuild_incoming_edges(
+inline void add_incoming_station_edges(
     std::set<station_node*> const& station_nodes,
     std::map<node const*, std::vector<edge*>>& incoming) {
   for (auto& s : station_nodes) {
@@ -209,7 +209,11 @@ inline void rebuild_incoming_edges(
       }
     }
   }
+}
 
+inline void rebuild_incoming_edges(
+    std::set<station_node*> const& station_nodes,
+    std::map<node const*, std::vector<edge*>>& incoming) {
   for (auto& s : station_nodes) {
     auto const& s_in = incoming.at(s);
     s->incoming_edges_ = array<edge*>(begin(s_in), end(s_in));
@@ -232,6 +236,7 @@ inline void seperate_trip(schedule& sched, ev_key const& k) {
   copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);
   build_change_edges(sched, in_out_allowed, nodes);
+  add_incoming_station_edges(station_nodes, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
 }
 
