@@ -5,6 +5,6 @@ struct Cost {
   distance:double;
 }
 
-table OSRMRoutingResponse {
+table OSRMOneToManyResponse {
   costs:[Cost];
 }
