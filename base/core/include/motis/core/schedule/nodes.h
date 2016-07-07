@@ -131,7 +131,8 @@ public:
         // check whether it is allowed to transfer at the route-node
         // we do this by checking, whether it has an edge to the station
         for (auto const& edge : route_node->edges_) {
-          if (edge.get_destination() == this) {
+          if (edge.get_destination() == this &&
+              edge.type() != edge::INVALID_EDGE) {
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node
