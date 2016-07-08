@@ -110,8 +110,9 @@ trip const* find_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
 
 void fix_time(ev_key const& k) {
   auto const mutable_t = [&k]() -> motis::time& {
-    return const_cast<motis::time&>(
-        k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_);
+    auto& t =
+        k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
+    return const_cast<motis::time&>(t);  // NOLINT
   };
 
   bool last = k.lcon_idx_ == k.route_edge_->m_.route_edge_.conns_.size() - 1;
