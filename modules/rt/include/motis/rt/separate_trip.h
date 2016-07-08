@@ -149,17 +149,17 @@ inline void build_change_edges(
   for (auto& n : nodes) {
     auto station_node =
         sched.station_nodes_.at(n.first->get_station()->id_).get();
-    auto orig_node = n.first;
+    auto in_out = in_out_allowed.at(n.first);
     auto route_node = n.second;
 
-    if (!in_out_allowed.at(orig_node).in_allowed_) {
+    if (!in_out.in_allowed_) {
       station_node->edges_.push_back(
           make_invalid_edge(station_node, route_node));
     } else {
       station_node->edges_.push_back(make_foot_edge(station_node, route_node));
     }
 
-    if (!in_out_allowed.at(orig_node).out_allowed_) {
+    if (!in_out.out_allowed_) {
       route_node->edges_.push_back(make_invalid_edge(route_node, station_node));
     } else {
       route_node->edges_.push_back(make_foot_edge(
@@ -167,7 +167,7 @@ inline void build_change_edges(
           sched.stations_.at(station_node->id_)->transfer_time_, true));
     }
 
-    if (in_out_allowed.at(orig_node).out_allowed_ && station_node->foot_node_) {
+    if (in_out.out_allowed_ && station_node->foot_node_) {
       route_node->edges_.push_back(
           make_after_train_edge(route_node, station_node->foot_node_));
     }
@@ -183,7 +183,7 @@ inline std::set<station_node*> route_station_nodes(ev_key const& k) {
   return station_nodes;
 }
 
-inline bool contains(station_node const* s, node const* n) {
+inline bool station_contains_node(station_node const* s, node const* n) {
   if (s == n) {
     return true;
   }
@@ -201,7 +201,7 @@ inline std::map<node const*, std::vector<edge*>> incoming_non_station_edges(
 
   auto const add_incoming = [&](station_node const* s, node const* n) {
     for (auto const& e_in : n->incoming_edges_) {
-      if (!contains(s, e_in->from_)) {
+      if (!station_contains_node(s, e_in->from_)) {
         incoming[n].push_back(e_in);
       }
     }
@@ -224,7 +224,7 @@ inline void add_incoming_station_edges(
     for (auto& station_edge : s->edges_) {
       incoming[station_edge.to_].push_back(&station_edge);
       for (auto& edge : station_edge.to_->edges_) {
-        if (contains(s, edge.to_)) {
+        if (station_contains_node(s, edge.to_)) {
           incoming[edge.to_].push_back(&edge);
         }
       }
