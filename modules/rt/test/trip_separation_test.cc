@@ -28,8 +28,11 @@ TEST_F(rt_trip_separation_test, simple) {
   EXPECT_EQ(t1_d1->edges_->at(0).get_edge(), t1_d2->edges_->at(0).get_edge());
   EXPECT_EQ(t2_d1->edges_->at(0).get_edge(), t2_d2->edges_->at(0).get_edge());
 
+  hash_map<ev_key, ev_key> moved_events;
+  moved_events.set_empty_key(ev_key{nullptr, 0, event_type::DEP});
   seperate_trip(sched(), ev_key{t1_d1->edges_->at(0).get_edge(),
-                                t1_d1->lcon_idx_, event_type::DEP});
+                                t1_d1->lcon_idx_, event_type::DEP},
+                moved_events);
 
   EXPECT_NE(t1_d1->edges_->at(0).get_edge(), t1_d2->edges_->at(0).get_edge());
   EXPECT_NE(t2_d1->edges_->at(0).get_edge(), t2_d2->edges_->at(0).get_edge());

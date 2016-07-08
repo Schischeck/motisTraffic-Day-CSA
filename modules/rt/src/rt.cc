@@ -108,6 +108,20 @@ trip const* get_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
   }
 }
 
+void fix_time(ev_key const& k) {
+  auto const mutable_t = [&k]() -> motis::time& {
+    return const_cast<motis::time&>(
+        k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_);
+  };
+
+  bool last = k.lcon_idx_ == k.route_edge_->m_.route_edge_.conns_.size() - 1;
+  if (last) {
+    mutable_t() = INVALID_TIME;
+  } else {
+    mutable_t() = ev_key{k.route_edge_, k.lcon_idx_ + 1, k.ev_type_}.get_time();
+  }
+}
+
 void rt::add_to_propagator(schedule const& sched,
                            ris::DelayMessage const* msg) {
   stats_.total_evs_ += msg->events()->size();
@@ -241,7 +255,14 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
 
   // Check for graph corruption and revert if necessary.
   shifted_nodes_msg_builder shifted_nodes(sched);
+  hash_map<ev_key, ev_key> moved_events;
+  moved_events.set_empty_key(ev_key{nullptr, 0, event_type::DEP});
   for (auto const& di : propagator_->events()) {
+    auto moved_it = moved_events.find(di->get_ev_key());
+    if (moved_it != end(moved_events)) {
+      di->set_ev_key(moved_it->second);
+    }
+
     auto const& k = di->get_ev_key();
 
     if (!k.lcon()->valid_) {
@@ -254,7 +275,8 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
       ++stats_.conflicting_events_;
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
-      seperate_trip(sched, k);
+      seperate_trip(sched, k, moved_events);
+      fix_time(k);
     }
 
     shifted_nodes.add(di);
