@@ -250,8 +250,8 @@ inline void seperate_trip(schedule& sched, ev_key const& k,
                           hash_map<ev_key, ev_key>& moved_events) {
   std::map<node const*, node*> nodes;
   std::map<edge const*, trip::route_edge> edges;
-  auto in_out_allowed = get_route_in_out_allowed(k);
-  auto station_nodes = route_station_nodes(k);
+  auto const in_out_allowed = get_route_in_out_allowed(k);
+  auto const station_nodes = route_station_nodes(k);
   auto incoming = incoming_non_station_edges(station_nodes);
 
   copy_trip_route(sched, k, nodes, edges, moved_events);
