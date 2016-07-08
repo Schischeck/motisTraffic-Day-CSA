@@ -72,20 +72,11 @@ inline edge copy_edge(edge const& original, node* from, node* to,
 
 inline void copy_trip_route(schedule& sched, ev_key const& k,
                             std::map<node const*, node*>& nodes,
-                            std::map<edge const*, trip::route_edge>& edges,
-                            hash_map<ev_key, ev_key>& moved_events) {
+                            std::map<edge const*, trip::route_edge>& edges) {
   auto const build_node = [&](node const* orig) {
     auto n = new node(orig->station_node_, sched.node_count_++);
     n->route_ = orig->route_;  // TODO(Felix Guendling) create new route id
     return n;
-  };
-
-  auto const update_di = [&](ev_key const& orig_k, ev_key const& new_k) {
-    moved_events[orig_k] = new_k;
-    auto it = sched.graph_to_delay_info_.find(orig_k);
-    if (it != end(sched.graph_to_delay_info_)) {
-      sched.graph_to_delay_info_[new_k] = it->second;
-    }
   };
 
   for (auto const& e : route_edges(k)) {
@@ -103,14 +94,6 @@ inline void copy_trip_route(schedule& sched, ev_key const& k,
 
     auto const new_e = &from->edges_.back();
     edges[e] = trip::route_edge(new_e);
-
-    auto const orig_dep = ev_key{e, k.lcon_idx_, event_type::DEP};
-    auto const new_dep = ev_key{new_e, 0, event_type::DEP};
-    auto const orig_arr = ev_key{e, k.lcon_idx_, event_type::ARR};
-    auto const new_arr = ev_key{new_e, 0, event_type::ARR};
-
-    update_di(orig_dep, new_dep);
-    update_di(orig_arr, new_arr);
   }
 }
 
@@ -246,6 +229,32 @@ inline void rebuild_incoming_edges(
   }
 }
 
+inline void update_delays(std::size_t lcon_idx,
+                          std::map<edge const*, trip::route_edge> const& edges,
+                          schedule& sched,
+                          hash_map<ev_key, ev_key>& moved_events) {
+  auto const update_di = [&](ev_key const& orig_k, ev_key const& new_k) {
+    moved_events[orig_k] = new_k;
+    auto it = sched.graph_to_delay_info_.find(orig_k);
+    if (it != end(sched.graph_to_delay_info_)) {
+      sched.graph_to_delay_info_[new_k] = it->second;
+    }
+  };
+
+  for (auto const& entry : edges) {
+    auto e = entry.first;
+    auto new_e = entry.second.get_edge();
+
+    auto const orig_dep = ev_key{e, lcon_idx, event_type::DEP};
+    auto const new_dep = ev_key{new_e, 0, event_type::DEP};
+    auto const orig_arr = ev_key{e, lcon_idx, event_type::ARR};
+    auto const new_arr = ev_key{new_e, 0, event_type::ARR};
+
+    update_di(orig_dep, new_dep);
+    update_di(orig_arr, new_arr);
+  }
+}
+
 inline void seperate_trip(schedule& sched, ev_key const& k,
                           hash_map<ev_key, ev_key>& moved_events) {
   std::map<node const*, node*> nodes;
@@ -254,11 +263,12 @@ inline void seperate_trip(schedule& sched, ev_key const& k,
   auto const station_nodes = route_station_nodes(k);
   auto incoming = incoming_non_station_edges(station_nodes);
 
-  copy_trip_route(sched, k, nodes, edges, moved_events);
+  copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);
   build_change_edges(sched, in_out_allowed, nodes);
   add_incoming_station_edges(station_nodes, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
+  update_delays(k.lcon_idx_, edges, sched, moved_events);
 }
 
 }  // namespace rt
