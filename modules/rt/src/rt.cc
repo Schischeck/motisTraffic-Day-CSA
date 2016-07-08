@@ -88,7 +88,7 @@ std::vector<update> get_updates(schedule const& sched,
   return updates;
 }
 
-trip const* get_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
+trip const* find_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
   try {
     // first try: exact match of first departure
     auto trp = find_trip(sched, id->station_id()->str(), id->service_num(),
@@ -132,7 +132,7 @@ void rt::add_to_propagator(schedule const& sched,
     return;
   }
 
-  auto trp = get_trip_fuzzy(sched, msg->trip_id());
+  auto trp = find_trip_fuzzy(sched, msg->trip_id());
   if (trp == nullptr) {
     stats_.ev_trp_not_found_ += msg->events()->size();
     return;

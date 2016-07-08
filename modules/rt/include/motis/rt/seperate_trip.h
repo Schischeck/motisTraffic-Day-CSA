@@ -13,13 +13,20 @@
 namespace motis {
 namespace rt {
 
+struct in_out_allowed {
+  in_out_allowed() = default;
+  in_out_allowed(bool in_allowed, bool out_allowed)
+      : in_allowed_(in_allowed), out_allowed_(out_allowed) {}
+  bool in_allowed_, out_allowed_;
+};
+
 inline std::set<edge const*> route_edges(ev_key const& k) {
   return route_bfs(k, bfs_direction::BOTH, true);
 }
 
 inline bool get_in_allowed(node const* n) {
   for (auto const& e : n->incoming_edges_) {
-    if (e->from_ == n->get_station()) {
+    if (e->from_ == n->get_station() && e->type() != edge::INVALID_EDGE) {
       return true;
     }
   }
@@ -28,20 +35,21 @@ inline bool get_in_allowed(node const* n) {
 
 inline bool get_out_allowed(node const* n) {
   for (auto const& e : n->edges_) {
-    if (e.get_destination() == n->get_station()) {
+    if (e.get_destination() == n->get_station() &&
+        e.type() != edge::INVALID_EDGE) {
       return true;
     }
   }
   return false;
 }
 
-inline std::pair<bool, bool> get_in_out_allowed(node const* n) {
-  return std::make_pair(get_in_allowed(n), get_out_allowed(n));
+inline in_out_allowed get_in_out_allowed(node const* n) {
+  return {get_in_allowed(n), get_out_allowed(n)};
 }
 
-inline std::map<node const*, std::pair<bool, bool>> get_route_in_out_allowed(
+inline std::map<node const*, in_out_allowed> get_route_in_out_allowed(
     ev_key const& k) {
-  std::map<node const*, std::pair<bool, bool>> in_out_allowed;
+  std::map<node const*, in_out_allowed> in_out_allowed;
   for (auto const& e : route_edges(k)) {
     in_out_allowed[e->from_] = get_in_out_allowed(e->from_);
     in_out_allowed[e->to_] = get_in_out_allowed(e->to_);
@@ -136,21 +144,22 @@ inline void update_trips(schedule& sched, ev_key const& k,
 
 inline void build_change_edges(
     schedule& sched,
-    std::map<node const*, std::pair<bool, bool>> const& in_out_allowed,
+    std::map<node const*, in_out_allowed> const& in_out_allowed,
     std::map<node const*, node*>& nodes) {
   for (auto& n : nodes) {
     auto station_node =
         sched.station_nodes_.at(n.first->get_station()->id_).get();
+    auto orig_node = n.first;
     auto route_node = n.second;
 
-    if (!in_out_allowed.at(n.first).first) {
+    if (!in_out_allowed.at(orig_node).in_allowed_) {
       station_node->edges_.push_back(
           make_invalid_edge(station_node, route_node));
     } else {
       station_node->edges_.push_back(make_foot_edge(station_node, route_node));
     }
 
-    if (!in_out_allowed.at(n.first).second) {
+    if (!in_out_allowed.at(orig_node).out_allowed_) {
       route_node->edges_.push_back(make_invalid_edge(route_node, station_node));
     } else {
       route_node->edges_.push_back(make_foot_edge(
@@ -158,7 +167,7 @@ inline void build_change_edges(
           sched.stations_.at(station_node->id_)->transfer_time_, true));
     }
 
-    if (in_out_allowed.at(n.first).second && station_node->foot_node_) {
+    if (in_out_allowed.at(orig_node).out_allowed_ && station_node->foot_node_) {
       route_node->edges_.push_back(
           make_after_train_edge(route_node, station_node->foot_node_));
     }
@@ -231,8 +240,7 @@ inline void rebuild_incoming_edges(
     s->incoming_edges_ = array<edge*>(begin(s_in), end(s_in));
 
     for (auto& station_edge : s->edges_) {
-      auto const n = station_edge.to_;
-      auto const& n_in = incoming.at(n);
+      auto const& n_in = incoming.at(station_edge.to_);
       station_edge.to_->incoming_edges_ = array<edge*>(begin(n_in), end(n_in));
     }
   }
