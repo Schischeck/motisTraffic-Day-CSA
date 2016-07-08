@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/core/access/trip_access.h"
-#include "motis/rt/seperate_trip.h"
+#include "motis/rt/separate_trip.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 

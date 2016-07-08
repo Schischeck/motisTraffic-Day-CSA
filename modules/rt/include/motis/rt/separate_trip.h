@@ -145,7 +145,7 @@ inline void update_trips(schedule& sched, ev_key const& k,
 inline void build_change_edges(
     schedule& sched,
     std::map<node const*, in_out_allowed> const& in_out_allowed,
-    std::map<node const*, node*>& nodes) {
+    std::map<node const*, node*> const& nodes) {
   for (auto& n : nodes) {
     auto station_node =
         sched.station_nodes_.at(n.first->get_station()->id_).get();
