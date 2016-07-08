@@ -81,9 +81,9 @@ inline void copy_trip_route(schedule& sched, ev_key const& k,
 
   for (auto const& e : route_edges(k)) {
     auto from = get_or_create<node const*, node*>(
-        nodes, e->from_, [&]() { return build_node(e->from_); });
+        nodes, e->from_, [&] { return build_node(e->from_); });
     auto to = get_or_create<node const*, node*>(
-        nodes, e->to_, [&]() { return build_node(e->to_); });
+        nodes, e->to_, [&] { return build_node(e->to_); });
 
     if (e->type() == edge::ROUTE_EDGE) {
       auto const& lcon = e->m_.route_edge_.conns_[k.lcon_idx_];
