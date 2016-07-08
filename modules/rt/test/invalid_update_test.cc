@@ -22,6 +22,9 @@ struct rt_invalid_update_test : public motis_instance_test {
 
   using trip_event_info = std::map<std::string /* station id */, stop_times>;
 
+  rt_invalid_update_test()
+      : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
+
   trip_event_info get_trip_event_info(trip const* trp) {
     trip_event_info trp_ev_info;
     for (auto const& trip_e : *trp->edges_) {
@@ -33,9 +36,6 @@ struct rt_invalid_update_test : public motis_instance_test {
     }
     return trp_ev_info;
   }
-
-  rt_invalid_update_test()
-      : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
 };
 
 TEST_F(rt_invalid_update_test, trip_conflict_test) {

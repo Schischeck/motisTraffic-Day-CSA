@@ -182,6 +182,13 @@ struct array final {
     used_size_ = size;
   }
 
+  void clear() {
+    used_size_ = 0;
+    for (auto& el : *this) {
+      el.~T();
+    }
+  }
+
   void reserve(TemplateSizeType new_size) {
     new_size = std::max(allocated_size_, new_size);
 

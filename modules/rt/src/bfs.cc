@@ -5,7 +5,8 @@
 namespace motis {
 namespace rt {
 
-std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
+std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir,
+                                bool with_through_edges) {
   std::set<edge const*> visited;
   std::queue<edge const*> q;
 
@@ -41,11 +42,13 @@ std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir) {
     }
   }
 
-  for (auto it = begin(visited); it != end(visited);) {
-    if ((*it)->type() == edge::THROUGH_EDGE) {
-      it = visited.erase(it);
-    } else {
-      ++it;
+  if (!with_through_edges) {
+    for (auto it = begin(visited); it != end(visited);) {
+      if ((*it)->type() == edge::THROUGH_EDGE) {
+        it = visited.erase(it);
+      } else {
+        ++it;
+      }
     }
   }
 

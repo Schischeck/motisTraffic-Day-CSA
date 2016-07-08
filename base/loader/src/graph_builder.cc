@@ -715,14 +715,15 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   if (serialized->meta_stations() != nullptr) {
     builder.link_meta_stations(serialized->meta_stations());
   }
-  builder.add_services(serialized->services());
-  builder.add_footpaths(serialized->footpaths());
 
+  builder.add_services(serialized->services());
   if (apply_rules) {
     scoped_timer timer("rule services");
     rule_service_graph_builder rsgb(builder);
     rsgb.add_rule_services(serialized->rule_services());
   }
+
+  builder.add_footpaths(serialized->footpaths());
 
   builder.connect_reverse();
   builder.sort_trips();

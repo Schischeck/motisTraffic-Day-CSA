@@ -98,6 +98,8 @@ struct delay_info {
 
   inline ev_key get_ev_key() const { return ev_; }
 
+  inline void set_ev_key(ev_key const& k) { ev_ = k; }
+
 private:
   ev_key ev_;
   time repair_time_, is_time_;
