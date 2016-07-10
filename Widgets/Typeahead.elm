@@ -1,4 +1,4 @@
-module Widgets.Typeahead exposing (Model, Msg, init, subscriptions, update, view)
+module Widgets.Typeahead exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, div, ul, li, text)
 import Html.Attributes exposing (..)
@@ -6,16 +6,17 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (lazy)
 import String
 import Dict exposing (..)
-import WebSocket
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Widgets.Input as Input
 import Widgets.ViewUtil exposing (onStopAll)
+import Http as Http
+import Task as Task
 
 
 remoteAddress : String
 remoteAddress =
-    "ws://localhost:8080"
+    "http://localhost:8081"
 
 
 
@@ -205,14 +206,7 @@ view icon model =
 
 
 -- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    WebSocket.listen remoteAddress ReceiveSuggestions
-
-
-
+{- no subs atm -}
 -- INIT
 
 
@@ -251,9 +245,23 @@ generateRequest input =
 
 requestSuggestions : String -> Cmd Msg
 requestSuggestions input =
-    generateRequest input
-        |> Encode.encode 0
-        |> WebSocket.send remoteAddress
+    Http.send Http.defaultSettings
+        { verb = "POST"
+        , headers = [ ( "Content-Type", "application/json" ) ]
+        , url = remoteAddress
+        , body = generateRequest input |> Encode.encode 0 |> Http.string
+        }
+        |> Task.perform (\_ -> NoOp) responseReader
+
+
+responseReader : Http.Response -> Msg
+responseReader res =
+    case res.value of
+        Http.Text t ->
+            ReceiveSuggestions t
+
+        _ ->
+            NoOp
 
 
 suggestionDecoder : Decode.Decoder String

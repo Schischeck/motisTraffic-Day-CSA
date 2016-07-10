@@ -124,9 +124,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map FromLocationUpdate (Typeahead.subscriptions model.fromLocation)
-        , Sub.map ToLocationUpdate (Typeahead.subscriptions model.toLocation)
-        , Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
+        [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         , Sub.map MapUpdate (Map.subscriptions model.map)
         ]
