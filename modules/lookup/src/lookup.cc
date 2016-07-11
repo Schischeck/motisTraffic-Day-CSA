@@ -29,6 +29,8 @@ void lookup::init(registry& r) {
                 [this](msg_ptr const& m) { return lookup_stations(m); });
   r.register_op("/lookup/station_events",
                 [this](msg_ptr const& m) { return lookup_station_events(m); });
+  r.register_op("/lookup/schedule_info",
+                [this](msg_ptr const&) { return lookup_schedule_info(); });
   r.register_op("/lookup/id_train",
                 [this](msg_ptr const& m) { return lookup_id_train(m); });
   r.register_op("/lookup/meta_station",
@@ -119,6 +121,15 @@ msg_ptr lookup::lookup_meta_stations(msg_ptr const& msg) const {
       MsgContent_LookupBatchMetaStationResponse,
       CreateLookupBatchMetaStationResponse(b, b.CreateVector(responses))
           .Union());
+  return make_msg(b);
+}
+
+msg_ptr lookup::lookup_schedule_info() const {
+  auto const& sched = get_schedule();
+  message_creator b;
+  b.create_and_finish(
+      MsgContent_LookupScheduleInfoResponse,
+      CreateLookupScheduleInfoResponse(b, b.CreateString(sched.name)).Union());
   return make_msg(b);
 }
 

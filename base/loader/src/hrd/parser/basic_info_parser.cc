@@ -1,4 +1,4 @@
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/basic_info_parser.h"
 
 #include "parser/arg_parser.h"
 #include "parser/util.h"
@@ -58,6 +58,13 @@ boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
   int year, month, day;
   std::tie(year, month, day) = yyyymmdd(mask_dates(lf.content()).first);
   return boost::gregorian::date(year, month, day);
+}
+
+std::string parse_schedule_name(loaded_file const& basic_info_file) {
+  cstr str = basic_info_file.content();
+  parser::skip_line(str); // from
+  parser::skip_line(str); // to
+  return parser::get_line(str).to_str(); // schedule name
 }
 
 }  // namespace hrd

@@ -7,6 +7,7 @@ include "guesser/StationGuesserResponse.fbs";
 include "lookup/LookupGeoStationIdRequest.fbs";
 include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
+include "lookup/LookupScheduleInfoResponse.fbs";
 include "lookup/LookupStationEventsRequest.fbs";
 include "lookup/LookupStationEventsResponse.fbs";
 include "lookup/LookupMetaStationRequest.fbs";
@@ -98,6 +99,7 @@ union MsgContent {
   motis.lookup.LookupBatchGeoStationResponse,
   motis.lookup.LookupStationEventsRequest,
   motis.lookup.LookupStationEventsResponse,
+  motis.lookup.LookupScheduleInfoResponse,
   motis.lookup.LookupMetaStationRequest,
   motis.lookup.LookupMetaStationResponse,
   motis.lookup.LookupBatchMetaStationRequest,
