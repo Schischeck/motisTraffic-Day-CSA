@@ -30,6 +30,8 @@ private:
   motis::module::msg_ptr lookup_meta_stations(
       motis::module::msg_ptr const&) const;
 
+  motis::module::msg_ptr lookup_schedule_info() const;
+
   std::unique_ptr<station_geo_index> geo_index_;
 };
 

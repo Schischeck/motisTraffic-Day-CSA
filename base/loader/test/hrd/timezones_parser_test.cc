@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
+#include "motis/loader/hrd/parser/basic_info_parser.h"
 #include "motis/loader/hrd/parser/timezones_parser.h"
 #include "motis/loader/util.h"
 

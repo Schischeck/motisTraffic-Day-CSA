@@ -18,6 +18,7 @@ table Schedule {
   footpaths: [Footpath];
   rule_services: [RuleService];
   meta_stations: [MetaStation];
+  name: string;
 }
 
 root_type Schedule;
