@@ -5,6 +5,10 @@ namespace motis.lookup;
 // JSON example:
 // --
 // {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/lookup/geo_station"
+//   },
 //   "content_type": "LookupGeoStationRequest",
 //   "content": {
 //     "pos": {
@@ -24,6 +28,10 @@ table LookupGeoStationRequest {
 // JSON example:
 // --
 // {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/lookup/geo_station_batch"
+//   },
 //   "content_type": "LookupBatchGeoStationRequest",
 //   "content": {
 //     "coordinates": [
