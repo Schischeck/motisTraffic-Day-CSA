@@ -129,7 +129,7 @@ msg_ptr lookup::lookup_schedule_info() const {
   message_creator b;
   b.create_and_finish(
       MsgContent_LookupScheduleInfoResponse,
-      CreateLookupScheduleInfoResponse(b, b.CreateString(sched.name)).Union());
+      CreateLookupScheduleInfoResponse(b, b.CreateString(sched.name_)).Union());
   return make_msg(b);
 }
 

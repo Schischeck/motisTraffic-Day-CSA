@@ -35,7 +35,7 @@ struct schedule {
   schedule& operator=(schedule const&) = delete;
 
   std::time_t schedule_begin_, schedule_end_;
-  std::string name;
+  std::string name_;
 
   std::vector<station_ptr> stations_;
   std::map<std::string, station*> eva_to_station_;
