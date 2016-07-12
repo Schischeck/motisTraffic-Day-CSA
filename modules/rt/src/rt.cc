@@ -6,6 +6,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/event_type.h"
+#include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/service_access.h"
@@ -16,6 +17,7 @@
 #include "motis/core/conv/timestamp_reason_conv.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
+#include "motis/loader/classes.h"
 #include "motis/loader/util.h"
 #include "motis/rt/bfs.h"
 #include "motis/rt/delay_propagator.h"
@@ -197,36 +199,213 @@ void rt::init(motis::module::registry& reg) {
                 std::bind(&rt::on_system_time_change, this, p::_1));
 }
 
-msg_ptr rt::on_message(msg_ptr const& msg) {
-  auto& sched = get_schedule();
-  auto msgs = motis_content(RISBatch, msg)->messages();
-  LOG(info) << "rt received " << msgs->size() << " ris messages";
+void handle_add(schedule& sched, ris::AdditionMessage const* msg) {
+  auto const clasz_map = loader::class_mapping();
+  std::map<connection_info, connection_info*> con_infos;
 
+  auto const get_family = [&sched](std::string const& cat_name) {
+    auto const it = std::find_if(
+        begin(sched.categories_), end(sched.categories_),
+        [&cat_name](auto const& cat) { return cat_name == cat->name_; });
+    if (it == end(sched.categories_)) {
+      sched.categories_.emplace_back(std::make_unique<category>(cat_name, 0));
+      return sched.categories_.size() - 1;
+    } else {
+      return static_cast<size_t>(std::distance(begin(sched.categories_), it));
+    }
+  };
+
+  auto const get_con_info = [&sched, &con_infos, &get_family](
+      std::string const& category, std::string const& line_id, int train_nr) {
+    connection_info con_info;
+    con_info.family_ = get_family(category);
+    con_info.line_identifier_ = line_id;
+    con_info.train_nr_ = train_nr;
+
+    return get_or_create(con_infos, con_info, [&sched, &con_info]() {
+      sched.connection_infos_.emplace_back(
+          std::make_unique<connection_info>(con_info));
+      return sched.connection_infos_.back().get();
+    });
+  };
+
+  auto const get_track = [&sched](std::string const& track_name) {
+    auto const it = std::find_if(
+        begin(sched.tracks_), end(sched.tracks_),
+        [&track_name](std::string const& t) { return t == track_name; });
+    if (it == end(sched.tracks_)) {
+      sched.tracks_.emplace_back(track_name);
+      return sched.tracks_.size() - 1;
+    } else {
+      return static_cast<size_t>(std::distance(begin(sched.tracks_), it));
+    }
+  };
+
+  auto const get_clasz = [&clasz_map](std::string const& category) {
+    auto const it = clasz_map.find(category);
+    if (it == end(clasz_map)) {
+      return 9;
+    } else {
+      return it->second;
+    }
+  };
+
+  auto const get_full_con = [&sched, &get_con_info, &get_track, get_clasz](
+      std::string const& dep_track, std::string const& arr_track,
+      std::string const& category, std::string const& line_id, int train_nr) {
+    connection c;
+    c.con_info_ = get_con_info(category, line_id, train_nr);
+    c.a_track_ = get_track(dep_track);
+    c.d_track_ = get_track(arr_track);
+    c.clasz_ = get_clasz(category);
+    sched.full_connections_.emplace_back(std::make_unique<connection>(c));
+    return sched.full_connections_.back().get();
+  };
+
+  // Check times and stations.
+  for (auto const& ev : *msg->events()) {
+    auto const time = unix_to_motistime(sched, ev->base()->schedule_time());
+    if (time == INVALID_TIME) {
+      return;
+    }
+
+    auto const station = find_station(sched, ev->base()->station_id()->str());
+    if (station == nullptr) {
+      return;
+    }
+  }
+
+  // Build light connections.
+  std::vector<std::tuple<light_connection, station_node*, station_node*>> lcons;
+  for (auto it = std::begin(*msg->events()); it != std::end(*msg->events());) {
+    light_connection lcon;
+
+    // DEP
+    auto dep_station = get_station_node(sched, it->base()->station_id()->str());
+    auto dep_track = it->track()->str();
+    lcon.d_time_ = unix_to_motistime(sched, it->base()->schedule_time());
+    ++it;
+
+    // ARR
+    auto arr_station = get_station_node(sched, it->base()->station_id()->str());
+    lcon.a_time_ = unix_to_motistime(sched, it->base()->schedule_time());
+    lcon.full_con_ =
+        get_full_con(dep_track, it->track()->str(), it->category()->str(),
+                     it->base()->line_id()->str(), it->base()->service_num());
+    ++it;
+
+    lcons.emplace_back(lcon, dep_station, arr_station);
+  }
+
+  // Remember incoming non-station edges.
+  std::set<station_node*> station_nodes;
+  for (auto& c : lcons) {
+    station_nodes.insert(std::get<1>(c));
+    station_nodes.insert(std::get<2>(c));
+  }
+  auto incoming = incoming_non_station_edges(station_nodes);
+
+  // Build route.
+  auto const route_id = sched.route_count_++;
+  std::vector<trip::route_edge> trip_edges;
+  node* prev_route_node = nullptr;
+  for (auto const& lcon : lcons) {
+    light_connection l;
+    station_node *from_station, *to_station;
+    std::tie(l, from_station, to_station) = lcon;
+
+    auto const from_station_transfer_time =
+        sched.stations_.at(from_station->id_)->transfer_time_;
+    auto const to_station_transfer_time =
+        sched.stations_.at(to_station->id_)->transfer_time_;
+
+    node *from_route_node =
+             prev_route_node
+                 ? prev_route_node
+                 : build_route_node(route_id, sched.node_count_++, from_station,
+                                    from_station_transfer_time, true, true),
+         *to_route_node =
+             build_route_node(route_id, sched.node_count_++, to_station,
+                              to_station_transfer_time, true, true);
+
+    from_route_node->edges_.push_back(
+        make_route_edge(from_route_node, to_route_node, {l}));
+
+    auto const route_edge = &from_route_node->edges_.back();
+    incoming[to_route_node].push_back(route_edge);
+    trip_edges.emplace_back(route_edge);
+
+    prev_route_node = to_route_node;
+  }
+
+  // Rebuild incoming edges.
+  add_incoming_station_edges(station_nodes, incoming);
+  rebuild_incoming_edges(station_nodes, incoming);
+
+  // Create trip information.
+  station_node* first_station;
+  light_connection first_lcon;
+  std::tie(first_lcon, first_station, std::ignore) = lcons.front();
+
+  station_node* last_station;
+  light_connection last_lcon;
+  std::tie(last_lcon, std::ignore, last_station) = lcons.back();
+
+  sched.trip_edges_.emplace_back(new std::vector<trip::route_edge>(trip_edges));
+  sched.trip_mem_.emplace_back(new trip(
+      full_trip_id{
+          primary_trip_id{first_station->id_,
+                          first_lcon.full_con_->con_info_->train_nr_,
+                          first_lcon.d_time_},
+          secondary_trip_id{last_station->id_, last_lcon.a_time_,
+                            first_lcon.full_con_->con_info_->line_identifier_}},
+      sched.trip_edges_.back().get(), 0));
+}
+
+void handle_cancel(schedule& sched, ris::CancelMessage const* msg) {}
+
+void handle_reroute(schedule& sched, ris::RerouteMessage const* msg) {}
+
+msg_ptr rt::on_message(msg_ptr const& msg) {
+  using namespace ris;
+
+  auto& s = get_schedule();
   if (!propagator_) {
     LOG(info) << "initializing propagator";
-    propagator_ = std::make_unique<delay_propagator>(sched);
+    propagator_ = std::make_unique<delay_propagator>(s);
     stats_ = statistics();
   }
 
-  // Parse message and add updates to propagator.
-  for (auto const& m : *msgs) {
+  for (auto const& m : *motis_content(RISBatch, msg)->messages()) {
     auto const& nested = m->message_nested_root();
     stats_.count_message(nested->content_type());
 
-    if (nested->content_type() != ris::MessageUnion_DelayMessage) {
-      continue;
-    }
-
-    auto const content =
-        reinterpret_cast<ris::DelayMessage const*>(nested->content());
+    auto c = nested->content();
     try {
-      add_to_propagator(sched, content);
+      switch (nested->content_type()) {
+        case MessageUnion_DelayMessage:
+          add_to_propagator(s, reinterpret_cast<DelayMessage const*>(c));
+          break;
+
+        case MessageUnion_AdditionMessage:
+          handle_add(s, reinterpret_cast<AdditionMessage const*>(c));
+          break;
+
+        case MessageUnion_CancelMessage:
+          handle_cancel(s, reinterpret_cast<CancelMessage const*>(c));
+          break;
+
+        case MessageUnion_RerouteMessage:
+          handle_reroute(s, reinterpret_cast<RerouteMessage const*>(c));
+          break;
+
+        default: break;
+      }
     } catch (...) {
       continue;
     }
   }
 
-  LOG(info) << "rt propagator: " << propagator_->events().size() << " events";
   return nullptr;
 }
 

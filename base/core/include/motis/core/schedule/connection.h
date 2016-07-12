@@ -57,6 +57,15 @@ struct connection_info {
            attributes_ == o.attributes_ && merged_with_ == o.merged_with_;
   }
 
+  friend bool operator<(connection_info const& a, connection_info const& b) {
+    return std::tie(a.attributes_, a.line_identifier_, a.dir_, a.provider_,
+                    a.family_, a.train_nr_, a.original_train_nr_,
+                    a.merged_with_) ==
+           std::tie(b.attributes_, b.line_identifier_, b.dir_, b.provider_,
+                    b.family_, b.train_nr_, b.original_train_nr_,
+                    b.merged_with_);
+  }
+
   std::vector<attribute const*> attributes_;
   std::string line_identifier_;
   std::string const* dir_;
