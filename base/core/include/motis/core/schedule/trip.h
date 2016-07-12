@@ -103,6 +103,9 @@ struct trip {
   explicit trip(full_trip_id id)
       : id_(std::move(id)), edges_(nullptr), lcon_idx_(0) {}
 
+  trip(full_trip_id id, std::vector<route_edge> const* edges, size_t lcon_idx)
+      : id_(std::move(id)), edges_(edges), lcon_idx_(lcon_idx) {}
+
   full_trip_id id_;
   std::vector<route_edge> const* edges_;
   size_t lcon_idx_;

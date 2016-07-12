@@ -7,6 +7,14 @@
 
 namespace motis {
 
+inline station* find_station(schedule const& sched, std::string const& eva_nr) {
+  auto it = sched.eva_to_station_.find(eva_nr);
+  if (it == end(sched.eva_to_station_)) {
+    return nullptr;
+  }
+  return it->second;
+}
+
 inline station* get_station(schedule const& sched, std::string const& eva_nr) {
   auto it = sched.eva_to_station_.find(eva_nr);
   if (it == end(sched.eva_to_station_)) {

@@ -177,8 +177,6 @@ struct graph_builder {
   void sort_connections();
   void sort_trips();
 
-  int node_count() const;
-
   bitfield const& get_or_create_bitfield(
       flatbuffers::String const* serialized_bitfield);
 
@@ -200,9 +198,6 @@ struct graph_builder {
 
   std::unique_ptr<route> create_route(Route const* r, route_lcs const& lcons,
                                       unsigned route_index);
-
-  node* build_route_node(int route_index, Station const* station,
-                         bool in_allowed, bool out_allowed);
 
   route_section add_route_section(
       int route_index, std::vector<light_connection> const& connections,
