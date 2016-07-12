@@ -360,6 +360,19 @@ void handle_add(schedule& sched, ris::AdditionMessage const* msg) {
           secondary_trip_id{last_station->id_, last_lcon.a_time_,
                             first_lcon.full_con_->con_info_->line_identifier_}},
       sched.trip_edges_.back().get(), 0));
+
+  auto const trp = sched.trip_mem_.back().get();
+  auto const trp_entry = std::make_pair(trp->id_.primary_, trp);
+  sched.trips_.insert(
+      std::lower_bound(begin(sched.trips_), end(sched.trips_), trp_entry),
+      trp_entry);
+
+  auto const new_trps_id = sched.merged_trips_.size();
+  sched.merged_trips_.emplace_back(new std::vector<trip*>({trp}));
+
+  for (auto const& trp_edge : trip_edges) {
+    trp_edge.get_edge()->m_.route_edge_.conns_[0].trips_ = new_trps_id;
+  }
 }
 
 void handle_cancel(schedule&, ris::CancelMessage const*) {}
