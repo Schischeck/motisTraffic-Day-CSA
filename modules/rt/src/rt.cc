@@ -362,9 +362,9 @@ void handle_add(schedule& sched, ris::AdditionMessage const* msg) {
       sched.trip_edges_.back().get(), 0));
 }
 
-void handle_cancel(schedule& sched, ris::CancelMessage const* msg) {}
+void handle_cancel(schedule&, ris::CancelMessage const*) {}
 
-void handle_reroute(schedule& sched, ris::RerouteMessage const* msg) {}
+void handle_reroute(schedule&, ris::RerouteMessage const*) {}
 
 msg_ptr rt::on_message(msg_ptr const& msg) {
   using namespace ris;
