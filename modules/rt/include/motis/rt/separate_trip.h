@@ -214,10 +214,11 @@ inline void add_incoming_station_edges(
 }
 
 inline void add_incoming_edges_from_new_route(
-    std::map<edge const*, trip::route_edge> const& edges) {
+    std::map<edge const*, trip::route_edge> const& edges,
+    std::map<node const*, std::vector<edge*>>& in) {
   for (auto const& trp_e : edges) {
     auto e = trp_e.second.get_edge();
-    e->to_->incoming_edges_.push_back(e);
+    in[e->to_].push_back(e);
   }
 }
 
@@ -273,9 +274,9 @@ inline void seperate_trip(schedule& sched, ev_key const& k,
   update_trips(sched, k, edges);
   build_change_edges(sched, in_out_allowed, nodes);
   add_incoming_station_edges(station_nodes, incoming);
+  add_incoming_edges_from_new_route(edges, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
   update_delays(k.lcon_idx_, edges, sched, moved_events);
-  add_incoming_edges_from_new_route(edges);
 }
 
 }  // namespace rt
