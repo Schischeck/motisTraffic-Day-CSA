@@ -3,6 +3,10 @@ namespace motis.guesser;
 // JSON example:
 // --
 // {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/guesser"
+//   },
 //   "content_type": "StationGuesserRequest",
 //   "content": {
 //     "input": "Darmst",

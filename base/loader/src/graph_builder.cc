@@ -691,6 +691,10 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
+  if (serialized->name() != nullptr) {
+    sched->name_ = serialized->name()->str();
+  }
+
   graph_builder builder(*sched, serialized->interval(), from, to, apply_rules,
                         adjust_footpaths);
   builder.add_stations(serialized->stations());

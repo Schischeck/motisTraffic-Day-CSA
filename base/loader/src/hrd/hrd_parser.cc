@@ -18,13 +18,12 @@
 #include "motis/loader/hrd/builder/station_builder.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/parser/attributes_parser.h"
+#include "motis/loader/hrd/parser/basic_info_parser.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/hrd/parser/categories_parser.h"
 #include "motis/loader/hrd/parser/directions_parser.h"
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
 #include "motis/loader/hrd/parser/providers_parser.h"
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
-#include "motis/loader/hrd/parser/schedule_interval_parser.h"
 #include "motis/loader/hrd/parser/service_parser.h"
 #include "motis/loader/hrd/parser/stations_parser.h"
 #include "motis/loader/hrd/parser/through_services_parser.h"
@@ -209,13 +208,16 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
       stb, fbb);
 
   auto interval = parse_interval(basic_data_file);
+  auto schedule_name = parse_schedule_name(basic_data_file);
   fbb.Finish(CreateSchedule(
       fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),
       fbb.CreateVector(values(stb.fbs_stations_)),
       fbb.CreateVector(values(rb.routes_)), &interval,
       create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
       fbb.CreateVector(rsb.fbs_rule_services_),
-      create_meta_stations(metas.meta_stations_, stb.fbs_stations_, fbb)));
+      create_meta_stations(metas.meta_stations_, stb.fbs_stations_, fbb),
+      fbb.CreateString(schedule_name)
+      ));
 }
 
 }  // namespace hrd
