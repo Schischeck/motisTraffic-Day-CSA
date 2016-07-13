@@ -80,7 +80,7 @@ struct statistics {
     c("count not even", s.additional_err_count_);
     c("bad event order", s.additional_err_order_);
     c("station not found", s.additional_err_station_);
-    c("event time not in schedule", s.additional_err_time_);
+    c("bad event time", s.additional_err_time_);
 
     return o;
   }
@@ -119,15 +119,19 @@ struct statistics {
   void count_additional(additional_service_builder::status const& s) {
     ++additional_total_;
     switch (s) {
-      case additional_service_builder::status::OK: ++additional_ok_;
+      case additional_service_builder::status::OK: ++additional_ok_; break;
       case additional_service_builder::status::EVENT_COUNT_MISMATCH:
         ++additional_err_count_;
+        break;
       case additional_service_builder::status::EVENT_ORDER_MISMATCH:
         ++additional_err_order_;
+        break;
       case additional_service_builder::status::STATION_NOT_FOUND:
         ++additional_err_station_;
+        break;
       case additional_service_builder::status::EVENT_TIME_OUT_OF_RANGE:
         ++additional_err_time_;
+        break;
     }
   }
 
