@@ -77,6 +77,7 @@ struct statistics {
     o << "\nadditional services\n";
     c("total", s.additional_total_);
     c("ok", s.additional_ok_);
+    c("trip id mismatch", s.additional_trip_id_);
     c("count not even", s.additional_err_count_);
     c("bad event order", s.additional_err_order_);
     c("station not found", s.additional_err_station_);
@@ -120,6 +121,8 @@ struct statistics {
     ++additional_total_;
     switch (s) {
       case additional_service_builder::status::OK: ++additional_ok_; break;
+      case additional_service_builder::status::TRIP_ID_MISMATCH:
+        ++additional_trip_id_;
       case additional_service_builder::status::EVENT_COUNT_MISMATCH:
         ++additional_err_count_;
         break;
@@ -162,6 +165,7 @@ struct statistics {
 
   unsigned additional_total_;
   unsigned additional_ok_;
+  unsigned additional_trip_id_;
   unsigned additional_err_count_;
   unsigned additional_err_order_;
   unsigned additional_err_station_;

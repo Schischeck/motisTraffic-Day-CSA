@@ -25,6 +25,7 @@ struct additional_service_builder {
 
   enum class status {
     OK,
+    TRIP_ID_MISMATCH,
     EVENT_COUNT_MISMATCH,
     EVENT_ORDER_MISMATCH,
     STATION_NOT_FOUND,
@@ -196,8 +197,8 @@ struct additional_service_builder {
     return trip_edges;
   }
 
-  void update_trips(std::vector<section> const& sections,
-                    std::vector<trip::route_edge> const& trip_edges) {
+  trip const* update_trips(std::vector<section> const& sections,
+                           std::vector<trip::route_edge> const& trip_edges) {
     station_node* first_station;
     light_connection first_lcon;
     std::tie(first_lcon, first_station, std::ignore) = sections.front();
@@ -229,6 +230,22 @@ struct additional_service_builder {
     for (auto const& trp_edge : trip_edges) {
       trp_edge.get_edge()->m_.route_edge_.conns_[0].trips_ = new_trps_id;
     }
+
+    return trp;
+  }
+
+  status compare_trips(trip const* trp, ris::IdEvent const* id_ev) {
+    auto const id_station = find_station(sched_, id_ev->station_id()->str());
+    auto const id_event_time = unix_to_motistime(sched_, id_ev->schedule_time());
+    auto const trp_id = trp->id_.primary_;
+    if (id_station != nullptr && id_event_time != INVALID_TIME &&
+        id_station->index_ == trp_id.station_id_ &&
+        id_ev->service_num() == trp_id.train_nr_ &&
+        id_event_time == trp_id.time_) {
+      return status::OK;
+    } else {
+      return status::TRIP_ID_MISMATCH;
+    }
   }
 
   status build_additional_train(ris::AdditionMessage const* msg) {
@@ -243,9 +260,9 @@ struct additional_service_builder {
     auto const route = build_route(sections, incoming);
     add_incoming_station_edges(station_nodes, incoming);
     rebuild_incoming_edges(station_nodes, incoming);
-    update_trips(sections, route);
+    auto const trp = update_trips(sections, route);
 
-    return result;
+    return compare_trips(trp, msg->trip_id());
   }
 
   schedule& sched_;
