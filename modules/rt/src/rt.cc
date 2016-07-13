@@ -200,14 +200,6 @@ void rt::init(motis::module::registry& reg) {
                 std::bind(&rt::on_system_time_change, this, p::_1));
 }
 
-void handle_add(schedule& sched, ris::AdditionMessage const* msg) {
-  additional_service_builder(sched).build_additional_train(msg);
-}
-
-void handle_cancel(schedule&, ris::CancelMessage const*) {}
-
-void handle_reroute(schedule&, ris::RerouteMessage const*) {}
-
 msg_ptr rt::on_message(msg_ptr const& msg) {
   using namespace ris;
 
@@ -230,17 +222,12 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
           break;
 
         case MessageUnion_AdditionMessage:
-          handle_add(s, reinterpret_cast<AdditionMessage const*>(c));
+          additional_service_builder(s).build_additional_train(
+              reinterpret_cast<AdditionMessage const*>(c));
           break;
 
-        case MessageUnion_CancelMessage:
-          handle_cancel(s, reinterpret_cast<CancelMessage const*>(c));
-          break;
-
-        case MessageUnion_RerouteMessage:
-          handle_reroute(s, reinterpret_cast<RerouteMessage const*>(c));
-          break;
-
+        case MessageUnion_CancelMessage: break;
+        case MessageUnion_RerouteMessage: break;
         default: break;
       }
     } catch (...) {
