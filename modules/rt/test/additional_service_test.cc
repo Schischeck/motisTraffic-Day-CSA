@@ -47,8 +47,7 @@ TEST_F(rt_additional_service_test, simple) {
                       unix_time(2300), "");
 
   for (auto const& trp_e : *trp->edges_) {
-    auto const e = trp_e.get_edge();
-    auto const& conns = e->m_.route_edge_.conns_;
+    auto const& conns = trp_e.get_edge()->m_.route_edge_.conns_;
     ASSERT_EQ(1, conns.size());
 
     auto const& trps = *sched().merged_trips_.at(conns[0].trips_);
