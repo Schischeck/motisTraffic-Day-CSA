@@ -40,7 +40,9 @@ struct statistics {
         additional_err_count_(0),
         additional_err_order_(0),
         additional_err_station_(0),
-        additional_err_time_(0) {}
+        additional_err_time_(0),
+        additional_decreasing_ev_time_(0),
+        additional_station_mismatch_(0) {}
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     auto c = [&](char const* desc, unsigned number) {
@@ -142,6 +144,14 @@ struct statistics {
       case additional_service_builder::status::EVENT_TIME_OUT_OF_RANGE:
         ++additional_err_time_;
         break;
+
+      case additional_service_builder::status::DECREASING_TIME:
+        ++additional_decreasing_ev_time_;
+        break;
+
+      case additional_service_builder::status::STATION_MISMATCH:
+        ++additional_station_mismatch_;
+        break;
     }
   }
 
@@ -177,6 +187,8 @@ struct statistics {
   unsigned additional_err_order_;
   unsigned additional_err_station_;
   unsigned additional_err_time_;
+  unsigned additional_decreasing_ev_time_;
+  unsigned additional_station_mismatch_;
 };
 
 }  // namespace rt

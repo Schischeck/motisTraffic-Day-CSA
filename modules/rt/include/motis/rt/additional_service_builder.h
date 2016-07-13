@@ -29,7 +29,9 @@ struct additional_service_builder {
     EVENT_COUNT_MISMATCH,
     EVENT_ORDER_MISMATCH,
     STATION_NOT_FOUND,
-    EVENT_TIME_OUT_OF_RANGE
+    EVENT_TIME_OUT_OF_RANGE,
+    STATION_MISMATCH,
+    DECREASING_TIME
   };
 
   explicit additional_service_builder(schedule& sched) : sched_(sched) {}
@@ -98,9 +100,12 @@ struct additional_service_builder {
       return status::EVENT_COUNT_MISMATCH;
     }
 
+    station const* arr_station = nullptr;
+    uint64_t prev_time = 0;
     event_type next = event_type::DEP;
     for (auto const& ev : *events) {
-      if (from_fbs(ev->base()->type()) != next) {
+      auto ev_type = from_fbs(ev->base()->type());
+      if (ev_type != next) {
         return status::EVENT_ORDER_MISMATCH;
       }
 
@@ -109,8 +114,18 @@ struct additional_service_builder {
         return status::EVENT_TIME_OUT_OF_RANGE;
       }
 
-      if (find_station(sched_, ev->base()->station_id()->str()) == nullptr) {
+      auto station = find_station(sched_, ev->base()->station_id()->str());
+      if (station == nullptr) {
         return status::STATION_NOT_FOUND;
+      }
+
+      if (prev_time > ev->base()->schedule_time()) {
+        return status::DECREASING_TIME;
+      }
+
+      if (ev_type == event_type::DEP && arr_station != nullptr &&
+          arr_station != station) {
+        return status::STATION_MISMATCH;
       }
 
       next = next == event_type::DEP ? event_type::ARR : event_type::DEP;
