@@ -130,42 +130,28 @@ void rt::add_to_propagator(schedule const& sched,
                            ris::DelayMessage const* msg) {
   stats_.total_evs_ += msg->events()->size();
 
-  // TODO(Felix Guendling) remove this when additional trains are supported
-  if (msg->trip_id()->trip_type() != ris::IdEventType_Schedule) {
-    stats_.additional_not_found_ += msg->events()->size();
-    return;
-  }
-
   auto trp = find_trip_fuzzy(sched, msg->trip_id());
   if (trp == nullptr) {
     stats_.ev_trp_not_found_ += msg->events()->size();
     return;
   }
 
-  // Translate external identifiers to internal identifiers.
   auto const updates = get_updates(sched, msg->type() == ris::DelayType_Is
                                               ? timestamp_reason::IS
                                               : timestamp_reason::FORECAST,
                                    msg->events(), stats_);
   stats_.total_updates_ += updates.size();
 
-  // For each edge of the trip:
   for (auto const& trp_e : *trp->edges_) {
     auto const e = trp_e.get_edge();
-
-    // For each event of the edge / light connection:
     for (auto ev_type : {event_type::DEP, event_type::ARR}) {
       auto const route_node = get_route_node(*e, ev_type);
-
-      // Try updates:
       for (auto const& upd : updates) {
-        // Check whether station matches update station.
         if (upd.ev_type_ != ev_type ||
             upd.station_id_ != route_node->get_station()->id_) {
           continue;
         }
 
-        // Check whether schedule time matches update message schedule time.
         auto const k = ev_key{e, trp->lcon_idx_, ev_type};
         auto const diff =
             std::abs(static_cast<int>(upd.sched_time_) -

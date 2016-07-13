@@ -70,8 +70,8 @@ struct additional_service_builder {
                            std::string const& line_id, int train_nr) {
     connection c;
     c.con_info_ = get_con_info(category, line_id, train_nr);
-    c.a_track_ = get_track(dep_track);
-    c.d_track_ = get_track(arr_track);
+    c.d_track_ = get_track(dep_track);
+    c.a_track_ = get_track(arr_track);
     c.clasz_ = get_clasz(category);
     sched_.full_connections_.emplace_back(std::make_unique<connection>(c));
     return sched_.full_connections_.back().get();
@@ -80,7 +80,16 @@ struct additional_service_builder {
   bool check_events(
       flatbuffers::Vector<flatbuffers::Offset<ris::AdditionalEvent>> const*
           events) const {
+    if (events->size() % 2 != 0) {
+      return false;
+    }
+
+    event_type next = event_type::DEP;
     for (auto const& ev : *events) {
+      if (from_fbs(ev->base()->type()) != next) {
+        return false;
+      }
+
       if (unix_to_motistime(sched_, ev->base()->schedule_time()) ==
           INVALID_TIME) {
         return false;
@@ -89,6 +98,8 @@ struct additional_service_builder {
       if (find_station(sched_, ev->base()->station_id()->str()) == nullptr) {
         return false;
       }
+
+      next = next == event_type::DEP ? event_type::ARR : event_type::DEP;
     }
 
     return true;

@@ -122,8 +122,8 @@ void create_additional_msg(motis::schedule const& sched,
     )
   };
   // clang-format on
-  auto trip_id = CreateIdEvent(fbb, fbb.CreateString("0000001"), 1,
-                               unix_time(sched, 1010));
+  auto trip_id = CreateIdEvent(fbb, fbb.CreateString("0000001"), 77,
+                               unix_time(sched, 2200));
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_AdditionMessage,
       CreateAdditionMessage(fbb, trip_id, fbb.CreateVector(events)).Union()));
