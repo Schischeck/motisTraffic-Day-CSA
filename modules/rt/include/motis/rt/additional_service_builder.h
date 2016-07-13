@@ -20,7 +20,7 @@ struct additional_service_builder {
 
   explicit additional_service_builder(schedule& sched) : sched_(sched) {}
 
-  size_t get_family(std::string const& cat_name) {
+  size_t get_family(std::string const& cat_name) const {
     auto const it = std::find_if(
         begin(sched_.categories_), end(sched_.categories_),
         [&cat_name](auto const& cat) { return cat_name == cat->name_; });
@@ -58,7 +58,7 @@ struct additional_service_builder {
     }
   }
 
-  int get_clasz(std::string const& category) {
+  static int get_clasz(std::string const& category) {
     static auto const clasz_map = loader::class_mapping();
     auto const it = clasz_map.find(category);
     return it == end(clasz_map) ? 9 : it->second;
@@ -77,8 +77,9 @@ struct additional_service_builder {
     return sched_.full_connections_.back().get();
   }
 
-  bool check_events(flatbuffers::Vector<
-                    flatbuffers::Offset<ris::AdditionalEvent>> const* events) {
+  bool check_events(
+      flatbuffers::Vector<flatbuffers::Offset<ris::AdditionalEvent>> const*
+          events) const {
     for (auto const& ev : *events) {
       if (unix_to_motistime(sched_, ev->base()->schedule_time()) ==
           INVALID_TIME) {
@@ -121,7 +122,7 @@ struct additional_service_builder {
     return sections;
   }
 
-  std::set<station_node*> get_station_nodes(
+  static std::set<station_node*> get_station_nodes(
       std::vector<section> const& sections) {
     std::set<station_node*> station_nodes;
     for (auto& c : sections) {
