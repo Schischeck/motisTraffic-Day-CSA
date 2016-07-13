@@ -236,7 +236,8 @@ struct additional_service_builder {
 
   status compare_trips(trip const* trp, ris::IdEvent const* id_ev) {
     auto const id_station = find_station(sched_, id_ev->station_id()->str());
-    auto const id_event_time = unix_to_motistime(sched_, id_ev->schedule_time());
+    auto const id_event_time =
+        unix_to_motistime(sched_, id_ev->schedule_time());
     auto const trp_id = trp->id_.primary_;
     if (id_station != nullptr && id_event_time != INVALID_TIME &&
         id_station->index_ == trp_id.station_id_ &&
