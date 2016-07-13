@@ -7,7 +7,12 @@
 #include <vector>
 
 #include "motis/core/common/get_or_create.h"
+#include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/station_access.h"
+#include "motis/core/access/time_access.h"
+#include "motis/core/conv/event_type_conv.h"
+#include "motis/loader/classes.h"
 #include "motis/rt/separate_trip.h"
 
 #include "motis/protocol/RISMessage_generated.h"
@@ -17,6 +22,14 @@ namespace rt {
 
 struct additional_service_builder {
   using section = std::tuple<light_connection, station_node*, station_node*>;
+
+  enum class status {
+    OK,
+    EVENT_COUNT_MISMATCH,
+    EVENT_ORDER_MISMATCH,
+    STATION_NOT_FOUND,
+    EVENT_TIME_OUT_OF_RANGE
+  };
 
   explicit additional_service_builder(schedule& sched) : sched_(sched) {}
 
@@ -77,32 +90,32 @@ struct additional_service_builder {
     return sched_.full_connections_.back().get();
   }
 
-  bool check_events(
+  status check_events(
       flatbuffers::Vector<flatbuffers::Offset<ris::AdditionalEvent>> const*
           events) const {
     if (events->size() % 2 != 0) {
-      return false;
+      return status::EVENT_COUNT_MISMATCH;
     }
 
     event_type next = event_type::DEP;
     for (auto const& ev : *events) {
       if (from_fbs(ev->base()->type()) != next) {
-        return false;
+        return status::EVENT_ORDER_MISMATCH;
       }
 
       if (unix_to_motistime(sched_, ev->base()->schedule_time()) ==
           INVALID_TIME) {
-        return false;
+        return status::EVENT_TIME_OUT_OF_RANGE;
       }
 
       if (find_station(sched_, ev->base()->station_id()->str()) == nullptr) {
-        return false;
+        return status::STATION_NOT_FOUND;
       }
 
       next = next == event_type::DEP ? event_type::ARR : event_type::DEP;
     }
 
-    return true;
+    return status::OK;
   }
 
   std::vector<section> build_sections(
@@ -218,9 +231,10 @@ struct additional_service_builder {
     }
   }
 
-  bool build_additional_train(ris::AdditionMessage const* msg) {
-    if (!check_events(msg->events())) {
-      return false;
+  status build_additional_train(ris::AdditionMessage const* msg) {
+    auto const result = check_events(msg->events());
+    if (result != status::OK) {
+      return result;
     }
 
     auto const sections = build_sections(msg->events());
@@ -231,7 +245,7 @@ struct additional_service_builder {
     rebuild_incoming_edges(station_nodes, incoming);
     update_trips(sections, route);
 
-    return true;
+    return result;
   }
 
   schedule& sched_;

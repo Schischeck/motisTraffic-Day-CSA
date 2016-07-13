@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <ostream>
 
+#include "motis/rt/additional_service_builder.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 
 namespace motis {
@@ -72,6 +74,14 @@ struct statistics {
     c("checked", s.graph_updates_);
     c("skipped", s.propagated_updates_ - s.graph_updates_);
 
+    o << "\nadditional services\n";
+    c("total", s.additional_total_);
+    c("ok", s.additional_ok_);
+    c("count not even", s.additional_err_count_);
+    c("bad event order", s.additional_err_order_);
+    c("station not found", s.additional_err_station_);
+    c("event time not in schedule", s.additional_err_time_);
+
     return o;
   }
 
@@ -106,6 +116,21 @@ struct statistics {
     }
   }
 
+  void count_additional(additional_service_builder::status const& s) {
+    ++additional_total_;
+    switch (s) {
+      case additional_service_builder::status::OK: ++additional_ok_;
+      case additional_service_builder::status::EVENT_COUNT_MISMATCH:
+        ++additional_err_count_;
+      case additional_service_builder::status::EVENT_ORDER_MISMATCH:
+        ++additional_err_order_;
+      case additional_service_builder::status::STATION_NOT_FOUND:
+        ++additional_err_station_;
+      case additional_service_builder::status::EVENT_TIME_OUT_OF_RANGE:
+        ++additional_err_time_;
+    }
+  }
+
   unsigned delay_msgs_;
   unsigned cancel_msgs_;
   unsigned additional_msgs_;
@@ -130,6 +155,13 @@ struct statistics {
 
   unsigned propagated_updates_;
   unsigned graph_updates_;
+
+  unsigned additional_total_;
+  unsigned additional_ok_;
+  unsigned additional_err_count_;
+  unsigned additional_err_order_;
+  unsigned additional_err_station_;
+  unsigned additional_err_time_;
 };
 
 }  // namespace rt

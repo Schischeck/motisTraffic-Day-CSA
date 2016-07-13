@@ -6,7 +6,6 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/event_type.h"
-#include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/service_access.h"
@@ -207,10 +206,12 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
           add_to_propagator(s, reinterpret_cast<DelayMessage const*>(c));
           break;
 
-        case MessageUnion_AdditionMessage:
-          additional_service_builder(s).build_additional_train(
+        case MessageUnion_AdditionMessage: {
+          auto result = additional_service_builder(s).build_additional_train(
               reinterpret_cast<AdditionMessage const*>(c));
+          stats_.count_additional(result);
           break;
+        }
 
         case MessageUnion_CancelMessage: break;
         case MessageUnion_RerouteMessage: break;
