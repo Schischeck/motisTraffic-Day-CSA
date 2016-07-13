@@ -33,7 +33,14 @@ struct statistics {
         conflicting_moved_(0),
         route_overtake_(0),
         propagated_updates_(0),
-        graph_updates_(0) {}
+        graph_updates_(0),
+        additional_total_(0),
+        additional_ok_(0),
+        additional_trip_id_(0),
+        additional_err_count_(0),
+        additional_err_order_(0),
+        additional_err_station_(0),
+        additional_err_time_(0) {}
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     auto c = [&](char const* desc, unsigned number) {
