@@ -214,7 +214,7 @@ struct additional_service_builder {
     auto const sections = build_sections(msg->events());
     auto const station_nodes = get_station_nodes(sections);
     auto incoming = incoming_non_station_edges(station_nodes);
-    auto route = build_route(sections, incoming);
+    auto const route = build_route(sections, incoming);
     add_incoming_station_edges(station_nodes, incoming);
     rebuild_incoming_edges(station_nodes, incoming);
     update_trips(sections, route);
