@@ -91,23 +91,29 @@ std::vector<update> get_updates(schedule const& sched,
 }
 
 trip const* find_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
-  try {
-    // first try: exact match of first departure
-    auto trp = find_trip(sched, id->station_id()->str(), id->service_num(),
-                         id->schedule_time());
-
-    // second try: match of first departure with train number set to 0
-    if (trp == nullptr) {
-      trp = find_trip(sched, id->station_id()->str(), 0, id->schedule_time());
-    }
-
-    return trp;
-  } catch (std::system_error const& e) {
-    if (e.code() != access::error::station_not_found) {
-      throw;
-    }
+  auto const station = find_station(sched, id->station_id()->str());
+  if (station == nullptr) {
     return nullptr;
   }
+
+  auto const motis_time = unix_to_motistime(sched, id->schedule_time());
+  if (motis_time == INVALID_TIME) {
+    return nullptr;
+  }
+
+  trip const* trp;
+  trp = find_trip(
+      sched, primary_trip_id{station->index_, id->service_num(), motis_time});
+  if (trp != nullptr) {
+    return trp;
+  }
+
+  trp = find_trip(sched, primary_trip_id{station->index_, 0, motis_time});
+  if (trp != nullptr) {
+    return trp;
+  }
+
+  return nullptr;
 }
 
 void fix_time(ev_key const& k) {

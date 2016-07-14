@@ -41,20 +41,13 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
   throw std::system_error(access::error::service_not_found);
 }
 
-inline trip const* find_trip(schedule const& sched, std::string const& eva_nr,
-                             uint32_t const train_nr, std::time_t timestamp) {
-  auto const station_id = get_station(sched, eva_nr)->index_;
-  auto const motis_time = unix_to_motistime(sched, timestamp);
-  auto const primary_id = primary_trip_id(station_id, train_nr, motis_time);
-
-  auto it =
-      std::lower_bound(begin(sched.trips_), end(sched.trips_),
-                       std::make_pair(primary_id, static_cast<trip*>(nullptr)));
-  if (it == end(sched.trips_) || !(it->first == primary_id)) {
-    return nullptr;
+trip const* find_trip(schedule const& sched, primary_trip_id id) {
+  auto it = std::lower_bound(begin(sched.trips_), end(sched.trips_),
+                             std::make_pair(id, static_cast<trip*>(nullptr)));
+  if (it != end(sched.trips_) && it->first == id) {
+    return it->second;
   }
-
-  return it->second;
+  return nullptr;
 }
 
 }  // namespace motis
