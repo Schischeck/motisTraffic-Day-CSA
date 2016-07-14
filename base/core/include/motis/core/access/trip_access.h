@@ -41,7 +41,7 @@ inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
   throw std::system_error(access::error::service_not_found);
 }
 
-trip const* find_trip(schedule const& sched, primary_trip_id id) {
+inline trip const* find_trip(schedule const& sched, primary_trip_id id) {
   auto it = std::lower_bound(begin(sched.trips_), end(sched.trips_),
                              std::make_pair(id, static_cast<trip*>(nullptr)));
   if (it != end(sched.trips_) && it->first == id) {
