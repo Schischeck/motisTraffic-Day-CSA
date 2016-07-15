@@ -21,6 +21,8 @@
 #include "motis/rt/additional_service_builder.h"
 #include "motis/rt/bfs.h"
 #include "motis/rt/delay_propagator.h"
+#include "motis/rt/event_resolver.h"
+#include "motis/rt/find_trip_fuzzy.h"
 #include "motis/rt/separate_trip.h"
 #include "motis/rt/shifted_nodes_msg_builder.h"
 #include "motis/rt/trip_correction.h"
@@ -35,87 +37,6 @@ using motis::ris::RISBatch;
 namespace motis {
 namespace rt {
 
-struct update {
-  update() = default;
-  update(uint32_t station_id, time schedule_time, event_type ev_type,
-         timestamp_reason reason, time new_time)
-      : station_id_(station_id),
-        sched_time_(schedule_time),
-        ev_type_(ev_type),
-        reason_(reason),
-        upd_time_(new_time) {}
-
-  friend bool operator<(update const& a, update const& b) {
-    return std::tie(a.station_id_, a.reason_, a.sched_time_, a.upd_time_) <
-           std::tie(b.station_id_, b.reason_, b.sched_time_, b.upd_time_);
-  }
-
-  friend bool operator==(update const& a, update const& b) {
-    return std::tie(a.station_id_, a.reason_, a.sched_time_, a.upd_time_) ==
-           std::tie(b.station_id_, b.reason_, b.sched_time_, b.upd_time_);
-  }
-
-  uint32_t station_id_;
-  time sched_time_;
-  event_type ev_type_;
-
-  timestamp_reason reason_;
-  time upd_time_;
-};
-
-std::vector<update> get_updates(schedule const& sched,
-                                timestamp_reason const reason,
-                                Vector<Offset<ris::UpdatedEvent>> const* events,
-                                statistics& stats) {
-  std::vector<update> updates;
-
-  for (auto const& ev : *events) {
-    try {
-      auto const station_id = ev->base()->station_id()->str();
-      auto const station_node = get_station_node(sched, station_id)->id_;
-      auto const time = unix_to_motistime(sched, ev->base()->schedule_time());
-      auto const upd_time = unix_to_motistime(sched, ev->updated_time());
-      if (time != INVALID_TIME && upd_time != INVALID_TIME) {
-        updates.emplace_back(station_node, time, from_fbs(ev->base()->type()),
-                             reason, upd_time);
-      } else {
-        ++stats.ev_invalid_time_;
-      }
-    } catch (...) {
-      ++stats.ev_station_not_found_;
-      continue;
-    }
-  }
-
-  return updates;
-}
-
-trip const* find_trip_fuzzy(schedule const& sched, ris::IdEvent const* id) {
-  auto const station = find_station(sched, id->station_id()->str());
-  if (station == nullptr) {
-    return nullptr;
-  }
-
-  auto const motis_time = unix_to_motistime(sched, id->schedule_time());
-  if (motis_time == INVALID_TIME) {
-    return nullptr;
-  }
-
-  trip const* trp;
-  trp = find_trip(
-      sched, primary_trip_id{station->index_, id->service_num(), motis_time});
-  if (trp != nullptr) {
-    return trp;
-  }
-
-  trp = find_trip(sched, primary_trip_id{station->index_, 0, motis_time});
-  if (trp != nullptr) {
-    return trp;
-  }
-
-  return nullptr;
-}
-
 void fix_time(ev_key const& k) {
   auto const mutable_t = [&k]() -> motis::time& {
     auto& t =
@@ -128,50 +49,6 @@ void fix_time(ev_key const& k) {
     mutable_t() = INVALID_TIME;
   } else {
     mutable_t() = ev_key{k.route_edge_, k.lcon_idx_ + 1, k.ev_type_}.get_time();
-  }
-}
-
-void rt::add_to_propagator(schedule const& sched,
-                           ris::DelayMessage const* msg) {
-  stats_.total_evs_ += msg->events()->size();
-
-  auto trp = find_trip_fuzzy(sched, msg->trip_id());
-  if (trp == nullptr) {
-    stats_.ev_trp_not_found_ += msg->events()->size();
-    return;
-  }
-
-  auto const updates = get_updates(sched, msg->type() == ris::DelayType_Is
-                                              ? timestamp_reason::IS
-                                              : timestamp_reason::FORECAST,
-                                   msg->events(), stats_);
-  stats_.total_updates_ += updates.size();
-
-  for (auto const& trp_e : *trp->edges_) {
-    auto const e = trp_e.get_edge();
-    for (auto ev_type : {event_type::DEP, event_type::ARR}) {
-      auto const route_node = get_route_node(*e, ev_type);
-      for (auto const& upd : updates) {
-        if (upd.ev_type_ != ev_type ||
-            upd.station_id_ != route_node->get_station()->id_) {
-          continue;
-        }
-
-        auto const k = ev_key{e, trp->lcon_idx_, ev_type};
-        auto const diff =
-            std::abs(static_cast<int>(upd.sched_time_) -
-                     static_cast<int>(get_schedule_time(sched, k)));
-        if (diff != 0) {
-          stats_.log_sched_time_mismatch(diff);
-          if (diff > 5) {
-            continue;
-          }
-        }
-
-        propagator_->add_delay(k, upd.reason_, upd.upd_time_);
-        ++stats_.found_updates_;
-      }
-    }
   }
 }
 
@@ -208,9 +85,38 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
     auto c = nested->content();
     try {
       switch (nested->content_type()) {
-        case MessageUnion_DelayMessage:
-          add_to_propagator(s, reinterpret_cast<DelayMessage const*>(c));
+        case MessageUnion_DelayMessage: {
+          auto const msg = reinterpret_cast<DelayMessage const*>(c);
+          stats_.total_updates_ += msg->events()->size();
+
+          auto const reason = (msg->type() == ris::DelayType_Is)
+                                  ? timestamp_reason::IS
+                                  : timestamp_reason::FORECAST;
+
+          auto const resolved = resolve_events(
+              s, msg->trip_id(),
+              loader::transform_to_vec(
+                  *msg->events(),
+                  [](ris::UpdatedEvent const* ev) { return ev->base(); }));
+
+          for (unsigned i = 0; i < resolved.size(); ++i) {
+            auto const& resolved_ev = resolved[i];
+            if (!resolved_ev) {
+              continue;
+            }
+
+            auto const upd_time =
+                unix_to_motistime(s, msg->events()->Get(i)->updated_time());
+            if (upd_time == INVALID_TIME) {
+              continue;
+            }
+
+            propagator_->add_delay(*resolved_ev, reason, upd_time);
+            ++stats_.found_updates_;
+          }
+
           break;
+        }
 
         case MessageUnion_AdditionMessage: {
           auto result = additional_service_builder(s).build_additional_train(
