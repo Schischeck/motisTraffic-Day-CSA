@@ -144,11 +144,9 @@ struct statistics {
       case additional_service_builder::status::EVENT_TIME_OUT_OF_RANGE:
         ++additional_err_time_;
         break;
-
       case additional_service_builder::status::DECREASING_TIME:
         ++additional_decreasing_ev_time_;
         break;
-
       case additional_service_builder::status::STATION_MISMATCH:
         ++additional_station_mismatch_;
         break;
