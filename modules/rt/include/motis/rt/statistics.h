@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <ostream>
 
+#include "motis/rt/additional_service_builder.h"
+
 #include "motis/protocol/RISMessage_generated.h"
 
 namespace motis {
@@ -31,7 +33,16 @@ struct statistics {
         conflicting_moved_(0),
         route_overtake_(0),
         propagated_updates_(0),
-        graph_updates_(0) {}
+        graph_updates_(0),
+        additional_total_(0),
+        additional_ok_(0),
+        additional_trip_id_(0),
+        additional_err_count_(0),
+        additional_err_order_(0),
+        additional_err_station_(0),
+        additional_err_time_(0),
+        additional_decreasing_ev_time_(0),
+        additional_station_mismatch_(0) {}
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     auto c = [&](char const* desc, unsigned number) {
@@ -72,6 +83,15 @@ struct statistics {
     c("checked", s.graph_updates_);
     c("skipped", s.propagated_updates_ - s.graph_updates_);
 
+    o << "\nadditional services\n";
+    c("total", s.additional_total_);
+    c("ok", s.additional_ok_);
+    c("trip id mismatch", s.additional_trip_id_);
+    c("count not even", s.additional_err_count_);
+    c("bad event order", s.additional_err_order_);
+    c("station not found", s.additional_err_station_);
+    c("bad event time", s.additional_err_time_);
+
     return o;
   }
 
@@ -106,6 +126,33 @@ struct statistics {
     }
   }
 
+  void count_additional(additional_service_builder::status const& s) {
+    ++additional_total_;
+    switch (s) {
+      case additional_service_builder::status::OK: ++additional_ok_; break;
+      case additional_service_builder::status::TRIP_ID_MISMATCH:
+        ++additional_trip_id_;
+      case additional_service_builder::status::EVENT_COUNT_MISMATCH:
+        ++additional_err_count_;
+        break;
+      case additional_service_builder::status::EVENT_ORDER_MISMATCH:
+        ++additional_err_order_;
+        break;
+      case additional_service_builder::status::STATION_NOT_FOUND:
+        ++additional_err_station_;
+        break;
+      case additional_service_builder::status::EVENT_TIME_OUT_OF_RANGE:
+        ++additional_err_time_;
+        break;
+      case additional_service_builder::status::DECREASING_TIME:
+        ++additional_decreasing_ev_time_;
+        break;
+      case additional_service_builder::status::STATION_MISMATCH:
+        ++additional_station_mismatch_;
+        break;
+    }
+  }
+
   unsigned delay_msgs_;
   unsigned cancel_msgs_;
   unsigned additional_msgs_;
@@ -130,6 +177,16 @@ struct statistics {
 
   unsigned propagated_updates_;
   unsigned graph_updates_;
+
+  unsigned additional_total_;
+  unsigned additional_ok_;
+  unsigned additional_trip_id_;
+  unsigned additional_err_count_;
+  unsigned additional_err_order_;
+  unsigned additional_err_station_;
+  unsigned additional_err_time_;
+  unsigned additional_decreasing_ev_time_;
+  unsigned additional_station_mismatch_;
 };
 
 }  // namespace rt
