@@ -96,7 +96,7 @@ struct additional_service_builder {
   status check_events(
       flatbuffers::Vector<flatbuffers::Offset<ris::AdditionalEvent>> const*
           events) const {
-    if (events->size() % 2 != 0) {
+    if (events->size() == 0 || events->size() % 2 != 0) {
       return status::EVENT_COUNT_MISMATCH;
     }
 
@@ -128,7 +128,8 @@ struct additional_service_builder {
         return status::STATION_MISMATCH;
       }
 
-      next = next == event_type::DEP ? event_type::ARR : event_type::DEP;
+      prev_time = ev->base()->schedule_time();
+      next = (next == event_type::DEP) ? event_type::ARR : event_type::DEP;
     }
 
     return status::OK;
@@ -140,6 +141,7 @@ struct additional_service_builder {
     std::vector<section> sections;
     for (auto it = std::begin(*events); it != std::end(*events);) {
       light_connection lcon;
+      lcon.valid_ = true;
 
       // DEP
       auto dep_station =
@@ -189,15 +191,14 @@ struct additional_service_builder {
       auto const to_station_transfer_time =
           sched_.stations_.at(to_station->id_)->transfer_time_;
 
-      node *from_route_node =
-               prev_route_node
-                   ? prev_route_node
-                   : build_route_node(route_id, sched_.node_count_++,
-                                      from_station, from_station_transfer_time,
-                                      true, true),
-           *to_route_node =
-               build_route_node(route_id, sched_.node_count_++, to_station,
-                                to_station_transfer_time, true, true);
+      auto const from_route_node =
+          prev_route_node
+              ? prev_route_node
+              : build_route_node(route_id, sched_.node_count_++, from_station,
+                                 from_station_transfer_time, true, true);
+      auto const to_route_node =
+          build_route_node(route_id, sched_.node_count_++, to_station,
+                           to_station_transfer_time, true, true);
 
       from_route_node->edges_.push_back(
           make_route_edge(from_route_node, to_route_node, {l}));
@@ -223,8 +224,8 @@ struct additional_service_builder {
     std::tie(last_lcon, std::ignore, last_station) = sections.back();
 
     sched_.trip_edges_.emplace_back(
-        new std::vector<trip::route_edge>(trip_edges));
-    sched_.trip_mem_.emplace_back(new trip(
+        std::make_unique<std::vector<trip::route_edge>>(trip_edges));
+    sched_.trip_mem_.emplace_back(std::make_unique<trip>(
         full_trip_id{primary_trip_id{first_station->id_,
                                      first_lcon.full_con_->con_info_->train_nr_,
                                      first_lcon.d_time_},
@@ -240,7 +241,9 @@ struct additional_service_builder {
         trp_entry);
 
     auto const new_trps_id = sched_.merged_trips_.size();
-    sched_.merged_trips_.emplace_back(new std::vector<trip*>({trp}));
+    sched_.merged_trips_.emplace_back(
+        std::make_unique<std::vector<trip*>, std::initializer_list<trip*>>(
+            {trp}));
 
     for (auto const& trp_edge : trip_edges) {
       trp_edge.get_edge()->m_.route_edge_.conns_[0].trips_ = new_trps_id;
@@ -249,7 +252,7 @@ struct additional_service_builder {
     return trp;
   }
 
-  status compare_trips(trip const* trp, ris::IdEvent const* id_ev) {
+  status verify_trip_id(trip const* trp, ris::IdEvent const* id_ev) {
     auto const id_station = find_station(sched_, id_ev->station_id()->str());
     auto const id_event_time =
         unix_to_motistime(sched_, id_ev->schedule_time());
@@ -278,7 +281,7 @@ struct additional_service_builder {
     rebuild_incoming_edges(station_nodes, incoming);
     auto const trp = update_trips(sections, route);
 
-    return compare_trips(trp, msg->trip_id());
+    return verify_trip_id(trp, msg->trip_id());
   }
 
   schedule& sched_;
