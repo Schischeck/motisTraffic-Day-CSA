@@ -30,7 +30,7 @@ struct search_result {
   std::vector<journey> journeys_;
 };
 
-template <typename StartLabelGenerator, typename Label>
+template <search_dir Dir, typename StartLabelGenerator, typename Label>
 struct search {
   static search_result get_connections(search_query const& q) {
     q.mem_->reset();
@@ -41,7 +41,9 @@ struct search {
           e.from_->get_station()->id_, e.get_minimum_cost());
     }
 
-    lower_bounds lbs(q.sched_->lower_bounds_, q.to_->id_, lb_graph_edges);
+    lower_bounds lbs(Dir == search_dir::FWD ? q.sched_->lower_bounds_fwd_
+                                            : q.sched_->lower_bounds_bwd_,
+                     q.to_->id_, lb_graph_edges);
     lbs.travel_time_.run();
     lbs.transfers_.run();
 
@@ -76,7 +78,7 @@ struct search {
     journeys.resize(results.size());
     std::transform(begin(results), end(results), begin(journeys),
                    [&q](Label* label) {
-                     return output::labels_to_journey(*q.sched_, label);
+                     return output::labels_to_journey(*q.sched_, label, Dir);
                    });
 
     return search_result(stats, journeys);

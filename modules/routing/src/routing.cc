@@ -174,42 +174,140 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
   return q;
 }
 
-search_result ontrip_search(search_query const& q, SearchType const t) {
+search_result ontrip_search_fwd(search_query const& q, SearchType const t) {
   switch (t) {
-    case SearchType_DefaultForward:
-      return search<ontrip_gen<default_label>, default_label>::get_connections(
-          q);
-    case SearchType_SingleCriterionForward:
-      return search<ontrip_gen<single_criterion_label>,
-                    single_criterion_label>::get_connections(q);
-    case SearchType_LateConnectionsForward:
-      return search<ontrip_gen<late_connections_label>,
-                    late_connections_label>::get_connections(q);
-    case SearchType_LateConnectionsForwardTest:
-      return search<ontrip_gen<late_connections_label_for_tests>,
-                    late_connections_label_for_tests>::get_connections(q);
+    case SearchType_Default:
+      return search<search_dir::FWD,
+                    ontrip_gen<search_dir::FWD, default_label<search_dir::FWD>>,
+                    default_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_SingleCriterion:
+      return search<
+          search_dir::FWD,
+          ontrip_gen<search_dir::FWD, single_criterion_label<search_dir::FWD>>,
+          single_criterion_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_LateConnections:
+      return search<
+          search_dir::FWD,
+          ontrip_gen<search_dir::FWD, late_connections_label<search_dir::FWD>>,
+          late_connections_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_LateConnectionsTest:
+      return search<
+          search_dir::FWD,
+          ontrip_gen<search_dir::FWD,
+                     late_connections_label_for_tests<search_dir::FWD>>,
+          late_connections_label_for_tests<search_dir::FWD>>::
+          get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
 }
 
-search_result pretrip_search(search_query const& q, SearchType const t) {
+search_result pretrip_search_fwd(search_query const& q, SearchType const t) {
   switch (t) {
-    case SearchType_DefaultForward:
-      return search<pretrip_gen<default_label>, default_label>::get_connections(
-          q);
-    case SearchType_SingleCriterionForward:
-      return search<pretrip_gen<single_criterion_label>,
-                    single_criterion_label>::get_connections(q);
-    case SearchType_LateConnectionsForward:
-      return search<pretrip_gen<late_connections_label>,
-                    late_connections_label>::get_connections(q);
-    case SearchType_LateConnectionsForwardTest:
-      return search<pretrip_gen<late_connections_label_for_tests>,
-                    late_connections_label_for_tests>::get_connections(q);
+    case SearchType_Default:
+      return search<
+          search_dir::FWD,
+          pretrip_gen<search_dir::FWD, default_label<search_dir::FWD>>,
+          default_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_SingleCriterion:
+      return search<
+          search_dir::FWD,
+          pretrip_gen<search_dir::FWD, single_criterion_label<search_dir::FWD>>,
+          single_criterion_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_LateConnections:
+      return search<
+          search_dir::FWD,
+          pretrip_gen<search_dir::FWD, late_connections_label<search_dir::FWD>>,
+          late_connections_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_LateConnectionsTest:
+      return search<
+          search_dir::FWD,
+          pretrip_gen<search_dir::FWD,
+                      late_connections_label_for_tests<search_dir::FWD>>,
+          late_connections_label_for_tests<search_dir::FWD>>::
+          get_connections(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
+}
+
+search_result ontrip_search_bwd(search_query const& q, SearchType const t) {
+  switch (t) {
+    case SearchType_Default:
+      return search<search_dir::BWD,
+                    ontrip_gen<search_dir::BWD, default_label<search_dir::BWD>>,
+                    default_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_SingleCriterion:
+      return search<
+          search_dir::BWD,
+          ontrip_gen<search_dir::BWD, single_criterion_label<search_dir::BWD>>,
+          single_criterion_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_LateConnections:
+      return search<
+          search_dir::BWD,
+          ontrip_gen<search_dir::BWD, late_connections_label<search_dir::BWD>>,
+          late_connections_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_LateConnectionsTest:
+      return search<
+          search_dir::BWD,
+          ontrip_gen<search_dir::BWD,
+                     late_connections_label_for_tests<search_dir::BWD>>,
+          late_connections_label_for_tests<search_dir::BWD>>::
+          get_connections(q);
+    default: break;
+  }
+  throw std::system_error(error::search_type_not_supported);
+}
+
+search_result pretrip_search_bwd(search_query const& q, SearchType const t) {
+  switch (t) {
+    case SearchType_Default:
+      return search<
+          search_dir::BWD,
+          pretrip_gen<search_dir::BWD, default_label<search_dir::BWD>>,
+          default_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_SingleCriterion:
+      return search<
+          search_dir::BWD,
+          pretrip_gen<search_dir::BWD, single_criterion_label<search_dir::BWD>>,
+          single_criterion_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_LateConnections:
+      return search<
+          search_dir::BWD,
+          pretrip_gen<search_dir::BWD, late_connections_label<search_dir::BWD>>,
+          late_connections_label<search_dir::BWD>>::get_connections(q);
+    case SearchType_LateConnectionsTest:
+      return search<
+          search_dir::BWD,
+          pretrip_gen<search_dir::BWD,
+                      late_connections_label_for_tests<search_dir::BWD>>,
+          late_connections_label_for_tests<search_dir::BWD>>::
+          get_connections(q);
+    default: break;
+  }
+  throw std::system_error(error::search_type_not_supported);
+}
+
+search_result find_connections(search_query const& q, Start s,
+                               SearchType const t, SearchDir d) {
+  switch (s) {
+    case Start_PretripStart:
+      if (d == SearchDir_Forward) {
+        return pretrip_search_fwd(q, t);
+      } else {
+        return pretrip_search_bwd(q, t);
+      }
+    case Start_OntripStationStart:
+    case Start_OntripTrainStart:
+      if (d == SearchDir_Forward) {
+        return ontrip_search_fwd(q, t);
+      } else {
+        return ontrip_search_bwd(q, t);
+      }
+      break;
+    case Start_NONE: assert(false);
+  }
+  return {};
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
@@ -220,19 +318,8 @@ msg_ptr routing::route(msg_ptr const& msg) {
   mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
   query.mem_ = &mem.get();
 
-  search_result res;
-  switch (req->start_type()) {
-    case Start_PretripStart:
-      res = pretrip_search(query, req->search_type());
-      break;
-
-    case Start_OntripStationStart:
-    case Start_OntripTrainStart:
-      res = ontrip_search(query, req->search_type());
-      break;
-
-    case Start_NONE: assert(false);
-  }
+  auto const res = find_connections(query, req->start_type(),
+                                    req->search_type(), req->search_dir());
 
   message_creator fbb;
   fbb.create_and_finish(

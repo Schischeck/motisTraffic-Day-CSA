@@ -34,24 +34,26 @@ class constant_graph {
 public:
   constant_graph() = default;
 
-  explicit constant_graph(std::vector<station_node_ptr> const& station_nodes) {
+  explicit constant_graph(std::vector<station_node_ptr> const& station_nodes,
+                          search_dir const dir) {
     for (auto const& station_node : station_nodes) {
-      add_edges(*station_node);
+      add_edges(*station_node, dir);
       for (auto const& station_node_edge : station_node->edges_) {
-        add_edges(*station_node_edge.get_destination());
+        add_edges(*station_node_edge.get_destination(), dir);
       }
     }
   }
 
-  void add_edges(node const& node) {
+  void add_edges(node const& node, search_dir const dir) {
     for (auto const& edge : node.edges_) {
-      auto from = edge.get_destination()->id_;
+      auto const from = edge.get_destination(dir)->id_;
+      auto const to = edge.get_source(dir)->id_;
 
       if (edges_.size() <= from) {
         edges_.resize(from + 1);
       }
 
-      edges_[from].emplace_back(node.id_, edge.get_minimum_cost());
+      edges_[from].emplace_back(to, edge.get_minimum_cost());
     }
   }
 

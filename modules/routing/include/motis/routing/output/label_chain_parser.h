@@ -70,12 +70,13 @@ int initial_state(LabelIt& it) {
 
 template <typename Label>
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
-parse_label_chain(schedule const& sched, Label const* terminal_label) {
+parse_label_chain(schedule const& sched, Label const* terminal_label,
+                  search_dir const dir) {
   std::vector<Label const*> labels;
 
   auto c = terminal_label;
   do {
-    labels.insert(begin(labels), c);
+    labels.insert(dir == search_dir::FWD ? begin(labels) : end(labels), c);
   } while ((c = c->pred_));
 
   std::pair<std::vector<intermediate::stop>,

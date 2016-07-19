@@ -1,5 +1,6 @@
 #pragma once
 
+#include "motis/core/schedule/edges.h"
 #include "motis/routing/lower_bounds.h"
 
 namespace motis {
@@ -8,8 +9,9 @@ namespace routing {
 template <typename... DataClass>
 struct label_data : public DataClass... {};
 
-template <typename Data, typename Init, typename Updater, typename Filter,
-          typename Dominance, typename PostSearchDominance, typename Comparator>
+template <search_dir Dir, typename Data, typename Init, typename Updater,
+          typename Filter, typename Dominance, typename PostSearchDominance,
+          typename Comparator>
 struct label : public Data {
   label() = default;
 
@@ -23,15 +25,15 @@ struct label : public Data {
     Init::init(*this, lb);
   }
 
-  node const* get_node() const { return edge_->to_; }
+  node const* get_node() const { return edge_->get_destination<Dir>(); }
 
   template <typename Edge, typename LowerBounds>
   bool create_label(label& l, Edge const& e, LowerBounds& lb) {
-    if (pred_ && e.get_destination() == pred_->get_node()) {
+    if (pred_ && e.template get_destination<Dir>() == pred_->get_node()) {
       return false;
     }
 
-    auto ec = e.get_edge_cost(now_, connection_);
+    auto ec = e.template get_edge_cost<Dir>(now_, connection_);
     if (!ec.is_valid()) {
       return false;
     }
@@ -40,18 +42,27 @@ struct label : public Data {
     l.pred_ = this;
     l.edge_ = &e;
     l.connection_ = ec.connection_;
-    l.now_ += ec.time_;
+    l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
 
     Updater::update(l, ec, lb);
     return !Filter::is_filtered(l);
   }
 
   bool dominates(label const& o) const {
-    if (start_ < o.start_ || now_ > o.now_) {
+    if (incomparable(o)) {
       return false;
     }
     return Dominance::dominates(false, *this, o);
   }
+
+  bool incomparable(label const& o) const {
+    return current_begin() < o.current_begin() ||
+           current_end() > o.current_end();
+  }
+
+  time current_begin() const { return Dir == search_dir::FWD ? start_ : now_; }
+
+  time current_end() const { return Dir == search_dir::BWD ? now_ : start_; }
 
   bool dominates_post_search(label const& o) const {
     return PostSearchDominance::dominates(false, *this, o);

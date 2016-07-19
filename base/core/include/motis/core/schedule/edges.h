@@ -41,6 +41,8 @@ struct edge_cost {
 
 const edge_cost NO_EDGE = edge_cost();
 
+enum class search_dir { FWD, BWD };
+
 class edge {
 public:
   enum type {
@@ -96,10 +98,11 @@ public:
     m_.hotel_edge_.mumo_id_ = mumo_id;
   }
 
+  template <search_dir Dir>
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (m_.type_) {
-      case ROUTE_EDGE: return get_route_edge_cost(start_time);
+      case ROUTE_EDGE: return get_route_edge_cost<Dir>(start_time);
 
       case AFTER_TRAIN_FOOT_EDGE:
         if (last_con == nullptr) {
@@ -117,8 +120,10 @@ public:
                                        start_time % MINUTES_A_DAY) +
                              m_.foot_edge_.time_cost_,
                          m_.foot_edge_.transfer_, m_.foot_edge_.price_);
+
       case TIME_DEPENDENT_MUMO_EDGE:
         return calc_cost_time_dependent_edge(start_time);
+
       case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
 
       case THROUGH_EDGE: return edge_cost(0, false, 0);
@@ -229,15 +234,33 @@ public:
     }
   }
 
+  template <search_dir Dir>
   edge_cost get_route_edge_cost(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    light_connection const* c = get_connection(start_time);
+    light_connection const* c = (Dir == search_dir::FWD)
+                                    ? get_connection(start_time)
+                                    : get_connection_reverse(start_time);
     return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time_ - start_time, c);
   }
 
-  inline node const* get_destination() const { return to_; }
-  inline node* get_destination() { return to_; }
+  template <search_dir Dir = search_dir::FWD>
+  inline node const* get_destination() const {
+    return (Dir == search_dir::FWD) ? to_ : from_;
+  }
+
+  template <search_dir Dir = search_dir::FWD>
+  inline node const* get_source() const {
+    return (Dir == search_dir::FWD) ? from_ : to_;
+  }
+
+  inline node const* get_destination(search_dir dir = search_dir::FWD) const {
+    return (dir == search_dir::FWD) ? to_ : from_;
+  }
+
+  inline node const* get_source(search_dir dir = search_dir::FWD) const {
+    return (dir == search_dir::FWD) ? from_ : to_;
+  }
 
   inline bool valid() const { return type() != INVALID_EDGE; }
 

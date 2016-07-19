@@ -11,7 +11,7 @@
 namespace motis {
 namespace routing {
 
-template <typename Label>
+template <search_dir Dir, typename Label>
 struct pretrip_gen {
   static std::vector<Label*> generate(schedule const& sched,
                                       memory_manager& mem, lower_bounds& lbs,
@@ -70,40 +70,68 @@ struct pretrip_gen {
       }
 
       auto rn = e.to_;
-      for (auto const& re : rn->edges_) {
-        if (re.empty()) {
-          continue;
+      if (Dir == search_dir::FWD) {
+        for (auto const& re : rn->edges_) {
+          generate_start_labels(e, re, mem, lbs, start_edge, query_edge, d,
+                                departure_begin, departure_end,
+                                edge_interval_end, labels);
         }
-
-        auto t = departure_begin;
-        while (t <= departure_end) {
-          auto con = re.get_connection(t);
-          if (con == nullptr || con->d_time_ > departure_end) {
-            break;
-          }
-
-          t = con->d_time_;
-
-          auto time_off =
-              d + std::max(static_cast<int>(t) - d - edge_interval_end, 0);
-
-          if (query_edge == nullptr) {
-            auto l = mem.create<Label>(start_edge, nullptr, t, lbs);
-            labels.push_back(mem.create<Label>(&e, l, t, lbs));
-          } else {
-            auto l0 = mem.create<Label>(start_edge, nullptr, t - time_off, lbs);
-            auto l1 = mem.create<Label>(query_edge, l0, t, lbs);
-            labels.push_back(mem.create<Label>(&e, l1, t, lbs));
-          }
-
-          ++t;
+      } else {
+        for (auto const& re : rn->incoming_edges_) {
+          generate_start_labels(e, *re, mem, lbs, start_edge, query_edge, d,
+                                departure_begin, departure_end,
+                                edge_interval_end, labels);
         }
       }
     }
   }
+
+  static void generate_start_labels(edge const& e, edge const& re,
+                                    memory_manager& mem,
+                                    lower_bounds& lbs,  //
+                                    edge const* start_edge,
+                                    edge const* query_edge,
+                                    duration d,  //
+                                    time departure_begin, time departure_end,
+                                    time edge_interval_end,
+                                    std::vector<Label*>& labels) {
+    if (re.empty()) {
+      return;
+    }
+
+    auto t = departure_begin;
+    while (t <= departure_end) {
+      // TODO(Felix Guendling) get_connection_reverse for BWD
+      auto con = re.get_connection(t);
+
+      // TODO(Felix Guendling) < departure_begin for BWD
+      if (con == nullptr || con->d_time_ > departure_end) {
+        break;
+      }
+
+      t = con->d_time_;
+
+      // TODO(Felix Guendling) ?
+      auto time_off =
+          d + std::max(static_cast<int>(t) - d - edge_interval_end, 0);
+
+      if (query_edge == nullptr) {
+        auto l = mem.create<Label>(start_edge, nullptr, t, lbs);
+        labels.push_back(mem.create<Label>(&e, l, t, lbs));
+      } else {
+        // TODO (Felix Guendling) ?
+        auto l0 = mem.create<Label>(start_edge, nullptr, t - time_off, lbs);
+        auto l1 = mem.create<Label>(query_edge, l0, t, lbs);
+        labels.push_back(mem.create<Label>(&e, l1, t, lbs));
+      }
+
+      // TODO (Felix Guendling) --t for BWD
+      ++t;
+    }
+  }
 };
 
-template <typename Label>
+template <search_dir Dir, typename Label>
 struct ontrip_gen {
   static std::vector<Label*> generate(schedule const&, memory_manager& mem,
                                       lower_bounds& lbs, edge const* start_edge,
