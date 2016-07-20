@@ -4,8 +4,6 @@
 
 #include "motis/module/module.h"
 
-using namespace motis::module;
-
 namespace motis {
 namespace intermodal {
 
