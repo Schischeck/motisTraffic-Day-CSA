@@ -101,7 +101,7 @@ struct pretrip_gen {
     auto t = departure_begin;
     while (t <= departure_end) {
       // TODO(Felix Guendling) get_connection_reverse for BWD
-      auto con = re.get_connection(t);
+      auto con = re.get_connection<Dir>(t);
 
       // TODO(Felix Guendling) < departure_begin for BWD
       if (con == nullptr || con->d_time_ > departure_end) {

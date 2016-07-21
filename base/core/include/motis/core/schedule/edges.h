@@ -195,6 +195,7 @@ public:
     return nullptr;
   }
 
+  template <search_dir Dir = search_dir::FWD>
   light_connection const* get_connection(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
@@ -202,35 +203,29 @@ public:
       return nullptr;
     }
 
-    auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
-                               std::end(m_.route_edge_.conns_),
-                               light_connection(start_time));
+    if (Dir == search_dir::FWD) {
+      auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
+                                 std::end(m_.route_edge_.conns_),
+                                 light_connection(start_time));
 
-    if (it == std::end(m_.route_edge_.conns_)) {
-      return nullptr;
+      if (it == std::end(m_.route_edge_.conns_)) {
+        return nullptr;
+      } else {
+        return get_next_valid_lcon(&*it);
+      }
     } else {
-      return get_next_valid_lcon(&*it);
-    }
-  }
+      auto it = std::lower_bound(
+          m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
+          light_connection(0, start_time, nullptr),
+          [](light_connection const& lhs, light_connection const& rhs) {
+            return lhs.a_time_ > rhs.a_time_;
+          });
 
-  light_connection const* get_connection_reverse(time const start_time) const {
-    assert(type() == ROUTE_EDGE);
-
-    if (m_.route_edge_.conns_.size() == 0) {
-      return nullptr;
-    }
-
-    auto it = std::lower_bound(
-        m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
-        light_connection(0, start_time, nullptr),
-        [](light_connection const& lhs, light_connection const& rhs) {
-          return lhs.a_time_ > rhs.a_time_;
-        });
-
-    if (it == m_.route_edge_.conns_.rend()) {
-      return nullptr;
-    } else {
-      return get_prev_valid_lcon(&*it);
+      if (it == m_.route_edge_.conns_.rend()) {
+        return nullptr;
+      } else {
+        return get_prev_valid_lcon(&*it);
+      }
     }
   }
 
@@ -238,9 +233,7 @@ public:
   edge_cost get_route_edge_cost(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    light_connection const* c = (Dir == search_dir::FWD)
-                                    ? get_connection(start_time)
-                                    : get_connection_reverse(start_time);
+    light_connection const* c = get_connection<Dir>(start_time);
     return (c == nullptr) ? NO_EDGE : edge_cost((Dir == search_dir::FWD)
                                                     ? c->a_time_ - start_time
                                                     : start_time - c->d_time_,
