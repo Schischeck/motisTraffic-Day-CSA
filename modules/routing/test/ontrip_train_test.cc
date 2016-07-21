@@ -34,7 +34,7 @@ TEST_F(routing_ontrip_train, stay_in_train) {
               .Union(),
           CreateInputStation(fbb, fbb.CreateString("8000001"),
                              fbb.CreateString("")),
-          SearchType_SingleCriterionForward,
+          SearchType_SingleCriterion,
           fbb.CreateVector(std::vector<Offset<Via>>()),
           fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
