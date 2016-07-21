@@ -94,6 +94,13 @@ search_query build_query(schedule const& sched, RoutingRequest const* req) {
   q.to_ = get_station_node(sched, req->destination());
   q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
 
+  // TODO(Felix Guendling) remove when more edge types are supported
+  if (req->search_dir() == SearchDir_Backward &&
+      std::any_of(begin(q.query_edges_), end(q.query_edges_),
+                  [](edge const& e) { return e.type() != edge::MUMO_EDGE; })) {
+    throw std::system_error(error::edge_type_not_supported);
+  }
+
   return q;
 }
 

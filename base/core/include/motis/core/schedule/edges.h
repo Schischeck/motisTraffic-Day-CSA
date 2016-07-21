@@ -241,7 +241,10 @@ public:
     light_connection const* c = (Dir == search_dir::FWD)
                                     ? get_connection(start_time)
                                     : get_connection_reverse(start_time);
-    return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time_ - start_time, c);
+    return (c == nullptr) ? NO_EDGE : edge_cost((Dir == search_dir::FWD)
+                                                    ? c->a_time_ - start_time
+                                                    : start_time - c->d_time_,
+                                                c);
   }
 
   template <search_dir Dir = search_dir::FWD>
