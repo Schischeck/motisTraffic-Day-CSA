@@ -174,29 +174,38 @@ search_query get_query(schedule const& sched, RoutingRequest const* req) {
   return q;
 }
 
+template <typename T>
+struct get_search_dir {
+  typedef T value_type;
+};
+
+template <template <search_dir, typename...> class Label, typename... Args>
+struct get_search_dir<Label<search_dir::FWD, Args...>> {
+  static constexpr auto v = search_dir::FWD;
+};
+
+template <template <search_dir, typename...> class Label, typename... Args>
+struct get_search_dir<Label<search_dir::BWD, Args...>> {
+  static constexpr auto v = search_dir::BWD;
+};
+
+template <typename Label, template <search_dir, typename> class Gen>
+constexpr auto s(search_query const& q) {
+  auto constexpr Dir = get_search_dir<Label>::v;
+  return search<Dir, Gen<Dir, Label>, Label>::get_connections(q);
+}
+
 search_result ontrip_search_fwd(search_query const& q, SearchType const t) {
+  using gen = ontrip_gen;
+  constexpr auto dir = search_dir::FWD;
   switch (t) {
-    case SearchType_Default:
-      return search<search_dir::FWD,
-                    ontrip_gen<search_dir::FWD, default_label<search_dir::FWD>>,
-                    default_label<search_dir::FWD>>::get_connections(q);
+    case SearchType_Default: return s<default_label<dir>, gen>(q);
     case SearchType_SingleCriterion:
-      return search<
-          search_dir::FWD,
-          ontrip_gen<search_dir::FWD, single_criterion_label<search_dir::FWD>>,
-          single_criterion_label<search_dir::FWD>>::get_connections(q);
+      return s<single_criterion_label<dir>, gen>(q);
     case SearchType_LateConnections:
-      return search<
-          search_dir::FWD,
-          ontrip_gen<search_dir::FWD, late_connections_label<search_dir::FWD>>,
-          late_connections_label<search_dir::FWD>>::get_connections(q);
+      return s<late_connections_label<dir>, gen>(q);
     case SearchType_LateConnectionsTest:
-      return search<
-          search_dir::FWD,
-          ontrip_gen<search_dir::FWD,
-                     late_connections_label_for_tests<search_dir::FWD>>,
-          late_connections_label_for_tests<search_dir::FWD>>::
-          get_connections(q);
+      return s<late_connections_label_for_tests<dir>, gen>(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
