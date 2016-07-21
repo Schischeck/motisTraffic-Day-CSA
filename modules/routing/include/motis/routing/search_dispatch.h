@@ -27,7 +27,7 @@ struct get_search_dir<Label<search_dir::BWD, Args...>> {
 };
 
 template <typename Label, template <search_dir, typename> class Gen>
-search_result s(search_query const& q) {
+search_result get_connections(search_query const& q) {
   return search<get_search_dir<Label>::v, Gen<get_search_dir<Label>::v, Label>,
                 Label>::get_connections(q);
 }
@@ -35,13 +35,13 @@ search_result s(search_query const& q) {
 template <search_dir Dir, template <search_dir, typename> class Gen>
 search_result search_dispatch(search_query const& q, SearchType const t) {
   switch (t) {
-    case SearchType_Default: return s<default_label<Dir>, Gen>(q);
+    case SearchType_Default: return get_connections<default_label<Dir>, Gen>(q);
     case SearchType_SingleCriterion:
-      return s<single_criterion_label<Dir>, Gen>(q);
+      return get_connections<single_criterion_label<Dir>, Gen>(q);
     case SearchType_LateConnections:
-      return s<late_connections_label<Dir>, Gen>(q);
+      return get_connections<late_connections_label<Dir>, Gen>(q);
     case SearchType_LateConnectionsTest:
-      return s<late_connections_label_for_tests<Dir>, Gen>(q);
+      return get_connections<late_connections_label_for_tests<Dir>, Gen>(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
