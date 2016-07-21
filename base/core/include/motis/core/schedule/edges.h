@@ -98,7 +98,7 @@ public:
     m_.hotel_edge_.mumo_id_ = mumo_id;
   }
 
-  template <search_dir Dir>
+  template <search_dir Dir = search_dir::FWD>
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (m_.type_) {
@@ -234,7 +234,7 @@ public:
     }
   }
 
-  template <search_dir Dir>
+  template <search_dir Dir = search_dir::FWD>
   edge_cost get_route_edge_cost(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
