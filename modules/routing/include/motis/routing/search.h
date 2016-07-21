@@ -13,7 +13,7 @@ namespace routing {
 
 struct search_query {
   schedule const* sched_;
-  memory_manager* mem_;
+  mem_manager* mem_;
   node const* from_;
   station_node const* to_;
   time interval_begin_;

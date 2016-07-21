@@ -19,7 +19,8 @@
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/error.h"
 #include "motis/routing/label/configs.h"
-#include "motis/routing/memory_manager.h"
+#include "motis/routing/mem_manager.h"
+#include "motis/routing/mem_retriever.h"
 #include "motis/routing/search.h"
 #include "motis/routing/start_label_gen.h"
 
@@ -33,44 +34,6 @@ using namespace motis::guesser;
 
 namespace motis {
 namespace routing {
-
-struct memory {
-  explicit memory(std::size_t bytes) : in_use_(false), mem_(bytes) {}
-  bool in_use_;
-  memory_manager mem_;
-};
-
-struct mem_retriever {
-  mem_retriever(std::mutex& mutex,
-                std::vector<std::unique_ptr<memory>>& mem_pool,
-                std::size_t bytes)
-      : mutex_(mutex), memory_(retrieve(mem_pool, bytes)) {}
-
-  ~mem_retriever() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    memory_->in_use_ = false;
-  }
-
-  memory_manager& get() { return memory_->mem_; }
-
-private:
-  memory* retrieve(std::vector<std::unique_ptr<memory>>& mem_pool,
-                   std::size_t bytes) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = std::find_if(begin(mem_pool), end(mem_pool),
-                           [](auto&& m) { return !m->in_use_; });
-    if (it == end(mem_pool)) {
-      mem_pool.emplace_back(new memory(bytes));
-      mem_pool.back()->in_use_ = true;
-      return mem_pool.back().get();
-    }
-    it->get()->in_use_ = true;
-    return it->get();
-  }
-
-  std::mutex& mutex_;
-  memory* memory_;
-};
 
 routing::routing()
     : label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}

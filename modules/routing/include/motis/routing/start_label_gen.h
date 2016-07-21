@@ -6,16 +6,15 @@
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/routing/lower_bounds.h"
-#include "motis/routing/memory_manager.h"
+#include "motis/routing/mem_manager.h"
 
 namespace motis {
 namespace routing {
 
 template <search_dir Dir, typename Label>
 struct pretrip_gen {
-  static std::vector<Label*> generate(schedule const& sched,
-                                      memory_manager& mem, lower_bounds& lbs,
-                                      edge const* start_edge,
+  static std::vector<Label*> generate(schedule const& sched, mem_manager& mem,
+                                      lower_bounds& lbs, edge const* start_edge,
                                       std::vector<edge> const& query_edges,
                                       time interval_begin, time interval_end) {
     std::vector<Label*> labels;
@@ -55,7 +54,7 @@ struct pretrip_gen {
     return labels;
   }
 
-  static void generate_start_labels(memory_manager& mem,
+  static void generate_start_labels(mem_manager& mem,
                                     lower_bounds& lbs,  //
                                     edge const* start_edge,
                                     edge const* query_edge,
@@ -87,7 +86,7 @@ struct pretrip_gen {
   }
 
   static void generate_start_labels(edge const& e, edge const& re,
-                                    memory_manager& mem,
+                                    mem_manager& mem,
                                     lower_bounds& lbs,  //
                                     edge const* start_edge,
                                     edge const* query_edge,
@@ -133,7 +132,7 @@ struct pretrip_gen {
 
 template <search_dir Dir, typename Label>
 struct ontrip_gen {
-  static std::vector<Label*> generate(schedule const&, memory_manager& mem,
+  static std::vector<Label*> generate(schedule const&, mem_manager& mem,
                                       lower_bounds& lbs, edge const* start_edge,
                                       std::vector<edge> const&,
                                       time interval_begin,

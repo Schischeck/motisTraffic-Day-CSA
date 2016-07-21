@@ -5,7 +5,7 @@
 #include <queue>
 #include <unordered_map>
 
-#include "motis/routing/memory_manager.h"
+#include "motis/routing/mem_manager.h"
 #include "motis/routing/statistics.h"
 
 namespace motis {
@@ -27,7 +27,7 @@ public:
       int node_count, station_node const* goal,
       std::vector<Label*> const& start_labels,
       std::unordered_map<node const*, std::vector<edge>> additional_edges,
-      LowerBounds& lower_bounds, memory_manager& label_store)
+      LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
         node_labels_(node_count),
         queue_(begin(start_labels), end(start_labels)),
@@ -211,7 +211,7 @@ private:
   std::unordered_map<node const*, std::vector<edge>> additional_edges_;
   std::vector<Label*> results_;
   LowerBounds& lower_bounds_;
-  memory_manager& label_store_;
+  mem_manager& label_store_;
   statistics stats_;
   std::size_t max_labels_;
 };
