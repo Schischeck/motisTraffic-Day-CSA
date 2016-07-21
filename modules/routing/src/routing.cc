@@ -191,8 +191,8 @@ struct get_search_dir<Label<search_dir::BWD, Args...>> {
 
 template <typename Label, template <search_dir, typename> class Gen>
 constexpr auto s(search_query const& q) {
-  auto constexpr Dir = get_search_dir<Label>::v;
-  return search<Dir, Gen<Dir, Label>, Label>::get_connections(q);
+  return search<get_search_dir<Label>::v, Gen<get_search_dir<Label>::v, Label>,
+                Label>::get_connections(q);
 }
 
 search_result ontrip_search_fwd(search_query const& q, SearchType const t) {
