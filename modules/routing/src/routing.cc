@@ -7,21 +7,18 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/core/access/trip_access.h"
-#include "motis/core/access/trip_iterator.h"
-#include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
-#include "motis/module/context/motis_call.h"
-#include "motis/module/error.h"
 #include "motis/loader/util.h"
 
 #include "motis/routing/additional_edges.h"
+#include "motis/routing/build_query.h"
 #include "motis/routing/error.h"
 #include "motis/routing/label/configs.h"
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/mem_retriever.h"
 #include "motis/routing/search.h"
+#include "motis/routing/search_dispatch.h"
 #include "motis/routing/start_label_gen.h"
 
 #define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
@@ -30,7 +27,6 @@ namespace p = std::placeholders;
 namespace po = boost::program_options;
 using namespace motis::logging;
 using namespace motis::module;
-using namespace motis::guesser;
 
 namespace motis {
 namespace routing {
@@ -59,152 +55,16 @@ void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
 }
 
-station_node const* get_station_node(schedule const& sched,
-                                     InputStation const* el) {
-  std::string station_id;
-
-  if (el->id()->Length() != 0) {
-    station_id = el->id()->str();
-  } else {
-    message_creator b;
-    b.create_and_finish(
-        MsgContent_StationGuesserRequest,
-        CreateStationGuesserRequest(b, 1, b.CreateString(el->name()->str()))
-            .Union(),
-        "/guesser");
-    auto const msg = motis_call(make_msg(b))->val();
-    auto const guesses = motis_content(StationGuesserResponse, msg)->guesses();
-    if (guesses->size() == 0) {
-      throw std::system_error(error::no_guess_for_station);
-    }
-    station_id = guesses->Get(0)->id()->str();
-  }
-
-  return motis::get_station_node(sched, station_id);
-}
-
-node const* get_route_node(schedule const& sched, TripId const* trip,
-                           station_node const* station, time arrival_time) {
-  auto const stops = access::stops(from_fbs(sched, trip));
-  auto const stop_it = std::find_if(
-      begin(stops), end(stops), [&](access::trip_stop const& stop) {
-        return stop.get_route_node()->station_node_ == station &&
-               stop.arr_lcon().a_time_ == arrival_time;
-      });
-  if (stop_it == end(stops)) {
-    throw std::system_error(error::event_not_found);
-  }
-  return (*stop_it).get_route_node();
-}
-
-search_query get_query(schedule const& sched, RoutingRequest const* req) {
-  search_query q;
-
-  switch (req->start_type()) {
-    case Start_PretripStart: {
-      auto start = reinterpret_cast<PretripStart const*>(req->start());
-      q.from_ = get_station_node(sched, start->station());
-      q.interval_begin_ = unix_to_motistime(sched, start->interval()->begin());
-      q.interval_end_ = unix_to_motistime(sched, start->interval()->end());
-      break;
-    }
-
-    case Start_OntripStationStart: {
-      auto start = reinterpret_cast<OntripStationStart const*>(req->start());
-      q.from_ = get_station_node(sched, start->station());
-      q.interval_begin_ = unix_to_motistime(sched, start->departure_time());
-      q.interval_end_ = INVALID_TIME;
-      break;
-    }
-
-    case Start_OntripTrainStart: {
-      auto start = reinterpret_cast<OntripTrainStart const*>(req->start());
-      q.from_ = get_route_node(sched, start->trip(),
-                               get_station_node(sched, start->station()),
-                               unix_to_motistime(sched, start->arrival_time()));
-      q.interval_begin_ = unix_to_motistime(sched, start->arrival_time());
-      q.interval_end_ = INVALID_TIME;
-      break;
-    }
-
-    case Start_NONE: assert(false);
-  }
-
-  q.sched_ = &sched;
-  q.to_ = get_station_node(sched, req->destination());
-  q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
-
-  return q;
-}
-
-template <typename T>
-struct get_search_dir {
-  typedef T value_type;
-};
-
-template <template <search_dir, typename...> class Label, typename... Args>
-struct get_search_dir<Label<search_dir::FWD, Args...>> {
-  static constexpr auto v = search_dir::FWD;
-};
-
-template <template <search_dir, typename...> class Label, typename... Args>
-struct get_search_dir<Label<search_dir::BWD, Args...>> {
-  static constexpr auto v = search_dir::BWD;
-};
-
-template <typename Label, template <search_dir, typename> class Gen>
-search_result s(search_query const& q) {
-  return search<get_search_dir<Label>::v, Gen<get_search_dir<Label>::v, Label>,
-                Label>::get_connections(q);
-}
-
-template <search_dir Dir, template <search_dir, typename> class Gen>
-search_result search_dispatch(search_query const& q, SearchType const t) {
-  switch (t) {
-    case SearchType_Default: return s<default_label<Dir>, Gen>(q);
-    case SearchType_SingleCriterion:
-      return s<single_criterion_label<Dir>, Gen>(q);
-    case SearchType_LateConnections:
-      return s<late_connections_label<Dir>, Gen>(q);
-    case SearchType_LateConnectionsTest:
-      return s<late_connections_label_for_tests<Dir>, Gen>(q);
-    default: break;
-  }
-  throw std::system_error(error::search_type_not_supported);
-}
-
-search_result find_connections(search_query const& q, Start s,
-                               SearchType const t, SearchDir d) {
-  switch (s) {
-    case Start_PretripStart:
-      if (d == SearchDir_Forward) {
-        return search_dispatch<search_dir::FWD, pretrip_gen>(q, t);
-      } else {
-        return search_dispatch<search_dir::BWD, pretrip_gen>(q, t);
-      }
-    case Start_OntripStationStart:
-    case Start_OntripTrainStart:
-      if (d == SearchDir_Forward) {
-        return search_dispatch<search_dir::FWD, ontrip_gen>(q, t);
-      } else {
-        return search_dispatch<search_dir::BWD, ontrip_gen>(q, t);
-      }
-      break;
-    case Start_NONE: assert(false);
-  }
-  return {};
-}
-
 msg_ptr routing::route(msg_ptr const& msg) {
   auto const req = motis_content(RoutingRequest, msg);
   auto const& sched = get_schedule();
-  auto query = get_query(sched, req);
+  auto query = build_query(sched, req);
 
   mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
   query.mem_ = &mem.get();
 
-  auto const res = find_connections(query, req->start_type(),
-                                    req->search_type(), req->search_dir());
+  auto const res = search_dispatch(query, req->start_type(), req->search_type(),
+                                   req->search_dir());
 
   message_creator fbb;
   fbb.create_and_finish(
