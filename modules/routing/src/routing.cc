@@ -196,16 +196,15 @@ constexpr auto s(search_query const& q) {
 }
 
 search_result ontrip_search_fwd(search_query const& q, SearchType const t) {
-  using gen = ontrip_gen;
   constexpr auto dir = search_dir::FWD;
   switch (t) {
-    case SearchType_Default: return s<default_label<dir>, gen>(q);
+    case SearchType_Default: return s<default_label<dir>, ontrip_gen>(q);
     case SearchType_SingleCriterion:
-      return s<single_criterion_label<dir>, gen>(q);
+      return s<single_criterion_label<dir>, ontrip_gen>(q);
     case SearchType_LateConnections:
-      return s<late_connections_label<dir>, gen>(q);
+      return s<late_connections_label<dir>, ontrip_gen>(q);
     case SearchType_LateConnectionsTest:
-      return s<late_connections_label_for_tests<dir>, gen>(q);
+      return s<late_connections_label_for_tests<dir>, ontrip_gen>(q);
     default: break;
   }
   throw std::system_error(error::search_type_not_supported);
