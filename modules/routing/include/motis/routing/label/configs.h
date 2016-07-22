@@ -3,6 +3,7 @@
 #include "motis/routing/label/comparator.h"
 #include "motis/routing/label/criteria/absurdity.h"
 #include "motis/routing/label/criteria/late_connections.h"
+#include "motis/routing/label/criteria/no_intercity.h"
 #include "motis/routing/label/criteria/transfers.h"
 #include "motis/routing/label/criteria/travel_time.h"
 #include "motis/routing/label/dominance.h"
@@ -31,6 +32,15 @@ template <search_dir Dir>
 using single_criterion_label =
     label<Dir, label_data<travel_time>, initializer<travel_time_initializer>,
           updater<travel_time_updater>, filter<travel_time_filter>,
+          dominance<default_tb, travel_time_dominance>,
+          dominance<post_search_tb, travel_time_alpha_dominance>,
+          comparator<travel_time_dominance>>;
+
+template <search_dir Dir>
+using single_criterion_no_intercity_label =
+    label<Dir, label_data<travel_time>, initializer<travel_time_initializer>,
+          updater<travel_time_updater>,
+          filter<travel_time_filter, no_intercity_filter>,
           dominance<default_tb, travel_time_dominance>,
           dominance<post_search_tb, travel_time_alpha_dominance>,
           comparator<travel_time_dominance>>;
