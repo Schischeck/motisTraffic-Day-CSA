@@ -6,6 +6,7 @@
 #include "motis/routing/label/criteria/no_intercity.h"
 #include "motis/routing/label/criteria/transfers.h"
 #include "motis/routing/label/criteria/travel_time.h"
+#include "motis/routing/label/criteria/weighted.h"
 #include "motis/routing/label/dominance.h"
 #include "motis/routing/label/filter.h"
 #include "motis/routing/label/initializer.h"
@@ -30,20 +31,20 @@ using default_label =
 
 template <search_dir Dir>
 using single_criterion_label =
-    label<Dir, label_data<travel_time>, initializer<travel_time_initializer>,
-          updater<travel_time_updater>, filter<travel_time_filter>,
-          dominance<default_tb, travel_time_dominance>,
-          dominance<post_search_tb, travel_time_alpha_dominance>,
-          comparator<travel_time_dominance>>;
+    label<Dir, label_data<weighted>, initializer<weighted_initializer>,
+          updater<weighted_updater>, filter<weighted_filter>,
+          dominance<default_tb, weighted_dominance>,
+          dominance<post_search_tb>,
+          comparator<weighted_dominance>>;
 
 template <search_dir Dir>
 using single_criterion_no_intercity_label =
-    label<Dir, label_data<travel_time>, initializer<travel_time_initializer>,
-          updater<travel_time_updater>,
-          filter<travel_time_filter, no_intercity_filter>,
-          dominance<default_tb, travel_time_dominance>,
-          dominance<post_search_tb, travel_time_alpha_dominance>,
-          comparator<travel_time_dominance>>;
+    label<Dir, label_data<weighted>, initializer<weighted_initializer>,
+          updater<weighted_updater>,
+          filter<weighted_filter, no_intercity_filter>,
+          dominance<default_tb, weighted_dominance>,
+          dominance<post_search_tb>,
+          comparator<weighted_dominance>>;
 
 template <search_dir Dir>
 using late_connections_label = label<
