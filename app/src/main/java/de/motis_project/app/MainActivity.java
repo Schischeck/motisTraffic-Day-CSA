@@ -2,7 +2,6 @@ package de.motis_project.app;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.widget.Toast;
 
 import butterknife.ButterKnife;
