@@ -57,9 +57,10 @@ struct search {
       additional_edges[e.from_].push_back(e);
     }
 
-    // TODO(Felix Guendling) do not use const cast
     auto mutable_node = const_cast<node*>(q.from_);  // NOLINT
-    auto const start_edge = make_foot_edge(nullptr, mutable_node);
+    auto const start_edge = Dir == search_dir::FWD
+                                ? make_foot_edge(nullptr, mutable_node)
+                                : make_foot_edge(mutable_node, nullptr);
     pareto_dijkstra<Label, lower_bounds> pd(
         q.sched_->node_count_, q.to_,
         StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, &start_edge,

@@ -98,19 +98,28 @@ struct pretrip_gen {
       return;
     }
 
-    auto t = departure_begin;
-    while (t <= departure_end) {
-      // TODO(Felix Guendling) get_connection_reverse for BWD
+    auto const end_reached = [](time const t) {
+      if (Dir == search_dir::FWD) {
+        return t > departure_end;
+      } else {
+        return t < departure_begin;
+      }
+    };
+
+    auto const get_time = [](light_connection const* lcon) {
+      return (Dir == search_dir::FWD) ? lcon->d_time_ : lcon->a_time_;
+    };
+
+    auto t = (Dir == search_dir::FWD) ? departure_begin : departure_end;
+    while (!end_reached(t)) {
       auto con = re.get_connection<Dir>(t);
 
-      // TODO(Felix Guendling) < departure_begin for BWD
-      if (con == nullptr || con->d_time_ > departure_end) {
+      if (con == nullptr || end_reached(get_time(con))) {
         break;
       }
 
-      t = con->d_time_;
+      t = get_time(con);
 
-      // TODO(Felix Guendling) ?
       auto time_off =
           d + std::max(static_cast<int>(t) - d - edge_interval_end, 0);
 
@@ -118,14 +127,13 @@ struct pretrip_gen {
         auto l = mem.create<Label>(start_edge, nullptr, t, lbs);
         labels.push_back(mem.create<Label>(&e, l, t, lbs));
       } else {
-        // TODO (Felix Guendling) ?
-        auto l0 = mem.create<Label>(start_edge, nullptr, t - time_off, lbs);
+        auto dep = (Dir == search_dir::FWD) ? t - time_off : t + time_off;
+        auto l0 = mem.create<Label>(start_edge, nullptr, dep, lbs);
         auto l1 = mem.create<Label>(query_edge, l0, t, lbs);
         labels.push_back(mem.create<Label>(&e, l1, t, lbs));
       }
 
-      // TODO (Felix Guendling) --t for BWD
-      ++t;
+      (Dir == search_dir::FWD) ? ++t : --t;
     }
   }
 };

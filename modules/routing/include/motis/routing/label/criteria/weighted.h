@@ -14,7 +14,8 @@ struct weighted_initializer {
   static void init(Label& l, LowerBounds& lb) {
     l.weighted_ = l.now_ - l.start_;
     l.weighted_lb_ = l.weighted_ + lb.travel_time_[l.get_node()->id_] +
-                     lb.transfers_[l.get_node()->id_] * TRANSFER_COST;  }
+                     lb.transfers_[l.get_node()->id_] * TRANSFER_COST;
+  }
 };
 
 struct weighted_updater {
