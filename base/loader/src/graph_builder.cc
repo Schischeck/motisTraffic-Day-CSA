@@ -10,6 +10,7 @@
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/schedule/category.h"
+#include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/duplicate_checker.h"
@@ -512,8 +513,6 @@ void graph_builder::sort_trips() {
   std::sort(begin(sched_.trips_), end(sched_.trips_));
 }
 
-int graph_builder::node_count() const { return next_node_id_; }
-
 bitfield const& graph_builder::get_or_create_bitfield(
     String const* serialized_bitfield) {
   return map_get_or_create(bitfields_, serialized_bitfield, [&]() {
@@ -647,30 +646,6 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   return route_sections;
 }
 
-node* graph_builder::build_route_node(int route_index, Station const* station,
-                                      bool in_allowed, bool out_allowed) {
-  auto station_node = stations_[station];
-
-  auto route_node = new node(station_node, next_node_id_++);
-  route_node->route_ = route_index;
-
-  if (!in_allowed) {
-    station_node->edges_.push_back(make_invalid_edge(station_node, route_node));
-  } else {
-    station_node->edges_.push_back(make_foot_edge(station_node, route_node));
-  }
-
-  if (!out_allowed) {
-    route_node->edges_.push_back(make_invalid_edge(route_node, station_node));
-  } else {
-    route_node->edges_.push_back(make_foot_edge(
-        route_node, station_node,
-        sched_.stations_[station_node->id_]->transfer_time_, true));
-  }
-
-  return route_node;
-}
-
 route_section graph_builder::add_route_section(
     int route_index, std::vector<light_connection> const& connections,
     Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
@@ -678,18 +653,25 @@ route_section graph_builder::add_route_section(
     route_section prev_section, route_section next_section) {
   route_section section;
 
+  auto const from_station_node = stations_[from_stop];
+  auto const to_station_node = stations_[to_stop];
+
   if (prev_section.is_valid()) {
     section.from_route_node_ = prev_section.to_route_node_;
   } else {
     section.from_route_node_ = build_route_node(
-        route_index, from_stop, from_in_allowed, from_out_allowed);
+        route_index, next_node_id_++, from_station_node,
+        sched_.stations_[from_station_node->id_]->transfer_time_,
+        from_in_allowed, from_out_allowed);
   }
 
   if (next_section.is_valid()) {
     section.to_route_node_ = next_section.from_route_node_;
   } else {
     section.to_route_node_ =
-        build_route_node(route_index, to_stop, to_in_allowed, to_out_allowed);
+        build_route_node(route_index, next_node_id_++, to_station_node,
+                         sched_.stations_[to_station_node->id_]->transfer_time_,
+                         to_in_allowed, to_out_allowed);
   }
 
   section.outgoing_route_edge_index_ = section.from_route_node_->edges_.size();
@@ -710,25 +692,31 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->schedule_begin_ = from;
   sched->schedule_end_ = to;
 
+  if (serialized->name() != nullptr) {
+    sched->name_ = serialized->name()->str();
+  }
+
   graph_builder builder(*sched, serialized->interval(), from, to, apply_rules,
                         adjust_footpaths);
   builder.add_stations(serialized->stations());
   if (serialized->meta_stations() != nullptr) {
     builder.link_meta_stations(serialized->meta_stations());
   }
-  builder.add_services(serialized->services());
-  builder.add_footpaths(serialized->footpaths());
 
+  builder.add_services(serialized->services());
   if (apply_rules) {
     scoped_timer timer("rule services");
     rule_service_graph_builder rsgb(builder);
     rsgb.add_rule_services(serialized->rule_services());
   }
 
+  builder.add_footpaths(serialized->footpaths());
+
   builder.connect_reverse();
   builder.sort_trips();
 
-  sched->node_count_ = builder.node_count();
+  sched->route_count_ = builder.next_route_index_;
+  sched->node_count_ = builder.next_node_id_;
   sched->lower_bounds_ = constant_graph(sched->station_nodes_);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories_);
   sched->schedule_begin_ -= SCHEDULE_OFFSET_MINUTES * 60;

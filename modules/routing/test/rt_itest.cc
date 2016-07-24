@@ -95,7 +95,7 @@ TEST_F(routing_rt, finds_annotated_connections) {
   EXPECT_EQ(unix_time(1633), s5.departure_.timestamp_);
 
   auto s7 = j.stops_[7];  // Koeln-Ehrenfeld
-  EXPECT_EQ(std::string("8000208"), s7.eva_no_);
+  EXPECT_EQ("8000208", s7.eva_no_);
   EXPECT_EQ(unix_time(1651), s7.arrival_.schedule_timestamp_);
   EXPECT_EQ(unix_time(1651), s7.arrival_.timestamp_);
 }

@@ -4,9 +4,11 @@ include "bikesharing/BikesharingRequest.fbs";
 include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
+include "intermodal/IntermodalRoutingRequest.fbs";
 include "lookup/LookupGeoStationIdRequest.fbs";
 include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
+include "lookup/LookupScheduleInfoResponse.fbs";
 include "lookup/LookupStationEventsRequest.fbs";
 include "lookup/LookupStationEventsResponse.fbs";
 include "lookup/LookupMetaStationRequest.fbs";
@@ -93,6 +95,7 @@ union MsgContent {
   motis.bikesharing.BikesharingGeoTerminalsResponse,
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
+  motis.intermodal.IntermodalRoutingRequest,
   motis.lookup.LookupGeoStationIdRequest,
   motis.lookup.LookupGeoStationRequest,
   motis.lookup.LookupGeoStationResponse,
@@ -100,6 +103,7 @@ union MsgContent {
   motis.lookup.LookupBatchGeoStationResponse,
   motis.lookup.LookupStationEventsRequest,
   motis.lookup.LookupStationEventsResponse,
+  motis.lookup.LookupScheduleInfoResponse,
   motis.lookup.LookupMetaStationRequest,
   motis.lookup.LookupMetaStationResponse,
   motis.lookup.LookupBatchMetaStationRequest,

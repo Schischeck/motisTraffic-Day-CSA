@@ -19,8 +19,8 @@ enum class node_type { STATION_NODE, ROUTE_NODE, FOOT_NODE };
 
 class node {
 public:
-  node(station_node* station_node, int node_id)
-      : station_node_(station_node), route_(-1), id_(node_id) {}
+  node(station_node* station_node, int node_id, int32_t route = -1)
+      : station_node_(station_node), route_(route), id_(node_id) {}
 
   bool is_station_node() const { return station_node_ == nullptr; }
   bool is_route_node() const { return route_ != -1; }
@@ -131,7 +131,8 @@ public:
         // check whether it is allowed to transfer at the route-node
         // we do this by checking, whether it has an edge to the station
         for (auto const& edge : route_node->edges_) {
-          if (edge.get_destination() == this) {
+          if (edge.get_destination() == this &&
+              edge.type() != edge::INVALID_EDGE) {
             // the foot-edge may only be used
             // if a train was used beforewards when
             // trying to use it from a route node

@@ -11,9 +11,20 @@ inline bool overtakes(ev_key const& k) {
     return ev_type == event_type::DEP ? lcon.d_time_ : lcon.a_time_;
   };
 
+  auto const next_lcon = [](array<light_connection> const& conns,
+                            light_connection const* it) {
+    return ++it == end(conns) ? nullptr : it;
+  };
+
+  auto const prev_lcon = [](array<light_connection> const& conns,
+                            light_connection const* it) {
+    return it == begin(conns) ? nullptr : --it;
+  };
+
+  auto const& conns = k.route_edge_->m_.route_edge_.conns_;
   auto const ev_time = get_event_time(*k.lcon(), k.ev_type_);
-  auto const next = k.route_edge_->get_next_valid_lcon(k.lcon(), 1);
-  auto const prev = k.route_edge_->get_prev_valid_lcon(k.lcon(), 1);
+  auto const next = next_lcon(conns, k.lcon());
+  auto const prev = prev_lcon(conns, k.lcon());
   return (next && get_event_time(*next, k.ev_type_) <= ev_time) ||
          (prev && get_event_time(*prev, k.ev_type_) >= ev_time);
 }

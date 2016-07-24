@@ -35,6 +35,8 @@ struct schedule {
   schedule& operator=(schedule const&) = delete;
 
   std::time_t schedule_begin_, schedule_end_;
+  std::string name_;
+
   std::vector<station_ptr> stations_;
   std::map<std::string, station*> eva_to_station_;
   std::map<std::string, station*> ds100_to_station_;
@@ -42,6 +44,7 @@ struct schedule {
   std::vector<std::string> tracks_;
   constant_graph lower_bounds_;
   unsigned node_count_;
+  unsigned route_count_;
   std::vector<station_node_ptr> station_nodes_;
   std::vector<node*> route_index_to_first_route_node_;
   std::unordered_map<uint32_t, std::vector<int32_t>> train_nr_to_routes_;
