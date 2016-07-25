@@ -72,7 +72,7 @@ struct label : public Data {
     return Comparator::lexicographical_compare(*this, o);
   }
 
-  label const* pred_;
+  label* pred_;
   edge const* edge_;
   light_connection const* connection_;
   time start_, now_;

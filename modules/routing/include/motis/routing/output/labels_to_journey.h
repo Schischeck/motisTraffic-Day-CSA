@@ -47,7 +47,7 @@ inline unsigned night_penalty(late_connections_label_for_tests<Dir> const& l) {
 }
 
 template <typename Label>
-journey labels_to_journey(schedule const& sched, Label const* label,
+journey labels_to_journey(schedule const& sched, Label* label,
                           search_dir const dir) {
   journey j;
   auto parsed = parse_label_chain(sched, label, dir);

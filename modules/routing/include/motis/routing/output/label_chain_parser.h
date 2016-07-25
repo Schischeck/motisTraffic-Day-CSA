@@ -70,25 +70,25 @@ int initial_state(LabelIt& it) {
 
 template <typename Label>
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
-parse_label_chain(schedule const& sched, Label const* terminal_label,
+parse_label_chain(schedule const& sched, Label* terminal_label,
                   search_dir const dir) {
-  std::vector<Label const*> labels;
+  std::vector<Label*> labels;
 
   auto c = terminal_label;
   do {
     labels.insert(dir == search_dir::FWD ? begin(labels) : end(labels), c);
   } while ((c = c->pred_));
 
-  // edge first_edge;
-  // if (dir == search_dir::BWD) {
-  //   for (int i = 1; i < labels.size(); ++i) {
-  //     labels[i]->edge_ = labels[i - 1]->edge_;
-  //   }
-  //
-  //   auto const second_edge = labels[0]->edge_;
-  //   first_edge = make_invalid_edge(nullptr, second_edge->from_);
-  //   labels[0]->edge_ = &first_edge;
-  // }
+  edge first_edge;
+  if (dir == search_dir::BWD) {
+    for (unsigned i = 1; i < labels.size(); ++i) {
+      labels[i]->edge_ = labels[i - 1]->edge_;
+    }
+
+    auto const second_edge = labels[0]->edge_;
+    first_edge = make_invalid_edge(nullptr, second_edge->from_);
+    labels[0]->edge_ = &first_edge;
+  }
 
   std::pair<std::vector<intermediate::stop>,
             std::vector<intermediate::transport>>

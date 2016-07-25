@@ -30,7 +30,8 @@ struct pretrip_gen {
           throw std::runtime_error("unsupported edge type");
         }
 
-        auto const d = e.m_.foot_edge_.time_cost_;
+        auto const d = Dir == search_dir::FWD ? e.m_.foot_edge_.time_cost_
+                                              : -e.m_.foot_edge_.time_cost_;
         auto const td = e.type() == edge::TIME_DEPENDENT_MUMO_EDGE;
         auto const edge_interval_begin =
             td ? std::max(e.m_.foot_edge_.interval_begin_, interval_begin)
@@ -98,7 +99,8 @@ struct pretrip_gen {
       return;
     }
 
-    auto const end_reached = [](time const t) {
+    auto const end_reached = [&departure_begin,
+                              &departure_end](time const t) -> bool {
       if (Dir == search_dir::FWD) {
         return t > departure_end;
       } else {
