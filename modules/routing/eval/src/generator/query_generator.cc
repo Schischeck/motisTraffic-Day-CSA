@@ -142,7 +142,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
               .Union(),
           CreateInputStation(fbb, fbb.CreateString(to_eva),
                              fbb.CreateString("")),
-          SearchType_DefaultForward,
+          SearchType_Default, SearchDir_Forward,
           fbb.CreateVector(std::vector<Offset<Via>>()),
           fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),

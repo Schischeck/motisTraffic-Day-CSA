@@ -46,7 +46,7 @@ state next_state(int s, Label const* c, Label const* n) {
       return get_node(c)->is_foot_node() ? WALK : AT_STATION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        if (get_node(c)->type() == node_type::STATION_NODE &&
+        if (n && get_node(c)->type() == node_type::STATION_NODE &&
             get_node(n)->type() == node_type::FOOT_NODE) {
           return WALK_SKIP;
         }
