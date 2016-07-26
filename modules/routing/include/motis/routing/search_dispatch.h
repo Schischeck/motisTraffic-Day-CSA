@@ -37,7 +37,12 @@ template <search_dir Dir, template <search_dir, typename> class Gen>
 inline search_result search_dispatch(search_query const& q,
                                      SearchType const t) {
   switch (t) {
-    case SearchType_Default: return get_connections<default_label<Dir>, Gen>(q);
+    case SearchType_Default:
+      if (Dir == search_dir::FWD) {
+        return get_connections<default_label<Dir>, Gen>(q);
+      } else {
+        return get_connections<default_simple_label<Dir>, Gen>(q);
+      }
     case SearchType_SingleCriterion:
       return get_connections<single_criterion_label<Dir>, Gen>(q);
     case SearchType_SingleCriterionNoIntercity:

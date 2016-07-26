@@ -18,7 +18,19 @@ namespace motis {
 namespace routing {
 
 template <search_dir Dir>
-using default_label = label<
+using default_label =
+    label<Dir, label_data<travel_time, transfers, absurdity>,
+          initializer<travel_time_initializer, transfers_initializer,
+                      absurdity_initializer>,
+          updater<travel_time_updater, transfers_updater, absurdity_updater>,
+          filter<travel_time_filter, transfers_filter>,
+          dominance<absurdity_tb, travel_time_dominance, transfers_dominance>,
+          dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
+                    transfers_dominance>,
+          comparator<travel_time_dominance, transfers_dominance>>;
+
+template <search_dir Dir>
+using default_simple_label = label<
     Dir, label_data<travel_time, transfers>,
     initializer<travel_time_initializer, transfers_initializer>,
     updater<travel_time_updater, transfers_updater>,
