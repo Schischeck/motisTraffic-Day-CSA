@@ -37,8 +37,11 @@ struct search {
 
     std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
     for (auto const& e : q.query_edges_) {
-      lb_graph_edges[e.to_->get_station()->id_].emplace_back(
-          e.from_->get_station()->id_, e.get_minimum_cost());
+      auto const orig_from = e.from_->get_station()->id_;
+      auto const orig_to = e.to_->get_station()->id_;
+      auto const from = (Dir == search_dir::FWD) ? orig_from : orig_to;
+      auto const to = (Dir == search_dir::FWD) ? orig_to : orig_from;
+      lb_graph_edges[to].emplace_back(from, e.get_minimum_cost());
     }
 
     lower_bounds lbs(Dir == search_dir::FWD ? q.sched_->lower_bounds_fwd_
@@ -54,7 +57,7 @@ struct search {
 
     std::unordered_map<node const*, std::vector<edge>> additional_edges;
     for (auto const& e : q.query_edges_) {
-      additional_edges[e.from_].push_back(e);
+      additional_edges[(Dir == search_dir::FWD) ? e.from_ : e.to_].push_back(e);
     }
 
     auto mutable_node = const_cast<node*>(q.from_);  // NOLINT
