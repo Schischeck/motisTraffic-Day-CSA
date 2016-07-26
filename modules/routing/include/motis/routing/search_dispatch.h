@@ -34,7 +34,8 @@ search_result get_connections(search_query const& q) {
 }
 
 template <search_dir Dir, template <search_dir, typename> class Gen>
-search_result search_dispatch(search_query const& q, SearchType const t) {
+inline search_result search_dispatch(search_query const& q,
+                                     SearchType const t) {
   switch (t) {
     case SearchType_Default: return get_connections<default_label<Dir>, Gen>(q);
     case SearchType_SingleCriterion:
@@ -50,8 +51,8 @@ search_result search_dispatch(search_query const& q, SearchType const t) {
   throw std::system_error(error::search_type_not_supported);
 }
 
-search_result search_dispatch(search_query const& q, Start s,
-                              SearchType const t, SearchDir d) {
+inline search_result search_dispatch(search_query const& q, Start s,
+                                     SearchType const t, SearchDir d) {
   switch (s) {
     case Start_PretripStart:
       if (d == SearchDir_Forward) {
