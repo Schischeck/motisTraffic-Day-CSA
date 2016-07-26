@@ -61,7 +61,7 @@ struct search {
     auto const start_edge = Dir == search_dir::FWD
                                 ? make_foot_edge(nullptr, mutable_node)
                                 : make_foot_edge(mutable_node, nullptr);
-    pareto_dijkstra<Label, lower_bounds> pd(
+    pareto_dijkstra<Dir, Label, lower_bounds> pd(
         q.sched_->node_count_, q.to_,
         StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, &start_edge,
                                       q.query_edges_, q.interval_begin_,

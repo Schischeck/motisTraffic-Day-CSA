@@ -26,10 +26,15 @@ enum state {
 };
 
 template <typename Label>
+inline node* get_node(Label* l) {
+  return l->edge_->to_;
+}
+
+template <typename Label>
 state next_state(int s, Label const* c, Label const* n) {
   switch (s) {
     case AT_STATION:
-      if (n && n->get_node()->is_station_node()) {
+      if (n && get_node(n)->is_station_node()) {
         return WALK;
       } else {
         return PRE_CONNECTION;
@@ -37,12 +42,12 @@ state next_state(int s, Label const* c, Label const* n) {
     case PRE_CONNECTION: return IN_CONNECTION;
     case IN_CONNECTION_THROUGH: return IN_CONNECTION;
     case IN_CONNECTION_THROUGH_SKIP:
-      return c->get_node()->is_foot_node() ? WALK : AT_STATION;
+      return get_node(c)->is_foot_node() ? WALK : AT_STATION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        switch (c->get_node()->type()) {
+        switch (get_node(c)->type()) {
           case node_type::STATION_NODE:
-            return n && n->get_node()->is_station_node() ? WALK : AT_STATION;
+            return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
           case node_type::FOOT_NODE: return WALK;
           case node_type::ROUTE_NODE:
             return n->get_node()->is_route_node() ? IN_CONNECTION_THROUGH
@@ -51,16 +56,16 @@ state next_state(int s, Label const* c, Label const* n) {
       } else {
         return IN_CONNECTION;
       }
-    case WALK: return n && n->get_node()->is_station_node() ? WALK : AT_STATION;
+    case WALK: return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
   }
   return static_cast<state>(s);
 };
 
 template <typename LabelIt>
 int initial_state(LabelIt& it) {
-  if ((*std::next(it))->get_node()->is_station_node()) {
+  if (get_node(*std::next(it))->is_station_node()) {
     return WALK;
-  } else if ((*std::next(it))->get_node()->is_foot_node()) {
+  } else if (get_node(*std::next(it))->is_foot_node()) {
     ++it;
     return WALK;
   } else {
@@ -76,18 +81,24 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
   auto c = terminal_label;
   do {
-    labels.insert(dir == search_dir::FWD ? begin(labels) : end(labels), c);
+    labels.insert(begin(labels), c);
   } while ((c = c->pred_));
 
-  edge first_edge;
+  node last_node(sched.station_nodes_.at(0).get(), 0, 0);
+  edge last_edge;
   if (dir == search_dir::BWD) {
-    for (unsigned i = 1; i < labels.size(); ++i) {
-      labels[i]->edge_ = labels[i - 1]->edge_;
+    for (unsigned i = 0; i < labels.size() - 1; ++i) {
+      labels[i]->edge_ = labels[i + 1]->edge_;
+      labels[i]->connection_ = labels[i + 1]->connection_;
     }
 
-    auto const second_edge = labels[0]->edge_;
-    first_edge = make_invalid_edge(nullptr, second_edge->from_);
-    labels[0]->edge_ = &first_edge;
+    auto const last_label = labels[labels.size() - 1];
+    auto const second_edge = last_label->edge_;
+    last_edge = make_invalid_edge(&last_node, second_edge->from_);
+    last_label->edge_ = &last_edge;
+    last_label->connection_ = nullptr;
+
+    std::reverse(begin(labels), end(labels));
   }
 
   std::pair<std::vector<intermediate::stop>,
@@ -110,7 +121,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
     switch (current_state) {
       case AT_STATION: {
         if (current->edge_->type() == edge::HOTEL_EDGE &&
-            (*std::next(it))->get_node()->is_foot_node()) {
+            get_node(*std::next(it))->is_foot_node()) {
           break;
         }
         int a_track = MOTIS_UNKNOWN_TRACK;
@@ -139,14 +150,14 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
           d_track = succ->connection_->full_con_->d_track_;
           d_time = succ->connection_->d_time_;
 
-          auto d_di = get_delay_info(sched, (*s1)->get_node(),
-                                     succ->connection_, event_type::DEP);
+          auto d_di = get_delay_info(sched, get_node(*s1), succ->connection_,
+                                     event_type::DEP);
           d_sched_time = d_di.get_schedule_time();
           d_reason = d_di.get_reason();
         }
 
         stops.emplace_back(static_cast<unsigned int>(++stop_index),
-                           current->get_node()->get_station()->id_, a_track,
+                           get_node(current)->get_station()->id_, a_track,
                            d_track, a_time, d_time, a_sched_time, d_sched_time,
                            a_reason, d_reason,
                            a_time != INVALID_TIME && d_time != INVALID_TIME &&
@@ -164,7 +175,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
         stops.emplace_back(
             static_cast<unsigned int>(++stop_index),
-            current->get_node()->get_station()->id_,
+            get_node(current)->get_station()->id_,
             last_con == nullptr ? MOTIS_UNKNOWN_TRACK
                                 : last_con->full_con_->a_track_,
             MOTIS_UNKNOWN_TRACK,
@@ -208,26 +219,26 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
         assert(std::next(it) != end(labels));
         auto succ = *std::next(it);
 
-        if (succ->get_node()->is_route_node()) {
-          auto dep_route_node = current->get_node();
+        if (get_node(succ)->is_route_node()) {
+          auto dep_route_node = get_node(current);
 
           // skip through edge.
           if (!succ->connection_) {
-            dep_route_node = succ->get_node();
+            dep_route_node = get_node(succ);
             succ = *std::next(it, 2);
           }
 
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
           if (succ->connection_) {
-            auto a_di = get_delay_info(sched, current->get_node(),
+            auto a_di = get_delay_info(sched, get_node(current),
                                        current->connection_, event_type::ARR);
             auto d_di = get_delay_info(sched, dep_route_node, succ->connection_,
                                        event_type::DEP);
 
             stops.emplace_back(
                 static_cast<unsigned int>(++stop_index),
-                current->get_node()->get_station()->id_,
+                get_node(current)->get_station()->id_,
                 current->connection_->full_con_->a_track_,
                 succ->connection_->full_con_->d_track_,
                 current->connection_->a_time_, succ->connection_->d_time_,
@@ -236,7 +247,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
           }
         }
 
-        last_route_node = current->get_node();
+        last_route_node = get_node(current);
         last_con = current->connection_;
         break;
       }

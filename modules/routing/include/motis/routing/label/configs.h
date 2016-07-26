@@ -18,23 +18,20 @@ namespace motis {
 namespace routing {
 
 template <search_dir Dir>
-using default_label =
-    label<Dir, label_data<travel_time, transfers, absurdity>,
-          initializer<travel_time_initializer, transfers_initializer,
-                      absurdity_initializer>,
-          updater<travel_time_updater, transfers_updater, absurdity_updater>,
-          filter<travel_time_filter, transfers_filter>,
-          dominance<absurdity_tb, travel_time_dominance, transfers_dominance>,
-          dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
-                    transfers_dominance>,
-          comparator<travel_time_dominance, transfers_dominance>>;
+using default_label = label<
+    Dir, label_data<travel_time, transfers>,
+    initializer<travel_time_initializer, transfers_initializer>,
+    updater<travel_time_updater, transfers_updater>,
+    filter<travel_time_filter, transfers_filter>,
+    dominance<default_tb, travel_time_dominance, transfers_dominance>,
+    dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance>,
+    comparator<travel_time_dominance, transfers_dominance>>;
 
 template <search_dir Dir>
 using single_criterion_label =
     label<Dir, label_data<weighted>, initializer<weighted_initializer>,
           updater<weighted_updater>, filter<weighted_filter>,
-          dominance<default_tb, weighted_dominance>,
-          dominance<post_search_tb>,
+          dominance<default_tb, weighted_dominance>, dominance<post_search_tb>,
           comparator<weighted_dominance>>;
 
 template <search_dir Dir>
@@ -42,8 +39,7 @@ using single_criterion_no_intercity_label =
     label<Dir, label_data<weighted>, initializer<weighted_initializer>,
           updater<weighted_updater>,
           filter<weighted_filter, no_intercity_filter>,
-          dominance<default_tb, weighted_dominance>,
-          dominance<post_search_tb>,
+          dominance<default_tb, weighted_dominance>, dominance<post_search_tb>,
           comparator<weighted_dominance>>;
 
 template <search_dir Dir>

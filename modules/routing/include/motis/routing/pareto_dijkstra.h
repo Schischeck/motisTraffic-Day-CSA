@@ -13,7 +13,7 @@ namespace routing {
 
 const bool FORWARDING = true;
 
-template <typename Label, typename LowerBounds>
+template <search_dir Dir, typename Label, typename LowerBounds>
 class pareto_dijkstra {
 public:
   class compare_labels {
@@ -89,8 +89,14 @@ public:
         }
       }
 
-      for (auto const& edge : label->get_node()->edges_) {
-        create_new_label(label, edge);
+      if (Dir == search_dir::FWD) {
+        for (auto const& edge : label->get_node()->edges_) {
+          create_new_label(label, edge);
+        }
+      } else {
+        for (auto const& edge : label->get_node()->incoming_edges_) {
+          create_new_label(label, *edge);
+        }
       }
     }
 
@@ -111,7 +117,7 @@ private:
     auto new_label = label_store_.create<Label>(blank);
     ++stats_.labels_created_;
 
-    if (edge.get_destination() == goal_) {
+    if (edge.get_destination<Dir>() == goal_) {
       add_result(new_label);
       if (stats_.labels_popped_until_first_result_ == -1) {
         stats_.labels_popped_until_first_result_ = stats_.labels_popped_;
@@ -122,7 +128,7 @@ private:
     // if the label is not dominated by a former one for the same node...
     //...add it to the queue
     if (!dominated_by_results(new_label)) {
-      if (add_label_to_node(new_label, edge.get_destination())) {
+      if (add_label_to_node(new_label, edge.get_destination<Dir>())) {
         // if the new_label is as good as label we don't have to push it into
         // the queue
         if (!FORWARDING || l < new_label) {

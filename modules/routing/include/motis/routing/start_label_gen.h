@@ -20,7 +20,8 @@ struct pretrip_gen {
     std::vector<Label*> labels;
 
     auto const start = sched.station_nodes_.at(0).get();
-    if (start_edge->to_ == start) {
+    if ((start_edge->to_ == start && Dir == search_dir::FWD) ||
+        (start_edge->from_ == start && Dir == search_dir::BWD)) {
       for (auto const& e : query_edges) {
         if (e.from_ != start) {
           continue;
@@ -47,9 +48,11 @@ struct pretrip_gen {
                               departure_end, edge_interval_end, labels);
       }
     } else {
-      generate_start_labels(mem, lbs, start_edge, nullptr,
-                            start_edge->to_->get_station(), 0, interval_begin,
-                            interval_end, interval_end, labels);
+      generate_start_labels(
+          mem, lbs, start_edge, nullptr,
+          (Dir == search_dir::FWD ? start_edge->to_ : start_edge->from_)
+              ->get_station(),
+          0, interval_begin, interval_end, interval_end, labels);
     }
 
     return labels;
