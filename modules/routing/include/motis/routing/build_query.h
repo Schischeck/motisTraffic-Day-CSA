@@ -17,8 +17,8 @@
 namespace motis {
 namespace routing {
 
-station_node const* get_station_node(schedule const& sched,
-                                     InputStation const* input_station) {
+inline station_node const* get_station_node(schedule const& sched,
+                                            InputStation const* input_station) {
   using guesser::StationGuesserResponse;
 
   std::string station_id;
@@ -43,8 +43,9 @@ station_node const* get_station_node(schedule const& sched,
   return motis::get_station_node(sched, station_id);
 }
 
-node const* get_route_node(schedule const& sched, TripId const* trip,
-                           station_node const* station, time arrival_time) {
+inline node const* get_route_node(schedule const& sched, TripId const* trip,
+                                  station_node const* station,
+                                  time arrival_time) {
   auto const stops = access::stops(from_fbs(sched, trip));
   auto const stop_it = std::find_if(
       begin(stops), end(stops), [&](access::trip_stop const& stop) {
@@ -57,7 +58,8 @@ node const* get_route_node(schedule const& sched, TripId const* trip,
   return (*stop_it).get_route_node();
 }
 
-search_query build_query(schedule const& sched, RoutingRequest const* req) {
+inline search_query build_query(schedule const& sched,
+                                RoutingRequest const* req) {
   search_query q;
 
   switch (req->start_type()) {
