@@ -21,6 +21,7 @@ enum state {
   IN_CONNECTION,
   PRE_WALK,
   WALK,
+  WALK_SKIP,
   IN_CONNECTION_THROUGH,
   IN_CONNECTION_THROUGH_SKIP
 };
@@ -45,6 +46,11 @@ state next_state(int s, Label const* c, Label const* n) {
       return get_node(c)->is_foot_node() ? WALK : AT_STATION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
+        if (get_node(c)->type() == node_type::STATION_NODE &&
+            get_node(n)->type() == node_type::FOOT_NODE) {
+          return WALK_SKIP;
+        }
+
         switch (get_node(c)->type()) {
           case node_type::STATION_NODE:
             return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
@@ -57,6 +63,7 @@ state next_state(int s, Label const* c, Label const* n) {
         return IN_CONNECTION;
       }
     case WALK: return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
+    case WALK_SKIP: return WALK;
   }
   return static_cast<state>(s);
 };

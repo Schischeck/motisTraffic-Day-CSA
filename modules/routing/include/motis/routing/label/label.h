@@ -62,7 +62,7 @@ struct label : public Data {
 
   time current_begin() const { return Dir == search_dir::FWD ? start_ : now_; }
 
-  time current_end() const { return Dir == search_dir::BWD ? now_ : start_; }
+  time current_end() const { return Dir == search_dir::FWD ? now_ : start_; }
 
   bool dominates_post_search(label const& o) const {
     return PostSearchDominance::dominates(false, *this, o);
