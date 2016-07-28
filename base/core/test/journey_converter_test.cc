@@ -12,10 +12,11 @@ using routing::RoutingResponse;
 
 msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
   message_creator fbb;
+  routing::Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       routing::CreateRoutingResponse(
-          fbb, nullptr,
+          fbb, &stats,
           fbb.CreateVector(loader::transform_to_vec(
               journeys,
               [&](journey const& j) { return to_connection(fbb, j); })))

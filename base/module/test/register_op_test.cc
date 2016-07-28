@@ -60,10 +60,11 @@ auto route = [](msg_ptr const&) -> msg_ptr {
       "/guesser");
   auto station = motis_call(make_msg(b));
 
+  Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   b.create_and_finish(
       MsgContent_RoutingResponse,
       motis::routing::CreateRoutingResponse(
-          b, nullptr,
+          b, &stats,
           b.CreateVector(std::vector<flatbuffers::Offset<Connection> >()))
           .Union());
   return make_msg(b);
