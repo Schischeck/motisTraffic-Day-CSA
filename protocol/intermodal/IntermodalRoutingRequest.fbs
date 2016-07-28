@@ -1,0 +1,78 @@
+include "base/Interval.fbs";
+include "base/Position.fbs";
+
+include "routing/RoutingRequest.fbs";
+
+namespace motis.intermodal;
+
+// ----------------------------------------------------------------------------
+// Intermodal Start
+// ----------------------------------------------------------------------------
+
+table IntermodalOntripStart {
+  position: motis.Position;
+  departure_time: long;
+}
+
+table IntermodalPretripStart {
+  position: motis.Position;
+  interval: motis.Interval;
+}
+
+union IntermodalStart {
+  IntermodalOntripStart,
+  IntermodalPretripStart
+}
+
+// ----------------------------------------------------------------------------
+// Intermodal Mode
+// ----------------------------------------------------------------------------
+
+table Walk {
+  max_duration: int;
+}
+
+union Mode {
+  Walk
+}
+
+table ModeWrapper {
+  mode: Mode;
+}
+
+// ----------------------------------------------------------------------------
+
+
+// JSON Example:
+// --
+// {
+//   "destination": {
+//     "type": "Module",
+//     "target": "/intermodal"
+//   },
+//   "content_type": "IntermodalRoutingRequest",
+//   "content": {
+//     "start_type": "IntermodalOntripStart",
+//     "start": {
+//       "position": { "lat": 49.8780915, "lng": 8.6546392},
+//       "departure_time": 1468998000
+//     },
+//     "start_modes": [{
+//       "mode_type": "Walk",
+//       "mode": { "max_duration": 900 }
+//     }],
+//     "destination": { "lat": 50.1095955, "lng": 8.6692976},
+//     "destination_modes":  [{
+//       "mode_type": "Walk",
+//       "mode": { "max_duration": 900 }
+//     }],
+//     "search_type": "SingleCriterionForward"
+//   }
+// }
+table IntermodalRoutingRequest {
+  start: IntermodalStart;
+  start_modes: [ModeWrapper];
+  destination: motis.Position;
+  destination_modes: [ModeWrapper];
+  search_type: routing.SearchType;
+}

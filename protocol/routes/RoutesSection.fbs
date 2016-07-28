@@ -1,3 +1,5 @@
+namespace motis.routes;
+
 table RoutesSection {
   from: uint;
   to: uint;
