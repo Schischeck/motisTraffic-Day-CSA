@@ -1,6 +1,0 @@
-table RoutesSection {
-  from: uint;
-  to: uint;
-  clasz: int;
-  section: [double];
-}
