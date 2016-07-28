@@ -31,7 +31,7 @@ public:
                      std::string target_file_bwd)
       : query_count_(query_count),
         target_file_fwd_(std::move(target_file)),
-        target_file_bwd_(target_file_bwd) {}
+        target_file_bwd_(std::move(target_file_bwd)) {}
 
   ~generator_settings() override = default;
 
