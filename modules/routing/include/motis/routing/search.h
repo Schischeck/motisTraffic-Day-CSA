@@ -4,6 +4,7 @@
 
 #include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/loader/util.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/output/labels_to_journey.h"
 #include "motis/routing/pareto_dijkstra.h"
@@ -72,20 +73,16 @@ struct search {
         additional_edges, lbs, *q.mem_);
 
     MOTIS_START_TIMING(pareto_dijkstra_timing);
-    auto& results = pd.search();
+    pd.search();
     MOTIS_STOP_TIMING(pareto_dijkstra_timing);
 
     auto stats = pd.get_statistics();
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
-    std::vector<journey> journeys;
-    journeys.resize(results.size());
-    std::transform(begin(results), end(results), begin(journeys),
-                   [&q](Label* label) {
-                     return output::labels_to_journey(*q.sched_, label, Dir);
-                   });
-
-    return search_result(stats, journeys);
+    return search_result(
+        stats, loader::transform_to_vec(pd.get_results(), [&q](Label* label) {
+          return output::labels_to_journey(*q.sched_, label, Dir);
+        }));
   }
 };
 

@@ -67,21 +67,32 @@ struct pretrip_gen {
                                     time departure_begin, time departure_end,
                                     time edge_interval_end,
                                     std::vector<Label*>& labels) {
-    for (auto const& e : station->edges_) {
-      if (!e.to_->is_route_node()) {
+    std::vector<edge const*> edges;
+    if (Dir == search_dir::FWD) {
+      for (auto const& e : station->edges_) {
+        edges.push_back(&e);
+      }
+    } else {
+      for (auto const& e : station->incoming_edges_) {
+        edges.push_back(e);
+      }
+    }
+
+    for (auto const& e : edges) {
+      if (!e->get_destination<Dir>()->is_route_node()) {
         continue;
       }
 
-      auto rn = e.to_;
+      auto rn = (Dir == search_dir::FWD) ? e->to_ : e->from_;
       if (Dir == search_dir::FWD) {
         for (auto const& re : rn->edges_) {
-          generate_start_labels(e, re, mem, lbs, start_edge, query_edge, d,
+          generate_start_labels(*e, re, mem, lbs, start_edge, query_edge, d,
                                 departure_begin, departure_end,
                                 edge_interval_end, labels);
         }
       } else {
         for (auto const& re : rn->incoming_edges_) {
-          generate_start_labels(e, *re, mem, lbs, start_edge, query_edge, d,
+          generate_start_labels(*e, *re, mem, lbs, start_edge, query_edge, d,
                                 departure_begin, departure_end,
                                 edge_interval_end, labels);
         }

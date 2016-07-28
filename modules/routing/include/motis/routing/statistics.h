@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include "motis/protocol/RoutingResponse_generated.h"
+
 namespace motis {
 namespace routing {
 
@@ -64,6 +66,17 @@ struct statistics {
              << "\n"
              << "\ttotal_calculation_time:" << s.total_calculation_time_
              << "\n";
+  }
+
+  friend Statistics to_fbs(statistics const& s) {
+    return Statistics(
+        s.max_label_quit_, s.labels_created_, s.start_label_count_,
+        s.labels_popped_, s.labels_equals_popped_, s.labels_filtered_,
+        s.labels_dominated_by_results_, s.labels_dominated_by_former_labels_,
+        s.labels_dominated_by_later_labels_,
+        s.labels_popped_until_first_result_, s.labels_popped_after_last_result_,
+        s.priority_queue_max_size_, s.travel_time_l_b_, s.transfers_l_b_,
+        s.total_calculation_time_, s.pareto_dijkstra_);
   }
 };
 

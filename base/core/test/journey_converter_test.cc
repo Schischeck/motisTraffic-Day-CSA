@@ -15,9 +15,10 @@ msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       routing::CreateRoutingResponse(
-          fbb, 0, fbb.CreateVector(loader::transform_to_vec(
-                      journeys,
-                      [&](journey const& j) { return to_connection(fbb, j); })))
+          fbb, nullptr,
+          fbb.CreateVector(loader::transform_to_vec(
+              journeys,
+              [&](journey const& j) { return to_connection(fbb, j); })))
           .Union());
   return make_msg(fbb);
 }

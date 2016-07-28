@@ -27,15 +27,15 @@ enum state {
 };
 
 template <typename Label>
-inline node* get_node(Label* l) {
-  return l->edge_->to_;
+inline node* get_node(Label const& l) {
+  return l.edge_->to_;
 }
 
 template <typename Label>
 state next_state(int s, Label const* c, Label const* n) {
   switch (s) {
     case AT_STATION:
-      if (n && get_node(n)->is_station_node()) {
+      if (n && get_node(*n)->is_station_node()) {
         return WALK;
       } else {
         return PRE_CONNECTION;
@@ -43,26 +43,26 @@ state next_state(int s, Label const* c, Label const* n) {
     case PRE_CONNECTION: return IN_CONNECTION;
     case IN_CONNECTION_THROUGH: return IN_CONNECTION;
     case IN_CONNECTION_THROUGH_SKIP:
-      return get_node(c)->is_foot_node() ? WALK : AT_STATION;
+      return get_node(*c)->is_foot_node() ? WALK : AT_STATION;
     case IN_CONNECTION:
       if (c->connection_ == nullptr) {
-        if (n && get_node(c)->type() == node_type::STATION_NODE &&
-            get_node(n)->type() == node_type::FOOT_NODE) {
+        if (n && get_node(*c)->type() == node_type::STATION_NODE &&
+            get_node(*n)->type() == node_type::FOOT_NODE) {
           return WALK_SKIP;
         }
 
-        switch (get_node(c)->type()) {
+        switch (get_node(*c)->type()) {
           case node_type::STATION_NODE:
-            return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
+            return n && get_node(*n)->is_station_node() ? WALK : AT_STATION;
           case node_type::FOOT_NODE: return WALK;
           case node_type::ROUTE_NODE:
-            return n->get_node()->is_route_node() ? IN_CONNECTION_THROUGH
-                                                  : IN_CONNECTION_THROUGH_SKIP;
+            return get_node(*n)->is_route_node() ? IN_CONNECTION_THROUGH
+                                                 : IN_CONNECTION_THROUGH_SKIP;
         }
       } else {
         return IN_CONNECTION;
       }
-    case WALK: return n && get_node(n)->is_station_node() ? WALK : AT_STATION;
+    case WALK: return n && get_node(*n)->is_station_node() ? WALK : AT_STATION;
     case WALK_SKIP: return WALK;
   }
   return static_cast<state>(s);
@@ -84,26 +84,26 @@ template <typename Label>
 std::pair<std::vector<intermediate::stop>, std::vector<intermediate::transport>>
 parse_label_chain(schedule const& sched, Label* terminal_label,
                   search_dir const dir) {
-  std::vector<Label*> labels;
+  std::vector<Label> labels;
 
   auto c = terminal_label;
   do {
-    labels.insert(begin(labels), c);
+    labels.insert(begin(labels), *c);
   } while ((c = c->pred_));
 
   node last_node(sched.station_nodes_.at(0).get(), 0, 0);
   edge last_edge;
   if (dir == search_dir::BWD) {
     for (unsigned i = 0; i < labels.size() - 1; ++i) {
-      labels[i]->edge_ = labels[i + 1]->edge_;
-      labels[i]->connection_ = labels[i + 1]->connection_;
+      labels[i].edge_ = labels[i + 1].edge_;
+      labels[i].connection_ = labels[i + 1].connection_;
     }
 
-    auto const last_label = labels[labels.size() - 1];
-    auto const second_edge = last_label->edge_;
+    auto& last_label = labels[labels.size() - 1];
+    auto const second_edge = last_label.edge_;
     last_edge = make_invalid_edge(&last_node, second_edge->from_);
-    last_label->edge_ = &last_edge;
-    last_label->connection_ = nullptr;
+    last_label.edge_ = &last_edge;
+    last_label.connection_ = nullptr;
 
     std::reverse(begin(labels), end(labels));
   }
@@ -123,11 +123,11 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
   auto it = begin(labels);
   int current_state = initial_state(it);
   while (it != end(labels)) {
-    auto current = *it;
+    auto& current = *it;
 
     switch (current_state) {
       case AT_STATION: {
-        if (current->edge_->type() == edge::HOTEL_EDGE &&
+        if (current.edge_->type() == edge::HOTEL_EDGE &&
             get_node(*std::next(it))->is_foot_node()) {
           break;
         }
@@ -152,12 +152,12 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
         auto s1 = std::next(it, 1);
         auto s2 = std::next(it, 2);
         if (s1 != end(labels) && s2 != end(labels) &&
-            (*s2)->connection_ != nullptr) {
+            s2->connection_ != nullptr) {
           auto const& succ = *s2;
-          d_track = succ->connection_->full_con_->d_track_;
-          d_time = succ->connection_->d_time_;
+          d_track = succ.connection_->full_con_->d_track_;
+          d_time = succ.connection_->d_time_;
 
-          auto d_di = get_delay_info(sched, get_node(*s1), succ->connection_,
+          auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
                                      event_type::DEP);
           d_sched_time = d_di.get_schedule_time();
           d_reason = d_di.get_reason();
@@ -189,18 +189,18 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
             // Arrival graph time:
             stops.empty() ? INVALID_TIME : last_con ? last_con->a_time_
-                                                    : current->now_,
+                                                    : current.now_,
 
             // Departure graph time:
-            current->now_,
+            current.now_,
 
             // Arrival schedule time:
-            stops.empty() ? INVALID_TIME
-                          : last_con ? walk_arrival_di.get_schedule_time()
-                                     : current->now_,
+            stops.empty()
+                ? INVALID_TIME
+                : last_con ? walk_arrival_di.get_schedule_time() : current.now_,
 
             // Departure schedule time:
-            current->now_,
+            current.now_,
 
             walk_arrival_di.get_reason(), walk_arrival_di.get_reason(),
 
@@ -208,18 +208,18 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
-                                (*std::next(it))->now_ - current->now_,
-                                (*std::next(it))->edge_->get_mumo_id(), 0);
+                                std::next(it)->now_ - current.now_,
+                                std::next(it)->edge_->get_mumo_id(), 0);
 
-        walk_arrival = (*std::next(it))->now_;
+        walk_arrival = std::next(it)->now_;
         last_con = nullptr;
         break;
 
       case IN_CONNECTION: {
-        if (current->connection_) {
+        if (current.connection_) {
           transports.emplace_back(static_cast<unsigned int>(stop_index),
                                   static_cast<unsigned int>(stop_index) + 1,
-                                  current->connection_);
+                                  current.connection_);
         }
 
         // do not collect the last connection route node.
@@ -230,32 +230,32 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
           auto dep_route_node = get_node(current);
 
           // skip through edge.
-          if (!succ->connection_) {
+          if (!succ.connection_) {
             dep_route_node = get_node(succ);
             succ = *std::next(it, 2);
           }
 
           // through edge used but not the route edge after that
           // (instead: went to station node using the leaving edge)
-          if (succ->connection_) {
+          if (succ.connection_) {
             auto a_di = get_delay_info(sched, get_node(current),
-                                       current->connection_, event_type::ARR);
-            auto d_di = get_delay_info(sched, dep_route_node, succ->connection_,
+                                       current.connection_, event_type::ARR);
+            auto d_di = get_delay_info(sched, dep_route_node, succ.connection_,
                                        event_type::DEP);
 
             stops.emplace_back(
                 static_cast<unsigned int>(++stop_index),
                 get_node(current)->get_station()->id_,
-                current->connection_->full_con_->a_track_,
-                succ->connection_->full_con_->d_track_,
-                current->connection_->a_time_, succ->connection_->d_time_,
+                current.connection_->full_con_->a_track_,
+                succ.connection_->full_con_->d_track_,
+                current.connection_->a_time_, succ.connection_->d_time_,
                 a_di.get_schedule_time(), d_di.get_schedule_time(),
                 a_di.get_reason(), d_di.get_reason(), false);
           }
         }
 
         last_route_node = get_node(current);
-        last_con = current->connection_;
+        last_con = current.connection_;
         break;
       }
     }
@@ -265,8 +265,8 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
       current = *it;
       auto next = it == end(labels) || std::next(it) == end(labels)
                       ? nullptr
-                      : *std::next(it);
-      current_state = next_state(current_state, current, next);
+                      : &(*std::next(it));
+      current_state = next_state(current_state, &current, next);
     }
   }
 

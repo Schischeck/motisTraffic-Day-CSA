@@ -63,7 +63,8 @@ auto route = [](msg_ptr const&) -> msg_ptr {
   b.create_and_finish(
       MsgContent_RoutingResponse,
       motis::routing::CreateRoutingResponse(
-          b, 0, b.CreateVector(std::vector<flatbuffers::Offset<Connection> >()))
+          b, nullptr,
+          b.CreateVector(std::vector<flatbuffers::Offset<Connection> >()))
           .Union());
   return make_msg(b);
 };

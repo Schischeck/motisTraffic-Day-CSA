@@ -40,7 +40,7 @@ public:
     }
   }
 
-  std::vector<Label*>& search() {
+  void search() {
     stats_.start_label_count_ = queue_.size();
     stats_.labels_created_ = label_store_.used_size() / sizeof(Label);
 
@@ -49,7 +49,6 @@ public:
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
         filter_results();
-        return results_;
       }
 
       // get best label
@@ -101,10 +100,11 @@ public:
     }
 
     filter_results();
-    return results_;
   }
 
   statistics get_statistics() const { return stats_; };
+
+  std::vector<Label*> const& get_results() { return results_; }
 
 private:
   void create_new_label(Label* l, edge const& edge) {

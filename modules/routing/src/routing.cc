@@ -6,6 +6,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
@@ -56,6 +57,8 @@ void routing::init(motis::module::registry& reg) {
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
+  MOTIS_START_TIMING(routing_timing);
+
   auto const req = motis_content(RoutingRequest, msg);
   auto const& sched = get_schedule();
   auto query = build_query(sched, req);
@@ -63,14 +66,18 @@ msg_ptr routing::route(msg_ptr const& msg) {
   mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
   query.mem_ = &mem.get();
 
-  auto const res = search_dispatch(query, req->start_type(), req->search_type(),
-                                   req->search_dir());
+  auto res = search_dispatch(query, req->start_type(), req->search_type(),
+                             req->search_dir());
+
+  MOTIS_STOP_TIMING(routing_timing);
+  res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
 
   message_creator fbb;
+  auto const stats = to_fbs(res.stats_);
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       CreateRoutingResponse(
-          fbb, res.stats_.pareto_dijkstra_,
+          fbb, &stats,
           fbb.CreateVector(loader::transform_to_vec(
               res.journeys_,
               [&](journey const& j) { return to_connection(fbb, j); })))

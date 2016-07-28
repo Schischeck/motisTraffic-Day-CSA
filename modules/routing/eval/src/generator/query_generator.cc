@@ -22,12 +22,16 @@ using namespace motis::module;
 using namespace motis::routing;
 
 #define QUERY_COUNT "query_count"
-#define TARGET_FILE "target_file"
+#define TARGET_FILE_FWD "target_file_fwd"
+#define TARGET_FILE_BWD "target_file_bwd"
 
 class generator_settings : public conf::configuration {
 public:
-  generator_settings(int query_count, std::string target_file)
-      : query_count_(query_count), target_file_(std::move(target_file)) {}
+  generator_settings(int query_count, std::string target_file,
+                     std::string target_file_bwd)
+      : query_count_(query_count),
+        target_file_fwd_(std::move(target_file)),
+        target_file_bwd_(target_file_bwd) {}
 
   ~generator_settings() override = default;
 
@@ -38,8 +42,11 @@ public:
       (QUERY_COUNT,
           po::value<int>(&query_count_)->default_value(query_count_),
           "number of queries to generate")
-      (TARGET_FILE,
-          po::value<std::string>(&target_file_)->default_value(target_file_),
+      (TARGET_FILE_FWD,
+          po::value<std::string>(&target_file_fwd_)->default_value(target_file_fwd_),
+          "file to write generated queries to")
+      (TARGET_FILE_BWD,
+          po::value<std::string>(&target_file_bwd_)->default_value(target_file_bwd_),
           "file to write generated queries to");
     // clang-format on
     return desc;
@@ -47,11 +54,13 @@ public:
 
   void print(std::ostream& out) const override {
     out << "  " << QUERY_COUNT << ": " << query_count_ << "\n"
-        << "  " << TARGET_FILE << ": " << target_file_;
+        << "  " << TARGET_FILE_FWD << ": " << target_file_fwd_ << "\n"
+        << "  " << TARGET_FILE_BWD << ": " << target_file_bwd_;
   }
 
   int query_count_;
-  std::string target_file_;
+  std::string target_file_fwd_;
+  std::string target_file_bwd_;
 };
 
 struct search_interval_generator {
@@ -128,7 +137,8 @@ static It rand_in(It begin, It end) {
 }
 
 std::string query(int id, std::time_t interval_start, std::time_t interval_end,
-                  std::string const& from_eva, std::string const& to_eva) {
+                  std::string const& from_eva, std::string const& to_eva,
+                  SearchDir const dir) {
   message_creator fbb;
   auto const interval = Interval(interval_start, interval_end);
   fbb.create_and_finish(
@@ -142,8 +152,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
               .Union(),
           CreateInputStation(fbb, fbb.CreateString(to_eva),
                              fbb.CreateString("")),
-          SearchType_Default, SearchDir_Forward,
-          fbb.CreateVector(std::vector<Offset<Via>>()),
+          SearchType_Default, dir, fbb.CreateVector(std::vector<Offset<Via>>()),
           fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
       "/routing");
@@ -202,7 +211,7 @@ std::pair<std::string, std::string> random_station_ids(schedule const& sched,
 int main(int argc, char** argv) {
   dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, false, false,
                                false);
-  generator_settings generator_opt(1000, "queries.txt");
+  generator_settings generator_opt(1000, "queries_fwd.txt", "queries_bwd.txt");
 
   conf::options_parser parser({&dataset_opt, &generator_opt});
   parser.read_command_line_args(argc, argv);
@@ -222,7 +231,8 @@ int main(int argc, char** argv) {
   parser.print_unrecognized(std::cout);
   parser.print_used(std::cout);
 
-  std::ofstream out(generator_opt.target_file_);
+  std::ofstream out_fwd(generator_opt.target_file_fwd_);
+  std::ofstream out_bwd(generator_opt.target_file_bwd_);
 
   motis_instance instance;
   instance.init_schedule(dataset_opt);
@@ -235,7 +245,11 @@ int main(int argc, char** argv) {
   for (int i = 1; i <= generator_opt.query_count_; ++i) {
     auto interval = interval_gen.random_interval();
     auto evas = random_station_ids(sched, interval.first, interval.second);
-    out << query(i, interval.first, interval.second, evas.first, evas.second)
-        << "\n";
+    out_fwd << query(i, interval.first, interval.second, evas.first,
+                     evas.second, SearchDir_Forward)
+            << "\n";
+    out_bwd << query(i, interval.first, interval.second, evas.first,
+                     evas.second, SearchDir_Backward)
+            << "\n";
   }
 }

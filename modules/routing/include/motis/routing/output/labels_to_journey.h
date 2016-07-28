@@ -49,11 +49,11 @@ inline unsigned night_penalty(late_connections_label_for_tests<Dir> const& l) {
 template <typename Label>
 journey labels_to_journey(schedule const& sched, Label* label,
                           search_dir const dir) {
-  journey j;
   auto parsed = parse_label_chain(sched, label, dir);
   std::vector<intermediate::stop> const& s = parsed.first;
   std::vector<intermediate::transport> const& t = parsed.second;
 
+  journey j;
   j.stops_ = generate_journey_stops(s, sched);
   j.transports_ = generate_journey_transports(t, sched);
   j.trips_ = generate_journey_trips(t, sched);
