@@ -222,7 +222,7 @@ struct rule_service_route_builder {
       std::map<Service const*, std::vector<service_section*>>& sections,
       unsigned route_id)
       : gb_(gb),
-        traffic_days_(traffic_days),
+        traffic_days_(std::move(traffic_days)),
         first_day_(first_day),
         last_day_(last_day),
         sections_(sections),
