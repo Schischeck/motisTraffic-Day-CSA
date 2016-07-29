@@ -75,4 +75,5 @@ table IntermodalRoutingRequest {
   destination: motis.Position;
   destination_modes: [ModeWrapper];
   search_type: routing.SearchType;
+  search_dir: routing.SearchDir;
 }
