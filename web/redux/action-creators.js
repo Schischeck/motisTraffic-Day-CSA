@@ -57,16 +57,22 @@ var actionCreators = {
                                time.getMinutes());
     const begin = Math.round(queryDate.getTime() / 1000);
 
+    const a = { name: s.from.name, id: s.from.eva || '' };
+    const b = { name: s.to.name, id: s.to.eva || '' };
+    const from = s.dir == 'Forward' ? a : b;
+    const to = s.dir == 'Forward' ? b : a;
+
     server.send({
       destination: { type: 'Module', target: '/routing' },
       content_type: 'RoutingRequest',
       content: {
         start_type: 'PretripStart',
         start: {
-          station: { name: s.from.name, id: s.from.eva || '' },
-          interval: { begin: begin, end: begin + 7200 }
+          station: from,
+          interval: { begin: begin - 3600, end: begin + 3600 }
         },
-        destination: { name: s.to.name, id: s.to.eva || '' },
+        destination: to,
+        search_dir: s.dir,
         additional_edges: [],
         via: []
       }

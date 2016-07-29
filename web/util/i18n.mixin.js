@@ -7,6 +7,8 @@ riot.mixin('i18n', {
         'To': 'Ziel',
         'Date': 'Datum',
         'Time': 'Uhrzeit',
+        'Departure': 'Abfahrt',
+        'Arrival': 'Ankunft',
         'Transports at the Start': 'Verkehrsmittel am Start',
         'Transports at the Destination': 'Verkehrsmittel am Ziel',
         'Show results of the last search': 'Ergebnisse der letzten Suche anzeigen',
