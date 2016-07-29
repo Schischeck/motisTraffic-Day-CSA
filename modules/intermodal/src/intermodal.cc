@@ -171,7 +171,7 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
       CreateRoutingRequest(mc, start_type, routing_start,
                            CreateInputStation(mc, mc.CreateString(STATION_END),
                                               mc.CreateString(STATION_END)),
-                           req->search_type(), SearchDir_Forward,
+                           req->search_type(), req->search_dir(),
                            mc.CreateVector(std::vector<Offset<Via>>{}),
                            mc.CreateVector(edges))
           .Union(),
