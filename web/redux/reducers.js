@@ -22,7 +22,8 @@ function search(state, action) {
               to: { name: '' },
               date: new Date().getTime(),
               time: new Date().getTime(),
-              transports: { from: [], to: [] }
+              transports: { from: [], to: [] },
+              dir: 'Forward'
             },
             result: {
               error: false,

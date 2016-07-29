@@ -218,11 +218,11 @@ struct lcon_time_adjuster {
 struct rule_service_route_builder {
   rule_service_route_builder(
       graph_builder& gb,  //
-      bitfield const& traffic_days, int first_day, int last_day,
+      bitfield traffic_days, int first_day, int last_day,
       std::map<Service const*, std::vector<service_section*>>& sections,
       unsigned route_id)
       : gb_(gb),
-        traffic_days_(traffic_days),
+        traffic_days_(std::move(traffic_days)),
         first_day_(first_day),
         last_day_(last_day),
         sections_(sections),
@@ -389,7 +389,7 @@ struct rule_service_route_builder {
   }
 
   graph_builder& gb_;
-  bitfield const& traffic_days_;
+  bitfield traffic_days_;
   int first_day_, last_day_;
   std::map<Service const*, std::vector<service_section*>>& sections_;
   std::map<std::pair<Service const*, int>, trip*> single_trips_;
