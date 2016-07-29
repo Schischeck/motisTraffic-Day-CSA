@@ -22,7 +22,7 @@ struct bikesharing_info;
 
 struct request_builder {
   explicit request_builder(
-      routing::SearchType search_type = routing::SearchType_DefaultForward);
+      routing::SearchType search_type = routing::SearchType_Default);
 
   /* for bcg-base journeys and late connections */
   explicit request_builder(routing::RoutingRequest const&);

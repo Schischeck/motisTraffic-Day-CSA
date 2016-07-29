@@ -42,7 +42,8 @@ struct schedule {
   std::map<std::string, station*> ds100_to_station_;
   std::map<std::string, int> classes_;
   std::vector<std::string> tracks_;
-  constant_graph lower_bounds_;
+  constant_graph lower_bounds_fwd_;
+  constant_graph lower_bounds_bwd_;
   unsigned node_count_;
   unsigned route_count_;
   std::vector<station_node_ptr> station_nodes_;

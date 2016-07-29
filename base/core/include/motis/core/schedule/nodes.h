@@ -145,7 +145,7 @@ public:
       edges_.emplace_back(make_foot_edge(this, foot_node_));
     }
     fe.from_ = foot_node_;
-    foot_node_->edges_.emplace_back(std::move(fe));
+    foot_node_->edges_.emplace_back(fe);
     return node_id;
   }
 

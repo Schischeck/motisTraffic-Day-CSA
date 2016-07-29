@@ -98,7 +98,7 @@ journey get_journey(schedule_station const from, schedule_station const to) {
 module::msg_ptr to_request(
     intermodal::individual_modes_container const& container,
     bool const foot = false) {
-  request_builder b(SearchType_LateConnectionsForwardTest);
+  request_builder b(SearchType_LateConnectionsTest);
   return b
       .add_pretrip_start((foot ? schedule_hotels_foot::DARMSTADT.name_
                                : schedule_hotels::DARMSTADT.name_),
@@ -364,7 +364,7 @@ TEST_F(reliability_hotels_foot, foot_after_hotel_at_beginning) {
   intermodal::individual_modes_container container;
   container.insert_hotel(
       intermodal::hotel(schedule_hotels_foot::LANGEN.eva_, 360, 540, 5000));
-  request_builder b(SearchType_LateConnectionsForwardTest);
+  request_builder b(SearchType_LateConnectionsTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
                   schedule_hotels_foot::LANGEN.eva_,
@@ -415,7 +415,7 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
   intermodal::individual_modes_container container;
   container.insert_hotel(intermodal::hotel(
       schedule_hotels_foot::NEUISENBURG.eva_, 480, 540, 5000));
-  request_builder b(SearchType_LateConnectionsForwardTest);
+  request_builder b(SearchType_LateConnectionsTest);
   auto req = b.add_ontrip_station_start(
                   schedule_hotels_foot::LANGEN.name_,
                   schedule_hotels_foot::LANGEN.eva_,
@@ -467,7 +467,7 @@ TEST_F(reliability_hotels_foot, hotels_after_foot_at_beginning) {
 }
 
 TEST_F(reliability_hotels_foot, late_conn_req_taxi) {
-  request_builder b(SearchType_LateConnectionsForwardTest);
+  request_builder b(SearchType_LateConnectionsTest);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,
@@ -560,7 +560,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
   orig_journey.stops_.back().lng_ = 13.404953;
   orig_journey.transports_.front().clasz_ = 0;
 
-  request_builder b(SearchType_LateConnectionsForwardTest);
+  request_builder b(SearchType_LateConnectionsTest);
   auto req =
       b.add_pretrip_start(schedule_hotels_foot::DARMSTADT.name_, "",
                           1445291400 /* 10/19/2015, 23:50:00 GMT+2:00 DST */,

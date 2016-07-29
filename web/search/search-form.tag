@@ -52,13 +52,33 @@
       <gb-date name="date"
                value={state().date}
                input-onchange={onChange('date')}
-               class="pure-u-1 pure-u-sm-1-2"
+               class="pure-u-1 pure-u-sm-10-24"
                label={translate('Date')}/>
       <gb-time name="time"
                value={state().time}
                input-onchange={onChange('time')}
-               class="pure-u-1 pure-u-sm-1-2"
+               class="pure-u-1 pure-u-sm-10-24"
                label={translate('Time')}/>
+      <div class="time-option pure-u-1 pure-u-sm-4-24">
+        <div>
+          <input id="Forward"
+                 type="radio"
+                 name="time-option"
+                 value="Forward"
+                 checked={state().dir === 'Forward' ? 'checked' : ''}
+                 onclick={onChangeDir}>
+          <label for="Forward">{translate('Departure')}</label>
+        </div>
+        <div>
+          <input id="Backward"
+                 type="radio"
+                 name="time-option"
+                 value="Backward"
+                 checked={state().dir === 'Backward' ? 'checked' : ''}
+                 onclick={onChangeDir}>
+          <label for="Backward">{translate('Arrival')}</label>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -88,7 +108,7 @@
   /* ---------- */
   .time-option {
     height: 50px;
-    line-height: 20px;
+    line-height: 15px;
   }
 
   .time-option { margin-top: 15px; }
@@ -114,6 +134,10 @@
     position: relative;
     top: 2px;
     cursor: pointer;
+  }
+
+  .time-option input {
+    display: none;
   }
 
   .time-option input:checked+label {
@@ -153,6 +177,7 @@
   })
 
   this.onChange = key => value => this.store.dispatch(actions.updateSearchForm(key, value))
+  this.onChangeDir = e => this.store.dispatch(actions.updateSearchForm('dir', e.target.value))
   this.onRemoveTransport = key => tag => this.store.dispatch(actions.searchRemoveTransportMode(key, tag))
   this.onAddTransport = key => tag => this.store.dispatch(actions.searchAddTransportMode(key, tag))
   this.swapLocations = () => {
