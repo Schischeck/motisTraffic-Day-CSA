@@ -204,7 +204,8 @@ Offset<routing::RoutingResponse> to_routing_response(
   for (auto& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  return routing::CreateRoutingResponse(b, 0, b.CreateVector(connections));
+  routing::Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  return routing::CreateRoutingResponse(b, &stats, b.CreateVector(connections));
 }
 
 module::msg_ptr to_reliability_rating_response(

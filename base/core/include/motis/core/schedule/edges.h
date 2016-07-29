@@ -41,6 +41,8 @@ struct edge_cost {
 
 const edge_cost NO_EDGE = edge_cost();
 
+enum class search_dir { FWD, BWD };
+
 class edge {
 public:
   enum type {
@@ -96,10 +98,11 @@ public:
     m_.hotel_edge_.mumo_id_ = mumo_id;
   }
 
+  template <search_dir Dir = search_dir::FWD>
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (m_.type_) {
-      case ROUTE_EDGE: return get_route_edge_cost(start_time);
+      case ROUTE_EDGE: return get_route_edge_cost<Dir>(start_time);
 
       case AFTER_TRAIN_FOOT_EDGE:
         if (last_con == nullptr) {
@@ -117,8 +120,10 @@ public:
                                        start_time % MINUTES_A_DAY) +
                              m_.foot_edge_.time_cost_,
                          m_.foot_edge_.transfer_, m_.foot_edge_.price_);
+
       case TIME_DEPENDENT_MUMO_EDGE:
         return calc_cost_time_dependent_edge(start_time);
+
       case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
 
       case THROUGH_EDGE: return edge_cost(0, false, 0);
@@ -190,6 +195,7 @@ public:
     return nullptr;
   }
 
+  template <search_dir Dir = search_dir::FWD>
   light_connection const* get_connection(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
@@ -197,47 +203,60 @@ public:
       return nullptr;
     }
 
-    auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
-                               std::end(m_.route_edge_.conns_),
-                               light_connection(start_time));
+    if (Dir == search_dir::FWD) {
+      auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
+                                 std::end(m_.route_edge_.conns_),
+                                 light_connection(start_time));
 
-    if (it == std::end(m_.route_edge_.conns_)) {
-      return nullptr;
+      if (it == std::end(m_.route_edge_.conns_)) {
+        return nullptr;
+      } else {
+        return get_next_valid_lcon(&*it);
+      }
     } else {
-      return get_next_valid_lcon(&*it);
+      auto it = std::lower_bound(
+          m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
+          light_connection(0, start_time, nullptr),
+          [](light_connection const& lhs, light_connection const& rhs) {
+            return lhs.a_time_ > rhs.a_time_;
+          });
+
+      if (it == m_.route_edge_.conns_.rend()) {
+        return nullptr;
+      } else {
+        return get_prev_valid_lcon(&*it);
+      }
     }
   }
 
-  light_connection const* get_connection_reverse(time const start_time) const {
-    assert(type() == ROUTE_EDGE);
-
-    if (m_.route_edge_.conns_.size() == 0) {
-      return nullptr;
-    }
-
-    auto it = std::lower_bound(
-        m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
-        light_connection(0, start_time, nullptr),
-        [](light_connection const& lhs, light_connection const& rhs) {
-          return lhs.a_time_ > rhs.a_time_;
-        });
-
-    if (it == m_.route_edge_.conns_.rend()) {
-      return nullptr;
-    } else {
-      return get_prev_valid_lcon(&*it);
-    }
-  }
-
+  template <search_dir Dir = search_dir::FWD>
   edge_cost get_route_edge_cost(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    light_connection const* c = get_connection(start_time);
-    return (c == nullptr) ? NO_EDGE : edge_cost(c->a_time_ - start_time, c);
+    light_connection const* c = get_connection<Dir>(start_time);
+    return (c == nullptr) ? NO_EDGE : edge_cost((Dir == search_dir::FWD)
+                                                    ? c->a_time_ - start_time
+                                                    : start_time - c->d_time_,
+                                                c);
   }
 
-  inline node const* get_destination() const { return to_; }
-  inline node* get_destination() { return to_; }
+  template <search_dir Dir = search_dir::FWD>
+  inline node const* get_destination() const {
+    return (Dir == search_dir::FWD) ? to_ : from_;
+  }
+
+  template <search_dir Dir = search_dir::FWD>
+  inline node const* get_source() const {
+    return (Dir == search_dir::FWD) ? from_ : to_;
+  }
+
+  inline node const* get_destination(search_dir dir = search_dir::FWD) const {
+    return (dir == search_dir::FWD) ? to_ : from_;
+  }
+
+  inline node const* get_source(search_dir dir = search_dir::FWD) const {
+    return (dir == search_dir::FWD) ? from_ : to_;
+  }
 
   inline bool valid() const { return type() != INVALID_EDGE; }
 

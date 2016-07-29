@@ -13,7 +13,8 @@ enum error_code_t {
   search_type_not_supported = 2,
   path_length_not_supported = 3,
   journey_date_not_in_schedule = 4,
-  event_not_found = 5
+  event_not_found = 5,
+  edge_type_not_supported = 6
 };
 }  // namespace error
 
@@ -33,6 +34,8 @@ public:
       case error::journey_date_not_in_schedule:
         return "routing: journey date not in schedule";
       case error::event_not_found: return "routing: event not found";
+      case error::edge_type_not_supported:
+        return "routing: edge type not supported";
       default: return "routing: unkown error";
     }
   }
