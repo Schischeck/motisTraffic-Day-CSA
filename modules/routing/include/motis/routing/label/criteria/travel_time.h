@@ -76,14 +76,5 @@ struct travel_time_filter {
   }
 };
 
-struct waiting_time_filter {
-  template <typename Label>
-  static bool is_filtered(Label const& l) {
-    auto const& c = l.connection_;
-    unsigned con_time = c != nullptr ? c->a_time_ - c->d_time_ : 0;
-    return l.travel_time_ - l.pred_->travel_time_ - con_time > 200;
-  }
-};
-
 }  // namespace routing
 }  // namespace motis

@@ -5,7 +5,7 @@
 #include <queue>
 #include <unordered_map>
 
-#include "motis/routing/memory_manager.h"
+#include "motis/routing/mem_manager.h"
 #include "motis/routing/statistics.h"
 
 namespace motis {
@@ -13,7 +13,7 @@ namespace routing {
 
 const bool FORWARDING = true;
 
-template <typename Label, typename LowerBounds>
+template <search_dir Dir, typename Label, typename LowerBounds>
 class pareto_dijkstra {
 public:
   class compare_labels {
@@ -27,7 +27,7 @@ public:
       int node_count, station_node const* goal,
       std::vector<Label*> const& start_labels,
       std::unordered_map<node const*, std::vector<edge>> additional_edges,
-      LowerBounds& lower_bounds, memory_manager& label_store)
+      LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
         node_labels_(node_count),
         queue_(begin(start_labels), end(start_labels)),
@@ -40,7 +40,7 @@ public:
     }
   }
 
-  std::vector<Label*>& search() {
+  void search() {
     stats_.start_label_count_ = queue_.size();
     stats_.labels_created_ = label_store_.used_size() / sizeof(Label);
 
@@ -49,7 +49,6 @@ public:
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
         filter_results();
-        return results_;
       }
 
       // get best label
@@ -89,16 +88,23 @@ public:
         }
       }
 
-      for (auto const& edge : label->get_node()->edges_) {
-        create_new_label(label, edge);
+      if (Dir == search_dir::FWD) {
+        for (auto const& edge : label->get_node()->edges_) {
+          create_new_label(label, edge);
+        }
+      } else {
+        for (auto const& edge : label->get_node()->incoming_edges_) {
+          create_new_label(label, *edge);
+        }
       }
     }
 
     filter_results();
-    return results_;
   }
 
   statistics get_statistics() const { return stats_; };
+
+  std::vector<Label*> const& get_results() { return results_; }
 
 private:
   void create_new_label(Label* l, edge const& edge) {
@@ -111,7 +117,7 @@ private:
     auto new_label = label_store_.create<Label>(blank);
     ++stats_.labels_created_;
 
-    if (edge.get_destination() == goal_) {
+    if (edge.get_destination<Dir>() == goal_) {
       add_result(new_label);
       if (stats_.labels_popped_until_first_result_ == -1) {
         stats_.labels_popped_until_first_result_ = stats_.labels_popped_;
@@ -122,7 +128,7 @@ private:
     // if the label is not dominated by a former one for the same node...
     //...add it to the queue
     if (!dominated_by_results(new_label)) {
-      if (add_label_to_node(new_label, edge.get_destination())) {
+      if (add_label_to_node(new_label, edge.get_destination<Dir>())) {
         // if the new_label is as good as label we don't have to push it into
         // the queue
         if (!FORWARDING || l < new_label) {
@@ -211,7 +217,7 @@ private:
   std::unordered_map<node const*, std::vector<edge>> additional_edges_;
   std::vector<Label*> results_;
   LowerBounds& lower_bounds_;
-  memory_manager& label_store_;
+  mem_manager& label_store_;
   statistics stats_;
   std::size_t max_labels_;
 };

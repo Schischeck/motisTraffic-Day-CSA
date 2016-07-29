@@ -166,7 +166,8 @@ Offset<routing::RoutingRequest> request_builder::create_routing_request() {
   std::vector<::flatbuffers::Offset<routing::Via>> vias;
   return routing::CreateRoutingRequest(
       b_, start_.first, start_.second, destination_station_, search_type_,
-      b_.CreateVector(vias), b_.CreateVector(additional_edges_));
+      routing::SearchDir_Forward, b_.CreateVector(vias),
+      b_.CreateVector(additional_edges_));
 }
 
 msg_ptr request_builder::build_routing_request() {

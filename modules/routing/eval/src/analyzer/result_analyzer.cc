@@ -13,11 +13,12 @@ using namespace motis::eval;
 
 struct response {
   explicit response(RoutingResponse const* r)
-      : labels_until_first_(0),
-        labels_after_last_(0),
-        labels_created_(0),
-        time_(r->pareto_dijkstra_timing()),
-        start_labels_(0),
+      : labels_until_first_(
+            r->statistics()->labels_popped_until_first_result()),
+        labels_after_last_(r->statistics()->labels_popped_after_last_result()),
+        labels_created_(r->statistics()->labels_created()),
+        time_(r->statistics()->pareto_dijkstra()),
+        start_labels_(r->statistics()->start_label_count()),
         con_count_(r->connections()->size()),
         max_label_quit_(false) {}
 

@@ -41,7 +41,7 @@ struct routing_rt : public motis_instance_test {
                 .Union(),
             CreateInputStation(fbb, fbb.CreateString("8000208"),
                                fbb.CreateString("")),
-            SearchType_SingleCriterionForward,
+            SearchType_SingleCriterion, SearchDir_Forward,
             fbb.CreateVector(std::vector<Offset<Via>>()),
             fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
             .Union(),

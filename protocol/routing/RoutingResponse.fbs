@@ -2,7 +2,26 @@ include "base/Connection.fbs";
 
 namespace motis.routing;
 
+struct Statistics {
+  max_label_quit:bool;
+  labels_created:uint;
+  start_label_count:uint;
+  labels_popped:uint;
+  labels_equals_popped:uint;
+  labels_filtered:uint;
+  labels_dominated_by_results:uint;
+  labels_dominated_by_former_labels:uint;
+  labels_dominated_by_later_labels:uint;
+  labels_popped_until_first_result:uint;
+  labels_popped_after_last_result:uint;
+  priority_queue_max_size:uint;
+  travel_time_l_b:uint;
+  transfers_l_b:uint;
+  total_calculation_time:uint;
+  pareto_dijkstra:uint;
+}
+
 table RoutingResponse {
-  pareto_dijkstra_timing:uint;
+  statistics:Statistics;
   connections:[motis.Connection];
 }

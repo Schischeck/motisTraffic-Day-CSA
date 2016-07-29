@@ -7,15 +7,15 @@
 namespace motis {
 namespace routing {
 
-struct memory_manager {
+struct mem_manager {
 public:
-  explicit memory_manager(std::size_t size)
+  explicit mem_manager(std::size_t size)
       : size_(size),
         memory_buffer_(reinterpret_cast<unsigned char*>(operator new(size_))),
         next_position_(memory_buffer_.get()) {}
 
-  memory_manager(memory_manager const&) = delete;
-  memory_manager& operator=(memory_manager const&) = delete;
+  mem_manager(mem_manager const&) = delete;
+  mem_manager& operator=(mem_manager const&) = delete;
 
   void reset() { next_position_ = memory_buffer_.get(); }
 
