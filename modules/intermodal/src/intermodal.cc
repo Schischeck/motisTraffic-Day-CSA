@@ -124,41 +124,43 @@ void add_arrival(message_creator& mc, IntermodalRoutingRequest const* req,
 }
 
 struct query_start {
-  query_start(message_creator& mc, IntermodalRoutingRequest const* req) {
-    auto start_station = CreateInputStation(mc, mc.CreateString(STATION_START),
-                                            mc.CreateString(STATION_START));
-    switch (req->start_type()) {
-      case IntermodalStart_IntermodalOntripStart: {
-        auto start =
-            reinterpret_cast<IntermodalOntripStart const*>(req->start());
-        type_ = Start_OntripStationStart;
-        transformed_ =
-            CreateOntripStationStart(mc, start_station, start->departure_time())
-                .Union();
-        pos_ = start->position();
-      } break;
-      case IntermodalStart_IntermodalPretripStart: {
-        auto start =
-            reinterpret_cast<IntermodalPretripStart const*>(req->start());
-        type_ = Start_PretripStart;
-        transformed_ =
-            CreatePretripStart(mc, start_station, start->interval()).Union();
-        pos_ = start->position();
-      } break;
-      default: throw std::system_error(error::unknown_start);
-    }
-  }
-
   Start type_;
   Offset<void> transformed_;
   Position const* pos_;
 };
 
+query_start get_query_start(message_creator& mc,
+                            IntermodalRoutingRequest const* req) {
+  query_start qs;
+  auto start_station = CreateInputStation(mc, mc.CreateString(STATION_START),
+                                          mc.CreateString(STATION_START));
+  switch (req->start_type()) {
+    case IntermodalStart_IntermodalOntripStart: {
+      auto start = reinterpret_cast<IntermodalOntripStart const*>(req->start());
+      qs.type_ = Start_OntripStationStart;
+      qs.transformed_ =
+          CreateOntripStationStart(mc, start_station, start->departure_time())
+              .Union();
+      qs.pos_ = start->position();
+    } break;
+    case IntermodalStart_IntermodalPretripStart: {
+      auto start =
+          reinterpret_cast<IntermodalPretripStart const*>(req->start());
+      qs.type_ = Start_PretripStart;
+      qs.transformed_ =
+          CreatePretripStart(mc, start_station, start->interval()).Union();
+      qs.pos_ = start->position();
+    } break;
+    default: throw std::system_error(error::unknown_start);
+  }
+  return qs;
+}
+
 msg_ptr intermodal::route(msg_ptr const& msg) {
   auto const req = motis_content(IntermodalRoutingRequest, msg);
   message_creator mc;
 
-  auto const start = query_start{mc, req};
+  auto const start = get_query_start(mc, req);
   auto const* end_pos = req->destination();
 
   std::vector<Offset<AdditionalEdgeWrapper>> edges;
