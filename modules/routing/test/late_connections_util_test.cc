@@ -1,12 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "motis/routing/late_connections_util.h"
-
-#include "motis/test/motis_instance_test.h"
+#include "motis/routing/label/criteria/late_connections.h"
 
 namespace motis {
 namespace routing {
-namespace late_connections_util {
 
 TEST(routing_late_connections_util, night_travel_duration) {
   ASSERT_EQ(0, night_travel_duration(0, 200, 100, 100));
@@ -61,6 +58,5 @@ TEST(routing_late_connections_util, night_travel_duration_overnight) {
   ASSERT_EQ(840, f(0, 3121));
 }
 
-}  // namespace late_connections_util
 }  // namespace routing
 }  // namespace motis

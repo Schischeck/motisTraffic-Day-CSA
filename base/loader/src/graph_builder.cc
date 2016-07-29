@@ -717,7 +717,10 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   sched->route_count_ = builder.next_route_index_;
   sched->node_count_ = builder.next_node_id_;
-  sched->lower_bounds_ = constant_graph(sched->station_nodes_);
+  sched->lower_bounds_fwd_ =
+      constant_graph(sched->station_nodes_, search_dir::FWD);
+  sched->lower_bounds_bwd_ =
+      constant_graph(sched->station_nodes_, search_dir::BWD);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories_);
   sched->schedule_begin_ -= SCHEDULE_OFFSET_MINUTES * 60;
 

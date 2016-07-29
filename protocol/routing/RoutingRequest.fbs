@@ -85,10 +85,19 @@ table Via {
 // Search Type
 // ----------------------------------------------------------------------------
 enum SearchType : byte {
-  DefaultForward,
-  SingleCriterionForward,
-  LateConnectionsForward,
-  LateConnectionsForwardTest
+  Default,
+  SingleCriterion,
+  SingleCriterionNoIntercity,
+  LateConnections,
+  LateConnectionsTest
+}
+
+// ----------------------------------------------------------------------------
+// Search Type
+// ----------------------------------------------------------------------------
+enum SearchDir : byte {
+  Forward,  // given time = departure time
+  Backward  // given time = arrival time
 }
 
 // ----------------------------------------------------------------------------
@@ -97,6 +106,7 @@ table RoutingRequest {
   start:Start;
   destination:InputStation;
   search_type:SearchType;
+  search_dir:SearchDir;
   via:[Via];
   additional_edges:[AdditionalEdgeWrapper];
 }

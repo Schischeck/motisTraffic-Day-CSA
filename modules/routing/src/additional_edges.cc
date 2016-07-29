@@ -18,7 +18,8 @@ std::vector<edge> create_additional_edges(
   for (auto const& e : *edge_wrappers) {
     switch (e->additional_edge_type()) {
       case AdditionalEdge_MumoEdge: {
-        auto info = reinterpret_cast<MumoEdge const*>(e->additional_edge());
+        auto const info =
+            reinterpret_cast<MumoEdge const*>(e->additional_edge());
         edges.push_back(make_mumo_edge(
             get_station_node(sched, info->from_station_id()->str()),
             get_station_node(sched, info->to_station_id()->str()),
@@ -27,9 +28,9 @@ std::vector<edge> create_additional_edges(
       }
 
       case AdditionalEdge_TimeDependentMumoEdge: {
-        auto info = reinterpret_cast<TimeDependentMumoEdge const*>(
+        auto const info = reinterpret_cast<TimeDependentMumoEdge const*>(
             e->additional_edge());
-        auto edge = info->edge();
+        auto const edge = info->edge();
         edges.push_back(make_time_dependent_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
             get_station_node(sched, edge->to_station_id()->str()),
@@ -40,9 +41,9 @@ std::vector<edge> create_additional_edges(
       }
 
       case AdditionalEdge_PeriodicMumoEdge: {
-        auto info = reinterpret_cast<TimeDependentMumoEdge const*>(
+        auto const info = reinterpret_cast<TimeDependentMumoEdge const*>(
             e->additional_edge());
-        auto edge = info->edge();
+        auto const edge = info->edge();
         auto const head_station =
             get_station_node(sched, edge->to_station_id()->str());
         edges.push_back(make_periodic_mumo_edge(
@@ -53,8 +54,9 @@ std::vector<edge> create_additional_edges(
       }
 
       case AdditionalEdge_HotelEdge: {
-        auto info = reinterpret_cast<HotelEdge const*>(e->additional_edge());
-        auto edge = info->edge();
+        auto const info =
+            reinterpret_cast<HotelEdge const*>(e->additional_edge());
+        auto const edge = info->edge();
         edges.push_back(make_hotel_edge(
             get_station_node(sched, edge->from_station_id()->str()),
             info->earliest_checkout_time(), info->min_stay_duration(),
