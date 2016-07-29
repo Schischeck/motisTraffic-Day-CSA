@@ -2,14 +2,19 @@
 
 #include "boost/filesystem.hpp"
 
+#include "parser/file.h"
+
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_section.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
 
+#include "motis/routes/fbs/RoutesAuxiliary_generated.h"
 
+namespace fs = boost::filesystem;
 using namespace flatbuffers;
+using namespace parser;
 using namespace motis::module;
 using namespace motis::osrm;
 using namespace motis::access;
@@ -17,12 +22,29 @@ using namespace motis::access;
 namespace motis {
 namespace routes {
 
-routes::routes() : module("Routes", "routes"){};
+routes::routes() : module("Routes", "routes") {
+  string_param(aux_file_, "routes-auxiliary.raw", "aux",
+               "/path/to/routes-auxiliary.raw");
+};
 routes::~routes() = default;
 
 void routes::init(registry& r) {
+  if (fs::is_regular_file(aux_file_)) {
+    load_auxiliary_file();
+  }
+
   r.register_op("/routes/id_train",
                 [this](msg_ptr const& m) { return id_train_routes(m); });
+}
+
+void routes::load_auxiliary_file() {
+  auto const buf = file(aux_file_.c_str(), "r").content();
+  auto const aux_content = GetRoutesAuxiliary(buf.buf_);
+
+  for (auto const& s : *aux_content->bus_stop_positions()) {
+    extra_bus_stop_positions_[s->station_id()->str()].emplace_back(s->lat(),
+                                                                   s->lng());
+  }
 }
 
 msg_ptr routes::id_train_routes(msg_ptr const& msg) {
@@ -39,19 +61,31 @@ msg_ptr routes::id_train_routes(msg_ptr const& msg) {
   }
 }
 
-msg_ptr trip_to_osrm_request(schedule const& sched, trip const* trp) {
+msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
   message_creator mc;
-  std::vector<Position> waypoints;
+
+  std::vector<Offset<Waypoint>> waypoints;
   for (auto const& stop : access::stops(trp)) {
     auto const& station = stop.get_station(sched);
-    waypoints.push_back({station.lat(), station.lng()});
+
+    std::vector<Position> pos;
+    pos.emplace_back(station.lat(), station.lng());
+
+    auto it = extra_bus_stop_positions_.find(station.eva_nr_);
+    if (it != end(extra_bus_stop_positions_)) {
+      for (auto const& pair : it->second) {
+        pos.emplace_back(pair.first, pair.second);
+      }
+    }
+    waypoints.emplace_back(CreateWaypoint(mc, mc.CreateVectorOfStructs(pos)));
   }
+
   mc.create_and_finish(
-      MsgContent_OSRMViaRouteRequest,
-      CreateOSRMViaRouteRequest(mc, mc.CreateString("car"),
-                                mc.CreateVectorOfStructs(waypoints))
+      MsgContent_OSRMSmoothViaRouteRequest,
+      CreateOSRMSmoothViaRouteRequest(mc, mc.CreateString("car"),
+                                      mc.CreateVector(waypoints))
           .Union(),
-      "/osrm/via");
+      "/osrm/smooth_via");
   return make_msg(mc);
 }
 

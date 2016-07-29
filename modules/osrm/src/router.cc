@@ -9,6 +9,7 @@
 #include "osrm-backend/util/simple_logger.hpp"
 
 #include "motis/osrm/error.h"
+#include "motis/osrm/smooth_via_router.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -19,9 +20,9 @@ namespace osrm {
 struct router::impl {
 public:
   typedef InternalDataFacade<QueryEdge::EdgeData> data_facade_impl;
-  typedef BaseDataFacade<QueryEdge::EdgeData> my_data_facade;
-  typedef MultiTargetPlugin<my_data_facade, true> multi_target;
-  typedef MultiTargetPlugin<my_data_facade, false> multi_source;
+
+  typedef MultiTargetPlugin<data_facade_impl, true> multi_target;
+  typedef MultiTargetPlugin<data_facade_impl, false> multi_source;
   typedef CustomViaRoutePlugin<data_facade_impl> via_route;
 
   explicit impl(std::string const& path) {
@@ -49,6 +50,9 @@ public:
     multi_target_.reset(new multi_target(query_data_facade_.get()));
     multi_source_.reset(new multi_source(query_data_facade_.get()));
     via_route_.reset(new via_route(query_data_facade_.get()));
+
+    smooth_via_router_.reset(
+        new smooth_via_router<data_facade_impl>(query_data_facade_.get()));
   }
 
   msg_ptr one_to_many(OSRMOneToManyRequest const* req) {
@@ -128,10 +132,16 @@ public:
     return make_msg(mc);
   }
 
+  msg_ptr smooth_via(OSRMSmoothViaRouteRequest const* req) {
+    return smooth_via_router_->smooth_via(req);
+  }
+
   std::unique_ptr<data_facade_impl> query_data_facade_;
   std::unique_ptr<multi_target> multi_target_;
   std::unique_ptr<multi_source> multi_source_;
   std::unique_ptr<via_route> via_route_;
+
+  std::unique_ptr<smooth_via_router<data_facade_impl>> smooth_via_router_;
 };
 
 router::router(std::string path)
@@ -144,6 +154,10 @@ msg_ptr router::one_to_many(OSRMOneToManyRequest const* req) const {
 
 msg_ptr router::via(OSRMViaRouteRequest const* req) const {
   return impl_->via(req);
+}
+
+msg_ptr router::smooth_via(OSRMSmoothViaRouteRequest const* req) const {
+  return impl_->smooth_via(req);
 }
 
 }  // namespace osrm

@@ -1,4 +1,4 @@
-#include "../include/motis/osrm/osrm.h"
+#include "motis/osrm/osrm.h"
 
 #include <mutex>
 
@@ -11,8 +11,6 @@
 
 #include "motis/osrm/error.h"
 #include "motis/osrm/router.h"
-
-#include "motis/protocol/Message_generated.h"
 
 using namespace motis::module;
 using namespace motis::logging;
@@ -39,6 +37,10 @@ void osrm::init(motis::module::registry& reg) {
   reg.register_op("/osrm/via", [this](msg_ptr const& msg) {
     auto const req = motis_content(OSRMViaRouteRequest, msg);
     return get_router(req->profile()->str())->via(req);
+  });
+  reg.register_op("/osrm/smooth_via", [this](msg_ptr const& msg) {
+    auto const req = motis_content(OSRMSmoothViaRouteRequest, msg);
+    return get_router(req->profile()->str())->smooth_via(req);
   });
 }
 

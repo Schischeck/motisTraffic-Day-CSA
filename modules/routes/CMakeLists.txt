@@ -1,14 +1,37 @@
 cmake_minimum_required(VERSION 2.8)
 project(motis)
 
+set(routes-fbs-dir ${CMAKE_CURRENT_SOURCE_DIR}/fbs)
+set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/routes/fbs")
+file(GLOB_RECURSE routes-fbs-files ${routes-fbs-dir}/*.fbs)
+
+build_flatbuffers(
+  "--everything-required"        # commandline_options
+  "${routes-fbs-files}"          # flatbuffers_schemas
+  "${routes-fbs-dir}"            # schema_include_dirs
+  generated-routes-fbs-headers   # custom_target_name
+  ""                             # additional_dependencies
+  "${generated-headers-dir}"     # generated_includes_dir
+  ""                             # binary_schemas_dir
+  ""                             # copy_text_schemas_dir
+)
+
 include_directories(include)
 if (NOT ZLIB_FOUND)
   find_package(ZLIB REQUIRED)
   include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
+file(GLOB_RECURSE motis-routes-prepare-files src/prepare/*.cc)
+list(APPEND motis-routes-prepare-files src/prepare.cc)
+
 file(GLOB_RECURSE motis-routes-files src/*.cc)
+foreach(file ${motis-routes-prepare-files})
+  list(REMOVE_ITEM motis-routes-files "${file}")
+endforeach()
+
 add_library(motis-routes STATIC ${motis-routes-files})
+add_dependencies(motis-routes generated-routes-fbs-headers)
 target_link_libraries(motis-routes
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
@@ -19,16 +42,17 @@ target_link_libraries(motis-routes
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 
 
-file(GLOB_RECURSE routes-preproc-files src/preproc/*.cc)
-add_executable(routes-preproc EXCLUDE_FROM_ALL ${routes-preproc-files})
-target_link_libraries(routes-preproc
+add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
+add_dependencies(routes-prepare generated-routes-fbs-headers)
+target_link_libraries(routes-prepare
   ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY}
   ${ZLIB_LIBRARIES}
   expat
   motis-loader
+  conf
 )
 
-set_target_properties(routes-preproc PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-set_target_properties(routes-preproc PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+set_target_properties(routes-prepare PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
