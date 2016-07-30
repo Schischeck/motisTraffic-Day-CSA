@@ -21,7 +21,8 @@ struct bitfield_builder {
       int bitfield_num, flatbuffers64::FlatBufferBuilder&);
 
   flatbuffers64::Offset<flatbuffers64::String> get_or_create_bitfield(
-      bitfield const&, flatbuffers64::FlatBufferBuilder&, int = no_bitfield_num_);
+      bitfield const&, flatbuffers64::FlatBufferBuilder&,
+      int = no_bitfield_num_);
 
   std::map<int, bitfield> const hrd_bitfields_;
   google::dense_hash_map<bitfield, flatbuffers64::Offset<flatbuffers64::String>,

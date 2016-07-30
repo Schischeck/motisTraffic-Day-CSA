@@ -31,7 +31,8 @@ struct service_builder {
 
   track_rules const track_rules_;
   std::vector<flatbuffers64::Offset<Service>> fbs_services_;
-  std::map<char const*, flatbuffers64::Offset<flatbuffers64::String>> filenames_;
+  std::map<char const*, flatbuffers64::Offset<flatbuffers64::String>>
+      filenames_;
 };
 
 }  // namespace hrd

@@ -20,7 +20,8 @@ struct station_builder {
   std::map<int, intermediate_station> hrd_stations_;
   timezones timezones_;
   std::map<int, flatbuffers64::Offset<Station>> fbs_stations_;
-  std::map<timezone_entry const*, flatbuffers64::Offset<Timezone>> fbs_timezones_;
+  std::map<timezone_entry const*, flatbuffers64::Offset<Timezone>>
+      fbs_timezones_;
 };
 
 }  // namespace hrd
