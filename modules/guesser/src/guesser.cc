@@ -5,8 +5,8 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/module/context/get_schedule.h"
-#include "motis/loader/util.h"
 #include "motis/protocol/Message_generated.h"
 
 namespace p = std::placeholders;
@@ -51,15 +51,14 @@ void guesser::init(motis::module::registry& reg) {
         return indices;
       });
 
-  auto stations = loader::transform_to_vec(
-      begin(station_indices_), end(station_indices_), [&](unsigned i) {
-        auto const& s = *sched.stations_[i];
-        double factor = 0;
-        for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {
-          factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_.at(i);
-        }
-        return std::make_pair(s.name_, factor);
-      });
+  auto stations = transform_to_vec(station_indices_, [&](unsigned i) {
+    auto const& s = *sched.stations_[i];
+    double factor = 0;
+    for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {
+      factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_.at(i);
+    }
+    return std::make_pair(s.name_, factor);
+  });
 
   if (!stations.empty()) {
     auto max_importatance =
