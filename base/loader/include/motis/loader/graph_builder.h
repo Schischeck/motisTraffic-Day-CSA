@@ -6,6 +6,8 @@
 #include <set>
 #include <vector>
 
+#include "flatbuffers/flatbuffers.h"
+
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
@@ -192,7 +194,8 @@ struct graph_builder {
   int get_or_create_category_index(Category const* c);
 
   int get_or_create_track(
-      int day, flatbuffers64::Vector<flatbuffers64::Offset<Track>> const* tracks);
+      int day,
+      flatbuffers64::Vector<flatbuffers64::Offset<Track>> const* tracks);
 
   void write_trip_info(route&);
 
@@ -232,10 +235,6 @@ struct graph_builder {
   connection_info con_info_;
   connection con_;
 };
-
-schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool unique_check, bool apply_rules,
-                         bool adjust_footpaths);
 
 }  // namespace loader
 }  // namespace motis

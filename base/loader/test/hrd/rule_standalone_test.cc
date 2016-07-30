@@ -3,7 +3,7 @@
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "./test_spec_test.h"
+#include "./paths.h"
 
 using namespace motis::loader;
 using namespace motis::loader::hrd;

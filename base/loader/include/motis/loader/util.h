@@ -97,8 +97,6 @@ inline int yyyymmdd_year(int yyyymmdd) { return yyyymmdd / 10000; }
 inline int yyyymmdd_month(int yyyymmdd) { return (yyyymmdd % 10000) / 100; }
 inline int yyyymmdd_day(int yyyymmdd) { return yyyymmdd % 100; }
 
-parser::buffer load_file(boost::filesystem::path const&);
-
 void write_schedule(flatbuffers64::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 

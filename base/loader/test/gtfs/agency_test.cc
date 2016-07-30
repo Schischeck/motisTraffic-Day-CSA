@@ -2,7 +2,6 @@
 
 #include "motis/loader/gtfs/agency.h"
 #include "motis/loader/gtfs/files.h"
-#include "motis/loader/util.h"
 
 #include "resources.h"
 

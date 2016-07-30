@@ -21,10 +21,6 @@ void write_schedule(FlatBufferBuilder& b, fs::path const& path) {
   f.write(b.GetBufferPointer(), b.GetSize());
 }
 
-buffer load_file(fs::path const& p) {
-  return file(p.string().c_str(), "r").content();
-}
-
 void collect_files(fs::path const& root, std::vector<fs::path>& files) {
   for (auto const& entry : fs::recursive_directory_iterator(root)) {
     if (fs::is_regular(entry.path())) {

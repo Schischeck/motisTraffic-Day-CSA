@@ -184,6 +184,8 @@ configure_file (
 file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
+file(GLOB_RECURSE motis-loader-test-files base/loader/*_test.cc)
+set_source_files_properties(${motis-loader-test-files} PROPERTIES COMPILE_DEFINITIONS FLATBUFFERS_64=1)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-test-files}
   ${motis-modules-test-files}

@@ -3,6 +3,7 @@
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/loader/hrd/files.h"
+#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {

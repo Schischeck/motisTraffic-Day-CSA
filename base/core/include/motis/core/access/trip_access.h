@@ -7,7 +7,6 @@
 #include "motis/core/access/error.h"
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
-#include "motis/protocol/TripId_generated.h"
 
 namespace motis {
 

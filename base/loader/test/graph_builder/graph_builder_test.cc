@@ -2,45 +2,24 @@
 
 #include <iostream>
 
-#include "motis/loader/graph_builder.h"
-#include "motis/loader/hrd/hrd_parser.h"
-#include "motis/loader/parser_error.h"
-#include "motis/loader/util.h"
+#include "motis/loader/loader.h"
 
-#include "../hrd/test_spec_test.h"
+#include "../hrd/paths.h"
 
 namespace motis {
 namespace loader {
 
 loader_graph_builder_test::loader_graph_builder_test(std::string schedule_name,
-                                                     std::time_t schedule_begin,
-                                                     std::time_t schedule_end)
+                                                     std::string schedule_begin,
+                                                     int num_days)
     : schedule_name_(std::move(schedule_name)),
-      schedule_begin_(schedule_begin),
-      schedule_end_(schedule_end) {}
+      schedule_begin_(std::move(schedule_begin)),
+      num_days_(num_days) {}
 
 void loader_graph_builder_test::SetUp() {
-  hrd::hrd_parser parser;
-
-  const auto schedule_path = hrd::SCHEDULES / schedule_name_;
-  if (!parser.applicable(schedule_path)) {
-    for (auto const& file : parser.missing_files(schedule_path)) {
-      std::cout << "- " << file << std::endl;
-    }
-    FAIL() << "HRD parser not applicable!";
-  }
-
-  try {
-    flatbuffers64::FlatBufferBuilder b;
-    parser.parse(schedule_path, b);
-    auto serialized = GetSchedule(b.GetBufferPointer());
-
-    sched_ = build_graph(serialized, schedule_begin_, schedule_end_, true, true,
-                         false);
-  } catch (parser_error const& e) {
-    e.print_what();
-    FAIL() << "build_graph failed";
-  }
+  sched_ = load_schedule(
+      loader_options{(hrd::SCHEDULES / schedule_name_).string(),
+                     schedule_begin_, num_days_, true, true, false});
 }
 
 edge const* loader_graph_builder_test::get_route_edge(node const* route_node) {

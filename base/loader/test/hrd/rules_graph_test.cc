@@ -20,7 +20,7 @@
 #include "motis/loader/util.h"
 #include "motis/schedule-format/RuleService_generated.h"
 
-#include "./test_spec_test.h"
+#include "./paths.h"
 
 namespace motis {
 namespace loader {
