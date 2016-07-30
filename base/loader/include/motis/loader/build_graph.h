@@ -7,7 +7,7 @@
 namespace motis {
 namespace loader {
 
-struct Schedule;
+struct Schedule;  // NOLINT
 
 schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
                          bool unique_check, bool apply_rules,
