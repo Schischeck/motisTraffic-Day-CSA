@@ -9,6 +9,7 @@
 #include "motis/core/common/constants.h"
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
@@ -20,7 +21,7 @@
 #include "motis/loader/wzr_loader.h"
 
 using namespace motis::logging;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 namespace motis {
 namespace loader {

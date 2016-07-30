@@ -21,14 +21,14 @@ namespace loader {
 std::string pad_to_7_digits(int eva_num);
 
 template <typename T>
-inline flatbuffers::Offset<flatbuffers::String> to_fbs_string(
-    flatbuffers::FlatBufferBuilder& b, T const& s) {
+inline flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
+    flatbuffers64::FlatBufferBuilder& b, T const& s) {
   return b.CreateString(s.c_str(), s.length());
 }
 
 template <typename T>
-flatbuffers::Offset<flatbuffers::String> to_fbs_string(
-    flatbuffers::FlatBufferBuilder& b, T const& s,
+flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
+    flatbuffers64::FlatBufferBuilder& b, T const& s,
     std::string const& /* charset -> currently only supported: ISO-8859-1 */) {
   std::vector<unsigned char> utf8(s.length() * 2, '\0');
   auto number_of_input_bytes = s.length();
@@ -86,23 +86,6 @@ inline TargetCollection transform(It s, It e, UnaryOperation op) {
   return c;
 }
 
-template <typename It, typename UnaryOperation>
-inline auto transform_to_vec(It s, It e, UnaryOperation op)
-    -> std::vector<decltype(op(*s))> {
-  std::vector<decltype(op(*s))> vec(std::distance(s, e));
-  std::transform(s, e, std::begin(vec), op);
-  return vec;
-}
-
-template <typename Container, typename UnaryOperation>
-inline auto transform_to_vec(Container const& c, UnaryOperation op)
-    -> std::vector<decltype(op(*std::begin(c)))> {
-  std::vector<decltype(op(*std::begin(c)))> vec(
-      std::distance(std::begin(c), std::end(c)));
-  std::transform(std::begin(c), std::end(c), std::begin(vec), op);
-  return vec;
-}
-
 template <typename T>
 inline std::vector<T> repeat_n(T const& el, std::size_t n) {
   std::vector<T> els(n);
@@ -116,7 +99,7 @@ inline int yyyymmdd_day(int yyyymmdd) { return yyyymmdd % 100; }
 
 parser::buffer load_file(boost::filesystem::path const&);
 
-void write_schedule(flatbuffers::FlatBufferBuilder& b,
+void write_schedule(flatbuffers64::FlatBufferBuilder& b,
                     boost::filesystem::path const& path);
 
 void collect_files(boost::filesystem::path const& root,

@@ -31,7 +31,7 @@ void loader_graph_builder_test::SetUp() {
   }
 
   try {
-    flatbuffers::FlatBufferBuilder b;
+    flatbuffers64::FlatBufferBuilder b;
     parser.parse(schedule_path, b);
     auto serialized = GetSchedule(b.GetBufferPointer());
 

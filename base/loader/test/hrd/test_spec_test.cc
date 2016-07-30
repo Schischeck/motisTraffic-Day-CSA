@@ -7,7 +7,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 std::vector<specification> test_spec::get_specs() {
   std::vector<specification> specs;

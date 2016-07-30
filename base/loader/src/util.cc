@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 namespace fs = boost::filesystem;
 

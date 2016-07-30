@@ -40,7 +40,7 @@ protected:
     path const fahrten = root / "fahrten";
 
     // load bitfields
-    flatbuffers::FlatBufferBuilder fbb;
+    flatbuffers64::FlatBufferBuilder fbb;
     data_.push_back(loaded_file(stamm / "bitfield.101"));
     bitfield_builder bb(parse_bitfields(data_.back()));
 

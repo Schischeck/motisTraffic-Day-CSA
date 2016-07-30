@@ -4,11 +4,11 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 Offset<Vector<Offset<Footpath>>> create_footpaths(
     std::set<station_meta_data::footpath> const& hrd_footpaths,
-    std::map<int, flatbuffers::Offset<Station>> const& fbs_stations,
+    std::map<int, flatbuffers64::Offset<Station>> const& fbs_stations,
     FlatBufferBuilder& fbb) {
   std::vector<Offset<Footpath>> fbs_footpaths;
   for (auto const& f : hrd_footpaths) {

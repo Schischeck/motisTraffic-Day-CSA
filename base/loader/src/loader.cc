@@ -20,7 +20,7 @@
 #include "motis/loader/hrd/hrd_parser.h"
 
 namespace fs = boost::filesystem;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 using namespace motis::logging;
 

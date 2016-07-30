@@ -13,10 +13,10 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/module_settings.h"
 #include "motis/bootstrap/motis_instance.h"
-#include "motis/loader/util.h"
 #include "motis/launcher/batch_mode.h"
 #include "motis/launcher/http_server.h"
 #include "motis/launcher/launcher_settings.h"

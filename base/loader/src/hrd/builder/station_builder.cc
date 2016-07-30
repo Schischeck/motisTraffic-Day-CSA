@@ -1,14 +1,14 @@
 #include "motis/loader/hrd/builder/station_builder.h"
 
 #include "motis/core/common/get_or_create.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/loader/hrd/files.h"
-#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 station_builder::station_builder(
     std::map<int, intermediate_station> hrd_stations, timezones tz)

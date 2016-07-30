@@ -52,11 +52,11 @@ struct stop_restrictions {
 };
 
 struct route_builder {
-  flatbuffers::Offset<Route> get_or_create_route(
+  flatbuffers64::Offset<Route> get_or_create_route(
       std::vector<hrd_service::stop> const&, station_builder&,
-      flatbuffers::FlatBufferBuilder&);
+      flatbuffers64::FlatBufferBuilder&);
 
-  std::map<std::vector<stop_restrictions>, flatbuffers::Offset<Route>> routes_;
+  std::map<std::vector<stop_restrictions>, flatbuffers64::Offset<Route>> routes_;
 };
 
 }  // namespace hrd

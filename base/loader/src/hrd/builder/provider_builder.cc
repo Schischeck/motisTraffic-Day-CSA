@@ -9,7 +9,7 @@ namespace loader {
 namespace hrd {
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 provider_builder::provider_builder(
     std::map<uint64_t, provider_info> hrd_providers)

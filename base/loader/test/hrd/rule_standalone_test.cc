@@ -7,7 +7,7 @@
 
 using namespace motis::loader;
 using namespace motis::loader::hrd;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 std::string get_simple_traffic_days(std::string const& t) {
   auto s = t.substr(t.size() - 3);

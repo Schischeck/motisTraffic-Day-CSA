@@ -10,7 +10,7 @@
 #include "./test_spec_test.h"
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 namespace motis {
 namespace loader {
