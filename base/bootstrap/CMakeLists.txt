@@ -1,5 +1,5 @@
 project(motis)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 set(module-includes "\#include <string>")
 set(module-includes "${module-includes}\n\#include <map>")
