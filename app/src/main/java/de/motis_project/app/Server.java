@@ -36,18 +36,15 @@ public class Server {
     public synchronized Message request(FlatBufferBuilder b, int timeoutInMilliseconds) throws Exception {
         startTimeout(timeoutInMilliseconds);
         try {
-            System.out.println("isOpen: " + (socket != null && socket.isOpen()));
+            //System.out.println("isOpen: " + (socket != null && socket.isOpen()));
             if (socket == null || !socket.isConnected()) {
                 connect();
             }
             writeRequest(b);
             return readReply();
         } catch (Exception e) {
-            e.printStackTrace();
-            if (socket != null) {
-                socket.close();
-                socket = null;
-            }
+            socket.close();
+            socket = null;
             throw e;
         } finally {
             cancelTimeout();
@@ -92,7 +89,7 @@ public class Server {
     }
 
     private void connect() throws Exception {
-        System.out.println("connecting");
+        //System.out.println("connecting");
         socket = SocketChannel.open();
         socket.connect(new InetSocketAddress(host, port));
         socket.configureBlocking(false);
@@ -127,7 +124,7 @@ public class Server {
             nop();
         }
 
-        System.out.println("write complete");
+        //System.out.println("write complete");
     }
 
     private Message readReply() throws Exception {

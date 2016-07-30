@@ -3,5 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="color_white_semitransparent">#AAFFFFFF</color>
+    <color name="color_white_semitransparent">#88FFFFFF</color>
+    <color name="color_back_semitransparent">#AA000000</color>
+    <color name="grey_200">#FFCCCCCC</color>
 </resources>

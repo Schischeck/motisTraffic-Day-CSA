@@ -7,27 +7,109 @@
     tools:context="de.motis_project.app.QueryFragment">
 
     <EditText
-        android:id="@+id/editText1"
+        android:id="@+id/start_input"
+        style="@style/FullWidthEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView"
-        android:hint="Start" />
+        android:cursorVisible="false"
+        android:hint="Start"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:editable="false"
+        android:ellipsize="end"/>
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/til2"
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/grey_200" />
+
+    <EditText
+        android:id="@+id/dest_input"
+        style="@style/FullWidthEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/til1">
+        android:cursorVisible="false"
+        android:hint="Ziel"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:editable="false"/>
 
-        <EditText
-            android:id="@+id/editText2"
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/grey_200" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:weightSum="1">
+
+        <LinearLayout
+            android:id="@+id/date_select"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/textView"
-            android:hint="Ziel" />
-    </android.support.design.widget.TextInputLayout>
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:layout_weight="0.5"
+            android:weightSum="1"
+            android:gravity="center">
 
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_date_range_black_24dp"
+                android:tint="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/date_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:paddingLeft="15dp"
+                android:freezesText="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/time_select"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:layout_weight="0.5"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_query_build_black_24"
+                android:tint="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/time_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:paddingLeft="15dp"
+                android:text="New Text"
+                android:freezesText="true"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 </LinearLayout>

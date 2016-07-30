@@ -1,6 +1,5 @@
 package de.motis_project.app;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
@@ -11,7 +10,6 @@ import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class MainActivity extends FragmentActivity implements QueryFragment.OnFragmentInteractionListener {
     void showToast(@StringRes final int text) {

@@ -1,6 +1,7 @@
 package de.motis_project.app;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.google.flatbuffers.FlatBufferBuilder;
 
@@ -16,7 +17,6 @@ public abstract class FetchDataTask extends AsyncTask<FlatBufferBuilder, Void, M
         try {
             return s.request(b);
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }
