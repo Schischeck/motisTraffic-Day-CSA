@@ -17,13 +17,16 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
+import de.motis_project.app.connection.MessageBuilder;
+import de.motis_project.app.connection.Server;
+import de.motis_project.app.connection.State;
 import motis.Message;
 import motis.MotisError;
 import motis.MsgContent;
 import motis.guesser.StationGuesserRequest;
 import motis.guesser.StationGuesserResponse;
 
-public class SearchActivity extends FragmentActivity {
+public class SearchActivity extends FragmentActivity implements Server.Listener {
     @BindView(R.id.suggestionslist)
     ListView suggestionList;
 
@@ -45,51 +48,28 @@ public class SearchActivity extends FragmentActivity {
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
         Intent i = new Intent();
-        i.putExtra("result", suggestionList.getAdapter().getItem(pos).toString());
+        i.putExtra("result",
+                   suggestionList.getAdapter().getItem(pos).toString());
         setResult(Activity.RESULT_OK, i);
         finish();
     }
 
     @OnTextChanged(R.id.searchInput)
     void getSuggestions(CharSequence inputText) {
-        if(inputText.length() < 3) {
+        if (inputText.length() < 3) {
             return;
         }
 
-        String input = inputText.toString();
-        FlatBufferBuilder b = new FlatBufferBuilder();
-        int guesserRequestOffset = StationGuesserRequest.createStationGuesserRequest(b, 10, b.createString(input));
-        b.finish(Message.createMessage(b, MsgContent.StationGuesserRequest, guesserRequestOffset, 1));
-
-        new FetchDataTask() {
-            protected void onPostExecute(final Message result) {
-                ArrayList<String> guessList = new ArrayList<>();
-
-
-                if (result != null && result.contentType() == MsgContent.StationGuesserResponse) {
-                    StationGuesserResponse guessesResponse = new StationGuesserResponse();
-                    guessesResponse = (StationGuesserResponse) result.content(guessesResponse);
-                    for (int i = 0; i < guessesResponse.guessesLength(); i++) {
-                        guessList.add(guessesResponse.guesses(i).name());
-                    }
-                } else {
-                    guessList.add("ERROR!");
-                    if (result != null) {
-                        System.err.println("content type match: " + (result.contentType() != MsgContent.StationGuesserResponse));
-                        System.err.println("content type is error: " + (result.contentType() == MsgContent.MotisError));
-                        MotisError error = new MotisError();
-                        error = (MotisError) result.content(error);
-                        System.err.println("ERROR: " + error.category() + ", " + error.reason());
-                    }
-                }
-                setResults(guessList);
-            }
-        }.execute(b);
+        byte[] msg = MessageBuilder.guess(1, inputText.toString());
+        State.get().getServer().send(msg);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        State.get().getServer().addListener(this);
+
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
         setResults(new ArrayList<String>());
@@ -102,8 +82,40 @@ public class SearchActivity extends FragmentActivity {
     }
 
     public void setResults(ArrayList<String> r) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(SearchActivity.this,
-                R.layout.search_list_item, R.id.guess_text, r);
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(SearchActivity.this,
+                                         R.layout.search_list_item,
+                                         R.id.guess_text, r);
         suggestionList.setAdapter(adapter);
+    }
+
+    @Override
+    public void onMessage(Message m) {
+        if (m.contentType() != MsgContent.StationGuesserResponse) {
+            return;
+        }
+
+        StationGuesserResponse guessesResponse = new StationGuesserResponse();
+        guessesResponse = (StationGuesserResponse) m.content(guessesResponse);
+
+        final ArrayList<String> guesses = new ArrayList<String>();
+        for (int i = 0; i < guessesResponse.guessesLength(); i++) {
+            guesses.add(guessesResponse.guesses(i).name());
+        }
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setResults(guesses);
+            }
+        });
+    }
+
+    @Override
+    public void onConnect() {
+    }
+
+    @Override
+    public void onDisconnect() {
     }
 }

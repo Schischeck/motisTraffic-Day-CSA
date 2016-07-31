@@ -6,6 +6,7 @@
 
     <application
         android:allowBackup="true"
+        android:name="de.motis_project.app.Application"
         android:icon="@drawable/ic_place_black_24dp"
         android:label="@string/app_name"
         android:supportsRtl="true"
