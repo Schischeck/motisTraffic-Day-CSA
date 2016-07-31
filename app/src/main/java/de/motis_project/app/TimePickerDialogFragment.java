@@ -42,7 +42,7 @@ public class TimePickerDialogFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.dialog_time_picker, null);
 
         final TimePicker tp = (TimePicker) v.findViewById(R.id.timePicker);
-        tp.setIs24HourView(new DateFormat().is24HourFormat(getContext()));
+        tp.setIs24HourView(DateFormat.is24HourFormat(getContext()));
         tp.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
             public void onTimeChanged(TimePicker timePicker, int h, int m) {
