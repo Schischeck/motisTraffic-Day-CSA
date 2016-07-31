@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <RadioGroup
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
@@ -14,24 +14,14 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin">
-
-        <View
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
         <RadioButton
             android:id="@+id/depature_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:checked="true"
-            android:text="Abfahrt" />
-
-        <View
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:text="@string/departure"
+            android:layout_marginRight="10dp"/>
 
         <RadioButton
             android:id="@+id/arrival_btn"
@@ -39,12 +29,8 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:checked="false"
-            android:text="Ankunft" />
-
-        <View
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:text="@string/arrival"
+            android:layout_marginLeft="10dp"/>
     </RadioGroup>
 
     <TimePicker

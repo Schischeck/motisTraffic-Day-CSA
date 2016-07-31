@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">MOTIS</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="app_label">App Label</string>
     <string name="search_hint">hint</string>
     <string name="arrival">Ankunft</string>
     <string name="departure">Abfahrt</string>
+    <string name="arrival_short">Ank.</string>
+    <string name="departure_short">Abf.</string>
 </resources>

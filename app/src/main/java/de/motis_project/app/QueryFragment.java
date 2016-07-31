@@ -65,10 +65,10 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
 
     DateSelected dateSelected;
 
-    @BindString(R.string.arrival)
+    @BindString(R.string.arrival_short)
     String arrivalStr;
 
-    @BindString(R.string.departure)
+    @BindString(R.string.departure_short)
     String departureStr;
 
     @BindView(R.id.start_input)

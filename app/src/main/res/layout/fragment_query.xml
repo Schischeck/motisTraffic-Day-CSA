@@ -106,7 +106,6 @@
                 android:layout_gravity="center"
                 android:gravity="center_vertical"
                 android:paddingLeft="15dp"
-                android:text="New Text"
                 android:freezesText="true"/>
 
         </LinearLayout>
