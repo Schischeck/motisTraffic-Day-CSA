@@ -81,6 +81,12 @@ public class SearchActivity extends FragmentActivity implements Server.Listener 
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        State.get().getServer().removeListener(this);
+    }
+
     public void setResults(ArrayList<String> r) {
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(SearchActivity.this,
