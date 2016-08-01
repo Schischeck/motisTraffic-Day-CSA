@@ -5,7 +5,7 @@ import android.os.Handler;
 import java.io.IOException;
 
 public class State {
-    private static final String SERVER_URL = "ws://192.168.1.106:8080";
+    private static final String SERVER_URL = "ws://ws.motis-project.de";
 
     private static State SINGLETON;
     private Server server;
