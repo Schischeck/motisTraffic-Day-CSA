@@ -3,8 +3,11 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <string>
 
 #include "boost/system/system_error.hpp"
+
+#include "snappy.h"
 
 #define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
@@ -17,7 +20,7 @@ typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
 using websocketpp::lib::error_code;
-using websocketpp::frame::opcode::TEXT;
+using websocketpp::frame::opcode::BINARY;
 
 using namespace motis::module;
 
@@ -64,7 +67,12 @@ struct ws_server::ws_server_impl {
       }
 
       error_code send_ec;
-      server_.send(sid_it->second, msg->to_json(), TEXT, send_ec);
+
+      auto const data = reinterpret_cast<char const*>(msg->data());
+      std::string b;
+      snappy::Compress(data, msg->size(), &b);
+
+      server_.send(sid_it->second, b, BINARY, send_ec);
     });
   }
 
@@ -126,7 +134,11 @@ struct ws_server::ws_server_impl {
 
     msg_ptr req_msg;
     try {
-      req_msg = make_msg(msg->get_payload());
+      auto const& req_buf = msg->get_payload();
+      snappy::Uncompress(static_cast<char const*>(req_buf.data()),
+                         req_buf.size(), &buf_);
+      req_msg =
+          make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
     } catch (std::system_error const& e) {
       send_error(e.code(), session, 0);
       return;
@@ -165,6 +177,8 @@ struct ws_server::ws_server_impl {
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
   std::map<connection_hdl, sid, std::owner_less<connection_hdl>> con_sid_map_;
+
+  std::string buf_;
 };
 
 ws_server::~ws_server() = default;
