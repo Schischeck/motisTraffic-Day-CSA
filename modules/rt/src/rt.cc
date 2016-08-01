@@ -52,7 +52,7 @@ void fix_time(ev_key const& k) {
   }
 }
 
-rt::rt() = default;
+rt::rt() { moved_events_.set_empty_key(ev_key{nullptr, 0, event_type::DEP}); }
 
 rt::~rt() = default;
 
@@ -128,24 +128,26 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
         case MessageUnion_CancelMessage: {
           auto const msg = reinterpret_cast<CancelMessage const*>(c);
 
+          auto trp = find_trip_fuzzy(s, msg->trip_id());
+          if (trp == nullptr) {
+            ++stats_.canceled_trp_not_found_;
+            break;
+          }
+
+          auto const first_dep = ev_key{trp->edges_->front().get_edge(),
+                                        trp->lcon_idx_, event_type::DEP};
+          seperate_trip(s, first_dep, moved_events_);
+
           auto const resolved = resolve_events(
               s, msg->trip_id(),
               transform_to_vec(*msg->events(),
                                [](ris::Event const* ev) { return ev; }));
 
-          auto const it = std::find_if(
-              begin(resolved), end(resolved),
-              [](boost::optional<motis::ev_key> const& ev) -> bool {
-                return ev.is_initialized();
-              });
-          if (it == end(resolved)) {
-            continue;
+          for (auto const& ev : resolved) {
+            auto mutable_lcon =
+                const_cast<light_connection*>(ev->lcon());  // NOLINT
+            mutable_lcon->valid_ = false;
           }
-
-          seperate_trip(s, **it, moved_events_);
-
-          //          for (auto const& ev : resolved) {
-          //          }
 
           break;
         }
@@ -186,7 +188,6 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
 
   // Check for graph corruption and revert if necessary.
   shifted_nodes_msg_builder shifted_nodes(sched);
-  moved_events_.set_empty_key(ev_key{nullptr, 0, event_type::DEP});
   for (auto const& di : propagator_->events()) {
     auto moved_it = moved_events_.find(di->get_ev_key());
     if (moved_it != end(moved_events_)) {
