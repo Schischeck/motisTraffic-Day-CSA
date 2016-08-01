@@ -17,7 +17,7 @@ struct ws_server {
 
   void send(motis::module::msg_ptr const& msg, unsigned session);
 
-  void listen(std::string const& host, std::string const& port);
+  void listen(std::string const& host, std::string const& port, bool binary);
   void stop();
 
   struct ws_server_impl;
