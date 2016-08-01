@@ -3,8 +3,8 @@
 #include <unordered_map>
 
 #include "motis/core/common/timing.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/loader/util.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/output/labels_to_journey.h"
 #include "motis/routing/pareto_dijkstra.h"
@@ -80,7 +80,7 @@ struct search {
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
     return search_result(
-        stats, loader::transform_to_vec(pd.get_results(), [&q](Label* label) {
+        stats, transform_to_vec(pd.get_results(), [&q](Label* label) {
           return output::labels_to_journey(*q.sched_, label, Dir);
         }));
   }

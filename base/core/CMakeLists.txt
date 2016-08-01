@@ -1,5 +1,5 @@
 project(motis)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 file(GLOB_RECURSE motis-core-files src/*.cc)
 add_library(motis-core STATIC ${motis-core-files})

@@ -8,6 +8,7 @@
 #include "motis/loader/hrd/parser/through_services_parser.h"
 #include "motis/loader/util.h"
 
+#include "./paths.h"
 #include "./test_spec_test.h"
 
 namespace motis {

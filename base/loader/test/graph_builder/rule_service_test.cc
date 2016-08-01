@@ -27,10 +27,9 @@ std::set<int> get_service_numbers(connection_info const* con) {
 class service_rule_graph_builder_test : public loader_graph_builder_test {
 public:
   service_rule_graph_builder_test(std::string schedule_name,
-                                  std::time_t schedule_begin,
-                                  std::time_t schedule_end)
-      : loader_graph_builder_test(schedule_name, schedule_begin, schedule_end) {
-  }
+                                  std::string schedule_begin, int num_days)
+      : loader_graph_builder_test(std::move(schedule_name),
+                                  std::move(schedule_begin), num_days) {}
 
   std::pair<bool, std::vector<edge const*>> path_exists(std::string const& from,
                                                         std::string const& to) {
@@ -84,8 +83,7 @@ class service_rules_graph_builder_test_virt
     : public service_rule_graph_builder_test {
 public:
   service_rules_graph_builder_test_virt()
-      : service_rule_graph_builder_test("mss-ts", to_unix_time(2015, 3, 29),
-                                        to_unix_time(2015, 3, 31)) {}
+      : service_rule_graph_builder_test("mss-ts", "20150329", 3) {}
 };
 
 TEST_F(service_rules_graph_builder_test_virt, simple_path_exists) {

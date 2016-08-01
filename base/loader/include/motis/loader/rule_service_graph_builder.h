@@ -7,7 +7,7 @@ struct rule_service_graph_builder {
   explicit rule_service_graph_builder(graph_builder&);
 
   void add_rule_services(
-      flatbuffers::Vector<flatbuffers::Offset<RuleService>> const*
+      flatbuffers64::Vector<flatbuffers64::Offset<RuleService>> const*
           rule_services);
 
 private:

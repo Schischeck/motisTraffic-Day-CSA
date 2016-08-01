@@ -11,10 +11,10 @@ namespace loader {
 namespace hrd {
 
 struct line_builder {
-  flatbuffers::Offset<flatbuffers::String> get_or_create_line(
-      std::vector<parser::cstr> const&, flatbuffers::FlatBufferBuilder&);
+  flatbuffers64::Offset<flatbuffers64::String> get_or_create_line(
+      std::vector<parser::cstr> const&, flatbuffers64::FlatBufferBuilder&);
 
-  std::map<uint64_t, flatbuffers::Offset<flatbuffers::String>> fbs_lines_;
+  std::map<uint64_t, flatbuffers64::Offset<flatbuffers64::String>> fbs_lines_;
 };
 
 }  // namespace hrd

@@ -15,7 +15,7 @@
 namespace motis {
 namespace loader {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 int calculate_offset(RuleService const* rule_service) {
   int offset = 0;

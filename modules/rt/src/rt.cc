@@ -17,7 +17,6 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/loader/classes.h"
-#include "motis/loader/util.h"
 #include "motis/rt/additional_service_builder.h"
 #include "motis/rt/bfs.h"
 #include "motis/rt/delay_propagator.h"

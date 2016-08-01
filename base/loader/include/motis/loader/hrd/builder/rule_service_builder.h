@@ -18,8 +18,8 @@ namespace loader {
 namespace hrd {
 
 struct rule_service_builder {
-  typedef std::function<flatbuffers::Offset<Service>(
-      hrd_service const&, bool, flatbuffers::FlatBufferBuilder&)>
+  typedef std::function<flatbuffers64::Offset<Service>(
+      hrd_service const&, bool, flatbuffers64::FlatBufferBuilder&)>
       service_builder_fun;
 
   rule_service_builder() = default;
@@ -29,11 +29,11 @@ struct rule_service_builder {
   bool add_service(hrd_service const&);
   void resolve_rule_services();
   void create_rule_services(service_builder_fun, station_builder&,
-                            flatbuffers::FlatBufferBuilder&);
+                            flatbuffers64::FlatBufferBuilder&);
 
   std::vector<std::unique_ptr<hrd_service>> origin_services_;
   std::vector<rule_service> rule_services_;
-  std::vector<flatbuffers::Offset<RuleService>> fbs_rule_services_;
+  std::vector<flatbuffers64::Offset<RuleService>> fbs_rule_services_;
 
 private:
   service_rules input_rules_;

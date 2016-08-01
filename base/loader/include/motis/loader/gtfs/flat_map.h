@@ -1,5 +1,7 @@
 #pragma once
 
+#include "motis/core/common/transform_to_vec.h"
+
 #include <algorithm>
 #include <utility>
 #include <vector>

@@ -36,7 +36,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 using namespace motis::logging;
 namespace fs = boost::filesystem;
