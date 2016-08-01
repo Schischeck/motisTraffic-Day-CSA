@@ -144,6 +144,10 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
                                [](ris::Event const* ev) { return ev; }));
 
           for (auto const& ev : resolved) {
+            if (!ev) {
+              continue;
+            }
+
             auto mutable_lcon =
                 const_cast<light_connection*>(ev->lcon());  // NOLINT
             mutable_lcon->valid_ = false;
@@ -151,7 +155,9 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
 
           break;
         }
+
         case MessageUnion_RerouteMessage: break;
+
         default: break;
       }
     } catch (...) {
