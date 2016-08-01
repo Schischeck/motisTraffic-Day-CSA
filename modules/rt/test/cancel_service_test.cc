@@ -16,14 +16,6 @@ using motis::test::schedule::invalid_realtime::get_cancel_ris_message;
 struct rt_cancel_service_test : public motis_instance_test {
   rt_cancel_service_test()
       : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
-
-  void print_ev(ev_key const& k) {
-    auto const& s = sched();
-    auto const& station = s.stations_[k.get_station_idx()]->eva_nr_;
-    std::cout << (k.lcon()->valid_ ? " " : "X") << " "
-              << (k.ev_type_ == event_type::DEP ? "DEP" : "ARR") << " "
-              << format_time(k.get_time()) << " station: [" << station << "]\n";
-  }
 };
 
 TEST_F(rt_cancel_service_test, simple) {
