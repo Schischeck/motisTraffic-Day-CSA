@@ -9,6 +9,7 @@
 #include "motis/core/common/date_time_util.h"
 #include "motis/loader/hrd/model/hrd_service.h"
 
+#include "./paths.h"
 #include "./test_spec_test.h"
 
 using namespace parser;

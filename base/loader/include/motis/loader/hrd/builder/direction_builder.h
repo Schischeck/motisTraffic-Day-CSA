@@ -15,12 +15,12 @@ namespace hrd {
 struct direction_builder {
   explicit direction_builder(std::map<uint64_t, std::string>);
 
-  flatbuffers::Offset<Direction> get_or_create_direction(
+  flatbuffers64::Offset<Direction> get_or_create_direction(
       std::vector<std::pair<uint64_t, int>> const&, station_builder&,
-      flatbuffers::FlatBufferBuilder&);
+      flatbuffers64::FlatBufferBuilder&);
 
   std::map<uint64_t, std::string> hrd_directions_;
-  std::map<uint64_t, flatbuffers::Offset<Direction>> fbs_directions_;
+  std::map<uint64_t, flatbuffers64::Offset<Direction>> fbs_directions_;
 };
 
 }  // namespace hrd

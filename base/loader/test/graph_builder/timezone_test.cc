@@ -4,8 +4,6 @@
 
 #include "motis/core/common/date_time_util.h"
 
-#include "motis/loader/util.h"
-
 #include "./graph_builder_test.h"
 
 namespace motis {
@@ -15,8 +13,7 @@ class loader_graph_builder_east_to_west_test
     : public loader_graph_builder_test {
 public:
   loader_graph_builder_east_to_west_test()
-      : loader_graph_builder_test("east-to-west", to_unix_time(2015, 7, 2),
-                                  to_unix_time(2015, 7, 10)) {}
+      : loader_graph_builder_test("east-to-west", "20150702", 9) {}
 };
 
 void test_events(
@@ -44,8 +41,7 @@ TEST_F(loader_graph_builder_east_to_west_test, event_times) {
 class loader_graph_builder_season_valid : public loader_graph_builder_test {
 public:
   loader_graph_builder_season_valid()
-      : loader_graph_builder_test("season-valid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
+      : loader_graph_builder_test("season-valid", "20150329", 3) {}
 };
 
 TEST_F(loader_graph_builder_season_valid, event_times) {
@@ -69,8 +65,7 @@ TEST_F(loader_graph_builder_season_valid, event_times) {
 class loader_graph_builder_season_invalid : public loader_graph_builder_test {
 public:
   loader_graph_builder_season_invalid()
-      : loader_graph_builder_test("season-invalid", to_unix_time(2015, 3, 29),
-                                  to_unix_time(2015, 3, 31)) {}
+      : loader_graph_builder_test("season-invalid", "20150329", 3) {}
 };
 
 TEST_F(loader_graph_builder_season_invalid, event_times) {

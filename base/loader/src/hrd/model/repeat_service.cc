@@ -1,6 +1,6 @@
 #include "motis/loader/hrd/model/repeat_service.h"
 
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 
 namespace motis {
 namespace loader {

@@ -56,15 +56,16 @@ constexpr auto railRoadsSecReqWrongClasz = R""(
 }
 )"";
 
-const std::vector<std::string> routesFile = {
+const std::vector<std::string> routes_file_param = {
     "--routes.railroads_folder=modules/routes/test/"
     "test_preprocessing/test_osm/simple_realtime.raw"};
 
 struct routes_test : public motis_instance_test {
-  routes_test() : motis_instance_test(dataset_opt, {"routes"}, routesFile) {}
+  routes_test()
+      : motis_instance_test(dataset_opt, {"routes"}, routes_file_param) {}
 };
 
-TEST_F(routes_test, sec_no_route) {
+TEST_F(routes_test, DISABLED_sec_no_route) {
   auto msg = call(make_msg(railRoadsSecReqNoRoute));
   auto resp = motis_content(RoutesSectionRes, msg);
   EXPECT_EQ(4, resp->section()->size());
@@ -75,7 +76,7 @@ TEST_F(routes_test, sec_no_route) {
   EXPECT_DOUBLE_EQ(7.459290, resp->section()->Get(3));
 }
 
-TEST_F(routes_test, sec_with_nodes) {
+TEST_F(routes_test, DISABLED_sec_with_nodes) {
   auto msg = call(make_msg(railRoadsSecReq));
   auto resp = motis_content(RoutesSectionRes, msg);
   EXPECT_EQ(6, resp->section()->size());
@@ -88,7 +89,7 @@ TEST_F(routes_test, sec_with_nodes) {
   EXPECT_DOUBLE_EQ(11.082989, resp->section()->Get(5));
 }
 
-TEST_F(routes_test, sec_wrong_clasz) {
+TEST_F(routes_test, DISABLED_sec_wrong_clasz) {
   auto msg = call(make_msg(railRoadsSecReqWrongClasz));
   auto resp = motis_content(RoutesSectionRes, msg);
   EXPECT_EQ(6, resp->section()->size());

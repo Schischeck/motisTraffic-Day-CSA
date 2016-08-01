@@ -1,10 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(motis)
 
 set(schedule-dir ${CMAKE_CURRENT_SOURCE_DIR}/schedule-format)
 set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/schedule-format")
 file(GLOB_RECURSE schedule-format-files ${schedule-dir}/*.fbs)
 build_flatbuffers(
+  64                           # num_bits
   ""                           # commandline_options
   "${schedule-format-files}"   # flatbuffers_schemas
   "${schedule-dir}"            # schema_include_dirs
@@ -18,5 +19,6 @@ build_flatbuffers(
 file(GLOB_RECURSE motis-loader-files src/*.cc)
 add_library(motis-loader STATIC ${motis-loader-files})
 add_dependencies(motis-loader generated-schedule-headers)
-target_link_libraries(motis-loader ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(motis-loader ${Boost_FILESYSTEM_LIBRARY} flatbuffers64)
 set_target_properties(motis-loader PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+target_compile_definitions(motis-loader PRIVATE FLATBUFFERS_64=1)

@@ -8,6 +8,7 @@
 #include "motis/loader/hrd/parser/merge_split_rules_parser.h"
 #include "motis/loader/util.h"
 
+#include "./paths.h"
 #include "./test_spec_test.h"
 
 namespace motis {

@@ -11,7 +11,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 
 direction_builder::direction_builder(
@@ -20,7 +20,7 @@ direction_builder::direction_builder(
 
 Offset<Direction> direction_builder::get_or_create_direction(
     std::vector<std::pair<uint64_t, int>> const& directions,
-    station_builder& sb, flatbuffers::FlatBufferBuilder& fbb) {
+    station_builder& sb, flatbuffers64::FlatBufferBuilder& fbb) {
   if (directions.empty()) {
     return 0;
   } else {

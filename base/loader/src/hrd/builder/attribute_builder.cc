@@ -3,15 +3,15 @@
 #include "parser/util.h"
 
 #include "motis/core/common/get_or_create.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/loader/hrd/files.h"
-#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
 namespace hrd {
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 attribute_builder::attribute_builder(
     std::map<uint16_t, std::string> hrd_attributes)
@@ -19,7 +19,7 @@ attribute_builder::attribute_builder(
 
 Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
     std::vector<hrd_service::attribute> const& attributes, bitfield_builder& bb,
-    flatbuffers::FlatBufferBuilder& fbb) {
+    flatbuffers64::FlatBufferBuilder& fbb) {
   return fbb.CreateVector(
       transform_to_vec(begin(attributes), end(attributes),
                        [&](hrd_service::attribute const& attr) {
@@ -29,7 +29,7 @@ Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
 
 Offset<Attribute> attribute_builder::get_or_create_attribute(
     hrd_service::attribute const& attr, bitfield_builder& bb,
-    flatbuffers::FlatBufferBuilder& fbb) {
+    flatbuffers64::FlatBufferBuilder& fbb) {
   auto const attr_info_key = raw_to_int<uint16_t>(attr.code_);
   auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num_);
 

@@ -16,11 +16,11 @@ namespace hrd {
 struct category_builder {
   explicit category_builder(std::map<uint32_t, category> hrd_categories);
 
-  flatbuffers::Offset<Category> get_or_create_category(
-      parser::cstr, flatbuffers::FlatBufferBuilder&);
+  flatbuffers64::Offset<Category> get_or_create_category(
+      parser::cstr, flatbuffers64::FlatBufferBuilder&);
 
   std::map<uint32_t, category> const hrd_categories_;
-  std::map<uint32_t, flatbuffers::Offset<Category>> fbs_categories_;
+  std::map<uint32_t, flatbuffers64::Offset<Category>> fbs_categories_;
 };
 
 }  // namespace hrd

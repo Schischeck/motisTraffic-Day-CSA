@@ -6,11 +6,11 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 Offset<Vector<Offset<MetaStation>>> create_meta_stations(
     std::set<station_meta_data::meta_station> const& hrd_meta_stations,
-    std::map<int, flatbuffers::Offset<Station>> const& fbs_stations,
+    std::map<int, flatbuffers64::Offset<Station>> const& fbs_stations,
     FlatBufferBuilder& fbb) {
   std::vector<Offset<MetaStation>> fbs_meta_stations;
   for (auto const& m : hrd_meta_stations) {

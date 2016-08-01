@@ -2,10 +2,9 @@
 
 #include <numeric>
 
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 
 using namespace motis::routing;
-using motis::loader::transform_to_vec;
 
 namespace motis {
 namespace eval {
@@ -25,11 +24,9 @@ unsigned transfers(Connection const* c) {
 unsigned price(Connection const*) { return 0; }
 
 response::response(RoutingResponse const* r)
-    : connections_(transform_to_vec(
-          std::begin(*r->connections()), std::end(*r->connections()),
-          [](Connection const* c) {
-            return std::make_tuple(travel_time(c), transfers(c), price(c));
-          })) {}
+    : connections_(transform_to_vec(*r->connections(), [](Connection const* c) {
+        return std::make_tuple(travel_time(c), transfers(c), price(c));
+      })) {}
 
 }  // namespace comparator
 }  // namespace eval

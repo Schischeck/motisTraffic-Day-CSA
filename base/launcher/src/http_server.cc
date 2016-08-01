@@ -9,8 +9,8 @@
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/module/message.h"
-#include "motis/loader/util.h"
 
 using namespace net::http::server;
 using namespace motis::module;
@@ -87,8 +87,8 @@ struct http_server::impl {
           MsgContent_HTTPRequest,
           CreateHTTPRequest(fbb, translate_method_string(req.method),
                             fbb.CreateString(get_path(req.uri)),
-                            fbb.CreateVector(loader::transform_to_vec(
-                                begin(req.headers), end(req.headers),
+                            fbb.CreateVector(transform_to_vec(
+                                req.headers,
                                 [&](header const& h) {
                                   return CreateHTTPHeader(
                                       fbb, fbb.CreateString(h.name),

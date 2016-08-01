@@ -17,17 +17,18 @@ struct bitfield_builder {
 
   explicit bitfield_builder(std::map<int, bitfield>);
 
-  flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      int bitfield_num, flatbuffers::FlatBufferBuilder&);
+  flatbuffers64::Offset<flatbuffers64::String> get_or_create_bitfield(
+      int bitfield_num, flatbuffers64::FlatBufferBuilder&);
 
-  flatbuffers::Offset<flatbuffers::String> get_or_create_bitfield(
-      bitfield const&, flatbuffers::FlatBufferBuilder&, int = no_bitfield_num_);
+  flatbuffers64::Offset<flatbuffers64::String> get_or_create_bitfield(
+      bitfield const&, flatbuffers64::FlatBufferBuilder&,
+      int = no_bitfield_num_);
 
   std::map<int, bitfield> const hrd_bitfields_;
-  google::dense_hash_map<bitfield, flatbuffers::Offset<flatbuffers::String>,
+  google::dense_hash_map<bitfield, flatbuffers64::Offset<flatbuffers64::String>,
                          std::hash<bitfield>, std::equal_to<bitfield>>
       fbs_bitfields_;
-  std::map<int, flatbuffers::Offset<flatbuffers::String>> fbs_bf_lookup_;
+  std::map<int, flatbuffers64::Offset<flatbuffers64::String>> fbs_bf_lookup_;
 };
 
 }  // namespace hrd

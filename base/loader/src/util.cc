@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 namespace fs = boost::filesystem;
 
@@ -19,10 +19,6 @@ std::string pad_to_7_digits(int eva_num) {
 void write_schedule(FlatBufferBuilder& b, fs::path const& path) {
   file f(path.string().c_str(), "w+");
   f.write(b.GetBufferPointer(), b.GetSize());
-}
-
-buffer load_file(fs::path const& p) {
-  return file(p.string().c_str(), "r").content();
 }
 
 void collect_files(fs::path const& root, std::vector<fs::path>& files) {

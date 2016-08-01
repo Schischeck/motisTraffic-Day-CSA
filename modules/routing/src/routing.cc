@@ -7,10 +7,10 @@
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/common/timing.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
-#include "motis/loader/util.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/build_query.h"
@@ -76,11 +76,11 @@ msg_ptr routing::route(msg_ptr const& msg) {
   auto const stats = to_fbs(res.stats_);
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
-      CreateRoutingResponse(
-          fbb, &stats,
-          fbb.CreateVector(loader::transform_to_vec(
-              res.journeys_,
-              [&](journey const& j) { return to_connection(fbb, j); })))
+      CreateRoutingResponse(fbb, &stats, fbb.CreateVector(transform_to_vec(
+                                             res.journeys_,
+                                             [&](journey const& j) {
+                                               return to_connection(fbb, j);
+                                             })))
           .Union());
   return make_msg(fbb);
 }

@@ -12,7 +12,7 @@
 #include "motis/loader/util.h"
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace motis::logging;
 
 namespace motis {

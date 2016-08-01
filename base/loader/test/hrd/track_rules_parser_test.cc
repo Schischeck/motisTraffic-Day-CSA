@@ -21,7 +21,7 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_track_rules, parse_track_rules_1) {
-  flatbuffers::FlatBufferBuilder b;
+  flatbuffers64::FlatBufferBuilder b;
 
   loaded_file bitfields_file = {BITFIELDS_FILE, "000001 EF"};
   auto track_file_content =
@@ -60,7 +60,7 @@ TEST(loader_hrd_track_rules, parse_track_rules_1) {
 }
 
 TEST(loader_hrd_track_rules, parse_track_rules_2) {
-  flatbuffers::FlatBufferBuilder b;
+  flatbuffers64::FlatBufferBuilder b;
 
   loaded_file bitfields_file = {BITFIELDS_FILE, "000001 FF"};
   auto track_file_content = "8000000 00001 80____ 1A       0130 000001";
@@ -97,7 +97,7 @@ TEST(loader_hrd_track_rules, parse_track_rules_line_too_short) {
   loaded_file track_rules_file = {TRACKS_FILE, track_file_content};
 
   try {
-    flatbuffers::FlatBufferBuilder b;
+    flatbuffers64::FlatBufferBuilder b;
 
     auto bitfields = parse_bitfields(f);
     auto track_rules = parse_track_rules(track_rules_file, b);

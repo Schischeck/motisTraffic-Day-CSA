@@ -6,7 +6,7 @@
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 using namespace motis::logging;
 

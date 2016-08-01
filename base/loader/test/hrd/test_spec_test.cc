@@ -1,4 +1,4 @@
-#include "test_spec_test.h"
+#include "./test_spec_test.h"
 
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/loader/hrd/parser/service_parser.h"
@@ -7,7 +7,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 std::vector<specification> test_spec::get_specs() {
   std::vector<specification> specs;

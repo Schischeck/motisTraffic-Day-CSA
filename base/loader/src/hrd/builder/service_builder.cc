@@ -3,15 +3,15 @@
 #include <sstream>
 
 #include "motis/core/common/get_or_create.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/loader/hrd/files.h"
-#include "motis/loader/util.h"
 
 #if defined(_WIN32) && defined(CreateService)
 #undef CreateService
 #endif
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 namespace motis {
 namespace loader {
@@ -37,9 +37,8 @@ Offset<Vector<Offset<Section>>> create_sections(
 }
 
 void create_tracks(track_rule_key const& key, int time,
-                      track_rules const& track_rules, bitfield_builder& bb,
-                      std::vector<Offset<Track>>& tracks,
-                      FlatBufferBuilder& fbb) {
+                   track_rules const& track_rules, bitfield_builder& bb,
+                   std::vector<Offset<Track>>& tracks, FlatBufferBuilder& fbb) {
   auto dep_plr_it = track_rules.find(key);
   if (dep_plr_it == end(track_rules)) {
     return;
@@ -47,18 +46,17 @@ void create_tracks(track_rule_key const& key, int time,
 
   for (auto const& rule : dep_plr_it->second) {
     if (rule.time_ == TIME_NOT_SET || time % 1440 == rule.time_) {
-      tracks.push_back(CreateTrack(
-          fbb, bb.get_or_create_bitfield(rule.bitfield_num_, fbb),
-          rule.track_name_));
+      tracks.push_back(
+          CreateTrack(fbb, bb.get_or_create_bitfield(rule.bitfield_num_, fbb),
+                      rule.track_name_));
     }
   }
 }
 
 Offset<Vector<Offset<TrackRules>>> create_tracks(
     std::vector<hrd_service::section> const& sections,
-    std::vector<hrd_service::stop> const& stops,
-    track_rules const& track_rules, bitfield_builder& bb,
-    FlatBufferBuilder& fbb) {
+    std::vector<hrd_service::stop> const& stops, track_rules const& track_rules,
+    bitfield_builder& bb, FlatBufferBuilder& fbb) {
   struct stop_tracks {
     std::vector<Offset<Track>> dep_tracks_;
     std::vector<Offset<Track>> arr_tracks_;
@@ -80,16 +78,15 @@ Offset<Vector<Offset<TrackRules>>> create_tracks(
                                          raw_to_int<uint64_t>(section.admin_));
 
     create_tracks(dep_event_key, from_stop.dep_.time_, track_rules, bb,
-                     stops_tracks[from_stop_index].dep_tracks_, fbb);
+                  stops_tracks[from_stop_index].dep_tracks_, fbb);
     create_tracks(arr_event_key, to_stop.arr_.time_, track_rules, bb,
-                     stops_tracks[to_stop_index].arr_tracks_, fbb);
+                  stops_tracks[to_stop_index].arr_tracks_, fbb);
   }
 
   return fbb.CreateVector(transform_to_vec(
-      begin(stops_tracks), end(stops_tracks),
-      [&](stop_tracks const& sp) {
+      begin(stops_tracks), end(stops_tracks), [&](stop_tracks const& sp) {
         return CreateTrackRules(fbb, fbb.CreateVector(sp.arr_tracks_),
-                                   fbb.CreateVector(sp.dep_tracks_));
+                                fbb.CreateVector(sp.dep_tracks_));
       }));
 }
 

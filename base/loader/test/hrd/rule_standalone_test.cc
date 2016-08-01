@@ -3,11 +3,11 @@
 #include "motis/loader/hrd/hrd_parser.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-#include "./test_spec_test.h"
+#include "./paths.h"
 
 using namespace motis::loader;
 using namespace motis::loader::hrd;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 std::string get_simple_traffic_days(std::string const& t) {
   auto s = t.substr(t.size() - 3);

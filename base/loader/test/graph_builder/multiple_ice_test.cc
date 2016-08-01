@@ -10,9 +10,7 @@ namespace loader {
 class loader_graph_builder_multiple_ice : public loader_graph_builder_test {
 public:
   loader_graph_builder_multiple_ice()
-      : loader_graph_builder_test(
-            "multiple-ice-files", to_unix_time(2015, 10, 25),
-            to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
+      : loader_graph_builder_test("multiple-ice-files", "20151025", 3) {}
 };
 
 TEST_F(loader_graph_builder_multiple_ice, eva_num) {

@@ -2,9 +2,9 @@
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/hash_map.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/loader/util.h"
 
 #include "motis/rt/bfs.h"
 
@@ -115,10 +115,9 @@ inline void update_trips(schedule& sched, ev_key const& k,
   for (auto const& t : route_trips(sched, k)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
-            loader::transform_to_vec(*t->edges_,
-                                     [&](trip::route_edge const& e) {
-                                       return edges.at(e.get_edge());
-                                     })));
+            transform_to_vec(*t->edges_, [&](trip::route_edge const& e) {
+              return edges.at(e.get_edge());
+            })));
     const_cast<trip*>(t)->edges_ = sched.trip_edges_.back().get();  // NOLINT
   }
 }

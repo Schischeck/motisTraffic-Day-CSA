@@ -4,7 +4,7 @@
 
 #include "motis/loader/util.h"
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 namespace motis {
 namespace loader {
@@ -21,7 +21,7 @@ bitfield_builder::bitfield_builder(std::map<int, bitfield> hrd_bitfields)
 }
 
 Offset<String> bitfield_builder::get_or_create_bitfield(
-    int bitfield_num, flatbuffers::FlatBufferBuilder& fbb) {
+    int bitfield_num, flatbuffers64::FlatBufferBuilder& fbb) {
   auto lookup_it = fbs_bf_lookup_.find(bitfield_num);
   if (lookup_it != end(fbs_bf_lookup_)) {
     return lookup_it->second;
@@ -34,7 +34,7 @@ Offset<String> bitfield_builder::get_or_create_bitfield(
 }
 
 Offset<String> bitfield_builder::get_or_create_bitfield(
-    bitfield const& b, flatbuffers::FlatBufferBuilder& fbb, int bitfield_num) {
+    bitfield const& b, flatbuffers64::FlatBufferBuilder& fbb, int bitfield_num) {
   auto fbs_bitfields_it = fbs_bitfields_.find(b);
   if (fbs_bitfields_it == end(fbs_bitfields_)) {
     auto serialized = fbb.CreateString(serialize_bitset<BIT_COUNT>(b));
