@@ -5,6 +5,7 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/core/common/hash_set.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/protocol/Message_generated.h"
@@ -37,19 +38,17 @@ void guesser::print(std::ostream&) const {}
 void guesser::init(motis::module::registry& reg) {
   auto& sched = synced_sched<RO>().sched();
 
-  std::set<std::string> station_names;
-  station_indices_ = std::accumulate(
-      begin(sched.stations_), end(sched.stations_), std::vector<unsigned>(),
-      [&station_names](std::vector<unsigned>& indices, station_ptr const& s) {
-        auto total_events = std::accumulate(begin(s->dep_class_events_),
-                                            end(s->dep_class_events_), 0) +
-                            std::accumulate(begin(s->arr_class_events_),
-                                            end(s->arr_class_events_), 0);
-        if (total_events != 0 && station_names.insert(s->name_).second) {
-          indices.push_back(s->index_);
-        }
-        return indices;
-      });
+  hash_set<std::string> station_names;
+  station_names.set_empty_key("");
+  for (auto const& s : sched.stations_) {
+    auto total_events = std::accumulate(begin(s->dep_class_events_),
+                                        end(s->dep_class_events_), 0) +
+                        std::accumulate(begin(s->arr_class_events_),
+                                        end(s->arr_class_events_), 0);
+    if (total_events != 0 && station_names.insert(s->name_).second) {
+      station_indices_.push_back(s->index_);
+    }
+  }
 
   auto stations = transform_to_vec(station_indices_, [&](unsigned i) {
     auto const& s = *sched.stations_[i];

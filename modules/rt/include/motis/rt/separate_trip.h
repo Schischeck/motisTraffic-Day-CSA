@@ -119,6 +119,7 @@ inline void update_trips(schedule& sched, ev_key const& k,
               return edges.at(e.get_edge());
             })));
     const_cast<trip*>(t)->edges_ = sched.trip_edges_.back().get();  // NOLINT
+    const_cast<trip*>(t)->lcon_idx_ = 0;  // NOLINT
   }
 }
 
