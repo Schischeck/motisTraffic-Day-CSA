@@ -5,6 +5,7 @@
 #include "boost/program_options.hpp"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/event_type.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
@@ -94,9 +95,9 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
 
           auto const resolved = resolve_events(
               s, msg->trip_id(),
-              loader::transform_to_vec(
-                  *msg->events(),
-                  [](ris::UpdatedEvent const* ev) { return ev->base(); }));
+              transform_to_vec(*msg->events(), [](ris::UpdatedEvent const* ev) {
+                return ev->base();
+              }));
 
           for (unsigned i = 0; i < resolved.size(); ++i) {
             auto const& resolved_ev = resolved[i];
@@ -124,7 +125,30 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
           break;
         }
 
-        case MessageUnion_CancelMessage: break;
+        case MessageUnion_CancelMessage: {
+          auto const msg = reinterpret_cast<CancelMessage const*>(c);
+
+          auto const resolved = resolve_events(
+              s, msg->trip_id(),
+              transform_to_vec(*msg->events(),
+                               [](ris::Event const* ev) { return ev; }));
+
+          auto const it = std::find_if(
+              begin(resolved), end(resolved),
+              [](boost::optional<motis::ev_key> const& ev) -> bool {
+                return ev.is_initialized();
+              });
+          if (it == end(resolved)) {
+            continue;
+          }
+
+          seperate_trip(s, **it, moved_events_);
+
+          //          for (auto const& ev : resolved) {
+          //          }
+
+          break;
+        }
         case MessageUnion_RerouteMessage: break;
         default: break;
       }
@@ -162,11 +186,10 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
 
   // Check for graph corruption and revert if necessary.
   shifted_nodes_msg_builder shifted_nodes(sched);
-  hash_map<ev_key, ev_key> moved_events;
-  moved_events.set_empty_key(ev_key{nullptr, 0, event_type::DEP});
+  moved_events_.set_empty_key(ev_key{nullptr, 0, event_type::DEP});
   for (auto const& di : propagator_->events()) {
-    auto moved_it = moved_events.find(di->get_ev_key());
-    if (moved_it != end(moved_events)) {
+    auto moved_it = moved_events_.find(di->get_ev_key());
+    if (moved_it != end(moved_events_)) {
       di->set_ev_key(moved_it->second);
     }
 
@@ -182,7 +205,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
       ++stats_.conflicting_events_;
     } else if (overtakes(k)) {
       ++stats_.route_overtake_;
-      seperate_trip(sched, k, moved_events);
+      seperate_trip(sched, k, moved_events_);
       fix_time(k);
     }
 
@@ -208,6 +231,7 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
   std::cout << stats_ << std::endl;
 
   propagator_.reset();
+  moved_events_.clear();
 
   return nullptr;
 }

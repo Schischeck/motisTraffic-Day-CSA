@@ -6,8 +6,8 @@
 
 #include "boost/optional.hpp"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/loader/util.h"
 
 #include "motis/rt/find_trip_fuzzy.h"
 
@@ -22,7 +22,7 @@ struct event_info {
 
 inline std::vector<boost::optional<event_info>> resolve_event_info(
     schedule const& sched, std::vector<ris::Event const*> const& events) {
-  return loader::transform_to_vec(
+  return transform_to_vec(
       events, [&](ris::Event const* ev) -> boost::optional<event_info> {
         auto const station = find_station(sched, ev->station_id()->str());
         if (station == nullptr) {

@@ -33,6 +33,7 @@ private:
 
   motis::module::msg_ptr handle_messages(motis::module::msg_ptr const&);
 
+  hash_map<ev_key, ev_key> moved_events_;
   std::unique_ptr<delay_propagator> propagator_;
   statistics stats_;
 };
