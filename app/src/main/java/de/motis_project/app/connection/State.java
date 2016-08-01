@@ -1,5 +1,7 @@
 package de.motis_project.app.connection;
 
+import android.os.Handler;
+
 import java.io.IOException;
 
 public class State {
@@ -8,20 +10,21 @@ public class State {
     private static State SINGLETON;
     private Server server;
 
-    private State() {
-        server = new Server(SERVER_URL);
+    private State(Handler handler) {
+        server = new Server(SERVER_URL, handler);
+    }
+
+    public static void init(Handler handler) {
+        SINGLETON = new State(handler);
+
         try {
-            server.connect();
+            SINGLETON.getServer().connect();
         } catch (IOException e) {
-            System.out.println("fatal error connecting to " + SERVER_URL);
             e.printStackTrace();
         }
     }
 
     public static synchronized State get() {
-        if (SINGLETON == null) {
-            SINGLETON = new State();
-        }
         return SINGLETON;
     }
 

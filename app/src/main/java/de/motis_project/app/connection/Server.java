@@ -27,10 +27,12 @@ public class Server extends WebSocketAdapter {
 
     private final String url;
     private final List<Listener> listeners = new ArrayList<Listener>();
+    private final Handler handler;
     private WebSocket ws;
 
-    public Server(String url) {
+    public Server(String url, Handler handler) {
         this.url = url;
+        this.handler = handler;
     }
 
     public void connect() throws IOException {
@@ -67,16 +69,20 @@ public class Server extends WebSocketAdapter {
     }
 
     private void scheduleConnect() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    connect();
-                } catch (IOException e) {
-                    scheduleConnect();
+        try {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        connect();
+                    } catch (IOException e) {
+                        scheduleConnect();
+                    }
                 }
-            }
-        }, RECONNECT_INTERVAL);
+            }, RECONNECT_INTERVAL);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
