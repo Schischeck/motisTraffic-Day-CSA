@@ -1,23 +1,20 @@
 package de.motis_project.app;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.TimePicker;
 
 import java.util.Calendar;
-import java.util.Date;
 
 public class TimePickerDialogFragment extends DialogFragment {
 
@@ -38,9 +35,11 @@ public class TimePickerDialogFragment extends DialogFragment {
         return fragment;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
+        @SuppressLint("InflateParams")
         View v = inflater.inflate(R.layout.dialog_time_picker, null);
 
         final TimePicker tp = (TimePicker) v.findViewById(R.id.timePicker);

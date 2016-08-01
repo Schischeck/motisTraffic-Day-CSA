@@ -33,7 +33,7 @@
 
             <EditText
                 android:id="@+id/searchInput"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="27dp"
                 android:layout_weight="1.00"
                 android:background="@android:color/transparent"

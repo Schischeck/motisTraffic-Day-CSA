@@ -1,6 +1,5 @@
 package de.motis_project.app;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.design.widget.TabLayout;
@@ -11,7 +10,7 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends FragmentActivity implements QueryFragment.OnFragmentInteractionListener {
+public class MainActivity extends FragmentActivity {
     void showToast(@StringRes final int text) {
         Toast toast = Toast.makeText(getApplicationContext(), getResources().getResourceName(text), Toast.LENGTH_SHORT);
         toast.show();
@@ -33,8 +32,4 @@ public class MainActivity extends FragmentActivity implements QueryFragment.OnFr
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
 }

@@ -2,11 +2,8 @@ package de.motis_project.app;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -20,10 +17,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -61,7 +56,7 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
         }
     }
 
-    private OnFragmentInteractionListener mListener;
+    private Context context;
 
     DateSelected dateSelected;
 
@@ -107,9 +102,16 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
         dialogFragment.show(getActivity().getSupportFragmentManager(), "timePicker");
     }
 
+    @OnClick(R.id.switch_stations_btn)
+    void switchStations(View v) {
+        String start = startInput.getText().toString();
+        startInput.setText(destInput.getText().toString());
+        destInput.setText(start);
+    }
+
     void openSearch(@Nullable View v, MotionEvent e, int requestCode, String query) {
-        if (e.getAction() == MotionEvent.ACTION_UP && mListener != null) {
-            Intent i = new Intent((Context) mListener, SearchActivity.class);
+        if (e.getAction() == MotionEvent.ACTION_UP && context != null) {
+            Intent i = new Intent(context, SearchActivity.class);
             i.putExtra("query", query);
             startActivityForResult(i, requestCode);
         }
@@ -117,21 +119,6 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
 
     public QueryFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment QueryFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static QueryFragment newInstance(String param1, String param2) {
-        QueryFragment fragment = new QueryFragment();
-        fragment.setArguments(new Bundle());
-        return fragment;
     }
 
     @Override
@@ -151,33 +138,13 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+        this.context = context;
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        context = null;
     }
 
     @Override
