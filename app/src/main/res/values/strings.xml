@@ -6,4 +6,7 @@
     <string name="departure">Abfahrt</string>
     <string name="arrival_short">Ank.</string>
     <string name="departure_short">Abf.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

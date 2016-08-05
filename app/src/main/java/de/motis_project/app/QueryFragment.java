@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.widget.TimePicker;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -131,6 +134,13 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
         dateSelected = new DateSelected();
         dateText.setText(getDateDisplayString(dateSelected));
         timeText.setText(getTimeDisplayString(dateSelected));
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.connection_list);
+
+        List<ConnectionSummaryAdapter.Data> data = ConnectionSummaryAdapter.Data.createSome(50);
+        ConnectionSummaryAdapter adapter = new ConnectionSummaryAdapter(context, data);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
         return view;
     }
