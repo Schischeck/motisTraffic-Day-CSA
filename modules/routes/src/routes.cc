@@ -92,7 +92,7 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
 msg_ptr routes::resolve_route_osrm(schedule const& sched, trip const* trp) {
   auto osrm_req = trip_to_osrm_request(sched, trp);
   auto const osrm_msg = motis_call(osrm_req)->val();
-  auto osrm_resp = motis_content(OSRMViaRouteResponse, osrm_msg);
+  auto osrm_resp = motis_content(OSRMSmoothViaRouteResponse, osrm_msg);
 
   message_creator mc;
   std::vector<Offset<Polyline>> segments;
