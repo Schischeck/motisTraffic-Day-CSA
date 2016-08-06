@@ -47,6 +47,12 @@ void routes::load_auxiliary_file() {
   }
 }
 
+inline trip const* get_trip(schedule const& sched, TripId const* t) {
+  return get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
+                  t->target_station_id()->str(), t->target_time(),
+                  t->line_id()->str());
+}
+
 msg_ptr routes::id_train_routes(msg_ptr const& msg) {
   auto const& req = motis_content(RoutesIdTrainRequest, msg);
   auto const& sched = get_schedule();

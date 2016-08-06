@@ -6,6 +6,7 @@ set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/routes/fbs")
 file(GLOB_RECURSE routes-fbs-files ${routes-fbs-dir}/*.fbs)
 
 build_flatbuffers(
+  32
   "--everything-required"        # commandline_options
   "${routes-fbs-files}"          # flatbuffers_schemas
   "${routes-fbs-dir}"            # schema_include_dirs
@@ -22,8 +23,7 @@ if (NOT ZLIB_FOUND)
   include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
-file(GLOB_RECURSE motis-routes-prepare-files src/prepare/*.cc)
-list(APPEND motis-routes-prepare-files src/prepare.cc)
+file(GLOB_RECURSE motis-routes-prepare-files src/prepare.cc src/prepare/*.cc)
 
 file(GLOB_RECURSE motis-routes-files src/*.cc)
 foreach(file ${motis-routes-prepare-files})
@@ -41,18 +41,18 @@ target_link_libraries(motis-routes
 )
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 
+# TODO get flatbuffers 63 right!
+# add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
+# add_dependencies(routes-prepare generated-routes-fbs-headers)
+# target_link_libraries(routes-prepare
+#   ${CMAKE_THREAD_LIBS_INIT}
+#   ${Boost_SYSTEM_LIBRARY}
+#   ${Boost_THREAD_LIBRARY}
+#   ${ZLIB_LIBRARIES}
+#   expat
+#   motis-loader
+#   conf
+# )
 
-add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
-add_dependencies(routes-prepare generated-routes-fbs-headers)
-target_link_libraries(routes-prepare
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_THREAD_LIBRARY}
-  ${ZLIB_LIBRARIES}
-  expat
-  motis-loader
-  conf
-)
-
-set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-set_target_properties(routes-prepare PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+# set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+# set_target_properties(routes-prepare PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")

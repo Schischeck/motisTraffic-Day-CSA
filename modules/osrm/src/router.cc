@@ -12,7 +12,7 @@
 #include "util/json_container.hpp"
 #include "util/json_util.hpp"
 
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/osrm/error.h"
 
 using namespace flatbuffers;
@@ -96,7 +96,7 @@ public:
 
     message_creator mc;
     auto& route = get(all_routes, 0u);
-    auto const& polyline = loader::transform_to_vec(
+    auto const& polyline = transform_to_vec(
         get(route, "geometry").get<Array>().values,
         [](auto&& jc) { return jc.template get<Number>().value; });
 
@@ -131,7 +131,7 @@ public:
     std::vector<Offset<Polyline>> segments;
     for (auto const& json_polyline :
          result.values["geometry"].get<Array>().values) {
-      auto const& polyline = loader::transform_to_vec(
+      auto const& polyline = transform_to_vec(
           json_polyline.get<Array>().values,
           [](auto&& jc) { return jc.template get<Number>().value; });
       segments.push_back(CreatePolyline(mc, mc.CreateVector(polyline)));

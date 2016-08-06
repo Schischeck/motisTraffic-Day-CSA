@@ -49,10 +49,4 @@ inline trip const* find_trip(schedule const& sched, primary_trip_id id) {
   return nullptr;
 }
 
-inline trip const* get_trip(schedule const& sched, TripId const* t) {
-  return get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
-                  t->target_station_id()->str(), t->target_time(),
-                  t->line_id()->str());
-}
-
 }  // namespace motis
