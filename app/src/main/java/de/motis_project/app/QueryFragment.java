@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -31,8 +34,7 @@ import butterknife.OnTouch;
 
 
 public class QueryFragment extends Fragment
-        implements DatePickerDialog.OnDateSetListener,
-        TimePickerDialogFragment.TimePickerDialogFragmentSetListener {
+        implements DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.TimePickerDialogFragmentSetListener {
     public static final int SELECT_START_LOCATION = 1;
     public static final int SELECT_DEST_LOCATION = 2;
 
@@ -85,32 +87,26 @@ public class QueryFragment extends Fragment
 
     @OnTouch(R.id.start_input)
     boolean openSearchStart(View v, MotionEvent e) {
-        openSearch(v, e, QueryFragment.SELECT_START_LOCATION,
-                   startInput.getText().toString());
+        openSearch(v, e, QueryFragment.SELECT_START_LOCATION, startInput.getText().toString());
         return true;
     }
 
     @OnTouch(R.id.dest_input)
     boolean openSearchDest(View v, MotionEvent e) {
-        openSearch(v, e, QueryFragment.SELECT_DEST_LOCATION,
-                   destInput.getText().toString());
+        openSearch(v, e, QueryFragment.SELECT_DEST_LOCATION, destInput.getText().toString());
         return true;
     }
 
     @OnClick(R.id.date_select)
     void showDatePickerDialog(View v) {
-        DialogFragment dialogFragment =
-                DatePickerDialogFragment.newInstance(this, dateSelected);
-        dialogFragment
-                .show(getActivity().getSupportFragmentManager(), "datePicker");
+        DialogFragment dialogFragment = DatePickerDialogFragment.newInstance(this, dateSelected);
+        dialogFragment.show(getActivity().getSupportFragmentManager(), "datePicker");
     }
 
     @OnClick(R.id.time_select)
     void showTimePickerDialog(View v) {
-        DialogFragment dialogFragment =
-                TimePickerDialogFragment.newInstance(this, dateSelected);
-        dialogFragment
-                .show(getActivity().getSupportFragmentManager(), "timePicker");
+        DialogFragment dialogFragment = TimePickerDialogFragment.newInstance(this, dateSelected);
+        dialogFragment.show(getActivity().getSupportFragmentManager(), "timePicker");
     }
 
     @OnClick(R.id.switch_stations_btn)
@@ -120,8 +116,7 @@ public class QueryFragment extends Fragment
         destInput.setText(start);
     }
 
-    void openSearch(@Nullable View v, MotionEvent e, int requestCode,
-                    String query) {
+    void openSearch(@Nullable View v, MotionEvent e, int requestCode, String query) {
         if (e.getAction() == MotionEvent.ACTION_UP && context != null) {
             Intent i = new Intent(context, SearchActivity.class);
             i.putExtra("query", query);
@@ -134,8 +129,7 @@ public class QueryFragment extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_query, container, false);
         ButterKnife.bind(this, view);
@@ -144,28 +138,59 @@ public class QueryFragment extends Fragment
         dateText.setText(getDateDisplayString(dateSelected));
         timeText.setText(getTimeDisplayString(dateSelected));
 
-        RecyclerView recyclerView =
-                (RecyclerView) view.findViewById(R.id.connection_list);
+        final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.connection_list);
 
-        final List<ConnectionSummaryAdapter.Data> data =
-                ConnectionSummaryAdapter.Data.createSome(50);
+
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final List<ConnectionSummaryAdapter.Data> data = ConnectionSummaryAdapter.Data.createSome(50);
         final ConnectionSummaryAdapter adapter = new ConnectionSummaryAdapter(data);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(layoutManager);
+
         recyclerView.addOnScrollListener(new InfiniteScroll(layoutManager) {
             @Override
             void loadBefore() {
-                data.addAll(0, ConnectionSummaryAdapter.Data.createSome(20));
-                notifyLoadFinished();
-                adapter.notifyItemRangeInserted(0, 20);
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        data.addAll(0, ConnectionSummaryAdapter.Data.createSome(20));
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        notifyLoadFinished();
+                        adapter.notifyItemRangeInserted(0, 20);
+                    }
+                }.execute();
             }
 
             @Override
             void loadAfter() {
-                data.addAll(ConnectionSummaryAdapter.Data.createSome(20));
-                notifyLoadFinished();
-                adapter.notifyItemRangeInserted(data.size() - 20, 20);
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        data.addAll(ConnectionSummaryAdapter.Data.createSome(20));
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        notifyLoadFinished();
+                        adapter.notifyItemRangeInserted(data.size() - 20, 20);
+                    }
+                }.execute();
             }
         });
 
@@ -204,8 +229,7 @@ public class QueryFragment extends Fragment
     }
 
     @Override
-    public void onDateSet(@Nullable DatePicker view, int year, int month,
-                          int day) {
+    public void onDateSet(@Nullable DatePicker view, int year, int month, int day) {
         dateSelected.setDate(day, month, year);
         dateText.setText(getDateDisplayString(dateSelected));
     }
@@ -218,13 +242,10 @@ public class QueryFragment extends Fragment
 
     String getTimeDisplayString(DateSelected state) {
         String prefix = (state.isArrival ? arrivalStr : departureStr) + " ";
-        return prefix +
-                SimpleDateFormat.getTimeInstance(java.text.DateFormat.SHORT)
-                        .format(state.c.getTime());
+        return prefix + SimpleDateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(state.c.getTime());
     }
 
     String getDateDisplayString(DateSelected state) {
-        return SimpleDateFormat.getDateInstance(java.text.DateFormat.SHORT)
-                .format(state.c.getTime());
+        return SimpleDateFormat.getDateInstance(java.text.DateFormat.SHORT).format(state.c.getTime());
     }
 }

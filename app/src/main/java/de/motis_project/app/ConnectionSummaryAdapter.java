@@ -11,13 +11,15 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectionSummaryAdapter
-        extends RecyclerView.Adapter<ConnectionSummaryAdapter.ViewHolder> {
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private final int VIEW_TYPE_LOADING_SPINNER = 0;
+    private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
+
+    public static class JourneyViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTextView;
         public Button messageButton;
 
-        public ViewHolder(View itemView) {
+        public JourneyViewHolder(View itemView) {
             super(itemView);
             nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
             messageButton = (Button) itemView.findViewById(R.id.message_button);
@@ -47,18 +49,36 @@ public class ConnectionSummaryAdapter
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
-        View summaryView = inflater.inflate(R.layout.item_connection, parent, false);
-        return new ViewHolder(summaryView);
+    public int getItemViewType(int position) {
+        if (position == 0 || position == getItemCount() - 1) {
+            return VIEW_TYPE_LOADING_SPINNER;
+        } else {
+            return VIEW_TYPE_JOURNEY_PREVIEW;
+        }
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        Data d = data.get(position);
-        viewHolder.nameTextView.setText(d.text);
-        viewHolder.messageButton.setText("Message");
+    public JourneyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        switch (viewType) {
+            case VIEW_TYPE_JOURNEY_PREVIEW:
+                return new JourneyViewHolder(inflater.inflate(R.layout.item_connection, parent, false));
+            case VIEW_TYPE_LOADING_SPINNER:
+                return new JourneyViewHolder(inflater.inflate(R.layout.loading_spinner, parent, false));
+            default:
+                throw new RuntimeException("unknown view type");
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+        if (getItemViewType(position) == VIEW_TYPE_JOURNEY_PREVIEW) {
+            JourneyViewHolder journey = (JourneyViewHolder) viewHolder;
+            journey.nameTextView.setText(data.get(position).text);
+            journey.messageButton.setText("Message");
+        }
     }
 
     @Override
