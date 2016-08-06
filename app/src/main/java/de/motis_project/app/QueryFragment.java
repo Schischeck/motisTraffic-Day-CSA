@@ -30,7 +30,9 @@ import butterknife.OnClick;
 import butterknife.OnTouch;
 
 
-public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.TimePickerDialogFragmentSetListener {
+public class QueryFragment extends Fragment
+        implements DatePickerDialog.OnDateSetListener,
+        TimePickerDialogFragment.TimePickerDialogFragmentSetListener {
     public static final int SELECT_START_LOCATION = 1;
     public static final int SELECT_DEST_LOCATION = 2;
 
@@ -83,26 +85,32 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
 
     @OnTouch(R.id.start_input)
     boolean openSearchStart(View v, MotionEvent e) {
-        openSearch(v, e, QueryFragment.SELECT_START_LOCATION, startInput.getText().toString());
+        openSearch(v, e, QueryFragment.SELECT_START_LOCATION,
+                   startInput.getText().toString());
         return true;
     }
 
     @OnTouch(R.id.dest_input)
     boolean openSearchDest(View v, MotionEvent e) {
-        openSearch(v, e, QueryFragment.SELECT_DEST_LOCATION, destInput.getText().toString());
+        openSearch(v, e, QueryFragment.SELECT_DEST_LOCATION,
+                   destInput.getText().toString());
         return true;
     }
 
     @OnClick(R.id.date_select)
     void showDatePickerDialog(View v) {
-        DialogFragment dialogFragment = DatePickerDialogFragment.newInstance(this, dateSelected);
-        dialogFragment.show(getActivity().getSupportFragmentManager(), "datePicker");
+        DialogFragment dialogFragment =
+                DatePickerDialogFragment.newInstance(this, dateSelected);
+        dialogFragment
+                .show(getActivity().getSupportFragmentManager(), "datePicker");
     }
 
     @OnClick(R.id.time_select)
     void showTimePickerDialog(View v) {
-        DialogFragment dialogFragment = TimePickerDialogFragment.newInstance(this, dateSelected);
-        dialogFragment.show(getActivity().getSupportFragmentManager(), "timePicker");
+        DialogFragment dialogFragment =
+                TimePickerDialogFragment.newInstance(this, dateSelected);
+        dialogFragment
+                .show(getActivity().getSupportFragmentManager(), "timePicker");
     }
 
     @OnClick(R.id.switch_stations_btn)
@@ -112,7 +120,8 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
         destInput.setText(start);
     }
 
-    void openSearch(@Nullable View v, MotionEvent e, int requestCode, String query) {
+    void openSearch(@Nullable View v, MotionEvent e, int requestCode,
+                    String query) {
         if (e.getAction() == MotionEvent.ACTION_UP && context != null) {
             Intent i = new Intent(context, SearchActivity.class);
             i.putExtra("query", query);
@@ -135,12 +144,30 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
         dateText.setText(getDateDisplayString(dateSelected));
         timeText.setText(getTimeDisplayString(dateSelected));
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.connection_list);
+        RecyclerView recyclerView =
+                (RecyclerView) view.findViewById(R.id.connection_list);
 
-        List<ConnectionSummaryAdapter.Data> data = ConnectionSummaryAdapter.Data.createSome(50);
-        ConnectionSummaryAdapter adapter = new ConnectionSummaryAdapter(context, data);
+        final List<ConnectionSummaryAdapter.Data> data =
+                ConnectionSummaryAdapter.Data.createSome(50);
+        final ConnectionSummaryAdapter adapter = new ConnectionSummaryAdapter(data);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addOnScrollListener(new InfiniteScroll(layoutManager) {
+            @Override
+            void loadBefore() {
+                data.addAll(0, ConnectionSummaryAdapter.Data.createSome(20));
+                notifyLoadFinished();
+                adapter.notifyItemRangeInserted(0, 20);
+            }
+
+            @Override
+            void loadAfter() {
+                data.addAll(ConnectionSummaryAdapter.Data.createSome(20));
+                notifyLoadFinished();
+                adapter.notifyItemRangeInserted(data.size() - 20, 20);
+            }
+        });
 
         return view;
     }
@@ -159,7 +186,9 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data == null || data.getExtras() == null || data.getExtras().getString("result") == null || resultCode != Activity.RESULT_OK) {
+        if (data == null || data.getExtras() == null ||
+                data.getExtras().getString("result") == null ||
+                resultCode != Activity.RESULT_OK) {
             return;
         }
         Bundle extras = data.getExtras();
@@ -175,7 +204,8 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
     }
 
     @Override
-    public void onDateSet(@Nullable DatePicker view, int year, int month, int day) {
+    public void onDateSet(@Nullable DatePicker view, int year, int month,
+                          int day) {
         dateSelected.setDate(day, month, year);
         dateText.setText(getDateDisplayString(dateSelected));
     }
@@ -188,10 +218,13 @@ public class QueryFragment extends Fragment implements DatePickerDialog.OnDateSe
 
     String getTimeDisplayString(DateSelected state) {
         String prefix = (state.isArrival ? arrivalStr : departureStr) + " ";
-        return prefix + SimpleDateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(state.c.getTime());
+        return prefix +
+                SimpleDateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+                        .format(state.c.getTime());
     }
 
     String getDateDisplayString(DateSelected state) {
-        return SimpleDateFormat.getDateInstance(java.text.DateFormat.SHORT).format(state.c.getTime());
+        return SimpleDateFormat.getDateInstance(java.text.DateFormat.SHORT)
+                .format(state.c.getTime());
     }
 }
