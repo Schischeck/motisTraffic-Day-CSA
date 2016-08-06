@@ -1,4 +1,4 @@
-package de.motis_project.app;
+package de.motis_project.app.query;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,8 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.google.flatbuffers.FlatBufferBuilder;
-
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -17,16 +15,15 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
-import de.motis_project.app.connection.MessageBuilder;
-import de.motis_project.app.connection.Server;
-import de.motis_project.app.connection.State;
+import de.motis_project.app.R;
+import de.motis_project.app.io.MessageBuilder;
+import de.motis_project.app.io.Server;
+import de.motis_project.app.io.State;
 import motis.Message;
-import motis.MotisError;
 import motis.MsgContent;
-import motis.guesser.StationGuesserRequest;
 import motis.guesser.StationGuesserResponse;
 
-public class SearchActivity extends FragmentActivity implements Server.Listener {
+public class GuesserActivity extends FragmentActivity implements Server.Listener {
     @BindView(R.id.suggestionslist)
     ListView suggestionList;
 
@@ -70,7 +67,7 @@ public class SearchActivity extends FragmentActivity implements Server.Listener 
 
         State.get().getServer().addListener(this);
 
-        setContentView(R.layout.activity_search);
+        setContentView(R.layout.activity_guesser);
         ButterKnife.bind(this);
         setResults(new ArrayList<String>());
 
@@ -89,7 +86,7 @@ public class SearchActivity extends FragmentActivity implements Server.Listener 
 
     public void setResults(ArrayList<String> r) {
         ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(SearchActivity.this,
+                new ArrayAdapter<String>(GuesserActivity.this,
                                          R.layout.search_list_item,
                                          R.id.guess_text, r);
         suggestionList.setAdapter(adapter);

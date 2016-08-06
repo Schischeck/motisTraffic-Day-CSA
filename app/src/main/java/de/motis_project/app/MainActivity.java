@@ -1,21 +1,14 @@
 package de.motis_project.app;
 
 import android.os.Bundle;
-import android.support.annotation.StringRes;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends FragmentActivity {
-    void showToast(@StringRes final int text) {
-        Toast toast = Toast.makeText(getApplicationContext(), getResources().getResourceName(text), Toast.LENGTH_SHORT);
-        toast.show();
-    }
-
     @BindView(R.id.viewPager)
     ViewPager viewPager;
 
@@ -28,8 +21,7 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
+        viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager(), this));
         tabLayout.setupWithViewPager(viewPager);
     }
-
 }

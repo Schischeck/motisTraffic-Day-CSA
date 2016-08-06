@@ -1,4 +1,4 @@
-package de.motis_project.app.connection;
+package de.motis_project.app.io;
 
 import java.nio.ByteBuffer;
 

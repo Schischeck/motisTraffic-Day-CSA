@@ -32,4 +32,6 @@ dependencies {
     compile 'com.android.support:palette-v7:24.1.1'
     compile 'org.iq80.snappy:snappy:0.4'
     compile 'com.neovisionaries:nv-websocket-client:1.29'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.8'
 }
