@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
-#include "motis/loader/util.h"
 
 using namespace motis;
 using namespace motis::module;
@@ -16,10 +16,11 @@ msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       routing::CreateRoutingResponse(
-          fbb, &stats,
-          fbb.CreateVector(loader::transform_to_vec(
-              journeys,
-              [&](journey const& j) { return to_connection(fbb, j); })))
+          fbb, &stats, fbb.CreateVector(transform_to_vec(journeys,
+                                                         [&](journey const& j) {
+                                                           return to_connection(
+                                                               fbb, j);
+                                                         })))
           .Union());
   return make_msg(fbb);
 }

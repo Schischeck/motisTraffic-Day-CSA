@@ -5,7 +5,6 @@
 
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/time_access.h"
-#include "motis/loader/util.h"
 
 namespace motis {
 namespace loader {
@@ -13,8 +12,7 @@ namespace loader {
 class loader_graph_builder_test : public ::testing::Test {
 protected:
   loader_graph_builder_test(std::string schedule_name,
-                            std::time_t schedule_begin,
-                            std::time_t schedule_end);
+                            std::string schedule_begin, int num_days);
 
   void SetUp() override;
 
@@ -31,7 +29,8 @@ protected:
 
   schedule_ptr sched_;
   std::string schedule_name_;
-  std::time_t schedule_begin_, schedule_end_;
+  std::string schedule_begin_;
+  int num_days_;
 };
 
 }  // namespace loader

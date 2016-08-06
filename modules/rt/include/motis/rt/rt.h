@@ -32,8 +32,8 @@ private:
       motis::module::msg_ptr const& msg);
 
   motis::module::msg_ptr handle_messages(motis::module::msg_ptr const&);
-  void add_to_propagator(schedule const& sched, ris::DelayMessage const* msg);
 
+  hash_map<ev_key, ev_key> moved_events_;
   std::unique_ptr<delay_propagator> propagator_;
   statistics stats_;
 };

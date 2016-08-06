@@ -23,15 +23,16 @@ namespace hrd {
 struct service_builder {
   explicit service_builder(track_rules);
 
-  flatbuffers::Offset<Service> create_service(
+  flatbuffers64::Offset<Service> create_service(
       hrd_service const&, route_builder&, station_builder&, category_builder&,
       provider_builder&, line_builder&, attribute_builder&, bitfield_builder&,
-      direction_builder&, flatbuffers::FlatBufferBuilder&,
+      direction_builder&, flatbuffers64::FlatBufferBuilder&,
       bool is_rule_participant);
 
   track_rules const track_rules_;
-  std::vector<flatbuffers::Offset<Service>> fbs_services_;
-  std::map<char const*, flatbuffers::Offset<flatbuffers::String>> filenames_;
+  std::vector<flatbuffers64::Offset<Service>> fbs_services_;
+  std::map<char const*, flatbuffers64::Offset<flatbuffers64::String>>
+      filenames_;
 };
 
 }  // namespace hrd

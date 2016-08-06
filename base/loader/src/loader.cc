@@ -15,12 +15,14 @@
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/graph_builder.h"
+#include "motis/loader/build_graph.h"
 #include "motis/loader/gtfs/gtfs_parser.h"
 #include "motis/loader/hrd/hrd_parser.h"
 
+#include "motis/schedule-format/Schedule_generated.h"
+
 namespace fs = boost::filesystem;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 using namespace motis::logging;
 

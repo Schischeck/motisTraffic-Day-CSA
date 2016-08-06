@@ -4,8 +4,7 @@
 
 #include "parser/buffer.h"
 #include "parser/cstr.h"
-
-#include "motis/loader/util.h"
+#include "parser/file.h"
 
 namespace motis {
 namespace loader {
@@ -20,7 +19,8 @@ struct loaded_file {
       : name_(filename), buf_(std::move(buf)) {}
 
   explicit loaded_file(boost::filesystem::path p)
-      : name_(p.filename().string()), buf_(load_file(p)) {}
+      : name_(p.filename().string()),
+        buf_(parser::file(p.string().c_str(), "r").content()) {}
 
   loaded_file(loaded_file const&) = delete;
 

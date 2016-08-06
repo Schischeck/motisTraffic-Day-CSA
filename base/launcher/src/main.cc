@@ -13,10 +13,10 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/common/logging.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/module_settings.h"
 #include "motis/bootstrap/motis_instance.h"
-#include "motis/loader/util.h"
 #include "motis/launcher/batch_mode.h"
 #include "motis/launcher/http_server.h"
 #include "motis/launcher/launcher_settings.h"
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   http_server http(ios, instance);
   socket_server tcp(ios, instance);
 
-  listener_settings listener_opt(true, false, false, "0.0.0.0", "8080",
+  listener_settings listener_opt(true, false, false, "0.0.0.0", "8080", false,
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, true, true, true);
   module_settings module_opt(instance.module_names());
@@ -103,7 +103,8 @@ int main(int argc, char** argv) {
 
     if (listener_opt.listen_ws_) {
       websocket.set_api_key(listener_opt.api_key_);
-      websocket.listen(listener_opt.ws_host_, listener_opt.ws_port_);
+      websocket.listen(listener_opt.ws_host_, listener_opt.ws_port_,
+                       listener_opt.ws_binary_);
       websocket_shutdown_handler =
           std::make_unique<shutdown_handler<ws_server>>(ios, websocket);
     }

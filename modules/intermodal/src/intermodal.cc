@@ -4,7 +4,6 @@
 
 #include "motis/core/common/constants.h"
 #include "motis/module/context/motis_call.h"
-#include "motis/loader/util.h"
 
 #include "motis/intermodal/error.h"
 
@@ -14,7 +13,6 @@ using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::lookup;
 using namespace motis::osrm;
-using namespace motis::loader;
 using namespace motis::routing;
 
 namespace motis {

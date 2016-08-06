@@ -18,7 +18,7 @@ namespace loader {
 namespace hrd {
 
 using namespace logging;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 hrd_service* get_or_create(
     std::vector<std::unique_ptr<hrd_service>>& origin_services,
@@ -136,7 +136,7 @@ void rule_service_builder::resolve_rule_services() {
 void create_rule_service(
     rule_service const& rs, rule_service_builder::service_builder_fun sbf,
     station_builder& sb,
-    std::vector<flatbuffers::Offset<RuleService>>& fbs_rule_services,
+    std::vector<flatbuffers64::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
   std::map<hrd_service const*, Offset<Service>> services;
   for (auto const& s : rs.services_) {

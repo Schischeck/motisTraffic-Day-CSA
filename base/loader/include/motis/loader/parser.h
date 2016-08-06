@@ -18,7 +18,7 @@ struct format_parser {
   virtual std::vector<std::string> missing_files(
       boost::filesystem::path const& path) const = 0;
   virtual void parse(boost::filesystem::path const& path,
-                     flatbuffers::FlatBufferBuilder&) = 0;
+                     flatbuffers64::FlatBufferBuilder&) = 0;
 };
 
 }  // namespace loader

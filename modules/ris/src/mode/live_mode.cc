@@ -9,7 +9,6 @@
 #include "motis/core/common/raii.h"
 #include "motis/module/context/get_io_service.h"
 #include "motis/module/context/motis_wrap.h"
-#include "motis/loader/util.h"
 #include "motis/ris/database.h"
 #include "motis/ris/detail/find_new_files.h"
 #include "motis/ris/detail/max_timestamp.h"

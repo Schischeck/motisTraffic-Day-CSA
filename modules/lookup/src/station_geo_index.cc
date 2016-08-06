@@ -3,10 +3,9 @@
 #include "boost/function_output_iterator.hpp"
 
 #include "motis/core/common/geo.h"
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 
 using namespace motis::geo_detail;
-using namespace motis::loader;
 using namespace flatbuffers;
 
 namespace motis {

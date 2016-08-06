@@ -14,8 +14,7 @@ namespace loader {
 class loader_graph_builder_never_meet : public loader_graph_builder_test {
 public:
   loader_graph_builder_never_meet()
-      : loader_graph_builder_test("never-meet", to_unix_time(2015, 1, 4),
-                                  to_unix_time(2015, 1, 10)) {}
+      : loader_graph_builder_test("never-meet", "20150104", 7) {}
 };
 
 TEST_F(loader_graph_builder_never_meet, routes) {
@@ -48,8 +47,7 @@ TEST_F(loader_graph_builder_never_meet, routes) {
 class loader_graph_builder_duplicates_check : public loader_graph_builder_test {
 public:
   loader_graph_builder_duplicates_check()
-      : loader_graph_builder_test("duplicates", to_unix_time(2015, 1, 4),
-                                  to_unix_time(2015, 1, 10)) {}
+      : loader_graph_builder_test("duplicates", "20150104", 7) {}
 
   uint32_t get_train_num(char const* first_stop_id) {
     auto it = std::find_if(

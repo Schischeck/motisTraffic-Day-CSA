@@ -11,10 +11,10 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<MetaStation>>>
+flatbuffers64::Offset<flatbuffers64::Vector<flatbuffers64::Offset<MetaStation>>>
 create_meta_stations(std::set<station_meta_data::meta_station> const&,
-                     std::map<int, flatbuffers::Offset<Station>> const&,
-                     flatbuffers::FlatBufferBuilder&);
+                     std::map<int, flatbuffers64::Offset<Station>> const&,
+                     flatbuffers64::FlatBufferBuilder&);
 
 }  // namespace hrd
 }  // namespace loader

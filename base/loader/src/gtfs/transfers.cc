@@ -8,7 +8,7 @@
 #include "motis/loader/util.h"
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using std::get;
 
 namespace motis {

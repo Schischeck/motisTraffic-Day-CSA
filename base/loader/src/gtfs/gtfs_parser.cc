@@ -19,7 +19,7 @@
 #include "motis/loader/util.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 namespace fs = boost::filesystem;
 using std::get;
 
