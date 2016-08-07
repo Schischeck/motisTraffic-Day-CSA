@@ -17,7 +17,7 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import de.motis_project.app.R;
 
-public class TimePickerDialog extends DialogFragment
+public class TimePickerDialogFragment extends DialogFragment
         implements DialogInterface.OnClickListener, TimePicker.OnTimeChangedListener {
 
     public interface ChangeListener {
@@ -39,8 +39,8 @@ public class TimePickerDialog extends DialogFragment
     @BindView(R.id.time_picker)
     TimePicker timePicker;
 
-    public static TimePickerDialog newInstance(boolean isArrival, int hour, int minute) {
-        TimePickerDialog fragment = new TimePickerDialog();
+    public static TimePickerDialogFragment newInstance(boolean isArrival, int hour, int minute) {
+        TimePickerDialogFragment fragment = new TimePickerDialogFragment();
 
         Bundle arguments = new Bundle();
         arguments.putBoolean(IS_ARRIVAL, isArrival);

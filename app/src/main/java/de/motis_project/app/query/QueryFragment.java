@@ -27,7 +27,7 @@ import butterknife.OnTouch;
 import de.motis_project.app.R;
 
 public class QueryFragment extends Fragment
-        implements android.app.DatePickerDialog.OnDateSetListener, TimePickerDialog.ChangeListener {
+        implements android.app.DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.ChangeListener {
     public static final int SELECT_START_LOCATION = 1;
     public static final int SELECT_DEST_LOCATION = 2;
 
@@ -51,6 +51,9 @@ public class QueryFragment extends Fragment
 
     @BindView(R.id.time_text)
     TextView timeText;
+
+    public QueryFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,7 +101,7 @@ public class QueryFragment extends Fragment
 
     @OnClick(R.id.time_select)
     void showTimePickerDialog() {
-        DialogFragment dialogFragment = TimePickerDialog.newInstance(
+        DialogFragment dialogFragment = TimePickerDialogFragment.newInstance(
                 query.isArrival(), query.getHour(), query.getMinute());
         dialogFragment.setTargetFragment(this, 0);
         dialogFragment.show(getActivity().getSupportFragmentManager(), "timePicker");
@@ -113,7 +116,7 @@ public class QueryFragment extends Fragment
         toInput.setText(from);
     }
 
-    void openGuesser(@Nullable View v, MotionEvent e, int requestCode, String query) {
+    private void openGuesser(@Nullable View v, MotionEvent e, int requestCode, String query) {
         if (e.getAction() != MotionEvent.ACTION_UP || context == null) {
             return;
         }
@@ -121,9 +124,6 @@ public class QueryFragment extends Fragment
         Intent i = new Intent(context, GuesserActivity.class);
         i.putExtra("query", query);
         startActivityForResult(i, requestCode);
-    }
-
-    public QueryFragment() {
     }
 
     @Override
