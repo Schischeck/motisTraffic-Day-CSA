@@ -23,18 +23,6 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             R.layout.journey_item_journey2,
             R.layout.journey_item_journey3
     };
-    private boolean loadingAfter = false;
-    private boolean loadingBefore = false;
-
-    public void setLoadingBefore(boolean loadingBefore) {
-        this.loadingBefore = loadingBefore;
-        this.notifyItemInserted(0);
-    }
-
-    public void setLoadingAfter(boolean loadingAfter) {
-        this.loadingAfter = loadingAfter;
-        this.notifyItemInserted(getItemCount() - 1);
-    }
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
         public JourneyViewHolder(View itemView) {
@@ -66,8 +54,7 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0 && loadingBefore
-                || position == getItemCount() - 1 && loadingAfter) {
+        if (position == 0 || position == getItemCount() - 1) {
             return VIEW_TYPE_LOADING_SPINNER;
         } else {
             return VIEW_TYPE_JOURNEY_PREVIEW;
@@ -100,6 +87,6 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public int getItemCount() {
-        return data.size() + (loadingBefore ? 1 : 0) + (loadingAfter ? 1 : 0);
+        return data.size() + 2;
     }
 }
