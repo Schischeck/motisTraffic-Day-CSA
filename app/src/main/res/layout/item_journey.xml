@@ -98,7 +98,7 @@
             <TextView
                 style="@style/JourneySection"
                 android:background="@drawable/rounded_corner_accent"
-                android:text="@android:textColor"
+                android:text="RE"
                 />
 
             <ImageView

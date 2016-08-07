@@ -3,7 +3,7 @@ package de.motis_project.app;
 import android.os.Handler;
 import android.os.Looper;
 
-import de.motis_project.app.connection.State;
+import de.motis_project.app.io.State;
 
 public class Application extends android.app.Application {
     @Override

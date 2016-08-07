@@ -1,4 +1,4 @@
-package de.motis_project.app;
+package de.motis_project.app.journey;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;

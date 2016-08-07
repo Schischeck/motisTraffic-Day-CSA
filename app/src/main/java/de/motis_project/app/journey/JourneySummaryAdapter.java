@@ -1,24 +1,24 @@
-package de.motis_project.app;
+package de.motis_project.app.journey;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+import de.motis_project.app.R;
+
+public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_LOADING_SPINNER = 0;
     private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
 
     private final static Random rand = new Random();
 
-    private final static int[] itemLayouts = {R.layout.item_connection, R.layout.item_connection2, R.layout.item_connection3};
+    private final static int[] itemLayouts = {R.layout.item_journey, R.layout.item_journey2, R.layout.item_journey3};
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
 
@@ -45,7 +45,7 @@ public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.
 
     private final List<Data> data;
 
-    public ConnectionSummaryAdapter(List<Data> d) {
+    public JourneySummaryAdapter(List<Data> d) {
         data = d;
     }
 
