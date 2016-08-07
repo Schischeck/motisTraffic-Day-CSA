@@ -21,7 +21,9 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     private final static int[] itemLayouts = {
             R.layout.journey_item,
             R.layout.journey_item_journey2,
-            R.layout.journey_item_journey3
+            R.layout.journey_item_journey3,
+            R.layout.journey_item_journey4,
+            R.layout.journey_item_journey5
     };
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {

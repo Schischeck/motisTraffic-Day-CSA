@@ -81,18 +81,6 @@
 
         <TextView
             style="@style/JourneySection"
-            android:background="@drawable/rounded_corner_primary"
-            android:text="0815"
-            android:drawableStart="@drawable/ic_directions_railway_black_24dp"
-            android:drawablePadding="2dp"
-            android:layout_height="match_parent"/>
-
-        <ImageView
-            style="@style/SeperatorArrow"
-            android:layout_height="match_parent"/>
-
-        <TextView
-            style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
             android:text="5515"
             android:drawableStart="@drawable/ic_directions_bus_black_24dp"

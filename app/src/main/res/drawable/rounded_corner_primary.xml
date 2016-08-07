@@ -3,8 +3,8 @@
     <solid android:color="@color/colorPrimary"/>
 
     <padding
-        android:left="10dp"
-        android:right="10dp"/>
+        android:left="8dp"
+        android:right="8dp"/>
 
     <corners android:radius="20dp"/>
 </shape>
