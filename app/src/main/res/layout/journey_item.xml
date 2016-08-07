@@ -71,7 +71,9 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_primary"
-            android:text="ICE"
+            android:text="7534"
+            android:drawableStart="@drawable/ic_directions_railway_black_24dp"
+            android:drawablePadding="2dp"
             android:layout_height="match_parent"/>
 
         <ImageView
@@ -81,7 +83,9 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
-            android:text="RB"
+            android:text="681"
+            android:drawableStart="@drawable/ic_directions_bus_black_24dp"
+            android:drawablePadding="2dp"
             android:layout_height="match_parent"/>
 
         <ImageView
@@ -91,7 +95,9 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
-            android:text="RE"
+            android:text="5515"
+            android:drawableStart="@drawable/ic_directions_bus_black_24dp"
+            android:drawablePadding="2dp"
             android:layout_height="match_parent"/>
 
         <ImageView
@@ -101,7 +107,9 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_primary"
-            android:text="ICE"
+            android:text="3698"
+            android:drawableStart="@drawable/ic_directions_railway_black_24dp"
+            android:drawablePadding="2dp"
             android:layout_height="match_parent"/>
     </LinearLayout>
 </LinearLayout>

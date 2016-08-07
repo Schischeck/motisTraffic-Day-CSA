@@ -21,13 +21,11 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="17:35"/>
 
             <TextView
-                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="17:35"
@@ -36,7 +34,6 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -50,13 +47,11 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="20:10"/>
 
             <TextView
-                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="20:10"
@@ -69,13 +64,12 @@
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_marginTop="9dp"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
 
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_primary"
-            android:text="ICE"
+            android:drawableStart="@drawable/ic_directions_railway_black_24dp"
             />
 
         <ImageView
@@ -85,7 +79,7 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
-            android:text="RB"
+            android:drawableLeft="@drawable/ic_directions_bus_black_24dp"
             />
 
         <ImageView
@@ -95,39 +89,8 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
-            android:text="RE"
+            android:drawableLeft="@drawable/ic_directions_bus_black_24dp"
             />
-
-        <ImageView
-            style="@style/SeperatorArrow"
-            android:layout_height="match_parent"/>
-
-        <TextView
-            style="@style/JourneySection"
-            android:background="@drawable/rounded_corner_primary"
-            android:text="ICE"
-            />
-
-        <ImageView
-            style="@style/SeperatorArrow"
-            android:layout_height="match_parent"/>
-
-        <TextView
-            style="@style/JourneySection"
-            android:background="@drawable/rounded_corner_accent"
-            android:text="RB"
-            />
-
-        <ImageView
-            style="@style/SeperatorArrow"
-            android:layout_height="match_parent"/>
-
-        <TextView
-            style="@style/JourneySection"
-            android:background="@drawable/rounded_corner_accent"
-            android:text="RE"
-            />
-
 
         <ImageView
             style="@style/SeperatorArrow"
@@ -136,7 +99,7 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_primary"
-            android:text="ICE"
+            android:drawableLeft="@drawable/ic_directions_railway_black_24dp"
             />
 
         <ImageView
@@ -146,7 +109,38 @@
         <TextView
             style="@style/JourneySection"
             android:background="@drawable/rounded_corner_accent"
-            android:text="RB"
+            android:drawableLeft="@drawable/ic_directions_bus_black_24dp"
+            />
+
+        <ImageView
+            style="@style/SeperatorArrow"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            style="@style/JourneySection"
+            android:background="@drawable/rounded_corner_accent"
+            android:drawableLeft="@drawable/ic_directions_bus_black_24dp"
+            />
+
+
+        <ImageView
+            style="@style/SeperatorArrow"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            style="@style/JourneySection"
+            android:background="@drawable/rounded_corner_primary"
+            android:drawableLeft="@drawable/ic_directions_railway_black_24dp"
+            />
+
+        <ImageView
+            style="@style/SeperatorArrow"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            style="@style/JourneySection"
+            android:background="@drawable/rounded_corner_accent"
+            android:drawableLeft="@drawable/ic_directions_bus_black_24dp"
             />
 
 
