@@ -1,6 +1,7 @@
 package de.motis_project.app.query;
 
 import android.content.SharedPreferences;
+import android.os.Bundle;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -15,29 +16,31 @@ public class Query {
     private static final String FROM = "QUERY_FROM";
     private static final String TO = "QUERY_TO";
 
-    private final SharedPreferences q;
+    private final Bundle bundle;
+    private final SharedPreferences pref;
     private final Calendar cal;
 
-    public Query(SharedPreferences q) {
-        this.q = q;
+    public Query(Bundle b, SharedPreferences pref) {
+        this.pref = pref;
+        this.bundle = b != null ? b : new Bundle();
         this.cal = Calendar.getInstance();
     }
 
-    public boolean isArrival() { return q.getBoolean(IS_ARRIVAL, false); }
+    public boolean isArrival() { return bundle.getBoolean(IS_ARRIVAL, false); }
 
-    public int getYear() { return q.getInt(YEAR, cal.get(Calendar.YEAR)); }
+    public int getYear() { return bundle.getInt(YEAR, cal.get(Calendar.YEAR)); }
 
-    public int getMonth() { return q.getInt(MONTH, cal.get(Calendar.MONTH)); }
+    public int getMonth() { return bundle.getInt(MONTH, cal.get(Calendar.MONTH)); }
 
-    public int getDay() { return q.getInt(DAY, cal.get(Calendar.DAY_OF_MONTH)); }
+    public int getDay() { return bundle.getInt(DAY, cal.get(Calendar.DAY_OF_MONTH)); }
 
-    public int getHour() { return q.getInt(HOUR, cal.get(Calendar.HOUR_OF_DAY)); }
+    public int getHour() { return bundle.getInt(HOUR, cal.get(Calendar.HOUR_OF_DAY)); }
 
-    public int getMinute() { return q.getInt(MINUTE, cal.get(Calendar.MINUTE)); }
+    public int getMinute() { return bundle.getInt(MINUTE, cal.get(Calendar.MINUTE)); }
 
-    public String getFrom() { return q.getString(FROM, ""); }
+    public String getFrom() { return pref.getString(FROM, ""); }
 
-    public String getTo() { return q.getString(TO, ""); }
+    public String getTo() { return pref.getString(TO, ""); }
 
     public Date getTime() {
         Calendar cal = Calendar.getInstance();
@@ -58,37 +61,42 @@ public class Query {
     }
 
     public void setDate(int year, int month, int day) {
-        SharedPreferences.Editor edit = q.edit();
-        edit.putInt(YEAR, year);
-        edit.putInt(MONTH, month);
-        edit.putInt(DAY, day);
-        edit.apply();
+        bundle.putInt(YEAR, year);
+        bundle.putInt(MONTH, month);
+        bundle.putInt(DAY, day);
     }
 
     public void setTime(boolean isArrival, int hour, int minute) {
-        SharedPreferences.Editor edit = q.edit();
-        edit.putBoolean(IS_ARRIVAL, isArrival);
-        edit.putInt(HOUR, hour);
-        edit.putInt(MINUTE, minute);
-        edit.apply();
+        bundle.putBoolean(IS_ARRIVAL, isArrival);
+        bundle.putInt(HOUR, hour);
+        bundle.putInt(MINUTE, minute);
     }
 
     public void setFrom(String from) {
-        SharedPreferences.Editor edit = q.edit();
+        SharedPreferences.Editor edit = pref.edit();
         edit.putString(FROM, from);
         edit.apply();
     }
 
     public void setTo(String to) {
-        SharedPreferences.Editor edit = q.edit();
+        SharedPreferences.Editor edit = pref.edit();
         edit.putString(TO, to);
         edit.apply();
     }
 
     public void swapStations() {
-        SharedPreferences.Editor edit = q.edit();
+        SharedPreferences.Editor edit = pref.edit();
         edit.putString(FROM, getTo());
         edit.putString(TO, getFrom());
         edit.apply();
+    }
+
+    public void updateBundle(Bundle outState) {
+        outState.putInt(YEAR, getYear());
+        outState.putInt(MONTH, getMonth());
+        outState.putInt(DAY, getDay());
+        outState.putBoolean(IS_ARRIVAL, isArrival());
+        outState.putInt(HOUR, getHour());
+        outState.putInt(MINUTE, getMinute());
     }
 }

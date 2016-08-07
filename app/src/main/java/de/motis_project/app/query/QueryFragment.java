@@ -57,7 +57,9 @@ public class QueryFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_query, container, false);
         ButterKnife.bind(this, view);
 
-        query = new Query(getContext().getSharedPreferences("query", Context.MODE_PRIVATE));
+        query = new Query(
+                savedInstanceState,
+                getContext().getSharedPreferences("query", Context.MODE_PRIVATE));
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);
@@ -69,15 +71,20 @@ public class QueryFragment extends Fragment
         return view;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        query.updateBundle(outState);
+    }
+
     @OnTouch(R.id.start_input)
     boolean openSearchStart(View v, MotionEvent e) {
-        openGuesser(v, e, QueryFragment.SELECT_START_LOCATION, fromInput.getText().toString());
+        openGuesser(v, e, SELECT_START_LOCATION, fromInput.getText().toString());
         return true;
     }
 
     @OnTouch(R.id.dest_input)
     boolean openSearchDest(View v, MotionEvent e) {
-        openGuesser(v, e, QueryFragment.SELECT_DEST_LOCATION, toInput.getText().toString());
+        openGuesser(v, e, SELECT_DEST_LOCATION, toInput.getText().toString());
         return true;
     }
 
