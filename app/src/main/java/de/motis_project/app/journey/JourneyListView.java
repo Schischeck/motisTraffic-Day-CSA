@@ -18,7 +18,7 @@ import de.motis_project.app.R;
 public class JourneyListView extends RecyclerView {
 
     class SimpleDividerItemDecoration extends RecyclerView.ItemDecoration {
-        private Drawable divider;
+        private final Drawable divider;
 
         public SimpleDividerItemDecoration(Context context) {
             divider = ContextCompat.getDrawable(context, R.drawable.line_divider);
