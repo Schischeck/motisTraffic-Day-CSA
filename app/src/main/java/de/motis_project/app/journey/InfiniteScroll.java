@@ -13,18 +13,12 @@ public abstract class InfiniteScroll extends RecyclerView.OnScrollListener {
 
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        System.out.println("########### !!!!!!!!!!! InfiniteScroll.onScrolled");
-
         synchronized (layoutManager) {
             if (loading) {
                 return;
             }
 
             int first = layoutManager.findFirstVisibleItemPosition();
-            System.out.println("first = " + first);
-            System.out.println("first completely = " + layoutManager.findFirstCompletelyVisibleItemPosition());
-            System.out.println("top first = " +
-                    layoutManager.findViewByPosition(layoutManager.findFirstCompletelyVisibleItemPosition()).getTop());
             if (first == 0) {
                 loading = true;
                 loadBefore();

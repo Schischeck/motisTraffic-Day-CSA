@@ -70,8 +70,6 @@ public class JourneyListView extends RecyclerView {
         addOnScrollListener(new InfiniteScroll(layoutManager) {
             @Override
             void loadBefore() {
-                System.out.println("JourneyListView.loadBefore");
-
                 adapter.setLoadingBefore(true);
 
                 new AsyncTask<Void, Void, Void>() {
