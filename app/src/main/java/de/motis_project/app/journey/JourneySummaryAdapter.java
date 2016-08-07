@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Random;
 
 import de.motis_project.app.R;
+import de.motis_project.app.lib.StickyHeaderAdapter;
 
-public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class JourneySummaryAdapter
+        extends RecyclerView.Adapter<RecyclerView.ViewHolder>
+        implements StickyHeaderAdapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_LOADING_SPINNER = 0;
     private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
 
@@ -26,6 +29,12 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
         public JourneyViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
+        public HeaderViewHolder(View itemView) {
             super(itemView);
         }
     }
@@ -79,14 +88,26 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-        if (getItemViewType(position) == VIEW_TYPE_JOURNEY_PREVIEW) {
-            JourneyViewHolder journey = (JourneyViewHolder) viewHolder;
-        }
-    }
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {}
 
     @Override
     public int getItemCount() {
         return data.size() + 2;
     }
+
+    @Override
+    public long getHeaderId(int position) {
+        return position / 10;
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        return new HeaderViewHolder(
+                inflater.inflate(R.layout.journey_header_item, parent, false));
+    }
+
+    @Override
+    public void onBindHeaderViewHolder(RecyclerView.ViewHolder viewholder, int position) {}
 }

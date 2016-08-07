@@ -14,6 +14,7 @@ import android.view.View;
 import java.util.List;
 
 import de.motis_project.app.R;
+import de.motis_project.app.lib.StickyHeaderDecoration;
 
 public class JourneyListView extends RecyclerView {
 
@@ -65,8 +66,9 @@ public class JourneyListView extends RecyclerView {
         final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
         final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
         setAdapter(adapter);
-        setLayoutManager(layoutManager);
         addItemDecoration(new SimpleDividerItemDecoration(getContext()));
+        addItemDecoration(new StickyHeaderDecoration(adapter));
+        setLayoutManager(layoutManager);
 
         addOnScrollListener(new InfiniteScroll(layoutManager) {
             @Override
