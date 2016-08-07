@@ -33,7 +33,8 @@ public class JourneyListView extends RecyclerView {
             for (int i = 0; i < childCount; i++) {
                 View child = parent.getChildAt(i);
 
-                RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
+                RecyclerView.LayoutParams params =
+                        (RecyclerView.LayoutParams) child.getLayoutParams();
 
                 int top = child.getBottom() + params.bottomMargin;
                 int bottom = top + divider.getIntrinsicHeight();
@@ -62,7 +63,7 @@ public class JourneyListView extends RecyclerView {
     private void init() {
         final List<JourneySummaryAdapter.Data> data = JourneySummaryAdapter.Data.createSome(50);
         final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
-        final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
         setAdapter(adapter);
         setLayoutManager(layoutManager);
         addItemDecoration(new SimpleDividerItemDecoration(getContext()));
@@ -70,48 +71,46 @@ public class JourneyListView extends RecyclerView {
         addOnScrollListener(new InfiniteScroll(layoutManager) {
             @Override
             void loadBefore() {
-                adapter.setLoadingBefore(true);
-
-                new AsyncTask<Void, Void, Void>() {
+                new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
                     @Override
-                    protected Void doInBackground(Void... voids) {
+                    protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
                         try {
                             Thread.sleep(2000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        data.addAll(0, JourneySummaryAdapter.Data.createSome(20));
-                        return null;
+                        return JourneySummaryAdapter.Data.createSome(20);
                     }
 
                     @Override
-                    protected void onPostExecute(Void aVoid) {
+                    protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
                         notifyLoadFinished();
-                        adapter.notifyItemRangeInserted(0, 20);
+                        data.addAll(0, newData);
+                        // lie about inserted position to scroll to position 1
+                        adapter.notifyItemRangeInserted(0, newData.size());
                     }
                 }.execute();
             }
 
             @Override
             void loadAfter() {
-                adapter.setLoadingAfter(true);
-
-                new AsyncTask<Void, Void, Void>() {
+                new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
                     @Override
-                    protected Void doInBackground(Void... voids) {
+                    protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
                         try {
                             Thread.sleep(2000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        data.addAll(JourneySummaryAdapter.Data.createSome(20));
-                        return null;
+                        return JourneySummaryAdapter.Data.createSome(20);
                     }
 
                     @Override
-                    protected void onPostExecute(Void aVoid) {
+                    protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
                         notifyLoadFinished();
-                        adapter.notifyItemRangeInserted(data.size() - 20, 20);
+                        int oldDisplayItemCount = adapter.getItemCount();
+                        data.addAll(newData);
+                        adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
                     }
                 }.execute();
             }

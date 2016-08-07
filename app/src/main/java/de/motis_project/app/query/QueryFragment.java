@@ -25,6 +25,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import de.motis_project.app.R;
+import de.motis_project.app.journey.JourneyListView;
 
 public class QueryFragment extends Fragment
         implements android.app.DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.ChangeListener {
@@ -52,6 +53,9 @@ public class QueryFragment extends Fragment
     @BindView(R.id.time_text)
     TextView timeText;
 
+    @BindView(R.id.connection_list)
+    JourneyListView journeyListView;
+
     public QueryFragment() {
     }
 
@@ -70,6 +74,8 @@ public class QueryFragment extends Fragment
 
         fromInput.setText(query.getFrom());
         toInput.setText(query.getTo());
+
+        journeyListView.scrollToPosition(1);
 
         return view;
     }
