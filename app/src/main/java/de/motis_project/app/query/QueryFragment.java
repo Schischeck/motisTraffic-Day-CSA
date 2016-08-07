@@ -145,6 +145,7 @@ public class QueryFragment extends Fragment
                 resultCode != Activity.RESULT_OK) {
             return;
         }
+
         String result = data.getExtras().getString("result");
         switch (requestCode) {
             case SELECT_START_LOCATION:

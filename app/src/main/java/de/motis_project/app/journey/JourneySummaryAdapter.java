@@ -18,10 +18,25 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     private final static Random rand = new Random();
 
-    private final static int[] itemLayouts = {R.layout.journey_item, R.layout.journey_item_journey2, R.layout.journey_item_journey3};
+    private final static int[] itemLayouts = {
+            R.layout.journey_item,
+            R.layout.journey_item_journey2,
+            R.layout.journey_item_journey3
+    };
+    private boolean loadingAfter = false;
+    private boolean loadingBefore = false;
+
+    public void setLoadingBefore(boolean loadingBefore) {
+        this.loadingBefore = loadingBefore;
+        this.notifyItemInserted(0);
+    }
+
+    public void setLoadingAfter(boolean loadingAfter) {
+        this.loadingAfter = loadingAfter;
+        this.notifyItemInserted(getItemCount() - 1);
+    }
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
-
         public JourneyViewHolder(View itemView) {
             super(itemView);
         }
@@ -51,7 +66,8 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0 || position == getItemCount() - 1) {
+        if (position == 0 && loadingBefore
+                || position == getItemCount() - 1 && loadingAfter) {
             return VIEW_TYPE_LOADING_SPINNER;
         } else {
             return VIEW_TYPE_JOURNEY_PREVIEW;
@@ -65,9 +81,11 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
-                return new JourneyViewHolder(inflater.inflate(itemLayouts[rand.nextInt(itemLayouts.length)], parent, false));
+                return new JourneyViewHolder(
+                        inflater.inflate(itemLayouts[rand.nextInt(itemLayouts.length)], parent, false));
             case VIEW_TYPE_LOADING_SPINNER:
-                return new JourneyViewHolder(inflater.inflate(R.layout.journey_loading_spinner, parent, false));
+                return new JourneyViewHolder(
+                        inflater.inflate(R.layout.journey_loading_spinner, parent, false));
             default:
                 throw new RuntimeException("unknown view type");
         }
@@ -82,6 +100,6 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public int getItemCount() {
-        return data.size();
+        return data.size() + (loadingBefore ? 1 : 0) + (loadingAfter ? 1 : 0);
     }
 }

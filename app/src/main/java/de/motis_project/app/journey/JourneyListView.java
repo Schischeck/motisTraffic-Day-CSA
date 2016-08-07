@@ -70,11 +70,15 @@ public class JourneyListView extends RecyclerView {
         addOnScrollListener(new InfiniteScroll(layoutManager) {
             @Override
             void loadBefore() {
+                System.out.println("JourneyListView.loadBefore");
+
+                adapter.setLoadingBefore(true);
+
                 new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(2000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -92,11 +96,14 @@ public class JourneyListView extends RecyclerView {
 
             @Override
             void loadAfter() {
+                adapter.setLoadingAfter(true);
+
                 new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
+
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(2000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
