@@ -6,4 +6,5 @@
     <color name="color_white_semitransparent">#88FFFFFF</color>
     <color name="color_back_semitransparent">#AA000000</color>
     <color name="grey_200">#FFCCCCCC</color>
+    <color name="teal_500">#009688</color>
 </resources>

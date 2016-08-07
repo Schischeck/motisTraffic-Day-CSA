@@ -7,6 +7,8 @@
     android:orientation="vertical">
 
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
@@ -34,8 +36,8 @@
                     android:id="@+id/textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="17:38"
-                    android:textColor="@color/colorAccent"
+                    android:text="17:35"
+                    android:textColor="@color/teal_500"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -63,8 +65,8 @@
                     android:id="@+id/textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="20:13"
-                    android:textColor="@color/colorAccent"
+                    android:text="20:10"
+                    android:textColor="@color/teal_500"
                     android:textStyle="bold"/>
             </LinearLayout>
         </LinearLayout>
@@ -98,7 +100,7 @@
             <TextView
                 style="@style/JourneySection"
                 android:background="@drawable/rounded_corner_accent"
-                android:text="@android:textColor"
+                android:text="RE"
                 />
 
             <ImageView
@@ -109,8 +111,48 @@
                 android:background="@drawable/rounded_corner_primary"
                 android:text="ICE"
                 />
+
+            <ImageView
+                style="@style/SeperatorArrow"/>
+
+            <TextView
+                style="@style/JourneySection"
+                android:background="@drawable/rounded_corner_accent"
+                android:text="RB"
+                />
+
+            <ImageView
+                style="@style/SeperatorArrow"/>
+
+            <TextView
+                style="@style/JourneySection"
+                android:background="@drawable/rounded_corner_accent"
+                android:text="RE"
+                />
+
+
+            <ImageView
+                style="@style/SeperatorArrow"/>
+
+            <TextView
+                style="@style/JourneySection"
+                android:background="@drawable/rounded_corner_primary"
+                android:text="ICE"
+                />
+
+            <ImageView
+                style="@style/SeperatorArrow"/>
+
+            <TextView
+                style="@style/JourneySection"
+                android:background="@drawable/rounded_corner_accent"
+                android:text="RB"
+                />
+
+
         </LinearLayout>
     </LinearLayout>
+
 
     <View
         android:layout_width="match_parent"

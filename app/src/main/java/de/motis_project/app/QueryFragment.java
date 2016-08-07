@@ -140,7 +140,6 @@ public class QueryFragment extends Fragment
 
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.connection_list);
 
-
         final Handler handler = new Handler(Looper.getMainLooper());
         final List<ConnectionSummaryAdapter.Data> data = ConnectionSummaryAdapter.Data.createSome(50);
         final ConnectionSummaryAdapter adapter = new ConnectionSummaryAdapter(data);

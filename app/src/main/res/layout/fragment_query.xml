@@ -81,7 +81,8 @@
             android:layout_height="60dp"
             android:baselineAligned="false"
             android:orientation="horizontal"
-            android:weightSum="1">
+            android:weightSum="1"
+            app:layout_scrollFlags="scroll|enterAlways">
 
             <LinearLayout
                 android:id="@+id/date_select"

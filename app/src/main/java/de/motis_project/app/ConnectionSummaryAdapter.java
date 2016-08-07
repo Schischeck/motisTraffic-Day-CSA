@@ -10,19 +10,20 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int VIEW_TYPE_LOADING_SPINNER = 0;
     private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
 
+    private final static Random rand = new Random();
+
+    private final static int[] itemLayouts = {R.layout.item_connection, R.layout.item_connection2, R.layout.item_connection3};
+
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
-        public TextView nameTextView;
-        public Button messageButton;
 
         public JourneyViewHolder(View itemView) {
             super(itemView);
-            nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
-            messageButton = (Button) itemView.findViewById(R.id.message_button);
         }
     }
 
@@ -64,7 +65,7 @@ public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.
 
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
-                return new JourneyViewHolder(inflater.inflate(R.layout.item_connection, parent, false));
+                return new JourneyViewHolder(inflater.inflate(itemLayouts[rand.nextInt(itemLayouts.length)], parent, false));
             case VIEW_TYPE_LOADING_SPINNER:
                 return new JourneyViewHolder(inflater.inflate(R.layout.loading_spinner, parent, false));
             default:
@@ -76,8 +77,6 @@ public class ConnectionSummaryAdapter extends RecyclerView.Adapter<RecyclerView.
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
         if (getItemViewType(position) == VIEW_TYPE_JOURNEY_PREVIEW) {
             JourneyViewHolder journey = (JourneyViewHolder) viewHolder;
-            journey.nameTextView.setText(data.get(position).text);
-            journey.messageButton.setText("Message");
         }
     }
 
