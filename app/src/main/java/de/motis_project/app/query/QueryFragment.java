@@ -57,7 +57,7 @@ public class QueryFragment extends Fragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_query, container, false);
+        View view = inflater.inflate(R.layout.query_fragment, container, false);
         ButterKnife.bind(this, view);
 
         query = new Query(
