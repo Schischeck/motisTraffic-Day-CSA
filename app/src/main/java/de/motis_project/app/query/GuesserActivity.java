@@ -67,7 +67,7 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
 
         State.get().getServer().addListener(this);
 
-        setContentView(R.layout.activity_guesser);
+        setContentView(R.layout.query_guesser_activity);
         ButterKnife.bind(this);
         setResults(new ArrayList<String>());
 
@@ -87,7 +87,7 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
     public void setResults(ArrayList<String> r) {
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(GuesserActivity.this,
-                                         R.layout.search_list_item,
+                                         R.layout.query_guesser_list_item,
                                          R.id.guess_text, r);
         suggestionList.setAdapter(adapter);
     }

@@ -18,7 +18,7 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     private final static Random rand = new Random();
 
-    private final static int[] itemLayouts = {R.layout.item_journey, R.layout.item_journey2, R.layout.item_journey3};
+    private final static int[] itemLayouts = {R.layout.journey_item, R.layout.journey_item_journey2, R.layout.journey_item_journey3};
 
     public static class JourneyViewHolder extends RecyclerView.ViewHolder {
 
@@ -67,7 +67,7 @@ public class JourneySummaryAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             case VIEW_TYPE_JOURNEY_PREVIEW:
                 return new JourneyViewHolder(inflater.inflate(itemLayouts[rand.nextInt(itemLayouts.length)], parent, false));
             case VIEW_TYPE_LOADING_SPINNER:
-                return new JourneyViewHolder(inflater.inflate(R.layout.loading_spinner, parent, false));
+                return new JourneyViewHolder(inflater.inflate(R.layout.journey_loading_spinner, parent, false));
             default:
                 throw new RuntimeException("unknown view type");
         }

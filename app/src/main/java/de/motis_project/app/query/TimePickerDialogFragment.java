@@ -54,7 +54,7 @@ public class TimePickerDialogFragment extends DialogFragment
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View v = inflater.inflate(R.layout.dialog_time_picker, null);
+        View v = inflater.inflate(R.layout.query_dialog_time_picker, null);
         ButterKnife.bind(this, v);
 
         initFromBundle(savedInstanceState != null ? savedInstanceState : getArguments());
