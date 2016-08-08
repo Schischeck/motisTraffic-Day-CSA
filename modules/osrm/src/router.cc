@@ -20,7 +20,7 @@ using namespace motis::module;
 
 using namespace osrm;
 using namespace osrm::util;
-using namespace osrm::util::json;
+using namespace osrm::json;
 
 namespace motis {
 namespace osrm {
