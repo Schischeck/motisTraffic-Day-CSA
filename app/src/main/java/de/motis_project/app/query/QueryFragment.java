@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -77,6 +78,8 @@ public class QueryFragment extends Fragment
 
         journeyListView.scrollToPosition(1);
 
+        sendSearchRequest();
+
         return view;
     }
 
@@ -120,6 +123,8 @@ public class QueryFragment extends Fragment
         String from = fromInput.getText().toString();
         fromInput.setText(toInput.getText().toString());
         toInput.setText(from);
+
+        sendSearchRequest();
     }
 
     private void openGuesser(@Nullable View v, MotionEvent e, int requestCode, String query) {
@@ -159,10 +164,12 @@ public class QueryFragment extends Fragment
             case SELECT_START_LOCATION:
                 query.setFrom(id, name);
                 fromInput.setText(name);
+                sendSearchRequest();
                 break;
             case SELECT_DEST_LOCATION:
                 query.setTo(id, name);
                 toInput.setText(name);
+                sendSearchRequest();
                 break;
         }
     }
@@ -174,6 +181,8 @@ public class QueryFragment extends Fragment
         Calendar cal = Calendar.getInstance();
         Query.setDate(cal, year, month, day);
         updateDateDisplay(cal.getTime());
+
+        sendSearchRequest();
     }
 
     @Override
@@ -183,6 +192,21 @@ public class QueryFragment extends Fragment
         Calendar cal = Calendar.getInstance();
         Query.setTime(cal, hour, minute);
         updateTimeDisplay(isArrival, cal.getTime());
+
+        sendSearchRequest();
+    }
+
+    private void sendSearchRequest() {
+        // TODO(felix) implement
+
+        if (context == null) {
+            return;
+        }
+
+        CharSequence text = query.getFromId() + " -> " + query.getToId()
+                + " " + query.getTime() + " " + (query.isArrival() ? "arr" : "dep");
+        Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
+        toast.show();
     }
 
     private void updateTimeDisplay(boolean isArrival, Date time) {

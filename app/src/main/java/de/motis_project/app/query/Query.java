@@ -13,10 +13,10 @@ public class Query {
     private static final String DAY = "QUERY_DAY";
     private static final String HOUR = "QUERY_HOUR";
     private static final String MINUTE = "QUERY_MINUTE";
-    private static final String FROM_NAME = "QUERY_FROM";
-    private static final String TO_NAME = "QUERY_TO";
-    private static final String FROM_ID = "QUERY_FROM";
-    private static final String TO_ID = "QUERY_TO";
+    private static final String FROM_NAME = "QUERY_FROM_NAME";
+    private static final String TO_NAME = "QUERY_TO_NAME";
+    private static final String FROM_ID = "QUERY_FROM_ID";
+    private static final String TO_ID = "QUERY_TO_ID";
 
     private final Bundle bundle;
     private final SharedPreferences pref;
