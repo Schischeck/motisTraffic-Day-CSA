@@ -72,8 +72,8 @@ public class QueryFragment extends Fragment
         updateTimeDisplay(query.isArrival(), d);
         updateDateDisplay(d);
 
-        fromInput.setText(query.getFrom());
-        toInput.setText(query.getTo());
+        fromInput.setText(query.getFromName());
+        toInput.setText(query.getToName());
 
         journeyListView.scrollToPosition(1);
 
@@ -128,7 +128,7 @@ public class QueryFragment extends Fragment
         }
 
         Intent i = new Intent(context, GuesserActivity.class);
-        i.putExtra("query", query);
+        i.putExtra(GuesserActivity.QUERY, query);
         startActivityForResult(i, requestCode);
     }
 
@@ -147,20 +147,22 @@ public class QueryFragment extends Fragment
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data == null || data.getExtras() == null ||
-                data.getExtras().getString("result") == null ||
+                data.getExtras().getString(GuesserActivity.RESULT_NAME) == null ||
+                data.getExtras().getString(GuesserActivity.RESULT_ID) == null ||
                 resultCode != Activity.RESULT_OK) {
             return;
         }
 
-        String result = data.getExtras().getString("result");
+        String name = data.getExtras().getString(GuesserActivity.RESULT_NAME);
+        String id = data.getExtras().getString(GuesserActivity.RESULT_ID);
         switch (requestCode) {
             case SELECT_START_LOCATION:
-                query.setFrom(result);
-                fromInput.setText(result);
+                query.setFrom(id, name);
+                fromInput.setText(name);
                 break;
             case SELECT_DEST_LOCATION:
-                query.setTo(result);
-                toInput.setText(result);
+                query.setTo(id, name);
+                toInput.setText(name);
                 break;
         }
     }

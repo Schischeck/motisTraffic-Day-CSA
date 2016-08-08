@@ -13,8 +13,10 @@ public class Query {
     private static final String DAY = "QUERY_DAY";
     private static final String HOUR = "QUERY_HOUR";
     private static final String MINUTE = "QUERY_MINUTE";
-    private static final String FROM = "QUERY_FROM";
-    private static final String TO = "QUERY_TO";
+    private static final String FROM_NAME = "QUERY_FROM";
+    private static final String TO_NAME = "QUERY_TO";
+    private static final String FROM_ID = "QUERY_FROM";
+    private static final String TO_ID = "QUERY_TO";
 
     private final Bundle bundle;
     private final SharedPreferences pref;
@@ -38,9 +40,13 @@ public class Query {
 
     public int getMinute() { return bundle.getInt(MINUTE, cal.get(Calendar.MINUTE)); }
 
-    public String getFrom() { return pref.getString(FROM, ""); }
+    public String getFromName() { return pref.getString(FROM_NAME, ""); }
 
-    public String getTo() { return pref.getString(TO, ""); }
+    public String getToName() { return pref.getString(TO_NAME, ""); }
+
+    public String getFromId() { return pref.getString(FROM_ID, ""); }
+
+    public String getToId() { return pref.getString(TO_ID, ""); }
 
     public Date getTime() {
         Calendar cal = Calendar.getInstance();
@@ -72,22 +78,26 @@ public class Query {
         bundle.putInt(MINUTE, minute);
     }
 
-    public void setFrom(String from) {
+    public void setFrom(String id, String name) {
         SharedPreferences.Editor edit = pref.edit();
-        edit.putString(FROM, from);
+        edit.putString(FROM_ID, id);
+        edit.putString(FROM_NAME, name);
         edit.apply();
     }
 
-    public void setTo(String to) {
+    public void setTo(String id, String name) {
         SharedPreferences.Editor edit = pref.edit();
-        edit.putString(TO, to);
+        edit.putString(TO_ID, id);
+        edit.putString(TO_NAME, name);
         edit.apply();
     }
 
     public void swapStations() {
         SharedPreferences.Editor edit = pref.edit();
-        edit.putString(FROM, getTo());
-        edit.putString(TO, getFrom());
+        edit.putString(FROM_NAME, getToName());
+        edit.putString(FROM_ID, getToId());
+        edit.putString(TO_NAME, getFromName());
+        edit.putString(TO_ID, getFromId());
         edit.apply();
     }
 

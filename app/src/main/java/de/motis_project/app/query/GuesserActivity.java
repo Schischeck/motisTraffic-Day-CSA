@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,6 +25,12 @@ import motis.MsgContent;
 import motis.guesser.StationGuesserResponse;
 
 public class GuesserActivity extends FragmentActivity implements Server.Listener {
+    public static final String RESULT_NAME = "result_name";
+    public static final String RESULT_ID = "result_id";
+    public static final String QUERY = "query";
+
+    private List<String> resultIds = new ArrayList<String>();
+
     @BindView(R.id.suggestionslist)
     ListView suggestionList;
 
@@ -39,14 +46,14 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
     @OnClick(R.id.clearButton)
     void clearInput() {
         searchInput.setText("");
-        setResults(new ArrayList<String>());
+        setResults(new ArrayList<String>(), new ArrayList<String>());
     }
 
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
         Intent i = new Intent();
-        i.putExtra("result",
-                   suggestionList.getAdapter().getItem(pos).toString());
+        i.putExtra(RESULT_NAME, suggestionList.getAdapter().getItem(pos).toString());
+        i.putExtra(RESULT_ID, resultIds.get(pos).toString());
         setResult(Activity.RESULT_OK, i);
         finish();
     }
@@ -69,9 +76,9 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
 
         setContentView(R.layout.query_guesser_activity);
         ButterKnife.bind(this);
-        setResults(new ArrayList<String>());
+        setResults(new ArrayList<String>(), new ArrayList<String>());
 
-        String query = getIntent().getStringExtra("query");
+        String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
             searchInput.setText(query);
             searchInput.setSelection(query.length());
@@ -84,12 +91,13 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
         State.get().getServer().removeListener(this);
     }
 
-    public void setResults(ArrayList<String> r) {
+    public void setResults(ArrayList<String> names, ArrayList<String> ids) {
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(GuesserActivity.this,
                                          R.layout.query_guesser_list_item,
-                                         R.id.guess_text, r);
+                                         R.id.guess_text, names);
         suggestionList.setAdapter(adapter);
+        resultIds = ids;
     }
 
     @Override
@@ -101,15 +109,17 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
         StationGuesserResponse guessesResponse = new StationGuesserResponse();
         guessesResponse = (StationGuesserResponse) m.content(guessesResponse);
 
-        final ArrayList<String> guesses = new ArrayList<String>();
+        final ArrayList<String> names = new ArrayList<String>(guessesResponse.guessesLength());
+        final ArrayList<String> ids = new ArrayList<String>(guessesResponse.guessesLength());
         for (int i = 0; i < guessesResponse.guessesLength(); i++) {
-            guesses.add(guessesResponse.guesses(i).name());
+            names.add(guessesResponse.guesses(i).name());
+            ids.add(guessesResponse.guesses(i).id());
         }
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                setResults(guesses);
+                setResults(names, ids);
             }
         });
     }
