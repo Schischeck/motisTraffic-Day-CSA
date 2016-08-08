@@ -20,7 +20,7 @@ using namespace motis::module;
 
 using namespace osrm;
 using namespace osrm::util;
-using namespace osrm::json;
+using namespace osrm::util::json;
 
 namespace motis {
 namespace osrm {
@@ -50,7 +50,7 @@ public:
       params.coordinates.push_back(make_coord(loc->lat(), loc->lng()));
     }
 
-    json::Object result;
+    Object result;
     auto const status = osrm_->MultiTarget(params, result);
 
     if (status != Status::Ok) {
@@ -82,7 +82,7 @@ public:
           make_coord(waypoint->lat(), waypoint->lng()));
     }
 
-    json::Object result;
+    Object result;
     auto const status = osrm_->Route(params, result);
 
     if (status != Status::Ok) {
@@ -120,7 +120,7 @@ public:
       params.waypoints.push_back(std::move(coords));
     }
 
-    json::Object result;
+    Object result;
     auto const status = osrm_->SmoothVia(params, result);
 
     if (status != Status::Ok) {
