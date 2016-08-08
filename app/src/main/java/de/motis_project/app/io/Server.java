@@ -15,11 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 import motis.Message;
+import motis.MotisError;
+import motis.MsgContent;
 
 public class Server extends WebSocketAdapter {
     public interface Listener {
         void onMessage(Message m);
+
         void onConnect();
+
         void onDisconnect();
     }
 
@@ -36,6 +40,8 @@ public class Server extends WebSocketAdapter {
     }
 
     public void connect() throws IOException {
+        System.out.println("Server.connect");
+
         WebSocketFactory factory = new WebSocketFactory();
         factory.setConnectionTimeout(60000);
 
@@ -88,6 +94,13 @@ public class Server extends WebSocketAdapter {
     @Override
     public void onBinaryMessage(WebSocket ws, byte[] buf) throws Exception {
         Message msg = MessageBuilder.decode(buf);
+
+        if (msg.contentType() == MsgContent.MotisError) {
+            MotisError err = new MotisError();
+            err = (MotisError) msg.content(err);
+            System.out.println("RECEIVED ERROR: " + err.category() + ": " + err.reason());
+        }
+
         synchronized (listeners) {
             for (Listener l : listeners) {
                 l.onMessage(msg);

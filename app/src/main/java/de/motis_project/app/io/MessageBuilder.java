@@ -43,8 +43,8 @@ public class MessageBuilder {
     public static byte[] query(String fromId, String toId, boolean isArrival, Date time) {
         FlatBufferBuilder b = new FlatBufferBuilder();
 
-        String startId = isArrival ? fromId : toId;
-        String targetId = isArrival ? toId : fromId;
+        String startId = isArrival ? toId : fromId;
+        String targetId = isArrival ? fromId : toId;
 
         int start = createPreTripStart(b, time, startId);
         int routingRequest = RoutingRequest.createRoutingRequest(
@@ -52,13 +52,13 @@ public class MessageBuilder {
                 InputStation.createInputStation(
                         b, b.createString(targetId), b.createString("")),
                 SearchType.Default,
-                isArrival ? SearchDir.Forward : SearchDir.Backward,
+                isArrival ? SearchDir.Backward : SearchDir.Forward,
                 RoutingRequest.createViaVector(b, new int[]{}),
                 RoutingRequest.createAdditionalEdgesVector(b, new int[]{}));
-        Message.createMessage(
+        b.finish(Message.createMessage(
                 b, Destination.createDestination(
                         b, DestinationType.Module, b.createString("/routing")),
-                MsgContent.RoutingRequest, routingRequest, 1);
+                MsgContent.RoutingRequest, routingRequest, 1));
 
         return Snappy.compress(b.sizedByteArray());
     }
@@ -67,12 +67,12 @@ public class MessageBuilder {
         long intervalStart = (time.getTime() / 1000) - 3600;
         long intervalEnd = intervalStart + 3600;
 
+        int station = InputStation.createInputStation(
+                b, b.createString(startId), b.createString(""));
+
         PretripStart.startPretripStart(b);
-        PretripStart.addStation(
-                b, InputStation.createInputStation(
-                        b, b.createString(startId), b.createString("")));
-        PretripStart.addInterval(
-                b, Interval.createInterval(b, intervalStart, intervalEnd));
+        PretripStart.addStation(b, station);
+        PretripStart.addInterval(b, Interval.createInterval(b, intervalStart, intervalEnd));
         return PretripStart.endPretripStart(b);
     }
 

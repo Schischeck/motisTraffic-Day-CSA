@@ -3,11 +3,18 @@ package de.motis_project.app.journey;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-public abstract class InfiniteScroll extends RecyclerView.OnScrollListener {
+public class InfiniteScroll extends RecyclerView.OnScrollListener {
+    public interface Loader {
+        void loadBefore();
+        void loadAfter();
+    }
+
     private final LinearLayoutManager layoutManager;
+    private final Loader loader;
     private boolean loading = false;
 
-    InfiniteScroll(LinearLayoutManager layoutManager) {
+    InfiniteScroll(Loader loader, LinearLayoutManager layoutManager) {
+        this.loader = loader;
         this.layoutManager = layoutManager;
     }
 
@@ -21,14 +28,14 @@ public abstract class InfiniteScroll extends RecyclerView.OnScrollListener {
             int first = layoutManager.findFirstVisibleItemPosition();
             if (first == 0) {
                 loading = true;
-                loadBefore();
+                loader.loadBefore();
                 return;
             }
 
             int last = layoutManager.findLastVisibleItemPosition();
             if (last == layoutManager.getItemCount() - 1) {
                 loading = true;
-                loadAfter();
+                loader.loadAfter();
                 return;
             }
         }
@@ -37,8 +44,4 @@ public abstract class InfiniteScroll extends RecyclerView.OnScrollListener {
     void notifyLoadFinished() {
         loading = false;
     }
-
-    abstract void loadBefore();
-
-    abstract void loadAfter();
 }

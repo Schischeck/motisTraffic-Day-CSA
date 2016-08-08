@@ -26,6 +26,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import de.motis_project.app.R;
+import de.motis_project.app.io.MessageBuilder;
+import de.motis_project.app.io.State;
 import de.motis_project.app.journey.JourneyListView;
 
 public class QueryFragment extends Fragment
@@ -77,10 +79,17 @@ public class QueryFragment extends Fragment
         toInput.setText(query.getToName());
 
         journeyListView.scrollToPosition(1);
+        State.get().getServer().addListener(journeyListView);
 
         sendSearchRequest();
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        State.get().getServer().removeListener(journeyListView);
     }
 
     @Override
@@ -197,8 +206,6 @@ public class QueryFragment extends Fragment
     }
 
     private void sendSearchRequest() {
-        // TODO(felix) implement
-
         if (context == null) {
             return;
         }
@@ -207,6 +214,10 @@ public class QueryFragment extends Fragment
                 + " " + query.getTime() + " " + (query.isArrival() ? "arr" : "dep");
         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
         toast.show();
+
+        byte[] queryBuf = MessageBuilder.query(
+                query.getFromId(), query.getToId(), query.isArrival(), query.getTime());
+        State.get().getServer().send(queryBuf);
     }
 
     private void updateTimeDisplay(boolean isArrival, Date time) {

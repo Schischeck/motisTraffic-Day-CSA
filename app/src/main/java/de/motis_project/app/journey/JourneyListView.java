@@ -11,13 +11,18 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Date;
 import java.util.List;
 
 import de.motis_project.app.R;
+import de.motis_project.app.io.Server;
 import de.motis_project.app.lib.StickyHeaderDecoration;
+import motis.Connection;
+import motis.Message;
+import motis.MsgContent;
+import motis.routing.RoutingResponse;
 
-public class JourneyListView extends RecyclerView {
-
+public class JourneyListView extends RecyclerView implements Server.Listener, InfiniteScroll.Loader {
     class SimpleDividerItemDecoration extends RecyclerView.ItemDecoration {
         private final Drawable divider;
 
@@ -46,6 +51,11 @@ public class JourneyListView extends RecyclerView {
         }
     }
 
+    private final List<JourneySummaryAdapter.Data> data = JourneySummaryAdapter.Data.createSome(50);
+    private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
+    private final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
+    private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
+
     public JourneyListView(Context context) {
         super(context);
         init();
@@ -62,60 +72,99 @@ public class JourneyListView extends RecyclerView {
     }
 
     private void init() {
-        final List<JourneySummaryAdapter.Data> data = JourneySummaryAdapter.Data.createSome(50);
-        final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
-        final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
         setAdapter(adapter);
+        addOnScrollListener(infiniteScroll);
         addItemDecoration(new SimpleDividerItemDecoration(getContext()));
         addItemDecoration(new StickyHeaderDecoration(adapter));
         setLayoutManager(layoutManager);
+    }
 
-        addOnScrollListener(new InfiniteScroll(layoutManager) {
+    @Override
+    public void loadBefore() {
+        new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
             @Override
-            void loadBefore() {
-                new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
-                    @Override
-                    protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        return JourneySummaryAdapter.Data.createSome(20);
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
-                        notifyLoadFinished();
-                        data.addAll(0, newData);
-                        // lie about inserted position to scroll to position 1
-                        adapter.notifyItemRangeInserted(0, newData.size());
-                    }
-                }.execute();
+            protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return JourneySummaryAdapter.Data.createSome(20);
             }
 
             @Override
-            void loadAfter() {
-                new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
-                    @Override
-                    protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        return JourneySummaryAdapter.Data.createSome(20);
-                    }
-
-                    @Override
-                    protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
-                        notifyLoadFinished();
-                        int oldDisplayItemCount = adapter.getItemCount();
-                        data.addAll(newData);
-                        adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
-                    }
-                }.execute();
+            protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
+                infiniteScroll.notifyLoadFinished();
+                data.addAll(0, newData);
+                // lie about inserted position to scroll to position 1
+                adapter.notifyItemRangeInserted(0, newData.size());
             }
-        });
+        }.execute();
+    }
+
+    @Override
+    public void loadAfter() {
+        new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
+            @Override
+            protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return JourneySummaryAdapter.Data.createSome(20);
+            }
+
+            @Override
+            protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
+                infiniteScroll.notifyLoadFinished();
+                int oldDisplayItemCount = adapter.getItemCount();
+                data.addAll(newData);
+                adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
+            }
+        }.execute();
+    }
+
+    @Override
+    public void onMessage(Message m) {
+        if (m.contentType() != MsgContent.RoutingResponse) {
+            return;
+        }
+
+        RoutingResponse res = new RoutingResponse();
+        res = (RoutingResponse) m.content(res);
+
+        for (int i = 0; i < res.connectionsLength(); i++) {
+            Connection con = res.connections(i);
+
+            long depUnixTime = con.stops(0).departure().scheduleTime();
+            long arrUnixTime = con.stops(con.stopsLength() - 1).arrival().scheduleTime();
+            long duration = arrUnixTime - depUnixTime;
+
+            Date departure = new Date(depUnixTime * 1000);
+            Date arrival = new Date(arrUnixTime * 1000);
+
+            System.out.println("Connection " + (i + 1) + "/" + res.connectionsLength()+ ": "
+                                       + "duration=" + (duration / 60) + "min, "
+                                       + "transfers=" + countTransfers(con));
+            System.out.println("departure: " + departure);
+            System.out.println("arrival: " + arrival);
+        }
+    }
+
+    int countTransfers(Connection con) {
+        int transfers = 0;
+        for (int i = 0; i < con.stopsLength(); i++) {
+            transfers += con.stops(i).interchange() ? 1 : 0;
+        }
+        return transfers;
+    }
+
+    @Override
+    public void onConnect() {
+    }
+
+    @Override
+    public void onDisconnect() {
     }
 }
