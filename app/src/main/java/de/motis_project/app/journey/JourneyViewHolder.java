@@ -109,23 +109,25 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         addTransportViews(getTransports(con));
     }
 
-    void addTransportViews(List<DisplayTransport> displayTransports) {
-        for (int i = 0; i < displayTransports.size(); ++i) {
-            DisplayTransport t = displayTransports.get(i);
+    void addTransportViews(List<DisplayTransport> transports) {
+        for (int i = 0; i < transports.size(); ++i) {
+            DisplayTransport t = transports.get(i);
 
             TextView view = (TextView) inflater.inflate(
                     t.clasz > 3
                         ? R.layout.journey_item_transport_bus
                         : R.layout.journey_item_transport_train,
-                    transports, false);
-            if (displayTransports.size() < 6) {
-                view.setText(displayTransports.size() > 3 ? t.shortName : t.longName);
+                    this.transports, false);
+            if (transports.size() < 6) {
+                view.setText(transports.size() > 3 ? t.shortName : t.longName);
             }
-            transports.addView(view);
+            this.transports.addView(view);
 
-            if (i != displayTransports.size() - 1) {
-                transports.addView(inflater.inflate(
-                        R.layout.journey_item_transport_separator, transports, false));
+            if (i != transports.size() - 1) {
+                this.transports.addView(inflater.inflate(
+                        R.layout.journey_item_transport_separator,
+                        this.transports,
+                        false));
             }
         }
     }
