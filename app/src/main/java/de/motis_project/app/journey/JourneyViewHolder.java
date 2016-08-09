@@ -43,7 +43,9 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         }
 
         private static String getShortName(Transport t) {
-            if (t.lineId().isEmpty() && t.trainNr() == 0) {
+            if (t.name().length() < 7) {
+                return t.name();
+            } else if (t.lineId().isEmpty() && t.trainNr() == 0) {
                 return t.name();
             } else if (t.lineId().isEmpty()) {
                 return Long.toString(t.trainNr());
@@ -112,8 +114,13 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
             DisplayTransport t = displayTransports.get(i);
 
             TextView view = (TextView) inflater.inflate(
-                    R.layout.journey_item_transport, transports, false);
-            view.setText(displayTransports.size() > 3 ? t.shortName : t.longName);
+                    t.clasz > 3
+                        ? R.layout.journey_item_transport_bus
+                        : R.layout.journey_item_transport_train,
+                    transports, false);
+            if (displayTransports.size() < 6) {
+                view.setText(displayTransports.size() > 3 ? t.shortName : t.longName);
+            }
             transports.addView(view);
 
             if (i != displayTransports.size() - 1) {

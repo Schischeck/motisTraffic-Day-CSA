@@ -43,7 +43,7 @@ public class JourneySummaryAdapter
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
                 return new JourneyViewHolder(true,
-                        inflater.inflate(R.layout.journey_item_journey4, parent, false), inflater);
+                                             inflater.inflate(R.layout.journey_list_item, parent, false), inflater);
             case VIEW_TYPE_LOADING_SPINNER:
                 return new JourneyViewHolder(false,
                         inflater.inflate(R.layout.journey_loading_spinner, parent, false), inflater);
