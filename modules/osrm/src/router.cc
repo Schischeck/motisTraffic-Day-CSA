@@ -1,7 +1,5 @@
 #include "motis/osrm/router.h"
 
-#include <iostream>
-
 #include "osrm/engine_config.hpp"
 #include "osrm/multi_target_parameters.hpp"
 #include "osrm/osrm.hpp"

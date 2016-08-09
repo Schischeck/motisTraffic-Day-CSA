@@ -41,7 +41,6 @@ target_link_libraries(motis-routes
 )
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 
-# TODO get flatbuffers 63 right!
 add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
 add_dependencies(routes-prepare generated-routes-fbs-headers)
 target_link_libraries(routes-prepare
