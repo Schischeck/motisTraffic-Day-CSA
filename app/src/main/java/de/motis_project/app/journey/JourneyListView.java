@@ -144,7 +144,7 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
                 for (int i = 0; i < res.connectionsLength(); i++) {
                     data.add(res.connections(i));
                 }
-                adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, res.connectionsLength());
+                adapter.notifyDataSetChanged();
             }
         });
     }
