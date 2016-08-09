@@ -58,6 +58,3 @@
 [submodule "external_lib/rocksdb"]
 	path = external_lib/rocksdb
 	url = git@git.motis-project.de:lib/rocksdb-flat.git
-[submodule "external_lib/rapidjson"]
-	path = external_lib/rapidjson
-	url = git@git.motis-project.de:lib/rapidjson.git
