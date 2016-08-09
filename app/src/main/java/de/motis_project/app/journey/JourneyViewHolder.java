@@ -1,5 +1,6 @@
 package de.motis_project.app.journey;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -126,7 +127,7 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         int lastSectionEnd = 0;
         List<Section> sections = new ArrayList<>();
         for (int i = 0; i < con.stopsLength(); i++) {
-            if (con.stops(i).interchange()) {
+            if (con.stops(i).interchange() || i == con.stopsLength() - 1) {
                 sections.add(new Section(lastSectionEnd, i));
                 lastSectionEnd = i;
             }
@@ -134,15 +135,16 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
 
         List<DisplayTransport> displayTransports = new ArrayList<>();
         for (Section s : sections) {
-            Transport sectionTransport = getTransportForSection(con, s);
-            if (sectionTransport != null) {
-                displayTransports.add(new DisplayTransport(sectionTransport));
+            Transport t = getTransportForSection(con, s);
+            if (t != null) {
+                displayTransports.add(new DisplayTransport(t));
             }
         }
 
         return displayTransports;
     }
 
+    @Nullable
     static Transport getTransportForSection(Connection c, Section s) {
         for (int i = 0; i < c.transportsLength(); ++i) {
             MoveWrapper m = c.transports(i);
