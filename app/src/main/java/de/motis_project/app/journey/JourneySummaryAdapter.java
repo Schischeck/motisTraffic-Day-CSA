@@ -3,73 +3,36 @@ package de.motis_project.app.journey;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import de.motis_project.app.R;
 import de.motis_project.app.lib.StickyHeaderAdapter;
+import motis.Connection;
 
 public class JourneySummaryAdapter
-        extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-        implements StickyHeaderAdapter<RecyclerView.ViewHolder> {
+        extends RecyclerView.Adapter<JourneyViewHolder>
+        implements StickyHeaderAdapter<JourneyViewHolder> {
     private final int VIEW_TYPE_LOADING_SPINNER = 0;
     private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
 
-    private final static Random rand = new Random();
+    private final List<Connection> data;
 
-    private final static int[] itemLayouts = {
-            R.layout.journey_item,
-            R.layout.journey_item_journey2,
-            R.layout.journey_item_journey3,
-            R.layout.journey_item_journey4,
-            R.layout.journey_item_journey5
-    };
-
-    public static class JourneyViewHolder extends RecyclerView.ViewHolder {
-        public JourneyViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
-
-    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
-        public HeaderViewHolder(View itemView) {
-            super(itemView);
-        }
-    }
-
-    public static class Data {
-        public final String text;
-
-        Data(String text) {
-            this.text = text;
-        }
-
-        public static List<Data> createSome(int size) {
-            List<Data> data = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                data.add(new Data("" + i));
-            }
-            return data;
-        }
-    }
-
-    private final List<Data> data;
-
-    public JourneySummaryAdapter(List<Data> d) {
+    public JourneySummaryAdapter(List<Connection> d) {
         data = d;
     }
 
     @Override
     public int getItemViewType(int position) {
+        return VIEW_TYPE_JOURNEY_PREVIEW;
+        /*
         if (position == 0 || position == getItemCount() - 1) {
             return VIEW_TYPE_LOADING_SPINNER;
         } else {
             return VIEW_TYPE_JOURNEY_PREVIEW;
         }
+        */
     }
 
     @Override
@@ -79,37 +42,46 @@ public class JourneySummaryAdapter
 
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
-                return new JourneyViewHolder(
-                        inflater.inflate(itemLayouts[rand.nextInt(itemLayouts.length)], parent, false));
+                return new JourneyViewHolder(true,
+                        inflater.inflate(R.layout.journey_item_journey4, parent, false), inflater);
             case VIEW_TYPE_LOADING_SPINNER:
-                return new JourneyViewHolder(
-                        inflater.inflate(R.layout.journey_loading_spinner, parent, false));
+                return new JourneyViewHolder(false,
+                        inflater.inflate(R.layout.journey_loading_spinner, parent, false), inflater);
             default:
                 throw new RuntimeException("unknown view type");
         }
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {}
+    public void onBindViewHolder(JourneyViewHolder viewHolder, int position) {
+        //int index = position - 1;
+        int index = position;
+        if (index < 0 || index >= data.size()) {
+            return;
+        }
+        viewHolder.setConnection(data.get(index));
+    }
 
     @Override
     public int getItemCount() {
-        return data.size() + 2;
+        //return data.size() + 2;
+        return data.size();
     }
 
     @Override
     public long getHeaderId(int position) {
-        return position / 10;
+        return 0;
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
+    public JourneyViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        return new HeaderViewHolder(
-                inflater.inflate(R.layout.journey_header_item, parent, false));
+        return new JourneyViewHolder(false,
+                inflater.inflate(R.layout.journey_header_item, parent, false), inflater);
     }
 
     @Override
-    public void onBindHeaderViewHolder(RecyclerView.ViewHolder viewholder, int position) {}
+    public void onBindHeaderViewHolder(JourneyViewHolder viewholder, int position) {
+    }
 }

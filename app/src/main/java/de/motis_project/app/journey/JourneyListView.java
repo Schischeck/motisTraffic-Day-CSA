@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,7 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.motis_project.app.R;
@@ -51,7 +53,7 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         }
     }
 
-    private final List<JourneySummaryAdapter.Data> data = JourneySummaryAdapter.Data.createSome(50);
+    private final List<Connection> data = new ArrayList<>();
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
     private final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
     private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
@@ -81,19 +83,19 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
 
     @Override
     public void loadBefore() {
-        new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
+        new AsyncTask<Void, Void, List<Connection>>() {
             @Override
-            protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
+            protected List<Connection> doInBackground(Void... voids) {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return JourneySummaryAdapter.Data.createSome(20);
+                return new ArrayList<Connection>();
             }
 
             @Override
-            protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
+            protected void onPostExecute(List<Connection> newData) {
                 infiniteScroll.notifyLoadFinished();
                 data.addAll(0, newData);
                 // lie about inserted position to scroll to position 1
@@ -104,19 +106,19 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
 
     @Override
     public void loadAfter() {
-        new AsyncTask<Void, Void, List<JourneySummaryAdapter.Data>>() {
+        new AsyncTask<Void, Void, List<Connection>>() {
             @Override
-            protected List<JourneySummaryAdapter.Data> doInBackground(Void... voids) {
+            protected List<Connection> doInBackground(Void... voids) {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return JourneySummaryAdapter.Data.createSome(20);
+                return new ArrayList<Connection>();
             }
 
             @Override
-            protected void onPostExecute(List<JourneySummaryAdapter.Data> newData) {
+            protected void onPostExecute(List<Connection> newData) {
                 infiniteScroll.notifyLoadFinished();
                 int oldDisplayItemCount = adapter.getItemCount();
                 data.addAll(newData);
@@ -131,33 +133,20 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
             return;
         }
 
-        RoutingResponse res = new RoutingResponse();
-        res = (RoutingResponse) m.content(res);
+        final RoutingResponse res = new RoutingResponse();
+        m.content(res);
 
-        for (int i = 0; i < res.connectionsLength(); i++) {
-            Connection con = res.connections(i);
-
-            long depUnixTime = con.stops(0).departure().scheduleTime();
-            long arrUnixTime = con.stops(con.stopsLength() - 1).arrival().scheduleTime();
-            long duration = arrUnixTime - depUnixTime;
-
-            Date departure = new Date(depUnixTime * 1000);
-            Date arrival = new Date(arrUnixTime * 1000);
-
-            System.out.println("Connection " + (i + 1) + "/" + res.connectionsLength()+ ": "
-                                       + "duration=" + (duration / 60) + "min, "
-                                       + "transfers=" + countTransfers(con));
-            System.out.println("departure: " + departure);
-            System.out.println("arrival: " + arrival);
-        }
-    }
-
-    int countTransfers(Connection con) {
-        int transfers = 0;
-        for (int i = 0; i < con.stopsLength(); i++) {
-            transfers += con.stops(i).interchange() ? 1 : 0;
-        }
-        return transfers;
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                int oldDisplayItemCount = adapter.getItemCount();
+                data.clear();
+                for (int i = 0; i < res.connectionsLength(); i++) {
+                    data.add(res.connections(i));
+                }
+                adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, res.connectionsLength());
+            }
+        });
     }
 
     @Override
