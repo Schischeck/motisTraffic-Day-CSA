@@ -1,5 +1,7 @@
 #include "motis/routes/prepare/bus_stop_positions.h"
 
+#include <iostream>
+
 #include "osmium/handler.hpp"
 #include "osmium/io/pbf_input.hpp"
 #include "osmium/io/reader_iterator.hpp"
@@ -8,11 +10,7 @@
 #include "osmium/osm.hpp"
 #include "osmium/visitor.hpp"
 
-#include <iostream>
-
 #include "motis/routes/prepare/point_rtree.h"
-
-using namespace flatbuffers;
 
 namespace motis {
 namespace routes {
@@ -25,9 +23,10 @@ void foreach_osm_node(std::string const& filename, F f) {
   }
 }
 
-Offset<Vector<Offset<BusStopPosition>>> find_bus_stop_positions(
-    FlatBufferBuilder& fbb, motis::loader::Schedule const* sched,
-    std::string const& osm_file) {
+flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BusStopPosition>>>
+find_bus_stop_positions(flatbuffers::FlatBufferBuilder& fbb,
+                        motis::loader::Schedule const* sched,
+                        std::string const& osm_file) {
   std::string const stop_position = "stop_position";
   std::string const yes = "yes";
 
@@ -35,7 +34,7 @@ Offset<Vector<Offset<BusStopPosition>>> find_bus_stop_positions(
     return point_rtree::point{s->lng(), s->lat()};
   });
 
-  std::vector<Offset<BusStopPosition>> bus_stop_positions;
+  std::vector<flatbuffers::Offset<BusStopPosition>> bus_stop_positions;
   foreach_osm_node(osm_file, [&](auto&& node) {
     if (stop_position != node.get_value_by_key("public_transport", "") ||
         yes != node.get_value_by_key("bus", "")) {

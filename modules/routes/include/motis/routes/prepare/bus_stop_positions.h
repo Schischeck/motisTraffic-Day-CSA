@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "motis/routes/both_flatbuffers.h"
+
 #include "motis/routes/fbs/BusStopPosition_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
 

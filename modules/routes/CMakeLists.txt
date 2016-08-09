@@ -42,17 +42,17 @@ target_link_libraries(motis-routes
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 
 # TODO get flatbuffers 63 right!
-# add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
-# add_dependencies(routes-prepare generated-routes-fbs-headers)
-# target_link_libraries(routes-prepare
-#   ${CMAKE_THREAD_LIBS_INIT}
-#   ${Boost_SYSTEM_LIBRARY}
-#   ${Boost_THREAD_LIBRARY}
-#   ${ZLIB_LIBRARIES}
-#   expat
-#   motis-loader
-#   conf
-# )
+add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
+add_dependencies(routes-prepare generated-routes-fbs-headers)
+target_link_libraries(routes-prepare
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  ${ZLIB_LIBRARIES}
+  expat
+  motis-loader
+  conf
+)
 
-# set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-# set_target_properties(routes-prepare PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
+set_target_properties(routes-prepare PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")

@@ -2,11 +2,11 @@
 
 #include "boost/filesystem.hpp"
 
-#include "flatbuffers/flatbuffers.h"
-
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 #include "parser/file.h"
+
+#include "motis/routes/both_flatbuffers.h"
 
 #include "motis/routes/prepare/bus_stop_positions.h"
 
@@ -16,7 +16,6 @@
 #include "version.h"
 
 namespace fs = boost::filesystem;
-using namespace flatbuffers;
 using namespace parser;
 using namespace motis;
 using namespace motis::loader;
@@ -69,7 +68,7 @@ int main(int argc, char** argv) {
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
-  FlatBufferBuilder fbb;
+  flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(CreateRoutesAuxiliary(
       fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
   parser::file(opt.out_.c_str(), "w+").write(fbb.GetBufferPointer(), fbb.GetSize());
