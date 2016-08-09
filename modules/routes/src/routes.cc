@@ -88,7 +88,7 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
 
   mc.create_and_finish(
       MsgContent_OSRMSmoothViaRouteRequest,
-      CreateOSRMSmoothViaRouteRequest(mc, mc.CreateString("car"),
+      CreateOSRMSmoothViaRouteRequest(mc, mc.CreateString("bus"),
                                       mc.CreateVector(waypoints))
           .Union(),
       "/osrm/smooth_via");
@@ -110,7 +110,7 @@ msg_ptr routes::resolve_route_osrm(schedule const& sched, trip const* trp) {
   mc.create_and_finish(
       MsgContent_RoutesIdTrainResponse,
       CreateRoutesIdTrainResponse(mc, mc.CreateVector(segments),
-                                  mc.CreateString("osrm/car"))
+                                  mc.CreateString("osrm/bus"))
           .Union());
   return make_msg(mc);
 }
