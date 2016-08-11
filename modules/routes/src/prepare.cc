@@ -8,7 +8,7 @@
 #include "conf/simple_config.h"
 #include "parser/file.h"
 
-#include "motis/routes/prepare/bus_stop_positions.h"
+#include "motis/routes/prepare/relation_matcher.h"
 
 #include "motis/routes/fbs/RoutesAuxiliary_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
@@ -24,12 +24,10 @@ using namespace motis::routes;
 
 struct prepare_settings : public conf::simple_config {
   prepare_settings(std::string const& schedule = "rohdaten",
-                   std::string const& osm = "germany-latest.osm.pbf",
-                   std::string const& out = "routes-auxiliary.raw")
+                   std::string const& osm = "germany-latest.osm.pbf")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
-    string_param(out_, out, "out", "/path/to/routes-auxiliary.raw");
   }
 
   std::string schedule_;
@@ -68,9 +66,5 @@ int main(int argc, char** argv) {
 
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-
-  FlatBufferBuilder fbb;
-  fbb.Finish(CreateRoutesAuxiliary(
-      fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
-  parser::file(opt.out_.c_str(), "w+").write(fbb.GetBufferPointer(), fbb.GetSize());
+  find_perfect_matches(schedule, opt.osm_);
 }
