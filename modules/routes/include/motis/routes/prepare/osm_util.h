@@ -46,7 +46,25 @@ struct osm_relation {
   osm_relation(int64_t id) : id_(id) {}
 
   std::vector<int64_t> nodes_;
+  std::vector<int64_t> ways_;
   int64_t id_;
+};
+
+struct osm_way {
+  osm_way(int64_t id) : id_(id) {}
+
+  std::vector<int64_t> nodes_;
+  int64_t id_;
+};
+
+struct segment_match {
+  segment_match(int64_t rel, std::vector<std::string> stations,
+                std::vector<int64_t> station_nodes)
+      : rel_(rel), stations_(stations), station_nodes_(station_nodes){};
+
+  int64_t rel_;
+  std::vector<std::string> stations_;
+  std::vector<int64_t> station_nodes_;
 };
 }
 }

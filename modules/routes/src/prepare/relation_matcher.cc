@@ -2,6 +2,7 @@
 
 #include <limits>
 
+#include "motis/core/common/logging.h"
 #include "motis/routes/prepare/point_rtree.h"
 
 namespace motis {
@@ -14,52 +15,67 @@ relation_matcher::relation_matcher(motis::loader::Schedule const* sched,
 };
 
 void relation_matcher::load_osm() {
+  logging::scoped_timer scoped_timer("Loading osm data");
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
     std::string const type = relation.get_value_by_key("type", "");
     std::string const route = relation.get_value_by_key("route", "");
     if ((type == "route" || type == "public_transport") &&
         (route == "subway" || route == "light_rail" || route == "railway" ||
          route == "train" || route == "tram" || route == "bus")) {
-      relations_.emplace(relation.id(), osm_relation(relation.id()));
-      std::vector<int64_t> ways;
+      auto r = relations_.emplace(relation.id(), osm_relation(relation.id()));
       for (auto const& member : relation.members()) {
         if (member.type() == osmium::item_type::way) {
-          auto way =
-              way_to_relations_.emplace(member.ref(), std::vector<int64_t>());
-          way.first->second.push_back(relation.id());
+          ways_.emplace(member.ref(), osm_way(member.ref()));
+          r.first->second.ways_.push_back(member.ref());
         }
       }
     }
   });
   foreach_osm_way(osm_file_, [&](auto&& way) {
-    auto r = way_to_relations_.find(way.id());
-    if (r == way_to_relations_.end()) {
+    auto w = ways_.find(way.id());
+    if (w == end(ways_)) {
       return;
     }
     for (auto const& node : way.nodes()) {
-      for (auto relation : r->second) {
-        auto rel = relations_.find(relation);
-        if (rel != relations_.end()) {
-          rel->second.nodes_.push_back(node.ref());
-        }
-      }
+      w->second.nodes_.push_back(node.ref());
       nodes_.emplace(node.ref(), osm_node(node.ref()));
     }
   });
   foreach_osm_node(osm_file_, [&](auto&& node) {
     auto n = nodes_.find(node.id());
-    if (n != std::end(nodes_)) {
+    if (n != end(nodes_)) {
       n->second.location_ = node.location();
     }
   });
-  std::cout << "Finished extracting" << std::endl;
-  std::cout << "Nodes: " << nodes_.size() << std::endl;
-  std::cout << "Relations: " << relations_.size() << std::endl;
+  std::vector<int64_t> broken_relations;
+  LOG(logging::log_level::info) << "Relations: " << relations_.size();
+  LOG(logging::log_level::info) << "Ways: " << ways_.size();
+  LOG(logging::log_level::info) << "Nodes: " << nodes_.size();
+  LOG(logging::log_level::info) << "Broken relations: "
+                                << broken_relations.size();
+  LOG(logging::log_level::info) << "Routes in schedule: "
+                                << sched_->routes()->size();
+}
+
+bool relation_matcher::nodes_in_order(segment_match sm) {
+  auto rel = relations_.find(sm.rel_);
+  if (rel == end(relations_)) {
+    return false;
+  }
+  auto nodes = rel->second.nodes_;
+  auto it = std::find(begin(nodes), end(nodes), sm.station_nodes_[0]);
+  for (auto const& n : sm.station_nodes_) {
+    auto next_it = std::find(begin(nodes), end(nodes), n);
+    if (next_it < it) {
+      return false;
+    }
+    it = next_it;
+  }
+  return true;
 }
 
 void relation_matcher::find_perfect_matches() {
-  std::cout << "Finding Perfect Matches" << std::endl;
-  std::cout << "Routes: " << sched_->routes()->size() << std::endl;
+  logging::scoped_timer timer("Finding Perfect Matches");
   int count = 0;
   int result = 0;
   std::vector<int> matched_routes;
@@ -95,8 +111,47 @@ void relation_matcher::find_perfect_matches() {
     }
     count++;
   }
+  LOG(logging::log_level::info) << "Matched routes: " << result;
+}
+
+void relation_matcher::find_segment_matches() {
+  logging::scoped_timer timer("Finding Segment Matches");
   std::cout << std::endl;
-  std::cout << "Matched routes: " << result << std::endl;
+  std::vector<segment_match> segments;
+  auto count = 0;
+  for (auto const& rel : relations_) {
+    std::vector<osm_node*> n;
+    std::for_each(rel.second.nodes_.begin(), rel.second.nodes_.end(),
+                  [&](auto const& r) { n.push_back(&nodes_.at(r)); });
+    auto rtree = make_point_rtree(n, [](auto&& s) {
+      return point_rtree::point{s->location_.lon(), s->location_.lat()};
+    });
+    int route_count = 0;
+    for (auto const& r : *sched_->routes()) {
+      std::cout << count << "/" << relations_.size() << "|" << route_count++
+                << "/" << sched_->routes()->size() << "|   " << segments.size()
+                << "\r";
+      std::vector<std::string> stations;
+      std::vector<int64_t> station_nodes;
+      for (auto const& s : *r->stations()) {
+        auto result = rtree.in_radius(s->lat(), s->lng(), 100);
+        if (!result.empty()) {
+          station_nodes.push_back(n[result[0]]->id_);
+          stations.push_back(s->id()->str());
+          continue;
+        }
+        if (stations.size() >= 2) {
+          segment_match match(rel.first, stations, station_nodes);
+          if (nodes_in_order(match)) {
+            segments.push_back(match);
+          }
+        }
+        stations.clear();
+        station_nodes.clear();
+      }
+    }
+    count++;
+  }
 }
 
 }  // namespace routes
