@@ -58,7 +58,7 @@ public class Server extends WebSocketAdapter {
         }
     }
 
-    public void send(byte[] msg) {
+    protected void send(byte[] msg) {
         if (isConnected()) {
             ws.sendBinary(msg);
         } else {

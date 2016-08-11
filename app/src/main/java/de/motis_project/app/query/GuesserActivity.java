@@ -17,19 +17,21 @@ import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import de.motis_project.app.R;
-import de.motis_project.app.io.MessageBuilder;
 import de.motis_project.app.io.Server;
 import de.motis_project.app.io.State;
 import motis.Message;
 import motis.MsgContent;
 import motis.guesser.StationGuesserResponse;
 
-public class GuesserActivity extends FragmentActivity implements Server.Listener {
+public class GuesserActivity extends FragmentActivity
+        implements Server.Listener {
     public static final String RESULT_NAME = "result_name";
     public static final String RESULT_ID = "result_id";
-    public static final String QUERY = "query";
+    public static final String QUERY = "route";
 
     private List<String> resultIds = new ArrayList<String>();
+
+    private int nextResponseId;
 
     @BindView(R.id.suggestionslist)
     ListView suggestionList;
@@ -52,7 +54,8 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
         Intent i = new Intent();
-        i.putExtra(RESULT_NAME, suggestionList.getAdapter().getItem(pos).toString());
+        i.putExtra(RESULT_NAME,
+                   suggestionList.getAdapter().getItem(pos).toString());
         i.putExtra(RESULT_ID, resultIds.get(pos).toString());
         setResult(Activity.RESULT_OK, i);
         finish();
@@ -63,9 +66,7 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
         if (inputText.length() < 3) {
             return;
         }
-
-        byte[] msg = MessageBuilder.guess(1, inputText.toString());
-        State.get().getServer().send(msg);
+        nextResponseId = State.get().getServer().guess(inputText.toString());
     }
 
     @Override
@@ -102,18 +103,20 @@ public class GuesserActivity extends FragmentActivity implements Server.Listener
 
     @Override
     public void onMessage(Message m) {
-        if (m.contentType() != MsgContent.StationGuesserResponse) {
+        if (m.id() != nextResponseId ||
+                m.contentType() != MsgContent.StationGuesserResponse) {
             return;
         }
 
-        StationGuesserResponse guessesResponse = new StationGuesserResponse();
-        guessesResponse = (StationGuesserResponse) m.content(guessesResponse);
+        StationGuesserResponse res = new StationGuesserResponse();
+        m.content(res);
 
-        final ArrayList<String> names = new ArrayList<String>(guessesResponse.guessesLength());
-        final ArrayList<String> ids = new ArrayList<String>(guessesResponse.guessesLength());
-        for (int i = 0; i < guessesResponse.guessesLength(); i++) {
-            names.add(guessesResponse.guesses(i).name());
-            ids.add(guessesResponse.guesses(i).id());
+        final ArrayList<String>
+                names = new ArrayList<>(res.guessesLength()),
+                ids = new ArrayList<>(res.guessesLength());
+        for (int i = 0; i < res.guessesLength(); i++) {
+            names.add(res.guesses(i).name());
+            ids.add(res.guesses(i).id());
         }
 
         runOnUiThread(new Runnable() {

@@ -8,10 +8,10 @@ public class State {
     private static final String SERVER_URL = "ws://ws.motis-project.de";
 
     private static State SINGLETON;
-    private Server server;
+    private MotisServer server;
 
     private State(Handler handler) {
-        server = new Server(SERVER_URL, handler);
+        server = new MotisServer(SERVER_URL, handler);
     }
 
     public static void init(Handler handler) {
@@ -28,7 +28,7 @@ public class State {
         return SINGLETON;
     }
 
-    public Server getServer() {
+    public MotisServer getServer() {
         return server;
     }
 }

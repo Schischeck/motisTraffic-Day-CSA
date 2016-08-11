@@ -53,6 +53,7 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         }
     }
 
+    public int nextResponseId = 0;
     private final List<Connection> data = new ArrayList<>();
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
     private final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
@@ -91,7 +92,7 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return new ArrayList<Connection>();
+                return new ArrayList<>();
             }
 
             @Override
@@ -114,7 +115,7 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                return new ArrayList<Connection>();
+                return new ArrayList<>();
             }
 
             @Override
@@ -129,7 +130,8 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
 
     @Override
     public void onMessage(Message m) {
-        if (m.contentType() != MsgContent.RoutingResponse) {
+        if (m.id() != nextResponseId ||
+                m.contentType() != MsgContent.RoutingResponse) {
             return;
         }
 
@@ -139,7 +141,6 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                int oldDisplayItemCount = adapter.getItemCount();
                 data.clear();
                 for (int i = 0; i < res.connectionsLength(); i++) {
                     data.add(res.connections(i));

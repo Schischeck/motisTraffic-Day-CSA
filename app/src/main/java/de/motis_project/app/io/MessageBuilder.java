@@ -40,7 +40,7 @@ public class MessageBuilder {
         return Snappy.compress(b.sizedByteArray());
     }
 
-    public static byte[] query(String fromId, String toId, boolean isArrival, Date time) {
+    public static byte[] route(int ssid, String fromId, String toId, boolean isArrival, Date time) {
         FlatBufferBuilder b = new FlatBufferBuilder();
 
         String startId = isArrival ? toId : fromId;
@@ -58,7 +58,7 @@ public class MessageBuilder {
         b.finish(Message.createMessage(
                 b, Destination.createDestination(
                         b, DestinationType.Module, b.createString("/routing")),
-                MsgContent.RoutingRequest, routingRequest, 1));
+                MsgContent.RoutingRequest, routingRequest, ssid));
 
         return Snappy.compress(b.sizedByteArray());
     }

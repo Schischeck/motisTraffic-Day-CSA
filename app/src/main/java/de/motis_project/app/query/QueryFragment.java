@@ -26,7 +26,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import de.motis_project.app.R;
-import de.motis_project.app.io.MessageBuilder;
 import de.motis_project.app.io.State;
 import de.motis_project.app.journey.JourneyListView;
 
@@ -69,7 +68,7 @@ public class QueryFragment extends Fragment
 
         query = new Query(
                 savedInstanceState,
-                getContext().getSharedPreferences("query", Context.MODE_PRIVATE));
+                getContext().getSharedPreferences("route", Context.MODE_PRIVATE));
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);
@@ -215,9 +214,9 @@ public class QueryFragment extends Fragment
         Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
         toast.show();
 
-        byte[] queryBuf = MessageBuilder.query(
-                query.getFromId(), query.getToId(), query.isArrival(), query.getTime());
-        State.get().getServer().send(queryBuf);
+        journeyListView.nextResponseId = State.get().getServer().route(
+                query.getFromId(), query.getToId(),
+                query.isArrival(), query.getTime());
     }
 
     private void updateTimeDisplay(boolean isArrival, Date time) {
