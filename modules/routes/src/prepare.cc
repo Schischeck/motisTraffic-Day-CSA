@@ -66,5 +66,6 @@ int main(int argc, char** argv) {
 
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-  find_perfect_matches(schedule, opt.osm_);
+  relation_matcher matcher(schedule, opt.osm_);
+  matcher.find_perfect_matches();
 }
