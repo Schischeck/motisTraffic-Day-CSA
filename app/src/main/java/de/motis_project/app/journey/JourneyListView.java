@@ -62,6 +62,8 @@ public class JourneyListView
         }
     }
 
+    private static final int SEARCH_INTERVAL_MS = 7200 * 1000;
+
     public Query query;
     private Date intervalBegin, intervalEnd;
 
@@ -101,7 +103,7 @@ public class JourneyListView
     public void notifyQueryChanged() {
         System.out.println("JourneyListView.notifyQueryChanged");
         intervalBegin = query.getTime();
-        intervalEnd = new Date(intervalBegin.getTime() + 3600 * 1000);
+        intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
 
         data.clear();
         adapter.notifyDataSetChanged();
@@ -159,7 +161,7 @@ public class JourneyListView
     @Override
     public void loadBefore() {
         final Date searchIntervalBegin =
-                new Date(intervalBegin.getTime() - 3600 * 1000);
+                new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime());
 
         route(searchIntervalBegin, searchIntervalEnd,
@@ -191,7 +193,7 @@ public class JourneyListView
     public void loadAfter() {
         final Date searchIntervalBegin = new Date(intervalEnd.getTime());
         final Date searchIntervalEnd =
-                new Date(intervalEnd.getTime() + 3600 * 1000);
+                new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
         route(searchIntervalBegin, searchIntervalEnd,
               new Action1<RoutingResponse>() {
