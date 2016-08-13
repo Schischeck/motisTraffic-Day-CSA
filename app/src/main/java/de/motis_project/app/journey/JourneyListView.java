@@ -3,9 +3,6 @@ package de.motis_project.app.journey;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,26 +11,38 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import de.motis_project.app.R;
-import de.motis_project.app.io.Server;
+import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderDecoration;
+import de.motis_project.app.query.Query;
 import motis.Connection;
-import motis.Message;
-import motis.MsgContent;
 import motis.routing.RoutingResponse;
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.internal.util.SubscriptionList;
+import rx.schedulers.Schedulers;
 
-public class JourneyListView extends RecyclerView implements Server.Listener, InfiniteScroll.Loader {
+public class JourneyListView
+        extends RecyclerView
+        implements InfiniteScroll.Loader {
     class SimpleDividerItemDecoration extends RecyclerView.ItemDecoration {
         private final Drawable divider;
 
         public SimpleDividerItemDecoration(Context context) {
-            divider = ContextCompat.getDrawable(context, R.drawable.line_divider);
+            divider =
+                    ContextCompat.getDrawable(context, R.drawable.line_divider);
         }
 
         @Override
-        public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+        public void onDrawOver(Canvas c, RecyclerView parent,
+                               RecyclerView.State state) {
             int left = parent.getPaddingLeft();
             int right = parent.getWidth() - parent.getPaddingRight();
 
@@ -53,11 +62,17 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         }
     }
 
-    public int nextResponseId = 0;
+    public Query query;
+    private Date intervalBegin, intervalEnd;
+
+    private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
-    private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
-    private final LinearLayoutManager layoutManager = new CustomLinearLayoutManager(getContext());
-    private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
+    private final JourneySummaryAdapter adapter =
+            new JourneySummaryAdapter(data);
+    private final LinearLayoutManager layoutManager =
+            new CustomLinearLayoutManager(getContext());
+    private final InfiniteScroll infiniteScroll =
+            new InfiniteScroll(this, layoutManager);
 
     public JourneyListView(Context context) {
         super(context);
@@ -69,7 +84,8 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         init();
     }
 
-    public JourneyListView(Context context, @Nullable AttributeSet attrs, int defStyle) {
+    public JourneyListView(Context context, @Nullable AttributeSet attrs,
+                           int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
@@ -82,65 +98,17 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         setLayoutManager(layoutManager);
     }
 
-    @Override
-    public void loadBefore() {
-        new AsyncTask<Void, Void, List<Connection>>() {
+    public void notifyQueryChanged() {
+        System.out.println("JourneyListView.notifyQueryChanged");
+        intervalBegin = query.getTime();
+        intervalEnd = new Date(intervalBegin.getTime() + 3600 * 1000);
+
+        data.clear();
+        adapter.notifyDataSetChanged();
+
+        route(intervalBegin, intervalEnd, new Action1<RoutingResponse>() {
             @Override
-            protected List<Connection> doInBackground(Void... voids) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected void onPostExecute(List<Connection> newData) {
-                infiniteScroll.notifyLoadFinished();
-                data.addAll(0, newData);
-                // lie about inserted position to scroll to position 1
-                adapter.notifyItemRangeInserted(0, newData.size());
-            }
-        }.execute();
-    }
-
-    @Override
-    public void loadAfter() {
-        new AsyncTask<Void, Void, List<Connection>>() {
-            @Override
-            protected List<Connection> doInBackground(Void... voids) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected void onPostExecute(List<Connection> newData) {
-                infiniteScroll.notifyLoadFinished();
-                int oldDisplayItemCount = adapter.getItemCount();
-                data.addAll(newData);
-                adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
-            }
-        }.execute();
-    }
-
-    @Override
-    public void onMessage(Message m) {
-        if (m.id() != nextResponseId ||
-                m.contentType() != MsgContent.RoutingResponse) {
-            return;
-        }
-
-        final RoutingResponse res = new RoutingResponse();
-        m.content(res);
-
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
+            public void call(RoutingResponse res) {
                 data.clear();
                 for (int i = 0; i < res.connectionsLength(); i++) {
                     data.add(res.connections(i));
@@ -150,11 +118,101 @@ public class JourneyListView extends RecyclerView implements Server.Listener, In
         });
     }
 
-    @Override
-    public void onConnect() {
+    public void route(Date searchIntervalBegin, Date searchIntervalEnd,
+                      Action1 action) {
+        Subscription sub = Status.get().getServer()
+                .route(query.getFromId(), query.getToId(),
+                       query.isArrival(),
+                       searchIntervalBegin, searchIntervalEnd)
+                .retryWhen(
+                        new Func1<Observable<? extends Throwable>, Observable<?>>() {
+                            @Override
+                            public Observable<?> call(
+                                    Observable<? extends Throwable> attempts) {
+                                return attempts.flatMap(
+                                        new Func1<Throwable, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> call(
+                                                    Throwable throwable) {
+                                                return Observable.timer(1,
+                                                                        TimeUnit.SECONDS);
+                                            }
+                                        });
+                            }
+                        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(action, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        System.out.println("RETRY?!");
+                    }
+                });
+        subscriptions.add(sub);
+    }
+
+    public void notifyDestroy() {
+        subscriptions.clear();
     }
 
     @Override
-    public void onDisconnect() {
+    public void loadBefore() {
+        final Date searchIntervalBegin =
+                new Date(intervalBegin.getTime() - 3600 * 1000);
+        final Date searchIntervalEnd = new Date(intervalBegin.getTime());
+
+        route(searchIntervalBegin, searchIntervalEnd,
+              new Action1<RoutingResponse>() {
+                  @Override
+                  public void call(RoutingResponse res) {
+                      System.out.println(
+                              "LOAD BEFORE FINISHED " + searchIntervalBegin);
+
+                      List<Connection> newData = new ArrayList<>(
+                              res.connectionsLength());
+                      for (int i = 0; i < res.connectionsLength(); ++i) {
+                          newData.add(res.connections(i));
+                      }
+
+                      intervalBegin = searchIntervalBegin;
+                      infiniteScroll.notifyLoadFinished();
+                      data.addAll(0, newData);
+
+                      // lie about inserted position intervalEnd:
+                      // scroll intervalEnd position 1
+                      adapter.notifyItemRangeInserted(1, newData.size());
+                      scrollToPosition(newData.size() + 1);
+                  }
+              });
+    }
+
+    @Override
+    public void loadAfter() {
+        final Date searchIntervalBegin = new Date(intervalEnd.getTime());
+        final Date searchIntervalEnd =
+                new Date(intervalEnd.getTime() + 3600 * 1000);
+
+        route(searchIntervalBegin, searchIntervalEnd,
+              new Action1<RoutingResponse>() {
+                  @Override
+                  public void call(RoutingResponse res) {
+                      System.out.println(
+                              "LOAD AFTER FINISHED " + searchIntervalEnd);
+
+                      List<Connection> newData = new ArrayList<Connection>(
+                              res.connectionsLength());
+                      for (int i = 0; i < res.connectionsLength(); ++i) {
+                          newData.add(res.connections(i));
+                      }
+
+                      intervalEnd = searchIntervalEnd;
+                      infiniteScroll.notifyLoadFinished();
+                      int oldDisplayItemCount = adapter.getItemCount();
+                      data.addAll(newData);
+                      adapter.notifyItemRangeInserted(oldDisplayItemCount - 1,
+                                                      newData.size());
+                  }
+              });
     }
 }

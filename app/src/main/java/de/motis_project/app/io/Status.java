@@ -4,18 +4,18 @@ import android.os.Handler;
 
 import java.io.IOException;
 
-public class State {
+public class Status {
     private static final String SERVER_URL = "ws://ws.motis-project.de";
 
-    private static State SINGLETON;
+    private static Status SINGLETON;
     private MotisServer server;
 
-    private State(Handler handler) {
+    private Status(Handler handler) {
         server = new MotisServer(SERVER_URL, handler);
     }
 
     public static void init(Handler handler) {
-        SINGLETON = new State(handler);
+        SINGLETON = new Status(handler);
 
         try {
             SINGLETON.getServer().connect();
@@ -24,7 +24,7 @@ public class State {
         }
     }
 
-    public static synchronized State get() {
+    public static synchronized Status get() {
         return SINGLETON;
     }
 

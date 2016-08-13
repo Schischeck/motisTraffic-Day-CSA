@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import de.motis_project.app.io.error.DisconnectedException;
 import motis.Message;
 import motis.MotisError;
 import motis.MsgContent;
@@ -40,8 +41,6 @@ public class Server extends WebSocketAdapter {
     }
 
     public void connect() throws IOException {
-        System.out.println("Server.connect");
-
         WebSocketFactory factory = new WebSocketFactory();
         factory.setConnectionTimeout(60000);
 
@@ -58,12 +57,11 @@ public class Server extends WebSocketAdapter {
         }
     }
 
-    protected void send(byte[] msg) {
-        if (isConnected()) {
-            ws.sendBinary(msg);
-        } else {
-            System.out.println("not connected, unable to send message");
+    protected void send(byte[] msg) throws DisconnectedException {
+        if (!isConnected()) {
+            throw new DisconnectedException();
         }
+        ws.sendBinary(msg);
     }
 
     public void addListener(Listener l) {
@@ -98,7 +96,8 @@ public class Server extends WebSocketAdapter {
         if (msg.contentType() == MsgContent.MotisError) {
             MotisError err = new MotisError();
             err = (MotisError) msg.content(err);
-            System.out.println("RECEIVED ERROR: " + err.category() + ": " + err.reason());
+            System.out.println(
+                    "RECEIVED ERROR: " + err.category() + ": " + err.reason());
         }
 
         synchronized (listeners) {

@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -26,7 +25,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import de.motis_project.app.R;
-import de.motis_project.app.io.State;
 import de.motis_project.app.journey.JourneyListView;
 
 public class QueryFragment extends Fragment
@@ -63,12 +61,15 @@ public class QueryFragment extends Fragment
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        System.out.println("QueryFragment.onCreateView");
+
         View view = inflater.inflate(R.layout.query_fragment, container, false);
         ButterKnife.bind(this, view);
 
         query = new Query(
                 savedInstanceState,
                 getContext().getSharedPreferences("route", Context.MODE_PRIVATE));
+        journeyListView.query = query;
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);
@@ -76,9 +77,6 @@ public class QueryFragment extends Fragment
 
         fromInput.setText(query.getFromName());
         toInput.setText(query.getToName());
-
-        journeyListView.scrollToPosition(1);
-        State.get().getServer().addListener(journeyListView);
 
         sendSearchRequest();
 
@@ -88,11 +86,13 @@ public class QueryFragment extends Fragment
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        State.get().getServer().removeListener(journeyListView);
+        journeyListView.notifyDestroy();
+        System.out.println("QueryFragment.onDestroyView");
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        System.out.println("QueryFragment.onSaveInstanceState");
         query.updateBundle(outState);
     }
 
@@ -205,18 +205,7 @@ public class QueryFragment extends Fragment
     }
 
     private void sendSearchRequest() {
-        if (context == null) {
-            return;
-        }
-
-        CharSequence text = query.getFromId() + " -> " + query.getToId()
-                + " " + query.getTime() + " " + (query.isArrival() ? "arr" : "dep");
-        Toast toast = Toast.makeText(context, text, Toast.LENGTH_LONG);
-        toast.show();
-
-        journeyListView.nextResponseId = State.get().getServer().route(
-                query.getFromId(), query.getToId(),
-                query.isArrival(), query.getTime());
+        journeyListView.notifyQueryChanged();
     }
 
     private void updateTimeDisplay(boolean isArrival, Date time) {

@@ -25,28 +25,32 @@ public class JourneySummaryAdapter
 
     @Override
     public int getItemViewType(int position) {
-        return VIEW_TYPE_JOURNEY_PREVIEW;
-        /*
         if (position == 0 || position == getItemCount() - 1) {
             return VIEW_TYPE_LOADING_SPINNER;
         } else {
             return VIEW_TYPE_JOURNEY_PREVIEW;
         }
-        */
     }
 
     @Override
-    public JourneyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public JourneyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
-                return new JourneyViewHolder(true,
-                                             inflater.inflate(R.layout.journey_list_item, parent, false), inflater);
+                return new JourneyViewHolder(
+                        true,
+                        inflater.inflate(
+                                R.layout.journey_list_item,
+                                parent, false), inflater);
             case VIEW_TYPE_LOADING_SPINNER:
-                return new JourneyViewHolder(false,
-                        inflater.inflate(R.layout.journey_loading_spinner, parent, false), inflater);
+                return new JourneyViewHolder(
+                        false,
+                        inflater.inflate(
+                                R.layout.journey_loading_spinner,
+                                parent, false), inflater);
             default:
                 throw new RuntimeException("unknown view type");
         }
@@ -54,8 +58,7 @@ public class JourneySummaryAdapter
 
     @Override
     public void onBindViewHolder(JourneyViewHolder viewHolder, int position) {
-        //int index = position - 1;
-        int index = position;
+        int index = position - 1;
         if (index < 0 || index >= data.size()) {
             return;
         }
@@ -64,8 +67,7 @@ public class JourneySummaryAdapter
 
     @Override
     public int getItemCount() {
-        //return data.size() + 2;
-        return data.size();
+        return data.size() + 2;
     }
 
     @Override
@@ -78,10 +80,13 @@ public class JourneySummaryAdapter
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         return new JourneyViewHolder(false,
-                inflater.inflate(R.layout.journey_header_item, parent, false), inflater);
+                                     inflater.inflate(
+                                             R.layout.journey_header_item,
+                                             parent, false), inflater);
     }
 
     @Override
-    public void onBindHeaderViewHolder(JourneyViewHolder viewholder, int position) {
+    public void onBindHeaderViewHolder(JourneyViewHolder viewholder,
+                                       int position) {
     }
 }

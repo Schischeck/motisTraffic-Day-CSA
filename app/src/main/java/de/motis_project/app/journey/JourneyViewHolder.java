@@ -110,7 +110,7 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
     }
 
     void addTransportViews(List<DisplayTransport> transports) {
-        for (int i = 0; i < transports.size(); ++i) {
+        for (int i = 0; i < transports.size(); i++) {
             DisplayTransport t = transports.get(i);
 
             TextView view = (TextView) inflater.inflate(
@@ -155,7 +155,7 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
 
     @Nullable
     static Transport getTransportForSection(Connection c, Section s) {
-        for (int i = 0; i < c.transportsLength(); ++i) {
+        for (int i = 0; i < c.transportsLength(); i++) {
             MoveWrapper m = c.transports(i);
             if (m.moveType() == Move.Transport) {
                 Transport t = new Transport();

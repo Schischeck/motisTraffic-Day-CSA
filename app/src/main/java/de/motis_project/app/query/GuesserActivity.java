@@ -17,24 +17,24 @@ import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import de.motis_project.app.R;
-import de.motis_project.app.io.Server;
-import de.motis_project.app.io.State;
-import motis.Message;
-import motis.MsgContent;
+import de.motis_project.app.io.Status;
 import motis.guesser.StationGuesserResponse;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
-public class GuesserActivity extends FragmentActivity
-        implements Server.Listener {
+public class GuesserActivity extends FragmentActivity {
     public static final String RESULT_NAME = "result_name";
     public static final String RESULT_ID = "result_id";
     public static final String QUERY = "route";
 
     private List<String> resultIds = new ArrayList<String>();
 
-    private int nextResponseId;
+    Observable observable;
 
     @BindView(R.id.suggestionslist)
-    ListView suggestionList;
+    ListView suggestions;
 
     @BindView(R.id.searchInput)
     EditText searchInput;
@@ -55,7 +55,7 @@ public class GuesserActivity extends FragmentActivity
     void onSuggestionSelected(int pos) {
         Intent i = new Intent();
         i.putExtra(RESULT_NAME,
-                   suggestionList.getAdapter().getItem(pos).toString());
+                   suggestions.getAdapter().getItem(pos).toString());
         i.putExtra(RESULT_ID, resultIds.get(pos).toString());
         setResult(Activity.RESULT_OK, i);
         finish();
@@ -66,14 +66,40 @@ public class GuesserActivity extends FragmentActivity
         if (inputText.length() < 3) {
             return;
         }
-        nextResponseId = State.get().getServer().guess(inputText.toString());
+
+        Observable o = Status.get().getServer()
+                .guess(inputText.toString())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+        o.subscribe(new Subscriber<StationGuesserResponse>() {
+            @Override
+            public void onCompleted() {}
+
+            @Override
+            public void onError(Throwable e) {}
+
+            @Override
+            public void onNext(StationGuesserResponse res) {
+                final ArrayList<String>
+                        names = new ArrayList<>(res.guessesLength()),
+                        ids = new ArrayList<>(res.guessesLength());
+                for (int i = 0; i < res.guessesLength(); i++) {
+                    names.add(res.guesses(i).name());
+                    ids.add(res.guesses(i).id());
+                }
+                setResults(names, ids);
+            }
+        });
+
+        if (observable != null) {
+            observable.unsubscribeOn(AndroidSchedulers.mainThread());
+        }
+        observable = o;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        State.get().getServer().addListener(this);
 
         setContentView(R.layout.query_guesser_activity);
         ButterKnife.bind(this);
@@ -89,7 +115,6 @@ public class GuesserActivity extends FragmentActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        State.get().getServer().removeListener(this);
     }
 
     public void setResults(ArrayList<String> names, ArrayList<String> ids) {
@@ -97,41 +122,7 @@ public class GuesserActivity extends FragmentActivity
                 new ArrayAdapter<String>(GuesserActivity.this,
                                          R.layout.query_guesser_list_item,
                                          R.id.guess_text, names);
-        suggestionList.setAdapter(adapter);
+        suggestions.setAdapter(adapter);
         resultIds = ids;
-    }
-
-    @Override
-    public void onMessage(Message m) {
-        if (m.id() != nextResponseId ||
-                m.contentType() != MsgContent.StationGuesserResponse) {
-            return;
-        }
-
-        StationGuesserResponse res = new StationGuesserResponse();
-        m.content(res);
-
-        final ArrayList<String>
-                names = new ArrayList<>(res.guessesLength()),
-                ids = new ArrayList<>(res.guessesLength());
-        for (int i = 0; i < res.guessesLength(); i++) {
-            names.add(res.guesses(i).name());
-            ids.add(res.guesses(i).id());
-        }
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setResults(names, ids);
-            }
-        });
-    }
-
-    @Override
-    public void onConnect() {
-    }
-
-    @Override
-    public void onDisconnect() {
     }
 }

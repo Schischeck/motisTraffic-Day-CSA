@@ -20,6 +20,10 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
 
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        onScrolled();
+    }
+
+    private void onScrolled() {
         synchronized (layoutManager) {
             if (loading) {
                 return;
@@ -43,5 +47,6 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
 
     void notifyLoadFinished() {
         loading = false;
+        onScrolled();
     }
 }

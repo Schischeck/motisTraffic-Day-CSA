@@ -163,7 +163,7 @@ public class StickyHeaderDecoration extends RecyclerView.ItemDecoration {
     }
 
     private int getHeaderTop(RecyclerView parent, View child, View header, int adapterPos, int layoutPos) {
-        int headerHeight = getHeaderHeightForLayout(header) + 22;
+        int headerHeight = getHeaderHeightForLayout(header) + 24;
         int top = ((int) child.getY()) - headerHeight;
         if (layoutPos == 0) {
             final int count = parent.getChildCount();
