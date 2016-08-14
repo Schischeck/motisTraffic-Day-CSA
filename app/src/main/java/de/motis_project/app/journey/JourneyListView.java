@@ -36,18 +36,14 @@ public class JourneyListView
         private final Drawable divider;
 
         public SimpleDividerItemDecoration(Context context) {
-            divider =
-                    ContextCompat.getDrawable(context, R.drawable.line_divider);
+            divider = ContextCompat.getDrawable(context, R.drawable.line_divider);
         }
 
         @Override
-        public void onDrawOver(Canvas c, RecyclerView parent,
-                               RecyclerView.State state) {
+        public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
             int left = parent.getPaddingLeft();
             int right = parent.getWidth() - parent.getPaddingRight();
-
-            int childCount = parent.getChildCount();
-            for (int i = 0; i < childCount; i++) {
+            for (int i = 0; i < parent.getChildCount(); i++) {
                 View child = parent.getChildAt(i);
 
                 RecyclerView.LayoutParams params =
@@ -69,12 +65,9 @@ public class JourneyListView
 
     private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
-    private final JourneySummaryAdapter adapter =
-            new JourneySummaryAdapter(data);
-    private final LinearLayoutManager layoutManager =
-            new CustomLinearLayoutManager(getContext());
-    private final InfiniteScroll infiniteScroll =
-            new InfiniteScroll(this, layoutManager);
+    private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
+    private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+    private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
 
     public JourneyListView(Context context) {
         super(context);
@@ -86,8 +79,7 @@ public class JourneyListView
         init();
     }
 
-    public JourneyListView(Context context, @Nullable AttributeSet attrs,
-                           int defStyle) {
+    public JourneyListView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
@@ -101,7 +93,6 @@ public class JourneyListView
     }
 
     public void notifyQueryChanged() {
-        System.out.println("JourneyListView.notifyQueryChanged");
         intervalBegin = query.getTime();
         intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
 
@@ -129,17 +120,13 @@ public class JourneyListView
                 .retryWhen(
                         new Func1<Observable<? extends Throwable>, Observable<?>>() {
                             @Override
-                            public Observable<?> call(
-                                    Observable<? extends Throwable> attempts) {
-                                return attempts.flatMap(
-                                        new Func1<Throwable, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> call(
-                                                    Throwable throwable) {
-                                                return Observable.timer(1,
-                                                                        TimeUnit.SECONDS);
-                                            }
-                                        });
+                            public Observable<?> call(Observable<? extends Throwable> attempts) {
+                                return attempts.flatMap(new Func1<Throwable, Observable<?>>() {
+                                    @Override
+                                    public Observable<?> call(Throwable throwable) {
+                                        return Observable.timer(1, TimeUnit.SECONDS);
+                                    }
+                                });
                             }
                         })
                 .subscribeOn(Schedulers.io())
@@ -160,31 +147,27 @@ public class JourneyListView
 
     @Override
     public void loadBefore() {
-        final Date searchIntervalBegin =
-                new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
+        final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime());
 
         route(searchIntervalBegin, searchIntervalEnd,
               new Action1<RoutingResponse>() {
                   @Override
                   public void call(RoutingResponse res) {
-                      System.out.println(
-                              "LOAD BEFORE FINISHED " + searchIntervalBegin);
+                      System.out.println("LOAD BEFORE FINISHED " + searchIntervalBegin);
 
-                      List<Connection> newData = new ArrayList<>(
-                              res.connectionsLength());
+                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
                       for (int i = 0; i < res.connectionsLength(); ++i) {
                           newData.add(res.connections(i));
                       }
 
                       intervalBegin = searchIntervalBegin;
-                      infiniteScroll.notifyLoadFinished();
                       data.addAll(0, newData);
 
-                      // lie about inserted position intervalEnd:
-                      // scroll intervalEnd position 1
                       adapter.notifyItemRangeInserted(1, newData.size());
-                      scrollToPosition(newData.size() + 1);
+                      layoutManager.scrollToPosition(newData.size() + 1);
+
+                      infiniteScroll.notifyLoadFinished(newData.size());
                   }
               });
     }
@@ -192,28 +175,25 @@ public class JourneyListView
     @Override
     public void loadAfter() {
         final Date searchIntervalBegin = new Date(intervalEnd.getTime());
-        final Date searchIntervalEnd =
-                new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
+        final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
         route(searchIntervalBegin, searchIntervalEnd,
               new Action1<RoutingResponse>() {
                   @Override
                   public void call(RoutingResponse res) {
-                      System.out.println(
-                              "LOAD AFTER FINISHED " + searchIntervalEnd);
+                      System.out.println("LOAD AFTER FINISHED " + searchIntervalEnd);
 
-                      List<Connection> newData = new ArrayList<Connection>(
-                              res.connectionsLength());
+                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
                       for (int i = 0; i < res.connectionsLength(); ++i) {
                           newData.add(res.connections(i));
                       }
 
                       intervalEnd = searchIntervalEnd;
-                      infiniteScroll.notifyLoadFinished();
                       int oldDisplayItemCount = adapter.getItemCount();
                       data.addAll(newData);
-                      adapter.notifyItemRangeInserted(oldDisplayItemCount - 1,
-                                                      newData.size());
+                      adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
+
+                      infiniteScroll.notifyLoadFinished();
                   }
               });
     }

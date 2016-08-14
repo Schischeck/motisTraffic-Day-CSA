@@ -24,15 +24,12 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     private void onScrolled() {
+        onScrolled(layoutManager.findFirstVisibleItemPosition());
+    }
+
+    private void onScrolled(int first) {
         synchronized (layoutManager) {
             if (loading) {
-                return;
-            }
-
-            int first = layoutManager.findFirstVisibleItemPosition();
-            if (first == 0) {
-                loading = true;
-                loader.loadBefore();
                 return;
             }
 
@@ -42,10 +39,21 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
                 loader.loadAfter();
                 return;
             }
+
+            if (first == 0) {
+                loading = true;
+                loader.loadBefore();
+                return;
+            }
         }
     }
 
-    void notifyLoadFinished() {
+    public void notifyLoadFinished(int firstVisible) {
+        loading = false;
+        onScrolled(firstVisible);
+    }
+
+    public void notifyLoadFinished() {
         loading = false;
         onScrolled();
     }
