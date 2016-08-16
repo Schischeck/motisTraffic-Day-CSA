@@ -565,12 +565,6 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_expand_less_black_24dp"
-                            android:tint="@color/abc_secondary_text_material_light"/>
                     </LinearLayout>
                 </FrameLayout>
 
@@ -1014,12 +1008,6 @@
 
                         </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_expand_more_black_24dp"
-                            android:tint="@color/abc_secondary_text_material_light"/>
                     </LinearLayout>
                 </FrameLayout>
 
