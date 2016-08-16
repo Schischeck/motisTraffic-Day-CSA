@@ -13,8 +13,8 @@ namespace routes {
 class relation_matcher {
 
 public:
-  relation_matcher(motis::loader::Schedule const* sched,
-                   std::string const& osm_file);
+  relation_matcher(motis::loader::Schedule const *sched,
+                   std::string const &osm_file);
 
   void find_perfect_matches();
 
@@ -27,9 +27,9 @@ private:
   std::map<int64_t, osm_node> nodes_;
   std::map<int64_t, osm_relation> relations_;
   std::map<int64_t, osm_way> ways_;
-  motis::loader::Schedule const* sched_;
-  std::string const& osm_file_;
+  motis::loader::Schedule const *sched_;
+  std::string const &osm_file_;
 };
 
-}  // namespace routes
-}  // namespace motis
+} // namespace routes
+} // namespace motis

@@ -23,8 +23,8 @@ using namespace motis::loader;
 using namespace motis::routes;
 
 struct prepare_settings : public conf::simple_config {
-  prepare_settings(std::string const& schedule = "rohdaten",
-                   std::string const& osm = "germany-latest.osm.pbf")
+  prepare_settings(std::string const &schedule = "rohdaten",
+                   std::string const &osm = "germany-latest.osm.pbf")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
@@ -35,7 +35,7 @@ struct prepare_settings : public conf::simple_config {
   std::string out_;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   prepare_settings opt;
 
   try {
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
     parser.read_configuration_file(false);
     parser.print_used(std::cout);
-  } catch (std::exception const& e) {
+  } catch (std::exception const &e) {
     std::cout << "options error: " << e.what() << "\n";
     return 1;
   }
