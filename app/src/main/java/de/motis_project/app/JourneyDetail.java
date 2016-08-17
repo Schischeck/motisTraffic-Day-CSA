@@ -6,7 +6,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.Window;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import de.motis_project.app.io.Status;
+import motis.Connection;
+
 public class JourneyDetail extends AppCompatActivity {
+    private Connection conn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,7 +22,13 @@ public class JourneyDetail extends AppCompatActivity {
         setContentView(R.layout.journey_detail);
         setSupportActionBar((Toolbar) findViewById(R.id.journey_detail_toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setTitle("So. 14.08.2016");
+
+        conn = Status.get().getConnection();
+
+        String formattedDate = SimpleDateFormat
+                .getDateInstance(java.text.DateFormat.SHORT)
+                .format(new Date(conn.stops(0).departure().scheduleTime() * 1000));
+        setTitle(formattedDate);
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.List;
 
 import de.motis_project.app.JourneyDetail;
 import de.motis_project.app.R;
+import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderAdapter;
 import motis.Connection;
 
@@ -71,7 +72,7 @@ public class JourneySummaryAdapter
 
     @Override
     public void onBindViewHolder(JourneyViewHolder viewHolder, final int position) {
-        int index = position - 1;
+        final int index = position - 1;
         if (index < 0 || index >= data.size()) {
             return;
         }
@@ -79,7 +80,7 @@ public class JourneySummaryAdapter
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                System.out.println("JourneySummaryAdapter.onClick " + position);
+                Status.get().setConnection(data.get(index));
                 view.getContext().startActivity(new Intent(view.getContext(), JourneyDetail.class));
             }
         });

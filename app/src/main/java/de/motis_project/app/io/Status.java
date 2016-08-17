@@ -4,11 +4,14 @@ import android.os.Handler;
 
 import java.io.IOException;
 
+import motis.Connection;
+
 public class Status {
     private static final String SERVER_URL = "ws://ws.motis-project.de";
 
     private static Status SINGLETON;
-    private MotisServer server;
+    private final MotisServer server;
+    private Connection connection;
 
     private Status(Handler handler) {
         server = new MotisServer(SERVER_URL, handler);
@@ -31,4 +34,8 @@ public class Status {
     public MotisServer getServer() {
         return server;
     }
+
+    public Connection getConnection() { return connection; }
+
+    public void setConnection(Connection connection) { this.connection = connection; }
 }
