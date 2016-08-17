@@ -17,6 +17,9 @@ relation_matcher::relation_matcher(motis::loader::Schedule const* sched,
 void relation_matcher::load_osm() {
   logging::scoped_timer scoped_timer("Loading osm data");
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
+    if (relation.id() != 1741581) {
+      return;
+    }
     std::string const type = relation.get_value_by_key("type", "");
     std::string const route = relation.get_value_by_key("route", "");
     if ((type == "route" || type == "public_transport") &&
@@ -36,9 +39,11 @@ void relation_matcher::load_osm() {
     if (w == end(ways_) ||
         std::string(way.get_value_by_key("highway", "")) == "platform" ||
         std::string(way.get_value_by_key("public_transport", "")) ==
-            "platform") {
+            "platform" ||
+        std::string(way.get_value_by_key("role", "")) == "stop") {
       return;
     }
+    std::cout << way.id() << std::endl;
     for (auto const& node : way.nodes()) {
       w->second.nodes_.push_back(node.ref());
       nodes_.emplace(node.ref(), osm_node(node.ref()));

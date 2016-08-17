@@ -10,6 +10,7 @@
 #include "osmium/osm.hpp"
 #include "osmium/visitor.hpp"
 #include "rapidjson/filewritestream.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/writer.h"
 
 #include "motis/core/common/geo.h"
@@ -117,47 +118,52 @@ inline std::vector<way> expand_segment(
 inline std::vector<int64_t> sort_segments(
     std::vector<std::vector<way>> segments) {
   std::vector<int64_t> result;
-  auto start = segments.front();
-  bool add_front = false;
-  double max_dist = 10;
-  segments.erase(begin(segments));
-  while (!segments.empty()) {
-    auto const loc = add_front ? start.front().f : start.back().f;
-    std::vector<std::pair<std::size_t, bool>> add;
-    for (std::size_t i = 0; i < segments.size(); i++) {
-      auto const& f_dist = geo_detail::distance_in_m(
-          segments[i].front().f.lat(), segments[i].front().f.lon(), loc.lat(),
-          loc.lon());
-      auto const& b_dist = geo_detail::distance_in_m(segments[i].back().f.lat(),
-                                                     segments[i].back().f.lon(),
-                                                     loc.lat(), loc.lon());
-      if (f_dist < max_dist) {
-        add.emplace_back(i, false);
-      } else if (b_dist < max_dist) {
-        add.emplace_back(i, true);
+
+  enum class order { HEAD_HEAD, HEAD_TAIL };
+
+  struct segment {
+
+    geo_detail::latlng head() {}
+    geo_detail::latlng tail() {}
+
+    size_t id_, succ_;
+    order succ_order_;
+
+    std::vector<way> ways;
+  };
+
+  // std::vector<std::vector<double>> distances;
+  // for (auto i = 0u; i < segments.)
+
+  while (true) {
+
+    auto curr_segment = segments.front();
+    segments.erase(begin(segments));
+
+    boost::optional<std::pair<segment, order>> succ_candidate;
+    for (auto const& segment : segments) {
+      auto head_head_dist =
+          geo_detail::distance_in_m(curr_segment.head(), segment.head());
+      auto head_tail_dist =
+          geo_detail::distance_in_m(curr_segment.head(), segment.tail());
+
+      if (succ_candidate && (head_head_dist < 10 || head_tail_dist < 10)) {
+        succ_candidate = {};
+        break;
+      }
+
+      if (head_head_dist < 10 && head_head_dist < head_tail_dist) {
+        succ_candidate = {segment, order::HEAD_HEAD};
+      } else if (head_tail_dist < 10) {
+        succ_candidate = {segment, order::HEAD_TAIL};
       }
     }
-    if (add.size() > 1 || (add_front && add.empty())) {
-      return {};
-    }
-    if (add.empty()) {
-      add_front = true;
-    } else {
-      auto s = segments[add[0].first];
-      if (add[0].second) {
-        std::reverse(begin(s), end(s));
-      }
-      if (add_front) {
-        start.insert(begin(start), begin(s), end(s));
-      } else {
-        start.insert(end(start), begin(s), end(s));
-      }
-      segments.erase(begin(segments) + add[0].first);
+
+    if (succ_candidate) {
+      auto merged = merge_segments(curr_segment, *succ_candidate);
     }
   }
-  for (auto const& s : start) {
-    result.push_back(s.id_);
-  }
+
   return result;
 }
 
@@ -235,7 +241,7 @@ inline void export_geojson(std::vector<osm_relation> const& rels,
   char writeBuffer[65536];
 
   rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-  rapidjson::Writer<rapidjson::FileWriteStream> w(os);
+  rapidjson::PrettyWriter<rapidjson::FileWriteStream> w(os);
 
   w.StartObject();
   w.String("type").String("FeatureCollection");

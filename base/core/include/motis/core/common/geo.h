@@ -60,5 +60,14 @@ inline double distance_in_m(double a_lat, double a_lng, double b_lat,
                                    spherical_point(b_lng, b_lat));
 }
 
+struct latlng {
+  double lat_, lng_;
+};
+
+inline double distance_in_m(latlng const a, latlng const b) {
+  return geo_detail::distance_in_m(spherical_point(a.lng_, a.lat_),
+                                   spherical_point(b.lng_, b.lat_));
+}
+
 }  // namespace geo_detail
 }  // namespace motis
