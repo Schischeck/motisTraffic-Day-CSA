@@ -167,7 +167,8 @@
                     android:background="@drawable/rounded_corner_outline_light"
                     android:text="Gleis 7"
                     android:textSize="11dp"
-                    android:textColor="@color/abc_primary_text_material_light"/>
+                    android:textColor="@color/abc_secondary_text_material_light"
+                    android:fontFamily="sans-serif-light"/>
 
             </LinearLayout>
 
@@ -271,7 +272,7 @@
                                     android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
                                     android:ellipsize="end"
                                     android:fontFamily="sans-serif-light"
-                                    android:textColor="#555555"/>
+                                    android:textColor="@color/secondary_text_default_material_light"/>
 
                             </LinearLayout>
 
@@ -325,15 +326,15 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#333333"
-                                android:layout_marginTop="5dp"/>
+                                android:tint="#555555"
+                                android:layout_marginTop="13dp"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#333333"
-                                android:layout_marginTop="-5dp"/>
+                                android:tint="#555555"
+                                android:layout_marginTop="-10dp"/>
                         </LinearLayout>
 
                         <TextView
@@ -341,8 +342,9 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="Fahrt 6 Stationen (34min)"
-                            android:layout_marginLeft="10dp"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:layout_marginLeft="4dp"
+                            android:textColor="@color/abc_secondary_text_material_light"
+                            android:fontFamily="sans-serif-light"/>
 
 
                     </LinearLayout>
@@ -446,8 +448,10 @@
                     android:layout_gravity="center"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
-                    android:text="Ank. Gl. 6, 3 Minuten Umstiegszeit"
-                    android:textSize="12dp"/>
+                    android:text="An. Gl. 6, 3 Minuten Umstiegszeit"
+                    android:textSize="12dp"
+                    android:fontFamily="sans-serif-light"
+                    android:textColor="@color/abc_secondary_text_material_light"/>
 
                 <View
                     android:layout_width="wrap_content"
@@ -465,7 +469,8 @@
                     android:text="Gleis 9"
                     android:textSize="11dp"
                     android:id="@+id/textView9"
-                    android:textColor="@color/abc_primary_text_material_light"/>
+                    android:textColor="@color/abc_secondary_text_material_light"
+                    android:fontFamily="sans-serif-light"/>
 
             </LinearLayout>
 
@@ -619,16 +624,16 @@
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:tint="#333333"
-                                android:layout_marginTop="5dp"
-                                android:src="@drawable/ic_expand_more_black_24dp"/>
+                                android:src="@drawable/ic_expand_more_black_24dp"
+                                android:tint="#555555"
+                                android:layout_marginTop="13dp"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#333333"
-                                android:layout_marginTop="-5dp"/>
+                                android:tint="#555555"
+                                android:layout_marginTop="-10dp"/>
                         </LinearLayout>
 
                         <TextView
@@ -636,8 +641,9 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="Fahrt 8 Stationen (1h 25min)"
-                            android:layout_marginLeft="10dp"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:layout_marginLeft="4dp"
+                            android:textColor="@color/abc_secondary_text_material_light"
+                            android:fontFamily="sans-serif-light"/>
 
 
                     </LinearLayout>
@@ -895,9 +901,10 @@
                     android:layout_gravity="center"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
-                    android:text="Ank. Gl. 12 Süd, 3 Minuten Fußweg"
+                    android:text="An. Gl. 12 Süd, 3 Minuten Fußweg"
                     android:textSize="12dp"
-                    android:textColor="@color/abc_secondary_text_material_light"/>
+                    android:textColor="@color/abc_secondary_text_material_light"
+                    android:fontFamily="sans-serif-light"/>
 
                 <View
                     android:layout_width="wrap_content"
@@ -915,7 +922,8 @@
                     android:text="Gleis 10 Nord"
                     android:textSize="11dp"
                     android:id="@+id/textView2"
-                    android:textColor="@color/abc_primary_text_material_light"/>
+                    android:textColor="@color/abc_secondary_text_material_light"
+                    android:fontFamily="sans-serif-light"/>
 
             </LinearLayout>
 
@@ -1071,15 +1079,15 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#333333"
-                                android:layout_marginTop="5dp"/>
+                                android:tint="#555555"
+                                android:layout_marginTop="13dp"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#333333"
-                                android:layout_marginTop="-5dp"/>
+                                android:tint="#555555"
+                                android:layout_marginTop="-10dp"/>
                         </LinearLayout>
 
                         <TextView
@@ -1087,8 +1095,9 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="Fahrt 1 Station (5min)"
-                            android:layout_marginLeft="10dp"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:layout_marginLeft="4dp"
+                            android:textColor="@color/abc_secondary_text_material_light"
+                            android:fontFamily="sans-serif-light"/>
 
 
                     </LinearLayout>
@@ -1189,7 +1198,8 @@
                             android:text="Gleis 1"
                             android:textSize="11dp"
                             android:layout_gravity="center_vertical"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:textColor="@color/abc_secondary_text_material_light"
+                            android:fontFamily="sans-serif-light"/>
 
                     </LinearLayout>
 
