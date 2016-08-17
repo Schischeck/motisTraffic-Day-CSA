@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.View;
 import android.view.Window;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -43,6 +45,9 @@ public class JourneyDetail extends AppCompatActivity {
     @BindView(R.id.detail_number_of_transfers)
     TextView numberOfTransfers;
 
+    @BindView(R.id.detail_journey_details)
+    LinearLayout journeyDetails;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
@@ -60,6 +65,28 @@ public class JourneyDetail extends AppCompatActivity {
 
         ButterKnife.bind(this);
         initHeader();
+
+        journeyDetails.addView(getFirstTransportHeader(), 0);
+    }
+
+    // TODO(felix) is this the solution?
+    LinearLayout getFirstTransportHeader() {
+        LinearLayout layout = (LinearLayout)
+                getLayoutInflater().inflate(R.layout.detail_first_transport_header, journeyDetails, false);
+        TextView depTrack = (TextView) layout.findViewById(R.id.detail_first_departure_track);
+
+        TextView depTransport = (TextView) layout.findViewById(R.id.detail_first_transport_name);
+        depTransport.setText(
+                JourneyUtil.getTransportForSection(con, JourneyUtil.getSections(con).get(0)).name());
+
+        String track = con.stops(0).departure().track();
+        if (track.isEmpty()) {
+            depTrack.setVisibility(View.GONE);
+        } else {
+            depTrack.setText(track);
+        }
+
+        return layout;
     }
 
     void initHeader() {
