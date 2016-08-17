@@ -76,11 +76,13 @@ public class JourneySummaryAdapter
         if (index < 0 || index >= data.size()) {
             return;
         }
-        viewHolder.setConnection(data.get(index));
+
+        final Connection con = data.get(index);
+        viewHolder.setConnection(con);
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Status.get().setConnection(data.get(index));
+                Status.get().setConnection(con);
                 view.getContext().startActivity(new Intent(view.getContext(), JourneyDetail.class));
             }
         });

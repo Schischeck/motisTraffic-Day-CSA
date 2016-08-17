@@ -15,7 +15,6 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -25,6 +24,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import de.motis_project.app.R;
+import de.motis_project.app.TimeUtil;
 import de.motis_project.app.journey.JourneyListView;
 
 public class QueryFragment extends Fragment
@@ -209,17 +209,12 @@ public class QueryFragment extends Fragment
     }
 
     private void updateTimeDisplay(boolean isArrival, Date time) {
-        String formattedTime = SimpleDateFormat
-                .getTimeInstance(java.text.DateFormat.SHORT)
-                .format(time);
+        String formattedTime = TimeUtil.formatTime(time);
         String formattedArrival = (isArrival ? arrivalStr : departureStr);
         timeText.setText(formattedArrival + " " + formattedTime);
     }
 
     private void updateDateDisplay(Date date) {
-        String formattedDate = SimpleDateFormat
-                .getDateInstance(java.text.DateFormat.SHORT)
-                .format(date);
-        dateText.setText(formattedDate);
+        dateText.setText(TimeUtil.formatDate(date));
     }
 }

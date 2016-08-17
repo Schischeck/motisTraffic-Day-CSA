@@ -1,0 +1,45 @@
+package de.motis_project.app;
+
+import android.support.annotation.NonNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class TimeUtil {
+    static StringBuffer durationBuf = new StringBuffer();
+
+    @NonNull
+    public static String getDurationString(long minutes) {
+        durationBuf.setLength(0);
+
+        long displayMinutes = minutes % 60;
+        long displayHours = minutes / 60;
+
+        if (displayHours != 0) {
+            durationBuf.append(displayHours).append("h ");
+        }
+        durationBuf.append(displayMinutes).append("min");
+
+        return durationBuf.toString();
+    }
+
+    public static String formatTime(long unixTimestamp) {
+        return formatTime(new Date(unixTimestamp * 1000));
+    }
+
+    public static String formatTime(Date time) {
+        return SimpleDateFormat
+                .getTimeInstance(java.text.DateFormat.SHORT)
+                .format(time);
+    }
+
+    public static String formatDate(long unixTimestamp) {
+        return formatDate(new Date(unixTimestamp * 1000));
+    }
+
+    public static String formatDate(Date date) {
+        return SimpleDateFormat
+                .getDateInstance(java.text.DateFormat.SHORT)
+                .format(date);
+    }
+}

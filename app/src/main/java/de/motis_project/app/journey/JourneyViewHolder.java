@@ -7,14 +7,13 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.R;
+import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
 import motis.Move;
@@ -57,8 +56,6 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
 
     private final LayoutInflater inflater;
 
-    static StringBuffer durationBuf = new StringBuffer();
-
     @BindView(R.id.dep_sched_time)
     TextView depSchedTime;
 
@@ -97,13 +94,13 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         EventInfo arr = con.stops(con.stopsLength() - 1).arrival();
 
         long minutes = (arr.scheduleTime() - dep.scheduleTime()) / 60;
-        duration.setText(getDurationString(minutes));
+        duration.setText(TimeUtil.getDurationString(minutes));
 
-        depSchedTime.setText(formatTime(dep.scheduleTime()));
-        depTime.setText(formatTime(dep.time()));
+        depSchedTime.setText(TimeUtil.formatTime(dep.scheduleTime()));
+        depTime.setText(TimeUtil.formatTime(dep.time()));
 
-        arrSchedTime.setText(formatTime(arr.scheduleTime()));
-        arrTime.setText(formatTime(arr.time()));
+        arrSchedTime.setText(TimeUtil.formatTime(arr.scheduleTime()));
+        arrTime.setText(TimeUtil.formatTime(arr.time()));
 
         transports.removeAllViews();
         addTransportViews(getTransports(con));
@@ -167,25 +164,5 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
             }
         }
         return null;
-    }
-
-    static String formatTime(long timestamp) {
-        return SimpleDateFormat
-                .getTimeInstance(java.text.DateFormat.SHORT)
-                .format(new Date(timestamp * 1000));
-    }
-
-    static String getDurationString(long minutes) {
-        durationBuf.setLength(0);
-
-        long displayMinutes = minutes % 60;
-        long displayHours = minutes / 60;
-
-        if (displayHours != 0) {
-            durationBuf.append(displayHours).append("h ");
-        }
-        durationBuf.append(displayMinutes).append("min");
-
-        return durationBuf.toString();
     }
 }
