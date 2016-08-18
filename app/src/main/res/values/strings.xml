@@ -8,8 +8,9 @@
     <string name="arrival_short">Ank.</string>
     <string name="departure_short">Abf.</string>
 
-    <string name="transfer">Umstieg</string>
-    <string name="transfers">Umstiege</string>
+    <string name="transfer">%d Umstieg</string>
+    <string name="transfers">%d Umstiege</string>
+    <string name="track">Gleis %s</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="title_activity_journay_detail">Detailansicht</string>

@@ -59,7 +59,7 @@ public class JourneyUtil {
     public static List<DisplayTransport> getTransports(Connection con) {
         List<DisplayTransport> displayTransports = new ArrayList<>();
         for (Section s : getSections(con)) {
-            Transport t = getTransportForSection(con, s);
+            Transport t = getTransport(con, s);
             if (t != null) {
                 displayTransports.add(new DisplayTransport(t));
             }
@@ -68,7 +68,7 @@ public class JourneyUtil {
     }
 
     @Nullable
-    public static Transport getTransportForSection(Connection c, Section s) {
+    public static Transport getTransport(Connection c, Section s) {
         for (int i = 0; i < c.transportsLength(); i++) {
             MoveWrapper m = c.transports(i);
             if (m.moveType() == Move.Transport) {

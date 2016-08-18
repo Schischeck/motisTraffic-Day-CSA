@@ -3,8 +3,8 @@ package de.motis_project.app;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -66,27 +66,9 @@ public class JourneyDetail extends AppCompatActivity {
         ButterKnife.bind(this);
         initHeader();
 
-        journeyDetails.addView(getFirstTransportHeader(), 0);
-    }
-
-    // TODO(felix) is this the solution?
-    LinearLayout getFirstTransportHeader() {
-        LinearLayout layout = (LinearLayout)
-                getLayoutInflater().inflate(R.layout.detail_first_transport_header, journeyDetails, false);
-        TextView depTrack = (TextView) layout.findViewById(R.id.detail_first_departure_track);
-
-        TextView depTransport = (TextView) layout.findViewById(R.id.detail_first_transport_name);
-        depTransport.setText(
-                JourneyUtil.getTransportForSection(con, JourneyUtil.getSections(con).get(0)).name());
-
-        String track = con.stops(0).departure().track();
-        if (track.isEmpty()) {
-            depTrack.setVisibility(View.GONE);
-        } else {
-            depTrack.setText(track);
-        }
-
-        return layout;
+        LayoutInflater inflater = getLayoutInflater();
+        journeyDetails.addView(
+                new FirstTransportHeader(con, journeyDetails, inflater).layout, 0);
     }
 
     void initHeader() {
@@ -103,7 +85,7 @@ public class JourneyDetail extends AppCompatActivity {
 
         int transferCount = getNumberOfTransfers(con);
         String transferPlural = (transferCount == 1) ? transfer : transfers;
-        numberOfTransfers.setText(Integer.toString(transferCount) + " " + transferPlural);
+        numberOfTransfers.setText(String.format(transferPlural, transferCount));
     }
 
     @Override

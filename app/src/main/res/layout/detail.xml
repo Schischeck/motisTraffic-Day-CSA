@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical">
@@ -18,18 +17,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:paddingBottom="@dimen/activity_vertical_margin">
-
-            <include layout="@layout/detail_first_transport_header"/>
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingTop="@dimen/activity_vertical_margin">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:longClickable="false"
                 android:orientation="horizontal"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
                 android:paddingRight="@dimen/activity_horizontal_margin"
-                android:longClickable="false"
                 >
 
                 <FrameLayout
@@ -79,29 +76,29 @@
                                     android:textStyle="bold"/>
 
                                 <TextView
+                                    android:id="@+id/textView22"
                                     android:layout_width="40dp"
                                     android:layout_height="wrap_content"
-                                    android:gravity="center_vertical|center_horizontal"
-                                    android:text="+1"
-                                    android:textStyle="bold"
-                                    android:id="@+id/textView22"
-                                    android:textColor="#FF5722"
+                                    android:layout_gravity="center_vertical"
                                     android:layout_marginLeft="10dp"
-                                    android:visibility="visible"
+                                    android:gravity="center_vertical|center_horizontal"
                                     android:maxLines="1"
-                                    android:layout_gravity="center_vertical"/>
+                                    android:text="+1"
+                                    android:textColor="#FF5722"
+                                    android:textStyle="bold"
+                                    android:visibility="visible"/>
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:gravity="center_vertical"
-                                    android:paddingStart="9dp"
-                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
-                                    android:textStyle="bold"
-                                    android:maxLines="2"
                                     android:layout_gravity="center_vertical"
                                     android:ellipsize="end"
-                                    android:textColor="@color/abc_primary_text_material_light"/>
+                                    android:gravity="center_vertical"
+                                    android:maxLines="2"
+                                    android:paddingStart="9dp"
+                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
+                                    android:textColor="@color/abc_primary_text_material_light"
+                                    android:textStyle="bold"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -119,10 +116,10 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
                                     android:ellipsize="end"
                                     android:fontFamily="sans-serif-light"
+                                    android:gravity="center_vertical"
+                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
                                     android:textColor="@color/secondary_text_default_material_light"/>
 
                             </LinearLayout>
@@ -168,34 +165,34 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:orientation="vertical"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginLeft="20dp">
+                            android:layout_marginLeft="20dp"
+                            android:orientation="vertical">
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="13dp"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="13dp"/>
+                                android:tint="#555555"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="-10dp"
                                 android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="-10dp"/>
+                                android:tint="#555555"/>
                         </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
+                            android:layout_marginLeft="4dp"
+                            android:fontFamily="sans-serif-light"
                             android:gravity="center_vertical"
                             android:text="Fahrt 6 Stationen (34min)"
-                            android:layout_marginLeft="4dp"
-                            android:textColor="@color/abc_secondary_text_material_light"
-                            android:fontFamily="sans-serif-light"/>
+                            android:textColor="@color/abc_secondary_text_material_light"/>
 
 
                     </LinearLayout>
@@ -238,34 +235,34 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="14:35"
-                            android:textStyle="bold"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
 
                         <TextView
+                            android:id="@+id/textView21"
                             android:layout_width="40dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:text="+15"
-                            android:textStyle="bold"
-                            android:id="@+id/textView21"
-                            android:textColor="#FF5722"
                             android:layout_marginLeft="10dp"
-                            android:visibility="visible"
+                            android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
+                            android:text="+15"
+                            android:textColor="#FF5722"
+                            android:textStyle="bold"
+                            android:visibility="visible"
                             />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:text="Altona, Hamburg"
-                            android:textStyle="bold"
-                            android:maxLines="2"
                             android:layout_gravity="center_vertical"
                             android:ellipsize="end"
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
                             android:paddingStart="9dp"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:text="Altona, Hamburg"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
                     </LinearLayout>
                 </FrameLayout>
 
@@ -289,37 +286,37 @@
                     android:layout_width="wrap_content"
                     android:layout_height="1dp"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="4dp"
                     android:layout_weight="1"
-                    android:background="@color/grey_200"
-                    android:layout_marginLeft="4dp"/>
+                    android:background="@color/grey_200"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:fontFamily="sans-serif-light"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
                     android:text="An. Gl. 6, 3 Minuten Umstiegszeit"
-                    android:textSize="12dp"
-                    android:fontFamily="sans-serif-light"
-                    android:textColor="@color/abc_secondary_text_material_light"/>
+                    android:textColor="@color/abc_secondary_text_material_light"
+                    android:textSize="12dp"/>
 
                 <View
                     android:layout_width="wrap_content"
                     android:layout_height="1dp"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginRight="4dp"
                     android:layout_weight="1"
-                    android:background="@color/grey_200"
-                    android:layout_marginRight="4dp"/>
+                    android:background="@color/grey_200"/>
 
                 <TextView
+                    android:id="@+id/textView9"
                     style="@style/JourneySection"
                     android:background="@drawable/rounded_corner_outline_light"
+                    android:fontFamily="sans-serif-light"
                     android:text="Gleis 9"
-                    android:textSize="12dp"
-                    android:id="@+id/textView9"
                     android:textColor="@color/abc_secondary_text_material_light"
-                    android:fontFamily="sans-serif-light"/>
+                    android:textSize="12dp"/>
 
             </LinearLayout>
 
@@ -374,33 +371,33 @@
                                     android:layout_height="wrap_content"
                                     android:gravity="center_vertical"
                                     android:text="13:30"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/abc_primary_text_material_light"/>
+                                    android:textColor="@color/abc_primary_text_material_light"
+                                    android:textStyle="bold"/>
 
                                 <TextView
+                                    android:id="@+id/textView17"
                                     android:layout_width="40dp"
                                     android:layout_height="wrap_content"
-                                    android:gravity="center_vertical|center_horizontal"
-                                    android:text="+0"
-                                    android:textStyle="bold"
-                                    android:id="@+id/textView17"
-                                    android:textColor="#4CAF50"
                                     android:layout_marginLeft="10dp"
-                                    android:visibility="visible"
+                                    android:gravity="center_vertical|center_horizontal"
                                     android:maxLines="1"
+                                    android:text="+0"
+                                    android:textColor="#4CAF50"
+                                    android:textStyle="bold"
+                                    android:visibility="visible"
                                     />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:paddingStart="9dp"
-                                    android:text="Altona, Hamburg"
-                                    android:textStyle="bold"
-                                    android:maxLines="2"
                                     android:layout_gravity="center_vertical"
                                     android:ellipsize="end"
-                                    android:textColor="@color/abc_primary_text_material_light"/>
+                                    android:gravity="center_vertical"
+                                    android:maxLines="2"
+                                    android:paddingStart="9dp"
+                                    android:text="Altona, Hamburg"
+                                    android:textColor="@color/abc_primary_text_material_light"
+                                    android:textStyle="bold"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -419,10 +416,10 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:text="Wilhelmsburg, Hamburg"
                                     android:ellipsize="end"
                                     android:fontFamily="sans-serif-light"
+                                    android:gravity="center_vertical"
+                                    android:text="Wilhelmsburg, Hamburg"
                                     android:textColor="#555555"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -465,34 +462,34 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:orientation="vertical"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginLeft="20dp">
+                            android:layout_marginLeft="20dp"
+                            android:orientation="vertical">
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="13dp"
                                 android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="13dp"/>
+                                android:tint="#555555"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="-10dp"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="-10dp"/>
+                                android:tint="#555555"/>
                         </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
+                            android:layout_marginLeft="4dp"
+                            android:fontFamily="sans-serif-light"
                             android:gravity="center_vertical"
                             android:text="Fahrt 8 Stationen (1h 25min)"
-                            android:layout_marginLeft="4dp"
-                            android:textColor="@color/abc_secondary_text_material_light"
-                            android:fontFamily="sans-serif-light"/>
+                            android:textColor="@color/abc_secondary_text_material_light"/>
 
 
                     </LinearLayout>
@@ -542,33 +539,33 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="14:35"
-                            android:textStyle="bold"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
                         <TextView
+                            android:id="@+id/textView18"
                             android:layout_width="40dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:text="+5"
-                            android:textStyle="bold"
-                            android:id="@+id/textView18"
-                            android:textColor="#FF5722"
                             android:layout_marginLeft="10dp"
-                            android:visibility="visible"
+                            android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
+                            android:text="+5"
+                            android:textColor="#FF5722"
+                            android:textStyle="bold"
+                            android:visibility="visible"
                             />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:paddingStart="9dp"
-                            android:text="Groß-Umstadt Pfälzer Schloss"
-                            android:textStyle="bold"
-                            android:maxLines="2"
                             android:layout_gravity="center_vertical"
                             android:ellipsize="end"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
+                            android:paddingStart="9dp"
+                            android:text="Groß-Umstadt Pfälzer Schloss"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
                     </LinearLayout>
                 </FrameLayout>
 
@@ -617,34 +614,34 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="14:41"
-                            android:textStyle="bold"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
                         <TextView
+                            android:id="@+id/textView19"
                             android:layout_width="40dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:text="+6"
-                            android:textStyle="bold"
-                            android:id="@+id/textView19"
-                            android:textColor="#FF5722"
                             android:layout_marginLeft="10dp"
-                            android:visibility="visible"
+                            android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
+                            android:text="+6"
+                            android:textColor="#FF5722"
+                            android:textStyle="bold"
+                            android:visibility="visible"
                             />
 
                         <TextView
                             android:id="@+id/textView8"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:paddingStart="9dp"
-                            android:text="Wald-Amorbach - An der alten Brücke, Breuberg"
-                            android:textStyle="bold"
-                            android:maxLines="2"
                             android:layout_gravity="center_vertical"
                             android:ellipsize="end"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
+                            android:paddingStart="9dp"
+                            android:text="Wald-Amorbach - An der alten Brücke, Breuberg"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
                     </LinearLayout>
                 </FrameLayout>
 
@@ -686,34 +683,34 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:text="14:45"
-                            android:textStyle="bold"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
 
                         <TextView
+                            android:id="@+id/textView20"
                             android:layout_width="40dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:text="+4"
-                            android:textStyle="bold"
-                            android:id="@+id/textView20"
-                            android:textColor="#FF5722"
                             android:layout_marginLeft="10dp"
-                            android:visibility="visible"
+                            android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
+                            android:text="+4"
+                            android:textColor="#FF5722"
+                            android:textStyle="bold"
+                            android:visibility="visible"
                             />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
-                            android:textStyle="bold"
                             android:layout_gravity="center_vertical"
-                            android:maxLines="2"
                             android:ellipsize="end"
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
                             android:paddingStart="9dp"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
                     </LinearLayout>
                 </FrameLayout>
@@ -740,37 +737,37 @@
                     android:layout_width="wrap_content"
                     android:layout_height="1dp"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="4dp"
                     android:layout_weight="1"
-                    android:background="@color/grey_200"
-                    android:layout_marginLeft="4dp"/>
+                    android:background="@color/grey_200"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:fontFamily="sans-serif-light"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
                     android:text="An. Gl. 12 Süd, 3 Minuten Fußweg"
-                    android:textSize="12dp"
                     android:textColor="@color/abc_secondary_text_material_light"
-                    android:fontFamily="sans-serif-light"/>
+                    android:textSize="12dp"/>
 
                 <View
                     android:layout_width="wrap_content"
                     android:layout_height="1dp"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginRight="4dp"
                     android:layout_weight="1"
-                    android:background="@color/grey_200"
-                    android:layout_marginRight="4dp"/>
+                    android:background="@color/grey_200"/>
 
                 <TextView
+                    android:id="@+id/textView2"
                     style="@style/JourneySection"
                     android:background="@drawable/rounded_corner_outline_light"
+                    android:fontFamily="sans-serif-light"
                     android:text="Gleis 10 Nord"
-                    android:textSize="12dp"
-                    android:id="@+id/textView2"
                     android:textColor="@color/abc_secondary_text_material_light"
-                    android:fontFamily="sans-serif-light"/>
+                    android:textSize="12dp"/>
 
             </LinearLayout>
 
@@ -825,34 +822,34 @@
                                     android:layout_height="match_parent"
                                     android:gravity="center_vertical"
                                     android:text="13:13"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/abc_primary_text_material_light"/>
+                                    android:textColor="@color/abc_primary_text_material_light"
+                                    android:textStyle="bold"/>
 
                                 <TextView
+                                    android:id="@+id/textView23"
                                     android:layout_width="40dp"
                                     android:layout_height="wrap_content"
-                                    android:gravity="center_vertical|center_horizontal"
-                                    android:text="+0"
-                                    android:textStyle="bold"
-                                    android:id="@+id/textView23"
-                                    android:textColor="#4CAF50"
-                                    android:background="@drawable/rounded_corner_on_schedule"
                                     android:layout_marginLeft="10dp"
-                                    android:visibility="invisible"
+                                    android:background="@drawable/rounded_corner_on_schedule"
+                                    android:gravity="center_vertical|center_horizontal"
                                     android:maxLines="1"
+                                    android:text="+0"
+                                    android:textColor="#4CAF50"
+                                    android:textStyle="bold"
+                                    android:visibility="invisible"
                                     />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:paddingStart="9dp"
-                                    android:text="Hamburg - Reperbahn (S)"
-                                    android:textStyle="bold"
-                                    android:maxLines="2"
                                     android:layout_gravity="center_vertical"
                                     android:ellipsize="end"
-                                    android:textColor="@color/abc_primary_text_material_light"/>
+                                    android:gravity="center_vertical"
+                                    android:maxLines="2"
+                                    android:paddingStart="9dp"
+                                    android:text="Hamburg - Reperbahn (S)"
+                                    android:textColor="@color/abc_primary_text_material_light"
+                                    android:textStyle="bold"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -870,10 +867,10 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:text="Berliner Tor, Hamburg"
                                     android:ellipsize="end"
                                     android:fontFamily="sans-serif-light"
+                                    android:gravity="center_vertical"
+                                    android:text="Berliner Tor, Hamburg"
                                     android:textColor="#555555"/>
                             </LinearLayout>
 
@@ -917,34 +914,34 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:orientation="vertical"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginLeft="20dp">
+                            android:layout_marginLeft="20dp"
+                            android:orientation="vertical">
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="13dp"
                                 android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="13dp"/>
+                                android:tint="#555555"/>
 
                             <ImageView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="-10dp"
                                 android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#555555"
-                                android:layout_marginTop="-10dp"/>
+                                android:tint="#555555"/>
                         </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
+                            android:layout_marginLeft="4dp"
+                            android:fontFamily="sans-serif-light"
                             android:gravity="center_vertical"
                             android:text="Fahrt 1 Station (5min)"
-                            android:layout_marginLeft="4dp"
-                            android:textColor="@color/abc_secondary_text_material_light"
-                            android:fontFamily="sans-serif-light"/>
+                            android:textColor="@color/abc_secondary_text_material_light"/>
 
 
                     </LinearLayout>
@@ -980,7 +977,6 @@
                 </LinearLayout>
 
 
-
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -996,56 +992,56 @@
                             android:layout_height="1dp"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="4dp"
-                            android:background="@color/grey_200"
-                            android:layout_marginRight="5dp"/>
+                            android:layout_marginRight="5dp"
+                            android:background="@color/grey_200"/>
 
                         <TextView
                             android:id="@+id/textView7"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:text="15:00"
-                            android:textStyle="bold"
                             android:gravity="center_vertical"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:text="15:00"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
                         <View
                             android:layout_width="50dp"
                             android:layout_height="1dp"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="4dp"
-                            android:background="@color/grey_200"
-                            android:layout_marginRight="5dp"/>
+                            android:layout_marginRight="5dp"
+                            android:background="@color/grey_200"/>
 
                         <TextView
                             android:id="@+id/textView6"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:text="Borgweg (U)"
-                            android:textStyle="bold"
-                            android:maxLines="2"
                             android:layout_gravity="center_vertical"
                             android:ellipsize="end"
-                            android:textColor="@color/abc_primary_text_material_light"/>
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
+                            android:text="Borgweg (U)"
+                            android:textColor="@color/abc_primary_text_material_light"
+                            android:textStyle="bold"/>
 
                         <View
                             android:layout_width="wrap_content"
                             android:layout_height="1dp"
                             android:layout_gravity="center_vertical"
                             android:layout_marginLeft="4dp"
+                            android:layout_marginRight="4dp"
                             android:layout_weight="1"
-                            android:background="@color/grey_200"
-                            android:layout_marginRight="4dp"/>
+                            android:background="@color/grey_200"/>
 
                         <TextView
                             style="@style/JourneySection"
                             android:layout_height="25dp"
-                            android:background="@drawable/rounded_corner_outline_light"
-                            android:text="Gleis 1"
-                            android:textSize="12dp"
                             android:layout_gravity="center_vertical"
+                            android:background="@drawable/rounded_corner_outline_light"
+                            android:fontFamily="sans-serif-light"
+                            android:text="Gleis 1"
                             android:textColor="@color/abc_secondary_text_material_light"
-                            android:fontFamily="sans-serif-light"/>
+                            android:textSize="12dp"/>
 
                     </LinearLayout>
 
