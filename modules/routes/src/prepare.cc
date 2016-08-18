@@ -8,7 +8,7 @@
 #include "conf/simple_config.h"
 #include "parser/file.h"
 
-#include "motis/routes/prepare/relation_matcher.h"
+#include "motis/routes/prepare/rel/relation_matcher.h"
 
 #include "motis/routes/fbs/RoutesAuxiliary_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
@@ -64,7 +64,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
-  auto const schedule = GetSchedule(schedule_buf.buf_);
-  relation_matcher matcher(schedule, opt.osm_);
+  // auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
+  // auto const schedule = GetSchedule(schedule_buf.buf_);
+  // relation_matcher matcher(schedule, opt.osm_);
+
+  do_something(opt.osm_);
+
 }
