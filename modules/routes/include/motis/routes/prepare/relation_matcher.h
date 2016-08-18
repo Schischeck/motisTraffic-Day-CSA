@@ -22,11 +22,13 @@ public:
 
 private:
   void load_osm();
-  bool nodes_in_order(segment_match sm);
+  // bool nodes_in_order(segment_match sm);
 
-  std::map<int64_t, osm_node> nodes_;
-  std::map<int64_t, osm_relation> relations_;
-  std::map<int64_t, osm_way> ways_;
+  std::vector<relation> relations_;
+
+  std::map<int64_t, std::unique_ptr<way>> ways_;
+  std::map<int64_t, std::vector<node*>> pending_nodes_;
+
   motis::loader::Schedule const *sched_;
   std::string const &osm_file_;
 };
