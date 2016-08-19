@@ -1,4 +1,4 @@
-package de.motis_project.app;
+package de.motis_project.app.detail;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +10,8 @@ import java.util.List;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.motis_project.app.JourneyUtil;
+import de.motis_project.app.R;
 import motis.Connection;
 import motis.Transport;
 

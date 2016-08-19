@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import de.motis_project.app.JourneyDetail;
+import de.motis_project.app.detail.JourneyDetail;
 import de.motis_project.app.R;
 import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderAdapter;

@@ -1,4 +1,4 @@
-package de.motis_project.app;
+package de.motis_project.app.detail;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +15,8 @@ import java.util.Date;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.motis_project.app.R;
+import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
 import motis.Connection;
 
