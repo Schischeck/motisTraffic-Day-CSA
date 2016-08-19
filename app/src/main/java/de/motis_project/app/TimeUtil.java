@@ -18,7 +18,9 @@ public class TimeUtil {
         if (displayHours != 0) {
             durationBuf.append(displayHours).append("h ");
         }
-        durationBuf.append(displayMinutes).append("min");
+        if (displayMinutes != 0) {
+            durationBuf.append(displayMinutes).append("min");
+        }
 
         return durationBuf.toString();
     }
@@ -31,10 +33,6 @@ public class TimeUtil {
         return SimpleDateFormat
                 .getTimeInstance(java.text.DateFormat.SHORT)
                 .format(time);
-    }
-
-    public static String formatDate(long unixTimestamp) {
-        return formatDate(new Date(unixTimestamp * 1000));
     }
 
     public static String formatDate(Date date) {
