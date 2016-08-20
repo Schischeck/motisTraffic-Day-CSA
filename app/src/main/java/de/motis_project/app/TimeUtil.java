@@ -35,6 +35,10 @@ public class TimeUtil {
                 .format(time);
     }
 
+    public static String formatDate(long unixTimestamp) {
+        return formatDate(new Date(unixTimestamp * 1000));
+    }
+
     public static String formatDate(Date date) {
         return SimpleDateFormat
                 .getDateInstance(java.text.DateFormat.SHORT)

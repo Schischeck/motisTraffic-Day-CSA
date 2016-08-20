@@ -11,11 +11,15 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
+import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderDecoration;
 import de.motis_project.app.query.Query;
@@ -58,16 +62,21 @@ public class JourneyListView
         }
     }
 
-    private static final int SEARCH_INTERVAL_MS = 7200 * 1000;
+    private static final int SECOND_IN_MS = 1000;
+    private static final int MINUTE_IN_MS = 60 * SECOND_IN_MS;
+    private static final int HOUR_IN_MS = 60 * MINUTE_IN_MS;
+    private static final int SEARCH_INTERVAL_MS = 2 * HOUR_IN_MS;
 
     public Query query;
     private Date intervalBegin, intervalEnd;
 
     private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
-    private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
     private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
+    private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
+    private final StickyHeaderDecoration stickyHeaderDecorator =
+            new StickyHeaderDecoration(adapter);
 
     public JourneyListView(Context context) {
         super(context);
@@ -88,7 +97,7 @@ public class JourneyListView
         setAdapter(adapter);
         addOnScrollListener(infiniteScroll);
         addItemDecoration(new SimpleDividerItemDecoration(getContext()));
-        addItemDecoration(new StickyHeaderDecoration(adapter));
+        addItemDecoration(stickyHeaderDecorator);
         setLayoutManager(layoutManager);
     }
 
@@ -97,15 +106,25 @@ public class JourneyListView
         intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
 
         data.clear();
+        adapter.recalculateHeaders();
         adapter.notifyDataSetChanged();
 
-        route(intervalBegin, intervalEnd, new Action1<RoutingResponse>() {
+        final Date searchIntervalBegin = new Date(intervalBegin.getTime());
+        final Date searchIntervalEnd = new Date(intervalEnd.getTime());
+        infiniteScroll.notifyLoadStart();
+        route(searchIntervalBegin, searchIntervalEnd, new Action1<RoutingResponse>() {
             @Override
             public void call(RoutingResponse res) {
+                infiniteScroll.notifyLoadFinished();
+                logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
+
                 data.clear();
                 for (int i = 0; i < res.connectionsLength(); i++) {
                     data.add(res.connections(i));
                 }
+                sortConnections(data);
+                adapter.recalculateHeaders();
+                stickyHeaderDecorator.clearHeaderCache();
                 adapter.notifyDataSetChanged();
             }
         });
@@ -148,22 +167,26 @@ public class JourneyListView
     @Override
     public void loadBefore() {
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
-        final Date searchIntervalEnd = new Date(intervalBegin.getTime());
+        final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
         route(searchIntervalBegin, searchIntervalEnd,
               new Action1<RoutingResponse>() {
                   @Override
                   public void call(RoutingResponse res) {
-                      System.out.println("LOAD BEFORE FINISHED " + searchIntervalBegin);
+                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 
                       List<Connection> newData = new ArrayList<>(res.connectionsLength());
                       for (int i = 0; i < res.connectionsLength(); ++i) {
                           newData.add(res.connections(i));
                       }
 
+                      sortConnections(newData);
+
                       intervalBegin = searchIntervalBegin;
                       data.addAll(0, newData);
 
+                      adapter.recalculateHeaders();
+                      stickyHeaderDecorator.clearHeaderCache();
                       adapter.notifyItemRangeInserted(1, newData.size());
                       layoutManager.scrollToPosition(newData.size() + 1);
 
@@ -174,27 +197,70 @@ public class JourneyListView
 
     @Override
     public void loadAfter() {
-        final Date searchIntervalBegin = new Date(intervalEnd.getTime());
+        final Date searchIntervalBegin = new Date(intervalEnd.getTime() + MINUTE_IN_MS);
         final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
         route(searchIntervalBegin, searchIntervalEnd,
               new Action1<RoutingResponse>() {
                   @Override
                   public void call(RoutingResponse res) {
-                      System.out.println("LOAD AFTER FINISHED " + searchIntervalEnd);
+                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
 
                       List<Connection> newData = new ArrayList<>(res.connectionsLength());
                       for (int i = 0; i < res.connectionsLength(); ++i) {
                           newData.add(res.connections(i));
                       }
 
+                      sortConnections(newData);
+
                       intervalEnd = searchIntervalEnd;
                       int oldDisplayItemCount = adapter.getItemCount();
                       data.addAll(newData);
                       adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
+                      adapter.recalculateHeaders();
+                      stickyHeaderDecorator.clearHeaderCache();
 
                       infiniteScroll.notifyLoadFinished();
                   }
               });
+    }
+
+    private void sortConnections(List<Connection> data) {
+        Collections.sort(data, new Comparator<Connection>() {
+            @Override
+            public int compare(Connection a, Connection b) {
+                long depA = a.stops(0).departure().scheduleTime();
+                long depB = b.stops(0).departure().scheduleTime();
+                return Long.compare(depA, depB);
+            }
+        });
+    }
+
+    private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,
+                             String type) {
+        System.out.println(new StringBuilder().append(type).append("  ").append("Routing from ")
+                                   .append(TimeUtil.formatDate(intervalBegin)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
+                                   .append(TimeUtil.formatDate(intervalEnd)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalEnd))
+
+        );
+        for (int i = 0; i < res.connectionsLength(); i++) {
+            Connection con = res.connections(i);
+            Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
+            Date arrTime =
+                    new Date(con.stops(con.stopsLength() - 1).arrival().scheduleTime() * 1000);
+            int interchangeCount = JourneyUtil.getSections(con).size() - 1;
+            long travelTime = con.stops(con.stopsLength() - 1).arrival().scheduleTime() -
+                              con.stops(0).departure().scheduleTime();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("start: ").append(depTime).append("  ");
+            sb.append("end: ").append(arrTime).append("  ");
+            sb.append("Duration: ").append(TimeUtil.getDurationString(travelTime / 60))
+                    .append("  ");
+            sb.append("Interchanges: ").append(interchangeCount).append("  ");
+            System.out.println(sb);
+        }
     }
 }
