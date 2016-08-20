@@ -22,186 +22,6 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:longClickable="false"
-                android:orientation="horizontal"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                >
-
-                <FrameLayout
-                    android:layout_width="10dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="12dp"
-                    >
-
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:background="@color/colorPrimary"/>
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/activity_vertical_margin"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"
-                    android:layout_weight="1">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="match_parent"
-                                    android:gravity="center_vertical"
-                                    android:text="13:13"
-                                    android:textColor="@color/abc_primary_text_material_light"
-                                    android:textStyle="bold"/>
-
-                                <TextView
-                                    android:id="@+id/textView22"
-                                    android:layout_width="40dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_vertical"
-                                    android:layout_marginLeft="10dp"
-                                    android:gravity="center_vertical|center_horizontal"
-                                    android:maxLines="1"
-                                    android:text="+1"
-                                    android:textColor="#FF5722"
-                                    android:textStyle="bold"
-                                    android:visibility="visible"/>
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_vertical"
-                                    android:ellipsize="end"
-                                    android:gravity="center_vertical"
-                                    android:maxLines="2"
-                                    android:paddingStart="9dp"
-                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
-                                    android:textColor="@color/abc_primary_text_material_light"
-                                    android:textStyle="bold"/>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <ImageView
-                                    android:layout_width="@dimen/abc_text_size_medium_material"
-                                    android:layout_height="match_parent"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_arrow_forward_black_24dp"
-                                    android:tint="@color/grey_200"/>
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:ellipsize="end"
-                                    android:fontFamily="sans-serif-light"
-                                    android:gravity="center_vertical"
-                                    android:text="Braha an der Brücke, Bad Gottleuba-Bergieshübel"
-                                    android:textColor="@color/secondary_text_default_material_light"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-                </FrameLayout>
-
-
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:orientation="horizontal"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin">
-
-                <FrameLayout
-                    android:layout_width="10dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="12dp">
-
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:background="@color/colorPrimary"/>
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    >
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_marginLeft="20dp"
-                            android:orientation="vertical">
-
-                            <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="13dp"
-                                android:src="@drawable/ic_expand_less_black_24dp"
-                                android:tint="#555555"/>
-
-                            <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="-10dp"
-                                android:src="@drawable/ic_expand_more_black_24dp"
-                                android:tint="#555555"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:layout_marginLeft="4dp"
-                            android:fontFamily="sans-serif-light"
-                            android:gravity="center_vertical"
-                            android:text="Fahrt 6 Stationen (34min)"
-                            android:textColor="@color/abc_secondary_text_material_light"/>
-
-
-                    </LinearLayout>
-                </FrameLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:orientation="horizontal"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -247,7 +67,7 @@
                             android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
                             android:text="+15"
-                            android:textColor="#FF5722"
+                            android:textColor="@color/colorAccent"
                             android:textStyle="bold"
                             android:visibility="visible"
                             />
@@ -297,7 +117,7 @@
                     android:fontFamily="sans-serif-light"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
-                    android:text="An. Gl. 6, 3 Minuten Umstiegszeit"
+                    android:text="An. Gl. 6, 3min Umstieg"
                     android:textColor="@color/abc_secondary_text_material_light"
                     android:textSize="12dp"/>
 
@@ -404,7 +224,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:orientation="horizontal">
+                                android:orientation="horizontal"
+                                android:visibility="gone">
 
                                 <ImageView
                                     android:layout_width="@dimen/abc_text_size_medium_material"
@@ -550,7 +371,7 @@
                             android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
                             android:text="+5"
-                            android:textColor="#FF5722"
+                            android:textColor="@color/colorAccent"
                             android:textStyle="bold"
                             android:visibility="visible"
                             />
@@ -625,7 +446,7 @@
                             android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
                             android:text="+6"
-                            android:textColor="#FF5722"
+                            android:textColor="@color/colorAccent"
                             android:textStyle="bold"
                             android:visibility="visible"
                             />
@@ -695,7 +516,7 @@
                             android:gravity="center_vertical|center_horizontal"
                             android:maxLines="1"
                             android:text="+4"
-                            android:textColor="#FF5722"
+                            android:textColor="@color/colorAccent"
                             android:textStyle="bold"
                             android:visibility="visible"
                             />
@@ -748,7 +569,7 @@
                     android:fontFamily="sans-serif-light"
                     android:paddingEnd="3dp"
                     android:paddingStart="3dp"
-                    android:text="An. Gl. 12 Süd, 3 Minuten Fußweg"
+                    android:text="An. Gl. 12 Süd, 3min Fußweg"
                     android:textColor="@color/abc_secondary_text_material_light"
                     android:textSize="12dp"/>
 

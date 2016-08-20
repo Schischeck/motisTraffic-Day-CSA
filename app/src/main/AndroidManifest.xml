@@ -32,7 +32,7 @@
                 android:resource="@xml/searchable"/>
         </activity>
         <activity
-            android:name=".JourneyDetail"
+            android:name=".detail.JourneyDetail"
             android:label="@string/title_activity_journay_detail"
             android:parentActivityName=".MainActivity">
             <meta-data

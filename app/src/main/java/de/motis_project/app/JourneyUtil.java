@@ -12,12 +12,12 @@ import motis.Transport;
 
 public class JourneyUtil {
     public static class Section {
+        public final int from, to;
+
         public Section(int from, int to) {
             this.from = from;
             this.to = to;
         }
-
-        int from, to;
     }
 
     public static class DisplayTransport {

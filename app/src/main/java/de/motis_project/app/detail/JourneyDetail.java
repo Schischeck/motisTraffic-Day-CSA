@@ -15,6 +15,7 @@ import java.util.Date;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
@@ -71,6 +72,10 @@ public class JourneyDetail extends AppCompatActivity {
         LayoutInflater inflater = getLayoutInflater();
         journeyDetails.addView(
                 new FirstTransportHeader(con, journeyDetails, inflater).layout, 0);
+        journeyDetails.addView(
+                new TransportDetail(
+                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
+                        inflater).layout, 1);
     }
 
     void initHeader() {

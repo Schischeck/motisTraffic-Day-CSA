@@ -12,6 +12,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
+import de.motis_project.app.Str;
 import motis.Connection;
 import motis.Transport;
 
@@ -53,18 +54,14 @@ public class FirstTransportHeader {
             return "";
         }
 
-        return san(transport.name());
+        return Str.san(transport.name());
     }
 
     private static String getTrackName(Connection con) {
         if (con.stopsLength() == 0) {
             return "";
         } else {
-            return san(con.stops(0).departure().track());
+            return Str.san(con.stops(0).departure().track());
         }
-    }
-
-    private static String san(String s) {
-        return s == null ? "" : s;
     }
 }
