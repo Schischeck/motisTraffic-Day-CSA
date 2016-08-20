@@ -75,8 +75,7 @@ public class JourneyListView
     private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
-    private final StickyHeaderDecoration stickyHeaderDecorator =
-            new StickyHeaderDecoration(adapter);
+    private final StickyHeaderDecoration stickyHeaderDecorator = new StickyHeaderDecoration(adapter);
 
     public JourneyListView(Context context) {
         super(context);
@@ -188,7 +187,9 @@ public class JourneyListView
                       adapter.recalculateHeaders();
                       stickyHeaderDecorator.clearHeaderCache();
                       adapter.notifyItemRangeInserted(1, newData.size());
-                      layoutManager.scrollToPosition(newData.size() + 1);
+                      if (layoutManager.findFirstVisibleItemPosition() == 0) {
+                          layoutManager.scrollToPosition(newData.size() + 1);
+                      }
 
                       infiniteScroll.notifyLoadFinished(newData.size());
                   }
