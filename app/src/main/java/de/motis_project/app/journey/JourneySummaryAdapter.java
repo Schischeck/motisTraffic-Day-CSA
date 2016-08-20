@@ -156,10 +156,13 @@ public class JourneySummaryAdapter
 
         Connection con = data.get(index);
 
-        TextView headerText = (TextView) viewholder.itemView.findViewById(R.id.journey_header_text);
         String depStation = con.stops(0).station().name();
+        TextView headerDepText = (TextView) viewholder.itemView.findViewById(R.id.journey_header_departure_text);
+        headerDepText.setText(depStation);
+
         String arrStation = con.stops(con.stopsLength() - 1).station().name();
-        headerText.setText(depStation + "\n" + arrStation);
+        TextView headerArrText = (TextView) viewholder.itemView.findViewById(R.id.journey_header_arrival_text);
+        headerArrText.setText(arrStation);
 
         TextView headerDate = (TextView) viewholder.itemView.findViewById(R.id.journey_header_date);
         headerDate.setText(TimeUtil.formatDate(con.stops(0).departure().time()));

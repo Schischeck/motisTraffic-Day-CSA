@@ -9,23 +9,43 @@
               android:paddingRight="@dimen/activity_horizontal_margin"
               android:paddingTop="3dp">
 
-    <TextView
-        android:id="@+id/journey_header_text"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="13dp"/>
+        android:layout_marginRight="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+
+        <TextView
+            android:id="@+id/journey_header_departure_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:singleLine="true"
+            android:scrollHorizontally="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/journey_header_arrival_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:singleLine="true"
+            android:scrollHorizontally="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"/>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/journey_header_date"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center"
         android:textColor="@android:color/white"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        />
 </LinearLayout>
