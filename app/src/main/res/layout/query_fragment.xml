@@ -68,7 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center|right"
-                android:layout_margin="24dp"
+                android:layout_marginRight="24dp"
                 android:src="@drawable/ic_swap_vert_black_24dp"
                 android:tint="@android:color/white"
                 app:fabSize="mini"/>
@@ -77,8 +77,11 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:baselineAligned="false"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
             android:orientation="horizontal"
             android:weightSum="1"
             app:layout_scrollFlags="scroll|enterAlways">
@@ -91,16 +94,12 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:gravity="center|left"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin"
                 android:weightSum="1">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:layout_gravity="left"
+                    android:layout_gravity="center"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_date_range_black_24dp"
                     android:tint="@android:color/white"/>
@@ -125,11 +124,7 @@
                 android:layout_weight="0.5"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
-                android:gravity="left|center"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin">
+                android:gravity="left|center">
 
                 <ImageView
                     android:layout_width="24dp"
