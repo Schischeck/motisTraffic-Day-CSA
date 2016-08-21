@@ -20,7 +20,7 @@
             android:paddingBottom="@dimen/activity_vertical_margin"
             android:paddingTop="@dimen/activity_vertical_margin">
 
-            <include layout="@layout/transport_header"/>
+            <include layout="@layout/detail_transport_header"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

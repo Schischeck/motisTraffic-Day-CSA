@@ -11,11 +11,10 @@
 
     <TextView
         style="@style/JourneySection"
+        android:id="@+id/detail_transport_header_transport_name"
         android:background="@drawable/rounded_corner_accent"
         android:drawableStart="@drawable/ic_directions_railway_black_24dp"
-        android:elegantTextHeight="true"
-        android:freezesText="true"
-        android:text="Bus C106"/>
+        android:freezesText="true"/>
 
     <View
         android:layout_width="wrap_content"
@@ -26,16 +25,16 @@
         android:background="@color/grey_200"/>
 
     <TextView
+        android:id="@+id/detail_transport_header_interchange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-light"
         android:freezesText="true"
-        android:paddingEnd="3dp"
-        android:paddingStart="3dp"
-        android:text="An. Gl. 6, 3min Umstieg"
+        android:paddingEnd="4dp"
+        android:paddingStart="4dp"
         android:textColor="@color/abc_secondary_text_material_light"
-        android:textSize="12dp"/>
+        android:textSize="12sp"/>
 
     <View
         android:layout_width="wrap_content"
@@ -46,7 +45,7 @@
         android:background="@color/grey_200"/>
 
     <TextView
-        android:id="@+id/detail_first_transport_track"
+        android:id="@+id/detail_transport_header_track"
         style="@style/Track"/>
 
 </LinearLayout>

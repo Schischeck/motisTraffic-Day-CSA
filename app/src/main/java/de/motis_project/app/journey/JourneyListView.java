@@ -258,7 +258,7 @@ public class JourneyListView
             StringBuilder sb = new StringBuilder();
             sb.append("start: ").append(depTime).append("  ");
             sb.append("end: ").append(arrTime).append("  ");
-            sb.append("Duration: ").append(TimeUtil.getDurationString(travelTime / 60))
+            sb.append("Duration: ").append(TimeUtil.formatDuration(travelTime / 60))
                     .append("  ");
             sb.append("Interchanges: ").append(interchangeCount).append("  ");
             System.out.println(sb);

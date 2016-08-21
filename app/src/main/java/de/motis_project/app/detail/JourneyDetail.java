@@ -93,6 +93,12 @@ public class JourneyDetail extends AppCompatActivity {
                 new TransportTargetStation(
                         con, JourneyUtil.getSections(con).get(0), journeyDetails,
                         inflater).layout, 3);
+
+        journeyDetails.addView(
+                new TransportHeader(
+                        con, JourneyUtil.getSections(con).get(0),
+                        JourneyUtil.getSections(con).get(1), journeyDetails,
+                        inflater).layout, 4);
     }
 
     @Override
@@ -116,7 +122,7 @@ public class JourneyDetail extends AppCompatActivity {
         arrSchedTime.setText(TimeUtil.formatTime(arrTime));
 
         long minutes = (arrTime - depTime) / 60;
-        travelDuration.setText(TimeUtil.getDurationString(minutes));
+        travelDuration.setText(TimeUtil.formatDuration(minutes));
 
         int transferCount = getNumberOfTransfers(con);
         String transferPlural = (transferCount == 1) ? transfer : transfers;

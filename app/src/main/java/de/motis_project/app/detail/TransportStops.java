@@ -57,7 +57,7 @@ public class TransportStops {
         long dep = con.stops(section.from).departure().scheduleTime();
         long arr = con.stops(section.to).arrival().scheduleTime();
         long durationMinutes = (arr - dep) / 60;
-        String durationString = TimeUtil.getDurationString(durationMinutes);
+        String durationString = TimeUtil.formatDuration(durationMinutes);
         int numStops = section.to - section.from - 1;
         if (numStops == 0) {
             summary.setText(

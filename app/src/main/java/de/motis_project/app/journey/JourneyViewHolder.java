@@ -57,7 +57,7 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         EventInfo arr = con.stops(con.stopsLength() - 1).arrival();
 
         long minutes = (arr.scheduleTime() - dep.scheduleTime()) / 60;
-        duration.setText(TimeUtil.getDurationString(minutes));
+        duration.setText(TimeUtil.formatDuration(minutes));
 
         depSchedTime.setText(TimeUtil.formatTime(dep.scheduleTime()));
         depTime.setText(TimeUtil.formatTime(dep.time()));

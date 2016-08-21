@@ -9,7 +9,7 @@ public class TimeUtil {
     static StringBuffer durationBuf = new StringBuffer();
 
     @NonNull
-    public static String getDurationString(long minutes) {
+    public static String formatDuration(long minutes) {
         durationBuf.setLength(0);
 
         long displayMinutes = minutes % 60;
