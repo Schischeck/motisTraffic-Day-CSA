@@ -12,8 +12,12 @@
     <string name="transfers">%d Umstiege</string>
     <string name="track">Gleis %s</string>
 
+    <!-- Fahrt 3 Stationen (1h 2min) -->
+    <string name="detail_transport_stops_summary">Fahrt %1$d %2$s (%3$s)</string>
+    <string name="stop">Station</string>
+    <string name="stops">Stationen</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="title_activity_journay_detail">Detailansicht</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <!--<string name="detail_transport_stops_summary">Fahrt %d %s (%s)</string>-->
 </resources>
