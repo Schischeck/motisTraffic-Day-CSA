@@ -76,10 +76,18 @@ public class JourneyDetail extends AppCompatActivity {
                 new TransportDetail(
                         con, JourneyUtil.getSections(con).get(0), journeyDetails,
                         inflater).layout, 1);
+
         journeyDetails.addView(
                 new TransportStops(
                         con, JourneyUtil.getSections(con).get(0), journeyDetails,
                         inflater).layout, 2);
+
+        /*
+        journeyDetails.addView(
+                new TransportTargetStation(
+                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
+                        inflater).layout, 3);
+                        */
         journeyDetails.addView(
                 new TransportTargetStation(
                         con, JourneyUtil.getSections(con).get(0), journeyDetails,

@@ -22,6 +22,9 @@ public class TransportStops {
     @BindString(R.string.detail_transport_stops_summary)
     String summaryTemplate;
 
+    @BindString(R.string.detail_transport_stops_summary_no_stopover)
+    String summaryNoStopoverTemplate;
+
     @BindString(R.string.stop)
     String stop;
 
@@ -50,21 +53,32 @@ public class TransportStops {
         layout = inflater.inflate(R.layout.detail_transport_stops, parent, false);
         ButterKnife.bind(this, layout);
 
-        setExpanded(false);
 
         long dep = con.stops(section.from).departure().scheduleTime();
         long arr = con.stops(section.to).arrival().scheduleTime();
         long durationMinutes = (arr - dep) / 60;
-        int numStops = section.to - section.from;
-        summary.setText(
-                String.format(summaryTemplate,
-                              section.to - section.from,
-                              numStops == 1 ? stop : stops,
-                              TimeUtil.getDurationString(durationMinutes)));
+        String durationString = TimeUtil.getDurationString(durationMinutes);
+        int numStops = section.to - section.from - 1;
+        if (numStops == 0) {
+            summary.setText(
+                    String.format(summaryNoStopoverTemplate, durationString));
+        } else {
+            summary.setText(
+                    String.format(summaryTemplate,
+                                  numStops,
+                                  numStops == 1 ? stop : stops,
+                                  durationString));
+        }
+
+        setExpanded(numStops != 0, false);
     }
 
-    void setExpanded(boolean expaneded) {
-        if (expaneded) {
+    void setExpanded(boolean visible, boolean expanded) {
+        int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+        upper.setVisibility(visibility);
+        lower.setVisibility(visibility);
+
+        if (expanded) {
             upper.setImageDrawable(more);
             lower.setImageDrawable(less);
         } else {
