@@ -3,8 +3,17 @@
 namespace motis {
 namespace routing {
 
+constexpr duration MAX_TRAVEL_TIME = 1440;
+
 struct travel_time {
   duration travel_time_, travel_time_lb_;
+};
+
+struct get_travel_time_lb {
+  template <typename Label>
+  duration operator()(Label const* l) {
+    return l->travel_time_lb_;
+  }
 };
 
 struct travel_time_initializer {
@@ -84,7 +93,7 @@ struct travel_time_alpha_dominance {
 struct travel_time_filter {
   template <typename Label>
   static bool is_filtered(Label const& l) {
-    return l.travel_time_lb_ > 1440;
+    return l.travel_time_lb_ > MAX_TRAVEL_TIME;
   }
 };
 

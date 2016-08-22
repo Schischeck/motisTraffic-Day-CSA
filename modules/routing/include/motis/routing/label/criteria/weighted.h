@@ -1,20 +1,38 @@
 #pragma once
 
+#include "motis/routing/label/criteria/transfers.h"
+#include "motis/routing/label/criteria/travel_time.h"
+
 namespace motis {
 namespace routing {
 
 constexpr auto TRANSFER_COST = 20;
+constexpr auto MAX_WEIGHTED = MAX_TRAVEL_TIME + TRANSFER_COST * MAX_TRANSFERS;
 
 struct weighted {
   duration weighted_, weighted_lb_;
+};
+
+struct get_weighted_lb {
+  template <typename Label>
+  duration operator()(Label const* l) {
+    return l->weighted_lb_;
+  }
 };
 
 struct weighted_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
     l.weighted_ = std::abs(l.now_ - l.start_);
-    l.weighted_lb_ = l.weighted_ + lb.travel_time_[l.get_node()->id_] +
-                     lb.transfers_[l.get_node()->id_] * TRANSFER_COST;
+
+    auto const tt_lb = lb.travel_time_[l.get_node()->id_];
+    auto const ic_lb = lb.transfers_[l.get_node()->id_];
+    if (lb.travel_time_.is_reachable(tt_lb) &&
+        lb.transfers_.is_reachable(ic_lb)) {
+      l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);
+    } else {
+      l.weighted_lb_ = std::numeric_limits<duration>::max();
+    }
   }
 };
 
@@ -26,8 +44,14 @@ struct weighted_updater {
       l.weighted_ += TRANSFER_COST;
     }
 
-    l.weighted_lb_ = l.weighted_ + lb.travel_time_[l.get_node()->id_] +
-                     lb.transfers_[l.get_node()->id_] * TRANSFER_COST;
+    auto const tt_lb = lb.travel_time_[l.get_node()->id_];
+    auto const ic_lb = lb.transfers_[l.get_node()->id_];
+    if (lb.travel_time_.is_reachable(tt_lb) &&
+        lb.transfers_.is_reachable(ic_lb)) {
+      l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);
+    } else {
+      l.weighted_lb_ = std::numeric_limits<duration>::max();
+    }
   }
 };
 
@@ -51,7 +75,7 @@ struct weighted_dominance {
 struct weighted_filter {
   template <typename Label>
   static bool is_filtered(Label const& l) {
-    return l.weighted_lb_ > (1440 + TRANSFER_COST * 6);
+    return l.weighted_lb_ > MAX_WEIGHTED;
   }
 };
 
